@@ -1,0 +1,46 @@
+a:link			{ font-family: Arial, Helvetica, sans-serif; color: #3333FF; text-decoration: underline; line-height: normal} 
+a:visited		{ font-family: Arial, Helvetica, sans-serif; color: #993399; text-decoration: underline; line-height: normal} 
+#nolinelink		{ font-family: Verdana, Helvetica, sans-serif; font-size: 10px; color: #0000FF; line-height: normal; text-decoration: none}
+#orangelink		{ font-family: Arial, Helvetica, sans-serif; color: #CC6600; text-decoration: underline; line-height: normal} 
+#blacklink		{ font-family: Verdana, Helvetica, sans-serif; font-size: 10px;color: #000000 }
+#whitelink		{ font-family: Verdana, Helvetica, sans-serif; font-size: 10px;color: #FFFFFF }
+
+.mainSmall		{ font-family: Verdana, Helvetica, sans-serif; font-size: 11px; line-height: normal}
+.mainSmallG		{ font-family: Verdana, Helvetica, sans-serif; font-size: 11px; line-height: normal; color: #666666}
+.mainBodyR		{ font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 10pt; color: #990000}
+.mainBodyW		{ font-family: Verdana, Helvetica, sans-serif; font-size: 10pt; color: #FFFFFF} 
+.mainBody		{ font-family: Verdana, Helvetica, sans-serif; font-size: 10pt} 
+.mainTitle		{ font-family: Arial, Helvetica, sans-serif; font-size: 14pt; font-style: normal; font-weight: bold}
+.mainTitleW		{ font-family: Arial, Helvetica, sans-serif; font-size: 14pt; color: #FFFFFF}
+.mainSearchTitle	{ font-family: Arial, Helvetica, sans-serif; font-size: 14pt; font-style: normal; color: #666666}
+.mainSearchText		{ font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 10pt; color: #666666}
+.mainSearchUrls		{ font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 12pt}
+.mainCalendar		{ font-family: Arial, Helvetica, sans-serif; font-size: 14pt; font-style: normal; font-weight: bold}
+.mainSecHead		{ font-family: Arial, Helvetica, sans-serif; font-size: 12pt; font-style: normal; font-weight: bold; color: #000000}
+.mainBodyG		{ font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 10pt; font-weight: bold; color: #999999}
+.mainBigBody		{ font-family: Arial, Helvetica, sans-serif; font-size: 12pt}
+.mainBigBodyR		{ font-family: Arial, Helvetica, sans-serif; font-size: 12pt; color: #990000}
+.mainExample		{ font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 10pt; color: #0000FF}
+.mainSecHeadW		{ font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 12pt; font-weight: bold; color: #FFFFFF}
+.mainSmallTimes		{ font-family: "Times New Roman", Times, serif; font-size: 10pt}
+.mainVerySmall		{ font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 10px}
+
+.e2kSmall		{ font-family: Verdana, Helvetica, sans-serif; font-size: 11px; line-height: normal}
+.e2kBodyR		{ font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 10pt; color: #990000}
+.e2kBodyW		{ font-family: Verdana, Helvetica, sans-serif; font-size: 10pt; color: #FFFFFF} 
+.e2kBody		{ font-family: Verdana, Helvetica, sans-serif; font-size: 10pt} 
+.e2kTitle		{ font-family: Arial, Helvetica, sans-serif; font-size: 14pt; font-style: normal; font-weight: bold}
+.e2kCalendar		{ font-family: Arial, Helvetica, sans-serif; font-size: 14pt; font-style: normal; font-weight: bold}
+.e2kSecHead		{ font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 12pt; font-style: normal; font-weight: bold}
+.e2kBodyG		{ font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 10pt; font-weight: bold; color: #999999}
+.e2kBigBody		{ font-family: Arial, Helvetica, sans-serif; font-size: 12pt}
+.e2kExample		{ font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 10pt; color: #0000FF}
+.e2kTitleW		{ font-family: Arial, Helvetica, sans-serif; font-size: 14pt; color: #FFFFFF}
+.e2kSecHeadW		{ font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 12pt; font-weight: bold; color: #FFFFFF}
+.e2kSmallTimes		{ font-family: "Times New Roman", Times, serif; font-size: 10pt}
+.e2kVerySmall		{ font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 10px}
+
+p 			{font-family: Verdana, Helvetica, sans-serif; font-size: 10pt}
+.mainBColor		{background-color: #435D93}
+.e2kBColor		{background-color: #1D0D71}
+.mainSearchBanner       {background-color:#F0F0F0}

@@ -1,0 +1,32 @@
+		<div align="center">
+    		<!-- #BeginLibraryItem "/Library/footer.lbi" -->
+    		<!-- FOOTER -->
+				<hr noshade size="1" align="center">
+
+				 <p>
+                                                <a href="/">Home</a> |
+                                                <a href="http://www.archive.org/about/faqs.php#The_Wayback_Machine">Help</a>
+                                        </p><p>
+                                                <a href="http://www.archive.org">Internet Archive</a> |
+                                                <a href="http://www.archive.org/about/terms.php">Terms of Use</a> |
+                                                <a href="http://www.archive.org/about/terms.php#privacy">Privacy Policy</a>
+
+                                        </p>
+
+			<!-- /FOOTER -->
+			<!-- #EndLibraryItem -->	
+		</div>
+
+<!-- HIDE THE SEARCHING MESSAGE -->
+
+      <SCRIPT language="JavaScript">
+
+         if (typeof(hideWaitMsg) == 'function') {
+            hideWaitMsg();
+         }
+
+      </SCRIPT>
+
+   </body>
+
+</html>

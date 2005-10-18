@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="var" path="TOMCAT_HOME/common/lib/servlet-api.jar"/>
+	<classpathentry kind="var" path="TOMCAT_HOME/common/lib/jasper-runtime.jar"/>
+	<classpathentry kind="var" path="TOMCAT_HOME/common/lib/jsp-api.jar"/>
+	<classpathentry kind="src" path="src/java"/>
+	<classpathentry kind="src" path="/ArchiveOpenCrawler"/>
+	<classpathentry kind="lib" path="/ArchiveOpenCrawler/lib/je-2.0.54.jar"/>
+	<classpathentry kind="lib" path="/wb/src/webapp/WEB-INF/lib/commons-httpclient-3.0-beta1.jar"/>
+	<classpathentry kind="output" path="src/webapp/WEB-INF/classes"/>
+</classpath>
