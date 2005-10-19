@@ -1,3 +1,26 @@
+/* RawReplayUI
+ *
+ * Created on 2005/10/18 14:00:00
+ *
+ * Copyright (C) 2005 Internet Archive.
+ *
+ * This file is part of the Wayback Machine (crawler.archive.org).
+ *
+ * Wayback Machine is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or
+ * any later version.
+ *
+ * Wayback Machine is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser Public License
+ * along with Wayback Machine; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
 package org.archive.wayback.rawreplayui;
 
 import java.io.IOException;
@@ -30,6 +53,13 @@ import org.archive.wayback.core.WMRequest;
 import org.archive.wayback.core.WaybackLogic;
 import org.archive.wayback.exception.WaybackException;
 
+/**
+ * Simple implementation of ReplayUI, providing basic error messages, redirect
+ * to closest match, and unmodified HTTP access to ARC Records.
+ * 
+ * @author Brad Tofel
+ * @version $Date$, $Revision$
+ */
 public class RawReplayUI implements ReplayUI, RequestParser {
 	private final static String JSP_PATH = "replayui.jsppath";
 
@@ -38,9 +68,11 @@ public class RawReplayUI implements ReplayUI, RequestParser {
 
 	private String jspPath = null;
 
+	/**
+	 * Constructor
+	 */
 	public RawReplayUI() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 
 	public void init(Properties p) throws IOException {
@@ -95,7 +127,7 @@ public class RawReplayUI implements ReplayUI, RequestParser {
 
 								return wmRequest;
 							} catch (URIException e) {
-								// TODO Auto-generated catch block
+
 								e.printStackTrace();
 							}
 						}
@@ -128,7 +160,7 @@ public class RawReplayUI implements ReplayUI, RequestParser {
 	public void handle(final WaybackLogic wayback, WMRequest wmRequest,
 			HttpServletRequest request, HttpServletResponse response)
 			throws IOException, ServletException {
-		// TODO Auto-generated method stub
+
 		ResourceResults results;
 		ResourceIndex idx = wayback.getResourceIndex();
 		ResourceStore store = wayback.getResourceStore();
@@ -172,11 +204,11 @@ public class RawReplayUI implements ReplayUI, RequestParser {
 				return;
 			}
 		}
-		
+
 		// redirect to actual date if diff than request:
 		if (!wmRequest.getExactDateRequest().equals(
 				closest.getTimestamp().getDateStr())) {
-			String newUrl = makeReplayURI(request,closest);
+			String newUrl = makeReplayURI(request, closest);
 			response.sendRedirect(response.encodeRedirectURL(newUrl));
 			return;
 		}
@@ -253,14 +285,13 @@ public class RawReplayUI implements ReplayUI, RequestParser {
 
 		} else {
 
-//			String message = wmRequest.getRequestURI().getURI() + " on "
-//					+ wmRequest.getExactTimestamp().prettyDateTime()
-//					+ " is Not in the Archive";
+			// String message = wmRequest.getRequestURI().getURI() + " on "
+			// + wmRequest.getExactTimestamp().prettyDateTime()
+			// + " is Not in the Archive";
 
 			String message = wmRequest.getRequestURI().getURI()
 					+ " is not in the Archive";
-			
-			
+
 			showError(message, request, response);
 		}
 	}
@@ -281,6 +312,17 @@ public class RawReplayUI implements ReplayUI, RequestParser {
 				request, response);
 	}
 
+	/**
+	 * Display page to user indicating that an exception happenned while
+	 * processing their request
+	 * 
+	 * @param wmRequest
+	 * @param request
+	 * @param response
+	 * @param message
+	 * @throws IOException
+	 * @throws ServletException
+	 */
 	public void showWaybackException(final WMRequest wmRequest,
 			HttpServletRequest request, HttpServletResponse response,
 			String message) throws IOException, ServletException {
@@ -288,9 +330,19 @@ public class RawReplayUI implements ReplayUI, RequestParser {
 		showError("Bad request: " + message, request, response);
 	}
 
+	/**
+	 * Show a generic error message to the user, dispatching to a JSP to
+	 * actually render the template page.
+	 * 
+	 * @param message
+	 * @param request
+	 * @param response
+	 * @throws IOException
+	 * @throws ServletException
+	 */
 	public void showError(String message, HttpServletRequest request,
 			HttpServletResponse response) throws IOException, ServletException {
-		// TODO Auto-generated method stub
+
 		request.setAttribute("message", message);
 
 		proxyRequest(request, response, "ErrorResult.jsp");
@@ -311,7 +363,6 @@ public class RawReplayUI implements ReplayUI, RequestParser {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
 
 	}
 }

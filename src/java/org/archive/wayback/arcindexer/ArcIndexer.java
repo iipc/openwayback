@@ -1,3 +1,26 @@
+/* ArcIndexer
+ *
+ * Created on 2005/10/18 14:00:00
+ *
+ * Copyright (C) 2005 Internet Archive.
+ *
+ * This file is part of the Wayback Machine (crawler.archive.org).
+ *
+ * Wayback Machine is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or
+ * any later version.
+ *
+ * Wayback Machine is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser Public License
+ * along with Wayback Machine; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
 package org.archive.wayback.arcindexer;
 
 import java.io.File;
@@ -16,21 +39,37 @@ import org.archive.wayback.core.ResourceResults;
 import org.archive.wayback.core.Timestamp;
 import org.apache.commons.httpclient.Header;
 
+/**
+ * Transforms an ARC file into ResourceResults, or a serialized ResourceResults
+ * file(CDX).
+ * 
+ * @author Brad Tofel
+ * @version $Date$, $Revision$
+ */
 public class ArcIndexer {
 	private final static String LOCATION_HTTP_HEADER = "Location";
 
+	/**
+	 * Constructor
+	 */
 	public ArcIndexer() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 
+	/**
+	 * Create a ResourceResults representing the records in ARC file at arcPath.
+	 * 
+	 * @param arcPath
+	 * @return ResourceResults in arcPath.
+	 * @throws IOException
+	 */
 	public ResourceResults indexArc(final String arcPath) throws IOException {
 		ResourceResults results = new ResourceResults();
 		File arc = new File(arcPath);
 		ARCReader arcReader = ARCReaderFactory.get(arc);
 		arcReader.setParseHttpHeaders(true);
 		// doh. this does not generate quite the columns we need:
-		//arcReader.createCDXIndexFile(arcPath);
+		// arcReader.createCDXIndexFile(arcPath);
 		Iterator itr = arcReader.iterator();
 		while (itr.hasNext()) {
 			ARCRecord rec = (ARCRecord) itr.next();
@@ -38,11 +77,9 @@ public class ArcIndexer {
 			try {
 				result = arcRecordToResourceResult(rec, arc);
 			} catch (NullPointerException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 				continue;
 			} catch (ParseException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 				continue;
 			}
@@ -80,7 +117,7 @@ public class ArcIndexer {
 			}
 		}
 		result.setRedirectUrl(redirectUrl);
-		result.setTimeStamp(Timestamp.parseBefore(meta.getDate()));
+		result.setTimestamp(Timestamp.parseBefore(meta.getDate()));
 		UURI uriCap = new UURI(meta.getUrl(), false);
 		String searchHost = uriCap.getHostBasename();
 		String searchPath = uriCap.getEscapedPathQuery();
@@ -91,6 +128,13 @@ public class ArcIndexer {
 		return result;
 	}
 
+	/**
+	 * Write out ResourceResults into CDX file at cdxPath
+	 * 
+	 * @param results
+	 * @param cdxPath
+	 * @throws IOException
+	 */
 	public void serializeResults(final ResourceResults results,
 			final String cdxPath) throws IOException {
 		Iterator itr = results.iterator();
@@ -107,7 +151,6 @@ public class ArcIndexer {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
 		ArcIndexer indexer = new ArcIndexer();
 		String arc = args[0];
 		String cdx = args[1];

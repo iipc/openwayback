@@ -1,3 +1,26 @@
+/* BDBResourceIndex
+ *
+ * Created on 2005/10/18 14:00:00
+ *
+ * Copyright (C) 2005 Internet Archive.
+ *
+ * This file is part of the Wayback Machine (crawler.archive.org).
+ *
+ * Wayback Machine is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or
+ * any later version.
+ *
+ * Wayback Machine is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser Public License
+ * along with Wayback Machine; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
 package org.archive.wayback.localbdbresourceindex;
 
 import java.io.File;
@@ -7,21 +30,27 @@ import java.util.Iterator;
 import org.archive.wayback.core.ResourceResult;
 import org.archive.wayback.core.ResourceResults;
 
-//import com.sleepycat.bind.tuple.TupleBinding;
-//import com.sleepycat.bind.tuple.TupleInput;
-//import com.sleepycat.bind.tuple.TupleOutput;
+// import com.sleepycat.bind.tuple.TupleBinding;
+// import com.sleepycat.bind.tuple.TupleInput;
+// import com.sleepycat.bind.tuple.TupleOutput;
 import com.sleepycat.je.Cursor;
-//import com.sleepycat.je.CursorConfig;
+// import com.sleepycat.je.CursorConfig;
 import com.sleepycat.je.Database;
 import com.sleepycat.je.DatabaseConfig;
 import com.sleepycat.je.DatabaseEntry;
 import com.sleepycat.je.DatabaseException;
-//import com.sleepycat.je.DatabaseNotFoundException;
+// import com.sleepycat.je.DatabaseNotFoundException;
 import com.sleepycat.je.Environment;
 import com.sleepycat.je.EnvironmentConfig;
 import com.sleepycat.je.LockMode;
 import com.sleepycat.je.OperationStatus;
 
+/**
+ * ResourceResults-specific wrapper on top of the BDBJE database.
+ * 
+ * @author Brad Tofel
+ * @version $Date$, $Revision$
+ */
 public class BDBResourceIndex {
 	private String path;
 
@@ -31,8 +60,17 @@ public class BDBResourceIndex {
 
 	Database db = null;
 
-	//	Cursor cursor = null;
+	// Cursor cursor = null;
 
+	/**
+	 * Constructor
+	 * 
+	 * @param thePath
+	 *            directory where BDBJE files are stored
+	 * @param theDbName
+	 *            name of BDB database
+	 * @throws Exception
+	 */
 	public BDBResourceIndex(final String thePath, final String theDbName)
 			throws Exception {
 		super();
@@ -83,7 +121,7 @@ public class BDBResourceIndex {
 			OperationStatus status = cursor.getSearchKeyRange(key, value,
 					LockMode.DEFAULT);
 			while (status == OperationStatus.SUCCESS) {
-				//	        	String keyString = new String(key.getData());
+				// String keyString = new String(key.getData());
 
 				String valueString = new String(value.getData());
 				ResourceResult result = new ResourceResult();
@@ -107,7 +145,6 @@ public class BDBResourceIndex {
 		} catch (DatabaseException dbe) {
 			dbe.printStackTrace();
 		} catch (ParseException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return results;
@@ -151,7 +188,6 @@ public class BDBResourceIndex {
 		} catch (DatabaseException dbe) {
 			dbe.printStackTrace();
 		} catch (ParseException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return results;
@@ -178,7 +214,6 @@ public class BDBResourceIndex {
 			}
 			cursor.close();
 		} catch (DatabaseException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -187,7 +222,6 @@ public class BDBResourceIndex {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
 
 	}
 

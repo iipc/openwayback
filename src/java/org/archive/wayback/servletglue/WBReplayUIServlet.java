@@ -1,3 +1,26 @@
+/* WBReplayUIServlet
+ *
+ * Created on 2005/10/18 14:00:00
+ *
+ * Copyright (C) 2005 Internet Archive.
+ *
+ * This file is part of the Wayback Machine (crawler.archive.org).
+ *
+ * Wayback Machine is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or
+ * any later version.
+ *
+ * Wayback Machine is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser Public License
+ * along with Wayback Machine; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
 package org.archive.wayback.servletglue;
 
 import java.io.IOException;
@@ -14,6 +37,12 @@ import org.archive.wayback.ReplayUI;
 import org.archive.wayback.core.WMRequest;
 import org.archive.wayback.core.WaybackLogic;
 
+/**
+ * Servlet implementation for Wayback Replay requests.
+ * 
+ * @author Brad Tofel
+ * @version $Date$, $Revision$
+ */
 public class WBReplayUIServlet extends HttpServlet {
 	private static final String WMREQUEST_ATTRIBUTE = "wmrequest.attribute";
 
@@ -21,9 +50,11 @@ public class WBReplayUIServlet extends HttpServlet {
 
 	private WaybackLogic wayback = new WaybackLogic();
 
+	/**
+	 * Constructor
+	 */
 	public WBReplayUIServlet() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 
 	public void init(ServletConfig c) throws ServletException {
@@ -56,7 +87,6 @@ public class WBReplayUIServlet extends HttpServlet {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
 
 	}
 

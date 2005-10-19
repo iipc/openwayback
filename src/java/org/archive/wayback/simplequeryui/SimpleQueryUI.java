@@ -1,3 +1,25 @@
+/* SimpleQueryUI
+ *
+ * Created on 2005/10/18 14:00:00
+ *
+ * Copyright (C) 2005 Internet Archive.
+ *
+ * This file is part of the Wayback Machine (crawler.archive.org).
+ *
+ * Wayback Machine is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or
+ * any later version.
+ *
+ * Wayback Machine is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser Public License
+ * along with Wayback Machine; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
 package org.archive.wayback.simplequeryui;
 
 import java.io.IOException;
@@ -24,6 +46,13 @@ import org.archive.wayback.core.WMRequest;
 import org.archive.wayback.core.WaybackLogic;
 import org.archive.wayback.exception.WaybackException;
 
+/**
+ * Trivial QueryUI HTTP implementation. Basic error types are reported, and very
+ * non-scalable HTML UI using dispatched JSP pages.
+ * 
+ * @author Brad Tofel
+ * @version $Date$, $Revision$
+ */
 public class SimpleQueryUI implements QueryUI, RequestParser {
 	private final static String JSP_PATH = "queryui.jsppath";
 
@@ -35,9 +64,11 @@ public class SimpleQueryUI implements QueryUI, RequestParser {
 
 	private String jspPath = null;
 
+	/**
+	 * Constructor
+	 */
 	public SimpleQueryUI() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 
 	public void init(Properties p) throws IOException {
@@ -48,7 +79,6 @@ public class SimpleQueryUI implements QueryUI, RequestParser {
 	}
 
 	public WMRequest parseRequest(HttpServletRequest request) {
-		// TODO Auto-generated method stub
 		WMRequest wmRequest = null;
 		Matcher matcher = null;
 
@@ -70,7 +100,6 @@ public class SimpleQueryUI implements QueryUI, RequestParser {
 				wmRequest.setStartTimestamp(Timestamp.parseBefore(dateStr));
 				wmRequest.setEndTimestamp(Timestamp.parseAfter(dateStr));
 			} catch (ParseException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 				return null;
 			}
@@ -96,7 +125,6 @@ public class SimpleQueryUI implements QueryUI, RequestParser {
 					wmRequest.setStartTimestamp(Timestamp.parseBefore(dateStr));
 					wmRequest.setEndTimestamp(Timestamp.parseAfter(dateStr));
 				} catch (ParseException e1) {
-					// TODO Auto-generated catch block
 					e1.printStackTrace();
 					return null;
 				}
@@ -182,6 +210,16 @@ public class SimpleQueryUI implements QueryUI, RequestParser {
 				response);
 	}
 
+	/**
+	 * Display a WaybackException message
+	 * 
+	 * @param wmRequest
+	 * @param request
+	 * @param response
+	 * @param message
+	 * @throws IOException
+	 * @throws ServletException
+	 */
 	public void showWaybackException(WMRequest wmRequest,
 			HttpServletRequest request, HttpServletResponse response,
 			String message) throws IOException, ServletException {
@@ -191,7 +229,7 @@ public class SimpleQueryUI implements QueryUI, RequestParser {
 
 	public void showNoMatches(WMRequest wmRequest, HttpServletRequest request,
 			HttpServletResponse response) throws IOException, ServletException {
-		// TODO Auto-generated method stub
+
 		request.setAttribute("results", wmRequest);
 		String url = wmRequest.getRequestURI().getEscapedURI();
 		String prettyStart = wmRequest.getStartTimestamp().prettyDateTime();
@@ -202,14 +240,30 @@ public class SimpleQueryUI implements QueryUI, RequestParser {
 		showError(message, request, response);
 	}
 
+	/**
+	 * Display a generic error message with simple template header+footer
+	 * 
+	 * @param message
+	 * @param request
+	 * @param response
+	 * @throws IOException
+	 * @throws ServletException
+	 */
 	public void showError(String message, HttpServletRequest request,
 			HttpServletResponse response) throws IOException, ServletException {
-		// TODO Auto-generated method stub
+
 		request.setAttribute("message", message);
 
 		proxyRequest(request, response, "ErrorResult.jsp");
 	}
 
+	/**
+	 * @param request
+	 * @param response
+	 * @param jspName
+	 * @throws ServletException
+	 * @throws IOException
+	 */
 	private void proxyRequest(HttpServletRequest request,
 			HttpServletResponse response, final String jspName)
 			throws ServletException, IOException {
@@ -225,7 +279,6 @@ public class SimpleQueryUI implements QueryUI, RequestParser {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
 
 	}
 

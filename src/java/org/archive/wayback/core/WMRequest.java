@@ -1,3 +1,26 @@
+/* WMRequest
+ *
+ * Created on 2005/10/18 14:00:00
+ *
+ * Copyright (C) 2005 Internet Archive.
+ *
+ * This file is part of the Wayback Machine (crawler.archive.org).
+ *
+ * Wayback Machine is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or
+ * any later version.
+ *
+ * Wayback Machine is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser Public License
+ * along with Wayback Machine; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
 package org.archive.wayback.core;
 
 import java.util.regex.Matcher;
@@ -5,6 +28,13 @@ import java.util.regex.Pattern;
 
 import org.archive.net.UURI;
 
+/**
+ * Abstraction of all the data associated with a users request to the Wayback
+ * Machine.
+ * 
+ * @author Brad Tofel
+ * @version $Date$, $Revision$
+ */
 public class WMRequest {
 	private final Pattern IMAGE_REGEX = Pattern
 			.compile(".*\\.(jpg|jpeg|gif|png|bmp|tiff|tif)$");
@@ -29,69 +59,11 @@ public class WMRequest {
 
 	private boolean pathQuery = false;
 
-	public UURI getRedirectURI() {
-		return redirectURI;
-	}
-
-	public void setRedirectURI(UURI redirectURI) {
-		this.redirectURI = redirectURI;
-	}
-
+	/**
+	 * Constructor
+	 */
 	public WMRequest() {
 		super();
-		// TODO Auto-generated constructor stub
-	}
-
-	public boolean isRetrieval() {
-		return this.retrieval;
-	}
-
-	public boolean isQuery() {
-		return this.query;
-	}
-
-	public boolean isPathQuery() {
-		return this.pathQuery;
-	}
-
-	public Timestamp getExactTimestamp() {
-		return exactTimestamp;
-	}
-
-	public void setExactTimestamp(Timestamp exactTimestamp) {
-		this.exactTimestamp = exactTimestamp;
-	}
-
-	public Timestamp getEndTimestamp() {
-		return endTimestamp;
-	}
-
-	public void setEndTimestamp(Timestamp endTimestamp) {
-		this.endTimestamp = endTimestamp;
-	}
-
-	public String getReferrerUrl() {
-		return referrerUrl;
-	}
-
-	public void setReferrerUrl(String referrerUrl) {
-		this.referrerUrl = referrerUrl;
-	}
-
-	public UURI getRequestURI() {
-		return requestURI;
-	}
-
-	public void setRequestURI(UURI requestURI) {
-		this.requestURI = requestURI;
-	}
-
-	public Timestamp getStartTimestamp() {
-		return startTimestamp;
-	}
-
-	public void setStartTimestamp(Timestamp startTimestamp) {
-		this.startTimestamp = startTimestamp;
 	}
 
 	private void resetType() {
@@ -100,21 +72,34 @@ public class WMRequest {
 		this.pathQuery = false;
 	}
 
+	/**
+	 * sets the request type to PathQuery
+	 */
 	public void setPathQuery() {
 		resetType();
 		this.pathQuery = true;
 	}
 
+	/**
+	 * sets the request type to Query
+	 */
 	public void setQuery() {
 		resetType();
 		this.query = true;
 	}
 
+	/**
+	 * sets the request type to Retrieval/Replay
+	 */
 	public void setRetrieval() {
 		resetType();
 		this.retrieval = true;
 	}
 
+	/**
+	 * @return whether this request appears to be for an image, using only the
+	 *         requested URL
+	 */
 	public boolean isImageRetrieval() {
 		String uri = requestURI.getEscapedURI();
 		Matcher matcher = null;
@@ -126,19 +111,136 @@ public class WMRequest {
 	}
 
 	/**
-	 * @param args
+	 * @return Returns the endTimestamp.
 	 */
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-
+	public Timestamp getEndTimestamp() {
+		return endTimestamp;
 	}
 
+	/**
+	 * @param endTimestamp
+	 *            The endTimestamp to set.
+	 */
+	public void setEndTimestamp(Timestamp endTimestamp) {
+		this.endTimestamp = endTimestamp;
+	}
+
+	/**
+	 * @return Returns the exactDateRequest.
+	 */
 	public String getExactDateRequest() {
 		return exactDateRequest;
 	}
 
+	/**
+	 * @param exactDateRequest
+	 *            The exactDateRequest to set.
+	 */
 	public void setExactDateRequest(String exactDateRequest) {
 		this.exactDateRequest = exactDateRequest;
+	}
+
+	/**
+	 * @return Returns the exactTimestamp.
+	 */
+	public Timestamp getExactTimestamp() {
+		return exactTimestamp;
+	}
+
+	/**
+	 * @param exactTimestamp
+	 *            The exactTimestamp to set.
+	 */
+	public void setExactTimestamp(Timestamp exactTimestamp) {
+		this.exactTimestamp = exactTimestamp;
+	}
+
+	/**
+	 * @return Returns the redirectURI.
+	 */
+	public UURI getRedirectURI() {
+		return redirectURI;
+	}
+
+	/**
+	 * @param redirectURI
+	 *            The redirectURI to set.
+	 */
+	public void setRedirectURI(UURI redirectURI) {
+		this.redirectURI = redirectURI;
+	}
+
+	/**
+	 * @return Returns the referrerUrl.
+	 */
+	public String getReferrerUrl() {
+		return referrerUrl;
+	}
+
+	/**
+	 * @param referrerUrl
+	 *            The referrerUrl to set.
+	 */
+	public void setReferrerUrl(String referrerUrl) {
+		this.referrerUrl = referrerUrl;
+	}
+
+	/**
+	 * @return Returns the requestURI.
+	 */
+	public UURI getRequestURI() {
+		return requestURI;
+	}
+
+	/**
+	 * @param requestURI
+	 *            The requestURI to set.
+	 */
+	public void setRequestURI(UURI requestURI) {
+		this.requestURI = requestURI;
+	}
+
+	/**
+	 * @return Returns the startTimestamp.
+	 */
+	public Timestamp getStartTimestamp() {
+		return startTimestamp;
+	}
+
+	/**
+	 * @param startTimestamp
+	 *            The startTimestamp to set.
+	 */
+	public void setStartTimestamp(Timestamp startTimestamp) {
+		this.startTimestamp = startTimestamp;
+	}
+
+	/**
+	 * @return Returns the pathQuery.
+	 */
+	public boolean isPathQuery() {
+		return pathQuery;
+	}
+
+	/**
+	 * @return Returns the query.
+	 */
+	public boolean isQuery() {
+		return query;
+	}
+
+	/**
+	 * @return Returns the retrieval.
+	 */
+	public boolean isRetrieval() {
+		return retrieval;
+	}
+
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+
 	}
 
 }

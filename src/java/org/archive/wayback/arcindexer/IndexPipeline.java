@@ -1,3 +1,26 @@
+/* IndexPipeline
+ *
+ * Created on 2005/10/18 14:00:00
+ *
+ * Copyright (C) 2005 Internet Archive.
+ *
+ * This file is part of the Wayback Machine (crawler.archive.org).
+ *
+ * Wayback Machine is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or
+ * any later version.
+ *
+ * Wayback Machine is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser Public License
+ * along with Wayback Machine; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
 package org.archive.wayback.arcindexer;
 
 import java.io.File;
@@ -10,10 +33,17 @@ import org.archive.wayback.core.ResourceResults;
 
 import com.sun.org.apache.xml.internal.utils.StringToStringTable;
 
+/**
+ * Implements updating of a BDBResourceIndex using several directories with data
+ * files or flag files.
+ * 
+ * @author Brad Tofel
+ * @version $Date$, $Revision$
+ */
 public class IndexPipeline {
 	private File arcDir = null;
 
-	public File mergeDir = null;
+	private File mergeDir = null;
 
 	private File queuedDir = null;
 
@@ -23,9 +53,11 @@ public class IndexPipeline {
 
 	private ArcIndexer indexer = null;
 
+	/**
+	 * Constructor
+	 */
 	public IndexPipeline() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 
 	private void ensureDir(File dir) throws IOException {
@@ -34,6 +66,14 @@ public class IndexPipeline {
 		}
 	}
 
+	/**
+	 * Initialize this object from several path arguments.
+	 * 
+	 * @param arcDir
+	 * @param mergeDir
+	 * @param workDir
+	 * @throws IOException
+	 */
 	public void init(final String arcDir, final String mergeDir,
 			final String workDir) throws IOException {
 		this.arcDir = new File(arcDir);
@@ -84,6 +124,11 @@ public class IndexPipeline {
 		newQueuedFile.createNewFile();
 	}
 
+	/**
+	 * Find all new ARC files, and queue them for indexing.
+	 * 
+	 * @throws IOException
+	 */
 	public void queueNewArcs() throws IOException {
 		ArrayList newArcs = getNewArcs();
 		if (!newArcs.isEmpty()) {
@@ -95,6 +140,13 @@ public class IndexPipeline {
 		}
 	}
 
+	/**
+	 * Index any ARC files queued for indexing, queueing the resulting CDX files
+	 * for merging with the BDBResourceIndex.
+	 * 
+	 * @throws MalformedURLException
+	 * @throws IOException
+	 */
 	public void indexArcs() throws MalformedURLException, IOException {
 		queueNewArcs();
 		String toBeIndexed[] = this.toBeIndexedDir.list();
@@ -129,8 +181,14 @@ public class IndexPipeline {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
 
+	}
+
+	/**
+	 * @return Returns the mergeDir.
+	 */
+	public File getMergeDir() {
+		return mergeDir;
 	}
 
 }

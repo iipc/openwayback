@@ -1,3 +1,26 @@
+/* LocalBDBResourceIndex
+ *
+ * Created on 2005/10/18 14:00:00
+ *
+ * Copyright (C) 2005 Internet Archive.
+ *
+ * This file is part of the Wayback Machine (crawler.archive.org).
+ *
+ * Wayback Machine is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or
+ * any later version.
+ *
+ * Wayback Machine is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser Public License
+ * along with Wayback Machine; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
 package org.archive.wayback.localbdbresourceindex;
 
 import java.io.File;
@@ -11,6 +34,12 @@ import org.archive.wayback.core.WMRequest;
 import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.exception.WaybackException;
 
+/**
+ * Implements ResourceIndex interface using a BDBResourceIndex
+ * 
+ * @author Brad Tofel
+ * @version $Date$, $Revision$
+ */
 public class LocalBDBResourceIndex implements ResourceIndex {
 	private static Thread indexUpdateThread = null;
 
@@ -28,6 +57,9 @@ public class LocalBDBResourceIndex implements ResourceIndex {
 
 	private BDBResourceIndex db = null;
 
+	/**
+	 * Constructor
+	 */
 	public LocalBDBResourceIndex() {
 		super();
 	}
@@ -55,7 +87,6 @@ public class LocalBDBResourceIndex implements ResourceIndex {
 		db = new BDBResourceIndex(dbPath, dbName);
 		if (runPipeline != null) {
 
-			// QUESTION: are we sure there will be a single instace
 			System.out
 					.println("LocalDBDResourceIndex starting pipeline thread...");
 			if (indexUpdateThread == null) {
@@ -69,7 +100,6 @@ public class LocalBDBResourceIndex implements ResourceIndex {
 
 	public ResourceResults query(WMRequest request) throws IOException,
 			WaybackException {
-		// TODO add check of WMRequest and call different methods:
 		String searchHost = request.getRequestURI().getHostBasename();
 		String searchPath = request.getRequestURI().getEscapedPathQuery();
 
@@ -101,6 +131,13 @@ public class LocalBDBResourceIndex implements ResourceIndex {
 		indexUpdateThread.start();
 	}
 
+	/**
+	 * Thread that repeatedly runs processing of an IndexPipeline and merges new
+	 * data into a BDBResourceIndex
+	 * 
+	 * @author Brad Tofel
+	 * @version $Date$, $Revision$
+	 */
 	private class IndexUpdateThread extends Thread {
 		private final static int SLEEP_MILLISECONDS = 10000;
 
@@ -108,6 +145,14 @@ public class LocalBDBResourceIndex implements ResourceIndex {
 
 		IndexPipeline pipeline = null;
 
+		/**
+		 * Constructor
+		 * 
+		 * @param bdb
+		 *            initialized BDBResourceIndex
+		 * @param pipeline
+		 *            initialized IndexPipeline
+		 */
 		public IndexUpdateThread(final BDBResourceIndex bdb,
 				IndexPipeline pipeline) {
 			super("IndexUpdateThread");
@@ -125,7 +170,6 @@ public class LocalBDBResourceIndex implements ResourceIndex {
 					mergeIndex();
 					sleep(SLEEP_MILLISECONDS);
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				// System.out.println("I'm running!");
@@ -137,17 +181,17 @@ public class LocalBDBResourceIndex implements ResourceIndex {
 				pipeline.indexArcs();
 				// System.out.println("Indexed...");
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
 
 		private void mergeIndex() {
 			int numMerged = 0;
-			String newFiles[] = pipeline.mergeDir.list();
+			String newFiles[] = pipeline.getMergeDir().list();
 			for (int i = 0; i < newFiles.length; i++) {
 				// TODO: Special handling of encoding and date.
-				File newFile = new File(pipeline.mergeDir.getAbsolutePath()
+				File newFile = new File(pipeline.getMergeDir()
+						.getAbsolutePath()
 						+ "/" + newFiles[i]);
 
 				if (newFile.isFile()) {
@@ -159,7 +203,6 @@ public class LocalBDBResourceIndex implements ResourceIndex {
 						}
 						numMerged++;
 					} catch (Exception e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 				}
@@ -168,13 +211,5 @@ public class LocalBDBResourceIndex implements ResourceIndex {
 				System.out.println("Merged " + numMerged + " files.");
 			}
 		}
-	}
-
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-
 	}
 }
