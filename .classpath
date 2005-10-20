@@ -9,9 +9,9 @@
         path="TOMCAT_HOME/common/lib/jsp-api.jar"/>
 	<classpathentry kind="src" path="src/java"/>
 	<classpathentry kind="lib" 
-        path="src/webapp/WEB-INF/lib/lib/je-2.0.83.jar"/>
+        path="src/webapp/WEB-INF/lib/je-2.0.83.jar"/>
 	<classpathentry kind="lib" 
-        path="src/webapp/WEB-INF/lib/commons-httpclient-3.0-beta1.jar"/>
+        path="src/webapp/WEB-INF/lib/commons-httpclient-3.0-rc3.jar"/>
 	<classpathentry kind="lib" 
         path="src/webapp/WEB-INF/lib/arc-1.5.1-200510181911.jar"/>
 	<classpathentry kind="output" path="src/webapp/WEB-INF/classes"/>
