@@ -65,8 +65,9 @@ public interface ReplayUI {
 			final ResourceResult result);
 
 	/**
-	 * Process a Wayback Replay request, returning the resource requested, a
-	 * redirect to a better/correct URL for the resource, or an error message.
+	 * Process a Wayback Replay request, returning the resource requested to 
+	 * the User, a redirect to a better/correct URL for the resource, or an 
+	 * error message.
 	 * 
 	 * @param wayback
 	 * @param wmRequest
@@ -143,4 +144,20 @@ public interface ReplayUI {
 			final HttpServletRequest request,
 			final HttpServletResponse response, final String message)
 			throws IOException, ServletException;
+
+	/**
+	 * Return an error page tot he User indicating that an unexpected error
+	 * occurred.
+	 * 
+	 * @param wmRequest
+	 * @param request
+	 * @param response
+	 * @param message
+	 * @throws IOException
+	 * @throws ServletException
+	 */
+	public void showWaybackException(WMRequest wmRequest,
+			HttpServletRequest request, HttpServletResponse response,
+			String message) throws IOException, ServletException;
+
 }

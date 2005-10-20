@@ -23,9 +23,12 @@
 
 package org.archive.wayback.core;
 
+import java.text.ParseException;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.httpclient.URIException;
 import org.archive.net.UURI;
 
 /**
@@ -235,7 +238,142 @@ public class WMRequest {
 	public boolean isRetrieval() {
 		return retrieval;
 	}
+	private String getMapParam(Map queryMap,String field) {
+		String arr[] = (String[]) queryMap.get(field);
+		if(arr == null || arr.length == 0) {
+			return null;
+		}
+		return arr[0];
+	}
 
+	/**
+	 * @param queryMap
+	 * @throws ParseException 
+	 * @throws URIException 
+	 * @throws IllegalArgumentException 
+	 */
+	public void parseCGIArgsReplay(Map queryMap) 
+		throws ParseException, URIException, IllegalArgumentException {
+		
+		String requestType = getMapParam(queryMap,"type");
+		String requestURIStr = getMapParam(queryMap,"url");
+		if(requestType == null) {
+			throw new IllegalArgumentException("No type argument");			
+		}
+		if(requestURIStr == null) {
+			throw new IllegalArgumentException("No url argument");
+		}
+
+		if(!requestType.equals("replay")) {
+			throw new IllegalArgumentException("request type must be 'replay' for this URL");
+		}
+		parseCGIArgsDates(queryMap);
+		if (!requestURIStr.startsWith("http://")) {
+			requestURIStr = "http://" + requestURIStr;
+		}
+		requestURI = new UURI(requestURIStr,false);
+		setRetrieval();
+	}
+
+	/**
+	 * @param queryMap
+	 * @throws ParseException 
+	 * @throws URIException 
+	 * @throws IllegalArgumentException 
+	 */
+	public void parseCGIArgsQuery(Map queryMap) 
+		throws ParseException, URIException, IllegalArgumentException {
+		
+		String requestType = getMapParam(queryMap,"type");
+		String requestURIStr = getMapParam(queryMap,"url");
+		if(requestType == null) {
+			throw new IllegalArgumentException("No type argument");			
+		}
+		if(requestURIStr == null) {
+			throw new IllegalArgumentException("No url argument");
+		}
+
+		if(requestType.equals("query")) {
+			setQuery();
+		} else if(requestType.equals("pathQuery")) {
+			setPathQuery();
+		} else {
+			throw new IllegalArgumentException("request type must be 'replay' for this URL");
+		}
+		parseCGIArgsDates(queryMap);
+		if (!requestURIStr.startsWith("http://")) {
+			requestURIStr = "http://" + requestURIStr;
+		}
+
+		requestURI = new UURI(requestURIStr,false);
+	}
+	
+	/**
+	 * @param queryMap
+	 * @throws ParseException
+	 */
+	public void parseCGIArgsDates(Map queryMap) throws ParseException {
+
+		// first the exact:
+		String origExactDateRequest = getMapParam(queryMap,"date");
+		if(origExactDateRequest == null) {
+			
+			exactTimestamp = Timestamp.currentTimestamp();
+			exactDateRequest = exactTimestamp.getDateStr();
+			
+		} else {
+			
+			exactTimestamp = Timestamp.parseBefore(origExactDateRequest);
+			exactDateRequest = origExactDateRequest;
+		}
+
+		// then the starting boundary:
+		String startTimestampStr = getMapParam(queryMap,"earliest");
+		if(startTimestampStr == null) {
+			// no start specified -- if the exact is not specified, assume 
+			// the earliest possible:
+			if(origExactDateRequest == null) {
+				startTimestamp = Timestamp.earliestTimestamp();
+			} else {
+				// no start specified, but they asked for an exact date.
+				// if the exact date was partial, use the earliest possible
+				// of the partial:
+
+				if(origExactDateRequest.equals(exactTimestamp.getDateStr())) {
+					startTimestamp = Timestamp.earliestTimestamp();			
+				} else {
+					startTimestamp = Timestamp.parseBefore(exactDateRequest);
+				}
+			
+			}
+		} else {
+			startTimestamp = Timestamp.parseBefore(startTimestampStr);
+		}
+
+		
+		// then the ending boundary:
+		String endTimestampStr = getMapParam(queryMap,"latest");
+		if(endTimestampStr == null) {
+			// no end specified -- if the exact is not specified, assume 
+			// the latest possible:
+			if(origExactDateRequest == null) {
+				endTimestamp = Timestamp.latestTimestamp();
+			} else {
+				// no end specified, but they asked for an exact date.
+				// if the exact date was partial, use the latest possible
+				// of the partial:
+
+				if(origExactDateRequest.equals(exactTimestamp.getDateStr())) {
+					endTimestamp = Timestamp.latestTimestamp();
+				} else {
+					endTimestamp = Timestamp.parseAfter(exactDateRequest);
+				}
+			}
+		} else {
+			endTimestamp = Timestamp.parseAfter(endTimestampStr);
+		}
+	}
+	
 	/**
 	 * @param args
 	 */

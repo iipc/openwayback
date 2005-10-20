@@ -66,7 +66,7 @@
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>RetrievalServlet</servlet-name>
-		<url-pattern>/retrieve</url-pattern>
+		<url-pattern>/replay</url-pattern>
 	</servlet-mapping>
 
 
@@ -149,7 +149,7 @@
 	    </init-param>
 	    <init-param>
 	      <param-name>handler.url</param-name>
-	      <param-value>/retrieve</param-value>
+	      <param-value>/replay</param-value>
 	    </init-param>
 
 	</filter>

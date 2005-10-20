@@ -77,10 +77,17 @@ public class WBQueryUIServlet extends HttpServlet {
 			throws IOException, ServletException {
 		WMRequest wmRequest = (WMRequest) request
 				.getAttribute(WMREQUEST_ATTRIBUTE);
-		if (wmRequest == null) {
-			throw new ServletException("No WMRequest object");
-		}
 		QueryUI queryUI = wayback.getQueryUI();
+
+		if (wmRequest == null) {
+			wmRequest = new WMRequest();
+			try {
+				wmRequest.parseCGIArgsQuery(request.getParameterMap());
+			} catch (Exception e) {
+				queryUI.showWaybackException(null,request,response,e.getMessage());
+				return;
+			}
+		}
 		queryUI.handle(wayback, wmRequest, request, response);
 	}
 

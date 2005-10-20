@@ -144,4 +144,20 @@ public interface QueryUI {
 	public void showIndexNotAvailable(final WMRequest wmRequest,
 			final HttpServletRequest request, final HttpServletResponse response)
 			throws IOException, ServletException;
+
+	/**
+	 * Return an error page tot he User indicating that an unexpected error
+	 * occurred.
+	 * 
+	 * @param wmRequest
+	 * @param request
+	 * @param response
+	 * @param message
+	 * @throws IOException
+	 * @throws ServletException
+	 */
+	public void showWaybackException(WMRequest wmRequest,
+			HttpServletRequest request, HttpServletResponse response,
+			String message) throws IOException, ServletException;
+	
 }

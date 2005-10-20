@@ -76,10 +76,17 @@ public class WBReplayUIServlet extends HttpServlet {
 			throws IOException, ServletException {
 		WMRequest wmRequest = (WMRequest) request
 				.getAttribute(WMREQUEST_ATTRIBUTE);
-		if (wmRequest == null) {
-			throw new ServletException("No WMRequest object");
-		}
 		ReplayUI replayUI = wayback.getReplayUI();
+
+		if (wmRequest == null) {
+			wmRequest = new WMRequest();
+			try {
+				wmRequest.parseCGIArgsReplay(request.getParameterMap());
+			} catch (Exception e) {
+				replayUI.showWaybackException(null,request,response,e.getMessage());
+				return;
+			}
+		}
 		replayUI.handle(wayback, wmRequest, request, response);
 	}
 

@@ -85,6 +85,18 @@ public class Timestamp {
 	}
 
 	/**
+	 * @return Timestamp object representing the current date.
+	 * @throws ParseException
+	 */
+	public static Timestamp currentTimestamp() throws ParseException {
+		Timestamp ts = new Timestamp();
+		ts.date = new Date();
+		ts.dateStr = ArchiveUtils.get14DigitDate(ts.date);
+		return ts;
+	}
+
+
+	/**
 	 * @return Timestamp object representing the earliest possible date.
 	 * @throws ParseException
 	 */
@@ -99,9 +111,10 @@ public class Timestamp {
 	 * @throws ParseException
 	 */
 	public static Timestamp latestTimestamp() throws ParseException {
-		Timestamp ts = new Timestamp();
-		ts.setDateStr(LAST2_TIMESTAMP);
-		return ts;
+		return currentTimestamp();
+//		Timestamp ts = new Timestamp();
+//		ts.setDateStr(LAST2_TIMESTAMP);
+//		return ts;
 	}
 
 	/**

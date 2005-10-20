@@ -3,7 +3,7 @@
 <%@ page import="org.archive.wayback.core.ResourceResult" %>
 <%@ page import="org.archive.wayback.core.Timestamp" %>
 <%@ page import="org.archive.wayback.simplequeryui.UIResults" %>
-<jsp:include page="../template/UI-header.txt" />
+<jsp:include page="../../template/UI-header.jsp" />
 <%
 
 UIResults results = (UIResults) request.getAttribute("ui-results");
@@ -80,4 +80,4 @@ while(itr.hasNext()) {
 	}
 }
 %>
-<jsp:include page="../template/UI-footer.txt" />
+<jsp:include page="../../template/UI-footer.jsp" />

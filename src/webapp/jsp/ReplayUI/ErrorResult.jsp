@@ -1,3 +1,3 @@
-<jsp:include page="../template/UI-header.txt" />
+<jsp:include page="../../template/UI-header.jsp" />
 <B><%= (String) request.getAttribute("message")  %></B>
-<jsp:include page="../template/UI-footer.txt" />
+<jsp:include page="../../template/UI-footer.jsp" />
