@@ -9,12 +9,9 @@
 
   <body>
     <section name="Introduction">
-        <p>The Internet Archive Wayback Machine....
+        <p><b>wayback</b> is an open source implementation of the
+        The Internet Archive Wayback Machine. Stay tuned for first release.
         	</p>
-            <p>See WHERE for how to install.</p>
-    </section>
-    <section name="News and Status">
-    <p>WHATS UP?</p>
     </section>
   </body>
 </document>

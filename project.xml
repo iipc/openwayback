@@ -28,7 +28,7 @@
   <id>wayback</id>
   
   <!-- A short but descriptive name for the project -->
-  <name>Internet Archive Wayback Machine</name>
+  <name>Wayback</name>
 
   <!-- The version of the project under development, e.g. 1.1, 1.2, 2.0-SNAPSHOT
 
@@ -53,11 +53,11 @@
   <inceptionYear>2005</inceptionYear>
   <package>org.archive</package>
   <logo>/images/logo.gif</logo>
-  <description>The Internet Archive's Wayback Machine.
+  <description>The wayback project is an open source implementation of the
+  Internet Archive's Wayback Machine.
   </description>
   <!-- a short description of what the project does -->
-  <shortDescription>
-  Internet Archive Wayback Machine.
+  <shortDescription>Open source wayback machine.
   </shortDescription>
 
   <url>http://crawler.archive.org</url>
