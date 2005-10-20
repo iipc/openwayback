@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    On maven:
+     http://maven.apache.org/
+     http://www.onjava.com/pub/a/onjava/2003/10/22/maven.html?page=1	
+     http://www-106.ibm.com/developerworks/java/library/j-maven/
+
+    Maven builds into ${basedir}/target. Its hard to change this going by the
+    maven.build.dir note in http://maven.apache.org/reference/user-guide.html.
+    Eclipse normally builds into ${basedir}/bin but we set a property in 
+    the .classpath file so eclipse too will build into ${basedir}/target.
+    Be careful.  Eclipse overwrites the build target directory.
+
+    Maven generates documentation using xdoc.  Xdoc is a dumbed down html
+    written as xml.   There is no dtd so no validation.  The best description
+    of whats allowed in an xdoc file seems to be this document:
+    http://jakarta.apache.org/site/jakarta-site-tags.html.  Its constraining;
+    you can't do much formatting using xdoc tags.
+ -->
+<project>
+  <!--The version of maven's project object model -->
+  <pomVersion>3</pomVersion>
+
+  <!--The group id shared by Internet Archive projects.-->
+  <groupId>org.archive</groupId>
+  
+  <!-- A unique name for this project -->
+  <id>wayback</id>
+  
+  <!-- A short but descriptive name for the project -->
+  <name>Internet Archive Wayback Machine</name>
+
+  <!-- The version of the project under development, e.g. 1.1, 1.2, 2.0-SNAPSHOT
+
+    See "Version and Release Numbering" in
+    http://crawler.archive.org/articles/developer_manual.html#release_numbering
+    for how version is done in this project.
+
+    Supply a version.build.suffix in a build.properties file and it will
+    be picked up and appended to the currentVersion.  Handy for continuous
+    builds if the version.build.suffix holds time of build.
+    -->
+  <currentVersion>0.1.0${version.build.suffix}</currentVersion>
+  
+  <!-- Details about the organization that 'owns' the project -->
+  <organization>
+    <name>Internet Archive</name>
+    <url>http://www.archive.org/</url>
+    <logo>http://www.archive.org/images/logo.jpg</logo>
+  </organization>
+  
+  <!-- the year the project started -->
+  <inceptionYear>2005</inceptionYear>
+  <package>org.archive</package>
+  <logo>/images/logo.gif</logo>
+  <description>The Internet Archive's Wayback Machine.
+  </description>
+  <!-- a short description of what the project does -->
+  <shortDescription>
+  Internet Archive Wayback Machine.
+  </shortDescription>
+
+  <url>http://crawler.archive.org</url>
+  <issueTrackingUrl>https://sourceforge.net/tracker/?group_id=118427&amp;atid=681137
+	</issueTrackingUrl>
+    <!--Optional. The directory on the web server where the public web site 
+        for this project resides. This is used when the web site is deployed.
+     -->
+    <siteDirectory>/home/groups/a/ar/archive-access/htdocs/</siteDirectory>
+
+    <!--TODO: See what these configurations do.
+    -->
+    <distributionSite>http://shell.sourceforge.net</distributionSite>
+    <distributionDirectory>/home/users/s/st/${maven.username}
+    </distributionDirectory>
+
+    <!--The version control repository and http url for online access
+        the connection element has the form:
+        scm:<system>:<system specific connection string> 
+     -->
+    <repository>
+       <connection>scm:cvs:pserver:anonymous@cvs.sourceforge.net:/cvsroot/archive-access:archive-access</connection>
+        <url>http://cvs.sourceforge.net/viewcvs.py/archive-access/</url>
+    </repository>
+
+    <versions />
+
+    <!-- Mailing lists for the project -->
+    <mailingLists>
+        <mailingList>  
+            <name> Discussion List</name>
+            <subscribe>
+            http://lists.sourceforge.net/lists/listinfo/archive-access-discuss
+            </subscribe>
+            <unsubscribe>
+            http://lists.sourceforge.net/lists/listinfo/archive-access-discuss
+            </unsubscribe>
+            <archive>
+            http://sourceforge.net/mailarchive/forum.php?forum_id=45842
+            </archive>
+        </mailingList>  
+        <mailingList>  
+            <name>CVS Commits</name>
+            <subscribe>
+            http://lists.sourceforge.net/lists/listinfo/archive-access-cvs
+            </subscribe>
+            <unsubscribe>
+            http://lists.sourceforge.net/lists/listinfo/archive-access-cvs
+            </unsubscribe>
+            <archive>
+            http://sourceforge.net/mailarchive/forum.php?forum_id=45842
+            </archive>
+        </mailingList>  
+    </mailingLists>
+  
+  <!--Developers for the project -->
+  <developers>
+    <developer>
+        <name>Brad Tofel</name>
+        <id>bradtofel</id>
+        <email>brad at archive dot org</email>
+         <organization>Internet Archive</organization>
+         <url>http://www.archive.org</url>
+         <timezone>-8</timezone>
+    </developer>
+  </developers>
+
+  <contributors />
+
+    <licenses>
+        <license>
+            <name>GNU LESSER GENERAL PUBLIC LICENSE</name>
+            <url>http://www.gnu.org/licenses/lgpl.txt</url>
+            <distribution>repo</distribution>
+       </license>
+    </licenses>
+
+
+    <!--For now, refer to local jars.  Later when (if) we decide to go
+        all-out maven, we'll pull common jars from remote repository.
+
+        TODO: Fix the display of dependencies so it displays the 
+        license and description properties added by us, IA.  Or add a pregoal
+        to dependency generation so that it generates a dependencies license
+        page using info below.
+
+        TODO: Change the licenses into links to actual licenses.
+    -->
+    <dependencies>
+        <dependency>
+            <id>je</id>
+            <version>2.0</version>
+            <url>http://www.sleepycat.com/products/je.shtml</url>
+            <properties>
+                <war.bundle>true</war.bundle>
+                <ear.bundle>true</ear.bundle>
+                <ear.bundle.dir>APP-INF/lib</ear.bundle.dir>
+                <description>Berkeley DB Java Edition.  
+                Copyright (c) 1990-2004 Sleepycat Software.  
+                All rights reserved.  See above link for how to obtain source.  
+                </description>
+                <license>http://www.sleepycat.com/download/jeoslicense.html
+                </license>
+            </properties>
+        </dependency>
+        <dependency>
+            <id>commons-httpclient-local</id>
+            <version>3.0-rc3</version>
+            <url>http://jakarta.apache.org/commons/httpclient/</url>
+            <properties>
+                <war.bundle>true</war.bundle>
+                <ear.bundle>true</ear.bundle>
+                <ear.bundle.dir>APP-INF/lib</ear.bundle.dir>
+                <description>This package is used for fetching URIs via http.
+                Need to give this component an id other than the natural
+                one of 'commons-httpclient' because of bug in 1.0.2 maven;
+                our project.properties override that forces maven to use
+                a local copy rather than pull one from the net is causing
+                it confusion on initial setup (This feature worked fine in
+                earlier mavens).
+                </description>
+                <license>Apache 2.0
+                http://www.apache.org/licenses/LICENSE-2.0</license>
+            </properties>
+        </dependency>
+        <dependency>
+            <groupId>heritrix</groupId>
+            <artifactId>arc</artifactId>
+            <version>1.5.0</version>
+            <url>http://crawltools.archive.org:8080/</url>
+            <properties>
+                <war.bundle>true</war.bundle>
+                <description>Jar that has org.archive.io.arc content.
+                Jar manufactured w/ autojar tool.
+                </description>
+                <license>LGPL
+                </license>
+            </properties>
+        </dependency>
+        <dependency>
+            <groupId>tomcat</groupId>
+            <artifactId>servlet-api</artifactId>
+            <version>5.0.18</version>
+            <url>http://jakarta.apache.org/tomcat/</url>
+            <properties>
+                <description />
+                <license>
+                    http://jakarta.apache.org/site/legal.html
+                </license>
+            </properties>
+        </dependency>
+  </dependencies>
+
+  
+  <!-- build information for the project -->
+  <build>
+    <nagEmailAddress>webmaster@crawler.archive.org</nagEmailAddress>
+    <sourceDirectory>src/java</sourceDirectory>
+    <unitTestSourceDirectory>src/java</unitTestSourceDirectory>
+    <unitTest>
+      <excludes>
+        <exclude>**/*SelfTest.java</exclude>
+      </excludes>
+      <includes>
+        <include>**/*Test.java</include>
+      </includes>
+    </unitTest>
+    <defaultGoal>dist</defaultGoal>
+    <resources>
+    <resource>
+        <directory>${basedir}/src/resources</directory>
+        <includes>
+            <include>*.xsl</include>
+        </includes>
+    </resource>
+    <resource>
+        <directory>${maven.build.dir}/conf/</directory>
+        <includes>
+            <include>heritrix.properties</include>
+            <include>jndi.properties</include>
+            <include>profiles/*default/**</include>
+            <include>modules/**</include>
+            <include>selftest/**</include>
+        </includes>
+    </resource>
+    </resources>
+  </build>
+
+    <!--List of reports to generate.
+        Some are not working.  Fix.
+     -->
+    <reports>
+        <!--Use the heritrix javadoc goal rather than the default
+            maven javadoc plugin.  The latter doesn't copy over doc-files
+            nor package.html files.
+          -->
+        <report>maven-license-plugin</report>
+        <!--Takes a long time. No one looks at it.  Comment in when wanted.
+        <report>maven-changelog-plugin</report>
+        <report>maven-checkstyle-plugin</report>
+        -->
+        <!--
+        <report>maven-jdepend-plugin</report>
+        -->
+        <report>maven-junit-report-plugin</report>
+        <report>maven-jxr-plugin</report>
+        <report>maven-pmd-plugin</report>
+        <report>maven-tasklist-plugin</report>
+        <!--<report>maven-findbugs-plugin</report>
+         -->
+        <!--<report>maven-developer-activity-plugin</report>-->
+        <!--TODO: <report>maven-file-activity-plugin</report>-->
+        <!--TODO: OOME and takes long time.
+            <report>maven-linkcheck-plugin</report>
+         -->
+    </reports>
+</project>
+

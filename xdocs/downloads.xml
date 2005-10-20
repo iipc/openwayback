@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<document>
+  <properties>
+    <title>Downloads</title>
+    <author email="brad at archive dot org">Brad</author>
+    <revision>$Id$</revision>
+  </properties>
+
+  <body>
+  <section name="Downloads">
+
+    <subsection name="Releases">
+        <p>All releases are available off the 
+        <a href="http://sourceforge.net/project/showfiles.php?group_id=118427">Sourceforge Downloads</a> page.  Release notes can be found here,
+        <a href="articles/releasenotes.html">Wayback Release Notes</a>.
+        </p>
+	</subsection>
+   
+    <subsection name="Continuous build">
+		<p>Here is a
+        <a href="http://crawltools.archive.org:8080/cruisecontrol/buildresults/HEAD-archive-access">pointer</a> to our continuous build box.  The latest builds
+        can be found under the 'Build Artifacts' link.  Be aware that
+        this distribution has been made from CVS HEAD and CVS HEAD builds are
+        not guaranteed stable.
+        </p>
+	</subsection>
+    
+  </section>
+
+  </body>
+</document>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<document>
+  <properties>
+    <title>Home Page</title>
+    <author email="stack at archive dot org">St.Ack</author>
+    <revision>$Id$</revision>
+  </properties>
+
+  <body>
+    <section name="Introduction">
+        <p>The Internet Archive Wayback Machine....
+        	</p>
+            <p>See WHERE for how to install.</p>
+    </section>
+    <section name="News and Status">
+    <p>WHATS UP?</p>
+    </section>
+  </body>
+</document>

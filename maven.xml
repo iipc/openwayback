@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<project 
+    xmlns:j="jelly:core" 
+    xmlns:define="jelly:define" 
+    xmlns:doc="doc" 
+    xmlns:artifact="artifact" 
+    xmlns:util="jelly:util" 
+    xmlns:maven="jelly:maven"
+    xmlns:ant="jelly:ant">
+
+    <preGoal name="xdoc:jelly-transform">
+        <attainGoal name="faq"/>
+    </preGoal> 
+</project>
