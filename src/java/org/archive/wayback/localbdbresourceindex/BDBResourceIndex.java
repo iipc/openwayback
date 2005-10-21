@@ -94,7 +94,12 @@ public class BDBResourceIndex {
 		db = env.openDatabase(null, dbName, databaseConfig);
 	}
 
-	protected void shutdownDB() throws DatabaseException {
+	/**
+	 * shut down the BDB.
+	 * 
+	 * @throws DatabaseException
+	 */
+	public void shutdownDB() throws DatabaseException {
 
 		if (db != null) {
 			db.close();
@@ -193,7 +198,12 @@ public class BDBResourceIndex {
 		return results;
 	}
 
-	protected void addResults(ResourceResults results) throws Exception {
+	/**
+	 * Add all ResourceResult in results to BDB index
+	 * @param results
+	 * @throws Exception
+	 */
+	public void addResults(ResourceResults results) throws Exception {
 		Iterator itr = results.iterator();
 		DatabaseEntry key = new DatabaseEntry();
 		DatabaseEntry value = new DatabaseEntry();

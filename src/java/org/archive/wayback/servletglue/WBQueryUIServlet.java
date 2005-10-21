@@ -28,6 +28,7 @@ import java.util.Enumeration;
 import java.util.Properties;
 
 import javax.servlet.ServletConfig;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -65,7 +66,12 @@ public class WBQueryUIServlet extends HttpServlet {
 			String key = (String) e.nextElement();
 			p.put(key, c.getInitParameter(key));
 		}
-
+		ServletContext sc = c.getServletContext();
+		for (Enumeration e = sc.getInitParameterNames(); e.hasMoreElements();) {
+			String key = (String) e.nextElement();
+			p.put(key, sc.getInitParameter(key));
+		}
+		
 		try {
 			wayback.init(p);
 		} catch (Exception e) {

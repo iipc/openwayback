@@ -59,13 +59,12 @@ public class ArcIndexer {
 	/**
 	 * Create a ResourceResults representing the records in ARC file at arcPath.
 	 * 
-	 * @param arcPath
+	 * @param arc
 	 * @return ResourceResults in arcPath.
 	 * @throws IOException
 	 */
-	public ResourceResults indexArc(final String arcPath) throws IOException {
+	public ResourceResults indexArc(File arc) throws IOException {
 		ResourceResults results = new ResourceResults();
-		File arc = new File(arcPath);
 		ARCReader arcReader = ARCReaderFactory.get(arc);
 		arcReader.setParseHttpHeaders(true);
 		// doh. this does not generate quite the columns we need:
@@ -132,15 +131,17 @@ public class ArcIndexer {
 	 * Write out ResourceResults into CDX file at cdxPath
 	 * 
 	 * @param results
-	 * @param cdxPath
+	 * @param target
 	 * @throws IOException
 	 */
 	public void serializeResults(final ResourceResults results,
-			final String cdxPath) throws IOException {
-		Iterator itr = results.iterator();
-		File cdx = new File(cdxPath);
-		FileOutputStream output = new FileOutputStream(cdx);
+			File target) throws IOException {
+		
+		// TODO will this automatically close when it falls out of scope?
+		FileOutputStream output = new FileOutputStream(target);
 		output.write((ResourceResult.getCDXHeaderString() + "\n").getBytes());
+
+		Iterator itr = results.iterator();
 		while (itr.hasNext()) {
 			ResourceResult result = (ResourceResult) itr.next();
 			output.write((result.toString() + "\n").getBytes());
@@ -152,8 +153,8 @@ public class ArcIndexer {
 	 */
 	public static void main(String[] args) {
 		ArcIndexer indexer = new ArcIndexer();
-		String arc = args[0];
-		String cdx = args[1];
+		File arc = new File(args[0]);
+		File cdx = new File(args[1]);
 		try {
 			ResourceResults results = indexer.indexArc(arc);
 			indexer.serializeResults(results, cdx);

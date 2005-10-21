@@ -21,13 +21,14 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.archive.wayback.localbdbresourceindex;
+package org.archive.wayback.arcindexer;
 
 import java.io.File;
 import java.io.RandomAccessFile;
 
 import org.archive.wayback.core.ResourceResult;
 import org.archive.wayback.core.ResourceResults;
+import org.archive.wayback.localbdbresourceindex.BDBResourceIndex;
 
 import com.sleepycat.je.DatabaseException;
 
@@ -64,18 +65,17 @@ public class BDBResourceIndexWriter {
 	 * reads all ResourceResult objects from CDX at filePath, and merges them
 	 * into the BDBResourceIndex.
 	 * 
-	 * @param filePath
+	 * @param indexFile
 	 *            to CDX file
 	 * @throws Exception
 	 */
-	public void importFile(String filePath) throws Exception {
-		ResourceResults results = readFile(filePath);
+	public void importFile(File indexFile) throws Exception {
+		ResourceResults results = readFile(indexFile);
 		db.addResults(results);
 	}
 
-	private ResourceResults readFile(String filePath) throws Exception {
-		File file = new File(filePath);
-		RandomAccessFile raFile = new RandomAccessFile(file, "r");
+	private ResourceResults readFile(File indexFile) throws Exception {
+		RandomAccessFile raFile = new RandomAccessFile(indexFile, "r");
 		ResourceResults results = new ResourceResults();
 		int lineNumber = 0;
 		while (true) {
@@ -102,7 +102,7 @@ public class BDBResourceIndexWriter {
 		try {
 			BDBResourceIndexWriter idx = new BDBResourceIndexWriter();
 			idx.init(args[0], args[1]);
-			idx.importFile(args[2]);
+			idx.importFile(new File(args[2]));
 
 			idx.shutdown();
 		} catch (Exception e) {

@@ -54,7 +54,7 @@ public class RequestFilter implements Filter {
 
 	private static final String WMREQUEST_ATTRIBUTE = "wmrequest.attribute";
 
-	private static final String REQUEST_PARSER_CLASS = "requestParser.class";
+	private static final String REQUEST_PARSER_CLASS = "requestparser.class";
 
 	private static final String HANDLER_URL = "handler.url";
 

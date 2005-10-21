@@ -40,7 +40,7 @@ import org.archive.wayback.core.Resource;
  * @version $Date$, $Revision$
  */
 public class LocalARCResourceStore implements ResourceStore {
-	private static final String RESOURCE_PATH = "resourcestore.arcpath";
+	private static final String RESOURCE_PATH = "arcpath";
 
 	private static final String ARCTAIL = ".arc.gz";
 

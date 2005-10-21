@@ -3,155 +3,140 @@
 	"http://java.sun.com/dtd/web-app_2_3.dtd">
 <web-app>
 
+	<context-param>
+		<param-name>arcpath</param-name>
+		<param-value>/tmp/wayback/arcs</param-value>
+		<description>
+			Directory where ARC files are found (possibly where Heritrix writes them.)
+			This directory must exist.
+		</description>
+	</context-param>
+
+
+
+	<!-- ReplayUI Configuration -->
+	
+	<context-param>
+		<param-name>replayui.class</param-name>
+		<param-value>org.archive.wayback.rawreplayui.RawReplayUI</param-value>
+		<description>Class that implements ReplayUI for this Wayback</description>
+	</context-param>
+
+	<context-param>
+		<param-name>replayui.jsppath</param-name>
+		<param-value>jsp/ReplayUI</param-value>
+		<description>
+			RawReplayUI specific path to jsp pages. relative to webapp/
+		</description>
+	</context-param>
+
+
+
+	<!-- QueryUI Configuration -->
+	
+	<context-param>
+		<param-name>queryui.class</param-name>
+		<param-value>org.archive.wayback.simplequeryui.SimpleQueryUI</param-value>
+		<description>Class that implements QueryUI for this Wayback</description>
+	</context-param>
+
+	<context-param>
+		<param-name>queryui.jsppath</param-name>
+		<param-value>jsp/QueryUI</param-value>
+		<description>
+			SimpleQueryUI specific path to jsp pages. relative to webapp/
+		</description>
+	</context-param>
+
+
+
+	<!-- ResourceStore Configuration -->
+	
+	<context-param>
+		<param-name>resourcestore.class</param-name>
+		<param-value>org.archive.wayback.localresourcestore.LocalARCResourceStore</param-value>
+		<description>Class that implements ResourceStore for this Wayback</description>
+	</context-param>
+
+
+
+	<!-- ResourceIndex Configuration -->
+	
+	<context-param>
+		<param-name>resourceindex.class</param-name>
+		<param-value>org.archive.wayback.localbdbresourceindex.LocalBDBResourceIndex</param-value>
+		<description>Class that implements ResourceIndex for this Wayback</description>
+	</context-param>
+
+	<context-param>
+		<param-name>resourceindex.indexpath</param-name>
+		<param-value>/tmp/wayback/index</param-value>
+		<description>
+			LocalBDBResourceIndex specific directory to store the BDB files.
+			Directory must exists.
+		</description>
+	</context-param>
+
+	<context-param>
+		<param-name>resourceindex.dbname</param-name>
+		<param-value>DB1</param-value>
+		<description>
+			LocalBDBResourceIndex specific name for BDB database
+		</description>
+	</context-param>
+
+	<context-param>
+		<param-name>indexpipeline.workpath</param-name>
+		<param-value>/tmp/wayback/pipeline</param-value>
+		<description>
+			LocalBDBResourceIndex specific directory to store flag files and temporary index data.
+		</description>
+	</context-param>
+
+	<context-param>
+		<param-name>indexpipeline.runpipeline</param-name>
+		<param-value>1</param-value>
+		<description>
+			if set to '1' then a background indexing thread will automatically update the BDB
+			index when new ARC files are noticed in the 'arcpath' directory.
+		</description>
+	</context-param>
+
+<!--
+	<context-param>
+		<param-name></param-name>
+		<param-value></param-value>
+		<description></description>
+	</context-param>
+-->
+
+
+
+	<!-- Replay Servlet Configuration -->
+
     <servlet>
-	    <servlet-name>RetrievalServlet</servlet-name>
+	    <servlet-name>ReplayServlet</servlet-name>
     	<servlet-class>org.archive.wayback.servletglue.WBReplayUIServlet</servlet-class>
-
-	    <init-param>
-	      <param-name>UNUSED-replayui.class</param-name>
-	      <param-value>org.archive.wayback.ippreplayui.InPagePresenceReplayUI</param-value>
-	    </init-param>
-	    <init-param>
-	      <param-name>replayui.class</param-name>
-	      <param-value>org.archive.wayback.rawreplayui.RawReplayUI</param-value>
-	    </init-param>
-
-	    <init-param>
-	      <param-name>replayui.jsppath</param-name>
-	      <param-value>jsp/ReplayUI</param-value>
-	    </init-param>
-
-	    <init-param>
-	      <param-name>queryui.class</param-name>
-	      <param-value>org.archive.wayback.simplequeryui.SimpleQueryUI</param-value>
-	    </init-param>
-	    <init-param>
-	      <param-name>queryui.jsppath</param-name>
-	      <param-value>jsp/QueryUI</param-value>
-	    </init-param>
-
-	    <init-param>
-	      <param-name>resourcestore.class</param-name>
-	      <param-value>org.archive.wayback.localresourcestore.LocalARCResourceStore</param-value>
-	    </init-param>
-	    <init-param>
-	      <param-name>resourcestore.arcpath</param-name>
-	      <param-value>/home/brad/test-arc3</param-value>
-	    </init-param>
-
-	    <init-param>
-	      <param-name>resourceindex.class</param-name>
-	      <param-value>org.archive.wayback.localbdbresourceindex.LocalBDBResourceIndex</param-value>
-	    </init-param>
-	    <init-param>
-	      <param-name>resourceindex.indexPath</param-name>
-	      <param-value>/tmp/test-db</param-value>
-	    </init-param>
-	    <init-param>
-	      <param-name>resourceindex.dbName</param-name>
-	      <param-value>DB1</param-value>
-	    </init-param>
-	    <init-param>
-	      <param-name>resourceindex.arcPath</param-name>
-	      <param-value>/home/brad/test-arc3</param-value>
-	    </init-param>
-	    <init-param>
-	      <param-name>resourceindex.workPath</param-name>
-	      <param-value>/tmp/index-pipeline</param-value>
-	    </init-param>
-	    <init-param>
-	      <param-name>resourceindex.runPipeline</param-name>
-	      <param-value>1</param-value>
-	    </init-param>
 	</servlet>
 	<servlet-mapping>
-		<servlet-name>RetrievalServlet</servlet-name>
+		<servlet-name>ReplayServlet</servlet-name>
 		<url-pattern>/replay</url-pattern>
 	</servlet-mapping>
-
-
-
-    <servlet>
-	    <servlet-name>QueryServlet</servlet-name>
-    	<servlet-class>org.archive.wayback.servletglue.WBQueryUIServlet</servlet-class>
-
-	    <init-param>
-	      <param-name>UNUSED-replayui.class</param-name>
-	      <param-value>org.archive.wayback.ippreplayui.InPagePresenceReplayUI</param-value>
-	    </init-param>
-	    <init-param>
-	      <param-name>replayui.class</param-name>
-	      <param-value>org.archive.wayback.rawreplayui.RawReplayUI</param-value>
-	    </init-param>
-	    <init-param>
-	      <param-name>replayui.jsppath</param-name>
-	      <param-value>jsp/ReplayUI</param-value>
-	    </init-param>
-
-	    <init-param>
-	      <param-name>queryui.class</param-name>
-	      <param-value>org.archive.wayback.simplequeryui.SimpleQueryUI</param-value>
-	    </init-param>
-	    <init-param>
-	      <param-name>queryui.jsppath</param-name>
-	      <param-value>jsp/QueryUI</param-value>
-	    </init-param>
-
-	    <init-param>
-	      <param-name>resourcestore.class</param-name>
-	      <param-value>org.archive.wayback.localresourcestore.LocalARCResourceStore</param-value>
-	    </init-param>
-	    <init-param>
-	      <param-name>resourcestore.arcpath</param-name>
-	      <param-value>/home/brad/test-arc3</param-value>
-	    </init-param>
-
-	    <init-param>
-	      <param-name>resourceindex.class</param-name>
-	      <param-value>org.archive.wayback.localbdbresourceindex.LocalBDBResourceIndex</param-value>
-	    </init-param>
-	    <init-param>
-	      <param-name>resourceindex.indexPath</param-name>
-	      <param-value>/tmp/test-db</param-value>
-	    </init-param>
-	    <init-param>
-	      <param-name>resourceindex.dbName</param-name>
-	      <param-value>DB1</param-value>
-	    </init-param>
-	    <init-param>
-	      <param-name>resourceindex.arcPath</param-name>
-	      <param-value>/home/brad/test-arc3</param-value>
-	    </init-param>
-	    <init-param>
-	      <param-name>resourceindex.workPath</param-name>
-	      <param-value>/tmp/index-pipeline</param-value>
-	    </init-param>
-	    <init-param>
-	      <param-name>resourceindex.runPipeline</param-name>
-	      <param-value>1</param-value>
-	    </init-param>
-
-	</servlet>
-
-	<servlet-mapping>
-		<servlet-name>QueryServlet</servlet-name>
-		<url-pattern>/query</url-pattern>
-	</servlet-mapping>
-
+	
+	<!-- Replay Filter Configuration -->
 
 	<filter>
 		<filter-name>RetrievalFilter</filter-name>
 		<filter-class>org.archive.wayback.servletglue.RequestFilter</filter-class>
 
 	    <init-param>
-	      <param-name>requestParser.class</param-name>
+	      <param-name>requestparser.class</param-name>
 	      <param-value>org.archive.wayback.rawreplayui.RawReplayUI</param-value>
 	    </init-param>
 	    <init-param>
 	      <param-name>handler.url</param-name>
 	      <param-value>/replay</param-value>
 	    </init-param>
-
 	</filter>
 	<filter-mapping>
     	<filter-name>RetrievalFilter</filter-name>
@@ -159,12 +144,26 @@
 	</filter-mapping>
 
 
+
+	<!-- Query Servlet Configuration -->
+	
+    <servlet>
+	    <servlet-name>QueryServlet</servlet-name>
+    	<servlet-class>org.archive.wayback.servletglue.WBQueryUIServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>QueryServlet</servlet-name>
+		<url-pattern>/query</url-pattern>
+	</servlet-mapping>
+
+	<!-- Query Filter Configuration -->
+
 	<filter>
 		<filter-name>QueryFilter</filter-name>
 		<filter-class>org.archive.wayback.servletglue.RequestFilter</filter-class>
 
 	    <init-param>
-	      <param-name>requestParser.class</param-name>
+	      <param-name>requestparser.class</param-name>
 	      <param-value>org.archive.wayback.simplequeryui.SimpleQueryUI</param-value>
 	    </init-param>
 	    <init-param>
@@ -177,4 +176,22 @@
     	<filter-name>QueryFilter</filter-name>
 		<url-pattern>/*</url-pattern>
 	</filter-mapping>
+	
+	
+	<!-- Pipeline Filter Configuration -->
+
+	<filter>
+		<filter-name>PipelineFilter</filter-name>
+		<filter-class>org.archive.wayback.arcindexer.PipelineFilter</filter-class>
+	    <init-param>
+	      <param-name>pipeline.statusjsp</param-name>
+	      <param-value>jsp/PipelineUI/PipelineStatus.jsp</param-value>
+	    </init-param>
+	</filter>
+	<filter-mapping>
+    	<filter-name>PipelineFilter</filter-name>
+		<url-pattern>/pipeline</url-pattern>
+	</filter-mapping>
+	
+	
 </web-app>
