@@ -82,7 +82,7 @@ public class SimpleQueryUI implements QueryUI, RequestParser {
 		WMRequest wmRequest = null;
 		Matcher matcher = null;
 
-		String origRequestPath = request.getRequestURI();
+		String origRequestPath = request.getRequestURI() + "?" + request.getQueryString();
 		String contextPath = request.getContextPath();
 		if (!origRequestPath.startsWith(contextPath)) {
 			return null;
