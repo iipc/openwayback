@@ -210,6 +210,23 @@
             </properties>
         </dependency>
         <dependency>
+            <id>libidn</id>
+            <version>0.5.9</version>
+            <url>http://www.gnu.org/software/libidn/</url>
+            <properties>
+                <war.bundle>true</war.bundle>
+                <ear.bundle>true</ear.bundle>
+                <ear.bundle.dir>APP-INF/lib</ear.bundle.dir>
+                <description>GNU Libidn is an implementation of the Stringprep, 
+                Punycode and IDNA specifications defined by the IETF 
+                Internationalized Domain Names (IDN) working group, used for 
+                internationalized domain names.
+                </description>
+                <license>GNU Lesser General Public License 
+                http://www.gnu.org/licenses/lgpl.txt</license>
+            </properties>
+        </dependency>
+        <dependency>
             <id>commons-codec</id>
             <version>1.3</version>
             <url>http://jakarta.apache.org/commons/codec/</url>
