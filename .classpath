@@ -14,5 +14,9 @@
         path="src/webapp/WEB-INF/lib/commons-httpclient-3.0-rc3.jar"/>
 	<classpathentry kind="lib" 
         path="src/webapp/WEB-INF/lib/arc-1.5.1-200510181911.jar"/>
+	<classpathentry kind="lib" 
+        path="/src/webapp/WEB-INF/lib/commons-codec-1.3.jar"/>
+	<classpathentry kind="lib" 
+        path="src/webapp/WEB-INF/lib/dsi-unimi-it-1.0.0.kb.jar"/>
 	<classpathentry kind="output" path="src/webapp/WEB-INF/classes"/>
 </classpath>
