@@ -97,7 +97,11 @@ public class RawReplayUI implements ReplayUI, RequestParser {
 		WMRequest wmRequest = null;
 		Matcher matcher = null;
 
-		String origRequestPath = request.getRequestURI() + "?" + request.getQueryString();
+		String queryString = request.getQueryString();
+		String origRequestPath = request.getRequestURI();
+		if(queryString != null) {
+			origRequestPath = request.getRequestURI() + "?" + queryString;
+		}
 		String contextPath = request.getContextPath();
 		if (!origRequestPath.startsWith(contextPath)) {
 			return null;
