@@ -11,4 +11,16 @@
     <preGoal name="xdoc:jelly-transform">
         <attainGoal name="faq"/>
     </preGoal> 
+    <goal name="jar:jar" 
+        description="Blind out jar:jar -- we don't want a jar made"/>
+    <postGoal name="dist:prepare-bin-filesystem">
+        <attainGoal name="war" />
+        <!--Copy over the just made war files into the distribution copy.-->
+        <mkdir dir="${maven.dist.bin.assembly.dir}/webapp" />
+        <copy todir="${maven.dist.bin.assembly.dir}/webapp">
+          <fileset dir="${maven.build.dir}">
+            <include name="*.war"/>
+          </fileset>
+        </copy>
+    </postGoal>
 </project>
