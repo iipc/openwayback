@@ -82,7 +82,9 @@ public class ArcIndexer {
 				e.printStackTrace();
 				continue;
 			}
-			results.addResourceResult(result);
+			if(result != null) {
+				results.addResourceResult(result);
+			}
 		}
 		return results;
 	}
@@ -102,7 +104,13 @@ public class ArcIndexer {
 
 		result.setMd5Fragment(meta.getDigest());
 		result.setMimeType(meta.getMimetype());
-		UURI uri = new UURI(meta.getUrl(), false);
+		
+		String uriStr = meta.getUrl();
+		if(uriStr.startsWith("filedesc")) {
+			// skip filedesc record...
+			return null;
+		}
+		UURI uri = new UURI(uriStr, false);
 		result.setOrigHost(uri.getHost());
 
 		String redirectUrl = "-";
