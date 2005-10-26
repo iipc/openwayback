@@ -51,7 +51,7 @@ while(itr.hasNext()) {
 	}
 	if(newUrl) {
 		%>
-		<B><%= url %></B><BR>
+		<HR><B><%= url %></B><BR>
 		<%
 	}
 	if(0 != MD5.compareTo(lastMD5)) {
