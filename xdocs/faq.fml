@@ -10,7 +10,71 @@
       </question>
       <answer>
         <p>
-        Fill in..
+        The project is designed to replace the current Wayback Machine with an
+        all Java solution that is flexible enough to provide an easy-to-use 
+        solution for the single-machine at-home user, as well as scaling up
+        to hundreds of machines for a full historical collection.
+        </p>
+        <p>
+        Primarily it is a few interfaces, and some core classes that utilize 
+        those interfaces to provide the Wayback service. Presently only 
+        trivial implementations of those interfaces have been developed,
+        but we hope that these interfaces will allow a high degree of
+        flexibility and experimentation.
+        </p>
+      </answer>
+    </faq>
+    <faq id="install">
+      <question>
+            How can I install and use this?
+      </question>
+      <answer>
+        <p>
+        The project output is a .WAR file, so it can be used with any servlet
+        container (but it has only been tested on Tomcat on Linux.)
+        </p>
+        <p>
+        Once it is unpacked, there are 5 modifications that can
+        be made to the web.xml file:
+        <table>
+        	<tr>
+        		<td>parameter</td>
+        		<td>description</td>
+        		<td>default</td>
+        	</tr>
+        	<tr>
+        		<td>arcpath</td>
+        		<td>directory where ARC are found</td>
+        		<td><b>/tmp/wayback/arcs</b></td>
+        	</tr>
+        	<tr>
+        		<td>resourceindex.indexpath</td>
+        		<td>directory where index should be stored</td>
+        		<td><b>/tmp/wayback/index</b></td>
+        	</tr>
+        	<tr>
+        		<td>resourceindex.dbname</td>
+        		<td>Name of index within directory</td>
+        		<td><b>DB1</b></td>
+        	</tr>
+        	<tr>
+        		<td>indexpipeline.workpath</td>
+        		<td>directory where temporary files and processing state is stored</td>
+        		<td><b>/tmp/wayback/pipeline</b></td>
+        	</tr>
+        	<tr>
+        		<td>indexpipeline.runpipeline</td>
+        		<td>if set to '1', then new ARC files will be indexed</td>
+        		<td><b>1</b></td>
+        	</tr>
+        </table>
+        </p>
+        <p>
+        	All directories MUST exist before the servlet is initialized. After 
+        	these configurations are set, and the servlet container is running,
+        	the service can be accessed at http://localhost:8080/wayback/. 
+        	Of course, you might be running on a different port, machine, or
+        	ContextPath, so you might need to vary the URL.
         </p>
       </answer>
     </faq>
