@@ -18,7 +18,10 @@
 	
 	<context-param>
 		<param-name>replayui.class</param-name>
+<!--
 		<param-value>org.archive.wayback.rawreplayui.RawReplayUI</param-value>
+-->
+		<param-value>org.archive.wayback.jsreplayui.JSReplayUI</param-value>
 		<description>Class that implements ReplayUI for this Wayback</description>
 	</context-param>
 
@@ -101,15 +104,6 @@
 			index when new ARC files are noticed in the 'arcpath' directory.
 		</description>
 	</context-param>
-
-<!--
-	<context-param>
-		<param-name></param-name>
-		<param-value></param-value>
-		<description></description>
-	</context-param>
--->
-
 
 
 	<!-- Replay Servlet Configuration -->
