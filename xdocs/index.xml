@@ -9,9 +9,20 @@
 
   <body>
     <section name="Introduction">
-        <p><b>wayback</b> is an open source implementation of the
-        The Internet Archive Wayback Machine. Stay tuned for first release.
-        	</p>
+        <p><b>wayback</b> is an open source java implementation of the
+        The Internet Archive Wayback Machine.
+        </p>
+        <p>
+        The first revision is intended to operate as a standalone webapp. 
+        It currently supports Archival URL queries, similar to the current 
+        Wayback Machine, and hopefully soon will integrate fully with 
+        Heritrix to provide browsing of crawled data as it is crawled.
+        </p>
+        <p>
+        This version includes some basic ARC file indexing, so it can be directed to
+        scan for and automatically index new content in the location that Heritrix 
+        is writing output ARC files.
+        </p>
     </section>
   </body>
 </document>
