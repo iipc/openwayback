@@ -43,7 +43,7 @@
 
 
 									<!-- URL FORM -->
-									<form action="query" method="GET">
+									<form action="<%= request.getContextPath() %>/query" method="GET">
 
 
 										<tr>
