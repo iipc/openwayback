@@ -268,9 +268,17 @@ public class WMRequest {
 			throw new IllegalArgumentException("request type must be 'replay' for this URL");
 		}
 		parseCGIArgsDates(queryMap);
-		if (!requestURIStr.startsWith("http://")) {
+		if (requestURIStr.startsWith("http://")) {
+			if(-1 == requestURIStr.indexOf('/',8)) {
+				requestURIStr = requestURIStr + "/";				
+			}
+		} else {
+			if (!requestURIStr.contains("/")) {
+				requestURIStr = requestURIStr + "/";
+			}			
 			requestURIStr = "http://" + requestURIStr;
 		}
+		
 		requestURI = new UURI(requestURIStr,false);
 		setRetrieval();
 	}
@@ -301,7 +309,14 @@ public class WMRequest {
 			throw new IllegalArgumentException("request type must be 'replay' for this URL");
 		}
 		parseCGIArgsDates(queryMap);
-		if (!requestURIStr.startsWith("http://")) {
+		if (requestURIStr.startsWith("http://")) {
+			if(-1 == requestURIStr.indexOf('/',8)) {
+				requestURIStr = requestURIStr + "/";				
+			}
+		} else {
+			if (!requestURIStr.contains("/")) {
+				requestURIStr = requestURIStr + "/";
+			}			
 			requestURIStr = "http://" + requestURIStr;
 		}
 
@@ -357,14 +372,14 @@ public class WMRequest {
 			// no end specified -- if the exact is not specified, assume 
 			// the latest possible:
 			if(origExactDateRequest == null) {
-				endTimestamp = Timestamp.latestTimestamp();
+				endTimestamp = Timestamp.currentTimestamp();
 			} else {
 				// no end specified, but they asked for an exact date.
 				// if the exact date was partial, use the latest possible
 				// of the partial:
 
 				if(origExactDateRequest.equals(exactTimestamp.getDateStr())) {
-					endTimestamp = Timestamp.latestTimestamp();
+					endTimestamp = Timestamp.currentTimestamp();
 				} else {
 					endTimestamp = Timestamp.parseAfter(exactDateRequest);
 				}
