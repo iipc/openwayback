@@ -144,7 +144,7 @@ public class RawReplayUI implements ReplayUI, RequestParser {
 			try {
 				wmRequest.setExactTimestamp(Timestamp.parseBefore(dateStr));
 				wmRequest.setStartTimestamp(Timestamp.earliestTimestamp());
-				wmRequest.setEndTimestamp(Timestamp.latestTimestamp());
+				wmRequest.setEndTimestamp(Timestamp.currentTimestamp());
 			} catch (ParseException e1) {
 				e1.printStackTrace();
 				return null;
