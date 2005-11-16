@@ -23,13 +23,17 @@
 
 package org.archive.wayback.core;
 
+import java.util.Enumeration;
 import java.util.Properties;
 import java.util.logging.Logger;
 
-import org.archive.wayback.QueryUI;
-import org.archive.wayback.ReplayUI;
+import org.archive.wayback.PropertyConfigurable;
+import org.archive.wayback.ReplayRenderer;
+import org.archive.wayback.QueryRenderer;
+import org.archive.wayback.ReplayResultURIConverter;
 import org.archive.wayback.ResourceIndex;
 import org.archive.wayback.ResourceStore;
+import org.archive.wayback.exception.ConfigurationException;
 
 /**
  * Constructor and go-between for the major components in the Wayback Machine.
@@ -37,21 +41,26 @@ import org.archive.wayback.ResourceStore;
  * @author Brad Tofel
  * @version $Date$, $Revision$
  */
-public class WaybackLogic {
+public class WaybackLogic implements PropertyConfigurable {
 	private static final Logger LOGGER = Logger.getLogger(WaybackLogic.class
 			.getName());
 
-	private static final String REPLAY_UI_CLASS = "replayui.class";
+	private static final String REPLAY_URI_CONVERTER_PROPERTY =
+		"replayuriconverter";
 
-	private static final String QUERY_UI_CLASS = "queryui.class";
+	private static final String REPLAY_RENDERER_PROPERTY = "replayrenderer";
 
-	private static final String RESOURCE_STORE_CLASS = "resourcestore.class";
+	private static final String QUERY_RENDERER_PROPERTY = "queryrenderer";
 
-	private static final String RESOURCE_INDEX_CLASS = "resourceindex.class";
+	private static final String RESOURCE_STORE_PROPERTY = "resourcestore";
 
-	private ReplayUI replayUI = null;
+	private static final String RESOURCE_INDEX_PROPERTY = "resourceindex";
 
-	private QueryUI queryUI = null;
+	private ReplayResultURIConverter uriConverter = null;
+
+	private ReplayRenderer replayRenderer = null;
+
+	private QueryRenderer queryRenderer = null;
 
 	private ResourceIndex resourceIndex = null;
 
@@ -73,67 +82,70 @@ public class WaybackLogic {
 	 *            Generic properties bag for configurations
 	 * @throws Exception
 	 */
-	public void init(Properties p) throws Exception {
+	public void init(Properties p) throws ConfigurationException {
 		LOGGER.info("WaybackLogic constructing classes...");
 
-		replayUI = (ReplayUI) getInstance(p, REPLAY_UI_CLASS, "replayui");
-		queryUI = (QueryUI) getInstance(p, QUERY_UI_CLASS, "queryUI");
-		resourceStore = (ResourceStore) getInstance(p, RESOURCE_STORE_CLASS,
-				"resourceStore");
-		resourceIndex = (ResourceIndex) getInstance(p, RESOURCE_INDEX_CLASS,
-				"resourceIndex");
+		uriConverter = (ReplayResultURIConverter) getInstance(p,
+				REPLAY_URI_CONVERTER_PROPERTY);
 
-		LOGGER.info("WaybackLogic initializing classes...");
+		replayRenderer = (ReplayRenderer) getInstance(p,
+				REPLAY_RENDERER_PROPERTY);
 
-		try {
+		queryRenderer = (QueryRenderer) getInstance(p, QUERY_RENDERER_PROPERTY);
 
-			replayUI.init(p);
-			LOGGER.info("initialized replayUI");
-			queryUI.init(p);
-			LOGGER.info("initialized queryUI");
-			resourceStore.init(p);
-			LOGGER.info("initialized resourceStore");
-			resourceIndex.init(p);
-			LOGGER.info("initialized resourceIndex");
+		resourceStore = (ResourceStore) getInstance(p, RESOURCE_STORE_PROPERTY);
+		resourceIndex = (ResourceIndex) getInstance(p, RESOURCE_INDEX_PROPERTY);
 
-		} catch (Exception e) {
-			throw new Exception(e.getMessage());
-		}
+		LOGGER.info("WaybackLogic initialized classes...");
+
 	}
 
-	protected Object getInstance(final Properties p,
-			final String classProperty, final String pretty) throws Exception {
-		Object result = null;
+	protected PropertyConfigurable getInstance(final Properties p,
+			final String classPrefix) throws ConfigurationException {
 
-		String className = (String) p.get(classProperty);
-		if ((className == null) || (className.length() <= 0)) {
-			throw new Exception("No config (" + classProperty + " for "
-					+ pretty + ")");
+		PropertyConfigurable result = null;
+
+		String classNameKey = classPrefix + ".classname";
+		String propertyPrefix = classPrefix + ".";
+		String className = null;
+
+		// build new class-specific Properties for class initialization:
+		Properties classProperties = new Properties();
+		for (Enumeration e = p.keys(); e.hasMoreElements();) {
+			String key = (String) e.nextElement();
+
+			if (key.equals(classNameKey)) {
+
+				// special .classname value:
+				className = (String) p.get(key);
+
+			} else if (key.startsWith(propertyPrefix)) {
+
+				String finalKey = key.substring(propertyPrefix.length());
+				String value = (String) p.get(key);
+				classProperties.put(finalKey, value);
+
+			}
+		}
+
+		// did we find the implementation class?
+		if (className == null) {
+			throw new ConfigurationException("No configuration for ("
+					+ classNameKey + ")");
 		}
 
 		try {
-			result = Class.forName(className).newInstance();
-			LOGGER.info("new " + className + " " + pretty + " created.");
+			result = (PropertyConfigurable) Class.forName(className)
+					.newInstance();
 		} catch (Exception e) {
-			// Convert. Add info.
-			throw new Exception("Failed making " + pretty + " with "
-					+ className + ": " + e.getMessage());
+			e.printStackTrace();
+			throw new ConfigurationException(e.getMessage());
 		}
+		LOGGER.info("new " + className + " created.");
+		result.init(p);
+		LOGGER.info("initialized " + className);
+
 		return result;
-	}
-
-	/**
-	 * @return Returns the queryUI.
-	 */
-	public QueryUI getQueryUI() {
-		return queryUI;
-	}
-
-	/**
-	 * @return Returns the replayUI.
-	 */
-	public ReplayUI getReplayUI() {
-		return replayUI;
 	}
 
 	/**
@@ -148,6 +160,27 @@ public class WaybackLogic {
 	 */
 	public ResourceStore getResourceStore() {
 		return resourceStore;
+	}
+
+	/**
+	 * @return Returns the uriConverter.
+	 */
+	public ReplayResultURIConverter getURIConverter() {
+		return uriConverter;
+	}
+
+	/**
+	 * @return Returns the replayRenderer.
+	 */
+	public ReplayRenderer getReplayRenderer() {
+		return replayRenderer;
+	}
+
+	/**
+	 * @return Returns the queryRenderer.
+	 */
+	public QueryRenderer getQueryRenderer() {
+		return queryRenderer;
 	}
 
 	/**

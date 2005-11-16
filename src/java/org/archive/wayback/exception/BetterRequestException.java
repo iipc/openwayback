@@ -1,50 +1,58 @@
-/* BadQueryException
+/* BetterRequestException
  *
- * Created on 2005/10/18 14:00:00
+ * $Id$
+ *
+ * Created on 6:42:01 PM Oct 31, 2005.
  *
  * Copyright (C) 2005 Internet Archive.
  *
- * This file is part of the Wayback Machine (crawler.archive.org).
+ * This file is part of wayback.
  *
- * Wayback Machine is free software; you can redistribute it and/or modify
+ * wayback is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser Public License as published by
  * the Free Software Foundation; either version 2.1 of the License, or
  * any later version.
  *
- * Wayback Machine is distributed in the hope that it will be useful,
+ * wayback is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser Public License for more details.
  *
  * You should have received a copy of the GNU Lesser Public License
- * along with Wayback Machine; if not, write to the Free Software
+ * along with wayback; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-
 package org.archive.wayback.exception;
 
 /**
- * Exception for malformed user query.
- * 
- * @author Brad Tofel
+ *
+ *
+ * @author brad
  * @version $Date$, $Revision$
  */
-public class BadQueryException extends WaybackException {
+public class BetterRequestException extends WaybackException {
 
+	
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
+	private String betterURI;
 
 	/**
 	 * Constructor
 	 * 
 	 * @param message
 	 */
-	public BadQueryException(String message) {
-		super(message,"Bad Query");
+	public BetterRequestException(String betterURI) {
+		super("Better URI for query");
+		this.betterURI = betterURI;
 	}
-	public BadQueryException(String message, String details) {
-		super(message,"Bad Query",details);
+
+	/**
+	 * @return Returns the betterURI.
+	 */
+	public String getBetterURI() {
+		return betterURI;
 	}
 }

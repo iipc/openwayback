@@ -35,7 +35,10 @@ public class WaybackException extends Exception {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-
+	private String message = "";
+	private String title = "Wayback Exception";
+	private String details = "";
+	
 	/**
 	 * Constructor
 	 * 
@@ -43,13 +46,40 @@ public class WaybackException extends Exception {
 	 */
 	public WaybackException(String message) {
 		super(message);
+		this.message = message;
+	}
+	
+	public WaybackException(String message, String title) {
+		super(message);
+		this.message = message;
+		this.title= title;
+	}
+	
+	public WaybackException(String message, String title,  String details) {
+		super(message);
+		this.message = message;
+		this.title= title;
+		this.details = details;
+	}
+	
+	/**
+	 * @return Returns the title.
+	 */
+	public String getTitle() {
+		return title;
 	}
 
 	/**
-	 * @param args
+	 * @return Returns the message.
 	 */
-	public static void main(String[] args) {
-
+	public String getMessage() {
+		return message;
 	}
 
+	/**
+	 * @return Returns the details.
+	 */
+	public String getDetails() {
+		return details;
+	}
 }

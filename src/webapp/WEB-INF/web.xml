@@ -3,6 +3,10 @@
 	"http://java.sun.com/dtd/web-app_2_3.dtd">
 <web-app>
 
+	<!-- Local Arc Path Configuration: 
+			used by both indexpipeline and LocalARCResourceStore
+	 -->
+
 	<context-param>
 		<param-name>arcpath</param-name>
 		<param-value>/tmp/wayback/arcs</param-value>
@@ -14,49 +18,10 @@
 
 
 
-	<!-- ReplayUI Configuration -->
-	
-	<context-param>
-		<param-name>replayui.class</param-name>
-<!--
-		<param-value>org.archive.wayback.rawreplayui.RawReplayUI</param-value>
--->
-		<param-value>org.archive.wayback.jsreplayui.JSReplayUI</param-value>
-		<description>Class that implements ReplayUI for this Wayback</description>
-	</context-param>
-
-	<context-param>
-		<param-name>replayui.jsppath</param-name>
-		<param-value>jsp/ReplayUI</param-value>
-		<description>
-			RawReplayUI specific path to jsp pages. relative to webapp/
-		</description>
-	</context-param>
-
-
-
-	<!-- QueryUI Configuration -->
-	
-	<context-param>
-		<param-name>queryui.class</param-name>
-		<param-value>org.archive.wayback.simplequeryui.SimpleQueryUI</param-value>
-		<description>Class that implements QueryUI for this Wayback</description>
-	</context-param>
-
-	<context-param>
-		<param-name>queryui.jsppath</param-name>
-		<param-value>jsp/QueryUI</param-value>
-		<description>
-			SimpleQueryUI specific path to jsp pages. relative to webapp/
-		</description>
-	</context-param>
-
-
-
 	<!-- ResourceStore Configuration -->
 	
 	<context-param>
-		<param-name>resourcestore.class</param-name>
+		<param-name>resourcestore.classname</param-name>
 		<param-value>org.archive.wayback.localresourcestore.LocalARCResourceStore</param-value>
 		<description>Class that implements ResourceStore for this Wayback</description>
 	</context-param>
@@ -66,8 +31,8 @@
 	<!-- ResourceIndex Configuration -->
 	
 	<context-param>
-		<param-name>resourceindex.class</param-name>
-		<param-value>org.archive.wayback.localbdbresourceindex.LocalBDBResourceIndex</param-value>
+		<param-name>resourceindex.classname</param-name>
+		<param-value>org.archive.wayback.cdx.LocalBDBResourceIndex</param-value>
 		<description>Class that implements ResourceIndex for this Wayback</description>
 	</context-param>
 
@@ -88,6 +53,10 @@
 		</description>
 	</context-param>
 
+
+
+	<!-- ResourceIndex Pipeline Configuration -->
+
 	<context-param>
 		<param-name>indexpipeline.workpath</param-name>
 		<param-value>/tmp/wayback/pipeline</param-value>
@@ -105,78 +74,14 @@
 		</description>
 	</context-param>
 
-
-	<!-- Replay Servlet Configuration -->
-
-    <servlet>
-	    <servlet-name>ReplayServlet</servlet-name>
-    	<servlet-class>org.archive.wayback.servletglue.WBReplayUIServlet</servlet-class>
-	</servlet>
-	<servlet-mapping>
-		<servlet-name>ReplayServlet</servlet-name>
-		<url-pattern>/replay</url-pattern>
-	</servlet-mapping>
-	
-	<!-- Replay Filter Configuration -->
-
-	<filter>
-		<filter-name>RetrievalFilter</filter-name>
-		<filter-class>org.archive.wayback.servletglue.RequestFilter</filter-class>
-
-	    <init-param>
-	      <param-name>requestparser.class</param-name>
-	      <param-value>org.archive.wayback.rawreplayui.RawReplayUI</param-value>
-	    </init-param>
-	    <init-param>
-	      <param-name>handler.url</param-name>
-	      <param-value>/replay</param-value>
-	    </init-param>
-	</filter>
-	<filter-mapping>
-    	<filter-name>RetrievalFilter</filter-name>
-		<url-pattern>/*</url-pattern>
-	</filter-mapping>
-
-
-
-	<!-- Query Servlet Configuration -->
-	
-    <servlet>
-	    <servlet-name>QueryServlet</servlet-name>
-    	<servlet-class>org.archive.wayback.servletglue.WBQueryUIServlet</servlet-class>
-	</servlet>
-	<servlet-mapping>
-		<servlet-name>QueryServlet</servlet-name>
-		<url-pattern>/query</url-pattern>
-	</servlet-mapping>
-
-	<!-- Query Filter Configuration -->
-
-	<filter>
-		<filter-name>QueryFilter</filter-name>
-		<filter-class>org.archive.wayback.servletglue.RequestFilter</filter-class>
-
-	    <init-param>
-	      <param-name>requestparser.class</param-name>
-	      <param-value>org.archive.wayback.simplequeryui.SimpleQueryUI</param-value>
-	    </init-param>
-	    <init-param>
-	      <param-name>handler.url</param-name>
-	      <param-value>/query</param-value>
-	    </init-param>
-
-	</filter>
-	<filter-mapping>
-    	<filter-name>QueryFilter</filter-name>
-		<url-pattern>/*</url-pattern>
-	</filter-mapping>
-	
-	
-	<!-- Pipeline Filter Configuration -->
+	<!-- Pipeline Filter Configuration 
+			this enables a trival (and very in-progress) UI for viewing the 
+			pipeline status.
+	-->
 
 	<filter>
 		<filter-name>PipelineFilter</filter-name>
-		<filter-class>org.archive.wayback.arcindexer.PipelineFilter</filter-class>
+		<filter-class>org.archive.wayback.cdx.indexer.PipelineFilter</filter-class>
 	    <init-param>
 	      <param-name>pipeline.statusjsp</param-name>
 	      <param-value>jsp/PipelineUI/PipelineStatus.jsp</param-value>
@@ -186,6 +91,160 @@
     	<filter-name>PipelineFilter</filter-name>
 		<url-pattern>/pipeline</url-pattern>
 	</filter-mapping>
+
+
+
+
+	<!-- Query Servlet Configuration -->
 	
+    <servlet>
+	    <servlet-name>QueryServlet</servlet-name>
+    	<servlet-class>org.archive.wayback.query.QueryServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>QueryServlet</servlet-name>
+		<url-pattern>/query</url-pattern>
+	</servlet-mapping>
+
+	<!-- QueryUI Configuration -->
 	
+	<context-param>
+		<param-name>queryrenderer.classname</param-name>
+		<param-value>org.archive.wayback.query.Renderer</param-value>
+		<description>Implementation responsible for drawing Index Query results</description>
+	</context-param>
+
+	<context-param>
+		<param-name>queryui.jsppath</param-name>
+		<param-value>jsp/QueryUI</param-value>
+		<description>
+			SimpleQueryUI specific path to jsp pages. relative to webapp/
+		</description>
+	</context-param>
+
+
+
+
+	<!-- Replay Servlet Configuration -->
+
+    <servlet>
+	    <servlet-name>ReplayServlet</servlet-name>
+    	<servlet-class>org.archive.wayback.replay.ReplayServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ReplayServlet</servlet-name>
+		<url-pattern>/replay</url-pattern>
+	</servlet-mapping>
+
+
+
+	<!-- Archival Url Query Filter Configuration -->
+
+	<filter>
+		<filter-name>QueryFilter</filter-name>
+		<filter-class>org.archive.wayback.archivalurl.QueryFilter</filter-class>
+
+	    <init-param>
+	      <param-name>handler.url</param-name>
+	      <param-value>/query</param-value>
+	    </init-param>
+	</filter>
+	<filter-mapping>
+    	<filter-name>QueryFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+
+	<!-- Archival Url Replay Filter Configuration -->
+
+	<filter>
+		<filter-name>ReplayFilter</filter-name>
+		<filter-class>org.archive.wayback.archivalurl.ReplayFilter</filter-class>
+
+	    <init-param>
+	      <param-name>handler.url</param-name>
+	      <param-value>/replay</param-value>
+	    </init-param>
+	</filter>
+	<filter-mapping>
+    	<filter-name>ReplayFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+
+	<!-- Archival Url URI Conversion Configuration -->
+
+	<context-param>
+		<param-name>replayuriconverter.classname</param-name>
+		<param-value>org.archive.wayback.archivalurl.ResultURIConverter</param-value>
+		<description>Class that implements translation of index results to Replayable URIs for this Wayback</description>
+	</context-param>
+
+	<context-param>
+		<param-name>replayuriprefix</param-name>
+		<param-value>http://localhost:8080/wayback</param-value>
+		<description>HTTP URI prefix for the replay UI</description>
+	</context-param>
+
+
+	<!-- Archival Url JSReplayUI Configuration -->
+
+	<context-param>
+		<param-name>replayrenderer.classname</param-name>
+		<param-value>org.archive.wayback.archivalurl.JSReplayRenderer</param-value>
+		<description>Implementation responsible for drawing replayed resources and replay error messages</description>
+	</context-param>
+
+	<context-param>
+		<param-name>replayui.jsppath</param-name>
+		<param-value>jsp/ReplayUI</param-value>
+		<description>
+			RawReplayUI specific path to jsp pages. relative to webapp/
+		</description>
+	</context-param>
+
+
+	<!-- Proxy RawReplayUI Configuration -->
+<!--
+
+	<context-param>
+		<param-name>replayrenderer.classname</param-name>
+		<param-value>org.archive.wayback.proxy.RawReplayRenderer</param-value>
+		<description>Implementation responsible for drawing replayed resources and replay error messages</description>
+	</context-param>
+
+	<context-param>
+		<param-name>replayui.jsppath</param-name>
+		<param-value>jsp/ReplayUI</param-value>
+		<description>
+			RawReplayUI specific path to jsp pages. relative to webapp/
+		</description>
+	</context-param>
+-->
+	<!-- Proxy URI Conversion Configuration -->
+<!--
+
+	<context-param>
+		<param-name>replayuriconverter.classname</param-name>
+		<param-value>org.archive.wayback.proxy.ResultURIConverter</param-value>
+		<description>Class that implements translation of index results to Replayable URIs for this Wayback</description>
+	</context-param>
+-->
+	<!-- Proxy ReplayFilter Configuration -->
+<!--
+	<filter>
+		<filter-name>ReplayFilter</filter-name>
+		<filter-class>org.archive.wayback.proxy.ReplayFilter</filter-class>
+
+	    <init-param>
+	      <param-name>handler.url</param-name>
+	      <param-value>/replay</param-value>
+	    </init-param>
+	</filter>
+	<filter-mapping>
+    	<filter-name>ReplayFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+-->
+
 </web-app>

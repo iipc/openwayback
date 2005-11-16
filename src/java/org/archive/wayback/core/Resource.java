@@ -23,22 +23,34 @@
 
 package org.archive.wayback.core;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+
+import org.apache.commons.httpclient.Header;
 import org.archive.io.arc.ARCRecord;
 
 /**
  * Slightly more than an ARCRecord. This class is designed to be an abstraction
  * to allow the Wayback to operator with non-ARC file format resources. Probably
  * the interface required will end up looking very much like ARCRecord, but can
- * be reimplemented to handle new ARC formats or non-ARC formats. At the moment,
- * users of this class just grab the ARCRecord out and use it directly.
+ * be reimplemented to handle new ARC formats or non-ARC formats.
  * 
  * @author Brad Tofel
  * @version $Date$, $Revision$
  */
-public class Resource {
+public class Resource extends InputStream {
 
+	private static String ARC_META_PREFIX = "arcmeta.";
+	private static String HTTP_HEADER_PREFIX = "httpheader.";
 	ARCRecord arcRecord = null;
-
+	boolean parsedHeader = false;
+	Properties metaData = new Properties();
+	
 	/**
 	 * Constructor
 	 * 
@@ -47,6 +59,67 @@ public class Resource {
 	public Resource(final ARCRecord rec) {
 		super();
 		arcRecord = rec;
+	}
+
+	public void parseHeaders () throws IOException {
+		if(!parsedHeader) {
+			arcRecord.skipHttpHeader();
+
+			// copy all HTTP headers to metaData, prefixing with 
+			// HTTP_HEADER_PREFIX
+			Header[] headers = arcRecord.getHttpHeaders();
+			if (headers != null) {
+				for (int i = 0; i < headers.length; i++) {
+					String value = headers[i].getValue();
+					String name = headers[i].getName();
+					metaData.put(HTTP_HEADER_PREFIX + name,value);
+				}
+			}
+
+			// copy all ARC record header fields to metaData, prefixing with 
+			// ARC_META_PREFIX
+			Map headerMetaMap = arcRecord.getMetaData().getHeaderFields();
+			Set keys = headerMetaMap.keySet();
+			Iterator itr = keys.iterator();
+			while(itr.hasNext()) {
+				Object metaKey = itr.next();
+				Object metaValue = headerMetaMap.get(metaKey);
+				String metaStringValue = (metaValue == null) ? "" :
+					metaValue.toString();
+				metaData.put(ARC_META_PREFIX + metaKey.toString(), 
+						metaStringValue);
+			}
+		
+			parsedHeader = true;			
+		}
+	}
+
+	public Properties filterMeta(String prefix) {
+		Properties matching = new Properties();
+		for (Enumeration e = metaData.keys(); e.hasMoreElements();) {
+			String key = (String) e.nextElement();
+			if (key.startsWith(prefix)) {
+				String finalKey = key.substring(prefix.length());
+				String value = (String) metaData.get(key);
+				matching.put(finalKey, value);
+			}
+		}
+		return matching;
+	}
+	
+	public Properties getHttpHeaders() {
+		return filterMeta(HTTP_HEADER_PREFIX);
+	}
+
+	public Properties getARCMetadata() {
+		return filterMeta(ARC_META_PREFIX);
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.archive.io.arc.ARCRecord#getStatusCode()
+	 */
+	public int getStatusCode() {
+		return arcRecord.getStatusCode();
 	}
 
 	/**
@@ -61,6 +134,34 @@ public class Resource {
 	 */
 	public static void main(String[] args) {
 
+	}
+
+	/* (non-Javadoc)
+	 * @see org.archive.io.arc.ARCRecord#read()
+	 */
+	public int read() throws IOException {
+		return arcRecord.read();
+	}
+
+	/* (non-Javadoc)
+	 * @see org.archive.io.arc.ARCRecord#read(byte[], int, int)
+	 */
+	public int read(byte[] arg0, int arg1, int arg2) throws IOException {
+		return arcRecord.read(arg0, arg1, arg2);
+	}
+
+	/* (non-Javadoc)
+	 * @see java.io.InputStream#read(byte[])
+	 */
+	public int read(byte[] b) throws IOException {
+		return arcRecord.read(b);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.archive.io.arc.ARCRecord#skip(long)
+	 */
+	public long skip(long arg0) throws IOException {
+		return arcRecord.skip(arg0);
 	}
 
 }

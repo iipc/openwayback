@@ -62,5 +62,28 @@ wayback Overview:
 			uses UIResults class to marshal result data to JSPs which actually draw the HTML
 			the JSPs use header + footer templates for page consistancy, and are very basic.
 
-				
-				
+
+WaybackRequest:
+	resultsPerPage
+	pageNum
+	Properties:
+		startdate = all results must be AFTER this date
+		enddate   = all results must be BEFORE this date
+		exactdate = return results matching EXACTLY this date
+		type      = "replay" | "urlquery" | "urlprefixquery" | "text"
+		url       = all results must either exactly match this, or begin with
+					this, depending on type
+	
+SearchResults:
+	CDX:
+		url
+		capturedate
+		arcfile
+		compressedoffset
+		originalhost
+		mimetype
+		httpresponsecode
+		md5fragment
+		redirecturl
+		compressedoffset
+		arcfilename

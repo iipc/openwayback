@@ -30,8 +30,11 @@ import java.util.Properties;
 import org.archive.io.arc.ARCLocation;
 import org.archive.io.arc.ARCReader;
 import org.archive.io.arc.ARCReaderFactory;
+import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.ResourceStore;
 import org.archive.wayback.core.Resource;
+import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.exception.ConfigurationException;
 
 /**
  * Implements ResourceStore using a local directory of ARC files.
@@ -42,8 +45,6 @@ import org.archive.wayback.core.Resource;
 public class LocalARCResourceStore implements ResourceStore {
 	private static final String RESOURCE_PATH = "arcpath";
 
-	private static final String ARCTAIL = ".arc.gz";
-
 	private String path = null;
 
 	/**
@@ -53,20 +54,21 @@ public class LocalARCResourceStore implements ResourceStore {
 		super();
 	}
 
-	public void init(Properties p) throws Exception {
+	public void init(Properties p) throws ConfigurationException {
 		String configPath = (String) p.get(RESOURCE_PATH);
 		if ((configPath == null) || (configPath.length() < 1)) {
-			throw new IllegalArgumentException("Failed to find "
+			throw new ConfigurationException("Failed to find "
 					+ RESOURCE_PATH);
 		}
 		path = configPath;
 
 	}
 
-	public Resource retrieveResource(ARCLocation location) throws IOException {
+	public Resource retrieveResource(SearchResult result) throws IOException {
+		ARCLocation location = resultToARCLocation(result);
 		String arcName = location.getName();
-		if (!arcName.endsWith(ARCTAIL)) {
-			arcName += ARCTAIL;
+		if (!arcName.endsWith(ARCReader.DOT_COMPRESSED_ARC_FILE_EXTENSION)) {
+			arcName += ARCReader.DOT_COMPRESSED_ARC_FILE_EXTENSION;
 		}
 		File arcFile = new File(arcName);
 		if (!arcFile.isAbsolute()) {
@@ -76,11 +78,35 @@ public class LocalARCResourceStore implements ResourceStore {
 			throw new IOException("Cannot find ARC file ("
 					+ arcFile.getAbsolutePath() + ")");
 		} else {
+			
+			// TODO: does this "just work" with HTTP 1.1 ranges?
+			// seems like we'd have to know the length for that to work..
 			ARCReader reader = ARCReaderFactory.get(arcFile);
+			
 			Resource r = new Resource(reader.get(location.getOffset()));
 			return r;
 		}
 	}
+
+    public ARCLocation resultToARCLocation(SearchResult result) {
+        final String daArcName = result.get(WaybackConstants.RESULT_ARC_FILE);
+        final long daOffset = Long.parseLong(result.get(
+        		WaybackConstants.RESULT_OFFSET));
+        
+        return new ARCLocation() {
+                private String filename = daArcName;
+
+                private long offset = daOffset;
+
+                public String getName() {
+                        return this.filename;
+                }
+
+                public long getOffset() {
+                        return this.offset;
+                }
+        };
+}
 
 	/**
 	 * @param args

@@ -1,5 +1,5 @@
 <jsp:include page="../../template/UI-header.jsp" />
-<%@ page import="org.archive.wayback.arcindexer.PipelineStatus" %>
+<%@ page import="org.archive.wayback.cdx.indexer.PipelineStatus" %>
 <%
 PipelineStatus status = (PipelineStatus) request.getAttribute("pipelinestatus");
 %>

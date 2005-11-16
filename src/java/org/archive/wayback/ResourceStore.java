@@ -24,10 +24,9 @@
 package org.archive.wayback;
 
 import java.io.IOException;
-import java.util.Properties;
 
-import org.archive.io.arc.ARCLocation;
 import org.archive.wayback.core.Resource;
+import org.archive.wayback.core.SearchResult;
 
 /**
  * Transforms an ARCLocation into a Resource.
@@ -35,7 +34,7 @@ import org.archive.wayback.core.Resource;
  * @author Brad Tofel
  * @version $Date$, $Revision$
  */
-public interface ResourceStore {
+public interface ResourceStore extends PropertyConfigurable {
 	/**
 	 * Transform an ARCLocation into a Resource
 	 * 
@@ -43,15 +42,6 @@ public interface ResourceStore {
 	 * @return Resource object retrieved from ARCLocation
 	 * @throws IOException
 	 */
-	public Resource retrieveResource(ARCLocation location) throws IOException;
+	public Resource retrieveResource(SearchResult result) throws IOException;
 
-	/**
-	 * Initialize this ResourceStore. Pass in the specific configurations via
-	 * Properties.
-	 * 
-	 * @param p
-	 *            Generic properties bag for configurations
-	 * @throws Exception
-	 */
-	public void init(Properties p) throws Exception;
 }

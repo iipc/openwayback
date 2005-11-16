@@ -1,14 +1,15 @@
 <%@ page import="java.util.Iterator" %>
 <%@ page import="java.util.ArrayList" %>
-<%@ page import="org.archive.wayback.core.ResourceResult" %>
+<%@ page import="org.archive.wayback.WaybackConstants" %>
+<%@ page import="org.archive.wayback.core.SearchResult" %>
 <%@ page import="org.archive.wayback.core.Timestamp" %>
-<%@ page import="org.archive.wayback.simplequeryui.UIResults" %>
+<%@ page import="org.archive.wayback.query.UIQueryResults" %>
 <jsp:include page="../../template/UI-header.jsp" />
 <%
 
-UIResults results = (UIResults) request.getAttribute("ui-results");
+UIQueryResults results = (UIQueryResults) request.getAttribute("ui-results");
 String searchString = results.getSearchUrl();
-int resultCount = results.getNumResults();
+int resultCount = results.getResultCount();
 
 Timestamp searchStartTs = results.getStartTimestamp();
 Timestamp searchEndTs = results.getEndTimestamp();
@@ -18,22 +19,25 @@ String prettySearchEnd = searchEndTs.prettyDate();
 Iterator itr = results.resultsIterator();
 %>
 
-<B><%= resultCount %></B> results for <B><%= searchString %></B><BR>
-between <B><%= prettySearchStart %></B> and <B><%= prettySearchEnd %></B>
-<HR>
+<b><%= resultCount %></b> results for <b><%= searchString %></b><br></br>
+between <b><%= prettySearchStart %></b> and <b><%= prettySearchEnd %></b>
+<hr></hr>
 
 <%
 boolean first = false;
 String lastMD5 = null;
 while(itr.hasNext()) {
-	ResourceResult result = (ResourceResult) itr.next();
+	SearchResult result = (SearchResult) itr.next();
 
-	String prettyDate = result.getTimestamp().prettyDate();
-	String origHost = result.getOrigHost();
-	String MD5 = result.getMd5Fragment();
-	String redirectFlag = result.isRedirect() ? "(redirect)" : "";
-	String httpResponse = result.getHttpResponseCode();
-	String mimeType = result.getMimeType();
+	String url = result.get(WaybackConstants.RESULT_URL);
+	String prettyDate = result.get(WaybackConstants.RESULT_CAPTURE_DATE);
+	String origHost = result.get(WaybackConstants.RESULT_ORIG_HOST);
+	String MD5 = result.get(WaybackConstants.RESULT_MD5_DIGEST);
+	String redirectFlag = (0 == result.get(
+		WaybackConstants.RESULT_REDIRECT_URL).compareTo("-")) 
+		?	"" : "(redirect)";
+	String httpResponse = result.get(WaybackConstants.RESULT_HTTP_CODE);
+	String mimeType = result.get(WaybackConstants.RESULT_MIME_TYPE);
 
 	String replayUrl = results.resultToReplayUrl(result);
 
@@ -47,19 +51,19 @@ while(itr.hasNext()) {
 	}
 	if(updated) {
 		%>
-		<A HREF="<%= replayUrl %>"><%= prettyDate %></A>
-		<SPAN style="color:black;"><%= origHost %></SPAN>
-		<SPAN style="color:gray;"><%= httpResponse %></SPAN>
-		<SPAN style="color:brown;"><%= mimeType %></SPAN>
+		<a href="<%= replayUrl %>"><%= prettyDate %></a>
+		<span style="color:black;"><%= origHost %></span>
+		<span style="color:gray;"><%= httpResponse %></span>
+		<span style="color:brown;"><%= mimeType %></span>
 		<%= redirectFlag %>
 		(new version)
-		<BR>
+		<br></br>
 		<%
 	} else {
 		%>
-		&nbsp;&nbsp;&nbsp;<A HREF="<%= replayUrl %>"><%= prettyDate %></A>
-		<SPAN style="color:green;"><%= origHost %></SPAN>
-		<BR>
+		&nbsp;&nbsp;&nbsp;<a href="<%= replayUrl %>"><%= prettyDate %></a>
+		<span style="color:green;"><%= origHost %></span>
+		<br></br>
 		<%
 	}
 }

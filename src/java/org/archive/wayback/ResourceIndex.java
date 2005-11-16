@@ -23,12 +23,11 @@
 
 package org.archive.wayback;
 
-import java.io.IOException;
-import java.util.Properties;
-
-import org.archive.wayback.core.ResourceResults;
-import org.archive.wayback.core.WMRequest;
-import org.archive.wayback.exception.WaybackException;
+import org.archive.wayback.core.SearchResults;
+import org.archive.wayback.core.WaybackRequest;
+import org.archive.wayback.exception.BadQueryException;
+import org.archive.wayback.exception.ResourceIndexNotAvailableException;
+import org.archive.wayback.exception.ResourceNotInArchiveException;
 
 /**
  * Transforms a WMRequest into a ResourceResults.
@@ -36,7 +35,7 @@ import org.archive.wayback.exception.WaybackException;
  * @author Brad Tofel
  * @version $Date$, $Revision$
  */
-public interface ResourceIndex {
+public interface ResourceIndex extends PropertyConfigurable {
 	/**
 	 * Transform a WMRequest into a ResourceResults.
 	 * 
@@ -44,19 +43,10 @@ public interface ResourceIndex {
 	 * @return ResourceResults containing ResourceResult objects matching the
 	 *         WMRequest
 	 * 
-	 * @throws IOException
-	 * @throws WaybackException
+	 * @throws ResourceIndexNotAvailableException
+	 * @throws ResourceNotInArchiveException
 	 */
-	public ResourceResults query(final WMRequest request) throws IOException,
-			WaybackException;
-
-	/**
-	 * Initialize this ResourceIndex. Pass in the specific configurations via
-	 * Properties.
-	 * 
-	 * @param p
-	 *            Generic properties bag for configurations
-	 * @throws Exception
-	 */
-	public void init(Properties p) throws Exception;
+	public SearchResults query(final WaybackRequest request)
+			throws ResourceIndexNotAvailableException,
+			ResourceNotInArchiveException, BadQueryException;
 }

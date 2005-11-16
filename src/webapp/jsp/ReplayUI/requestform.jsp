@@ -1,10 +1,10 @@
 <jsp:include page="../../template/UI-header.jsp" />
-<FORM ACTION="../../replay">
-URL:<INPUT TYPE="TEXT" NAME="url" WIDTH="80"><BR>
-Exact Date:<INPUT TYPE="TEXT" NAME="date" WIDTH="80"><BR>
-Earliest Date:<INPUT TYPE="TEXT" NAME="earliest" WIDTH="80"><BR>
-Latest Date:<INPUT TYPE="TEXT" NAME="latest" WIDTH="80"><BR>
-<INPUT TYPE="HIDDEN" NAME="type" VALUE="replay">
-<INPUT TYPE="SUBMIT" VALUE="Submit">
-</FORM>
+<form action="../../replay">
+URL:<input type="TEXT" name="url" width="80"><br></br>
+Exact Date:<input type="TEXT" name="exactdate" width="80"><br></br>
+Earliest Date:<input type="TEXT" name="startdate" width="80"><br></br>
+Latest Date:<input type="TEXT" name="enddate" width="80"><br></br>
+<input type="HIDDEN" name="type" value="replay">
+<input type="SUBMIT" value="Submit">
+</form>
 <jsp:include page="../../template/UI-footer.jsp" />

@@ -145,7 +145,7 @@ public class Timestamp {
 	private static String padEndTimestamp(final String input) {
 		String last = LAST1_TIMESTAMP;
 		if (input.length() == 0) {
-			return LAST2_TIMESTAMP;
+			return ArchiveUtils.get14DigitDate(new Date());
 		}
 		if (input.length() < 4) {
 			if (input.charAt(0) == '2') {

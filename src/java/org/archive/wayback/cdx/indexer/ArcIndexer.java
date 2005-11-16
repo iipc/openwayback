@@ -1,0 +1,176 @@
+/* ArcIndexer
+ *
+ * Created on 2005/10/18 14:00:00
+ *
+ * Copyright (C) 2005 Internet Archive.
+ *
+ * This file is part of the Wayback Machine (crawler.archive.org).
+ *
+ * Wayback Machine is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or
+ * any later version.
+ *
+ * Wayback Machine is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser Public License
+ * along with Wayback Machine; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+package org.archive.wayback.cdx.indexer;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.text.ParseException;
+import java.util.Iterator;
+
+import org.archive.io.arc.ARCReader;
+import org.archive.io.arc.ARCReaderFactory;
+import org.archive.io.arc.ARCRecord;
+import org.archive.io.arc.ARCRecordMetaData;
+import org.archive.net.UURI;
+import org.archive.wayback.WaybackConstants;
+import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.SearchResults;
+import org.apache.commons.httpclient.Header;
+
+/**
+ * Transforms an ARC file into ResourceResults, or a serialized ResourceResults
+ * file(CDX).
+ * 
+ * @author Brad Tofel
+ * @version $Date$, $Revision$
+ */
+public class ArcIndexer {
+	private final static String LOCATION_HTTP_HEADER = "Location";
+    private final static String CDX_HEADER_STRING = " CDX N b h m s k r V g";
+
+
+	/**
+	 * Constructor
+	 */
+	public ArcIndexer() {
+		super();
+	}
+
+	/**
+	 * Create a ResourceResults representing the records in ARC file at arcPath.
+	 * 
+	 * @param arc
+	 * @return ResourceResults in arcPath.
+	 * @throws IOException
+	 */
+	public SearchResults indexArc(File arc) throws IOException {
+		SearchResults results = new SearchResults();
+		ARCReader arcReader = ARCReaderFactory.get(arc);
+		arcReader.setParseHttpHeaders(true);
+		// doh. this does not generate quite the columns we need:
+		// arcReader.createCDXIndexFile(arcPath);
+		Iterator itr = arcReader.iterator();
+		while (itr.hasNext()) {
+			ARCRecord rec = (ARCRecord) itr.next();
+			SearchResult result;
+			try {
+				result = arcRecordToSearchResult(rec, arc);
+			} catch (NullPointerException e) {
+				e.printStackTrace();
+				continue;
+			} catch (ParseException e) {
+				e.printStackTrace();
+				continue;
+			}
+			if(result != null) {
+				results.addSearchResult(result);
+			}
+		}
+		return results;
+	}
+
+	private SearchResult arcRecordToSearchResult(final ARCRecord rec,
+			File arc) throws NullPointerException, IOException, ParseException {
+		rec.close();
+		ARCRecordMetaData meta = rec.getMetaData();
+
+		SearchResult result = new SearchResult();
+		result.put(WaybackConstants.RESULT_ARC_FILE,arc.getName());
+		result.put(WaybackConstants.RESULT_OFFSET,""+meta.getOffset());
+
+		String statusCode = (meta.getStatusCode() == null) ? "-" : meta
+				.getStatusCode();
+		result.put(WaybackConstants.RESULT_HTTP_CODE,statusCode);
+
+		result.put(WaybackConstants.RESULT_MD5_DIGEST,meta.getDigest());
+		result.put(WaybackConstants.RESULT_MIME_TYPE,meta.getMimetype());
+		
+		String uriStr = meta.getUrl();
+		if(uriStr.startsWith(ARCRecord.ARC_MAGIC_NUMBER)) {
+			// skip filedesc record...
+			return null;
+		}
+		UURI uri = new UURI(uriStr, false);
+		result.put(WaybackConstants.RESULT_ORIG_HOST,uri.getHost());
+
+		String redirectUrl = "-";
+		Header[] headers = rec.getHttpHeaders();
+		if (headers != null) {
+			for (int i = 0; i < headers.length; i++) {
+				if (headers[i].getName().equals(LOCATION_HTTP_HEADER)) {
+					redirectUrl = headers[i].getValue();
+					break;
+				}
+			}
+		}
+		result.put(WaybackConstants.RESULT_REDIRECT_URL,redirectUrl);
+		result.put(WaybackConstants.RESULT_CAPTURE_DATE,meta.getDate());
+		UURI uriCap = new UURI(meta.getUrl(), false);
+		String searchHost = uriCap.getHostBasename();
+		String searchPath = uriCap.getEscapedPathQuery();
+
+		String indexUrl = searchHost + searchPath;
+		result.put(WaybackConstants.RESULT_URL,indexUrl);
+
+		return result;
+	}
+
+	/**
+	 * Write out ResourceResults into CDX file at cdxPath
+	 * 
+	 * @param results
+	 * @param target
+	 * @throws IOException
+	 */
+	public void serializeResults(final SearchResults results,
+			File target) throws IOException {
+		
+		// TODO will this automatically close when it falls out of scope?
+		FileOutputStream output = new FileOutputStream(target);
+		output.write((CDX_HEADER_STRING + "\n").getBytes());
+
+		Iterator itr = results.iterator();
+		while (itr.hasNext()) {
+			SearchResult result = (SearchResult) itr.next();
+			output.write((result.toString() + "\n").getBytes());
+		}
+	}
+
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		ArcIndexer indexer = new ArcIndexer();
+		File arc = new File(args[0]);
+		File cdx = new File(args[1]);
+		try {
+			SearchResults results = indexer.indexArc(arc);
+			indexer.serializeResults(results, cdx);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+}
