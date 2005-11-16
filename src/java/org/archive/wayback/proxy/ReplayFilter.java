@@ -56,7 +56,6 @@ public class ReplayFilter extends RequestFilter {
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.core.RequestFilter#parseRequest(javax.servlet.http.HttpServletRequest)
 	 */
-	@Override
 	protected WaybackRequest parseRequest(HttpServletRequest httpRequest) {
 		WaybackRequest wbRequest = null;
 		if(isLocalRequest(httpRequest)) {
