@@ -34,10 +34,13 @@ import org.archive.io.arc.ARCReaderFactory;
 import org.archive.io.arc.ARCRecord;
 import org.archive.io.arc.ARCRecordMetaData;
 import org.archive.net.UURI;
+import org.archive.net.UURIFactory;
 import org.archive.wayback.WaybackConstants;
+import org.archive.wayback.cdx.CDXRecord;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.SearchResults;
 import org.apache.commons.httpclient.Header;
+import org.apache.commons.httpclient.URIException;
 
 /**
  * Transforms an ARC file into ResourceResults, or a serialized ResourceResults
@@ -49,7 +52,7 @@ import org.apache.commons.httpclient.Header;
 public class ArcIndexer {
 	private final static String LOCATION_HTTP_HEADER = "Location";
     private final static String CDX_HEADER_STRING = " CDX N b h m s k r V g";
-
+    private final static String DNS_URL_PREFIX = "dns:";
 
 	/**
 	 * Constructor
@@ -112,15 +115,42 @@ public class ArcIndexer {
 			// skip filedesc record...
 			return null;
 		}
+		if(uriStr.startsWith(DNS_URL_PREFIX)) {
+			// skip dns records...
+			return null;
+		}
+		
 		UURI uri = new UURI(uriStr, false);
-		result.put(WaybackConstants.RESULT_ORIG_HOST,uri.getHost());
+		String uriHost = uri.getHost();
+		if(uriHost == null) {
+			System.out.println("No host in " + uriStr + " in " + 
+					arc.getAbsolutePath());
+			return null;
+		}
+		result.put(WaybackConstants.RESULT_ORIG_HOST,uriHost);
 
 		String redirectUrl = "-";
 		Header[] headers = rec.getHttpHeaders();
 		if (headers != null) {
 			for (int i = 0; i < headers.length; i++) {
 				if (headers[i].getName().equals(LOCATION_HTTP_HEADER)) {
-					redirectUrl = headers[i].getValue();
+					String locationStr = headers[i].getValue();
+					// TODO: "Location" is supposed to be absolute:
+					// (http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html)
+					// (section 14.30) but Content-Location can be relative.
+					// is it correct to resolve a relative Location, as we are?
+					// it's also possible to have both in the HTTP headers...
+					// should we prefer one over the other?
+					// right now, we're ignoring "Content-Location"
+					try {
+						UURI uriRedirect = UURIFactory.getInstance(uri,locationStr);
+						redirectUrl = uriRedirect.getEscapedURI();
+						
+					} catch (URIException e) {
+						System.out.println("Bad Location: " + locationStr +
+								" for " + uriStr + " in " + 
+								arc.getAbsolutePath() + " Skipped");
+					}
 					break;
 				}
 			}
@@ -150,11 +180,12 @@ public class ArcIndexer {
 		// TODO will this automatically close when it falls out of scope?
 		FileOutputStream output = new FileOutputStream(target);
 		output.write((CDX_HEADER_STRING + "\n").getBytes());
-
+		CDXRecord cdxRecord = new CDXRecord();
 		Iterator itr = results.iterator();
 		while (itr.hasNext()) {
 			SearchResult result = (SearchResult) itr.next();
-			output.write((result.toString() + "\n").getBytes());
+			cdxRecord.fromSearchResult(result);
+			output.write((cdxRecord.toValue() + "\n").getBytes());
 		}
 	}
 
