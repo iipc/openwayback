@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Properties;
 
@@ -36,7 +37,6 @@ import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.exception.ConfigurationException;
 
 import com.sleepycat.je.DatabaseException;
-import com.sun.org.apache.xml.internal.utils.StringToStringTable;
 
 /**
  * Implements indexing of new ARC files, and merging with a BDBResourceIndex.
@@ -183,8 +183,8 @@ public class IndexPipeline implements PropertyConfigurable{
 		indexUpdateThread.start();
 	}
 
-	private StringToStringTable getQueuedFiles() {
-		StringToStringTable hash = new StringToStringTable();
+	private HashMap getQueuedFiles() {
+		HashMap hash = new HashMap();
 		String entries[] = queuedDir.list();
 		for (int i = 0; i < entries.length; i++) {
 			hash.put(entries[i], "i");
@@ -208,7 +208,7 @@ public class IndexPipeline implements PropertyConfigurable{
 
 	// this should be a method call into ResourceStore...
 	private Iterator getNewArcs() {
-		StringToStringTable queued = getQueuedFiles();
+		HashMap queued = getQueuedFiles();
 		ArrayList newArcs = new ArrayList();
 
 		String arcs[] = arcDir.list();
@@ -216,7 +216,8 @@ public class IndexPipeline implements PropertyConfigurable{
 			for (int i = 0; i < arcs.length; i++) {
 				File arc = new File(arcDir,arcs[i]);
 				if(arc.isFile() && arcs[i].endsWith(".arc.gz")) {
-					if (!queued.contains(arcs[i])) {
+
+					if (!queued.containsKey(arcs[i])) {
 						newArcs.add(arcs[i]);
 					}
 				}
@@ -252,9 +253,10 @@ public class IndexPipeline implements PropertyConfigurable{
 	 * @throws MalformedURLException
 	 * @throws IOException
 	 */
-	public void indexArcs(ArcIndexer indexer) throws MalformedURLException,
-	IOException {
+	public void indexArcs(ArcIndexer indexer, int max) 
+	throws MalformedURLException, IOException {
 		Iterator toBeIndexed = getDirFilesIterator(toBeIndexedDir);
+		int numIndexed = 0;
 		while(toBeIndexed.hasNext()) {
 			String base = (String) toBeIndexed.next();
 
@@ -274,6 +276,10 @@ public class IndexPipeline implements PropertyConfigurable{
 				throw new IOException("Unable to delete "
 						+ toBeIndexedFlagFile.getAbsolutePath());
 			}
+			numIndexed++;
+			if(max > 0 && (numIndexed >= max)) {
+				break;
+			}
 		}
 	}
 
@@ -282,7 +288,7 @@ public class IndexPipeline implements PropertyConfigurable{
 	 * files as they are merged
 	 * @param dbWriter
 	 */
-	public void mergeIndex(BDBResourceIndexWriter dbWriter) {
+	public int mergeIndex(BDBResourceIndexWriter dbWriter) {
 		int numMerged = 0;
 		Iterator toBeMerged = getDirFilesIterator(toBeMergedDir);
 		while(toBeMerged.hasNext()) {
@@ -303,6 +309,7 @@ public class IndexPipeline implements PropertyConfigurable{
 		if (numMerged > 0) {
 			System.out.println("Merged " + numMerged + " files.");
 		}
+		return numMerged;
 	}
 
 	/**
@@ -336,7 +343,7 @@ public class IndexPipeline implements PropertyConfigurable{
 	 */
 	private class IndexPipelineThread extends Thread {
 		private final static int SLEEP_MILLISECONDS = 10000;
-
+		private final static int MAX_TO_MERGE = 10;
 		private BDBResourceIndexWriter merger = null;
 		private ArcIndexer indexer = new ArcIndexer();
 		IndexPipeline pipeline = null;
@@ -361,12 +368,18 @@ public class IndexPipeline implements PropertyConfigurable{
 
 		public void run() {
 
+			int sleepInterval = SLEEP_MILLISECONDS;
 			while (true) {
 				try {
 					pipeline.queueNewArcsForIndex();
-					pipeline.indexArcs(indexer);
-					pipeline.mergeIndex(merger);
-					sleep(SLEEP_MILLISECONDS);
+					pipeline.indexArcs(indexer,MAX_TO_MERGE);
+					int numMerged = pipeline.mergeIndex(merger);
+					if(numMerged == 0) {
+						sleep(sleepInterval);
+						sleepInterval += SLEEP_MILLISECONDS;
+					} else {
+						sleepInterval = SLEEP_MILLISECONDS;
+					}
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				} catch (IOException e) {
