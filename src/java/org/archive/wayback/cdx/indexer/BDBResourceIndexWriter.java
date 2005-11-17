@@ -88,7 +88,7 @@ public class BDBResourceIndexWriter {
 				break;
 			}
 			lineNumber++;
-			if ((lineNumber == 1) && (line.contains(CDX_HEADER_MAGIC))) {
+			if ((lineNumber == 1) && (-1 != line.indexOf(CDX_HEADER_MAGIC))) {
 				continue;
 			}
 			cdxRecord.parseLine(line, lineNumber);
