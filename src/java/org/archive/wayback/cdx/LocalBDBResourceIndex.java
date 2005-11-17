@@ -151,7 +151,7 @@ public class LocalBDBResourceIndex implements ResourceIndex {
                     	searchUrl = searchUrl + "/";
                     }
             } else {
-                    if (!searchUrl.contains("/")) {
+                    if (-1 == searchUrl.indexOf("/")) {
                     	searchUrl = searchUrl + "/";
                     }
                     searchUrl = "http://" + searchUrl;
