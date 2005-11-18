@@ -30,6 +30,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
@@ -50,6 +51,7 @@ import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.core.WaybackLogic;
 import org.archive.wayback.exception.BadQueryException;
+import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.exception.WaybackException;
 
 /**
@@ -59,12 +61,14 @@ import org.archive.wayback.exception.WaybackException;
  * @version $Date$, $Revision$
  */
 public class ReplayServlet extends HttpServlet {
+	private static final Logger LOGGER = Logger.getLogger(ReplayServlet.class
+			.getName());
+
 	private static final String WMREQUEST_ATTRIBUTE = "wmrequest.attribute";
 
 	private static final long serialVersionUID = 1L;
 
 	private WaybackLogic wayback = new WaybackLogic();
-
 
 	/**
 	 * Constructor
@@ -92,6 +96,7 @@ public class ReplayServlet extends HttpServlet {
 			throw new ServletException(e.getMessage());
 		}
 	}
+
 	private String getMapParam(Map queryMap, String field) {
 		String arr[] = (String[]) queryMap.get(field);
 		if (arr == null || arr.length == 0) {
@@ -101,55 +106,55 @@ public class ReplayServlet extends HttpServlet {
 	}
 
 	public WaybackRequest parseCGIRequest(HttpServletRequest httpRequest)
-	throws BadQueryException {
+			throws BadQueryException {
 		WaybackRequest wbRequest = new WaybackRequest();
 		Map queryMap = httpRequest.getParameterMap();
 		Set keys = queryMap.keySet();
 		Iterator itr = keys.iterator();
-		while(itr.hasNext()) {
+		while (itr.hasNext()) {
 			String key = (String) itr.next();
-			String val = getMapParam(queryMap,key);
-			wbRequest.put(key,val);
+			String val = getMapParam(queryMap, key);
+			wbRequest.put(key, val);
 		}
 		String referer = httpRequest.getHeader("REFERER");
 		if (referer == null) {
 			referer = null;
 		}
-		wbRequest.put(WaybackConstants.REQUEST_REFERER_URL,referer);
+		wbRequest.put(WaybackConstants.REQUEST_REFERER_URL, referer);
 
 		return wbRequest;
 	}
 
-	private SearchResult getClosest(SearchResults results, 
+	private SearchResult getClosest(SearchResults results,
 			WaybackRequest wbRequest) throws ParseException {
-		
+
 		SearchResult closest = null;
-         long closestDistance = 0;
-        SearchResult cur = null;
-        Timestamp wantTimestamp;
-        wantTimestamp = Timestamp.parseBefore(wbRequest.
-        		get(WaybackConstants.REQUEST_EXACT_DATE));
-        
-        Iterator itr = results.iterator();
-        while (itr.hasNext()) {
-                cur = (SearchResult) itr.next();
-                long curDistance;
-                try {
-                	Timestamp curTimestamp = Timestamp.parseBefore(cur.
-                			get(WaybackConstants.RESULT_CAPTURE_DATE));
-                	curDistance = curTimestamp.absDistanceFromTimestamp(
-                                        wantTimestamp);
-                } catch (ParseException e) {
-                        continue;
-                }
-                if ((closest == null) || (curDistance < closestDistance)) {
-                        closest = cur;
-                        closestDistance = curDistance;
-                }
-        }
-        return closest;
+		long closestDistance = 0;
+		SearchResult cur = null;
+		Timestamp wantTimestamp;
+		wantTimestamp = Timestamp.parseBefore(wbRequest
+				.get(WaybackConstants.REQUEST_EXACT_DATE));
+
+		Iterator itr = results.iterator();
+		while (itr.hasNext()) {
+			cur = (SearchResult) itr.next();
+			long curDistance;
+			try {
+				Timestamp curTimestamp = Timestamp.parseBefore(cur
+						.get(WaybackConstants.RESULT_CAPTURE_DATE));
+				curDistance = curTimestamp
+						.absDistanceFromTimestamp(wantTimestamp);
+			} catch (ParseException e) {
+				continue;
+			}
+			if ((closest == null) || (curDistance < closestDistance)) {
+				closest = cur;
+				closestDistance = curDistance;
+			}
+		}
+		return closest;
 	}
-	
+
 	public void doGet(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse) throws IOException,
 			ServletException {
@@ -170,7 +175,7 @@ public class ReplayServlet extends HttpServlet {
 
 			SearchResults results = idx.query(wbRequest);
 
-			SearchResult closest = getClosest(results,wbRequest);
+			SearchResult closest = getClosest(results, wbRequest);
 
 			// TODO loop here looking for closest online/available version?
 			// OPTIMIZ maybe assume version is here and redirect now if not
@@ -178,7 +183,13 @@ public class ReplayServlet extends HttpServlet {
 			Resource resource = store.retrieveResource(closest);
 
 			renderer.renderResource(httpRequest, httpResponse, wbRequest,
-					closest, resource,uriConverter);
+					closest, resource, uriConverter);
+
+		} catch (ResourceNotInArchiveException nia) {
+
+			LOGGER.info("NotInArchive\t"
+					+ wbRequest.get(WaybackConstants.REQUEST_URL));
+			renderer.renderException(httpRequest, httpResponse, wbRequest, nia);
 
 		} catch (WaybackException wbe) {
 
