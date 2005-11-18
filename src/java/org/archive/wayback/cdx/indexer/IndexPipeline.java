@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 import org.archive.wayback.PropertyConfigurable;
 import org.archive.wayback.cdx.BDBResourceIndex;
@@ -53,6 +54,9 @@ import com.sleepycat.je.DatabaseException;
  * @version $Date$, $Revision$
  */
 public class IndexPipeline implements PropertyConfigurable{
+	   private static final Logger LOGGER =
+	        Logger.getLogger(IndexPipeline.class.getName());
+
 	private final static String RUN_PIPELINE = "indexpipeline.runpipeline";
 
 	private final static String INDEX_PATH = "resourceindex.indexpath";
@@ -70,6 +74,8 @@ public class IndexPipeline implements PropertyConfigurable{
 	private final static String INDEXING_DIR = "indexing";
 	
 	private final static String TO_BE_MERGED_DIR = "toBeMerged";
+
+	private final static String MERGED_DIR = "merged";
 	
 	
 	private File arcDir = null;
@@ -83,6 +89,8 @@ public class IndexPipeline implements PropertyConfigurable{
 	private File indexingDir = null;
 
 	private File toBeMergedDir = null;
+
+	private File mergedDir = null;
 
 	private BDBResourceIndex db = null;
 
@@ -141,6 +149,7 @@ public class IndexPipeline implements PropertyConfigurable{
 		toBeIndexedDir = new File(workDir,TO_BE_INDEXED_DIR);
 		indexingDir = new File(workDir,INDEXING_DIR);
 		toBeMergedDir = new File(workDir,TO_BE_MERGED_DIR);
+		mergedDir = new File(workDir,MERGED_DIR);
 
 		try {
 			ensureDir(workDir);
@@ -148,6 +157,7 @@ public class IndexPipeline implements PropertyConfigurable{
 			ensureDir(toBeIndexedDir);
 			ensureDir(indexingDir);
 			ensureDir(toBeMergedDir);
+			ensureDir(mergedDir);
 			File dbFile = new File(dbPath);
 			ensureDir(dbFile);
 		} catch (IOException e) {
@@ -165,9 +175,7 @@ public class IndexPipeline implements PropertyConfigurable{
 
 		if ((runPipeline != null) && (runPipeline.equals("1"))) {
 
-			// TODO: Logger!
-			System.out.println("LocalDBDResourceIndex starting pipeline " +
-					"thread...");
+			LOGGER.info("LocalDBDResourceIndex starting pipeline thread...");
 			if (indexUpdateThread == null) {
 				startIndexPipelineThread(db);
 			}
@@ -286,6 +294,7 @@ public class IndexPipeline implements PropertyConfigurable{
 	/**
 	 * Add any new CDX files in toBeMergedDir to the BDB, deleting the CDX
 	 * files as they are merged
+	 * For now, moving merged to "merged" for debugging..
 	 * @param dbWriter
 	 */
 	public int mergeIndex(BDBResourceIndexWriter dbWriter) {
@@ -293,21 +302,29 @@ public class IndexPipeline implements PropertyConfigurable{
 		Iterator toBeMerged = getDirFilesIterator(toBeMergedDir);
 		while(toBeMerged.hasNext()) {
 			
-			File indexFile = new File(toBeMergedDir,(String) toBeMerged.next());
-			
+			String base = (String) toBeMerged.next();
+			File indexFile = new File(toBeMergedDir,base);
+			File mergedFile = new File(mergedDir,base);
 			try {
 				dbWriter.importFile(indexFile);
-				if (!indexFile.delete()) {
-					throw new IOException("Unable to unlink "
-							+ indexFile.getAbsolutePath());
+				
+				// move to "merged" for debugging
+				if (!indexFile.renameTo(mergedFile)) {
+					throw new IOException("Unable to move "
+							+ indexFile.getAbsolutePath() + " to "
+							+ mergedFile.getAbsolutePath());
 				}
+//				if (!indexFile.delete()) {
+//					throw new IOException("Unable to unlink "
+//							+ indexFile.getAbsolutePath());
+//				}
 				numMerged++;
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
 		if (numMerged > 0) {
-			System.out.println("Merged " + numMerged + " files.");
+			LOGGER.info("Merged " + numMerged + " files.");
 		}
 		return numMerged;
 	}
@@ -363,7 +380,7 @@ public class IndexPipeline implements PropertyConfigurable{
 			merger = new BDBResourceIndexWriter();
 			merger.init(bdb);
 			this.pipeline = pipeline;
-			System.out.print("Pipeline Thread is ALIVE!");
+			LOGGER.info("Pipeline Thread is ALIVE!");
 		}
 
 		public void run() {
