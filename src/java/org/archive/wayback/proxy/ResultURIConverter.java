@@ -1,4 +1,4 @@
-/* ProxyResultURIConverter
+/* ResultURIConverter
  *
  * $Id$
  *
@@ -53,8 +53,8 @@ public class ResultURIConverter implements ReplayResultURIConverter {
 
 	public String makeReplayURI(SearchResult result) {
 		String finalUrl = result.get(WaybackConstants.RESULT_URL); 
-		if(!finalUrl.startsWith("http://")) {
-			finalUrl = "http://" + finalUrl;
+		if(!finalUrl.startsWith(WaybackConstants.HTTP_URL_PREFIX)) {
+			finalUrl = WaybackConstants.HTTP_URL_PREFIX + finalUrl;
 		}
 		return finalUrl;
 	}
@@ -84,8 +84,8 @@ public class ResultURIConverter implements ReplayResultURIConverter {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		if(!finalUrl.startsWith("http://")) {
-			finalUrl = "http://" + finalUrl;
+		if(!finalUrl.startsWith(WaybackConstants.HTTP_URL_PREFIX)) {
+			finalUrl = WaybackConstants.HTTP_URL_PREFIX + finalUrl;
 		}
 		return finalUrl;
 	}
