@@ -78,22 +78,28 @@ public class BDBResourceIndexWriter {
 	}
 
 	private SearchResults readFile(File indexFile) throws Exception {
-		RandomAccessFile raFile = new RandomAccessFile(indexFile, "r");
 		SearchResults results = new SearchResults();
-		int lineNumber = 0;
-		CDXRecord cdxRecord = new CDXRecord();
-		while (true) {
-			String line = raFile.readLine();
-			if (line == null) {
-				break;
+		RandomAccessFile raFile = new RandomAccessFile(indexFile, "r");
+		try {
+			int lineNumber = 0;
+			CDXRecord cdxRecord = new CDXRecord();
+			while (true) {
+				String line = raFile.readLine();
+				if (line == null) {
+					break;
+				}
+				lineNumber++;
+				if ((lineNumber == 1) && 
+						(line.indexOf(CDX_HEADER_MAGIC) != -1)) {
+					
+					continue;
+				}
+				cdxRecord.parseLine(line, lineNumber);
+				SearchResult result = cdxRecord.toSearchResult();
+				results.addSearchResult(result);
 			}
-			lineNumber++;
-			if ((lineNumber == 1) && (-1 != line.indexOf(CDX_HEADER_MAGIC))) {
-				continue;
-			}
-			cdxRecord.parseLine(line, lineNumber);
-			SearchResult result = cdxRecord.toSearchResult();
-			results.addSearchResult(result);
+		} finally {
+			raFile.close();
 		}
 		return results;
 	}
@@ -111,7 +117,5 @@ public class BDBResourceIndexWriter {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
 	}
-
 }
