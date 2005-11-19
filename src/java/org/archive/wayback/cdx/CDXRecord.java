@@ -35,7 +35,9 @@ import org.archive.wayback.core.SearchResult;
  * @version $Date$, $Revision$
  */
 public class CDXRecord {
-	public String url;
+    public final static String CDX_HEADER_MAGIC = " CDX N b h m s k r V g";
+
+    public String url;
 
 	public String captureDate;
 
@@ -57,6 +59,7 @@ public class CDXRecord {
 		super();
 	}
 
+	
 	/**
 	 * Attempt to deserialize state from a single text line, fields delimited by
 	 * spaces. There are standard ways to do this, and this is not one of
