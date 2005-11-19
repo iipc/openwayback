@@ -33,6 +33,17 @@ package org.archive.wayback;
 public interface WaybackConstants {
 	
 	/**
+	 * prefixes of HTTP protocol URL.. 
+	 */
+	public static final String HTTP_URL_PREFIX = "http://";
+
+	/**
+	 * prefixes of DNS Record URLs.. 
+	 */
+    public static final String DNS_URL_PREFIX = "dns:";
+	
+	
+	/**
 	 * Request: filter results before this 14-digit timestamp 
 	 */
 	public static final String REQUEST_START_DATE = "startdate";
