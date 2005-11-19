@@ -25,6 +25,7 @@ package org.archive.wayback.cdx;
 
 import java.text.ParseException;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 import org.apache.commons.httpclient.URIException;
 import org.archive.net.UURI;
@@ -49,6 +50,9 @@ import com.sleepycat.je.DatabaseException;
  * @version $Date$, $Revision$
  */
 public class LocalBDBResourceIndex implements ResourceIndex {
+	   private static final Logger LOGGER =
+	        Logger.getLogger(LocalBDBResourceIndex.class.getName());
+
 
 	private final static String INDEX_PATH = "resourceindex.indexpath";
 
@@ -68,7 +72,7 @@ public class LocalBDBResourceIndex implements ResourceIndex {
 	}
 
 	public void init(Properties p) throws ConfigurationException {
-		System.out.println("initializing LocalDBDResourceIndex...");
+		LOGGER.info("initializing LocalDBDResourceIndex...");
 		String dbPath = (String) p.get(INDEX_PATH);
 		if (dbPath == null || (dbPath.length() <= 0)) {
 			throw new IllegalArgumentException("Failed to find " + INDEX_PATH);
