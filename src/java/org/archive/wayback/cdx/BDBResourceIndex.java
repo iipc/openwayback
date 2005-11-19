@@ -48,6 +48,7 @@ import com.sleepycat.je.OperationStatus;
  * @version $Date$, $Revision$
  */
 public class BDBResourceIndex {
+	private final static String JE_LOG_FILEMAX = "256000000";
 	private String path;
 
 	private String dbName;
@@ -79,12 +80,14 @@ public class BDBResourceIndex {
 		EnvironmentConfig environmentConfig = new EnvironmentConfig();
 		environmentConfig.setAllowCreate(true);
 		environmentConfig.setTransactional(false);
+		environmentConfig.setConfigParam("je.log.fileMax",JE_LOG_FILEMAX);
 		File file = new File(path);
 		env = new Environment(file, environmentConfig);
 		DatabaseConfig databaseConfig = new DatabaseConfig();
 		databaseConfig.setAllowCreate(true);
 		databaseConfig.setTransactional(false);
 		// perform other database configurations
+
 		db = env.openDatabase(null, dbName, databaseConfig);
 	}
 
