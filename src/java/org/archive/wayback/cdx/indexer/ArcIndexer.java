@@ -23,11 +23,14 @@
 
 package org.archive.wayback.cdx.indexer;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.text.ParseException;
 import java.util.Iterator;
+import java.util.logging.Logger;
 
 import org.archive.io.arc.ARCReader;
 import org.archive.io.arc.ARCReaderFactory;
@@ -50,9 +53,10 @@ import org.apache.commons.httpclient.URIException;
  * @version $Date$, $Revision$
  */
 public class ArcIndexer {
+	   private static final Logger LOGGER =
+	        Logger.getLogger(ArcIndexer.class.getName());
+
 	private final static String LOCATION_HTTP_HEADER = "Location";
-    private final static String CDX_HEADER_STRING = " CDX N b h m s k r V g";
-    private final static String DNS_URL_PREFIX = "dns:";
 
 	/**
 	 * Constructor
@@ -71,25 +75,29 @@ public class ArcIndexer {
 	public SearchResults indexArc(File arc) throws IOException {
 		SearchResults results = new SearchResults();
 		ARCReader arcReader = ARCReaderFactory.get(arc);
-		arcReader.setParseHttpHeaders(true);
-		// doh. this does not generate quite the columns we need:
-		// arcReader.createCDXIndexFile(arcPath);
-		Iterator itr = arcReader.iterator();
-		while (itr.hasNext()) {
-			ARCRecord rec = (ARCRecord) itr.next();
-			SearchResult result;
-			try {
-				result = arcRecordToSearchResult(rec, arc);
-			} catch (NullPointerException e) {
-				e.printStackTrace();
-				continue;
-			} catch (ParseException e) {
-				e.printStackTrace();
-				continue;
+		try {
+			arcReader.setParseHttpHeaders(true);
+			// doh. this does not generate quite the columns we need:
+			// arcReader.createCDXIndexFile(arcPath);
+			Iterator itr = arcReader.iterator();
+			while (itr.hasNext()) {
+				ARCRecord rec = (ARCRecord) itr.next();
+				SearchResult result;
+				try {
+					result = arcRecordToSearchResult(rec, arc);
+				} catch (NullPointerException e) {
+					e.printStackTrace();
+					continue;
+				} catch (ParseException e) {
+					e.printStackTrace();
+					continue;
+				}
+				if(result != null) {
+					results.addSearchResult(result);
+				}
 			}
-			if(result != null) {
-				results.addSearchResult(result);
-			}
+		} finally {
+			arcReader.close();
 		}
 		return results;
 	}
@@ -115,15 +123,15 @@ public class ArcIndexer {
 			// skip filedesc record...
 			return null;
 		}
-		if(uriStr.startsWith(DNS_URL_PREFIX)) {
+		if(uriStr.startsWith(WaybackConstants.DNS_URL_PREFIX)) {
 			// skip dns records...
 			return null;
 		}
 		
-		UURI uri = new UURI(uriStr, false);
+		UURI uri = UURIFactory.getInstance(uriStr);
 		String uriHost = uri.getHost();
 		if(uriHost == null) {
-			System.out.println("No host in " + uriStr + " in " + 
+			LOGGER.info("No host in " + uriStr + " in " + 
 					arc.getAbsolutePath());
 			return null;
 		}
@@ -143,11 +151,12 @@ public class ArcIndexer {
 					// should we prefer one over the other?
 					// right now, we're ignoring "Content-Location"
 					try {
-						UURI uriRedirect = UURIFactory.getInstance(uri,locationStr);
+						UURI uriRedirect = UURIFactory.getInstance(uri,
+								locationStr);
 						redirectUrl = uriRedirect.getEscapedURI();
 						
 					} catch (URIException e) {
-						System.out.println("Bad Location: " + locationStr +
+						LOGGER.info("Bad Location: " + locationStr +
 								" for " + uriStr + " in " + 
 								arc.getAbsolutePath() + " Skipped");
 					}
@@ -177,15 +186,20 @@ public class ArcIndexer {
 	public void serializeResults(final SearchResults results,
 			File target) throws IOException {
 		
-		// TODO will this automatically close when it falls out of scope?
-		FileOutputStream output = new FileOutputStream(target);
-		output.write((CDX_HEADER_STRING + "\n").getBytes());
-		CDXRecord cdxRecord = new CDXRecord();
-		Iterator itr = results.iterator();
-		while (itr.hasNext()) {
-			SearchResult result = (SearchResult) itr.next();
-			cdxRecord.fromSearchResult(result);
-			output.write((cdxRecord.toValue() + "\n").getBytes());
+		FileOutputStream os = new FileOutputStream(target);
+		BufferedOutputStream bos = new BufferedOutputStream(os);
+		PrintWriter pw = new PrintWriter(bos);
+		try {
+			pw.println(CDXRecord.CDX_HEADER_MAGIC);
+			CDXRecord cdxRecord = new CDXRecord();
+			Iterator itr = results.iterator();
+			while (itr.hasNext()) {
+				SearchResult result = (SearchResult) itr.next();
+				cdxRecord.fromSearchResult(result);
+				pw.println(cdxRecord.toValue());
+			}
+		} finally {
+			pw.close();
 		}
 	}
 
