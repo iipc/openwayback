@@ -1,0 +1,64 @@
+== NGWM NEXT STEPS ==
+
+0.2 (week of Nov 28 - Dec 2)
+ - fix windows file-pipeline bug (move pipeline state into bdb?)
+ - better install/admin instructions (in file and in UI)
+ - bundle small default dataset (sample ARC) for immediate use
+ - remove extraneous files from build distro bundle
+ - polish UI to clarify local operation/collection/etc.
+ - release via SF 'file release' mechanism, announce to lists
+ - demo for team next Tuesday (Dec 6) for UI/feature feedback
+
+  
+0.4 (by first week of January)
+ - verified performance at typical scale of contract collections 
+ - retrieve/cache/respect freshest robots.txt
+ - handle multiple named collections
+ - nice, flexible results-list UI (classic calendar or other)
+ - admin tasks password-protected
+ - nice to have: manual exclusions
+ - nice to have: floating in-page indicator of WM date/status
+ - nice to have: clean nutch integration
+ 
+0.6 (as necessary)
+ - TBD
+ 
+== BRAINSTORMING ==
+
+ Error-handling: 
+ - when URL not available
+   - if auto-fetch, make sure an in-page floaty announces that it's
+     a fresh retrieve; log to side for QA purposes
+   - if not auto-fetch, offer link to broader search (all local collections)
+     or remote collections (such as public wayback machine)
+ 
+ Entry pages:
+ - when scanning ARCs, offer option to add /root pages to 'entry pages' list
+ - also allow admin to add entry pages
+ - display recommended entry pages below main search box (or on separate page)
+
+ Search/Admin UI:
+ - make host, collection very clear in UI (unless suppressed)
+ - highlight especially 'localhost' connections (different color background?)
+ - ape google/search-engine style to maximum extent practical
+ 
+ Replay UI:
+ - in-page presence
+   - collapsable uri/date/collection indicator
+   - mouseover indicators?
+ - n/a graphic for n/a images
+ - stayback firefox extension
+   - would look for special indicator inside page that it's a wayback session
+   - if found, would refuse to load inline resources or follow clicks without
+     patching URI back to wayback machine (assuming intercept/callback is 
+     possible)
+ 
+ Heritrix integration ideas:
+ - bundled? just installed alongside?
+ - simultaneous update during crawl? 
+ - 'not here yet but scheduled' error/placeholder IMGs?
+ - schedule-when-requested-via-WM?
+ - linkify all logs/reports to WM?
+ 
+ 
+   
