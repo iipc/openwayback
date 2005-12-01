@@ -25,7 +25,10 @@
 package org.archive.wayback.exception;
 
 /**
- *
+ * Exception class for queries which can be better expressed as another URL, or
+ * should, for one reason or another, be requested at a different URL. Likely
+ * cause would be to redirect the client so the Browser location reflects the
+ * exact request being served. 
  *
  * @author brad
  * @version $Date$, $Revision$
@@ -41,8 +44,8 @@ public class BetterRequestException extends WaybackException {
 
 	/**
 	 * Constructor
+	 * @param betterURI 
 	 * 
-	 * @param message
 	 */
 	public BetterRequestException(String betterURI) {
 		super("Better URI for query");

@@ -46,6 +46,9 @@ import org.archive.wayback.core.WaybackRequest;
 public class ReplayFilter extends RequestFilter {
 	private List localhostNames = null;
 	
+	/**
+	 * Constructor
+	 */
 	public ReplayFilter() {
 		super();
 	}

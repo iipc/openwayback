@@ -46,10 +46,19 @@ import org.archive.wayback.exception.ConfigurationException;
  */
 public class PipelineFilter implements Filter {
 
+	/**
+	 * name of configuration for the JSP that renders the status of the pipeline
+	 */
 	private final String PIPELINE_STATUS_JSP = "pipeline.statusjsp";
 
+	/**
+	 * IndexPipeline object
+	 */
 	private IndexPipeline pipeline = null;
 
+	/**
+	 * path to the JSP that renders the pipeline status, context relative
+	 */
 	private String pipelineStatusJsp = null;
 
 	/**
@@ -97,6 +106,13 @@ public class PipelineFilter implements Filter {
 		}
 	}
 
+	/**
+	 * @param request
+	 * @param response
+	 * @return boolean, true unless something went wrong..
+	 * @throws IOException
+	 * @throws ServletException
+	 */
 	protected boolean handle(final ServletRequest request,
 			final ServletResponse response) throws IOException,
 			ServletException {

@@ -37,11 +37,28 @@ import org.archive.wayback.WaybackConstants;
  * @version $Date$, $Revision$
  */
 public class SearchResults {
+	/**
+	 * List of SearchResult objects for index records matching a query
+	 */
 	private ArrayList results = null;
+	/**
+	 * 14-digit timestamp of first capture date contained in the SearchResults
+	 */
 	private String firstResultDate;
+	/**
+	 * 14-digit timestamp of last capture date contained in the SearchResults
+	 */
 	private String lastResultDate;
+	/**
+	 * Expandable data bag for tuples associated with the search results, 
+	 * likely examples might be "total matching documents", "index of first 
+	 * document returned", etc. 
+	 */
 	private Properties filters = new Properties();
 	
+	/**
+	 * Constructor
+	 */
 	public SearchResults() {
 		super();
 		results = new ArrayList();
@@ -95,14 +112,27 @@ public class SearchResults {
 		return lastResultDate;
 	}
 
+	/**
+	 * @param key
+	 * @return boolean, true if key 'key' exists in filters
+	 */
 	public boolean containsFilter(String key) {
 		return filters.containsKey(key);
 	}
 
+	/**
+	 * @param key
+	 * @return value of key 'key' in filters
+	 */
 	public String getFilter(String key) {
 		return (String) filters.get(key);
 	}
 
+	/**
+	 * @param key
+	 * @param value
+	 * @return previous String value of key 'key' or null if there was none
+	 */
 	public String putFilter(String key, String value) {
 		return (String) filters.put(key, value);
 	}

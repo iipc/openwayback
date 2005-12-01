@@ -1,5 +1,11 @@
 package org.archive.wayback.exception;
 
+/**
+ * Exception class for queries which result in no index matches
+ *
+ * @author brad
+ * @version $Date$, $Revision$
+ */
 public class ResourceNotInArchiveException extends WaybackException {
 	/**
 	 * 
@@ -14,6 +20,12 @@ public class ResourceNotInArchiveException extends WaybackException {
 	public ResourceNotInArchiveException(String message) {
 		super(message,"Not in Archive");
 	}
+	/**
+	 * Constructor with message and details
+	 * 
+	 * @param message
+	 * @param details
+	 */
 	public ResourceNotInArchiveException(String message,String details) {
 		super(message,"Not in Archive",details);
 	}

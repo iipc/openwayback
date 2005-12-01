@@ -33,19 +33,44 @@ import java.util.Properties;
  * @version $Date$, $Revision$
  */
 public class SearchResult {
+	/**
+	 * Expandable Data bag for String to String tuples -- who knows what data
+	 * we'll want to put in an Index. Perhaps this should BE a Properties,
+	 * instead of HAVEing a Properties.. This way, we could add an extra, 
+	 * 'type' field that would allow discrimination/hinting at what kind
+	 * of data might be found in the Properties...
+	 */
 	private Properties data = null;
+	
+	/**
+	 * Constructor
+	 */
 	public SearchResult() {
 		super();
 		data = new Properties();
 	}
+	
+	/**
+	 * @param key
+	 * @return boolean true if 'key' is a key in 'data'
+	 */
 	public boolean containsKey(String key) {
 		return data.containsKey(key);
 	}
 
+	/**
+	 * @param key
+	 * @return String value for key 'key' -- null if 'key' does not exist
+	 */
 	public String get(String key) {
 		return (String) data.get(key);
 	}
 
+	/**
+	 * @param key
+	 * @param value
+	 * @return String previous value of 'key'
+	 */
 	public String put(String key, String value) {
 		return (String) data.put(key, value);
 	}

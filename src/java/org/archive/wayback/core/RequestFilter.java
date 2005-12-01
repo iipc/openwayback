@@ -37,16 +37,27 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * 
+ * Common Servlet Filter functionality for parsing incoming URL requests
+ * into WaybackRequest objects.
  * 
  * @author brad
  * @version $Date$, $Revision$
  */
 public abstract class RequestFilter implements Filter {
+	/**
+	 * name of attribute on Request Object to store filtered WaybackRequest
+	 */
 	private static final String WMREQUEST_ATTRIBUTE = "wmrequest.attribute";
 
+	/**
+	 * name of configuration for context-relative path to servlet that
+	 * can handle the request, if a WaybackRequest is found in the request URL
+	 */
 	private static final String HANDLER_URL = "handler.url";
 
+	/**
+	 * context-relative URL to servlet that handles requests
+	 */
 	private String handlerUrl = null;
 
 	/**
@@ -56,6 +67,9 @@ public abstract class RequestFilter implements Filter {
 		super();
 	}
 
+	/* (non-Javadoc)
+	 * @see javax.servlet.Filter#init(javax.servlet.FilterConfig)
+	 */
 	public void init(FilterConfig c) throws ServletException {
 
 		handlerUrl = c.getInitParameter(HANDLER_URL);
@@ -64,6 +78,9 @@ public abstract class RequestFilter implements Filter {
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see javax.servlet.Filter#doFilter(javax.servlet.ServletRequest, javax.servlet.ServletResponse, javax.servlet.FilterChain)
+	 */
 	public void doFilter(ServletRequest request, ServletResponse response,
 			FilterChain chain) throws IOException, ServletException {
 		if (!handle(request, response)) {
@@ -71,6 +88,13 @@ public abstract class RequestFilter implements Filter {
 		}
 	}
 
+	/**
+	 * @param request
+	 * @param response
+	 * @return boolean, true if a WaybackRequest was parsed from the URL
+	 * @throws IOException
+	 * @throws ServletException
+	 */
 	protected boolean handle(final ServletRequest request,
 			final ServletResponse response) throws IOException,
 			ServletException {
@@ -96,9 +120,16 @@ public abstract class RequestFilter implements Filter {
 		return true;
 	}
 
+	/** attempt to extract a WaybackRequest from a request URL
+	 * @param httpRequest
+	 * @return WaybackRequest if successful, null otherwise
+	 */
 	protected abstract WaybackRequest parseRequest(
 			HttpServletRequest httpRequest);
 
+	/* (non-Javadoc)
+	 * @see javax.servlet.Filter#destroy()
+	 */
 	public void destroy() {
 
 	}

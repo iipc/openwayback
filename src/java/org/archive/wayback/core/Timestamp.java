@@ -129,6 +129,11 @@ public class Timestamp {
 		return ts;
 	}
 
+	/** ensure a 14-digit timestamp given a possibly partial timestamp, filling
+	 * in missing digits with earliest possible values
+	 * @param input
+	 * @return 14-digit string timestamp
+	 */
 	private static String padStartTimestamp(final String input) {
 		String first = FIRST1_TIMESTAMP;
 		if (input.length() == 0) {
@@ -142,6 +147,11 @@ public class Timestamp {
 		return padTimestamp(input, first);
 	}
 
+	/** ensure a 14-digit timestamp given a possibly partial timestamp, filling
+	 * in missing digits with latest possible values
+	 * @param input 
+	 * @return 14-digit string timetamp
+	 */
 	private static String padEndTimestamp(final String input) {
 		String last = LAST1_TIMESTAMP;
 		if (input.length() == 0) {
@@ -155,6 +165,12 @@ public class Timestamp {
 		return padTimestamp(input, last);
 	}
 
+	/** ensure a 14-digit timestamp given a possibly partial timestamp, filling
+	 * in missing digits with digits from 'output'
+	 * @param input
+	 * @param output
+	 * @return 14-digit string timestamp
+	 */
 	private static String padTimestamp(final String input, final String output) {
 		if (input.length() > output.length()) {
 			return input;
@@ -165,6 +181,7 @@ public class Timestamp {
 	/**
 	 * @return the 14-digit String representation of this Timestamp.
 	 */
+
 	public String getDateStr() {
 		return dateStr;
 	}

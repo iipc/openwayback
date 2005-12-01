@@ -1,6 +1,13 @@
 package org.archive.wayback.exception;
 
 
+/**
+ * Exception class for queries which fail because the ResourceIndex is
+ * presently inaccessible
+ *
+ * @author brad
+ * @version $Date$, $Revision$
+ */
 public class ResourceIndexNotAvailableException extends WaybackException {
 	/**
 	 * 
@@ -15,6 +22,12 @@ public class ResourceIndexNotAvailableException extends WaybackException {
 	public ResourceIndexNotAvailableException(String message) {
 		super(message,"Index not available");
 	}
+	/**
+	 * Constructor with message and details
+	 * 
+	 * @param message
+	 * @param details
+	 */
 	public ResourceIndexNotAvailableException(String message, String details) {
 		super(message,"Index not available",details);
 	}

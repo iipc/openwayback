@@ -80,7 +80,7 @@ public class WaybackLogic implements PropertyConfigurable {
 	 * 
 	 * @param p
 	 *            Generic properties bag for configurations
-	 * @throws Exception
+	 * @throws ConfigurationException
 	 */
 	public void init(Properties p) throws ConfigurationException {
 		LOGGER.info("WaybackLogic constructing classes...");

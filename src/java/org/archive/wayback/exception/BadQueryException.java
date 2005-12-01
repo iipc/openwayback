@@ -24,7 +24,7 @@
 package org.archive.wayback.exception;
 
 /**
- * Exception for malformed user query.
+ * Exception class for malformed user query.
  * 
  * @author Brad Tofel
  * @version $Date$, $Revision$
@@ -44,6 +44,12 @@ public class BadQueryException extends WaybackException {
 	public BadQueryException(String message) {
 		super(message,"Bad Query");
 	}
+	/** 
+	 * Constructor with message and details
+	 * 
+	 * @param message
+	 * @param details
+	 */
 	public BadQueryException(String message, String details) {
 		super(message,"Bad Query",details);
 	}

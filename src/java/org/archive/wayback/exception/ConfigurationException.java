@@ -25,7 +25,7 @@
 package org.archive.wayback.exception;
 
 /**
- *
+ * Exception class for configuration-related problems
  *
  * @author brad
  * @version $Date$, $Revision$
@@ -44,6 +44,12 @@ public class ConfigurationException extends WaybackException {
 	public ConfigurationException(String message) {
 		super(message,"Configuration Error");
 	}
+	/**
+	 * Constructor with message and details
+	 * 
+	 * @param message
+	 * @param details
+	 */
 	public ConfigurationException(String message, String details) {
 		super(message,"Configuration Error",details);
 	}

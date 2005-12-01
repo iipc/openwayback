@@ -31,8 +31,14 @@ package org.archive.wayback.cdx.indexer;
  */
 public class PipelineStatus {
 
+	/**
+	 * number of ARCs waiting to be indexed
+	 */
 	private String numQueuedForIndex;
 
+	/**
+	 * number of serialized CDX files waiting to be merged into the index
+	 */
 	private String numQueuedForMerge;
 
 	/**

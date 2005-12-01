@@ -40,7 +40,7 @@ public class WaybackException extends Exception {
 	private String details = "";
 	
 	/**
-	 * Constructor
+	 * Constructor with message only
 	 * 
 	 * @param message
 	 */
@@ -49,12 +49,25 @@ public class WaybackException extends Exception {
 		this.message = message;
 	}
 	
+	/**
+	 * Constructor with message, and title
+	 * 
+	 * @param message
+	 * @param title
+	 */
 	public WaybackException(String message, String title) {
 		super(message);
 		this.message = message;
 		this.title= title;
 	}
 	
+	/**
+	 * Constructor with message, title, and details
+	 * 
+	 * @param message
+	 * @param title
+	 * @param details
+	 */
 	public WaybackException(String message, String title,  String details) {
 		super(message);
 		this.message = message;
