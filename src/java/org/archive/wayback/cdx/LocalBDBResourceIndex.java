@@ -50,18 +50,37 @@ import com.sleepycat.je.DatabaseException;
  * @version $Date$, $Revision$
  */
 public class LocalBDBResourceIndex implements ResourceIndex {
-	   private static final Logger LOGGER =
+	/**
+	 * Logger for this class.
+	 */
+	private static final Logger LOGGER =
 	        Logger.getLogger(LocalBDBResourceIndex.class.getName());
 
 
+	/**
+	 * configuration name for directory containing index
+	 */
 	private final static String INDEX_PATH = "resourceindex.indexpath";
 
+	/**
+	 * configuration name for BDBJE database name within the db directory
+	 */
 	private final static String DB_NAME = "resourceindex.dbname";
 
+	// TODO: add configuration for MAX_RECORDS
+	/**
+	 * maximum number of records to return
+	 */
 	private final static int MAX_RECORDS = 1000;
 
+	/**
+	 * BDBResourceIndex object
+	 */
 	private BDBResourceIndex db = null;
 
+	/**
+	 * IndexPipeline object
+	 */
 	private IndexPipeline pipeline = null;
 
 	/**
@@ -199,9 +218,9 @@ public class LocalBDBResourceIndex implements ResourceIndex {
 					" is not in the archive.");
 		}
 		results.putFilter(WaybackConstants.REQUEST_URL,keyUrl);
+		results.putFilter(WaybackConstants.REQUEST_TYPE,searchType);
 		results.putFilter(WaybackConstants.REQUEST_START_DATE,startDate);
 		results.putFilter(WaybackConstants.REQUEST_END_DATE,endDate);
-		results.putFilter(WaybackConstants.RESULTS_FIRST_RECORD,""+startResult);
 
 		return results;
 	}
