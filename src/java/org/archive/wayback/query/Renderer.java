@@ -85,7 +85,7 @@ public class Renderer implements QueryRenderer {
 
 		UIQueryResults uiResults;
 		try {
-			uiResults = new UIQueryResults(wbRequest, results,
+			uiResults = new UIQueryResults(httpRequest, wbRequest, results,
 					uriConverter);
 		} catch (ParseException e) {
 			// I don't think this should happen...
@@ -98,6 +98,9 @@ public class Renderer implements QueryRenderer {
 
 	}
 
+	/* (non-Javadoc)
+	 * @see org.archive.wayback.QueryRenderer#renderUrlPrefixResults(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.archive.wayback.core.WaybackRequest, org.archive.wayback.core.SearchResults, org.archive.wayback.ReplayResultURIConverter)
+	 */
 	public void renderUrlPrefixResults(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
 			SearchResults results, ReplayResultURIConverter uriConverter)
@@ -105,7 +108,7 @@ public class Renderer implements QueryRenderer {
 
 		UIQueryResults uiResults;
 		try {
-			uiResults = new UIQueryResults(wbRequest, results,
+			uiResults = new UIQueryResults(httpRequest, wbRequest, results,
 					uriConverter);
 		} catch (ParseException e) {
 			// I don't think this should happen...
