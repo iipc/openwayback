@@ -41,7 +41,13 @@ import org.archive.wayback.exception.ConfigurationException;
  * @version $Date$, $Revision$
  */
 public class ResultURIConverter implements ReplayResultURIConverter {
+	/**
+	 * configuration name for URL prefix of replay server
+	 */
 	private final static String REPLAY_URI_PREFIX_PROPERTY = "replayuriprefix";
+	/**
+	 * Url prefix of replay server
+	 */
 	private String replayUriPrefix;
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.ReplayResultURIConverter#init(java.util.Properties)
@@ -55,9 +61,6 @@ public class ResultURIConverter implements ReplayResultURIConverter {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.archive.wayback.ReplayResultURIConverter#makeReplayURI(org.archive.wayback.core.ResourceResult)
-	 */
 
 	public String makeReplayURI(SearchResult result) {
 		return replayUriPrefix + "/"
@@ -72,9 +75,6 @@ public class ResultURIConverter implements ReplayResultURIConverter {
 		return replayUriPrefix;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.archive.wayback.ReplayResultURIConverter#makeRedirectReplayURI(org.archive.wayback.core.SearchResult, java.lang.String)
-	 */
 	public String makeRedirectReplayURI(SearchResult result, String url) {
 		String finalUrl = url;
 		try {

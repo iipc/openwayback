@@ -35,26 +35,60 @@ import org.archive.wayback.core.SearchResult;
  * @version $Date$, $Revision$
  */
 public class CDXRecord {
+    /**
+     * CDX Header line for these fields. not very configurable..
+     */
     public final static String CDX_HEADER_MAGIC = " CDX N b h m s k r V g";
 
+    /**
+     * capture url for this document
+     */
     public String url;
 
+	/**
+	 * date this document was captured, 14-digit
+	 */
 	public String captureDate;
 
+	/**
+	 * original host for this document, URL may have been massaged
+	 */
 	public String origHost = null;
 
+	/**
+	 * guessed mime-type of this document
+	 */
 	public String mimeType = null;
 
+	/**
+	 * HTTP response code for this document
+	 */
 	public String httpResponseCode = null;
 
+	/**
+	 * Digest for this document -- very unclear what it means, is MD5?, partial
+	 * MD5?, includes HTTP headers?...
+	 */
 	public String md5Fragment = null;
 
+	/**
+	 * URL that this document redirected to
+	 */
 	public String redirectUrl = null;
 
+	/**
+	 * compressed offset within the ARC file where this document begins
+	 */
 	public long compressedOffset = -1;
 
+	/**
+	 * name of ARC file containing this document, may or may not include .arc.gz
+	 */
 	public String arcFileName = null;
 
+	/**
+	 * Constructor
+	 */
 	public CDXRecord() {
 		super();
 	}
@@ -86,6 +120,9 @@ public class CDXRecord {
 		arcFileName = tokens[8];
 	}
 
+	/**
+	 * @return SearchResult with values of this CDXRecord
+	 */
 	public SearchResult toSearchResult() {
 		SearchResult result = new SearchResult();
 
@@ -103,6 +140,9 @@ public class CDXRecord {
 		return result;
 	}
 
+	/** Initialize this CDXRecord values from a SearchResult
+	 * @param result
+	 */
 	public void fromSearchResult(final SearchResult result) {
 		url = result.get(WaybackConstants.RESULT_URL);
 		captureDate = result.get(WaybackConstants.RESULT_CAPTURE_DATE);
@@ -116,12 +156,18 @@ public class CDXRecord {
 		arcFileName = result.get(WaybackConstants.RESULT_ARC_FILE);
 	}
 
+	/**
+	 * @return a BDBJE value for this record
+	 */
 	public String toValue() {
 		return url + " " + captureDate + " " + origHost + " " + mimeType + " "
 				+ httpResponseCode + " " + md5Fragment + " " + redirectUrl
 				+ " " + compressedOffset + " " + arcFileName;
 	}
 
+	/**
+	 * @return a BDBJE key for this record
+	 */
 	public String toKey() {
 		return url + " " + captureDate;
 	}

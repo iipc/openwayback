@@ -36,10 +36,10 @@ import org.archive.wayback.core.SearchResult;
  */
 public interface ResourceStore extends PropertyConfigurable {
 	/**
-	 * Transform an ARCLocation into a Resource
+	 * Transform a SearchResult into a Resource
 	 * 
-	 * @param location
-	 * @return Resource object retrieved from ARCLocation
+	 * @param result
+	 * @return Resource object retrieved for the SearchResult
 	 * @throws IOException
 	 */
 	public Resource retrieveResource(SearchResult result) throws IOException;

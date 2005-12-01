@@ -47,8 +47,16 @@ import org.archive.wayback.proxy.RawReplayRenderer;
  * @version $Date$, $Revision$
  */
 public class JSReplayRenderer extends RawReplayRenderer {
+	/**
+	 * MIME type of documents which should be marked up with javascript to
+	 * rewrite URLs inside document
+	 */
 	private final static String TEXT_HTML_MIME = "text/html";
 
+	/** test if the SearchResult should be replayed raw, without JS markup
+	 * @param result
+	 * @return boolean, true if the document should be returned raw.
+	 */
 	private boolean isRawReplayResult(SearchResult result) {
 		if (-1 == result.get(WaybackConstants.RESULT_MIME_TYPE).indexOf(
 				TEXT_HTML_MIME)) {
@@ -57,6 +65,13 @@ public class JSReplayRenderer extends RawReplayRenderer {
 		return false;
 	}
 	
+	/** send the client to a different/better request URL for the document
+	 * they asked for.
+	 * 
+	 * @param httpResponse
+	 * @param url
+	 * @throws IOException
+	 */
 	private void redirectToBetterUrl(HttpServletResponse httpResponse, 
 			String url) throws IOException {
 		
@@ -114,6 +129,12 @@ public class JSReplayRenderer extends RawReplayRenderer {
 		}
 	}
 
+	/** add BASE tag and javascript to a page that will rewrite embedded URLs 
+	 * to point back into the WM
+	 * @param page
+	 * @param result
+	 * @param uriConverter
+	 */
 	private void markUpPage(StringBuffer page, SearchResult result,
 			ReplayResultURIConverter uriConverter) {
 		// TODO deal with frames..
@@ -121,6 +142,11 @@ public class JSReplayRenderer extends RawReplayRenderer {
 		insertJavascript(page, result, uriConverter);
 	}
 
+	/** add a BASE HTML tag to make all path relative URLs map to the right URL
+	 * 
+	 * @param page
+	 * @param result
+	 */
 	private void insertBaseTag(StringBuffer page, SearchResult result) {
 		String resultUrl = result.get(WaybackConstants.RESULT_URL);
 		String baseTag = "<BASE HREF=\"http://" + resultUrl + "\">";
@@ -136,6 +162,11 @@ public class JSReplayRenderer extends RawReplayRenderer {
 		page.insert(insertPoint, baseTag);
 	}
 
+	/** insert Javascript into a page to rewrite URLs
+	 * @param page
+	 * @param result
+	 * @param uriConverter
+	 */
 	private void insertJavascript(StringBuffer page, SearchResult result,
 			ReplayResultURIConverter uriConverter) {
 		String resourceTS = result.get(WaybackConstants.RESULT_CAPTURE_DATE);

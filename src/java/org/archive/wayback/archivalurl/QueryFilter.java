@@ -45,9 +45,15 @@ import org.archive.wayback.core.WaybackRequest;
  * @version $Date$, $Revision$
  */
 public class QueryFilter extends RequestFilter {
+	/**
+	 * Regex which parses Archival URL queries into timestamp + url for exact
+	 */
 	private final static Pattern WB_QUERY_REGEX = Pattern
 			.compile("^/(\\d{0,13})\\*/(.*[^*])$");
 
+	/**
+	 * Regex which parses Archival URL queries into timestamp + url for prefix
+	 */
 	private final static Pattern WB_PATH_QUERY_REGEX = Pattern
 			.compile("^/(\\d{0,13})\\*/(.*)\\*$");
 
@@ -64,7 +70,7 @@ public class QueryFilter extends RequestFilter {
 			return null;
 		}
 		String requestPath = origRequestPath.substring(contextPath.length());
-
+		// TODO: add parsing and handling of page numbers and results per page
 		matcher = WB_QUERY_REGEX.matcher(requestPath);
 		if (matcher != null && matcher.matches()) {
 

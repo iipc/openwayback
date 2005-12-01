@@ -33,11 +33,21 @@ import org.archive.wayback.core.SearchResult;
  * @version $Date$, $Revision$
  */
 public interface ReplayResultURIConverter extends PropertyConfigurable {
-	/**
+	/** Convert a SearchResult into a replayable URL
+	 * 
 	 * @param result
 	 * @return user-viewable String URL that will replay the ResourceResult
 	 */
 	public String makeReplayURI(final SearchResult result);
+	/** create a URL that will drive the client back to the URL argument in 
+	 * replay mode, possibly resolving the URL against this SearchResult
+	 * @param result
+	 * @param url
+	 * @return String URL to send client to replay this url
+	 */
 	public String makeRedirectReplayURI(final SearchResult result, String url);
+	/**
+	 * @return the URL prefix for the replay service
+	 */
 	public String getReplayUriPrefix ();
 }

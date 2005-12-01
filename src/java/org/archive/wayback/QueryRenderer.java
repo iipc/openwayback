@@ -42,15 +42,48 @@ import org.archive.wayback.exception.WaybackException;
  */
 public interface QueryRenderer extends PropertyConfigurable {
 
+	/** Show an output page indicating that a request to the Wayback Machine
+	 * failed for some reason, as determined by the WaybackException argument.
+	 * 
+	 * @param httpRequest the HttpServletRequest
+	 * @param httpResponse the HttpServletResponse
+	 * @param wbRequest the WaybackRequest that caused the exception
+	 * @param exception the WaybackException thrown while handling
+	 * @throws ServletException
+	 * @throws IOException
+	 */
 	public void renderException(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
 			WaybackException exception) throws ServletException, IOException;
 
+	/** Show the SearchResults of the request for this particular URL
+	 *  
+	 * @param httpRequest the HttpServletRequest
+	 * @param httpResponse the HttpServletResponse
+	 * @param wbRequest the WaybackRequest that returned the results
+	 * @param results the SearchResults that the WaybackRequest matched
+	 * @param uriConverter the URI converter to use to translate matching
+	 *                      results into replayable URLs
+	 * @throws ServletException
+	 * @throws IOException
+	 */
 	public void renderUrlResults(HttpServletRequest httpRequest,
-			HttpServletResponse response, WaybackRequest wbRequest,
+			HttpServletResponse httpResponse, WaybackRequest wbRequest,
 			SearchResults results, ReplayResultURIConverter uriConverter)
 			throws ServletException, IOException;
 
+	/** Show the SearchResults of the request which may have resulted in 
+	 * multiple matching URLs.
+	 * 
+	 * @param httpRequest the HttpServletRequest
+	 * @param response the HttpServletResponse
+	 * @param wbRequest the WaybackRequest that returned the results
+	 * @param results the SearchResults that the WaybackRequest matched
+	 * @param uriConverter the URI converter to use to translate matching
+	 *                      results into replayable URLs
+	 * @throws ServletException
+	 * @throws IOException
+	 */
 	public void renderUrlPrefixResults(HttpServletRequest httpRequest,
 			HttpServletResponse response, WaybackRequest wbRequest,
 			SearchResults results, ReplayResultURIConverter uriConverter)

@@ -43,10 +43,35 @@ import org.archive.wayback.exception.WaybackException;
  */
 public interface ReplayRenderer extends PropertyConfigurable {
 
+	/**
+	 * return a page to the client indicating that something went wrong, and
+	 * describing in as much detail as available, what went wrong, in a format
+	 * appropriate to the context in which the resource was requested.
+	 * 
+	 * @param httpRequest
+	 * @param httpResponse
+	 * @param wbRequest
+	 * @param exception
+	 * @throws ServletException
+	 * @throws IOException
+	 */
 	public void renderException(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
 			WaybackException exception) throws ServletException, IOException;
 
+	/**
+	 * return a resource to the user.
+	 * 
+	 * @param httpRequest the HttpServletRequest
+	 * @param httpResponse the HttpServletResponse
+	 * @param wbRequest the WaybackRequest that returned the results
+	 * @param result actual SearchResult that maps to resource to replay
+	 * @param resource resource to replay
+	 * @param uriConverter the URI converter to use to translate matching
+	 *                      results into replayable URLs
+	 * @throws ServletException
+	 * @throws IOException
+	 */
 	public void renderResource(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
 			SearchResult result, Resource resource, 

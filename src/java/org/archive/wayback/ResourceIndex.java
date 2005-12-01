@@ -45,6 +45,7 @@ public interface ResourceIndex extends PropertyConfigurable {
 	 * 
 	 * @throws ResourceIndexNotAvailableException
 	 * @throws ResourceNotInArchiveException
+	 * @throws BadQueryException 
 	 */
 	public SearchResults query(final WaybackRequest request)
 			throws ResourceIndexNotAvailableException,
