@@ -105,7 +105,7 @@ public class ReplayServlet extends HttpServlet {
 		return arr[0];
 	}
 
-	public WaybackRequest parseCGIRequest(HttpServletRequest httpRequest)
+	private WaybackRequest parseCGIRequest(HttpServletRequest httpRequest)
 			throws BadQueryException {
 		WaybackRequest wbRequest = new WaybackRequest();
 		Map queryMap = httpRequest.getParameterMap();
@@ -166,7 +166,7 @@ public class ReplayServlet extends HttpServlet {
 		ResourceStore store = wayback.getResourceStore();
 		ReplayResultURIConverter uriConverter = wayback.getURIConverter();
 		ReplayRenderer renderer = wayback.getReplayRenderer();
-
+		Resource resource = null;
 		try {
 
 			if (wbRequest == null) {
@@ -180,7 +180,7 @@ public class ReplayServlet extends HttpServlet {
 			// TODO loop here looking for closest online/available version?
 			// OPTIMIZ maybe assume version is here and redirect now if not
 			// exactly the date user requested, before retrieving it...
-			Resource resource = store.retrieveResource(closest);
+			resource = store.retrieveResource(closest);
 
 			renderer.renderResource(httpRequest, httpResponse, wbRequest,
 					closest, resource, uriConverter);
@@ -200,6 +200,10 @@ public class ReplayServlet extends HttpServlet {
 			// the container deal?
 			e.printStackTrace();
 			throw new ServletException(e.getMessage());
+		} finally {
+			if (resource != null) {
+				resource.close();
+			}
 		}
 	}
 }
