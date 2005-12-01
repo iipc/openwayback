@@ -88,21 +88,27 @@ public interface WaybackConstants {
 	 */
 	public static final String REQUEST_REPLAY_QUERY = "replay";
 
+	
+	
+	/**
+	 * Results: int total number of records matching, not all necc. returned.
+	 */
+	public static final String RESULTS_NUM_RESULTS = "numresults";
+	
 	/**
 	 * Results: int first record of all matching returned, 1-based 
 	 */
-	public static final String RESULTS_FIRST_RECORD = "firstrecord";
+	public static final String RESULTS_FIRST_RETURNED = "firstreturned";
 
 	/**
-	 * Results: int first page of all matching pages to return, 1-based
+	 * Results: int total number of records *returned* in results 
 	 */
-	public static final String RESULTS_FIRST_PAGE = "firstpage";
+	public static final String RESULTS_NUM_RETURNED = "numreturned";
 	
 	/**
-	 * Results: boolean: "true"|"false" if there are more records matching
-	 * than those returned in the currect SearchResults
+	 * Results: int number of results requested
 	 */
-	public static final String RESULTS_HAS_MORE = "hasmore";
+	public static final String RESULTS_REQUESTED = "resultsrequested";
 	
 
 	/**
