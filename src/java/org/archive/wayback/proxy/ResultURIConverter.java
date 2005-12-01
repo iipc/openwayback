@@ -50,7 +50,6 @@ public class ResultURIConverter implements ReplayResultURIConverter {
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.ReplayResultURIConverter#makeReplayURI(org.archive.wayback.core.ResourceResult)
 	 */
-
 	public String makeReplayURI(SearchResult result) {
 		String finalUrl = result.get(WaybackConstants.RESULT_URL); 
 		if(!finalUrl.startsWith(WaybackConstants.HTTP_URL_PREFIX)) {
