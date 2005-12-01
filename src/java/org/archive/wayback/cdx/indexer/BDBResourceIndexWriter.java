@@ -24,6 +24,7 @@
 package org.archive.wayback.cdx.indexer;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.RandomAccessFile;
 
 import org.archive.wayback.cdx.BDBResourceIndex;
@@ -41,7 +42,13 @@ import com.sleepycat.je.DatabaseException;
  */
 public class BDBResourceIndexWriter {
 	// TODO: move to somewhere better...
+	/**
+	 * magic for serialized CDX files
+	 */
 	private final static String CDX_HEADER_MAGIC = " CDX ";
+	/**
+	 * BDBResourceIndex to store SearchResults
+	 */
 	private BDBResourceIndex db = null;
 
 	/**
@@ -51,15 +58,26 @@ public class BDBResourceIndexWriter {
 		super();
 	}
 
+	/** initialize this BDBResourceIndexWriter pointing at a BDBResourceIndex
+	 * @param thePath
+	 * @param theDbName
+	 * @throws Exception
+	 */
 	protected void init(final String thePath, final String theDbName)
 			throws Exception {
 		db = new BDBResourceIndex(thePath, theDbName);
 	}
 
+	/**	initialize this BDBResourceIndexWriter pointing at a BDBResourceIndex
+	 * @param db
+	 */
 	protected void init(BDBResourceIndex db) {
 		this.db = db;
 	}
 
+	/** shutdown the underlying BDBResourceIndex
+	 * @throws DatabaseException
+	 */
 	protected void shutdown() throws DatabaseException {
 		db.shutdownDB();
 	}
@@ -77,6 +95,11 @@ public class BDBResourceIndexWriter {
 		db.addResults(results);
 	}
 
+	/** deserialize a CDX file into a SearchResults
+	 * @param indexFile
+	 * @return SearchResults containing all SearchResult objects in file
+	 * @throws Exception
+	 */
 	private SearchResults readFile(File indexFile) throws Exception {
 		SearchResults results = new SearchResults();
 		RandomAccessFile raFile = new RandomAccessFile(indexFile, "r");
@@ -99,7 +122,14 @@ public class BDBResourceIndexWriter {
 				results.addSearchResult(result);
 			}
 		} finally {
-			raFile.close();
+			if(raFile != null) {
+				try {
+					raFile.close();
+				} catch (IOException e) {
+					// TODO: how to recover?
+					e.printStackTrace();
+				}
+			}
 		}
 		return results;
 	}
