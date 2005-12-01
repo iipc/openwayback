@@ -47,6 +47,9 @@ import org.archive.wayback.core.WaybackRequest;
  */
 public class ReplayFilter extends RequestFilter {
 
+	/**
+	 * Regex which parses Archival URL replay requests into timestamp + url
+	 */
 	private final Pattern WB_REQUEST_REGEX = Pattern
 	.compile("^/(\\d{1,14})/(.*)$");
 
@@ -96,7 +99,7 @@ public class ReplayFilter extends RequestFilter {
 			
 			String referer = httpRequest.getHeader("REFERER");
 			if (referer == null) {
-				referer = null;
+				referer = "";
 			}
 			wbRequest.put(WaybackConstants.REQUEST_REFERER_URL,referer);
 
