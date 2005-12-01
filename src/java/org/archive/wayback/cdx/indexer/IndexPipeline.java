@@ -54,46 +54,120 @@ import com.sleepycat.je.DatabaseException;
  * @version $Date$, $Revision$
  */
 public class IndexPipeline implements PropertyConfigurable{
-	   private static final Logger LOGGER =
+	/**
+	 * Logger for this class
+	 */
+	private static final Logger LOGGER =
 	        Logger.getLogger(IndexPipeline.class.getName());
 
+	/**
+	 * minimum number of milliseconds to sleep between scanning for new ARC
+	 * files. If no new files have appeared, and the pipeline is idling, the
+	 * pipeline thread will sleep for longer each iteration that there is no
+	 * new work to do.  
+	 */
+	private final static int SLEEP_MILLISECONDS = 10000;
+	
+	/**
+	 * maximum number of ARC files to index and merge each iteration.
+	 */
+	private final static int MAX_TO_MERGE = 10;
+
+	/**
+	 * Name of configuration for flag to activate pipeline thread
+	 */
 	private final static String RUN_PIPELINE = "indexpipeline.runpipeline";
 
+	/**
+	 * Name of configuration for directory containing BDBResourceIndex
+	 */
 	private final static String INDEX_PATH = "resourceindex.indexpath";
 
+	/**
+	 * Name of configuration for name of BDBJE database
+	 */
 	private final static String DB_NAME = "resourceindex.dbname";
 
+	/**
+	 * Name of configuration for directory containing ARC files
+	 */
 	private final static String ARC_PATH = "arcpath";
 
+	/**
+	 * Name of configuration for directory under which pipeline state is stored
+	 */
 	private final static String WORK_PATH = "indexpipeline.workpath";
 
+	/**
+	 * Name of Queued state directory, under WORK_PATH
+	 */
 	private final static String QUEUED_DIR = "queued";
 
+	/**
+	 * Name of To Be Indexed state directory, under WORK_PATH
+	 */
 	private final static String TO_BE_INDEXED_DIR = "toBeIndexed";
 	
+	/**
+	 * Name of Indexing state directory, under WORK_PATH
+	 */
 	private final static String INDEXING_DIR = "indexing";
 	
+	/**
+	 * Name of To Be Merged state directory, under WORK_PATH
+	 */
 	private final static String TO_BE_MERGED_DIR = "toBeMerged";
 
+	/**
+	 * Name of Merged state directory, under WORK_PATH
+	 */
 	private final static String MERGED_DIR = "merged";
 	
 	
+	/**
+	 * File object of arc directory
+	 */
 	private File arcDir = null;
 	
+	/**
+	 * File object of working directory
+	 */
 	private File workDir = null;
 
+	/**
+	 * File Object of queued directory
+	 */
 	private File queuedDir = null;
 
+	/**
+	 * File Object of To Be Indexed directory
+	 */
 	private File toBeIndexedDir = null;
 
+	/**
+	 * File Object of Indexing directory
+	 */
 	private File indexingDir = null;
 
+	/**
+	 * File Object of To Be Merged directory
+	 */
 	private File toBeMergedDir = null;
 
+	/**
+	 * File Object of Merged directory
+	 */
 	private File mergedDir = null;
 
+	/**
+	 * object holding ResourceIndex
+	 */
 	private BDBResourceIndex db = null;
 
+	/**
+	 * Thread object of update thread -- also is flag indicating if the thread
+	 * has already been started -- static, and access to it is synchronized.
+	 */
 	private static Thread indexUpdateThread = null;
 	
 
@@ -104,6 +178,10 @@ public class IndexPipeline implements PropertyConfigurable{
 		super();
 	}
 
+	/** Ensure the argument directory exists
+	 * @param dir
+	 * @throws IOException
+	 */
 	private void ensureDir(File dir) throws IOException {
 		if (!dir.isDirectory() && !dir.mkdirs()) {
 			throw new IOException("FAILED to create " + dir.getAbsolutePath());
@@ -115,9 +193,8 @@ public class IndexPipeline implements PropertyConfigurable{
 	 * thread if configured.
 	 * 
 	 * @param p configuration 
-	 * @throws IOException
+	 * @throws ConfigurationException
 	 */
-
 	public void init(Properties p) throws ConfigurationException {
 		
 		// where do we find ARC files?
@@ -182,6 +259,12 @@ public class IndexPipeline implements PropertyConfigurable{
 		}
 	}
 	
+	/** start the IndexPipeline thread, which will scan for new arcs, index
+	 * new arcs that appear, and merge indexed arcs (in CDX format) into the
+	 * BDBResourceIndex
+	 * 
+	 * @param bdb
+	 */
 	private synchronized void startIndexPipelineThread(
 			final BDBResourceIndex bdb) {
 		if (indexUpdateThread != null) {
@@ -191,6 +274,10 @@ public class IndexPipeline implements PropertyConfigurable{
 		indexUpdateThread.start();
 	}
 
+	/**
+	 * @return a HashMap with String keys of all ARC files which have already
+	 * been queued for indexing.
+	 */
 	private HashMap getQueuedFiles() {
 		HashMap hash = new HashMap();
 		String entries[] = queuedDir.list();
@@ -200,6 +287,10 @@ public class IndexPipeline implements PropertyConfigurable{
 		return hash;
 	}
 
+	/**
+	 * @param dir
+	 * @return anIteratory of File objects of all regular files in dir
+	 */
 	private Iterator getDirFilesIterator(File dir) {
 		String files[] = dir.list();
 		ArrayList list = new ArrayList();
@@ -214,7 +305,11 @@ public class IndexPipeline implements PropertyConfigurable{
 		return list.iterator();
 	}
 
-	// this should be a method call into ResourceStore...
+	// 
+	/** return any new ARC files in the ARCs directory. this should be a method 
+	 * call into ResourceStore...
+	 * @return an Iterator of Strings of filenames of new ARCs.
+	 */
 	private Iterator getNewArcs() {
 		HashMap queued = getQueuedFiles();
 		ArrayList newArcs = new ArrayList();
@@ -224,7 +319,7 @@ public class IndexPipeline implements PropertyConfigurable{
 			for (int i = 0; i < arcs.length; i++) {
 				File arc = new File(arcDir,arcs[i]);
 				if(arc.isFile() && arcs[i].endsWith(".arc.gz")) {
-
+					
 					if (!queued.containsKey(arcs[i])) {
 						newArcs.add(arcs[i]);
 					}
@@ -234,6 +329,11 @@ public class IndexPipeline implements PropertyConfigurable{
 		return newArcs.iterator();
 	}
 
+	/** update pipeline state to indicate that an ARC needs to be indexed, and
+	 * has been queued for indexing already. 
+	 * @param newArc
+	 * @throws IOException
+	 */
 	private void queueArcForIndex(final String newArc) throws IOException {
 		File newQueuedFile = new File(queuedDir,newArc);
 		File newToBeIndexedFile = new File(toBeIndexedDir,newArc);
@@ -254,10 +354,11 @@ public class IndexPipeline implements PropertyConfigurable{
 	}
 	
 	/**
-	 * Index any ARC files queued for indexing, queueing the resulting CDX files
-	 * for merging with the BDBResourceIndex.
+	 * Index up to 'max' ARC files queued for indexing, queueing the resulting 
+	 * CDX files for merging with the BDBResourceIndex.
 	 * 
 	 * @param indexer
+	 * @param max maximum number to index in this method call, 0 for unlimited
 	 * @throws MalformedURLException
 	 * @throws IOException
 	 */
@@ -290,12 +391,25 @@ public class IndexPipeline implements PropertyConfigurable{
 			}
 		}
 	}
-
+	/**
+	 * Index all ARC files queued for indexing, queueing the resulting CDX files
+	 * for merging with the BDBResourceIndex.
+	 * 
+	 * @param indexer
+	 * @throws MalformedURLException
+	 * @throws IOException
+	 */
+	public void indexArcs(ArcIndexer indexer)
+		throws MalformedURLException, IOException {
+		indexArcs(indexer,0);
+	}
+	
 	/**
 	 * Add any new CDX files in toBeMergedDir to the BDB, deleting the CDX
 	 * files as they are merged
 	 * For now, moving merged to "merged" for debugging..
 	 * @param dbWriter
+	 * @return int number of ARC files indexed
 	 */
 	public int mergeIndex(BDBResourceIndexWriter dbWriter) {
 		int numMerged = 0;
@@ -351,6 +465,10 @@ public class IndexPipeline implements PropertyConfigurable{
 
 	}
 
+	///////////////////////////////////////////////////
+	// IndexPipelineThread Class
+	///////////////////////////////////////////////////
+	
 	/**
 	 * Thread that repeatedly runs processing of an IndexPipeline and merges new
 	 * data into a BDBResourceIndex
@@ -359,10 +477,17 @@ public class IndexPipeline implements PropertyConfigurable{
 	 * @version $Date$, $Revision$
 	 */
 	private class IndexPipelineThread extends Thread {
-		private final static int SLEEP_MILLISECONDS = 10000;
-		private final static int MAX_TO_MERGE = 10;
+		/**
+		 * object which merges CDX files with the BDBResourceIndex
+		 */
 		private BDBResourceIndexWriter merger = null;
+		/**
+		 * object which indexes ARC files, and writes CDX
+		 */
 		private ArcIndexer indexer = new ArcIndexer();
+		/**
+		 * IndexPipeline object
+		 */
 		IndexPipeline pipeline = null;
 
 		/**
