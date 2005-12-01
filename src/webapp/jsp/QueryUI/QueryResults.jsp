@@ -9,7 +9,7 @@
 
 UIQueryResults results = (UIQueryResults) request.getAttribute("ui-results");
 String searchString = results.getSearchUrl();
-int resultCount = results.getResultCount();
+int resultCount = results.getResultsReturned();
 
 Timestamp searchStartTs = results.getStartTimestamp();
 Timestamp searchEndTs = results.getEndTimestamp();
@@ -39,6 +39,9 @@ while(itr.hasNext()) {
 	String httpResponse = result.get(WaybackConstants.RESULT_HTTP_CODE);
 	String mimeType = result.get(WaybackConstants.RESULT_MIME_TYPE);
 
+	String arcFile = result.get(WaybackConstants.RESULT_ARC_FILE);
+	String arcOffset = result.get(WaybackConstants.RESULT_OFFSET);
+
 	String replayUrl = results.resultToReplayUrl(result);
 
 	boolean updated = false;
@@ -55,6 +58,10 @@ while(itr.hasNext()) {
 		<span style="color:black;"><%= origHost %></span>
 		<span style="color:gray;"><%= httpResponse %></span>
 		<span style="color:brown;"><%= mimeType %></span>
+<!--
+		<span style="color:red;"><%= arcFile %></span>
+		<span style="color:red;"><%= arcOffset %></span>
+-->
 		<%= redirectFlag %>
 		(new version)
 		<br></br>
@@ -63,6 +70,10 @@ while(itr.hasNext()) {
 		%>
 		&nbsp;&nbsp;&nbsp;<a href="<%= replayUrl %>"><%= prettyDate %></a>
 		<span style="color:green;"><%= origHost %></span>
+<!--
+		<span style="color:red;"><%= arcFile %></span>
+		<span style="color:red;"><%= arcOffset %></span>
+-->
 		<br></br>
 		<%
 	}

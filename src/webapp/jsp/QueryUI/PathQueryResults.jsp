@@ -9,7 +9,7 @@
 
 UIQueryResults results = (UIQueryResults) request.getAttribute("ui-results");
 String searchString = results.getSearchUrl();
-int resultCount = results.getResultCount();
+
 
 String prettySearchStart = results.prettySearchStartDate();
 String prettySearchEnd = results.prettySearchEndDate();
@@ -17,10 +17,15 @@ String prettySearchEnd = results.prettySearchEndDate();
 Iterator itr = results.resultsIterator();
 %>
 
-<b><%= resultCount %></b> results for <b><%= searchString %></b><br></br>
+Showing
+<b><%= results.getFirstResult() %></b>
+to
+<b><%= results.getLastResult() %></b>
+of
+<b><%= results.getResultsMatching() %></b>
+results for <b><%= searchString %></b><br></br>
 between <b><%= prettySearchStart %></b> and <b><%= prettySearchEnd %></b>
 <hr></hr>
-
 <%
 boolean first = false;
 String lastUrl = null;
@@ -37,6 +42,9 @@ while(itr.hasNext()) {
 		?	"" : "(redirect)";
 	String httpResponse = result.get(WaybackConstants.RESULT_HTTP_CODE);
 	String mimeType = result.get(WaybackConstants.RESULT_MIME_TYPE);
+
+	String arcFile = result.get(WaybackConstants.RESULT_ARC_FILE);
+	String arcOffset = result.get(WaybackConstants.RESULT_OFFSET);
 
 	String replayUrl = results.resultToReplayUrl(result);
 
@@ -64,6 +72,10 @@ while(itr.hasNext()) {
 		<span style="color:black;"><%= origHost %></span>
 		<span style="color:gray;"><%= httpResponse %></span>
 		<span style="color:brown;"><%= mimeType %></span>
+<!--
+		<span style="color:red;"><%= arcFile %></span>
+		<span style="color:red;"><%= arcOffset %></span>
+-->
 		<%= redirectFlag %>
 		(new version)
 		<br></br>
@@ -75,10 +87,33 @@ while(itr.hasNext()) {
 		&nbsp;&nbsp;&nbsp;<a href="<%= replayUrl %>"><%= prettyDate %></a>
 		<span style="color:green;"><%= origHost %></span>
 		<span style="color:lightgray;">unchanged</span>
+<!--
+		<span style="color:red;"><%= arcFile %></span>
+		<span style="color:red;"><%= arcOffset %></span>
+-->
 		<br></br>
 
 		<%	
 	}
 }
+// show page indicators:
+if(results.getNumPages() > 1) {
+	int curPage = results.getCurPage();
+	%>
+	<hr></hr>
+	<%
+	for(int i = 1; i < results.getNumPages(); i++) {
+		if(i == curPage) {
+			%>
+			<b><%= i %></b>
+			<%		
+		} else {
+			%>
+			<a href="<%= results.urlForPage(i) %>"><%= i %></a>
+			<%
+		}
+	}
+}
 %>
+
 <jsp:include page="../../template/UI-footer.jsp" />
