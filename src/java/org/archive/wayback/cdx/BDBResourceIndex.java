@@ -48,13 +48,28 @@ import com.sleepycat.je.OperationStatus;
  * @version $Date$, $Revision$
  */
 public class BDBResourceIndex {
+	/**
+	 * Maximum BDBJE file size
+	 */
 	private final static String JE_LOG_FILEMAX = "256000000";
+	/**
+	 * path to directory containing the BDBJE files
+	 */
 	private String path;
 
+	/**
+	 * name of BDBJE db within the path directory
+	 */
 	private String dbName;
 
+	/**
+	 * BDBJE Environment
+	 */
 	Environment env = null;
 
+	/**
+	 * BDBJE Database
+	 */
 	Database db = null;
 
 	/**
@@ -72,6 +87,11 @@ public class BDBResourceIndex {
 		initializeDB(thePath, theDbName);
 	}
 
+	/**
+	 * @param thePath Directory where BDBJE files are stored
+	 * @param theDbName Name of files in thePath
+	 * @throws DatabaseException
+	 */
 	protected void initializeDB(final String thePath, final String theDbName)
 			throws DatabaseException {
 		path = thePath;
@@ -107,6 +127,15 @@ public class BDBResourceIndex {
 		}
 	}
 
+	/**
+	 * @param url filter results which do not match this url
+	 * @param firstDate filter results before this date
+	 * @param lastDate filter results after this date
+	 * @param exactHost filter records not from this specific host
+	 * @param startRecord filter records before this (0 based)
+	 * @param maxRecords return at most this many records
+	 * @return SearchResults matching the filters
+	 */
 	// TODO add aditional "replay" search method which allows passing in of 
 	// an exact date, and use a "scrolling window" of the best results, to 
 	// allow for returning the N closest results to a particular date, within
@@ -120,8 +149,11 @@ public class BDBResourceIndex {
 		SearchResults results = new SearchResults();
 		DatabaseEntry key = new DatabaseEntry();
 		DatabaseEntry value = new DatabaseEntry();
-		int numRecords = 0;
+		int numScanned = 0;
 		int numSkipped = 0;
+		int numAdded = 0;
+		int numMatching = 0;
+		int maxScanRecords = 10000;
 
 		String searchStart = url + " " + firstDate;
 		key.setData(searchStart.getBytes());
@@ -131,6 +163,16 @@ public class BDBResourceIndex {
 			OperationStatus status = cursor.getSearchKeyRange(key, value,
 					LockMode.DEFAULT);
 			while (status == OperationStatus.SUCCESS) {
+
+				// safety catch -- keep us from grinding ourselves too badly
+				// on a single request...
+				numScanned++;
+				if (numScanned > maxScanRecords) {
+					//results.putFilter(WaybackConstants.RESULTS_HAS_MORE,
+					//		"true");
+					break;
+				}
+				
 				// String keyString = new String(key.getData());
 
 				String valueString = new String(value.getData());
@@ -144,13 +186,11 @@ public class BDBResourceIndex {
 					break;
 				}
 				if (parser.captureDate.compareTo(firstDate) >= 0) {
+					numMatching++;
 					if (numSkipped >= startRecord) {
-						results.addSearchResult(parser.toSearchResult());
-						numRecords++;
-						if (numRecords >= maxRecords) {
-							results.putFilter(WaybackConstants.RESULTS_HAS_MORE,
-									"true");
-							break;
+						if(numAdded < maxRecords) {
+							results.addSearchResult(parser.toSearchResult());
+							numAdded++;
 						}
 					} else {
 						numSkipped++;
@@ -158,6 +198,15 @@ public class BDBResourceIndex {
 				}
 				status = cursor.getNext(key, value, LockMode.DEFAULT);
 			}
+			results.putFilter(WaybackConstants.RESULTS_FIRST_RETURNED,
+					""+(startRecord + 1));
+			results.putFilter(WaybackConstants.RESULTS_NUM_RESULTS,
+					""+(numMatching + 1));
+			results.putFilter(WaybackConstants.RESULTS_NUM_RETURNED,
+					""+numAdded);
+			results.putFilter(WaybackConstants.RESULTS_REQUESTED,
+					""+maxRecords);
+			
 			cursor.close();
 		} catch (DatabaseException dbe) {
 			// TODO: let this bubble up as Index error
@@ -169,6 +218,15 @@ public class BDBResourceIndex {
 		return results;
 	}
 
+	/**
+	 * @param urlPrefix filter results which do not match this urlPrefix
+	 * @param firstDate filter results before this date
+	 * @param lastDate filter results after this date
+	 * @param exactHost filter records not from this specific host
+	 * @param startRecord filter records before this (0 based)
+	 * @param maxRecords return at most this many records
+	 * @return SearchResults matching the filters
+	 */
 	protected SearchResults doUrlPrefixSearch(final String urlPrefix,
 			final String firstDate, final String lastDate,
 			final String exactHost, final int startRecord,
@@ -177,8 +235,11 @@ public class BDBResourceIndex {
 		SearchResults results = new SearchResults();
 		DatabaseEntry key = new DatabaseEntry();
 		DatabaseEntry value = new DatabaseEntry();
-		int numRecords = 0;
+		int numScanned = 0;
 		int numSkipped = 0;
+		int numAdded = 0;
+		int numMatching = 0;
+		int maxScanRecords = 1000;
 
 		String searchStart = urlPrefix;
 		key.setData(searchStart.getBytes());
@@ -189,6 +250,15 @@ public class BDBResourceIndex {
 					LockMode.DEFAULT);
 			while (status == OperationStatus.SUCCESS) {
 
+				// safety catch -- keep us from grinding ourselves too badly
+				// on a single request...
+				numScanned++;
+				if (numScanned > maxScanRecords) {
+					//results.putFilter(WaybackConstants.RESULTS_HAS_MORE,
+					//		"true");
+					break;
+				}
+
 				String valueString = new String(value.getData());
 				CDXRecord parser = new CDXRecord();
 				parser.parseLine(valueString, 0);
@@ -198,14 +268,11 @@ public class BDBResourceIndex {
 				}
 				if ((parser.captureDate.compareTo(lastDate) <= 0)
 						&& (parser.captureDate.compareTo(firstDate) >= 0)) {
+					numMatching++;
 					if (numSkipped >= startRecord) {
-						results.addSearchResult(parser.toSearchResult());
-						numRecords++;
-						if (numRecords >= maxRecords) {
-							// TODO should this be here?...
-							results.putFilter(WaybackConstants.RESULTS_HAS_MORE,
-									"true");
-							break;
+						if(numAdded < maxRecords) {
+							results.addSearchResult(parser.toSearchResult());
+							numAdded++;
 						}
 					} else {
 						numSkipped++;
@@ -213,6 +280,15 @@ public class BDBResourceIndex {
 				}
 				status = cursor.getNext(key, value, LockMode.DEFAULT);
 			}
+			results.putFilter(WaybackConstants.RESULTS_FIRST_RETURNED,
+					""+(startRecord + 1));
+			results.putFilter(WaybackConstants.RESULTS_NUM_RESULTS,
+					""+(numMatching + 1));
+			results.putFilter(WaybackConstants.RESULTS_NUM_RETURNED,
+					""+numAdded);
+			results.putFilter(WaybackConstants.RESULTS_REQUESTED,
+					""+maxRecords);
+			
 			cursor.close();
 		} catch (DatabaseException dbe) {
 			// TODO: let this bubble up as Index error
