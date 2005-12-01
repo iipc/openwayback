@@ -53,9 +53,15 @@ import org.apache.commons.httpclient.URIException;
  * @version $Date$, $Revision$
  */
 public class ArcIndexer {
-	   private static final Logger LOGGER =
+	/**
+	 * Logger for this class
+	 */
+	private static final Logger LOGGER =
 	        Logger.getLogger(ArcIndexer.class.getName());
 
+	/**
+	 * HTTP Header for redirection URL
+	 */
 	private final static String LOCATION_HTTP_HEADER = "Location";
 
 	/**
@@ -102,6 +108,14 @@ public class ArcIndexer {
 		return results;
 	}
 
+	/** transform an ARCRecord into a SearchResult
+	 * @param rec
+	 * @param arc
+	 * @return SearchResult for this document
+	 * @throws NullPointerException
+	 * @throws IOException
+	 * @throws ParseException
+	 */
 	private SearchResult arcRecordToSearchResult(final ARCRecord rec,
 			File arc) throws NullPointerException, IOException, ParseException {
 		rec.close();
