@@ -24,9 +24,10 @@
  */
 package org.archive.wayback.query;
 
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
-
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadQueryException;
 
@@ -37,18 +38,30 @@ import org.archive.wayback.exception.BadQueryException;
  * @version $Date$, $Revision$
  */
 public class OpenSearchQueryParser {
-	private final static String SEARCH_QUERY = "q";
+	/**
+	 * CGI argument name for query arguments
+	 */
+	public final static String SEARCH_QUERY = "q";
 
-	private final static String SEARCH_RESULTS = "count";
+	/**
+	 * CGI argument name for number of results per page, 1 based
+	 */
+	public final static String SEARCH_RESULTS = "count";
 
-	private final static String START_PAGE = "start_page";
+	/**
+	 * CGI argument name for page number of results, 1 based
+	 */
+	public final static String START_PAGE = "start_page";
+
+	private final static int DEFAULT_MAX_RECORDS = 10;
+
 
 	// private final static String START_INDEX = "start_index";
 
 	private final static Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
 
 	// singles consume the next non-whitespace token following the term
-	private String[] singleTokens = { "url", "site", "mimetype", "noredirect" };
+	// private String[] singleTokens = { "url", "site", "mimetype", "noredirect" };
 
 	// lines consume the entire rest of the query
 	private String[] lineTokens = { "terms" };
@@ -60,7 +73,17 @@ public class OpenSearchQueryParser {
 		}
 		return arr[0];
 	}
-
+	/**
+	 * Extract user request from an OpenSearch query, transforming into a
+	 * WaybackRequest object. For the moment (as a sort of hack) this will
+	 * also attempt to extract request information from the "advanced search 
+	 * form", where individual filters are individual CGI arguments, instead of
+	 * being encoded together in the "q" argument.
+	 * 
+	 * @param queryMap
+	 * @return Wayback request representing user query, or null if not parseable
+	 * @throws BadQueryException
+	 */
 	public WaybackRequest parseQuery(Map queryMap) throws BadQueryException {
 		WaybackRequest wbRequest = new WaybackRequest();
 		String query = getMapParam(queryMap, SEARCH_QUERY);
@@ -69,15 +92,35 @@ public class OpenSearchQueryParser {
 		if (numResults != null) {
 			int nr = Integer.parseInt(numResults);
 			wbRequest.setResultsPerPage(nr);
+		} else {
+			wbRequest.setResultsPerPage(DEFAULT_MAX_RECORDS);
 		}
 		if (startPage != null) {
 			int sp = Integer.parseInt(startPage);
 			wbRequest.setPageNum(sp);
+		} else {
+			wbRequest.setPageNum(1);
 		}
 		if (query == null) {
-			throw new BadQueryException("No search query argument");
+			wbRequest = parseForm(wbRequest,queryMap);
+		} else {
+			parseTerms(wbRequest, query);
 		}
-		parseTerms(wbRequest, query);
+		return wbRequest;
+	}
+	
+	private WaybackRequest parseForm(WaybackRequest wbRequest, Map queryMap) {
+		Set keys = queryMap.keySet();
+		Iterator itr = keys.iterator();
+		while(itr.hasNext()) {
+			String key = (String) itr.next();
+			if(key.equals(SEARCH_RESULTS) || key.equals(START_PAGE)) {
+				continue;
+			}
+			// just jam everything else in:
+			String val = getMapParam(queryMap,key);
+			wbRequest.put(key,val);
+		}
 		return wbRequest;
 	}
 
