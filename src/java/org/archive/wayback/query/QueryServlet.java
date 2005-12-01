@@ -26,10 +26,7 @@ package org.archive.wayback.query;
 
 import java.io.IOException;
 import java.util.Enumeration;
-import java.util.Iterator;
-import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
@@ -63,6 +60,8 @@ public class QueryServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
 	private WaybackLogic wayback = new WaybackLogic();
+	
+	private OpenSearchQueryParser qp = new OpenSearchQueryParser();
 
 	/**
 	 * Constructor
@@ -84,37 +83,14 @@ public class QueryServlet extends HttpServlet {
 			p.put(key, sc.getInitParameter(key));
 		}
 
-		// TODO initialize renderer
+		// TODO initialize renderer?
 		try {
 			wayback.init(p);
 		} catch (Exception e) {
 			throw new ServletException(e.getMessage());
 		}
 	}
-	
-	private String getMapParam(Map queryMap, String field) {
-		String arr[] = (String[]) queryMap.get(field);
-		if (arr == null || arr.length == 0) {
-			return null;
-		}
-		return arr[0];
-	}
 
-	
-	public WaybackRequest parseCGIRequest(HttpServletRequest httpRequest)
-	throws BadQueryException {
-		WaybackRequest wbRequest = new WaybackRequest();
-		Map queryMap = httpRequest.getParameterMap();
-		Set keys = queryMap.keySet();
-		Iterator itr = keys.iterator();
-		while(itr.hasNext()) {
-			String key = (String) itr.next();
-			String val = getMapParam(queryMap,key);
-			wbRequest.put(key,val);
-		}
-		return wbRequest;
-	}
-	
 	public void doGet(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse) throws IOException,
 			ServletException {
@@ -129,7 +105,8 @@ public class QueryServlet extends HttpServlet {
 		try {
 
 			if (wbRequest == null) {
-				wbRequest = parseCGIRequest(httpRequest);
+				wbRequest = qp.parseQuery(httpRequest.getParameterMap());
+				//wbRequest = parseCGIRequest(httpRequest);
 			}
 
 			SearchResults results;
