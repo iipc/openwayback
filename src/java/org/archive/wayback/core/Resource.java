@@ -30,8 +30,10 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import org.apache.commons.httpclient.Header;
+import org.archive.io.arc.ARCReader;
 import org.archive.io.arc.ARCRecord;
 
 /**
@@ -44,23 +46,56 @@ import org.archive.io.arc.ARCRecord;
  * @version $Date$, $Revision$
  */
 public class Resource extends InputStream {
+	/**
+	 * Logger for this class
+	 */
+	private static final Logger LOGGER = Logger.getLogger(Resource.class
+			.getName());
 
+	/**
+	 * String prefix for ARC file related metadata namespace of keys within 
+	 * metaData Properties bag.
+	 */
 	private static String ARC_META_PREFIX = "arcmeta.";
+	/**
+	 * String prefix for HTTP Header related metadata namespace of keys within 
+	 * metaData Properties bag.
+	 */
 	private static String HTTP_HEADER_PREFIX = "httpheader.";
+	/**
+	 * object for ARCRecord
+	 */
 	ARCRecord arcRecord = null;
+	/**
+	 * object for ARCReader -- need to hold on to this in order to call close()
+	 * to release filehandle after completing access to this record.
+	 */
+	ARCReader arcReader = null;
+	/**
+	 * flag to indicate if the ARCRecord skipHTTPHeader() has been called
+	 */
 	boolean parsedHeader = false;
+	/**
+	 * Expandable property bag for holding metadata associated with this 
+	 * resource
+	 */
 	Properties metaData = new Properties();
 	
 	/**
 	 * Constructor
 	 * 
 	 * @param rec
+	 * @param reader 
 	 */
-	public Resource(final ARCRecord rec) {
+	public Resource(final ARCRecord rec,final ARCReader reader) {
 		super();
 		arcRecord = rec;
+		arcReader = reader;
 	}
 
+	/** parse the headers on the underlying ARC record, and extract all 
+	 * @throws IOException
+	 */
 	public void parseHeaders () throws IOException {
 		if(!parsedHeader) {
 			arcRecord.skipHttpHeader();
@@ -94,6 +129,11 @@ public class Resource extends InputStream {
 		}
 	}
 
+	/**
+	 * @param prefix
+	 * @return a Properties of all elements in metaData starting with 'prefix'.
+	 *         keys in the returned Properties have 'prefix' removed.
+	 */
 	public Properties filterMeta(String prefix) {
 		Properties matching = new Properties();
 		for (Enumeration e = metaData.keys(); e.hasMoreElements();) {
@@ -107,16 +147,24 @@ public class Resource extends InputStream {
 		return matching;
 	}
 	
+	/**
+	 * @return a Properties containing all HTTP header fields for this record
+	 */
 	public Properties getHttpHeaders() {
 		return filterMeta(HTTP_HEADER_PREFIX);
 	}
 
+	/**
+	 * @return a Properties containing all ARC Meta fields for this record
+	 */
 	public Properties getARCMetadata() {
 		return filterMeta(ARC_META_PREFIX);
 	}
 	
-	/* (non-Javadoc)
+	/**
+	 * (non-Javadoc)
 	 * @see org.archive.io.arc.ARCRecord#getStatusCode()
+	 * @return int HTTP status code returned with this document. 
 	 */
 	public int getStatusCode() {
 		return arcRecord.getStatusCode();
@@ -162,6 +210,16 @@ public class Resource extends InputStream {
 	 */
 	public long skip(long arg0) throws IOException {
 		return arcRecord.skip(arg0);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.archive.io.arc.ARCRecord#close()
+	 */
+	public void close() throws IOException {
+		//LOGGER.info("About to close..("+arcReader+")");
+		arcRecord.close();
+		arcReader.close();
+		LOGGER.info("closed..("+arcReader+")");
 	}
 
 }
