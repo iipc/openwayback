@@ -57,8 +57,7 @@ public class LocalARCResourceStore implements ResourceStore {
 	public void init(Properties p) throws ConfigurationException {
 		String configPath = (String) p.get(RESOURCE_PATH);
 		if ((configPath == null) || (configPath.length() < 1)) {
-			throw new ConfigurationException("Failed to find "
-					+ RESOURCE_PATH);
+			throw new ConfigurationException("Failed to find " + RESOURCE_PATH);
 		}
 		path = configPath;
 
@@ -78,35 +77,39 @@ public class LocalARCResourceStore implements ResourceStore {
 			throw new IOException("Cannot find ARC file ("
 					+ arcFile.getAbsolutePath() + ")");
 		} else {
-			
+
 			// TODO: does this "just work" with HTTP 1.1 ranges?
 			// seems like we'd have to know the length for that to work..
 			ARCReader reader = ARCReaderFactory.get(arcFile);
-			
-			Resource r = new Resource(reader.get(location.getOffset()));
+
+			Resource r = new Resource(reader.get(location.getOffset()), reader);
 			return r;
 		}
 	}
 
-    public ARCLocation resultToARCLocation(SearchResult result) {
-        final String daArcName = result.get(WaybackConstants.RESULT_ARC_FILE);
-        final long daOffset = Long.parseLong(result.get(
-        		WaybackConstants.RESULT_OFFSET));
-        
-        return new ARCLocation() {
-                private String filename = daArcName;
+	/**
+	 * @param result
+	 * @return ARCLocation (filename + offset) for searchResult
+	 */
+	protected ARCLocation resultToARCLocation(SearchResult result) {
+		final String daArcName = result.get(WaybackConstants.RESULT_ARC_FILE);
+		final long daOffset = Long.parseLong(result
+				.get(WaybackConstants.RESULT_OFFSET));
 
-                private long offset = daOffset;
+		return new ARCLocation() {
+			private String filename = daArcName;
 
-                public String getName() {
-                        return this.filename;
-                }
+			private long offset = daOffset;
 
-                public long getOffset() {
-                        return this.offset;
-                }
-        };
-}
+			public String getName() {
+				return this.filename;
+			}
+
+			public long getOffset() {
+				return this.offset;
+			}
+		};
+	}
 
 	/**
 	 * @param args
