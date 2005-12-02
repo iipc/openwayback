@@ -199,9 +199,9 @@ public class BDBResourceIndex {
 				status = cursor.getNext(key, value, LockMode.DEFAULT);
 			}
 			results.putFilter(WaybackConstants.RESULTS_FIRST_RETURNED,
-					""+(startRecord + 1));
+					""+startRecord);
 			results.putFilter(WaybackConstants.RESULTS_NUM_RESULTS,
-					""+(numMatching + 1));
+					""+numMatching);
 			results.putFilter(WaybackConstants.RESULTS_NUM_RETURNED,
 					""+numAdded);
 			results.putFilter(WaybackConstants.RESULTS_REQUESTED,
@@ -281,9 +281,9 @@ public class BDBResourceIndex {
 				status = cursor.getNext(key, value, LockMode.DEFAULT);
 			}
 			results.putFilter(WaybackConstants.RESULTS_FIRST_RETURNED,
-					""+(startRecord + 1));
+					""+startRecord);
 			results.putFilter(WaybackConstants.RESULTS_NUM_RESULTS,
-					""+(numMatching + 1));
+					""+numMatching);
 			results.putFilter(WaybackConstants.RESULTS_NUM_RETURNED,
 					""+numAdded);
 			results.putFilter(WaybackConstants.RESULTS_REQUESTED,
