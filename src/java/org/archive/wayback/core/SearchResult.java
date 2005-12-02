@@ -75,4 +75,11 @@ public class SearchResult {
 		return (String) data.put(key, value);
 	}
 
+	/**
+	 * @return Returns the data.
+	 */
+	public Properties getData() {
+		return data;
+	}
+
 }
