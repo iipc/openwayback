@@ -203,48 +203,4 @@
 		</description>
 	</context-param>
 
-
-	<!-- Proxy RawReplayUI Configuration -->
-<!--
-
-	<context-param>
-		<param-name>replayrenderer.classname</param-name>
-		<param-value>org.archive.wayback.proxy.RawReplayRenderer</param-value>
-		<description>Implementation responsible for drawing replayed resources and replay error messages</description>
-	</context-param>
-
-	<context-param>
-		<param-name>replayui.jsppath</param-name>
-		<param-value>jsp/ReplayUI</param-value>
-		<description>
-			RawReplayUI specific path to jsp pages. relative to webapp/
-		</description>
-	</context-param>
--->
-	<!-- Proxy URI Conversion Configuration -->
-<!--
-
-	<context-param>
-		<param-name>replayuriconverter.classname</param-name>
-		<param-value>org.archive.wayback.proxy.ResultURIConverter</param-value>
-		<description>Class that implements translation of index results to Replayable URIs for this Wayback</description>
-	</context-param>
--->
-	<!-- Proxy ReplayFilter Configuration -->
-<!--
-	<filter>
-		<filter-name>ReplayFilter</filter-name>
-		<filter-class>org.archive.wayback.proxy.ReplayFilter</filter-class>
-
-	    <init-param>
-	      <param-name>handler.url</param-name>
-	      <param-value>/replay</param-value>
-	    </init-param>
-	</filter>
-	<filter-mapping>
-    	<filter-name>ReplayFilter</filter-name>
-		<url-pattern>/*</url-pattern>
-	</filter-mapping>
--->
-
 </web-app>
