@@ -74,6 +74,11 @@ public class IndexPipeline implements PropertyConfigurable{
 	private final static int MAX_TO_MERGE = 10;
 
 	/**
+	 * Name of configuration for the name of this Wayback installation
+	 */
+	private final static String INSTALLATION_NAME = "installationname";
+	
+	/**
 	 * Name of configuration for flag to activate pipeline thread
 	 */
 	private final static String RUN_PIPELINE = "indexpipeline.runpipeline";
@@ -124,6 +129,11 @@ public class IndexPipeline implements PropertyConfigurable{
 	private final static String MERGED_DIR = "merged";
 	
 	
+	/**
+	 * Name of this Wayback installation
+	 */
+	private String installationName = "Unknown";
+
 	/**
 	 * File object of arc directory
 	 */
@@ -197,6 +207,12 @@ public class IndexPipeline implements PropertyConfigurable{
 	 */
 	public void init(Properties p) throws ConfigurationException {
 		
+		// what is the (optional) name of this installation?
+		String installationName = (String) p.get(INSTALLATION_NAME);
+		if (installationName != null && installationName.length() > 0) {
+			this.installationName = installationName;
+		}
+
 		// where do we find ARC files?
 		String arcPath = (String) p.get(ARC_PATH);
 		if (arcPath == null || (arcPath.length() <= 0)) {
@@ -451,10 +467,22 @@ public class IndexPipeline implements PropertyConfigurable{
 		PipelineStatus status = new PipelineStatus();
 		String index[] = toBeIndexedDir.list();
 		String merge[] = toBeMergedDir.list();
+		String queued[] = queuedDir.list();
 		String numQueuedForIndex = (index == null) ? "0" : "" + index.length;
 		String numQueuedForMerge = (merge == null) ? "0" : "" + merge.length;
+		String numIndexed = (queued == null) ? "0" : "" + (queued.length - 
+				(index.length + merge.length)); 
 		status.setNumQueuedForIndex(numQueuedForIndex);
 		status.setNumQueuedForMerge(numQueuedForMerge);
+		status.setNumIndexed(numIndexed);
+		
+		status.setArcPath(this.arcDir.getAbsolutePath());
+		status.setDatabasePath(db.getPath());
+		status.setDatabaseName(db.getDbName());
+//		status.setDbFileSize(db.getJE_LOG_FILEMAX());
+		status.setInstallationName(this.installationName);
+		status.setPipelineActive(indexUpdateThread != null);
+		status.setPipelineWorkPath(this.workDir.getAbsolutePath());
 		return status;
 	}
 	

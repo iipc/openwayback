@@ -32,6 +32,41 @@ package org.archive.wayback.cdx.indexer;
 public class PipelineStatus {
 
 	/**
+	 * name of this Wayback Installation
+	 */
+	private String installationName;
+
+	/**
+	 * directory that holds the local Database (BDBJE)
+	 */
+	private String databasePath;
+
+	/**
+	 * name of the local Database (BDBJE)
+	 */
+	private String databaseName;
+
+	/**
+	 * maximum size (in bytes) of BDBJE files
+	 */
+	private String dbFileSize;
+
+	/**
+	 * directory(local) where ARC files are located 
+	 */
+	private String arcPath;
+
+	/**
+	 * directory(local) where the index Pipeline stores state 
+	 */
+	private String pipelineWorkPath;
+
+	/**
+	 * boolean flag: is the pipeline thread configured to run? 
+	 */
+	private boolean pipelineActive;
+	
+	/**
 	 * number of ARCs waiting to be indexed
 	 */
 	private String numQueuedForIndex;
@@ -40,6 +75,11 @@ public class PipelineStatus {
 	 * number of serialized CDX files waiting to be merged into the index
 	 */
 	private String numQueuedForMerge;
+
+	/**
+	 * number of ARC files already added to the index
+	 */
+	private String numIndexed;
 
 	/**
 	 * Constructor
@@ -85,6 +125,118 @@ public class PipelineStatus {
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 
+	}
+
+	/**
+	 * @return Returns the arcPath.
+	 */
+	public String getArcPath() {
+		return arcPath;
+	}
+
+	/**
+	 * @param arcPath The arcPath to set.
+	 */
+	public void setArcPath(String arcPath) {
+		this.arcPath = arcPath;
+	}
+
+	/**
+	 * @return Returns the databaseName.
+	 */
+	public String getDatabaseName() {
+		return databaseName;
+	}
+
+	/**
+	 * @param databaseName The databaseName to set.
+	 */
+	public void setDatabaseName(String databaseName) {
+		this.databaseName = databaseName;
+	}
+
+	/**
+	 * @return Returns the databasePath.
+	 */
+	public String getDatabasePath() {
+		return databasePath;
+	}
+
+	/**
+	 * @param databasePath The databasePath to set.
+	 */
+	public void setDatabasePath(String databasePath) {
+		this.databasePath = databasePath;
+	}
+
+	/**
+	 * @return Returns the installationName.
+	 */
+	public String getInstallationName() {
+		return installationName;
+	}
+
+	/**
+	 * @param installationName The installationName to set.
+	 */
+	public void setInstallationName(String installationName) {
+		this.installationName = installationName;
+	}
+
+	/**
+	 * @return Returns the dbFileSize.
+	 */
+	public String getDbFileSize() {
+		return dbFileSize;
+	}
+
+	/**
+	 * @param dbFileSize The dbFileSize to set.
+	 */
+	public void setDbFileSize(String dbFileSize) {
+		this.dbFileSize = dbFileSize;
+	}
+
+	/**
+	 * @return Returns the pipelineActive.
+	 */
+	public boolean isPipelineActive() {
+		return pipelineActive;
+	}
+
+	/**
+	 * @param pipelineActive The pipelineActive to set.
+	 */
+	public void setPipelineActive(boolean pipelineActive) {
+		this.pipelineActive = pipelineActive;
+	}
+
+	/**
+	 * @return Returns the pipelineWorkPath.
+	 */
+	public String getPipelineWorkPath() {
+		return pipelineWorkPath;
+	}
+
+	/**
+	 * @param pipelineWorkPath The pipelineWorkPath to set.
+	 */
+	public void setPipelineWorkPath(String pipelineWorkPath) {
+		this.pipelineWorkPath = pipelineWorkPath;
+	}
+
+	/**
+	 * @return Returns the numIndexed.
+	 */
+	public String getNumIndexed() {
+		return numIndexed;
+	}
+
+	/**
+	 * @param numIndexed The numIndexed to set.
+	 */
+	public void setNumIndexed(String numIndexed) {
+		this.numIndexed = numIndexed;
 	}
 
 }
