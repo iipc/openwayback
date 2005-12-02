@@ -3,6 +3,21 @@
 	"http://java.sun.com/dtd/web-app_2_3.dtd">
 <web-app>
 
+	<!-- General Installation information
+	 -->
+
+	<context-param>
+		<param-name>installationname</param-name>
+		<param-value>Local Proxy Installation</param-value>
+		<description>
+			This text will appear on the Wayback Configuration and Status page
+			and may assist in determining which installation users are viewing
+			via their web browser in environments with multiple Wayback 
+			installations.
+		</description>
+	</context-param>
+
+
 	<!-- Local Arc Path Configuration: 
 			used by both indexpipeline and LocalARCResourceStore
 	 -->
