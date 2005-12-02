@@ -136,4 +136,10 @@ public class SearchResults {
 	public String putFilter(String key, String value) {
 		return (String) filters.put(key, value);
 	}
+	/**
+	 * @return Returns the filters.
+	 */
+	public Properties getFilters() {
+		return filters;
+	}
 }
