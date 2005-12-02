@@ -43,6 +43,7 @@ import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.WaybackLogic;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadQueryException;
+import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.exception.WaybackException;
 
 /**
@@ -84,11 +85,7 @@ public class QueryServlet extends HttpServlet {
 		}
 
 		// TODO initialize renderer?
-		try {
-			wayback.init(p);
-		} catch (Exception e) {
-			throw new ServletException(e.getMessage());
-		}
+		wayback.init(p);
 	}
 
 	public void doGet(HttpServletRequest httpRequest,
@@ -98,11 +95,18 @@ public class QueryServlet extends HttpServlet {
 		WaybackRequest wbRequest = (WaybackRequest) httpRequest
 				.getAttribute(WMREQUEST_ATTRIBUTE);
 
-		ResourceIndex idx = wayback.getResourceIndex();
-		QueryRenderer renderer = wayback.getQueryRenderer();
-		ReplayResultURIConverter uriConverter = wayback.getURIConverter();
+		QueryRenderer renderer;
+		try {
+			renderer = wayback.getQueryRenderer();
+		} catch (ConfigurationException e) {
+			e.printStackTrace();
+			throw new ServletException(e.getMessage());
+		}
 
 		try {
+
+			ResourceIndex idx = wayback.getResourceIndex();
+			ReplayResultURIConverter uriConverter = wayback.getURIConverter();
 
 			if (wbRequest == null) {
 				wbRequest = qp.parseQuery(httpRequest.getParameterMap());

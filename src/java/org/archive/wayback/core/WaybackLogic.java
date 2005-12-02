@@ -66,6 +66,8 @@ public class WaybackLogic implements PropertyConfigurable {
 
 	private ResourceStore resourceStore = null;
 
+	private Properties configuration = null;
+	
 	/**
 	 * Constructor
 	 */
@@ -75,34 +77,25 @@ public class WaybackLogic implements PropertyConfigurable {
 
 	/**
 	 * Initialize this WaybackLogic. Pass in the specific configurations via
-	 * Properties. Will construct and initialize implementations of
-	 * ResourceIndex, ResourceResults, QueryUI, and ReplayUI.
+	 * Properties. Will ferret away the configuration properties, to be
+	 * used later when constructing and initializing implementations of
+	 * ResourceIndex, ResourceStore, QueryUI, ReplayUI, and 
+	 * ReplayResultURIConverter.
 	 * 
-	 * @param p
+	 * @param configuration
 	 *            Generic properties bag for configurations
-	 * @throws ConfigurationException
 	 */
-	public void init(Properties p) throws ConfigurationException {
-		LOGGER.info("WaybackLogic constructing classes...");
-
-		uriConverter = (ReplayResultURIConverter) getInstance(p,
-				REPLAY_URI_CONVERTER_PROPERTY);
-
-		replayRenderer = (ReplayRenderer) getInstance(p,
-				REPLAY_RENDERER_PROPERTY);
-
-		queryRenderer = (QueryRenderer) getInstance(p, QUERY_RENDERER_PROPERTY);
-
-		resourceStore = (ResourceStore) getInstance(p, RESOURCE_STORE_PROPERTY);
-		resourceIndex = (ResourceIndex) getInstance(p, RESOURCE_INDEX_PROPERTY);
-
-		LOGGER.info("WaybackLogic initialized classes...");
-
+	public void init(Properties configuration) {
+		
+		this.configuration = configuration;
+		
 	}
 
 	protected PropertyConfigurable getInstance(final Properties p,
 			final String classPrefix) throws ConfigurationException {
 
+		LOGGER.info("WaybackLogic constructing " + classPrefix + "...");
+		
 		PropertyConfigurable result = null;
 
 		String classNameKey = classPrefix + ".classname";
@@ -149,37 +142,73 @@ public class WaybackLogic implements PropertyConfigurable {
 	}
 
 	/**
+	 *  possibly initializes and returns the resourceIndex
+	 * 
 	 * @return Returns the resourceIndex.
+	 * @throws ConfigurationException 
 	 */
-	public ResourceIndex getResourceIndex() {
+	public ResourceIndex getResourceIndex() throws ConfigurationException {
+		if(resourceIndex == null) {
+			resourceIndex = (ResourceIndex) getInstance(configuration,
+					RESOURCE_INDEX_PROPERTY);
+		}
 		return resourceIndex;
 	}
 
 	/**
+	 *  possibly initializes and returns the resourceStore
+	 * 
 	 * @return Returns the resourceStore.
+	 * @throws ConfigurationException 
 	 */
-	public ResourceStore getResourceStore() {
+	public ResourceStore getResourceStore() throws ConfigurationException {
+		if(resourceStore == null) {
+			resourceStore = (ResourceStore) getInstance(configuration,
+					RESOURCE_STORE_PROPERTY);
+		}
 		return resourceStore;
 	}
 
 	/**
+	 *  possibly initializes and returns the uriConverter
+	 *  
 	 * @return Returns the uriConverter.
+	 * @throws ConfigurationException 
 	 */
-	public ReplayResultURIConverter getURIConverter() {
+	public ReplayResultURIConverter getURIConverter()
+	throws ConfigurationException {
+		if(uriConverter == null) {
+			uriConverter = (ReplayResultURIConverter) getInstance(configuration,
+					REPLAY_URI_CONVERTER_PROPERTY);
+		}
 		return uriConverter;
 	}
 
 	/**
+	 *  possibly initializes and returns the replayRenderer
+	 * 
 	 * @return Returns the replayRenderer.
+	 * @throws ConfigurationException 
 	 */
-	public ReplayRenderer getReplayRenderer() {
+	public ReplayRenderer getReplayRenderer() throws ConfigurationException {
+		if(replayRenderer == null) {
+			replayRenderer = (ReplayRenderer) getInstance(configuration,
+					REPLAY_RENDERER_PROPERTY);
+		}
 		return replayRenderer;
 	}
 
 	/**
+	 *  possibly initializes and returns the queryRenderer
+	 * 
 	 * @return Returns the queryRenderer.
+	 * @throws ConfigurationException 
 	 */
-	public QueryRenderer getQueryRenderer() {
+	public QueryRenderer getQueryRenderer() throws ConfigurationException {
+		if(queryRenderer == null) {
+			queryRenderer = (QueryRenderer) getInstance(configuration,
+					QUERY_RENDERER_PROPERTY);
+		}
 		return queryRenderer;
 	}
 

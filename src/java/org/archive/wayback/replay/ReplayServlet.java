@@ -51,6 +51,7 @@ import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.core.WaybackLogic;
 import org.archive.wayback.exception.BadQueryException;
+import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.exception.WaybackException;
 
@@ -90,11 +91,7 @@ public class ReplayServlet extends HttpServlet {
 			p.put(key, sc.getInitParameter(key));
 		}
 
-		try {
-			wayback.init(p);
-		} catch (Exception e) {
-			throw new ServletException(e.getMessage());
-		}
+		wayback.init(p);
 	}
 
 	private String getMapParam(Map queryMap, String field) {
@@ -162,12 +159,18 @@ public class ReplayServlet extends HttpServlet {
 		WaybackRequest wbRequest = (WaybackRequest) httpRequest
 				.getAttribute(WMREQUEST_ATTRIBUTE);
 
-		ResourceIndex idx = wayback.getResourceIndex();
-		ResourceStore store = wayback.getResourceStore();
-		ReplayResultURIConverter uriConverter = wayback.getURIConverter();
-		ReplayRenderer renderer = wayback.getReplayRenderer();
+		ReplayRenderer renderer;
+		try {
+			renderer = wayback.getReplayRenderer();
+		} catch (ConfigurationException e1) {
+			e1.printStackTrace();
+			throw new ServletException(e1.getMessage());
+		}
 		Resource resource = null;
 		try {
+			ResourceIndex idx = wayback.getResourceIndex();
+			ResourceStore store = wayback.getResourceStore();
+			ReplayResultURIConverter uriConverter = wayback.getURIConverter();
 
 			if (wbRequest == null) {
 				wbRequest = parseCGIRequest(httpRequest);
