@@ -332,5 +332,18 @@ public class BDBResourceIndex {
 		}
 	}
 
+	/**
+	 * @return Returns the dbName.
+	 */
+	public String getDbName() {
+		return dbName;
+	}
+
+	/**
+	 * @return Returns the path.
+	 */
+	public String getPath() {
+		return path;
+	}
 
 }
