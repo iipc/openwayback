@@ -102,7 +102,7 @@ if(results.getNumPages() > 1) {
 	%>
 	<hr></hr>
 	<%
-	for(int i = 1; i < results.getNumPages(); i++) {
+	for(int i = 1; i <= results.getNumPages(); i++) {
 		if(i == curPage) {
 			%>
 			<b><%= i %></b>
