@@ -10,7 +10,8 @@
   <body>
     <section name="Introduction">
         <p><b>wayback</b> is an open source java implementation of the
-        The Internet Archive Wayback Machine.
+        <a href="http://www.archive.org/web/web.php">The Internet Archive
+        Wayback Machine</a>.
         </p>
         <p>
         The current production version of the Wayback Machine is implemented in
