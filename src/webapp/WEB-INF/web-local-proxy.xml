@@ -56,7 +56,7 @@
 		<param-value>/tmp/wayback/index</param-value>
 		<description>
 			LocalBDBResourceIndex specific directory to store the BDB files.
-			Directory must exists.
+			This directory must exist.
 		</description>
 	</context-param>
 
@@ -76,7 +76,8 @@
 		<param-name>indexpipeline.workpath</param-name>
 		<param-value>/tmp/wayback/pipeline</param-value>
 		<description>
-			LocalBDBResourceIndex specific directory to store flag files and temporary index data.
+			LocalBDBResourceIndex specific directory to store flag files and 
+			temporary index data. This directory must exist.
 		</description>
 	</context-param>
 
@@ -84,8 +85,9 @@
 		<param-name>indexpipeline.runpipeline</param-name>
 		<param-value>1</param-value>
 		<description>
-			if set to '1' then a background indexing thread will automatically update the BDB
-			index when new ARC files are noticed in the 'arcpath' directory.
+			if set to '1' then a background indexing thread will automatically 
+			update the BDB index when new ARC files are noticed in the 'arcpath'
+			directory.
 		</description>
 	</context-param>
 
