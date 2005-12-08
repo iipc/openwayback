@@ -291,12 +291,23 @@
                     wayback.war) the <b>web.xml</b> file will be deployed to 
 					<b>webapps/ROOT/WEB-INF/web.xml</b>. The Proxy mode web.xml
 					file will be at 
-					<b>webapps/ROOT/WEB-INF/web-local-proxy.xml</b>. First you 
-					must rename the web-local-proxy.xml to web.xml, then you 
-					must modify the web.xml with any installation-specific
-					configurations (described in the table above), and then
-					you must restart Tomcat. After that, the Wayback Machine 
-					will be prepared for serving data in Proxy mode.
+					<b>webapps/ROOT/WEB-INF/web-local-proxy.xml</b>. To run the 
+					Wayback Machine in Proxy mode, follow these steps:
+					<ol>
+						<li>
+							shutdown Tomcat
+						</li>
+						<li>
+							rename the web-local-proxy.xml to web.xml
+						</li>
+						<li>
+							modify the web.xml with any installation-specific
+							configurations (described in the table below)
+						</li>
+						<li>
+							start Tomcat
+						</li>
+					</ol>
 				</p>
 			</subsection>
 			<subsection name="General configuration">
@@ -496,7 +507,8 @@
 					you configured as the proxy server. For information on 
 					status, configurations and queries, please consult the 
 					documentation for Using the Wayback Machine in Archival URL 
-					mode.
+					mode. One common problem in Firefox Proxy configuration, you
+					do not include the "http://" in the proxy server name.
 				</p>
 			</subsection>
 		</section>
