@@ -12,6 +12,7 @@
     <menu name="Overview">
       <item name="License" href="/license.html"/>
       <item name="Downloads" href="downloads.html"/>
+      <item name="User Manual" href="user_manual.html"/>
       <item name="FAQ" href="/faq.html"/>
       <item name="Browse/Submit a Bug" 
         href="http://sourceforge.net/tracker/?group_id=118427&amp;atid=681137"/>
