@@ -76,7 +76,8 @@
 		<param-name>indexpipeline.workpath</param-name>
 		<param-value>/tmp/wayback/pipeline</param-value>
 		<description>
-			LocalBDBResourceIndex specific directory to store flag files and temporary index data.
+			LocalBDBResourceIndex specific directory to store flag files and 
+			temporary index data.
 		</description>
 	</context-param>
 
