@@ -104,13 +104,12 @@ public class UIQueryResults {
 		this.resultsPerPage = Integer.parseInt(results.getFilter(
 				WaybackConstants.RESULTS_REQUESTED));
 		this.firstResult = Integer.parseInt(results.getFilter(
-				WaybackConstants.RESULTS_FIRST_RETURNED));
-		this.lastResult = (firstResult + resultsReturned);
+				WaybackConstants.RESULTS_FIRST_RETURNED)) + 1;
+		this.lastResult = ((firstResult - 1) + resultsReturned);
 		
 		// calculate total pages:
-		numPages = Math.round((int) Math.ceil(resultsMatching/resultsPerPage)) 
-			+ 1;
-		curPage = Math.round((int) Math.floor(firstResult/resultsPerPage)) + 1;
+		numPages = Math.round((int) Math.ceil(resultsMatching/resultsPerPage));
+		curPage = Math.round((int) Math.floor((firstResult - 1)/resultsPerPage)) + 1;
 		
 		this.results = results;
 		this.uriConverter = uriConverter;
