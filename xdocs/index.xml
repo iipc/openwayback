@@ -48,6 +48,9 @@
         This browser configuration is not complex, but it means that content 
         cannot be accessed as a global URL.
         </p>
+        <p>See the <a huref="user_manual.html">User Manual</a> to learn more
+        about access modes.
+        </p>
         <p>
         The current Java version is intended to operate as a standalone webapp,
         maintaining an index on the machine hosting the webapp. This index

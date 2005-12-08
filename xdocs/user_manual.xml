@@ -32,12 +32,13 @@
 				<a href="http://crawltools.archive.org:8080/cruisecontrol/buildresults/HEAD-archive-access">
 					here
 				</a>
-				.
+			    .  Builds obtained here are not guaranteed stable.  Use
+                with caution.
 			</p>
 			<p>
 				Once you have downloaded the .tar.gz or .zip file from 
 				sourceforge, you will need to unpack the file to access the
-				webapp file, wayback.war.
+				webapp file, <b>wayback.war</b>.
 			</p>
 		</section>
 		<section name="Choosing which Replay mode to use">
@@ -219,8 +220,8 @@
 					If you need to run the Wayback Machine application in a
 					context path besides <b>wayback</b>, you will need to rename
 					the wayback.war file to <i>CONTEXT</i>.war before placing 
-					it in the <b>webapps/</b> directory. When Tomcat deploys the 
-					webapp, it will be accessible via <i>CONTEXT/</i>.
+					it in the <b>webapps/</b> directory. When Tomcat deploys
+                    the webapp, it will be accessible via <i>CONTEXT/</i>.
 				</p>
 			</subsection>
 			<subsection name="Proxy mode installation">
@@ -232,8 +233,9 @@
 					installed, you might want to move it out of the way before 
 					putting the ROOT.war (which was originally wayback.war) 
 					into place, but this is not required. If you do not move the
-					old ROOT/ (and possibly the <i>old</i> ROOT.war) out of the way, they
-					may be overwritten when Tomcat deploys the new ROOT webapp.
+					old ROOT/ (and possibly the <i>old</i> ROOT.war) out of the
+                    way, they may be overwritten when Tomcat deploys the new
+                    ROOT webapp.
 				</p>
 			</subsection>
 		</section>
@@ -285,8 +287,8 @@
 					mode.
 				</p>
 				<p>
-					Once Tomcat has deploy the ROOT.war (originally wayback.war)
-					the <b>web.xml</b> file will be deployed to 
+					Once Tomcat has deployed the ROOT.war (originally
+                    wayback.war) the <b>web.xml</b> file will be deployed to 
 					<b>webapps/ROOT/WEB-INF/web.xml</b>. The Proxy mode web.xml
 					file will be at 
 					<b>webapps/ROOT/WEB-INF/web-local-proxy.xml</b>. First you 
