@@ -3,7 +3,7 @@
 <document>
   <properties>
     <title>Home Page</title>
-    <author email="stack at archive dot org">St.Ack</author>
+    <author email="brad at archive dot org">Brad Tofel</author>
     <revision>$Id$</revision>
   </properties>
 
@@ -13,15 +13,57 @@
         The Internet Archive Wayback Machine.
         </p>
         <p>
-        The first revision is intended to operate as a standalone webapp. 
-        It currently supports Archival URL queries, similar to the current 
-        Wayback Machine, and hopefully soon will integrate fully with 
-        Heritrix to provide browsing of crawled data as it is crawled.
+        The current production version of the Wayback Machine is implemented in
+        perl, and lacks in maintainability and extensibility. Also, the code is
+        not open source. Primary motivation for the new version is to address 
+        these three issues, enabling public distribution of the application, and
+        easy experimentation with new features and access technologies.
         </p>
         <p>
-        This version includes some basic ARC file indexing, so it can be directed to
-        scan for and automatically index new content in the location that Heritrix 
-        is writing output ARC files.
+        The current Java version of the Wayback Machine supports two access, or
+        replay modes of operation: "Archival Url" mode and "Proxy" mode.
+        </p>
+        <p>
+        Archival URL mode provides a user experience very close to the current
+        production Wayback Machine. All query and replay access requests can be 
+        expressed as URLs. In Archival Url replay mode, HTML documents are 
+        delivered with additional Javascript embedded in the page. This 
+        Javascript alters the document within the browser, attempting to make 
+        links and embedded content refer back to the Wayback Machine by 
+        rewriting them as Archival URLs.
+        </p>
+        <p>
+        Proxy URL mode allows replaying of archived documents within a client
+        browser by configuring the browser to proxy all HTTP requests through
+        the Wayback Machine. This has the strong advantage that no Javascript 
+        page markup is required to coerce the client browser to request 
+        additional URLs and embedded content from the Wayback Machine -- content
+        just works as-is. One major disadvantage of this mode is that there is
+        no way to forward temporal information with each replay request. Because
+        of this limitation, only the most recently archived version of any 
+        resource is accessible thru the Wayback Machine in proxy Url mode. 
+        Another limitation of the Proxy URL mode is that it requires special
+        configuration of the client web browser to access the Wayback Service. 
+        This browser configuration is not complex, but it means that content 
+        cannot be accessed as a global URL.
+        </p>
+        <p>
+        The current Java version is intended to operate as a standalone webapp,
+        maintaining an index on the machine hosting the webapp. This index
+        contains records of the resources within a set of ARC files, which are
+        also assumed to be stored on the same machine hosting the webapp.
+        </p>
+        <p>
+        This software includes the capability to scan for ARC files in a 
+        specified location, and to automatically index and serve content in
+        newly discovered ARC files as they appear. Directing the Wayback 
+        Machine to look for ARC files in the directory where an instance of the
+        Heritrix web crawler is writing ARC output should provide the 
+        capability to browse content archived by Heritrix as it is crawled.
+        </p>
+        <p>
+        Future versions of this software may integrate more tightly with the 
+        Heritrix web crawler application.
         </p>
     </section>
   </body>
