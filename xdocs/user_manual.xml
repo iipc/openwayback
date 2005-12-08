@@ -1,0 +1,502 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<document>
+	<properties>
+		<author email="brad.AT.archive.DOT.org">Brad Tofel</author>
+		<title>User Manual</title>
+	</properties>
+	<meta name="keyword" content="wayback machine, heritrix, java"/>
+	<body>
+		<section name="Introduction">
+			<p>
+				The Wayback Machine is a pure Java application that allows
+				web browsers to access to content stored in a set of ARC files.
+			</p>
+			<p>
+				This manual provides basic information about downloading,
+				installing, configuring and using the Wayback Machine.
+			</p>
+		</section>
+		<section name="Downloading">
+			<p>
+				Stable point releases of this software are available on 
+				sourceforge.net. You can download the binary distribution of 
+				the Wayback Machine via 
+				<a href="http://sourceforge.net/project/showfiles.php?group_id=118427">
+					this page
+				</a>
+				.
+			</p>
+			<p>
+				You can find the latest version available from our continuous
+				build box
+				<a href="http://crawltools.archive.org:8080/cruisecontrol/buildresults/HEAD-archive-access">
+					here
+				</a>
+				.
+			</p>
+			<p>
+				Once you have downloaded the .tar.gz or .zip file from 
+				sourceforge, you will need to unpack the file to access the
+				webapp file, wayback.war.
+			</p>
+		</section>
+		<section name="Choosing which Replay mode to use">
+			<subsection name="Basic Wayback Machine functionality">
+				<p>
+					The Wayback Machine provides two types of web browser-based
+					access to the content in ARC files: Query access, and 
+					Replay access.
+				</p>
+				<p>
+					Query access allows users to locate	documents from a set
+					of ARC files matching a particular query. At present, the 
+					only criteria that can be specified in queries to filter
+					returned documents are URL based filters, and capture date.
+					It is expected that in future releases of the Wayback 
+					Machine, users will be able to locate documents via full 
+					text search.
+				</p>
+				<p>
+					Replay access allows users to view documents captured in ARC
+					files within their web browser. There are two Replay modes 
+					currently available with the Wayback Machine: Archival URL, 
+					and Proxy.
+				</p>
+				<p>
+					Before installing the Wayback Machine application, you will
+					need to	choose which Replay mode you want to use. The two
+					replay modes are described below.
+				</p>
+			</subsection>
+			<subsection name="Archival URL Replay mode">
+				<p>
+					Archival URL Replay mode uses a modified URL to designate
+					documents stored in ARC files. The general form of an 
+					Archival URL is:
+					<p>
+						<code>
+							http://HOSTNAME:PORT/CONTEXT/TIMESTAMP/URL
+						</code>
+					</p>
+					where
+					<ul>
+						<li>
+							HOSTNAME is the host where the Wayback Machine is
+							running.
+						</li>
+						<li>
+							PORT is the port where Tomcat is listening for 
+							incoming HTTP requests.
+						</li>
+						<li>
+							CONTEXT is the context where the Wayback Machine
+							webapp has been deployed.
+						</li>
+						<li>
+							TIMESTAMP is 0 to 14 digits of a date, possibly
+							followed by an asterisk ('*'). The format of a 
+							TIMESTAMP is:
+							<p>
+								<code>
+									YYYYMMDDHHmmss
+								</code>
+							</p>
+							where
+							<ul>
+								<li>
+									YYYY represents a 4-digit year
+								</li>
+								<li>
+									MM represents a 2-digit, 1-based month 
+									(Jan = 1 - Dec = 12)
+								</li>
+								<li>
+									DD represents a 2-digit day of the month
+									(01-31)
+								</li>
+								<li>
+									HH represents a 2-digit hour (01-24)
+								</li>
+								<li>
+									mm represents a 2-digit minute (00-59)
+								</li>
+								<li>
+									ss represents a 2-digit second (00-59)
+								</li>
+							</ul>
+							The following are example dates expressed as 
+							14-digit Timestamps:
+							<p>
+								Jan 13, 1999 03:34:35 (am GMT) - 19990113033435
+							</p>
+							<p>
+								Dec 31, 2004 23:01:00 (pm GMT) - 20041231230100
+							</p>
+						</li>
+						<li>
+							URL represents the actual URL that should be 
+							replayed.
+						</li>
+					</ul>
+					<p>
+						Here is an example Archival URL (on an assumed host 
+						wayback-ng.archive.org) for	www.yahoo.com on Dec 31, 
+						1999 at 12:00:00
+						<p>
+							<code>
+								http://wayback-ng.archive.org/19991231120000/http://www.yahoo.com/
+							</code>
+						</p>
+					</p>
+					<p>
+						Archival URL mode allows replay of all versions captured
+						of a particul URL, by modifying the Timestamp. When an
+						Archival URL Replay request is recieved for a URL, the
+						Wayback Machine will replay the closest version in time
+						to the Timestamp requested of the particular URL.
+					</p>
+					<p>
+						HTML documents returned in Archival URL Replay mode are 
+						modified from the original version to provide a replay 
+						experience more consistant to viewing the original
+						content. This is accomplished by the insertion of 
+						Javascript, which executes in the client browser after 
+						the page has loaded. This Javascript modifies most URLs
+						within the HTML page, both Anchors (links) as well as
+						embedded content (images, applets, etc) so that they 
+						become appropriate requests back to the Wayback Machine.
+					</p>
+					<p>
+						This Javascript is imperfect: sometimes requests 
+						"leak" to the live web temporarily, before the 
+						Javascript has executed. Also, not all URLs are 
+						rewritten correctly, especially URLs that are created 
+						by Javascript that was in the original page.
+					</p>
+				</p>
+			</subsection>
+			<subsection name="Proxy Replay mode">
+				<p>
+					Proxy Replay mode works by configuring a client browser to
+					proxy all HTTP requests through the Wayback Machine 
+					application. Instead of retrieving documents from the live
+					web, the Wayback Machine will retrieve documents from the
+					local repository of ARC files.
+				</p>
+				<p>
+					Proxy Replay mode does not suffer from the shortcomings of
+					the inserted Javascript that the Archival URL mode uses,
+					but it has one major drawback: there is presently no way to
+					specify which exact	version of a captured document should 
+					be replayed. Only the URL to be replayed is sent from the 
+					client browser to the Wayback Machine - no date information
+					is sent with the request.
+				</p>
+				<p>
+					In Proxy Replay mode, the Wayback Machine will <i>always
+					return the most recent</i> version captured of any 
+					requested page.
+				</p>
+			</subsection>
+		</section>
+		<section name="Installing">
+			<p>
+				This software requires a servlet container. Presently it has
+				only been tested to run using Apache Tomcat 5.5, which can be
+				<a href="http://tomcat.apache.org/download-55.cgi">
+					downloaded here
+				</a>
+				.
+			</p>
+			<subsection name="Archival URL mode installation">
+				<p>
+					By default, the wayback.war file is configured to operate
+					in Archival URL mode. It can be installed by simply placing
+					the wayback.war file into Tomcat's <b>webapps/</b> 
+					directory.
+				</p>
+				<p>
+					If you need to run the Wayback Machine application in a
+					context path besides <b>wayback</b>, you will need to rename
+					the wayback.war file to <i>CONTEXT</i>.war before placing 
+					it in the <b>webapps/</b> directory. When Tomcat deploys the 
+					webapp, it will be accessible via <i>CONTEXT/</i>.
+				</p>
+			</subsection>
+			<subsection name="Proxy mode installation">
+				<p>
+					Running the Wayback Machine in proxy mode requires the
+					webapp to run as the ROOT context, so you will need to 
+					rename wayback.war to ROOT.war before placing it in the
+					<b>webapps/</b> directory. If you have another ROOT webapp
+					installed, you might want to move it out of the way before 
+					putting the ROOT.war (which was originally wayback.war) 
+					into place, but this is not required. If you do not move the
+					old ROOT/ (and possibly the <i>old</i> ROOT.war) out of the way, they
+					may be overwritten when Tomcat deploys the new ROOT webapp.
+				</p>
+			</subsection>
+		</section>
+		<section name="Configuring">
+			<subsection name="Archival URL mode specific configuration">
+				<p>
+					The following table describes additional Archival URL mode
+					configurations that must be made in the web.xml file.
+				</p>
+				<table>
+					<tr>
+						<td>
+							Option
+						</td>
+						<td>
+							Default value
+						</td>
+						<td>
+							Description
+						</td>
+					</tr>
+					<tr>
+						<td>
+							replayuriprefix
+						</td>
+						<td>
+							http://localhost:8080/wayback
+						</td>
+						<td>
+							This should be set to the HTTP prefix to the wayback
+							webapp context. You should set the hostname to the
+							name of the machine where the Wayback Machine 
+							software is runnning, the port to the port that 
+							Tomcat is listening on, and 'wayback' should be the
+							name of the context that the Wayback Machine webapp
+							is deployed to (wayback.war => 'wayback' context,
+							foo.war => 'foo' context).
+						</td>
+					</tr>
+				</table>
+				
+			</subsection>
+			<subsection name="Proxy mode specific configuration">
+				<p>
+					By default, wayback.war contains a web.xml configured to run
+					in Archival URL mode. To run in Proxy mode, you must first
+					let Tomcat "deploy" the ROOT.war file, then you must 
+					overwrite the default web.xml with one configured for Proxy
+					mode.
+				</p>
+				<p>
+					Once Tomcat has deploy the ROOT.war (originally wayback.war)
+					the <b>web.xml</b> file will be deployed to 
+					<b>webapps/ROOT/WEB-INF/web.xml</b>. The Proxy mode web.xml
+					file will be at 
+					<b>webapps/ROOT/WEB-INF/web-local-proxy.xml</b>. First you 
+					must rename the web-local-proxy.xml to web.xml, then you 
+					must modify the web.xml with any installation-specific
+					configurations (described in the table above), and then
+					you must restart Tomcat. After that, the Wayback Machine 
+					will be prepared for serving data in Proxy mode.
+				</p>
+			</subsection>
+			<subsection name="General configuration">
+				<p>
+					Regardless of which Replay mode you choose to use with the 
+					Wayback Machine, there are several common configurations 
+					that will be required in the final web.xml. These 
+					configurations declare where on the servers filesystem
+					ARC files are located, where the index should be stored, 
+					and where the Indexer can store status and temporary files.
+				</p>
+				<p>
+					This following table describes the configuration options 
+					available in both replay modes. After making any changes to
+					the web.xml file, you must restart Tomcat.
+				</p>
+				<table>
+					<tr>
+						<td>
+							Option
+						</td>
+						<td>
+							Default value
+						</td>
+						<td>
+							Description
+						</td>
+					</tr>
+					<tr>
+						<td>
+							installationname
+						</td>
+						<td>
+							Local Archival URL Installation
+						</td>
+						<td>
+							This text will appear on the Wayback Configuration 
+							and Status page and may assist in determining which
+							installation users are viewing via their web browser
+							in environments with multiple Wayback installations.
+						</td>
+					</tr>
+					<tr>
+						<td>
+							arcpath
+						</td>
+						<td>
+							/tmp/wayback/arcs
+						</td>
+						<td>
+							Directory where ARC files are found (possibly where 
+							Heritrix writes them.) This directory must exist.
+						</td>
+					</tr>
+					<tr>
+						<td>
+							resourceindex.indexpath
+						</td>
+						<td>
+							/tmp/wayback/index
+						</td>
+						<td>
+							LocalBDBResourceIndex specific directory to store
+							the BDB files. This directory must exist.
+						</td>
+					</tr>
+					<tr>
+						<td>
+							resourceindex.dbname
+						</td>
+						<td>
+							DB1
+						</td>
+						<td>
+							LocalBDBResourceIndex specific name for BDB database
+						</td>
+					</tr>
+					<tr>
+						<td>
+							indexpipeline.workpath
+						</td>
+						<td>
+							/tmp/wayback/pipeline
+						</td>
+						<td>
+							LocalBDBResourceIndex specific directory to store 
+							flag files and temporary index data.
+						</td>
+					</tr>
+					<tr>
+						<td>
+							indexpipeline.runpipeline
+						</td>
+						<td>
+							1
+						</td>
+						<td>
+							if set to '1' then a background indexing thread will
+							automatically update the BDB index when new ARC 
+							files are noticed in the 'arcpath' directory.
+						</td>
+					</tr>
+				</table>
+			</subsection>
+		</section>
+		<section name="Using">
+			<subsection name="Archival URL mode usage">
+				<p>
+					Once you have customized the web.xml file and restarted
+					Tomcat, the Wayback Machine installation will be ready
+					for use. If there are already ARC files in the 'arcpath' 
+					directory, the Wayback Machine indexing pipeline will
+					begin indexing them and incorporating them into the index
+					automatically, but it may take some time for it to index
+					all the ARC files, and be ready for browsing.
+				</p>
+				<p>
+					In any case, you can immediately visit the context path
+					where you deployed the Wayback Machine webapp, at:
+					<b>http://HOSTNAME:PORT/CONTEXT</b>, ex: 
+					<i>http://yourhost.yourdomain.org:8080/wayback</i>.
+					On this front page, you will find a link to the current 
+					configuration and status page, which will also show you
+					the status of the indexing pipeline.
+				</p>
+				<p>
+					This status page includes 3 fields which indicate the status
+					of the pipeline:
+				</p>
+				<table>
+					<tr>
+						<td>
+							Field
+						</td>
+						<td>
+							Meaning
+						</td>
+					</tr>
+					<tr>
+						<td>
+							ARCs Queued For Index
+						</td>
+						<td>
+							This number indicates how many new ARC files have 
+							been noticed and are waiting to be processed to
+							extract information for all documents contained in
+							each ARC file.
+						</td>
+					</tr>
+					<tr>
+						<td>
+							ARCs Queued For Merge
+						</td>
+						<td>
+							This number indicates how many ARC files document 
+							information has been extracted, but is not yet 
+							added to the index.
+						</td>
+					</tr>
+					<tr>
+						<td>
+							ARCs Merged
+						</td>
+						<td>
+							This number indicates how many ARC files document 
+							information has been added to the index.
+							These documents are ready to be searched for and 
+							served by the Wayback Machine.
+						</td>
+					</tr>
+					
+				</table>
+				<p>
+					You can search for pages in the index by typing the URL in
+					the box 'Enter Web Address' and clicking "Take Me Back". To
+					search for all pages within a website or website 
+					sub-directory, or to search for pages between particular 
+					dates, click the "Adv. Search" link.
+				</p>
+			</subsection>
+			<subsection name="Proxy mode usage">
+				<p>
+					Before accessing the Wayback Machine using Proxy mode, you
+					must configure the web browser that will access the service
+					to proxy all HTTP requests thru the webapp, using the proxy 
+					URL which is the context path where you deployed the Wayback
+					Machine webapp, at:	<b>http://HOSTNAME:PORT/</b>, ex: 
+					<i>http://yourhost.yourdomain.org:8080/</i>. For help on
+					how to configure your browser to proxy HTTP requests through
+					a proxy server, please consult the documentation for your
+					web browser.
+				</p>
+				<p>
+					You can access the Wayback Machine query UI, which allows
+					you to view the status of the server and query the index
+					for documents, by pointing the browser at the same URL that 
+					you configured as the proxy server. For information on 
+					status, configurations and queries, please consult the 
+					documentation for Using the Wayback Machine in Archival URL 
+					mode.
+				</p>
+			</subsection>
+		</section>
+	</body>
+</document>
