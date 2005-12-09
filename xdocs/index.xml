@@ -8,6 +8,14 @@
   </properties>
 
   <body>
+    <section name="News">
+        <subsection name="First Release - 0.2.0, 12/09/2005">
+            <p>First public release of the open source wayback.
+            See below in the <a href="Introduction">Introduction</a>
+            section for a listing of initial features.
+            </p>
+        </subsection>
+    </section>
     <section name="Introduction">
         <p><b>wayback</b> is an open source java implementation of the
         <a href="http://www.archive.org/web/web.php">The Internet Archive
