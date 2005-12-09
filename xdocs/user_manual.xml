@@ -236,6 +236,30 @@
 					old ROOT/ (and possibly the <i>old</i> ROOT.war) out of the
                     way, they may be overwritten when Tomcat deploys the new
                     ROOT webapp.
+                    <ol>
+						<li>
+							shutdown Tomcat
+						</li>
+						<li>
+							<i>(optionally)</i> move old ROOT/ and/or ROOT.war elsewhere.
+						</li>
+						<li>
+							rename the wayback.war to ROOT.war in the webapps 
+							directory (where TOMCAT_HOME is the path where you 
+							installed Tomcat):
+							<p>
+								<code>
+									mv wayback.war TOMCAT_HOME/webapps/ROOT.war
+								</code>
+							</p>
+						</li>
+						<li>
+							start Tomcat. You will shutdown Tomcat again in
+							a moment to configure the web.xml file, but for 
+							now, we need Tomcat to unpack the .war file, 
+							which requires a startup.
+						</li>
+					</ol>
 				</p>
 			</subsection>
 		</section>
@@ -298,11 +322,18 @@
 							shutdown Tomcat
 						</li>
 						<li>
-							rename the web-local-proxy.xml to web.xml
+							rename the web-local-proxy.xml to web.xml (where 
+							TOMCAT_HOME is the path where you installed Tomcat):
+							<p>
+								<code>
+									mv TOMCAT_HOME/webapps/ROOT/WEB-INF/web-local-proxy.xml TOMCAT_HOME/webapps/ROOT/WEB-INF/web.xml
+								</code>
+							</p>
 						</li>
 						<li>
-							modify the web.xml with any installation-specific
-							configurations (described in the table below)
+							modify the <b>TOMCAT_HOME/ROOT/WEB-INF/web.xml</b>
+							with any installation-specific configurations 
+							(described in the table below)
 						</li>
 						<li>
 							start Tomcat
