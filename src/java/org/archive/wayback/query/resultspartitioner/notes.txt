@@ -1,0 +1,23 @@
+Notes on the "calendar" display:
+
+We want to break all the resulting dates into columns, where each column contains
+a all results between a range of dates.
+
+We always want to show between 3 and 10 columns, where each column has the 
+smallest date range possible given the following column range constraints:
+
+1 Year  XXXX---------- 31536000
+2 Month XXXXXX-------- 5184000
+1 Month XXXXXX-------- 2592000
+2 Week  XXXXXXXX------ 1209600
+1 Week  XXXXXXXX------ 604800
+1 Day   XXXXXXXX------ 86400
+2 Hour  XXXXXXXXXX---- 7200
+1 Hour  XXXXXXXXXX---- 3600
+
+Each column must start on an interval of that type: Each 1 Day column must begin
+at 00:00:00 am and go up to 23:59:59 pm.
+
+intercalwith the time range for
+each column the smallest possible
+
