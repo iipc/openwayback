@@ -26,6 +26,9 @@ package org.archive.wayback.cdx;
 
 import java.text.ParseException;
 
+import org.apache.commons.httpclient.URIException;
+import org.archive.net.UURI;
+import org.archive.net.UURIFactory;
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.SearchResult;
 /**
@@ -93,6 +96,34 @@ public class CDXRecord {
 		super();
 	}
 
+	/**
+	 * return the canonical string key for the URL argument.
+	 * 
+	 * @param urlString
+	 * @return String lookup key for URL argument.
+	 * @throws URIException 
+	 */
+	public static String urlStringToKey(final String urlString) throws URIException {
+
+		String searchUrl = urlString;
+		if (searchUrl.startsWith("http://")) {
+            if (-1 == searchUrl.indexOf('/', 8)) {
+            	searchUrl = searchUrl + "/";
+            }
+	    } else {
+	            if (-1 == searchUrl.indexOf("/")) {
+	            	searchUrl = searchUrl + "/";
+	            }
+	            searchUrl = "http://" + searchUrl;
+	    }
+
+		
+		UURI searchURI = UURIFactory.getInstance(searchUrl);
+		String searchHost = searchURI.getHostBasename();
+		String searchPath = searchURI.getEscapedPathQuery();
+
+		return searchHost + searchPath;
+	}
 	
 	/**
 	 * Attempt to deserialize state from a single text line, fields delimited by
