@@ -23,11 +23,19 @@
 
 package org.archive.wayback.core;
 
-import java.text.ParseException;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.SimpleTimeZone;
+import java.util.TimeZone;
 
-import org.archive.util.ArchiveUtils;
 
+/**
+ *
+ *
+ * @author brad
+ * @version $Date$, $Revision$
+ */
 /**
  * Represents a moment in time as a 14-digit string, and interally as a Date.
  * 
@@ -35,20 +43,27 @@ import org.archive.util.ArchiveUtils;
  * @version $Date$, $Revision$
  */
 public class Timestamp {
-	private final static String FIRST1_TIMESTAMP = "19960101000000";
 
-	private final static String FIRST2_TIMESTAMP = "20000101000000";
-
-	private final static String LAST1_TIMESTAMP = "19991231235959";
-
-	// private final static String LAST2_TIMESTAMP = "20311231235959";
-	private final static String LAST2_TIMESTAMP = "29991231235959";
+	private final static String LOWER_TIMESTAMP_LIMIT = "10000000000000";
+	private final static String UPPER_TIMESTAMP_LIMIT = "29991939295959";
+	private final static String YEAR_LOWER_LIMIT      = "1996";
+	private final static String YEAR_UPPER_LIMIT      = "2006";
+	private final static String MONTH_LOWER_LIMIT     = "01";
+	private final static String MONTH_UPPER_LIMIT     = "12";
+	private final static String DAY_LOWER_LIMIT       = "01";
+	private final static String HOUR_UPPER_LIMIT      = "23";
+	private final static String HOUR_LOWER_LIMIT      = "00";
+	private final static String MINUTE_UPPER_LIMIT    = "59";
+	private final static String MINUTE_LOWER_LIMIT    = "00";
+	private final static String SECOND_UPPER_LIMIT    = "59";
+	private final static String SECOND_LOWER_LIMIT    = "00";
+	
+	private final static int SSE_1996                 = 820454400;
 
 	private final static String[] months = { "Jan", "Feb", "Mar", "Apr", "May",
 			"Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
 	private String dateStr = null;
-
 	private Date date = null;
 
 	/**
@@ -57,125 +72,69 @@ public class Timestamp {
 	public Timestamp() {
 		super();
 	}
-
+	
 	/**
+	 * Construct and initialize structure from a 14-digit String timestamp. If
+	 * the argument is too short, or specifies an invalid timestamp, cleanup
+	 * will be attempted to create the earliest legal timestamp given the input.
 	 * @param dateStr
-	 * @return Timestamp object representing the earliest date represented by
-	 *         the (possibly) partial digit-string argument.
-	 * @throws ParseException
 	 */
-	public static Timestamp parseBefore(final String dateStr)
-			throws ParseException {
-		Timestamp ts = new Timestamp();
-		ts.setDateStr(padStartTimestamp(dateStr));
-		return ts;
+	public Timestamp(final String dateStr) {
+		super();
+
+		Calendar cal = dateStrToCalendar(dateStr);
+		setDate(cal.getTime());
 	}
 
 	/**
-	 * @param dateStr
-	 * @return Timestamp object representing the latest date represented by the
-	 *         (possibly) partial digit-string argument.
-	 * @throws ParseException
-	 */
-	public static Timestamp parseAfter(final String dateStr)
-			throws ParseException {
-		Timestamp ts = new Timestamp();
-		ts.setDateStr(padEndTimestamp(dateStr));
-		return ts;
-	}
-
-	/**
-	 * @return Timestamp object representing the current date.
-	 * @throws ParseException
-	 */
-	public static Timestamp currentTimestamp() throws ParseException {
-		Timestamp ts = new Timestamp();
-		ts.date = new Date();
-		ts.dateStr = ArchiveUtils.get14DigitDate(ts.date);
-		return ts;
-	}
-
-
-	/**
-	 * @return Timestamp object representing the earliest possible date.
-	 * @throws ParseException
-	 */
-	public static Timestamp earliestTimestamp() throws ParseException {
-		Timestamp ts = new Timestamp();
-		ts.setDateStr(FIRST1_TIMESTAMP);
-		return ts;
-	}
-
-	/**
-	 * @return Timestamp object representing the latest possible date.
-	 * @throws ParseException
-	 */
-	public static Timestamp latestTimestamp() throws ParseException {
-		return currentTimestamp();
-//		Timestamp ts = new Timestamp();
-//		ts.setDateStr(LAST2_TIMESTAMP);
-//		return ts;
-	}
-
-	/**
+	 * Construct and initialize structure from an integer number of seconds
+	 * since the epoch.
 	 * @param sse
-	 * @return Timestamp object representing the seconds since epoch argument.
-	 * @throws ParseException
 	 */
-	public static Timestamp fromSse(final int sse) throws ParseException {
-		String dateStr = ArchiveUtils.get14DigitDate(sse * 1000);
-		Timestamp ts = new Timestamp();
-		ts.setDateStr(dateStr);
-		return ts;
+	public Timestamp(final int sse) {
+		super();
+		setSse(sse);
 	}
 
-	/** ensure a 14-digit timestamp given a possibly partial timestamp, filling
-	 * in missing digits with earliest possible values
-	 * @param input
-	 * @return 14-digit string timestamp
+	/**
+	 * Construct and initialize structure from an Date
+	 * @param date
 	 */
-	private static String padStartTimestamp(final String input) {
-		String first = FIRST1_TIMESTAMP;
-		if (input.length() == 0) {
-			return FIRST1_TIMESTAMP;
-		}
-		if (input.length() < 4) {
-			if (input.charAt(0) == '2') {
-				first = FIRST2_TIMESTAMP;
-			}
-		}
-		return padTimestamp(input, first);
+	public Timestamp(final Date date) {
+		super();
+		setDate(date);
 	}
 
-	/** ensure a 14-digit timestamp given a possibly partial timestamp, filling
-	 * in missing digits with latest possible values
-	 * @param input 
-	 * @return 14-digit string timetamp
+	/**
+	 * set internal structure using Date argument
+	 * @param date
 	 */
-	private static String padEndTimestamp(final String input) {
-		String last = LAST1_TIMESTAMP;
-		if (input.length() == 0) {
-			return ArchiveUtils.get14DigitDate(new Date());
-		}
-		if (input.length() < 4) {
-			if (input.charAt(0) == '2') {
-				last = LAST2_TIMESTAMP;
-			}
-		}
-		return padTimestamp(input, last);
+	public void setDate(final Date date) {
+		this.date = (Date) date.clone();
+		Calendar cal = getCalendar();
+		cal.setTime(this.date);
+		dateStr = calendarToDateStr(cal);		
 	}
-
-	/** ensure a 14-digit timestamp given a possibly partial timestamp, filling
-	 * in missing digits with digits from 'output'
-	 * @param input
-	 * @param output
-	 * @return 14-digit string timestamp
+	
+	
+	/**
+	 * set internal structure using seconds since the epoch integer argument
+	 * @param sse
 	 */
-	private static String padTimestamp(final String input, final String output) {
-		if (input.length() > output.length()) {
-			return input;
-		}
-		return input + output.substring(input.length());
+	public void setSse(final int sse) {
+		setDate(new Date(sse * 1000));
+	}
+	
+	/**
+	 * initialize interal data structures for this Timestamp from the 14-digit
+	 * argument. Will clean up timestamp as needed to yield the ealiest
+	 * possible timestamp given the possible partial or wrong argument.
+	 * 
+	 * @param dateStr
+	 */
+	public void setDateStr(String dateStr) {
+		Calendar cal = dateStrToCalendar(dateStr);
+		setDate(cal.getTime());
 	}
 
 	/**
@@ -187,18 +146,6 @@ public class Timestamp {
 	}
 
 	/**
-	 * initialize interal data structures for this Timestamp from the 14-digit
-	 * argument.
-	 * 
-	 * @param dateStr
-	 * @throws ParseException
-	 */
-	public void setDateStr(String dateStr) throws ParseException {
-		date = ArchiveUtils.parse14DigitDate(dateStr);
-		this.dateStr = dateStr;
-	}
-
-	/**
 	 * @return the integer number of seconds since epoch represented by this
 	 *         Timestamp.
 	 */
@@ -207,36 +154,29 @@ public class Timestamp {
 	}
 
 	/**
-	 * function that calculates integer milliseconds between this records
+	 * function that calculates integer seconds between this records
 	 * timeStamp and the arguments timeStamp. result is the absolute number of
-	 * milliseconds difference.
+	 * seconds difference.
 	 * 
 	 * @param otherTimeStamp
-	 * @return int absolute milliseconds between the argument and this records
+	 * @return int absolute seconds between the argument and this records
 	 *         timestamp.
-	 * @throws ParseException
 	 */
-	public long absDistanceFromTimestamp(final Timestamp otherTimeStamp)
-			throws ParseException {
+	public int absDistanceFromTimestamp(final Timestamp otherTimeStamp) {
 		return Math.abs(distanceFromTimestamp(otherTimeStamp));
 	}
 
 	/**
-	 * function that calculates integer milliseconds between this records
+	 * function that calculates integer seconds between this records
 	 * timeStamp and the arguments timeStamp. result is negative if this records
 	 * timeStamp is less than the argument, positive if it is greater, and 0 if
 	 * the same.
 	 * 
 	 * @param otherTimeStamp
-	 * @return long milliseconds
-	 * @throws ParseException
+	 * @return int milliseconds
 	 */
-	public long distanceFromTimestamp(final Timestamp otherTimeStamp)
-			throws ParseException {
-		Date myDate = ArchiveUtils.parse14DigitDate(dateStr);
-		Date otherDate = ArchiveUtils.parse14DigitDate(otherTimeStamp
-				.getDateStr());
-		return otherDate.getTime() - myDate.getTime();
+	public int distanceFromTimestamp(final Timestamp otherTimeStamp) {
+		return otherTimeStamp.sse() - sse();
 	}
 
 	/**
@@ -261,8 +201,8 @@ public class Timestamp {
 	}
 
 	/**
-	 * @return user friendly String representation of the Date of this
-	 *         Timestamp.
+	 * @return user friendly String representation of the date of this
+	 *         Timestamp. eg: "Jan 13, 1999"
 	 */
 	public String prettyDate() {
 		String year = dateStr.substring(0, 4);
@@ -293,90 +233,222 @@ public class Timestamp {
 		return prettyDate() + " " + prettyTime();
 	}
 
-	/**
-	 * Presently unused, but possibly helpful in complex QueryUI generation.
+	/*
 	 * 
-	 * @return Timestamp representing the start of the Year this Timestamp
-	 *         occured in.
-	 * @throws ParseException
+	 * ALL STATIC METHOD BELOW HERE:
+	 * =============================
+	 * 
 	 */
-	public Timestamp startOfYear() throws ParseException {
-		return parseBefore(dateStr.substring(0, 4));
+	
+	private static String frontZeroPad(final String input, final int digits) {
+		int missing = digits - input.length();
+		String padded = "";
+		for(int i = 0; i < missing; i++) {
+			padded += "0";
+		}
+		padded += input;
+		return padded;
+	}
+	private static String frontZeroPad(final int input, final int digits) {
+		return frontZeroPad(""+input,digits);
+	}
+	
+	private static Calendar getCalendar() {
+		String[] ids = TimeZone.getAvailableIDs(0);
+		if (ids.length < 1) {
+			return null;
+		}
+		TimeZone gmt = new SimpleTimeZone(0, ids[0]);
+		return new GregorianCalendar(gmt);		
+	}
+	
+	/**
+	 * cleanup the dateStr argument assuming earliest values, and return a
+	 * GMT calendar set to the time described by the dateStr.
+	 * 
+	 * @param dateStr
+	 * @return Calendar
+	 */
+	public static Calendar dateStrToCalendar(final String dateStr) {
+		
+		String paddedDateStr = padStartDateStr(dateStr);
+
+		Calendar cal = getCalendar();
+		int iYear = Integer.parseInt(paddedDateStr.substring(0,4));
+		int iMonth = Integer.parseInt(paddedDateStr.substring(4,6));
+		int iDay = Integer.parseInt(paddedDateStr.substring(6,8));
+		int iHour = Integer.parseInt(paddedDateStr.substring(8,10));
+		int iMinute = Integer.parseInt(paddedDateStr.substring(10,12));
+		int iSecond = Integer.parseInt(paddedDateStr.substring(12,14));
+
+		cal.set(Calendar.YEAR,iYear);
+		cal.set(Calendar.MONTH,iMonth - 1);
+		cal.set(Calendar.DAY_OF_MONTH,iDay);
+		cal.set(Calendar.HOUR_OF_DAY,iHour);
+		cal.set(Calendar.MINUTE,iMinute);
+		cal.set(Calendar.SECOND,iSecond);
+		
+		return cal;
+	}
+	private static String calendarToDateStr(Calendar cal) {
+		return frontZeroPad(cal.get(Calendar.YEAR),4) +
+			frontZeroPad(cal.get(Calendar.MONTH) + 1 ,2) +
+			frontZeroPad(cal.get(Calendar.DAY_OF_MONTH),2) +
+			frontZeroPad(cal.get(Calendar.HOUR_OF_DAY),2) +
+			frontZeroPad(cal.get(Calendar.MINUTE),2) +
+			frontZeroPad(cal.get(Calendar.SECOND),2);
+	}
+	
+
+	private static String padDigits(String input, String min, String max, 
+			String missing) {
+
+		String finalDigits = "";
+		for(int i = 0; i < missing.length(); i++) {
+			if(input.length() <= i) {
+				finalDigits = finalDigits +	missing.charAt(i);
+			} else {
+				char inc = input.charAt(i);
+				char maxc = max.charAt(i);
+				char minc = min.charAt(i);
+				if(inc > maxc) {
+					inc = maxc;
+				} else if (inc < minc) {
+					inc = minc;
+				}
+				finalDigits = finalDigits + inc;
+			}
+		}
+		
+		return finalDigits;
+	}
+	
+	private static String boundDigits(String input, String min, String max) {
+		String bounded = input;
+		if(input.compareTo(min) < 0) {
+			bounded = min;
+		} else if(input.compareTo(max) > 0) {
+			bounded = max;
+		}
+		return bounded;
+	}
+	
+	// check each of YEAR, MONTH, DAY, HOUR, MINUTE, SECOND to make sure they
+	// are not too large or too small, factoring in the month, leap years, etc.
+	private static String boundTimestamp(String input) {
+		String boundTimestamp = "";
+
+		// MAKE SURE THE YEAR IS WITHIN LEGAL BOUNDARIES:
+		Calendar tmpCal = getCalendar();
+		tmpCal.setTime(new Date());
+
+		boundTimestamp = boundDigits(input.substring(0,4),
+				YEAR_LOWER_LIMIT,YEAR_UPPER_LIMIT);
+
+		// MAKE SURE THE MONTH IS WITHIN LEGAL BOUNDARIES:
+		boundTimestamp += boundDigits(input.substring(4,6),
+				MONTH_LOWER_LIMIT,MONTH_UPPER_LIMIT);
+		
+		// NOW DEPENDING ON THE YEAR + MONTH, MAKE SURE THE DAY OF MONTH IS
+		// WITHIN LEGAL BOUNDARIES:
+		Calendar cal = getCalendar();
+		cal.clear();
+		int iYear = Integer.parseInt(boundTimestamp.substring(0,4));
+		int iMonth = Integer.parseInt(boundTimestamp.substring(4,6));
+		cal.set(Calendar.YEAR,iYear);
+		cal.set(Calendar.MONTH,iMonth - 1);
+		cal.set(Calendar.DAY_OF_MONTH,1);
+
+		String maxDayOfMonth = "" + cal.getActualMaximum(Calendar.DAY_OF_MONTH);
+		if(maxDayOfMonth.length() == 1) {
+			maxDayOfMonth = "0" + maxDayOfMonth;
+		}
+		boundTimestamp += boundDigits(input.substring(6,8),
+				DAY_LOWER_LIMIT,maxDayOfMonth);
+		
+		// MAKE SURE THE HOUR IS WITHIN LEGAL BOUNDARIES:
+		boundTimestamp += boundDigits(input.substring(8,10),
+				HOUR_LOWER_LIMIT,HOUR_UPPER_LIMIT);
+		
+		// MAKE SURE THE MINUTE IS WITHIN LEGAL BOUNDARIES:
+		boundTimestamp += boundDigits(input.substring(10,12),
+				MINUTE_LOWER_LIMIT,MINUTE_UPPER_LIMIT);
+		
+		// MAKE SURE THE SECOND IS WITHIN LEGAL BOUNDARIES:
+		boundTimestamp += boundDigits(input.substring(12,14),
+				SECOND_LOWER_LIMIT,SECOND_UPPER_LIMIT);
+
+		return boundTimestamp;		
+	}
+	
+	/**
+	 * clean up timestamp argument assuming latest possible values for missing 
+	 * or bogus digits.
+	 * @param timestamp String
+	 * @return String
+	 */
+	public static String padEndDateStr(String timestamp) {
+		return boundTimestamp(padDigits(timestamp,LOWER_TIMESTAMP_LIMIT,
+				UPPER_TIMESTAMP_LIMIT,UPPER_TIMESTAMP_LIMIT));
 	}
 
 	/**
-	 * Presently unused, but possibly helpful in complex QueryUI generation.
-	 * 
-	 * @return Timestamp representing the start of the Month this Timestamp
-	 *         occured in.
-	 * @throws ParseException
+	 * clean up timestamp argument assuming earliest possible values for missing
+	 * or bogus digits.
+	 * @param timestamp String
+	 * @return String
 	 */
-	public Timestamp startOfMonth() throws ParseException {
-		return parseBefore(dateStr.substring(0, 6));
+	public static String padStartDateStr(String timestamp) {
+		return boundTimestamp(padDigits(timestamp,LOWER_TIMESTAMP_LIMIT,
+				UPPER_TIMESTAMP_LIMIT,LOWER_TIMESTAMP_LIMIT));
 	}
 
 	/**
-	 * Presently unused, but possibly helpful in complex QueryUI generation.
-	 * 
-	 * @return Timestamp representing the start of the Week this Timestamp
-	 *         occured in.
-	 * @throws ParseException
+	 * @param dateStr
+	 * @return Timestamp object representing the earliest date represented by
+	 *         the (possibly) partial digit-string argument.
 	 */
-	public Timestamp startOfWeek() throws ParseException {
-		String yearMonth = dateStr.substring(0, 6);
-		String dayOfMonth = dateStr.substring(6, 8);
-		int dom = Integer.parseInt(dayOfMonth);
-		int mod = dom % 7;
-		dom -= mod;
-		String paddedDay = (dom < 10) ? "0" + dom : "" + dom;
-		return parseBefore(yearMonth + paddedDay);
+	public static Timestamp parseBefore(final String dateStr) {
+		return new Timestamp(padStartDateStr(dateStr));
 	}
 
 	/**
-	 * Presently unused, but possibly helpful in complex QueryUI generation.
-	 * 
-	 * @return Timestamp representing the start of the Day this Timestamp
-	 *         occured in.
-	 * @throws ParseException
+	 * @param dateStr
+	 * @return Timestamp object representing the latest date represented by the
+	 *         (possibly) partial digit-string argument.
 	 */
-	public Timestamp startOfDay() throws ParseException {
-		return parseBefore(dateStr.substring(0, 8));
+	public static Timestamp parseAfter(final String dateStr) {
+		return new Timestamp(padEndDateStr(dateStr));
 	}
 
 	/**
-	 * Presently unused, but possibly helpful in complex QueryUI generation.
-	 * 
-	 * @return Timestamp representing the start of the Hour this Timestamp
-	 *         occured in.
-	 * @throws ParseException
+	 * @param sse
+	 * @return Timestamp object representing the seconds since epoch argument.
 	 */
-	public Timestamp startOfHour() throws ParseException {
-		return parseBefore(dateStr.substring(0, 10));
+	public static Timestamp fromSse(final int sse) {
+		//String dateStr = ArchiveUtils.get14DigitDate(sse * 1000);
+		return new Timestamp(sse);
 	}
 
 	/**
-	 * @param args
+	 * @return Timestamp object representing the current date.
 	 */
-	public static void main(String[] args) {
+	public static Timestamp currentTimestamp() {
+		return new Timestamp(new Date());
+	}
+	/**
+	 * @return Timestamp object representing the latest possible date.
+	 */
+	public static Timestamp latestTimestamp() {
+		return currentTimestamp();
+	}
 
+
+	/**
+	 * @return Timestamp object representing the earliest possible date.
+	 */
+	public static Timestamp earliestTimestamp() {
+		return new Timestamp(SSE_1996);
 	}
 
 }
-// public Date getDate() {
-// String[] ids = TimeZone.getAvailableIDs(0);
-// if(ids.length < 1) {
-// return null;
-// }
-// TimeZone gmt = new SimpleTimeZone(0,ids[0]);
-// Calendar cal = new GregorianCalendar(gmt);
-// int year = Integer.parseInt(dateStr.substring(0,4));
-// int month = Integer.parseInt(dateStr.substring(4,2)) - 1;
-// int day = Integer.parseInt(dateStr.substring(6,2));
-// int hour = Integer.parseInt(dateStr.substring(8,2));
-// int min = Integer.parseInt(dateStr.substring(10,2));
-// int sec = Integer.parseInt(dateStr.substring(12,2));
-//
-// cal.set(year,month,day,hour,min,sec);
-// return cal.getTime();
-// }
-//
