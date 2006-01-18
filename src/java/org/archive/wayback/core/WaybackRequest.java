@@ -39,7 +39,7 @@ import org.archive.wayback.query.OpenSearchQueryParser;
  */
 public class WaybackRequest {
 	
-	private int resultsPerPage = 10;
+	private int resultsPerPage = 1000;
 	private int pageNum = 1;
 	private Properties filters = new Properties();
 	
@@ -101,6 +101,14 @@ public class WaybackRequest {
 	 */
 	public void put(String key, String value) {
 		filters.put(key, value);
+	}
+	
+	/**
+	 * @return String hex-encoded GET CGI arguments which will duplicate this
+	 * wayback request
+	 */
+	public String getQueryArguments () {
+		return getQueryArguments(pageNum);
 	}
 	
 	/**
