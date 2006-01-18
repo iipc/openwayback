@@ -76,11 +76,11 @@ public class SearchResults {
 	public void addSearchResult(final SearchResult result) {
 		String resultDate = result.get(WaybackConstants.RESULT_CAPTURE_DATE);
 		if((firstResultDate == null) || 
-				(firstResultDate.compareTo(resultDate) < 0)) {
+				(firstResultDate.compareTo(resultDate) > 0)) {
 			firstResultDate = resultDate;
 		}
 		if((lastResultDate == null) || 
-				(lastResultDate.compareTo(resultDate) > 0)) {
+				(lastResultDate.compareTo(resultDate) < 0)) {
 			lastResultDate = resultDate;
 		}
 		results.add(result);
