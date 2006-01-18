@@ -23,13 +23,10 @@
 
 package org.archive.wayback.cdx;
 
-import java.text.ParseException;
 import java.util.Properties;
 import java.util.logging.Logger;
 
 import org.apache.commons.httpclient.URIException;
-import org.archive.net.UURI;
-import org.archive.net.UURIFactory;
 import org.archive.wayback.ResourceIndex;
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.cdx.indexer.IndexPipeline;
@@ -114,9 +111,9 @@ public class LocalBDBResourceIndex implements ResourceIndex {
 			throws ResourceIndexNotAvailableException,
 			ResourceNotInArchiveException, BadQueryException {
 
-		UURI searchURI;
-		String searchHost;
-		String searchPath;
+		// TODO: this method is discumbobulated. needs refactor
+		
+		String keyUrl;
 
 		int resultsPerPage = wbRequest.getResultsPerPage();
 		int pageNum = wbRequest.getPageNum();
@@ -149,47 +146,22 @@ public class LocalBDBResourceIndex implements ResourceIndex {
 		}
 
 		if ((startDate == null) || (startDate.length() == 0)) {
-			try {
-				startDate = Timestamp.earliestTimestamp().getDateStr();
-			} catch (ParseException e) {
-				e.printStackTrace();
-				throw new BadQueryException("unexpected data error " 
-						+ e.getMessage());
-			}
+			startDate = Timestamp.earliestTimestamp().getDateStr();
 		}
 		if ((endDate == null) || (endDate.length() == 0)) {
-			try {
-				endDate = Timestamp.currentTimestamp().getDateStr();
-			} catch (ParseException e) {
-				e.printStackTrace();
-				throw new BadQueryException("unexpected data error " 
-						+ e.getMessage());
-			}
+			endDate = Timestamp.currentTimestamp().getDateStr();
 		}
 
 		try {
 
-			if (searchUrl.startsWith("http://")) {
-                    if (-1 == searchUrl.indexOf('/', 8)) {
-                    	searchUrl = searchUrl + "/";
-                    }
-            } else {
-                    if (-1 == searchUrl.indexOf("/")) {
-                    	searchUrl = searchUrl + "/";
-                    }
-                    searchUrl = "http://" + searchUrl;
-            }
-
-			searchURI = UURIFactory.getInstance(searchUrl);
-			searchHost = searchURI.getHostBasename();
-			searchPath = searchURI.getEscapedPathQuery();
+			keyUrl = CDXRecord.urlStringToKey(searchUrl);
 
 		} catch (URIException e) {
 			e.printStackTrace();
-			throw new BadQueryException("Problem with URI " + e.getMessage());
+			throw new BadQueryException("Problem with searchUrl (" + searchUrl + 
+					") " + e.getMessage());
 		}
 
-		String keyUrl = searchHost + searchPath;
 		SearchResults results;
 		if (searchType.equals(WaybackConstants.REQUEST_REPLAY_QUERY)) {
 
