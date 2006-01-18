@@ -125,68 +125,70 @@ public class ArcIndexer {
 		result.put(WaybackConstants.RESULT_ARC_FILE,arc.getName());
 		result.put(WaybackConstants.RESULT_OFFSET,""+meta.getOffset());
 
-		String statusCode = (meta.getStatusCode() == null) ? "-" : meta
-				.getStatusCode();
-		result.put(WaybackConstants.RESULT_HTTP_CODE,statusCode);
+		// initialize with default HTTP code...
+		result.put(WaybackConstants.RESULT_HTTP_CODE,"-");
 
 		result.put(WaybackConstants.RESULT_MD5_DIGEST,meta.getDigest());
 		result.put(WaybackConstants.RESULT_MIME_TYPE,meta.getMimetype());
+		result.put(WaybackConstants.RESULT_CAPTURE_DATE,meta.getDate());
 		
 		String uriStr = meta.getUrl();
 		if(uriStr.startsWith(ARCRecord.ARC_MAGIC_NUMBER)) {
-			// skip filedesc record...
+			// skip filedesc record altogether...
 			return null;
 		}
 		if(uriStr.startsWith(WaybackConstants.DNS_URL_PREFIX)) {
-			// skip dns records...
-			return null;
-		}
+			// skip URL + HTTP header processing for dns records...
+		} else {
 		
-		UURI uri = UURIFactory.getInstance(uriStr);
-		String uriHost = uri.getHost();
-		if(uriHost == null) {
-			LOGGER.info("No host in " + uriStr + " in " + 
-					arc.getAbsolutePath());
-			return null;
-		}
-		result.put(WaybackConstants.RESULT_ORIG_HOST,uriHost);
+			UURI uri = UURIFactory.getInstance(uriStr);
+			String uriHost = uri.getHost();
+			if(uriHost == null) {
+				LOGGER.info("No host in " + uriStr + " in " + 
+						arc.getAbsolutePath());
+			} else {
+				result.put(WaybackConstants.RESULT_ORIG_HOST,uriHost);
 
-		String redirectUrl = "-";
-		Header[] headers = rec.getHttpHeaders();
-		if (headers != null) {
-			for (int i = 0; i < headers.length; i++) {
-				if (headers[i].getName().equals(LOCATION_HTTP_HEADER)) {
-					String locationStr = headers[i].getValue();
-					// TODO: "Location" is supposed to be absolute:
-					// (http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html)
-					// (section 14.30) but Content-Location can be relative.
-					// is it correct to resolve a relative Location, as we are?
-					// it's also possible to have both in the HTTP headers...
-					// should we prefer one over the other?
-					// right now, we're ignoring "Content-Location"
-					try {
-						UURI uriRedirect = UURIFactory.getInstance(uri,
-								locationStr);
-						redirectUrl = uriRedirect.getEscapedURI();
-						
-					} catch (URIException e) {
-						LOGGER.info("Bad Location: " + locationStr +
-								" for " + uriStr + " in " + 
-								arc.getAbsolutePath() + " Skipped");
+				String statusCode = (meta.getStatusCode() == null) ? "-" : meta
+						.getStatusCode();
+				result.put(WaybackConstants.RESULT_HTTP_CODE,statusCode);
+
+		
+				String redirectUrl = "-";
+				Header[] headers = rec.getHttpHeaders();
+				if (headers != null) {
+
+					for (int i = 0; i < headers.length; i++) {
+						if (headers[i].getName().equals(LOCATION_HTTP_HEADER)) {
+							String locationStr = headers[i].getValue();
+							// TODO: "Location" is supposed to be absolute:
+							// (http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html)
+							// (section 14.30) but Content-Location can be relative.
+							// is it correct to resolve a relative Location, as we are?
+							// it's also possible to have both in the HTTP headers...
+							// should we prefer one over the other?
+							// right now, we're ignoring "Content-Location"
+							try {
+								UURI uriRedirect = UURIFactory.getInstance(uri,
+										locationStr);
+								redirectUrl = uriRedirect.getEscapedURI();
+								
+							} catch (URIException e) {
+								LOGGER.info("Bad Location: " + locationStr +
+										" for " + uriStr + " in " + 
+										arc.getAbsolutePath() + " Skipped");
+							}
+							break;
+						}
 					}
-					break;
 				}
+				result.put(WaybackConstants.RESULT_REDIRECT_URL,redirectUrl);
+				
+				String indexUrl = CDXRecord.urlStringToKey(meta.getUrl());
+				result.put(WaybackConstants.RESULT_URL,indexUrl);
 			}
-		}
-		result.put(WaybackConstants.RESULT_REDIRECT_URL,redirectUrl);
-		result.put(WaybackConstants.RESULT_CAPTURE_DATE,meta.getDate());
-		UURI uriCap = new UURI(meta.getUrl(), false);
-		String searchHost = uriCap.getHostBasename();
-		String searchPath = uriCap.getEscapedPathQuery();
 
-		String indexUrl = searchHost + searchPath;
-		result.put(WaybackConstants.RESULT_URL,indexUrl);
-
+		}	
 		return result;
 	}
 
