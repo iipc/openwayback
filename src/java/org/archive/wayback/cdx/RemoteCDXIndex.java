@@ -1,0 +1,230 @@
+/* RemoteCDXIndex
+ *
+ * $Id$
+ *
+ * Created on 6:51:22 PM Dec 22, 2005.
+ *
+ * Copyright (C) 2005 Internet Archive.
+ *
+ * This file is part of wayback.
+ *
+ * wayback is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or
+ * any later version.
+ *
+ * wayback is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser Public License
+ * along with wayback; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+package org.archive.wayback.cdx;
+
+
+import java.io.IOException;
+import java.util.Properties;
+import java.util.logging.Logger;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.archive.wayback.ResourceIndex;
+import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.SearchResults;
+import org.archive.wayback.core.WaybackRequest;
+import org.archive.wayback.exception.BadQueryException;
+import org.archive.wayback.exception.ConfigurationException;
+import org.archive.wayback.exception.ResourceIndexNotAvailableException;
+import org.archive.wayback.exception.ResourceNotInArchiveException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+
+/**
+ * 
+ * 
+ * @author brad
+ * @version $Date$, $Revision$
+ */
+public class RemoteCDXIndex implements ResourceIndex {
+	private static final Logger LOGGER = Logger.getLogger(RemoteCDXIndex.class
+			.getName());
+
+	private final static String SEARCH_BASE_URL = "resourceindex.baseurl";
+
+	private String searchUrlBase;
+
+	private DocumentBuilderFactory factory;
+
+	private DocumentBuilder builder;
+
+
+	private static final String WB_XML_REQUEST_TAGNAME = "request";
+
+
+	private static final String WB_XML_RESULT_TAGNAME = "result";
+	private static final String WB_XML_ERROR_TAGNAME = "error";
+	private static final String WB_XML_ERROR_TITLE = "title";
+	private static final String WB_XML_ERROR_MESSAGE = "message";
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.archive.wayback.PropertyConfigurable#init(java.util.Properties)
+	 */
+	public void init(Properties p) throws ConfigurationException {
+		LOGGER.info("initializing RemoteCDXIndex...");
+
+		this.searchUrlBase = (String) p.get(SEARCH_BASE_URL);
+		if (this.searchUrlBase == null || this.searchUrlBase.length() <= 0) {
+			throw new IllegalArgumentException("Failed to find "
+					+ SEARCH_BASE_URL);
+		}
+		this.factory = DocumentBuilderFactory.newInstance();
+		this.factory.setNamespaceAware(false);
+		try {
+			this.builder = this.factory.newDocumentBuilder();
+		} catch (ParserConfigurationException e) {
+			// TODO: quiet extra stacktrace..
+			e.printStackTrace();
+			throw new ConfigurationException(e.getMessage());
+		}
+		if (!this.builder.isNamespaceAware()) {
+			LOGGER.severe("Builder is not namespace aware.");
+		}
+		LOGGER.info("Using base search url " + this.searchUrlBase);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.archive.wayback.ResourceIndex#query(org.archive.wayback.core.WaybackRequest)
+	 */
+	public SearchResults query(WaybackRequest wbRequest)
+			throws ResourceIndexNotAvailableException,
+			ResourceNotInArchiveException, BadQueryException {
+
+		// Get the URL for the request:
+		String requestUrl = getRequestUrl(wbRequest);
+		Document document = null;
+		try {
+			// HTTP Request + parse
+			LOGGER.info("Getting index XML from ("+requestUrl+")");
+			document = getHttpDocument(requestUrl);
+		} catch (IOException e) {
+			// TODO: better error for user:
+			e.printStackTrace();
+			throw new ResourceIndexNotAvailableException(e.getMessage());
+		} catch (SAXException e) {
+			e.printStackTrace();
+			throw new ResourceIndexNotAvailableException("Unexpected SAX: "
+					+ e.getMessage());
+		}
+
+		// TODO: lookout for error XML!
+		NodeList errors = document.getElementsByTagName(WB_XML_ERROR_TAGNAME);
+		if(errors.getLength() != 0) {
+			String errTitle = getNodeContent((Element) errors.item(0),
+					WB_XML_ERROR_TITLE);
+			String errMessage =  getNodeContent((Element) errors.item(0),
+					WB_XML_ERROR_MESSAGE);
+			if(errTitle == null) {
+				throw new ResourceIndexNotAvailableException("Unknown error!");
+			} else if(errTitle.equals("Not in Archive")) {
+				throw new ResourceNotInArchiveException(errMessage);
+			} else if(errTitle.equals("Bad Query")) {
+				throw new BadQueryException(errMessage);
+			} else if(errTitle.equals("Index not available")) {
+				throw new ResourceIndexNotAvailableException(errMessage);
+			} else {
+				throw new ResourceIndexNotAvailableException("Unknown error!");				
+			}
+		}
+		
+		SearchResults results = new SearchResults();
+		NodeList filters = getRequestFilters(document);
+		for(int i = 0; i < filters.getLength(); i++) {
+			String key = filters.item(i).getNodeName();
+			String value = filters.item(i).getTextContent();
+			if(!key.equals("#text")) {
+				results.putFilter(key,value);
+			}
+		}
+		
+		NodeList xresults = getSearchResults(document);
+		for(int i = 0; i < xresults.getLength(); i++) {
+			Node xresult = xresults.item(i);
+			SearchResult result = searchElementToSearchResult(xresult);
+			results.addSearchResult(result);
+		}
+		return results;
+	}
+
+	private SearchResult searchElementToSearchResult(Node e) {
+
+		SearchResult result = new SearchResult();
+
+		NodeList chitlens = e.getChildNodes();
+		for(int i = 0; i < chitlens.getLength(); i++) {
+			String key = chitlens.item(i).getNodeName();
+			String value = chitlens.item(i).getTextContent();
+			if(!key.equals("#text")) {
+				result.put(key,value);
+			}
+		}
+		return result;
+	}
+
+	protected NodeList getRequestFilters(Document d) {
+		if (d == null) {
+			return null;
+		}
+		// Jump to the search item list.
+		NodeList nodes = d.getElementsByTagName(WB_XML_REQUEST_TAGNAME);
+		if(nodes.getLength() != 1) {
+			// TODO: warning?
+			return null;
+		}
+		return nodes.item(0).getChildNodes();
+	}
+
+	protected NodeList getSearchResults(Document d) {
+		if (d == null) {
+			return null;
+		}
+		NodeList nodes = d.getElementsByTagName(WB_XML_RESULT_TAGNAME);
+		return (nodes.getLength() <= 0) ? null : nodes;
+	}
+
+	protected String getRequestUrl(WaybackRequest wbRequest)
+			throws BadQueryException {
+		return this.searchUrlBase + "?" + wbRequest.getQueryArguments();
+	}
+
+	// extract the text content of a single tag under a node
+	protected String getNodeContent(Element e, String key) {
+		NodeList nodes = e.getElementsByTagName(key);
+		String result = null;
+		if (nodes != null && nodes.getLength() > 0) {
+			result = nodes.item(0).getTextContent();
+		}
+		return (result == null || result.length() == 0) ? null : result;
+	}
+
+	// do an HTTP request, plus parse the result into an XML DOM
+	protected synchronized Document getHttpDocument(String url)
+			throws IOException, SAXException {
+
+		Document d = null;
+		d = this.builder.parse(url);
+		return d;
+	}
+
+}
