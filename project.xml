@@ -185,9 +185,9 @@
         </dependency>
         <dependency>
             <groupId>heritrix</groupId>
-            <artifactId>arc</artifactId>
-            <version>1.5.0</version>
-            <url>http://crawltools.archive.org:8080/</url>
+            <artifactId>archive-commons</artifactId>
+            <version>1.7.0</version>
+            <url>http://crawltools.archive.org:8080/cruisecontrol</url>
             <properties>
                 <war.bundle>true</war.bundle>
                 <description>Jar that has org.archive.io.arc content.
