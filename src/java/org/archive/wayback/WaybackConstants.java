@@ -131,6 +131,12 @@ public interface WaybackConstants {
 	 * gzip envelope begins. 
 	 */
 	public static final String RESULT_OFFSET = "compressedoffset";
+
+	/**
+	 * Result: compressed byte offset within ARC file where this document's
+	 * gzip envelope Ends. 
+	 */
+	public static final String RESULT_END_OFFSET = "compressedendoffset";
 	
 	/**
 	 * Result: original exact host from which this document was captured.
