@@ -136,14 +136,10 @@ public class ReplayServlet extends HttpServlet {
 		while (itr.hasNext()) {
 			cur = (SearchResult) itr.next();
 			long curDistance;
-			try {
-				Timestamp curTimestamp = Timestamp.parseBefore(cur
-						.get(WaybackConstants.RESULT_CAPTURE_DATE));
-				curDistance = curTimestamp
-						.absDistanceFromTimestamp(wantTimestamp);
-			} catch (ParseException e) {
-				continue;
-			}
+			Timestamp curTimestamp = Timestamp.parseBefore(cur
+					.get(WaybackConstants.RESULT_CAPTURE_DATE));
+			curDistance = curTimestamp.absDistanceFromTimestamp(wantTimestamp);
+			
 			if ((closest == null) || (curDistance < closestDistance)) {
 				closest = cur;
 				closestDistance = curDistance;

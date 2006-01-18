@@ -24,7 +24,6 @@
  */
 package org.archive.wayback.archivalurl;
 
-import java.text.ParseException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -85,15 +84,11 @@ public class ReplayFilter extends RequestFilter {
 			}
 
 			wbRequest.put(WaybackConstants.REQUEST_EXACT_DATE,dateStr);
-			try {
-				String startDate = Timestamp.earliestTimestamp().getDateStr();
-				String endDate = Timestamp.currentTimestamp().getDateStr();
-				wbRequest.put(WaybackConstants.REQUEST_START_DATE,startDate);
-				wbRequest.put(WaybackConstants.REQUEST_END_DATE,endDate);
-			} catch (ParseException e1) {
-				e1.printStackTrace();
-				return null;
-			}
+			String startDate = Timestamp.earliestTimestamp().getDateStr();
+			String endDate = Timestamp.currentTimestamp().getDateStr();
+			wbRequest.put(WaybackConstants.REQUEST_START_DATE,startDate);
+			wbRequest.put(WaybackConstants.REQUEST_END_DATE,endDate);
+
 			wbRequest.put(WaybackConstants.REQUEST_TYPE,
 					WaybackConstants.REQUEST_REPLAY_QUERY);
 			

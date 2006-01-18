@@ -24,7 +24,6 @@
  */
 package org.archive.wayback.archivalurl;
 
-import java.text.ParseException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -78,20 +77,13 @@ public class QueryFilter extends RequestFilter {
 			String dateStr = matcher.group(1);
 			String urlStr = matcher.group(2);
 
-			try {
-				String startDate = Timestamp.parseBefore(dateStr).getDateStr();
-				String endDate = Timestamp.parseAfter(dateStr).getDateStr();
-				wbRequest.put(WaybackConstants.REQUEST_START_DATE,startDate);
-				wbRequest.put(WaybackConstants.REQUEST_END_DATE,endDate);
-//				wbRequest.setStartTimestamp(Timestamp.parseBefore(dateStr));
-//				wbRequest.setEndTimestamp(Timestamp.parseAfter(dateStr));
-			} catch (ParseException e1) {
-				e1.printStackTrace();
-				return null;
-			}
+			String startDate = Timestamp.parseBefore(dateStr).getDateStr();
+			String endDate = Timestamp.parseAfter(dateStr).getDateStr();
+			wbRequest.put(WaybackConstants.REQUEST_START_DATE,startDate);
+			wbRequest.put(WaybackConstants.REQUEST_END_DATE,endDate);
 			wbRequest.put(WaybackConstants.REQUEST_TYPE,
 					WaybackConstants.REQUEST_URL_QUERY);
-//			wbRequest.setQuery();
+
 			if (!urlStr.startsWith("http://")) {
 				urlStr = "http://" + urlStr;
 			}
@@ -111,18 +103,12 @@ public class QueryFilter extends RequestFilter {
 				wbRequest = new WaybackRequest();
 				String dateStr = matcher.group(1);
 				String urlStr = matcher.group(2);
-				try {
-					String startDate = Timestamp.parseBefore(dateStr).getDateStr();
-					String endDate = Timestamp.parseAfter(dateStr).getDateStr();
-					wbRequest.put(WaybackConstants.REQUEST_START_DATE,
-							startDate);
-					wbRequest.put(WaybackConstants.REQUEST_END_DATE,endDate);
-//					wbRequest.setStartTimestamp(Timestamp.parseBefore(dateStr));
-//					wbRequest.setEndTimestamp(Timestamp.parseAfter(dateStr));
-				} catch (ParseException e1) {
-					e1.printStackTrace();
-					return null;
-				}
+				String startDate = Timestamp.parseBefore(dateStr).getDateStr();
+				String endDate = Timestamp.parseAfter(dateStr).getDateStr();
+				wbRequest.put(WaybackConstants.REQUEST_START_DATE,
+						startDate);
+				wbRequest.put(WaybackConstants.REQUEST_END_DATE,endDate);
+
 				wbRequest.put(WaybackConstants.REQUEST_TYPE,
 						WaybackConstants.REQUEST_URL_PREFIX_QUERY);
 //				wbRequest.setPathQuery();

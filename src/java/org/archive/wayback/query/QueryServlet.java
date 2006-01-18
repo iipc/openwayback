@@ -124,13 +124,19 @@ public class QueryServlet extends HttpServlet {
 						wbRequest, results, uriConverter);
 
 			} else if (wbRequest.get(WaybackConstants.REQUEST_TYPE).equals(
+					WaybackConstants.REQUEST_REPLAY_QUERY)) {
+				
+				renderer.renderUrlResults(httpRequest, httpResponse,
+						wbRequest, results, uriConverter);
+				
+			} else if (wbRequest.get(WaybackConstants.REQUEST_TYPE).equals(
 					WaybackConstants.REQUEST_URL_PREFIX_QUERY)) {
 				
 				renderer.renderUrlPrefixResults(httpRequest, httpResponse,
 						wbRequest, results, uriConverter);
 			} else {
 				throw new BadQueryException("Unknown query " +
-						WaybackConstants.REQUEST_TYPE);
+						wbRequest.get(WaybackConstants.REQUEST_TYPE));
 			}
 
 		} catch (WaybackException wbe) {

@@ -24,7 +24,6 @@
  */
 package org.archive.wayback.proxy;
 
-import java.text.ParseException;
 import java.util.List;
 
 import javax.servlet.FilterConfig;
@@ -86,14 +85,8 @@ public class ReplayFilter extends RequestFilter {
 		}
 		wbRequest.put(WaybackConstants.REQUEST_REFERER_URL,referer);
 
-		try {
-			wbRequest.put(WaybackConstants.REQUEST_EXACT_DATE,
-					Timestamp.currentTimestamp().getDateStr());
-		} catch (ParseException e) {
-			// Shouldn't happen...
-			e.printStackTrace();
-		}
-
+		wbRequest.put(WaybackConstants.REQUEST_EXACT_DATE,
+				Timestamp.currentTimestamp().getDateStr());
 		
 		
 		return wbRequest;

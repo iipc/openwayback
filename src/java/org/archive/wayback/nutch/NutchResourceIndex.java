@@ -27,7 +27,6 @@ package org.archive.wayback.nutch;
 import it.unimi.dsi.mg4j.util.MutableString;
 
 import java.io.IOException;
-import java.text.ParseException;
 import java.util.Properties;
 import java.util.logging.Logger;
 
@@ -174,17 +173,11 @@ public class NutchResourceIndex implements ResourceIndex {
         results.putFilter(WaybackConstants.RESULTS_REQUESTED,
         		"" + wbRequest.getResultsPerPage());
         
-        try {
-			results.putFilter(WaybackConstants.REQUEST_START_DATE,
-					Timestamp.earliestTimestamp().getDateStr());
-			
-	        results.putFilter(WaybackConstants.REQUEST_END_DATE,
-	        		Timestamp.latestTimestamp().getDateStr());
-		} catch (ParseException e) {
-			// this should not happen...
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		results.putFilter(WaybackConstants.REQUEST_START_DATE,
+				Timestamp.earliestTimestamp().getDateStr());
+		
+        results.putFilter(WaybackConstants.REQUEST_END_DATE,
+        		Timestamp.latestTimestamp().getDateStr());
 		return results;
 	}
 

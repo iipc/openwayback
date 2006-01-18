@@ -25,8 +25,6 @@
 package org.archive.wayback.archivalurl;
 
 import java.io.IOException;
-import java.text.ParseException;
-
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
@@ -170,12 +168,7 @@ public class JSReplayRenderer extends RawReplayRenderer {
 	private void insertJavascript(StringBuffer page, SearchResult result,
 			ReplayResultURIConverter uriConverter) {
 		String resourceTS = result.get(WaybackConstants.RESULT_CAPTURE_DATE);
-		String nowTS;
-		try {
-			nowTS = Timestamp.currentTimestamp().getDateStr();
-		} catch (ParseException e) {
-			nowTS = "UNKNOWN";
-		}
+		String nowTS = Timestamp.currentTimestamp().getDateStr();
 
 		String contextPath = uriConverter.getReplayUriPrefix() + "/"
 				+ resourceTS + "/";
