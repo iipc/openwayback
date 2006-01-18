@@ -19,8 +19,8 @@ Iterator itr = uiResults.resultsIterator();
 <%
 	Properties p = results.getFilters();
 	for (Enumeration e = p.keys(); e.hasMoreElements();) {
-		String key = (String) e.nextElement();
-		String value = (String) p.get(key);
+		String key = UIQueryResults.encodeXMLEntity((String) e.nextElement());
+		String value = UIQueryResults.encodeXMLContent((String) p.get(key));
 		%>
 		<<%= key %>><%= value %></<%= key %>>
 		<%
@@ -37,8 +37,8 @@ Iterator itr = uiResults.resultsIterator();
 		Properties p2 = result.getData();
 		for (Enumeration e = p2.keys(); e.hasMoreElements();) {
 			// TODO: encode!
-			String key = (String) e.nextElement();
-			String value = (String) p2.get(key);
+			String key = UIQueryResults.encodeXMLEntity((String) e.nextElement());
+			String value = UIQueryResults.encodeXMLContent((String) p2.get(key));
 			%>
 			<<%= key %>><%= value %></<%= key %>>
 			<%
