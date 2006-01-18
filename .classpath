@@ -13,7 +13,7 @@
 	<classpathentry kind="lib" 
         path="src/webapp/WEB-INF/lib/commons-httpclient-3.0-rc3.jar"/>
 	<classpathentry kind="lib" 
-        path="src/webapp/WEB-INF/lib/arc-1.5.1-200510181911.jar"/>
+        path="src/webapp/WEB-INF/lib/archive-commons-1.7.0-200601161801.jar"/>
 	<classpathentry kind="lib" 
         path="src/webapp/WEB-INF/lib/libidn-0.5.9.jar"/>
 	<classpathentry kind="lib" 
