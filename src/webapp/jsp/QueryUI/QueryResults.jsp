@@ -78,5 +78,23 @@ while(itr.hasNext()) {
 		<%
 	}
 }
+// show page indicators:
+if(results.getNumPages() > 1) {
+	int curPage = results.getCurPage();
+	%>
+	<hr></hr>
+	<%
+	for(int i = 1; i <= results.getNumPages(); i++) {
+		if(i == curPage) {
+			%>
+			<b><%= i %></b>
+			<%		
+		} else {
+			%>
+			<a href="<%= results.urlForPage(i) %>"><%= i %></a>
+			<%
+		}
+	}
+}
 %>
 <jsp:include page="../../template/UI-footer.jsp" />
