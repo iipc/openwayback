@@ -53,7 +53,7 @@ public class OpenSearchQueryParser {
 	 */
 	public final static String START_PAGE = "start_page";
 
-	private final static int DEFAULT_MAX_RECORDS = 10;
+	private final static int DEFAULT_MAX_RECORDS = 1000;
 
 
 	// private final static String START_INDEX = "start_index";
