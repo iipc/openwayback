@@ -35,6 +35,7 @@ import org.archive.wayback.ResourceStore;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.exception.ConfigurationException;
+import org.archive.wayback.exception.ResourceNotAvailableException;
 
 /**
  * Implements ResourceStore using a local directory of ARC files.
@@ -63,7 +64,9 @@ public class LocalARCResourceStore implements ResourceStore {
 
 	}
 
-	public Resource retrieveResource(SearchResult result) throws IOException {
+	public Resource retrieveResource(SearchResult result) throws IOException, 
+		ResourceNotAvailableException {
+
 		ARCLocation location = resultToARCLocation(result);
 		String arcName = location.getName();
 		if (!arcName.endsWith(ARCReader.DOT_COMPRESSED_ARC_FILE_EXTENSION)) {
@@ -74,7 +77,9 @@ public class LocalARCResourceStore implements ResourceStore {
 			arcFile = new File(this.path, arcName);
 		}
 		if (!arcFile.exists() || !arcFile.canRead()) {
-			throw new IOException("Cannot find ARC file ("
+			
+			// TODO: this needs to be prettied up for end user consumption..
+			throw new ResourceNotAvailableException("Cannot find ARC file ("
 					+ arcFile.getAbsolutePath() + ")");
 		} else {
 
