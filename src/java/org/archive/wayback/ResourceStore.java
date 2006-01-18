@@ -27,6 +27,7 @@ import java.io.IOException;
 
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.exception.ResourceNotAvailableException;
 
 /**
  * Transforms an ARCLocation into a Resource.
@@ -41,7 +42,8 @@ public interface ResourceStore extends PropertyConfigurable {
 	 * @param result
 	 * @return Resource object retrieved for the SearchResult
 	 * @throws IOException
+	 * @throws ResourceNotAvailableException 
 	 */
-	public Resource retrieveResource(SearchResult result) throws IOException;
-
+	public Resource retrieveResource(SearchResult result) throws IOException, 
+		ResourceNotAvailableException;
 }
