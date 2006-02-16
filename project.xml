@@ -275,7 +275,7 @@
             </properties>
         </dependency>
         <dependency>
-            <id>commons-logging-local</id>
+            <id>commons-logging</id>
             <version>1.0.4</version>
             <url>http://jakarta.apache.org/commons/logging.html</url>
             <properties>
