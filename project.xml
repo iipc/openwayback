@@ -186,7 +186,7 @@
         <dependency>
             <groupId>heritrix</groupId>
             <artifactId>archive-commons</artifactId>
-            <version>1.7.0</version>
+            <version>1.7.3-200601301512</version>
             <url>http://crawltools.archive.org:8080/cruisecontrol</url>
             <properties>
                 <war.bundle>true</war.bundle>
@@ -242,8 +242,8 @@
             </properties>
         </dependency>
         <dependency>
-            <id>dsi-unimi-it</id>
-            <version>1.0.0</version>
+            <id>dsi.unimi.it</id>
+            <version>1.2.0</version>
             <url>http://mg4j.dsi.unimi.it/</url>
             <properties>
                 <war.bundle>true</war.bundle>
@@ -255,7 +255,7 @@
                 -- two jars that came of the ubicrawler project,
                 http://ubi0.iit.cnr.it/projects/ubi/ -- using autojar:
                 java -jar ~/workspace/autojar-1.2.2/autojar-1.2.2.jar -v -o
-                dss.unimi.it-1.0.0.jar -c fastutil-4.4.0/fastutil-4.4.0.jar:mg4j-0.9.1/mg4j-0.9.1.jar:ubix-1.0.3/ubix-1.0.3.jar: it.unimi.dsi.mg4j.util.MutableString.class it.unimi.dsi.mg4j.io.FastBufferedInputStream.class it.unimi.dsi.mg4j.io.FastBufferedOutputStream.class it.unimi.dsi.mg4j.io.FastBufferedReader.class it.unimi.dsi.mg4j.io.FastByteArrayInputStream.class it.unimi.dsi.mg4j.io.FastByteArrayOutputStream.class it.unimi.dsi.mg4j.io.FastMultiByteArrayInputStream.class it.unimi.dsi.ubix.ConsistentHashFunction.class</description>
+                dss.unimi.it-1.2.0.jar -c fastutil-4.4.0/fastutil-4.4.0.jar:mg4j-0.9.1/mg4j-0.9.1.jar:ubix-1.0.3/ubix-1.0.3.jar: it.unimi.dsi.mg4j.util.MutableString.class it.unimi.dsi.mg4j.io.FastBufferedInputStream.class it.unimi.dsi.mg4j.io.FastBufferedOutputStream.class it.unimi.dsi.mg4j.io.FastBufferedReader.class it.unimi.dsi.mg4j.io.FastByteArrayInputStream.class it.unimi.dsi.mg4j.io.FastByteArrayOutputStream.class it.unimi.dsi.mg4j.io.FastMultiByteArrayInputStream.class it.unimi.dsi.ubix.ConsistentHashFunction.class</description>
                 <license>MG4J, ConsistentHashFunction, and fastutils are
                 LGPL</license>
             </properties>
@@ -272,6 +272,26 @@
                 methology.
                 </description>
                 <license>IBM's Common Public License Version 0.5.</license>
+            </properties>
+        </dependency>
+        <dependency>
+            <id>commons-logging-local</id>
+            <version>1.0.4</version>
+            <url>http://jakarta.apache.org/commons/logging.html</url>
+            <properties>
+                <war.bundle>true</war.bundle>
+                <ear.bundle>true</ear.bundle>
+                <ear.bundle.dir>APP-INF/lib</ear.bundle.dir>
+                <description>Provides logging adapters.
+                Need to give this component an id other than the natural
+                one of 'commons-logging' because of bug in 1.0.2 maven;
+                our project.properties override that forces maven to use
+                a local copy rather than pull one from the net is causing
+                it confusion on initial setup (This feature worked fine in
+                earlier mavens).
+                </description>
+                <license>Apache 2.0
+                http://www.apache.org/licenses/LICENSE-2.0</license>
             </properties>
         </dependency>
   </dependencies>
