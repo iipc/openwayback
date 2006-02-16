@@ -27,7 +27,7 @@ import java.io.File;
 import java.text.ParseException;
 import java.util.Iterator;
 
-import org.archive.wayback.WaybackConstants;
+import org.archive.wayback.cdx.filter.RecordFilter;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.SearchResults;
 
@@ -128,179 +128,50 @@ public class BDBResourceIndex {
 	}
 
 	/**
-	 * @param url filter results which do not match this url
-	 * @param firstDate filter results before this date
-	 * @param lastDate filter results after this date
-	 * @param exactHost filter records not from this specific host
-	 * @param startRecord filter records before this (0 based)
-	 * @param maxRecords return at most this many records
+	 * @param startKey 
+	 * @param filter 
 	 * @return SearchResults matching the filters
 	 */
-	// TODO add aditional "replay" search method which allows passing in of 
+	protected SearchResults filterRecords(final String startKey, 
+			final RecordFilter filter) {
+		SearchResults results = new SearchResults();
+		DatabaseEntry key = new DatabaseEntry();
+		DatabaseEntry value = new DatabaseEntry();
+		
+		key.setData(startKey.getBytes());
+		key.setPartial(false);
+		try {
+			Cursor cursor = db.openCursor(null, null);
+			OperationStatus status = cursor.getSearchKeyRange(key, value,
+					LockMode.DEFAULT);
+			while (status == OperationStatus.SUCCESS) {
+
+				CDXRecord record = new CDXRecord();
+				// TODO: this should throw something:
+				record.parseLine(new String(value.getData()), 0);
+				int ruling = filter.filterRecord(record);
+				if(ruling == RecordFilter.RECORD_ABORT) {
+					break;
+				} else if(ruling == RecordFilter.RECORD_INCLUDE) {
+					results.addSearchResult(record.toSearchResult());
+				}
+				status = cursor.getNext(key, value, LockMode.DEFAULT);
+			}
+			cursor.close();
+		} catch (DatabaseException dbe) {
+			// TODO: let this bubble up as Index error
+			dbe.printStackTrace();
+		} catch (ParseException e) {
+			// TODO: let this bubble up as Index error
+			e.printStackTrace();
+		}
+		return results;
+	}
+	// TODO add mechanism for replay which allows passing in of 
 	// an exact date, and use a "scrolling window" of the best results, to 
 	// allow for returning the N closest results to a particular date, within
 	// a specific window of dates...
 	
-	protected SearchResults doUrlSearch(final String url,
-			final String firstDate, final String lastDate,
-			final String exactHost, final int startRecord,
-			final int maxRecords) {
-
-		SearchResults results = new SearchResults();
-		DatabaseEntry key = new DatabaseEntry();
-		DatabaseEntry value = new DatabaseEntry();
-		int numScanned = 0;
-		int numSkipped = 0;
-		int numAdded = 0;
-		int numMatching = 0;
-		int maxScanRecords = 10000;
-
-		String searchStart = url + " " + firstDate;
-		key.setData(searchStart.getBytes());
-		key.setPartial(false);
-		try {
-			Cursor cursor = db.openCursor(null, null);
-			OperationStatus status = cursor.getSearchKeyRange(key, value,
-					LockMode.DEFAULT);
-			while (status == OperationStatus.SUCCESS) {
-
-				// safety catch -- keep us from grinding ourselves too badly
-				// on a single request...
-				numScanned++;
-				if (numScanned > maxScanRecords) {
-					//results.putFilter(WaybackConstants.RESULTS_HAS_MORE,
-					//		"true");
-					break;
-				}
-				
-				// String keyString = new String(key.getData());
-
-				String valueString = new String(value.getData());
-				CDXRecord parser = new CDXRecord();
-				parser.parseLine(valueString, 0);
-
-				if (!parser.url.equals(url)) {
-					break;
-				}
-				if (parser.captureDate.compareTo(lastDate) > 0) {
-					break;
-				}
-				if (parser.captureDate.compareTo(firstDate) >= 0) {
-					numMatching++;
-					if (numSkipped >= startRecord) {
-						if(numAdded < maxRecords) {
-							results.addSearchResult(parser.toSearchResult());
-							numAdded++;
-						}
-					} else {
-						numSkipped++;
-					}
-				}
-				status = cursor.getNext(key, value, LockMode.DEFAULT);
-			}
-			results.putFilter(WaybackConstants.RESULTS_FIRST_RETURNED,
-					""+startRecord);
-			results.putFilter(WaybackConstants.RESULTS_NUM_RESULTS,
-					""+numMatching);
-			results.putFilter(WaybackConstants.RESULTS_NUM_RETURNED,
-					""+numAdded);
-			results.putFilter(WaybackConstants.RESULTS_REQUESTED,
-					""+maxRecords);
-			
-			cursor.close();
-		} catch (DatabaseException dbe) {
-			// TODO: let this bubble up as Index error
-			dbe.printStackTrace();
-		} catch (ParseException e) {
-			// TODO: let this bubble up as Index error
-			e.printStackTrace();
-		}
-		return results;
-	}
-
-	/**
-	 * @param urlPrefix filter results which do not match this urlPrefix
-	 * @param firstDate filter results before this date
-	 * @param lastDate filter results after this date
-	 * @param exactHost filter records not from this specific host
-	 * @param startRecord filter records before this (0 based)
-	 * @param maxRecords return at most this many records
-	 * @return SearchResults matching the filters
-	 */
-	protected SearchResults doUrlPrefixSearch(final String urlPrefix,
-			final String firstDate, final String lastDate,
-			final String exactHost, final int startRecord,
-			final int maxRecords) {
-
-		SearchResults results = new SearchResults();
-		DatabaseEntry key = new DatabaseEntry();
-		DatabaseEntry value = new DatabaseEntry();
-		int numScanned = 0;
-		int numSkipped = 0;
-		int numAdded = 0;
-		int numMatching = 0;
-		int maxScanRecords = 1000;
-
-		String searchStart = urlPrefix;
-		key.setData(searchStart.getBytes());
-		key.setPartial(false);
-		try {
-			Cursor cursor = db.openCursor(null, null);
-			OperationStatus status = cursor.getSearchKeyRange(key, value,
-					LockMode.DEFAULT);
-			while (status == OperationStatus.SUCCESS) {
-
-				// safety catch -- keep us from grinding ourselves too badly
-				// on a single request...
-				numScanned++;
-				if (numScanned > maxScanRecords) {
-					//results.putFilter(WaybackConstants.RESULTS_HAS_MORE,
-					//		"true");
-					break;
-				}
-
-				String valueString = new String(value.getData());
-				CDXRecord parser = new CDXRecord();
-				parser.parseLine(valueString, 0);
-
-				if (!parser.url.startsWith(urlPrefix)) {
-					break;
-				}
-				if ((parser.captureDate.compareTo(lastDate) <= 0)
-						&& (parser.captureDate.compareTo(firstDate) >= 0)) {
-					numMatching++;
-					if (numSkipped >= startRecord) {
-						if(numAdded < maxRecords) {
-							results.addSearchResult(parser.toSearchResult());
-							numAdded++;
-						}
-					} else {
-						numSkipped++;
-					}
-				}
-				status = cursor.getNext(key, value, LockMode.DEFAULT);
-			}
-			results.putFilter(WaybackConstants.RESULTS_FIRST_RETURNED,
-					""+startRecord);
-			results.putFilter(WaybackConstants.RESULTS_NUM_RESULTS,
-					""+numMatching);
-			results.putFilter(WaybackConstants.RESULTS_NUM_RETURNED,
-					""+numAdded);
-			results.putFilter(WaybackConstants.RESULTS_REQUESTED,
-					""+maxRecords);
-			
-			cursor.close();
-		} catch (DatabaseException dbe) {
-			// TODO: let this bubble up as Index error
-			dbe.printStackTrace();
-		} catch (ParseException e) {
-			// TODO: let this bubble up as Index error
-			e.printStackTrace();
-		}
-	
-		return results;
-	}
-
 	/**
 	 * Add all ResourceResult in results to BDB index
 	 * @param results

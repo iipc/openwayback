@@ -25,6 +25,7 @@ package org.archive.wayback;
 
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.WaybackRequest;
+import org.archive.wayback.exception.AccessControlException;
 import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
@@ -46,8 +47,10 @@ public interface ResourceIndex extends PropertyConfigurable {
 	 * @throws ResourceIndexNotAvailableException
 	 * @throws ResourceNotInArchiveException
 	 * @throws BadQueryException 
+	 * @throws AccessControlException 
 	 */
 	public SearchResults query(final WaybackRequest request)
 			throws ResourceIndexNotAvailableException,
-			ResourceNotInArchiveException, BadQueryException;
+			ResourceNotInArchiveException, BadQueryException,
+			AccessControlException;
 }

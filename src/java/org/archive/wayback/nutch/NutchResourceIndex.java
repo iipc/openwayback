@@ -40,6 +40,7 @@ import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.core.Timestamp;
+import org.archive.wayback.exception.AccessControlException;
 import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
@@ -118,7 +119,8 @@ public class NutchResourceIndex implements ResourceIndex {
 	 */
 	public SearchResults query(WaybackRequest wbRequest) 
 		throws ResourceIndexNotAvailableException,
-		ResourceNotInArchiveException, BadQueryException {
+		ResourceNotInArchiveException, BadQueryException, 
+		AccessControlException {
 
 		// Get the URL for the request:
 		String requestUrl = getRequestUrl(wbRequest);

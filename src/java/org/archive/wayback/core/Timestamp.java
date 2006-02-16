@@ -31,12 +31,6 @@ import java.util.TimeZone;
 
 
 /**
- *
- *
- * @author brad
- * @version $Date$, $Revision$
- */
-/**
  * Represents a moment in time as a 14-digit string, and interally as a Date.
  * 
  * @author Brad Tofel

@@ -98,8 +98,8 @@ public class Http11ResourceStore implements ResourceStore {
 		if(arcUrls == null || arcUrls.length < 1) {
 			
 			// TODO: pretty up message for end user consumption
-			throw new ResourceNotAvailableException("Unable to location ARC " +
-					arcName);
+			throw new ResourceNotAvailableException("Unable to get location  " +
+					"for ARC " + arcName);
 		}
 		
 		// for now, we'll just grab the first one:

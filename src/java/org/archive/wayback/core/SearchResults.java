@@ -94,7 +94,7 @@ public class SearchResults {
 	}
 	
 	/**
-	 * @return an Iterator that contains the ResourceResult objects
+	 * @return an Iterator that contains the SearchResult objects
 	 */
 	public Iterator iterator() {
 		return results.iterator();

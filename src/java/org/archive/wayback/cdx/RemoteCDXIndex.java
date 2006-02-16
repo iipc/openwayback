@@ -37,6 +37,7 @@ import org.archive.wayback.ResourceIndex;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.WaybackRequest;
+import org.archive.wayback.exception.AccessControlException;
 import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
@@ -109,7 +110,8 @@ public class RemoteCDXIndex implements ResourceIndex {
 	 */
 	public SearchResults query(WaybackRequest wbRequest)
 			throws ResourceIndexNotAvailableException,
-			ResourceNotInArchiveException, BadQueryException {
+			ResourceNotInArchiveException, BadQueryException,
+			AccessControlException {
 
 		// Get the URL for the request:
 		String requestUrl = getRequestUrl(wbRequest);
@@ -135,6 +137,8 @@ public class RemoteCDXIndex implements ResourceIndex {
 					WB_XML_ERROR_TITLE);
 			String errMessage =  getNodeContent((Element) errors.item(0),
 					WB_XML_ERROR_MESSAGE);
+			
+			// TODO: This just sucks. Think of something clever.
 			if(errTitle == null) {
 				throw new ResourceIndexNotAvailableException("Unknown error!");
 			} else if(errTitle.equals("Not in Archive")) {
@@ -143,6 +147,8 @@ public class RemoteCDXIndex implements ResourceIndex {
 				throw new BadQueryException(errMessage);
 			} else if(errTitle.equals("Index not available")) {
 				throw new ResourceIndexNotAvailableException(errMessage);
+			} else if(errTitle.equals("Access Problem")) {
+				throw new AccessControlException(errMessage);				
 			} else {
 				throw new ResourceIndexNotAvailableException("Unknown error!");				
 			}
