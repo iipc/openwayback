@@ -113,9 +113,7 @@ public class JSReplayRenderer extends RawReplayRenderer {
 				byte[] bbuffer = new byte[4 * 1024];
 				StringBuffer sbuffer = new StringBuffer();
 				for (int r = -1; (r = resource.read(bbuffer, 0, bbuffer.length)) != -1;) {
-
-					String chunk = new String(bbuffer);
-					sbuffer.append(chunk.substring(0, r));
+					sbuffer.append(new String(bbuffer, 0, r));
 				}
 
 				markUpPage(sbuffer, result, uriConverter);
@@ -127,15 +125,30 @@ public class JSReplayRenderer extends RawReplayRenderer {
 		}
 	}
 
-	/** add BASE tag and javascript to a page that will rewrite embedded URLs 
-	 * to point back into the WM
+	/** 
+	 * add BASE tag and javascript to a page that will rewrite embedded URLs 
+	 * to point back into the WM, also attempt to fix up URL attributes in some
+	 * tags that must be correct at page load (FRAME, META, LINK, SCRIPT)
+	 * 
 	 * @param page
 	 * @param result
 	 * @param uriConverter
 	 */
 	private void markUpPage(StringBuffer page, SearchResult result,
 			ReplayResultURIConverter uriConverter) {
-		// TODO deal with frames..
+		
+		String wmPrefix = uriConverter.getReplayUriPrefix();
+		String pageUrl = result.get(WaybackConstants.RESULT_URL);
+		String pageTS = result.get(WaybackConstants.RESULT_CAPTURE_DATE);
+		
+		
+		TagMagix.markupTagRE(page,wmPrefix,pageUrl,pageTS,"FRAME","SRC");
+		TagMagix.markupTagRE(page,wmPrefix,pageUrl,pageTS,"META","URL");
+		TagMagix.markupTagRE(page,wmPrefix,pageUrl,pageTS,"LINK","HREF");
+		// TODO: The classic WM added a js_ to the datespec, so NotInArchives
+		// can return an valid javascript doc, and not cause Javascript errors.
+		TagMagix.markupTagRE(page,wmPrefix,pageUrl,pageTS,"SCRIPT","SRC");
+
 		insertBaseTag(page, result);
 		insertJavascript(page, result, uriConverter);
 	}
@@ -170,6 +183,7 @@ public class JSReplayRenderer extends RawReplayRenderer {
 		String resourceTS = result.get(WaybackConstants.RESULT_CAPTURE_DATE);
 		String nowTS = Timestamp.currentTimestamp().getDateStr();
 
+		// TODO: make this an external script included via SRC tag...
 		String contextPath = uriConverter.getReplayUriPrefix() + "/"
 				+ resourceTS + "/";
 
