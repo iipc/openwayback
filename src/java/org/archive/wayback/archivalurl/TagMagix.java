@@ -24,6 +24,7 @@
  */
 package org.archive.wayback.archivalurl;
 
+import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -32,17 +33,43 @@ import org.archive.net.UURI;
 import org.archive.net.UURIFactory;
 
 /**
- *
+ * Library for updating arbitrary attributes in arbitrary tags to rewrite
+ * HTML documents so URI references point back into the Wayback Machine.
+ * Attempts to make minimal changes so nothing gets broken during this process.
  *
  * @author brad
  * @version $Date$, $Revision$
  */
 public class TagMagix {
 
+	private static HashMap pcPatterns = new HashMap();
+	
+	 
+	private static String QUOTED_ATTR_VALUE= "(\"[^\">]*\")";
+	private static String APOSED_ATTR_VALUE = "('[^'>]*')";
+	private static String RAW_ATTR_VALUE = "([^ \\t\\n\\x0B\\f\\r>\"']+)";
+	
+	private static String ANY_ATTR_VALUE = QUOTED_ATTR_VALUE+ "|" + APOSED_ATTR_VALUE +
+		"|" + RAW_ATTR_VALUE;
+	
+	private static Pattern getPattern(String tagName, String attrName) {
+
+		String key = tagName + "    " + attrName;
+		Pattern pc = (Pattern) pcPatterns.get(key);
+		if(pc == null) {
+			
+			String tagPatString = "<\\s*" + tagName + "\\s+[^>]*\\b" + attrName + 
+				"\\s*=\\s*(" + ANY_ATTR_VALUE + ")(\\s|>)?";
+			
+			pc = Pattern.compile(tagPatString,Pattern.CASE_INSENSITIVE);
+			pcPatterns.put(key,pc);
+		}
+		return pc;
+	}
+
 	/**
-	 * Using hope, rythm, and prayer techniques to alter the HTML
-	 * document in page, updating URLs in the attrName attributes of all
-	 * tagName tags such that:
+	 * Alter the HTML document in page, updating URLs in the attrName 
+	 * attributes of all tagName tags such that:
 	 * 
 	 *   1) absolute URLs are prefixed with:
 	 *         wmPrefix + pageTS
@@ -58,162 +85,6 @@ public class TagMagix {
 	 * @param tagName
 	 * @param attrName
 	 */
-	public static void markupTag(StringBuffer page, String wmPrefix, 
-			String pageUrl, String pageTS, String tagName, String attrName) {
-		
-		UURI pageURI;
-		String pageHost;
-		try {
-			pageURI = UURIFactory.getInstance(pageUrl);
-			pageHost = pageURI.getHost();
-		} catch (URIException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return;
-		}
-
-		String absPrefix = wmPrefix + pageTS + "/";
-		String srvPrefix = wmPrefix + pageTS + "/" + pageHost;
-
-		int idx = 0;
-		String lcTag = "<" + tagName.toLowerCase();
-		String ucTag = "<" + tagName.toUpperCase();
-		String ucAttr = attrName.toUpperCase();
-		String lcAttr = attrName.toLowerCase();
-		
-		while(true) {
-			int tagStart = page.indexOf(ucTag,idx);
-			if(tagStart == -1) {
-				tagStart = page.indexOf(lcTag,idx);
-			}
-			if(tagStart == -1) {
-				break;
-			}
-			// where does the tag end?
-			int tagEnd = page.indexOf(">",tagStart);
-			// remember where we are:
-			idx = tagEnd;
-			int attrStart = page.indexOf(ucAttr,tagStart);
-			if(attrStart == -1 || attrStart > tagEnd) {
-				attrStart = page.indexOf(lcAttr,tagStart);
-			}
-			if(attrStart == -1 || attrStart > tagEnd) {
-				continue;
-			}
-
-			// OK, we have the right attribute, on the right tag. 
-			// if we can just extract out the value, we'll be set.
-			// well, nearly set, anyways...
-			
-			int attrEnd = attrStart + attrName.length();
-			// where is the next '='?
-			int equalsIdx = page.indexOf("=",attrEnd);
-			if(equalsIdx == -1 || equalsIdx > tagEnd) {
-				continue;
-			}
-			int attrValueStart = -1;
-			while(equalsIdx < tagEnd) {
-				// scan until we hit the first non-blank
-				if(isWhiteSpace(page.charAt(equalsIdx))) {
-					equalsIdx++;
-					continue;
-				}
-				attrValueStart = equalsIdx;
-				break;
-			}
-			if(attrValueStart == -1) {
-				continue;
-			}
-			int attrValueEnd = -1;
-			char firstChar = page.charAt(attrValueStart);
-			if(firstChar == '"') {
-				attrValueStart++;
-				int attrIdx = attrValueStart;
-				// scan until we pass tagEnd or hit another '"':
-				while(attrIdx < tagEnd) {
-					if(page.charAt(attrIdx) == '"') {
-						attrValueEnd = attrIdx - 1;
-						break;
-					}
-					attrIdx++;
-				}
-			} else if(firstChar == '\'') {
-				attrValueStart++;
-				int attrIdx = attrValueStart;
-				// scan until we pass tagEnd or hit another '\'':
-				while(attrIdx < tagEnd) {
-					if(page.charAt(attrIdx) == '\'') {
-						attrValueEnd = attrIdx - 1;
-						break;
-					}
-					attrIdx++;
-				}
-				
-			} else {
-				int attrIdx = attrValueStart;
-				// scan until we hit the next whitespace:
-				while(attrIdx < tagEnd) {
-					if(isWhiteSpace(page.charAt(attrIdx))) {
-						attrValueEnd = attrIdx - 1;
-						break;
-					}
-					attrIdx++;
-				}
-			}
-			// did we find the end of the attribute?
-			if(attrValueEnd == -1) {
-				// nope.
-				continue;
-			}
-			// yes! is the attribute value non-zero length?
-			int attrLength = attrValueEnd - attrValueStart;
-			if(attrLength < 1) {
-				// doh. forget it...
-				continue;
-			}
-			
-			// alright. current Attribute value is:
-			String attrValue = page.substring(attrValueStart,attrValueEnd);
-			
-			String newAttrValue = null;
-
-			// is it server-relative (starts with /)?
-			if(attrValue.charAt(0) == '/') {
-				newAttrValue = srvPrefix + attrValue;
-			} else {
-			
-				
-				// try to make a URI out of it:
-				UURI attrURI;
-				try {
-					attrURI = UURIFactory.getInstance(attrValue);
-				} catch (URIException e) {
-					continue;
-					//e.printStackTrace();
-				}
-				if(attrURI.isAbsoluteURI()) {
-					newAttrValue = absPrefix + attrValue;
-				} else {
-					// assume a path-relative URL:
-					try {
-						newAttrValue = pageURI.resolve(attrValue).toString();
-					} catch (URIException e) {
-						continue;
-					}
-				}
-			}
-
-			// WOW! We have an actual replacement for the bastard attribute:
-			int delta = attrValue.length() - newAttrValue.length();
-			idx += delta;
-			page.replace(attrValueStart,attrValueEnd,newAttrValue);
-			
-		}
-	}
-	private static boolean isWhiteSpace(char c) {
-		return (c == ' ') || (c == '\t') || (c == '\n');
-	}
-	
 	public static void markupTagRE (StringBuffer page, String wmPrefix, 
 			String pageUrl, String pageTS, String tagName, String attrName) {
 
@@ -221,7 +92,7 @@ public class TagMagix {
 		String pageHost;
 		try {
 			pageURI = UURIFactory.getInstance(pageUrl);
-			pageHost = pageURI.getHost();
+			pageHost = pageURI.getScheme() + "://" + pageURI.getHost();
 		} catch (URIException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -230,19 +101,8 @@ public class TagMagix {
 
 		String absPrefix = wmPrefix + pageTS + "/";
 		String srvPrefix = wmPrefix + pageTS + "/" + pageHost;
-		
-		String quotedAttrValue = "(\"[^\">]*\")";
-		String aposedAttrValue = "('[^'>]*')";
-		String rawAttrValue = "([^ \\t\\n\\x0B\\f\\r>\"']+)";
-		
-		String anyAttrValue = quotedAttrValue + "|" + aposedAttrValue +
-//			"";
-			"|" + rawAttrValue;
-		
-		String tagPatString = "<\\s*" + tagName + "\\s+[^>]*\\b" + attrName + 
-			"\\s*=\\s*(" + anyAttrValue + ")(\\s|>)?";
-		
-		Pattern tagPat = Pattern.compile(tagPatString,Pattern.CASE_INSENSITIVE);
+				
+		Pattern tagPat = getPattern(tagName, attrName);
 		Matcher matcher = tagPat.matcher(page);
 		
 		int idx = 0;
@@ -271,21 +131,21 @@ public class TagMagix {
 			idx = attrEnd + delta;
 		}
 	}
+	
 	private static String resolveAttribute(String value,String abs, String srv, UURI uri) {
 		if(value.charAt(0) == '/') {
 			// server-relative:
 			return srv + value;
 			
 		} else {
-			UURI attrUri;
+			UURI attrUri = null;
 			try {
 				attrUri = UURIFactory.getInstance(value);
 			} catch (URIException e1) {
-				e1.printStackTrace();
-				// TODO: this is giving up -- should not get here..
-				return abs + value;
+				// we can get here if the value is not an absolute URL
+				// will be handled below when attrUri is null.
 			}
-			if(attrUri.isAbsoluteURI()) {
+			if(attrUri != null && attrUri.isAbsoluteURI()) {
 			
 				return abs + value;
 			} else {
