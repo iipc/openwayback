@@ -131,9 +131,7 @@ public class ExclusionFilter implements RecordFilter {
 			byte[] bbuffer = new byte[4 * 1024];
 			StringBuffer sbuffer = new StringBuffer();
 			for (int r = -1; (r = is.read(bbuffer, 0, bbuffer.length)) != -1;) {
-
-				String chunk = new String(bbuffer);
-				sbuffer.append(chunk.substring(0, r));
+				sbuffer.append(new String(bbuffer, 0, r));
 			}
 			String content = sbuffer.toString();
 			if(content.equals(OK_CONTENT)) {
