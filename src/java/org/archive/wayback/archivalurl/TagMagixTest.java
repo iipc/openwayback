@@ -34,24 +34,139 @@ import junit.framework.TestCase;
  */
 public class TagMagixTest extends TestCase {
 
-	/*
+	/**
 	 * Test method for 'org.archive.wayback.archivalurl.TagMagix.markupTag(StringBuffer, String, String, String, String, String)'
 	 */
 	public void testMarkupTag() {
+
+		// simple simple -- no quotes at all
 		checkMarkup(
 				"<A HREF=http://goofy.com/>",
 				"<A HREF=http://web.archive.org/wayback/2004/http://goofy.com/>",
 				"A","href","http://web.archive.org/wayback/","2004","http://www.archive.org/");
 
+		// same test with lower case
+		checkMarkup(
+				"<a href=http://goofy.com/>",
+				"<a href=http://web.archive.org/wayback/2004/http://goofy.com/>",
+				"A","href","http://web.archive.org/wayback/","2004","http://www.archive.org/");
+
+		// with funky mixed case
+		checkMarkup(
+				"<a hREF=http://goofy.com/>",
+				"<a hREF=http://web.archive.org/wayback/2004/http://goofy.com/>",
+				"A","href","http://web.archive.org/wayback/","2004","http://www.archive.org/");
+
+		// more funky mixed case, this time in the attribute to replace argument
+		checkMarkup(
+				"<a hREF=http://goofy.com/>",
+				"<a hREF=http://web.archive.org/wayback/2004/http://goofy.com/>",
+				"A","HREF","http://web.archive.org/wayback/","2004","http://www.archive.org/");
+
+		// another funky case permutation, this time in the tagname to replace
+		checkMarkup(
+				"<a hREF=http://goofy.com/>",
+				"<a hREF=http://web.archive.org/wayback/2004/http://goofy.com/>",
+				"a","HREF","http://web.archive.org/wayback/","2004","http://www.archive.org/");
+
+		// with double quotes
 		checkMarkup(
 				"<A HREF=\"http://goofy.com/\">",
 				"<A HREF=\"http://web.archive.org/wayback/2004/http://goofy.com/\">",
 				"A","href","http://web.archive.org/wayback/","2004","http://www.archive.org/");
 
+		// single quotes
 		checkMarkup(
 				"<A HREF='http://goofy.com/'>",
 				"<A HREF='http://web.archive.org/wayback/2004/http://goofy.com/'>",
 				"A","href","http://web.archive.org/wayback/","2004","http://www.archive.org/");
+
+		// two tags
+		checkMarkup(
+				"<A HREF='http://goofy.com/'><A HREF='http://goofier.com/'>",
+				"<A HREF='http://web.archive.org/wayback/2004/http://goofy.com/'><A HREF='http://web.archive.org/wayback/2004/http://goofier.com/'>",
+				"A","href","http://web.archive.org/wayback/","2004","http://www.archive.org/");
+
+		// two tags with newline:
+		checkMarkup(
+				"<A HREF='http://goofy.com/'>\n<A HREF='http://goofier.com/'>",
+				"<A HREF='http://web.archive.org/wayback/2004/http://goofy.com/'>\n<A HREF='http://web.archive.org/wayback/2004/http://goofier.com/'>",
+				"A","href","http://web.archive.org/wayback/","2004","http://www.archive.org/");
+
+		
+		// two tags in "page" but only asking to update one of them
+		checkMarkup(
+				"<A HREF='http://goofy.com/'><B HREF='http://goofier.com/'>",
+				"<A HREF='http://web.archive.org/wayback/2004/http://goofy.com/'><B HREF='http://goofier.com/'>",
+				"A","href","http://web.archive.org/wayback/","2004","http://www.archive.org/");
+	
+		// two tags, asking to update the other.
+		checkMarkup(
+				"<A HREF='http://goofy.com/'><B HREF='http://goofier.com/'>",
+				"<A HREF='http://goofy.com/'><B HREF='http://web.archive.org/wayback/2004/http://goofier.com/'>",
+				"B","href","http://web.archive.org/wayback/","2004","http://www.archive.org/");
+
+		// simple path relative
+		checkMarkup(
+				"<A HREF='index.html'>",
+				"<A HREF='http://web.archive.org/wayback/2004/http://www.archive.org/index.html'>",
+				"A","href","http://web.archive.org/wayback/","2004","http://www.archive.org/");
+
+		// simple server relative but irrelavant -- still at top level
+		checkMarkup(
+				"<A HREF='/index.html'>",
+				"<A HREF='http://web.archive.org/wayback/2004/http://www.archive.org/index.html'>",
+				"A","href","http://web.archive.org/wayback/","2004","http://www.archive.org/");
+
+		// server relative but with non directory base url
+		checkMarkup(
+				"<A HREF='/index.html'>",
+				"<A HREF='http://web.archive.org/wayback/2004/http://www.archive.org/index.html'>",
+				"A","href","http://web.archive.org/wayback/","2004","http://www.archive.org/dir");
+
+		// server relative being significant
+		checkMarkup(
+				"<A HREF='/index.html'>",
+				"<A HREF='http://web.archive.org/wayback/2004/http://www.archive.org/index.html'>",
+				"A","href","http://web.archive.org/wayback/","2004","http://www.archive.org/dir/");
+
+		// path relative with non-directory base url
+		checkMarkup(
+				"<A HREF='index.html'>",
+				"<A HREF='http://web.archive.org/wayback/2004/http://www.archive.org/index.html'>",
+				"A","href","http://web.archive.org/wayback/","2004","http://www.archive.org/dir");
+
+		// path relative in subdirectory
+		checkMarkup(
+				"<A HREF='index.html'>",
+				"<A HREF='http://web.archive.org/wayback/2004/http://www.archive.org/dir/index.html'>",
+				"A","href","http://web.archive.org/wayback/","2004","http://www.archive.org/dir/");
+
+		// don't touch a "malformed" attribute (no closing apos)
+		checkMarkup(
+				"<A HREF='index.html>",
+				"<A HREF='index.html>",
+				"A","href","http://web.archive.org/wayback/","2004","http://www.archive.org/dir/");
+
+		// don't touch a "malformed" attribute (no differing quotes around attribute.)
+		checkMarkup(
+				"<A HREF='index.html\">",
+				"<A HREF='index.html\">",
+				"A","href","http://web.archive.org/wayback/","2004","http://www.archive.org/dir/");
+
+		// same as last, but reversed: don't touch a "malformed" attribute (no differing quotes around attribute.)
+		checkMarkup(
+				"<A HREF=\"index.html'>",
+				"<A HREF=\"index.html'>",
+				"A","href","http://web.archive.org/wayback/","2004","http://www.archive.org/dir/");
+
+		// newline in attribute
+		checkMarkup(
+				"<A HREF='/index.html'\n FOO='bar'>",
+				"<A HREF='http://web.archive.org/wayback/2004/http://www.archive.org/index.html'\n FOO='bar'>",
+				"A","href","http://web.archive.org/wayback/","2004","http://www.archive.org/dir/");
+
+		
 	}
 
 	
@@ -59,6 +174,6 @@ public class TagMagixTest extends TestCase {
 		StringBuffer buf = new StringBuffer(orig);
 		TagMagix.markupTagRE(buf,prefix,url,ts,tag,attr);
 		String marked = buf.toString();
-		//assertEquals(marked,want);
+		assertEquals(marked,want);
 	}
 }
