@@ -106,6 +106,7 @@ public class OpenSearchQueryParser {
 		} else {
 			parseTerms(wbRequest, query);
 		}
+		wbRequest.fixup();
 		return wbRequest;
 	}
 	
