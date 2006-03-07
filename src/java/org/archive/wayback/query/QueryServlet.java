@@ -110,7 +110,6 @@ public class QueryServlet extends HttpServlet {
 
 			if (wbRequest == null) {
 				wbRequest = qp.parseQuery(httpRequest.getParameterMap());
-				//wbRequest = parseCGIRequest(httpRequest);
 			}
 
 			SearchResults results;
