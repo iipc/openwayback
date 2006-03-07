@@ -31,6 +31,7 @@ import org.archive.net.UURI;
 import org.archive.net.UURIFactory;
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.SearchResult;
+
 /**
  *
  *
@@ -38,15 +39,15 @@ import org.archive.wayback.core.SearchResult;
  * @version $Date$, $Revision$
  */
 public class CDXRecord {
-    /**
-     * CDX Header line for these fields. not very configurable..
-     */
-    public final static String CDX_HEADER_MAGIC = " CDX N b h m s k r V g";
+	/**
+	 * CDX Header line for these fields. not very configurable..
+	 */
+	public final static String CDX_HEADER_MAGIC = " CDX N b h m s k r V g";
 
-    /**
-     * capture url for this document
-     */
-    public String url;
+	/**
+	 * capture url for this document
+	 */
+	public String url;
 
 	/**
 	 * date this document was captured, 14-digit
@@ -103,28 +104,32 @@ public class CDXRecord {
 	 * @return String lookup key for URL argument.
 	 * @throws URIException 
 	 */
-	public static String urlStringToKey(final String urlString) throws URIException {
+	public static String urlStringToKey(final String urlString)
+			throws URIException {
 
 		String searchUrl = urlString;
+
+		// TODO: this will only work with http:// scheme. should work with all?
+		// force add of scheme and possible add '/' with empty path:
 		if (searchUrl.startsWith("http://")) {
-            if (-1 == searchUrl.indexOf('/', 8)) {
-            	searchUrl = searchUrl + "/";
-            }
-	    } else {
-	            if (-1 == searchUrl.indexOf("/")) {
-	            	searchUrl = searchUrl + "/";
-	            }
-	            searchUrl = "http://" + searchUrl;
-	    }
+			if (-1 == searchUrl.indexOf('/', 8)) {
+				searchUrl = searchUrl + "/";
+			}
+		} else {
+			if (-1 == searchUrl.indexOf("/")) {
+				searchUrl = searchUrl + "/";
+			}
+			searchUrl = "http://" + searchUrl;
+		}
 
-		
+		// convert to UURI to perform require URI fixup:
 		UURI searchURI = UURIFactory.getInstance(searchUrl);
-		String searchHost = searchURI.getHostBasename();
-		String searchPath = searchURI.getEscapedPathQuery();
 
-		return searchHost + searchPath;
+		// replace ' ' with '+' (this is only to match Alexa's canonicalization)
+		searchURI.setPath(searchURI.getPath().replace(' ', '+'));
+		return searchURI.getHostBasename() + searchURI.getEscapedPathQuery();
 	}
-	
+
 	/**
 	 * Attempt to deserialize state from a single text line, fields delimited by
 	 * spaces. There are standard ways to do this, and this is not one of
@@ -182,8 +187,8 @@ public class CDXRecord {
 		httpResponseCode = result.get(WaybackConstants.RESULT_HTTP_CODE);
 		md5Fragment = result.get(WaybackConstants.RESULT_MD5_DIGEST);
 		redirectUrl = result.get(WaybackConstants.RESULT_REDIRECT_URL);
-		compressedOffset = Long.parseLong(result.get(
-				WaybackConstants.RESULT_OFFSET));
+		compressedOffset = Long.parseLong(result
+				.get(WaybackConstants.RESULT_OFFSET));
 		arcFileName = result.get(WaybackConstants.RESULT_ARC_FILE);
 	}
 
