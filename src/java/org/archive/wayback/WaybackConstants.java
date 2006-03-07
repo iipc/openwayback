@@ -42,7 +42,12 @@ public interface WaybackConstants {
 	 */
     public static final String DNS_URL_PREFIX = "dns:";
 	
-	
+	/**
+	 * Request: (query) filter results to those prefixed with this (possibly 
+	 * partial) 14-digit timestamp 
+	 */
+	public static final String REQUEST_DATE = "date";
+
 	/**
 	 * Request: filter results before this 14-digit timestamp 
 	 */
