@@ -177,13 +177,6 @@ public class Resource extends InputStream {
 		return arcRecord;
 	}
 
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-
-	}
-
 	/* (non-Javadoc)
 	 * @see org.archive.io.arc.ARCRecord#read()
 	 */
@@ -220,5 +213,11 @@ public class Resource extends InputStream {
 		arcReader.close();
 		LOGGER.info("closed..("+arcReader+")");
 	}
-
+	
+	/**
+	 * @return byte length claimed in ARC record metadata line.
+	 */
+	public long getRecordLength() {
+		return arcRecord.getMetaData().getLength();
+	}
 }
