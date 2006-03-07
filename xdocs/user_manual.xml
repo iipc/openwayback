@@ -9,7 +9,8 @@
 		<section name="Introduction">
 			<p>
 				The Wayback Machine is a pure Java application that allows
-				web browsers to access to content stored in a set of ARC files.
+				web browsers to access and search content stored in a set of ARC
+				files.
 			</p>
 			<p>
 				This manual provides basic information about downloading,
