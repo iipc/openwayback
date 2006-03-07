@@ -40,16 +40,69 @@ public class CDXRecordTest extends TestCase {
 	 * Test method for 'org.archive.wayback.cdx.CDXRecord.urlStringToKey(String)'
 	 */
 	public void testUrlStringToKey() {
+
+		// simple strip of http://
 		checkCanonicalization("http://foo.com/","foo.com/");
+
+// would be nice to handle other protocols...
+//		// simple strip of https://
+//		checkCanonicalization("https://foo.com/","foo.com/");
+//
+//		// simple strip of ftp://
+//		checkCanonicalization("ftp://foo.com/","foo.com/");
+//
+//		// simple strip of rtsp://
+//		checkCanonicalization("rtsp://foo.com/","foo.com/");
+
+		// strip leading 'www.'
 		checkCanonicalization("http://www.foo.com/","foo.com/");
+		
+		// add trailing '/' with empty path
 		checkCanonicalization("http://www.foo.com","foo.com/");
+		
+		// strip leading 'www##.'
 		checkCanonicalization("http://www12.foo.com/","foo.com/");
+		
+		// strip leading 'www##.' with no protocol
 		checkCanonicalization("www12.foo.com/","foo.com/");
-		checkCanonicalization("www12.foo.com","foo.com/");
+		
+		
+		// leave alone an url with no protocol but non-empty path
 		checkCanonicalization("foo.com/","foo.com/");
+		
+		// add trailing '/' with empty path and without protocol
 		checkCanonicalization("foo.com","foo.com/");
 
+		// add trailing '/' to with empty path and no protocol, plus massage
+		checkCanonicalization("www12.foo.com","foo.com/");
+
+		// do not add trailing '/' non-empty path and without protocol
+		checkCanonicalization("foo.com/boo","foo.com/boo");
 		
+		// replace escaped ' ' with '+' in path
+		checkCanonicalization("foo.com/pa%20th/","foo.com/pa+th/");
+		
+		// replace escaped ' ' with '+' in path plus keep trailing slash
+		checkCanonicalization("foo.com/pa%20th","foo.com/pa+th");
+
+		// replace escaped ' ' with '+' in path plus keep trailing slash and query
+		checkCanonicalization("foo.com/pa%20th?a=b","foo.com/pa+th?a=b");
+		
+		
+		// replace escaped ' ' with '+' in path but not in query key
+		checkCanonicalization("foo.com/pa%20th?a%20a=b","foo.com/pa+th?a%20a=b");
+
+		// replace escaped ' ' with '+' in path but not in query value
+		checkCanonicalization("foo.com/pa%20th?a=b%20b","foo.com/pa+th?a=b%20b");
+
+		// replace escaped ' ' with '+' in path, unescape legal '!' in path
+		// no change in query escaping
+		checkCanonicalization("foo.com/pa%20t%21h?a%20a=b","foo.com/pa+t!h?a%20a=b");
+		
+		// replace escaped ' ' with '+' in path, leave illegal '%02' in path
+		// no change in query escaping
+		checkCanonicalization("foo.com/pa%20t%02h?a%20a=b","foo.com/pa+t%02h?a%20a=b");
+
 	}
 	private void checkCanonicalization(String orig, String want) {
 		String got;
