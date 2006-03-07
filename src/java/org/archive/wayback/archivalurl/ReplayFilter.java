@@ -83,9 +83,28 @@ public class ReplayFilter extends RequestFilter {
 				urlStr = "http://" + urlStr;
 			}
 
+			// The logic of the classic WM wrt timestamp bounding:
+			// if 14-digits are specified, assume min-max range boundaries
+			// if less than 14 are specified, assume min-max range boundaries
+			//     based upon amount given (2001 => 20010101... - 20011231...)
+			//     AND assume the user asked for the LATEST possible date
+			//     within that range...
+			//
+			//   ...don't ask me, I just work here.
+
+			String startDate = null;
+			String endDate = null;
+			if(dateStr.length() == 14) {
+				startDate = Timestamp.earliestTimestamp().getDateStr();
+				endDate = Timestamp.currentTimestamp().getDateStr();
+			} else {
+
+				startDate = Timestamp.parseBefore(dateStr).getDateStr();
+				endDate = Timestamp.parseAfter(dateStr).getDateStr();
+				dateStr = endDate;
+				
+			}
 			wbRequest.put(WaybackConstants.REQUEST_EXACT_DATE,dateStr);
-			String startDate = Timestamp.earliestTimestamp().getDateStr();
-			String endDate = Timestamp.currentTimestamp().getDateStr();
 			wbRequest.put(WaybackConstants.REQUEST_START_DATE,startDate);
 			wbRequest.put(WaybackConstants.REQUEST_END_DATE,endDate);
 
