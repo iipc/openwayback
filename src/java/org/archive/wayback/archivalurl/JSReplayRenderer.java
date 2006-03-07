@@ -51,6 +51,8 @@ public class JSReplayRenderer extends RawReplayRenderer {
 	 */
 	private final static String TEXT_HTML_MIME = "text/html";
 
+	private final static long MAX_HTML_MARKUP_LENGTH = 1024 * 1024 * 5;
+	
 	/** test if the SearchResult should be replayed raw, without JS markup
 	 * @param result
 	 * @return boolean, true if the document should be returned raw.
@@ -62,7 +64,7 @@ public class JSReplayRenderer extends RawReplayRenderer {
 		}
 		return false;
 	}
-	
+
 	/** send the client to a different/better request URL for the document
 	 * they asked for.
 	 * 
@@ -70,13 +72,12 @@ public class JSReplayRenderer extends RawReplayRenderer {
 	 * @param url
 	 * @throws IOException
 	 */
-	private void redirectToBetterUrl(HttpServletResponse httpResponse, 
+	private void redirectToBetterUrl(HttpServletResponse httpResponse,
 			String url) throws IOException {
-		
+
 		httpResponse.sendRedirect(url);
 
 	}
-	
 
 	public void renderResource(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
@@ -90,7 +91,7 @@ public class JSReplayRenderer extends RawReplayRenderer {
 		if (result == null) {
 			throw new IllegalArgumentException("No result");
 		}
-		
+
 		// redirect to actual date if diff than request:
 		if (!wbRequest.get(WaybackConstants.REQUEST_EXACT_DATE).equals(
 				result.get(WaybackConstants.RESULT_CAPTURE_DATE))) {
@@ -100,7 +101,9 @@ public class JSReplayRenderer extends RawReplayRenderer {
 
 		} else {
 
-			if (isRawReplayResult(result)) {
+			if (resource.getRecordLength() > MAX_HTML_MARKUP_LENGTH ||
+					isRawReplayResult(result)) {
+				
 				super.renderResource(httpRequest, httpResponse, wbRequest,
 						result, resource, uriConverter);
 			} else {
@@ -112,7 +115,9 @@ public class JSReplayRenderer extends RawReplayRenderer {
 				// slurp the whole thing into RAM:
 				byte[] bbuffer = new byte[4 * 1024];
 				StringBuffer sbuffer = new StringBuffer();
-				for (int r = -1; (r = resource.read(bbuffer, 0, bbuffer.length)) != -1;) {
+				for (int r = -1; 
+					(r = resource.read(bbuffer, 0, bbuffer.length)) != -1;) {
+					
 					sbuffer.append(new String(bbuffer, 0, r));
 				}
 
@@ -136,18 +141,17 @@ public class JSReplayRenderer extends RawReplayRenderer {
 	 */
 	private void markUpPage(StringBuffer page, SearchResult result,
 			ReplayResultURIConverter uriConverter) {
-		
+
 		String wmPrefix = uriConverter.getReplayUriPrefix();
 		String pageUrl = result.get(WaybackConstants.RESULT_URL);
 		String pageTS = result.get(WaybackConstants.RESULT_CAPTURE_DATE);
-		
-		
-		TagMagix.markupTagRE(page,wmPrefix,pageUrl,pageTS,"FRAME","SRC");
-		TagMagix.markupTagRE(page,wmPrefix,pageUrl,pageTS,"META","URL");
-		TagMagix.markupTagRE(page,wmPrefix,pageUrl,pageTS,"LINK","HREF");
+
+		TagMagix.markupTagRE(page, wmPrefix, pageUrl, pageTS, "FRAME", "SRC");
+		TagMagix.markupTagRE(page, wmPrefix, pageUrl, pageTS, "META", "URL");
+		TagMagix.markupTagRE(page, wmPrefix, pageUrl, pageTS, "LINK", "HREF");
 		// TODO: The classic WM added a js_ to the datespec, so NotInArchives
 		// can return an valid javascript doc, and not cause Javascript errors.
-		TagMagix.markupTagRE(page,wmPrefix,pageUrl,pageTS,"SCRIPT","SRC");
+		TagMagix.markupTagRE(page, wmPrefix, pageUrl, pageTS, "SCRIPT", "SRC");
 
 		insertBaseTag(page, result);
 		insertJavascript(page, result, uriConverter);
@@ -213,7 +217,7 @@ public class JSReplayRenderer extends RawReplayRenderer {
 				+ "function xLateUrl(aCollection, sProp) {\n"
 				+ "   var i = 0;\n"
 				+ "   for(i = 0; i < aCollection.length; i++) {\n"
-				+ "      if (typeof(aCollection[i][sProp]) == \"string\") {\n" 
+				+ "      if (typeof(aCollection[i][sProp]) == \"string\") {\n"
 				+ "         if (aCollection[i][sProp].indexOf(\"mailto:\") == -1 &&\n"
 				+ "            aCollection[i][sProp].indexOf(\"javascript:\") == -1) {\n"
 				+ "\n"
@@ -237,8 +241,7 @@ public class JSReplayRenderer extends RawReplayRenderer {
 				+ "xLateUrl(document.getElementsByTagName(\"EMBED\"),\"src\");\n"
 				+ "xLateUrl(document.getElementsByTagName(\"BODY\"),\"background\");\n"
 				+ "var forms = document.getElementsByTagName(\"FORM\");\n"
-				+ "if (forms) {\n"
-				+ "		var j = 0;\n"
+				+ "if (forms) {\n" + "		var j = 0;\n"
 				+ "		for (j = 0; j < forms.length; j++) {\n"
 				+ "			f = forms[j];\n"
 				+ "			if (typeof(f.action)  == \"string\") {\n"
@@ -250,7 +253,10 @@ public class JSReplayRenderer extends RawReplayRenderer {
 				+ "			}\n"
 				+ "		}\n"
 				+ "}\n"
-				+ "\n" + "//           -->\n" + "\n" + "</SCRIPT>\n";
+				+ "\n"
+				+ "//           -->\n"
+				+ "\n"
+				+ "</SCRIPT>\n";
 
 		int insertPoint = page.indexOf("</body>");
 		if (-1 == insertPoint) {
