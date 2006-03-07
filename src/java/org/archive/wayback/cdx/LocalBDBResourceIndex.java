@@ -126,15 +126,8 @@ public class LocalBDBResourceIndex implements ResourceIndex {
 		}
 
 		exclusionUrlPrefix = (String) p.get(EXCLUSION_PREFIX);
-//		if (exclusionUrlPrefix == null || (exclusionUrlPrefix.length() <= 0)) {
-//			throw new IllegalArgumentException("Failed to find " + EXCLUSION_PREFIX);
-//		}
 
 		exclusionUserAgent = (String) p.get(EXCLUSION_UA);
-//		if (exclusionUserAgent == null || (exclusionUserAgent.length() <= 0)) {
-//			throw new IllegalArgumentException("Failed to find " + EXCLUSION_UA);
-//		}
-
 		
 		try {
 			db = new BDBResourceIndex(dbPath, dbName);
@@ -144,6 +137,16 @@ public class LocalBDBResourceIndex implements ResourceIndex {
 		}
 		pipeline = new IndexPipeline();
 		pipeline.init(p);
+	}
+	
+	private String getRequired(WaybackRequest wbRequest, String field)
+		throws BadQueryException {
+
+		String value = wbRequest.get(field);
+		if(value == null) {
+			throw new BadQueryException("No " + field + " specified");
+		}
+		return value;
 	}
 	
 	/**
@@ -182,10 +185,14 @@ public class LocalBDBResourceIndex implements ResourceIndex {
 			throw new BadQueryException("pageNum must be > 0");
 		}
 		
-		String searchUrl = wbRequest.get(WaybackConstants.REQUEST_URL);
-		String searchType = wbRequest.get(WaybackConstants.REQUEST_TYPE);
-		String startDate = wbRequest.get(WaybackConstants.REQUEST_START_DATE);
-		String endDate = wbRequest.get(WaybackConstants.REQUEST_END_DATE);
+		String searchUrl = getRequired(wbRequest,
+				WaybackConstants.REQUEST_URL);
+		String searchType = getRequired(wbRequest,
+				WaybackConstants.REQUEST_TYPE);
+		String startDate = getRequired(wbRequest,
+				WaybackConstants.REQUEST_START_DATE);
+		String endDate = getRequired(wbRequest,
+				WaybackConstants.REQUEST_END_DATE);
 
 		try {
 			keyUrl = CDXRecord.urlStringToKey(searchUrl);
