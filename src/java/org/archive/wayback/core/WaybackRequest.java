@@ -28,6 +28,7 @@ import java.util.Properties;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
+import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.query.OpenSearchQueryParser;
 
 /**
@@ -101,6 +102,33 @@ public class WaybackRequest {
 	 */
 	public void put(String key, String value) {
 		filters.put(key, value);
+	}
+	
+	/**
+	 * attempt to fixup this WaybackRequest, mostly with respect to dates:
+	 *   if only "date" was specified, infer start and end dates from it.
+	 */
+	public void fixup() {
+		String startDate = get(WaybackConstants.REQUEST_START_DATE);
+		String endDate = get(WaybackConstants.REQUEST_END_DATE);
+		String partialDate = get(WaybackConstants.REQUEST_DATE);
+		if(partialDate == null) {
+			partialDate = "";
+		}
+		if(startDate == null || startDate.length() == 0) {
+			put(WaybackConstants.REQUEST_START_DATE,
+					Timestamp.padStartDateStr(partialDate));
+		} else if (startDate.length() < 14) {
+			put(WaybackConstants.REQUEST_START_DATE,
+					Timestamp.padStartDateStr(startDate));
+		}
+		if(endDate == null || endDate.length() == 0) {
+			put(WaybackConstants.REQUEST_END_DATE,
+					Timestamp.padEndDateStr(partialDate));
+		} else if (endDate.length() < 14) {
+			put(WaybackConstants.REQUEST_END_DATE,
+					Timestamp.padEndDateStr(endDate));
+		}
 	}
 	
 	/**
