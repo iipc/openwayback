@@ -65,6 +65,7 @@ public class RawReplayRenderer implements ReplayRenderer {
 
 	private final String ERROR_JSP = "ErrorResult.jsp";
 	private final String ERROR_JAVASCRIPT = "ErrorJavascript.jsp";
+	private final String ERROR_CSS = "ErrorCSS.jsp";
 	private final String ERROR_IMAGE = "error_image.gif";
 
 	public void init(Properties p) throws ConfigurationException {
@@ -95,6 +96,13 @@ public class RawReplayRenderer implements ReplayRenderer {
 		return requestUrl.endsWith(".js");
 	}
 
+	private boolean requestIsCSS (HttpServletRequest httpRequest,
+			WaybackRequest wbRequest) {
+			
+		String requestUrl = wbRequest.get(WaybackConstants.REQUEST_URL);
+		return requestUrl.endsWith(".css");
+	}
+
 	// TODO special handling for Javascript and Images: send empty image
 	// or empty text file to avoid client errors
 	public void renderException(HttpServletRequest httpRequest,
@@ -108,6 +116,10 @@ public class RawReplayRenderer implements ReplayRenderer {
 			if(requestIsJavascript(httpRequest,wbRequest)) {
 				
 				finalJspPath = jspPath + "/" + ERROR_JAVASCRIPT;
+
+			} else if(requestIsCSS(httpRequest,wbRequest)) {
+
+				finalJspPath = jspPath + "/" + ERROR_CSS;
 				
 			} else if(requestIsImage(httpRequest,wbRequest)) {
 
