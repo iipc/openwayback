@@ -188,7 +188,7 @@ public class JSReplayRenderer extends RawReplayRenderer {
 		String nowTS = Timestamp.currentTimestamp().getDateStr();
 
 		// TODO: make this an external script included via SRC tag...
-		String contextPath = uriConverter.getReplayUriPrefix() + "/"
+		String contextPath = uriConverter.getReplayUriPrefix()
 				+ resourceTS + "/";
 
 		String scriptInsert = "<SCRIPT language=\"Javascript\">\n"
