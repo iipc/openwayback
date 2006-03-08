@@ -91,6 +91,9 @@ public class TagMagix {
 		UURI pageURI;
 		String pageHost;
 		try {
+			if(!pageUrl.startsWith("http://")) {
+				pageUrl = "http://" + pageUrl;
+			}
 			pageURI = UURIFactory.getInstance(pageUrl);
 			pageHost = pageURI.getScheme() + "://" + pageURI.getHost();
 		} catch (URIException e) {
