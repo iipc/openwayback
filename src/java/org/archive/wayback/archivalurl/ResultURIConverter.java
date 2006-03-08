@@ -59,11 +59,14 @@ public class ResultURIConverter implements ReplayResultURIConverter {
 			throw new ConfigurationException("Failed to find " + 
 					REPLAY_URI_PREFIX_PROPERTY);
 		}
+		if(!replayUriPrefix.endsWith("/")) {
+			replayUriPrefix += "/";
+		}
 	}
 
 
 	public String makeReplayURI(SearchResult result) {
-		return replayUriPrefix + "/"
+		return replayUriPrefix
 				+ result.get(WaybackConstants.RESULT_CAPTURE_DATE) + "/" +
 				result.get(WaybackConstants.RESULT_URL);
 	}
@@ -91,7 +94,7 @@ public class ResultURIConverter implements ReplayResultURIConverter {
 			e.printStackTrace();
 		}
  
-		return replayUriPrefix + "/"
-		+ result.get(WaybackConstants.RESULT_CAPTURE_DATE) + "/" + finalUrl;
+		return replayUriPrefix
+			+ result.get(WaybackConstants.RESULT_CAPTURE_DATE) + "/" + finalUrl;
 	}
 }
