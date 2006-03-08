@@ -166,6 +166,29 @@ public class TagMagixTest extends TestCase {
 				"<A HREF='http://web.archive.org/wayback/2004/http://www.archive.org/index.html'\n FOO='bar'>",
 				"A","href","http://web.archive.org/wayback/","2004","http://www.archive.org/dir/");
 
+		// newlines in attribute
+		checkMarkup(
+				"<link rel=\"stylesheet\"\n goo=\"1\"\n href=\"/_style/style.css\">",
+				"<link rel=\"stylesheet\"\n goo=\"1\"\n href=\"http://web.archive.org/wayback/2004/http://www.archive.org/_style/style.css\">",
+				"link","href","http://web.archive.org/wayback/","2004","http://www.archive.org/dir/");
+		
+		// newlines in attribute, plus extra
+		checkMarkup(
+				"<b><link rel=\"stylesheet\"\n goo=\"1\"\n href=\"/_style/style.css\"></b>",
+				"<b><link rel=\"stylesheet\"\n goo=\"1\"\n href=\"http://web.archive.org/wayback/2004/http://www.archive.org/_style/style.css\"></b>",
+				"link","href","http://web.archive.org/wayback/","2004","http://www.archive.org/dir/");
+
+		// newlines in attribute, plus extra, diff case
+		checkMarkup(
+				"<b><link rel=\"stylesheet\"\n goo=\"1\"\n href=\"/_style/style.css\"></b>",
+				"<b><link rel=\"stylesheet\"\n goo=\"1\"\n href=\"http://web.archive.org/wayback/2004/http://www.archive.org/_style/style.css\"></b>",
+				"LINK","HREF","http://web.archive.org/wayback/","2004","http://www.archive.org/dir/");
+
+		// newlines in attribute, plus extra, diff case, no protocol
+		checkMarkup(
+				"<b><link rel=\"stylesheet\"\n goo=\"1\"\n href=\"/_style/style.css\"></b>",
+				"<b><link rel=\"stylesheet\"\n goo=\"1\"\n href=\"http://web.archive.org/wayback/2004/http://archive.org/_style/style.css\"></b>",
+				"LINK","HREF","http://web.archive.org/wayback/","2004","archive.org/dir/");
 		
 	}
 
