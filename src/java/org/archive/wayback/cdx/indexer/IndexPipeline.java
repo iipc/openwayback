@@ -390,7 +390,10 @@ public class IndexPipeline implements PropertyConfigurable{
 			File indexFile = new File(indexingDir,base);
 			File toBeMergedFile = new File(toBeMergedDir,base);
 
+			LOGGER.info("Indexing ARC " + arcFile.getAbsolutePath());
 			SearchResults res = indexer.indexArc(arcFile);
+			LOGGER.info("Serializing ARC data in " + 
+					indexFile.getAbsolutePath());
 			indexer.serializeResults(res, indexFile);
 			if (!indexFile.renameTo(toBeMergedFile)) {
 				throw new IOException("Unable to move "
@@ -436,6 +439,8 @@ public class IndexPipeline implements PropertyConfigurable{
 			File indexFile = new File(toBeMergedDir,base);
 			File mergedFile = new File(mergedDir,base);
 			try {
+				LOGGER.info("Importing ARC data from " +
+						indexFile.getAbsolutePath());
 				dbWriter.importFile(indexFile);
 				
 				// move to "merged" for debugging
