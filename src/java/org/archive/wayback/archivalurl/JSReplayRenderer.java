@@ -164,7 +164,7 @@ public class JSReplayRenderer extends RawReplayRenderer {
 	 */
 	private void insertBaseTag(StringBuffer page, SearchResult result) {
 		String resultUrl = result.get(WaybackConstants.RESULT_URL);
-		String baseTag = "<BASE HREF=\"http://" + resultUrl + "\">";
+		String baseTag = "<base href=\"http://" + resultUrl + "\" />";
 		int insertPoint = page.indexOf("<head>");
 		if (-1 == insertPoint) {
 			insertPoint = page.indexOf("<HEAD>");
@@ -191,7 +191,7 @@ public class JSReplayRenderer extends RawReplayRenderer {
 		String contextPath = uriConverter.getReplayUriPrefix()
 				+ resourceTS + "/";
 
-		String scriptInsert = "<SCRIPT language=\"Javascript\">\n"
+		String scriptInsert = "<script language=\"Javascript\">\n"
 				+ "<!--\n"
 				+ "\n"
 				+ "//            FILE ARCHIVED ON "
@@ -256,7 +256,7 @@ public class JSReplayRenderer extends RawReplayRenderer {
 				+ "\n"
 				+ "//           -->\n"
 				+ "\n"
-				+ "</SCRIPT>\n";
+				+ "</script>\n";
 
 		int insertPoint = page.indexOf("</body>");
 		if (-1 == insertPoint) {
