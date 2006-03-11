@@ -127,10 +127,10 @@ public class TagMagix {
 					absPrefix,srvPrefix,pageURI) + quote;
 			
 			int delta = newValue.length() - origAttrLength;
-			String before = page.toString();
+			//String before = page.toString();
 			page.replace(attrStart,attrEnd,newValue);
-			String after = page.toString();
-			System.out.println("Found match (" + before+ ") => (" + after + ")");
+			//String after = page.toString();
+			//System.out.println("Found match (" + before+ ") => (" + after + ")");
 			idx = attrEnd + delta;
 		}
 	}
