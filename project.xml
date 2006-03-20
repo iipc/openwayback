@@ -186,7 +186,7 @@
         <dependency>
             <groupId>heritrix</groupId>
             <artifactId>archive-commons</artifactId>
-            <version>1.7.3-200601301512</version>
+            <version>1.7.3-200603171517</version>
             <url>http://crawltools.archive.org:8080/cruisecontrol</url>
             <properties>
                 <war.bundle>true</war.bundle>
