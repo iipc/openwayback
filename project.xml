@@ -242,6 +242,38 @@
             </properties>
         </dependency>
         <dependency>
+            <id>commons-pool</id>
+            <version>1.2</version>
+            <url>http://jakarta.apache.org/site/binindex.cgi#commons-pool</url>
+            <properties>
+                <war.bundle>true</war.bundle>
+                <ear.bundle>true</ear.bundle>
+                <ear.bundle.dir>APP-INF/lib</ear.bundle.dir>
+                <description>For object pooling.
+                </description>
+                <license>Apache 1.1 http://www.apache.org/LICENSE.txt</license>
+            </properties>
+        </dependency>
+        <dependency>
+            <id>commons-collections-local</id>
+            <version>3.1</version>
+            <url>http://jakarta.apache.org/site/binindex.cgi#commons-collections</url>
+            <properties>
+                <war.bundle>true</war.bundle>
+                <ear.bundle>true</ear.bundle>
+                <ear.bundle.dir>APP-INF/lib</ear.bundle.dir>
+                <description>Needed by commons-pool.
+                Need to give this component an id other than the natural
+                one of 'commons-collections' because of bug in 1.0.2 maven;
+                our project.properties override that forces maven to use
+                a local copy rather than pull one from the net is causing
+                it confusion on initial setup (This feature worked fine in
+                earlier mavens).
+                </description>
+                <license>Apache 1.1 http://www.apache.org/LICENSE.txt</license>
+            </properties>
+        </dependency>
+        <dependency>
             <id>dsi.unimi.it</id>
             <version>1.2.0</version>
             <url>http://mg4j.dsi.unimi.it/</url>
