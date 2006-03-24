@@ -40,6 +40,7 @@ import com.sleepycat.je.Environment;
 import com.sleepycat.je.EnvironmentConfig;
 import com.sleepycat.je.LockMode;
 import com.sleepycat.je.OperationStatus;
+import com.sleepycat.je.Transaction;
 
 /**
  * ResourceResults-specific wrapper on top of the BDBJE database.
@@ -99,13 +100,13 @@ public class BDBResourceIndex {
 
 		EnvironmentConfig environmentConfig = new EnvironmentConfig();
 		environmentConfig.setAllowCreate(true);
-		environmentConfig.setTransactional(false);
+		environmentConfig.setTransactional(true);
 		environmentConfig.setConfigParam("je.log.fileMax",JE_LOG_FILEMAX);
 		File file = new File(path);
 		env = new Environment(file, environmentConfig);
 		DatabaseConfig databaseConfig = new DatabaseConfig();
 		databaseConfig.setAllowCreate(true);
-		databaseConfig.setTransactional(false);
+		databaseConfig.setTransactional(true);
 		// perform other database configurations
 
 		db = env.openDatabase(null, dbName, databaseConfig);
@@ -184,20 +185,29 @@ public class BDBResourceIndex {
 		OperationStatus status = null;
 		CDXRecord parser = new CDXRecord();
 		try {
-			Cursor cursor = db.openCursor(null, null);
-			while (itr.hasNext()) {
-				SearchResult result = (SearchResult) itr.next();
-				parser.fromSearchResult(result);
-				String keyString = parser.toKey();
-				String valueString = parser.toValue();
-				key.setData(keyString.getBytes());
-				value.setData(valueString.getBytes());
-				status = cursor.put(key, value);
-				if (status != OperationStatus.SUCCESS) {
-					throw new Exception("oops, put had non-success status");
+			Transaction txn = env.beginTransaction(null, null);
+			try {
+				Cursor cursor = db.openCursor(txn, null);
+				while (itr.hasNext()) {
+					SearchResult result = (SearchResult) itr.next();
+					parser.fromSearchResult(result);
+					String keyString = parser.toKey();
+					String valueString = parser.toValue();
+					key.setData(keyString.getBytes());
+					value.setData(valueString.getBytes());
+					status = cursor.put(key, value);
+					if (status != OperationStatus.SUCCESS) {
+						throw new Exception("oops, put had non-success status");
+					}
 				}
+				cursor.close();
+				txn.commit();
+			} catch (DatabaseException e) {
+				if(txn != null) {
+					txn.abort();
+				}
+				e.printStackTrace();
 			}
-			cursor.close();
 		} catch (DatabaseException e) {
 			e.printStackTrace();
 		}
