@@ -24,8 +24,6 @@
  */
 package org.archive.wayback.archivalurl;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
@@ -170,7 +168,6 @@ public class JSReplayRenderer extends RawReplayRenderer {
 
 		insertBaseTag(page, result);
 		insertJavascriptXHTML(page, result, uriConverter);
-		//insertJavascript(page, result, uriConverter);
 	}
 
 	/** add a BASE HTML tag to make all path relative URLs map to the right URL
@@ -191,97 +188,6 @@ public class JSReplayRenderer extends RawReplayRenderer {
 			insertPoint += 6; // just after the tag
 		}
 		page.insert(insertPoint, baseTag);
-	}
-
-	/** insert Javascript into a page to rewrite URLs
-	 * @param page
-	 * @param result
-	 * @param uriConverter
-	 */
-	private void insertJavascript(StringBuffer page, SearchResult result,
-			ReplayResultURIConverter uriConverter) {
-		String resourceTS = result.get(WaybackConstants.RESULT_CAPTURE_DATE);
-		String nowTS = Timestamp.currentTimestamp().getDateStr();
-
-		// TODO: make this an external script included via SRC tag...
-		String contextPath = uriConverter.getReplayUriPrefix()
-				+ resourceTS + "/";
-
-		String scriptInsert = "<script type=\"text/javascript\">\n"
-				+ "<!--\n"
-				+ "\n"
-				+ "//            FILE ARCHIVED ON "
-				+ resourceTS
-				+ " AND RETRIEVED FROM THE\n"
-				+ "//            INTERNET ARCHIVE ON "
-				+ nowTS
-				+ ".\n"
-				+ "//            JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.\n"
-				+ "//\n"
-				+ "// ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.\n"
-				+ "// SECTION 108(a)(3)).\n"
-				+ "\n"
-				+ "var sWayBackCGI = \""
-				+ contextPath
-				+ "\";\n"
-				+ "                \n"
-				+ "function xResolveUrl(url) {\n"
-				+ "   var image = new Image();\n"
-				+ "   image.src = url;\n"
-				+ "   return image.src;\n"
-				+ "}\n"
-				+ "function xLateUrl(aCollection, sProp) {\n"
-				+ "   var i = 0;\n"
-				+ "   for(i = 0; i < aCollection.length; i++) {\n"
-				+ "      if (typeof(aCollection[i][sProp]) == \"string\") {\n"
-				+ "         if (aCollection[i][sProp].indexOf(\"mailto:\") == -1 &&\n"
-				+ "            aCollection[i][sProp].indexOf(\"javascript:\") == -1) {\n"
-				+ "\n"
-				+ "            if(aCollection[i][sProp].indexOf(\"http\") == 0) {\n"
-				+ "               aCollection[i][sProp] = sWayBackCGI + aCollection[i][sProp];\n"
-				+ "            } else {\n"
-				+ "               aCollection[i][sProp] = sWayBackCGI + xResolveUrl(aCollection[i][sProp]);\n"
-				+ "            }\n"
-				+ "         }\n"
-				+ "      }\n"
-				+ "   }\n"
-				+ "}\n"
-				+ "\n"
-				+ "xLateUrl(document.getElementsByTagName(\"IMG\"),\"src\");\n"
-				+ "xLateUrl(document.getElementsByTagName(\"A\"),\"href\");\n"
-				+ "xLateUrl(document.getElementsByTagName(\"AREA\"),\"href\");\n"
-				+ "xLateUrl(document.getElementsByTagName(\"OBJECT\"),\"codebase\");\n"
-				+ "xLateUrl(document.getElementsByTagName(\"OBJECT\"),\"data\");\n"
-				+ "xLateUrl(document.getElementsByTagName(\"APPLET\"),\"codebase\");\n"
-				+ "xLateUrl(document.getElementsByTagName(\"APPLET\"),\"archive\");\n"
-				+ "xLateUrl(document.getElementsByTagName(\"EMBED\"),\"src\");\n"
-				+ "xLateUrl(document.getElementsByTagName(\"BODY\"),\"background\");\n"
-				+ "var forms = document.getElementsByTagName(\"FORM\");\n"
-				+ "if (forms) {\n" + "		var j = 0;\n"
-				+ "		for (j = 0; j < forms.length; j++) {\n"
-				+ "			f = forms[j];\n"
-				+ "			if (typeof(f.action)  == \"string\") {\n"
-				+ "				if(typeof(f.method)  == \"string\") {\n"
-				+ "					if(typeof(f.method) != \"post\") {\n"
-				+ "				    	f.action = sWayBackCGI + f.action;\n"
-				+ "				    }\n"
-				+ "				}\n"
-				+ "			}\n"
-				+ "		}\n"
-				+ "}\n"
-				+ "\n"
-				+ "//           -->\n"
-				+ "\n"
-				+ "</script>\n";
-
-		int insertPoint = page.indexOf("</body>");
-		if (-1 == insertPoint) {
-			insertPoint = page.indexOf("</BODY>");
-		}
-		if (-1 == insertPoint) {
-			insertPoint = page.length();
-		}
-		page.insert(insertPoint, scriptInsert);
 	}
 
 	/** insert Javascript into a page to rewrite URLs
