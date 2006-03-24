@@ -275,6 +275,20 @@ public class IndexPipeline implements PropertyConfigurable{
 		}
 	}
 	
+	/**
+	 */
+	public void shutdown() {
+		if(db != null) {
+			try {
+				db.shutdownDB();
+			} catch (DatabaseException e) {
+				// TODO Auto-generated catch block
+				// how to handle??
+				e.printStackTrace();
+			}
+		}
+	}
+	
 	/** start the IndexPipeline thread, which will scan for new arcs, index
 	 * new arcs that appear, and merge indexed arcs (in CDX format) into the
 	 * BDBResourceIndex
@@ -562,5 +576,19 @@ public class IndexPipeline implements PropertyConfigurable{
 				}
 			}
 		}
+	}
+
+	/**
+	 * @return Returns the indexingDir.
+	 */
+	public File getIndexingDir() {
+		return indexingDir;
+	}
+
+	/**
+	 * @return Returns the toBeMergedDir.
+	 */
+	public File getToBeMergedDir() {
+		return toBeMergedDir;
 	}
 }
