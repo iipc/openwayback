@@ -52,13 +52,13 @@ public class FileLocationDBServlet extends HttpServlet {
 	private static final Logger LOGGER = Logger.getLogger(
 			FileLocationDBServlet.class.getName());
 
-	private static final String OPERATION_ARGUMENT = "operation";
-	private static final String NAME_ARGUMENT = "name";
-	private static final String URL_ARGUMENT = "url";
-	private static final String LOOKUP_OPERATION = "lookup";
-	private static final String ADD_OPERATION = "add";
-	private static final String REMOVE_OPERATION = "remove";
-	
+	protected static final String OPERATION_ARGUMENT = "operation";
+	protected static final String NAME_ARGUMENT = "name";
+	protected static final String URL_ARGUMENT = "url";
+	protected static final String LOOKUP_OPERATION = "lookup";
+	protected static final String ADD_OPERATION = "add";
+	protected static final String REMOVE_OPERATION = "remove";
+	protected static final String NO_LOCATION_PREFIX = "ERROR No locations for";
 
 	private static final long serialVersionUID = 1L;
 
@@ -107,6 +107,12 @@ public class FileLocationDBServlet extends HttpServlet {
 			return null;
 		}
 		return arr[0];
+	}
+
+	public void doPost(HttpServletRequest httpRequest,
+			HttpServletResponse httpResponse) throws IOException,
+			ServletException {
+		doGet(httpRequest,httpResponse);
 	}
 
 	public void doGet(HttpServletRequest httpRequest,
@@ -174,7 +180,7 @@ public class FileLocationDBServlet extends HttpServlet {
 	private void doLookup(HttpServletResponse httpResponse, final String 
 			arcName) throws IOException {
 		String arcUrls[];
-		String message = "ERROR No locations for " + arcName;
+		String message = NO_LOCATION_PREFIX + " " + arcName;
 		try {
 			arcUrls = locationDB.arcToUrls(arcName);
 			if(arcUrls != null && arcUrls.length > 0) {
