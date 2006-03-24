@@ -24,6 +24,8 @@
  */
 package org.archive.wayback.archivalurl;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
@@ -50,19 +52,31 @@ public class JSReplayRenderer extends RawReplayRenderer {
 	 * rewrite URLs inside document
 	 */
 	private final static String TEXT_HTML_MIME = "text/html";
+	private final static String TEXT_XHTML_MIME = "application/xhtml";
 
 	private final static long MAX_HTML_MARKUP_LENGTH = 1024 * 1024 * 5;
+	
+	private final static String CONTEXT_RELATIVE_JS_PATH = "wm.js";
 	
 	/** test if the SearchResult should be replayed raw, without JS markup
 	 * @param result
 	 * @return boolean, true if the document should be returned raw.
 	 */
 	private boolean isRawReplayResult(SearchResult result) {
-		if (-1 == result.get(WaybackConstants.RESULT_MIME_TYPE).indexOf(
+
+		// TODO: this needs to be configurable such that arbitrary filters
+		// can be applied to various mime-types... We'll just hard-code them for
+		// now.
+		if (-1 != result.get(WaybackConstants.RESULT_MIME_TYPE).indexOf(
 				TEXT_HTML_MIME)) {
-			return true;
+			return false;
 		}
-		return false;
+		if (-1 != result.get(WaybackConstants.RESULT_MIME_TYPE).indexOf(
+				TEXT_XHTML_MIME)) {
+			return false;
+		}
+		
+		return true;
 	}
 
 	/** send the client to a different/better request URL for the document
@@ -123,9 +137,10 @@ public class JSReplayRenderer extends RawReplayRenderer {
 
 				markUpPage(sbuffer, result, uriConverter);
 
-				httpResponse.setHeader("Content-Length", "" + sbuffer.length());
+				byte[] ba = sbuffer.toString().getBytes();
+				httpResponse.setHeader("Content-Length", "" + ba.length);
 				ServletOutputStream out = httpResponse.getOutputStream();
-				out.print(new String(sbuffer));
+				out.write(ba);
 			}
 		}
 	}
@@ -154,7 +169,8 @@ public class JSReplayRenderer extends RawReplayRenderer {
 		TagMagix.markupTagRE(page, wmPrefix, pageUrl, pageTS, "SCRIPT", "SRC");
 
 		insertBaseTag(page, result);
-		insertJavascript(page, result, uriConverter);
+		insertJavascriptXHTML(page, result, uriConverter);
+		//insertJavascript(page, result, uriConverter);
 	}
 
 	/** add a BASE HTML tag to make all path relative URLs map to the right URL
@@ -191,7 +207,7 @@ public class JSReplayRenderer extends RawReplayRenderer {
 		String contextPath = uriConverter.getReplayUriPrefix()
 				+ resourceTS + "/";
 
-		String scriptInsert = "<script language=\"Javascript\">\n"
+		String scriptInsert = "<script type=\"text/javascript\">\n"
 				+ "<!--\n"
 				+ "\n"
 				+ "//            FILE ARCHIVED ON "
@@ -268,4 +284,49 @@ public class JSReplayRenderer extends RawReplayRenderer {
 		page.insert(insertPoint, scriptInsert);
 	}
 
+	/** insert Javascript into a page to rewrite URLs
+	 * @param page
+	 * @param result
+	 * @param uriConverter
+	 */
+	private void insertJavascriptXHTML(StringBuffer page, SearchResult result,
+			ReplayResultURIConverter uriConverter) {
+		String resourceTS = result.get(WaybackConstants.RESULT_CAPTURE_DATE);
+		String nowTS = Timestamp.currentTimestamp().getDateStr();
+
+		String contextPath = uriConverter.getReplayUriPrefix()
+				+ resourceTS + "/";
+
+		String jsUrl = uriConverter.getReplayUriPrefix() + 
+			CONTEXT_RELATIVE_JS_PATH;
+		
+		String scriptInsert = "<script type=\"text/javascript\">\n"
+				+ "\n"
+				+ "//            FILE ARCHIVED ON "
+				+ resourceTS
+				+ " AND RETRIEVED FROM THE\n"
+				+ "//            INTERNET ARCHIVE ON "
+				+ nowTS
+				+ ".\n"
+				+ "//            JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.\n"
+				+ "//\n"
+				+ "// ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.\n"
+				+ "// SECTION 108(a)(3)).\n"
+				+ "\n"
+				+ "var sWayBackCGI = \""
+				+ contextPath
+				+ "\";\n"
+				+ "</script>\n"
+				+ "<script type=\"text/javascript\" src=\"" + jsUrl + "\" />\n";
+
+		int insertPoint = page.indexOf("</body>");
+		if (-1 == insertPoint) {
+			insertPoint = page.indexOf("</BODY>");
+		}
+		if (-1 == insertPoint) {
+			insertPoint = page.length();
+		}
+		page.insert(insertPoint, scriptInsert);
+	}
+	
 }
