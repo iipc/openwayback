@@ -139,6 +139,12 @@ public class ArcIndexer {
 		}
 		if(uriStr.startsWith(WaybackConstants.DNS_URL_PREFIX)) {
 			// skip URL + HTTP header processing for dns records...
+			
+			String origHost = uriStr.substring(
+					WaybackConstants.DNS_URL_PREFIX.length());
+			result.put(WaybackConstants.RESULT_ORIG_HOST,origHost);
+			result.put(WaybackConstants.RESULT_REDIRECT_URL,"-");
+			result.put(WaybackConstants.RESULT_URL,uriStr);
 		} else {
 		
 			UURI uri = UURIFactory.getInstance(uriStr);
