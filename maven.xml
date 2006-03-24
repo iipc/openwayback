@@ -11,9 +11,14 @@
     <preGoal name="xdoc:jelly-transform">
         <attainGoal name="faq"/>
     </preGoal> 
-    <goal name="jar:jar" 
-        description="Blind out jar:jar -- we don't want a jar made"/>
     <postGoal name="dist:prepare-bin-filesystem">
+        <!--Add the lib dir to our binary distribution.-->
+        <mkdir dir="${maven.dist.bin.assembly.dir}/lib" />
+        <copy todir="${maven.dist.bin.assembly.dir}/lib">
+          <fileset dir="./lib">
+            <include name="*.jar"/>
+          </fileset>
+        </copy>
         <attainGoal name="war" />
         <!--Copy over the just made war files into the distribution copy.-->
         <mkdir dir="${maven.dist.bin.assembly.dir}/webapp" />
@@ -22,5 +27,21 @@
             <include name="*.war"/>
           </fileset>
         </copy>
+
+
+        <move todir="${maven.dist.bin.assembly.dir}/lib">
+          <fileset dir="${maven.dist.bin.assembly.dir}">
+            <include name="wayback*.jar"/>
+          </fileset>
+        </move>
+
+        <!--Copy to a bin dir the command line tools.-->
+        <copy todir="${maven.dist.bin.assembly.dir}/bin">
+          <fileset dir="${maven.src.dir}/scripts">
+            <include name="pipeline-client"/>
+            <include name="location-client"/>
+          </fileset>
+        </copy>
+
     </postGoal>
 </project>
