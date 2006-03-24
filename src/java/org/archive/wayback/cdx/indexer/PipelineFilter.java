@@ -23,7 +23,14 @@
 
 package org.archive.wayback.cdx.indexer;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.util.Enumeration;
 import java.util.Properties;
 
@@ -46,6 +53,9 @@ import org.archive.wayback.exception.ConfigurationException;
  */
 public class PipelineFilter implements Filter {
 
+	
+	private final static String HTTP_PUT_METHOD = "PUT";
+	
 	/**
 	 * name of configuration for the JSP that renders the status of the pipeline
 	 */
@@ -92,6 +102,15 @@ public class PipelineFilter implements Filter {
 			throw new ServletException(e.getMessage());
 		}
 	}
+	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see javax.servlet.Filter#destroy()
+	 */
+	public void destroy() {
+		pipeline.shutdown();
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -123,23 +142,63 @@ public class PipelineFilter implements Filter {
 			return false;
 		}
 		HttpServletRequest httpRequest = (HttpServletRequest) request;
+		if(httpRequest.getMethod().equals(HTTP_PUT_METHOD)) {
+		
+			return handlePut(httpRequest,response);
+			
+		} else {
+			PipelineStatus status = pipeline.getStatus();
 
-		PipelineStatus status = pipeline.getStatus();
+			request.setAttribute("pipelinestatus", status);
+			RequestDispatcher dispatcher = httpRequest
+					.getRequestDispatcher(pipelineStatusJsp);
 
-		request.setAttribute("pipelinestatus", status);
-		RequestDispatcher dispatcher = httpRequest
-				.getRequestDispatcher(pipelineStatusJsp);
-
-		dispatcher.forward(request, response);
+			dispatcher.forward(request, response);
+		}
 		return true;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see javax.servlet.Filter#destroy()
-	 */
-	public void destroy() {
-
+	protected boolean handlePut(final HttpServletRequest request,
+			final ServletResponse response) throws IOException,
+			ServletException {
+		
+	     PrintWriter outHTML = response.getWriter();
+	     outHTML.println("done");
+	     String reqURI = request.getRequestURI();
+	     int lastSlashIdx = reqURI.lastIndexOf("/");
+	     if(lastSlashIdx == -1) {
+	    	 return false;
+	     }
+	     String targetFileName = reqURI.substring(lastSlashIdx+1);
+	     String tmpFileName = targetFileName + ".tmp";
+	     File tmpFile = new File(pipeline.getIndexingDir(),tmpFileName);
+	     File targetFile = new File(pipeline.getToBeMergedDir(),targetFileName);
+	     
+	     
+        int i;
+        InputStream input;
+        input = request.getInputStream();
+        BufferedInputStream in = 
+           new BufferedInputStream(input);
+        BufferedReader reader = 
+           new BufferedReader(
+             new InputStreamReader(in));
+        FileWriter out = 
+           new FileWriter(tmpFile);
+    
+        while ((i = reader.read()) != -1) 
+        {
+          out.write(i);
+        }
+    
+        out.close();
+        in.close();
+        if(!tmpFile.renameTo(targetFile)) {
+        	throw new IOException("Unable to rename " + 
+        			tmpFile.getAbsolutePath() + " to " +
+        			targetFile.getAbsolutePath());
+        }
+		
+		return true;
 	}
 }
