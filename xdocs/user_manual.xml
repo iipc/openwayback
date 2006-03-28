@@ -400,24 +400,30 @@
 				</p>
 				<p>
 					You need to copy the xml file you chose over the file
-					<b>webapps/CONTEXT/WEB-INF/</b> with the command:
+					<b>webapps/CONTEXT/WEB-INF/web.xml</b> with the command:
+					<p>
 					<code>
 						cp webapps/CONTEXT/WEB-INF/web-PICKED.xml webapps/CONTEXT/WEB-INF/web.xml
 					</code>
+					</p>
 					For example, if you chose the web-http11-archivalurl.xml, 
 					you would use the command:
+					<p>
 					<code>
 						<i>
 							cp webapps/wayback/WEB-INF/web-http11-archivalurl.xml webapps/wayback/WEB-INF/web.xml
 						</i>
 					</code>
+					</p>
 					and if you chose the web-local-proxy.xml, you would use the 
 					command:
+					<p>
 					<code>
 						<i>
 							cp webapps/ROOT/WEB-INF/web-local-proxy.xml webapps/ROOT/WEB-INF/web.xml
 						</i>
 					</code>
+					</p>
 				</p>
 				<p>
 					After you have copied the correct web-*.xml file into place,

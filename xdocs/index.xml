@@ -9,6 +9,31 @@
 
   <body>
     <section name="News">
+        <subsection name="First Release - 0.4.0, 03/28/2006">
+            <p>
+            	Release 0.4.0 offers many new features and improvements, 
+            	including:
+	            <ul>
+	            	<li>
+	            		Distributed ARC storage.
+	            	</li>
+	            	<li>
+	            		Improved Javascript and document rewriting for Archival
+	            		URL replay mode.
+	            	</li>
+	            	<li>
+	            		Several new ResourceIndex implementations: Remote BDB, 
+	            		NutchWax.
+	            	</li>
+	            	<li>
+	            		live web robots.txt caching and retroactive compliance.
+	            	</li>
+	            	<li>
+	            		"Classic" Wayback Machine query User Interface.
+	            	</li>
+	            </ul>
+            </p>
+        </subsection>
         <subsection name="First Release - 0.2.0, 12/09/2005">
             <p>First public release of the open source wayback.
             See below in the <a href="Introduction">Introduction</a>
@@ -72,6 +97,11 @@
         Machine to look for ARC files in the directory where an instance of the
         Heritrix web crawler is writing ARC output should provide the 
         capability to browse content archived by Heritrix as it is crawled.
+        </p>
+        <p>
+        The 0.4.0 version includes the capability to retrieve documents from ARC
+        files stored on remote hosts using HTTP 1.1. Please see the User Manual
+        for more information about using this and other new features.
         </p>
         <p>
         Future versions of this software may integrate more tightly with the 
