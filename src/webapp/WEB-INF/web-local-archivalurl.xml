@@ -69,6 +69,74 @@
 	</context-param>
 
 
+	<!-- ResourceIndex Exclusion configuration
+	
+		These configurations are not used by default in this installation.
+		To use robots.txt-based exclusion, uncomment the following sections:
+	 -->
+
+	<!--
+	
+	<context-param>
+		<param-name>resourceindex.exclusionurl</param-name>
+		<param-value>http://localhost:8080/wayback/exclusion</param-value>
+		<description>
+			HTTP base URL for remote access to exclusion services.
+		</description>
+	</context-param>
+	<context-param>
+		<param-name>resourceindex.exclusionua</param-name>
+		<param-value>ia_archiver</param-value>
+		<description>
+			UserAgent to have exclusion service check access with.
+		</description>
+	</context-param>
+
+    <servlet>
+        <servlet-name>ExclusionServlet</servlet-name>
+        <servlet-class>org.archive.wayback.accesscontrol.ExclusionServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ExclusionServlet</servlet-name>
+        <url-pattern>/exclusion</url-pattern>
+    </servlet-mapping>
+
+    <context-param>
+        <param-name>robotdbpath</param-name>
+        <param-value>/tmp/wayback/robotsdb</param-value>
+        <description>directory where database of cached robots.txt document information is kept</description>
+    </context-param>
+
+    <context-param>
+        <param-name>robotdbname</param-name>
+        <param-value>robotdb</param-value>
+        <description>name of database where cached robots.txt document information is kept</description>
+    </context-param>
+
+    <context-param>
+        <param-name>robotarcdir</param-name>
+        <param-value>/tmp/wayback/robot-arcs</param-value>
+        <description>directory where ARC files containing cached robots.txt documents are stored</description>
+    </context-param>
+
+    <context-param>
+        <param-name>robotarcprefix</param-name>
+        <param-value>live-robots</param-value>
+        <description>ARC filename prefix for robot.txt document storage</description>
+    </context-param>
+
+    <context-param>
+        <param-name>tempdir</param-name>
+        <param-value>/tmp/wayback/robot-temp</param-value>
+        <description>Directory where robots.txt documents are store temporarily</description>
+    </context-param>
+
+
+	-->
+	<!-- END OF ResourceIndex Exclusion configuration
+	 -->
+
+
 
 	<!-- ResourceIndex Pipeline Configuration -->
 

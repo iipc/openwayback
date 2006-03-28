@@ -8,7 +8,7 @@
 
 	<context-param>
 		<param-name>installationname</param-name>
-		<param-value>Local Proxy Installation</param-value>
+		<param-value>Http 1.1 Remote ARC Archival URL Installation</param-value>
 		<description>
 			This text will appear on the Wayback Configuration and Status page
 			and may assist in determining which installation users are viewing
@@ -18,30 +18,26 @@
 	</context-param>
 
 
-	<!-- Local Arc Path Configuration: 
-			used by both indexpipeline and LocalARCResourceStore
-	 -->
-
-	<context-param>
-		<param-name>arcpath</param-name>
-		<param-value>/tmp/wayback/arcs</param-value>
-		<description>
-			Directory where ARC files are found (possibly where Heritrix writes them.)
-			This directory must exist.
-		</description>
-	</context-param>
-
-
-
 	<!-- ResourceStore Configuration -->
-	
+
 	<context-param>
 		<param-name>resourcestore.classname</param-name>
-		<param-value>org.archive.wayback.localresourcestore.LocalARCResourceStore</param-value>
+		<param-value>org.archive.wayback.http11resourcestore.Http11ResourceStore</param-value>
 		<description>Class that implements ResourceStore for this Wayback</description>
 	</context-param>
 
+	<context-param>
+		<param-name>arcdbpath</param-name>
+		<param-value>/tmp/wayback/arc-db</param-value>
+		<description>Directory where arc-db is stored. Must exist.</description>
+	</context-param>
 
+	<context-param>
+		<param-name>arcdbname</param-name>
+		<param-value>arc-db</param-value>
+		<description>name for BDBJE arc database</description>
+	</context-param>
+	
 
 	<!-- ResourceIndex Configuration -->
 	
@@ -56,7 +52,7 @@
 		<param-value>/tmp/wayback/index</param-value>
 		<description>
 			LocalBDBResourceIndex specific directory to store the BDB files.
-			This directory must exist.
+			Directory must exists.
 		</description>
 	</context-param>
 
@@ -131,9 +127,11 @@
         <description>Directory where robots.txt documents are store temporarily</description>
     </context-param>
 
+
 	-->
 	<!-- END OF ResourceIndex Exclusion configuration
 	 -->
+
 
 
 	<!-- ResourceIndex Pipeline Configuration -->
@@ -143,7 +141,7 @@
 		<param-value>/tmp/wayback/pipeline</param-value>
 		<description>
 			LocalBDBResourceIndex specific directory to store flag files and 
-			temporary index data. This directory must exist.
+			temporary index data.
 		</description>
 	</context-param>
 
@@ -151,9 +149,8 @@
 		<param-name>indexpipeline.runpipeline</param-name>
 		<param-value>1</param-value>
 		<description>
-			if set to '1' then a background indexing thread will automatically 
-			update the BDB index when new ARC files are noticed in the 'arcpath'
-			directory.
+			if set to '1' then a background indexing thread will automatically update the BDB
+			index when new ARC files are noticed in the 'arcpath' directory.
 		</description>
 	</context-param>
 
@@ -221,35 +218,28 @@
 
 
 
-	<!-- Proxy RawReplayUI Configuration -->
+	<!-- Archival Url Query Filter Configuration -->
 
-	<context-param>
-		<param-name>replayrenderer.classname</param-name>
-		<param-value>org.archive.wayback.proxy.RawReplayRenderer</param-value>
-		<description>Implementation responsible for drawing replayed resources and replay error messages</description>
-	</context-param>
+	<filter>
+		<filter-name>QueryFilter</filter-name>
+		<filter-class>org.archive.wayback.archivalurl.QueryFilter</filter-class>
 
-	<context-param>
-		<param-name>replayui.jsppath</param-name>
-		<param-value>jsp/ReplayUI</param-value>
-		<description>
-			RawReplayUI specific path to jsp pages. relative to webapp/
-		</description>
-	</context-param>
+	    <init-param>
+	      <param-name>handler.url</param-name>
+	      <param-value>/query</param-value>
+	    </init-param>
+	</filter>
+	<filter-mapping>
+    	<filter-name>QueryFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
 
-	<!-- Proxy URI Conversion Configuration -->
 
-	<context-param>
-		<param-name>replayuriconverter.classname</param-name>
-		<param-value>org.archive.wayback.proxy.ResultURIConverter</param-value>
-		<description>Class that implements translation of index results to Replayable URIs for this Wayback</description>
-	</context-param>
-
-	<!-- Proxy ReplayFilter Configuration -->
+	<!-- Archival Url Replay Filter Configuration -->
 
 	<filter>
 		<filter-name>ReplayFilter</filter-name>
-		<filter-class>org.archive.wayback.proxy.ReplayFilter</filter-class>
+		<filter-class>org.archive.wayback.archivalurl.ReplayFilter</filter-class>
 
 	    <init-param>
 	      <param-name>handler.url</param-name>
@@ -260,5 +250,37 @@
     	<filter-name>ReplayFilter</filter-name>
 		<url-pattern>/*</url-pattern>
 	</filter-mapping>
+
+
+	<!-- Archival Url URI Conversion Configuration -->
+
+	<context-param>
+		<param-name>replayuriconverter.classname</param-name>
+		<param-value>org.archive.wayback.archivalurl.ResultURIConverter</param-value>
+		<description>Class that implements translation of index results to Replayable URIs for this Wayback</description>
+	</context-param>
+
+	<context-param>
+		<param-name>replayuriprefix</param-name>
+		<param-value>http://localhost:8080/wayback</param-value>
+		<description>HTTP URI prefix for the replay UI</description>
+	</context-param>
+
+
+	<!-- Archival Url JSReplayUI Configuration -->
+
+	<context-param>
+		<param-name>replayrenderer.classname</param-name>
+		<param-value>org.archive.wayback.archivalurl.JSReplayRenderer</param-value>
+		<description>Implementation responsible for drawing replayed resources and replay error messages</description>
+	</context-param>
+
+	<context-param>
+		<param-name>replayui.jsppath</param-name>
+		<param-value>jsp/ReplayUI</param-value>
+		<description>
+			RawReplayUI specific path to jsp pages. relative to webapp/
+		</description>
+	</context-param>
 
 </web-app>
