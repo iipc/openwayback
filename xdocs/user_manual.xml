@@ -16,6 +16,39 @@
 				This manual provides basic information about downloading,
 				installing, configuring and using the Wayback Machine.
 			</p>
+			<p>
+				Setting up an instance of the Wayback Machine software will
+				require several steps:
+				<ol>
+					<li>
+						Preflight checklist: Do you have everything you need?
+					</li>
+					<li>
+						Download the software.
+					</li>
+					<li>
+						Determine how you will use the software.
+					</li>
+					<li>
+						Install and Configure the software.
+					</li>
+					<li>
+						Preparing your index data.
+					</li>
+					<li>
+						Use the software.
+					</li>
+				</ol>
+			</p>
+		</section>
+		<section name="Preflight Checklist">
+			<p>
+				Make sure you've satisfied all the 
+				<a href="requirements.html">
+					Requirements
+				</a>
+				first.
+			</p>
 		</section>
 		<section name="Downloading">
 			<p>
@@ -42,16 +75,16 @@
 				webapp file, <b>wayback.war</b>.
 			</p>
 		</section>
-		<section name="Choosing which Replay mode to use">
-			<subsection name="Basic Wayback Machine functionality">
+		<section name="Determining how you will use the software">
+			<subsection name="Choosing a Replay Mode">
 				<p>
 					The Wayback Machine provides two types of web browser-based
 					access to the content in ARC files: Query access, and 
 					Replay access.
 				</p>
 				<p>
-					Query access allows users to locate	documents from a set
-					of ARC files matching a particular query. At present, the 
+					Query access allows users to locate	resources from the 
+					ResourceStore matching a particular query. At present, the 
 					only criteria that can be specified in queries to filter
 					returned documents are URL based filters, and capture date.
 					It is expected that in future releases of the Wayback 
@@ -59,10 +92,10 @@
 					text search.
 				</p>
 				<p>
-					Replay access allows users to view documents captured in ARC
-					files within their web browser. There are two Replay modes 
-					currently available with the Wayback Machine: Archival URL, 
-					and Proxy.
+					Replay access allows users to actually view resources in the
+					ResourceStore within their web browser. There are two Replay
+					modes currently available with the Wayback Machine: 
+					<b>Archival URL</b>, and <b>Proxy</b>.
 				</p>
 				<p>
 					Before installing the Wayback Machine application, you will
@@ -200,15 +233,68 @@
 					requested page.
 				</p>
 			</subsection>
+			<subsection name="Choosing a ResourceStore Implementation">
+				<p>
+					The Wayback Machine provides access to resources, which must
+					(currently) be stored in a set of ARC files. The module that
+					provides access for the Wayback Machine to this set of 
+					resources is called the <b>ResourceStore</b>.
+				</p>
+				<p>
+					There are two ResourceStore implementations you can 
+					choose from, depending on how many ARC files you have and 
+					where they are stored. If all your ARC files fit in a single
+					directory, you can use the <b>LocalARCResourceStore</b>
+					implementation, otherwise you will need to use the 
+					<b>Http11ResourceStore</b> implementation. If you use the
+					Http11ResourceStore, you will need to export your ARC files
+					to the machine that will run the Wayback Machine webapp via
+					HTTP 1.1. Some examples of HTTP 1.1 webservers you can use
+					to export your ARC files are <b>Apache</b>, <b>Tomcat</b>, 
+					and <b>thttpd</b>. Any other webserver that supports HTTP 
+					1.1 will also work.
+				</p>
+			</subsection>
+			<subsection name="Choosing a ResourceIndex Implementation">
+				<p>
+					In order to quickly search	for documents requested by 
+					users, the Wayback Machine needs a list of all the resources
+					stored in the ResourceStore. The module that provides access
+					for the Wayback Machine to this list of resources is 
+					called the <b>ResourceIndex</b>.
+				</p>
+				<p>
+					Presently the only documented ResourceIndex implementation
+					is the <b>LocalBDBResourceIndex</b>. Two other ResourceIndex
+					implementations that communicate with remote index services
+					have been developed. In both cases this communications 
+					is based on HTTP queries that return XML to the Wayback 
+					Machine. One implementation queries a NutchWAX full-text
+					search engine, and the second communicates with a remote
+					installation of the Wayback Machine itself. If you are 
+					interested in using either of these implementations please 
+					ask for more information on the discussion list.
+				</p>
+			</subsection>
 		</section>
-		<section name="Installing">
+		<section name="Installing and Configuring">
 			<p>
-				This software requires a servlet container. Presently it has
-				only been tested to run using Apache Tomcat 5.5, which can be
-				<a href="http://tomcat.apache.org/download-55.cgi">
-					downloaded here
-				</a>
-				.
+				Installation and configuration of this software involves the
+				following steps:
+				<ol>
+					<li>
+						placing .war file in appropriate location.
+					</li>
+					<li>
+						choosing correct base web.xml file.
+					</li>
+					<li>
+						customizing base web.xml file.
+					</li>
+					<li>
+						restarting tomcat.
+					</li>
+				</ol>
 			</p>
 			<subsection name="Archival URL mode installation">
 				<p>
@@ -263,98 +349,88 @@
 					</ol>
 				</p>
 			</subsection>
-		</section>
-		<section name="Configuring">
-			<subsection name="Archival URL mode specific configuration">
+			<subsection name="Choosing the base web.xml file">
 				<p>
-					The following table describes additional Archival URL mode
-					configurations that must be made in the web.xml file.
-				</p>
-				<table>
-					<tr>
-						<td>
-							Option
-						</td>
-						<td>
-							Default value
-						</td>
-						<td>
-							Description
-						</td>
-					</tr>
-					<tr>
-						<td>
-							replayuriprefix
-						</td>
-						<td>
-							http://localhost:8080/wayback
-						</td>
-						<td>
-							This should be set to the HTTP prefix to the wayback
-							webapp context. You should set the hostname to the
-							name of the machine where the Wayback Machine 
-							software is runnning, the port to the port that 
-							Tomcat is listening on, and 'wayback' should be the
-							name of the context that the Wayback Machine webapp
-							is deployed to (wayback.war => 'wayback' context,
-							foo.war => 'foo' context).
-						</td>
-					</tr>
-				</table>
-				
-			</subsection>
-			<subsection name="Proxy mode specific configuration">
-				<p>
-					By default, wayback.war contains a web.xml configured to run
-					in Archival URL mode. To run in Proxy mode, you must first
-					let Tomcat "deploy" the ROOT.war file, then you must 
-					overwrite the default web.xml with one configured for Proxy
-					mode.
-				</p>
-				<p>
-					Once Tomcat has deployed the ROOT.war (originally
-                    wayback.war) the <b>web.xml</b> file will be deployed to 
-					<b>webapps/ROOT/WEB-INF/web.xml</b>. The Proxy mode web.xml
-					file will be at 
-					<b>webapps/ROOT/WEB-INF/web-local-proxy.xml</b>. To run the 
-					Wayback Machine in Proxy mode, follow these steps:
-					<ol>
-						<li>
-							shutdown Tomcat
-						</li>
-						<li>
-							rename the web-local-proxy.xml to web.xml (where 
-							TOMCAT_HOME is the path where you installed Tomcat):
-							<p>
-								<code>
-									mv TOMCAT_HOME/webapps/ROOT/WEB-INF/web-local-proxy.xml TOMCAT_HOME/webapps/ROOT/WEB-INF/web.xml
-								</code>
-							</p>
-						</li>
-						<li>
-							modify the <b>TOMCAT_HOME/ROOT/WEB-INF/web.xml</b>
-							with any installation-specific configurations 
-							(described in the table below)
-						</li>
-						<li>
-							start Tomcat
-						</li>
-					</ol>
+					Use the following table to decide which web.xml file you should
+					use to begin configuring the Wayback software:
+					<table>
+						<tr>
+							<td>
+								Replay Mode \ ResourceStore
+							</td>
+							<td>
+								LocalARCResourceStore
+							</td>
+							<td>
+								Http11ResourceStore
+							</td>
+						</tr>
+						<tr>
+							<td>
+								Archival Url Mode
+							</td>
+							<td>
+								<b>web-local-archivalurl.xml</b>
+							</td>
+							<td>
+								<b>web-http11-archivalurl.xml</b>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								Proxy Mode
+							</td>
+							<td>
+								<b>web-local-proxy.xml</b>
+							</td>
+							<td>
+								<b>web-http11-proxy.xml</b>
+							</td>
+						</tr>
+					</table>
 				</p>
 			</subsection>
-			<subsection name="General configuration">
+			<subsection name="Copying the correct web.xml into place">
 				<p>
-					Regardless of which Replay mode you choose to use with the 
-					Wayback Machine, there are several common configurations 
-					that will be required in the final web.xml. These 
-					configurations declare where on the servers filesystem
-					ARC files are located, where the index should be stored, 
-					and where the Indexer can store status and temporary files.
+					Once Tomcat has deployed the CONTEXT.war (originally
+                    wayback.war) the base web.xml file you picked in the 
+                    <b>Choosing the base web.xml file</b> section will be 
+                    unpacked at 
+					<b>webapps/CONTEXT/WEB-INF/</b>.
 				</p>
 				<p>
-					This following table describes the configuration options 
-					available in both replay modes. After making any changes to
-					the web.xml file, you must restart Tomcat.
+					You need to copy the xml file you chose over the file
+					<b>webapps/CONTEXT/WEB-INF/</b> with the command:
+					<code>
+						cp webapps/CONTEXT/WEB-INF/web-PICKED.xml webapps/CONTEXT/WEB-INF/web.xml
+					</code>
+					For example, if you chose the web-http11-archivalurl.xml, 
+					you would use the command:
+					<code>
+						<i>
+							cp webapps/wayback/WEB-INF/web-http11-archivalurl.xml webapps/wayback/WEB-INF/web.xml
+						</i>
+					</code>
+					and if you chose the web-local-proxy.xml, you would use the 
+					command:
+					<code>
+						<i>
+							cp webapps/ROOT/WEB-INF/web-local-proxy.xml webapps/ROOT/WEB-INF/web.xml
+						</i>
+					</code>
+				</p>
+				<p>
+					After you have copied the correct web-*.xml file into place,
+					follow the customization steps below depending on the file 
+					you picked, and then <b>restart Tomcat</b>.
+				</p>
+			</subsection>
+			
+			<subsection name="General configuration options">
+				<p>
+					All web.xml configuration files contain the following 
+					configurations, which can be changed from the default values
+					if needed.
 				</p>
 				<table>
 					<tr>
@@ -373,25 +449,13 @@
 							installationname
 						</td>
 						<td>
-							Local Archival URL Installation
+							<i>depends on base web.xml file chosen</i>
 						</td>
 						<td>
-							This text will appear on the Wayback Configuration 
+							This text will appear on the Wayback Configuration
 							and Status page and may assist in determining which
 							installation users are viewing via their web browser
 							in environments with multiple Wayback installations.
-						</td>
-					</tr>
-					<tr>
-						<td>
-							arcpath
-						</td>
-						<td>
-							/tmp/wayback/arcs
-						</td>
-						<td>
-							Directory where ARC files are found (possibly where 
-							Heritrix writes them.) This directory must exist.
 						</td>
 					</tr>
 					<tr>
@@ -439,22 +503,322 @@
 						<td>
 							if set to '1' then a background indexing thread will
 							automatically update the BDB index when new ARC 
-							files are noticed in the 'arcpath' directory.
+							files are noticed in the 'arcpath' directory, or 
+							when new flat-file index data is submitted from 
+							remote ARC storage nodes. Any value besides '1' will
+							cause the index to be static.
 						</td>
 					</tr>
 				</table>
 			</subsection>
+
+			<subsection name="web-local-archivalurl.xml specific configuration">
+				<p>
+					The following table describes additional configurations 
+					available in the web-local-archivalurl.xml file.
+				</p>
+				<table>
+					<tr>
+						<td>
+							Option
+						</td>
+						<td>
+							Default value
+						</td>
+						<td>
+							Description
+						</td>
+					</tr>
+					<tr>
+						<td>
+							replayuriprefix
+						</td>
+						<td>
+							http://localhost:8080/wayback
+						</td>
+						<td>
+							This should be set to the HTTP prefix to the wayback
+							webapp context. You should set the hostname to the
+							name of the machine where the Wayback Machine 
+							software is runnning, the port to the port that 
+							Tomcat is listening on, and 'wayback' should be the
+							name of the context that the Wayback Machine webapp
+							is deployed to (wayback.war => 'wayback' context,
+							foo.war => 'foo' context).
+						</td>
+					</tr>
+					<tr>
+						<td>
+							arcpath
+						</td>
+						<td>
+							/tmp/wayback/arcs
+						</td>
+						<td>
+							Directory where ARC files are found (possibly where 
+							Heritrix writes them.) This directory must exist.
+						</td>
+					</tr>
+				</table>
+			</subsection>
+			<subsection name="web-local-proxy.xml specific configuration">
+				<p>
+					The following table describes additional configurations 
+					available in the web-local-proxy.xml file.
+				</p>
+				<table>
+					<tr>
+						<td>
+							Option
+						</td>
+						<td>
+							Default value
+						</td>
+						<td>
+							Description
+						</td>
+					</tr>
+					<tr>
+						<td>
+							arcpath
+						</td>
+						<td>
+							/tmp/wayback/arcs
+						</td>
+						<td>
+							Directory where ARC files are found (possibly where 
+							Heritrix writes them.) This directory must exist.
+						</td>
+					</tr>
+				</table>
+			</subsection>
+			<subsection name="web-http11-archivalurl.xml specific configuration">
+				<p>
+					The following table describes additional configurations 
+					available in the web-http11-archivalurl.xml file.
+				</p>
+				<table>
+					<tr>
+						<td>
+							Option
+						</td>
+						<td>
+							Default value
+						</td>
+						<td>
+							Description
+						</td>
+					</tr>
+					<tr>
+						<td>
+							replayuriprefix
+						</td>
+						<td>
+							http://localhost:8080/wayback
+						</td>
+						<td>
+							This should be set to the HTTP prefix to the wayback
+							webapp context. You should set the hostname to the
+							name of the machine where the Wayback Machine 
+							software is runnning, the port to the port that 
+							Tomcat is listening on, and 'wayback' should be the
+							name of the context that the Wayback Machine webapp
+							is deployed to (wayback.war => 'wayback' context,
+							foo.war => 'foo' context).
+						</td>
+					</tr>
+					<tr>
+						<td>
+							arcdbpath
+						</td>
+						<td>
+							/tmp/wayback/arc-db
+						</td>
+						<td>
+							Directory where the database containing the HTTP Url
+							for each ARC files is stored. This directory must 
+							exist.
+						</td>
+					</tr>
+					<tr>
+						<td>
+							arcdbname
+						</td>
+						<td>
+							arc-db
+						</td>
+						<td>
+							Name of the database that stores ARC file locations.
+						</td>
+					</tr>
+				</table>
+			</subsection>
+			<subsection name="web-http11-proxy.xml specific configuration">
+				<p>
+					The following table describes additional configurations 
+					available in the web-http11-proxy.xml file.
+				</p>
+				<table>
+					<tr>
+						<td>
+							Option
+						</td>
+						<td>
+							Default value
+						</td>
+						<td>
+							Description
+						</td>
+					</tr>
+					<tr>
+						<td>
+							arcdbpath
+						</td>
+						<td>
+							/tmp/wayback/arc-db
+						</td>
+						<td>
+							Directory where the database containing the HTTP Url
+							for each ARC files is stored. This directory must 
+							exist.
+						</td>
+					</tr>
+					<tr>
+						<td>
+							arcdbname
+						</td>
+						<td>
+							arc-db
+						</td>
+						<td>
+							Name of the database that stores ARC file locations.
+						</td>
+					</tr>
+				</table>
+			</subsection>
+
+		</section>
+		<section name="Preparing the ResourceIndex">
+			<p>
+				If you chose to use a ResourceIndex other than the 
+				LocalBDBResourceIndex, preparation of the index data is not 
+				covered by this manual.
+			</p>
+			<p>
+				How to set up your ResourceIndex depends on whether you are
+				using the LocalARCResourceStore or the Http11ResourceStore. In
+				both cases, the actual index database files will be stored on
+				the machine running the Wayback webapp. If you did not set the
+				<b>indexpipeline.runpipeline</b> configuration to '1', then no
+				updating of the ResourceIndex will occur. The rest of this 
+				section assumes that the IndexPipeline is running.
+			</p>
+			<p>
+				If you chose the LocalARCResourceStore, then the Wayback 
+				software will automatically notice new ARC files appearing in
+				the <b>arcpath</b> directory. When new ARC files appear, a
+				plain-text index file for each ARC file will be created and
+				placed in a special directory. The software will later merge 
+				those plain-text index files into the BDB ResourceIndex. This 
+				process may take some time. You can check on the status of this
+				process via the Wayback Configuration and Status page (see 
+				section below.)
+			</p>
+			<p>
+				If you chose the Http11ResourceStore, then you will need to run
+				an additional script on each machine that holds ARC files. For each
+				ARC file found, this script will:
+				<ol>
+					<li>
+						generate the plain-text index file for the ARC file
+					</li>
+					<li>
+						push that plain-text file onto the machine running the
+						Wayback webapp, where the ResourceIndex database is 
+						stored. The plain-text index files will arrive in the 
+						IndexPipeline directory structure so they are merged 
+						into the ResourceIndex.
+					</li>
+					<li>
+						notify the File LocationDB of the URL where the ARC file
+						can be accessed, for later Replay requests which require
+						access to documents in the ARC file.
+					</li>
+				</ol>
+			</p>
+			<p>
+				This script can be found underneath the directory where	you 
+				unpacked your distribution at:
+				<b>
+					bin/pipeline-client
+				</b>.
+				You will need to change permissions on this file to allow the
+				script to be executed:
+			</p>
+			<p>
+				<code>
+					chmod a+x bin/pipeline-client
+				</code>
+			</p>
+			<p>
+				Then, execute the script once for each directory containing ARC
+				files (on each machine containing ARC files.)
+			</p>
+			<p>
+				<code>
+					bin/index-arc TMP_DIR PIPELINE_URL LOCATION_URL ARC_DIR ARC_URL_PREFIX
+				</code>
+			</p>
+			<p>
+				where:
+				<ul>
+					<li>
+						<i>
+						TMP_DIR
+						</i>
+						is a location where the script can store temporary files
+						ex. <b>/tmp/</b>
+					</li>
+					<li>
+						<i>
+						PIPELINE_URL
+						</i>
+						is the absolute URL where the pipeline status information
+						is found.
+						ex. <b>http://wayback-webapp.your-archive.org/wayback/pipeline/</b>
+					</li>
+					<li>
+						<i>
+						LOCATION_URL
+						</i>
+						is the absolute URL where the locationDB can be accessed.
+						ex. <b>http://wayback-webapp.your-archive.org/wayback/locationDB</b>
+					</li>
+					<li>
+						<i>
+						ARC_DIR
+						</i>
+						The absolute path to the directory on the local machine
+						which holds ARC files
+						ex. <b>/2/arc-collection-1</b>
+					</li>
+					<li>
+						<i>
+						ARC_URL_PREFIX
+						</i>
+						is the absolute URL where the directory ARC_DIR can be
+						accessed.
+						ex. <b>http://arc-storage-node-1.your-archive.org/2/arc-collection-1/</b>
+					</li>
+				</ul>
+			</p>
 		</section>
 		<section name="Using">
 			<subsection name="Archival URL mode usage">
 				<p>
-					Once you have customized the web.xml file and restarted
-					Tomcat, the Wayback Machine installation will be ready
-					for use. If there are already ARC files in the 'arcpath' 
-					directory, the Wayback Machine indexing pipeline will
-					begin indexing them and incorporating them into the index
-					automatically, but it may take some time for it to index
-					all the ARC files, and be ready for browsing.
+					Once you have customized the web.xml file, restarted
+					Tomcat, and prepared your ResourceIndex, the Wayback Machine
+					installation will be ready for use.
 				</p>
 				<p>
 					In any case, you can immediately visit the context path
@@ -462,7 +826,7 @@
 					<b>http://HOSTNAME:PORT/CONTEXT</b>, ex: 
 					<i>http://yourhost.yourdomain.org:8080/wayback</i>.
 					On this front page, you will find a link to the current 
-					configuration and status page, which will also show you
+					Configuration and Status page, which will also show you
 					the status of the indexing pipeline.
 				</p>
 				<p>
@@ -494,9 +858,9 @@
 							ARCs Queued For Merge
 						</td>
 						<td>
-							This number indicates how many ARC files document 
-							information has been extracted, but is not yet 
-							added to the index.
+							This number indicates how many plain-text ARC file
+							document index files are created and waiting to
+							be added to the index.
 						</td>
 					</tr>
 					<tr>
@@ -504,8 +868,8 @@
 							ARCs Merged
 						</td>
 						<td>
-							This number indicates how many ARC files document 
-							information has been added to the index.
+							This number indicates how many plain-text ARC file
+							document index files have been added to the index.
 							These documents are ready to be searched for and 
 							served by the Wayback Machine.
 						</td>
@@ -524,16 +888,16 @@
 				<p>
 					Before accessing the Wayback Machine using Proxy mode, you
 					must configure the web browser that will access the service
-					to proxy all HTTP requests thru the webapp, using the proxy 
-					URL which is the context path where you deployed the Wayback
-					Machine webapp, at:	<b>http://HOSTNAME:PORT/</b>, ex: 
-					<i>http://yourhost.yourdomain.org:8080/</i>. For help on
+					to proxy all HTTP requests through the webapp, using the 
+					proxy URL which is the context path where you deployed the 
+					Wayback Machine webapp, at:	<b>http://HOSTNAME:PORT/</b>, 
+					ex: <i>http://yourhost.yourdomain.org:8080/</i>. For help on
 					how to configure your browser to proxy HTTP requests through
 					a proxy server, please consult the documentation for your
 					web browser.
 				</p>
 				<p>
-					You can access the Wayback Machine query UI, which allows
+					You can access the Wayback Machine Query UI, which allows
 					you to view the status of the server and query the index
 					for documents, by pointing the browser at the same URL that 
 					you configured as the proxy server. For information on 
