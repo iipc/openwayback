@@ -42,6 +42,7 @@ import org.archive.wayback.cdx.filter.WindowEndFilter;
 import org.archive.wayback.cdx.filter.WindowStartFilter;
 import org.archive.wayback.cdx.indexer.IndexPipeline;
 import org.archive.wayback.core.SearchResults;
+import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.AccessControlException;
 import org.archive.wayback.exception.BadQueryException;
@@ -138,15 +139,24 @@ public class LocalBDBResourceIndex implements ResourceIndex {
 		pipeline = new IndexPipeline();
 		pipeline.init(p);
 	}
-	
-	private String getRequired(WaybackRequest wbRequest, String field)
-		throws BadQueryException {
 
+	private String getRequired(WaybackRequest wbRequest, String field, 
+			String defaultValue)
+	throws BadQueryException {
+		
 		String value = wbRequest.get(field);
 		if(value == null) {
-			throw new BadQueryException("No " + field + " specified");
+			if(defaultValue == null) {
+				throw new BadQueryException("No " + field + " specified");
+			} else {
+				value = defaultValue;
+			}
 		}
-		return value;
+		return value;		
+	}	
+	private String getRequired(WaybackRequest wbRequest, String field)
+		throws BadQueryException {
+		return getRequired(wbRequest,field,null);
 	}
 	
 	/**
@@ -190,9 +200,11 @@ public class LocalBDBResourceIndex implements ResourceIndex {
 		String searchType = getRequired(wbRequest,
 				WaybackConstants.REQUEST_TYPE);
 		String startDate = getRequired(wbRequest,
-				WaybackConstants.REQUEST_START_DATE);
+				WaybackConstants.REQUEST_START_DATE,
+				Timestamp.earliestTimestamp().getDateStr());
 		String endDate = getRequired(wbRequest,
-				WaybackConstants.REQUEST_END_DATE);
+				WaybackConstants.REQUEST_END_DATE,
+				Timestamp.latestTimestamp().getDateStr());
 
 		try {
 			keyUrl = CDXRecord.urlStringToKey(searchUrl);
