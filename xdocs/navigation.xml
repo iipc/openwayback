@@ -11,6 +11,7 @@
   <body>
     <menu name="Overview">
       <item name="License" href="/license.html"/>
+      <item name="Requirements" href="requirements.html"/>
       <item name="Downloads" href="downloads.html"/>
       <item name="User Manual" href="user_manual.html"/>
       <item name="FAQ" href="/faq.html"/>
