@@ -215,8 +215,8 @@ public class IndexPipeline implements PropertyConfigurable{
 
 		// where do we find ARC files?
 		String arcPath = (String) p.get(ARC_PATH);
-		if (arcPath == null || (arcPath.length() <= 0)) {
-			throw new IllegalArgumentException("Failed to find " + ARC_PATH);
+		if (arcPath != null) {
+			arcDir = new File(arcPath);
 		}
 
 		// where is the BDB? (and what is it named?)
@@ -236,7 +236,6 @@ public class IndexPipeline implements PropertyConfigurable{
 			throw new IllegalArgumentException("Failed to find " + WORK_PATH);
 		}
 
-		arcDir = new File(arcPath);
 		workDir = new File(workPath);
 		queuedDir = new File(workDir,QUEUED_DIR);
 		toBeIndexedDir = new File(workDir,TO_BE_INDEXED_DIR);
@@ -376,6 +375,9 @@ public class IndexPipeline implements PropertyConfigurable{
 	 * @throws IOException
 	 */
 	public void queueNewArcsForIndex() throws IOException {
+		if(arcDir == null) {
+			return;
+		}
 		Iterator newArcs = getNewArcs();
 		while(newArcs.hasNext()) {
 			String newArc = (String) newArcs.next();
@@ -394,6 +396,9 @@ public class IndexPipeline implements PropertyConfigurable{
 	 */
 	public void indexArcs(ArcIndexer indexer, int max) 
 	throws MalformedURLException, IOException {
+		if(arcDir == null) {
+			return;
+		}
 		Iterator toBeIndexed = getDirFilesIterator(toBeIndexedDir);
 		int numIndexed = 0;
 		while(toBeIndexed.hasNext()) {
@@ -495,7 +500,7 @@ public class IndexPipeline implements PropertyConfigurable{
 		status.setNumQueuedForMerge(numQueuedForMerge);
 		status.setNumIndexed(numIndexed);
 		
-		status.setArcPath(this.arcDir.getAbsolutePath());
+		status.setArcPath((arcDir == null ? "NONE" : arcDir.getAbsolutePath()));
 		status.setDatabasePath(db.getPath());
 		status.setDatabaseName(db.getDbName());
 //		status.setDbFileSize(db.getJE_LOG_FILEMAX());
