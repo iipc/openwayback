@@ -37,6 +37,15 @@
 		<param-value>arc-db</param-value>
 		<description>name for BDBJE arc database</description>
 	</context-param>
+
+	<servlet>
+		<servlet-name>FileLocationDBServlet</servlet-name>
+		<servlet-class>org.archive.wayback.http11resourcestore.FileLocationDBServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>FileLocationDBServlet</servlet-name>
+		<url-pattern>/locationDB</url-pattern>
+	</servlet-mapping>
 	
 
 	<!-- ResourceIndex Configuration -->
@@ -169,7 +178,7 @@
 	</filter>
 	<filter-mapping>
     	<filter-name>PipelineFilter</filter-name>
-		<url-pattern>/pipeline</url-pattern>
+		<url-pattern>/pipeline/*</url-pattern>
 	</filter-mapping>
 
 

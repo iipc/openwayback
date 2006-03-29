@@ -105,7 +105,9 @@ public class IndexPipelineClient {
 
 		int statusCode = client.executeMethod(method);
         if (statusCode != HttpStatus.SC_OK) {
-            throw new IOException("Method failed: " + method.getStatusLine());
+            throw new IOException("Method failed: " + method.getStatusLine()
+            		+ " for URL " + finalUrl + " on file " 
+            		+ cdx.getAbsolutePath());
         }
         LOGGER.info("Uploaded cdx " + cdx.getAbsolutePath());
 	}
