@@ -170,7 +170,7 @@ public class CDXRecord {
 		result.put(WaybackConstants.RESULT_MD5_DIGEST, md5Fragment);
 		result.put(WaybackConstants.RESULT_REDIRECT_URL, redirectUrl);
 		// HACKHACK:
-		result.put(WaybackConstants.RESULT_OFFSET, "" + compressedOffset);
+		result.put(WaybackConstants.RESULT_OFFSET, String.valueOf(compressedOffset));
 		result.put(WaybackConstants.RESULT_ARC_FILE, arcFileName);
 
 		return result;

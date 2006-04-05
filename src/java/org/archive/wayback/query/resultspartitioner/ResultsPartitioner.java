@@ -191,7 +191,7 @@ public abstract class ResultsPartitioner {
 	}
 	
 	protected String prettyYear(Calendar cal) {
-		return "" + cal.get(Calendar.YEAR);
+		return String.valueOf(cal.get(Calendar.YEAR));
 	}
 
 }

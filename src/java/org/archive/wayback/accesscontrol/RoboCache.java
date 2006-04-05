@@ -491,12 +491,12 @@ public class RoboCache {
 		Date now = new Date();
 		String newValue = "";
 		if (fresh != null) {
-			newValue = "" + now.getTime() + valueDelimiterRE
+			newValue = String.valueOf(now.getTime()) + valueDelimiterRE
 					+ fresh.getOffset() + valueDelimiterRE + fresh.getName();
 			LOGGER.info("Cached fresh for (" + url.toString() + ") at("
 					+ fresh.getOffset() + ") in (" + fresh.getName() + ")");
 		} else {
-			newValue = "" + now.getTime() + valueDelimiterRE + "0"
+			newValue = String.valueOf(now.getTime()) + valueDelimiterRE + "0"
 					+ valueDelimiterRE + "0";
 			LOGGER.info("Recording FAILED GETfor (" + url.toString() + ")");
 		}

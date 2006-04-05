@@ -282,16 +282,17 @@ public class LocalBDBResourceIndex implements ResourceIndex {
 
 		// window info
 		results.putFilter(WaybackConstants.RESULTS_FIRST_RETURNED,
-				""+startResult);
+				String.valueOf(startResult));
 		results.putFilter(WaybackConstants.RESULTS_REQUESTED,
-				""+resultsPerPage);
+				String.valueOf(resultsPerPage));
 
 		// how many are actually in the results:
-		results.putFilter(WaybackConstants.RESULTS_NUM_RESULTS,""+matched);
+		results.putFilter(WaybackConstants.RESULTS_NUM_RESULTS,
+				String.valueOf(matched));
 
 		// how many matched (includes those outside window)
 		results.putFilter(WaybackConstants.RESULTS_NUM_RETURNED,
-				""+results.getResultCount());
+				String.valueOf(results.getResultCount()));
 		
 		return results;
 	}	

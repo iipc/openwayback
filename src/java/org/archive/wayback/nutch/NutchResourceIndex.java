@@ -173,7 +173,7 @@ public class NutchResourceIndex implements ResourceIndex {
         		getNodeContent(channelElement,NUTCH_NUM_RETURNED));
         
         results.putFilter(WaybackConstants.RESULTS_REQUESTED,
-        		"" + wbRequest.getResultsPerPage());
+        		String.valueOf(wbRequest.getResultsPerPage()));
         
 		results.putFilter(WaybackConstants.REQUEST_START_DATE,
 				Timestamp.earliestTimestamp().getDateStr());

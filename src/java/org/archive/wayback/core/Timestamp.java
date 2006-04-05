@@ -244,7 +244,7 @@ public class Timestamp {
 		return padded;
 	}
 	private static String frontZeroPad(final int input, final int digits) {
-		return frontZeroPad(""+input,digits);
+		return frontZeroPad(String.valueOf(input)	,digits);
 	}
 	
 	private static Calendar getCalendar() {
@@ -353,7 +353,7 @@ public class Timestamp {
 		cal.set(Calendar.MONTH,iMonth - 1);
 		cal.set(Calendar.DAY_OF_MONTH,1);
 
-		String maxDayOfMonth = "" + cal.getActualMaximum(Calendar.DAY_OF_MONTH);
+		String maxDayOfMonth = String.valueOf(cal.getActualMaximum(Calendar.DAY_OF_MONTH));
 		if(maxDayOfMonth.length() == 1) {
 			maxDayOfMonth = "0" + maxDayOfMonth;
 		}

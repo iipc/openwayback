@@ -493,17 +493,17 @@ public class IndexPipeline implements PropertyConfigurable{
 		String merge[] = toBeMergedDir.list();
 //		String queued[] = queuedDir.list();
 		String merged[] = mergedDir.list();
-		String numQueuedForIndex = (index == null) ? "0" : "" + index.length;
-		String numQueuedForMerge = (merge == null) ? "0" : "" + merge.length;
+		String numQueuedForIndex = (index == null) ? "0" : String.valueOf(index.length);
+		String numQueuedForMerge = (merge == null) ? "0" : String.valueOf(merge.length);
 
 		
 		// for now, we're keeping a copy of the indexed files, so we will
 		// use the length of the mergedDir array.. Eventually, we will be
 		// unlinking the files as they are indexed, in which case, we will
 		// have to do this math:
-//		String numIndexed = (queued == null) ? "0" : "" + (queued.length - 
+//		String numIndexed = (queued == null) ? "0" : String.valueOf(queued.length) - 
 //				(index.length + merge.length)); 
-		String numIndexed = (merged == null) ? "0" : "" + merged.length;
+		String numIndexed = (merged == null) ? "0" : String.valueOf(merged.length);
 
 		status.setNumQueuedForIndex(numQueuedForIndex);
 		status.setNumQueuedForMerge(numQueuedForMerge);

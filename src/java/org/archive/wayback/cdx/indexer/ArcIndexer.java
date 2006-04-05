@@ -123,7 +123,7 @@ public class ArcIndexer {
 
 		SearchResult result = new SearchResult();
 		result.put(WaybackConstants.RESULT_ARC_FILE,arc.getName());
-		result.put(WaybackConstants.RESULT_OFFSET,""+meta.getOffset());
+		result.put(WaybackConstants.RESULT_OFFSET,String.valueOf(meta.getOffset()));
 
 		// initialize with default HTTP code...
 		result.put(WaybackConstants.RESULT_HTTP_CODE,"-");
