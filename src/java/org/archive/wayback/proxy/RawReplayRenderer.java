@@ -54,7 +54,6 @@ import org.archive.wayback.exception.WaybackException;
  */
 public class RawReplayRenderer implements ReplayRenderer {
 	private final static String JSP_PATH = "replayui.jsppath";
-	private final static String HTTP_LENGTH_HEADER= "Content-Length";
 	private final static String HTTP_LOCATION_HEADER = "Location";
 	
 	protected final Pattern IMAGE_REGEX = Pattern
@@ -148,6 +147,25 @@ public class RawReplayRenderer implements ReplayRenderer {
 		copy(resource, httpResponse.getOutputStream());
 	}
 
+	/**
+	 * callback function for each HTTP header. If null is returned, header is
+	 * omitted from final response to client, otherwise, the possibly modified
+	 * http header value is returned to the client.
+	 * @param key 
+	 * @param value 
+	 * @param uriConverter 
+	 * @param result 
+	 * @return String
+	 */
+	protected String filterHeader(final String key, final String value,
+			final ReplayResultURIConverter uriConverter, SearchResult result) {
+		String finalHeaderValue = value;
+		if(0 == key.indexOf(HTTP_LOCATION_HEADER)) {
+			finalHeaderValue = uriConverter.makeRedirectReplayURI(result,value);
+		}
+		return finalHeaderValue;
+	}
+	
 	protected void copyRecordHttpHeader(HttpServletResponse response,
 			Resource resource, ReplayResultURIConverter uriConverter,
 			SearchResult result, boolean noLength) throws IOException {
@@ -168,15 +186,14 @@ public class RawReplayRenderer implements ReplayRenderer {
 			for (Enumeration e = headers.keys(); e.hasMoreElements();) {
 				String key = (String) e.nextElement();
 				String value = (String) headers.get(key);
-				if (noLength) {
-					if (-1 != key.indexOf(HTTP_LENGTH_HEADER)) {
+				String finalValue = value;
+				if(value != null) {
+					finalValue = filterHeader(key,value,uriConverter,result);
+					if(finalValue == null) {
 						continue;
 					}
 				}
-				if(0 == key.indexOf(HTTP_LOCATION_HEADER)) {
-					value = uriConverter.makeRedirectReplayURI(result,value);
-				}
-				response.setHeader(key, (value == null) ? "" : value);
+				response.setHeader(key, (finalValue == null) ? "" : finalValue);
 			}
 		}
 	}

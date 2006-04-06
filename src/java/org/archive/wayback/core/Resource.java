@@ -23,6 +23,7 @@
 
 package org.archive.wayback.core;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Enumeration;
@@ -81,6 +82,8 @@ public class Resource extends InputStream {
 	 */
 	Properties metaData = new Properties();
 	
+	private BufferedInputStream bis;
+	
 	/**
 	 * Constructor
 	 * 
@@ -91,6 +94,7 @@ public class Resource extends InputStream {
 		super();
 		arcRecord = rec;
 		arcReader = reader;
+		bis = new BufferedInputStream(rec);
 	}
 
 	/** parse the headers on the underlying ARC record, and extract all 
@@ -181,28 +185,56 @@ public class Resource extends InputStream {
 	 * @see org.archive.io.arc.ARCRecord#read()
 	 */
 	public int read() throws IOException {
-		return arcRecord.read();
+		return bis.read();
 	}
 
 	/* (non-Javadoc)
 	 * @see org.archive.io.arc.ARCRecord#read(byte[], int, int)
 	 */
 	public int read(byte[] arg0, int arg1, int arg2) throws IOException {
-		return arcRecord.read(arg0, arg1, arg2);
+		return bis.read(arg0, arg1, arg2);
 	}
 
 	/* (non-Javadoc)
 	 * @see java.io.InputStream#read(byte[])
 	 */
 	public int read(byte[] b) throws IOException {
-		return arcRecord.read(b);
+		return bis.read(b);
 	}
 
 	/* (non-Javadoc)
 	 * @see org.archive.io.arc.ARCRecord#skip(long)
 	 */
 	public long skip(long arg0) throws IOException {
-		return arcRecord.skip(arg0);
+		return bis.skip(arg0);
+	}
+
+	/* (non-Javadoc)
+	 * @see java.io.BufferedInputStream#available()
+	 */
+	public int available() throws IOException {
+		return bis.available();
+	}
+
+	/* (non-Javadoc)
+	 * @see java.io.BufferedInputStream#mark(int)
+	 */
+	public void mark(int readlimit) {
+		bis.mark(readlimit);
+	}
+
+	/* (non-Javadoc)
+	 * @see java.io.BufferedInputStream#markSupported()
+	 */
+	public boolean markSupported() {
+		return bis.markSupported();
+	}
+
+	/* (non-Javadoc)
+	 * @see java.io.BufferedInputStream#reset()
+	 */
+	public void reset() throws IOException {
+		bis.reset();
 	}
 
 	/* (non-Javadoc)
