@@ -326,6 +326,20 @@
                 http://www.apache.org/licenses/LICENSE-2.0</license>
             </properties>
         </dependency>
+        <dependency>
+            <id>chardet</id>
+            <version>1.0</version>
+            <url>http://jchardet.sourceforge.net/</url>
+            <properties>
+                <war.bundle>true</war.bundle>
+                <ear.bundle>true</ear.bundle>
+                <ear.bundle.dir>APP-INF/lib</ear.bundle.dir>
+                <description>jchardet is a java port of the source from
+                mozilla's automatic charset detection algorithm.</description>
+                <license>Mozilla Public License 1.1 (MPL 1.1)
+                http://www.mozilla.org/MPL/MPL-1.1.html</license>
+            </properties>
+        </dependency>
   </dependencies>
 
   
