@@ -84,10 +84,13 @@ public class ReplayFilter extends RequestFilter {
 			referer = "";
 		}
 		wbRequest.put(WaybackConstants.REQUEST_REFERER_URL,referer);
-
-		wbRequest.put(WaybackConstants.REQUEST_EXACT_DATE,
-				Timestamp.currentTimestamp().getDateStr());
-		
+          
+		// Get the id from the request. If no id, use the ip-address instead.
+        // Then get the timestamp (or rather datestr) matching this id.
+        String id = httpRequest.getHeader("Proxy-Id");
+        if(id == null) id = httpRequest.getRemoteAddr();
+        wbRequest.put(WaybackConstants.REQUEST_EXACT_DATE, 
+        		Timestamp.getTimestampForId(id));
 		
 		return wbRequest;
 	}

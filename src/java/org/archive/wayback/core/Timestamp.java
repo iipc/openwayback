@@ -56,6 +56,12 @@ public class Timestamp {
 
 	private final static String[] months = { "Jan", "Feb", "Mar", "Apr", "May",
 			"Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+        
+    // Acts as a mapping between an ID and a timestamp to surf at.
+    // The dir should probably be configurable somehow.
+    private static String BDB_DIR = System.getProperty("java.io.tmpdir") +
+    	"/wayback/bdb";
+    private static BDBMap idToTimestamp = new BDBMap("IdToTimestamp", BDB_DIR);    
 
 	private String dateStr = null;
 	private Date date = null;
@@ -430,6 +436,7 @@ public class Timestamp {
 	public static Timestamp currentTimestamp() {
 		return new Timestamp(new Date());
 	}
+    
 	/**
 	 * @return Timestamp object representing the latest possible date.
 	 */
@@ -437,12 +444,31 @@ public class Timestamp {
 		return currentTimestamp();
 	}
 
-
 	/**
 	 * @return Timestamp object representing the earliest possible date.
 	 */
 	public static Timestamp earliestTimestamp() {
 		return new Timestamp(SSE_1996);
 	}
+    
+    /**
+     * return the timestamp associated with the identifier argument, or now
+     * if no value is associated or something goes wrong.
+     * @param ip
+     * @return timestamp string value
+     */
+    public static String getTimestampForId(String ip) {
+        String dateStr = idToTimestamp.get(ip);
+        return (dateStr != null) ? dateStr : currentTimestamp().getDateStr();
+    }
+    
+   /**
+    * associate timestamp time with idenfier ip persistantly 
+    * @param ip
+    * @param time
+    */
+    public static void addTimestampForId(String ip, String time) {
+        idToTimestamp.put(ip, time);
+    }
 
 }

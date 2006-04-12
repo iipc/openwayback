@@ -24,6 +24,8 @@
  */
 package org.archive.wayback.proxy;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Properties;
 
 import org.apache.commons.httpclient.URIException;
@@ -41,10 +43,19 @@ import org.archive.wayback.exception.ConfigurationException;
  * @version $Date$, $Revision$
  */
 public class ResultURIConverter implements ReplayResultURIConverter {
-	/* (non-Javadoc)
+	
+    private static final String REDIRECT_PATH_PROPERTY = "proxy.redirectpath";
+    
+    private String redirectPath;
+    
+    /* (non-Javadoc)
 	 * @see org.archive.wayback.ReplayResultURIConverter#init(java.util.Properties)
 	 */
 	public void init(Properties p) throws ConfigurationException {
+	    redirectPath = (String) p.get(REDIRECT_PATH_PROPERTY);
+        if (redirectPath == null || redirectPath.length() <= 0) {
+            throw new ConfigurationException("Failed to find " +  REDIRECT_PATH_PROPERTY);
+        }
 	}
 
 	/* (non-Javadoc)
@@ -52,10 +63,19 @@ public class ResultURIConverter implements ReplayResultURIConverter {
 	 */
 	public String makeReplayURI(SearchResult result) {
 		String finalUrl = result.get(WaybackConstants.RESULT_URL); 
+        String finalTime = result.get(WaybackConstants.RESULT_CAPTURE_DATE); 
 		if(!finalUrl.startsWith(WaybackConstants.HTTP_URL_PREFIX)) {
 			finalUrl = WaybackConstants.HTTP_URL_PREFIX + finalUrl;
 		}
-		return finalUrl;
+		String res = null;
+        try {
+			res = redirectPath + "?url=" + URLEncoder.encode(finalUrl, "UTF-8") + 
+				"&time=" + URLEncoder.encode(finalTime, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			// should not be able to happen -- with hard-coded UTF-8, anyways..
+			e.printStackTrace();
+		}
+		return res;
 	}
 
 	/**
@@ -70,6 +90,7 @@ public class ResultURIConverter implements ReplayResultURIConverter {
 	 */
 	public String makeRedirectReplayURI(SearchResult result, String url) {
 		String finalUrl = url;
+        String finalTime = result.get(WaybackConstants.RESULT_CAPTURE_DATE);
 		try {
 			
 			UURI origURI = UURIFactory.getInstance(url);
@@ -86,6 +107,14 @@ public class ResultURIConverter implements ReplayResultURIConverter {
 		if(!finalUrl.startsWith(WaybackConstants.HTTP_URL_PREFIX)) {
 			finalUrl = WaybackConstants.HTTP_URL_PREFIX + finalUrl;
 		}
-		return finalUrl;
+		String res = null;
+        try {
+			res = redirectPath + "?url=" + URLEncoder.encode(finalUrl, "UTF-8") + 
+				"&time=" + URLEncoder.encode(finalTime, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			// should not be able to happen -- with hard-coded UTF-8, anyways..
+			e.printStackTrace();
+		}
+		return res;
 	}
 }

@@ -25,7 +25,9 @@
 package org.archive.wayback.query;
 
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.Properties;
 
 import javax.servlet.ServletConfig;
@@ -39,7 +41,9 @@ import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.QueryRenderer;
 import org.archive.wayback.ReplayResultURIConverter;
 import org.archive.wayback.ResourceIndex;
+import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.SearchResults;
+import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackLogic;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadQueryException;
@@ -119,6 +123,14 @@ public class QueryServlet extends HttpServlet {
 			if (wbRequest.get(WaybackConstants.REQUEST_TYPE).equals(
 					WaybackConstants.REQUEST_URL_QUERY)) {
 				
+                // Annotate the closest matching hit so that it can 
+                // be retrieved later from the xml.
+                try {
+                    annotateClosest(results, wbRequest, httpRequest);
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+               
 				renderer.renderUrlResults(httpRequest, httpResponse,
 						wbRequest, results, uriConverter);
 
@@ -144,4 +156,34 @@ public class QueryServlet extends HttpServlet {
 
 		}
 	}
+    
+    // Method annotating the searchresult closest in time to the timestamp 
+    // belonging to this request.
+    private void annotateClosest(SearchResults results,
+            WaybackRequest wbRequest, HttpServletRequest request) throws ParseException {
+
+        SearchResult closest = null;
+        long closestDistance = 0;
+        SearchResult cur = null;
+        String id = request.getHeader("Proxy-Id");
+        if(id == null) id = request.getRemoteAddr();
+        String requestsDate = Timestamp.getTimestampForId(id);
+        Timestamp wantTimestamp;
+        wantTimestamp = Timestamp.parseBefore(requestsDate);
+
+        Iterator itr = results.iterator();
+        while (itr.hasNext()) {
+            cur = (SearchResult) itr.next();
+            long curDistance;
+            Timestamp curTimestamp = Timestamp.parseBefore(cur
+                    .get(WaybackConstants.RESULT_CAPTURE_DATE));
+            curDistance = curTimestamp.absDistanceFromTimestamp(wantTimestamp);
+            
+            if ((closest == null) || (curDistance < closestDistance)) {
+                closest = cur;
+                closestDistance = curDistance;
+            }
+        }
+        closest.put("closest", "true");
+    }
 }
