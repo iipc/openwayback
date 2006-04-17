@@ -81,13 +81,12 @@ public class ResultURIConverter implements ReplayResultURIConverter {
 	public String makeRedirectReplayURI(SearchResult result, String url) {
 		String finalUrl = url;
 		try {
-			
-			UURI origURI = UURIFactory.getInstance(url);
-			if(!origURI.isAbsoluteURI()) {
+			if(!url.startsWith(WaybackConstants.HTTP_URL_PREFIX)) {
 				String resultUrl = result.get(WaybackConstants.RESULT_URL);
-				UURI absResultURI = UURIFactory.getInstance(resultUrl);
-				UURI finalURI = absResultURI.resolve(url);
-				finalUrl = finalURI.getEscapedURI();
+				UURI absResultURI = UURIFactory.getInstance(
+						WaybackConstants.HTTP_URL_PREFIX  + resultUrl );
+				UURI origURI = UURIFactory.getInstance(absResultURI, url);
+				finalUrl = origURI.getEscapedURI();
 			}
 		} catch (URIException e) {
 			// TODO Auto-generated catch block
