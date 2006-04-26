@@ -93,6 +93,46 @@ public interface WaybackConstants {
 	 */
 	public static final String REQUEST_REPLAY_QUERY = "replay";
 
+	/**
+	 * Request: closest type request 
+	 */
+	public static final String REQUEST_CLOSEST_QUERY = "urlclosestquery";
+
+	/**
+	 * Request: resolution of results to be displayed: (TimeLine mode)
+	 */
+	public static final String REQUEST_RESOLUTION = "resolution";
+	
+	/**
+	 * Request: replay actual document or metadata for document: "yes" means 
+	 * replay metadata only, not the actual document: (TimeLine mode)
+	 */
+	public static final String REQUEST_META_MODE = "metamode";
+	
+	/**
+	 * Request: hour resolution (TimeLine mode)
+	 */
+	public static final String REQUEST_RESOLUTION_HOURS = "hours";
+	
+	/**
+	 * Request: day resolution (TimeLine mode)
+	 */
+	public static final String REQUEST_RESOLUTION_DAYS = "days";
+	
+	/**
+	 * Request: month resolution (TimeLine mode)
+	 */
+	public static final String REQUEST_RESOLUTION_MONTHS = "months";
+	
+	/**
+	 * Request: year resolution (TimeLine mode)
+	 */
+	public static final String REQUEST_RESOLUTION_YEARS = "years";
+
+	/**
+	 * Request: auto resolution (TimeLine mode)
+	 */
+	public static final String REQUEST_RESOLUTION_AUTO = "auto";
 	
 	
 	/**
@@ -117,9 +157,25 @@ public interface WaybackConstants {
 	
 
 	/**
-	 * Result: URL of captured document 
+	 * Result: as close as possible to original URL of captured document given
+	 * informatio accessible only within the index.
+	 * 
+	 * This may not always yield the exact URL requested: some canonicalization
+	 * operations are irreversible.
+	 *      Example: lowercasing of GET URI encoded arguments
+	 *        http://foo.com/q?a=%3F => foo.com/q?a=%3f
+	 *      Example: rearrangement of GET URI encoded arguments
+	 *        http://foo.com/q?b=1&a=1 => foo.com/q?a=1&b=1
+	 *      Example: removal of sessionID information from request path
+	 *        http://foo.com/SESSION_A2KSM2/i.htm => foo.com/i.htm
+	 * 
 	 */
 	public static final String RESULT_URL = "url";
+
+	/**
+	 * Result: canonicalized(lookup key) form of URL of captured document 
+	 */
+	public static final String RESULT_URL_KEY = "urlkey";
 	
 	/**
 	 * Result: 14-digit timestamp when document was captured 
