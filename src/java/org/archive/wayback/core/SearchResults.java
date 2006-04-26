@@ -69,11 +69,22 @@ public class SearchResults {
 	public boolean isEmpty() {
 		return results.isEmpty();
 	}
+	
 	/**
+	 * append a result
 	 * @param result
-	 *            SearchResult to add to this set
 	 */
 	public void addSearchResult(final SearchResult result) {
+		addSearchResult(result,true);
+	}
+	/**
+	 * add a result to this results, at either the begginning or at the end,
+	 * depending on the append argument
+	 * @param result
+	 *            SearchResult to add to this set
+	 * @param append 
+	 */
+	public void addSearchResult(final SearchResult result, final boolean append) {
 		String resultDate = result.get(WaybackConstants.RESULT_CAPTURE_DATE);
 		if((firstResultDate == null) || 
 				(firstResultDate.compareTo(resultDate) > 0)) {
@@ -83,7 +94,11 @@ public class SearchResults {
 				(lastResultDate.compareTo(resultDate) < 0)) {
 			lastResultDate = resultDate;
 		}
-		results.add(result);
+		if(append) {
+			results.add(result);
+		} else {
+			results.add(0,result);
+		}
 	}
 	
 	/**
