@@ -111,6 +111,7 @@ public class WaybackRequest {
 	public void fixup() {
 		String startDate = get(WaybackConstants.REQUEST_START_DATE);
 		String endDate = get(WaybackConstants.REQUEST_END_DATE);
+		String exactDate = get(WaybackConstants.REQUEST_EXACT_DATE);
 		String partialDate = get(WaybackConstants.REQUEST_DATE);
 		if(partialDate == null) {
 			partialDate = "";
@@ -128,6 +129,13 @@ public class WaybackRequest {
 		} else if (endDate.length() < 14) {
 			put(WaybackConstants.REQUEST_END_DATE,
 					Timestamp.padEndDateStr(endDate));
+		}
+		if(exactDate == null || exactDate.length() == 0) {
+			put(WaybackConstants.REQUEST_EXACT_DATE,
+					Timestamp.padEndDateStr(partialDate));
+		} else if (exactDate.length() < 14) {
+			put(WaybackConstants.REQUEST_EXACT_DATE,
+					Timestamp.padEndDateStr(exactDate));
 		}
 	}
 	
