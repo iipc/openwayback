@@ -131,11 +131,11 @@ public class BDBResourceIndex {
 	/**
 	 * @param startKey 
 	 * @param filter 
-	 * @return SearchResults matching the filters
+	 * @param results 
+	 * @param forward 
 	 */
-	protected SearchResults filterRecords(final String startKey, 
-			final RecordFilter filter) {
-		SearchResults results = new SearchResults();
+	protected void filterRecords(final String startKey, 
+			final RecordFilter filter, SearchResults results, final boolean forward) {
 		DatabaseEntry key = new DatabaseEntry();
 		DatabaseEntry value = new DatabaseEntry();
 		
@@ -145,6 +145,11 @@ public class BDBResourceIndex {
 			Cursor cursor = db.openCursor(null, null);
 			OperationStatus status = cursor.getSearchKeyRange(key, value,
 					LockMode.DEFAULT);
+			
+			// if we are in reverse, immediately back up one record:
+			if(!forward && (status == OperationStatus.SUCCESS)) {
+				status = cursor.getPrev(key, value, LockMode.DEFAULT);
+			}
 			while (status == OperationStatus.SUCCESS) {
 
 				CDXRecord record = new CDXRecord();
@@ -154,9 +159,13 @@ public class BDBResourceIndex {
 				if(ruling == RecordFilter.RECORD_ABORT) {
 					break;
 				} else if(ruling == RecordFilter.RECORD_INCLUDE) {
-					results.addSearchResult(record.toSearchResult());
+					results.addSearchResult(record.toSearchResult(),forward);
 				}
-				status = cursor.getNext(key, value, LockMode.DEFAULT);
+				if(forward) {
+					status = cursor.getNext(key, value, LockMode.DEFAULT);
+				} else {
+					status = cursor.getPrev(key, value, LockMode.DEFAULT);					
+				}
 			}
 			cursor.close();
 		} catch (DatabaseException dbe) {
@@ -166,7 +175,6 @@ public class BDBResourceIndex {
 			// TODO: let this bubble up as Index error
 			e.printStackTrace();
 		}
-		return results;
 	}
 	// TODO add mechanism for replay which allows passing in of 
 	// an exact date, and use a "scrolling window" of the best results, to 

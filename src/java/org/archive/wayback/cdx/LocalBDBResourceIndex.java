@@ -35,7 +35,7 @@ import org.archive.wayback.cdx.filter.EndDateFilter;
 import org.archive.wayback.cdx.filter.ExclusionFilter;
 import org.archive.wayback.cdx.filter.FilterChain;
 import org.archive.wayback.cdx.filter.GuardRailFilter;
-import org.archive.wayback.cdx.filter.RecordFilter;
+import org.archive.wayback.cdx.filter.StartDateFilter;
 import org.archive.wayback.cdx.filter.UrlMatchFilter;
 import org.archive.wayback.cdx.filter.UrlPrefixFilter;
 import org.archive.wayback.cdx.filter.WindowEndFilter;
@@ -173,9 +173,10 @@ public class LocalBDBResourceIndex implements ResourceIndex {
 		AccessControlException {
 
 		
+		SearchResults results = new SearchResults(); // return value placeholder
+		
 		String startKey;              // actual BDB key where search will begin
 		String keyUrl;                // "purified" URL request
-		SearchResults results = null; // return value placeholder
 		int startResult;              // calculated based on hits/page + pagenum
 		
 		// first grab all the info from the WaybackRequest, and validate it:
@@ -205,6 +206,9 @@ public class LocalBDBResourceIndex implements ResourceIndex {
 		String endDate = getRequired(wbRequest,
 				WaybackConstants.REQUEST_END_DATE,
 				Timestamp.latestTimestamp().getDateStr());
+		String exactDate = getRequired(wbRequest,
+				WaybackConstants.REQUEST_EXACT_DATE,
+				Timestamp.latestTimestamp().getDateStr());
 
 		try {
 			keyUrl = CDXRecord.urlStringToKey(searchUrl);
@@ -212,58 +216,116 @@ public class LocalBDBResourceIndex implements ResourceIndex {
 			throw new BadQueryException("invalid " + 
 					WaybackConstants.REQUEST_URL + " " + searchUrl);
 		}
-		
-		// build up the FilterChain:
-		FilterChain filters = new FilterChain();
-		// first the guardrail to keep us from inspecting too many records:
-		filters.addFilter(new GuardRailFilter(MAX_RECORDS));
-		if (searchType.equals(WaybackConstants.REQUEST_REPLAY_QUERY)) {
 
-			filters.addFilter(new UrlMatchFilter(keyUrl));
-			filters.addFilter(new EndDateFilter(endDate));
-			startKey = keyUrl + " " + startDate;
+		
+		// set up the common Filters:
+
+		// makes sure we don't inspect too many records: prevents DOS
+		GuardRailFilter guardrail = new GuardRailFilter(MAX_RECORDS);
+
+		// checks an exclusion service for every matching record
+		ExclusionFilter exclusion = getExclusionFilter();
+		
+		// this filter will just count how many results matched:
+		CounterFilter counter = new CounterFilter();
+
+		if (searchType.equals(WaybackConstants.REQUEST_REPLAY_QUERY)
+				|| searchType.equals(WaybackConstants.REQUEST_CLOSEST_QUERY)) {
+
+			FilterChain forward = new FilterChain();
+			FilterChain reverse = new FilterChain();
+			
+			 // use the same guardrail for both:
+			forward.addFilter(guardrail);
+			reverse.addFilter(guardrail);
+			
+			// match URL key:
+			forward.addFilter(new UrlMatchFilter(keyUrl));
+			reverse.addFilter(new UrlMatchFilter(keyUrl));
+			
+			// stop matching if we hit a date outside the search range:
+			forward.addFilter(new EndDateFilter(endDate));
+			reverse.addFilter(new StartDateFilter(startDate));
+			
+			// possibly filter via exclusions:
+			if(exclusion != null) {
+				forward.addFilter(exclusion);
+				reverse.addFilter(exclusion);
+			}
+			
+			int resultsPerDirection = (int) Math.floor(resultsPerPage / 2);
+			if(resultsPerDirection * 2 == resultsPerPage) {
+				forward.addFilter(new WindowEndFilter(resultsPerDirection));
+			} else {
+				forward.addFilter(new WindowEndFilter(resultsPerDirection + 1));				
+			}
+			reverse.addFilter(new WindowEndFilter(resultsPerDirection));
+			
+			// add the same counter:
+			forward.addFilter(counter);
+			reverse.addFilter(counter);
+			
+			startKey = keyUrl + " " + exactDate;
+			
+			// first the reverse search:
+			db.filterRecords(startKey,reverse,results,false);
+			// then the forwards:
+			db.filterRecords(startKey,forward,results,true);
 
 		} else if (searchType.equals(WaybackConstants.REQUEST_URL_QUERY)) {
 
+			// build up the FilterChain(s):
+			FilterChain filters = new FilterChain();
+			filters.addFilter(guardrail);
+
 			filters.addFilter(new UrlMatchFilter(keyUrl));
 			filters.addFilter(new EndDateFilter(endDate));
+			// possibly filter via exclusions:
+			if(exclusion != null) {
+				filters.addFilter(exclusion);
+			}
 			startKey = keyUrl + " " + startDate;
+			filters.addFilter(counter);
+
+			// add the start and end windowing filters:
+			filters.addFilter(new WindowStartFilter(startResult));
+			filters.addFilter(new WindowEndFilter(resultsPerPage));
+
+			db.filterRecords(startKey,filters,results,true);
 			
 		} else if (searchType.equals(
 				WaybackConstants.REQUEST_URL_PREFIX_QUERY)) {
 
-			
+			// build up the FilterChain(s):
+			FilterChain filters = new FilterChain();
+			filters.addFilter(guardrail);
+
 			filters.addFilter(new UrlPrefixFilter(keyUrl));
 			filters.addFilter(new DateRangeFilter(startDate,endDate));
 
+			// possibly filter via exclusions:
+			if(exclusion != null) {
+				filters.addFilter(exclusion);
+			}
 			startKey = keyUrl;
+			filters.addFilter(counter);
+
+			// add the start and end windowing filters:
+			filters.addFilter(new WindowStartFilter(startResult));
+			filters.addFilter(new WindowEndFilter(resultsPerPage));
+
+			db.filterRecords(startKey,filters,results,true);
+		
+
 
 		} else {
-			throw new BadQueryException("Unknown query type, must be " +
+			throw new BadQueryException("Unknown query type("+searchType+"), must be " +
 					WaybackConstants.REQUEST_REPLAY_QUERY + ", " +
+					WaybackConstants.REQUEST_CLOSEST_QUERY + ", " +
 					WaybackConstants.REQUEST_URL_QUERY + ", or " +
 					WaybackConstants.REQUEST_URL_PREFIX_QUERY);
 		}
-		
-		ExclusionFilter exclusion = null;
-		if(exclusionUrlPrefix != null) {
-			// throw in the ExclusionFilter:
-			exclusion = getExclusionFilter();
-			filters.addFilter(exclusion);
-		}
-		
-		// throw in a counter to see how many results total matched:
-		CounterFilter counter = new CounterFilter();
-		filters.addFilter(counter);
-		
-		// add the start and end windowing filters:
-		RecordFilter windowStart = new WindowStartFilter(startResult);
-		RecordFilter windowEnd = new WindowEndFilter(resultsPerPage);
-		filters.addFilter(windowStart);
-		filters.addFilter(windowEnd);
-		
-		
-		results = db.filterRecords(startKey,filters);
+
 		
 		int matched = counter.getNumMatched();
 		if(matched == 0) {
@@ -278,6 +340,7 @@ public class LocalBDBResourceIndex implements ResourceIndex {
 		results.putFilter(WaybackConstants.REQUEST_URL,keyUrl);
 		results.putFilter(WaybackConstants.REQUEST_TYPE,searchType);
 		results.putFilter(WaybackConstants.REQUEST_START_DATE,startDate);
+		results.putFilter(WaybackConstants.REQUEST_EXACT_DATE,exactDate);
 		results.putFilter(WaybackConstants.REQUEST_END_DATE,endDate);
 
 		// window info
@@ -298,6 +361,9 @@ public class LocalBDBResourceIndex implements ResourceIndex {
 	}	
 	
 	private ExclusionFilter getExclusionFilter() {
-		return new ExclusionFilter(exclusionUrlPrefix,exclusionUserAgent);
+		if(exclusionUrlPrefix != null) {
+			return new ExclusionFilter(exclusionUrlPrefix,exclusionUserAgent);
+		}
+		return null;
 	}
 }
