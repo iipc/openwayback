@@ -228,9 +228,36 @@
 					is sent with the request.
 				</p>
 				<p>
-					In Proxy Replay mode, the Wayback Machine will <i>always
-					return the most recent</i> version captured of any 
-					requested page.
+					In Proxy Replay mode, the Wayback Machine will return the 
+					most recent version captured of any requested page. This 
+					behavior can be changed by using the Firefox-specific plugin
+					developed by Oskar Grenholm. You can find out more about 
+					this plugin and download it 
+					<a href="http://archive-access.sourceforge.net/projects/waxtoolbar/">
+						here
+					</a>.
+				</p>
+				<p>
+				Thanks Oskar!
+				</p>
+			</subsection>
+			<subsection name="Timeline Replay mode">
+				<p>
+					Timeline Replay mode provides an interface similar to the
+					<a href="http://archive-access.sourceforge.net/projects/wera/">
+						WERA
+					</a>
+					access tool, where a timeline is visible at the top of every
+					page viewed in the Wayback. This timeline illustrates which
+					versions are available, and provides the capability to
+					access other versions of the same document, including the
+					ability to scroll forwards and backwards in time.
+				</p>
+				<p>
+					Timeline Replay mode is still under testing, and sites with
+					frames may not work well. If you find problems with this 
+					mode, please provide feedback via the archive-access 
+					discussion list.
 				</p>
 			</subsection>
 			<subsection name="Choosing a ResourceStore Implementation">
@@ -311,6 +338,14 @@
                     the webapp, it will be accessible via <i>CONTEXT/</i>.
 				</p>
 			</subsection>
+			<subsection name="Timeline mode installation">
+				<p>
+					This mode has the same procedure as Archival URL mode 
+					installation. Please follow the instructions found there,
+					but you will need to change the default web.xml file before
+					using this mode.
+				</p>
+			</subsection>
 			<subsection name="Proxy mode installation">
 				<p>
 					Running the Wayback Machine in proxy mode requires the
@@ -385,6 +420,17 @@
 							</td>
 							<td>
 								<b>web-http11-proxy.xml</b>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								Timeline Mode
+							</td>
+							<td>
+								<b>web-local-timeline.xml</b>
+							</td>
+							<td>
+								<b>web-http11-timeline.xml</b>
 							</td>
 						</tr>
 					</table>
@@ -555,6 +601,20 @@
 					</tr>
 					<tr>
 						<td>
+							jsuri
+						</td>
+						<td>
+							http://localhost:8080/wayback/wm.js
+						</td>
+						<td>
+							This should be set to the absolute HTTP URL where
+							the wm.js file is located. Most likely, you can
+							follow the instructions for modifying the 
+							<b>replayuriprefix</b>, but add "/wm.js" to the end.
+						</td>
+					</tr>
+					<tr>
+						<td>
 							arcpath
 						</td>
 						<td>
@@ -582,6 +642,124 @@
 						</td>
 						<td>
 							Description
+						</td>
+					</tr>
+					<tr>
+						<td>
+							arcpath
+						</td>
+						<td>
+							/tmp/wayback/arcs
+						</td>
+						<td>
+							Directory where ARC files are found (possibly where 
+							Heritrix writes them.) This directory must exist.
+						</td>
+					</tr>
+				</table>
+			</subsection>
+			<subsection name="web-local-timeline.xml specific configuration">
+				<p>
+					The following table describes additional configurations 
+					available in the web-local-timeline.xml file.
+				</p>
+				<table>
+					<tr>
+						<td>
+							Option
+						</td>
+						<td>
+							Default value
+						</td>
+						<td>
+							Description
+						</td>
+					</tr>
+					<tr>
+						<td>
+							replayuriprefix
+						</td>
+						<td>
+							http://localhost:8080/wayback/replay
+						</td>
+						<td>
+							This should be set to the HTTP prefix to the wayback
+							webapp context. You should set the hostname to the
+							name of the machine where the Wayback Machine 
+							software is runnning, the port to the port that 
+							Tomcat is listening on, and 'wayback' should be the
+							name of the context that the Wayback Machine webapp
+							is deployed to (wayback.war => 'wayback' context,
+							foo.war => 'foo' context).
+						</td>
+					</tr>
+					<tr>
+						<td>
+							metauriprefix
+						</td>
+						<td>
+							http://localhost:8080/wayback/meta
+						</td>
+						<td>
+							This should be set to the HTTP prefix to the wayback
+							webapp context. You should set the hostname to the
+							name of the machine where the Wayback Machine 
+							software is runnning, the port to the port that 
+							Tomcat is listening on, and 'wayback' should be the
+							name of the context that the Wayback Machine webapp
+							is deployed to (wayback.war => 'wayback' context,
+							foo.war => 'foo' context).
+						</td>
+					</tr>
+					<tr>
+						<td>
+							timelineuriprefix
+						</td>
+						<td>
+							http://localhost:8080/wayback/timeline
+						</td>
+						<td>
+							This should be set to the HTTP prefix to the wayback
+							webapp context. You should set the hostname to the
+							name of the machine where the Wayback Machine 
+							software is runnning, the port to the port that 
+							Tomcat is listening on, and 'wayback' should be the
+							name of the context that the Wayback Machine webapp
+							is deployed to (wayback.war => 'wayback' context,
+							foo.war => 'foo' context).
+						</td>
+					</tr>
+					<tr>
+						<td>
+							frameseturiprefix
+						</td>
+						<td>
+							http://localhost:8080/wayback/frameset
+						</td>
+						<td>
+							This should be set to the HTTP prefix to the wayback
+							webapp context. You should set the hostname to the
+							name of the machine where the Wayback Machine 
+							software is runnning, the port to the port that 
+							Tomcat is listening on, and 'wayback' should be the
+							name of the context that the Wayback Machine webapp
+							is deployed to (wayback.war => 'wayback' context,
+							foo.war => 'foo' context).
+						</td>
+					</tr>
+					<tr>
+						<td>
+							jsuri
+						</td>
+						<td>
+							http://localhost:8080/wayback/jsp/TimelineUI/wm-timeline.js
+						</td>
+						<td>
+							This should be set to the absolute HTTP URL where
+							the wm.js file is located. Most likely, you can
+							follow the instructions for modifying the 
+							<b>replayuriprefix</b>, but replace "replay" with 
+							"/jsp/TimelineUI/wm-timeline.js".
 						</td>
 					</tr>
 					<tr>
@@ -631,6 +809,20 @@
 							name of the context that the Wayback Machine webapp
 							is deployed to (wayback.war => 'wayback' context,
 							foo.war => 'foo' context).
+						</td>
+					</tr>
+					<tr>
+						<td>
+							jsuri
+						</td>
+						<td>
+							http://localhost:8080/wayback/wm.js
+						</td>
+						<td>
+							This should be set to the absolute HTTP URL where
+							the wm.js file is located. Most likely, you can
+							follow the instructions for modifying the 
+							<b>replayuriprefix</b>, but add "/wm.js" to the end.
 						</td>
 					</tr>
 					<tr>
@@ -702,7 +894,136 @@
 					</tr>
 				</table>
 			</subsection>
-
+			<subsection name="web-http11-timeline.xml specific configuration">
+				<p>
+					The following table describes additional configurations 
+					available in the web-http11-timeline.xml file.
+				</p>
+				<table>
+					<tr>
+						<td>
+							Option
+						</td>
+						<td>
+							Default value
+						</td>
+						<td>
+							Description
+						</td>
+					</tr>
+					<tr>
+						<td>
+							replayuriprefix
+						</td>
+						<td>
+							http://localhost:8080/wayback/replay
+						</td>
+						<td>
+							This should be set to the HTTP prefix to the wayback
+							webapp context. You should set the hostname to the
+							name of the machine where the Wayback Machine 
+							software is runnning, the port to the port that 
+							Tomcat is listening on, and 'wayback' should be the
+							name of the context that the Wayback Machine webapp
+							is deployed to (wayback.war => 'wayback' context,
+							foo.war => 'foo' context).
+						</td>
+					</tr>
+					<tr>
+						<td>
+							metauriprefix
+						</td>
+						<td>
+							http://localhost:8080/wayback/meta
+						</td>
+						<td>
+							This should be set to the HTTP prefix to the wayback
+							webapp context. You should set the hostname to the
+							name of the machine where the Wayback Machine 
+							software is runnning, the port to the port that 
+							Tomcat is listening on, and 'wayback' should be the
+							name of the context that the Wayback Machine webapp
+							is deployed to (wayback.war => 'wayback' context,
+							foo.war => 'foo' context).
+						</td>
+					</tr>
+					<tr>
+						<td>
+							timelineuriprefix
+						</td>
+						<td>
+							http://localhost:8080/wayback/timeline
+						</td>
+						<td>
+							This should be set to the HTTP prefix to the wayback
+							webapp context. You should set the hostname to the
+							name of the machine where the Wayback Machine 
+							software is runnning, the port to the port that 
+							Tomcat is listening on, and 'wayback' should be the
+							name of the context that the Wayback Machine webapp
+							is deployed to (wayback.war => 'wayback' context,
+							foo.war => 'foo' context).
+						</td>
+					</tr>
+					<tr>
+						<td>
+							frameseturiprefix
+						</td>
+						<td>
+							http://localhost:8080/wayback/frameset
+						</td>
+						<td>
+							This should be set to the HTTP prefix to the wayback
+							webapp context. You should set the hostname to the
+							name of the machine where the Wayback Machine 
+							software is runnning, the port to the port that 
+							Tomcat is listening on, and 'wayback' should be the
+							name of the context that the Wayback Machine webapp
+							is deployed to (wayback.war => 'wayback' context,
+							foo.war => 'foo' context).
+						</td>
+					</tr>
+					<tr>
+						<td>
+							jsuri
+						</td>
+						<td>
+							http://localhost:8080/wayback/jsp/TimelineUI/wm-timeline.js
+						</td>
+						<td>
+							This should be set to the absolute HTTP URL where
+							the wm.js file is located. Most likely, you can
+							follow the instructions for modifying the 
+							<b>replayuriprefix</b>, but replace "replay" with 
+							"/jsp/TimelineUI/wm-timeline.js".
+						</td>
+					</tr>
+					<tr>
+						<td>
+							arcdbpath
+						</td>
+						<td>
+							/tmp/wayback/arc-db
+						</td>
+						<td>
+							Directory where the database containing the HTTP Url
+							for each ARC files is stored. This directory must 
+							exist.
+						</td>
+					</tr>
+					<tr>
+						<td>
+							arcdbname
+						</td>
+						<td>
+							arc-db
+						</td>
+						<td>
+							Name of the database that stores ARC file locations.
+						</td>
+					</tr>
+				</table>
+			</subsection>
 		</section>
 		<section name="Preparing the ResourceIndex">
 			<p>
@@ -913,6 +1234,36 @@
 					do not include the "http://" in the proxy server name.
 				</p>
 			</subsection>
+			<subsection name="Timeline mode usage">
+				<p>
+					Once you have replaced and possibly customized the web.xml 
+					file, restarted	Tomcat, and prepared your ResourceIndex, 
+					the Wayback Machine	installation will be ready for use.
+				</p>
+				<p>
+					You can start by visiting the front page of your Wayback
+					service (see replayuriprefix in your web.xml file). Once you
+					are at this page, you can type a URL into the search box
+					near the top of the page, or use the Advanced Search page to
+					perform more complex searches.
+				</p>
+				<p>
+					Once you have located documents you would like to view with
+					your searches, you can start using the Timeline mode by 
+					clicking a link in the search results. This will load the
+					timeline view for the specific page and time that you 
+					selected. You can view different versions of any page by 
+					clicking the timeline, and you can navigate to other pages
+					in your collection by clicking links directly in the page
+					below the timeline.
+				</p>
+				<p>
+					By checking the "Metadata" box, you can view metadata 
+					available for the particular document you are viewing. 
+					Unchecking the box will return to normal view mode.
+				</p>
+			</subsection>
+			
 		</section>
 	</body>
 </document>
