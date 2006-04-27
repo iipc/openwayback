@@ -30,7 +30,7 @@ import java.util.logging.Logger;
 import org.archive.wayback.PropertyConfigurable;
 import org.archive.wayback.ReplayRenderer;
 import org.archive.wayback.QueryRenderer;
-import org.archive.wayback.ReplayResultURIConverter;
+import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.ResourceIndex;
 import org.archive.wayback.ResourceStore;
 import org.archive.wayback.exception.ConfigurationException;
@@ -56,7 +56,7 @@ public class WaybackLogic implements PropertyConfigurable {
 
 	private static final String RESOURCE_INDEX_PROPERTY = "resourceindex";
 
-	private ReplayResultURIConverter uriConverter = null;
+	private ResultURIConverter uriConverter = null;
 
 	private ReplayRenderer replayRenderer = null;
 
@@ -175,10 +175,10 @@ public class WaybackLogic implements PropertyConfigurable {
 	 * @return Returns the uriConverter.
 	 * @throws ConfigurationException 
 	 */
-	public ReplayResultURIConverter getURIConverter()
+	public ResultURIConverter getURIConverter()
 	throws ConfigurationException {
 		if(uriConverter == null) {
-			uriConverter = (ReplayResultURIConverter) getInstance(configuration,
+			uriConverter = (ResultURIConverter) getInstance(configuration,
 					REPLAY_URI_CONVERTER_PROPERTY);
 		}
 		return uriConverter;
