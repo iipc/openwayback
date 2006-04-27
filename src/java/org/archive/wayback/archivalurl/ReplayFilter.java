@@ -99,9 +99,15 @@ public class ReplayFilter extends RequestFilter {
 				endDate = Timestamp.currentTimestamp().getDateStr();
 			} else {
 
-				startDate = Timestamp.parseBefore(dateStr).getDateStr();
-				endDate = Timestamp.parseAfter(dateStr).getDateStr();
-				dateStr = endDate;
+				// classic behavior:
+//				startDate = Timestamp.parseBefore(dateStr).getDateStr();
+//				endDate = Timestamp.parseAfter(dateStr).getDateStr();
+//				dateStr = endDate;
+				
+				// "better" behavior:
+				startDate = Timestamp.earliestTimestamp().getDateStr();
+				endDate = Timestamp.currentTimestamp().getDateStr();
+				dateStr = Timestamp.parseAfter(dateStr).getDateStr();
 				
 			}
 			wbRequest.put(WaybackConstants.REQUEST_EXACT_DATE,dateStr);
@@ -121,6 +127,7 @@ public class ReplayFilter extends RequestFilter {
 				UURI requestURI = UURIFactory.getInstance(urlStr);
 				wbRequest.put(WaybackConstants.REQUEST_URL,
 						requestURI.toString());
+				wbRequest.fixup();
 			} catch (URIException e) {
 				wbRequest = null;
 			}
