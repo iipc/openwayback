@@ -34,7 +34,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.archive.wayback.QueryRenderer;
-import org.archive.wayback.ReplayResultURIConverter;
+import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.ConfigurationException;
@@ -80,7 +80,7 @@ public class Renderer implements QueryRenderer {
 
 	public void renderUrlResults(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
-			SearchResults results, ReplayResultURIConverter uriConverter)
+			SearchResults results, ResultURIConverter uriConverter)
 			throws ServletException, IOException {
 
 		UIQueryResults uiResults;
@@ -103,7 +103,7 @@ public class Renderer implements QueryRenderer {
 	 */
 	public void renderUrlPrefixResults(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
-			SearchResults results, ReplayResultURIConverter uriConverter)
+			SearchResults results, ResultURIConverter uriConverter)
 			throws ServletException, IOException {
 
 		UIQueryResults uiResults;
