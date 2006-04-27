@@ -30,7 +30,7 @@ import java.util.Iterator;
 import javax.servlet.http.HttpServletRequest;
 
 import org.archive.wayback.WaybackConstants;
-import org.archive.wayback.ReplayResultURIConverter;
+import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.Timestamp;
@@ -59,6 +59,8 @@ public class UIQueryResults {
 	private Timestamp firstResultTimestamp;
 
 	private Timestamp lastResultTimestamp;
+	
+	private Timestamp exactRequestedTimestamp;
 
 	private int resultsReturned;
 	private int resultsMatching;
@@ -71,7 +73,7 @@ public class UIQueryResults {
 
 	private SearchResults results;
 	private HttpServletRequest httpRequest;
-	private ReplayResultURIConverter uriConverter;
+	private ResultURIConverter uriConverter;
 
 	/**
 	 * Constructor -- chew search result summaries into format easier for JSPs
@@ -84,7 +86,7 @@ public class UIQueryResults {
 	 * @throws ParseException 
 	 */
 	public UIQueryResults(HttpServletRequest httpRequest, WaybackRequest wbRequest, SearchResults results,
-			ReplayResultURIConverter uriConverter) throws ParseException {
+			ResultURIConverter uriConverter) throws ParseException {
 
 		this.searchUrl = wbRequest.get(WaybackConstants.RESULT_URL);
 		this.startTimestamp = Timestamp.parseBefore(results.
@@ -106,7 +108,8 @@ public class UIQueryResults {
 		this.firstResult = Integer.parseInt(results.getFilter(
 				WaybackConstants.RESULTS_FIRST_RETURNED)) + 1;
 		this.lastResult = ((firstResult - 1) + resultsReturned);
-		
+		this.exactRequestedTimestamp = Timestamp.parseAfter(
+				wbRequest.get(WaybackConstants.REQUEST_EXACT_DATE));
 		// calculate total pages:
 		numPages = (int) Math.ceil((double)resultsMatching/(double)resultsPerPage);
 		curPage = (int) Math.floor(((double)(firstResult-1))/(double)resultsPerPage) + 1;
@@ -165,6 +168,16 @@ public class UIQueryResults {
 	 */
 	public String resultToReplayUrl(SearchResult result) {
 		return uriConverter.makeReplayURI(result);
+	}
+	
+	/**
+	 * @param result
+	 * @return String pretty Date+Time for capture date of result
+	 */
+	public String resultToPrettyDateTime(SearchResult result) {
+		Timestamp t = new Timestamp(result.get(
+				WaybackConstants.RESULT_CAPTURE_DATE));
+		return t.prettyDateTime();
 	}
 
 	/**
@@ -305,6 +318,20 @@ public class UIQueryResults {
 		replaceAll(encoded,"gt","&#62;");
 		replaceAll(encoded,"quot","&#34;");
 		return encoded.toString();
+	}
+
+	/**
+	 * @return Returns the wbRequest.
+	 */
+	public WaybackRequest getWbRequest() {
+		return wbRequest;
+	}
+
+	/**
+	 * @return Returns the exactRequestedTimestamp.
+	 */
+	public Timestamp getExactRequestedTimestamp() {
+		return exactRequestedTimestamp;
 	}
 	
 }
