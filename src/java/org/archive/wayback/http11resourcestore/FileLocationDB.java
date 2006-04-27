@@ -277,7 +277,7 @@ public class FileLocationDB implements PropertyConfigurable {
 		OperationStatus status = cursor.getSearchKey(key, value,
 				LockMode.DEFAULT);
 		if (status == OperationStatus.SUCCESS) {
-			StringBuffer newValue = new StringBuffer();
+			StringBuilder newValue = new StringBuilder(300);
 
 			String valueString = new String(value.getData());
 			if(valueString != null && valueString.length() > 0) {
