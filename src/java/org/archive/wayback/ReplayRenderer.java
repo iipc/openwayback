@@ -75,6 +75,27 @@ public interface ReplayRenderer extends PropertyConfigurable {
 	public void renderResource(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
 			SearchResult result, Resource resource, 
-			ReplayResultURIConverter uriConverter) throws ServletException,
+			ResultURIConverter uriConverter) throws ServletException,
 			IOException;
+
+	/**
+	 * return an HTTP redirect to the user to point them to a different
+	 * SearchResult than they actually requested.
+	 * 
+	 * @param httpRequest the HttpServletRequest
+	 * @param httpResponse the HttpServletResponse
+	 * @param wbRequest the WaybackRequest that returned the results
+	 * @param result actual SearchResult that maps to resource to replay
+	 * @param resource resource to replay
+	 * @param uriConverter the URI converter to use to translate matching
+	 *                      results into replayable URLs
+	 * @throws ServletException
+	 * @throws IOException
+	 */
+	public void renderRedirect(HttpServletRequest httpRequest,
+			HttpServletResponse httpResponse, WaybackRequest wbRequest,
+			SearchResult result, Resource resource, 
+			ResultURIConverter uriConverter) throws ServletException,
+			IOException;
+
 }

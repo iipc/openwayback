@@ -69,7 +69,7 @@ public interface QueryRenderer extends PropertyConfigurable {
 	 */
 	public void renderUrlResults(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
-			SearchResults results, ReplayResultURIConverter uriConverter)
+			SearchResults results, ResultURIConverter uriConverter)
 			throws ServletException, IOException;
 
 	/** Show the SearchResults of the request which may have resulted in 
@@ -86,7 +86,7 @@ public interface QueryRenderer extends PropertyConfigurable {
 	 */
 	public void renderUrlPrefixResults(HttpServletRequest httpRequest,
 			HttpServletResponse response, WaybackRequest wbRequest,
-			SearchResults results, ReplayResultURIConverter uriConverter)
+			SearchResults results, ResultURIConverter uriConverter)
 			throws ServletException, IOException;
 
 }
