@@ -50,7 +50,8 @@ public class EndDateFilter implements RecordFilter {
 	 * @see org.archive.wayback.cdx.filter.RecordFilter#filterRecord(org.archive.wayback.cdx.CDXRecord)
 	 */
 	public int filterRecord(CDXRecord record) {
-		return (endDate.compareTo(record.captureDate) < 0) ? 
+		return (endDate.substring(0,record.captureDate.length()).compareTo(
+				record.captureDate) < 0) ? 
 				RECORD_ABORT : RECORD_INCLUDE; 
 	}
 
