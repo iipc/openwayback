@@ -34,6 +34,7 @@ while(itr.hasNext()) {
 	SearchResult result = (SearchResult) itr.next();
 
 	String url = result.get(WaybackConstants.RESULT_URL);
+	String urlKey = result.get(WaybackConstants.RESULT_URL_KEY);
 	String prettyDate = result.get(WaybackConstants.RESULT_CAPTURE_DATE);
 	String origHost = result.get(WaybackConstants.RESULT_ORIG_HOST);
 	String MD5 = result.get(WaybackConstants.RESULT_MD5_DIGEST);
@@ -50,13 +51,13 @@ while(itr.hasNext()) {
 
 	boolean newUrl = false;
 	if(lastUrl == null) {
-		lastUrl = url;
+		lastUrl = urlKey;
 		lastMD5 = "";
 		newUrl = true;
-	} else if(0 != lastUrl.compareTo(url)) {
+	} else if(!lastUrl.equals(urlKey)) {
 		newUrl = true;
 		lastMD5 = "";
-		lastUrl = url;
+		lastUrl = urlKey;
 	}
 	if(newUrl) {
 		%>
