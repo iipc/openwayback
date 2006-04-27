@@ -27,9 +27,7 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.Enumeration;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletConfig;
@@ -41,7 +39,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.ReplayRenderer;
-import org.archive.wayback.ReplayResultURIConverter;
+import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.ResourceIndex;
 import org.archive.wayback.ResourceStore;
 import org.archive.wayback.core.Resource;
@@ -50,10 +48,10 @@ import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.core.WaybackLogic;
-import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.exception.WaybackException;
+import org.archive.wayback.query.OpenSearchQueryParser;
 
 /**
  * Servlet implementation for Wayback Replay requests.
@@ -68,6 +66,8 @@ public class ReplayServlet extends HttpServlet {
 	private static final String WMREQUEST_ATTRIBUTE = "wmrequest.attribute";
 
 	private static final long serialVersionUID = 1L;
+
+	private OpenSearchQueryParser qp = new OpenSearchQueryParser();
 
 	private WaybackLogic wayback = new WaybackLogic();
 
@@ -92,34 +92,6 @@ public class ReplayServlet extends HttpServlet {
 		}
 
 		wayback.init(p);
-	}
-
-	private String getMapParam(Map queryMap, String field) {
-		String arr[] = (String[]) queryMap.get(field);
-		if (arr == null || arr.length == 0) {
-			return null;
-		}
-		return arr[0];
-	}
-
-	private WaybackRequest parseCGIRequest(HttpServletRequest httpRequest)
-			throws BadQueryException {
-		WaybackRequest wbRequest = new WaybackRequest();
-		Map queryMap = httpRequest.getParameterMap();
-		Set keys = queryMap.keySet();
-		Iterator itr = keys.iterator();
-		while (itr.hasNext()) {
-			String key = (String) itr.next();
-			String val = getMapParam(queryMap, key);
-			wbRequest.put(key, val);
-		}
-		String referer = httpRequest.getHeader("REFERER");
-		if (referer == null) {
-			referer = null;
-		}
-		wbRequest.put(WaybackConstants.REQUEST_REFERER_URL, referer);
-
-		return wbRequest;
 	}
 
 	private SearchResult getClosest(SearchResults results,
@@ -166,23 +138,37 @@ public class ReplayServlet extends HttpServlet {
 		try {
 			ResourceIndex idx = wayback.getResourceIndex();
 			ResourceStore store = wayback.getResourceStore();
-			ReplayResultURIConverter uriConverter = wayback.getURIConverter();
+			ResultURIConverter uriConverter = wayback.getURIConverter();
 
 			if (wbRequest == null) {
-				wbRequest = parseCGIRequest(httpRequest);
+				wbRequest = qp.parseQuery(httpRequest);
 			}
 
 			SearchResults results = idx.query(wbRequest);
 
+			// TODO: check which versions are actually accessible right now?
 			SearchResult closest = getClosest(results, wbRequest);
 
-			// TODO loop here looking for closest online/available version?
-			// OPTIMIZ maybe assume version is here and redirect now if not
-			// exactly the date user requested, before retrieving it...
-			resource = store.retrieveResource(closest);
-
-			renderer.renderResource(httpRequest, httpResponse, wbRequest,
-					closest, resource, uriConverter);
+			String requestedDateStr = wbRequest.get(
+					WaybackConstants.REQUEST_EXACT_DATE);
+			String closestDateStr = closest.get(
+					WaybackConstants.RESULT_CAPTURE_DATE);
+			
+			// some capture dates are not 14 digits, only compare as many
+			// dateStr digits as are in the capture date:
+			if(!closestDateStr.equals(
+					requestedDateStr.substring(0,closestDateStr.length()))) {
+				
+				// redirect to the actual date:
+				renderer.renderRedirect(httpRequest, httpResponse, wbRequest,
+						closest, resource, uriConverter);				
+				
+			} else {
+				resource = store.retrieveResource(closest);
+	
+				renderer.renderResource(httpRequest, httpResponse, wbRequest,
+						closest, resource, uriConverter);
+			}
 
 		} catch (ResourceNotInArchiveException nia) {
 
