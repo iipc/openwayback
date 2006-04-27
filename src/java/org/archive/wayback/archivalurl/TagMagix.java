@@ -27,10 +27,8 @@ package org.archive.wayback.archivalurl;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.apache.commons.httpclient.URIException;
-import org.archive.net.UURI;
-import org.archive.net.UURIFactory;
+import org.archive.wayback.ResultURIConverter;
+import org.archive.wayback.core.SearchResult;
 
 /**
  * Library for updating arbitrary attributes in arbitrary tags to rewrite
@@ -42,16 +40,27 @@ import org.archive.net.UURIFactory;
  */
 public class TagMagix {
 
+	// TODO: should this be a HashTable (synchronized) ?
 	private static HashMap pcPatterns = new HashMap();
 	
 	 
-	private static String QUOTED_ATTR_VALUE= "(\"[^\">]*\")";
-	private static String APOSED_ATTR_VALUE = "('[^'>]*')";
-	private static String RAW_ATTR_VALUE = "([^ \\t\\n\\x0B\\f\\r>\"']+)";
+	private static String QUOTED_ATTR_VALUE= "(?:\"[^\">]*\")";
+	private static String APOSED_ATTR_VALUE = "(?:'[^'>]*')";
+	private static String RAW_ATTR_VALUE = "(?:[^ \\t\\n\\x0B\\f\\r>\"']+)";
 	
 	private static String ANY_ATTR_VALUE = QUOTED_ATTR_VALUE+ "|" + APOSED_ATTR_VALUE +
 		"|" + RAW_ATTR_VALUE;
 	
+	/**
+	 * get (and cache) a regex Pattern for locating an HTML attribute value
+	 * within a particular tag. if found, the pattern will have the attribute
+	 * value in group 1. Note that the attribute value may contain surrounding
+	 * apostrophe(') or quote(") characters.
+	 * 
+	 * @param tagName
+	 * @param attrName
+	 * @return Pattern to match the tag-attribute's value
+	 */
 	private static Pattern getPattern(String tagName, String attrName) {
 
 		String key = tagName + "    " + attrName;
@@ -59,7 +68,7 @@ public class TagMagix {
 		if(pc == null) {
 			
 			String tagPatString = "<\\s*" + tagName + "\\s+[^>]*\\b" + attrName + 
-				"\\s*=\\s*(" + ANY_ATTR_VALUE + ")(\\s|>)?";
+				"\\s*=\\s*(" + ANY_ATTR_VALUE + ")(?:\\s|>)?";
 			
 			pc = Pattern.compile(tagPatString,Pattern.CASE_INSENSITIVE);
 			pcPatterns.put(key,pc);
@@ -79,88 +88,67 @@ public class TagMagix {
 	 *         wmPrefix + pageTS + (attribute URL resolved against pageUrl)
 	 * 
 	 * @param page
-	 * @param wmPrefix
-	 * @param pageUrl
-	 * @param pageTS 
+	 * @param uriConverter 
+	 * @param result 
+	 * @param baseUrl 
 	 * @param tagName
 	 * @param attrName
 	 */
-	public static void markupTagRE (StringBuffer page, String wmPrefix, 
-			String pageUrl, String pageTS, String tagName, String attrName) {
+	public static void markupTagREURIC (StringBuilder page, ResultURIConverter uriConverter, 
+			SearchResult result, String baseUrl, String tagName, String attrName) {
 
-		UURI pageURI;
-		String pageHost;
-		try {
-			if(!pageUrl.startsWith("http://")) {
-				pageUrl = "http://" + pageUrl;
-			}
-			pageURI = UURIFactory.getInstance(pageUrl);
-			pageHost = pageURI.getScheme() + "://" + pageURI.getHost();
-		} catch (URIException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return;
-		}
-
-		String absPrefix = wmPrefix + pageTS + "/";
-		String srvPrefix = wmPrefix + pageTS + "/" + pageHost;
-				
 		Pattern tagPat = getPattern(tagName, attrName);
 		Matcher matcher = tagPat.matcher(page);
 		
 		int idx = 0;
 		while(matcher.find(idx)) {
-			String attrValue = matcher.group(1);
-			int origAttrLength = attrValue.length();
+			String url = matcher.group(1);
+			int origUrlLength = url.length();
 			int attrStart = matcher.start(1);
 			int attrEnd = matcher.end(1);
 			String quote = "";
-			if(attrValue.charAt(0) == '"') {
+			if(url.charAt(0) == '"') {
 				quote = "\"";
-				attrValue = attrValue.substring(1,attrValue.length()-1);
-			} else if(attrValue.charAt(0) == '\'') {
+				url = url.substring(1,url.length()-1);
+			} else if(url.charAt(0) == '\'') {
 				quote = "'";
-				attrValue = attrValue.substring(1,attrValue.length()-1);
+				url = url.substring(1,url.length()-1);
 			}
 
-			String newValue = quote + resolveAttribute(attrValue,
-					absPrefix,srvPrefix,pageURI) + quote;
+			String replayUrl = quote + uriConverter.makeRedirectReplayURI(
+					result, url, baseUrl) + quote;
 			
-			int delta = newValue.length() - origAttrLength;
-			//String before = page.toString();
-			page.replace(attrStart,attrEnd,newValue);
-			//String after = page.toString();
-			//System.out.println("Found match (" + before+ ") => (" + after + ")");
+			int delta = replayUrl.length() - origUrlLength;
+			page.replace(attrStart,attrEnd,replayUrl);
 			idx = attrEnd + delta;
 		}
 	}
-	
-	private static String resolveAttribute(String value,String abs, String srv, UURI uri) {
-		if(value.charAt(0) == '/') {
-			// server-relative:
-			return srv + value;
-			
-		} else {
-			UURI attrUri = null;
-			try {
-				attrUri = UURIFactory.getInstance(value);
-			} catch (URIException e1) {
-				// we can get here if the value is not an absolute URL
-				// will be handled below when attrUri is null.
-			}
-			if(attrUri != null && attrUri.isAbsoluteURI()) {
-			
-				return abs + value;
-			} else {
-				try {
-					UURI resolved = uri.resolve(value);
-					return abs + resolved.toString();
-				} catch (URIException e) {
-					e.printStackTrace();
-				}
-				// TODO: this is giving up -- should not get here..
-				return abs + value;
+
+	/**
+	 * find and return the href value within a BASE tag inside the HTML document
+	 * within the StringBuffer page. returns null if no BASE-HREF is found.
+	 * 
+	 * @param page
+	 * @return URL of base-href within page, or null if none is found.
+	 */
+	public static String getBaseHref(StringBuilder page) {
+		String found = null;
+		Pattern baseHrefPattern = TagMagix.getPattern("BASE","HREF");
+		Matcher matcher = baseHrefPattern.matcher(page);
+		int idx = 0;
+
+		if(matcher.find(idx)) {
+			found = matcher.group(1);
+			if(found.charAt(0) == '"') {
+				found = found.substring(1,found.length()-1);
+			} else if(found.charAt(0) == '\'') {
+				found = found.substring(1,found.length()-1);
 			}
 		}
+
+		return found;
 	}
+	
+
+	
 }
