@@ -46,6 +46,8 @@ public class ExclusionFilter implements RecordFilter {
 			.getName());
 
 
+	private final static int BYTE_BUFFER_SIZE = 4096;
+	
 	private static String OPERATION_ARGUMENT = "operation";
 	private static String CHECK_OPERATION = "check";
 	
@@ -58,6 +60,9 @@ public class ExclusionFilter implements RecordFilter {
 	private String userAgent = null;
 	private boolean included = false;  // flag meaning we included at least 1
 	private boolean inspected = false; // flag meaning we inspected at least 1
+
+	// allocate byte buffer once
+	private byte[] bbuffer = new byte[BYTE_BUFFER_SIZE];
 	
 	/**
 	 * Constructor
@@ -128,9 +133,9 @@ public class ExclusionFilter implements RecordFilter {
 			URL url = new URL(finalUrl.toString());
 			InputStream is = url.openStream();
 			// slurp the whole thing into RAM:
-			byte[] bbuffer = new byte[4 * 1024];
-			StringBuffer sbuffer = new StringBuffer();
-			for (int r = -1; (r = is.read(bbuffer, 0, bbuffer.length)) != -1;) {
+			// TODO: character encoding detection & handling!!
+			StringBuilder sbuffer = new StringBuilder(BYTE_BUFFER_SIZE);
+			for (int r = -1; (r = is.read(bbuffer, 0, BYTE_BUFFER_SIZE)) != -1;) {
 				sbuffer.append(new String(bbuffer, 0, r));
 			}
 			String content = sbuffer.toString();
