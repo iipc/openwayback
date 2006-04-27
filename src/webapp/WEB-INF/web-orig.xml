@@ -191,7 +191,7 @@
 
 	<context-param>
 		<param-name>replayuriconverter.classname</param-name>
-		<param-value>org.archive.wayback.archivalurl.ResultURIConverter</param-value>
+		<param-value>org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter</param-value>
 		<description>Class that implements translation of index results to Replayable URIs for this Wayback</description>
 	</context-param>
 
@@ -201,6 +201,11 @@
 		<description>HTTP URI prefix for the replay UI</description>
 	</context-param>
 
+	<context-param>
+		<param-name>jsuri</param-name>
+		<param-value>http://localhost:8080/wayback/wm.js</param-value>
+		<description>absolute URL of page rewriting javascript </description>
+	</context-param>
 
 	<!-- Archival Url JSReplayUI Configuration -->
 

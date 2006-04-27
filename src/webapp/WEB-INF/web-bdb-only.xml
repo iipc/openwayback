@@ -130,7 +130,7 @@
 
 	<context-param>
 		<param-name>replayuriconverter.classname</param-name>
-		<param-value>org.archive.wayback.archivalurl.ResultURIConverter</param-value>
+		<param-value>org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter</param-value>
 		<description>Class that implements translation of index results to Replayable URIs for this Wayback</description>
 	</context-param>
 
