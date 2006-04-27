@@ -24,16 +24,12 @@
  */
 package org.archive.wayback.query.resultspartitioner;
 
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.SimpleTimeZone;
 import java.util.TimeZone;
 
-import org.archive.util.ArchiveUtils;
-import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.Timestamp;
-import org.archive.wayback.core.SearchResults;
 
 /**
  *
@@ -42,7 +38,6 @@ import org.archive.wayback.core.SearchResults;
  * @version $Date$, $Revision$
  */
 public abstract class ResultsPartitioner {
-
 	
 	protected Calendar getCalendar() {
 		String[] ids = TimeZone.getAvailableIDs(0);
@@ -53,7 +48,7 @@ public abstract class ResultsPartitioner {
 		return new GregorianCalendar(gmt);		
 	}
 	
-	private Calendar dateStrToCalendar(String dateStr) {
+	protected Calendar dateStrToCalendar(String dateStr) {
 		return Timestamp.dateStrToCalendar(dateStr);
 	}
 
@@ -64,49 +59,16 @@ public abstract class ResultsPartitioner {
 	
 	protected abstract void alignStart(Calendar start);
 
-	protected abstract Calendar endOfPartition(Calendar start);
+	protected abstract Calendar incrementPartition(Calendar start, int count);
 
 	protected abstract String rangeToTitle(Calendar start, Calendar end);
 
-	/**
-	 * Create as many partitions as needed to hold all SearchResult objects
-	 * in argument, and initialize those partitions with the correct
-	 * SearchResult objects. 
-	 * @param results
-	 * @return ArrayList of ResultsPartition objects
-	 */
-	public ArrayList createPartitions(SearchResults results) {
 
-		ArrayList partitions = new ArrayList();
-
-		String rsd = results.getFilter(WaybackConstants.REQUEST_START_DATE);
-		String red = results.getFilter(WaybackConstants.REQUEST_END_DATE);
-		Calendar startCal = dateStrToCalendar(rsd);
-		Calendar lastCal = dateStrToCalendar(red);
-
-		alignStart(startCal);
-		Calendar endCal = endOfPartition(startCal);
-		while (true) {
-			String startDateStr = ArchiveUtils.get14DigitDate(startCal
-					.getTime());
-			String endDateStr = ArchiveUtils.get14DigitDate(endCal.getTime());
-			String title = rangeToTitle(startCal, endCal);
-			ResultsPartition partition = new ResultsPartition(startDateStr,
-					endDateStr, title);
-			partition.filter(results);
-			partitions.add(partition);
-
-			if (endCal.after(lastCal)) {
-				break;
-			}
-			startCal = endCal;
-			endCal = endOfPartition(startCal);
-		}
-		return partitions;
-	}
 	protected String prettyHourOfDay(Calendar cal) {
 		String ampm = cal.get(Calendar.AM_PM) == Calendar.AM ? "AM" : "PM";
-		return cal.get(Calendar.HOUR) + " " + ampm;
+		int hour = cal.get(Calendar.HOUR);
+		if(hour == 0) hour = 12;
+		return String.valueOf(hour) + " " + ampm;
 	}
 	
 	protected String prettyDayOfMonth(Calendar cal) {
@@ -193,5 +155,5 @@ public abstract class ResultsPartitioner {
 	protected String prettyYear(Calendar cal) {
 		return String.valueOf(cal.get(Calendar.YEAR));
 	}
-
+	
 }
