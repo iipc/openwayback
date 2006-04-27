@@ -42,7 +42,7 @@ public class WeekResultsPartitioner extends ResultsPartitioner {
 	 * @see org.archive.wayback.resultspartitioner.ResultsPartitioner#alignStart(java.util.Calendar)
 	 */
 	protected void alignStart(Calendar start) {
-		start.set(Calendar.HOUR,1);
+		start.set(Calendar.HOUR_OF_DAY,1);
 		start.set(Calendar.MINUTE,1);
 		start.set(Calendar.SECOND,1);
 	}
@@ -50,10 +50,10 @@ public class WeekResultsPartitioner extends ResultsPartitioner {
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.resultspartitioner.ResultsPartitioner#endOfPartition(java.util.Calendar)
 	 */
-	protected Calendar endOfPartition(Calendar start) {
+	protected Calendar incrementPartition(Calendar start, int count) {
 		Calendar end = getCalendar();
 		end.setTime(start.getTime());
-		end.add(Calendar.DAY_OF_YEAR,7);
+		end.add(Calendar.DAY_OF_YEAR,7 * count);
 		return end;
 	}
 

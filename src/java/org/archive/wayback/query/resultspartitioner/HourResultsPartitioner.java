@@ -50,10 +50,10 @@ public class HourResultsPartitioner extends ResultsPartitioner {
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.resultspartitioner.ResultsPartitioner#endOfPartition(java.util.Calendar)
 	 */
-	protected Calendar endOfPartition(Calendar start) {
+	protected Calendar incrementPartition(Calendar start, int count) {
 		Calendar end = getCalendar();
 		end.setTime(start.getTime());
-		end.add(Calendar.HOUR_OF_DAY,1);
+		end.add(Calendar.HOUR_OF_DAY,1 * count);
 		return end;
 	}
 

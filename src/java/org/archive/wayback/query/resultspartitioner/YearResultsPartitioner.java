@@ -43,7 +43,7 @@ public class YearResultsPartitioner extends ResultsPartitioner {
 	 */
 	protected void alignStart(Calendar start) {
 		start.set(Calendar.DAY_OF_YEAR,1);
-		start.set(Calendar.HOUR,0);
+		start.set(Calendar.HOUR_OF_DAY,0);
 		start.set(Calendar.MINUTE,0);
 		start.set(Calendar.SECOND,0);
 	}
@@ -51,10 +51,10 @@ public class YearResultsPartitioner extends ResultsPartitioner {
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.resultspartitioner.ResultsPartitioner#endOfPartition(java.util.Calendar)
 	 */
-	protected Calendar endOfPartition(Calendar start) {
+	protected Calendar incrementPartition(Calendar start, int count) {
 		Calendar end = getCalendar();
 		end.setTime(start.getTime());
-		end.add(Calendar.YEAR,1);
+		end.add(Calendar.YEAR,1 * count);
 		return end;
 	}
 
