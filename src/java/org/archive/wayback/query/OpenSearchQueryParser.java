@@ -28,6 +28,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
+import javax.servlet.http.HttpServletRequest;
+import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadQueryException;
 
@@ -80,11 +82,12 @@ public class OpenSearchQueryParser {
 	 * form", where individual filters are individual CGI arguments, instead of
 	 * being encoded together in the "q" argument.
 	 * 
-	 * @param queryMap
+	 * @param httpRequest
 	 * @return Wayback request representing user query, or null if not parseable
 	 * @throws BadQueryException
 	 */
-	public WaybackRequest parseQuery(Map queryMap) throws BadQueryException {
+	public WaybackRequest parseQuery(HttpServletRequest httpRequest) throws BadQueryException {
+		Map queryMap = httpRequest.getParameterMap();
 		WaybackRequest wbRequest = new WaybackRequest();
 		String query = getMapParam(queryMap, SEARCH_QUERY);
 		String numResults = getMapParam(queryMap, SEARCH_RESULTS);
@@ -106,6 +109,14 @@ public class OpenSearchQueryParser {
 		} else {
 			parseTerms(wbRequest, query);
 		}
+
+		// attempt to get the HTTP referer if present..
+		String referer = httpRequest.getHeader("REFERER");
+		if (referer == null) {
+			referer = "";
+		}
+		wbRequest.put(WaybackConstants.REQUEST_REFERER_URL, referer);
+
 		wbRequest.fixup();
 		return wbRequest;
 	}
