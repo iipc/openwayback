@@ -92,6 +92,7 @@ public class QueryFilter extends RequestFilter {
 				UURI requestURI = UURIFactory.getInstance(urlStr);
 				wbRequest.put(WaybackConstants.REQUEST_URL,
 						requestURI.toString());
+				wbRequest.fixup();
 //				wbRequest.setRequestURI(requestURI);
 			} catch (URIException e) {
 				wbRequest = null;
@@ -119,6 +120,7 @@ public class QueryFilter extends RequestFilter {
 				try {
 					UURI requestURI = UURIFactory.getInstance(urlStr);
 					wbRequest.put(WaybackConstants.REQUEST_URL,requestURI.toString());
+					wbRequest.fixup();
 				} catch (URIException e) {
 					wbRequest = null;
 				}
