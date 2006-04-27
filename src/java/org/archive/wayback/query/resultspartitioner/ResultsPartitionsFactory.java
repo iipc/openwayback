@@ -26,6 +26,7 @@ package org.archive.wayback.query.resultspartitioner;
 
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 
 import org.archive.util.ArchiveUtils;
@@ -75,6 +76,32 @@ public class ResultsPartitionsFactory {
 				break;
 			}
 		}
-		return partitioner.createPartitions(results);
+
+		// now use the partitioner to initialize and populate the 
+		// ResultPartition objects:
+		ArrayList partitions = new ArrayList();
+
+		Calendar startCal = partitioner.dateStrToCalendar(rsd);
+		Calendar lastCal = partitioner.dateStrToCalendar(red);
+
+		partitioner.alignStart(startCal);
+		Calendar endCal = partitioner.incrementPartition(startCal,1);
+		while (true) {
+			String startDateStr = ArchiveUtils.get14DigitDate(startCal
+					.getTime());
+			String endDateStr = ArchiveUtils.get14DigitDate(endCal.getTime());
+			String title = partitioner.rangeToTitle(startCal, endCal);
+			ResultsPartition partition = new ResultsPartition(startDateStr,
+					endDateStr, title);
+			partition.filter(results);
+			partitions.add(partition);
+
+			if (endCal.after(lastCal)) {
+				break;
+			}
+			startCal = endCal;
+			endCal = partitioner.incrementPartition(startCal,1);
+		}
+		return partitions;
 	}
 }
