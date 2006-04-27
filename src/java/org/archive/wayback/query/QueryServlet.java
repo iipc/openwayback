@@ -39,7 +39,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.QueryRenderer;
-import org.archive.wayback.ReplayResultURIConverter;
+import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.ResourceIndex;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.SearchResults;
@@ -110,10 +110,10 @@ public class QueryServlet extends HttpServlet {
 		try {
 
 			ResourceIndex idx = wayback.getResourceIndex();
-			ReplayResultURIConverter uriConverter = wayback.getURIConverter();
+			ResultURIConverter uriConverter = wayback.getURIConverter();
 
 			if (wbRequest == null) {
-				wbRequest = qp.parseQuery(httpRequest.getParameterMap());
+				wbRequest = qp.parseQuery(httpRequest);
 			}
 
 			SearchResults results;
@@ -137,9 +137,21 @@ public class QueryServlet extends HttpServlet {
 			} else if (wbRequest.get(WaybackConstants.REQUEST_TYPE).equals(
 					WaybackConstants.REQUEST_REPLAY_QUERY)) {
 				
+				// You ask what a REPLAY request is doing in a QueryServlet?
+				// In one mode, with a remote BDB JE index, and HTTP-XML as 
+				// transport, the whole request is wrapped up as an OpenSearch 
+				// query, and the results are marshalled/unmarshalled to/from 
+				// XML. In this case, a REPLAY request may be recieved and 
+				// handled by this class.
 				renderer.renderUrlResults(httpRequest, httpResponse,
 						wbRequest, results, uriConverter);
+
+			} else if (wbRequest.get(WaybackConstants.REQUEST_TYPE).equals(
+					WaybackConstants.REQUEST_CLOSEST_QUERY)) {
 				
+				renderer.renderUrlResults(httpRequest, httpResponse,
+						wbRequest, results, uriConverter);
+
 			} else if (wbRequest.get(WaybackConstants.REQUEST_TYPE).equals(
 					WaybackConstants.REQUEST_URL_PREFIX_QUERY)) {
 				
