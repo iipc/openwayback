@@ -24,6 +24,12 @@
  */
 package org.archive.wayback.archivalurl;
 
+import java.util.Properties;
+
+import org.archive.wayback.WaybackConstants;
+import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.exception.ConfigurationException;
+
 import junit.framework.TestCase;
 
 /**
@@ -39,6 +45,7 @@ public class TagMagixTest extends TestCase {
 	 */
 	public void testMarkupTag() {
 
+	
 		// simple simple -- no quotes at all
 		checkMarkup(
 				"<A HREF=http://goofy.com/>",
@@ -194,9 +201,26 @@ public class TagMagixTest extends TestCase {
 
 	
 	private void checkMarkup(String orig, String want, String tag, String attr, String prefix, String ts, String url) {
-		StringBuffer buf = new StringBuffer(orig);
-		TagMagix.markupTagRE(buf,prefix,url,ts,tag,attr);
+		StringBuilder buf = new StringBuilder(orig);
+		SearchResult result = new SearchResult();
+		result.put(WaybackConstants.RESULT_CAPTURE_DATE,ts);
+		if(url.startsWith("http://")) {
+			url = url.substring(7);
+		}
+		result.put(WaybackConstants.RESULT_URL,url);
+		ArchivalUrlResultURIConverter uriC = new ArchivalUrlResultURIConverter();
+		Properties initp = new Properties();
+		initp.put("replayuriprefix",prefix);
+		try {
+			uriC.init(initp);
+		} catch (ConfigurationException e) {
+			e.printStackTrace();
+			assertTrue("failed initialization of uriCovnerter " + e.getMessage(),
+					false);
+		}
+		
+		TagMagix.markupTagREURIC(buf,uriC,result,url,tag,attr);
 		String marked = buf.toString();
-		assertEquals(marked,want);
+		assertEquals(want,marked);
 	}
 }
