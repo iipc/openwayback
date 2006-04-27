@@ -34,11 +34,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.archive.wayback.WaybackConstants;
-import org.archive.wayback.ReplayResultURIConverter;
+import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
+import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.proxy.RawReplayRenderer;
 import org.mozilla.intl.chardet.nsDetector;
 import org.mozilla.intl.chardet.nsICharsetDetectionObserver;
@@ -53,6 +54,8 @@ import org.mozilla.intl.chardet.nsPSMDetector;
 public class JSReplayRenderer extends RawReplayRenderer 
 	implements nsICharsetDetectionObserver {
 	
+	private final static String REPLAY_JS_URI= "jsuri";
+
 	private final static int MAX_CHARSET_READAHEAD = 4096;
 	
 	private final static String HTTP_CONTENT_TYPE_HEADER = "Content-Type";
@@ -68,10 +71,21 @@ public class JSReplayRenderer extends RawReplayRenderer
 	private final static String TEXT_XHTML_MIME = "application/xhtml";
 
 	private final static long MAX_HTML_MARKUP_LENGTH = 1024 * 1024 * 5;
+	private final static int CHARACTER_BUFFER_SIZE = 1024 * 4;
 	
-	private final static String CONTEXT_RELATIVE_JS_PATH = "wm.js";
+	private char[] cbuffer = new char[CHARACTER_BUFFER_SIZE];
 	
 	private String foundCharset = null;
+	protected String javascriptURI = null;
+
+	public void init(Properties p) throws ConfigurationException {
+		javascriptURI = (String) p.get( REPLAY_JS_URI);
+		if (javascriptURI == null || javascriptURI.length() <= 0) {
+			throw new ConfigurationException("Failed to find " + 
+					REPLAY_JS_URI);
+		}
+		super.init(p);
+	}
 	
 	/** test if the SearchResult should be replayed raw, without JS markup
 	 * @param result
@@ -94,18 +108,14 @@ public class JSReplayRenderer extends RawReplayRenderer
 		return true;
 	}
 
-	/** send the client to a different/better request URL for the document
-	 * they asked for.
-	 * 
-	 * @param httpResponse
-	 * @param url
-	 * @throws IOException
-	 */
-	private void redirectToBetterUrl(HttpServletResponse httpResponse,
-			String url) throws IOException {
+	public void renderRedirect(HttpServletRequest httpRequest,
+			HttpServletResponse httpResponse, WaybackRequest wbRequest,
+			SearchResult result, Resource resource,
+			ResultURIConverter uriConverter) throws ServletException,
+			IOException {
 
-		httpResponse.sendRedirect(url);
-
+		String betterURI = uriConverter.makeReplayURI(result);
+		httpResponse.sendRedirect(betterURI);
 	}
 	
 	/**
@@ -118,10 +128,14 @@ public class JSReplayRenderer extends RawReplayRenderer
 	 * @return String
 	 */
 	protected String filterHeader(final String key, final String value,
-			final ReplayResultURIConverter uriConverter, SearchResult result) {
+			final ResultURIConverter uriConverter, SearchResult result) {
 		if(key.equals(HTTP_LENGTH_HEADER)) {
 			return null;
 		}
+		// TODO: I don't think that this is not handled correctly: if the
+		// ARC document is chunked, we want to relay that, by NOT omitting the
+		// header, but we also need to tell the servlet container not to do
+		// any transfer ecoding of it's own "because we probably wanted it to."
 		if(key.equals(HTTP_XFER_ENCODING_HEADER)) {
 			return null;
 		}
@@ -131,7 +145,7 @@ public class JSReplayRenderer extends RawReplayRenderer
 	public void renderResource(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
 			SearchResult result, Resource resource,
-			ReplayResultURIConverter uriConverter) throws ServletException,
+			ResultURIConverter uriConverter) throws ServletException,
 			IOException {
 
 		if (resource == null) {
@@ -141,54 +155,45 @@ public class JSReplayRenderer extends RawReplayRenderer
 			throw new IllegalArgumentException("No result");
 		}
 
-		// redirect to actual date if diff than request:
-		if (!wbRequest.get(WaybackConstants.REQUEST_EXACT_DATE).equals(
-				result.get(WaybackConstants.RESULT_CAPTURE_DATE))) {
-
-			String betterURI = uriConverter.makeReplayURI(result);
-			redirectToBetterUrl(httpResponse, betterURI);
-
+		if (resource.getRecordLength() > MAX_HTML_MARKUP_LENGTH ||
+				isRawReplayResult(result)) {
+			
+			super.renderResource(httpRequest, httpResponse, wbRequest,
+					result, resource, uriConverter);
 		} else {
 
-			if (resource.getRecordLength() > MAX_HTML_MARKUP_LENGTH ||
-					isRawReplayResult(result)) {
-				
-				super.renderResource(httpRequest, httpResponse, wbRequest,
-						result, resource, uriConverter);
-			} else {
-
-				resource.parseHeaders();
-				copyRecordHttpHeader(httpResponse, resource, uriConverter,
-						result, false);
-				
-				// get the charset:
-				String charSet = getCharset(resource);
-				
-				// convert bytes to characters for charset:
-				InputStreamReader isr = new InputStreamReader(resource,charSet);
-				char[] cbuffer = new char[4 * 1024];
-				
-				// slurp the whole thing into RAM:
-				StringBuffer sbuffer = new StringBuffer();
-				for (int r = -1; 
-					(r = isr.read(cbuffer, 0, cbuffer.length)) != -1;) {
-					sbuffer.append(cbuffer,0,r);
-				}
-
-				// do the "usual" markup:
-				markUpPage(sbuffer, result, uriConverter);
-
-				// back to bytes...
-				byte[] ba = sbuffer.toString().getBytes(charSet);
-
-				// inform browser how much is coming back:
-				httpResponse.setHeader("Content-Length",
-						String.valueOf(ba.length));
-
-				// and send it out the door...
-				ServletOutputStream out = httpResponse.getOutputStream();
-				out.write(ba);
+			resource.parseHeaders();
+			int recordLength = (int) resource.getRecordLength();
+			copyRecordHttpHeader(httpResponse, resource, uriConverter,
+					result, false);
+			
+			// get the charset:
+			String charSet = getCharset(resource);
+			
+			// convert bytes to characters for charset:
+			InputStreamReader isr = new InputStreamReader(resource,charSet);
+			
+			// slurp the whole thing into RAM:
+			StringBuilder sbuffer = new StringBuilder(recordLength);
+			for (int r = -1; 
+				(r = isr.read(cbuffer, 0, CHARACTER_BUFFER_SIZE)) != -1;) {
+				sbuffer.append(cbuffer,0,r);
 			}
+
+			// do the "usual" markup:
+			markUpPage(sbuffer, httpRequest, httpResponse, wbRequest,
+					result, resource, uriConverter);
+
+			// back to bytes...
+			byte[] ba = sbuffer.toString().getBytes(charSet);
+
+			// inform browser how much is coming back:
+			httpResponse.setHeader("Content-Length",
+					String.valueOf(ba.length));
+
+			// and send it out the door...
+			ServletOutputStream out = httpResponse.getOutputStream();
+			out.write(ba);
 		}
 	}
 
@@ -229,29 +234,41 @@ public class JSReplayRenderer extends RawReplayRenderer
 	
 	/** 
 	 * add BASE tag and javascript to a page that will rewrite embedded URLs 
-	 * to point back into the WM, also attempt to fix up URL attributes in some
+	 * to point back into the WM. Also attempt to fix up URL attributes in some
 	 * tags that must be correct at page load (FRAME, META, LINK, SCRIPT)
 	 * 
 	 * @param page
+	 * @param httpRequest 
+	 * @param httpResponse 
+	 * @param wbRequest 
 	 * @param result
+	 * @param resource 
 	 * @param uriConverter
 	 */
-	private void markUpPage(StringBuffer page, SearchResult result,
-			ReplayResultURIConverter uriConverter) {
+	protected void markUpPage(StringBuilder page, HttpServletRequest httpRequest,
+			HttpServletResponse httpResponse, WaybackRequest wbRequest,
+			SearchResult result, Resource resource,
+			ResultURIConverter uriConverter) {
 
-		String wmPrefix = uriConverter.getReplayUriPrefix();
 		String pageUrl = result.get(WaybackConstants.RESULT_URL);
-		String pageTS = result.get(WaybackConstants.RESULT_CAPTURE_DATE);
 
-		TagMagix.markupTagRE(page, wmPrefix, pageUrl, pageTS, "FRAME", "SRC");
-		TagMagix.markupTagRE(page, wmPrefix, pageUrl, pageTS, "META", "URL");
-		TagMagix.markupTagRE(page, wmPrefix, pageUrl, pageTS, "LINK", "HREF");
+		String existingBaseHref = TagMagix.getBaseHref(page);
+		if(existingBaseHref != null) {
+			pageUrl = existingBaseHref;
+		}
+		
+		TagMagix.markupTagREURIC(page, uriConverter,result,pageUrl, "FRAME", "SRC");
+		TagMagix.markupTagREURIC(page, uriConverter,result,pageUrl, "META", "URL");
+		TagMagix.markupTagREURIC(page, uriConverter,result,pageUrl, "LINK", "HREF");
 		// TODO: The classic WM added a js_ to the datespec, so NotInArchives
 		// can return an valid javascript doc, and not cause Javascript errors.
-		TagMagix.markupTagRE(page, wmPrefix, pageUrl, pageTS, "SCRIPT", "SRC");
+		TagMagix.markupTagREURIC(page, uriConverter,result,pageUrl, "SCRIPT", "SRC");
 
-		insertBaseTag(page, result);
-		insertJavascriptXHTML(page, result, uriConverter);
+		if(existingBaseHref == null) {
+			insertBaseTag(page, result);
+		}
+		insertJavascriptXHTML(page, httpRequest, httpResponse, wbRequest, 
+				result, resource, uriConverter);
 	}
 
 	/** add a BASE HTML tag to make all path relative URLs map to the right URL
@@ -259,7 +276,7 @@ public class JSReplayRenderer extends RawReplayRenderer
 	 * @param page
 	 * @param result
 	 */
-	private void insertBaseTag(StringBuffer page, SearchResult result) {
+	protected void insertBaseTag(StringBuilder page, SearchResult result) {
 		String resultUrl = result.get(WaybackConstants.RESULT_URL);
 		String baseTag = "<base href=\"http://" + resultUrl + "\" />";
 		int insertPoint = page.indexOf("<head>");
@@ -276,20 +293,22 @@ public class JSReplayRenderer extends RawReplayRenderer
 
 	/** insert Javascript into a page to rewrite URLs
 	 * @param page
+	 * @param httpRequest 
+	 * @param httpResponse 
+	 * @param wbRequest 
 	 * @param result
+	 * @param resource 
 	 * @param uriConverter
 	 */
-	private void insertJavascriptXHTML(StringBuffer page, SearchResult result,
-			ReplayResultURIConverter uriConverter) {
+	protected void insertJavascriptXHTML(StringBuilder page, HttpServletRequest httpRequest,
+			HttpServletResponse httpResponse, WaybackRequest wbRequest,
+			SearchResult result, Resource resource,
+			ResultURIConverter uriConverter) {
 		String resourceTS = result.get(WaybackConstants.RESULT_CAPTURE_DATE);
 		String nowTS = Timestamp.currentTimestamp().getDateStr();
 
-		String contextPath = uriConverter.getReplayUriPrefix()
-				+ resourceTS + "/";
+		String contextPath = uriConverter.getReplayUriPrefix(result);
 
-		String jsUrl = uriConverter.getReplayUriPrefix() + 
-			CONTEXT_RELATIVE_JS_PATH;
-		
 		String scriptInsert = "<script type=\"text/javascript\">\n"
 				+ "\n"
 				+ "//            FILE ARCHIVED ON "
@@ -307,7 +326,9 @@ public class JSReplayRenderer extends RawReplayRenderer
 				+ contextPath
 				+ "\";\n"
 				+ "</script>\n"
-				+ "<script type=\"text/javascript\" src=\"" + jsUrl + "\" />\n";
+				+ "<script type=\"text/javascript\" src=\""
+				+ javascriptURI
+				+ "\" />\n";
 
 		int insertPoint = page.indexOf("</body>");
 		if (-1 == insertPoint) {
@@ -324,8 +345,6 @@ public class JSReplayRenderer extends RawReplayRenderer
 	 */
 	public void Notify(String charSet) {
 		foundCharset = charSet;
-		// TODO Auto-generated method stub
-		
 	}
 	
 }
