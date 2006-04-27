@@ -162,7 +162,18 @@ public class CDXRecord {
 	public SearchResult toSearchResult() {
 		SearchResult result = new SearchResult();
 
-		result.put(WaybackConstants.RESULT_URL, url);
+		String origUrl = url;
+		try {
+			UURI uri = UURIFactory.getInstance(WaybackConstants.HTTP_URL_PREFIX +
+					url);
+			origUrl = origHost + uri.getEscapedPathQuery();
+		} catch (URIException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		result.put(WaybackConstants.RESULT_URL, origUrl);
+		result.put(WaybackConstants.RESULT_URL_KEY, url);
 		result.put(WaybackConstants.RESULT_CAPTURE_DATE, captureDate);
 		result.put(WaybackConstants.RESULT_ORIG_HOST, origHost);
 		result.put(WaybackConstants.RESULT_MIME_TYPE, mimeType);
