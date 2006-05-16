@@ -328,7 +328,7 @@ public class JSReplayRenderer extends RawReplayRenderer
 				+ "</script>\n"
 				+ "<script type=\"text/javascript\" src=\""
 				+ javascriptURI
-				+ "\" />\n";
+				+ "\" ></script>\n";
 
 		int insertPoint = page.indexOf("</body>");
 		if (-1 == insertPoint) {
