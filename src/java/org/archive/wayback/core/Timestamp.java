@@ -122,7 +122,7 @@ public class Timestamp {
 	 * @param sse
 	 */
 	public void setSse(final int sse) {
-		setDate(new Date(sse * 1000));
+		setDate(new Date(((long)sse) * 1000));
 	}
 	
 	/**

@@ -78,4 +78,12 @@ public class TimestampTest extends TestCase {
 		
 
 	}
+	/**
+	 * 
+	 */
+	public void testConstructors() {
+		int sse = 1147986348;
+		String dateSpec = "20060518210548";
+		assertEquals("bad fromSSe",dateSpec,Timestamp.fromSse(sse).getDateStr());
+	}
 }
