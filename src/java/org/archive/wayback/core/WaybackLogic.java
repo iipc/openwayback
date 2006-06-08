@@ -24,6 +24,7 @@
 package org.archive.wayback.core;
 
 import java.util.Enumeration;
+import java.util.Hashtable;
 import java.util.Properties;
 import java.util.logging.Logger;
 
@@ -56,17 +57,9 @@ public class WaybackLogic implements PropertyConfigurable {
 
 	private static final String RESOURCE_INDEX_PROPERTY = "resourceindex";
 
-	private ResultURIConverter uriConverter = null;
-
-	private ReplayRenderer replayRenderer = null;
-
-	private QueryRenderer queryRenderer = null;
-
-	private ResourceIndex resourceIndex = null;
-
-	private ResourceStore resourceStore = null;
-
 	private Properties configuration = null;
+	
+	Hashtable objectCache = new Hashtable();
 	
 	/**
 	 * Constructor
@@ -142,17 +135,30 @@ public class WaybackLogic implements PropertyConfigurable {
 	}
 
 	/**
+	 * possibly initializes and returns an instance of class className
+	 * 
+	 * @param className
+	 * @return object of PropertyConfigurable class that has been configured
+	 *     with a call to init() 
+	 * @throws ConfigurationException
+	 */
+	public PropertyConfigurable getCachedInstance(final String className) 
+	throws ConfigurationException {
+		if(!objectCache.containsKey(className)) {
+			objectCache.put(className,getInstance(configuration,className));
+		}
+		return (PropertyConfigurable) objectCache.get(className);
+	}
+	
+	/**
 	 *  possibly initializes and returns the resourceIndex
 	 * 
 	 * @return Returns the resourceIndex.
 	 * @throws ConfigurationException 
 	 */
 	public ResourceIndex getResourceIndex() throws ConfigurationException {
-		if(resourceIndex == null) {
-			resourceIndex = (ResourceIndex) getInstance(configuration,
-					RESOURCE_INDEX_PROPERTY);
-		}
-		return resourceIndex;
+		return (ResourceIndex) getCachedInstance(RESOURCE_INDEX_PROPERTY);
+
 	}
 
 	/**
@@ -162,11 +168,8 @@ public class WaybackLogic implements PropertyConfigurable {
 	 * @throws ConfigurationException 
 	 */
 	public ResourceStore getResourceStore() throws ConfigurationException {
-		if(resourceStore == null) {
-			resourceStore = (ResourceStore) getInstance(configuration,
-					RESOURCE_STORE_PROPERTY);
-		}
-		return resourceStore;
+		return (ResourceStore) getCachedInstance(RESOURCE_STORE_PROPERTY);
+
 	}
 
 	/**
@@ -177,11 +180,8 @@ public class WaybackLogic implements PropertyConfigurable {
 	 */
 	public ResultURIConverter getURIConverter()
 	throws ConfigurationException {
-		if(uriConverter == null) {
-			uriConverter = (ResultURIConverter) getInstance(configuration,
-					REPLAY_URI_CONVERTER_PROPERTY);
-		}
-		return uriConverter;
+		return (ResultURIConverter) getCachedInstance(
+				REPLAY_URI_CONVERTER_PROPERTY);
 	}
 
 	/**
@@ -191,11 +191,7 @@ public class WaybackLogic implements PropertyConfigurable {
 	 * @throws ConfigurationException 
 	 */
 	public ReplayRenderer getReplayRenderer() throws ConfigurationException {
-		if(replayRenderer == null) {
-			replayRenderer = (ReplayRenderer) getInstance(configuration,
-					REPLAY_RENDERER_PROPERTY);
-		}
-		return replayRenderer;
+		return (ReplayRenderer) getCachedInstance(REPLAY_RENDERER_PROPERTY);
 	}
 
 	/**
@@ -205,17 +201,6 @@ public class WaybackLogic implements PropertyConfigurable {
 	 * @throws ConfigurationException 
 	 */
 	public QueryRenderer getQueryRenderer() throws ConfigurationException {
-		if(queryRenderer == null) {
-			queryRenderer = (QueryRenderer) getInstance(configuration,
-					QUERY_RENDERER_PROPERTY);
-		}
-		return queryRenderer;
-	}
-
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-
+		return (QueryRenderer) getCachedInstance(QUERY_RENDERER_PROPERTY);
 	}
 }

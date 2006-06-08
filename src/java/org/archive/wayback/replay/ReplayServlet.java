@@ -25,15 +25,10 @@ package org.archive.wayback.replay;
 
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.Enumeration;
 import java.util.Iterator;
-import java.util.Properties;
 import java.util.logging.Logger;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -47,7 +42,7 @@ import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
-import org.archive.wayback.core.WaybackLogic;
+import org.archive.wayback.core.WaybackServlet;
 import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.exception.WaybackException;
@@ -59,7 +54,7 @@ import org.archive.wayback.query.OpenSearchQueryParser;
  * @author Brad Tofel
  * @version $Date$, $Revision$
  */
-public class ReplayServlet extends HttpServlet {
+public class ReplayServlet extends WaybackServlet {
 	private static final Logger LOGGER = Logger.getLogger(ReplayServlet.class
 			.getName());
 
@@ -69,29 +64,11 @@ public class ReplayServlet extends HttpServlet {
 
 	private OpenSearchQueryParser qp = new OpenSearchQueryParser();
 
-	private WaybackLogic wayback = new WaybackLogic();
-
 	/**
 	 * Constructor
 	 */
 	public ReplayServlet() {
 		super();
-	}
-
-	public void init(ServletConfig c) throws ServletException {
-
-		Properties p = new Properties();
-		for (Enumeration e = c.getInitParameterNames(); e.hasMoreElements();) {
-			String key = (String) e.nextElement();
-			p.put(key, c.getInitParameter(key));
-		}
-		ServletContext sc = c.getServletContext();
-		for (Enumeration e = sc.getInitParameterNames(); e.hasMoreElements();) {
-			String key = (String) e.nextElement();
-			p.put(key, sc.getInitParameter(key));
-		}
-
-		wayback.init(p);
 	}
 
 	private SearchResult getClosest(SearchResults results,
@@ -131,8 +108,8 @@ public class ReplayServlet extends HttpServlet {
 		try {
 			renderer = wayback.getReplayRenderer();
 		} catch (ConfigurationException e1) {
-			e1.printStackTrace();
-			throw new ServletException(e1.getMessage());
+//			e1.printStackTrace();
+			throw new ServletException(e1);
 		}
 		Resource resource = null;
 		try {
@@ -183,8 +160,8 @@ public class ReplayServlet extends HttpServlet {
 		} catch (Exception e) {
 			// TODO show something Wayback'ish to the user rather than letting
 			// the container deal?
-			e.printStackTrace();
-			throw new ServletException(e.getMessage());
+			//e.printStackTrace();
+			throw new ServletException(e);
 		} finally {
 			if (resource != null) {
 				resource.close();

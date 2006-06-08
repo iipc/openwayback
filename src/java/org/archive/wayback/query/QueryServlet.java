@@ -26,14 +26,9 @@ package org.archive.wayback.query;
 
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.Enumeration;
 import java.util.Iterator;
-import java.util.Properties;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -44,8 +39,8 @@ import org.archive.wayback.ResourceIndex;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.Timestamp;
-import org.archive.wayback.core.WaybackLogic;
 import org.archive.wayback.core.WaybackRequest;
+import org.archive.wayback.core.WaybackServlet;
 import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.exception.WaybackException;
@@ -56,7 +51,7 @@ import org.archive.wayback.exception.WaybackException;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class QueryServlet extends HttpServlet {
+public class QueryServlet extends WaybackServlet {
 	/**
 	 * 
 	 */
@@ -64,8 +59,6 @@ public class QueryServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
 
-	private WaybackLogic wayback = new WaybackLogic();
-	
 	private OpenSearchQueryParser qp = new OpenSearchQueryParser();
 
 	/**
@@ -73,23 +66,6 @@ public class QueryServlet extends HttpServlet {
 	 */
 	public QueryServlet() {
 		super();
-	}
-
-	public void init(ServletConfig c) throws ServletException {
-
-		Properties p = new Properties();
-		for (Enumeration e = c.getInitParameterNames(); e.hasMoreElements();) {
-			String key = (String) e.nextElement();
-			p.put(key, c.getInitParameter(key));
-		}
-		ServletContext sc = c.getServletContext();
-		for (Enumeration e = sc.getInitParameterNames(); e.hasMoreElements();) {
-			String key = (String) e.nextElement();
-			p.put(key, sc.getInitParameter(key));
-		}
-
-		// TODO initialize renderer?
-		wayback.init(p);
 	}
 
 	public void doGet(HttpServletRequest httpRequest,
