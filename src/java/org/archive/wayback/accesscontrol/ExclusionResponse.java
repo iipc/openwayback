@@ -55,15 +55,32 @@ import org.w3c.dom.Node;
  */
 public class ExclusionResponse {
 	
-	private boolean USE_XML = false;
+	/**
+	 * Reponse is considered "authoritative"
+	 */
+	public final static String EXLCUSION_AUTHORITATIVE = "Authoritative";
+	/**
+	 * Response is not "authoritative" -- some assumptions may have been made
+	 */
+	public final static String EXLCUSION_NON_AUTHORITATIVE = "Non-Authoritative";
+	/**
+	 * Response indicates that access is granted
+	 */
+	public final static boolean EXLCUSION_AUTHORIZED = true;
+	/**
+	 * Response indicates that access is not granted
+	 */
+	public final static boolean EXLCUSION_NOT_AUTHORIZED = false;
 	
-	private String responseType = null;
-
-	private String hostname = null;
-
-	private boolean authorized = false;
+	private final static boolean USE_XML = false;
 	
-	private String message = null;
+	private String responseType;
+
+	private String hostname;
+
+	private boolean authorized;
+	
+	private String message;
 
 	/**
 	 * Constructor
@@ -125,9 +142,16 @@ public class ExclusionResponse {
 		return "text/plain";
 	}
 
+	/**
+	 * @return String version of response
+	 */
+	public String getContentText() {
+		return authorized ? "OK" : "BLOCKED - " + message;	
+	}
+	
 	private void writeResponseText(OutputStream os) {
 
-		String content = authorized ? "OK" : "BLOCKED - " + message;
+		String content = getContentText();
 		try {
 			os.write(content.getBytes());
 		} catch (IOException e) {
