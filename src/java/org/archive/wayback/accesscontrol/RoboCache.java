@@ -48,6 +48,8 @@ import org.archive.io.arc.ARCRecord;
 import org.archive.io.arc.ARCWriter;
 import org.archive.io.arc.ARCWriterPool;
 import org.archive.io.arc.ARCWriterSettings;
+import org.archive.util.ArchiveUtils;
+import org.archive.wayback.exception.ConfigurationException;
 
 import com.sleepycat.je.Database;
 import com.sleepycat.je.DatabaseConfig;
@@ -64,7 +66,7 @@ import com.sleepycat.je.OperationStatus;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class RoboCache {
+public class RoboCache implements ExclusionAuthority {
 	private static final Logger LOGGER = Logger.getLogger(RoboCache.class
 			.getName());
 
@@ -116,32 +118,27 @@ public class RoboCache {
 
 	ARCWriterPool pool = null;
 
-	/**
-	 * Initialize this and sub objects from Properties.
-	 * 
-	 * @param p
-	 * @throws Exception
-	 */
-	public void init(Properties p) throws Exception {
+	public void init(Properties p) throws ConfigurationException {
 		String tmpPath = (String) p.get(TMP_DIR);
 		if ((tmpPath == null) || (tmpPath.length() < 1)) {
-			throw new Exception("Failed to find " + TMP_DIR);
+			throw new ConfigurationException("Failed to find " + TMP_DIR);
 		}
 		String arcPath = (String) p.get(ROBOT_ARC_DIR);
 		if ((arcPath == null) || (arcPath.length() < 1)) {
-			throw new Exception("Failed to find " + ROBOT_ARC_DIR);
+			throw new ConfigurationException("Failed to find " + ROBOT_ARC_DIR);
 		}
 		String arcPrefix = (String) p.get(ROBOT_ARC_PREFIX);
 		if ((arcPrefix == null) || (arcPrefix.length() < 1)) {
-			throw new Exception("Failed to find " + ROBOT_ARC_PREFIX);
+			throw new ConfigurationException("Failed to find " +
+					ROBOT_ARC_PREFIX);
 		}
 		String dbPath = (String) p.get(ROBOT_DB_PATH);
 		if ((dbPath == null) || (dbPath.length() < 1)) {
-			throw new Exception("Failed to find " + ROBOT_DB_PATH);
+			throw new ConfigurationException("Failed to find " + ROBOT_DB_PATH);
 		}
 		String dbName = (String) p.get(ROBOT_DB_NAME);
 		if ((dbName == null) || (dbName.length() < 1)) {
-			throw new Exception("Failed to find " + ROBOT_DB_NAME);
+			throw new ConfigurationException("Failed to find " + ROBOT_DB_NAME);
 		}
 
 		try {
@@ -153,12 +150,13 @@ public class RoboCache {
 			initializeRoboPuller(new File(tmpPath));
 
 		} catch (DatabaseException e) {
+			// TODO one or the other...
 			e.printStackTrace();
-			throw new Exception(e.getMessage());
+			throw new ConfigurationException(e.getMessage());
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			throw new Exception(e.getMessage());
+			throw new ConfigurationException(e.getMessage());
 		}
 	}
 
@@ -177,6 +175,11 @@ public class RoboCache {
 		environmentConfig.setTransactional(true); // autocommit
 		environmentConfig.setConfigParam("je.log.fileMax", JE_LOG_FILEMAX);
 		File file = new File(path);
+		if(!file.isDirectory()) {
+			if(!file.mkdirs()) {
+				throw new DatabaseException("failed mkdirs(" + path + ")");
+			}
+		}
 		env = new Environment(file, environmentConfig);
 		DatabaseConfig databaseConfig = new DatabaseConfig();
 		databaseConfig.setAllowCreate(true);
@@ -268,16 +271,18 @@ public class RoboCache {
 	 * 
 	 * @param userAgent
 	 * @param urlString
+	 * @param timestamp 
 	 * @return ExclusionResponse with answer to the query
 	 * @throws DatabaseException
 	 * @throws MalformedURLException
 	 * @throws IOException
 	 */
-	public ExclusionResponse checkExclusion(String userAgent, String urlString)
+	public ExclusionResponse checkRobotExclusion(String userAgent, String urlString,
+			String timestamp)
 			throws DatabaseException, MalformedURLException, IOException {
 
 		URL url = null;
-		url = new URL(urlString);
+		url = new URL(ArchiveUtils.addImpliedHttpIfNecessary(urlString));
 
 		// is there a valid cached copy?
 		ARCLocation location = null;
@@ -290,27 +295,56 @@ public class RoboCache {
 		
 		// how about now?
 		if (location == null) {
-			// special value for FAILED get:
 			LOGGER.info("FAILED to get for(" + urlString+ ") -- Allowed");
-			return new ExclusionResponse(url.getHost(),"Unauthoritative",true);
+			return new ExclusionResponse(url.getHost(),
+					ExclusionResponse.EXLCUSION_NON_AUTHORITATIVE,
+					ExclusionResponse.EXLCUSION_AUTHORIZED,
+					"Unable to retrieve robots.txt document");
 		}
-		// woops. Don't think this can happen.. Call it an assert.
 		if (location.getOffset() == 0) {
 			// special value for FAILED get:
 			LOGGER.info("Have FAILED get Cached for(" + urlString + ") -- Allowed");
-			return new ExclusionResponse(url.getHost(),"Unauthoritative2",true);
+			return new ExclusionResponse(url.getHost(),
+					ExclusionResponse.EXLCUSION_NON_AUTHORITATIVE,
+					ExclusionResponse.EXLCUSION_AUTHORIZED,
+					"Failed retrieve cached document...");
 		}
 
 		// we have a local copy in an ARC file, extract and parse it:
 		String pathToCheck = url.getPath();
 		HashMap disallows = getDisallowsForUA(location, userAgent);
 		if(disallowsBlockPath(disallows, userAgent, pathToCheck)) {
-			return new ExclusionResponse(url.getHost(),"Authoritative",false);
+			return new ExclusionResponse(url.getHost(),
+					ExclusionResponse.EXLCUSION_AUTHORITATIVE,
+					ExclusionResponse.EXLCUSION_NOT_AUTHORIZED,
+					"Access blocked by robots.txt");
 		} else {
-			return new ExclusionResponse(url.getHost(),"Authoritative",true);
+			return new ExclusionResponse(url.getHost(),
+					ExclusionResponse.EXLCUSION_AUTHORITATIVE,
+					ExclusionResponse.EXLCUSION_AUTHORIZED,
+					"Access granted by robots.txt");
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see org.archive.wayback.accesscontrol.ExclusionAuthority#checkExclusion(java.lang.String, java.lang.String, java.lang.String)
+	 */
+	public ExclusionResponse checkExclusion(String userAgent, String urlString, 
+			String captureDate) throws Exception {
+		try {
+			return checkRobotExclusion(userAgent,urlString,captureDate);
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+			throw new Exception(e);
+		} catch (DatabaseException e) {
+			e.printStackTrace();
+			throw new Exception(e);
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new Exception(e);
+		}
+	}
+	
 	private boolean disallowsBlockPath(HashMap disallows, String userAgent,
 			String pathToCheck) {
 		if (disallows == null) {
@@ -372,7 +406,7 @@ public class RoboCache {
 		OperationStatus status = db.delete(null,key);
 		if((status != OperationStatus.NOTFOUND) 
 				&& (status != OperationStatus.SUCCESS)) {
-					throw new DatabaseException("Faield to delete " + hostname);
+					throw new DatabaseException("Failed to delete " + hostname);
 		}
 		eclResponse = new ExclusionResponse(hostname,"PurgeConfirmation",true);
 		LOGGER.info("Purged robots.txt for " + hostname);
