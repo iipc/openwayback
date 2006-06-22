@@ -125,6 +125,7 @@ public class ReplayServlet extends WaybackServlet {
 
 			// TODO: check which versions are actually accessible right now?
 			SearchResult closest = getClosest(results, wbRequest);
+			resource = store.retrieveResource(closest);
 
 			String requestedDateStr = wbRequest.get(
 					WaybackConstants.REQUEST_EXACT_DATE);
@@ -141,7 +142,6 @@ public class ReplayServlet extends WaybackServlet {
 						closest, resource, uriConverter);				
 				
 			} else {
-				resource = store.retrieveResource(closest);
 	
 				renderer.renderResource(httpRequest, httpResponse, wbRequest,
 						closest, resource, uriConverter);
