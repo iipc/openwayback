@@ -26,6 +26,7 @@ package org.archive.wayback.cdx.indexer;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.logging.Logger;
 
 import org.archive.wayback.cdx.BDBResourceIndex;
 import org.archive.wayback.cdx.CDXRecord;
@@ -41,6 +42,12 @@ import com.sleepycat.je.DatabaseException;
  * @version $Date$, $Revision$
  */
 public class BDBResourceIndexWriter {
+	/**
+	 * Logger for this class.
+	 */
+	private static final Logger LOGGER =
+	        Logger.getLogger(BDBResourceIndexWriter.class.getName());
+
 	// TODO: move to somewhere better...
 	/**
 	 * magic for serialized CDX files
@@ -91,26 +98,27 @@ public class BDBResourceIndexWriter {
 	 * @throws Exception
 	 */
 	public void importFile(File indexFile) throws Exception {
-		SearchResults results = readFile(indexFile);
-		db.addResults(results);
+		readFile(indexFile);
 	}
 
 	/** deserialize a CDX file into a SearchResults
 	 * @param indexFile
-	 * @return SearchResults containing all SearchResult objects in file
 	 * @throws Exception
 	 */
-	private SearchResults readFile(File indexFile) throws Exception {
+	private void readFile(File indexFile) throws Exception {
 		SearchResults results = new SearchResults();
 		RandomAccessFile raFile = new RandomAccessFile(indexFile, "r");
 		try {
+			int recordsAdded = 0;
 			int lineNumber = 0;
+			int maxRecords = 100000;
 			CDXRecord cdxRecord = new CDXRecord();
 			while (true) {
 				String line = raFile.readLine();
 				if (line == null) {
 					break;
 				}
+				recordsAdded++;
 				lineNumber++;
 				if ((lineNumber == 1) && 
 						(line.indexOf(CDX_HEADER_MAGIC) != -1)) {
@@ -120,6 +128,18 @@ public class BDBResourceIndexWriter {
 				cdxRecord.parseLine(line, lineNumber);
 				SearchResult result = cdxRecord.toSearchResult();
 				results.addSearchResult(result);
+				if(recordsAdded > maxRecords) {
+					db.addResults(results);
+					results = new SearchResults();
+					LOGGER.info("Added " + recordsAdded + " records (total " + 
+							lineNumber + ")...");
+					recordsAdded = 0;
+				}
+			}
+			if (recordsAdded > 0) {
+				LOGGER.info("Added " + recordsAdded + " records (total " + 
+						lineNumber + ")...");
+				db.addResults(results);
 			}
 		} finally {
 			if(raFile != null) {
@@ -131,7 +151,7 @@ public class BDBResourceIndexWriter {
 				}
 			}
 		}
-		return results;
+		//return results;
 	}
 
 	/**
