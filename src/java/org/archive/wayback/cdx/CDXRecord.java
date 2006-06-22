@@ -45,7 +45,7 @@ public class CDXRecord {
 	public final static String CDX_HEADER_MAGIC = " CDX N b h m s k r V g";
 
 	/**
-	 * capture url for this document
+	 * key url for this document
 	 */
 	public String url;
 
@@ -191,7 +191,7 @@ public class CDXRecord {
 	 * @param result
 	 */
 	public void fromSearchResult(final SearchResult result) {
-		url = result.get(WaybackConstants.RESULT_URL);
+		url = result.get(WaybackConstants.RESULT_URL_KEY);
 		captureDate = result.get(WaybackConstants.RESULT_CAPTURE_DATE);
 		origHost = result.get(WaybackConstants.RESULT_ORIG_HOST);
 		mimeType = result.get(WaybackConstants.RESULT_MIME_TYPE);
