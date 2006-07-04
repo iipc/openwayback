@@ -24,6 +24,7 @@
  */
 package org.archive.wayback.http11resourcestore;
 import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.util.Properties;
 import java.util.logging.Logger;
 
@@ -101,6 +102,14 @@ public class FileLocationDB implements PropertyConfigurable {
 		}
 
 		try {
+
+			File dbDir = new File(dbPath);
+			if(!dbDir.exists()) {
+				if(!dbDir.mkdirs()) {
+					throw new ConfigurationException("Failed to create " + dbPath);
+				}
+			}
+			
 			LOGGER.info("Initializing FileLocationDB at(" + dbPath + 
 					") named(" + dbName + ")");
 			
@@ -123,13 +132,13 @@ public class FileLocationDB implements PropertyConfigurable {
 
 		EnvironmentConfig environmentConfig = new EnvironmentConfig();
 		environmentConfig.setAllowCreate(true);
-		environmentConfig.setTransactional(false);
+		environmentConfig.setTransactional(true);
 		environmentConfig.setConfigParam("je.log.fileMax",JE_LOG_FILEMAX);
 		File file = new File(path);
 		env = new Environment(file, environmentConfig);
 		DatabaseConfig databaseConfig = new DatabaseConfig();
 		databaseConfig.setAllowCreate(true);
-		databaseConfig.setTransactional(false);
+		databaseConfig.setTransactional(true);
 		// perform other database configurations
 
 		db = env.openDatabase(null, dbName, databaseConfig);
@@ -164,6 +173,25 @@ public class FileLocationDB implements PropertyConfigurable {
 		return path;
 	}
 
+	private byte[] stringToBytes(String s) {
+		try {
+			return s.getBytes("UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			// no UTF-8, huh?
+			e.printStackTrace();
+			return s.getBytes();
+		}
+	}
+	private String bytesToString(byte[] ba) {
+		try {
+			return new String(ba,"UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			// not likely..
+			e.printStackTrace();
+			return new String(ba);
+		}
+	}
+	
 	/**
 	 * return an array of String URLs for all known locations of the ARC file
 	 * in the DB.
@@ -177,13 +205,13 @@ public class FileLocationDB implements PropertyConfigurable {
 		
 		DatabaseEntry key = new DatabaseEntry();
 		DatabaseEntry value = new DatabaseEntry();
-		key.setData(arcName.getBytes());
+		key.setData(stringToBytes(arcName));
 		key.setPartial(false);
 		Cursor cursor = db.openCursor(null, null);
 		OperationStatus status = cursor.getSearchKey(key, value,
 				LockMode.DEFAULT);
 		if (status == OperationStatus.SUCCESS) {
-			String valueString = new String(value.getData());
+			String valueString = bytesToString(value.getData());
 			if(valueString != null && valueString.length() > 0) {
 				arcUrls = valueString.split(urlDelimiterRE);
 			}
@@ -211,14 +239,12 @@ public class FileLocationDB implements PropertyConfigurable {
 		DatabaseEntry key = new DatabaseEntry();
 		DatabaseEntry value = new DatabaseEntry();
 		
-		Cursor cursor = db.openCursor(null, null);
-		key.setData(arcName.getBytes());
+		key.setData(stringToBytes(arcName));
 		key.setPartial(false);
 
-		OperationStatus status = cursor.getSearchKey(key, value,
-				LockMode.DEFAULT);
+		OperationStatus status = db.get(null,key, value,LockMode.DEFAULT);
 		if (status == OperationStatus.SUCCESS) {
-			String valueString = new String(value.getData());
+			String valueString = bytesToString(value.getData());
 			if(valueString != null && valueString.length() > 0) {
 				String curUrls[] = valueString.split(urlDelimiterRE);
 				boolean found = false;
@@ -244,13 +270,12 @@ public class FileLocationDB implements PropertyConfigurable {
 		
 		// did we find a value?
 		if(newValue != null) {
-			value.setData(newValue.getBytes());
-			status = cursor.put(key, value);
+			value.setData(stringToBytes(newValue));
+			status = db.put(null,key, value);
 			if (status != OperationStatus.SUCCESS) {
 				throw new DatabaseException("oops, put had non-success status");
 			}
 		}
-		cursor.close();
 	}
 
 	/**
@@ -270,16 +295,15 @@ public class FileLocationDB implements PropertyConfigurable {
 		DatabaseEntry key = new DatabaseEntry();
 		DatabaseEntry value = new DatabaseEntry();
 		
-		Cursor cursor = db.openCursor(null, null);
-		key.setData(arcName.getBytes());
+		//Cursor cursor = db.openCursor(null, null);
+		key.setData(stringToBytes(arcName));
 		key.setPartial(false);
 
-		OperationStatus status = cursor.getSearchKey(key, value,
-				LockMode.DEFAULT);
+		OperationStatus status = db.get(null,key, value,LockMode.DEFAULT);
 		if (status == OperationStatus.SUCCESS) {
 			StringBuilder newValue = new StringBuilder(300);
 
-			String valueString = new String(value.getData());
+			String valueString = bytesToString(value.getData());
 			if(valueString != null && valueString.length() > 0) {
 				String curUrls[] = valueString.split(urlDelimiterRE);
 
@@ -296,8 +320,8 @@ public class FileLocationDB implements PropertyConfigurable {
 			if(newValue.length() > 0) {
 				
 				// update
-				value.setData(newValue.toString().getBytes());
-				status = cursor.put(key, value);
+				value.setData(stringToBytes(newValue.toString()));
+				status = db.put(null,key, value);
 				if (status != OperationStatus.SUCCESS) {
 					throw new DatabaseException("oops, put had non-success status");
 				}
@@ -305,24 +329,11 @@ public class FileLocationDB implements PropertyConfigurable {
 			} else {
 				
 				// remove the entry:
-				status = cursor.delete();
+				status = db.delete(null,key);
 				if (status != OperationStatus.SUCCESS) {
 					throw new DatabaseException("oops, delete had non-success status");
 				}
-				
 			}
 		}
-		
-		cursor.close();
-		
 	}
-	
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-
-	}
-
 }
