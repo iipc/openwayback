@@ -154,7 +154,10 @@ public class BDBResourceIndex {
 
 				CDXRecord record = new CDXRecord();
 				// TODO: this should throw something:
-				record.parseLine(new String(value.getData()), 0);
+				String sKey = new String(key.getData());
+				String sVal = new String(value.getData());
+				
+				record.parseLine(sKey + " " + sVal, 0);
 				int ruling = filter.filterRecord(record);
 				if(ruling == RecordFilter.RECORD_ABORT) {
 					break;
@@ -234,5 +237,31 @@ public class BDBResourceIndex {
 	public String getPath() {
 		return path;
 	}
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		try {
+			BDBResourceIndex ddb = new BDBResourceIndex(args[0],args[1]);
+			DatabaseEntry key = new DatabaseEntry();
+			DatabaseEntry value = new DatabaseEntry();
+			
+			key.setData(args[2].getBytes());
+			key.setPartial(false);
+			Cursor cursor = ddb.db.openCursor(null, null);
+			OperationStatus status = cursor.getSearchKeyRange(key, value,
+					LockMode.DEFAULT);
+			
+			while (status == OperationStatus.SUCCESS) {
 
+				System.out.println(new String(key.getData()) + " " + new String(value.getData()));
+				status = cursor.getNext(key, value, LockMode.DEFAULT);
+			}
+			cursor.close();
+		} catch (DatabaseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
 }
