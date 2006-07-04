@@ -207,9 +207,9 @@ public class CDXRecord {
 	 * @return a BDBJE value for this record
 	 */
 	public String toValue() {
-		return url + " " + captureDate + " " + origHost + " " + mimeType + " "
-				+ httpResponseCode + " " + md5Fragment + " " + redirectUrl
-				+ " " + compressedOffset + " " + arcFileName;
+		return origHost + " " + mimeType + " "
+			+ httpResponseCode + " " + md5Fragment + " " + redirectUrl
+			+ " " + compressedOffset + " " + arcFileName;
 	}
 
 	/**
