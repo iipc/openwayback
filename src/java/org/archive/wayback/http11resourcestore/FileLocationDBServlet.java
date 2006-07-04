@@ -46,7 +46,7 @@ import com.sleepycat.je.DatabaseException;
  */
 public class FileLocationDBServlet extends WaybackServlet {
 
-	private static final String FILE_LOCATION_DB_CLASS = "org.archive.wayback.http11resourcestore.FileLocationDB.java";
+	private static final String FILE_LOCATION_DB_CLASS = "filelocationdb";
 	
 	protected static final String OPERATION_ARGUMENT = "operation";
 	protected static final String NAME_ARGUMENT = "name";
