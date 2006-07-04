@@ -27,6 +27,12 @@
 	</context-param>
 
 	<context-param>
+		<param-name>filelocationdb.classname</param-name>
+		<param-value>org.archive.wayback.http11resourcestore.FileLocationDB</param-value>
+		<description>Class implementing FileLocationDB</description>
+	</context-param>
+
+	<context-param>
 		<param-name>arcdbpath</param-name>
 		<param-value>/tmp/wayback/arc-db</param-value>
 		<description>Directory where arc-db is stored. Must exist.</description>
@@ -194,6 +200,21 @@
 		<url-pattern>/query</url-pattern>
 	</servlet-mapping>
 
+	<!-- XMLQuery Servlet Configuration -->
+
+    <servlet>
+        <servlet-name>XMLQueryServlet</servlet-name>
+        <servlet-class>org.archive.wayback.query.QueryServlet</servlet-class>
+        <init-param>
+            <param-name>queryui.jsppath</param-name>
+            <param-value>jsp/QueryXMLUI</param-value>
+        </init-param>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>XMLQueryServlet</servlet-name>
+        <url-pattern>/xmlquery</url-pattern>
+    </servlet-mapping>
+
 	<!-- QueryUI Configuration -->
 	
 	<context-param>
@@ -207,6 +228,14 @@
 		<param-value>jsp/QueryUI</param-value>
 		<description>
 			SimpleQueryUI specific path to jsp pages. relative to webapp/
+		</description>
+	</context-param>
+
+	<context-param>
+		<param-name>proxy.redirectpath</param-name>
+		<param-value>/jsp/QueryUI/Redirect.jsp</param-value>
+		<description>
+			jsp where requests are bounced thru to pick up timestamps
 		</description>
 	</context-param>
 
