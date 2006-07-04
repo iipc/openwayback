@@ -27,6 +27,12 @@
 	</context-param>
 
 	<context-param>
+		<param-name>filelocationdb.classname</param-name>
+		<param-value>org.archive.wayback.http11resourcestore.FileLocationDB</param-value>
+		<description>Class implementing FileLocationDB</description>
+	</context-param>
+
+	<context-param>
 		<param-name>arcdbpath</param-name>
 		<param-value>/tmp/wayback/arc-db</param-value>
 		<description>Directory where arc-db is stored. Must exist.</description>
