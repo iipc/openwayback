@@ -148,6 +148,8 @@ public class ArcIndexer {
 		} else {
 		
 			UURI uri = UURIFactory.getInstance(uriStr);
+			result.put(WaybackConstants.RESULT_URL,uriStr);
+
 			String uriHost = uri.getHost();
 			if(uriHost == null) {
 				LOGGER.info("No host in " + uriStr + " in " + 
@@ -191,7 +193,7 @@ public class ArcIndexer {
 				result.put(WaybackConstants.RESULT_REDIRECT_URL,redirectUrl);
 				
 				String indexUrl = CDXRecord.urlStringToKey(meta.getUrl());
-				result.put(WaybackConstants.RESULT_URL,indexUrl);
+				result.put(WaybackConstants.RESULT_URL_KEY,indexUrl);
 			}
 
 		}	
@@ -218,7 +220,7 @@ public class ArcIndexer {
 			while (itr.hasNext()) {
 				SearchResult result = (SearchResult) itr.next();
 				cdxRecord.fromSearchResult(result);
-				pw.println(cdxRecord.toValue());
+				pw.println(cdxRecord.toKey() + " " + cdxRecord.toValue());
 			}
 		} finally {
 			pw.close();
