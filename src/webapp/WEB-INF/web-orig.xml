@@ -75,7 +75,6 @@
 		To use robots.txt-based exclusion, uncomment the following sections:
 	 -->
 
-	<!--
 	
 	<context-param>
 		<param-name>resourceindex.exclusionurl</param-name>
@@ -91,6 +90,33 @@
 			UserAgent to have exclusion service check access with.
 		</description>
 	</context-param>
+
+<!--
+
+	<context-param>
+		<param-name>exclusionauthority.classname</param-name>
+		<param-value>org.archive.wayback.accesscontrol.AdministrativeExclusionAuthority</param-value>
+		<description>class that knows about exclusions</description>
+	</context-param>
+	<context-param>
+		<param-name>adminexclusion.dbpath</param-name>
+		<param-value>/tmp/wayback/exclusion/</param-value>
+		<description></description>
+	</context-param>
+	<context-param>
+		<param-name>adminexclusion.dbname</param-name>
+		<param-value>exclusion</param-value>
+		<description></description>
+	</context-param>
+    <servlet>
+        <servlet-name>AdminExclusionServlet</servlet-name>
+        <servlet-class>org.archive.wayback.accesscontrol.AdministrativeExclusionServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AdminExclusionServlet</servlet-name>
+        <url-pattern>/admin</url-pattern>
+    </servlet-mapping>
+
 
     <servlet>
         <servlet-name>ExclusionServlet</servlet-name>
@@ -130,9 +156,8 @@
         <param-value>/tmp/wayback/robot-temp</param-value>
         <description>Directory where robots.txt documents are store temporarily</description>
     </context-param>
+-->
 
-
-	-->
 	<!-- END OF ResourceIndex Exclusion configuration
 	 -->
 
