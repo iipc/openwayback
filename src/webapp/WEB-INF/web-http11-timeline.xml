@@ -188,7 +188,20 @@
 	</filter-mapping>
 
 
-
+	<!-- QueryUI Servlet Configuration -->
+	
+    <servlet>
+	    <servlet-name>QueryUIServlet</servlet-name>
+    	<servlet-class>org.archive.wayback.query.QueryServlet</servlet-class>
+            <init-param>
+              <param-name>queryui.jsppath</param-name>
+              <param-value>jsp/QueryUI</param-value>
+            </init-param>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>QueryUIServlet</servlet-name>
+		<url-pattern>/query</url-pattern>
+	</servlet-mapping>
 
 	<!-- Query Servlet Configuration -->
 	
@@ -306,6 +319,7 @@
 		<url-pattern>/replay</url-pattern>
 	</servlet-mapping>
 	
+	
 	<!-- Replay Meta Servlet Configuration -->
 
     <servlet>
@@ -313,7 +327,7 @@
     	<servlet-class>org.archive.wayback.replay.ReplayServlet</servlet-class>
     	<init-param>
 			<param-name>replayrenderer.classname</param-name>
-			<param-value>org.archive.wayback.replay.BaseReplayRenderer</param-value>
+			<param-value>org.archive.wayback.timeline.MetaReplayRenderer</param-value>
 			<description>Implementation responsible for drawing replayed resources and replay error messages</description>
 		</init-param>
 
@@ -328,7 +342,7 @@
 	<servlet-mapping>
 		<servlet-name>MetaReplayServlet</servlet-name>
 		<url-pattern>/meta</url-pattern>
-	</servlet-mapping>	
+	</servlet-mapping>
 	
 	<context-param>
 		<param-name>replayuriconverter.classname</param-name>

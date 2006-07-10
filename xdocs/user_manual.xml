@@ -93,9 +93,9 @@
 				</p>
 				<p>
 					Replay access allows users to actually view resources in the
-					ResourceStore within their web browser. There are two Replay
+					ResourceStore within their web browser. There are three Replay
 					modes currently available with the Wayback Machine: 
-					<b>Archival URL</b>, and <b>Proxy</b>.
+					<b>Archival URL</b>, <b>Proxy</b>, and <b>Timeline</b>.
 				</p>
 				<p>
 					Before installing the Wayback Machine application, you will
@@ -558,7 +558,10 @@
 							files are noticed in the 'arcpath' directory, or 
 							when new flat-file index data is submitted from 
 							remote ARC storage nodes. Any value besides '1' will
-							cause the index to be static.
+							cause the index to be static. If you use multiple
+							webapps in the same servlet container, using the
+							same <b>resourceindex.indexpath</b>, then only one
+							of them should have this value set to '1'.
 						</td>
 					</tr>
 				</table>
@@ -756,7 +759,7 @@
 						</td>
 						<td>
 							This should be set to the absolute HTTP URL where
-							the wm.js file is located. Most likely, you can
+							the wm-timeline.js file is located. Most likely, you can
 							follow the instructions for modifying the 
 							<b>replayuriprefix</b>, but replace "replay" with 
 							"/jsp/TimelineUI/wm-timeline.js".
@@ -992,7 +995,7 @@
 						</td>
 						<td>
 							This should be set to the absolute HTTP URL where
-							the wm.js file is located. Most likely, you can
+							the wm-timeline.js file is located. Most likely, you can
 							follow the instructions for modifying the 
 							<b>replayuriprefix</b>, but replace "replay" with 
 							"/jsp/TimelineUI/wm-timeline.js".
