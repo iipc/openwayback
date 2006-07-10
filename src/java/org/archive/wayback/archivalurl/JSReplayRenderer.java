@@ -25,11 +25,9 @@
 package org.archive.wayback.archivalurl;
 
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.Properties;
 
 import javax.servlet.ServletException;
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -40,10 +38,7 @@ import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.ConfigurationException;
-import org.archive.wayback.proxy.RawReplayRenderer;
-import org.mozilla.intl.chardet.nsDetector;
-import org.mozilla.intl.chardet.nsICharsetDetectionObserver;
-import org.mozilla.intl.chardet.nsPSMDetector;
+import org.archive.wayback.replay.BaseReplayRenderer;
 
 /**
  * 
@@ -51,17 +46,13 @@ import org.mozilla.intl.chardet.nsPSMDetector;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class JSReplayRenderer extends RawReplayRenderer 
-	implements nsICharsetDetectionObserver {
+public class JSReplayRenderer extends BaseReplayRenderer {
 	
 	private final static String REPLAY_JS_URI= "jsuri";
 
-	private final static int MAX_CHARSET_READAHEAD = 4096;
-	
-	private final static String HTTP_CONTENT_TYPE_HEADER = "Content-Type";
-	private final static String CHARSET_TOKEN = "charset=";
 	private final static String HTTP_LENGTH_HEADER = "Content-Length";
 	private final static String HTTP_XFER_ENCODING_HEADER = "Transfer-Encoding";
+	private final static String HTTP_LOCATION_HEADER = "Location";
 	
 	/**
 	 * MIME type of documents which should be marked up with javascript to
@@ -70,12 +61,9 @@ public class JSReplayRenderer extends RawReplayRenderer
 	private final static String TEXT_HTML_MIME = "text/html";
 	private final static String TEXT_XHTML_MIME = "application/xhtml";
 
+	// TODO: make this configurable
 	private final static long MAX_HTML_MARKUP_LENGTH = 1024 * 1024 * 5;
-	private final static int CHARACTER_BUFFER_SIZE = 1024 * 4;
 	
-	private char[] cbuffer = new char[CHARACTER_BUFFER_SIZE];
-	
-	private String foundCharset = null;
 	protected String javascriptURI = null;
 
 	public void init(Properties p) throws ConfigurationException {
@@ -88,36 +76,29 @@ public class JSReplayRenderer extends RawReplayRenderer
 	}
 	
 	/** test if the SearchResult should be replayed raw, without JS markup
+	 * @param resource
 	 * @param result
 	 * @return boolean, true if the document should be returned raw.
 	 */
-	private boolean isRawReplayResult(SearchResult result) {
+	protected boolean isRawReplayResult(Resource resource, SearchResult result) {
 
-		// TODO: this needs to be configurable such that arbitrary filters
-		// can be applied to various mime-types... We'll just hard-code them for
-		// now.
-		if (-1 != result.get(WaybackConstants.RESULT_MIME_TYPE).indexOf(
-				TEXT_HTML_MIME)) {
-			return false;
-		}
-		if (-1 != result.get(WaybackConstants.RESULT_MIME_TYPE).indexOf(
-				TEXT_XHTML_MIME)) {
-			return false;
+		if(resource.getRecordLength() < MAX_HTML_MARKUP_LENGTH) {
+			// TODO: this needs to be configurable such that arbitrary filters
+			// can be applied to various mime-types... We'll just hard-code 
+			// them for now.
+			if (-1 != result.get(WaybackConstants.RESULT_MIME_TYPE).indexOf(
+					TEXT_HTML_MIME)) {
+				return false;
+			}
+			if (-1 != result.get(WaybackConstants.RESULT_MIME_TYPE).indexOf(
+					TEXT_XHTML_MIME)) {
+				return false;
+			}
 		}
 		
 		return true;
 	}
 
-	public void renderRedirect(HttpServletRequest httpRequest,
-			HttpServletResponse httpResponse, WaybackRequest wbRequest,
-			SearchResult result, Resource resource,
-			ResultURIConverter uriConverter) throws ServletException,
-			IOException {
-
-		String betterURI = uriConverter.makeReplayURI(result);
-		httpResponse.sendRedirect(betterURI);
-	}
-	
 	/**
 	 * omit length and encoding HTTP headers.
 	 * 
@@ -132,14 +113,17 @@ public class JSReplayRenderer extends RawReplayRenderer
 		if(key.equals(HTTP_LENGTH_HEADER)) {
 			return null;
 		}
-		// TODO: I don't think that this is not handled correctly: if the
+		// TODO: I don't think that this is handled correctly: if the
 		// ARC document is chunked, we want to relay that, by NOT omitting the
 		// header, but we also need to tell the servlet container not to do
 		// any transfer ecoding of it's own "because we probably wanted it to."
 		if(key.equals(HTTP_XFER_ENCODING_HEADER)) {
 			return null;
 		}
-		return super.filterHeader(key,value,uriConverter,result);
+		if (0 == key.indexOf(HTTP_LOCATION_HEADER)) {
+			return uriConverter.makeRedirectReplayURI(result, value);
+		}
+		return value;
 	}
 
 	public void renderResource(HttpServletRequest httpRequest,
@@ -148,90 +132,16 @@ public class JSReplayRenderer extends RawReplayRenderer
 			ResultURIConverter uriConverter) throws ServletException,
 			IOException {
 
-		if (resource == null) {
-			throw new IllegalArgumentException("No resource");
-		}
-		if (result == null) {
-			throw new IllegalArgumentException("No result");
-		}
-
-		if (resource.getRecordLength() > MAX_HTML_MARKUP_LENGTH ||
-				isRawReplayResult(result)) {
-			
+		// if we are not returning the exact date they asked for, redirect them:
+		if(isExactVersionRequested(wbRequest,result)) {
 			super.renderResource(httpRequest, httpResponse, wbRequest,
 					result, resource, uriConverter);
 		} else {
-
-			resource.parseHeaders();
-			int recordLength = (int) resource.getRecordLength();
-			copyRecordHttpHeader(httpResponse, resource, uriConverter,
-					result, false);
-			
-			// get the charset:
-			String charSet = getCharset(resource);
-			
-			// convert bytes to characters for charset:
-			InputStreamReader isr = new InputStreamReader(resource,charSet);
-			
-			// slurp the whole thing into RAM:
-			StringBuilder sbuffer = new StringBuilder(recordLength);
-			for (int r = -1; 
-				(r = isr.read(cbuffer, 0, CHARACTER_BUFFER_SIZE)) != -1;) {
-				sbuffer.append(cbuffer,0,r);
-			}
-
-			// do the "usual" markup:
-			markUpPage(sbuffer, httpRequest, httpResponse, wbRequest,
-					result, resource, uriConverter);
-
-			// back to bytes...
-			byte[] ba = sbuffer.toString().getBytes(charSet);
-
-			// inform browser how much is coming back:
-			httpResponse.setHeader("Content-Length",
-					String.valueOf(ba.length));
-
-			// and send it out the door...
-			ServletOutputStream out = httpResponse.getOutputStream();
-			out.write(ba);
+			String betterURI = uriConverter.makeReplayURI(result);
+			httpResponse.sendRedirect(betterURI);			
 		}
 	}
 
-	private String getCharset(Resource resource) throws IOException {
-		String charsetName = null;
-
-		foundCharset = null;
-
-		nsDetector det = new nsDetector(nsPSMDetector.ALL);
-		byte[] bbuffer = new byte[MAX_CHARSET_READAHEAD];
-		det.Init(this);
-
-		resource.mark(MAX_CHARSET_READAHEAD);
-		int len = resource.read(bbuffer,0,MAX_CHARSET_READAHEAD);
-		resource.reset();
-
-		if(len != -1) {
-			det.DoIt(bbuffer,len,false);
-			if(foundCharset != null) {
-				charsetName = foundCharset;
-			}
-		}
-		if(charsetName == null) {
-			Properties httpHeaders = resource.getHttpHeaders();
-			String ctype = httpHeaders.getProperty(HTTP_CONTENT_TYPE_HEADER);
-			if(ctype != null) {
-				int offset = ctype.indexOf(CHARSET_TOKEN);
-				if(offset != -1) {
-					charsetName = ctype.substring(offset + CHARSET_TOKEN.length());
-				}
-			}
-		}
-		if(charsetName == null) {
-			charsetName = "UTF-8";
-		}
-		return charsetName;
-	}
-	
 	/** 
 	 * add BASE tag and javascript to a page that will rewrite embedded URLs 
 	 * to point back into the WM. Also attempt to fix up URL attributes in some
@@ -339,12 +249,4 @@ public class JSReplayRenderer extends RawReplayRenderer
 		}
 		page.insert(insertPoint, scriptInsert);
 	}
-
-	/* (non-Javadoc)
-	 * @see org.mozilla.intl.chardet.nsICharsetDetectionObserver#Notify(java.lang.String)
-	 */
-	public void Notify(String charSet) {
-		foundCharset = charSet;
-	}
-	
 }

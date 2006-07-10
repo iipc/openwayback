@@ -24,7 +24,6 @@
  */
 package org.archive.wayback.timeline;
 
-
 import java.io.IOException;
 
 import javax.servlet.ServletException;
@@ -48,23 +47,30 @@ import org.archive.wayback.core.WaybackRequest;
  */
 public class TimelineReplayRenderer extends JSReplayRenderer {
 
-	public void renderRedirect(HttpServletRequest httpRequest,
+	public void renderResource(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
 			SearchResult result, Resource resource,
 			ResultURIConverter uriConverter) throws ServletException,
 			IOException {
-		
-		if (!(uriConverter instanceof TimelineReplayResultURIConverter)) {
-			throw new IllegalArgumentException("ResultURIConverter must be " +
-					"of class TimelineReplayResultURIConverter");			
-		}
-		TimelineReplayResultURIConverter baseUriConverter =
-			(TimelineReplayResultURIConverter) uriConverter;
-		ResultURIConverter ruriConverter = baseUriConverter.getInlineAdapter(
-				wbRequest);
 
-		String betterURI = ruriConverter.makeReplayURI(result);
-		httpResponse.sendRedirect(betterURI);
+		// if we are not returning the exact date they asked for, redirect them:
+		if (isExactVersionRequested(wbRequest, result)) {
+			super.renderResource(httpRequest, httpResponse, wbRequest, result,
+					resource, uriConverter);
+		} else {
+			if (!(uriConverter instanceof TimelineReplayResultURIConverter)) {
+				throw new IllegalArgumentException("ResultURIConverter must "
+						+ "be of class TimelineReplayResultURIConverter");
+			}
+			TimelineReplayResultURIConverter baseUriConverter = 
+				(TimelineReplayResultURIConverter) uriConverter;
+			// BUGBUG?? this should be getFramesetAdapter, right??
+			ResultURIConverter ruriConverter = baseUriConverter
+					.getInlineAdapter(wbRequest);
+
+			String betterURI = ruriConverter.makeReplayURI(result);
+			httpResponse.sendRedirect(betterURI);
+		}
 	}
 
 	/** 
@@ -80,46 +86,44 @@ public class TimelineReplayRenderer extends JSReplayRenderer {
 	 * @param resource 
 	 * @param uriConverter
 	 */
-	protected void markUpPage(StringBuilder page, HttpServletRequest httpRequest,
-			HttpServletResponse httpResponse, WaybackRequest wbRequest,
-			SearchResult result, Resource resource,
+	protected void markUpPage(StringBuilder page,
+			HttpServletRequest httpRequest, HttpServletResponse httpResponse,
+			WaybackRequest wbRequest, SearchResult result, Resource resource,
 			ResultURIConverter uriConverter) {
 
 		if (!(uriConverter instanceof TimelineReplayResultURIConverter)) {
-			throw new IllegalArgumentException("ResultURIConverter must be " +
-					"of class TimelineReplayResultURIConverter");			
+			throw new IllegalArgumentException("ResultURIConverter must be "
+					+ "of class TimelineReplayResultURIConverter");
 		}
-		TimelineReplayResultURIConverter baseUriConverter =
+		TimelineReplayResultURIConverter baseUriConverter = 
 			(TimelineReplayResultURIConverter) uriConverter;
-		ResultURIConverter furiConverter = baseUriConverter.getFramesetAdapter(
-				wbRequest);
-		ResultURIConverter ruriConverter = baseUriConverter.getInlineAdapter(
-				wbRequest);
+		ResultURIConverter furiConverter = baseUriConverter
+				.getFramesetAdapter(wbRequest);
+		ResultURIConverter ruriConverter = baseUriConverter
+				.getInlineAdapter(wbRequest);
 
 		String pageUrl = result.get(WaybackConstants.RESULT_URL);
 
 		String existingBaseHref = TagMagix.getBaseHref(page);
-		if(existingBaseHref != null) {
+		if (existingBaseHref != null) {
 			pageUrl = existingBaseHref;
 		}
 
-		TagMagix.markupTagREURIC(page, ruriConverter,result,pageUrl, "FRAME", "SRC");
-		TagMagix.markupTagREURIC(page, furiConverter,result,pageUrl, "META", "URL");
-		TagMagix.markupTagREURIC(page, ruriConverter,result,pageUrl, "LINK", "HREF");
+		TagMagix.markupTagREURIC(page, ruriConverter, result, pageUrl, "FRAME",
+				"SRC");
+		TagMagix.markupTagREURIC(page, furiConverter, result, pageUrl, "META",
+				"URL");
+		TagMagix.markupTagREURIC(page, ruriConverter, result, pageUrl, "LINK",
+				"HREF");
 		// TODO: The classic WM added a js_ to the datespec, so NotInArchives
 		// can return an valid javascript doc, and not cause Javascript errors.
-		TagMagix.markupTagREURIC(page, ruriConverter,result,pageUrl, "SCRIPT", "SRC");
+		TagMagix.markupTagREURIC(page, ruriConverter, result, pageUrl,
+				"SCRIPT", "SRC");
 
-//			TagMagix.markupTagRE(page, wmPrefix, pageUrl, pageTS, "FRAME", "SRC");
-//			TagMagix.markupTagRE(page, wmPrefix, pageUrl, pageTS, "META", "URL");
-//			TagMagix.markupTagRE(page, wmPrefix, pageUrl, pageTS, "LINK", "HREF");
-//			// TODO: The classic WM added a js_ to the datespec, so NotInArchives
-//			// can return an valid javascript doc, and not cause Javascript errors.
-//			TagMagix.markupTagRE(page, wmPrefix, pageUrl, pageTS, "SCRIPT", "SRC");
-		if(existingBaseHref == null) {
+		if (existingBaseHref == null) {
 			insertBaseTag(page, result);
 		}
-		insertJavascriptXHTML(page, httpRequest, httpResponse, wbRequest, 
+		insertJavascriptXHTML(page, httpRequest, httpResponse, wbRequest,
 				result, resource, uriConverter);
 	}
 
@@ -132,9 +136,9 @@ public class TimelineReplayRenderer extends JSReplayRenderer {
 	 * @param resource 
 	 * @param uriConverter
 	 */
-	protected void insertJavascriptXHTML(StringBuilder page, HttpServletRequest httpRequest,
-			HttpServletResponse httpResponse, WaybackRequest wbRequest,
-			SearchResult result, Resource resource,
+	protected void insertJavascriptXHTML(StringBuilder page,
+			HttpServletRequest httpRequest, HttpServletResponse httpResponse,
+			WaybackRequest wbRequest, SearchResult result, Resource resource,
 			ResultURIConverter uriConverter) {
 
 		String resourceTS = result.get(WaybackConstants.RESULT_CAPTURE_DATE);
@@ -143,22 +147,24 @@ public class TimelineReplayRenderer extends JSReplayRenderer {
 		String nowTS = Timestamp.currentTimestamp().getDateStr();
 
 		if (!(uriConverter instanceof TimelineReplayResultURIConverter)) {
-			throw new IllegalArgumentException("ResultURIConverter must be " +
-					"of class TimelineReplayResultURIConverter");			
+			throw new IllegalArgumentException("ResultURIConverter must be "
+					+ "of class TimelineReplayResultURIConverter");
 		}
 		TimelineReplayResultURIConverter baseUriConverter = 
 			(TimelineReplayResultURIConverter) uriConverter;
-		
-		ResultURIConverter ruriConverter = baseUriConverter.getInlineAdapter(wbRequest);
-		ResultURIConverter furiConverter = baseUriConverter.getFramesetAdapter(wbRequest);
+
+		ResultURIConverter ruriConverter = baseUriConverter
+				.getInlineAdapter(wbRequest);
+		ResultURIConverter furiConverter = baseUriConverter
+				.getFramesetAdapter(wbRequest);
 
 		String sWaybackReplayCGI = ruriConverter.getReplayUriPrefix(result);
-		
+
 		String sWaybackFramesetCGI = furiConverter.getReplayUriPrefix(result);
 
-		String swmNotice = "Wayback - External links, forms, and search boxes " +
-			"may not function within this collection. Url: " + resourceUrl + 
-			" time: " + captureTS.prettyDateTime();
+		String swmNotice = "Wayback - External links, forms, and search boxes "
+				+ "may not function within this collection. Url: "
+				+ resourceUrl + " time: " + captureTS.prettyDateTime();
 		String swmHideNotice = "hide";
 
 		String scriptInsert = "<script type=\"text/javascript\">\n"
@@ -172,24 +178,13 @@ public class TimelineReplayRenderer extends JSReplayRenderer {
 				+ "//            JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.\n"
 				+ "//\n"
 				+ "// ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.\n"
-				+ "// SECTION 108(a)(3)).\n"
-				+ "\n"
-				+ "var sWayBackFramesetCGI = \""
-				+ sWaybackFramesetCGI
-				+ "\";\n"
-				+ "var sWayBackReplayCGI = \""
-				+ sWaybackReplayCGI
-				+ "\";\n"
-				+ "var wmNotice = \""
-				+ swmNotice
-				+ "\";\n"
-				+ "var wmHideNotice = \""
-				+ swmHideNotice
-				+ "\";\n"
-				+ "</script>\n"
-				+ "<script type=\"text/javascript\" src=\""
-				+ javascriptURI
-				+ "\" ></script>\n";
+				+ "// SECTION 108(a)(3)).\n" + "\n"
+				+ "var sWayBackFramesetCGI = \"" + sWaybackFramesetCGI
+				+ "\";\n" + "var sWayBackReplayCGI = \"" + sWaybackReplayCGI
+				+ "\";\n" + "var wmNotice = \"" + swmNotice + "\";\n"
+				+ "var wmHideNotice = \"" + swmHideNotice + "\";\n"
+				+ "</script>\n" + "<script type=\"text/javascript\" src=\""
+				+ javascriptURI + "\" ></script>\n";
 
 		int insertPoint = page.indexOf("</body>");
 		if (-1 == insertPoint) {

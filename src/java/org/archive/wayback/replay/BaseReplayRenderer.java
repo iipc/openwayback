@@ -25,12 +25,17 @@
 package org.archive.wayback.replay;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.util.Enumeration;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -42,6 +47,9 @@ import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.exception.WaybackException;
+import org.mozilla.intl.chardet.nsDetector;
+import org.mozilla.intl.chardet.nsPSMDetector;
+import org.mozilla.intl.chardet.nsICharsetDetectionObserver;
 
 /**
  * 
@@ -49,17 +57,45 @@ import org.archive.wayback.exception.WaybackException;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class BaseReplayRenderer implements ReplayRenderer {
+public class BaseReplayRenderer implements ReplayRenderer,
+		nsICharsetDetectionObserver {
+
+	// in several places, this class defers generation of client responses
+	// to a .jsp file, once the business logic of replaying is done.
+
+	// this constant indicates the name of the configuration in the web.xml
+	// where the directory holding all the .jsps is found:
 	private final static String JSP_PATH = "replayui.jsppath";
 
+	// and this variable stores the .jsp directory configuration found 
+	// at init() time
 	protected String jspPath;
 
-	public void init(Properties p) throws ConfigurationException {
-		this.jspPath = (String) p.get(JSP_PATH);
-		if (this.jspPath == null || this.jspPath.length() <= 0) {
-			throw new IllegalArgumentException("Failed to find " + JSP_PATH);
-		}
-	}
+	// if documents are marked up before sending to clients, the data is
+	// decoded into a String in chunks. This is how big a chunk to decode with.
+	private final static int C_BUFFER_SIZE = 1024 * 4;
+
+	// and this is the buffer for each chunk.
+	private char[] cbuffer = new char[C_BUFFER_SIZE];
+
+	// when converting a document to a string, the 'chardet' library is used.
+	// this variable is set to true in a callback if the library was able
+	// to determing the character encoding.
+	private String foundCharset = null;
+
+	// hand off this many bytes to the chardet library
+	private final static int MAX_CHARSET_READAHEAD = 4096;
+
+	// ...and if the chardet library fails, use the Content-Type header
+	private final static String HTTP_CONTENT_TYPE_HEADER = "Content-Type";
+
+	// ...if it also includes "charset="
+	private final static String CHARSET_TOKEN = "charset=";
+
+	private final static int BYTE_BUFFER_SIZE = 4 * 1024;
+
+	// reusable buffer for copying data to clients:
+	private byte[] buffer = new byte[BYTE_BUFFER_SIZE];
 
 	protected final Pattern IMAGE_REGEX = Pattern
 			.compile(".*\\.(jpg|jpeg|gif|png|bmp|tiff|tif)$");
@@ -70,9 +106,19 @@ public class BaseReplayRenderer implements ReplayRenderer {
 
 	private final String ERROR_CSS = "ErrorCSS.jsp";
 
-	private final String RESULT_META_JSP = "ResultMeta.jsp";
 
 	private final String ERROR_IMAGE = "error_image.gif";
+
+	/*  INITIALIZATION:  */
+
+	public void init(Properties p) throws ConfigurationException {
+		this.jspPath = (String) p.get(JSP_PATH);
+		if (this.jspPath == null || this.jspPath.length() <= 0) {
+			throw new IllegalArgumentException("Failed to find " + JSP_PATH);
+		}
+	}
+
+	/*  ERROR HANDLING RESPONSES:  */
 
 	private boolean requestIsEmbedded(HttpServletRequest httpRequest,
 			WaybackRequest wbRequest) {
@@ -104,16 +150,17 @@ public class BaseReplayRenderer implements ReplayRenderer {
 		return (requestUrl != null) && requestUrl.endsWith(".css");
 	}
 
-	// TODO special handling for Javascript and Images: send empty image
-	// or empty text file to avoid client errors
 	public void renderException(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
 			WaybackException exception) throws ServletException, IOException {
 
+		// the "standard HTML" response handler:
 		String finalJspPath = jspPath + "/" + ERROR_JSP;
 
-		// is this object embedded?
+		// try to not cause client errors by sending the HTML response if
+		// this request is ebedded, and is obviously one of the special types:
 		if (requestIsEmbedded(httpRequest, wbRequest)) {
+
 			if (requestIsJavascript(httpRequest, wbRequest)) {
 
 				finalJspPath = jspPath + "/" + ERROR_JAVASCRIPT;
@@ -137,54 +184,250 @@ public class BaseReplayRenderer implements ReplayRenderer {
 		dispatcher.forward(httpRequest, httpResponse);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.archive.wayback.ReplayRenderer#renderRedirect(javax.servlet.http.HttpServletRequest,
-	 *      javax.servlet.http.HttpServletResponse,
-	 *      org.archive.wayback.core.WaybackRequest,
-	 *      org.archive.wayback.core.SearchResult,
-	 *      org.archive.wayback.core.Resource,
-	 *      org.archive.wayback.ResultURIConverter)
-	 */
-	public void renderRedirect(HttpServletRequest httpRequest,
-			HttpServletResponse httpResponse, WaybackRequest wbRequest,
-			SearchResult result, Resource resource,
-			ResultURIConverter uriConverter) throws ServletException,
-			IOException {
+	/*  GENERIC RESPONSE HELPER METHODS:  */
 
-		// fake out: no redirecting in Raw/Proxy mode:
-		renderResource(httpRequest, httpResponse, wbRequest, result, resource,
-				uriConverter);
+	/**
+	 * Send the raw bytes from is (presumably the Resource/ARCRecord) to
+	 * os (presumably the clients/HTTPResponse's OutputStream) with no
+	 * decoding. Send them all as-is.
+	 * 
+	 * @param is
+	 * @param os 
+	 * @throws IOException 
+	 */
+	protected void copy(InputStream is, OutputStream os) throws IOException {
+		for (int r = -1; (r = is.read(buffer, 0, BYTE_BUFFER_SIZE)) != -1;) {
+			os.write(buffer, 0, r);
+		}
+	}
+
+	protected boolean isExactVersionRequested(WaybackRequest wbRequest,
+			SearchResult result) {
+
+		String reqDateStr = wbRequest.get(WaybackConstants.REQUEST_EXACT_DATE);
+		String resDateStr = result.get(WaybackConstants.RESULT_CAPTURE_DATE);
+
+		// some capture dates are not 14 digits, only compare as many
+		// digits as are in the result date:
+		return resDateStr.equals(reqDateStr.substring(0, resDateStr.length()));
+	}
+
+	/**
+	 * test if the Resource and SearchResult should be replayed raw, without 
+	 * any markup.
+	 * 
+	 * This version always indicates that the document should be returned raw,
+	 * but is intended to be overriden.
+	 * 
+	 * @param resource
+	 * @param result
+	 * @return boolean, true if the document should be returned raw.
+	 */
+	protected boolean isRawReplayResult(Resource resource, 
+			SearchResult result) {
+		return true;
+	}
+
+	/**
+	 * callback function for each HTTP header. If null is returned, header is
+	 * omitted from final response to client, otherwise, the possibly modified
+	 * http header value is returned to the client.
+	 * 
+	 * This version just hands back all headers transparently, but is intended
+	 * to be overriden.
+	 * 
+	 * @param key
+	 * @param value
+	 * @param uriConverter
+	 * @param result
+	 * @return String
+	 */
+	protected String filterHeader(final String key, final String value,
+			final ResultURIConverter uriConverter, SearchResult result) {
+		return value;
+	}
+
+	/**
+	 * Iterate over all HTTP headers in resource, possibly sending them on
+	 * to the client. The determination as to omit, send as-is, or send modified
+	 * is handled thru the overridable filterHeader() method.
+	 * 
+	 * @param response
+	 * @param resource
+	 * @param uriConverter
+	 * @param result
+	 * @throws IOException 
+	 */
+	protected void copyRecordHttpHeader(HttpServletResponse response,
+			Resource resource, ResultURIConverter uriConverter,
+			SearchResult result) throws IOException {
+		Properties headers = resource.getHttpHeaders();
+		int code = resource.getStatusCode();
+		// Only return legit status codes -- don't return any minus
+		// codes, etc.
+		if (code <= HttpServletResponse.SC_CONTINUE) {
+			String identifier = "";
+			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+					"Bad status code " + code + " (" + identifier + ").");
+			return;
+		}
+		response.setStatus(code);
+		if (headers != null) {
+			for (Enumeration e = headers.keys(); e.hasMoreElements();) {
+				String key = (String) e.nextElement();
+				String value = (String) headers.get(key);
+				String finalValue = value;
+				if (value != null) {
+					finalValue = filterHeader(key, value, uriConverter, result);
+					if (finalValue == null) {
+						continue;
+					}
+				}
+				response.setHeader(key, (finalValue == null) ? "" : finalValue);
+			}
+		}
+	}
+
+	/**
+	 * Attempt to divine the character encoding of the document:
+	 *   1) first try the chardet library,
+	 *   2) then see if the Content-Type HTTP header helps (with a "charset=")
+	 *   3) then assume... "UTF-8"
+	 *   
+	 * This should probably use the value from a META tag, if available, before
+	 * #2 and #3..
+	 * 
+	 * @param resource
+	 * @return String character set guessed
+	 * @throws IOException 
+	 */
+	protected String getCharset(Resource resource) throws IOException {
+		String charsetName = null;
+
+		foundCharset = null;
+
+		nsDetector det = new nsDetector(nsPSMDetector.ALL);
+		byte[] bbuffer = new byte[MAX_CHARSET_READAHEAD];
+		det.Init(this);
+
+		resource.mark(MAX_CHARSET_READAHEAD);
+		int len = resource.read(bbuffer, 0, MAX_CHARSET_READAHEAD);
+		resource.reset();
+
+		if (len != -1) {
+			det.DoIt(bbuffer, len, false);
+			if (foundCharset != null) {
+				charsetName = foundCharset;
+			}
+		}
+		if (charsetName == null) {
+			Properties httpHeaders = resource.getHttpHeaders();
+			String ctype = httpHeaders.getProperty(HTTP_CONTENT_TYPE_HEADER);
+			if (ctype != null) {
+				int offset = ctype.indexOf(CHARSET_TOKEN);
+				if (offset != -1) {
+					charsetName = ctype.substring(offset
+							+ CHARSET_TOKEN.length());
+				}
+			}
+		}
+		if (charsetName == null) {
+			charsetName = "UTF-8";
+		}
+		return charsetName;
+	}
+
+	/**
+	 * this method is called by the chardet library if it determines the
+	 * character set of a given document:
+	 * @param charSet
+	 * @see org.mozilla.intl.chardet.nsICharsetDetectionObserver#Notify(java.lang.String)
+	 */
+	public void Notify(String charSet) {
+		foundCharset = charSet;
+	}
+
+	/** 
+	 * Do "stuff" to the StringBuilder page argument.
+	 * 
+	 * This version does nothing at all, but is intended to be overridden.
+	 * 
+	 * @param page
+	 * @param httpRequest 
+	 * @param httpResponse 
+	 * @param wbRequest 
+	 * @param result
+	 * @param resource 
+	 * @param uriConverter
+	 */
+	protected void markUpPage(StringBuilder page,
+			HttpServletRequest httpRequest, HttpServletResponse httpResponse,
+			WaybackRequest wbRequest, SearchResult result, Resource resource,
+			ResultURIConverter uriConverter) {
 
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.archive.wayback.ReplayRenderer#renderResource(javax.servlet.http.HttpServletRequest,
-	 *      javax.servlet.http.HttpServletResponse,
-	 *      org.archive.wayback.core.WaybackRequest,
-	 *      org.archive.wayback.core.SearchResult,
-	 *      org.archive.wayback.core.Resource,
-	 *      org.archive.wayback.ResultURIConverter)
+
+	/* (non-Javadoc)
+	 * @see org.archive.wayback.ReplayRenderer#renderResource(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.archive.wayback.core.WaybackRequest, org.archive.wayback.core.SearchResult, org.archive.wayback.core.Resource, org.archive.wayback.ResultURIConverter)
 	 */
 	public void renderResource(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
 			SearchResult result, Resource resource,
 			ResultURIConverter uriConverter) throws ServletException,
 			IOException {
+		// TODO Auto-generated method stub
+		if (resource == null) {
+			throw new IllegalArgumentException("No resource");
+		}
+		if (result == null) {
+			throw new IllegalArgumentException("No result");
+		}
 
-		String finalJspPath = jspPath + "/" + RESULT_META_JSP;
+		if (isRawReplayResult(resource,result)) {
 
-		UIReplayResult uiResult = new UIReplayResult(httpRequest, wbRequest,
-				result, resource, uriConverter);
-		
-		httpRequest.setAttribute("ui-result", uiResult);
+			resource.parseHeaders();
+			copyRecordHttpHeader(httpResponse, resource, uriConverter, result);
+			copy(resource, httpResponse.getOutputStream());
 
-		RequestDispatcher dispatcher = httpRequest
-				.getRequestDispatcher(finalJspPath);
+		} else {
 
-		dispatcher.forward(httpRequest, httpResponse);
+			// We're going to do some markup on the page.
+			// first we'll need to convert the bytes to a String, which
+			// includes character encoding detection, then we'll call into the
+			// overridable markUpPage(), then we'll convert back to bytes and 
+			// return them to the client
+
+			resource.parseHeaders();
+			copyRecordHttpHeader(httpResponse, resource, uriConverter, result);
+
+			int recordLength = (int) resource.getRecordLength();
+
+			// get the charset:
+			String charSet = getCharset(resource);
+
+			// convert bytes to characters for charset:
+			InputStreamReader isr = new InputStreamReader(resource, charSet);
+
+			// slurp the whole thing into RAM:
+			StringBuilder sbuffer = new StringBuilder(recordLength);
+			for (int r = -1; (r = isr.read(cbuffer, 0, C_BUFFER_SIZE)) != -1;) {
+				sbuffer.append(cbuffer, 0, r);
+			}
+
+			// do the "usual" markup:
+			markUpPage(sbuffer, httpRequest, httpResponse, wbRequest, result,
+					resource, uriConverter);
+
+			// back to bytes...
+			byte[] ba = sbuffer.toString().getBytes(charSet);
+
+			// inform browser how much is coming back:
+			httpResponse.setHeader("Content-Length", String.valueOf(ba.length));
+
+			// and send it out the door...
+			ServletOutputStream out = httpResponse.getOutputStream();
+			out.write(ba);
+		}
 	}
 }

@@ -46,25 +46,6 @@ import org.archive.wayback.proxy.RawReplayRenderer;
  */
 public class FramesetReplayRenderer extends RawReplayRenderer {
 	
-	public void renderRedirect(HttpServletRequest httpRequest,
-			HttpServletResponse httpResponse, WaybackRequest wbRequest,
-			SearchResult result, Resource resource,
-			ResultURIConverter uriConverter) throws ServletException,
-			IOException {
-		
-		if (!(uriConverter instanceof TimelineReplayResultURIConverter)) {
-			throw new IllegalArgumentException("ResultURIConverter must be " +
-					"of class TimelineReplayResultURIConverter");			
-		}
-		TimelineReplayResultURIConverter turiConverter = 
-			(TimelineReplayResultURIConverter) uriConverter;
-		ResultURIConverter furiConverter = turiConverter.getFramesetAdapter(
-				wbRequest);
-
-		String betterURI = furiConverter.makeReplayURI(result);
-		httpResponse.sendRedirect(betterURI);
-	}
-
 	public void renderResource(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
 			SearchResult result, Resource resource,
@@ -85,61 +66,74 @@ public class FramesetReplayRenderer extends RawReplayRenderer {
 		TimelineReplayResultURIConverter baseUriConverter =
 			(TimelineReplayResultURIConverter) uriConverter;
 		
-		// always use the "timeline" adapter for the top frame:
-		ResultURIConverter turiConverter = baseUriConverter.getTimelineAdapter(
-				wbRequest);
+		if(isExactVersionRequested(wbRequest,result)) {
 		
-		// switch between the "inline" and the "meta" adapters based on the
-		// REQUEST_META_MODE flag:
-
-		ResultURIConverter ruriConverter = null;
-		String isMeta = wbRequest.get(WaybackConstants.REQUEST_META_MODE);
-		if(isMeta != null && isMeta.equals("yes")) {
-			ruriConverter =  baseUriConverter.getMetaAdapter(wbRequest);
+			// always use the "timeline" adapter for the top frame:
+			ResultURIConverter turiConverter = 
+				baseUriConverter.getTimelineAdapter(wbRequest);
+			
+			// switch between the "inline" and the "meta" adapters based on the
+			// REQUEST_META_MODE flag for the bottom frame:
+	
+			ResultURIConverter ruriConverter = null;
+			String isMeta = wbRequest.get(WaybackConstants.REQUEST_META_MODE);
+			if(isMeta != null && isMeta.equals("yes")) {
+				ruriConverter =  baseUriConverter.getMetaAdapter(wbRequest);
+			} else {
+				ruriConverter =  baseUriConverter.getInlineAdapter(wbRequest);			
+			}
+	
+			// HACKHACK: fake out the wbRequest to get the right arguments:
+			wbRequest.put(WaybackConstants.REQUEST_TYPE,
+					WaybackConstants.REQUEST_CLOSEST_QUERY);
+	
+			String replayURL = ruriConverter.makeReplayURI(result);
+			String timelineURL = turiConverter.makeReplayURI(result);
+			String title = "WB-Timeline";
+	
+			StringBuilder framesetHTML = new StringBuilder(600);
+			framesetHTML.append("<html>");
+			framesetHTML.append("<head><title>");
+			framesetHTML.append(title);
+			framesetHTML.append("</title><head>");
+	
+			framesetHTML.append("<FRAMESET frameborder=no border=0 ");
+			framesetHTML.append("framespacing=5 marginheight=0 marginwidth=0 ");
+			framesetHTML.append("bordercolor=black rows=\"100,*\">");
+	
+			framesetHTML.append("<frame scrolling=no src=\"");
+			framesetHTML.append(timelineURL);
+			framesetHTML.append("\" name=\"wb_timeline\"/>");
+			
+			framesetHTML.append("<frame src=\"");
+			framesetHTML.append(replayURL);
+			framesetHTML.append("\" name=\"wb_replay\" />");
+			
+			framesetHTML.append("</frameset>");
+	
+			framesetHTML.append("<noframes>");
+			framesetHTML.append("You need a browser that supports frames to ");
+			framesetHTML.append("see this, well not exactly _this_, but what ");
+			framesetHTML.append("would have been here if you had a ");
+			framesetHTML.append("frames-capable browser.");
+			framesetHTML.append("</noframes>");
+	
+			framesetHTML.append("</html>");
+	
+			httpResponse.addHeader("Content-Type","text/html; charset=utf-8");
+			OutputStream os = httpResponse.getOutputStream();
+			os.write(framesetHTML.toString().getBytes("UTF-8"));
+			
 		} else {
-			ruriConverter =  baseUriConverter.getInlineAdapter(wbRequest);			
+			
+			// not exact version: redirect-o-rama:
+			ResultURIConverter furiConverter =
+				baseUriConverter.getFramesetAdapter(wbRequest);
+
+			String betterURI = furiConverter.makeReplayURI(result);
+			httpResponse.sendRedirect(betterURI);
+
 		}
-
-		// HACKHACK: fake out the wbRequest to get the right arguments:
-		wbRequest.put(WaybackConstants.REQUEST_TYPE,
-				WaybackConstants.REQUEST_CLOSEST_QUERY);
-
-		String replayURL = ruriConverter.makeReplayURI(result);
-		String timelineURL = turiConverter.makeReplayURI(result);
-		String title = "WB-Timeline";
-
-		StringBuilder framesetHTML = new StringBuilder(600);
-		framesetHTML.append("<html>");
-		framesetHTML.append("<head><title>");
-		framesetHTML.append(title);
-		framesetHTML.append("</title><head>");
-
-		framesetHTML.append("<FRAMESET frameborder=no border=0 ");
-		framesetHTML.append("framespacing=5 marginheight=0 marginwidth=0 ");
-		framesetHTML.append("bordercolor=black rows=\"100,*\">");
-
-		framesetHTML.append("<frame scrolling=no src=\"");
-		framesetHTML.append(timelineURL);
-		framesetHTML.append("\" name=\"wb_timeline\"/>");
-		
-		framesetHTML.append("<frame src=\"");
-		framesetHTML.append(replayURL);
-		framesetHTML.append("\" name=\"wb_replay\" />");
-		
-		framesetHTML.append("</frameset>");
-
-		framesetHTML.append("<noframes>");
-		framesetHTML.append("You need a browser that supports frames to ");
-		framesetHTML.append("see this, well not exactly _this_, but what ");
-		framesetHTML.append("would have been here if you had a ");
-		framesetHTML.append("frames-capable browser.");
-		framesetHTML.append("</noframes>");
-
-		framesetHTML.append("</html>");
-
-		httpResponse.addHeader("Content-Type","text/html; charset=utf-8");
-		OutputStream os = httpResponse.getOutputStream();
-		os.write(framesetHTML.toString().getBytes("UTF-8"));
 	}
 
 }

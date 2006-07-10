@@ -108,7 +108,6 @@ public class ReplayServlet extends WaybackServlet {
 		try {
 			renderer = wayback.getReplayRenderer();
 		} catch (ConfigurationException e1) {
-//			e1.printStackTrace();
 			throw new ServletException(e1);
 		}
 		Resource resource = null;
@@ -127,25 +126,8 @@ public class ReplayServlet extends WaybackServlet {
 			SearchResult closest = getClosest(results, wbRequest);
 			resource = store.retrieveResource(closest);
 
-			String requestedDateStr = wbRequest.get(
-					WaybackConstants.REQUEST_EXACT_DATE);
-			String closestDateStr = closest.get(
-					WaybackConstants.RESULT_CAPTURE_DATE);
-			
-			// some capture dates are not 14 digits, only compare as many
-			// dateStr digits as are in the capture date:
-			if(!closestDateStr.equals(
-					requestedDateStr.substring(0,closestDateStr.length()))) {
-				
-				// redirect to the actual date:
-				renderer.renderRedirect(httpRequest, httpResponse, wbRequest,
-						closest, resource, uriConverter);				
-				
-			} else {
-	
-				renderer.renderResource(httpRequest, httpResponse, wbRequest,
-						closest, resource, uriConverter);
-			}
+			renderer.renderResource(httpRequest, httpResponse, wbRequest,
+					closest, resource, uriConverter);
 
 		} catch (ResourceNotInArchiveException nia) {
 
@@ -160,7 +142,6 @@ public class ReplayServlet extends WaybackServlet {
 		} catch (Exception e) {
 			// TODO show something Wayback'ish to the user rather than letting
 			// the container deal?
-			//e.printStackTrace();
 			throw new ServletException(e);
 		} finally {
 			if (resource != null) {

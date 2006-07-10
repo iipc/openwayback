@@ -24,19 +24,8 @@
  */
 package org.archive.wayback.proxy;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Enumeration;
-import java.util.Properties;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.archive.wayback.ResultURIConverter;
-import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.SearchResult;
-import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.replay.BaseReplayRenderer;
 
 /**
@@ -49,26 +38,8 @@ public class RawReplayRenderer extends BaseReplayRenderer {
 
 	private final static String HTTP_LOCATION_HEADER = "Location";
 
-	private final static int BYTE_BUFFER_SIZE = 4 * 1024;
-	// reusable buffer for copying data to clients:
-	private byte[] buffer = new byte[BYTE_BUFFER_SIZE];
-
-	public void renderResource(HttpServletRequest httpRequest,
-			HttpServletResponse httpResponse, WaybackRequest wbRequest,
-			SearchResult result, Resource resource,
-			ResultURIConverter uriConverter) throws ServletException,
-			IOException {
-
-		resource.parseHeaders();
-		copyRecordHttpHeader(httpResponse, resource, uriConverter, result,
-				false);
-		copy(resource, httpResponse.getOutputStream());
-	}
-
 	/**
-	 * callback function for each HTTP header. If null is returned, header is
-	 * omitted from final response to client, otherwise, the possibly modified
-	 * http header value is returned to the client.
+	 * Convert a "Location" header only.
 	 * 
 	 * @param key
 	 * @param value
@@ -85,43 +56,4 @@ public class RawReplayRenderer extends BaseReplayRenderer {
 		}
 		return finalHeaderValue;
 	}
-
-	protected void copyRecordHttpHeader(HttpServletResponse response,
-			Resource resource, ResultURIConverter uriConverter,
-			SearchResult result, boolean noLength) throws IOException {
-		Properties headers = resource.getHttpHeaders();
-		int code = resource.getStatusCode();
-		// Only return legit status codes -- don't return any minus
-		// codes, etc.
-		if (code <= HttpServletResponse.SC_CONTINUE) {
-			String identifier = "";
-			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-					"Bad status code " + code + " (" + identifier + ").");
-			return;
-		}
-		response.setStatus(code);
-		if (headers != null) {
-			// Copy all headers to the response -- even date and
-			// server, but don't copy Content-Length if arguments indicate
-			for (Enumeration e = headers.keys(); e.hasMoreElements();) {
-				String key = (String) e.nextElement();
-				String value = (String) headers.get(key);
-				String finalValue = value;
-				if (value != null) {
-					finalValue = filterHeader(key, value, uriConverter, result);
-					if (finalValue == null) {
-						continue;
-					}
-				}
-				response.setHeader(key, (finalValue == null) ? "" : finalValue);
-			}
-		}
-	}
-
-	protected void copy(InputStream is, OutputStream os) throws IOException {
-		for (int r = -1; (r = is.read(buffer, 0, BYTE_BUFFER_SIZE)) != -1;) {
-			os.write(buffer, 0, r);
-		}
-	}
-
 }
