@@ -186,9 +186,9 @@ public class TimelineReplayRenderer extends JSReplayRenderer {
 				+ "</script>\n" + "<script type=\"text/javascript\" src=\""
 				+ javascriptURI + "\" ></script>\n";
 
-		int insertPoint = page.indexOf("</body>");
+		int insertPoint = page.lastIndexOf("</body>");
 		if (-1 == insertPoint) {
-			insertPoint = page.indexOf("</BODY>");
+			insertPoint = page.lastIndexOf("</BODY>");
 		}
 		if (-1 == insertPoint) {
 			insertPoint = page.length();
