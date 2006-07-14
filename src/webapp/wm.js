@@ -7,7 +7,10 @@ function xResolveUrl(url) {
 function xLateUrl(aCollection, sProp) {
    var i = 0;
    for(i = 0; i < aCollection.length; i++) {
-      if (typeof(aCollection[i][sProp]) == "string") {
+
+      if (aCollection[i].hasAttribute(sProp) &&
+         typeof(aCollection[i][sProp]) == "string") {
+
          if (aCollection[i][sProp].indexOf("mailto:") == -1 &&
             aCollection[i][sProp].indexOf("javascript:") == -1) {
 
