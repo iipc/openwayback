@@ -13,15 +13,20 @@
 0.4 (by first week of January)
  - verified performance at typical scale of contract collections 
  - retrieve/cache/respect freshest robots.txt
- - handle multiple named collections
  - nice, flexible results-list UI (classic calendar or other)
- - admin tasks password-protected
- - nice to have: manual exclusions
- - nice to have: floating in-page indicator of WM date/status
- - nice to have: clean nutch integration
  
-0.6 (as necessary)
- - TBD
+0.6 (July 14, 2006)
+ - administrative/manual exclusions
+ - timeline UI ala WERA with in-page banner
+ 
+0.8 (August 2006)
+ - multiple collections within single installation? (currently possible with multiple webapps)
+ - static, manually maintained alphabetic division of index for larger scale installations
+ - retrieval on demand from live web
+
+1.0 (December 2006)
+ - automatically maintained distributed index
+ - basis for production Wayback Machine replacement
  
 == BRAINSTORMING ==
 
