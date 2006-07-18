@@ -1096,7 +1096,7 @@
 			</p>
 			<p>
 				<code>
-					bin/index-arc TMP_DIR PIPELINE_URL LOCATION_URL ARC_DIR ARC_URL_PREFIX
+					bin/pipeline-client TMP_DIR PIPELINE_URL LOCATION_URL ARC_DIR ARC_URL_PREFIX
 				</code>
 			</p>
 			<p>
@@ -1117,6 +1117,62 @@
 						is found.
 						ex. <b>http://wayback-webapp.your-archive.org/wayback/pipeline/</b>
 					</li>
+					<li>
+						<i>
+						LOCATION_URL
+						</i>
+						is the absolute URL where the locationDB can be accessed.
+						ex. <b>http://wayback-webapp.your-archive.org/wayback/locationDB</b>
+					</li>
+					<li>
+						<i>
+						ARC_DIR
+						</i>
+						The absolute path to the directory on the local machine
+						which holds ARC files
+						ex. <b>/2/arc-collection-1</b>
+					</li>
+					<li>
+						<i>
+						ARC_URL_PREFIX
+						</i>
+						is the absolute URL where the directory ARC_DIR can be
+						accessed.
+						ex. <b>http://arc-storage-node-1.your-archive.org/2/arc-collection-1/</b>
+					</li>
+				</ul>
+			</p>
+			<p>
+				If you have already populated your index, and just need to 
+				indicate to the LocationDB of where ARC files can be found,
+				there is another script, which can also be found underneath the
+				directory where	you unpacked your distribution at:
+				<b>
+					bin/location-client
+				</b>.
+				You will need to change permissions on this file to allow the
+				script to be executed:
+			</p>
+			<p>
+				<code>
+					chmod a+x bin/location-client
+				</code>
+			</p>
+			<p>
+				Then, execute the script once for each directory containing ARC
+				files (on each machine containing ARC files.) Again, this script
+				will <b>not</b> index the content of the ARC files, but will 
+				only synchronize the LocationDB with the directories where the
+				ARC files are stored.
+			</p>
+			<p>
+				<code>
+					bin/location-client sync LOCATION_URL ARC_DIR ARC_URL_PREFIX
+				</code>
+			</p>
+			<p>
+				where:
+				<ul>
 					<li>
 						<i>
 						LOCATION_URL
