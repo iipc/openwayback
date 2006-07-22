@@ -257,7 +257,7 @@ public class AdministrativeExclusionServlet extends WaybackServlet {
 	private String makeForm(String method, String submitValue, String content) {
 		StringBuilder sb = new StringBuilder(1024);
 		sb.append("<form method=\"").append(method);
-		sb.append("\" action=\"admin\">\n");
+		sb.append("\" action=\"admin-exclusion\">\n");
 		sb.append(content);
 		sb.append("<input type=\"SUBMIT\" name=\"").append(FORM_OPERATION);
 		sb.append("\" value=\"").append(submitValue).append("\"></input>\n");
