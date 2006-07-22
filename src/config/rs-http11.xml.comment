@@ -1,0 +1,6 @@
+HEADER: Remote-HTTP1.1 ResourceStore
+This section contains configuration for accessing ARC file data via HTTP 1.1
+from remote servers. This configuration requires all nodes that hold ARC files
+to run an HTTP 1.1 server, and maps ARC files to their actual location with
+a BDB JE database. The database must be populated using either the
+location-client or the pipeline-client scripts included with the distribution.

@@ -1,0 +1,7 @@
+HEADER: Local-ARC ResourceStore	
+This section contains configuration for accessing ARC files from a single
+directory on a local filesystem. If ARC files are spread across multiple
+local directories, a single directory be created, and populated with symbolic
+links to the various locations of the ARC files. This configuration will
+also allow the IndexPipeline to scan the directory named in the 'arcpath'
+configuration to notice and automatically index new ARC files as they arrive.

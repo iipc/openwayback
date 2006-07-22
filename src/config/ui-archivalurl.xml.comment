@@ -1,0 +1,4 @@
+HEADER: Archival-Url UI
+This section contains configuration for using Archival URL query and replay
+mechanisms for retrieving content from the wayback machine. This is the default
+access mode.

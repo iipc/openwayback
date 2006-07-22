@@ -1,0 +1,34 @@
+
+    <context-param>
+        <param-name>resourcestore.classname</param-name>
+        <param-value>org.archive.wayback.http11resourcestore.Http11ResourceStore</param-value>
+        <description>Class that implements ResourceStore for this Wayback</description>
+    </context-param>
+
+    <context-param>
+        <param-name>filelocationdb.classname</param-name>
+        <param-value>org.archive.wayback.http11resourcestore.FileLocationDB</param-value>
+        <description>Class implementing FileLocationDB</description>
+    </context-param>
+
+    <context-param>
+        <param-name>arcdbpath</param-name>
+        <param-value>/tmp/wayback/arc-db</param-value>
+        <description>Directory where arc-db is stored. Must exist.</description>
+    </context-param>
+
+    <context-param>
+        <param-name>arcdbname</param-name>
+        <param-value>arc-db</param-value>
+        <description>name for BDBJE arc database</description>
+    </context-param>
+
+    <servlet>
+        <servlet-name>FileLocationDBServlet</servlet-name>
+        <servlet-class>org.archive.wayback.http11resourcestore.FileLocationDBServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>FileLocationDBServlet</servlet-name>
+        <url-pattern>/locationDB</url-pattern>
+    </servlet-mapping>
+	

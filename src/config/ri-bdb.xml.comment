@@ -1,0 +1,4 @@
+HEADER: Local-BDB ResourceIndex
+This section contains configuration for using a BDB JE to hold the document
+index on the local filesystem. This is the default index storage
+implementation.

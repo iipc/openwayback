@@ -1,0 +1,59 @@
+	
+    <filter>
+        <filter-name>PipelineFilter</filter-name>
+        <filter-class>org.archive.wayback.cdx.indexer.PipelineFilter</filter-class>
+        <init-param>
+            <param-name>pipeline.statusjsp</param-name>
+            <param-value>jsp/PipelineUI/PipelineStatus.jsp</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>PipelineFilter</filter-name>
+        <url-pattern>/pipeline</url-pattern>
+    </filter-mapping>
+
+    <context-param>
+        <param-name>resourceindex.classname</param-name>
+        <param-value>org.archive.wayback.cdx.LocalBDBResourceIndex</param-value>
+        <description>Class that implements ResourceIndex for this Wayback</description>
+    </context-param>
+
+    <context-param>
+        <param-name>resourceindex.indexpath</param-name>
+        <param-value>/tmp/wayback/index</param-value>
+        <description>
+            LocalBDBResourceIndex specific directory to store the BDB files.
+            Directory must exists.
+        </description>
+    </context-param>
+
+    <context-param>
+        <param-name>resourceindex.dbname</param-name>
+        <param-value>DB1</param-value>
+        <description>
+            LocalBDBResourceIndex specific name for BDB database
+        </description>
+    </context-param>
+
+
+    <context-param>
+        <param-name>indexpipeline.workpath</param-name>
+        <param-value>/tmp/wayback/pipeline</param-value>
+        <description>
+            LocalBDBResourceIndex specific directory to store flag files and 
+            temporary index data.
+        </description>
+    </context-param>
+
+    <context-param>
+        <param-name>indexpipeline.runpipeline</param-name>
+        <param-value>1</param-value>
+        <description>
+            if set to '1' then a background indexing thread will automatically update the BDB
+            index when new ARC files are noticed in the 'arcpath' directory. If multiple
+            webapps are running on the same node, using the same index directory, then only
+            one of the webapps should be configured to run the pipeline.
+        </description>
+    </context-param>
+
+

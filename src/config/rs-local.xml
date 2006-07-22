@@ -1,0 +1,17 @@
+	
+    <context-param>
+        <param-name>resourcestore.classname</param-name>
+        <param-value>org.archive.wayback.localresourcestore.LocalARCResourceStore</param-value>
+        <description>Class that implements ResourceStore for this Wayback</description>
+    </context-param>
+
+    <context-param>
+        <param-name>arcpath</param-name>
+        <param-value>/tmp/wayback/arcs</param-value>
+        <description>
+            Directory where ARC files are found (possibly where Heritrix writes them.)
+            This directory must exist.
+        </description>
+    </context-param>
+
+
