@@ -61,6 +61,7 @@
 												</b> 
 												<select name="date" size="1">
 													<option value="" selected>All</option>
+													<option>2006</option>
 													<option>2005</option>
 													<option>2004</option>
 													<option>2003</option>
