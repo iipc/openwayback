@@ -6,91 +6,604 @@
 	<!-- General Installation information
 	 -->
 
-	<context-param>
-		<param-name>installationname</param-name>
-		<param-value>Local Archival URL Installation</param-value>
-		<description>
-			This text will appear on the Wayback Configuration and Status page
-			and may assist in determining which installation users are viewing
-			via their web browser in environments with multiple Wayback 
-			installations.
-		</description>
-	</context-param>
+    <context-param>
+        <param-name>installationname</param-name>
+        <param-value>General Configuration</param-value>
+        <description>
+            This text will appear on the Wayback Configuration and Status page
+            and may assist in determining which installation users are viewing
+            via their web browser in environments with multiple Wayback 
+            installations.
+        </description>
+    </context-param>
 
-
-	<!-- Local Arc Path Configuration: 
-			used by both indexpipeline and LocalARCResourceStore
-	 -->
-
-	<context-param>
-		<param-name>arcpath</param-name>
-		<param-value>/tmp/wayback/arcs</param-value>
-		<description>
-			Directory where ARC files are found (possibly where Heritrix writes them.)
-			This directory must exist.
-		</description>
-	</context-param>
-
-
-
-	<!-- ResourceStore Configuration -->
+<!--
+       USER INTERFACE SECTION
+-->
+<!-- START OF  Archival-Url UI  OPTIONS
+This section contains configuration for using Archival URL query and replay
+mechanisms for retrieving content from the wayback machine. This is the default
+access mode.
+-->
 	
-	<context-param>
-		<param-name>resourcestore.classname</param-name>
-		<param-value>org.archive.wayback.localresourcestore.LocalARCResourceStore</param-value>
-		<description>Class that implements ResourceStore for this Wayback</description>
-	</context-param>
+    <servlet>
+        <servlet-name>QueryServlet</servlet-name>
+        <servlet-class>org.archive.wayback.query.QueryServlet</servlet-class>
+        <init-param>
+            <param-name>queryui.jsppath</param-name>
+            <param-value>jsp/QueryUI</param-value>
+        </init-param>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>QueryServlet</servlet-name>
+        <url-pattern>/query</url-pattern>
+    </servlet-mapping>
 
+    <servlet>
+        <servlet-name>XMLQueryServlet</servlet-name>
+        <servlet-class>org.archive.wayback.query.QueryServlet</servlet-class>
+        <init-param>
+            <param-name>queryui.jsppath</param-name>
+            <param-value>jsp/QueryXMLUI</param-value>
+        </init-param>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>XMLQueryServlet</servlet-name>
+        <url-pattern>/xmlquery</url-pattern>
+    </servlet-mapping>
 
+    <servlet>
+        <servlet-name>ReplayServlet</servlet-name>
+        <servlet-class>org.archive.wayback.replay.ReplayServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ReplayServlet</servlet-name>
+        <url-pattern>/replay</url-pattern>
+    </servlet-mapping>
 
-	<!-- ResourceIndex Configuration -->
+    <filter>
+        <filter-name>QueryFilter</filter-name>
+        <filter-class>org.archive.wayback.archivalurl.QueryFilter</filter-class>
+
+        <init-param>
+            <param-name>handler.url</param-name>
+            <param-value>/query</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>QueryFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <filter>
+        <filter-name>ReplayFilter</filter-name>
+        <filter-class>org.archive.wayback.archivalurl.ReplayFilter</filter-class>
+
+        <init-param>
+            <param-name>handler.url</param-name>
+            <param-value>/replay</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>ReplayFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <context-param>
+        <param-name>queryrenderer.classname</param-name>
+        <param-value>org.archive.wayback.query.Renderer</param-value>
+        <description>Implementation responsible for drawing Index Query results</description>
+    </context-param>
+
+    <context-param>
+        <param-name>replayrenderer.classname</param-name>
+        <param-value>org.archive.wayback.archivalurl.JSReplayRenderer</param-value>
+        <description>Implementation responsible for drawing replayed resources and replay error messages</description>
+    </context-param>
+
+    <context-param>
+        <param-name>replayuriconverter.classname</param-name>
+        <param-value>org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter</param-value>
+        <description>Class that implements translation of index results to Replayable URIs for this Wayback</description>
+    </context-param>
+
+    <context-param>
+        <param-name>replayui.jsppath</param-name>
+        <param-value>jsp/ReplayUI</param-value>
+        <description>RawReplayUI specific path to jsp pages. relative to webapp/</description>
+    </context-param>
+
+    <context-param>
+        <param-name>jsuri</param-name>
+        <param-value>http://localhost:8080/wayback/wm.js</param-value>
+        <description>absolute URL of page rewriting javascript </description>
+    </context-param>
 	
-	<context-param>
-		<param-name>resourceindex.classname</param-name>
-		<param-value>org.archive.wayback.cdx.LocalBDBResourceIndex</param-value>
-		<description>Class that implements ResourceIndex for this Wayback</description>
-	</context-param>
+    <context-param>
+        <param-name>replayuriprefix</param-name>
+        <param-value>http://localhost:8080/wayback</param-value>
+        <description>HTTP URI prefix for the replay UI. This should be the name and port of the Tomcat hosting this webapp, plus the name of the context where this webapp is installed.</description>
+    </context-param>
 
-	<context-param>
-		<param-name>resourceindex.indexpath</param-name>
-		<param-value>/tmp/wayback/index</param-value>
-		<description>
-			LocalBDBResourceIndex specific directory to store the BDB files.
-			Directory must exists.
-		</description>
-	</context-param>
+<!-- END OF  Archival-Url UI  OPTIONS -->
 
-	<context-param>
-		<param-name>resourceindex.dbname</param-name>
-		<param-value>DB1</param-value>
-		<description>
-			LocalBDBResourceIndex specific name for BDB database
-		</description>
-	</context-param>
+<!-- START OF  Proxy UI  OPTIONS
+This section contains configuration for accessing content from the wayback
+machine as a proxy server. Client browsers are configured to make all web
+requests through the wayback machine, and it will serve content from ARC
+files instead of from the original websites. This section also contains
+configuration for serving XML index queries, which allows a firefox plugin
+toolbar to retrieve a list of all versions of the current document being viewed.
 
+These options are not used by default.
+-->
+<!--
 
-	<!-- ResourceIndex Exclusion configuration
+    <servlet>
+        <servlet-name>QueryServlet</servlet-name>
+        <servlet-class>org.archive.wayback.query.QueryServlet</servlet-class>
+        <init-param>
+            <param-name>queryui.jsppath</param-name>
+            <param-value>jsp/QueryUI</param-value>
+        </init-param>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>QueryServlet</servlet-name>
+        <url-pattern>/query</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>XMLQueryServlet</servlet-name>
+        <servlet-class>org.archive.wayback.query.QueryServlet</servlet-class>
+        <init-param>
+            <param-name>queryui.jsppath</param-name>
+            <param-value>jsp/QueryXMLUI</param-value>
+        </init-param>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>XMLQueryServlet</servlet-name>
+        <url-pattern>/xmlquery</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ReplayServlet</servlet-name>
+        <servlet-class>org.archive.wayback.replay.ReplayServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ReplayServlet</servlet-name>
+        <url-pattern>/replay</url-pattern>
+    </servlet-mapping>
+
+    <filter>
+        <filter-name>ReplayFilter</filter-name>
+        <filter-class>org.archive.wayback.proxy.ReplayFilter</filter-class>
+
+        <init-param>
+            <param-name>handler.url</param-name>
+            <param-value>/replay</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>ReplayFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
 	
-		These configurations are not used by default in this installation.
-		To use robots.txt-based exclusion, uncomment the following sections:
-	 -->
+    <context-param>
+        <param-name>queryrenderer.classname</param-name>
+        <param-value>org.archive.wayback.query.Renderer</param-value>
+        <description>Implementation responsible for drawing Index Query results</description>
+    </context-param>
 
-	<!--
+    <context-param>
+        <param-name>replayrenderer.classname</param-name>
+        <param-value>org.archive.wayback.proxy.RawReplayRenderer</param-value>
+        <description>Implementation responsible for drawing replayed resources and replay error messages</description>
+    </context-param>
+
+    <context-param>
+        <param-name>replayui.jsppath</param-name>
+        <param-value>jsp/ReplayUI</param-value>
+        <description>RawReplayUI specific path to jsp pages. relative to webapp/</description>
+    </context-param>
+
+    <context-param>
+        <param-name>replayuriconverter.classname</param-name>
+        <param-value>org.archive.wayback.proxy.RedirectResultURIConverter</param-value>
+        <description>Class that implements translation of index results to Replayable URIs for this Wayback</description>
+    </context-param>
+
+    <context-param>
+        <param-name>proxy.redirectpath</param-name>
+        <param-value>/jsp/QueryUI/Redirect.jsp</param-value>
+        <description>jsp where requests are bounced thru to pick up timestamps</description>
+    </context-param>
+-->
+<!-- END OF  Proxy UI  OPTIONS -->
+
+<!-- START OF  Timeline UI  OPTIONS
+This section contains configuration for using the wayback machine in timeline
+access mode, similar to the WERA application.
+
+These options are not used by default.
+-->
+<!--
+
+    <servlet>
+        <servlet-name>XMLQueryServlet</servlet-name>
+        <servlet-class>org.archive.wayback.query.QueryServlet</servlet-class>
+        <init-param>
+            <param-name>queryui.jsppath</param-name>
+            <param-value>jsp/QueryXMLUI</param-value>
+        </init-param>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>XMLQueryServlet</servlet-name>
+        <url-pattern>/xmlquery</url-pattern>
+    </servlet-mapping>
 	
-	<context-param>
-		<param-name>resourceindex.exclusionurl</param-name>
-		<param-value>http://localhost:8080/wayback/exclusion</param-value>
-		<description>
-			HTTP base URL for remote access to exclusion services.
-		</description>
-	</context-param>
-	<context-param>
-		<param-name>resourceindex.exclusionua</param-name>
-		<param-value>ia_archiver</param-value>
-		<description>
-			UserAgent to have exclusion service check access with.
-		</description>
-	</context-param>
+    <servlet>
+        <servlet-name>QueryServlet</servlet-name>
+    	<servlet-class>org.archive.wayback.query.QueryServlet</servlet-class>
+        <init-param>
+            <param-name>queryui.jsppath</param-name>
+            <param-value>jsp/QueryUI</param-value>
+        </init-param>
+    </servlet>
+    <servlet-mapping>
+	<servlet-name>QueryServlet</servlet-name>
+	<url-pattern>/query</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+	<servlet-name>TimelineQueryServlet</servlet-name>
+    	<servlet-class>org.archive.wayback.query.QueryServlet</servlet-class>
+        <init-param>
+            <param-name>queryui.jsppath</param-name>
+            <param-value>jsp/TimelineUI</param-value>
+        </init-param>
+    </servlet>
+    <servlet-mapping>
+	<servlet-name>TimelineQueryServlet</servlet-name>
+	<url-pattern>/timeline</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+	<servlet-name>FramesetReplayServlet</servlet-name>
+    	<servlet-class>org.archive.wayback.replay.ReplayServlet</servlet-class>
+    	<init-param>
+	    <param-name>replayrenderer.classname</param-name>
+            <param-value>org.archive.wayback.timeline.FramesetReplayRenderer</param-value>
+            <description>Implementation responsible for drawing replayed resources and replay error messages</description>
+        </init-param>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>FramesetReplayServlet</servlet-name>
+        <url-pattern>/frameset</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+	<servlet-name>InlineReplayServlet</servlet-name>
+        <servlet-class>org.archive.wayback.replay.ReplayServlet</servlet-class>
+        <init-param>
+            <param-name>replayrenderer.classname</param-name>
+            <param-value>org.archive.wayback.timeline.TimelineReplayRenderer</param-value>
+            <description>Implementation responsible for drawing replayed resources and replay error messages</description>
+        </init-param>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>InlineReplayServlet</servlet-name>
+        <url-pattern>/replay</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>MetaReplayServlet</servlet-name>
+        <servlet-class>org.archive.wayback.replay.ReplayServlet</servlet-class>
+        <init-param>
+            <param-name>replayrenderer.classname</param-name>
+            <param-value>org.archive.wayback.timeline.MetaReplayRenderer</param-value>
+            <description>Implementation responsible for drawing replayed resources and replay error messages</description>
+        </init-param>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>MetaReplayServlet</servlet-name>
+        <url-pattern>/meta</url-pattern>
+    </servlet-mapping>
+
+
+    <context-param>
+        <param-name>replayui.jsppath</param-name>
+        <param-value>jsp/ReplayUI</param-value>
+        <description>ReplayUI specific path to jsp pages. relative to webapp/</description>
+    </context-param>
+
+    <context-param>
+	<param-name>queryrenderer.classname</param-name>
+	<param-value>org.archive.wayback.timeline.TimelineQueryRenderer</param-value>
+	<description>Implementation responsible for drawing Index Query results</description>
+    </context-param>
+
+    <context-param>
+        <param-name>replayuriconverter.classname</param-name>
+        <param-value>org.archive.wayback.timeline.TimelineReplayResultURIConverter</param-value>
+        <description>Class that implements translation of index results to Replayable URIs for this Wayback</description>
+    </context-param>
+
+
+
+    <context-param>
+        <param-name>jsuri</param-name>
+        <param-value>http://localhost:8080/wayback/jsp/TimelineUI/wm-timeline.js</param-value>
+        <description>HTTP URI to javascript file</description>
+    </context-param>
+	
+
+    <context-param>
+        <param-name>replayuriprefix</param-name>
+        <param-value>http://localhost:8080/wayback/replay</param-value>
+        <description>HTTP URI prefix for the replay servlet</description>
+    </context-param>
+
+    <context-param>
+        <param-name>metauriprefix</param-name>
+        <param-value>http://localhost:8080/wayback/meta</param-value>
+        <description>HTTP URI prefix for the meta replay servlet</description>
+    </context-param>
+
+    <context-param>
+        <param-name>timelineuriprefix</param-name>
+        <param-value>http://localhost:8080/wayback/timeline</param-value>
+        <description>HTTP URI prefix for the timeline servlet</description>
+    </context-param>
+
+    <context-param>
+        <param-name>frameseturiprefix</param-name>
+        <param-value>http://localhost:8080/wayback/frameset</param-value>
+        <description>HTTP URI prefix for the frameset servlet</description>
+    </context-param>
+-->
+<!-- END OF  Timeline UI  OPTIONS -->
+
+<!--
+       END OF USER INTERFACE SECTION
+-->
+
+
+<!--
+       RESOURCE STORE SECTION
+-->
+<!-- START OF  Local-ARC ResourceStore  OPTIONS
+This section contains configuration for accessing ARC files from a single
+directory on a local filesystem. If ARC files are spread across multiple
+local directories, a single directory be created, and populated with symbolic
+links to the various locations of the ARC files. This configuration will
+also allow the IndexPipeline to scan the directory named in the 'arcpath'
+configuration to notice and automatically index new ARC files as they arrive.
+-->
+	
+    <context-param>
+        <param-name>resourcestore.classname</param-name>
+        <param-value>org.archive.wayback.localresourcestore.LocalARCResourceStore</param-value>
+        <description>Class that implements ResourceStore for this Wayback</description>
+    </context-param>
+
+    <context-param>
+        <param-name>arcpath</param-name>
+        <param-value>/tmp/wayback/arcs</param-value>
+        <description>
+            Directory where ARC files are found (possibly where Heritrix writes them.)
+            This directory must exist.
+        </description>
+    </context-param>
+
+
+<!-- END OF  Local-ARC ResourceStore  OPTIONS -->
+
+<!-- START OF  Remote-HTTP1.1 ResourceStore  OPTIONS
+This section contains configuration for accessing ARC file data via HTTP 1.1
+from remote servers. This configuration requires all nodes that hold ARC files
+to run an HTTP 1.1 server, and maps ARC files to their actual location with
+a BDB JE database. The database must be populated using either the
+location-client or the pipeline-client scripts included with the distribution.
+
+These options are not used by default.
+-->
+<!--
+
+    <context-param>
+        <param-name>resourcestore.classname</param-name>
+        <param-value>org.archive.wayback.http11resourcestore.Http11ResourceStore</param-value>
+        <description>Class that implements ResourceStore for this Wayback</description>
+    </context-param>
+
+    <context-param>
+        <param-name>filelocationdb.classname</param-name>
+        <param-value>org.archive.wayback.http11resourcestore.FileLocationDB</param-value>
+        <description>Class implementing FileLocationDB</description>
+    </context-param>
+
+    <context-param>
+        <param-name>arcdbpath</param-name>
+        <param-value>/tmp/wayback/arc-db</param-value>
+        <description>Directory where arc-db is stored. Must exist.</description>
+    </context-param>
+
+    <context-param>
+        <param-name>arcdbname</param-name>
+        <param-value>arc-db</param-value>
+        <description>name for BDBJE arc database</description>
+    </context-param>
+
+    <servlet>
+        <servlet-name>FileLocationDBServlet</servlet-name>
+        <servlet-class>org.archive.wayback.http11resourcestore.FileLocationDBServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>FileLocationDBServlet</servlet-name>
+        <url-pattern>/locationDB</url-pattern>
+    </servlet-mapping>
+	
+-->
+<!-- END OF  Remote-HTTP1.1 ResourceStore  OPTIONS -->
+
+<!--
+       END OF RESOURCE STORE SECTION
+-->
+
+
+<!--
+       RESOURCE INDEX SECTION
+-->
+<!-- START OF  Local-BDB ResourceIndex  OPTIONS
+This section contains configuration for using a BDB JE to hold the document
+index on the local filesystem. This is the default index storage
+implementation.
+-->
+	
+    <filter>
+        <filter-name>PipelineFilter</filter-name>
+        <filter-class>org.archive.wayback.cdx.indexer.PipelineFilter</filter-class>
+        <init-param>
+            <param-name>pipeline.statusjsp</param-name>
+            <param-value>jsp/PipelineUI/PipelineStatus.jsp</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>PipelineFilter</filter-name>
+        <url-pattern>/pipeline</url-pattern>
+    </filter-mapping>
+
+    <context-param>
+        <param-name>resourceindex.classname</param-name>
+        <param-value>org.archive.wayback.cdx.LocalBDBResourceIndex</param-value>
+        <description>Class that implements ResourceIndex for this Wayback</description>
+    </context-param>
+
+    <context-param>
+        <param-name>resourceindex.indexpath</param-name>
+        <param-value>/tmp/wayback/index</param-value>
+        <description>
+            LocalBDBResourceIndex specific directory to store the BDB files.
+            Directory must exists.
+        </description>
+    </context-param>
+
+    <context-param>
+        <param-name>resourceindex.dbname</param-name>
+        <param-value>DB1</param-value>
+        <description>
+            LocalBDBResourceIndex specific name for BDB database
+        </description>
+    </context-param>
+
+
+    <context-param>
+        <param-name>indexpipeline.workpath</param-name>
+        <param-value>/tmp/wayback/pipeline</param-value>
+        <description>
+            LocalBDBResourceIndex specific directory to store flag files and 
+            temporary index data.
+        </description>
+    </context-param>
+
+    <context-param>
+        <param-name>indexpipeline.runpipeline</param-name>
+        <param-value>1</param-value>
+        <description>
+            if set to '1' then a background indexing thread will automatically update the BDB
+            index when new ARC files are noticed in the 'arcpath' directory. If multiple
+            webapps are running on the same node, using the same index directory, then only
+            one of the webapps should be configured to run the pipeline.
+        </description>
+    </context-param>
+
+
+<!-- END OF  Local-BDB ResourceIndex  OPTIONS -->
+
+<!-- START OF  Remote-Nutch ResourceIndex  OPTIONS
+This section contains configuration for using a Nutch full text index
+to query for documents.
+
+These options are not used by default.
+-->
+<!--
+	
+    <context-param>
+        <param-name>resourceindex.classname</param-name>
+        <param-value>org.archive.wayback.nutch.NutchResourceIndex</param-value>
+        <description>Class that implements ResourceIndex for this Wayback</description>
+    </context-param>
+
+    <context-param>
+        <param-name>resourceindex.baseurl</param-name>
+        <param-value>http://localhost:8081/xmlquery</param-value>
+        <description>absolute URL to Nutch server</description>
+    </context-param>
+-->
+<!-- END OF  Remote-Nutch ResourceIndex  OPTIONS -->
+
+<!-- START OF  Remote-BDB ResourceIndex  OPTIONS
+This section contains configuration for using a BDB JE index hosted on a
+remote server. The remote server holding the index must provide the XMLQuery
+interface.
+
+These options are not used by default.
+-->
+<!--
+	
+    <context-param>
+        <param-name>resourceindex.classname</param-name>
+        <param-value>org.archive.wayback.cdx.RemoteCDXIndex</param-value>
+        <description>Class that implements ResourceIndex for this Wayback</description>
+    </context-param>
+
+    <context-param>
+        <param-name>resourceindex.baseurl</param-name>
+        <param-value>http://localhost:8080/xmlquery</param-value>
+        <description>
+            LocalBDBResourceIndex specific directory to store the BDB files.
+            Directory must exists.
+        </description>
+    </context-param>
+-->
+<!-- END OF  Remote-BDB ResourceIndex  OPTIONS -->
+
+<!--
+       END OF RESOURCE INDEX SECTION
+-->
+
+
+<!--
+       RESOURCE INDEX EXCLUSION SECTION
+-->
+<!-- START OF  No Exclusions  OPTIONS
+By default there is no masking of content from the index.
+-->
+<!-- END OF  No Exclusions  OPTIONS -->
+
+<!-- START OF  Administrative plus robots.txt Exclusions  OPTIONS
+This section contains configuration for using both manual exclusions and
+live web robots.txt to mask content from the index.
+
+These options are not used by default.
+-->
+<!--
+    <context-param>
+        <param-name>resourceindex.exclusionurl</param-name>
+        <param-value>http://localhost:8080/wayback/exclusion</param-value>
+        <description>
+            HTTP base URL for remote access to exclusion services.
+        </description>
+    </context-param>
+
+    <context-param>
+        <param-name>resourceindex.exclusionua</param-name>
+        <param-value>ia_archiver</param-value>
+        <description>
+            UserAgent to have exclusion service check access with.
+        </description>
+    </context-param>
+
 
     <servlet>
         <servlet-name>ExclusionServlet</servlet-name>
@@ -100,6 +613,35 @@
         <servlet-name>ExclusionServlet</servlet-name>
         <url-pattern>/exclusion</url-pattern>
     </servlet-mapping>
+
+    <servlet>
+        <servlet-name>AdminExclusionServlet</servlet-name>
+        <servlet-class>org.archive.wayback.accesscontrol.AdministrativeExclusionServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AdminExclusionServlet</servlet-name>
+        <url-pattern>/admin-exclusion</url-pattern>
+    </servlet-mapping>
+
+    <context-param>
+        <param-name>exclusionauthority.classname</param-name>
+        <param-value>org.archive.wayback.accesscontrol.AdministrativeExclusionAuthority</param-value>
+        <description>
+            Class that handles exclusions.
+        </description>
+    </context-param>
+
+    <context-param>
+        <param-name>adminexclusion.dbpath</param-name>
+        <param-value>/tmp/wayback/admin</param-value>
+        <description>Directory where BDBJE places manual exclusion data</description>
+    </context-param>
+
+    <context-param>
+        <param-name>adminexclusion.dbname</param-name>
+        <param-value>admin</param-value>
+        <description>name of data within BDBJE in adminexclusion.dbpath</description>
+    </context-param>
 
     <context-param>
         <param-name>robotdbpath</param-name>
@@ -131,166 +673,83 @@
         <description>Directory where robots.txt documents are store temporarily</description>
     </context-param>
 
+-->
+<!-- END OF  Administrative plus robots.txt Exclusions  OPTIONS -->
 
-	-->
-	<!-- END OF ResourceIndex Exclusion configuration
-	 -->
+<!-- START OF  robots.txt Exclusions  OPTIONS
+This section contains configuration for using live web robots.txt to mask
+content from the index.
 
+These options are not used by default.
+-->
+<!--
+    <context-param>
+        <param-name>resourceindex.exclusionurl</param-name>
+        <param-value>http://localhost:8080/wayback/exclusion</param-value>
+        <description>
+            HTTP base URL for remote access to exclusion services.
+        </description>
+    </context-param>
 
-
-	<!-- ResourceIndex Pipeline Configuration -->
-
-	<context-param>
-		<param-name>indexpipeline.workpath</param-name>
-		<param-value>/tmp/wayback/pipeline</param-value>
-		<description>
-			LocalBDBResourceIndex specific directory to store flag files and 
-			temporary index data.
-		</description>
-	</context-param>
-
-	<context-param>
-		<param-name>indexpipeline.runpipeline</param-name>
-		<param-value>1</param-value>
-		<description>
-			if set to '1' then a background indexing thread will automatically update the BDB
-			index when new ARC files are noticed in the 'arcpath' directory.
-		</description>
-	</context-param>
-
-	<!-- Pipeline Filter Configuration 
-			this enables a trival (and very in-progress) UI for viewing the 
-			pipeline status.
-	-->
-
-	<filter>
-		<filter-name>PipelineFilter</filter-name>
-		<filter-class>org.archive.wayback.cdx.indexer.PipelineFilter</filter-class>
-	    <init-param>
-	      <param-name>pipeline.statusjsp</param-name>
-	      <param-value>jsp/PipelineUI/PipelineStatus.jsp</param-value>
-	    </init-param>
-	</filter>
-	<filter-mapping>
-    	<filter-name>PipelineFilter</filter-name>
-		<url-pattern>/pipeline</url-pattern>
-	</filter-mapping>
-
-
-
-
-	<!-- Query Servlet Configuration -->
-	
-    <servlet>
-	    <servlet-name>QueryServlet</servlet-name>
-    	<servlet-class>org.archive.wayback.query.QueryServlet</servlet-class>
-	</servlet>
-	<servlet-mapping>
-		<servlet-name>QueryServlet</servlet-name>
-		<url-pattern>/query</url-pattern>
-	</servlet-mapping>
-
-	<!-- QueryUI Configuration -->
-	
-	<context-param>
-		<param-name>queryrenderer.classname</param-name>
-		<param-value>org.archive.wayback.query.Renderer</param-value>
-		<description>Implementation responsible for drawing Index Query results</description>
-	</context-param>
-
-	<context-param>
-		<param-name>queryui.jsppath</param-name>
-		<param-value>jsp/QueryUI</param-value>
-		<description>
-			SimpleQueryUI specific path to jsp pages. relative to webapp/
-		</description>
-	</context-param>
-
-
-
-
-	<!-- Replay Servlet Configuration -->
+    <context-param>
+        <param-name>resourceindex.exclusionua</param-name>
+        <param-value>ia_archiver</param-value>
+        <description>
+            UserAgent to have exclusion service check access with.
+        </description>
+    </context-param>
 
     <servlet>
-	    <servlet-name>ReplayServlet</servlet-name>
-    	<servlet-class>org.archive.wayback.replay.ReplayServlet</servlet-class>
-	</servlet>
-	<servlet-mapping>
-		<servlet-name>ReplayServlet</servlet-name>
-		<url-pattern>/replay</url-pattern>
-	</servlet-mapping>
+        <servlet-name>ExclusionServlet</servlet-name>
+        <servlet-class>org.archive.wayback.accesscontrol.ExclusionServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ExclusionServlet</servlet-name>
+        <url-pattern>/exclusion</url-pattern>
+    </servlet-mapping>
+
+    <context-param>
+        <param-name>exclusionauthority.classname</param-name>
+        <param-value>org.archive.wayback.accesscontrol.RoboCache</param-value>
+        <description>Class that handles exclusions.</description>
+    </context-param>
+
+    <context-param>
+        <param-name>robotdbpath</param-name>
+        <param-value>/tmp/wayback/robotsdb</param-value>
+        <description>directory where database of cached robots.txt document information is kept</description>
+    </context-param>
+
+    <context-param>
+        <param-name>robotdbname</param-name>
+        <param-value>robotdb</param-value>
+        <description>name of database where cached robots.txt document information is kept</description>
+    </context-param>
+
+    <context-param>
+        <param-name>robotarcdir</param-name>
+        <param-value>/tmp/wayback/robot-arcs</param-value>
+        <description>directory where ARC files containing cached robots.txt documents are stored</description>
+    </context-param>
+
+    <context-param>
+        <param-name>robotarcprefix</param-name>
+        <param-value>live-robots</param-value>
+        <description>ARC filename prefix for robot.txt document storage</description>
+    </context-param>
+
+    <context-param>
+        <param-name>tempdir</param-name>
+        <param-value>/tmp/wayback/robot-temp</param-value>
+        <description>Directory where robots.txt documents are store temporarily</description>
+    </context-param>
+-->
+<!-- END OF  robots.txt Exclusions  OPTIONS -->
+
+<!--
+       END OF RESOURCE INDEX EXCLUSION SECTION
+-->
 
 
-
-	<!-- Archival Url Query Filter Configuration -->
-
-	<filter>
-		<filter-name>QueryFilter</filter-name>
-		<filter-class>org.archive.wayback.archivalurl.QueryFilter</filter-class>
-
-	    <init-param>
-	      <param-name>handler.url</param-name>
-	      <param-value>/query</param-value>
-	    </init-param>
-	</filter>
-	<filter-mapping>
-    	<filter-name>QueryFilter</filter-name>
-		<url-pattern>/*</url-pattern>
-	</filter-mapping>
-
-
-	<!-- Archival Url Replay Filter Configuration -->
-
-	<filter>
-		<filter-name>ReplayFilter</filter-name>
-		<filter-class>org.archive.wayback.archivalurl.ReplayFilter</filter-class>
-
-	    <init-param>
-	      <param-name>handler.url</param-name>
-	      <param-value>/replay</param-value>
-	    </init-param>
-	</filter>
-	<filter-mapping>
-    	<filter-name>ReplayFilter</filter-name>
-		<url-pattern>/*</url-pattern>
-	</filter-mapping>
-
-
-	<!-- Archival Url URI Conversion Configuration -->
-
-	<context-param>
-		<param-name>replayuriconverter.classname</param-name>
-		<param-value>org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter</param-value>
-		<description>Class that implements translation of index results to Replayable URIs for this Wayback</description>
-	</context-param>
-
-	<context-param>
-		<param-name>replayuriprefix</param-name>
-		<param-value>http://localhost:8080/wayback</param-value>
-		<description>HTTP URI prefix for the replay UI</description>
-	</context-param>
-
-	<context-param>
-		<param-name>jsuri</param-name>
-		<param-value>http://localhost:8080/wayback/wm.js</param-value>
-		<description>absolute URL of page rewriting javascript </description>
-	</context-param>
-
-
-	<!-- Archival Url JSReplayUI Configuration -->
-
-	<context-param>
-		<param-name>replayrenderer.classname</param-name>
-		<param-value>org.archive.wayback.archivalurl.JSReplayRenderer</param-value>
-		<description>Implementation responsible for drawing replayed resources and replay error messages</description>
-	</context-param>
-
-	<context-param>
-		<param-name>replayui.jsppath</param-name>
-		<param-value>jsp/ReplayUI</param-value>
-		<description>
-			RawReplayUI specific path to jsp pages. relative to webapp/
-		</description>
-	</context-param>
 
 </web-app>
