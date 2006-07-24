@@ -561,8 +561,7 @@ These options are not used by default.
         <param-name>resourceindex.baseurl</param-name>
         <param-value>http://localhost:8080/xmlquery</param-value>
         <description>
-            LocalBDBResourceIndex specific directory to store the BDB files.
-            Directory must exists.
+            Absolute URL to the Wayback Machine Resource Index service.
         </description>
     </context-param>
 -->
