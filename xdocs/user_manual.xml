@@ -310,16 +310,16 @@
 				following steps:
 				<ol>
 					<li>
-						placing .war file in appropriate location.
+						Placing .war file in appropriate location.
 					</li>
 					<li>
-						choosing correct base web.xml file.
+						Waiting for Tomcat to unpack the .war file.
 					</li>
 					<li>
-						customizing base web.xml file.
+						Customizing base web.xml file.
 					</li>
 					<li>
-						restarting tomcat.
+						Restarting tomcat.
 					</li>
 				</ol>
 			</p>
@@ -342,7 +342,7 @@
 				<p>
 					This mode has the same procedure as Archival URL mode 
 					installation. Please follow the instructions found there,
-					but you will need to change the default web.xml file before
+					but you will need to modify the default web.xml file before
 					using this mode.
 				</p>
 			</subsection>
@@ -384,648 +384,535 @@
 					</ol>
 				</p>
 			</subsection>
-			<subsection name="Choosing the base web.xml file">
+			<subsection name="Modifying the base web.xml file">
 				<p>
-					Use the following table to decide which web.xml file you should
-					use to begin configuring the Wayback software:
+					Once you have installed the .war file under the Tomcat 
+					webapps directory, and the webapp has been deployed, you 
+					may need to modify the web.xml file to customize your 
+					Wayback installation.
+				</p>
+				<p>
+					There are 4 main categories of customizations:
+					<ol>
+						<li>
+							User Interface(Archival URL, Timeline, or Proxy)
+						</li>
+						<li>
+							Resource Store (Local ARCs, or HTTP 1.1 ARC access)
+						</li>
+						<li>
+							Resource Index (Local BDB, Remote Nutch, Remote BDB)
+						</li>
+						<li>
+							Resource Index Exclusions (None, Robots.txt, Manual
+							Exclusions and Robots.txt)
+						</li>
+					</ol>
+					Within the web.xml file, there are comments indicating each
+					main configuration section. Within each section, all options
+					are present, but non-default options are commented out.
+				</p>
+				<p>
+					You can alter the active options by commenting out the 
+					default option for a section, and uncommenting another
+					option. Within each option, there are further customizable
+					configurations. For information about these other options,
+					please refer to the table below. After making any changes to
+					the web.xml file, you will need to restart Tomcat.
+				</p>
+			</subsection>
+
+			<subsection name="User Interface Customizations">
+
+				<p>
+					Archival URL UI options:
 					<table>
 						<tr>
 							<td>
-								Replay Mode \ ResourceStore
+								Option
 							</td>
 							<td>
-								LocalARCResourceStore
+								Default value
 							</td>
 							<td>
-								Http11ResourceStore
-							</td>
-						</tr>
-						<tr>
-							<td>
-								Archival Url Mode
-							</td>
-							<td>
-								<b>web-local-archivalurl.xml</b>
-							</td>
-							<td>
-								<b>web-http11-archivalurl.xml</b>
+								Description
 							</td>
 						</tr>
 						<tr>
 							<td>
-								Proxy Mode
+								jsuri
 							</td>
 							<td>
-								<b>web-local-proxy.xml</b>
+								http://localhost:8080/wayback/wm.js
 							</td>
 							<td>
-								<b>web-http11-proxy.xml</b>
+								Absolute URL of page rewriting Javascript. This 
+								value will be written into all returned HTML pages,
+								so will need to be changed to the absolute location
+								where your Wayback Machine is running.
 							</td>
 						</tr>
 						<tr>
 							<td>
-								Timeline Mode
+								replayuriprefix
 							</td>
 							<td>
-								<b>web-local-timeline.xml</b>
+								http://localhost:8080/wayback
 							</td>
 							<td>
-								<b>web-http11-timeline.xml</b>
+								HTTP URI prefix for the replay UI. This should be 
+								the name and port of the Tomcat hosting this webapp,
+								plus the name of the context where this webapp is
+								installed.
+							</td>
+						</tr>
+					</table>
+				</p>
+				<p>
+					Timeline UI options:
+					<table>
+						<tr>
+							<td>
+								Option
+							</td>
+							<td>
+								Default value
+							</td>
+							<td>
+								Description
+							</td>
+						</tr>
+						<tr>
+							<td>
+								jsuri
+							</td>
+							<td>
+								http://localhost:8080/wayback/jsp/TimelineUI/wm-timeline.js
+							</td>
+							<td>
+								Absolute URL of page rewriting Javascript. This 
+								value will be written into all returned HTML pages,
+								so will need to be changed to the absolute location
+								where your Wayback Machine is running.
+							</td>
+						</tr>
+						<tr>
+							<td>
+								replayuriprefix
+							</td>
+							<td>
+								http://localhost:8080/wayback/replay
+							</td>
+							<td>
+								HTTP URI prefix for the replay UI. This should be 
+								the name and port of the Tomcat hosting this webapp,
+								plus the name of the context where this webapp is
+								installed, plus the path "replay".
+							</td>
+						</tr>
+						<tr>
+							<td>
+								metauriprefix
+							</td>
+							<td>
+								http://localhost:8080/wayback/meta
+							</td>
+							<td>
+								HTTP URI prefix for the replay UI. This should be 
+								the name and port of the Tomcat hosting this webapp,
+								plus the name of the context where this webapp is
+								installed, plus the path "meta".
+							</td>
+						</tr>
+						<tr>
+							<td>
+								timelineuriprefix
+							</td>
+							<td>
+								http://localhost:8080/wayback/timeline
+							</td>
+							<td>
+								HTTP URI prefix for the replay UI. This should be 
+								the name and port of the Tomcat hosting this webapp,
+								plus the name of the context where this webapp is
+								installed, plus the path "timeline".
+							</td>
+						</tr>
+						<tr>
+							<td>
+								frameseturiprefix
+							</td>
+							<td>
+								http://localhost:8080/wayback/frameset
+							</td>
+							<td>
+								HTTP URI prefix for the replay UI. This should be 
+								the name and port of the Tomcat hosting this webapp,
+								plus the name of the context where this webapp is
+								installed, plus the path "frameset".
 							</td>
 						</tr>
 					</table>
 				</p>
 			</subsection>
-			<subsection name="Copying the correct web.xml into place">
+			<subsection name="Resource Store Customizations">
+
 				<p>
-					Once Tomcat has deployed the CONTEXT.war (originally
-                    wayback.war) the base web.xml file you picked in the 
-                    <b>Choosing the base web.xml file</b> section will be 
-                    unpacked at 
-					<b>webapps/CONTEXT/WEB-INF/</b>.
+					Local ARC options:
+					<table>
+						<tr>
+							<td>
+								Option
+							</td>
+							<td>
+								Default value
+							</td>
+							<td>
+								Description
+							</td>
+						</tr>
+						<tr>
+							<td>
+								arcpath
+							</td>
+							<td>
+								/tmp/wayback/arcs
+							</td>
+							<td>
+								Directory where ARC files are found (possibly 
+								where Heritrix writes them.) This directory must
+								exist.
+							</td>
+						</tr>
+					</table>
 				</p>
 				<p>
-					You need to copy the xml file you chose over the file
-					<b>webapps/CONTEXT/WEB-INF/web.xml</b> with the command:
-					<p>
-					<code>
-						cp webapps/CONTEXT/WEB-INF/web-PICKED.xml webapps/CONTEXT/WEB-INF/web.xml
-					</code>
-					</p>
-					For example, if you chose the web-http11-archivalurl.xml, 
-					you would use the command:
-					<p>
-					<code>
-						<i>
-							cp webapps/wayback/WEB-INF/web-http11-archivalurl.xml webapps/wayback/WEB-INF/web.xml
-						</i>
-					</code>
-					</p>
-					and if you chose the web-local-proxy.xml, you would use the 
-					command:
-					<p>
-					<code>
-						<i>
-							cp webapps/ROOT/WEB-INF/web-local-proxy.xml webapps/ROOT/WEB-INF/web.xml
-						</i>
-					</code>
-					</p>
+					Remote-HTTP1.1 options:
+					<table>
+						<tr>
+							<td>
+								Option
+							</td>
+							<td>
+								Default value
+							</td>
+							<td>
+								Description
+							</td>
+						</tr>
+						<tr>
+							<td>
+								arcdbpath
+							</td>
+							<td>
+								/tmp/wayback/arc-db
+							</td>
+							<td>
+								Directory where arc-db is stored, which stores
+								the mapping between ARC file names and their
+								absolute HTTP URLs. The directory must exist.
+							</td>
+						</tr>
+					</table>
 				</p>
-				<p>
-					After you have copied the correct web-*.xml file into place,
-					follow the customization steps below depending on the file 
-					you picked, and then <b>restart Tomcat</b>.
-				</p>
-			</subsection>
-			
-			<subsection name="General configuration options">
-				<p>
-					All web.xml configuration files contain the following 
-					configurations, which can be changed from the default values
-					if needed.
-				</p>
-				<table>
-					<tr>
-						<td>
-							Option
-						</td>
-						<td>
-							Default value
-						</td>
-						<td>
-							Description
-						</td>
-					</tr>
-					<tr>
-						<td>
-							installationname
-						</td>
-						<td>
-							<i>depends on base web.xml file chosen</i>
-						</td>
-						<td>
-							This text will appear on the Wayback Configuration
-							and Status page and may assist in determining which
-							installation users are viewing via their web browser
-							in environments with multiple Wayback installations.
-						</td>
-					</tr>
-					<tr>
-						<td>
-							resourceindex.indexpath
-						</td>
-						<td>
-							/tmp/wayback/index
-						</td>
-						<td>
-							LocalBDBResourceIndex specific directory to store
-							the BDB files. This directory must exist.
-						</td>
-					</tr>
-					<tr>
-						<td>
-							resourceindex.dbname
-						</td>
-						<td>
-							DB1
-						</td>
-						<td>
-							LocalBDBResourceIndex specific name for BDB database
-						</td>
-					</tr>
-					<tr>
-						<td>
-							indexpipeline.workpath
-						</td>
-						<td>
-							/tmp/wayback/pipeline
-						</td>
-						<td>
-							LocalBDBResourceIndex specific directory to store 
-							flag files and temporary index data.
-						</td>
-					</tr>
-					<tr>
-						<td>
-							indexpipeline.runpipeline
-						</td>
-						<td>
-							1
-						</td>
-						<td>
-							if set to '1' then a background indexing thread will
-							automatically update the BDB index when new ARC 
-							files are noticed in the 'arcpath' directory, or 
-							when new flat-file index data is submitted from 
-							remote ARC storage nodes. Any value besides '1' will
-							cause the index to be static. If you use multiple
-							webapps in the same servlet container, using the
-							same <b>resourceindex.indexpath</b>, then only one
-							of them should have this value set to '1'.
-						</td>
-					</tr>
-				</table>
 			</subsection>
 
-			<subsection name="web-local-archivalurl.xml specific configuration">
+			<subsection name="Resource Index Customizations">
+
 				<p>
-					The following table describes additional configurations 
-					available in the web-local-archivalurl.xml file.
+					Local BDB options:
+					<table>
+						<tr>
+							<td>
+								Option
+							</td>
+							<td>
+								Default value
+							</td>
+							<td>
+								Description
+							</td>
+						</tr>
+						<tr>
+							<td>
+								resourceindex.indexpath
+							</td>
+							<td>
+								/tmp/wayback/index
+							</td>
+							<td>
+								Directory to where BDB files are stored. This 
+								directory must exist.
+							</td>
+						</tr>
+						<tr>
+							<td>
+								indexpipeline.workpath
+							</td>
+							<td>
+								/tmp/wayback/pipeline
+							</td>
+							<td>
+								Directory to where flag files, and state of the
+								index pipeline is stored. The index pipeline is
+								responsible for noticing new ARC files appear
+								(in Local ARC Resource Store mode) indexing new
+								ARC files, and merging the information with
+								the local BDB index.
+							</td>
+						</tr>
+						<tr>
+							<td>
+								indexpipeline.runpipeline
+							</td>
+							<td>
+								1
+							</td>
+							<td>
+								If set to '1' then a background indexing thread
+								will automatically update the BDB index with
+								information from new ARC files. When using the
+								Local ARC Resource Store configuration, this
+								thread will also notice new ARC files in the 
+								'arcpath' directory and will index them. When 
+								using the HTTP 1.1 Resource Store configuration,
+								this thread is only responsible for merging new
+								index information submitted about remote ARC 
+								files. See the pipeline-client script below for
+								more information about indexing and remotely 
+								submitting ARC index information. If multiple 
+								webapps are running on the same node, and are 
+								using the same 'resourceindex.indexpath' 
+								directory, then only one of the webapps should 
+								be configured to run the pipeline.
+							</td>
+						</tr>
+					</table>
 				</p>
-				<table>
-					<tr>
-						<td>
-							Option
-						</td>
-						<td>
-							Default value
-						</td>
-						<td>
-							Description
-						</td>
-					</tr>
-					<tr>
-						<td>
-							replayuriprefix
-						</td>
-						<td>
-							http://localhost:8080/wayback
-						</td>
-						<td>
-							This should be set to the HTTP prefix to the wayback
-							webapp context. You should set the hostname to the
-							name of the machine where the Wayback Machine 
-							software is runnning, the port to the port that 
-							Tomcat is listening on, and 'wayback' should be the
-							name of the context that the Wayback Machine webapp
-							is deployed to (wayback.war => 'wayback' context,
-							foo.war => 'foo' context).
-						</td>
-					</tr>
-					<tr>
-						<td>
-							jsuri
-						</td>
-						<td>
-							http://localhost:8080/wayback/wm.js
-						</td>
-						<td>
-							This should be set to the absolute HTTP URL where
-							the wm.js file is located. Most likely, you can
-							follow the instructions for modifying the 
-							<b>replayuriprefix</b>, but add "/wm.js" to the end.
-						</td>
-					</tr>
-					<tr>
-						<td>
-							arcpath
-						</td>
-						<td>
-							/tmp/wayback/arcs
-						</td>
-						<td>
-							Directory where ARC files are found (possibly where 
-							Heritrix writes them.) This directory must exist.
-						</td>
-					</tr>
-				</table>
+				<p>
+					Remote Nutch Index options:
+					<table>
+						<tr>
+							<td>
+								Option
+							</td>
+							<td>
+								Default value
+							</td>
+							<td>
+								Description
+							</td>
+						</tr>
+						<tr>
+							<td>
+								resourceindex.baseurl
+							</td>
+							<td>
+								http://localhost:8081/xmlquery
+							</td>
+							<td>
+								Absolute URL to Nutch server.
+							</td>
+						</tr>
+					</table>
+				</p>
+				<p>
+					Remote BDB Resource Index options:
+					<table>
+						<tr>
+							<td>
+								Option
+							</td>
+							<td>
+								Default value
+							</td>
+							<td>
+								Description
+							</td>
+						</tr>
+						<tr>
+							<td>
+								resourceindex.baseurl
+							</td>
+							<td>
+								http://localhost:8080/xmlquery
+							</td>
+							<td>
+								Absolute URL to the Wayback Machine Resource
+								Index service.
+							</td>
+						</tr>
+					</table>
+				</p>
 			</subsection>
-			<subsection name="web-local-proxy.xml specific configuration">
+			<subsection name="Resource Index Exclusion Customizations">
 				<p>
-					The following table describes additional configurations 
-					available in the web-local-proxy.xml file.
+					Administrative Plus Robots.txt Exclusions options:
+					<table>
+						<tr>
+							<td>
+								Option
+							</td>
+							<td>
+								Default value
+							</td>
+							<td>
+								Description
+							</td>
+						</tr>
+						<tr>
+							<td>
+								resourceindex.exclusionua
+							</td>
+							<td>
+								ia_archiver
+							</td>
+							<td>
+								UserAgent to have exclusion service check 
+								access with.
+							</td>
+						</tr>
+						<tr>
+							<td>
+								adminexclusion.dbpath
+							</td>
+							<td>
+								/tmp/wayback/admin
+							</td>
+							<td>
+								Directory where BDB files that store manual 
+								exclusion data are stored.
+							</td>
+						</tr>
+						<tr>
+							<td>
+								robotdbpath
+							</td>
+							<td>
+								/tmp/wayback/robotsdb
+							</td>
+							<td>
+								Directory where BDB files that store cached 
+								robots.txt document information are stored.
+							</td>
+						</tr>
+						<tr>
+							<td>
+								robotarcdir
+							</td>
+							<td>
+								/tmp/wayback/robot-arcs
+							</td>
+							<td>
+								Directory where ARC files containing cached 
+								robots.txt documents are stored.
+							</td>
+						</tr>
+						<tr>
+							<td>
+								robotarcprefix
+							</td>
+							<td>
+								live-robots
+							</td>
+							<td>
+								Filename prefix for generated ARC files holding
+								robot.txt documents.
+							</td>
+						</tr>
+						<tr>
+							<td>
+								tempdir
+							</td>
+							<td>
+								/tmp/wayback/robot-temp
+							</td>
+							<td>
+								Directory where robots.txt documents are store
+								temporarily before they are written to ARC 
+								files.
+							</td>
+						</tr>
+					</table>
 				</p>
-				<table>
-					<tr>
-						<td>
-							Option
-						</td>
-						<td>
-							Default value
-						</td>
-						<td>
-							Description
-						</td>
-					</tr>
-					<tr>
-						<td>
-							arcpath
-						</td>
-						<td>
-							/tmp/wayback/arcs
-						</td>
-						<td>
-							Directory where ARC files are found (possibly where 
-							Heritrix writes them.) This directory must exist.
-						</td>
-					</tr>
-				</table>
-			</subsection>
-			<subsection name="web-local-timeline.xml specific configuration">
 				<p>
-					The following table describes additional configurations 
-					available in the web-local-timeline.xml file.
+					Robots.txt Exclusions options:
+					<table>
+						<tr>
+							<td>
+								Option
+							</td>
+							<td>
+								Default value
+							</td>
+							<td>
+								Description
+							</td>
+						</tr>
+						<tr>
+							<td>
+								resourceindex.exclusionua
+							</td>
+							<td>
+								ia_archiver
+							</td>
+							<td>
+								UserAgent to have exclusion service check 
+								access with.
+							</td>
+						</tr>
+						<tr>
+							<td>
+								robotdbpath
+							</td>
+							<td>
+								/tmp/wayback/robotsdb
+							</td>
+							<td>
+								Directory where BDB files that store cached 
+								robots.txt document information are stored.
+							</td>
+						</tr>
+						<tr>
+							<td>
+								robotarcdir
+							</td>
+							<td>
+								/tmp/wayback/robot-arcs
+							</td>
+							<td>
+								Directory where ARC files containing cached 
+								robots.txt documents are stored.
+							</td>
+						</tr>
+						<tr>
+							<td>
+								robotarcprefix
+							</td>
+							<td>
+								live-robots
+							</td>
+							<td>
+								Filename prefix for generated ARC files holding
+								robot.txt documents.
+							</td>
+						</tr>
+						<tr>
+							<td>
+								tempdir
+							</td>
+							<td>
+								/tmp/wayback/robot-temp
+							</td>
+							<td>
+								Directory where robots.txt documents are store
+								temporarily before they are written to ARC 
+								files.
+							</td>
+						</tr>
+					</table>
 				</p>
-				<table>
-					<tr>
-						<td>
-							Option
-						</td>
-						<td>
-							Default value
-						</td>
-						<td>
-							Description
-						</td>
-					</tr>
-					<tr>
-						<td>
-							replayuriprefix
-						</td>
-						<td>
-							http://localhost:8080/wayback/replay
-						</td>
-						<td>
-							This should be set to the HTTP prefix to the wayback
-							webapp context. You should set the hostname to the
-							name of the machine where the Wayback Machine 
-							software is runnning, the port to the port that 
-							Tomcat is listening on, and 'wayback' should be the
-							name of the context that the Wayback Machine webapp
-							is deployed to (wayback.war => 'wayback' context,
-							foo.war => 'foo' context).
-						</td>
-					</tr>
-					<tr>
-						<td>
-							metauriprefix
-						</td>
-						<td>
-							http://localhost:8080/wayback/meta
-						</td>
-						<td>
-							This should be set to the HTTP prefix to the wayback
-							webapp context. You should set the hostname to the
-							name of the machine where the Wayback Machine 
-							software is runnning, the port to the port that 
-							Tomcat is listening on, and 'wayback' should be the
-							name of the context that the Wayback Machine webapp
-							is deployed to (wayback.war => 'wayback' context,
-							foo.war => 'foo' context).
-						</td>
-					</tr>
-					<tr>
-						<td>
-							timelineuriprefix
-						</td>
-						<td>
-							http://localhost:8080/wayback/timeline
-						</td>
-						<td>
-							This should be set to the HTTP prefix to the wayback
-							webapp context. You should set the hostname to the
-							name of the machine where the Wayback Machine 
-							software is runnning, the port to the port that 
-							Tomcat is listening on, and 'wayback' should be the
-							name of the context that the Wayback Machine webapp
-							is deployed to (wayback.war => 'wayback' context,
-							foo.war => 'foo' context).
-						</td>
-					</tr>
-					<tr>
-						<td>
-							frameseturiprefix
-						</td>
-						<td>
-							http://localhost:8080/wayback/frameset
-						</td>
-						<td>
-							This should be set to the HTTP prefix to the wayback
-							webapp context. You should set the hostname to the
-							name of the machine where the Wayback Machine 
-							software is runnning, the port to the port that 
-							Tomcat is listening on, and 'wayback' should be the
-							name of the context that the Wayback Machine webapp
-							is deployed to (wayback.war => 'wayback' context,
-							foo.war => 'foo' context).
-						</td>
-					</tr>
-					<tr>
-						<td>
-							jsuri
-						</td>
-						<td>
-							http://localhost:8080/wayback/jsp/TimelineUI/wm-timeline.js
-						</td>
-						<td>
-							This should be set to the absolute HTTP URL where
-							the wm-timeline.js file is located. Most likely, you can
-							follow the instructions for modifying the 
-							<b>replayuriprefix</b>, but replace "replay" with 
-							"/jsp/TimelineUI/wm-timeline.js".
-						</td>
-					</tr>
-					<tr>
-						<td>
-							arcpath
-						</td>
-						<td>
-							/tmp/wayback/arcs
-						</td>
-						<td>
-							Directory where ARC files are found (possibly where 
-							Heritrix writes them.) This directory must exist.
-						</td>
-					</tr>
-				</table>
-			</subsection>
-			<subsection name="web-http11-archivalurl.xml specific configuration">
-				<p>
-					The following table describes additional configurations 
-					available in the web-http11-archivalurl.xml file.
-				</p>
-				<table>
-					<tr>
-						<td>
-							Option
-						</td>
-						<td>
-							Default value
-						</td>
-						<td>
-							Description
-						</td>
-					</tr>
-					<tr>
-						<td>
-							replayuriprefix
-						</td>
-						<td>
-							http://localhost:8080/wayback
-						</td>
-						<td>
-							This should be set to the HTTP prefix to the wayback
-							webapp context. You should set the hostname to the
-							name of the machine where the Wayback Machine 
-							software is runnning, the port to the port that 
-							Tomcat is listening on, and 'wayback' should be the
-							name of the context that the Wayback Machine webapp
-							is deployed to (wayback.war => 'wayback' context,
-							foo.war => 'foo' context).
-						</td>
-					</tr>
-					<tr>
-						<td>
-							jsuri
-						</td>
-						<td>
-							http://localhost:8080/wayback/wm.js
-						</td>
-						<td>
-							This should be set to the absolute HTTP URL where
-							the wm.js file is located. Most likely, you can
-							follow the instructions for modifying the 
-							<b>replayuriprefix</b>, but add "/wm.js" to the end.
-						</td>
-					</tr>
-					<tr>
-						<td>
-							arcdbpath
-						</td>
-						<td>
-							/tmp/wayback/arc-db
-						</td>
-						<td>
-							Directory where the database containing the HTTP Url
-							for each ARC files is stored. This directory must 
-							exist.
-						</td>
-					</tr>
-					<tr>
-						<td>
-							arcdbname
-						</td>
-						<td>
-							arc-db
-						</td>
-						<td>
-							Name of the database that stores ARC file locations.
-						</td>
-					</tr>
-				</table>
-			</subsection>
-			<subsection name="web-http11-proxy.xml specific configuration">
-				<p>
-					The following table describes additional configurations 
-					available in the web-http11-proxy.xml file.
-				</p>
-				<table>
-					<tr>
-						<td>
-							Option
-						</td>
-						<td>
-							Default value
-						</td>
-						<td>
-							Description
-						</td>
-					</tr>
-					<tr>
-						<td>
-							arcdbpath
-						</td>
-						<td>
-							/tmp/wayback/arc-db
-						</td>
-						<td>
-							Directory where the database containing the HTTP Url
-							for each ARC files is stored. This directory must 
-							exist.
-						</td>
-					</tr>
-					<tr>
-						<td>
-							arcdbname
-						</td>
-						<td>
-							arc-db
-						</td>
-						<td>
-							Name of the database that stores ARC file locations.
-						</td>
-					</tr>
-				</table>
-			</subsection>
-			<subsection name="web-http11-timeline.xml specific configuration">
-				<p>
-					The following table describes additional configurations 
-					available in the web-http11-timeline.xml file.
-				</p>
-				<table>
-					<tr>
-						<td>
-							Option
-						</td>
-						<td>
-							Default value
-						</td>
-						<td>
-							Description
-						</td>
-					</tr>
-					<tr>
-						<td>
-							replayuriprefix
-						</td>
-						<td>
-							http://localhost:8080/wayback/replay
-						</td>
-						<td>
-							This should be set to the HTTP prefix to the wayback
-							webapp context. You should set the hostname to the
-							name of the machine where the Wayback Machine 
-							software is runnning, the port to the port that 
-							Tomcat is listening on, and 'wayback' should be the
-							name of the context that the Wayback Machine webapp
-							is deployed to (wayback.war => 'wayback' context,
-							foo.war => 'foo' context).
-						</td>
-					</tr>
-					<tr>
-						<td>
-							metauriprefix
-						</td>
-						<td>
-							http://localhost:8080/wayback/meta
-						</td>
-						<td>
-							This should be set to the HTTP prefix to the wayback
-							webapp context. You should set the hostname to the
-							name of the machine where the Wayback Machine 
-							software is runnning, the port to the port that 
-							Tomcat is listening on, and 'wayback' should be the
-							name of the context that the Wayback Machine webapp
-							is deployed to (wayback.war => 'wayback' context,
-							foo.war => 'foo' context).
-						</td>
-					</tr>
-					<tr>
-						<td>
-							timelineuriprefix
-						</td>
-						<td>
-							http://localhost:8080/wayback/timeline
-						</td>
-						<td>
-							This should be set to the HTTP prefix to the wayback
-							webapp context. You should set the hostname to the
-							name of the machine where the Wayback Machine 
-							software is runnning, the port to the port that 
-							Tomcat is listening on, and 'wayback' should be the
-							name of the context that the Wayback Machine webapp
-							is deployed to (wayback.war => 'wayback' context,
-							foo.war => 'foo' context).
-						</td>
-					</tr>
-					<tr>
-						<td>
-							frameseturiprefix
-						</td>
-						<td>
-							http://localhost:8080/wayback/frameset
-						</td>
-						<td>
-							This should be set to the HTTP prefix to the wayback
-							webapp context. You should set the hostname to the
-							name of the machine where the Wayback Machine 
-							software is runnning, the port to the port that 
-							Tomcat is listening on, and 'wayback' should be the
-							name of the context that the Wayback Machine webapp
-							is deployed to (wayback.war => 'wayback' context,
-							foo.war => 'foo' context).
-						</td>
-					</tr>
-					<tr>
-						<td>
-							jsuri
-						</td>
-						<td>
-							http://localhost:8080/wayback/jsp/TimelineUI/wm-timeline.js
-						</td>
-						<td>
-							This should be set to the absolute HTTP URL where
-							the wm-timeline.js file is located. Most likely, you can
-							follow the instructions for modifying the 
-							<b>replayuriprefix</b>, but replace "replay" with 
-							"/jsp/TimelineUI/wm-timeline.js".
-						</td>
-					</tr>
-					<tr>
-						<td>
-							arcdbpath
-						</td>
-						<td>
-							/tmp/wayback/arc-db
-						</td>
-						<td>
-							Directory where the database containing the HTTP Url
-							for each ARC files is stored. This directory must 
-							exist.
-						</td>
-					</tr>
-					<tr>
-						<td>
-							arcdbname
-						</td>
-						<td>
-							arc-db
-						</td>
-						<td>
-							Name of the database that stores ARC file locations.
-						</td>
-					</tr>
-				</table>
+
 			</subsection>
 		</section>
 		<section name="Preparing the ResourceIndex">
@@ -1036,7 +923,7 @@
 			</p>
 			<p>
 				How to set up your ResourceIndex depends on whether you are
-				using the LocalARCResourceStore or the Http11ResourceStore. In
+				using the LocalARC ResourceStore or the Http11 ResourceStore. In
 				both cases, the actual index database files will be stored on
 				the machine running the Wayback webapp. If you did not set the
 				<b>indexpipeline.runpipeline</b> configuration to '1', then no
@@ -1044,7 +931,7 @@
 				section assumes that the IndexPipeline is running.
 			</p>
 			<p>
-				If you chose the LocalARCResourceStore, then the Wayback 
+				If you chose the LocalARC ResourceStore, then the Wayback 
 				software will automatically notice new ARC files appearing in
 				the <b>arcpath</b> directory. When new ARC files appear, a
 				plain-text index file for each ARC file will be created and
@@ -1055,9 +942,9 @@
 				section below.)
 			</p>
 			<p>
-				If you chose the Http11ResourceStore, then you will need to run
-				an additional script on each machine that holds ARC files. For each
-				ARC file found, this script will:
+				If you chose the Http11 ResourceStore, then you will need to run
+				an additional script on each machine that holds ARC files. For
+				each ARC file found, this script will:
 				<ol>
 					<li>
 						generate the plain-text index file for the ARC file
@@ -1144,7 +1031,7 @@
 			</p>
 			<p>
 				If you have already populated your index, and just need to 
-				indicate to the LocationDB of where ARC files can be found,
+				inform the LocationDB of where ARC files can be found,
 				there is another script, which can also be found underneath the
 				directory where	you unpacked your distribution at:
 				<b>
@@ -1289,8 +1176,9 @@
 					you configured as the proxy server. For information on 
 					status, configurations and queries, please consult the 
 					documentation for Using the Wayback Machine in Archival URL 
-					mode. One common problem in Firefox Proxy configuration, you
-					do not include the "http://" in the proxy server name.
+					mode. A common problem in Firefox Proxy configuration is 
+					including the "http://": you do not include the "http://" 
+					in the proxy server name.
 				</p>
 			</subsection>
 			<subsection name="Timeline mode usage">

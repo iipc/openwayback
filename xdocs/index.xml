@@ -9,6 +9,20 @@
 
   <body>
     <section name="News">
+        <subsection name="New Release - 0.6.0, 07/14/2006">
+            <p>
+            	Release 0.6.0 offers:
+	            <ul>
+	            	<li>
+	            		Timeline Mode - comparable with WERA user interface.
+	            	</li>
+	            	<li>
+						Manual Exclusions - allows for blocking sites and paths
+						from the index for specific ranges of time.
+	            	</li>
+	            </ul>
+            </p>
+        </subsection>
         <subsection name="New Release - 0.4.0, 03/28/2006">
             <p>
             	Release 0.4.0 offers many new features and improvements, 
@@ -72,16 +86,21 @@
         the Wayback Machine. This has the strong advantage that no Javascript 
         page markup is required to coerce the client browser to request 
         additional URLs and embedded content from the Wayback Machine -- content
-        just works as-is. One major disadvantage of this mode is that there is
-        no way to forward temporal information with each replay request. Because
-        of this limitation, only the most recently archived version of any 
-        resource is accessible thru the Wayback Machine in proxy Url mode. 
-        Another limitation of the Proxy URL mode is that it requires special
-        configuration of the client web browser to access the Wayback Service. 
-        This browser configuration is not complex, but it means that content 
-        cannot be accessed as a global URL.
+        just works as-is. When used with the Firefox plugin extension, available
+        <a href="http://archive-access.sourceforge.net/projects/waxtoolbar/">
+        	here
+        </a>, client browsers can navigate between versions of the current 
+        document, and the Wayback Machine server will attempt to display images
+        from the same time period as pages being viewed. The Proxy URL mode 
+		requires special configuration of the client web browser to access the 
+		Wayback Service. This browser configuration is not complex, but it 
+		means that content cannot be accessed as a global URL.
         </p>
-        <p>See the <a huref="user_manual.html">User Manual</a> to learn more
+        <p>
+        Timeline Mode allows for navigation between different dates collected
+        of the current page, similar to the WERA application, using framesets.
+        </p>
+        <p>See the <a href="user_manual.html">User Manual</a> to learn more
         about access modes.
         </p>
         <p>
