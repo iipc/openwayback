@@ -9,12 +9,12 @@
 	<classpathentry kind="lib" path="lib/commons-httpclient-3.0-rc3.jar"/>
 	<classpathentry kind="lib" path="lib/libidn-0.5.9.jar"/>
 	<classpathentry kind="lib" path="lib/commons-codec-1.3.jar"/>
-	<classpathentry kind="lib" path="lib/commons-pool-1.2.jar"/>
+	<classpathentry kind="lib" path="lib/commons-pool-1.3-kb.jar"/>
 	<classpathentry kind="lib" path="lib/commons-collections-3.1.jar"/>
 	<classpathentry kind="lib" path="lib/dsi.unimi.it-1.2.0.jar"/>
 	<classpathentry kind="lib" path="lib/chardet.jar"/>
 	<classpathentry sourcepath="ECLIPSE_HOME/plugins/org.eclipse.jdt.source_3.1.1/src/org.junit_3.8.1/junitsrc.zip" kind="var" path="JUNIT_HOME/junit.jar"/>
-	<classpathentry kind="lib" path="lib/archive-commons-1.9.0-200606231551.jar"/>
+	<classpathentry sourcepath="/ArchiveOpenCrawler/src/java" kind="lib" path="lib/archive-commons-1.9.0-200607171747.jar"/>
 	<classpathentry kind="lib" path="lib/commons-logging-1.0.4.jar"/>
 	<classpathentry kind="output" path="src/webapp/WEB-INF/classes"/>
 </classpath>
