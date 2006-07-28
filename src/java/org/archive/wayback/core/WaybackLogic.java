@@ -73,7 +73,7 @@ public class WaybackLogic implements PropertyConfigurable {
 	 * Properties. Will ferret away the configuration properties, to be
 	 * used later when constructing and initializing implementations of
 	 * ResourceIndex, ResourceStore, QueryUI, ReplayUI, and 
-	 * ReplayResultURIConverter.
+	 * ResultURIConverter.
 	 * 
 	 * @param configuration
 	 *            Generic properties bag for configurations

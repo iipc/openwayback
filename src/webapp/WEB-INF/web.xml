@@ -388,7 +388,7 @@ configuration to notice and automatically index new ARC files as they arrive.
     </context-param>
 
     <context-param>
-        <param-name>arcpath</param-name>
+        <param-name>resourcestore.arcpath</param-name>
         <param-value>/tmp/wayback/arcs</param-value>
         <description>
             Directory where ARC files are found (possibly where Heritrix writes them.)
@@ -423,13 +423,13 @@ These options are not used by default.
     </context-param>
 
     <context-param>
-        <param-name>arcdbpath</param-name>
+        <param-name>filelocationdb.path</param-name>
         <param-value>/tmp/wayback/arc-db</param-value>
         <description>Directory where arc-db is stored. Must exist.</description>
     </context-param>
 
     <context-param>
-        <param-name>arcdbname</param-name>
+        <param-name>filelocationdb.name</param-name>
         <param-value>arc-db</param-value>
         <description>name for BDBJE arc database</description>
     </context-param>
@@ -643,32 +643,32 @@ These options are not used by default.
     </context-param>
 
     <context-param>
-        <param-name>robotdbpath</param-name>
-        <param-value>/tmp/wayback/robotsdb</param-value>
+        <param-name>liveweb.cachedbpath</param-name>
+        <param-value>/tmp/wayback/cachedb</param-value>
         <description>directory where database of cached robots.txt document information is kept</description>
     </context-param>
 
     <context-param>
-        <param-name>robotdbname</param-name>
-        <param-value>robotdb</param-value>
+        <param-name>liveweb.cachedbname</param-name>
+        <param-value>cachedb</param-value>
         <description>name of database where cached robots.txt document information is kept</description>
     </context-param>
 
     <context-param>
-        <param-name>robotarcdir</param-name>
-        <param-value>/tmp/wayback/robot-arcs</param-value>
+        <param-name>liveweb.arcdir</param-name>
+        <param-value>/tmp/wayback/liveweb-arcs</param-value>
         <description>directory where ARC files containing cached robots.txt documents are stored</description>
     </context-param>
 
     <context-param>
-        <param-name>robotarcprefix</param-name>
+        <param-name>liveweb.arcprefix</param-name>
         <param-value>live-robots</param-value>
         <description>ARC filename prefix for robot.txt document storage</description>
     </context-param>
 
     <context-param>
-        <param-name>tempdir</param-name>
-        <param-value>/tmp/wayback/robot-temp</param-value>
+        <param-name>liveweb.tempdir</param-name>
+        <param-value>/tmp/wayback/liveweb-temp</param-value>
         <description>Directory where robots.txt documents are store temporarily</description>
     </context-param>
 
@@ -714,32 +714,32 @@ These options are not used by default.
     </context-param>
 
     <context-param>
-        <param-name>robotdbpath</param-name>
-        <param-value>/tmp/wayback/robotsdb</param-value>
+        <param-name>liveweb.cachedbpath</param-name>
+        <param-value>/tmp/wayback/cachedb</param-value>
         <description>directory where database of cached robots.txt document information is kept</description>
     </context-param>
 
     <context-param>
-        <param-name>robotdbname</param-name>
-        <param-value>robotdb</param-value>
+        <param-name>liveweb.cachedbname</param-name>
+        <param-value>cachedb</param-value>
         <description>name of database where cached robots.txt document information is kept</description>
     </context-param>
 
     <context-param>
-        <param-name>robotarcdir</param-name>
-        <param-value>/tmp/wayback/robot-arcs</param-value>
+        <param-name>liveweb.arcdir</param-name>
+        <param-value>/tmp/wayback/liveweb-arcs</param-value>
         <description>directory where ARC files containing cached robots.txt documents are stored</description>
     </context-param>
 
     <context-param>
-        <param-name>robotarcprefix</param-name>
+        <param-name>liveweb.arcprefix</param-name>
         <param-value>live-robots</param-value>
         <description>ARC filename prefix for robot.txt document storage</description>
     </context-param>
 
     <context-param>
-        <param-name>tempdir</param-name>
-        <param-value>/tmp/wayback/robot-temp</param-value>
+        <param-name>liveweb.tempdir</param-name>
+        <param-value>/tmp/wayback/liveweb-temp</param-value>
         <description>Directory where robots.txt documents are store temporarily</description>
     </context-param>
 -->

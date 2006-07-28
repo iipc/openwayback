@@ -44,7 +44,7 @@ import org.archive.wayback.exception.ResourceNotAvailableException;
  * @version $Date$, $Revision$
  */
 public class LocalARCResourceStore implements ResourceStore {
-	private static final String RESOURCE_PATH = "arcpath";
+	private static final String RESOURCE_PATH = "resourcestore.arcpath";
 
 	private String path = null;
 

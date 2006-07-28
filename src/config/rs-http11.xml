@@ -12,13 +12,13 @@
     </context-param>
 
     <context-param>
-        <param-name>arcdbpath</param-name>
+        <param-name>filelocationdb.path</param-name>
         <param-value>/tmp/wayback/arc-db</param-value>
         <description>Directory where arc-db is stored. Must exist.</description>
     </context-param>
 
     <context-param>
-        <param-name>arcdbname</param-name>
+        <param-name>filelocationdb.name</param-name>
         <param-value>arc-db</param-value>
         <description>name for BDBJE arc database</description>
     </context-param>

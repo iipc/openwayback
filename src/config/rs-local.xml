@@ -6,7 +6,7 @@
     </context-param>
 
     <context-param>
-        <param-name>arcpath</param-name>
+        <param-name>resourcestore.arcpath</param-name>
         <param-value>/tmp/wayback/arcs</param-value>
         <description>
             Directory where ARC files are found (possibly where Heritrix writes them.)

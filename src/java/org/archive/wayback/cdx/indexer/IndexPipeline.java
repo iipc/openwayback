@@ -96,7 +96,7 @@ public class IndexPipeline implements PropertyConfigurable{
 	/**
 	 * Name of configuration for directory containing ARC files
 	 */
-	private final static String ARC_PATH = "arcpath";
+	private final static String ARC_PATH = "resourcestore.arcpath";
 
 	/**
 	 * Name of configuration for directory under which pipeline state is stored

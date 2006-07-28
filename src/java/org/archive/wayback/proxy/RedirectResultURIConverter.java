@@ -49,7 +49,7 @@ public class RedirectResultURIConverter implements ResultURIConverter {
     private String redirectPath;
     
     /* (non-Javadoc)
-	 * @see org.archive.wayback.ReplayResultURIConverter#init(java.util.Properties)
+	 * @see org.archive.wayback.ResultURIConverter#init(java.util.Properties)
 	 */
 	public void init(Properties p) throws ConfigurationException {
 	    redirectPath = (String) p.get(REDIRECT_PATH_PROPERTY);
@@ -59,7 +59,7 @@ public class RedirectResultURIConverter implements ResultURIConverter {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.archive.wayback.ReplayResultURIConverter#makeReplayURI(org.archive.wayback.core.ResourceResult)
+	 * @see org.archive.wayback.ResultURIConverter#makeReplayURI(org.archive.wayback.core.ResourceResult)
 	 */
 	public String makeReplayURI(SearchResult result) {
 		String finalUrl = result.get(WaybackConstants.RESULT_URL); 
@@ -87,7 +87,7 @@ public class RedirectResultURIConverter implements ResultURIConverter {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.archive.wayback.ReplayResultURIConverter#makeRedirectReplayURI(org.archive.wayback.core.SearchResult, java.lang.String)
+	 * @see org.archive.wayback.ResultURIConverter#makeRedirectReplayURI(org.archive.wayback.core.SearchResult, java.lang.String)
 	 */
 	public String makeRedirectReplayURI(SearchResult result, String url, String baseUrl) {
 		String finalUrl = url;

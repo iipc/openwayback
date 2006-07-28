@@ -81,6 +81,7 @@ public class BaseReplayRenderer implements ReplayRenderer,
 	// when converting a document to a string, the 'chardet' library is used.
 	// this variable is set to true in a callback if the library was able
 	// to determing the character encoding.
+	// BUGBUG: needs to be thread local:
 	private String foundCharset = null;
 
 	// hand off this many bytes to the chardet library
@@ -95,6 +96,7 @@ public class BaseReplayRenderer implements ReplayRenderer,
 	private final static int BYTE_BUFFER_SIZE = 4 * 1024;
 
 	// reusable buffer for copying data to clients:
+	// BUGBUG: needs to be thread local?
 	private byte[] buffer = new byte[BYTE_BUFFER_SIZE];
 
 	protected final Pattern IMAGE_REGEX = Pattern
@@ -114,7 +116,7 @@ public class BaseReplayRenderer implements ReplayRenderer,
 	public void init(Properties p) throws ConfigurationException {
 		this.jspPath = (String) p.get(JSP_PATH);
 		if (this.jspPath == null || this.jspPath.length() <= 0) {
-			throw new IllegalArgumentException("Failed to find " + JSP_PATH);
+			throw new ConfigurationException("Failed to find " + JSP_PATH);
 		}
 	}
 

@@ -70,15 +70,15 @@ public class RoboCache implements ExclusionAuthority {
 	private static final Logger LOGGER = Logger.getLogger(RoboCache.class
 			.getName());
 
-	private static final String ROBOT_DB_PATH = "robotdbpath";
+	private static final String ROBOT_DB_PATH = "liveweb.cachedbpath";
 
-	private static final String ROBOT_DB_NAME = "robotdbname";
+	private static final String ROBOT_DB_NAME = "liveweb.cachedbname";
 
-	private static final String ROBOT_ARC_DIR = "robotarcdir";
+	private static final String ROBOT_ARC_DIR = "liveweb.arcdir";
 
-	private static final String ROBOT_ARC_PREFIX = "robotarcprefix";
+	private static final String ROBOT_ARC_PREFIX = "liveweb.arcprefix";
 
-	private static final String TMP_DIR = "tempdir";
+	private static final String TMP_DIR = "liveweb.tempdir";
 
 	private final static String valueDelimiterRE = " ";
 
