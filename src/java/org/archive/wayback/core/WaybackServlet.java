@@ -56,16 +56,16 @@ public class WaybackServlet extends HttpServlet {
 	public void init(ServletConfig c) throws ServletException {
 
 		Properties p = new Properties();
-		for (Enumeration e = c.getInitParameterNames(); e.hasMoreElements();) {
-			String key = (String) e.nextElement();
-			p.put(key, c.getInitParameter(key));
-		}
 		ServletContext sc = c.getServletContext();
 		for (Enumeration e = sc.getInitParameterNames(); e.hasMoreElements();) {
 			String key = (String) e.nextElement();
 			p.put(key, sc.getInitParameter(key));
 		}
-
+		for (Enumeration e = c.getInitParameterNames(); e.hasMoreElements();) {
+			String key = (String) e.nextElement();
+			p.put(key, c.getInitParameter(key));
+		}
+		
 		wayback.init(p);
 	}
 	
