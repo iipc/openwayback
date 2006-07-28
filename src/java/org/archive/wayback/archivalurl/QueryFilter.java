@@ -56,15 +56,15 @@ public class QueryFilter extends RequestFilter {
 	private final static Pattern WB_PATH_QUERY_REGEX = Pattern
 			.compile("^/(\\d{0,13})\\*/(.*)\\*$");
 
-	public WaybackRequest parseRequest(HttpServletRequest request) {
+	public WaybackRequest parseRequest(HttpServletRequest httpRequest) {
 		WaybackRequest wbRequest = null;
 		Matcher matcher = null;
-		String queryString = request.getQueryString();
-		String origRequestPath = request.getRequestURI();
+		String queryString = httpRequest.getQueryString();
+		String origRequestPath = httpRequest.getRequestURI();
 		if (queryString != null) {
-			origRequestPath = request.getRequestURI() + "?" + queryString;
+			origRequestPath = httpRequest.getRequestURI() + "?" + queryString;
 		}
-		String contextPath = request.getContextPath();
+		String contextPath = httpRequest.getContextPath();
 		if (!origRequestPath.startsWith(contextPath)) {
 			return null;
 		}
@@ -92,7 +92,7 @@ public class QueryFilter extends RequestFilter {
 				UURI requestURI = UURIFactory.getInstance(urlStr);
 				wbRequest.put(WaybackConstants.REQUEST_URL,
 						requestURI.toString());
-				wbRequest.fixup();
+				wbRequest.fixup(httpRequest);
 //				wbRequest.setRequestURI(requestURI);
 			} catch (URIException e) {
 				wbRequest = null;
@@ -120,7 +120,7 @@ public class QueryFilter extends RequestFilter {
 				try {
 					UURI requestURI = UURIFactory.getInstance(urlStr);
 					wbRequest.put(WaybackConstants.REQUEST_URL,requestURI.toString());
-					wbRequest.fixup();
+					wbRequest.fixup(httpRequest);
 				} catch (URIException e) {
 					wbRequest = null;
 				}

@@ -28,6 +28,8 @@ import java.util.Properties;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.query.OpenSearchQueryParser;
 
@@ -104,11 +106,48 @@ public class WaybackRequest {
 		filters.put(key, value);
 	}
 	
+	private String emptyIfNull(String arg) {
+		if(arg == null) {
+			return "";
+		}
+		return arg;
+	}
+
+	
+	/**
+	 * extract REFERER, remote IP and authorization information from the
+	 * HttpServletRequest
+	 * 
+	 * @param httpRequest
+	 */
+	private void extractHttpRequestInfo(HttpServletRequest httpRequest) {
+		// attempt to get the HTTP referer if present..
+		put(WaybackConstants.REQUEST_REFERER_URL, 
+				emptyIfNull(httpRequest.getHeader("REFERER")));
+		put(WaybackConstants.REQUEST_REMOTE_ADDRESS, 
+				emptyIfNull(httpRequest.getRemoteAddr()));
+		put(WaybackConstants.REQUEST_WAYBACK_HOSTNAME, 
+				emptyIfNull(httpRequest.getLocalName()));
+		put(WaybackConstants.REQUEST_WAYBACK_PORT,
+				String.valueOf(httpRequest.getLocalPort()));
+		put(WaybackConstants.REQUEST_WAYBACK_CONTEXT,
+				emptyIfNull(httpRequest.getContextPath()));
+		put(WaybackConstants.REQUEST_AUTH_TYPE,
+				emptyIfNull(httpRequest.getAuthType()));
+		put(WaybackConstants.REQUEST_REMOTE_USER,
+				emptyIfNull(httpRequest.getRemoteUser()));
+		// TODO: cookies...
+	}
+	
 	/**
 	 * attempt to fixup this WaybackRequest, mostly with respect to dates:
-	 *   if only "date" was specified, infer start and end dates from it.
+	 * if only "date" was specified, infer start and end dates from it. Also
+	 * grab useful info from the HttpServletRequest, cookies, remote address, 
+	 * etc.
+	 * 
+	 * @param httpRequest 
 	 */
-	public void fixup() {
+	public void fixup(HttpServletRequest httpRequest) {
 		String startDate = get(WaybackConstants.REQUEST_START_DATE);
 		String endDate = get(WaybackConstants.REQUEST_END_DATE);
 		String exactDate = get(WaybackConstants.REQUEST_EXACT_DATE);
@@ -137,6 +176,7 @@ public class WaybackRequest {
 			put(WaybackConstants.REQUEST_EXACT_DATE,
 					Timestamp.padEndDateStr(exactDate));
 		}
+		extractHttpRequestInfo(httpRequest);
 	}
 	
 	/**

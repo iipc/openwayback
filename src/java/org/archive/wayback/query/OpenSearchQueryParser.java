@@ -29,7 +29,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
-import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadQueryException;
 
@@ -110,14 +109,7 @@ public class OpenSearchQueryParser {
 			parseTerms(wbRequest, query);
 		}
 
-		// attempt to get the HTTP referer if present..
-		String referer = httpRequest.getHeader("REFERER");
-		if (referer == null) {
-			referer = "";
-		}
-		wbRequest.put(WaybackConstants.REQUEST_REFERER_URL, referer);
-
-		wbRequest.fixup();
+		wbRequest.fixup(httpRequest);
 		return wbRequest;
 	}
 	

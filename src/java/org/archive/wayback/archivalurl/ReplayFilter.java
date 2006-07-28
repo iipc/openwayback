@@ -117,17 +117,11 @@ public class ReplayFilter extends RequestFilter {
 			wbRequest.put(WaybackConstants.REQUEST_TYPE,
 					WaybackConstants.REQUEST_REPLAY_QUERY);
 			
-			String referer = httpRequest.getHeader("REFERER");
-			if (referer == null) {
-				referer = "";
-			}
-			wbRequest.put(WaybackConstants.REQUEST_REFERER_URL,referer);
-
 			try {
 				UURI requestURI = UURIFactory.getInstance(urlStr);
 				wbRequest.put(WaybackConstants.REQUEST_URL,
 						requestURI.toString());
-				wbRequest.fixup();
+				wbRequest.fixup(httpRequest);
 			} catch (URIException e) {
 				wbRequest = null;
 			}

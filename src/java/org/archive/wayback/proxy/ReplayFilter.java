@@ -79,11 +79,6 @@ public class ReplayFilter extends RequestFilter {
 		wbRequest.put(WaybackConstants.REQUEST_TYPE,
 				WaybackConstants.REQUEST_REPLAY_QUERY);
 
-		String referer = httpRequest.getHeader("REFERER");
-		if (referer == null) {
-			referer = "";
-		}
-		wbRequest.put(WaybackConstants.REQUEST_REFERER_URL,referer);
           
 		// Get the id from the request. If no id, use the ip-address instead.
         // Then get the timestamp (or rather datestr) matching this id.
@@ -92,7 +87,9 @@ public class ReplayFilter extends RequestFilter {
         wbRequest.put(WaybackConstants.REQUEST_EXACT_DATE, 
         		Timestamp.getTimestampForId(id));
 		
-		return wbRequest;
+        wbRequest.fixup(httpRequest);
+        
+        return wbRequest;
 	}
     protected boolean isLocalRequest(HttpServletRequest httpRequest) {
         return this.localhostNames.contains(httpRequest.getServerName());

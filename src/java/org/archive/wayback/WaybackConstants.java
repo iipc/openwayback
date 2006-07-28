@@ -134,6 +134,38 @@ public interface WaybackConstants {
 	 */
 	public static final String REQUEST_RESOLUTION_AUTO = "auto";
 	
+	/**
+	 * Request: Remote Address, string IP address: "127.0.0.1" 
+	 */
+	public static final String REQUEST_REMOTE_ADDRESS = "remoteaddress";
+
+	/**
+	 * Request: Wayback Hostname: the string "Host:" HTTP header  
+	 */
+	public static final String REQUEST_WAYBACK_HOSTNAME = "waybackhostname";
+	
+	/**
+	 * Request: Wayback Port: the port the remote user connected to for this
+	 * request.  
+	 */
+	public static final String REQUEST_WAYBACK_PORT = "waybackport";
+	
+	/**
+	 * Request: Wayback Context: the string context used in the request,
+	 * if applicable.
+	 */
+	public static final String REQUEST_WAYBACK_CONTEXT = "waybackcontext";
+
+	/**
+	 * Request: Authorization Type: "BASIC", "SSL", or "" if none.
+	 */
+	public static final String REQUEST_AUTH_TYPE = "requestauthtype";
+
+	/**
+	 * Request: Remote User or "" if the request did not contain auth info.
+	 */
+	public static final String REQUEST_REMOTE_USER = "requestremoteuser";
+
 	
 	/**
 	 * Results: int total number of records matching, not all necc. returned.
