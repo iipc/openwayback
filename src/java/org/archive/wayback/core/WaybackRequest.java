@@ -140,6 +140,30 @@ public class WaybackRequest {
 	}
 	
 	/**
+	 * Construct an absolute URL that points to the root of the context that
+	 * recieved the request, including a trailing "/".
+	 * 
+	 * @return String absolute URL pointing to the Context root where the
+	 * request was revieved.
+	 */
+	public String getDefaultWaybackPrefix() {
+		String waybackHostname = get(WaybackConstants.REQUEST_WAYBACK_HOSTNAME);
+		String waybackPort = get(WaybackConstants.REQUEST_WAYBACK_PORT);
+		String waybackContext = get(WaybackConstants.REQUEST_WAYBACK_CONTEXT);
+		StringBuilder prefix = new StringBuilder();
+		prefix.append(WaybackConstants.HTTP_URL_PREFIX);
+		prefix.append(waybackHostname);
+		if(waybackPort.compareTo(WaybackConstants.HTTP_DEFAULT_PORT) != 0) {
+			prefix.append(":").append(waybackPort);
+		}
+		prefix.append("/");
+		if(waybackContext != null && waybackContext.length() > 0) {
+			prefix.append(waybackContext).append("/");
+		}
+		return prefix.toString();
+	}
+	
+	/**
 	 * attempt to fixup this WaybackRequest, mostly with respect to dates:
 	 * if only "date" was specified, infer start and end dates from it. Also
 	 * grab useful info from the HttpServletRequest, cookies, remote address, 

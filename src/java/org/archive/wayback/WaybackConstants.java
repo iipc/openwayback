@@ -38,6 +38,11 @@ public interface WaybackConstants {
 	public static final String HTTP_URL_PREFIX = "http://";
 
 	/**
+	 * default HTTP port: 
+	 */
+	public static final String HTTP_DEFAULT_PORT = "80";
+
+	/**
 	 * prefixes of DNS Record URLs.. 
 	 */
     public static final String DNS_URL_PREFIX = "dns:";

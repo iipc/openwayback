@@ -89,6 +89,7 @@ public class CDXRecord {
 	 * name of ARC file containing this document, may or may not include .arc.gz
 	 */
 	public String arcFileName = null;
+	private static UrlCanonicalizer canonicalizer = new UrlCanonicalizer();
 
 	/**
 	 * Constructor
@@ -107,7 +108,7 @@ public class CDXRecord {
 	public static String urlStringToKey(final String urlString)
 			throws URIException {
 
-		String searchUrl = urlString;
+		String searchUrl = canonicalizer.canonicalize(urlString);
 
 		// TODO: this will only work with http:// scheme. should work with all?
 		// force add of scheme and possible add '/' with empty path:
