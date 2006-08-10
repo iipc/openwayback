@@ -94,6 +94,15 @@ public class PipelineFilter implements Filter {
 	public void init(FilterConfig c) throws ServletException {
 
 		Properties p = new Properties();
+		ServletContext sc = c.getServletContext();
+		for (Enumeration e = sc.getInitParameterNames(); e.hasMoreElements();) {
+			String key = (String) e.nextElement();
+			p.put(key, sc.getInitParameter(key));
+		}
+		for (Enumeration e = c.getInitParameterNames(); e.hasMoreElements();) {
+			String key = (String) e.nextElement();
+			p.put(key, c.getInitParameter(key));
+		}
 
 		pipelineStatusJsp = c.getInitParameter(PIPELINE_STATUS_JSP);
 		if ((pipelineStatusJsp == null) || (pipelineStatusJsp.length() <= 0)) {
@@ -109,11 +118,6 @@ public class PipelineFilter implements Filter {
 			throw new IllegalArgumentException("Failed to find " + DB_NAME);
 		}
 
-		ServletContext sc = c.getServletContext();
-		for (Enumeration e = sc.getInitParameterNames(); e.hasMoreElements();) {
-			String key = (String) e.nextElement();
-			p.put(key, sc.getInitParameter(key));
-		}
 		BDBResourceIndex db;
 		try {
 			db = new BDBResourceIndex(dbPath,dbName,false);
