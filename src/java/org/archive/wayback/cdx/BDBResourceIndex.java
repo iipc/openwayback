@@ -80,31 +80,38 @@ public class BDBResourceIndex {
 	 *            directory where BDBJE files are stored
 	 * @param theDbName
 	 *            name of BDB database
+	 * @param readOnly
+	 * 			  whether environment and DB should be opened as writable
 	 * @throws DatabaseException 
 	 */
-	public BDBResourceIndex(final String thePath, final String theDbName)
+	public BDBResourceIndex(final String thePath, final String theDbName,
+			final boolean readOnly)
 			throws DatabaseException {
 		super();
-		initializeDB(thePath, theDbName);
+		initializeDB(thePath, theDbName, readOnly);
 	}
 
 	/**
 	 * @param thePath Directory where BDBJE files are stored
 	 * @param theDbName Name of files in thePath
+	 * @param readOnly 
 	 * @throws DatabaseException
 	 */
-	protected void initializeDB(final String thePath, final String theDbName)
+	protected void initializeDB(final String thePath, final String theDbName,
+			final boolean readOnly)
 			throws DatabaseException {
 		path = thePath;
 		dbName = theDbName;
 
 		EnvironmentConfig environmentConfig = new EnvironmentConfig();
+		environmentConfig.setReadOnly(readOnly);
 		environmentConfig.setAllowCreate(true);
 		environmentConfig.setTransactional(true);
 		environmentConfig.setConfigParam("je.log.fileMax",JE_LOG_FILEMAX);
 		File file = new File(path);
 		env = new Environment(file, environmentConfig);
 		DatabaseConfig databaseConfig = new DatabaseConfig();
+		databaseConfig.setReadOnly(readOnly);
 		databaseConfig.setAllowCreate(true);
 		databaseConfig.setTransactional(true);
 		// perform other database configurations
@@ -242,7 +249,7 @@ public class BDBResourceIndex {
 	 */
 	public static void main(String[] args) {
 		try {
-			BDBResourceIndex ddb = new BDBResourceIndex(args[0],args[1]);
+			BDBResourceIndex ddb = new BDBResourceIndex(args[0],args[1],true);
 			DatabaseEntry key = new DatabaseEntry();
 			DatabaseEntry value = new DatabaseEntry();
 			

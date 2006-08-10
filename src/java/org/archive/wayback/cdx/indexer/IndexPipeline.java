@@ -79,21 +79,6 @@ public class IndexPipeline implements PropertyConfigurable{
 	private final static String INSTALLATION_NAME = "installationname";
 	
 	/**
-	 * Name of configuration for flag to activate pipeline thread
-	 */
-	private final static String RUN_PIPELINE = "indexpipeline.runpipeline";
-
-	/**
-	 * Name of configuration for directory containing BDBResourceIndex
-	 */
-	private final static String INDEX_PATH = "resourceindex.indexpath";
-
-	/**
-	 * Name of configuration for name of BDBJE database
-	 */
-	private final static String DB_NAME = "resourceindex.dbname";
-
-	/**
 	 * Name of configuration for directory containing ARC files
 	 */
 	private final static String ARC_PATH = "resourcestore.arcpath";
@@ -183,9 +168,11 @@ public class IndexPipeline implements PropertyConfigurable{
 
 	/**
 	 * Constructor
+	 * @param db 
 	 */
-	public IndexPipeline() {
+	public IndexPipeline(BDBResourceIndex db) {
 		super();
+		this.db = db;
 	}
 
 	/** Ensure the argument directory exists
@@ -220,16 +207,16 @@ public class IndexPipeline implements PropertyConfigurable{
 		}
 
 		// where is the BDB? (and what is it named?)
-		String dbPath = (String) p.get(INDEX_PATH);
-		if (dbPath == null || (dbPath.length() <= 0)) {
-			throw new IllegalArgumentException("Failed to find " + INDEX_PATH);
-		}
-
-		String dbName = (String) p.get(DB_NAME);
-		if (dbName == null || (dbName.length() <= 0)) {
-			throw new IllegalArgumentException("Failed to find " + DB_NAME);
-		}
-		
+//		String dbPath = (String) p.get(INDEX_PATH);
+//		if (dbPath == null || (dbPath.length() <= 0)) {
+//			throw new IllegalArgumentException("Failed to find " + INDEX_PATH);
+//		}
+//
+//		String dbName = (String) p.get(DB_NAME);
+//		if (dbName == null || (dbName.length() <= 0)) {
+//			throw new IllegalArgumentException("Failed to find " + DB_NAME);
+//		}
+//		
 		// where do we keep working files?
 		String workPath = (String) p.get(WORK_PATH);
 		if (workPath == null || (workPath.length() <= 0)) {
@@ -250,28 +237,26 @@ public class IndexPipeline implements PropertyConfigurable{
 			ensureDir(indexingDir);
 			ensureDir(toBeMergedDir);
 			ensureDir(mergedDir);
-			File dbFile = new File(dbPath);
-			ensureDir(dbFile);
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw new ConfigurationException(e.getMessage());
 		}
 
-		String runPipeline = (String) p.get(RUN_PIPELINE);
-		try {
-			db = new BDBResourceIndex(dbPath, dbName);
-		} catch (DatabaseException e) {
-			e.printStackTrace();
-			throw new ConfigurationException(e.getMessage());
-		}
+//		String runPipeline = (String) p.get(RUN_PIPELINE);
+//		try {
+//			db = new BDBResourceIndex(dbPath, dbName);
+//		} catch (DatabaseException e) {
+//			e.printStackTrace();
+//			throw new ConfigurationException(e.getMessage());
+//		}
 
-		if ((runPipeline != null) && (runPipeline.equals("1"))) {
+//		if ((runPipeline != null) && (runPipeline.equals("1"))) {
 
 			LOGGER.info("LocalDBDResourceIndex starting pipeline thread...");
 			if (indexUpdateThread == null) {
 				startIndexPipelineThread(db);
 			}
-		}
+//		}
 	}
 	
 	/**

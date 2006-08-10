@@ -72,7 +72,7 @@ public class BDBResourceIndexWriter {
 	 */
 	protected void init(final String thePath, final String theDbName)
 			throws Exception {
-		db = new BDBResourceIndex(thePath, theDbName);
+		db = new BDBResourceIndex(thePath, theDbName, true);
 	}
 
 	/**	initialize this BDBResourceIndexWriter pointing at a BDBResourceIndex

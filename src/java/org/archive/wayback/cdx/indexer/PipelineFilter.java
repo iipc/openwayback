@@ -45,13 +45,26 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.archive.wayback.cdx.BDBResourceIndex;
 import org.archive.wayback.exception.ConfigurationException;
+
+import com.sleepycat.je.DatabaseException;
 
 /**
  * @author brad
  * 
  */
 public class PipelineFilter implements Filter {
+
+	/**
+	 * configuration name for directory containing index
+	 */
+	private final static String INDEX_PATH = "resourceindex.indexpath";
+
+	/**
+	 * configuration name for BDBJE database name within the db directory
+	 */
+	private final static String DB_NAME = "resourceindex.dbname";
 
 	
 	private final static String HTTP_PUT_METHOD = "PUT";
@@ -87,19 +100,31 @@ public class PipelineFilter implements Filter {
 			throw new ServletException("No config (" + PIPELINE_STATUS_JSP
 					+ ")");
 		}
+		String dbPath = (String) p.get(INDEX_PATH);
+		if (dbPath == null || (dbPath.length() <= 0)) {
+			throw new IllegalArgumentException("Failed to find " + INDEX_PATH);
+		}
+		String dbName = (String) p.get(DB_NAME);
+		if (dbName == null || (dbName.length() <= 0)) {
+			throw new IllegalArgumentException("Failed to find " + DB_NAME);
+		}
 
 		ServletContext sc = c.getServletContext();
 		for (Enumeration e = sc.getInitParameterNames(); e.hasMoreElements();) {
 			String key = (String) e.nextElement();
 			p.put(key, sc.getInitParameter(key));
 		}
-
-		pipeline = new IndexPipeline();
+		BDBResourceIndex db;
+		try {
+			db = new BDBResourceIndex(dbPath,dbName,false);
+		} catch (DatabaseException e1) {
+			throw new ServletException(e1);
+		}
+		pipeline = new IndexPipeline(db);
 		try {
 			pipeline.init(p);
 		} catch (ConfigurationException e) {
-			e.printStackTrace();
-			throw new ServletException(e.getMessage());
+			throw new ServletException(e);
 		}
 	}
 	

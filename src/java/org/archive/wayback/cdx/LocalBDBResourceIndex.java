@@ -23,6 +23,7 @@
 
 package org.archive.wayback.cdx;
 
+import java.io.File;
 import java.util.Properties;
 import java.util.logging.Logger;
 
@@ -86,6 +87,11 @@ public class LocalBDBResourceIndex implements ResourceIndex {
 	 */
 	private final static String EXCLUSION_UA = "resourceindex.exclusionua";
 
+	/**
+	 * Name of configuration for flag to activate pipeline thread
+	 */
+	private final static String RUN_PIPELINE = "indexpipeline.runpipeline";
+
 	
 	// TODO: add configuration for MAX_RECORDS
 	/**
@@ -131,13 +137,22 @@ public class LocalBDBResourceIndex implements ResourceIndex {
 		exclusionUserAgent = (String) p.get(EXCLUSION_UA);
 		
 		try {
-			db = new BDBResourceIndex(dbPath, dbName);
+			String runPipeline = (String) p.get(RUN_PIPELINE);
+			if ((runPipeline != null) && (runPipeline.equals("1"))) {
+				File dbDir = new File(dbPath);
+				if (!dbDir.isDirectory() && !dbDir.mkdirs()) {
+					throw new ConfigurationException("FAILED to create " + dbPath);
+				}
+				db = new BDBResourceIndex(dbPath, dbName, true);
+				pipeline = new IndexPipeline(db);
+				pipeline.init(p);
+			} else {
+				db = new BDBResourceIndex(dbPath, dbName, false);
+			}
 		} catch (DatabaseException e) {
 			e.printStackTrace();
 			throw new ConfigurationException(e.getMessage());
 		}
-		pipeline = new IndexPipeline();
-		pipeline.init(p);
 	}
 
 	private String getRequired(WaybackRequest wbRequest, String field, 
