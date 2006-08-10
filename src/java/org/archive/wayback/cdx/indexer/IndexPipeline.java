@@ -160,6 +160,11 @@ public class IndexPipeline implements PropertyConfigurable{
 	private BDBResourceIndex db = null;
 
 	/**
+	 * if true, start the pipeline thread
+	 */
+	private boolean active = false;
+	
+	/**
 	 * Thread object of update thread -- also is flag indicating if the thread
 	 * has already been started -- static, and access to it is synchronized.
 	 */
@@ -169,10 +174,12 @@ public class IndexPipeline implements PropertyConfigurable{
 	/**
 	 * Constructor
 	 * @param db 
+	 * @param active if true, separate pipeline thread will be started
 	 */
-	public IndexPipeline(BDBResourceIndex db) {
+	public IndexPipeline(BDBResourceIndex db,boolean active) {
 		super();
 		this.db = db;
+		this.active = active;
 	}
 
 	/** Ensure the argument directory exists
@@ -206,17 +213,6 @@ public class IndexPipeline implements PropertyConfigurable{
 			arcDir = new File(arcPath);
 		}
 
-		// where is the BDB? (and what is it named?)
-//		String dbPath = (String) p.get(INDEX_PATH);
-//		if (dbPath == null || (dbPath.length() <= 0)) {
-//			throw new IllegalArgumentException("Failed to find " + INDEX_PATH);
-//		}
-//
-//		String dbName = (String) p.get(DB_NAME);
-//		if (dbName == null || (dbName.length() <= 0)) {
-//			throw new IllegalArgumentException("Failed to find " + DB_NAME);
-//		}
-//		
 		// where do we keep working files?
 		String workPath = (String) p.get(WORK_PATH);
 		if (workPath == null || (workPath.length() <= 0)) {
@@ -242,21 +238,12 @@ public class IndexPipeline implements PropertyConfigurable{
 			throw new ConfigurationException(e.getMessage());
 		}
 
-//		String runPipeline = (String) p.get(RUN_PIPELINE);
-//		try {
-//			db = new BDBResourceIndex(dbPath, dbName);
-//		} catch (DatabaseException e) {
-//			e.printStackTrace();
-//			throw new ConfigurationException(e.getMessage());
-//		}
-
-//		if ((runPipeline != null) && (runPipeline.equals("1"))) {
-
+		if(active) {
 			LOGGER.info("LocalDBDResourceIndex starting pipeline thread...");
 			if (indexUpdateThread == null) {
 				startIndexPipelineThread(db);
 			}
-//		}
+		}
 	}
 	
 	/**

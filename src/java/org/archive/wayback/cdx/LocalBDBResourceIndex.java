@@ -135,7 +135,6 @@ public class LocalBDBResourceIndex implements ResourceIndex {
 		exclusionUrlPrefix = (String) p.get(EXCLUSION_PREFIX);
 
 		exclusionUserAgent = (String) p.get(EXCLUSION_UA);
-		
 		try {
 			String runPipeline = (String) p.get(RUN_PIPELINE);
 			if ((runPipeline != null) && (runPipeline.equals("1"))) {
@@ -143,16 +142,17 @@ public class LocalBDBResourceIndex implements ResourceIndex {
 				if (!dbDir.isDirectory() && !dbDir.mkdirs()) {
 					throw new ConfigurationException("FAILED to create " + dbPath);
 				}
-				db = new BDBResourceIndex(dbPath, dbName, true);
-				pipeline = new IndexPipeline(db);
-				pipeline.init(p);
-			} else {
 				db = new BDBResourceIndex(dbPath, dbName, false);
+				pipeline = new IndexPipeline(db,true);
+			} else {
+				db = new BDBResourceIndex(dbPath, dbName, true);
+				pipeline = new IndexPipeline(db,false);
 			}
 		} catch (DatabaseException e) {
 			e.printStackTrace();
 			throw new ConfigurationException(e.getMessage());
 		}
+		pipeline.init(p);
 	}
 
 	private String getRequired(WaybackRequest wbRequest, String field, 

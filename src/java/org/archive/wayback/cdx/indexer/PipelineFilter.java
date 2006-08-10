@@ -75,6 +75,11 @@ public class PipelineFilter implements Filter {
 	private final String PIPELINE_STATUS_JSP = "pipeline.statusjsp";
 
 	/**
+	 * Name of configuration for flag to activate pipeline thread
+	 */
+	private final static String RUN_PIPELINE = "indexpipeline.runpipeline";
+
+	/**
 	 * IndexPipeline object
 	 */
 	private IndexPipeline pipeline = null;
@@ -93,6 +98,7 @@ public class PipelineFilter implements Filter {
 
 	public void init(FilterConfig c) throws ServletException {
 
+		boolean pipelineReadonly = true;
 		Properties p = new Properties();
 		ServletContext sc = c.getServletContext();
 		for (Enumeration e = sc.getInitParameterNames(); e.hasMoreElements();) {
@@ -117,14 +123,17 @@ public class PipelineFilter implements Filter {
 		if (dbName == null || (dbName.length() <= 0)) {
 			throw new IllegalArgumentException("Failed to find " + DB_NAME);
 		}
-
+		String runPipeline = (String) p.get(RUN_PIPELINE);
+		if ((runPipeline != null) && (runPipeline.equals("1"))) {
+			pipelineReadonly = false;
+		}
 		BDBResourceIndex db;
 		try {
-			db = new BDBResourceIndex(dbPath,dbName,false);
+			db = new BDBResourceIndex(dbPath,dbName,pipelineReadonly);
 		} catch (DatabaseException e1) {
 			throw new ServletException(e1);
 		}
-		pipeline = new IndexPipeline(db);
+		pipeline = new IndexPipeline(db,!pipelineReadonly);
 		try {
 			pipeline.init(p);
 		} catch (ConfigurationException e) {
