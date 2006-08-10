@@ -153,9 +153,7 @@ public class QueryServlet extends WaybackServlet {
         SearchResult closest = null;
         long closestDistance = 0;
         SearchResult cur = null;
-        String id = request.getHeader("Proxy-Id");
-        if(id == null) id = request.getRemoteAddr();
-        String requestsDate = Timestamp.getTimestampForId(id);
+        String requestsDate = wbRequest.get(WaybackConstants.REQUEST_EXACT_DATE);
         Timestamp wantTimestamp;
         wantTimestamp = Timestamp.parseBefore(requestsDate);
 
