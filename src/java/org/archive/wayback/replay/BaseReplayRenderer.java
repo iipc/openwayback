@@ -124,7 +124,10 @@ public class BaseReplayRenderer implements ReplayRenderer,
 
 	private boolean requestIsEmbedded(HttpServletRequest httpRequest,
 			WaybackRequest wbRequest) {
-
+		// without a wbRequest, assume it is not embedded: send back HTML
+		if(wbRequest == null) {
+			return false;
+		}
 		String referer = wbRequest.get(WaybackConstants.REQUEST_REFERER_URL);
 		return (referer != null && referer.length() > 0);
 	}
