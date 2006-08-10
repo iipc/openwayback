@@ -85,7 +85,7 @@ public class ReplayFilter extends RequestFilter {
         String id = httpRequest.getHeader("Proxy-Id");
         if(id == null) id = httpRequest.getRemoteAddr();
         wbRequest.put(WaybackConstants.REQUEST_EXACT_DATE, 
-        		Timestamp.getTimestampForId(id));
+        		Timestamp.getTimestampForId(httpRequest.getContextPath(),id));
 		
         wbRequest.fixup(httpRequest);
         
