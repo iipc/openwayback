@@ -470,7 +470,7 @@ implementation.
     </filter>
     <filter-mapping>
         <filter-name>PipelineFilter</filter-name>
-        <url-pattern>/pipeline</url-pattern>
+        <url-pattern>/pipeline/*</url-pattern>
     </filter-mapping>
 
     <context-param>
