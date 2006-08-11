@@ -23,6 +23,7 @@
 
 package org.archive.wayback.core;
 
+import java.io.File;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -464,7 +465,9 @@ public class Timestamp {
 		BDBMap map = null;
     	synchronized(Timestamp.class) {
     		if(!bdbMaps.containsKey(context)) {
-    			bdbMaps.put(context,new BDBMap(context, BDB_DIR));
+    			File bdbDir = new File(BDB_DIR,context);
+    			bdbMaps.put(context,new BDBMap(context, 
+    					bdbDir.getAbsolutePath()));
     		}
     		map = (BDBMap) bdbMaps.get(context);
     	}
