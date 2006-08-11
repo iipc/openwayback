@@ -54,6 +54,11 @@ public class OpenSearchQueryParser {
 	 */
 	public final static String START_PAGE = "start_page";
 
+	/**
+	 * CGI argument name for Submit buttom...
+	 */
+	public final static String SUBMIT_BUTTON = "Submit";
+
 	private final static int DEFAULT_MAX_RECORDS = 1000;
 
 
@@ -118,7 +123,8 @@ public class OpenSearchQueryParser {
 		Iterator itr = keys.iterator();
 		while(itr.hasNext()) {
 			String key = (String) itr.next();
-			if(key.equals(SEARCH_RESULTS) || key.equals(START_PAGE)) {
+			if(key.equals(SEARCH_RESULTS) || key.equals(START_PAGE) || 
+					key.equals(SUBMIT_BUTTON)) {
 				continue;
 			}
 			// just jam everything else in:
