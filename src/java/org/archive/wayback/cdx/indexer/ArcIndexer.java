@@ -145,6 +145,8 @@ public class ArcIndexer {
 			result.put(WaybackConstants.RESULT_ORIG_HOST,origHost);
 			result.put(WaybackConstants.RESULT_REDIRECT_URL,"-");
 			result.put(WaybackConstants.RESULT_URL,uriStr);
+			result.put(WaybackConstants.RESULT_URL_KEY,uriStr);
+			
 		} else {
 		
 			UURI uri = UURIFactory.getInstance(uriStr);
@@ -214,19 +216,30 @@ public class ArcIndexer {
 		BufferedOutputStream bos = new BufferedOutputStream(os);
 		PrintWriter pw = new PrintWriter(bos);
 		try {
-			pw.println(CDXRecord.CDX_HEADER_MAGIC);
-			CDXRecord cdxRecord = new CDXRecord();
-			Iterator itr = results.iterator();
-			while (itr.hasNext()) {
-				SearchResult result = (SearchResult) itr.next();
-				cdxRecord.fromSearchResult(result);
-				pw.println(cdxRecord.toKey() + " " + cdxRecord.toValue());
-			}
+			serializeResults(results,pw);
 		} finally {
 			pw.close();
 		}
 	}
 
+	/**
+	 * @param results
+	 * @param pw
+	 * @throws IOException 
+	 */
+	public void serializeResults(final SearchResults results, PrintWriter pw) 
+		throws IOException {
+		
+		pw.println(CDXRecord.CDX_HEADER_MAGIC);
+		CDXRecord cdxRecord = new CDXRecord();
+		Iterator itr = results.iterator();
+		while (itr.hasNext()) {
+			SearchResult result = (SearchResult) itr.next();
+			cdxRecord.fromSearchResult(result);
+			pw.println(cdxRecord.toKey() + " " + cdxRecord.toValue());
+		}
+	}
+	
 	/**
 	 * @param args
 	 */

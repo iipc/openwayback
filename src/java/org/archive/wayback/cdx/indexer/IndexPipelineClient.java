@@ -24,10 +24,13 @@
  */
 package org.archive.wayback.cdx.indexer;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.util.logging.Logger;
 
 import org.apache.commons.httpclient.HttpClient;
@@ -138,6 +141,18 @@ public class IndexPipelineClient {
 	}
 	
 	/**
+	 * @param arc
+	 * @param os
+	 * @throws IOException
+	 */
+	public void dumpArcIndex(File arc, OutputStream os) throws IOException {
+		BufferedOutputStream bos = new BufferedOutputStream(os);
+		PrintWriter pw = new PrintWriter(bos);
+		SearchResults results = indexer.indexArc(arc);
+		indexer.serializeResults(results,pw);
+	}
+	
+	/**
 	 * Index each ARC in directory, upload CDX to the remote pipeline, and
 	 * poke the remote locationDB to let it know where this ARC can be found.
 	 * 
@@ -177,8 +192,24 @@ public class IndexPipelineClient {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		if(args.length != 5) {
+		if(args.length == 1) {
+			File arc = new File(args[0]);
+			ArcIndexer indexer = new ArcIndexer();
+			
+			BufferedOutputStream bos = new BufferedOutputStream(System.out);
+			PrintWriter pw = new PrintWriter(bos);
+			SearchResults results;
+			try {
+				results = indexer.indexArc(arc);
+				indexer.serializeResults(results,pw);
+			} catch (IOException e) {
+				e.printStackTrace();
+				System.exit(1);
+			}
+			return;
+		} else if(args.length != 5) {
 			System.err.println("Usage: workDir pipelineUrl locationUrl arcDir arcUrlPrefix");
+			System.err.println("Usage: arcPath");
 			return;
 		}
 		String workDir = args[0];
@@ -193,6 +224,7 @@ public class IndexPipelineClient {
 			pipeClient.indexDirectory(arcDir,arcDirPrefix);
 		} catch (IOException e) {
 			e.printStackTrace();
+			System.exit(1);
 		}
 	}
 
