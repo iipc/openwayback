@@ -51,6 +51,10 @@ public class FileLocationDB implements PropertyConfigurable {
 	private static final Logger LOGGER = Logger.getLogger(
 			FileLocationDB.class.getName());
 
+	/**
+	 * String id for implementation class of FileLocationDBs.
+	 */
+	public static final String FILE_LOCATION_DB_CLASS = "filelocationdb";
 	private static final String ARC_DB_PATH = "filelocationdb.path";
 
 	private static final String ARC_DB_NAME = "filelocationdb.name";
