@@ -112,13 +112,15 @@ public class ReplayServlet extends WaybackServlet {
 		}
 		Resource resource = null;
 		try {
-			ResourceIndex idx = wayback.getResourceIndex();
-			ResourceStore store = wayback.getResourceStore();
-			ResultURIConverter uriConverter = wayback.getURIConverter();
 
 			if (wbRequest == null) {
 				wbRequest = qp.parseQuery(httpRequest);
 			}
+
+			ResourceIndex idx = wayback.getResourceIndex();
+			ResourceStore store = wayback.getResourceStore();
+			ResultURIConverter uriConverter = wayback.getURIConverter();
+			uriConverter.setWbRequest(wbRequest);
 
 			SearchResults results = idx.query(wbRequest);
 

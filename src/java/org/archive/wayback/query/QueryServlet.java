@@ -85,12 +85,13 @@ public class QueryServlet extends WaybackServlet {
 
 		try {
 
-			ResourceIndex idx = wayback.getResourceIndex();
-			ResultURIConverter uriConverter = wayback.getURIConverter();
-
 			if (wbRequest == null) {
 				wbRequest = qp.parseQuery(httpRequest);
 			}
+
+			ResourceIndex idx = wayback.getResourceIndex();
+			ResultURIConverter uriConverter = wayback.getURIConverter();
+			uriConverter.setWbRequest(wbRequest);
 
 			SearchResults results;
 

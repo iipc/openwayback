@@ -45,20 +45,19 @@ public class TimelineQueryRenderer extends Renderer {
 
 	public void renderUrlResults(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
-			SearchResults results, ResultURIConverter uriConverter)
+			SearchResults results, ResultURIConverter baseUriConverter)
 			throws ServletException, IOException {
 
 		// grab and forward framset adaptor for the uriConverter:
-		if (!(uriConverter instanceof TimelineReplayResultURIConverter)) {
+		if (!(baseUriConverter instanceof TimelineReplayResultURIConverter)) {
 			throw new IllegalArgumentException("ResultURIConverter must be " +
 					"of class TimelineReplayResultURIConverter");			
 		}
-		TimelineReplayResultURIConverter baseUriConverter =
-			(TimelineReplayResultURIConverter) uriConverter;
-		ResultURIConverter furiConverter = baseUriConverter.getFramesetAdapter(
-				wbRequest);
+		TimelineReplayResultURIConverter uriConverter =
+			(TimelineReplayResultURIConverter) baseUriConverter;
+		uriConverter.setFramesetMode();
 
 		super.renderUrlResults(httpRequest, httpResponse, wbRequest,
-				results, furiConverter);
+				results, uriConverter);
 	}
 }

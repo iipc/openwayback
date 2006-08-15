@@ -26,15 +26,8 @@ package org.archive.wayback.proxy;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.Properties;
-
-import org.apache.commons.httpclient.URIException;
-import org.archive.net.UURI;
-import org.archive.net.UURIFactory;
 import org.archive.wayback.ResultURIConverter;
-import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.SearchResult;
-import org.archive.wayback.exception.ConfigurationException;
 
 /**
  *
@@ -42,35 +35,22 @@ import org.archive.wayback.exception.ConfigurationException;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class RedirectResultURIConverter implements ResultURIConverter {
+public class RedirectResultURIConverter extends ResultURIConverter {
 	
+	private static final String DEFAULT_REDIRECT_JSP = "jsp/QueryUI/Redirect.jsp";
     private static final String REDIRECT_PATH_PROPERTY = "proxy.redirectpath";
-    
-    private String redirectPath;
-    
-    /* (non-Javadoc)
-	 * @see org.archive.wayback.ResultURIConverter#init(java.util.Properties)
-	 */
-	public void init(Properties p) throws ConfigurationException {
-	    redirectPath = (String) p.get(REDIRECT_PATH_PROPERTY);
-        if (redirectPath == null || redirectPath.length() <= 0) {
-            throw new ConfigurationException("Failed to find " +  REDIRECT_PATH_PROPERTY);
-        }
-	}
 
+    private String getRedirectPath() {
+		return getConfigOrContextRelative(REDIRECT_PATH_PROPERTY,DEFAULT_REDIRECT_JSP);
+	}
 	/* (non-Javadoc)
-	 * @see org.archive.wayback.ResultURIConverter#makeReplayURI(org.archive.wayback.core.ResourceResult)
+	 * @see org.archive.wayback.ResultURIConverter#makeReplayURI(java.lang.String, java.lang.String)
 	 */
-	public String makeReplayURI(SearchResult result) {
-		String finalUrl = result.get(WaybackConstants.RESULT_URL); 
-        String finalTime = result.get(WaybackConstants.RESULT_CAPTURE_DATE); 
-		if(!finalUrl.startsWith(WaybackConstants.HTTP_URL_PREFIX)) {
-			finalUrl = WaybackConstants.HTTP_URL_PREFIX + finalUrl;
-		}
+	public String makeReplayURI(String datespec, String url) {
 		String res = null;
         try {
-			res = redirectPath + "?url=" + URLEncoder.encode(finalUrl, "UTF-8") + 
-				"&time=" + URLEncoder.encode(finalTime, "UTF-8");
+			res = getRedirectPath() + "?url=" + URLEncoder.encode(url, "UTF-8") + 
+				"&time=" + URLEncoder.encode(datespec, "UTF-8");
 		} catch (UnsupportedEncodingException e) {
 			// should not be able to happen -- with hard-coded UTF-8, anyways..
 			e.printStackTrace();
@@ -84,44 +64,5 @@ public class RedirectResultURIConverter implements ResultURIConverter {
 	 */
 	public String getReplayUriPrefix(final SearchResult result) {
 		return "";
-	}
-
-	/* (non-Javadoc)
-	 * @see org.archive.wayback.ResultURIConverter#makeRedirectReplayURI(org.archive.wayback.core.SearchResult, java.lang.String)
-	 */
-	public String makeRedirectReplayURI(SearchResult result, String url, String baseUrl) {
-		String finalUrl = url;
-        String finalTime = result.get(WaybackConstants.RESULT_CAPTURE_DATE);
-		try {
-			if(!url.startsWith(WaybackConstants.HTTP_URL_PREFIX)) {
-				UURI absResultURI = UURIFactory.getInstance(
-						WaybackConstants.HTTP_URL_PREFIX  + baseUrl );
-				UURI origURI = UURIFactory.getInstance(absResultURI, url);
-				finalUrl = origURI.getEscapedURI();
-			}
-		} catch (URIException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		if(!finalUrl.startsWith(WaybackConstants.HTTP_URL_PREFIX)) {
-			finalUrl = WaybackConstants.HTTP_URL_PREFIX + finalUrl;
-		}
-		String res = null;
-        try {
-			res = redirectPath + "?url=" + URLEncoder.encode(finalUrl, "UTF-8") + 
-				"&time=" + URLEncoder.encode(finalTime, "UTF-8");
-		} catch (UnsupportedEncodingException e) {
-			// should not be able to happen -- with hard-coded UTF-8, anyways..
-			e.printStackTrace();
-		}
-		return res;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.archive.wayback.ResultURIConverter#makeRedirectReplayURI(org.archive.wayback.core.SearchResult, java.lang.String)
-	 */
-	public String makeRedirectReplayURI(SearchResult result, String url) {
-		return makeRedirectReplayURI(result,url,
-				result.get(WaybackConstants.RESULT_URL));
 	}
 }

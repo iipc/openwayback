@@ -24,15 +24,7 @@
  */
 package org.archive.wayback.archivalurl;
 
-import java.util.Properties;
-
-import org.apache.commons.httpclient.URIException;
-import org.archive.net.UURI;
-import org.archive.net.UURIFactory;
 import org.archive.wayback.ResultURIConverter;
-import org.archive.wayback.WaybackConstants;
-import org.archive.wayback.core.SearchResult;
-import org.archive.wayback.exception.ConfigurationException;
 
 /**
  *
@@ -40,69 +32,19 @@ import org.archive.wayback.exception.ConfigurationException;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class ArchivalUrlResultURIConverter implements ResultURIConverter {
+public class ArchivalUrlResultURIConverter extends ResultURIConverter {
 	/**
 	 * configuration name for URL prefix of replay server
 	 */
 	private final static String REPLAY_URI_PREFIX_PROPERTY = "replayuriprefix";
-	/**
-	 * Url prefix of replay server
-	 */
-	private String replayUriPrefix;
+	private String getReplayUriPrefix() {
+		return getConfigOrContextRelative(REPLAY_URI_PREFIX_PROPERTY,"");
+	}
+	
 	/* (non-Javadoc)
-	 * @see org.archive.wayback.ResultURIConverter#init(java.util.Properties)
+	 * @see org.archive.wayback.ResultURIConverter#makeReplayURI(java.lang.String, java.lang.String)
 	 */
-	public void init(Properties p) throws ConfigurationException {
-		replayUriPrefix = (String) p.get( REPLAY_URI_PREFIX_PROPERTY);
-		if (replayUriPrefix == null || replayUriPrefix.length() <= 0) {
-			throw new ConfigurationException("Failed to find " + 
-					REPLAY_URI_PREFIX_PROPERTY);
-		}
-		if(!replayUriPrefix.endsWith("/")) {
-			replayUriPrefix += "/";
-		}
-	}
-
-
-	public String makeReplayURI(SearchResult result) {
-		return replayUriPrefix
-				+ result.get(WaybackConstants.RESULT_CAPTURE_DATE) + "/" +
-				result.get(WaybackConstants.RESULT_URL);
-	}
-
-	/**
-	 * @param result 
-	 * @return Returns the replayUriPrefix.
-	 */
-	public String getReplayUriPrefix(final SearchResult result) {
-		return replayUriPrefix + result.get(
-				WaybackConstants.RESULT_CAPTURE_DATE) + "/";
-	}
-
-	public String makeRedirectReplayURI(SearchResult result, String url, 
-			String baseUrl) {
-		String finalUrl = url;
-		try {
-			if(!url.startsWith(WaybackConstants.HTTP_URL_PREFIX)) {
-				UURI absResultURI = UURIFactory.getInstance(
-						WaybackConstants.HTTP_URL_PREFIX  + baseUrl );
-				UURI origURI = UURIFactory.getInstance(absResultURI, url);
-				finalUrl = origURI.getEscapedURI();
-			}
-		} catch (URIException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
- 
-		return replayUriPrefix
-			+ result.get(WaybackConstants.RESULT_CAPTURE_DATE) + "/" + finalUrl;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.archive.wayback.ResultURIConverter#makeRedirectReplayURI(org.archive.wayback.core.SearchResult, java.lang.String, java.lang.String)
-	 */
-	public String makeRedirectReplayURI(SearchResult result, String url) {
-		return makeRedirectReplayURI(result,url,
-				result.get(WaybackConstants.RESULT_URL));
+	public String makeReplayURI(String datespec, String url) {
+		return getReplayUriPrefix() + datespec + "/" + url;
 	}
 }
