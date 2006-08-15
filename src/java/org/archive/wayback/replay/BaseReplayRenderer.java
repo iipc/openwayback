@@ -95,9 +95,6 @@ public class BaseReplayRenderer implements ReplayRenderer,
 
 	private final static int BYTE_BUFFER_SIZE = 4 * 1024;
 
-	// reusable buffer for copying data to clients:
-	// BUGBUG: needs to be thread local?
-	private byte[] buffer = new byte[BYTE_BUFFER_SIZE];
 
 	protected final Pattern IMAGE_REGEX = Pattern
 			.compile(".*\\.(jpg|jpeg|gif|png|bmp|tiff|tif)$");
@@ -201,6 +198,7 @@ public class BaseReplayRenderer implements ReplayRenderer,
 	 * @throws IOException 
 	 */
 	protected void copy(InputStream is, OutputStream os) throws IOException {
+		byte[] buffer = new byte[BYTE_BUFFER_SIZE];
 		for (int r = -1; (r = is.read(buffer, 0, BYTE_BUFFER_SIZE)) != -1;) {
 			os.write(buffer, 0, r);
 		}
