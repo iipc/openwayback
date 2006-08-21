@@ -7,9 +7,13 @@ function xResolveUrl(url) {
 function xLateUrl(aCollection, sProp) {
    var i = 0;
    for(i = 0; i < aCollection.length; i++) {
-      if (typeof(aCollection[i][sProp]) == "string") {
-         if (aCollection[i][sProp].indexOf("mailto:") == -1 &&
+      if(aCollection[i].getAttribute(sProp) &&
+         (aCollection[i].getAttribute(sProp).length > 0) &&
+         (typeof(aCollection[i][sProp]) == "string")) {
+
+         if(aCollection[i][sProp].indexOf("mailto:") == -1 &&
             aCollection[i][sProp].indexOf("javascript:") == -1) {
+
             var resolved = "";
             if(aCollection[i][sProp].indexOf("http") == 0) {
                 resolved = encodeURIComponent(aCollection[i][sProp]);
