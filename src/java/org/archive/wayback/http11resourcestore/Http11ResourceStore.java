@@ -104,9 +104,15 @@ public class Http11ResourceStore implements ResourceStore {
 		
 		// for now, we'll just grab the first one:
 		String arcUrl = arcUrls[0];
-		ARCReader ar = ARCReaderFactory.get(new URL(arcUrl),offset);
-		ARCRecord rec = ar.get();
-		Resource r = new Resource(rec,ar);
+		Resource r = null;
+		try {
+			ARCReader ar = ARCReaderFactory.get(new URL(arcUrl),offset);
+			ARCRecord rec = ar.get();
+			r = new Resource(rec,ar);
+		} catch (IOException e) {
+			throw new ResourceNotAvailableException("Unable to retrieve",
+					e.getLocalizedMessage());
+		}
 
 		return r;
 	
