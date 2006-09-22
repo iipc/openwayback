@@ -78,6 +78,20 @@ public class UrlCanonicalizer {
         Pattern.compile("^(.+)(?:ASPSESSIONID[a-zA-Z]{8}=[a-zA-Z]{24})(&.*)?$",
             Pattern.CASE_INSENSITIVE);
 
+    
+
+    /**
+     * Strip ColdFusion session IDs. Remove sessionids that look like the 
+     * following:
+     * CFID=12412453&CFTOKEN=15501799
+     * CFID=3304324&CFTOKEN=57491900&jsessionid=a63098d96360$B0$D9$A
+     */
+    private static final Pattern STRIP_CFSESSION_REGEX = 
+    	Pattern.compile("^(.+)(?:cfid=[^&]+&cftoken=[^&]+(?:jsession=[^&]+)?)" +
+    			"(?:&(.*))?$",Pattern.CASE_INSENSITIVE);
+        
+    
+    
     /**
      * Run a regex that strips elements of a string.
      * 
@@ -123,6 +137,7 @@ public class UrlCanonicalizer {
         url = doStripRegexMatch(url, STRIP_SESSION_ID_REGEX.matcher(url));
         url = doStripRegexMatch(url, STRIP_ASPSESSION_REGEX.matcher(url));
         url = doStripRegexMatch(url, STRIP_SID_REGEX.matcher(url));
+        url = doStripRegexMatch(url, STRIP_CFSESSION_REGEX.matcher(url));
         url = url.toLowerCase();
         if (url == null || url.length() <= 0) {
             return url;
