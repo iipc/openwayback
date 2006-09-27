@@ -381,21 +381,26 @@ public class IndexPipeline implements PropertyConfigurable{
 			File indexFile = new File(indexingDir,base);
 			File toBeMergedFile = new File(toBeMergedDir,base);
 
-			LOGGER.info("Indexing ARC " + arcFile.getAbsolutePath());
-			SearchResults res = indexer.indexArc(arcFile);
-			LOGGER.info("Serializing ARC data in " + 
-					indexFile.getAbsolutePath());
-			indexer.serializeResults(res, indexFile);
-			if (!indexFile.renameTo(toBeMergedFile)) {
-				throw new IOException("Unable to move "
-						+ indexFile.getAbsolutePath() + " to "
-						+ toBeMergedFile.getAbsolutePath());
+			try {
+				LOGGER.info("Indexing ARC " + arcFile.getAbsolutePath());
+				SearchResults res = indexer.indexArc(arcFile);
+				LOGGER.info("Serializing ARC data in " + 
+						indexFile.getAbsolutePath());
+				indexer.serializeResults(res, indexFile);
+				if (!indexFile.renameTo(toBeMergedFile)) {
+					throw new IOException("Unable to move "
+							+ indexFile.getAbsolutePath() + " to "
+							+ toBeMergedFile.getAbsolutePath());
+				}
+				if (!toBeIndexedFlagFile.delete()) {
+					throw new IOException("Unable to delete "
+							+ toBeIndexedFlagFile.getAbsolutePath());
+				}
+				numIndexed++;
+			} catch (IOException e) {
+				LOGGER.severe("FAILED index of " + arcFile.getAbsolutePath() +
+						" cause: " + e.getLocalizedMessage());
 			}
-			if (!toBeIndexedFlagFile.delete()) {
-				throw new IOException("Unable to delete "
-						+ toBeIndexedFlagFile.getAbsolutePath());
-			}
-			numIndexed++;
 			if(max > 0 && (numIndexed >= max)) {
 				break;
 			}
