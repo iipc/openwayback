@@ -94,7 +94,7 @@
 	
     <context-param>
         <param-name>replayuriprefix</param-name>
-        <param-value>http://localhost:8080/wayback</param-value>
+        <param-value>http://localhost:8080/wayback/</param-value>
         <description>HTTP URI prefix for the replay UI. This should be the name and port of the Tomcat hosting this webapp, plus the name of the context where this webapp is installed.</description>
     </context-param>
 
