@@ -43,6 +43,14 @@ import org.archive.wayback.core.WaybackRequest;
  * @version $Date$, $Revision$
  */
 public class ReplayFilter extends RequestFilter {
+	
+	/**
+	 * name of attribute in web.xml for specifying an additional hostname that
+	 * should be considered "local" for discriminating between Replays and 
+	 * Queries
+	 */
+	private static final String LOCAL_HOSTNAME = "query.localhostname";
+
 	private List localhostNames = null;
 	
 	/**
@@ -52,7 +60,11 @@ public class ReplayFilter extends RequestFilter {
 		super();
 	}
 	public void init(final FilterConfig c) throws ServletException {
-        this.localhostNames = InetAddressUtil.getAllLocalHostNames();		
+        this.localhostNames = InetAddressUtil.getAllLocalHostNames();
+		String extraLocalHostname = c.getInitParameter(LOCAL_HOSTNAME);
+		if ((extraLocalHostname != null) && (extraLocalHostname.length() > 0)) {
+			localhostNames.add(extraLocalHostname);
+		}
 		super.init(c);
 	}
 	/* (non-Javadoc)

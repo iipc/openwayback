@@ -42,6 +42,14 @@
             <param-name>handler.url</param-name>
             <param-value>/replay</param-value>
         </init-param>
+
+        <init-param>
+            <param-name>query.localhostname</param-name>
+            <param-value></param-value>
+            <description>extra hostname that should be considered "local" when
+                         discriminating between Replays and Queries requests
+            </description>
+        </init-param>
     </filter>
     <filter-mapping>
         <filter-name>ReplayFilter</filter-name>
