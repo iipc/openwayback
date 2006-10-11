@@ -63,7 +63,7 @@
 			<p>
 				You can find the latest version available from our continuous
 				build box
-				<a href="http://crawltools.archive.org:8080/cruisecontrol/buildresults/HEAD-archive-access">
+				<a href="http://builds.archive.org:8080/cruisecontrol/buildresults/HEAD-archive-access">
 					here
 				</a>
 			    .  Builds obtained here are not guaranteed stable.  Use

@@ -79,8 +79,8 @@
         scm:<system>:<system specific connection string> 
      -->
     <repository>
-       <connection>scm:cvs:pserver:anonymous@cvs.sourceforge.net:/cvsroot/archive-access:archive-access</connection>
-        <url>http://cvs.sourceforge.net/viewcvs.py/archive-access/</url>
+       <connection>scm:cvs:pserver:anonymous@archive-access.cvs.sourceforge.net:/cvsroot/archive-access:archive-access</connection>
+        <url>http://archive-access.cvs.sourceforge.net/archive-access/archive-access/projects/wayback/</url>
     </repository>
 
     <versions />
@@ -187,7 +187,7 @@
             <groupId>heritrix</groupId>
             <artifactId>archive-commons</artifactId>
             <version>1.9.0-200607171747</version>
-            <url>http://crawltools.archive.org:8080/cruisecontrol</url>
+            <url>http://builds.archive.org:8080/cruisecontrol</url>
             <properties>
                 <war.bundle>true</war.bundle>
                 <description>Jar that has org.archive.io.arc content.
