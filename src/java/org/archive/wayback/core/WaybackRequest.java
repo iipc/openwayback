@@ -41,11 +41,22 @@ import org.archive.wayback.query.OpenSearchQueryParser;
  * @version $Date$, $Revision$
  */
 public class WaybackRequest {
-	
+
 	private int resultsPerPage = 10;
+
 	private int pageNum = 1;
+
 	private Properties filters = new Properties();
-	
+
+	private final static String standardHeaders[] = {
+			WaybackConstants.REQUEST_REFERER_URL,
+			WaybackConstants.REQUEST_REMOTE_ADDRESS,
+			WaybackConstants.REQUEST_WAYBACK_HOSTNAME,
+			WaybackConstants.REQUEST_WAYBACK_PORT,
+			WaybackConstants.REQUEST_WAYBACK_CONTEXT,
+			WaybackConstants.REQUEST_AUTH_TYPE,
+			WaybackConstants.REQUEST_REMOTE_USER };
+
 	/**
 	 * Constructor, possibly/probably this should BE a Properties, instead of
 	 * HAVEing a Properties...
@@ -62,7 +73,8 @@ public class WaybackRequest {
 	}
 
 	/**
-	 * @param pageNum The pageNum to set.
+	 * @param pageNum
+	 *            The pageNum to set.
 	 */
 	public void setPageNum(int pageNum) {
 		this.pageNum = pageNum;
@@ -76,7 +88,8 @@ public class WaybackRequest {
 	}
 
 	/**
-	 * @param resultsPerPage The resultsPerPage to set.
+	 * @param resultsPerPage
+	 *            The resultsPerPage to set.
 	 */
 	public void setResultsPerPage(int resultsPerPage) {
 		this.resultsPerPage = resultsPerPage;
@@ -105,15 +118,14 @@ public class WaybackRequest {
 	public void put(String key, String value) {
 		filters.put(key, value);
 	}
-	
+
 	private String emptyIfNull(String arg) {
-		if(arg == null) {
+		if (arg == null) {
 			return "";
 		}
 		return arg;
 	}
 
-	
 	/**
 	 * extract REFERER, remote IP and authorization information from the
 	 * HttpServletRequest
@@ -122,29 +134,29 @@ public class WaybackRequest {
 	 */
 	private void extractHttpRequestInfo(HttpServletRequest httpRequest) {
 		// attempt to get the HTTP referer if present..
-		put(WaybackConstants.REQUEST_REFERER_URL, 
-				emptyIfNull(httpRequest.getHeader("REFERER")));
-		put(WaybackConstants.REQUEST_REMOTE_ADDRESS, 
-				emptyIfNull(httpRequest.getRemoteAddr()));
-		put(WaybackConstants.REQUEST_WAYBACK_HOSTNAME, 
-				emptyIfNull(httpRequest.getLocalName()));
-		put(WaybackConstants.REQUEST_WAYBACK_PORT,
-				String.valueOf(httpRequest.getLocalPort()));
-		put(WaybackConstants.REQUEST_WAYBACK_CONTEXT,
-				emptyIfNull(httpRequest.getContextPath()));
-		put(WaybackConstants.REQUEST_AUTH_TYPE,
-				emptyIfNull(httpRequest.getAuthType()));
-		put(WaybackConstants.REQUEST_REMOTE_USER,
-				emptyIfNull(httpRequest.getRemoteUser()));
+		put(WaybackConstants.REQUEST_REFERER_URL, emptyIfNull(httpRequest
+				.getHeader("REFERER")));
+		put(WaybackConstants.REQUEST_REMOTE_ADDRESS, emptyIfNull(httpRequest
+				.getRemoteAddr()));
+		put(WaybackConstants.REQUEST_WAYBACK_HOSTNAME, emptyIfNull(httpRequest
+				.getLocalName()));
+		put(WaybackConstants.REQUEST_WAYBACK_PORT, String.valueOf(httpRequest
+				.getLocalPort()));
+		put(WaybackConstants.REQUEST_WAYBACK_CONTEXT, emptyIfNull(httpRequest
+				.getContextPath()));
+		put(WaybackConstants.REQUEST_AUTH_TYPE, emptyIfNull(httpRequest
+				.getAuthType()));
+		put(WaybackConstants.REQUEST_REMOTE_USER, emptyIfNull(httpRequest
+				.getRemoteUser()));
 		// TODO: cookies...
 	}
-	
+
 	/**
 	 * Construct an absolute URL that points to the root of the context that
 	 * recieved the request, including a trailing "/".
 	 * 
 	 * @return String absolute URL pointing to the Context root where the
-	 * request was revieved.
+	 *         request was revieved.
 	 */
 	public String getDefaultWaybackPrefix() {
 		String waybackHostname = get(WaybackConstants.REQUEST_WAYBACK_HOSTNAME);
@@ -153,93 +165,100 @@ public class WaybackRequest {
 		StringBuilder prefix = new StringBuilder();
 		prefix.append(WaybackConstants.HTTP_URL_PREFIX);
 		prefix.append(waybackHostname);
-		if(waybackPort.compareTo(WaybackConstants.HTTP_DEFAULT_PORT) != 0) {
+		if (waybackPort.compareTo(WaybackConstants.HTTP_DEFAULT_PORT) != 0) {
 			prefix.append(":").append(waybackPort);
 		}
 		prefix.append("/");
-		if(waybackContext != null && waybackContext.length() > 0) {
+		if (waybackContext != null && waybackContext.length() > 0) {
 			prefix.append(waybackContext).append("/");
 		}
 		return prefix.toString();
 	}
-	
+
 	/**
-	 * attempt to fixup this WaybackRequest, mostly with respect to dates:
-	 * if only "date" was specified, infer start and end dates from it. Also
-	 * grab useful info from the HttpServletRequest, cookies, remote address, 
-	 * etc.
+	 * attempt to fixup this WaybackRequest, mostly with respect to dates: if
+	 * only "date" was specified, infer start and end dates from it. Also grab
+	 * useful info from the HttpServletRequest, cookies, remote address, etc.
 	 * 
-	 * @param httpRequest 
+	 * @param httpRequest
 	 */
 	public void fixup(HttpServletRequest httpRequest) {
 		String startDate = get(WaybackConstants.REQUEST_START_DATE);
 		String endDate = get(WaybackConstants.REQUEST_END_DATE);
 		String exactDate = get(WaybackConstants.REQUEST_EXACT_DATE);
 		String partialDate = get(WaybackConstants.REQUEST_DATE);
-		if(partialDate == null) {
+		if (partialDate == null) {
 			partialDate = "";
 		}
-		if(startDate == null || startDate.length() == 0) {
-			put(WaybackConstants.REQUEST_START_DATE,
-					Timestamp.padStartDateStr(partialDate));
+		if (startDate == null || startDate.length() == 0) {
+			put(WaybackConstants.REQUEST_START_DATE, Timestamp
+					.padStartDateStr(partialDate));
 		} else if (startDate.length() < 14) {
-			put(WaybackConstants.REQUEST_START_DATE,
-					Timestamp.padStartDateStr(startDate));
+			put(WaybackConstants.REQUEST_START_DATE, Timestamp
+					.padStartDateStr(startDate));
 		}
-		if(endDate == null || endDate.length() == 0) {
-			put(WaybackConstants.REQUEST_END_DATE,
-					Timestamp.padEndDateStr(partialDate));
+		if (endDate == null || endDate.length() == 0) {
+			put(WaybackConstants.REQUEST_END_DATE, Timestamp
+					.padEndDateStr(partialDate));
 		} else if (endDate.length() < 14) {
-			put(WaybackConstants.REQUEST_END_DATE,
-					Timestamp.padEndDateStr(endDate));
+			put(WaybackConstants.REQUEST_END_DATE, Timestamp
+					.padEndDateStr(endDate));
 		}
-		if(exactDate == null || exactDate.length() == 0) {
-			put(WaybackConstants.REQUEST_EXACT_DATE,
-					Timestamp.padEndDateStr(partialDate));
+		if (exactDate == null || exactDate.length() == 0) {
+			put(WaybackConstants.REQUEST_EXACT_DATE, Timestamp
+					.padEndDateStr(partialDate));
 		} else if (exactDate.length() < 14) {
-			put(WaybackConstants.REQUEST_EXACT_DATE,
-					Timestamp.padEndDateStr(exactDate));
+			put(WaybackConstants.REQUEST_EXACT_DATE, Timestamp
+					.padEndDateStr(exactDate));
 		}
 		extractHttpRequestInfo(httpRequest);
 	}
-	
+
 	/**
 	 * @return String hex-encoded GET CGI arguments which will duplicate this
-	 * wayback request
+	 *         wayback request
 	 */
-	public String getQueryArguments () {
+	public String getQueryArguments() {
 		return getQueryArguments(pageNum);
 	}
-	
+
 	/**
 	 * @param pageNum
 	 * @return String hex-encoded GET CGI arguments which will duplicate the
-	 * same request, but for page 'pageNum' of the results  
+	 *         same request, but for page 'pageNum' of the results
 	 */
-	public String getQueryArguments (int pageNum) {
+	public String getQueryArguments(int pageNum) {
 		int numPerPage = resultsPerPage;
 
 		StringBuffer queryString = new StringBuffer("");
 		for (Enumeration e = filters.keys(); e.hasMoreElements();) {
 			String key = (String) e.nextElement();
+			boolean isStandard = false;
+			for(int i=0; i<standardHeaders.length; i++) {
+				if(standardHeaders[i].compareTo(key) == 0) {
+					isStandard = true;
+					break;
+				}
+			}
+			if(isStandard) continue;
 			String val = (String) filters.get(key);
-			if(queryString.length() > 0) {
+			if (queryString.length() > 0) {
 				queryString.append(" ");
 			}
-			queryString.append(key+":"+val);
+			queryString.append(key + ":" + val);
 		}
 		String escapedQuery = queryString.toString();
 
 		try {
-			
-			escapedQuery = URLEncoder.encode(escapedQuery,"UTF-8");
-			
+
+			escapedQuery = URLEncoder.encode(escapedQuery, "UTF-8");
+
 		} catch (UnsupportedEncodingException e) {
 			// oops.. what to do?
 			e.printStackTrace();
 		}
-		return OpenSearchQueryParser.SEARCH_QUERY + "=" + escapedQuery + 
-			"&" + OpenSearchQueryParser.SEARCH_RESULTS + "=" + numPerPage +
-			"&" + OpenSearchQueryParser.START_PAGE + "=" + pageNum;
+		return OpenSearchQueryParser.SEARCH_QUERY + "=" + escapedQuery + "&"
+				+ OpenSearchQueryParser.SEARCH_RESULTS + "=" + numPerPage + "&"
+				+ OpenSearchQueryParser.START_PAGE + "=" + pageNum;
 	}
 }
