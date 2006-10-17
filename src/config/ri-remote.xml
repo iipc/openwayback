@@ -1,7 +1,7 @@
 	
     <context-param>
         <param-name>resourceindex.classname</param-name>
-        <param-value>org.archive.wayback.cdx.RemoteCDXIndex</param-value>
+        <param-value>org.archive.wayback.resourceindex.RemoteCDXIndex</param-value>
         <description>Class that implements ResourceIndex for this Wayback</description>
     </context-param>
 

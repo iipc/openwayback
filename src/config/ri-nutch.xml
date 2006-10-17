@@ -1,7 +1,7 @@
 	
     <context-param>
         <param-name>resourceindex.classname</param-name>
-        <param-value>org.archive.wayback.nutch.NutchResourceIndex</param-value>
+        <param-value>org.archive.wayback.resourceindex.NutchResourceIndex</param-value>
         <description>Class that implements ResourceIndex for this Wayback</description>
     </context-param>
 

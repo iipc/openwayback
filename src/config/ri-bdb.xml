@@ -1,7 +1,7 @@
 	
     <filter>
         <filter-name>PipelineFilter</filter-name>
-        <filter-class>org.archive.wayback.cdx.indexer.PipelineFilter</filter-class>
+        <filter-class>org.archive.wayback.resourceindex.indexer.RemoteSubmitFilter</filter-class>
         <init-param>
             <param-name>pipeline.statusjsp</param-name>
             <param-value>jsp/PipelineUI/PipelineStatus.jsp</param-value>
@@ -14,8 +14,15 @@
 
     <context-param>
         <param-name>resourceindex.classname</param-name>
-        <param-value>org.archive.wayback.cdx.LocalBDBResourceIndex</param-value>
+        <param-value>org.archive.wayback.resourceindex.LocalResourceIndex</param-value>
         <description>Class that implements ResourceIndex for this Wayback</description>
+    </context-param>
+
+    <context-param>
+        <param-name>resourceindex.sourceclass</param-name>
+        <param-value>BDB</param-value>
+        <description>Class that implements ResultSource for this Wayback, 
+        currently: BDB|CDX</description>
     </context-param>
 
     <context-param>
@@ -35,25 +42,50 @@
         </description>
     </context-param>
 
-
     <context-param>
-        <param-name>indexpipeline.workpath</param-name>
-        <param-value>/tmp/wayback/pipeline</param-value>
+        <param-name>resourceindex.incomingpath</param-name>
+        <param-value>/tmp/wayback/index-data/incoming</param-value>
         <description>
-            LocalBDBResourceIndex specific directory to store flag files and 
-            temporary index data.
+            BDB index-specific configuration that indicates new CDX format flat
+            files will appear in the directory named in the value of this param.
+            If this configuration is present and non-empty, a background thread
+            will be started that monitors this directory, and adds CDX records
+            in files found in this directory to the index.
         </description>
     </context-param>
 
     <context-param>
-        <param-name>indexpipeline.runpipeline</param-name>
-        <param-value>1</param-value>
+        <param-name>resourceindex.mergedpath</param-name>
+        <param-value>/tmp/wayback/index-data/merged</param-value>
         <description>
-            if set to '1' then a background indexing thread will automatically update the BDB
-            index when new ARC files are noticed in the 'arcpath' directory. If multiple
-            webapps are running on the same node, using the same index directory, then only
-            one of the webapps should be configured to run the pipeline.
+            If this value is present and non-empty, then CDX files that are
+            successfully processed from incoming are moved to this directory
+            after merging. If this option is missing or blank, CDX files are
+            deleted after merging.
         </description>
     </context-param>
 
+    <context-param>
+        <param-name>resourceindex.failedpath</param-name>
+        <param-value>/tmp/wayback/index-data/failed</param-value>
+        <description>
+            If this value is present and non-empty, then CDX files that fail to
+            parse successfully are moved to this directory after a single 
+            attempt. If this option is missing or blank, malformed CDX files are
+            left in the incoming directory and repeatedly re-attempted until
+            some other process moves them out of the way or fixes them.
+        </description>
+    </context-param>
+
+    <context-param>
+        <param-name>resourceindex.mergeinterval</param-name>
+        <param-value>10000</param-value>
+        <description>
+            Millisecond interval between checks for new files in the incoming 
+            directory. This is only the starting number, when no new files are
+            found in the directory. Each subsequent interval will increase by 
+            this number of ms, until a file is found, at which point the 
+            interval will revert to the initial level.
+        </description>
+    </context-param>
 

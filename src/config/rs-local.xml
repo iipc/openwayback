@@ -1,7 +1,7 @@
 	
     <context-param>
         <param-name>resourcestore.classname</param-name>
-        <param-value>org.archive.wayback.localresourcestore.LocalARCResourceStore</param-value>
+        <param-value>org.archive.wayback.resourcestore.LocalARCResourceStore</param-value>
         <description>Class that implements ResourceStore for this Wayback</description>
     </context-param>
 
@@ -14,4 +14,69 @@
         </description>
     </context-param>
 
+    <context-param>
+        <param-name>resourcestore.autoindex</param-name>
+        <param-value>1</param-value>
+        <description>
+            If this is set to '1', then a background thread is launched that
+            detects new ARC files appearing in arcpath. New ARCs are indexed,
+            and a CDX flat file, with one line per ARC Record is created, one
+            CDX file per ARC. These CDX files are then handed off to the index
+            for incorporation into the index.
+        </description>
+    </context-param>
+
+    <context-param>
+        <param-name>resourcestore.tmppath</param-name>
+        <param-value>/tmp/wayback/arc-indexer/tmp</param-value>
+        <description>
+            Directory where CDX files are created temporarily. This is a 
+            scratch space directory, which must exist.
+        </description>
+    </context-param>
+
+    <context-param>
+        <param-name>resourcestore.workpath</param-name>
+        <param-value>/tmp/wayback/arc-indexer/work</param-value>
+        <description>
+            Directory which holds empty flag files indicating that ARC files 
+            are waiting to be indexed.
+            This directory must exist.
+        </description>
+    </context-param>
+
+    <context-param>
+        <param-name>resourcestore.queuedpath</param-name>
+        <param-value>/tmp/wayback/arc-indexer/queued</param-value>
+        <description>
+            Directory which holds empty flag files indicating that ARC files 
+            have already been seen and queued for indexing.
+            This directory must exist.
+        </description>
+    </context-param>
+
+    <context-param>
+        <param-name>resourcestore.indextarget</param-name>
+        <param-value>/tmp/wayback/index-data/incoming</param-value>
+        <description>
+            Directory or URL where CDX files are sent after they are created. If
+            the value of this parameter begins with http://, then the value is
+            assumed to be a URL where CDX files are PUT, on a possibly remote
+            resourceindex node. If the value does not begin with http://, then
+            the value is assumed to be a local directory, which must exist, 
+            where completed CDX files are moved for incorporation into the 
+            index.
+        </description>
+    </context-param>
+
+    <context-param>
+        <param-name>resourcestore.indexinterval</param-name>
+        <param-value>10000</param-value>
+        <description>
+            Millisecond interval between checks for new ARCs that need to be 
+            processed. This is only the initial time slept when first starting
+            up, and after any new files are found. Each interval that no new 
+            ARCs are detected, the duration slept increases by this amount.
+        </description>
+    </context-param>
 

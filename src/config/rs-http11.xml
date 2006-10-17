@@ -1,34 +1,13 @@
 
     <context-param>
         <param-name>resourcestore.classname</param-name>
-        <param-value>org.archive.wayback.http11resourcestore.Http11ResourceStore</param-value>
+        <param-value>org.archive.wayback.resourcestore.HttpARCResourceStore</param-value>
         <description>Class that implements ResourceStore for this Wayback</description>
     </context-param>
-
-    <context-param>
-        <param-name>filelocationdb.classname</param-name>
-        <param-value>org.archive.wayback.http11resourcestore.FileLocationDB</param-value>
-        <description>Class implementing FileLocationDB</description>
-    </context-param>
-
-    <context-param>
-        <param-name>filelocationdb.path</param-name>
-        <param-value>/tmp/wayback/arc-db</param-value>
-        <description>Directory where arc-db is stored. Must exist.</description>
-    </context-param>
-
-    <context-param>
-        <param-name>filelocationdb.name</param-name>
-        <param-value>arc-db</param-value>
-        <description>name for BDBJE arc database</description>
-    </context-param>
-
-    <servlet>
-        <servlet-name>FileLocationDBServlet</servlet-name>
-        <servlet-class>org.archive.wayback.http11resourcestore.FileLocationDBServlet</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>FileLocationDBServlet</servlet-name>
-        <url-pattern>/locationDB</url-pattern>
-    </servlet-mapping>
 	
+    <context-param>
+        <param-name>resourcestore.arcurlprefix</param-name>
+        <param-value>http://localhost:8080/locationdb/arc-proxy</param-value>
+        <description>Absolute URL of the ArcProxy webapp Location of </description>
+    </context-param>
+

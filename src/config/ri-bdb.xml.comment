@@ -1,4 +1,6 @@
 HEADER: Local-BDB ResourceIndex
 This section contains configuration for using a BDB JE to hold the document
-index on the local filesystem. This is the default index storage
-implementation.
+index on the local filesystem. This section also contains configuration for
+an optional index update thread, which will scan a directory for new index data,
+in CDX format, and will automatically add new index records to the index.This 
+is the default index storage implementation.
