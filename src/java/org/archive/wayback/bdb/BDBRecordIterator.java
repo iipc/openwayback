@@ -24,8 +24,9 @@
  */
 package org.archive.wayback.bdb;
 
-import java.util.Iterator;
 import java.util.NoSuchElementException;
+
+import org.archive.wayback.util.CloseableIterator;
 
 import com.sleepycat.je.Cursor;
 import com.sleepycat.je.DatabaseEntry;
@@ -39,7 +40,7 @@ import com.sleepycat.je.OperationStatus;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class BDBRecordIterator implements Iterator {
+public class BDBRecordIterator implements CloseableIterator {
 	
 	DatabaseEntry key;
 	DatabaseEntry value;
@@ -110,17 +111,18 @@ public class BDBRecordIterator implements Iterator {
 				if(status == OperationStatus.SUCCESS) {
 					gotNext = true;
 				} else {
-					finishRun();
+					close();
 				}
 			} catch (DatabaseException e) {
+				// SLOP: throw a runtime?
 				e.printStackTrace();
-				finishRun();
+				close();
 			}			
 		}
 		return gotNext;
 	}
 
-	private void finishRun() {
+	public void close() {
 		if(!hitLast) {
 			hitLast = true;
 			try {
