@@ -37,12 +37,12 @@ import org.archive.io.arc.ARCReader;
 import org.archive.io.arc.ARCReaderFactory;
 import org.archive.wayback.ResourceStore;
 import org.archive.wayback.WaybackConstants;
-import org.archive.wayback.cdx.indexer.ArcIndexer;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.exception.ResourceNotAvailableException;
+import org.archive.wayback.resourceindex.indexer.ArcIndexer;
 import org.archive.wayback.resourceindex.indexer.IndexClient;
 
 /**
