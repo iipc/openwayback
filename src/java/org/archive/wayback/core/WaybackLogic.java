@@ -60,6 +60,8 @@ public class WaybackLogic implements PropertyConfigurable {
 	private Properties configuration = null;
 	
 	Hashtable objectCache = new Hashtable();
+
+	private static Hashtable singletonCache = new Hashtable();
 	
 	/**
 	 * Constructor
@@ -133,6 +135,22 @@ public class WaybackLogic implements PropertyConfigurable {
 
 		return result;
 	}
+	
+	/**
+	 * possibly initializes and returns a singleton instance of class className
+	 * 
+	 * @param className
+	 * @return object of PropertyConfigurable class that has been configured
+	 *     with a call to init() 
+	 * @throws ConfigurationException
+	 */
+	public synchronized PropertyConfigurable getCachedSingleton(final String className) 
+	throws ConfigurationException {
+		if(!singletonCache.containsKey(className)) {
+			singletonCache.put(className,getInstance(configuration,className));
+		}
+		return (PropertyConfigurable) singletonCache.get(className);
+	}
 
 	/**
 	 * possibly initializes and returns an instance of class className
@@ -142,7 +160,7 @@ public class WaybackLogic implements PropertyConfigurable {
 	 *     with a call to init() 
 	 * @throws ConfigurationException
 	 */
-	public PropertyConfigurable getCachedInstance(final String className) 
+	public synchronized PropertyConfigurable getCachedInstance(final String className) 
 	throws ConfigurationException {
 		if(!objectCache.containsKey(className)) {
 			objectCache.put(className,getInstance(configuration,className));
@@ -157,7 +175,7 @@ public class WaybackLogic implements PropertyConfigurable {
 	 * @throws ConfigurationException 
 	 */
 	public ResourceIndex getResourceIndex() throws ConfigurationException {
-		return (ResourceIndex) getCachedInstance(RESOURCE_INDEX_PROPERTY);
+		return (ResourceIndex) getCachedSingleton(RESOURCE_INDEX_PROPERTY);
 
 	}
 
@@ -168,8 +186,7 @@ public class WaybackLogic implements PropertyConfigurable {
 	 * @throws ConfigurationException 
 	 */
 	public ResourceStore getResourceStore() throws ConfigurationException {
-		return (ResourceStore) getCachedInstance(RESOURCE_STORE_PROPERTY);
-
+		return (ResourceStore) getCachedSingleton(RESOURCE_STORE_PROPERTY);
 	}
 
 	/**
