@@ -144,8 +144,10 @@ public class AdministrativeExclusionAuthority implements ExclusionAuthority {
 		}
 
 		try {
-			db = new BDBRecordSet(dbPath,dbName);
-			//db = new BDBMap(dbName,dbPath);
+
+			db = new BDBRecordSet();
+			db.initializeDB(dbPath,dbName);
+
 		} catch (DatabaseException e) {
 			e.printStackTrace();
 			throw new ConfigurationException(e.getMessage());
