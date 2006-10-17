@@ -33,7 +33,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.archive.wayback.ResourceIndex;
-import org.archive.wayback.cdx.RemoteCDXIndex;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.WaybackRequest;
@@ -59,8 +58,8 @@ import org.xml.sax.SAXException;
  * @version $Date$, $Revision$
  */
 public class RemoteResourceIndex implements ResourceIndex {
-	private static final Logger LOGGER = Logger.getLogger(RemoteCDXIndex.class
-			.getName());
+	private static final Logger LOGGER = Logger.getLogger(RemoteResourceIndex
+			.class.getName());
 
 	/**
 	 * name of the property value indicating the url prefix of the remote index.
