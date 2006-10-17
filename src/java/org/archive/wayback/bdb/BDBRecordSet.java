@@ -71,26 +71,11 @@ public class BDBRecordSet {
 	Database db = null;
 
 	/**
-	 * Constructor
-	 * 
-	 * @param thePath
-	 *            directory where BDBJE files are stored
-	 * @param theDbName
-	 *            name of BDB database
-	 * @throws DatabaseException 
-	 */
-	public BDBRecordSet(final String thePath, final String theDbName)
-			throws DatabaseException {
-		super();
-		initializeDB(thePath, theDbName);
-	}
-
-	/**
 	 * @param thePath Directory where BDBJE files are stored
 	 * @param theDbName Name of files in thePath
 	 * @throws DatabaseException
 	 */
-	protected void initializeDB(final String thePath, final String theDbName)
+	public void initializeDB(final String thePath, final String theDbName)
 			throws DatabaseException {
 		path = thePath;
 		dbName = theDbName;
@@ -119,16 +104,46 @@ public class BDBRecordSet {
 	 * 
 	 * @throws DatabaseException
 	 */
-	public void shutdownDB() throws DatabaseException {
+	public synchronized void shutdownDB() throws DatabaseException {
 
 		if (db != null) {
 			db.close();
+			db = null;
 		}
 
 		if (env != null) {
 			env.close();
+			env = null;
 		}
 	}
+	
+	/**
+	 * @param s
+	 * @return byte array representation of String s in UTF-8
+	 */
+	public static byte[] stringToBytes(String s) {
+		try {
+			return s.getBytes("UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			// no UTF-8, huh?
+			e.printStackTrace();
+			return s.getBytes();
+		}
+	}
+	/**
+	 * @param ba
+	 * @return String of UTF-8 encoded bytes ba
+	 */
+	public static String bytesToString(byte[] ba) {
+		try {
+			return new String(ba,"UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			// not likely..
+			e.printStackTrace();
+			return new String(ba);
+		}
+	}
+
 	/**
 	 * @param startKey
 	 * @return iterator for BDBRecords
@@ -149,7 +164,7 @@ public class BDBRecordSet {
 		Cursor cursor = db.openCursor(null, null);
 		return new BDBRecordIterator(cursor,startKey,!forward);
 	}
-	
+
 	/**
 	 * @param itr
 	 */
@@ -186,13 +201,11 @@ public class BDBRecordSet {
      */
     public void put(String keyStr, String valueStr) {
         try {
-            DatabaseEntry key = new DatabaseEntry(keyStr.getBytes("UTF-8"));
-            DatabaseEntry data = new DatabaseEntry(valueStr.getBytes("UTF-8"));
+            DatabaseEntry key = new DatabaseEntry(stringToBytes(keyStr));
+            DatabaseEntry data = new DatabaseEntry(stringToBytes(valueStr));
             db.put(null, key, data);            
          } catch (DatabaseException e) {
              e.printStackTrace();
-         } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
         }
     }
     
@@ -205,20 +218,26 @@ public class BDBRecordSet {
     public String get(String keyStr) {
         String result = null;
         try {
-            DatabaseEntry key = new DatabaseEntry(keyStr.getBytes("UTF-8"));
+            DatabaseEntry key = new DatabaseEntry(stringToBytes(keyStr));
             DatabaseEntry data = new DatabaseEntry();
             if (db.get(null, key, data, LockMode.DEFAULT) == 
             	OperationStatus.SUCCESS) {
             	
                 byte[] bytes = data.getData();
-                result = new String(bytes, "UTF-8");
+                result = bytesToString(bytes);
             }
          } catch (DatabaseException e) {
              e.printStackTrace();
-         } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
         }
         return result;
+    }
+    
+    /**
+     * @param keyStr
+     * @throws DatabaseException
+     */
+    public void delete(String keyStr) throws DatabaseException {
+    	db.delete(null,new DatabaseEntry(stringToBytes(keyStr)));
     }
     
 	/**
