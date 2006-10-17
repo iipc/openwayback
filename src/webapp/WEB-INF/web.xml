@@ -17,6 +17,9 @@
         </description>
     </context-param>
 
+    <listener>
+        <listener-class>org.archive.wayback.core.WaybackContextListener</listener-class>
+    </listener>
 <!--
        USER INTERFACE SECTION
 -->
@@ -384,14 +387,15 @@ These options are not used by default.
 This section contains configuration for accessing ARC files from a single
 directory on a local filesystem. If ARC files are spread across multiple
 local directories, a single directory be created, and populated with symbolic
-links to the various locations of the ARC files. This configuration will
-also allow the IndexPipeline to scan the directory named in the 'arcpath'
-configuration to notice and automatically index new ARC files as they arrive.
+links to the various locations of the ARC files. This configuration section also
+contains specific configuration for an indexing thread, which can optionally
+notice new ARC files, generate CDX flat files for new ARCs, and hand off these
+CDX files to a BDB resource index for merging.
 -->
 	
     <context-param>
         <param-name>resourcestore.classname</param-name>
-        <param-value>org.archive.wayback.localresourcestore.LocalARCResourceStore</param-value>
+        <param-value>org.archive.wayback.resourcestore.LocalARCResourceStore</param-value>
         <description>Class that implements ResourceStore for this Wayback</description>
     </context-param>
 
@@ -404,29 +408,109 @@ configuration to notice and automatically index new ARC files as they arrive.
         </description>
     </context-param>
 
+    <context-param>
+        <param-name>resourcestore.autoindex</param-name>
+        <param-value>1</param-value>
+        <description>
+            If this is set to '1', then a background thread is launched that
+            detects new ARC files appearing in arcpath. New ARCs are indexed,
+            and a CDX flat file, with one line per ARC Record is created, one
+            CDX file per ARC. These CDX files are then handed off to the index
+            for incorporation into the index.
+        </description>
+    </context-param>
+
+    <context-param>
+        <param-name>resourcestore.tmppath</param-name>
+        <param-value>/tmp/wayback/arc-indexer/tmp</param-value>
+        <description>
+            Directory where CDX files are created temporarily. This is a 
+            scratch space directory, which must exist.
+        </description>
+    </context-param>
+
+    <context-param>
+        <param-name>resourcestore.workpath</param-name>
+        <param-value>/tmp/wayback/arc-indexer/work</param-value>
+        <description>
+            Directory which holds empty flag files indicating that ARC files 
+            are waiting to be indexed.
+            This directory must exist.
+        </description>
+    </context-param>
+
+    <context-param>
+        <param-name>resourcestore.queuedpath</param-name>
+        <param-value>/tmp/wayback/arc-indexer/queued</param-value>
+        <description>
+            Directory which holds empty flag files indicating that ARC files 
+            have already been seen and queued for indexing.
+            This directory must exist.
+        </description>
+    </context-param>
+
+    <context-param>
+        <param-name>resourcestore.indextarget</param-name>
+        <param-value>/tmp/wayback/index-data/incoming</param-value>
+        <description>
+            Directory or URL where CDX files are sent after they are created. If
+            the value of this parameter begins with http://, then the value is
+            assumed to be a URL where CDX files are PUT, on a possibly remote
+            resourceindex node. If the value does not begin with http://, then
+            the value is assumed to be a local directory, which must exist, 
+            where completed CDX files are moved for incorporation into the 
+            index.
+        </description>
+    </context-param>
+
+    <context-param>
+        <param-name>resourcestore.indexinterval</param-name>
+        <param-value>10000</param-value>
+        <description>
+            Millisecond interval between checks for new ARCs that need to be 
+            processed. This is only the initial time slept when first starting
+            up, and after any new files are found. Each interval that no new 
+            ARCs are detected, the duration slept increases by this amount.
+        </description>
+    </context-param>
 
 <!-- END OF  Local-ARC ResourceStore  OPTIONS -->
 
-<!-- START OF  Remote-HTTP1.1 ResourceStore  OPTIONS
-This section contains configuration for accessing ARC file data via HTTP 1.1
-from remote servers. This configuration requires all nodes that hold ARC files
-to run an HTTP 1.1 server, and maps ARC files to their actual location with
-a BDB JE database. The database must be populated using either the
-location-client or the pipeline-client scripts included with the distribution.
+<!-- START OF  ArcProxy/LocationDB Servlet Package  OPTIONS
+This section contains configuration for a standalone webapp that implements
+a singleton FileLocationDB for multiple Wayback applications using the same
+dataset. This has several purposes:
+1) there is a single location DB to update
+2) allows "reverse proxying" of all ARC files on a backend network, making them
+appear to be in a single exported directory.
+
+This should be the only configuration active in a separate webapp, if used.
 
 These options are not used by default.
 -->
 <!--
 
-    <context-param>
-        <param-name>resourcestore.classname</param-name>
-        <param-value>org.archive.wayback.http11resourcestore.Http11ResourceStore</param-value>
-        <description>Class that implements ResourceStore for this Wayback</description>
-    </context-param>
+    <servlet>
+        <servlet-name>ArcProxyServlet</servlet-name>
+        <servlet-class>org.archive.wayback.resourcestore.http.ArcProxyServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ArcProxyServlet</servlet-name>
+        <url-pattern>/arc-proxy/*</url-pattern>
+    </servlet-mapping>
 
+    <servlet>
+        <servlet-name>FileLocationDBServlet</servlet-name>
+    <servlet-class>org.archive.wayback.resourcestore.http.FileLocationDBServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>FileLocationDBServlet</servlet-name>
+        <url-pattern>/locationDB</url-pattern>
+    </servlet-mapping>
+	
     <context-param>
         <param-name>filelocationdb.classname</param-name>
-        <param-value>org.archive.wayback.http11resourcestore.FileLocationDB</param-value>
+        <param-value>org.archive.wayback.resourcestore.http.FileLocationDB</param-value>
         <description>Class implementing FileLocationDB</description>
     </context-param>
 
@@ -437,20 +521,45 @@ These options are not used by default.
     </context-param>
 
     <context-param>
+        <param-name>filelocationdb.logpath</param-name>
+        <param-value>/tmp/wayback/arc-db.log</param-value>
+        <description>Path where log of new ARCs inserted into the arc-db are 
+        stored. Containing directory must exist.</description>
+    </context-param>
+
+    <context-param>
         <param-name>filelocationdb.name</param-name>
         <param-value>arc-db</param-value>
         <description>name for BDBJE arc database</description>
     </context-param>
 
-    <servlet>
-        <servlet-name>FileLocationDBServlet</servlet-name>
-        <servlet-class>org.archive.wayback.http11resourcestore.FileLocationDBServlet</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>FileLocationDBServlet</servlet-name>
-        <url-pattern>/locationDB</url-pattern>
-    </servlet-mapping>
 	
+-->
+<!-- END OF  ArcProxy/LocationDB Servlet Package  OPTIONS -->
+
+<!-- START OF  Remote-HTTP1.1 ResourceStore  OPTIONS
+This section contains configuration for accessing ARC file data via HTTP 1.1
+from remote servers. This configuration requires all ARCs to appear as if they
+were in a single directory, on an HTTP 1.1 compliate web server. The ArcProxy
+configuration can be used to reverse-proxy HTTP 1.1 range requests to backend
+storage nodes using a BDB JE database to map ARC filenames to an specific URL.
+
+These options are not used by default.
+-->
+<!--
+
+    <context-param>
+        <param-name>resourcestore.classname</param-name>
+        <param-value>org.archive.wayback.resourcestore.HttpARCResourceStore</param-value>
+        <description>Class that implements ResourceStore for this Wayback</description>
+    </context-param>
+	
+    <context-param>
+        <param-name>resourcestore.arcurlprefix</param-name>
+        <param-value>http://localhost:8080/locationdb/arc-proxy</param-value>
+        <description>Absolute URL of the ArcProxy webapp Location of </description>
+    </context-param>
+
 -->
 <!-- END OF  Remote-HTTP1.1 ResourceStore  OPTIONS -->
 
@@ -464,13 +573,15 @@ These options are not used by default.
 -->
 <!-- START OF  Local-BDB ResourceIndex  OPTIONS
 This section contains configuration for using a BDB JE to hold the document
-index on the local filesystem. This is the default index storage
-implementation.
+index on the local filesystem. This section also contains configuration for
+an optional index update thread, which will scan a directory for new index data,
+in CDX format, and will automatically add new index records to the index.This
+is the default index storage implementation.
 -->
 	
     <filter>
         <filter-name>PipelineFilter</filter-name>
-        <filter-class>org.archive.wayback.cdx.indexer.PipelineFilter</filter-class>
+        <filter-class>org.archive.wayback.resourceindex.indexer.RemoteSubmitFilter</filter-class>
         <init-param>
             <param-name>pipeline.statusjsp</param-name>
             <param-value>jsp/PipelineUI/PipelineStatus.jsp</param-value>
@@ -483,8 +594,15 @@ implementation.
 
     <context-param>
         <param-name>resourceindex.classname</param-name>
-        <param-value>org.archive.wayback.cdx.LocalBDBResourceIndex</param-value>
+        <param-value>org.archive.wayback.resourceindex.LocalResourceIndex</param-value>
         <description>Class that implements ResourceIndex for this Wayback</description>
+    </context-param>
+
+    <context-param>
+        <param-name>resourceindex.sourceclass</param-name>
+        <param-value>BDB</param-value>
+        <description>Class that implements ResultSource for this Wayback, 
+        currently: BDB|CDX</description>
     </context-param>
 
     <context-param>
@@ -504,29 +622,86 @@ implementation.
         </description>
     </context-param>
 
-
     <context-param>
-        <param-name>indexpipeline.workpath</param-name>
-        <param-value>/tmp/wayback/pipeline</param-value>
+        <param-name>resourceindex.incomingpath</param-name>
+        <param-value>/tmp/wayback/index-data/incoming</param-value>
         <description>
-            LocalBDBResourceIndex specific directory to store flag files and 
-            temporary index data.
+            BDB index-specific configuration that indicates new CDX format flat
+            files will appear in the directory named in the value of this param.
+            If this configuration is present and non-empty, a background thread
+            will be started that monitors this directory, and adds CDX records
+            in files found in this directory to the index.
         </description>
     </context-param>
 
     <context-param>
-        <param-name>indexpipeline.runpipeline</param-name>
-        <param-value>1</param-value>
+        <param-name>resourceindex.mergedpath</param-name>
+        <param-value>/tmp/wayback/index-data/merged</param-value>
         <description>
-            if set to '1' then a background indexing thread will automatically update the BDB
-            index when new ARC files are noticed in the 'arcpath' directory. If multiple
-            webapps are running on the same node, using the same index directory, then only
-            one of the webapps should be configured to run the pipeline.
+            If this value is present and non-empty, then CDX files that are
+            successfully processed from incoming are moved to this directory
+            after merging. If this option is missing or blank, CDX files are
+            deleted after merging.
         </description>
     </context-param>
 
+    <context-param>
+        <param-name>resourceindex.failedpath</param-name>
+        <param-value>/tmp/wayback/index-data/failed</param-value>
+        <description>
+            If this value is present and non-empty, then CDX files that fail to
+            parse successfully are moved to this directory after a single 
+            attempt. If this option is missing or blank, malformed CDX files are
+            left in the incoming directory and repeatedly re-attempted until
+            some other process moves them out of the way or fixes them.
+        </description>
+    </context-param>
+
+    <context-param>
+        <param-name>resourceindex.mergeinterval</param-name>
+        <param-value>10000</param-value>
+        <description>
+            Millisecond interval between checks for new files in the incoming 
+            directory. This is only the starting number, when no new files are
+            found in the directory. Each subsequent interval will increase by 
+            this number of ms, until a file is found, at which point the 
+            interval will revert to the initial level.
+        </description>
+    </context-param>
 
 <!-- END OF  Local-BDB ResourceIndex  OPTIONS -->
+
+<!-- START OF  Local-CDX ResourceIndex  OPTIONS
+This section contains configuration for using one or more sorted CDX format
+flat files to store index information.
+
+These options are not used by default.
+-->
+<!--
+	
+    <context-param>
+        <param-name>resourceindex.classname</param-name>
+        <param-value>org.archive.wayback.resourceindex.LocalResourceIndex</param-value>
+        <description>Class that implements ResourceIndex for this Wayback</description>
+    </context-param>
+
+    <context-param>
+        <param-name>resourceindex.sourceclass</param-name>
+        <param-value>CDX</param-value>
+        <description>Class that implements ResultSource for this Wayback, 
+        currently: BDB|CDX</description>
+    </context-param>
+
+    <context-param>
+        <param-name>resourceindex.cdxpaths</param-name>
+        <param-value>/tmp/wayback/index/index.cdx</param-value>
+        <description>
+            One or more comma-separated paths pointing to sorted CDX files
+            that contain index information for this Wayback installation.
+        </description>
+    </context-param>
+-->
+<!-- END OF  Local-CDX ResourceIndex  OPTIONS -->
 
 <!-- START OF  Remote-Nutch ResourceIndex  OPTIONS
 This section contains configuration for using a Nutch full text index
@@ -538,7 +713,7 @@ These options are not used by default.
 	
     <context-param>
         <param-name>resourceindex.classname</param-name>
-        <param-value>org.archive.wayback.nutch.NutchResourceIndex</param-value>
+        <param-value>org.archive.wayback.resourceindex.NutchResourceIndex</param-value>
         <description>Class that implements ResourceIndex for this Wayback</description>
     </context-param>
 
@@ -561,7 +736,7 @@ These options are not used by default.
 	
     <context-param>
         <param-name>resourceindex.classname</param-name>
-        <param-value>org.archive.wayback.cdx.RemoteCDXIndex</param-value>
+        <param-value>org.archive.wayback.resourceindex.RemoteCDXIndex</param-value>
         <description>Class that implements ResourceIndex for this Wayback</description>
     </context-param>
 
