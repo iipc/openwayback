@@ -1,0 +1,45 @@
+
+    <servlet>
+        <servlet-name>ArcProxyServlet</servlet-name>
+        <servlet-class>org.archive.wayback.resourcestore.http.ArcProxyServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ArcProxyServlet</servlet-name>
+        <url-pattern>/arc-proxy/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>FileLocationDBServlet</servlet-name>
+    <servlet-class>org.archive.wayback.resourcestore.http.FileLocationDBServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>FileLocationDBServlet</servlet-name>
+        <url-pattern>/locationDB</url-pattern>
+    </servlet-mapping>
+	
+    <context-param>
+        <param-name>filelocationdb.classname</param-name>
+        <param-value>org.archive.wayback.resourcestore.http.FileLocationDB</param-value>
+        <description>Class implementing FileLocationDB</description>
+    </context-param>
+
+    <context-param>
+        <param-name>filelocationdb.path</param-name>
+        <param-value>/tmp/wayback/arc-db</param-value>
+        <description>Directory where arc-db is stored. Must exist.</description>
+    </context-param>
+
+    <context-param>
+        <param-name>filelocationdb.logpath</param-name>
+        <param-value>/tmp/wayback/arc-db.log</param-value>
+        <description>Path where log of new ARCs inserted into the arc-db are 
+        stored. Containing directory must exist.</description>
+    </context-param>
+
+    <context-param>
+        <param-name>filelocationdb.name</param-name>
+        <param-value>arc-db</param-value>
+        <description>name for BDBJE arc database</description>
+    </context-param>
+
+	
