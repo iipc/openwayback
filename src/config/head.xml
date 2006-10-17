@@ -17,3 +17,6 @@
         </description>
     </context-param>
 
+    <listener>
+        <listener-class>org.archive.wayback.core.WaybackContextListener</listener-class>
+    </listener>
