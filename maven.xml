@@ -40,6 +40,7 @@
           <fileset dir="${maven.src.dir}/scripts">
             <include name="pipeline-client"/>
             <include name="location-client"/>
+            <include name="url-client"/>
             <include name="create-test-arc"/>
           </fileset>
         </copy>
