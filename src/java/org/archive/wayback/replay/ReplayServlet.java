@@ -46,7 +46,6 @@ import org.archive.wayback.core.WaybackServlet;
 import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.exception.WaybackException;
-import org.archive.wayback.query.OpenSearchQueryParser;
 
 /**
  * Servlet implementation for Wayback Replay requests.
@@ -61,8 +60,6 @@ public class ReplayServlet extends WaybackServlet {
 	private static final String WMREQUEST_ATTRIBUTE = "wmrequest.attribute";
 
 	private static final long serialVersionUID = 1L;
-
-	private OpenSearchQueryParser qp = new OpenSearchQueryParser();
 
 	/**
 	 * Constructor
@@ -114,7 +111,7 @@ public class ReplayServlet extends WaybackServlet {
 		try {
 
 			if (wbRequest == null) {
-				wbRequest = qp.parseQuery(httpRequest);
+				wbRequest = wayback.getQueryParser().parseQuery(httpRequest);
 			}
 
 			ResourceIndex idx = wayback.getResourceIndex();

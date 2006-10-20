@@ -24,6 +24,7 @@
  */
 package org.archive.wayback.archivalurl;
 
+import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -36,6 +37,7 @@ import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.RequestFilter;
 import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
+import org.archive.wayback.exception.ConfigurationException;
 
 /**
  * 
@@ -56,6 +58,17 @@ public class QueryFilter extends RequestFilter {
 	private final static Pattern WB_PATH_QUERY_REGEX = Pattern
 			.compile("^/(\\d{0,13})\\*/(.*)\\*$");
 
+	private int defaultResultsPerPage = 10;
+	
+	public void init(Properties p) throws ConfigurationException {
+		super.init(p);
+		String resultsPerPage = (String) p.get(
+				WaybackConstants.RESULTS_PER_PAGE_CONFIG_NAME);
+		if(resultsPerPage != null) {
+			defaultResultsPerPage = Integer.parseInt(resultsPerPage);
+		}
+	}
+
 	public WaybackRequest parseRequest(HttpServletRequest httpRequest) {
 		WaybackRequest wbRequest = null;
 		Matcher matcher = null;
@@ -74,6 +87,7 @@ public class QueryFilter extends RequestFilter {
 		if (matcher != null && matcher.matches()) {
 
 			wbRequest = new WaybackRequest();
+			wbRequest.setResultsPerPage(defaultResultsPerPage);
 			String dateStr = matcher.group(1);
 			String urlStr = matcher.group(2);
 
@@ -102,6 +116,7 @@ public class QueryFilter extends RequestFilter {
 			if (matcher != null && matcher.matches()) {
 
 				wbRequest = new WaybackRequest();
+				wbRequest.setResultsPerPage(defaultResultsPerPage);
 				String dateStr = matcher.group(1);
 				String urlStr = matcher.group(2);
 				String startDate = Timestamp.parseBefore(dateStr).getDateStr();

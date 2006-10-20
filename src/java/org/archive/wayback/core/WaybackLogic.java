@@ -35,6 +35,7 @@ import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.ResourceIndex;
 import org.archive.wayback.ResourceStore;
 import org.archive.wayback.exception.ConfigurationException;
+import org.archive.wayback.query.OpenSearchQueryParser;
 
 /**
  * Constructor and go-between for the major components in the Wayback Machine.
@@ -63,6 +64,8 @@ public class WaybackLogic implements PropertyConfigurable {
 
 	private static Hashtable singletonCache = new Hashtable();
 	
+	private OpenSearchQueryParser qp = null;
+	
 	/**
 	 * Constructor
 	 */
@@ -83,7 +86,6 @@ public class WaybackLogic implements PropertyConfigurable {
 	public void init(Properties configuration) {
 		
 		this.configuration = configuration;
-		
 	}
 
 	protected PropertyConfigurable getInstance(final Properties p,
@@ -220,4 +222,19 @@ public class WaybackLogic implements PropertyConfigurable {
 	public QueryRenderer getQueryRenderer() throws ConfigurationException {
 		return (QueryRenderer) getCachedInstance(QUERY_RENDERER_PROPERTY);
 	}
+	/**
+	 *  possibly initializes and returns the resourceIndex
+	 * 
+	 * @return Returns the resourceIndex.
+	 * @throws ConfigurationException 
+	 */
+	public synchronized OpenSearchQueryParser getQueryParser() 
+	throws ConfigurationException {
+		if(qp == null) {
+			qp = new OpenSearchQueryParser();
+			qp.init(configuration);
+		}
+		return qp;
+	}
+
 }

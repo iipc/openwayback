@@ -64,6 +64,9 @@ public class NutchResourceIndex implements ResourceIndex {
 	private final static String SEARCH_BASE_URL = "resourceindex.baseurl";
 
 	private final static int MAX_RECORDS = 1000;
+	private int maxRecords = MAX_RECORDS;
+
+	
    private static final String NUTCH_NS =
        "http://www.nutch.org/opensearchrss/1.0/";
    private String searchUrlBase;
@@ -111,7 +114,13 @@ public class NutchResourceIndex implements ResourceIndex {
        if (!this.builder.isNamespaceAware()) {
            LOGGER.severe("Builder is not namespace aware.");
        }
-       LOGGER.info("Using base search url " + this.searchUrlBase);   
+       LOGGER.info("Using base search url " + this.searchUrlBase);
+		String maxRecordsConfig = (String) p.get(
+				WaybackConstants.MAX_RESULTS_CONFIG_NAME);
+		if(maxRecordsConfig != null) {
+			maxRecords = Integer.parseInt(maxRecordsConfig);
+		}
+       
 	}
 
 	/* (non-Javadoc)
@@ -247,9 +256,9 @@ public class NutchResourceIndex implements ResourceIndex {
    	if(hitsPerPage < 1) {
    		throw new BadQueryException("Hits per page must be positive");
    	}
-   	if(hitsPerPage > MAX_RECORDS) {
+   	if(hitsPerPage > maxRecords) {
    		throw new BadQueryException("Hits per page must be less than " +
-   				MAX_RECORDS);
+   				maxRecords);
    	}
    	int start = (wbRequest.getPageNum()-1) * hitsPerPage;
        if (urlStr == null || urlStr.length() <= 0) {

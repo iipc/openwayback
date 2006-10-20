@@ -73,11 +73,12 @@ public class LocalResourceIndex implements ResourceIndex {
 	 */
 	private final static String EXCLUSION_UA = "resourceindex.exclusionua";
 
-	// TODO: add configuration for MAX_RECORDS
 	/**
 	 * maximum number of records to return
 	 */
 	private final static int MAX_RECORDS = 1000;
+	
+	private int maxRecords = MAX_RECORDS;
 
 	private String exclusionUrlPrefix = null;
 
@@ -98,6 +99,12 @@ public class LocalResourceIndex implements ResourceIndex {
 		exclusionUrlPrefix = (String) p.get(EXCLUSION_PREFIX);
 
 		exclusionUserAgent = (String) p.get(EXCLUSION_UA);
+		
+		String maxRecordsConfig = (String) p.get(
+				WaybackConstants.MAX_RESULTS_CONFIG_NAME);
+		if(maxRecordsConfig != null) {
+			maxRecords = Integer.parseInt(maxRecordsConfig);
+		}
 	}
 
 	private ExclusionFilter getExclusionFilter() {
@@ -167,9 +174,9 @@ public class LocalResourceIndex implements ResourceIndex {
 		if (resultsPerPage < 1) {
 			throw new BadQueryException("resultsPerPage cannot be < 1");
 		}
-		if (resultsPerPage > MAX_RECORDS) {
+		if (resultsPerPage > maxRecords) {
 			throw new BadQueryException("resultsPerPage cannot be > "
-					+ MAX_RECORDS);
+					+ maxRecords);
 		}
 		if (pageNum < 1) {
 			throw new BadQueryException("pageNum must be > 0");
@@ -198,7 +205,7 @@ public class LocalResourceIndex implements ResourceIndex {
 		// set up the common Filters:
 
 		// makes sure we don't inspect too many records: prevents DOS
-		GuardRailFilter guardrail = new GuardRailFilter(MAX_RECORDS);
+		GuardRailFilter guardrail = new GuardRailFilter(maxRecords);
 
 		// checks an exclusion service for every matching record
 		ExclusionFilter exclusion = getExclusionFilter();

@@ -26,11 +26,16 @@ package org.archive.wayback.query;
 
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
+
+import org.archive.wayback.PropertyConfigurable;
+import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadQueryException;
+import org.archive.wayback.exception.ConfigurationException;
 
 /**
  * 
@@ -38,7 +43,7 @@ import org.archive.wayback.exception.BadQueryException;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class OpenSearchQueryParser {
+public class OpenSearchQueryParser implements PropertyConfigurable {
 	/**
 	 * CGI argument name for query arguments
 	 */
@@ -61,7 +66,9 @@ public class OpenSearchQueryParser {
 
 	private final static int DEFAULT_MAX_RECORDS = 1000;
 
-
+	private int maxRecords = DEFAULT_MAX_RECORDS;
+	
+	
 	// private final static String START_INDEX = "start_index";
 
 	private final static Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
@@ -72,6 +79,16 @@ public class OpenSearchQueryParser {
 	// lines consume the entire rest of the query
 	private String[] lineTokens = { "terms" };
 
+	/* (non-Javadoc)
+	 * @see org.archive.wayback.PropertyConfigurable#init(java.util.Properties)
+	 */
+	public void init(Properties p) throws ConfigurationException {
+		String max = p.getProperty(WaybackConstants.MAX_RESULTS_CONFIG_NAME);
+		if(max != null) {
+			maxRecords = Integer.parseInt(max);
+		}
+	}	
+	
 	private String getMapParam(Map queryMap, String field) {
 		String arr[] = (String[]) queryMap.get(field);
 		if (arr == null || arr.length == 0) {
@@ -100,7 +117,7 @@ public class OpenSearchQueryParser {
 			int nr = Integer.parseInt(numResults);
 			wbRequest.setResultsPerPage(nr);
 		} else {
-			wbRequest.setResultsPerPage(DEFAULT_MAX_RECORDS);
+			wbRequest.setResultsPerPage(maxRecords);
 		}
 		if (startPage != null) {
 			int sp = Integer.parseInt(startPage);

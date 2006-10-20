@@ -59,8 +59,6 @@ public class QueryServlet extends WaybackServlet {
 
 	private static final long serialVersionUID = 1L;
 
-	private OpenSearchQueryParser qp = new OpenSearchQueryParser();
-
 	/**
 	 * Constructor
 	 */
@@ -74,7 +72,6 @@ public class QueryServlet extends WaybackServlet {
 
 		WaybackRequest wbRequest = (WaybackRequest) httpRequest
 				.getAttribute(WMREQUEST_ATTRIBUTE);
-
 		QueryRenderer renderer;
 		try {
 			renderer = wayback.getQueryRenderer();
@@ -86,7 +83,7 @@ public class QueryServlet extends WaybackServlet {
 		try {
 
 			if (wbRequest == null) {
-				wbRequest = qp.parseQuery(httpRequest);
+				wbRequest = wayback.getQueryParser().parseQuery(httpRequest);
 			}
 
 			ResourceIndex idx = wayback.getResourceIndex();
