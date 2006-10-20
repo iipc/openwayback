@@ -264,4 +264,16 @@ public interface WaybackConstants {
 	 */
 	public static final String RESULT_REDIRECT_URL = "redirecturl";
 	
+	/**
+	 * Name of configuration in web.xml for maximum number of results to return
+	 * in index searches.
+	 */
+	public static final String MAX_RESULTS_CONFIG_NAME = "maxresults";
+
+	/**
+	 * Name of configuration in web.xml for default number of results to show
+	 * on each page
+	 */
+	public static final String RESULTS_PER_PAGE_CONFIG_NAME = "resultsperpage";
+	
 }
