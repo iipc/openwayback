@@ -20,3 +20,10 @@
             that contain index information for this Wayback installation.
         </description>
     </context-param>
+
+    <context-param>
+        <param-name>maxresults</param-name>
+        <param-value>1000</param-value>
+        <description>Maximum number of results to return from the resourceindex</description>
+    </context-param>
+    

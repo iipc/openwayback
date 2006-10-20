@@ -98,3 +98,9 @@
         <description>HTTP URI prefix for the replay UI. This should be the name and port of the Tomcat hosting this webapp, plus the name of the context where this webapp is installed.</description>
     </context-param>
 
+    <context-param>
+        <param-name>resultsperpage</param-name>
+        <param-value>10</param-value>
+        <description>Default number of results to show per page</description>
+    </context-param>
+    

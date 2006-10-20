@@ -128,7 +128,12 @@ access mode.
         <description>HTTP URI prefix for the replay UI. This should be the name and port of the Tomcat hosting this webapp, plus the name of the context where this webapp is installed.</description>
     </context-param>
 
-<!-- END OF  Archival-Url UI  OPTIONS -->
+    <context-param>
+        <param-name>resultsperpage</param-name>
+        <param-value>10</param-value>
+        <description>Default number of results to show per page</description>
+    </context-param>
+    <!-- END OF  Archival-Url UI  OPTIONS -->
 
 <!-- START OF  Proxy UI  OPTIONS
 This section contains configuration for accessing content from the wayback
@@ -669,6 +674,12 @@ is the default index storage implementation.
         </description>
     </context-param>
 
+    <context-param>
+        <param-name>maxresults</param-name>
+        <param-value>1000</param-value>
+        <description>Maximum number of results to return from the resourceindex</description>
+    </context-param>
+
 <!-- END OF  Local-BDB ResourceIndex  OPTIONS -->
 
 <!-- START OF  Local-CDX ResourceIndex  OPTIONS
@@ -700,7 +711,13 @@ These options are not used by default.
             that contain index information for this Wayback installation.
         </description>
     </context-param>
--->
+
+    <context-param>
+        <param-name>maxresults</param-name>
+        <param-value>1000</param-value>
+        <description>Maximum number of results to return from the resourceindex</description>
+    </context-param>
+    -->
 <!-- END OF  Local-CDX ResourceIndex  OPTIONS -->
 
 <!-- START OF  Remote-Nutch ResourceIndex  OPTIONS
@@ -722,7 +739,13 @@ These options are not used by default.
         <param-value>http://localhost:8081/xmlquery</param-value>
         <description>absolute URL to Nutch server</description>
     </context-param>
--->
+
+    <context-param>
+        <param-name>maxresults</param-name>
+        <param-value>1000</param-value>
+        <description>Maximum number of results to return from the resourceindex</description>
+    </context-param>
+    -->
 <!-- END OF  Remote-Nutch ResourceIndex  OPTIONS -->
 
 <!-- START OF  Remote-BDB ResourceIndex  OPTIONS
@@ -747,7 +770,13 @@ These options are not used by default.
             Absolute URL to the Wayback Machine Resource Index service.
         </description>
     </context-param>
--->
+
+    <context-param>
+        <param-name>maxresults</param-name>
+        <param-value>1000</param-value>
+        <description>Maximum number of results to return from the resourceindex</description>
+    </context-param>
+    -->
 <!-- END OF  Remote-BDB ResourceIndex  OPTIONS -->
 
 <!--
