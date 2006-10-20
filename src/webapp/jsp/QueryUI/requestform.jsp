@@ -6,7 +6,7 @@ To search for all URLs beginning with a prefix URL, use PathQuery Type.<br></br>
 </p>
 <hr>
 <table>
-<form action="<%= request.getScheme() + "://" + request.getLocalName() + ":" + request.getLocalPort() + request.getContextPath() %>/query">
+<form action="<%= request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath() %>/query">
 <tr><td>URL:</td><td><input type="TEXT" name="url" WIDTH="80"></td></tr>
 <tr><td>Exact Date:</td><td><input type="TEXT" name="exactdate" WIDTH="80"></td></tr>
 <tr><td>Earliest Date:</td><td><input type="TEXT" name="startdate" WIDTH="80"></td></tr>

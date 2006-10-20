@@ -10,8 +10,8 @@
 <%@ page import="org.archive.wayback.query.resultspartitioner.ResultsPartition" %>
 <%
 
-String contextRoot = request.getScheme() + "://" + request.getLocalName() + ":" 
-	+ request.getLocalPort() + request.getContextPath();
+String contextRoot = request.getScheme() + "://" + request.getServerName() + ":" 
+	+ request.getServerPort() + request.getContextPath();
 
 UIQueryResults results = (UIQueryResults) request.getAttribute("ui-results");
 

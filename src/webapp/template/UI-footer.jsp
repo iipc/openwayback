@@ -3,8 +3,8 @@
 			<hr noshade size="1" align="center">
 			
 			<p>
-				<a href="<%= request.getScheme() + "://" + request.getLocalName() + ":" + request.getLocalPort() + request.getContextPath() %>">Home</a> |
-				<a href="<%= request.getScheme() + "://" + request.getLocalName() + ":" + request.getLocalPort() + request.getContextPath() %>/help.jsp">Help</a>
+				<a href="<%= request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath() %>">Home</a> |
+				<a href="<%= request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath() %>/help.jsp">Help</a>
 			</p>
 			<!--
 				<p>

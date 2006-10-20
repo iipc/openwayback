@@ -7,8 +7,8 @@
 		<meta http-equiv="content-type" content="text/html;charset=iso-8859-1">
 		      
 		<link rel="stylesheet" type="text/css" 
-			href="<%= request.getScheme() + "://" + request.getLocalName() + ":" + request.getLocalPort() + request.getContextPath() %>/css/styles.css"
-			src="<%= request.getScheme() + "://" + request.getLocalName() + ":" + request.getLocalPort() + request.getContextPath() %>/css/styles.css">
+			href="<%= request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath() %>/css/styles.css"
+			src="<%= request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath() %>/css/styles.css">
 		<title>Internet Archive Wayback Machine</title>
 		<base target="_top">
 	</head>
@@ -22,7 +22,7 @@
 
 				<!-- WAYBACK LOGO -->
 				
-				<td width="26%"><a href="<%= request.getScheme() + "://" + request.getLocalName() + ":" + request.getLocalPort() + request.getContextPath() %>"><img src="<%= request.getScheme() + "://" + request.getLocalName() + ":" + request.getLocalPort() + request.getContextPath() %>/images/wayback_logo_sm.gif" width="153" height="54" border="0"></a></td>
+				<td width="26%"><a href="<%= request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath() %>"><img src="<%= request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath() %>/images/wayback_logo_sm.gif" width="153" height="54" border="0"></a></td>
 
 				<!-- /WAYBACK LOGO -->
 			
@@ -45,11 +45,11 @@
 
 
 									<!-- URL FORM -->
-									<form action="<%= request.getScheme() + "://" + request.getLocalName() + ":" + request.getLocalPort() + request.getContextPath() %>/query" method="GET">
+									<form action="<%= request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath() %>/query" method="GET">
 
 
 										<tr>
-											<td nowrap align="center"><img src="<%= request.getScheme() + "://" + request.getLocalName() + ":" + request.getLocalPort() + request.getContextPath() %>/images/shim.gif" width="1" height="20"> 
+											<td nowrap align="center"><img src="<%= request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath() %>/images/shim.gif" width="1" height="20"> 
 
 												<b class="mainBodyW">
 													<font size="2" color="#FFFFFF" face="Arial, Helvetica, sans-serif">
@@ -76,7 +76,7 @@
 												&nbsp;
 												<input type="Submit" name="Submit" value="Take Me Back" align="absMiddle">
 												&nbsp;
-												<a href="<%= request.getScheme() + "://" + request.getLocalName() + ":" + request.getLocalPort() + request.getContextPath() %>/jsp/QueryUI/requestform.jsp" style="color:white;font-size:11px">
+												<a href="<%= request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath() %>/jsp/QueryUI/requestform.jsp" style="color:white;font-size:11px">
 													Adv. Search
 												</a>
 
