@@ -57,8 +57,7 @@ import org.mozilla.intl.chardet.nsICharsetDetectionObserver;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class BaseReplayRenderer implements ReplayRenderer,
-		nsICharsetDetectionObserver {
+public class BaseReplayRenderer implements ReplayRenderer {
 
 	// in several places, this class defers generation of client responses
 	// to a .jsp file, once the business logic of replaying is done.
@@ -74,15 +73,6 @@ public class BaseReplayRenderer implements ReplayRenderer,
 	// if documents are marked up before sending to clients, the data is
 	// decoded into a String in chunks. This is how big a chunk to decode with.
 	private final static int C_BUFFER_SIZE = 1024 * 4;
-
-	// and this is the buffer for each chunk.
-	private char[] cbuffer = new char[C_BUFFER_SIZE];
-
-	// when converting a document to a string, the 'chardet' library is used.
-	// this variable is set to true in a callback if the library was able
-	// to determing the character encoding.
-	// BUGBUG: needs to be thread local:
-	private String foundCharset = null;
 
 	// hand off this many bytes to the chardet library
 	private final static int MAX_CHARSET_READAHEAD = 4096;
@@ -307,11 +297,12 @@ public class BaseReplayRenderer implements ReplayRenderer,
 	protected String getCharset(Resource resource) throws IOException {
 		String charsetName = null;
 
-		foundCharset = null;
+		myICharsetDetectionObserver obs = new myICharsetDetectionObserver();
+		
 
 		nsDetector det = new nsDetector(nsPSMDetector.ALL);
 		byte[] bbuffer = new byte[MAX_CHARSET_READAHEAD];
-		det.Init(this);
+		det.Init(obs);
 
 		resource.mark(MAX_CHARSET_READAHEAD);
 		int len = resource.read(bbuffer, 0, MAX_CHARSET_READAHEAD);
@@ -319,8 +310,8 @@ public class BaseReplayRenderer implements ReplayRenderer,
 
 		if (len != -1) {
 			det.DoIt(bbuffer, len, false);
-			if (foundCharset != null) {
-				charsetName = foundCharset;
+			if (obs.detected != null) {
+				charsetName = obs.detected;
 			}
 		}
 		if (charsetName == null) {
@@ -338,16 +329,6 @@ public class BaseReplayRenderer implements ReplayRenderer,
 			charsetName = "UTF-8";
 		}
 		return charsetName;
-	}
-
-	/**
-	 * this method is called by the chardet library if it determines the
-	 * character set of a given document:
-	 * @param charSet
-	 * @see org.mozilla.intl.chardet.nsICharsetDetectionObserver#Notify(java.lang.String)
-	 */
-	public void Notify(String charSet) {
-		foundCharset = charSet;
 	}
 
 	/** 
@@ -412,6 +393,8 @@ public class BaseReplayRenderer implements ReplayRenderer,
 			// convert bytes to characters for charset:
 			InputStreamReader isr = new InputStreamReader(resource, charSet);
 
+			char[] cbuffer = new char[C_BUFFER_SIZE];
+
 			// slurp the whole thing into RAM:
 			StringBuilder sbuffer = new StringBuilder(recordLength);
 			for (int r = -1; (r = isr.read(cbuffer, 0, C_BUFFER_SIZE)) != -1;) {
@@ -433,4 +416,15 @@ public class BaseReplayRenderer implements ReplayRenderer,
 			out.write(ba);
 		}
 	}
+	private class myICharsetDetectionObserver 
+		implements nsICharsetDetectionObserver {
+
+		/**
+		 * null or the charset found
+		 */
+		public String detected = null;
+		public void Notify(String detectedCharset) {
+			detected = detectedCharset;
+		}
+	};
 }
