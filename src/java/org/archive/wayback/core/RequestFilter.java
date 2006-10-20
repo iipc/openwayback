@@ -25,16 +25,21 @@
 package org.archive.wayback.core;
 
 import java.io.IOException;
+import java.util.Enumeration;
+import java.util.Properties;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
 import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.archive.wayback.exception.ConfigurationException;
 
 /**
  * Common Servlet Filter functionality for parsing incoming URL requests
@@ -67,14 +72,39 @@ public abstract class RequestFilter implements Filter {
 		super();
 	}
 
+	/**
+	 * initialize this RequestFilter based on a Properties assembled from
+	 * Context and Filter init-params.
+	 * @param p
+	 * @throws ConfigurationException
+	 */
+	public void init(Properties p) throws ConfigurationException {
+		handlerUrl = (String) p.get(HANDLER_URL);
+		if ((handlerUrl == null) || (handlerUrl.length() <= 0)) {
+			throw new ConfigurationException("No config (" + HANDLER_URL + ")");
+		}
+	}
+	
 	/* (non-Javadoc)
 	 * @see javax.servlet.Filter#init(javax.servlet.FilterConfig)
 	 */
 	public void init(FilterConfig c) throws ServletException {
 
-		handlerUrl = c.getInitParameter(HANDLER_URL);
-		if ((handlerUrl == null) || (handlerUrl.length() <= 0)) {
-			throw new ServletException("No config (" + HANDLER_URL + ")");
+		Properties p = new Properties();
+		ServletContext sc = c.getServletContext();
+		for (Enumeration e = sc.getInitParameterNames(); e.hasMoreElements();) {
+			String key = (String) e.nextElement();
+			p.put(key, sc.getInitParameter(key));
+		}
+		for (Enumeration e = c.getInitParameterNames(); e.hasMoreElements();) {
+			String key = (String) e.nextElement();
+			p.put(key, c.getInitParameter(key));
+		}
+		try {
+			this.init(p);
+		} catch (ConfigurationException e) {
+			//e.printStackTrace();
+			throw new ServletException(e);
 		}
 	}
 
