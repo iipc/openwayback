@@ -128,7 +128,7 @@ public abstract class ResultURIConverter implements PropertyConfigurable {
 	 * @return String URL to send client to replay this url
 	 */
 	public String makeRedirectReplayURI(final SearchResult result, String url) {
-		String finalUrl = resolveUrl(searchResultToUrl(result), url);
+		String finalUrl = resolveUrl(url,searchResultToUrl(result));
 		return makeReplayURI(searchResultToDateStr(result), finalUrl);
 	}
 
