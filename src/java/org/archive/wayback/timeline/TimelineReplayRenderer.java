@@ -158,30 +158,27 @@ public class TimelineReplayRenderer extends JSReplayRenderer {
 		uriConverter.setFramesetMode();
 		String sWaybackFramesetCGI = uriConverter.getReplayUriPrefix(result);
 
-		String swmNotice = "Wayback - External links, forms, and search boxes "
-				+ "may not function within this collection. Url: "
-				+ resourceUrl + " time: " + captureTS.prettyDateTime();
-		String swmHideNotice = "hide";
-
 		String scriptInsert = "<script type=\"text/javascript\">\n"
-				+ "\n"
-				+ "//            FILE ARCHIVED ON "
-				+ resourceTS
-				+ " AND RETRIEVED FROM THE\n"
-				+ "//            INTERNET ARCHIVE ON "
-				+ nowTS
-				+ ".\n"
-				+ "//            JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.\n"
-				+ "//\n"
-				+ "// ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.\n"
-				+ "// SECTION 108(a)(3)).\n" + "\n"
-				+ "var sWayBackFramesetCGI = \"" + sWaybackFramesetCGI
-				+ "\";\n" + "var sWayBackReplayCGI = \"" + sWaybackReplayCGI
-				+ "\";\n" + "var wmNotice = \"" + swmNotice + "\";\n"
-				+ "var wmHideNotice = \"" + swmHideNotice + "\";\n"
-				+ "</script>\n" + "<script type=\"text/javascript\" src=\""
-				+ javascriptURI + "\" ></script>\n";
-
+			+ "\n"
+			+ "//            FILE ARCHIVED ON "
+			+ resourceTS
+			+ " AND RETRIEVED FROM THE\n"
+			+ "//            INTERNET ARCHIVE ON "
+			+ nowTS
+			+ ".\n"
+			+ "//            JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.\n"
+			+ "//\n"
+			+ "// ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.\n"
+			+ "// SECTION 108(a)(3)).\n" + "\n"
+			+ "var sWayBackFramesetCGI = \"" + sWaybackFramesetCGI + "\";\n"
+			+ "var sWayBackReplayCGI = \"" + sWaybackReplayCGI + "\";\n"
+			+ "var sResourceUrl = \"" + resourceUrl + "\";\n"
+			+ "var sCaptureTS = \"" + captureTS.prettyDateTime() + "\";\n"
+			+ "</script>\n"
+			+ scriptUrlInserts;
+		
+		
+		
 		int insertPoint = page.lastIndexOf("</body>");
 		if (-1 == insertPoint) {
 			insertPoint = page.lastIndexOf("</BODY>");

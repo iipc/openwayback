@@ -349,8 +349,8 @@ These options are not used by default.
 
     <context-param>
         <param-name>jsuri</param-name>
-        <param-value>http://localhost:8080/wayback/jsp/TimelineUI/wm-timeline.js</param-value>
-        <description>HTTP URI to javascript file</description>
+        <param-value>http://localhost:8080/wayback/jsp/TimelineUI/wm-timeline-text.js,http://localhost:8080/wayback/jsp/TimelineUI/wm-timeline.js</param-value>
+        <description>HTTP URI to javascript files</description>
     </context-param>
 	
 

@@ -64,14 +64,22 @@ public class JSReplayRenderer extends BaseReplayRenderer {
 	// TODO: make this configurable
 	private final static long MAX_HTML_MARKUP_LENGTH = 1024 * 1024 * 5;
 	
-	protected String javascriptURI = null;
+	protected String scriptUrlInserts = null;
 
 	public void init(Properties p) throws ConfigurationException {
-		javascriptURI = (String) p.get( REPLAY_JS_URI);
+		String javascriptURI = (String) p.get( REPLAY_JS_URI);
 		if (javascriptURI == null || javascriptURI.length() <= 0) {
 			throw new ConfigurationException("Failed to find " + 
 					REPLAY_JS_URI);
 		}
+
+		scriptUrlInserts = "";
+		String scriptUrls[] = javascriptURI.split(",");
+		for(int i = 0; i< scriptUrls.length; i++) {
+			scriptUrlInserts += "<script type=\"text/javascript\" src=\""
+				+ scriptUrls[i] + "\" ></script>\n";
+		}
+		
 		super.init(p);
 	}
 	
@@ -216,6 +224,8 @@ public class JSReplayRenderer extends BaseReplayRenderer {
 			ResultURIConverter uriConverter) {
 		String resourceTS = result.get(WaybackConstants.RESULT_CAPTURE_DATE);
 		String nowTS = Timestamp.currentTimestamp().getDateStr();
+		String resourceUrl = result.get(WaybackConstants.RESULT_URL);
+		Timestamp captureTS = Timestamp.parseBefore(resourceTS);
 
 		String contextPath = uriConverter.getReplayUriPrefix(result);
 
@@ -232,13 +242,11 @@ public class JSReplayRenderer extends BaseReplayRenderer {
 				+ "// ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.\n"
 				+ "// SECTION 108(a)(3)).\n"
 				+ "\n"
-				+ "var sWayBackCGI = \""
-				+ contextPath
-				+ "\";\n"
+				+ "var sWayBackCGI = \"" + contextPath + "\";\n"
+				+ "var sResourceUrl = \"" + resourceUrl + "\";\n"
+				+ "var sCaptureTS = \"" + captureTS.prettyDateTime() + "\";\n"
 				+ "</script>\n"
-				+ "<script type=\"text/javascript\" src=\""
-				+ javascriptURI
-				+ "\" ></script>\n";
+				+ scriptUrlInserts;
 
 		int insertPoint = page.lastIndexOf("</body>");
 		if (-1 == insertPoint) {
