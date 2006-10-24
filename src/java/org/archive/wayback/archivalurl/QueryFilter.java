@@ -25,17 +25,15 @@
 package org.archive.wayback.archivalurl;
 
 import java.util.Properties;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.commons.httpclient.URIException;
-import org.archive.net.UURI;
-import org.archive.net.UURIFactory;
 import org.archive.wayback.WaybackConstants;
+import org.archive.wayback.archivalurl.parser.PathDatePrefixParser;
+import org.archive.wayback.archivalurl.parser.PathDateRangeParser;
+import org.archive.wayback.archivalurl.parser.PathPrefixDatePrefixParser;
+import org.archive.wayback.archivalurl.parser.PathPrefixDateRangeParser;
 import org.archive.wayback.core.RequestFilter;
-import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.ConfigurationException;
 
@@ -46,19 +44,15 @@ import org.archive.wayback.exception.ConfigurationException;
  * @version $Date$, $Revision$
  */
 public class QueryFilter extends RequestFilter {
-	/**
-	 * Regex which parses Archival URL queries into timestamp + url for exact
-	 */
-	private final static Pattern WB_QUERY_REGEX = Pattern
-			.compile("^/(\\d{0,13})\\*/(.*[^*])$");
-
-	/**
-	 * Regex which parses Archival URL queries into timestamp + url for prefix
-	 */
-	private final static Pattern WB_PATH_QUERY_REGEX = Pattern
-			.compile("^/(\\d{0,13})\\*/(.*)\\*$");
 
 	private int defaultResultsPerPage = 10;
+	
+	private ArchivalUrlParser parsers[] = { 
+			new PathDatePrefixParser(),
+			new PathDateRangeParser(),
+			new PathPrefixDatePrefixParser(),
+			new PathPrefixDateRangeParser()
+		};
 	
 	public void init(Properties p) throws ConfigurationException {
 		super.init(p);
@@ -70,8 +64,6 @@ public class QueryFilter extends RequestFilter {
 	}
 
 	public WaybackRequest parseRequest(HttpServletRequest httpRequest) {
-		WaybackRequest wbRequest = null;
-		Matcher matcher = null;
 		String queryString = httpRequest.getQueryString();
 		String origRequestPath = httpRequest.getRequestURI();
 		if (queryString != null) {
@@ -82,67 +74,17 @@ public class QueryFilter extends RequestFilter {
 			return null;
 		}
 		String requestPath = origRequestPath.substring(contextPath.length());
-		// TODO: add parsing and handling of page numbers and results per page
-		matcher = WB_QUERY_REGEX.matcher(requestPath);
-		if (matcher != null && matcher.matches()) {
-
-			wbRequest = new WaybackRequest();
-			wbRequest.setResultsPerPage(defaultResultsPerPage);
-			String dateStr = matcher.group(1);
-			String urlStr = matcher.group(2);
-
-			String startDate = Timestamp.parseBefore(dateStr).getDateStr();
-			String endDate = Timestamp.parseAfter(dateStr).getDateStr();
-			wbRequest.put(WaybackConstants.REQUEST_START_DATE,startDate);
-			wbRequest.put(WaybackConstants.REQUEST_END_DATE,endDate);
-			wbRequest.put(WaybackConstants.REQUEST_TYPE,
-					WaybackConstants.REQUEST_URL_QUERY);
-
-			if (!urlStr.startsWith("http://")) {
-				urlStr = "http://" + urlStr;
-			}
-
-			try {
-				UURI requestURI = UURIFactory.getInstance(urlStr);
-				wbRequest.put(WaybackConstants.REQUEST_URL,
-						requestURI.toString());
-				wbRequest.fixup(httpRequest);
-//				wbRequest.setRequestURI(requestURI);
-			} catch (URIException e) {
-				wbRequest = null;
-			}
-		} else {
-			matcher = WB_PATH_QUERY_REGEX.matcher(requestPath);
-			if (matcher != null && matcher.matches()) {
-
-				wbRequest = new WaybackRequest();
-				wbRequest.setResultsPerPage(defaultResultsPerPage);
-				String dateStr = matcher.group(1);
-				String urlStr = matcher.group(2);
-				String startDate = Timestamp.parseBefore(dateStr).getDateStr();
-				String endDate = Timestamp.parseAfter(dateStr).getDateStr();
-				wbRequest.put(WaybackConstants.REQUEST_START_DATE,
-						startDate);
-				wbRequest.put(WaybackConstants.REQUEST_END_DATE,endDate);
-
-				wbRequest.put(WaybackConstants.REQUEST_TYPE,
-						WaybackConstants.REQUEST_URL_PREFIX_QUERY);
-//				wbRequest.setPathQuery();
-				if (!urlStr.startsWith("http://")) {
-					urlStr = "http://" + urlStr;
-				}
-
-				try {
-					UURI requestURI = UURIFactory.getInstance(urlStr);
-					wbRequest.put(WaybackConstants.REQUEST_URL,requestURI.toString());
-					wbRequest.fixup(httpRequest);
-				} catch (URIException e) {
-					wbRequest = null;
-				}
-			}
+		
+		WaybackRequest wbRequest = null; 
+		for(int i=0; i< parsers.length; i++) {
+			wbRequest = parsers[i].parse(requestPath);
+			if(wbRequest != null) break;
 		}
-
+		
+		if(wbRequest != null) {
+			wbRequest.setResultsPerPage(defaultResultsPerPage);
+			wbRequest.fixup(httpRequest);
+		}
 		return wbRequest;
 	}
-
 }
