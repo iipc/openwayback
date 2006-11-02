@@ -68,6 +68,21 @@ String monthsOptSelected = "";
 String daysOptSelected = "";
 String hoursOptSelected = "";
 String autoOptSelected = "";
+String autoOptString;
+String minResolution = ResultsTimelinePartitionsFactory.getMinResolution(
+							results.getResults());
+
+if(minResolution.equals(WaybackConstants.REQUEST_RESOLUTION_HOURS)) {
+	autoOptString = "Auto(Hours)";
+} else if(minResolution.equals(WaybackConstants.REQUEST_RESOLUTION_DAYS)) {
+	autoOptString = "Auto(Days)";
+} else if(minResolution.equals(WaybackConstants.REQUEST_RESOLUTION_MONTHS)) {
+	autoOptString = "Auto(Months)";
+} else if(minResolution.equals(WaybackConstants.REQUEST_RESOLUTION_YEARS)) {
+	autoOptString = "Auto(Years)";
+} else {
+	autoOptString = "Auto(Unknown)";
+}
 
 ArrayList partitions;
 if(resolution.equals(WaybackConstants.REQUEST_RESOLUTION_HOURS)) {
@@ -229,13 +244,13 @@ String titleString = "";
 				<input type="hidden" name="url" value="<%= searchUrl %>">
 				<input type="hidden" name="exactdate" value="<%= exactDateStr %>">
 				<input type="hidden" name="type" value="urlclosestquery">
-				Resolution:
+				Time Range:
 				<select NAME="resolution" SIZE="1" onChange="changeResolution()">
 					<option <%= yearsOptSelected %> value="years">Years</option>
 					<option <%= monthsOptSelected %> value="months">Months</option>
 					<option <%= daysOptSelected %>  value="days">Days</option>
 					<option <%= hoursOptSelected %> value="hours">Hours</option>
-					<option <%= autoOptSelected %> value="auto">Auto</option>
+					<option <%= autoOptSelected %> value="auto"><%= autoOptString %></option>
 				</select>&nbsp;Metadata:<input type="checkbox" name="metamode" value="yes" <%= metaChecked %> onClick="changeMeta()">&nbsp<a href="help.php" target="_top">Help</a>
 			</form>
 		</td>

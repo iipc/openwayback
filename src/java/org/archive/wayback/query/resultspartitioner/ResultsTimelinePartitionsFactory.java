@@ -107,6 +107,24 @@ public class ResultsTimelinePartitionsFactory {
 		}
 		return getYear(results);			
 	}
+
+	/**
+	 * @param results
+	 * @return String Constant of minimum resolution that will hold the results
+	 */
+	public static String getMinResolution(SearchResults results) {
+		int first = Timestamp.parseBefore(results.getFirstResultDate()).sse();
+		int last = Timestamp.parseAfter(results.getLastResultDate()).sse();
+		int diff = last - first;
+		if(diff < MAX_HOUR_SECONDS) {
+			return WaybackConstants.REQUEST_RESOLUTION_HOURS;
+		} else if(diff < MAX_DAY_SECONDS) {
+			return WaybackConstants.REQUEST_RESOLUTION_DAYS;
+		} else if(diff < MAX_MONTH_SECONDS) {
+			return WaybackConstants.REQUEST_RESOLUTION_MONTHS;
+		}
+		return WaybackConstants.REQUEST_RESOLUTION_YEARS;
+	}
 	
 	private static ArrayList get(ResultsPartitioner partitioner,
 			int partitionCount, SearchResults results ) {
