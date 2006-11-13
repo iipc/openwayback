@@ -297,9 +297,9 @@ public class ArcIndexer {
 				.get(WaybackConstants.RESULT_OFFSET));
 		String arcFileName = result.get(WaybackConstants.RESULT_ARC_FILE);
 		if (type == TYPE_CDX_LINE) {
-			return url + " " + captureDate + origHost + " " + mimeType + " "
-					+ httpResponseCode + " " + md5Fragment + " " + redirectUrl
-					+ " " + compressedOffset + " " + arcFileName;
+			return url + " " + captureDate + " " + origHost + " " + mimeType 
+					+ " " + httpResponseCode + " " + md5Fragment + " " 
+					+ redirectUrl + " " + compressedOffset + " " + arcFileName;
 		} else if (type == TYPE_CDX_KEY) {
 			return url + " " + captureDate;
 		} else if (type == TYPE_CDX_VALUE) {
