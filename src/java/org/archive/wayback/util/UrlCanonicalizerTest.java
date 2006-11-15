@@ -41,6 +41,16 @@ public class UrlCanonicalizerTest extends TestCase {
 	 */
 	public void testUrlStringToKey() {
 
+		checkAuthority("foo.com",true);
+		checkAuthority("foo.con",false);
+		checkAuthority("foo.de",true);
+		checkAuthority("foo.denny",false);
+		checkAuthority("1.1.1.1",true);
+		checkAuthority("23.4.4.foo",false);
+		checkAuthority("23.4.4.com",true);
+		checkAuthority("com.23.4.4.134",false);
+		
+		
 		// simple strip of http://
 		checkCanonicalization("http://foo.com/","foo.com/");
 
@@ -80,10 +90,19 @@ public class UrlCanonicalizerTest extends TestCase {
 		checkCanonicalization("foo.com/boo","foo.com/boo");
 		
 		// replace escaped ' ' with '+' in path
-		checkCanonicalization("foo.com/pa%20th/","foo.com/pa+th/");
-		
-		// replace escaped ' ' with '+' in path plus keep trailing slash
 		checkCanonicalization("foo.com/pa%20th","foo.com/pa+th");
+		
+		// replace escaped ' ' with '+' in path plus kill trailing slash
+//		checkCanonicalization("foo.com/pa%20th/","foo.com/pa+th");
+
+		// replace multiple consecutive /'s in path
+		checkCanonicalization("foo.com//goo","foo.com/goo");
+
+		// replace multiple consecutive /'s in path
+		checkCanonicalization("foo.com///goo","foo.com/goo");
+
+		// replace multiple consecutive /'s in path, plus kill trailing /
+//		checkCanonicalization("foo.com///goo/","foo.com/goo");
 
 		// replace escaped ' ' with '+' in path plus keep trailing slash and query
 		checkCanonicalization("foo.com/pa%20th?a=b","foo.com/pa+th?a=b");
@@ -132,12 +151,28 @@ public class UrlCanonicalizerTest extends TestCase {
 		checkCanonicalization("http://www.chub.org:8080/foo","chub.org:8080/foo");
 
 	}
+	
+	private void checkAuthority(String s, boolean want) {
+		boolean got = canonicalizer.isAuthority(s);
+		if(want) {
+			assertTrue("String("+s+") could be an Authority",want == got);
+		} else {
+			assertTrue("String("+s+") is not an Authority",want == got);	
+		}
+	}
+	
 	private void checkCanonicalization(String orig, String want) {
 		String got;
 		try {
 			got = canonicalizer.urlStringToKey(orig);
 			assertEquals("Failed canonicalization (" + orig + ") => (" + got + 
 					") and not (" + want + ") as expected",want,got);
+			
+			String got2 = canonicalizer.urlStringToKey(got);
+			assertEquals("Failed 2nd canonicalization (" + got + ") => (" + 
+					got2 + ") and not (" + want + ") as expected",want,got2);
+			
+			
 		} catch (URIException e) {
 			e.printStackTrace();
 			assertTrue("Exception converting(" + orig + ")",false);
