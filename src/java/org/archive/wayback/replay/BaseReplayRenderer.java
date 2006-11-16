@@ -50,6 +50,8 @@ import org.archive.wayback.exception.WaybackException;
 import org.mozilla.intl.chardet.nsDetector;
 import org.mozilla.intl.chardet.nsPSMDetector;
 import org.mozilla.intl.chardet.nsICharsetDetectionObserver;
+import org.mozilla.universalchardet.UniversalDetector;
+
 
 /**
  * 
@@ -331,6 +333,31 @@ public class BaseReplayRenderer implements ReplayRenderer {
 		return charsetName;
 	}
 
+	protected String getCharset2(Resource resource) throws IOException {
+		String charsetName = null;
+
+		byte[] bbuffer = new byte[MAX_CHARSET_READAHEAD];
+		   // (1)
+	    UniversalDetector detector = new UniversalDetector(null);
+
+	    // (2)
+		resource.mark(MAX_CHARSET_READAHEAD);
+		int len = resource.read(bbuffer, 0, MAX_CHARSET_READAHEAD);
+		resource.reset();
+		detector.handleData(bbuffer, 0, len);
+		if(detector.isDone()) {
+			// (3)
+			detector.dataEnd();
+		    // (4)
+		    charsetName = detector.getDetectedCharset();
+		}
+
+	    // (5)
+	    detector.reset();
+
+		return charsetName;
+	}
+	
 	/** 
 	 * Do "stuff" to the StringBuilder page argument.
 	 * 
@@ -388,7 +415,10 @@ public class BaseReplayRenderer implements ReplayRenderer {
 			int recordLength = (int) resource.getRecordLength();
 
 			// get the charset:
-			String charSet = getCharset(resource);
+			String charSet = getCharset2(resource);
+			if(charSet == null) {
+				charSet = getCharset(resource);
+			}
 
 			// convert bytes to characters for charset:
 			InputStreamReader isr = new InputStreamReader(resource, charSet);
