@@ -13,6 +13,7 @@
 	<classpathentry kind="lib" path="lib/commons-collections-3.1.jar"/>
 	<classpathentry kind="lib" path="lib/dsi.unimi.it-1.2.0.jar"/>
 	<classpathentry kind="lib" path="lib/chardet.jar"/>
+	<classpathentry kind="lib" path="lib/juniversalchardet.jar"/>
 	<classpathentry sourcepath="ECLIPSE_HOME/plugins/org.eclipse.jdt.source_3.1.1/src/org.junit_3.8.1/junitsrc.zip" kind="var" path="JUNIT_HOME/junit.jar"/>
 	<classpathentry sourcepath="/ArchiveOpenCrawler/src/java" kind="lib" path="lib/archive-commons-1.9.0-200607171747.jar"/>
 	<classpathentry kind="lib" path="lib/commons-logging-1.0.4.jar"/>

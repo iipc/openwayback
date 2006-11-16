@@ -340,6 +340,21 @@
                 http://www.mozilla.org/MPL/MPL-1.1.html</license>
             </properties>
         </dependency>
+        <dependency>
+            <id>juniversalchardet</id>
+            <version>1.0</version>
+            <url>http://code.google.com/p/juniversalchardet/</url>
+            <properties>
+                <war.bundle>true</war.bundle>
+                <ear.bundle>true</ear.bundle>
+                <ear.bundle.dir>APP-INF/lib</ear.bundle.dir>
+                <description>universalchardet is a Java port of 
+                "universalchardet", that is the encoding detector library of
+                Mozilla.</description>
+                <license>Mozilla Public License 1.1 (MPL 1.1)
+                http://www.mozilla.org/MPL/MPL-1.1.html</license>
+            </properties>
+        </dependency>
   </dependencies>
 
   
