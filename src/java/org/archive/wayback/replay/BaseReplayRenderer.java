@@ -74,10 +74,10 @@ public class BaseReplayRenderer implements ReplayRenderer {
 
 	// if documents are marked up before sending to clients, the data is
 	// decoded into a String in chunks. This is how big a chunk to decode with.
-	private final static int C_BUFFER_SIZE = 1024 * 4;
+	private final static int C_BUFFER_SIZE = 4096;
 
 	// hand off this many bytes to the chardet library
-	private final static int MAX_CHARSET_READAHEAD = 4096;
+	private final static int MAX_CHARSET_READAHEAD = 65536;
 
 	// ...and if the chardet library fails, use the Content-Type header
 	private final static String HTTP_CONTENT_TYPE_HEADER = "Content-Type";
@@ -85,8 +85,9 @@ public class BaseReplayRenderer implements ReplayRenderer {
 	// ...if it also includes "charset="
 	private final static String CHARSET_TOKEN = "charset=";
 
-	private final static int BYTE_BUFFER_SIZE = 4 * 1024;
+	private final static int BYTE_BUFFER_SIZE = 4096;
 
+	
 
 	protected final Pattern IMAGE_REGEX = Pattern
 			.compile(".*\\.(jpg|jpeg|gif|png|bmp|tiff|tif)$");
@@ -103,6 +104,7 @@ public class BaseReplayRenderer implements ReplayRenderer {
 	/*  INITIALIZATION:  */
 
 	public void init(Properties p) throws ConfigurationException {
+		this.jspPath = "232";
 		this.jspPath = (String) p.get(JSP_PATH);
 		if (this.jspPath == null || this.jspPath.length() <= 0) {
 			throw new ConfigurationException("Failed to find " + JSP_PATH);
@@ -345,12 +347,10 @@ public class BaseReplayRenderer implements ReplayRenderer {
 		int len = resource.read(bbuffer, 0, MAX_CHARSET_READAHEAD);
 		resource.reset();
 		detector.handleData(bbuffer, 0, len);
-		if(detector.isDone()) {
-			// (3)
-			detector.dataEnd();
-		    // (4)
-		    charsetName = detector.getDetectedCharset();
-		}
+		// (3)
+		detector.dataEnd();
+	    // (4)
+	    charsetName = detector.getDetectedCharset();
 
 	    // (5)
 	    detector.reset();
