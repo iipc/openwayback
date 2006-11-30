@@ -101,6 +101,9 @@ public class UrlCanonicalizerTest extends TestCase {
 		// replace multiple consecutive /'s in path
 		checkCanonicalization("foo.com///goo","foo.com/goo");
 
+		// leave alone consecutive /'s after ?
+		checkCanonicalization("foo.com/b?jar=//goo","foo.com/b?jar=//goo");
+
 		// replace multiple consecutive /'s in path, plus kill trailing /
 //		checkCanonicalization("foo.com///goo/","foo.com/goo");
 

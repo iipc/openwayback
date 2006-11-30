@@ -182,18 +182,16 @@ public class UrlCanonicalizer {
 			searchUrl = "http://" + searchUrl;
 		}
 
-		// replace multiple consecutive '/'s in the path.
-		String tmp = searchUrl.substring(7);
-		while(tmp.contains("//")) {
-			tmp = tmp.replace("//","/");
-		}
-		searchUrl = "http://" + tmp;
-		
 		// convert to UURI to perform require URI fixup:
 		UURI searchURI = UURIFactory.getInstance(searchUrl);
 
 		// replace ' ' with '+' (this is only to match Alexa's canonicalization)
 		String newPath = searchURI.getPath().replace(' ','+');
+		
+		// replace multiple consecutive '/'s in the path.
+		while(newPath.contains("//")) {
+			newPath = newPath.replace("//","/");
+		}
 		
 		// this would remove trailing a '/' character, unless the path is empty
 		// but we're not going to do this just yet..
