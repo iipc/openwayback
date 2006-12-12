@@ -196,7 +196,10 @@ public class JSReplayRenderer extends BaseReplayRenderer {
 	 */
 	protected void insertBaseTag(StringBuilder page, SearchResult result) {
 		String resultUrl = result.get(WaybackConstants.RESULT_URL);
-		String baseTag = "<base href=\"http://" + resultUrl + "\" />";
+		if (!(resultUrl.indexOf("http") == 0)) { 
+			resultUrl = "http://" + resultUrl;
+		}
+		String baseTag = "<base href=\"" + resultUrl + "\" />";
 		int insertPoint = page.indexOf("<head>");
 		if (-1 == insertPoint) {
 			insertPoint = page.indexOf("<HEAD>");

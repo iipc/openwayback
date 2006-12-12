@@ -736,7 +736,7 @@ These options are not used by default.
 
     <context-param>
         <param-name>resourceindex.baseurl</param-name>
-        <param-value>http://localhost:8081/xmlquery</param-value>
+        <param-value>http://localhost:8080/nutchwax/opensearch</param-value>
         <description>absolute URL to Nutch server</description>
     </context-param>
 

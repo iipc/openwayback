@@ -251,7 +251,15 @@ public class NutchResourceIndex implements ResourceIndex {
 //           final int count)
 //   throws IOException {
    	String urlStr = wbRequest.get(WaybackConstants.REQUEST_URL);
-   	String dateStr = wbRequest.get(WaybackConstants.REQUEST_EXACT_DATE);
+   	String exactDateStr = wbRequest.get(WaybackConstants.REQUEST_EXACT_DATE);
+   	String endDateStr = wbRequest.get(WaybackConstants.REQUEST_END_DATE);
+   	if (endDateStr == null || endDateStr.length() == 0) {
+   	   	endDateStr = wbRequest.get(WaybackConstants.REQUEST_DATE);
+   	}
+   	String startDateStr = wbRequest.get(WaybackConstants.REQUEST_START_DATE);
+   	if (startDateStr == null || startDateStr.length() == 0) {
+   		startDateStr = Timestamp.earliestTimestamp().getDateStr();
+   	}
    	int hitsPerPage = wbRequest.getResultsPerPage();
    	if(hitsPerPage < 1) {
    		throw new BadQueryException("Hits per page must be positive");
@@ -267,22 +275,35 @@ public class NutchResourceIndex implements ResourceIndex {
        // Construct the search url.
        MutableString ms = new MutableString(this.searchUrlBase)
            .append("?query=");
-       if (dateStr != null && dateStr.length() > 0) {
-           // Add 'date:0000...+' to query string.
-           ms.append("date%3A").append(dateStr).append("+");
+       // Add 'date:...+' to query string.
+       // As searching for exact dates is not what we want in most cases,
+       // we will only use this if REQUEST_[END_]DATE is empty;
+       if ((endDateStr == null || endDateStr.length() == 0)
+				&& exactDateStr != null && exactDateStr.length() > 0) {
+           ms.append("date%3A").append(exactDateStr).append('+');
+    	   
+       } else {
+           ms.append("date%3A").append(startDateStr).append('-').append(
+					endDateStr).append('+');
        }
        // Add 'url:URL'.
        if(wbRequest.get(WaybackConstants.REQUEST_TYPE).equals(
-       		WaybackConstants.REQUEST_URL_PREFIX_QUERY)) {
+	                WaybackConstants.REQUEST_URL_PREFIX_QUERY)) {
            ms.append("url%3A").append(urlStr);
        } else {
            ms.append("exacturl%3A").append(urlStr);
+    	   // when searching for exacturl, we are mostly
+    	   // interested in the different versions over the time
+           ms.append("&sort=date");
+           ms.append("&reverse=true");
        }
        ms.append("&hitsPerPage=").append(hitsPerPage);
        ms.append("&start=").append(start);
-       ms.append("&hitsPerDup=0");
-       ms.append("&hitsPerSite=0");
-       ms.append("&sort=link");
+       ms.append("&dedupField=site");
+       // As we are always searching agains an url, a
+       // higher perDup/Site will return just more versions
+       ms.append("&hitsPerDup=").append(hitsPerPage);
+       ms.append("&hitsPerSite=").append(hitsPerPage);
        
        return ms.toString();
    }
