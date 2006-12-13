@@ -30,6 +30,7 @@ import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.httpclient.URIException;
 import org.archive.util.InetAddressUtil;
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.Timestamp;
@@ -87,7 +88,12 @@ public class ReplayFilter extends RequestFilter {
 		String requestUrl = requestScheme + "://" + requestServer + requestPath;
 
 		wbRequest = new WaybackRequest();
-		wbRequest.put(WaybackConstants.REQUEST_URL,requestUrl);
+        try {
+            wbRequest.setRequestUrl(requestUrl);
+        } catch (URIException e) {
+            e.printStackTrace();
+            return null;
+        }
 		wbRequest.put(WaybackConstants.REQUEST_TYPE,
 				WaybackConstants.REQUEST_REPLAY_QUERY);
 

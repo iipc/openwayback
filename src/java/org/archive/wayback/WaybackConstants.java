@@ -72,6 +72,13 @@ public interface WaybackConstants {
 	 * Request: URL or URL prefix requested 
 	 */
 	public static final String REQUEST_URL = "url";
+    
+    /**
+     * Request: Original URL or URL prefix requested.
+     * This version differs from @{link {@link #REQUEST_URL} in that its
+     * the URL before it was passed via the UURIFactory cleanup.
+     */
+    public static final String REQUEST_URL_CLEANED = "cleanedurl";
 	
 	/**
 	 * Request: URL of referrer, if supplied, or "" if not 

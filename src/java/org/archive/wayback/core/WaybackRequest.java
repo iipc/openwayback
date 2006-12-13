@@ -30,6 +30,9 @@ import java.net.URLEncoder;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.httpclient.URIException;
+import org.archive.net.UURI;
+import org.archive.net.UURIFactory;
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.query.OpenSearchQueryParser;
 
@@ -260,5 +263,21 @@ public class WaybackRequest {
 		return OpenSearchQueryParser.SEARCH_QUERY + "=" + escapedQuery + "&"
 				+ OpenSearchQueryParser.SEARCH_RESULTS + "=" + numPerPage + "&"
 				+ OpenSearchQueryParser.START_PAGE + "=" + pageNum;
+	}
+
+    /**
+     * Set the request URL.
+     * Also populates request url cleaned.
+     * @param urlStr Request URL.
+     * @throws URIException
+     */
+	public void setRequestUrl(String urlStr) throws URIException {
+	    if (!urlStr.startsWith("http://")) {
+	        urlStr = "http://" + urlStr;
+	    }
+        // If its not http, next line throws exception. TODO: Fix.
+	    UURI requestURI = UURIFactory.getInstance(urlStr);
+	    put(WaybackConstants.REQUEST_URL_CLEANED, requestURI.toString());
+        put(WaybackConstants.REQUEST_URL, urlStr);
 	}
 }

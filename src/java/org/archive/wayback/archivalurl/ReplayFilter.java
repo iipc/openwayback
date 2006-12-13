@@ -65,7 +65,7 @@ public class ReplayFilter extends RequestFilter {
 
 		String queryString = httpRequest.getQueryString();
 		String origRequestPath = httpRequest.getRequestURI();
-		if (queryString != null) {
+		if (queryString != null && queryString.length() > 0) {
 			origRequestPath = httpRequest.getRequestURI() + "?" + queryString;
 		}
 		String contextPath = httpRequest.getContextPath();
@@ -117,14 +117,13 @@ public class ReplayFilter extends RequestFilter {
 			wbRequest.put(WaybackConstants.REQUEST_TYPE,
 					WaybackConstants.REQUEST_REPLAY_QUERY);
 			
-			try {
-				UURI requestURI = UURIFactory.getInstance(urlStr);
-				wbRequest.put(WaybackConstants.REQUEST_URL,
-						requestURI.toString());
-				wbRequest.fixup(httpRequest);
-			} catch (URIException e) {
-				wbRequest = null;
-			}
+            try {
+                wbRequest.setRequestUrl(urlStr);
+                wbRequest.fixup(httpRequest);
+            } catch (URIException e) {
+                e.printStackTrace();
+                wbRequest = null;
+            }
 		}
 		return wbRequest;
 	}

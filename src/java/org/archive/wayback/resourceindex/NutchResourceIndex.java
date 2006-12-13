@@ -27,6 +27,7 @@ package org.archive.wayback.resourceindex;
 import it.unimi.dsi.mg4j.util.MutableString;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.Properties;
 import java.util.logging.Logger;
 
@@ -291,7 +292,12 @@ public class NutchResourceIndex implements ResourceIndex {
 	                WaybackConstants.REQUEST_URL_PREFIX_QUERY)) {
            ms.append("url%3A").append(urlStr);
        } else {
-           ms.append("exacturl%3A").append(urlStr);
+           try {
+            ms.append("exacturl%3A").
+                append(java.net.URLEncoder.encode(urlStr, "UTF-8"));
+        } catch (UnsupportedEncodingException e) {
+            throw new BadQueryException(e.toString());
+        }
     	   // when searching for exacturl, we are mostly
     	   // interested in the different versions over the time
            ms.append("&sort=date");

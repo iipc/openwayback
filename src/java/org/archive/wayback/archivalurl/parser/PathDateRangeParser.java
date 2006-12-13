@@ -70,15 +70,8 @@ public class PathDateRangeParser implements ArchivalUrlParser {
 			wbRequest.put(WaybackConstants.REQUEST_END_DATE,endDate);
 			wbRequest.put(WaybackConstants.REQUEST_TYPE,
 					WaybackConstants.REQUEST_URL_QUERY);
-
-			if (!urlStr.startsWith("http://")) {
-				urlStr = "http://" + urlStr;
-			}
-
 			try {
-				UURI requestURI = UURIFactory.getInstance(urlStr);
-				wbRequest.put(WaybackConstants.REQUEST_URL,
-						requestURI.toString());
+                wbRequest.setRequestUrl(urlStr);
 			} catch (URIException e) {
 				wbRequest = null;
 			}
