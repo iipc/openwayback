@@ -28,8 +28,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.httpclient.URIException;
-import org.archive.net.UURI;
-import org.archive.net.UURIFactory;
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.archivalurl.ArchivalUrlParser;
 import org.archive.wayback.core.Timestamp;

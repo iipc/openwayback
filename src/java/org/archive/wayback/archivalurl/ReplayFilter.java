@@ -30,8 +30,6 @@ import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.httpclient.URIException;
-import org.archive.net.UURI;
-import org.archive.net.UURIFactory;
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.RequestFilter;
 import org.archive.wayback.core.Timestamp;
