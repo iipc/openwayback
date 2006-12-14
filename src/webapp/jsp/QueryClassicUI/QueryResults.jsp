@@ -136,8 +136,9 @@ int numPartitions = partitions.size();
 				updated = true;
 				lastMD5 = MD5;
 			}
+			String updateStar = updated ? "*" : "";
 %>
-         <a href="<%= replayUrl %>"><%= prettyDate %></a><br></br>
+         <a href="<%= replayUrl %>"><%= prettyDate %></a> <%= updateStar %><br></br>
 <%
 		  
 		  }
