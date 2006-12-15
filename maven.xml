@@ -38,7 +38,7 @@
         <!--Copy to a bin dir the command line tools.-->
         <copy todir="${maven.dist.bin.assembly.dir}/bin">
           <fileset dir="${maven.src.dir}/scripts">
-            <include name="pipeline-client"/>
+            <include name="index-client"/>
             <include name="location-client"/>
             <include name="url-client"/>
             <include name="create-test-arc"/>
