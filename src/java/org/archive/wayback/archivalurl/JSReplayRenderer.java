@@ -118,17 +118,18 @@ public class JSReplayRenderer extends BaseReplayRenderer {
 	 */
 	protected String filterHeader(final String key, final String value,
 			final ResultURIConverter uriConverter, SearchResult result) {
-		if(key.equals(HTTP_LENGTH_HEADER)) {
+		String keyUp = key.toUpperCase();
+		if(keyUp.equals(HTTP_LENGTH_HEADER.toUpperCase())) {
 			return null;
 		}
 		// TODO: I don't think that this is handled correctly: if the
 		// ARC document is chunked, we want to relay that, by NOT omitting the
 		// header, but we also need to tell the servlet container not to do
 		// any transfer ecoding of it's own "because we probably wanted it to."
-		if(key.equals(HTTP_XFER_ENCODING_HEADER)) {
+		if(keyUp.equals(HTTP_XFER_ENCODING_HEADER.toUpperCase())) {
 			return null;
 		}
-		if (0 == key.indexOf(HTTP_LOCATION_HEADER)) {
+		if (0 == keyUp.indexOf(HTTP_LOCATION_HEADER.toUpperCase())) {
 			return uriConverter.makeRedirectReplayURI(result, value);
 		}
 		return value;
