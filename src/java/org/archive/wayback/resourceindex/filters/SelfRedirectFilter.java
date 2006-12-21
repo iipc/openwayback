@@ -44,17 +44,21 @@ public class SelfRedirectFilter extends SearchResultFilter {
 	 * @see org.archive.wayback.resourceindex.SearchResultFilter#filterSearchResult(org.archive.wayback.core.SearchResult)
 	 */
 	public int filterSearchResult(SearchResult r) {
-		String redirect = r.get(WaybackConstants.RESULT_REDIRECT_URL);
-		if(redirect.compareTo("-") != 0) {
-			String urlKey = r.get(WaybackConstants.RESULT_URL_KEY);
-			try {
-				String redirectKey = canonicalizer.urlStringToKey(redirect);
-				if(redirectKey.compareTo(urlKey) == 0) {
-					return FILTER_EXCLUDE;
+		String httpCode = r.get(WaybackConstants.RESULT_HTTP_CODE);
+		// only filter real 3XX http response codes:
+		if(httpCode.startsWith("3")) {
+			String redirect = r.get(WaybackConstants.RESULT_REDIRECT_URL);
+			if(redirect.compareTo("-") != 0) {
+				String urlKey = r.get(WaybackConstants.RESULT_URL_KEY);
+				try {
+					String redirectKey = canonicalizer.urlStringToKey(redirect);
+					if(redirectKey.compareTo(urlKey) == 0) {
+						return FILTER_EXCLUDE;
+					}
+				} catch (URIException e) {
+					// emit message (is that right?) and continue
+					e.printStackTrace();
 				}
-			} catch (URIException e) {
-				// emit message (is that right?) and continue
-				e.printStackTrace();
 			}
 		}
 		return FILTER_INCLUDE;
