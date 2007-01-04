@@ -75,7 +75,7 @@ public class NutchResourceIndex implements ResourceIndex {
    private DocumentBuilder builder;
    private static final String NUTCH_ARCNAME = "arcname";
    private static final String NUTCH_ARCOFFSET = "arcoffset";
-   private static final String NUTCH_ARCDATE = "arcdate";
+   private static final String NUTCH_ARCDATE = "tstamp";
    private static final String NUTCH_DIGEST = "digest";
    private static final String NUTCH_PRIMARY_TYPE = "primaryType";
    private static final String NUTCH_SUB_TYPE = "subType";
@@ -200,8 +200,13 @@ public class NutchResourceIndex implements ResourceIndex {
 		result.put(WaybackConstants.RESULT_ARC_FILE,
 				getNodeNutchContent(e,NUTCH_ARCNAME));
 		
-		result.put(WaybackConstants.RESULT_CAPTURE_DATE,
-				getNodeNutchContent(e,NUTCH_ARCDATE));
+        // The date in nutchwax is now named 'tstamp' and its
+        // 17 characters rather than 14.  Pass first 14 only.
+        String d = getNodeNutchContent(e,NUTCH_ARCDATE);
+        if (d.length() == 17) {
+            d = d.substring(0, 14);
+        }
+		result.put(WaybackConstants.RESULT_CAPTURE_DATE, d);
 		
 		//result.put(WaybackConstants.RESULT_HTTP_CODE,getNodeContent(e,""));
 		result.put(WaybackConstants.RESULT_HTTP_CODE,NUTCH_DEFAULT_HTTP_CODE);
