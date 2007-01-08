@@ -45,11 +45,12 @@ public class TagMagix {
 	
 	 
 	private static String QUOTED_ATTR_VALUE= "(?:\"[^\">]*\")";
+	private static String ESC_QUOTED_ATTR_VALUE= "(?:\\\\\"[^>\\\\]*\\\\\")";
 	private static String APOSED_ATTR_VALUE = "(?:'[^'>]*')";
 	private static String RAW_ATTR_VALUE = "(?:[^ \\t\\n\\x0B\\f\\r>\"']+)";
 	
 	private static String ANY_ATTR_VALUE = QUOTED_ATTR_VALUE+ "|" + APOSED_ATTR_VALUE +
-		"|" + RAW_ATTR_VALUE;
+		"|" + ESC_QUOTED_ATTR_VALUE + "|" + RAW_ATTR_VALUE;
 	
 	/**
 	 * get (and cache) a regex Pattern for locating an HTML attribute value
@@ -113,6 +114,9 @@ public class TagMagix {
 			} else if(url.charAt(0) == '\'') {
 				quote = "'";
 				url = url.substring(1,url.length()-1);
+			} else if(url.charAt(0) == '\\') {
+				quote = "\\\"";
+				url = url.substring(2,url.length()-2);
 			}
 
 			String replayUrl = quote + uriConverter.makeRedirectReplayURI(

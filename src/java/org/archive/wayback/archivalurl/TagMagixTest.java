@@ -197,6 +197,13 @@ public class TagMagixTest extends TestCase {
 				"<b><link rel=\"stylesheet\"\n goo=\"1\"\n href=\"http://web.archive.org/wayback/2004/http://archive.org/_style/style.css\"></b>",
 				"LINK","HREF","http://web.archive.org/wayback/","2004","archive.org/dir/");
 		
+		// Javascript escaped quote attribute:
+		checkMarkup(
+				 "document.write(\"<link rel=\\\"stylesheet\\\" type=\\\"text/css\\\" href=\\\"/css/print.css\\\" />\");",
+				 "document.write(\"<link rel=\\\"stylesheet\\\" type=\\\"text/css\\\" href=\\\"http://web.archive.org/wayback/2004/http://boogle.org/css/print.css\\\" />\");",
+				"LINK","HREF","http://web.archive.org/wayback/","2004","http://boogle.org/dir/");
+		
+		
 	}
 
 	
