@@ -96,7 +96,7 @@ public class FramesetReplayRenderer extends RawReplayRenderer {
 
 			framesetHTML.append("<FRAMESET frameborder=no border=0 ");
 			framesetHTML.append("framespacing=5 marginheight=0 marginwidth=0 ");
-			framesetHTML.append("bordercolor=black rows=\"100,*\">");
+			framesetHTML.append("bordercolor=black rows=\"63,*\">");
 
 			framesetHTML.append("<frame scrolling=no src=\"");
 			framesetHTML.append(timelineURL);
