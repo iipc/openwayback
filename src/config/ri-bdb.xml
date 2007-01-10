@@ -1,6 +1,6 @@
 	
     <filter>
-        <filter-name>PipelineFilter</filter-name>
+        <filter-name>RemoteSubmitFilter</filter-name>
         <filter-class>org.archive.wayback.resourceindex.indexer.RemoteSubmitFilter</filter-class>
         <init-param>
             <param-name>pipeline.statusjsp</param-name>
@@ -8,8 +8,8 @@
         </init-param>
     </filter>
     <filter-mapping>
-        <filter-name>PipelineFilter</filter-name>
-        <url-pattern>/pipeline/*</url-pattern>
+        <filter-name>RemoteSubmitFilter</filter-name>
+        <url-pattern>/index-incoming/*</url-pattern>
     </filter-mapping>
 
     <context-param>
@@ -92,6 +92,8 @@
     <context-param>
         <param-name>maxresults</param-name>
         <param-value>1000</param-value>
-        <description>Maximum number of results to return from the resourceindex</description>
+        <description>
+        	Maximum number of results to return from the ResourceIndex.
+        </description>
     </context-param>
 
