@@ -97,6 +97,8 @@ public class ArcIndexer {
 
 	UrlCanonicalizer canonicalizer = new UrlCanonicalizer();
 
+	private final static int DEFAULT_CAPACITY = 120;
+	
 	/**
 	 * Constructor
 	 */
@@ -263,17 +265,32 @@ public class ArcIndexer {
 	/**
 	 * @param results
 	 * @param pw
+	 * @param addHeader 
 	 * @throws IOException
 	 */
-	public void serializeResults(final SearchResults results, PrintWriter pw)
+	public void serializeResults(final SearchResults results, PrintWriter pw,
+			final boolean addHeader)
 			throws IOException {
-
-		pw.println(CDX_HEADER_MAGIC);
+		if(addHeader) {
+			pw.println(CDX_HEADER_MAGIC);
+		}
 		Iterator itr = results.iterator();
 		while (itr.hasNext()) {
 			SearchResult result = (SearchResult) itr.next();
 			pw.println(searchResultToString(result, TYPE_CDX_LINE));
 		}
+		pw.flush();
+	}
+
+	
+	/**
+	 * @param results
+	 * @param pw
+	 * @throws IOException
+	 */
+	public void serializeResults(final SearchResults results, PrintWriter pw)
+			throws IOException {
+		serializeResults(results,pw,true);
 	}
 
 	/**
@@ -286,29 +303,54 @@ public class ArcIndexer {
 	protected static String searchResultToString(final SearchResult result,
 			int type) {
 
-		String url = result.get(WaybackConstants.RESULT_URL_KEY);
-		String captureDate = result.get(WaybackConstants.RESULT_CAPTURE_DATE);
-		String origHost = result.get(WaybackConstants.RESULT_ORIG_HOST);
-		String mimeType = result.get(WaybackConstants.RESULT_MIME_TYPE);
-		String httpResponseCode = result.get(WaybackConstants.RESULT_HTTP_CODE);
-		String md5Fragment = result.get(WaybackConstants.RESULT_MD5_DIGEST);
-		String redirectUrl = result.get(WaybackConstants.RESULT_REDIRECT_URL);
-		long compressedOffset = Long.parseLong(result
-				.get(WaybackConstants.RESULT_OFFSET));
-		String arcFileName = result.get(WaybackConstants.RESULT_ARC_FILE);
+		StringBuilder sb = new StringBuilder(DEFAULT_CAPACITY);
+
 		if (type == TYPE_CDX_LINE) {
-			return url + " " + captureDate + " " + origHost + " " + mimeType 
-					+ " " + httpResponseCode + " " + md5Fragment + " " 
-					+ redirectUrl + " " + compressedOffset + " " + arcFileName;
+
+			sb.append(result.get(WaybackConstants.RESULT_URL_KEY));
+			sb.append(" ");
+			sb.append(result.get(WaybackConstants.RESULT_CAPTURE_DATE));
+			sb.append(" ");
+			sb.append(result.get(WaybackConstants.RESULT_ORIG_HOST));
+			sb.append(" ");
+			sb.append(result.get(WaybackConstants.RESULT_MIME_TYPE));
+			sb.append(" ");
+			sb.append(result.get(WaybackConstants.RESULT_HTTP_CODE));
+			sb.append(" ");
+			sb.append(result.get(WaybackConstants.RESULT_MD5_DIGEST));
+			sb.append(" ");
+			sb.append(result.get(WaybackConstants.RESULT_REDIRECT_URL));
+			sb.append(" ");
+			sb.append(result.get(WaybackConstants.RESULT_OFFSET));
+			sb.append(" ");
+			sb.append(result.get(WaybackConstants.RESULT_ARC_FILE));
+			
 		} else if (type == TYPE_CDX_KEY) {
-			return url + " " + captureDate;
+			
+			sb.append(result.get(WaybackConstants.RESULT_URL_KEY));
+			sb.append(" ");
+			sb.append(result.get(WaybackConstants.RESULT_CAPTURE_DATE));
+			sb.append(" ");
+			sb.append(result.get(WaybackConstants.RESULT_OFFSET));
+			sb.append(" ");
+			sb.append(result.get(WaybackConstants.RESULT_ARC_FILE));
+			
 		} else if (type == TYPE_CDX_VALUE) {
-			return origHost + " " + mimeType + " " + httpResponseCode + " "
-					+ md5Fragment + " " + redirectUrl + " " + compressedOffset
-					+ " " + arcFileName;
+
+			sb.append(result.get(WaybackConstants.RESULT_ORIG_HOST));
+			sb.append(" ");
+			sb.append(result.get(WaybackConstants.RESULT_MIME_TYPE));
+			sb.append(" ");
+			sb.append(result.get(WaybackConstants.RESULT_HTTP_CODE));
+			sb.append(" ");
+			sb.append(result.get(WaybackConstants.RESULT_MD5_DIGEST));
+			sb.append(" ");
+			sb.append(result.get(WaybackConstants.RESULT_REDIRECT_URL));
+
 		} else {
 			throw new IllegalArgumentException("Unknown transformation type");
 		}
+		return sb.toString();
 	}
 
 	/**

@@ -57,9 +57,13 @@ public class BDBRecordToSearchResultAdapter
 		BDBRecord record = (BDBRecord) o;
 		sb.setLength(0);
 		try {
-			sb.append(new String(record.getKey().getData(),"UTF-8"));
+			String key = new String(record.getKey().getData(),"UTF-8");
+			int urlEnd = key.indexOf(' ');
+			int dateSpecEnd = key.indexOf(' ',urlEnd + 1);
+			sb.append(key.substring(0,dateSpecEnd));
 			sb.append(" ");
 			sb.append(new String(record.getValue().getData(),"UTF-8"));
+			sb.append(key.substring(dateSpecEnd));
 		} catch (UnsupportedEncodingException e) {
 			// should not happen with UTF-8 hard-coded..
 			e.printStackTrace();
