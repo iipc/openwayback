@@ -7,7 +7,7 @@
 	
     <context-param>
         <param-name>resourcestore.arcurlprefix</param-name>
-        <param-value>http://localhost:8080/locationdb/arc-proxy</param-value>
-        <description>Absolute URL of the ArcProxy webapp Location of </description>
+        <param-value>http://localhost:8080/arc-proxy/arcs</param-value>
+        <description>Absolute URL of the ArcProxy webapp which reverse proxies HTTP 1.1 requests to the actual location of ARC files</description>
     </context-param>
 
