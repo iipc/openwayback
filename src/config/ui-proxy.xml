@@ -47,7 +47,7 @@
             <param-name>query.localhostname</param-name>
             <param-value></param-value>
             <description>extra hostname that should be considered "local" when
-                         discriminating between Replays and Queries requests
+                         discriminating between Replay and Query requests
             </description>
         </init-param>
     </filter>
@@ -83,6 +83,6 @@
 
     <context-param>
         <param-name>proxy.redirectpath</param-name>
-        <param-value>/jsp/QueryUI/Redirect.jsp</param-value>
-        <description>jsp where requests are bounced thru to pick up timestamps</description>
+        <param-value>http://localhost:8080/jsp/QueryUI/Redirect.jsp</param-value>
+        <description>absolute URL to jsp where requests are bounced thru to pick up timestamps</description>
     </context-param>
