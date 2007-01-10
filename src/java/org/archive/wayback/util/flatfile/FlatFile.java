@@ -147,5 +147,39 @@ public class FlatFile extends File {
 		itr = new ReverseRecordIterator(new ReverseBufferedReader(raf));
 		return itr;
 	}
-
+	
+	private static void USAGE() {
+		System.err.println("Usage: PREFIX FILE1 [FILE2] ...");
+		System.exit(3);
+	}
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		
+		if(args.length < 2) {
+			USAGE();
+		}
+		String prefix = args[0];
+		for(int i=1; i < args.length; i++) {
+			FlatFile ff = new FlatFile(args[i]);
+			RecordIterator ri;
+			try {
+				ri = (RecordIterator) ff.getRecordIterator(prefix);
+				while(ri.hasNext()) {
+					String line = (String) ri.next();
+					if(!line.startsWith(prefix)) {
+						break;
+					}
+					if(args.length > 2) {
+						System.out.println(args[i] + " " + line);
+					} else {
+						System.out.println(line);
+					}
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
 }
