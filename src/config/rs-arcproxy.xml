@@ -5,7 +5,7 @@
     </servlet>
     <servlet-mapping>
         <servlet-name>ArcProxyServlet</servlet-name>
-        <url-pattern>/arc-proxy/*</url-pattern>
+        <url-pattern>/arcs/*</url-pattern>
     </servlet-mapping>
 
     <servlet>
@@ -26,14 +26,15 @@
     <context-param>
         <param-name>filelocationdb.path</param-name>
         <param-value>/tmp/wayback/arc-db</param-value>
-        <description>Directory where arc-db is stored. Must exist.</description>
+        <description>Directory where the filelocation BDB, which maps ARC 
+        	         filenames to their absolute HTTP path(s). Must exist.</description>
     </context-param>
 
     <context-param>
         <param-name>filelocationdb.logpath</param-name>
         <param-value>/tmp/wayback/arc-db.log</param-value>
-        <description>Path where log of new ARCs inserted into the arc-db are 
-        stored. Containing directory must exist.</description>
+        <description>Path where log of new ARCs inserted into the filelocation 
+        db are stored. Containing directory must exist.</description>
     </context-param>
 
     <context-param>
