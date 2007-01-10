@@ -16,6 +16,8 @@
     <context-param>
         <param-name>maxresults</param-name>
         <param-value>1000</param-value>
-        <description>Maximum number of results to return from the resourceindex</description>
+        <description>
+        	Maximum number of results to return from the ResourceIndex.
+        </description>
     </context-param>
     
