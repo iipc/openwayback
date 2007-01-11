@@ -195,7 +195,7 @@ These options are not used by default.
             <param-name>query.localhostname</param-name>
             <param-value></param-value>
             <description>extra hostname that should be considered "local" when
-                         discriminating between Replays and Queries requests
+                         discriminating between Replay and Query requests
             </description>
         </init-param>
     </filter>
@@ -231,8 +231,8 @@ These options are not used by default.
 
     <context-param>
         <param-name>proxy.redirectpath</param-name>
-        <param-value>/jsp/QueryUI/Redirect.jsp</param-value>
-        <description>jsp where requests are bounced thru to pick up timestamps</description>
+        <param-value>http://localhost:8080/jsp/QueryUI/Redirect.jsp</param-value>
+        <description>absolute URL to jsp where requests are bounced thru to pick up timestamps</description>
     </context-param>
 -->
 <!-- END OF  Proxy UI  OPTIONS -->
@@ -501,7 +501,7 @@ These options are not used by default.
     </servlet>
     <servlet-mapping>
         <servlet-name>ArcProxyServlet</servlet-name>
-        <url-pattern>/arc-proxy/*</url-pattern>
+        <url-pattern>/arcs/*</url-pattern>
     </servlet-mapping>
 
     <servlet>
@@ -522,14 +522,15 @@ These options are not used by default.
     <context-param>
         <param-name>filelocationdb.path</param-name>
         <param-value>/tmp/wayback/arc-db</param-value>
-        <description>Directory where arc-db is stored. Must exist.</description>
+        <description>Directory where the filelocation BDB, which maps ARC 
+        	         filenames to their absolute HTTP path(s). Must exist.</description>
     </context-param>
 
     <context-param>
         <param-name>filelocationdb.logpath</param-name>
         <param-value>/tmp/wayback/arc-db.log</param-value>
-        <description>Path where log of new ARCs inserted into the arc-db are 
-        stored. Containing directory must exist.</description>
+        <description>Path where log of new ARCs inserted into the filelocation 
+        db are stored. Containing directory must exist.</description>
     </context-param>
 
     <context-param>
@@ -561,8 +562,8 @@ These options are not used by default.
 	
     <context-param>
         <param-name>resourcestore.arcurlprefix</param-name>
-        <param-value>http://localhost:8080/locationdb/arc-proxy</param-value>
-        <description>Absolute URL of the ArcProxy webapp Location of </description>
+        <param-value>http://localhost:8080/arc-proxy/arcs</param-value>
+        <description>Absolute URL of the ArcProxy webapp which reverse proxies HTTP 1.1 requests to the actual location of ARC files</description>
     </context-param>
 
 -->
@@ -585,7 +586,7 @@ is the default index storage implementation.
 -->
 	
     <filter>
-        <filter-name>PipelineFilter</filter-name>
+        <filter-name>RemoteSubmitFilter</filter-name>
         <filter-class>org.archive.wayback.resourceindex.indexer.RemoteSubmitFilter</filter-class>
         <init-param>
             <param-name>pipeline.statusjsp</param-name>
@@ -593,8 +594,8 @@ is the default index storage implementation.
         </init-param>
     </filter>
     <filter-mapping>
-        <filter-name>PipelineFilter</filter-name>
-        <url-pattern>/pipeline/*</url-pattern>
+        <filter-name>RemoteSubmitFilter</filter-name>
+        <url-pattern>/index-incoming/*</url-pattern>
     </filter-mapping>
 
     <context-param>
@@ -677,7 +678,9 @@ is the default index storage implementation.
     <context-param>
         <param-name>maxresults</param-name>
         <param-value>1000</param-value>
-        <description>Maximum number of results to return from the resourceindex</description>
+        <description>
+        	Maximum number of results to return from the ResourceIndex.
+        </description>
     </context-param>
 
 <!-- END OF  Local-BDB ResourceIndex  OPTIONS -->
@@ -715,7 +718,9 @@ These options are not used by default.
     <context-param>
         <param-name>maxresults</param-name>
         <param-value>1000</param-value>
-        <description>Maximum number of results to return from the resourceindex</description>
+        <description>
+        	Maximum number of results to return from the ResourceIndex.
+        </description>
     </context-param>
     -->
 <!-- END OF  Local-CDX ResourceIndex  OPTIONS -->
@@ -736,20 +741,22 @@ These options are not used by default.
 
     <context-param>
         <param-name>resourceindex.baseurl</param-name>
-        <param-value>http://localhost:8080/nutchwax/opensearch</param-value>
+        <param-value>http://localhost:8081/xmlquery</param-value>
         <description>absolute URL to Nutch server</description>
     </context-param>
 
     <context-param>
         <param-name>maxresults</param-name>
         <param-value>1000</param-value>
-        <description>Maximum number of results to return from the resourceindex</description>
+        <description>
+        	Maximum number of results to return from the ResourceIndex.
+        </description>
     </context-param>
     -->
 <!-- END OF  Remote-Nutch ResourceIndex  OPTIONS -->
 
-<!-- START OF  Remote-BDB ResourceIndex  OPTIONS
-This section contains configuration for using a BDB JE index hosted on a
+<!-- START OF  Remote-BDB/CDX ResourceIndex  OPTIONS
+This section contains configuration for using a BDB/CDX index hosted on a
 remote server. The remote server holding the index must provide the XMLQuery
 interface.
 
@@ -774,10 +781,12 @@ These options are not used by default.
     <context-param>
         <param-name>maxresults</param-name>
         <param-value>1000</param-value>
-        <description>Maximum number of results to return from the resourceindex</description>
+        <description>
+        	Maximum number of results to return from the ResourceIndex.
+        </description>
     </context-param>
     -->
-<!-- END OF  Remote-BDB ResourceIndex  OPTIONS -->
+<!-- END OF  Remote-BDB/CDX ResourceIndex  OPTIONS -->
 
 <!--
        END OF RESOURCE INDEX SECTION
