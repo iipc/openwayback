@@ -38,6 +38,8 @@
         <!--Copy to a bin dir the command line tools.-->
         <copy todir="${maven.dist.bin.assembly.dir}/bin">
           <fileset dir="${maven.src.dir}/scripts">
+            <include name="bin-search"/>
+            <include name="bdb-client"/>
             <include name="index-client"/>
             <include name="location-client"/>
             <include name="url-client"/>
