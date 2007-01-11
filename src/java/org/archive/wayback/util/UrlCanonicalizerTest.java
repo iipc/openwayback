@@ -146,6 +146,21 @@ public class UrlCanonicalizerTest extends TestCase {
 		checkCanonicalization(fore + sid4 + aft,want);
 		checkCanonicalization(fore + sid5 + aft,want);
 		//checkCanonicalization(fore + sid6 + aft,want);
+
+		// Check ASP_SESSIONID2:
+		checkCanonicalization(
+				"http://legislature.mi.gov/(S(4hqa0555fwsecu455xqckv45))/mileg.aspx",
+				"legislature.mi.gov/mileg.aspx");
+
+		// Check ASP_SESSIONID2 (again):
+		checkCanonicalization(
+				"http://legislature.mi.gov/(4hqa0555fwsecu455xqckv45)/mileg.aspx",
+				"legislature.mi.gov/mileg.aspx");
+
+		// Check ASP_SESSIONID3:
+		checkCanonicalization(
+				"http://legislature.mi.gov/(a(4hqa0555fwsecu455xqckv45)S(4hqa0555fwsecu455xqckv45)f(4hqa0555fwsecu455xqckv45))/mileg.aspx?page=sessionschedules",
+				"legislature.mi.gov/(a(4hqa0555fwsecu455xqckv45)f(4hqa0555fwsecu455xqckv45))/mileg.aspx?page=sessionschedules");
 		
 		// strip port 80
 		checkCanonicalization("http://www.chub.org:80/foo","chub.org/foo");

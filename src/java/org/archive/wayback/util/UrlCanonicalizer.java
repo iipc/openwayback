@@ -117,8 +117,44 @@ public class UrlCanonicalizer {
                 "(?:ASPSESSIONID[a-zA-Z]{8}=[a-zA-Z]{24})(?:&(.*))?$",
                     Pattern.CASE_INSENSITIVE);
 
+    /**
+     * Examples:
+     *
+     *        (.NET 2.0)
+     *        http://legislature.mi.gov/(S(4hqa0555fwsecu455xqckv45))/mileg.aspx
+     *     => http://legislature.mi.gov/mileg.aspx
+     *
+     *		  (.NET 1.0/1.1)
+     *        http://legislature.mi.gov/(4hqa0555fwsecu455xqckv45)/mileg.aspx
+     *     => http://legislature.mi.gov/mileg.aspx
+     *     
+     *     For more info, see: 
+     *     	  http://msdn2.microsoft.com/en-us/library/aa479315.aspx
+     *     
+     */
+    private static final Pattern STRIP_ASPSESSION2_REGEX =
+    	Pattern.compile("^([^\\?]+/)" +
+    			"(?:\\((?:S\\(|)[0-9a-z]{24}\\)(?:\\)|)/)([^\\?]+\\.aspx.*)$",
+    			Pattern.CASE_INSENSITIVE);
     
+    /**
+     * Examples:
+     *
+     *        (.NET 2.0)
+     *        http://legislature.mi.gov/(a(4hqa0555fwsecu455xqckv45)S(4hqa0555fwsecu455xqckv45)f(4hqa0555fwsecu455xqckv45))/mileg.aspx?page=SessionSchedules
+     *     => http://legislature.mi.gov/(a(4hqa0555fwsecu455xqckv45)f(4hqa0555fwsecu455xqckv45))/mileg.aspx?page=SessionSchedules
+     *
+     *     For more info, see: 
+     *     	  http://msdn2.microsoft.com/en-us/library/aa479315.aspx
+     *     
+     */   
 
+    private static final Pattern STRIP_ASPSESSION3_REGEX =
+    	Pattern.compile("^([^\\?]+/" +
+    			"\\((?:a\\([0-9a-z]{24}\\)))(?:S\\([0-9a-z]{24}\\))" +
+    			"((?:f\\([0-9a-z]{24}\\))\\)/[^\\?]+\\.aspx.*)$",
+    			Pattern.CASE_INSENSITIVE);
+    
     /**
      * Strip ColdFusion session IDs. Remove sessionids that look like the 
      * following:
@@ -129,8 +165,6 @@ public class UrlCanonicalizer {
     	Pattern.compile("^(.+)(?:cfid=[^&]+&cftoken=[^&]+(?:jsession=[^&]+)?)" +
     			"(?:&(.*))?$",Pattern.CASE_INSENSITIVE);
         
-    
-    
     /**
      * Run a regex that strips elements of a string.
      * 
@@ -227,6 +261,8 @@ public class UrlCanonicalizer {
         url = doStripRegexMatch(url, STRIP_WWWN_REGEX.matcher(url));
         url = doStripRegexMatch(url, STRIP_SESSION_ID_REGEX.matcher(url));
         url = doStripRegexMatch(url, STRIP_ASPSESSION_REGEX.matcher(url));
+        url = doStripRegexMatch(url, STRIP_ASPSESSION2_REGEX.matcher(url));
+        url = doStripRegexMatch(url, STRIP_ASPSESSION3_REGEX.matcher(url));
         url = doStripRegexMatch(url, STRIP_SID_REGEX.matcher(url));
         url = doStripRegexMatch(url, STRIP_CFSESSION_REGEX.matcher(url));
         url = url.toLowerCase();
