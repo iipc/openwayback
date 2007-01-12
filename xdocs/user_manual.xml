@@ -89,9 +89,9 @@
 				queries to filter returned documents are URL based filters,
 				and capture date. It is expected that in future releases of
 				the Wayback Machine, users will be able to locate documents 
-				via full text search. See the NutchWAX project
-				<a href="http://archive-access.sourceforge.net/projects/nutch/">
-					here
+				via full text search. See the 
+				<a href="http://archive-access.sourceforge.net/projects/nutch/wayback.html">
+                    NutchWAX project
 				</a>
 				for more information on full text search and the Wayback
 				Machine.
