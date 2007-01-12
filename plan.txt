@@ -19,14 +19,17 @@
  - administrative/manual exclusions
  - timeline UI ala WERA with in-page banner
  
-0.8 (August 2006)
+0.8 (January 2007)
  - multiple collections within single installation? (currently possible with multiple webapps)
+ - CDX resource index
+ - ArcProxy allowing single locationDB to be used by multiple front-end webapps
+
+1.0 (March 2007)
  - static, manually maintained alphabetic division of index for larger scale installations
  - retrieval on demand from live web
-
-1.0 (December 2006)
  - automatically maintained distributed index
  - basis for production Wayback Machine replacement
+ - internationalization support
  
 == BRAINSTORMING ==
 

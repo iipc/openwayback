@@ -9,6 +9,33 @@
 
   <body>
     <section name="News">
+        <subsection name="New Release - 0.8.0, 01/11/2007">
+            <p>
+            	Release 0.8.0 offers several new features, most notably a CDX
+            	format flat file ResourceIndex implementation, improved 
+            	character set detection, and many smaller improvements, 
+            	bug-fixes, and optimizations.
+            	<ul>
+            		<b>Major Features:</b>
+					<li>
+						Added Sorted CDX flat file ResourceIndex implementation,
+						allowing for much larger data sets.
+					</li>
+					<li>
+						Improved character set detection so pages are not
+						mangled when server side modification occurs.
+					</li>
+					<li>
+						Several new command-line tools, for generating and
+						updating each ResourceIndex type.
+					</li>
+					<li>
+						Bug-fixes to allow integration with NutchWax full-text
+						searching.
+					</li>
+				</ul>
+			</p>
+        </subsection>
         <subsection name="New Release - 0.6.0, 07/14/2006">
             <p>
             	Release 0.6.0 offers:
