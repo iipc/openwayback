@@ -258,6 +258,9 @@ public class NutchResourceIndex implements ResourceIndex {
 //   throws IOException {
    	String urlStr = wbRequest.get(WaybackConstants.REQUEST_URL);
    	String exactDateStr = wbRequest.get(WaybackConstants.REQUEST_EXACT_DATE);
+    if (exactDateStr != null && exactDateStr.length() == 0) {
+        exactDateStr = null;
+    }
    	String endDateStr = wbRequest.get(WaybackConstants.REQUEST_END_DATE);
    	if (endDateStr == null || endDateStr.length() == 0) {
    	   	endDateStr = wbRequest.get(WaybackConstants.REQUEST_DATE);
@@ -290,7 +293,7 @@ public class NutchResourceIndex implements ResourceIndex {
     	   
        } else {
            ms.append("date%3A").append(startDateStr).append('-').append(
-					endDateStr).append('+');
+               exactDateStr != null ? exactDateStr : endDateStr).append('+');
        }
        // Add 'url:URL'.
        if(wbRequest.get(WaybackConstants.REQUEST_TYPE).equals(
