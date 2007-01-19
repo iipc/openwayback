@@ -106,8 +106,12 @@ public class ArcProxyServlet extends WaybackServlet {
 			OutputStream os = httpResponse.getOutputStream();
 			int BUF_SIZE = 4096;
 			byte[] buffer = new byte[BUF_SIZE];
-			for (int r = -1; (r = is.read(buffer, 0, BUF_SIZE)) != -1;) {
-				os.write(buffer, 0, r);
+			try {
+				for (int r = -1; (r = is.read(buffer, 0, BUF_SIZE)) != -1;) {
+					os.write(buffer, 0, r);
+				}
+			} finally {
+				is.close();
 			}
 		} catch (ParseException e) {
 			e.printStackTrace();
