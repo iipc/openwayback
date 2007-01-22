@@ -79,8 +79,8 @@
         scm:<system>:<system specific connection string> 
      -->
     <repository>
-       <connection>scm:cvs:pserver:anonymous@archive-access.cvs.sourceforge.net:/cvsroot/archive-access:archive-access</connection>
-        <url>http://archive-access.cvs.sourceforge.net/archive-access/archive-access/projects/wayback/</url>
+       <connection>scm:svn:https://archive-access.svn.sourceforge.net/svnroot/archive-access/trunk/archive-access/projects/wayback</connection>
+        <url>https://archive-access.svn.sourceforge.net/svnroot/archive-access/trunk/archive-access/projects/wayback/</url>
     </repository>
 
     <versions />
@@ -100,7 +100,7 @@
             </archive>
         </mailingList>  
         <mailingList>  
-            <name>CVS Commits</name>
+            <name>SVN Commits</name>
             <subscribe>
             http://lists.sourceforge.net/lists/listinfo/archive-access-cvs
             </subscribe>
