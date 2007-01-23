@@ -40,7 +40,7 @@ import org.archive.wayback.util.CompositeSortedIterator;
  */
 public class CompositeSearchResultSource implements SearchResultSource {
 
-	private ArrayList sources;
+	protected ArrayList sources;
 
 	/**
 	 * Constructor
