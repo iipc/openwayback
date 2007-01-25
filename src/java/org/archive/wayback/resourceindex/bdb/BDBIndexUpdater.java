@@ -204,8 +204,8 @@ public class BDBIndexUpdater {
 						+ f.getAbsolutePath() + ") to " + "("
 						+ target.getAbsolutePath() + ")");
 			}
-			LOGGER.info("Renamed merged file " + f.getAbsolutePath() + " to " +
-					target.getAbsolutePath());
+			LOGGER.info("Renamed failed merge file " + f.getAbsolutePath() +
+					" to " + target.getAbsolutePath());
 		}
 	}
 
