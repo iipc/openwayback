@@ -178,6 +178,11 @@ public interface WaybackConstants {
 	 */
 	public static final String REQUEST_REMOTE_USER = "requestremoteuser";
 
+	/**
+	 * Request: Best Guess at users requested locale.
+	 */
+	public static final String REQUEST_LOCALE_LANG = "requestlocalelang";
+
 	
 	/**
 	 * Results: int total number of records matching, not all necc. returned.

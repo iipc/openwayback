@@ -25,6 +25,7 @@ package org.archive.wayback.core;
 
 import java.util.Enumeration;
 import java.util.Properties;
+import java.util.ResourceBundle;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
@@ -50,6 +51,9 @@ public class WaybackRequest {
 	private int pageNum = 1;
 
 	private Properties filters = new Properties();
+	
+	private ResourceBundle resourceBundle = null;
+	private String UI_RESOURCE_BUNDLE_NAME = "WaybackUI";
 
 	private final static String standardHeaders[] = {
 			WaybackConstants.REQUEST_REFERER_URL,
@@ -128,6 +132,13 @@ public class WaybackRequest {
 		}
 		return arg;
 	}
+	
+	private String getUserLocale(HttpServletRequest httpRequest) {
+		resourceBundle = ResourceBundle.getBundle(UI_RESOURCE_BUNDLE_NAME,
+				httpRequest.getLocale());
+		
+		return emptyIfNull(httpRequest.getLocale().getDisplayLanguage());
+	}
 
 	/**
 	 * extract REFERER, remote IP and authorization information from the
@@ -151,6 +162,7 @@ public class WaybackRequest {
 				.getAuthType()));
 		put(WaybackConstants.REQUEST_REMOTE_USER, emptyIfNull(httpRequest
 				.getRemoteUser()));
+		put(WaybackConstants.REQUEST_LOCALE_LANG,getUserLocale(httpRequest));
 		// TODO: cookies...
 	}
 
@@ -280,4 +292,18 @@ public class WaybackRequest {
 	    put(WaybackConstants.REQUEST_URL_CLEANED, requestURI.toString());
         put(WaybackConstants.REQUEST_URL, urlStr);
 	}
+
+	/**
+	 * @param key
+	 * @return localized String version of key argument, or key itself if
+	 * something goes wrong...
+	 */
+	public String getLocalized(String key) {
+		try {
+			return resourceBundle.getString(key);
+		} catch (Exception e) {
+			return key;
+		}
+	}
+	
 }
