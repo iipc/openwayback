@@ -334,4 +334,11 @@ public class UIQueryResults {
 		return exactRequestedTimestamp;
 	}
 	
+	/**
+	 * @param key
+	 * @return Localized String version of key
+	 */
+	public String getLocalized(String key) {
+		return wbRequest.getLocalized(key);
+	}
 }
