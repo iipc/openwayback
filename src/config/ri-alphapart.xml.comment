@@ -1,0 +1,4 @@
+HEADER: Alphabetically-Partitioned ResourceIndex
+This section contains configuration for using a distributed ResourceIndex 
+composed of groups of nodes, where each group of nodes is responsible for
+handling queries within an alphabetic range of URLs.
