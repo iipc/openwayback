@@ -25,12 +25,20 @@
 package org.archive.wayback.resourceindex;
 
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Properties;
 
+import org.archive.util.InetAddressUtil;
 import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.resourceindex.bdb.BDBIndex;
 import org.archive.wayback.resourceindex.bdb.BDBIndexUpdater;
 import org.archive.wayback.resourceindex.cdx.CDXIndex;
+import org.archive.wayback.resourceindex.cdx.dynamic.CDXDefinitionFile;
+import org.archive.wayback.resourceindex.cdx.dynamic.DynamicCDXIndex;
+import org.archive.wayback.resourceindex.cdx.dynamic.MD5LocationFile;
+import org.archive.wayback.resourceindex.cdx.dynamic.RangeAssignmentFile;
+import org.archive.wayback.util.CachedFile;
 
 import com.sleepycat.je.DatabaseException;
 
@@ -56,6 +64,11 @@ public class SearchResultSourceFactory {
 	 * indicates a BDB implementing SearchResultSource
 	 */
 	private final static String SOURCE_CLASS_BDB = "BDB";
+
+	/**
+	 * indicates a dynamic set of  CDX files implementing SearchResultSource
+	 */
+	private final static String SOURCE_CLASS_DYNAMIC_CDX = "DYNACDX";
 
 	/**
 	 * configuration name for CDX Paths
@@ -102,6 +115,11 @@ public class SearchResultSourceFactory {
 	 */
 	private final static String DB_NAME = "resourceindex.dbname";
 
+	private final static String CDX_INTERVAL = "resourceindex.cdxinterval";
+	private final static String CDX_DIR = "resourceindex.cdxdir";
+	private final static String CDX_RANGE_URL = "resourceindex.cdxrangeurl";
+	private final static String CDX_DEFINITION_URL = "resourceindex.cdxdefnurl";
+	private final static String CDX_MD5_URL = "resourceindex.cdxmd5url";
 
 	private static String getRequiredValue(Properties p, String name, 
 			String defaultValue) throws ConfigurationException {
@@ -129,6 +147,8 @@ public class SearchResultSourceFactory {
 			src = getBDBIndex(p);
 		} else if(className.equals(SOURCE_CLASS_CDX)) {
 			src = getCDXIndex(p);
+		} else if(className.equals(SOURCE_CLASS_DYNAMIC_CDX)) {
+			src = getDynamicCDXIndex(p);
 		} else {
 			throw new ConfigurationException("Unknown " + SOURCE_CLASS + 
 					" configuration, try one of: " + SOURCE_CLASS_BDB + ", " +
@@ -208,5 +228,45 @@ public class SearchResultSourceFactory {
 		}
 		
 		return index;
+	}
+	
+	private static CachedFile makeCachedFile(String url, File dir, String name,
+			long interval) throws MalformedURLException {
+		return new CachedFile(new File(dir,name),new URL(url),interval);
+	}
+	
+	private static SearchResultSource getDynamicCDXIndex(Properties p)
+	throws ConfigurationException {
+		String nodeNames[] = (String[]) 
+			InetAddressUtil.getAllLocalHostNames().toArray();
+		String interval = getRequiredValue(p,CDX_INTERVAL,"10000");
+		String dataDir = getRequiredValue(p,CDX_DIR,null);
+		String rangeUrl = getRequiredValue(p,CDX_RANGE_URL,null);
+		String definitionUrl = getRequiredValue(p,CDX_DEFINITION_URL,null);
+		String md5Url = getRequiredValue(p,CDX_MD5_URL,null);
+		
+		File dir = new File(dataDir);
+		ensureDir(dir);
+		
+		long intL = Long.parseLong(interval);
+		int intI = Integer.parseInt(interval);
+		
+		CachedFile rcf;
+		CachedFile dcf;
+		CachedFile mcf;
+		try {
+			rcf = makeCachedFile(rangeUrl,dir,"range.txt",intL);
+			dcf = makeCachedFile(definitionUrl,dir,"definition.txt",intL);
+			mcf = makeCachedFile(md5Url,dir,"md5.txt",intL);
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+			throw new ConfigurationException(e.getLocalizedMessage());
+		}
+		
+		RangeAssignmentFile rangeFile = new RangeAssignmentFile(rcf);
+		CDXDefinitionFile cdxFile = new CDXDefinitionFile(dcf);
+		MD5LocationFile md5File = new MD5LocationFile(mcf);
+		
+		return new DynamicCDXIndex(nodeNames,intI,dir,rangeFile,cdxFile,md5File);
 	}
 }
