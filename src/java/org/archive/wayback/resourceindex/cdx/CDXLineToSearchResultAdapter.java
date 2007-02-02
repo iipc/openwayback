@@ -62,14 +62,16 @@ public class CDXLineToSearchResultAdapter implements Adapter {
 		String arcFileName = tokens[8];
 
 		String origUrl = url;
-		try {
-			UURI uri = UURIFactory.getInstance(WaybackConstants.HTTP_URL_PREFIX +
-					url);
-			origUrl = origHost + uri.getEscapedPathQuery();
-		} catch (URIException e) {
-			// TODO Stifle? throw an error?
-			e.printStackTrace();
-			return null;
+		if(!url.startsWith(WaybackConstants.DNS_URL_PREFIX)) {
+			try {
+				UURI uri = UURIFactory.getInstance(
+						WaybackConstants.HTTP_URL_PREFIX + url);
+				origUrl = origHost + uri.getEscapedPathQuery();
+			} catch (URIException e) {
+				// TODO Stifle? throw an error?
+				e.printStackTrace();
+				return null;
+			}
 		}
 		
 		result.put(WaybackConstants.RESULT_URL, origUrl);
