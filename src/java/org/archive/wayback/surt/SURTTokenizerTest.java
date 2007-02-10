@@ -160,6 +160,18 @@ public class SURTTokenizerTest extends TestCase {
 		assertEquals("(org",tok.nextSearch());
 		assertNull(tok.nextSearch());		
 	}
+	/** test */
+	public void testPreSURTedLoginPass() {
+		tok = toSurtT("(org,archive,www,@brad:pass)/cgi?foobar");
+		assertEquals("(org,archive,www,@brad:pass)/cgi?foobar\t",tok.nextSearch());
+		assertEquals("(org,archive,www,@brad:pass)/cgi?foobar",tok.nextSearch());
+		assertEquals("(org,archive,www,@brad:pass)/cgi",tok.nextSearch());
+		assertEquals("(org,archive,www,@brad:pass",tok.nextSearch());
+		assertEquals("(org,archive,www",tok.nextSearch());
+		assertEquals("(org,archive",tok.nextSearch());
+		assertEquals("(org",tok.nextSearch());
+		assertNull(tok.nextSearch());		
+	}
 //	/** test */
 	// leave this guy out for now: was a bug in Heritrix thus archive-commons
 	// wait for new jar...

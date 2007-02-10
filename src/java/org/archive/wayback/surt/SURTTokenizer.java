@@ -63,7 +63,11 @@ public class SURTTokenizer {
 	 * @throws URIException 
 	 */
 	public SURTTokenizer(final String url) throws URIException {
-		remainder = getKey(url,false);
+		if(url.startsWith("(")) {
+			remainder = url;
+		} else {
+			remainder = getKey(url,false);
+		}
 	}
 	/**
 	 * update internal state and return the next smaller search string
