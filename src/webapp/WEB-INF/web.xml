@@ -349,7 +349,7 @@ These options are not used by default.
 
     <context-param>
         <param-name>jsuri</param-name>
-        <param-value>http://localhost:8080/wayback/jsp/TimelineUI/wm-timeline-text.js,http://localhost:8080/wayback/jsp/TimelineUI/wm-timeline.js</param-value>
+        <param-value>http://localhost:8080/wayback/jsp/TimelineUI/wm-timeline.js</param-value>
         <description>HTTP URI to javascript files</description>
     </context-param>
 	
@@ -685,6 +685,48 @@ is the default index storage implementation.
 
 <!-- END OF  Local-BDB ResourceIndex  OPTIONS -->
 
+<!-- START OF  Alphabetically-Partitioned ResourceIndex  OPTIONS
+This section contains configuration for using a distributed ResourceIndex
+composed of groups of nodes, where each group of nodes is responsible for
+handling queries within an alphabetic range of URLs.
+
+These options are not used by default.
+-->
+<!--
+	
+    <context-param>
+        <param-name>resourceindex.classname</param-name>
+        <param-value>org.archive.wayback.resourceindex.distributed.AlphaPartitionedIndex</param-value>
+        <description>Class that implements ResourceIndex for this Wayback</description>
+    </context-param>
+
+     <context-param>
+        <param-name>resourceindex.distributed.mappath</param-name>
+        <param-value>http://localhost:8080/wayback/dist/range-map.txt</param-value>
+        <description>
+        	path to local file that maps url ranges to sets of nodes.
+        </description>
+    </context-param>
+
+    <context-param>
+        <param-name>resourceindex.distributed.checkinterval</param-name>
+        <param-value>100</param-value>
+        <description>
+        	Number of seconds between checks for changes in file pointed to by
+        	resourceindex.distributed.mappath.
+        </description>
+    </context-param>
+
+    <context-param>
+        <param-name>maxresults</param-name>
+        <param-value>1000</param-value>
+        <description>
+        	Maximum number of results to return from the ResourceIndex.
+        </description>
+    </context-param>
+    -->
+<!-- END OF  Alphabetically-Partitioned ResourceIndex  OPTIONS -->
+
 <!-- START OF  Local-CDX ResourceIndex  OPTIONS
 This section contains configuration for using one or more sorted CDX format
 flat files to store index information.
@@ -724,6 +766,80 @@ These options are not used by default.
     </context-param>
     -->
 <!-- END OF  Local-CDX ResourceIndex  OPTIONS -->
+
+<!-- START OF  Local-Dynamic-CDX ResourceIndex  OPTIONS
+This section contains configuration for using a dynamically defined,
+automatically updating ResourceIndex composed of one or more sorted CDX format
+flat files, which are configured via HTTP accessible text files.
+
+These options are not used by default.
+-->
+<!--
+	
+    <context-param>
+        <param-name>resourceindex.classname</param-name>
+        <param-value>org.archive.wayback.resourceindex.LocalResourceIndex</param-value>
+        <description>Class that implements ResourceIndex for this Wayback</description>
+    </context-param>
+
+    <context-param>
+        <param-name>resourceindex.sourceclass</param-name>
+        <param-value>DYNACDX</param-value>
+        <description>Class that implements ResultSource for this Wayback, 
+        currently: BDB|CDX|DYNACDX</description>
+    </context-param>
+
+   <context-param>
+        <param-name>resourceindex.cdxinterval</param-name>
+        <param-value>100000</param-value>
+        <description>
+        	Number of milliseconds between checking for updates to local CDX
+        	configuration and setup.
+        </description>
+    </context-param>
+    
+    <context-param>
+        <param-name>resourceindex.cdxdir</param-name>
+        <param-value>/tmp/wayback/dynamic-cdx</param-value>
+        <description>
+        	Path to directory managed by this Dynamic CDX index, where index
+        	files are stored.
+        </description>
+    </context-param>
+    
+    <context-param>
+        <param-name>resourceindex.cdxrangeurl</param-name>
+        <param-value>http://localhost:8080/wayback/dyncdx/ranges.txt</param-value>
+        <description>
+        	URL to file that maps nodes to CDX ranges.
+        </description>
+    </context-param>
+    
+    <context-param>
+        <param-name>resourceindex.cdxdefnurl</param-name>
+        <param-value>http://localhost:8080/wayback/dyncdx/cdx-def.txt</param-value>
+        <description>
+        	URL to file that maps CDX ranges to MD5s.
+        </description>
+    </context-param>
+    
+    <context-param>
+        <param-name>resourceindex.cdxmd5url</param-name>
+        <param-value>http://localhost:8080/wayback/dyncdx/md5-loc.txt</param-value>
+        <description>
+        	URL to file that maps MD5s to HTTP locations.
+        </description>
+    </context-param>
+    
+    <context-param>
+        <param-name>maxresults</param-name>
+        <param-value>1000</param-value>
+        <description>
+        	Maximum number of results to return from the ResourceIndex.
+        </description>
+    </context-param>
+    -->
+<!-- END OF  Local-Dynamic-CDX ResourceIndex  OPTIONS -->
 
 <!-- START OF  Remote-Nutch ResourceIndex  OPTIONS
 This section contains configuration for using a Nutch full text index
