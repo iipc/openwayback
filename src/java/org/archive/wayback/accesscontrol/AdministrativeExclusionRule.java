@@ -288,12 +288,14 @@ public class AdministrativeExclusionRule {
 	 * @return Returns pretty version of the endDateStr.
 	 */
 	public String getPrettyEndDateStr() {
+		// TODO: Localization
 		return Timestamp.parseAfter(endDateStr).prettyDateTime();
 	}
 	/**
 	 * @return Returns pretty version of the startDateStr.
 	 */
 	public String getPrettyStartDateStr() {
+		// TODO: Localization
 		return Timestamp.parseBefore(startDateStr).prettyDateTime();
 	}
 

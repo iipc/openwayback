@@ -503,6 +503,7 @@ public class AdministrativeExclusionServlet extends WaybackServlet {
 		tableCell(page,rule.getPrettyType(),status);
 		tableCell(page,rule.getPrettyMod(),status);
 		int sse = (int) (rule.getWhen()/1000);
+		// TODO: Localization
 		tableCell(page, Timestamp.fromSse(sse).prettyDateTime(), status);
 		tableCell(page,rule.getWho(),status);
 		// TODO: shrink
