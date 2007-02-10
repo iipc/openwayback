@@ -120,6 +120,13 @@ public class Timestamp {
 	
 	
 	/**
+	 * @return Date for this Timestamp
+	 */
+	public Date getDate() {
+		return date;
+	}
+
+	/**
 	 * set internal structure using seconds since the epoch integer argument
 	 * @param sse
 	 */
@@ -304,7 +311,9 @@ public class Timestamp {
 
 	private static String padDigits(String input, String min, String max, 
 			String missing) {
-
+		if(input == null) {
+			input = "";
+		}
 		String finalDigits = "";
 		for(int i = 0; i < missing.length(); i++) {
 			if(input.length() <= i) {
@@ -339,7 +348,9 @@ public class Timestamp {
 	// are not too large or too small, factoring in the month, leap years, etc.
 	private static String boundTimestamp(String input) {
 		String boundTimestamp = "";
-
+		if(input == null) {
+			input = "";
+		}
 		// MAKE SURE THE YEAR IS WITHIN LEGAL BOUNDARIES:
 		Calendar tmpCal = getCalendar();
 		tmpCal.setTime(new Date());
