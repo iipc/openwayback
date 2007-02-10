@@ -83,7 +83,7 @@ public class OpenSearchQueryParser implements PropertyConfigurable {
 	 * @see org.archive.wayback.PropertyConfigurable#init(java.util.Properties)
 	 */
 	public void init(Properties p) throws ConfigurationException {
-		String max = p.getProperty(WaybackConstants.MAX_RESULTS_CONFIG_NAME);
+		String max = p.getProperty(WaybackConstants.RESULTS_PER_PAGE_CONFIG_NAME);
 		if(max != null) {
 			maxRecords = Integer.parseInt(max);
 		}
