@@ -170,6 +170,8 @@ public class QueryServlet extends WaybackServlet {
                 closestDistance = curDistance;
             }
         }
-        closest.put("closest", "true");
+        if(closest != null) {
+        	closest.put("closest", "true");
+        }
     }
 }
