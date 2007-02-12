@@ -12,6 +12,7 @@ public class ResourceNotAvailableException extends WaybackException {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
+	protected static final String ID = "resourceNotAvailable";
 
 	/**
 	 * Constructor
@@ -20,6 +21,7 @@ public class ResourceNotAvailableException extends WaybackException {
 	 */
 	public ResourceNotAvailableException(String message) {
 		super(message,"Resource not available");
+		id = ID;
 	}
 	/**
 	 * Constructor with message and details
@@ -29,5 +31,6 @@ public class ResourceNotAvailableException extends WaybackException {
 	 */
 	public ResourceNotAvailableException(String message,String details) {
 		super(message,"Resource not available",details);
+		id = ID;
 	}
 }

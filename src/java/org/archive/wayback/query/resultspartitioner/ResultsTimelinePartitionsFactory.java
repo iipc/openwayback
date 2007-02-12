@@ -31,6 +31,7 @@ import org.archive.util.ArchiveUtils;
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.Timestamp;
+import org.archive.wayback.core.WaybackRequest;
 
 /**
  * 
@@ -60,52 +61,62 @@ public class ResultsTimelinePartitionsFactory {
 	
 	/**
 	 * @param results
+	 * @param wbRequest 
 	 * @return ArrayList of ResultsPartition objects
 	 */
-	public static ArrayList getHour(SearchResults results) {
-		return get(hourRP,NUM_HOUR_PARTITIONS,results);
+	public static ArrayList getHour(SearchResults results,
+			WaybackRequest wbRequest) {
+		return get(hourRP,NUM_HOUR_PARTITIONS,results,wbRequest);
 	}
 
 	/**
 	 * @param results
+	 * @param wbRequest 
 	 * @return ArrayList of ResultsPartition objects
 	 */
-	public static ArrayList getDay(SearchResults results) {
-		return get(dayRP,NUM_DAY_PARTITIONS,results);
+	public static ArrayList getDay(SearchResults results,
+			WaybackRequest wbRequest) {
+		return get(dayRP,NUM_DAY_PARTITIONS,results,wbRequest);
 	}
 
 	/**
 	 * @param results
+	 * @param wbRequest 
 	 * @return ArrayList of ResultsPartition objects
 	 */
-	public static ArrayList getMonth(SearchResults results) {
-		return get(monthRP,NUM_MONTH_PARTITIONS,results);
+	public static ArrayList getMonth(SearchResults results,
+			WaybackRequest wbRequest) {
+		return get(monthRP,NUM_MONTH_PARTITIONS,results,wbRequest);
 	}
 
 	/**
 	 * @param results
+	 * @param wbRequest 
 	 * @return ArrayList of ResultsPartition objects
 	 */
-	public static ArrayList getYear(SearchResults results) {
-		return get(yearRP,NUM_YEAR_PARTITIONS,results);
+	public static ArrayList getYear(SearchResults results,
+			WaybackRequest wbRequest) {
+		return get(yearRP,NUM_YEAR_PARTITIONS,results,wbRequest);
 	}
 
 	/**
 	 * @param results
+	 * @param wbRequest 
 	 * @return ArrayList of ResultsPartition objects
 	 */
-	public static ArrayList getAuto(SearchResults results) {
+	public static ArrayList getAuto(SearchResults results,
+			WaybackRequest wbRequest) {
 		int first = Timestamp.parseBefore(results.getFirstResultDate()).sse();
 		int last = Timestamp.parseAfter(results.getLastResultDate()).sse();
 		int diff = last - first;
 		if(diff < MAX_HOUR_SECONDS) {
-			return getHour(results);
+			return getHour(results,wbRequest);
 		} else if(diff < MAX_DAY_SECONDS) {
-			return getDay(results);			
+			return getDay(results,wbRequest);			
 		} else if(diff < MAX_MONTH_SECONDS) {
-			return getMonth(results);
+			return getMonth(results,wbRequest);
 		}
-		return getYear(results);			
+		return getYear(results,wbRequest);			
 	}
 
 	/**
@@ -127,7 +138,8 @@ public class ResultsTimelinePartitionsFactory {
 	}
 	
 	private static ArrayList get(ResultsPartitioner partitioner,
-			int partitionCount, SearchResults results ) {
+			int partitionCount, SearchResults results, 
+			WaybackRequest wbRequest) {
 		
 		ArrayList partitions = new ArrayList();
 
@@ -149,7 +161,7 @@ public class ResultsTimelinePartitionsFactory {
 			String startDateStr = ArchiveUtils.get14DigitDate(startCal
 					.getTime());
 			String endDateStr = ArchiveUtils.get14DigitDate(endCal.getTime());
-			String title = partitioner.rangeToTitle(startCal, endCal);
+			String title = partitioner.rangeToTitle(startCal,endCal,wbRequest);
 			ResultsPartition partition = new ResultsPartition(startDateStr,
 					endDateStr, title);
 			partition.filter(results);

@@ -25,6 +25,7 @@
 package org.archive.wayback.query;
 
 import java.text.ParseException;
+import java.util.Date;
 import java.util.Iterator;
 
 import javax.servlet.http.HttpServletRequest;
@@ -34,6 +35,7 @@ import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.Timestamp;
+import org.archive.wayback.core.UIResults;
 import org.archive.wayback.core.WaybackRequest;
 
 /**
@@ -46,9 +48,7 @@ import org.archive.wayback.core.WaybackRequest;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class UIQueryResults {
-	
-	private WaybackRequest wbRequest;
+public class UIQueryResults extends UIResults {
 	
 	private String searchUrl;
 
@@ -87,7 +87,7 @@ public class UIQueryResults {
 	 */
 	public UIQueryResults(HttpServletRequest httpRequest, WaybackRequest wbRequest, SearchResults results,
 			ResultURIConverter uriConverter) throws ParseException {
-
+		super(wbRequest);
 		this.searchUrl = wbRequest.get(WaybackConstants.RESULT_URL);
 		this.startTimestamp = Timestamp.parseBefore(results.
 				getFilter(WaybackConstants.REQUEST_START_DATE));
@@ -116,7 +116,6 @@ public class UIQueryResults {
 		
 		this.results = results;
 		this.uriConverter = uriConverter;
-		this.wbRequest = wbRequest;
 		this.httpRequest = httpRequest;
 	}
 
@@ -169,31 +168,17 @@ public class UIQueryResults {
 	public String resultToReplayUrl(SearchResult result) {
 		return uriConverter.makeReplayURI(result);
 	}
-	
+
 	/**
 	 * @param result
-	 * @return String pretty Date+Time for capture date of result
+	 * @return Date representing captureDate of SearchResult result
 	 */
-	public String resultToPrettyDateTime(SearchResult result) {
+	public Date resultToDate(SearchResult result) {
 		Timestamp t = new Timestamp(result.get(
 				WaybackConstants.RESULT_CAPTURE_DATE));
-		return t.prettyDateTime();
+		return t.getDate();
 	}
-
-	/**
-	 * @return String pretty representation of end date range filter
-	 */
-	public String prettySearchEndDate() {
-		return endTimestamp.prettyDate();
-	}
-
-	/**
-	 * @return String pretty representation of start date range filter
-	 */
-	public String prettySearchStartDate() {
-		return startTimestamp.prettyDate();
-	}
-
+	
 	/**
 	 * @return Returns the firstResult.
 	 */
@@ -321,24 +306,9 @@ public class UIQueryResults {
 	}
 
 	/**
-	 * @return Returns the wbRequest.
-	 */
-	public WaybackRequest getWbRequest() {
-		return wbRequest;
-	}
-
-	/**
 	 * @return Returns the exactRequestedTimestamp.
 	 */
 	public Timestamp getExactRequestedTimestamp() {
 		return exactRequestedTimestamp;
-	}
-	
-	/**
-	 * @param key
-	 * @return Localized String version of key
-	 */
-	public String getLocalized(String key) {
-		return wbRequest.getLocalized(key);
 	}
 }

@@ -79,7 +79,13 @@ public class StringFormatter {
 	 * @return Localized String for key, interpolated with args
 	 */
 	public String format(String key, Object args[]) {
+		try {
 		return getFormat(getLocalized(key)).format(args);
+		} catch (Exception e) {
+			e.printStackTrace();
+			
+		}
+		return key;
 	}
 	/**
 	 * @param key

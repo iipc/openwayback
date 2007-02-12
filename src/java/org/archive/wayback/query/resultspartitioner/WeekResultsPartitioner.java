@@ -26,6 +26,7 @@ package org.archive.wayback.query.resultspartitioner;
 
 import java.util.Calendar;
 
+import org.archive.wayback.core.WaybackRequest;
 
 /**
  *
@@ -60,13 +61,13 @@ public class WeekResultsPartitioner extends ResultsPartitioner {
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.resultspartitioner.ResultsPartitioner#rangeToTitle(java.util.Calendar, java.util.Calendar)
 	 */
-	protected String rangeToTitle(Calendar start, Calendar end) {
+	protected String rangeToTitle(Calendar start, Calendar end,
+			WaybackRequest wbRequest) {
 
 		Calendar end2 = getCalendar();
 		end2.setTime(end.getTime());
 		end2.add(Calendar.DAY_OF_YEAR,-1);
-		return prettyMonth(start) + " " + prettyDayOfMonth(start) + " - " +
-			prettyMonth(end2) + " " + prettyDayOfMonth(end2);
-
+		return wbRequest.getFormatter().format("ResultPartitions.twoMonth", 
+				start.getTime(),end2.getTime());
 	}
 }

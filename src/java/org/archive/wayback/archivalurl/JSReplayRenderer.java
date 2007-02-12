@@ -25,6 +25,7 @@
 package org.archive.wayback.archivalurl;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.Properties;
 
 import javax.servlet.ServletException;
@@ -39,6 +40,7 @@ import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.replay.BaseReplayRenderer;
+import org.archive.wayback.util.StringFormatter;
 
 /**
  * 
@@ -226,32 +228,22 @@ public class JSReplayRenderer extends BaseReplayRenderer {
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
 			SearchResult result, Resource resource,
 			ResultURIConverter uriConverter) {
-		String resourceTS = result.get(WaybackConstants.RESULT_CAPTURE_DATE);
-		String nowTS = Timestamp.currentTimestamp().getDateStr();
-		String resourceUrl = result.get(WaybackConstants.RESULT_URL);
-		Timestamp captureTS = Timestamp.parseBefore(resourceTS);
 
+		StringFormatter fmt = wbRequest.getFormatter();
+		
+		String resourceTS = result.get(WaybackConstants.RESULT_CAPTURE_DATE);
+		Timestamp captureTS = Timestamp.parseBefore(resourceTS);
+		Date captureDate = captureTS.getDate();
 		String contextPath = uriConverter.getReplayUriPrefix(result);
 
-		String scriptInsert = "<script type=\"text/javascript\">\n"
-				+ "\n"
-				+ "//            FILE ARCHIVED ON "
-				+ resourceTS
-				+ " AND RETRIEVED FROM THE\n"
-				+ "//            INTERNET ARCHIVE ON "
-				+ nowTS
-				+ ".\n"
-				+ "//            JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.\n"
-				+ "//\n"
-				+ "// ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.\n"
-				+ "// SECTION 108(a)(3)).\n"
-				+ "\n"
-				+ "var sWayBackCGI = \"" + contextPath + "\";\n"
-				+ "var sResourceUrl = \"" + resourceUrl + "\";\n"
-				+ "var sCaptureTS = \"" + captureTS.prettyDateTime() + "\";\n"
-				+ "</script>\n"
-				+ scriptUrlInserts;
-
+		StringBuilder ins = new StringBuilder(300);
+		ins.append("<script type=\"text/javascript\">\n\n");
+		ins.append(fmt.format("ReplayView.javaScriptComment",captureDate,
+				new Date()));
+		ins.append("var sWayBackCGI = \"" + contextPath + "\";\n");
+		ins.append("</script>\n");
+		ins.append(scriptUrlInserts);
+		
 		int insertPoint = page.lastIndexOf("</body>");
 		if (-1 == insertPoint) {
 			insertPoint = page.lastIndexOf("</BODY>");
@@ -259,6 +251,6 @@ public class JSReplayRenderer extends BaseReplayRenderer {
 		if (-1 == insertPoint) {
 			insertPoint = page.length();
 		}
-		page.insert(insertPoint, scriptInsert);
+		page.insert(insertPoint, ins.toString());
 	}
 }

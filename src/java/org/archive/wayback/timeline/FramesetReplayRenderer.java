@@ -37,6 +37,7 @@ import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.proxy.RawReplayRenderer;
+import org.archive.wayback.util.StringFormatter;
 
 /**
  *
@@ -84,9 +85,9 @@ public class FramesetReplayRenderer extends RawReplayRenderer {
 			} else {
 				uriConverter.setInlineMode();			
 			}
-
+			StringFormatter fmt = wbRequest.getFormatter();
 			String replayURL = uriConverter.makeReplayURI(result);
-			String title = "WB-Timeline";
+			String title = fmt.format("TimelineView.frameSetTitle");
 
 			StringBuilder framesetHTML = new StringBuilder(600);
 			framesetHTML.append("<html>");
@@ -109,10 +110,7 @@ public class FramesetReplayRenderer extends RawReplayRenderer {
 			framesetHTML.append("</frameset>");
 
 			framesetHTML.append("<noframes>");
-			framesetHTML.append("You need a browser that supports frames to ");
-			framesetHTML.append("see this, well not exactly _this_, but what ");
-			framesetHTML.append("would have been here if you had a ");
-			framesetHTML.append("frames-capable browser.");
+			framesetHTML.append(fmt.format("TimelineView.frameSetNoFramesMessage"));
 			framesetHTML.append("</noframes>");
 
 			framesetHTML.append("</html>");

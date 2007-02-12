@@ -32,6 +32,7 @@ package org.archive.wayback.exception;
  */
 public class AccessControlException extends WaybackException {
 	private static final long serialVersionUID = 1L;
+	protected static final String ID = "accessControl";
 
 	/**
 	 * Constructor
@@ -40,6 +41,7 @@ public class AccessControlException extends WaybackException {
 	 */
 	public AccessControlException(String message) {
 		super(message,"Access Problem");
+		id = ID;
 	}
 	/** 
 	 * Constructor with message and details
@@ -49,6 +51,7 @@ public class AccessControlException extends WaybackException {
 	 */
 	public AccessControlException(String message, String details) {
 		super(message,"Access Problem",details);
+		id = ID;
 	}
 
 }

@@ -36,6 +36,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.archive.wayback.QueryRenderer;
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.core.SearchResults;
+import org.archive.wayback.core.UIResults;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.exception.WaybackException;
@@ -69,6 +70,8 @@ public class Renderer implements QueryRenderer {
 			WaybackException exception) throws ServletException, IOException {
 
 		httpRequest.setAttribute("exception", exception);
+		UIResults uiResults = new UIResults(wbRequest);
+		uiResults.storeInRequest(httpRequest);
 
 		String finalJspPath = jspPath + "/" + ERROR_JSP;
 
@@ -93,7 +96,7 @@ public class Renderer implements QueryRenderer {
 			throw new ServletException(e.getMessage());
 		}
 
-		httpRequest.setAttribute("ui-results", uiResults);
+		uiResults.storeInRequest(httpRequest);
 		proxyRequest(httpRequest, httpResponse, QUERY_JSP);
 
 	}
@@ -116,7 +119,7 @@ public class Renderer implements QueryRenderer {
 			throw new ServletException(e.getMessage());
 		}
 
-		httpRequest.setAttribute("ui-results", uiResults);
+		uiResults.storeInRequest(httpRequest);
 		proxyRequest(httpRequest, httpResponse, PREFIX_QUERY_JSP);
 
 	}

@@ -30,6 +30,7 @@ import java.util.SimpleTimeZone;
 import java.util.TimeZone;
 
 import org.archive.wayback.core.Timestamp;
+import org.archive.wayback.core.WaybackRequest;
 
 /**
  *
@@ -61,99 +62,6 @@ public abstract class ResultsPartitioner {
 
 	protected abstract Calendar incrementPartition(Calendar start, int count);
 
-	protected abstract String rangeToTitle(Calendar start, Calendar end);
-
-
-	protected String prettyHourOfDay(Calendar cal) {
-		String ampm = cal.get(Calendar.AM_PM) == Calendar.AM ? "AM" : "PM";
-		int hour = cal.get(Calendar.HOUR);
-		if(hour == 0) hour = 12;
-		return String.valueOf(hour) + " " + ampm;
-	}
-	
-	protected String prettyDayOfMonth(Calendar cal) {
-		int dayOfMonth = cal.get(Calendar.DAY_OF_MONTH);
-		String pretty = dayOfMonth + "th";
-		if(dayOfMonth == 1) {
-			pretty = "1st";
-		} else if(dayOfMonth == 2) {
-			pretty = "2nd";
-		} else if(dayOfMonth == 3) {
-			pretty = "3rd";
-		}
-		return pretty;
-	}
-
-	protected String prettyMonth(Calendar cal) {
-		int monthNum = cal.get(Calendar.MONTH);
-		String month = "";
-		// TODO: localization...?
-		if(monthNum == Calendar.JANUARY) {
-			month = "Jan";
-		} else if(monthNum == Calendar.FEBRUARY) {
-			month = "Feb";
-		} else if(monthNum == Calendar.MARCH) {
-			month = "Mar";
-		} else if(monthNum == Calendar.APRIL) {
-			month = "Apr";
-		} else if(monthNum == Calendar.MAY) {
-			month = "May";
-		} else if(monthNum == Calendar.JUNE) {
-			month = "Jun";
-		} else if(monthNum == Calendar.JULY) {
-			month = "Jul";
-		} else if(monthNum == Calendar.AUGUST) {
-			month = "Aug";
-		} else if(monthNum == Calendar.SEPTEMBER) {
-			month = "Sep";
-		} else if(monthNum == Calendar.OCTOBER) {
-			month = "Oct";
-		} else if(monthNum == Calendar.NOVEMBER) {
-			month = "Nov";
-		} else if(monthNum == Calendar.DECEMBER) {
-			month = "Dec";
-		} else {
-			month = "UNK";
-		}
-		return month;
-	}
-
-	protected String prettyFullMonth(Calendar cal) {
-		int monthNum = cal.get(Calendar.MONTH);
-		String month = "";
-		// TODO: localization...?
-		if(monthNum == Calendar.JANUARY) {
-			month = "January";
-		} else if(monthNum == Calendar.FEBRUARY) {
-			month = "February";
-		} else if(monthNum == Calendar.MARCH) {
-			month = "March";
-		} else if(monthNum == Calendar.APRIL) {
-			month = "April";
-		} else if(monthNum == Calendar.MAY) {
-			month = "May";
-		} else if(monthNum == Calendar.JUNE) {
-			month = "June";
-		} else if(monthNum == Calendar.JULY) {
-			month = "July";
-		} else if(monthNum == Calendar.AUGUST) {
-			month = "August";
-		} else if(monthNum == Calendar.SEPTEMBER) {
-			month = "September";
-		} else if(monthNum == Calendar.OCTOBER) {
-			month = "October";
-		} else if(monthNum == Calendar.NOVEMBER) {
-			month = "November";
-		} else if(monthNum == Calendar.DECEMBER) {
-			month = "December";
-		} else {
-			month = "UNK";
-		}
-		return month;
-	}
-	
-	protected String prettyYear(Calendar cal) {
-		return String.valueOf(cal.get(Calendar.YEAR));
-	}
-	
+	protected abstract String rangeToTitle(Calendar start, Calendar end,
+			WaybackRequest wbRequest);
 }

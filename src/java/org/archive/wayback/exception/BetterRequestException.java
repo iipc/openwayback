@@ -40,6 +40,7 @@ public class BetterRequestException extends WaybackException {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
+	protected static final String ID = "betterRequest";
 	private String betterURI;
 
 	/**
@@ -50,6 +51,7 @@ public class BetterRequestException extends WaybackException {
 	public BetterRequestException(String betterURI) {
 		super("Better URI for query");
 		this.betterURI = betterURI;
+		id = ID;
 	}
 
 	/**

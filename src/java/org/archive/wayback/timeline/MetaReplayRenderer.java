@@ -67,7 +67,7 @@ public class MetaReplayRenderer extends BaseReplayRenderer {
 		UIReplayResult uiResult = new UIReplayResult(httpRequest, wbRequest,
 				result, resource, uriConverter);
 
-		httpRequest.setAttribute("ui-result", uiResult);
+		uiResult.storeInRequest(httpRequest);
 
 		RequestDispatcher dispatcher = httpRequest
 				.getRequestDispatcher(finalJspPath);

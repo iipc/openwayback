@@ -24,6 +24,7 @@
 package org.archive.wayback.core;
 
 import java.util.Enumeration;
+import java.util.Locale;
 import java.util.Properties;
 import java.util.ResourceBundle;
 import java.io.UnsupportedEncodingException;
@@ -36,6 +37,7 @@ import org.archive.net.UURI;
 import org.archive.net.UURIFactory;
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.query.OpenSearchQueryParser;
+import org.archive.wayback.util.StringFormatter;
 
 /**
  * Abstraction of all the data associated with a users request to the Wayback
@@ -52,8 +54,8 @@ public class WaybackRequest {
 
 	private Properties filters = new Properties();
 	
-	private ResourceBundle resourceBundle = null;
-	private String UI_RESOURCE_BUNDLE_NAME = "WaybackUI";
+	private StringFormatter formatter = null;
+	private static String UI_RESOURCE_BUNDLE_NAME = "WaybackUI";
 
 	private final static String standardHeaders[] = {
 			WaybackConstants.REQUEST_REFERER_URL,
@@ -62,7 +64,8 @@ public class WaybackRequest {
 			WaybackConstants.REQUEST_WAYBACK_PORT,
 			WaybackConstants.REQUEST_WAYBACK_CONTEXT,
 			WaybackConstants.REQUEST_AUTH_TYPE,
-			WaybackConstants.REQUEST_REMOTE_USER };
+			WaybackConstants.REQUEST_REMOTE_USER,
+			WaybackConstants.REQUEST_LOCALE_LANG };
 
 	/**
 	 * Constructor, possibly/probably this should BE a Properties, instead of
@@ -134,9 +137,10 @@ public class WaybackRequest {
 	}
 	
 	private String getUserLocale(HttpServletRequest httpRequest) {
-		resourceBundle = ResourceBundle.getBundle(UI_RESOURCE_BUNDLE_NAME,
+		Locale l = httpRequest.getLocale();
+		ResourceBundle b = ResourceBundle.getBundle(UI_RESOURCE_BUNDLE_NAME,
 				httpRequest.getLocale());
-		
+		formatter = new StringFormatter(b,l);
 		return emptyIfNull(httpRequest.getLocale().getDisplayLanguage());
 	}
 
@@ -294,16 +298,9 @@ public class WaybackRequest {
 	}
 
 	/**
-	 * @param key
-	 * @return localized String version of key argument, or key itself if
-	 * something goes wrong...
+	 * @return StringFormatter based on user request info
 	 */
-	public String getLocalized(String key) {
-		try {
-			return resourceBundle.getString(key);
-		} catch (Exception e) {
-			return key;
-		}
+	public StringFormatter getFormatter() {
+		return formatter;
 	}
-	
 }

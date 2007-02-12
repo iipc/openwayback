@@ -35,6 +35,7 @@ public class BadQueryException extends WaybackException {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
+	protected static final String ID = "badQuery";
 
 	/**
 	 * Constructor
@@ -43,6 +44,7 @@ public class BadQueryException extends WaybackException {
 	 */
 	public BadQueryException(String message) {
 		super(message,"Bad Query");
+		id = ID;
 	}
 	/** 
 	 * Constructor with message and details
@@ -52,5 +54,6 @@ public class BadQueryException extends WaybackException {
 	 */
 	public BadQueryException(String message, String details) {
 		super(message,"Bad Query",details);
+		id = ID;
 	}
 }

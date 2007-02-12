@@ -32,6 +32,7 @@ import java.util.Date;
 import org.archive.util.ArchiveUtils;
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.SearchResults;
+import org.archive.wayback.core.WaybackRequest;
 
 /**
  *
@@ -52,9 +53,11 @@ public class ResultsPartitionsFactory {
 	 * Determine the correct ResultsPartitioner to use given the SearchResults
 	 * search range, and use that to break the SearchResults into partitions.
 	 * @param results
+	 * @param wbRequest 
 	 * @return ArrayList of ResultsPartition objects
 	 */
-	public static ArrayList get(SearchResults results) {
+	public static ArrayList get(SearchResults results,
+			WaybackRequest wbRequest) {
 		String rsd = results.getFilter(WaybackConstants.REQUEST_START_DATE);
 		String red = results.getFilter(WaybackConstants.REQUEST_END_DATE);
 		Date startDate = new Date();
@@ -90,7 +93,8 @@ public class ResultsPartitionsFactory {
 			String startDateStr = ArchiveUtils.get14DigitDate(startCal
 					.getTime());
 			String endDateStr = ArchiveUtils.get14DigitDate(endCal.getTime());
-			String title = partitioner.rangeToTitle(startCal, endCal);
+			String title = partitioner.rangeToTitle(startCal, endCal, 
+					wbRequest);
 			ResultsPartition partition = new ResultsPartition(startDateStr,
 					endDateStr, title);
 			partition.filter(results);

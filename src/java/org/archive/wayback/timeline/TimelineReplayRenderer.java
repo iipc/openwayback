@@ -25,6 +25,7 @@
 package org.archive.wayback.timeline;
 
 import java.io.IOException;
+import java.util.Date;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -38,6 +39,7 @@ import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
+import org.archive.wayback.util.StringFormatter;
 
 /**
  *
@@ -143,7 +145,7 @@ public class TimelineReplayRenderer extends JSReplayRenderer {
 		String resourceTS = result.get(WaybackConstants.RESULT_CAPTURE_DATE);
 		String resourceUrl = result.get(WaybackConstants.RESULT_URL);
 		Timestamp captureTS = Timestamp.parseBefore(resourceTS);
-		String nowTS = Timestamp.currentTimestamp().getDateStr();
+		Date captureDate = captureTS.getDate();
 
 		if (!(baseUriConverter instanceof TimelineReplayResultURIConverter)) {
 			throw new IllegalArgumentException("ResultURIConverter must be "
@@ -157,27 +159,23 @@ public class TimelineReplayRenderer extends JSReplayRenderer {
 
 		uriConverter.setFramesetMode();
 		String sWaybackFramesetCGI = uriConverter.getReplayUriPrefix(result);
-
-		String scriptInsert = "<script type=\"text/javascript\">\n"
-			+ "\n"
-			+ "//            FILE ARCHIVED ON "
-			+ resourceTS
-			+ " AND RETRIEVED FROM THE\n"
-			+ "//            INTERNET ARCHIVE ON "
-			+ nowTS
-			+ ".\n"
-			+ "//            JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.\n"
-			+ "//\n"
-			+ "// ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.\n"
-			+ "// SECTION 108(a)(3)).\n" + "\n"
-			+ "var sWayBackFramesetCGI = \"" + sWaybackFramesetCGI + "\";\n"
-			+ "var sWayBackReplayCGI = \"" + sWaybackReplayCGI + "\";\n"
-			+ "var sResourceUrl = \"" + resourceUrl + "\";\n"
-			+ "var sCaptureTS = \"" + captureTS.prettyDateTime() + "\";\n"
-			+ "</script>\n"
-			+ scriptUrlInserts;
+		StringFormatter fmt = wbRequest.getFormatter();
 		
+		String wmNotice = fmt.format("ReplayView.banner",resourceUrl,
+				captureDate);
+		String wmHideNotice = fmt.format("ReplayView.bannerHideLink");
 		
+		StringBuilder ins = new StringBuilder(300);
+		ins.append("<script type=\"text/javascript\">\n\n");
+		ins.append(fmt.format("ReplayView.javaScriptComment",captureDate,
+				new Date()));
+		ins.append("var sWayBackFramesetCGI = \"" + sWaybackFramesetCGI +
+				"\";\n");
+		ins.append("var sWayBackReplayCGI = \"" + sWaybackReplayCGI + "\";\n");
+		ins.append("var wmNotice = \"" + wmNotice + "\";\n");
+		ins.append("var wmHideNotice = \"" + wmHideNotice + "\";\n");
+		ins.append("</script>\n");
+		ins.append(scriptUrlInserts);
 		
 		int insertPoint = page.lastIndexOf("</body>");
 		if (-1 == insertPoint) {
@@ -186,6 +184,6 @@ public class TimelineReplayRenderer extends JSReplayRenderer {
 		if (-1 == insertPoint) {
 			insertPoint = page.length();
 		}
-		page.insert(insertPoint, scriptInsert);
+		page.insert(insertPoint, ins.toString());
 	}
 }

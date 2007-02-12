@@ -35,6 +35,7 @@ public class ConfigurationException extends WaybackException {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
+	protected static final String ID = "configuration";
 
 	/**
 	 * Constructor
@@ -43,6 +44,7 @@ public class ConfigurationException extends WaybackException {
 	 */
 	public ConfigurationException(String message) {
 		super(message,"Configuration Error");
+		id = ID;
 	}
 	/**
 	 * Constructor with message and details
@@ -52,5 +54,6 @@ public class ConfigurationException extends WaybackException {
 	 */
 	public ConfigurationException(String message, String details) {
 		super(message,"Configuration Error",details);
+		id = ID;
 	}
 }

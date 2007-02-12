@@ -44,6 +44,7 @@ import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.UIResults;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.exception.WaybackException;
@@ -173,6 +174,8 @@ public class BaseReplayRenderer implements ReplayRenderer {
 		}
 
 		httpRequest.setAttribute("exception", exception);
+		UIResults uiResults = new UIResults(wbRequest);
+		uiResults.storeInRequest(httpRequest);
 
 		RequestDispatcher dispatcher = httpRequest
 				.getRequestDispatcher(finalJspPath);

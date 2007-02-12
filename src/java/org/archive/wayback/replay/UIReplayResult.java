@@ -34,6 +34,7 @@ import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.Timestamp;
+import org.archive.wayback.core.UIResults;
 import org.archive.wayback.core.WaybackRequest;
 
 /**
@@ -42,10 +43,9 @@ import org.archive.wayback.core.WaybackRequest;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class UIReplayResult {
+public class UIReplayResult extends UIResults {
 	
 	private HttpServletRequest httpRequest; 
-	private WaybackRequest wbRequest;
 	private SearchResult result;
 	private Resource resource;
 	private ResultURIConverter uriConverter;
@@ -66,8 +66,8 @@ public class UIReplayResult {
 			Resource resource, ResultURIConverter uriConverter) 
 	throws IOException {
 		
+		super(wbRequest);
 		this.httpRequest = httpRequest;
-		this.wbRequest = wbRequest;
 		this.result = result;
 		this.resource = resource;
 		this.uriConverter = uriConverter;
@@ -155,12 +155,4 @@ public class UIReplayResult {
 	public Properties getHttpHeaders() {
 		return resource.getHttpHeaders();
 	}
-	/**
-	 * @param key
-	 * @return Localized String version of key
-	 */
-	public String getLocalized(String key) {
-		return wbRequest.getLocalized(key);
-	}
-
 }

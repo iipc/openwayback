@@ -35,9 +35,14 @@ public class WaybackException extends Exception {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
+	protected static final String GENERIC_ID = "wayback";
+	protected static final String KEY_PREFIX = "Exception.";
+	protected static final String KEY_TITLE_SUFFIX = ".title";
+	protected static final String KEY_MESSAGE_SUFFIX = ".message";
 	private String message = "";
 	private String title = "Wayback Exception";
 	private String details = "";
+	protected String id = GENERIC_ID;
 	
 	/**
 	 * Constructor with message only
@@ -95,4 +100,17 @@ public class WaybackException extends Exception {
 	public String getDetails() {
 		return details;
 	}
+	/**
+	 * @return The localization key name of the title of this WaybackException
+	 */
+	public String getTitleKey() {
+		return KEY_PREFIX + id + KEY_TITLE_SUFFIX;
+	}
+	/**
+	 * @return The localization key name of the message of this WaybackException
+	 */
+	public String getMessageKey() {
+		return KEY_PREFIX + id + KEY_MESSAGE_SUFFIX;
+	}
+	
 }

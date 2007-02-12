@@ -26,6 +26,7 @@ package org.archive.wayback.query.resultspartitioner;
 
 import java.util.Calendar;
 
+import org.archive.wayback.core.WaybackRequest;
 
 /**
  *
@@ -61,7 +62,9 @@ public class YearResultsPartitioner extends ResultsPartitioner {
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.resultspartitioner.ResultsPartitioner#rangeToTitle(java.util.Calendar, java.util.Calendar)
 	 */
-	protected String rangeToTitle(Calendar start, Calendar end) {
-		return prettyYear(start);
+	protected String rangeToTitle(Calendar start, Calendar end,
+			WaybackRequest wbRequest) {
+		return wbRequest.getFormatter().format("ResultPartitions.year", 
+				start.getTime());
 	}
 }
