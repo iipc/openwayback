@@ -3,28 +3,29 @@
 <%@ page import="org.archive.wayback.WaybackConstants" %>
 <%@ page import="org.archive.wayback.core.SearchResult" %>
 <%@ page import="org.archive.wayback.core.Timestamp" %>
+<%@ page import="org.archive.wayback.core.UIResults" %>
 <%@ page import="org.archive.wayback.query.UIQueryResults" %>
+<%@ page import="org.archive.wayback.util.StringFormatter" %>
 <jsp:include page="../../template/UI-header.jsp" />
 <%
 
-UIQueryResults results = (UIQueryResults) request.getAttribute("ui-results");
+UIQueryResults results = (UIQueryResults) UIResults.getFromRequest(request);
+StringFormatter fmt = results.getFormatter();
 String searchString = results.getSearchUrl();
 
+Date searchStartDate = results.getStartTimestamp().getDate();
+Date searchEndDate = results.getEndTimestamp().getDate();
 
-String prettySearchStart = results.prettySearchStartDate();
-String prettySearchEnd = results.prettySearchEndDate();
+int firstResult = results.getFirstResult();
+int lastResult = results.getLastResult();
+int resultCount = results.getResultsMatching();
 
 Iterator itr = results.resultsIterator();
 %>
-
-Showing
-<b><%= results.getFirstResult() %></b>
-to
-<b><%= results.getLastResult() %></b>
-of
-<b><%= results.getResultsMatching() %></b>
-results for <b><%= searchString %></b><br></br>
-between <b><%= prettySearchStart %></b> and <b><%= prettySearchEnd %></b>
+<%= fmt.format("PathPrefixQuery.showingResults",firstResult,lastResult,
+				resultCount,searchString) %>
+<br></br>
+<%= fmt.format("PathQuery.resultRange",searchStartDate,searchEndDate) %>
 <hr></hr>
 <%
 boolean first = false;
@@ -34,12 +35,13 @@ while(itr.hasNext()) {
 	SearchResult result = (SearchResult) itr.next();
 
 	String url = result.get(WaybackConstants.RESULT_URL);
+	// TODO: Localization
 	String prettyDate = result.get(WaybackConstants.RESULT_CAPTURE_DATE);
 	String origHost = result.get(WaybackConstants.RESULT_ORIG_HOST);
 	String MD5 = result.get(WaybackConstants.RESULT_MD5_DIGEST);
 	String redirectFlag = (0 == result.get(
 		WaybackConstants.RESULT_REDIRECT_URL).compareTo("-")) 
-		?	"" : "(redirect)";
+		?	"" : fmt.format("PathQuery.redirectIndicator");
 	String httpResponse = result.get(WaybackConstants.RESULT_HTTP_CODE);
 	String mimeType = result.get(WaybackConstants.RESULT_MIME_TYPE);
 
@@ -77,7 +79,7 @@ while(itr.hasNext()) {
 		<span style="color:red;"><%= arcOffset %></span>
 -->
 		<%= redirectFlag %>
-		(new version)
+		<%= fmt.format("PathQuery.newVersionIndicator") %>
 		<br></br>
 
 		<%
@@ -86,7 +88,7 @@ while(itr.hasNext()) {
 
 		&nbsp;&nbsp;&nbsp;<a href="<%= replayUrl %>"><%= prettyDate %></a>
 		<span style="color:green;"><%= origHost %></span>
-		<span style="color:lightgray;">unchanged</span>
+		<span style="color:lightgray;"><%= fmt.format("PathPrefixQuery.unchangedIndicator")%></span>
 <!--
 		<span style="color:red;"><%= arcFile %></span>
 		<span style="color:red;"><%= arcOffset %></span>

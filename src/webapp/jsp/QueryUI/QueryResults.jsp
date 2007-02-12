@@ -1,28 +1,31 @@
 <%@ page import="java.util.Iterator" %>
 <%@ page import="java.util.ArrayList" %>
+<%@ page import="java.util.Date" %>
 <%@ page import="org.archive.wayback.WaybackConstants" %>
 <%@ page import="org.archive.wayback.core.SearchResult" %>
 <%@ page import="org.archive.wayback.core.Timestamp" %>
+<%@ page import="org.archive.wayback.core.UIResults" %>
 <%@ page import="org.archive.wayback.query.UIQueryResults" %>
+<%@ page import="org.archive.wayback.util.StringFormatter" %>
 <jsp:include page="../../template/UI-header.jsp" />
 <%
+UIQueryResults results = (UIQueryResults) UIResults.getFromRequest(request);
+StringFormatter fmt = results.getFormatter();
 
-UIQueryResults results = (UIQueryResults) request.getAttribute("ui-results");
 String searchString = results.getSearchUrl();
 int resultCount = results.getResultsReturned();
 
 Timestamp searchStartTs = results.getStartTimestamp();
 Timestamp searchEndTs = results.getEndTimestamp();
-String prettySearchStart = searchStartTs.prettyDate();
-String prettySearchEnd = searchEndTs.prettyDate();
+Date searchStartDate = searchStartTs.getDate();
+Date searchEndDate = searchEndTs.getDate();
 
 Iterator itr = results.resultsIterator();
 %>
-
-<b><%= resultCount %></b> results for <b><%= searchString %></b><br></br>
-between <b><%= prettySearchStart %></b> and <b><%= prettySearchEnd %></b>
+<%= fmt.format("PathQuery.resultsSummary",resultCount,searchString) %>
+<br></br>
+<%= fmt.format("PathQuery.resultRange",searchStartDate,searchEndDate) %>
 <hr></hr>
-
 <%
 boolean first = false;
 String lastMD5 = null;
@@ -30,12 +33,13 @@ while(itr.hasNext()) {
 	SearchResult result = (SearchResult) itr.next();
 
 	String url = result.get(WaybackConstants.RESULT_URL);
+
 	String prettyDate = result.get(WaybackConstants.RESULT_CAPTURE_DATE);
 	String origHost = result.get(WaybackConstants.RESULT_ORIG_HOST);
 	String MD5 = result.get(WaybackConstants.RESULT_MD5_DIGEST);
 	String redirectFlag = (0 == result.get(
 		WaybackConstants.RESULT_REDIRECT_URL).compareTo("-")) 
-		?	"" : "(redirect)";
+		?	"" : fmt.format("PathQuery.redirectIndicator");
 	String httpResponse = result.get(WaybackConstants.RESULT_HTTP_CODE);
 	String mimeType = result.get(WaybackConstants.RESULT_MIME_TYPE);
 
@@ -63,7 +67,8 @@ while(itr.hasNext()) {
 		<span style="color:red;"><%= arcOffset %></span>
 -->
 		<%= redirectFlag %>
-		(new version)
+		<%= fmt.format("PathQuery.newVersionIndicator") %>
+
 		<br></br>
 		<%
 	} else {

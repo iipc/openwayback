@@ -1,34 +1,40 @@
 <%@ page import="java.util.Enumeration" %>
 <%@ page import="java.util.Properties" %>
 <%@ page import="org.archive.wayback.core.Timestamp" %>
+<%@ page import="org.archive.wayback.core.UIResults" %>
 <%@ page import="org.archive.wayback.replay.UIReplayResult" %>
+<%@ page import="org.archive.wayback.util.StringFormatter" %>
 <%
 
-UIReplayResult uiResult = (UIReplayResult) request.getAttribute("ui-result");
-String origUrl = uiResult.getOriginalUrl();
-String urlKey = uiResult.getUrlKey();
-String archiveID = uiResult.getArchiveID();
-Timestamp captureTS = uiResult.getCaptureTimestamp();
-String capturePrettyDateTime = captureTS.prettyDateTime();
-String mimeType = uiResult.getMimeType();
-String digest = uiResult.getDigest();
-Properties headers = uiResult.getHttpHeaders();
+UIReplayResult uiResults = (UIReplayResult) UIResults.getFromRequest(request);
+StringFormatter fmt = uiResults.getFormatter();
+
+String origUrl = uiResults.getOriginalUrl();
+String urlKey = uiResults.getUrlKey();
+String archiveID = uiResults.getArchiveID();
+Timestamp captureTS = uiResults.getCaptureTimestamp();
+String capturePrettyDateTime = fmt.format("MetaReplay.captureDateDisplay",
+	captureTS.getDate());
+String mimeType = uiResults.getMimeType();
+String digest = uiResults.getDigest();
+Properties headers = uiResults.getHttpHeaders();
 
 %>
 <html>
 	<head>
 		<title>
-			Metadata for <%= urlKey +" / " + capturePrettyDateTime %>
+			<%= fmt.format("MetaReplay.title") + urlKey +" / " +
+				capturePrettyDateTime %>
 		</title>
 	</head>
 	<body>
 		<h2>
-			Document Metadata
+			<%= fmt.format("MetaReplay.title") %>
 		</h2>
 		<table>
 			<tr>
 				<td class="field-cell">
-					Original URL
+					<%= fmt.format("MetaReplay.originalURL") %>
 				</td>
 				<td class="value-cell">
 					<b>
@@ -38,7 +44,7 @@ Properties headers = uiResult.getHttpHeaders();
 			</tr>
 			<tr>
 				<td class="field-cell">
-					URL Key
+					<%= fmt.format("MetaReplay.URLKey") %>
 				</td>
 				<td class="value-cell">
 					<b>
@@ -48,7 +54,7 @@ Properties headers = uiResult.getHttpHeaders();
 			</tr>
 			<tr>
 				<td class="field-cell">
-					Capture Date
+					<%= fmt.format("MetaReplay.captureDate") %>
 				</td>
 				<td class="value-cell">
 					<b>
@@ -58,7 +64,7 @@ Properties headers = uiResult.getHttpHeaders();
 			</tr>
 			<tr>
 				<td class="field-cell">
-					Archive ID
+					<%= fmt.format("MetaReplay.archiveID") %>
 				</td>
 				<td class="value-cell">
 					<b>
@@ -68,7 +74,7 @@ Properties headers = uiResult.getHttpHeaders();
 			</tr>
 			<tr>
 				<td class="field-cell">
-					Mime Type
+					<%= fmt.format("MetaReplay.MIMEType") %>
 				</td>
 				<td class="value-cell">
 					<b>
@@ -78,7 +84,7 @@ Properties headers = uiResult.getHttpHeaders();
 			</tr>
 			<tr>
 				<td class="field-cell">
-					Digest
+					<%= fmt.format("MetaReplay.digest") %>
 				</td>
 				<td class="value-cell">
 					<b>
@@ -89,7 +95,7 @@ Properties headers = uiResult.getHttpHeaders();
 		</table>
 		<p>
 			<h2>
-				HTTP Headers
+				<%= fmt.format("MetaReplay.HTTPHeaders") %>
 			</h2>
 			<table>
 			<%

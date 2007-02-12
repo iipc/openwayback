@@ -1,42 +1,44 @@
-<%@ page import="java.util.Iterator" %>
 <%@ page import="java.util.ArrayList" %>
+<%@ page import="java.util.Date" %>
+<%@ page import="java.util.Iterator" %>
 <%@ page import="java.text.ParseException" %>
 <%@ page import="org.archive.wayback.WaybackConstants" %>
 <%@ page import="org.archive.wayback.core.SearchResult" %>
 <%@ page import="org.archive.wayback.core.Timestamp" %>
+<%@ page import="org.archive.wayback.core.UIResults" %>
 <%@ page import="org.archive.wayback.query.UIQueryResults" %>
 <%@ page import="org.archive.wayback.query.resultspartitioner.ResultsPartitionsFactory" %>
 <%@ page import="org.archive.wayback.query.resultspartitioner.ResultsPartition" %>
+<%@ page import="org.archive.wayback.util.StringFormatter" %>
 <jsp:include page="../../template/UI-header.jsp" />
 <%
 
-UIQueryResults results = (UIQueryResults) request.getAttribute("ui-results");
+UIQueryResults results = (UIQueryResults) UIResults.getFromRequest(request);
+StringFormatter fmt = results.getFormatter();
 String searchString = results.getSearchUrl();
-int resultCount = results.getResultsReturned();
 
-Timestamp searchStartTs = results.getStartTimestamp();
-Timestamp searchEndTs = results.getEndTimestamp();
-String prettySearchStart = searchStartTs.prettyDate();
-String prettySearchEnd = searchEndTs.prettyDate();
+Date searchStartDate = results.getStartTimestamp().getDate();
+Date searchEndDate = results.getEndTimestamp().getDate();
+int firstResult = results.getFirstResult();
+int lastResult = results.getLastResult();
+int resultCount = results.getResultsMatching();
 
-ArrayList partitions = ResultsPartitionsFactory.get(results.getResults());
+//Timestamp searchStartTs = results.getStartTimestamp();
+//Timestamp searchEndTs = results.getEndTimestamp();
+//String prettySearchStart = results.prettyDateFull(searchStartTs.getDate());
+//String prettySearchEnd = results.prettyDateFull(searchEndTs.getDate());
+
+ArrayList partitions = ResultsPartitionsFactory.get(results.getResults(),
+		results.getWbRequest());
 int numPartitions = partitions.size();
 %>
 <table border="0" cellpadding="5" width="100%" class="mainSearchBanner" cellspacing="0">
    <tr>
       <td>
-            Searched for
-            <a href="<%= searchString %>">
-               <b>
-                  <%= searchString %>
-               </b>
-            </a>
+            <%= fmt.format("PathQueryClassic.searchedFor",searchString) %>
       </td>
       <td align="right">
-            <b>
-               <%= resultCount %>
-            </b>
-            Results
+            <%= fmt.format("PathQueryClassic.resultsSummary",resultCount) %>
       </td>
    </tr>
 </table>
@@ -46,14 +48,7 @@ int numPartitions = partitions.size();
 <table border="0" width="100%">
    <tr bgcolor="#CCCCCC">
       <td colspan="<%= numPartitions %>" align="center" class="mainCalendar">
-         Search Results for
-         <b>
-            <%= prettySearchStart %>
-         </b>
-         -
-         <b>
-            <%= prettySearchEnd %>
-         </b>
+         <%= fmt.format("PathQueryClassic.searchResults",searchStartDate,searchEndDate) %>
       </td>
    </tr>
 
@@ -81,7 +76,7 @@ int numPartitions = partitions.size();
 		ResultsPartition partition = (ResultsPartition) partitions.get(i);
 %>
       <td align="center" class="mainBigBody">
-         <%= partition.resultsCount() %> pages
+         <%= fmt.format("ResultPartition.columnSummary",partition.resultsCount()) %>
       </td>
 <%
 	}
@@ -114,12 +109,13 @@ int numPartitions = partitions.size();
 			String url = result.get(WaybackConstants.RESULT_URL);
 			String captureDate = result.get(WaybackConstants.RESULT_CAPTURE_DATE);
 			Timestamp captureTS = Timestamp.parseBefore(captureDate);
-			String prettyDate = captureTS.prettyDate();
+			String prettyDate = fmt.format("PathQuery.classicResultLinkText",
+				captureTS.getDate());
 			String origHost = result.get(WaybackConstants.RESULT_ORIG_HOST);
 			String MD5 = result.get(WaybackConstants.RESULT_MD5_DIGEST);
 			String redirectFlag = (0 == result.get(
 				WaybackConstants.RESULT_REDIRECT_URL).compareTo("-")) 
-				?	"" : "(redirect)";
+				?	"" : fmt.format("PathPrefixQuery.redirectIndicator");
 			String httpResponse = result.get(WaybackConstants.RESULT_HTTP_CODE);
 			String mimeType = result.get(WaybackConstants.RESULT_MIME_TYPE);
 		

@@ -8,9 +8,10 @@
 <%@ page import="org.archive.wayback.core.SearchResults" %>
 <%@ page import="org.archive.wayback.core.SearchResult" %>
 <%@ page import="org.archive.wayback.core.Timestamp" %>
+<%@ page import="org.archive.wayback.core.UIResults" %>
 <%@ page import="org.archive.wayback.query.UIQueryResults" %>
 <%
-UIQueryResults uiResults = (UIQueryResults) request.getAttribute("ui-results");
+UIQueryResults uiResults = (UIQueryResults) UIResults.getFromRequest(request);
 SearchResults results = uiResults.getResults();
 Iterator itr = uiResults.resultsIterator();
 %>

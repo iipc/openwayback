@@ -1,5 +1,11 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<%@ page import="org.archive.wayback.core.UIResults" %>
+<%@ page import="org.archive.wayback.util.StringFormatter" %>
+<%
+UIResults results = UIResults.getFromRequest(request);
+StringFormatter fmt = results.getFormatter();
+%>
 <!-- HEADER -->
 <html xmlns="http://www.w3.org/1999/xhtml">
 
@@ -9,7 +15,7 @@
 		<link rel="stylesheet" type="text/css" 
 			href="<%= request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath() %>/css/styles.css"
 			src="<%= request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath() %>/css/styles.css">
-		<title>Internet Archive Wayback Machine</title>
+		<title><%= fmt.format("UIGlobal.pageTitle") %></title>
 		<base target="_top">
 	</head>
 
@@ -53,14 +59,15 @@
 
 												<b class="mainBodyW">
 													<font size="2" color="#FFFFFF" face="Arial, Helvetica, sans-serif">
-														Enter Web Address:
+														<%= fmt.format("UIGlobal.enterWebAddress") %>
 													</font> 
 													<input type="hidden" name="type" value="urlquery">
 													<input type="text" name="url" value="http://" size="24" maxlength="256">
 													&nbsp;
 												</b> 
 												<select name="date" size="1">
-													<option value="" selected>All</option>
+													<option value="" selected><%= fmt.format("UIGlobal.selectYearAll") %></option>
+													<option>2007</option>
 													<option>2006</option>
 													<option>2005</option>
 													<option>2004</option>
@@ -74,10 +81,10 @@
 													<option>1996</option>
 												</select>
 												&nbsp;
-												<input type="Submit" name="Submit" value="Take Me Back" align="absMiddle">
+												<input type="Submit" name="Submit" value="<%= fmt.format("UIGlobal.urlSearchButton") %>" align="absMiddle">
 												&nbsp;
 												<a href="<%= request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath() %>/jsp/QueryUI/requestform.jsp" style="color:white;font-size:11px">
-													Adv. Search
+													<%= fmt.format("UIGlobal.advancedSearchLink") %>
 												</a>
 
 											</td>

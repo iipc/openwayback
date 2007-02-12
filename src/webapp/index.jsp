@@ -1,6 +1,11 @@
+<%@ page import="org.archive.wayback.core.UIResults" %>
+<%@ page import="org.archive.wayback.util.StringFormatter" %>
 <jsp:include page="template/UI-header.jsp" />
+<%
+UIResults results = UIResults.getFromRequest(request);
+StringFormatter fmt = results.getFormatter();
+%>
 <p>
-This is the new Wayback Machine prototype. Any URL in ARC files accessible to 
-this sevice can be searched above.
+	<%= fmt.format("UIGlobal.indexPage") %>
 </p>
 <jsp:include page="template/UI-footer.jsp" />

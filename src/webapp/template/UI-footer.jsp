@@ -1,19 +1,21 @@
+<%@ page import="org.archive.wayback.core.UIResults" %>
+<%@ page import="org.archive.wayback.util.StringFormatter" %>
+<%
+UIResults results = UIResults.getFromRequest(request);
+StringFormatter fmt = results.getFormatter();
+%>
 <!-- FOOTER -->
 		<div align="center">
 			<hr noshade size="1" align="center">
 			
 			<p>
-				<a href="<%= request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath() %>">Home</a> |
-				<a href="<%= request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath() %>/help.jsp">Help</a>
+				<a href="<%= request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath() %>">
+					<%= fmt.format("UIGlobal.homeLink") %>
+				</a> |
+				<a href="<%= request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath() %>/help.jsp">
+					<%= fmt.format("UIGlobal.helpLink") %>
+				</a>
 			</p>
-			<!--
-				<p>
-					<a href="http://www.archive.org">Internet Archive</a> |
-					<a href="http://www.archive.org/about/terms.php">Terms of Use</a> |
-					<a href="http://www.archive.org/about/terms.php#privacy">Privacy Policy</a>
-				</p>
-			-->
-			
 		</div>
 	</body>
 </html>

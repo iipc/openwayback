@@ -1,28 +1,30 @@
 <%@ page import="java.util.Iterator" %>
 <%@ page import="java.util.ArrayList" %>
+<%@ page import="java.util.Date" %>
 <%@ page import="java.text.ParseException" %>
 <%@ page import="org.archive.wayback.WaybackConstants" %>
 <%@ page import="org.archive.wayback.core.SearchResult" %>
 <%@ page import="org.archive.wayback.core.Timestamp" %>
+<%@ page import="org.archive.wayback.core.UIResults" %>
 <%@ page import="org.archive.wayback.core.WaybackRequest" %>
 <%@ page import="org.archive.wayback.query.UIQueryResults" %>
 <%@ page import="org.archive.wayback.query.resultspartitioner.ResultsTimelinePartitionsFactory" %>
 <%@ page import="org.archive.wayback.query.resultspartitioner.ResultsPartition" %>
+<%@ page import="org.archive.wayback.util.StringFormatter" %>
 <%
 
 String contextRoot = request.getScheme() + "://" + request.getServerName() + ":" 
 	+ request.getServerPort() + request.getContextPath();
 
-UIQueryResults results = (UIQueryResults) request.getAttribute("ui-results");
+UIQueryResults results = (UIQueryResults) UIResults.getFromRequest(request);
+StringFormatter fmt = results.getFormatter();
 
 Timestamp searchStartTs = results.getStartTimestamp();
 Timestamp searchEndTs = results.getEndTimestamp();
 Timestamp exactTs = results.getExactRequestedTimestamp();
 String searchUrl = results.getSearchUrl();
+Date exactDate = exactTs.getDate();
 
-String prettySearchStart = searchStartTs.prettyDate();
-String prettySearchEnd = searchEndTs.prettyDate();
-String prettyExactTs = exactTs.prettyDateTime();
 String exactDateStr = exactTs.getDateStr();
 WaybackRequest wbRequest = results.getWbRequest();
 String resolution = wbRequest.get(WaybackConstants.REQUEST_RESOLUTION);
@@ -68,38 +70,45 @@ String monthsOptSelected = "";
 String daysOptSelected = "";
 String hoursOptSelected = "";
 String autoOptSelected = "";
-String autoOptString;
+
 String minResolution = ResultsTimelinePartitionsFactory.getMinResolution(
 							results.getResults());
 
+String optimal = "";
 if(minResolution.equals(WaybackConstants.REQUEST_RESOLUTION_HOURS)) {
-	autoOptString = "Auto(Hours)";
+	optimal = fmt.format("TimelineView.timeRange.hours");
 } else if(minResolution.equals(WaybackConstants.REQUEST_RESOLUTION_DAYS)) {
-	autoOptString = "Auto(Days)";
+	optimal = fmt.format("TimelineView.timeRange.days");
 } else if(minResolution.equals(WaybackConstants.REQUEST_RESOLUTION_MONTHS)) {
-	autoOptString = "Auto(Months)";
+	optimal = fmt.format("TimelineView.timeRange.months");
 } else if(minResolution.equals(WaybackConstants.REQUEST_RESOLUTION_YEARS)) {
-	autoOptString = "Auto(Years)";
+	optimal = fmt.format("TimelineView.timeRange.years");
 } else {
-	autoOptString = "Auto(Unknown)";
+	optimal = fmt.format("TimelineView.timeRange.unknown");
 }
+String autoOptString = fmt.format("TimelineView.timeRange.auto",optimal);
 
 ArrayList partitions;
 if(resolution.equals(WaybackConstants.REQUEST_RESOLUTION_HOURS)) {
 	hoursOptSelected = "selected";
-	partitions = ResultsTimelinePartitionsFactory.getHour(results.getResults());
+	partitions = ResultsTimelinePartitionsFactory.getHour(results.getResults(),
+		wbRequest);
 } else if(resolution.equals(WaybackConstants.REQUEST_RESOLUTION_DAYS)) {
 	daysOptSelected = "selected";
-	partitions = ResultsTimelinePartitionsFactory.getDay(results.getResults());
+	partitions = ResultsTimelinePartitionsFactory.getDay(results.getResults(),
+		wbRequest);
 } else if(resolution.equals(WaybackConstants.REQUEST_RESOLUTION_MONTHS)) {
 	monthsOptSelected = "selected";
-	partitions = ResultsTimelinePartitionsFactory.getMonth(results.getResults());
+	partitions = ResultsTimelinePartitionsFactory.getMonth(results.getResults(),
+		wbRequest);
 } else if(resolution.equals(WaybackConstants.REQUEST_RESOLUTION_YEARS)) {
 	yearsOptSelected = "selected";
-	partitions = ResultsTimelinePartitionsFactory.getYear(results.getResults());
+	partitions = ResultsTimelinePartitionsFactory.getYear(results.getResults(),
+		wbRequest);
 } else {
 	autoOptSelected = "selected";
-	partitions = ResultsTimelinePartitionsFactory.getAuto(results.getResults());
+	partitions = ResultsTimelinePartitionsFactory.getAuto(results.getResults(),
+		wbRequest);
 }
 int numPartitions = partitions.size();
 ResultsPartition firstP = (ResultsPartition) partitions.get(0);
@@ -131,11 +140,11 @@ String titleString = "";
 			<table cellspacing="0" border="0" cellpadding="0" width="100%">
 				<tr>
 					<td>
-						<span class="smallboldfont">Viewing version <%= resultIndex %> of <%= resultCount %>&nbsp;</span>
+						<span class="smallboldfont"><%= fmt.format("TimelineView.viewingVersion",resultIndex,resultCount) %>&nbsp;</span>
 					</td>
 				</tr>
 				<tr>
-					<td nowrap><span class="title"> <%= prettyExactTs %> </span>&nbsp;&nbsp;</td>
+					<td nowrap><span class="title"> <%= fmt.format("TimelineView.viewingVersionDate",exactDate) %> </span>&nbsp;&nbsp;</td>
 				</tr>
 			</table>
 		</td>
@@ -158,7 +167,9 @@ String titleString = "";
 					<td nowrap align="right"><%
 						titleString = "";
 						if(first != null) {
-							titleString = "title=\"First version (" + results.resultToPrettyDateTime(first) + ")\"";
+							titleString = "title=\"" + 
+								fmt.format("TimelineView.firstVersionTitle",
+									results.resultToDate(first)) + "\"";
 							%><a href="<%= results.resultToReplayUrl(first) %>"><%
 						}
 						%><img <%= titleString %> border=0 width=19 height=20 src="<%= contextRoot %>/images/first.jpg"><%
@@ -167,7 +178,9 @@ String titleString = "";
 						}
 						titleString = "";
 						if(prev != null) {
-							titleString = "title=\"Previous version (" + results.resultToPrettyDateTime(prev) + ")\"";
+							titleString = "title=\"" + 
+								fmt.format("TimelineView.prevVersionTitle",
+									results.resultToDate(prev)) + "\"";
 							%><a href="<%= results.resultToReplayUrl(prev) %>"><%
 						}
 						%><img <%= titleString %> border=0 width=13 height=20 src="<%= contextRoot %>/images/prev.jpg"><%
@@ -188,13 +201,13 @@ String titleString = "";
 			imageUrl = contextRoot + "/images/mark_one.jpg";
 		  	SearchResult result = (SearchResult) partitionResults.get(0);
 			replayUrl = results.resultToReplayUrl(result);
-			prettyDateTime = results.resultToPrettyDateTime(result);
+			prettyDateTime = fmt.format("TimelineView.markDateTitle",results.resultToDate(result));
 			
 		} else if (numResults > 1) {
 			imageUrl = contextRoot + "/images/mark_several.jpg";
 		  	SearchResult result = (SearchResult) partitionResults.get(numResults - 1);
 			replayUrl = results.resultToReplayUrl(result);
-			prettyDateTime = results.resultToPrettyDateTime(result);
+			prettyDateTime = fmt.format("TimelineView.markDateTitle",results.resultToDate(result));
 
 		}
 		if((i > 0) && (i < numPartitions)) {
@@ -218,7 +231,9 @@ String titleString = "";
 					<td nowrap><%
 						titleString = "";
 						if(next != null) {
-							titleString = "title=\"Next version (" + results.resultToPrettyDateTime(next) + ")\"";
+							titleString = "title=\"" + 
+								fmt.format("TimelineView.nextVersionTitle",
+									results.resultToDate(next)) + "\"";
 							%><a href="<%= results.resultToReplayUrl(next) %>"><%
 						}
 						%><img <%= titleString %> border=0 width=13 height=20 src="<%= contextRoot %>/images/next.jpg"><%
@@ -227,7 +242,9 @@ String titleString = "";
 						}
 						titleString = "";
 						if(last != null) {
-							titleString = "title=\"Last version (" + results.resultToPrettyDateTime(last) + ")\"";
+							titleString = "title=\"" + 
+								fmt.format("TimelineView.lastVersionTitle",
+									results.resultToDate(last)) + "\"";
 							%><a href="<%= results.resultToReplayUrl(last) %>"><%
 						}
 						%><img <%= titleString %> border=0 width=19 height=20 src="<%= contextRoot %>/images/last.jpg"><%
@@ -244,14 +261,28 @@ String titleString = "";
 				<input type="hidden" name="url" value="<%= searchUrl %>">
 				<input type="hidden" name="exactdate" value="<%= exactDateStr %>">
 				<input type="hidden" name="type" value="urlclosestquery">
-				Time Range:
+				<%= fmt.format("TimelineView.timeRange") %>
 				<select NAME="resolution" SIZE="1" onChange="changeResolution()">
-					<option <%= yearsOptSelected %> value="years">Years</option>
-					<option <%= monthsOptSelected %> value="months">Months</option>
-					<option <%= daysOptSelected %>  value="days">Days</option>
-					<option <%= hoursOptSelected %> value="hours">Hours</option>
+					<option <%= yearsOptSelected %> value="years">
+						<%= fmt.format("TimelineView.timeRange.years") %>
+					</option>
+					<option <%= monthsOptSelected %> value="months">
+						<%= fmt.format("TimelineView.timeRange.months") %>
+					</option>
+					<option <%= daysOptSelected %>  value="days">
+						<%= fmt.format("TimelineView.timeRange.days") %>
+					</option>
+					<option <%= hoursOptSelected %> value="hours">
+						<%= fmt.format("TimelineView.timeRange.hours") %>
+					</option>
 					<option <%= autoOptSelected %> value="auto"><%= autoOptString %></option>
-				</select>&nbsp;Metadata:<input type="checkbox" name="metamode" value="yes" <%= metaChecked %> onClick="changeMeta()">&nbsp<a href="help.php" target="_top">Help</a>
+				</select>&nbsp;<%= 
+					fmt.format("TimelineView.metaDataCheck") 
+				%><input type="checkbox" name="metamode" value="yes" <%=
+					metaChecked 
+				%> onClick="changeMeta()">&nbsp<a href="help.php" target="_top"><%=
+					fmt.format("UIGlobal.helpLink")
+				%></a>
 			</form>
 		</td>
 		<td>
