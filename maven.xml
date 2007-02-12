@@ -8,6 +8,18 @@
     xmlns:maven="jelly:maven"
     xmlns:ant="jelly:ant">
 
+    <postGoal name="war:webapp"> 
+        <!--Copy resources under war-->
+        <echo message="war.webapp.dir: ${maven.war.webapp.dir}" />
+<!--
+        <mkdir dir="${maven.war.webapp.dir}/WEB-INF/classes/" />
+-->
+        <copy todir="${maven.war.webapp.dir}/WEB-INF/classes/">
+            <fileset dir="./src/resources">
+                <include name="*.properties"/>
+            </fileset>
+        </copy>
+    </postGoal> 
     <preGoal name="xdoc:jelly-transform">
         <attainGoal name="faq"/>
     </preGoal> 
