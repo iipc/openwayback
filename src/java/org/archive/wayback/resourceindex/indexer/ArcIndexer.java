@@ -95,7 +95,7 @@ public class ArcIndexer {
 	 */
 	protected final static int TYPE_CDX_VALUE = 2;
 
-	UrlCanonicalizer canonicalizer = new UrlCanonicalizer();
+	static UrlCanonicalizer canonicalizer = new UrlCanonicalizer();
 
 	private final static int DEFAULT_CAPACITY = 120;
 	
@@ -153,7 +153,8 @@ public class ArcIndexer {
 	 * @throws IOException
 	 * @throws ParseException
 	 */
-	private SearchResult arcRecordToSearchResult(final ARCRecord rec, File arc)
+	private static SearchResult arcRecordToSearchResult(final ARCRecord rec,
+			File arc)
 			throws NullPointerException, IOException, ParseException {
 		rec.close();
 		ARCRecordMetaData meta = rec.getMetaData();
@@ -293,6 +294,19 @@ public class ArcIndexer {
 		serializeResults(results,pw,true);
 	}
 
+	/**
+	 * @param rec
+	 * @param arc
+	 * @return String in "CDX format" for rec argument
+	 * @throws IOException
+	 * @throws ParseException
+	 */
+	public static String arcRecordToCDXLine(ARCRecord rec, File arc) 
+	throws IOException, ParseException {
+		SearchResult res = arcRecordToSearchResult(rec, arc);
+		return searchResultToString(res,TYPE_CDX_LINE);
+	}
+	
 	/**
 	 * Transform a SearchResult into a String representation.
 	 * 
