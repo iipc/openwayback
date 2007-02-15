@@ -43,6 +43,7 @@ import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.core.WaybackServlet;
+import org.archive.wayback.exception.BetterRequestException;
 import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.exception.WaybackException;
@@ -113,7 +114,9 @@ public class ReplayServlet extends WaybackServlet {
 			if (wbRequest == null) {
 				wbRequest = wayback.getQueryParser().parseQuery(httpRequest);
 			}
-
+			// maybe redirect to a better URI for the request given:
+			wbRequest.checkBetterRequest();
+			
 			ResourceIndex idx = wayback.getResourceIndex();
 			ResourceStore store = wayback.getResourceStore();
 			ResultURIConverter uriConverter = wayback.getURIConverter();
@@ -133,6 +136,10 @@ public class ReplayServlet extends WaybackServlet {
 			LOGGER.info("NotInArchive\t"
 					+ wbRequest.get(WaybackConstants.REQUEST_URL));
 			renderer.renderException(httpRequest, httpResponse, wbRequest, nia);
+
+		} catch (BetterRequestException bre) {
+
+			httpResponse.sendRedirect(bre.getBetterURI());
 
 		} catch (WaybackException wbe) {
 

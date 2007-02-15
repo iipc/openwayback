@@ -36,6 +36,7 @@ import org.apache.commons.httpclient.URIException;
 import org.archive.net.UURI;
 import org.archive.net.UURIFactory;
 import org.archive.wayback.WaybackConstants;
+import org.archive.wayback.exception.BetterRequestException;
 import org.archive.wayback.query.OpenSearchQueryParser;
 import org.archive.wayback.util.StringFormatter;
 
@@ -51,6 +52,8 @@ public class WaybackRequest {
 	private int resultsPerPage = 10;
 
 	private int pageNum = 1;
+	
+	private String betterRequestURI = null;
 
 	private Properties filters = new Properties();
 	
@@ -136,6 +139,28 @@ public class WaybackRequest {
 		return arg;
 	}
 	
+	/**
+	 * sets the better requestURI property. If set, a subsequent call to
+	 * checkBetterRequest() will throw a BetterRequestException with URI set to
+	 * the argument passed here.
+	 * 
+	 * @param betterRequestURI
+	 */
+	public void setBetterRequestURI(String betterRequestURI) {
+		this.betterRequestURI = betterRequestURI;
+	}
+	
+	/**
+	 * possibly throws a BetterRequestException if there is a better way
+	 * for the client to make the given request.
+	 * @throws BetterRequestException
+	 */
+	public void checkBetterRequest() throws BetterRequestException {
+		if(betterRequestURI != null) {
+			throw new BetterRequestException(betterRequestURI);
+		}
+	}
+	
 	private String getUserLocale(HttpServletRequest httpRequest) {
 		Locale l = httpRequest.getLocale();
 		ResourceBundle b = ResourceBundle.getBundle(UI_RESOURCE_BUNDLE_NAME,
@@ -187,7 +212,7 @@ public class WaybackRequest {
 		if (waybackPort.compareTo(WaybackConstants.HTTP_DEFAULT_PORT) != 0) {
 			prefix.append(":").append(waybackPort);
 		}
-		prefix.append("/");
+		//prefix.append("/");
 		if (waybackContext != null && waybackContext.length() > 0) {
 			prefix.append(waybackContext).append("/");
 		}

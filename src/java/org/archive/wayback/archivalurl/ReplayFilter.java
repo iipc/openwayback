@@ -116,8 +116,13 @@ public class ReplayFilter extends RequestFilter {
 					WaybackConstants.REQUEST_REPLAY_QUERY);
 			
             try {
-                wbRequest.setRequestUrl(urlStr);
                 wbRequest.fixup(httpRequest);
+                String wbPrefix = wbRequest.getDefaultWaybackPrefix();
+                if(urlStr.startsWith(wbPrefix)) {
+                	wbRequest.setBetterRequestURI(urlStr);
+                }
+                wbRequest.setRequestUrl(urlStr);
+                
             } catch (URIException e) {
                 e.printStackTrace();
                 wbRequest = null;
