@@ -125,7 +125,7 @@ public class ArcIndexer {
 				ARCRecord rec = (ARCRecord) itr.next();
 				SearchResult result;
 				try {
-					result = arcRecordToSearchResult(rec, arc);
+					result = arcRecordToSearchResult(rec);
 				} catch (NullPointerException e) {
 					e.printStackTrace();
 					continue;
@@ -153,14 +153,18 @@ public class ArcIndexer {
 	 * @throws IOException
 	 * @throws ParseException
 	 */
-	private static SearchResult arcRecordToSearchResult(final ARCRecord rec,
-			File arc)
+	private static SearchResult arcRecordToSearchResult(final ARCRecord rec)
 			throws NullPointerException, IOException, ParseException {
 		rec.close();
 		ARCRecordMetaData meta = rec.getMetaData();
 
 		SearchResult result = new SearchResult();
-		result.put(WaybackConstants.RESULT_ARC_FILE, arc.getName());
+        String arcName = meta.getArc(); 
+        int index = arcName.lastIndexOf(File.separator);
+        if (index > 0 && (index + 1) < arcName.length()) {
+            arcName = arcName.substring(index + 1);
+        }
+		result.put(WaybackConstants.RESULT_ARC_FILE, arcName);
 		result.put(WaybackConstants.RESULT_OFFSET, String.valueOf(meta
 				.getOffset()));
 
@@ -193,8 +197,7 @@ public class ArcIndexer {
 
 			String uriHost = uri.getHost();
 			if (uriHost == null) {
-				LOGGER.info("No host in " + uriStr + " in "
-						+ arc.getAbsolutePath());
+				LOGGER.info("No host in " + uriStr + " in " + meta.getArc());
 			} else {
 				result.put(WaybackConstants.RESULT_ORIG_HOST, uriHost);
 
@@ -227,7 +230,7 @@ public class ArcIndexer {
 							} catch (URIException e) {
 								LOGGER.info("Bad Location: " + locationStr
 										+ " for " + uriStr + " in "
-										+ arc.getAbsolutePath() + " Skipped");
+										+ meta.getArc() + " Skipped");
 							}
 							break;
 						}
@@ -296,15 +299,13 @@ public class ArcIndexer {
 
 	/**
 	 * @param rec
-	 * @param arc
 	 * @return String in "CDX format" for rec argument
 	 * @throws IOException
 	 * @throws ParseException
 	 */
-	public static String arcRecordToCDXLine(ARCRecord rec, File arc) 
+	public static String arcRecordToCDXLine(ARCRecord rec) 
 	throws IOException, ParseException {
-		SearchResult res = arcRecordToSearchResult(rec, arc);
-		return searchResultToString(res,TYPE_CDX_LINE);
+		return searchResultToString(arcRecordToSearchResult(rec),TYPE_CDX_LINE);
 	}
 	
 	/**
