@@ -334,11 +334,11 @@
 						larger scale installations, bounded mostly by the
 						size of the index you can (first create, and later) 
 						store on a single machine. Using the command line
-						tool <b>pipeline-client</b>, and the standard UNIX 
-						<b>sort</b>	tool, you create one or more sorted flat
-						text files that are searched on each request. Building
-						these sorted files, and updating the ResourceIndex are
-						manual operations presently.
+						tool <b>index-client</b>, and the standard UNIX 
+						<b>sort</b>	tool(see note below on LC_ALL), you create
+						one or more sorted flat text files that are searched on
+						each request. Building these sorted files, and updating
+						the ResourceIndex are manual operations presently.
 					</li>
 					<li>
 						<b>Remote-Nutch</b>: This ResourceIndex option 
@@ -1315,7 +1315,9 @@
 					each ARC file in your collection, and send all the output to
 					the GNU <b>sort</b> utility (with the -u option). The output
 					of the <b>sort</b> utility is the final CDX file that can be
-					used with the Wayback.
+					used with the Wayback. Be sure that the environment variable
+					<b><i>LC_ALL</i></b> is set to <b><i>C</i></b> before 
+					running the <b>sort</b> tool.
 				</p>
 			</subsection>
 		</section>
