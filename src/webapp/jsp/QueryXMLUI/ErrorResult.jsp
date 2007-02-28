@@ -12,7 +12,7 @@ StringFormatter fmt = results.getFormatter();
 %>
 <wayback>
 	<error>
-		<title><%= UIQueryResults.encodeXMLContent(fmt.format(e.getTitleKey())) %></title>
-		<message><%= UIQueryResults.encodeXMLContent(fmt.format(e.getMessageKey())) %></message>
+		<title><%= UIResults.encodeXMLContent(fmt.format(e.getTitleKey())) %></title>
+		<message><%= UIResults.encodeXMLContent(fmt.format(e.getMessageKey())) %></message>
 	</error>
 </wayback>

@@ -89,4 +89,62 @@ public class UIResults {
 		wbRequest.fixup(httpRequest);
 		return new UIResults(wbRequest);
 	}
+	private static void replaceAll(StringBuffer s,
+			final String o, final String n) {
+		int olen = o.length();
+		int nlen = n.length();
+		int found = s.indexOf(o);
+		while(found >= 0) {
+			s.replace(found,found + olen,n);
+			found = s.indexOf(o,found + nlen);
+		}
+	}
+	
+	/**
+	 * return a string appropriate for inclusion as an XML tag
+	 * @param tagName
+	 * @return encoded tagName
+	 */
+	public static String encodeXMLEntity(final String tagName) {
+		StringBuffer encoded = new StringBuffer(tagName);
+		//replaceAll(encoded,";","&semi;");
+		replaceAll(encoded,"&","&amp;");
+		replaceAll(encoded,"\"","&quot;");
+		replaceAll(encoded,"'","&apos;");
+		replaceAll(encoded,"<","&lt;");
+		replaceAll(encoded,">","&gt;");
+		return encoded.toString();
+	}
+	
+	/**
+	 * return a string appropriate for inclusion as an XML tag
+	 * @param content
+	 * @return encoded content
+	 */
+	public static String encodeXMLContent(final String content) {
+		StringBuffer encoded = new StringBuffer(content);
+		
+		replaceAll(encoded,"&","&amp;");
+		replaceAll(encoded,"\"","&quot;");
+		replaceAll(encoded,"'","&apos;");
+		replaceAll(encoded,"<","&lt;");
+		replaceAll(encoded,">","&gt;");
+		
+		return encoded.toString();
+	}
+
+	/**
+	 * return a string appropriate for inclusion as an XML tag
+	 * @param content
+	 * @return encoded content
+	 */
+	public static String encodeXMLEntityQuote(final String content) {
+		StringBuffer encoded = new StringBuffer(content);
+		replaceAll(encoded,"amp","&#38;#38;");
+		replaceAll(encoded,"apos","&#39;");
+		replaceAll(encoded,"<","&#38;#60;");
+		replaceAll(encoded,"gt","&#62;");
+		replaceAll(encoded,"quot","&#34;");
+		return encoded.toString();
+	}
 }
