@@ -77,6 +77,7 @@ public class CDXIndex extends FlatFile implements SearchResultSource {
 		try {
 			return adaptIterator(getRecordIterator(prefix));
 		} catch (IOException e) {
+			e.printStackTrace();
 			throw new ResourceIndexNotAvailableException(e.getMessage()); 
 		}
 	}
@@ -88,6 +89,7 @@ public class CDXIndex extends FlatFile implements SearchResultSource {
 		try {
 			return adaptIterator(getReverseRecordIterator(prefix));
 		} catch (IOException e) {
+			e.printStackTrace();
 			throw new ResourceIndexNotAvailableException(e.getMessage()); 
 		}
 	}
