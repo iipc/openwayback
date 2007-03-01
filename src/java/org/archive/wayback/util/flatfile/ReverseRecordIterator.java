@@ -45,6 +45,9 @@ public class ReverseRecordIterator implements CloseableIterator {
 	 */
 	public ReverseRecordIterator(ReverseBufferedReader br) {
 		this.br = br;
+		if(br == null) {
+			done = true;
+		}
 	}
 
 	public boolean hasNext() {

@@ -48,12 +48,17 @@ public class RecordIterator implements CloseableIterator {
 	 */
 	public RecordIterator(BufferedReader br) {
 		this.br = br;
+		if(br == null) {
+			done = true;
+		}
 	}
 
 	public boolean hasNext() {
 		if (next != null)
 			return true;
-		if(done) return false;
+		if(done) {
+			return false;
+		}
 		try {
 			String nextLine = br.readLine();
 			if (nextLine == null) {

@@ -142,6 +142,9 @@ public class FlatFile extends File {
 		ReverseRecordIterator itr = null;
 		RandomAccessFile raf = new RandomAccessFile(this,"r");
 		long offset = findKeyOffset(raf,prefix);
+		if(offset < 1) {
+			return new ReverseRecordIterator(null);
+		}
 		raf.seek(raf.getFilePointer()-1);
 		lastMatchOffset = offset - 1;
 		itr = new ReverseRecordIterator(new ReverseBufferedReader(raf));
