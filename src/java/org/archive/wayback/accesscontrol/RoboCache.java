@@ -47,7 +47,8 @@ import org.archive.io.arc.ARCReaderFactory;
 import org.archive.io.arc.ARCRecord;
 import org.archive.io.arc.ARCWriter;
 import org.archive.io.arc.ARCWriterPool;
-import org.archive.io.arc.ARCWriterSettings;
+import org.archive.io.ArchiveRecord;
+import org.archive.io.WriterPoolSettings;
 import org.archive.util.ArchiveUtils;
 import org.archive.wayback.exception.ConfigurationException;
 
@@ -199,7 +200,7 @@ public class RoboCache implements ExclusionAuthority {
 		}
 		File[] files = { arcDir };
 		boolean compress = true;
-		ARCWriterSettings settings = getSettings(compress, prefix, files);
+		WriterPoolSettings settings = getSettings(compress, prefix, files);
 		pool = new ARCWriterPool(settings, MAX_POOL_WRITERS, MAX_POOL_WAIT);
 	}
 
@@ -419,7 +420,11 @@ public class RoboCache implements ExclusionAuthority {
 		ARCReader reader = ARCReaderFactory.get(new File(location.getName()),
 				true, location.getOffset());
 
-		ARCRecord rec = reader.get(location.getOffset());
+		ArchiveRecord aRec = reader.get(location.getOffset());
+		if(!(aRec instanceof ARCRecord)) {
+			throw new IOException("Not ARCRecord...");
+		}
+		ARCRecord rec = (ARCRecord) aRec;
 		rec.skipHttpHeader();
 		LinkedList userAgents = new LinkedList();
 		userAgents.add(userAgent);
@@ -499,8 +504,8 @@ public class RoboCache implements ExclusionAuthority {
 		ARCLocation fresh;
 		ARCWriter writer;
 		try {
-			writer = pool.borrowARCWriter();
-			writer.checkARCFileSize();
+			writer = (ARCWriter) pool.borrowFile();
+			writer.checkSize();
 		} catch (IOException e) {
 			// TODO better...
 			e.printStackTrace();
@@ -509,7 +514,7 @@ public class RoboCache implements ExclusionAuthority {
 		String robotUrlString = "http://" + url.getHost() + "/robots.txt";
 		fresh = urlCacher.cache(writer, robotUrlString);
 		try {
-			pool.returnARCWriter(writer);
+			pool.returnFile(writer);
 		} catch (IOException e) {
 			// TODO better....
 			e.printStackTrace();
@@ -544,19 +549,11 @@ public class RoboCache implements ExclusionAuthority {
 		return fresh;
 	}
 
-	private ARCWriterSettings getSettings(final boolean isCompressed,
+	private WriterPoolSettings getSettings(final boolean isCompressed,
 			final String prefix, final File[] arcDirs) {
-		return new ARCWriterSettings() {
-			public int getArcMaxSize() {
+		return new WriterPoolSettings() {
+			public int getMaxSize() {
 				return ARCConstants.DEFAULT_MAX_ARC_FILE_SIZE;
-			}
-
-			public String getArcPrefix() {
-				return prefix;
-			}
-
-			public String getArcSuffix() {
-				return "";
 			}
 
 			public List getOutputDirs() {
@@ -569,6 +566,15 @@ public class RoboCache implements ExclusionAuthority {
 
 			public List getMetadata() {
 				return null;
+			}
+
+			public String getPrefix() {
+				return prefix;
+			}
+
+			public String getSuffix() {
+				// TODO: is correct?
+				return ARCConstants.DOT_ARC_FILE_EXTENSION;
 			}
 		};
 	}

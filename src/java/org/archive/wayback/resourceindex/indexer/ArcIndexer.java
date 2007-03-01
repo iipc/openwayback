@@ -171,7 +171,7 @@ public class ArcIndexer {
 		// initialize with default HTTP code...
 		result.put(WaybackConstants.RESULT_HTTP_CODE, "-");
 
-		result.put(WaybackConstants.RESULT_MD5_DIGEST, meta.getDigest());
+		result.put(WaybackConstants.RESULT_MD5_DIGEST, rec.getDigestStr());
 		result.put(WaybackConstants.RESULT_MIME_TYPE, meta.getMimetype());
 		result.put(WaybackConstants.RESULT_CAPTURE_DATE, meta.getDate());
 

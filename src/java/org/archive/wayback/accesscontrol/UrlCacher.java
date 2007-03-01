@@ -35,6 +35,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
 import org.apache.commons.httpclient.Header;
@@ -156,8 +157,8 @@ public class UrlCacher {
 			String ip = method.getRemoteIP();
 			Date captureDate = method.getCaptureDate();
 			
-			writer.checkARCFileSize();
-			String arcPathTmp = writer.getArcFile().getAbsolutePath();
+			writer.checkSize();
+			String arcPathTmp = writer.getFile().getAbsolutePath();
 			final long oldOffset = writer.getPosition();
 
 			writer.write(urlString,mime,ip,captureDate.getTime(),len,fis);
@@ -209,8 +210,9 @@ public class UrlCacher {
 		}
 		File [] files = {arcDir};
 		boolean compress = true;
-		ARCWriter writer = new ARCWriter(Arrays.asList(files),
-                "test", compress, DEFAULT_MAX_ARC_FILE_SIZE);
+		ARCWriter writer = new ARCWriter(new AtomicInteger(), 
+				Arrays.asList(files), "test", compress,
+				DEFAULT_MAX_ARC_FILE_SIZE);
 
 		for(int k = 2; k < args.length; k++) {
 			UrlCacher uc;

@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Properties;
 
+import org.archive.io.ArchiveRecord;
 import org.archive.io.arc.ARCReader;
 import org.archive.io.arc.ARCReaderFactory;
 import org.archive.io.arc.ARCRecord;
@@ -86,9 +87,14 @@ public class HttpARCResourceStore implements ResourceStore {
 		Resource r = null;
 		try {
 			ARCReader ar = ARCReaderFactory.get(new URL(arcUrl),offset);
-			ARCRecord rec = ar.get();
-			r = new Resource(rec,ar);
+			// TODO: handle other types...
+			ArchiveRecord rec = ar.get();
+			if(!(rec instanceof ARCRecord)) {
+				throw new ResourceNotAvailableException("Bad ARCRecord format");
+			}
+			r = new Resource((ARCRecord) rec,ar);
 		} catch (IOException e) {
+			e.printStackTrace();
 			throw new ResourceNotAvailableException("Unable to retrieve",
 					e.getLocalizedMessage());
 		}

@@ -32,9 +32,11 @@ import java.util.Properties;
 import java.util.logging.Logger;
 
 import org.apache.commons.httpclient.HttpException;
+import org.archive.io.ArchiveRecord;
 import org.archive.io.arc.ARCLocation;
 import org.archive.io.arc.ARCReader;
 import org.archive.io.arc.ARCReaderFactory;
+import org.archive.io.arc.ARCRecord;
 import org.archive.wayback.ResourceStore;
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.Resource;
@@ -148,7 +150,12 @@ public class LocalARCResourceStore implements ResourceStore {
 
 			ARCReader reader = ARCReaderFactory.get(arcFile);
 
-			Resource r = new Resource(reader.get(location.getOffset()), reader);
+			ArchiveRecord rec = reader.get(location.getOffset());
+			// TODO: handle other types of ArchiveRecords...
+			if(!(rec instanceof ARCRecord)) {
+				throw new ResourceNotAvailableException("Bad ARCRecord format");
+			}
+			Resource r = new Resource((ARCRecord) rec, reader);
 			return r;
 		}
 	}
