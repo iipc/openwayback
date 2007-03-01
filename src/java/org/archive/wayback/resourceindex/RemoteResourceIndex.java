@@ -144,17 +144,17 @@ public class RemoteResourceIndex implements ResourceIndex {
 			String errMessage =  getNodeContent((Element) errors.item(0),
 					WB_XML_ERROR_MESSAGE);
 			
-			// TODO: This just sucks. Think of something clever.
+			// TODO: Localization Problems.. Think of something clever.
 			if(errTitle == null) {
 				throw new ResourceIndexNotAvailableException("Unknown error!");
-			} else if(errTitle.equals("Not in Archive")) {
+			} else if(errTitle.equals("Resource Not In Archive")) {
 				throw new ResourceNotInArchiveException(errMessage);
-			} else if(errTitle.equals("Bad Query")) {
+			} else if(errTitle.equals("Bad Query Exception")) {
 				throw new BadQueryException(errMessage);
-			} else if(errTitle.equals("Index not available")) {
+			} else if(errTitle.equals("Resource Index Not Available Exception")) {
 				throw new ResourceIndexNotAvailableException(errMessage);
-			} else if(errTitle.equals("Access Problem")) {
-				throw new AccessControlException(errMessage);				
+			} else if(errTitle.equals("Access Control Exception")) {
+				throw new AccessControlException(errMessage);
 			} else {
 				throw new ResourceIndexNotAvailableException("Unknown error!");				
 			}
