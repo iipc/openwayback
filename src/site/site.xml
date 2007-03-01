@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<project name="nutchwax">
+
+<!--Have nothing showing on LHS-->
+<bannerLeft>
+    <name />
+</bannerLeft>
+
+<bannerRight>
+  <name>Wayback</name>
+  <src>ia_logo.gif</src>
+  <href >http://archive-access.sf.net/projects/wayback/</href>
+</bannerRight>
+
+<publishDate format="dd MMM yyyy" />
+
+<body>
+
+  <links>
+    <item name="Sourceforge" href="http://archive-access.sf.net"/>
+    <item name="Heritrix" href="http://crawler.archive.org"/>
+      <item name="Home" href="index.html"/>
+  </links>
+
+    <menu name="Overview">
+      <item name="Requirements" href="requirements.html"/>
+      <item name="Downloads" href="downloads.html"/>
+      <item name="User Manual" href="user_manual.html"/>
+      <item name="FAQ" href="/faq.html"/>
+      <item name="API" href="./apidocs"/>
+      <item name="Browse/Submit a Bug" 
+        href="http://sourceforge.net/tracker/?group_id=118427&amp;atid=681137"/>
+    </menu>
+
+    <!--Its not possible to change the labels used in reports, not yet anyways.
+    Current ones don't jibe well.  Reports are headed 'Project Documentation'
+    but its only a subset of all documentation.
+    -->
+    ${reports}
+
+    <!--I want to get the sourceforge image in here but not sure how.
+    -->
+
+</body>
+</project>
