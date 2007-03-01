@@ -34,6 +34,7 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import org.apache.commons.httpclient.Header;
+import org.archive.io.ArchiveRecord;
 import org.archive.io.arc.ARCReader;
 import org.archive.io.arc.ARCRecord;
 
@@ -103,7 +104,6 @@ public class Resource extends InputStream {
 	public void parseHeaders () throws IOException {
 		if(!parsedHeader) {
 			arcRecord.skipHttpHeader();
-
 			// copy all HTTP headers to metaData, prefixing with 
 			// HTTP_HEADER_PREFIX
 			Header[] headers = arcRecord.getHttpHeaders();
@@ -177,7 +177,7 @@ public class Resource extends InputStream {
 	/**
 	 * @return the ARCRecord underlying this Resource.
 	 */
-	public ARCRecord getArcRecord() {
+	public ArchiveRecord getArcRecord() {
 		return arcRecord;
 	}
 

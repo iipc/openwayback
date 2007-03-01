@@ -50,7 +50,7 @@ public class RangeAssignmentFile {
 	 * @return String[] of Ranges assigned to nodeName
 	 * @throws IOException
 	 */
-	public String[] getRangesForNode(String nodeName) throws IOException {
+	public Object[] getRangesForNode(String nodeName) throws IOException {
 		ArrayList matches = new ArrayList();
 		Iterator itr = cachedFile.getSequentialIterator();
 		while(itr.hasNext()) {
@@ -59,6 +59,6 @@ public class RangeAssignmentFile {
 				matches.add(line.substring(0,line.indexOf(' ')));
 			}
 		}
-		return (String[]) matches.toArray();
+		return matches.toArray();
 	}
 }

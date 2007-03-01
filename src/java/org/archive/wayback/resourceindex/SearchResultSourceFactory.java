@@ -27,6 +27,7 @@ package org.archive.wayback.resourceindex;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.List;
 import java.util.Properties;
 
 import org.archive.util.InetAddressUtil;
@@ -116,6 +117,7 @@ public class SearchResultSourceFactory {
 	private final static String DB_NAME = "resourceindex.dbname";
 
 	private final static String CDX_INTERVAL = "resourceindex.cdxinterval";
+	private final static String CDX_NODE_NAME = "resourceindex.nodename";
 	private final static String CDX_DIR = "resourceindex.cdxdir";
 	private final static String CDX_RANGE_URL = "resourceindex.cdxrangeurl";
 	private final static String CDX_DEFINITION_URL = "resourceindex.cdxdefnurl";
@@ -237,13 +239,18 @@ public class SearchResultSourceFactory {
 	
 	private static SearchResultSource getDynamicCDXIndex(Properties p)
 	throws ConfigurationException {
-		String nodeNames[] = (String[]) 
-			InetAddressUtil.getAllLocalHostNames().toArray();
+
 		String interval = getRequiredValue(p,CDX_INTERVAL,"10000");
 		String dataDir = getRequiredValue(p,CDX_DIR,null);
 		String rangeUrl = getRequiredValue(p,CDX_RANGE_URL,null);
 		String definitionUrl = getRequiredValue(p,CDX_DEFINITION_URL,null);
 		String md5Url = getRequiredValue(p,CDX_MD5_URL,null);
+		String extraNodeName = getRequiredValue(p,CDX_NODE_NAME,"");
+		List names = InetAddressUtil.getAllLocalHostNames();
+		if(extraNodeName.length() > 0) {
+			names.add(extraNodeName);
+		}
+		Object nodeNames[] = names.toArray();
 		
 		File dir = new File(dataDir);
 		ensureDir(dir);

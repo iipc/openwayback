@@ -100,7 +100,7 @@ public class DynamicCDXIndex  extends CompositeSearchResultSource {
 	 * @param definitionFile
 	 * @param md5File
 	 */
-	public DynamicCDXIndex(String nodeNames[], int interval, File dataDir,
+	public DynamicCDXIndex(Object nodeNames[], int interval, File dataDir,
 			RangeAssignmentFile rangeFile, CDXDefinitionFile definitionFile,
 			MD5LocationFile md5File) {
 		super();
@@ -108,7 +108,7 @@ public class DynamicCDXIndex  extends CompositeSearchResultSource {
 		startUpThread(nodeNames,interval,rangeFile,definitionFile,md5File);
 	}
 	
-	protected String[] getLocalMD5s() {
+	protected Object[] getLocalMD5s() {
 		return dataDir.list(new md5FilenameFilter());
 	}
 
@@ -116,15 +116,15 @@ public class DynamicCDXIndex  extends CompositeSearchResultSource {
 		return new File(dataDir,md5);
 	}
 	
-	protected void setCDXFiles(String md5s[]) {
+	protected void setCDXFiles(Object md5s[]) {
 		sources.clear();
 		for(int i = 0; i< md5s.length; i++) {
-			File cdx = dataFileForMD5(md5s[i]);
+			File cdx = dataFileForMD5((String) md5s[i]);
 			addSource(new CDXIndex(cdx.getAbsolutePath()));
 		}
 	}
 	
-	private synchronized void startUpThread(String nodeNames[], int interval,
+	private synchronized void startUpThread(Object nodeNames[], int interval,
 			RangeAssignmentFile rangeFile, CDXDefinitionFile definitionFile,
 			MD5LocationFile md5File) {
 		if (syncherThread != null) {
@@ -186,7 +186,7 @@ public class DynamicCDXIndex  extends CompositeSearchResultSource {
 		private MD5LocationFile md5File = null;
 		private DynamicCDXIndex index = null;
 
-		private String nodeNames[];
+		private Object nodeNames[];
 		private int runInterval;
 		private FileDownloader downloader;
 
@@ -198,7 +198,7 @@ public class DynamicCDXIndex  extends CompositeSearchResultSource {
 		 * @param definitionFile
 		 * @param md5File
 		 */
-		public DynamicCDXSyncherThread(DynamicCDXIndex index, String nodeNames[],
+		public DynamicCDXSyncherThread(DynamicCDXIndex index, Object nodeNames[],
 				int runInterval, RangeAssignmentFile rangeFile, 
 				CDXDefinitionFile definitionFile, MD5LocationFile md5File ) {
 			
@@ -212,35 +212,35 @@ public class DynamicCDXIndex  extends CompositeSearchResultSource {
 			this.md5File = md5File;
 			this.downloader = new FileDownloader();
 			this.downloader.setDigest(true);
-			LOGGER.info("BDBIndexUpdaterThread is alive.");
+			LOGGER.info("DynamicCDXSyncherThread is alive.");
 		}
 		
-		private String[] getDesiredMD5s() throws IOException {
+		private Object[] getDesiredMD5s() throws IOException {
 			ArrayList allRanges = new ArrayList();
 			for(int i = 0; i < nodeNames.length; i++) {
-				String ranges[] = rangeFile.getRangesForNode(nodeNames[i]);
+				Object ranges[] = rangeFile.getRangesForNode((String) nodeNames[i]);
 				for(int j=0; j<ranges.length; j++) {
 					allRanges.add(ranges[j]);
 				}
 			}
-			String ranges[] = (String[]) allRanges.toArray();
+			Object ranges[] = allRanges.toArray();
 			ArrayList md5sNeeded = new ArrayList();
 			for(int i = 0; i < ranges.length; i++) {
-				String rangeMD5s[] = definitionFile.getMD5sForRange(ranges[i]);
+				Object rangeMD5s[] = definitionFile.getMD5sForRange((String) ranges[i]);
 				for(int j=0; j < rangeMD5s.length; j++) {
 					md5sNeeded.add(rangeMD5s[j]);
 				}
 			}
-			return (String[]) md5sNeeded.toArray();
+			return md5sNeeded.toArray();
 		}
 
-		private String[] getCurrentMD5s() {
+		private Object[] getCurrentMD5s() {
 			return index.getLocalMD5s();
 		}
 
-		private void removeFiles(String toBeRemoved[]) throws IOException {
+		private void removeFiles(Object toBeRemoved[]) throws IOException {
 			for(int i=0; i< toBeRemoved.length; i++) {
-				File toDelete = index.dataFileForMD5(toBeRemoved[i]);
+				File toDelete = index.dataFileForMD5((String) toBeRemoved[i]);
 				if(!toDelete.delete()) {
 					throw new IOException("Failed to remove " +
 							toDelete.getAbsolutePath());
@@ -248,16 +248,17 @@ public class DynamicCDXIndex  extends CompositeSearchResultSource {
 			}
 		}
 		
-		private void downloadFiles(String toBeDownloaded[]) throws IOException {
+		private void downloadFiles(Object toBeDownloaded[]) throws IOException {
 			for(int i=0; i< toBeDownloaded.length; i++) {
-				String neededMD5 = toBeDownloaded[i];
+				String neededMD5 = (String) toBeDownloaded[i];
 				File target = index.dataFileForMD5(neededMD5);
-				String l[] = md5File.getLocationsForMD5(neededMD5);
+				Object locs[] = md5File.getLocationsForMD5(neededMD5);
 				boolean gotFile = false;
-				for(int j=0; j< l.length; j++) {
-					URL u = new URL(l[j]);
+				for(int j=0; j< locs.length; j++) {
+					String loc = (String) locs[j];
+					URL u = new URL(loc);
 					try {
-						if(l[j].endsWith(".gz")) {
+						if(loc.endsWith(".gz")) {
 							downloader.downloadGZ(u,target);
 						} else {
 							downloader.download(u,target);
@@ -282,12 +283,13 @@ public class DynamicCDXIndex  extends CompositeSearchResultSource {
 		
 		public void run() {
 			int sleepInterval = runInterval;
+			boolean setInitial = false;
 			while (true) {
 				try {
 					// get desired index state:
-					String desired[] = getDesiredMD5s();
+					Object desired[] = getDesiredMD5s();
 					// get current index state:
-					String current[] = getCurrentMD5s();
+					Object current[] = getCurrentMD5s();
 
 					// work to do?
 					HashMap desiredMap = new HashMap();
@@ -308,11 +310,14 @@ public class DynamicCDXIndex  extends CompositeSearchResultSource {
 						index.setState(DynamicCDXIndex.STATE_SYNCHING);
 
 						// first remove extras:
-						removeFiles((String[]) extra.toArray());
+						removeFiles(extra.toArray());
 						
 						// now get needed:
-						downloadFiles((String[]) needed.toArray());
+						downloadFiles(needed.toArray());
 
+						index.setCDXFiles(desired);
+						index.setState(DynamicCDXIndex.STATE_SYNCHED);
+					} else if(!setInitial && current.length > 0) {
 						index.setCDXFiles(desired);
 						index.setState(DynamicCDXIndex.STATE_SYNCHED);
 					}

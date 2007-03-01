@@ -52,7 +52,7 @@ public class CDXDefinitionFile {
 	 * @return String[] of MD5s assigned to rangeName
 	 * @throws IOException
 	 */
-	public String[] getMD5sForRange(String rangeName) throws IOException {
+	public Object[] getMD5sForRange(String rangeName) throws IOException {
 		HashMap matches = new HashMap();
 		Iterator itr = cachedFile.getSequentialIterator();
 		while(itr.hasNext()) {
@@ -66,6 +66,6 @@ public class CDXDefinitionFile {
 				}
 			}
 		}
-		return (String[]) matches.keySet().toArray();
+		return matches.keySet().toArray();
 	}
 }
