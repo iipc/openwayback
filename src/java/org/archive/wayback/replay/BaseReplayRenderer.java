@@ -48,9 +48,6 @@ import org.archive.wayback.core.UIResults;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.exception.WaybackException;
-import org.mozilla.intl.chardet.nsDetector;
-import org.mozilla.intl.chardet.nsPSMDetector;
-import org.mozilla.intl.chardet.nsICharsetDetectionObserver;
 import org.mozilla.universalchardet.UniversalDetector;
 
 
@@ -291,46 +288,26 @@ public class BaseReplayRenderer implements ReplayRenderer {
 
 	/**
 	 * Attempt to divine the character encoding of the document:
-	 *   1) first try the chardet library,
-	 *   2) then see if the Content-Type HTTP header helps (with a "charset=")
-	 *   3) then assume... "UTF-8"
+	 *   1) then see if the Content-Type HTTP header helps (with a "charset=")
+	 *   2) then assume... "UTF-8"
 	 *   
 	 * This should probably use the value from a META tag, if available, before
-	 * #2 and #3..
+	 * #1 and #2..
 	 * 
 	 * @param resource
 	 * @return String character set guessed
 	 * @throws IOException 
 	 */
-	protected String getCharset(Resource resource) throws IOException {
+	protected String getCharsetFallback(Resource resource) throws IOException {
 		String charsetName = null;
 
-		myICharsetDetectionObserver obs = new myICharsetDetectionObserver();
-		
-
-		nsDetector det = new nsDetector(nsPSMDetector.ALL);
-		byte[] bbuffer = new byte[MAX_CHARSET_READAHEAD];
-		det.Init(obs);
-
-		resource.mark(MAX_CHARSET_READAHEAD);
-		int len = resource.read(bbuffer, 0, MAX_CHARSET_READAHEAD);
-		resource.reset();
-
-		if (len != -1) {
-			det.DoIt(bbuffer, len, false);
-			if (obs.detected != null) {
-				charsetName = obs.detected;
-			}
-		}
-		if (charsetName == null) {
-			Properties httpHeaders = resource.getHttpHeaders();
-			String ctype = httpHeaders.getProperty(HTTP_CONTENT_TYPE_HEADER);
-			if (ctype != null) {
-				int offset = ctype.indexOf(CHARSET_TOKEN);
-				if (offset != -1) {
-					charsetName = ctype.substring(offset
-							+ CHARSET_TOKEN.length());
-				}
+		Properties httpHeaders = resource.getHttpHeaders();
+		String ctype = httpHeaders.getProperty(HTTP_CONTENT_TYPE_HEADER);
+		if (ctype != null) {
+			int offset = ctype.indexOf(CHARSET_TOKEN);
+			if (offset != -1) {
+				charsetName = ctype.substring(offset
+						+ CHARSET_TOKEN.length());
 			}
 		}
 		if (charsetName == null) {
@@ -339,7 +316,7 @@ public class BaseReplayRenderer implements ReplayRenderer {
 		return charsetName;
 	}
 
-	protected String getCharset2(Resource resource) throws IOException {
+	protected String getCharset(Resource resource) throws IOException {
 		String charsetName = null;
 
 		byte[] bbuffer = new byte[MAX_CHARSET_READAHEAD];
@@ -419,9 +396,9 @@ public class BaseReplayRenderer implements ReplayRenderer {
 			int recordLength = (int) resource.getRecordLength();
 
 			// get the charset:
-			String charSet = getCharset2(resource);
+			String charSet = getCharset(resource);
 			if(charSet == null) {
-				charSet = getCharset(resource);
+				charSet = getCharsetFallback(resource);
 			}
 
 			// convert bytes to characters for charset:
@@ -450,15 +427,4 @@ public class BaseReplayRenderer implements ReplayRenderer {
 			out.write(ba);
 		}
 	}
-	private class myICharsetDetectionObserver 
-		implements nsICharsetDetectionObserver {
-
-		/**
-		 * null or the charset found
-		 */
-		public String detected = null;
-		public void Notify(String detectedCharset) {
-			detected = detectedCharset;
-		}
-	};
 }
