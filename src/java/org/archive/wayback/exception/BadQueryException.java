@@ -23,6 +23,8 @@
 
 package org.archive.wayback.exception;
 
+import javax.servlet.http.HttpServletResponse;
+
 /**
  * Exception class for malformed user query.
  * 
@@ -55,5 +57,11 @@ public class BadQueryException extends WaybackException {
 	public BadQueryException(String message, String details) {
 		super(message,"Bad Query",details);
 		id = ID;
+	}
+	/**
+	 * @return the HTTP status code appropriate to this exception class.
+	 */
+	public int getStatus() {
+		return HttpServletResponse.SC_BAD_REQUEST;
 	}
 }

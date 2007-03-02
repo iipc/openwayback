@@ -1,5 +1,7 @@
 package org.archive.wayback.exception;
 
+import javax.servlet.http.HttpServletResponse;
+
 /**
  * Exception class for queries which result in no index matches
  *
@@ -31,5 +33,11 @@ public class ResourceNotInArchiveException extends WaybackException {
 	public ResourceNotInArchiveException(String message,String details) {
 		super(message,"Not in Archive",details);
 		id = ID;
+	}
+	/**
+	 * @return the HTTP status code appropriate to this exception class.
+	 */
+	public int getStatus() {
+		return HttpServletResponse.SC_NOT_FOUND;
 	}
 }

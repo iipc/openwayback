@@ -24,6 +24,8 @@
  */
 package org.archive.wayback.exception;
 
+import javax.servlet.http.HttpServletResponse;
+
 /**
  * Exception class for content blocked by robots.txt, etc.
  *
@@ -53,5 +55,10 @@ public class AccessControlException extends WaybackException {
 		super(message,"Access Problem",details);
 		id = ID;
 	}
-
+	/**
+	 * @return the HTTP status code appropriate to this exception class.
+	 */
+	public int getStatus() {
+		return HttpServletResponse.SC_FORBIDDEN;
+	}
 }

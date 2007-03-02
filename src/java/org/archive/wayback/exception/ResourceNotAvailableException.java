@@ -1,5 +1,7 @@
 package org.archive.wayback.exception;
 
+import javax.servlet.http.HttpServletResponse;
+
 /**
  * Exception class for queries which matching resource is not presently
  * accessible
@@ -32,5 +34,11 @@ public class ResourceNotAvailableException extends WaybackException {
 	public ResourceNotAvailableException(String message,String details) {
 		super(message,"Resource not available",details);
 		id = ID;
+	}
+	/**
+	 * @return the HTTP status code appropriate to this exception class.
+	 */
+	public int getStatus() {
+		return HttpServletResponse.SC_SERVICE_UNAVAILABLE;
 	}
 }

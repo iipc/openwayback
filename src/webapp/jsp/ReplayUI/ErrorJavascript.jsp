@@ -6,6 +6,7 @@
 WaybackException e = (WaybackException) request.getAttribute("exception");
 UIResults results = UIResults.getFromRequest(request);
 StringFormatter fmt = results.getFormatter();
+response.setStatus(e.getStatus());
 
 %>
 // Javascript wayback retrieval error:

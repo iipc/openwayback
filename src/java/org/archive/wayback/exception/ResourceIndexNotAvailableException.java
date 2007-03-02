@@ -1,5 +1,7 @@
 package org.archive.wayback.exception;
 
+import javax.servlet.http.HttpServletResponse;
+
 
 /**
  * Exception class for queries which fail because the ResourceIndex is
@@ -33,5 +35,11 @@ public class ResourceIndexNotAvailableException extends WaybackException {
 	public ResourceIndexNotAvailableException(String message, String details) {
 		super(message,"Index not available",details);
 		id = ID;
+	}
+	/**
+	 * @return the HTTP status code appropriate to this exception class.
+	 */
+	public int getStatus() {
+		return HttpServletResponse.SC_SERVICE_UNAVAILABLE;
 	}
 }

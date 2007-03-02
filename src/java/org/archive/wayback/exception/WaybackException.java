@@ -23,6 +23,8 @@
 
 package org.archive.wayback.exception;
 
+import javax.servlet.http.HttpServletResponse;
+
 /**
  * Base class for Wayback internal exceptions.
  * 
@@ -112,5 +114,10 @@ public class WaybackException extends Exception {
 	public String getMessageKey() {
 		return KEY_PREFIX + id + KEY_MESSAGE_SUFFIX;
 	}
-	
+	/**
+	 * @return the HTTP status code appropriate to this exception class.
+	 */
+	public int getStatus() {
+		return HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+	}
 }
