@@ -3,13 +3,13 @@
 
 <!--Have nothing showing on LHS-->
 <bannerLeft>
-    <name />
+  <name>Internet Archive</name>
+  <src>images/ia_logo.gif</src>
+  <href >http://archive-access.sf.net/projects/wayback/</href>
 </bannerLeft>
 
 <bannerRight>
-  <name>Wayback</name>
-  <src>ia_logo.gif</src>
-  <href >http://archive-access.sf.net/projects/wayback/</href>
+    <name>Wayback</name>
 </bannerRight>
 
 <publishDate format="dd MMM yyyy" />
@@ -19,6 +19,7 @@
   <links>
     <item name="Sourceforge" href="http://archive-access.sf.net"/>
     <item name="Heritrix" href="http://crawler.archive.org"/>
+    <item name="NutchWAX" href="http://archive-access.sf.net/projects/nutchwax/"/>
       <item name="Home" href="index.html"/>
   </links>
 

@@ -79,6 +79,16 @@
   <prerequisites>
     <maven>2.0.5</maven>
   </prerequisites>
+  <developers>
+    <developer>
+        <name>Brad Tofel</name>
+        <id>bradtofel</id>
+        <email>brad at archive dot org</email>
+         <organization>Internet Archive</organization>
+         <url>http://www.archive.org</url>
+         <timezone>-8</timezone>
+    </developer>
+  </developers>
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
@@ -223,4 +233,12 @@ $ JAVA_HOME=/usr/lib/j2sdk1.5-sun/ bash /0/builds/bin/maven-2.0.5/bin/mvn deploy
       <layout>default</layout>
     </repository>
   </repositories>
+    <distributionManagement>
+        <site>
+            <id>website</id>
+            <name>Website</name>
+            <!--Pass as command-line system property to maven-->
+            <url>${website.url}/projects/${artifactId}</url>
+        </site>
+    </distributionManagement>
 </project>
