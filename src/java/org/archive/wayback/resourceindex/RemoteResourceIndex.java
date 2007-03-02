@@ -115,12 +115,18 @@ public class RemoteResourceIndex implements ResourceIndex {
 	 * @see org.archive.wayback.ResourceIndex#query(org.archive.wayback.core.WaybackRequest)
 	 */
 	public SearchResults query(WaybackRequest wbRequest)
-			throws ResourceIndexNotAvailableException,
-			ResourceNotInArchiveException, BadQueryException,
-			AccessControlException {
+		throws ResourceIndexNotAvailableException,
+		ResourceNotInArchiveException, BadQueryException,
+		AccessControlException {
 
-		// Get the URL for the request:
-		String requestUrl = getRequestUrl(wbRequest);
+		return urlToSearchResults(getRequestUrl(wbRequest));
+	}
+
+	protected SearchResults urlToSearchResults(String requestUrl)
+		throws ResourceIndexNotAvailableException,
+		ResourceNotInArchiveException, BadQueryException,
+		AccessControlException {
+
 		Document document = null;
 		try {
 			// HTTP Request + parse
@@ -136,7 +142,15 @@ public class RemoteResourceIndex implements ResourceIndex {
 					+ e.getMessage());
 		}
 
-		// TODO: lookout for error XML!
+		checkDocumentForExceptions(document);
+		return documentToSearchResults(document);
+	}
+	
+	protected void checkDocumentForExceptions(Document document) 
+		throws ResourceIndexNotAvailableException, 
+		ResourceNotInArchiveException, BadQueryException, 
+		AccessControlException {
+
 		NodeList errors = document.getElementsByTagName(WB_XML_ERROR_TAGNAME);
 		if(errors.getLength() != 0) {
 			String errTitle = getNodeContent((Element) errors.item(0),
@@ -159,7 +173,8 @@ public class RemoteResourceIndex implements ResourceIndex {
 				throw new ResourceIndexNotAvailableException("Unknown error!");				
 			}
 		}
-		
+	}
+	protected SearchResults documentToSearchResults(Document document) {
 		SearchResults results = new SearchResults();
 		NodeList filters = getRequestFilters(document);
 		for(int i = 0; i < filters.getLength(); i++) {
