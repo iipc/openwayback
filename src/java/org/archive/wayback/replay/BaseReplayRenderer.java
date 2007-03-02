@@ -99,13 +99,14 @@ public class BaseReplayRenderer implements ReplayRenderer {
 
 	private final String ERROR_CSS = "ErrorCSS.jsp";
 
-
-	private final String ERROR_IMAGE = "error_image.gif";
+	// Showing the 1 pixel gif actually blocks the alt text.. better to return
+	// a normal error page
+//	private final String ERROR_IMAGE = "error_image.gif";
+	private final String ERROR_IMAGE = "ErrorResult.jsp";
 
 	/*  INITIALIZATION:  */
 
 	public void init(Properties p) throws ConfigurationException {
-		this.jspPath = "232";
 		this.jspPath = (String) p.get(JSP_PATH);
 		if (this.jspPath == null || this.jspPath.length() <= 0) {
 			throw new ConfigurationException("Failed to find " + JSP_PATH);
