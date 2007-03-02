@@ -33,7 +33,6 @@ import java.util.logging.Logger;
 
 import org.apache.commons.httpclient.HttpException;
 import org.archive.io.ArchiveRecord;
-import org.archive.io.arc.ARCLocation;
 import org.archive.io.arc.ARCReader;
 import org.archive.io.arc.ARCReaderFactory;
 import org.archive.io.arc.ARCRecord;
@@ -132,8 +131,8 @@ public class LocalARCResourceStore implements ResourceStore {
 	public Resource retrieveResource(SearchResult result) throws IOException, 
 		ResourceNotAvailableException {
 
-		ARCLocation location = resultToARCLocation(result);
-		String arcName = location.getName();
+		String arcName = resultToARCName(result);
+		long offset = resultToARCOffset(result);
 		if (!arcName.endsWith(ARCReader.DOT_COMPRESSED_ARC_FILE_EXTENSION)) {
 			arcName += ARCReader.DOT_COMPRESSED_ARC_FILE_EXTENSION;
 		}
@@ -150,7 +149,7 @@ public class LocalARCResourceStore implements ResourceStore {
 
 			ARCReader reader = ARCReaderFactory.get(arcFile);
 
-			ArchiveRecord rec = reader.get(location.getOffset());
+			ArchiveRecord rec = reader.get(offset);
 			// TODO: handle other types of ArchiveRecords...
 			if(!(rec instanceof ARCRecord)) {
 				throw new ResourceNotAvailableException("Bad ARCRecord format");
@@ -160,28 +159,12 @@ public class LocalARCResourceStore implements ResourceStore {
 		}
 	}
 
-	/**
-	 * @param result
-	 * @return ARCLocation (filename + offset) for searchResult
-	 */
-	protected ARCLocation resultToARCLocation(SearchResult result) {
-		final String daArcName = result.get(WaybackConstants.RESULT_ARC_FILE);
-		final long daOffset = Long.parseLong(result
-				.get(WaybackConstants.RESULT_OFFSET));
+	protected String resultToARCName(SearchResult result) {
+		return result.get(WaybackConstants.RESULT_ARC_FILE);
+	}
 
-		return new ARCLocation() {
-			private String filename = daArcName;
-
-			private long offset = daOffset;
-
-			public String getName() {
-				return this.filename;
-			}
-
-			public long getOffset() {
-				return this.offset;
-			}
-		};
+	protected long resultToARCOffset(SearchResult result) {
+		return Long.parseLong(result.get(WaybackConstants.RESULT_OFFSET));
 	}
 
 	/**

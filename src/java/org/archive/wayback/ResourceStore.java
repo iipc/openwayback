@@ -30,7 +30,7 @@ import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.exception.ResourceNotAvailableException;
 
 /**
- * Transforms an ARCLocation into a Resource.
+ * Transforms a SearchResult into a Resource.
  * 
  * @author Brad Tofel
  * @version $Date$, $Revision$
