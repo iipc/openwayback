@@ -1,6 +1,6 @@
+<%@ page import="java.util.Iterator" %>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.Date" %>
-<%@ page import="java.util.Iterator" %>
 <%@ page import="org.archive.wayback.WaybackConstants" %>
 <%@ page import="org.archive.wayback.core.SearchResult" %>
 <%@ page import="org.archive.wayback.core.Timestamp" %>
@@ -9,12 +9,14 @@
 <%@ page import="org.archive.wayback.util.StringFormatter" %>
 <jsp:include page="../../template/UI-header.jsp" />
 <%
-UIQueryResults results = (UIQueryResults) UIResults.getFromRequest(request);
 
+UIQueryResults results = (UIQueryResults) UIResults.getFromRequest(request);
 StringFormatter fmt = results.getFormatter();
 String searchString = results.getSearchUrl();
+
 Date searchStartDate = results.getStartTimestamp().getDate();
 Date searchEndDate = results.getEndTimestamp().getDate();
+
 int firstResult = results.getFirstResult();
 int lastResult = results.getLastResult();
 int resultCount = results.getResultsMatching();
@@ -28,12 +30,13 @@ Iterator itr = results.resultsIterator();
 <hr></hr>
 <%
 boolean first = false;
-String lastUrl = null;
+String lastUrlKey = null;
 String lastMD5 = null;
 while(itr.hasNext()) {
 	SearchResult result = (SearchResult) itr.next();
 
 	String url = result.get(WaybackConstants.RESULT_URL);
+	String urlKey = result.get(WaybackConstants.RESULT_URL_KEY);
 	// TODO: Localization
 	String prettyDate = result.get(WaybackConstants.RESULT_CAPTURE_DATE);
 	String origHost = result.get(WaybackConstants.RESULT_ORIG_HOST);
@@ -50,14 +53,14 @@ while(itr.hasNext()) {
 	String replayUrl = results.resultToReplayUrl(result);
 
 	boolean newUrl = false;
-	if(lastUrl == null) {
-		lastUrl = url;
+	if(lastUrlKey == null) {
+		lastUrlKey = urlKey;
 		lastMD5 = "";
 		newUrl = true;
-	} else if(0 != lastUrl.compareTo(url)) {
+	} else if(0 != lastUrlKey.compareTo(urlKey)) {
 		newUrl = true;
 		lastMD5 = "";
-		lastUrl = url;
+		lastUrlKey = urlKey;
 	}
 	if(newUrl) {
 		%>
@@ -98,8 +101,13 @@ while(itr.hasNext()) {
 	}
 }
 // show page indicators:
-if(results.getNumPages() > 1) {
-	int curPage = results.getCurPage();
+int curPage = results.getCurPage();
+if(curPage > results.getNumPages()) {
+	%>
+	<hr></hr>
+	<a href="<%= results.urlForPage(1) %>">First results</a>
+	<%
+} else if(results.getNumPages() > 1) {
 	%>
 	<hr></hr>
 	<%
