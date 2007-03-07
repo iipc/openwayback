@@ -198,8 +198,6 @@ public class SURTTokenizerTest extends TestCase {
 		assertEquals("(org",tok.nextSearch());
 		assertNull(tok.nextSearch());		
 	}
-	// leave this guy out for now: was a bug in Heritrix thus archive-commons
-	// wait for new jar...
 	/** test */
 	public void testLoginPassPort() {
 		tok = toSurtT("http://brad:pass@www.archive.org:8080/cgi?foobar");
