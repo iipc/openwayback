@@ -24,6 +24,7 @@
  */
 package org.archive.wayback.resourceindex;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
 import java.util.logging.Logger;
@@ -70,9 +71,6 @@ public class RemoteResourceIndex implements ResourceIndex {
 
 	private DocumentBuilderFactory factory;
 
-	private DocumentBuilder builder;
-
-
 	private static final String WB_XML_REQUEST_TAGNAME = "request";
 
 
@@ -80,6 +78,27 @@ public class RemoteResourceIndex implements ResourceIndex {
 	private static final String WB_XML_ERROR_TAGNAME = "error";
 	private static final String WB_XML_ERROR_TITLE = "title";
 	private static final String WB_XML_ERROR_MESSAGE = "message";
+
+	private final ThreadLocal tl = new ThreadLocal() {
+        protected synchronized Object initialValue() {
+        	DocumentBuilder builder = null;
+            try {
+            	if(factory != null) {
+					builder = factory.newDocumentBuilder();
+					if (!builder.isNamespaceAware()) {
+						LOGGER.severe("Builder is not namespace aware.");
+					}
+            	}
+			} catch (ParserConfigurationException e) {
+				// TODO: OK to just "eat" this error? 
+				e.printStackTrace();
+			}
+			return builder;
+        }
+    };
+    private DocumentBuilder getDocumentBuilder() {
+        return (DocumentBuilder) tl.get();
+    }
 
 	/*
 	 * (non-Javadoc)
@@ -96,16 +115,6 @@ public class RemoteResourceIndex implements ResourceIndex {
 		}
 		this.factory = DocumentBuilderFactory.newInstance();
 		this.factory.setNamespaceAware(false);
-		try {
-			this.builder = this.factory.newDocumentBuilder();
-		} catch (ParserConfigurationException e) {
-			// TODO: quiet extra stacktrace..
-			e.printStackTrace();
-			throw new ConfigurationException(e.getMessage());
-		}
-		if (!this.builder.isNamespaceAware()) {
-			LOGGER.severe("Builder is not namespace aware.");
-		}
 		LOGGER.info("Using base search url " + this.searchUrlBase);
 	}
 
@@ -246,11 +255,12 @@ public class RemoteResourceIndex implements ResourceIndex {
 	}
 
 	// do an HTTP request, plus parse the result into an XML DOM
-	protected synchronized Document getHttpDocument(String url)
+	protected Document getHttpDocument(String url)
 			throws IOException, SAXException {
-
-		Document d = null;
-		d = this.builder.parse(url);
-		return d;
+		return (getDocumentBuilder()).parse(url);
+	}
+	protected Document getFileDocument(File f)
+			throws IOException, SAXException {
+		return (getDocumentBuilder()).parse(f);
 	}
 }
