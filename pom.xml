@@ -72,9 +72,9 @@
     </mailingList>
   </mailingLists>
   <scm>
-    <connection>scm:svn:https://archive-access.svn.sourceforge.net/svnroot/archive-access/projects/nutchwax</connection>
+    <connection>scm:svn:https://archive-access.svn.sourceforge.net/svnroot/archive-access/trunk/archive-access/projects/wayback</connection>
     <tag>HEAD</tag>
-    <url>https://archive-access.svn.sourceforge.net/svnroot/archive-access/projects/nutchwax</url>
+    <url>https://archive-access.svn.sourceforge.net/svnroot/archive-access/trunk/archive-access/projects/wayback</url>
   </scm>
   <prerequisites>
     <maven>2.0.5</maven>
