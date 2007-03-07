@@ -44,18 +44,55 @@ public class SURTTokenizerTest extends TestCase {
 		tok = toSurtT("http://www.archive.org/foo");
 		assertEquals("(org,archive,www,)/foo\t",tok.nextSearch());
 		assertEquals("(org,archive,www,)/foo",tok.nextSearch());
-		assertEquals("(org,archive,www,",tok.nextSearch());
+		assertEquals("(org,archive,www,)/",tok.nextSearch());
 		assertEquals("(org,archive,www",tok.nextSearch());
 		assertEquals("(org,archive",tok.nextSearch());
 		assertEquals("(org",tok.nextSearch());
 		assertNull(tok.nextSearch());
 	}
 	/** test */
+	public void testSlashPathTrailingSlash() {
+		tok = toSurtT("http://www.archive.org/foo/");
+		assertEquals("(org,archive,www,)/foo/\t",tok.nextSearch());
+		assertEquals("(org,archive,www,)/foo/",tok.nextSearch());
+		assertEquals("(org,archive,www,)/foo",tok.nextSearch());
+		assertEquals("(org,archive,www,)/",tok.nextSearch());
+		assertEquals("(org,archive,www",tok.nextSearch());
+		assertEquals("(org,archive",tok.nextSearch());
+		assertEquals("(org",tok.nextSearch());
+		assertNull(tok.nextSearch());		
+	}
+	/** test */
+	public void testSlashPathTwoDirs() {
+		tok = toSurtT("http://www.archive.org/foo/bar");
+		assertEquals("(org,archive,www,)/foo/bar\t",tok.nextSearch());
+		assertEquals("(org,archive,www,)/foo/bar",tok.nextSearch());
+		assertEquals("(org,archive,www,)/foo",tok.nextSearch());
+		assertEquals("(org,archive,www,)/",tok.nextSearch());
+		assertEquals("(org,archive,www",tok.nextSearch());
+		assertEquals("(org,archive",tok.nextSearch());
+		assertEquals("(org",tok.nextSearch());
+		assertNull(tok.nextSearch());		
+	}
+	/** test */
+	public void testSlashPathTwoDirsTrailingSlash() {
+		tok = toSurtT("http://www.archive.org/foo/bar/");
+		assertEquals("(org,archive,www,)/foo/bar/\t",tok.nextSearch());
+		assertEquals("(org,archive,www,)/foo/bar/",tok.nextSearch());
+		assertEquals("(org,archive,www,)/foo/bar",tok.nextSearch());
+		assertEquals("(org,archive,www,)/foo",tok.nextSearch());
+		assertEquals("(org,archive,www,)/",tok.nextSearch());
+		assertEquals("(org,archive,www",tok.nextSearch());
+		assertEquals("(org,archive",tok.nextSearch());
+		assertEquals("(org",tok.nextSearch());
+		assertNull(tok.nextSearch());		
+	}
+
+	/** test */
 	public void testSlashPath() {
 		tok = toSurtT("http://www.archive.org/");
 		assertEquals("(org,archive,www,)/\t",tok.nextSearch());
 		assertEquals("(org,archive,www,)/",tok.nextSearch());
-		assertEquals("(org,archive,www,",tok.nextSearch());
 		assertEquals("(org,archive,www",tok.nextSearch());
 		assertEquals("(org,archive",tok.nextSearch());
 		assertEquals("(org",tok.nextSearch());
@@ -67,7 +104,6 @@ public class SURTTokenizerTest extends TestCase {
 		tok = toSurtT("http://www.archive.org");
 		assertEquals("(org,archive,www,)/\t",tok.nextSearch());
 		assertEquals("(org,archive,www,)/",tok.nextSearch());
-		assertEquals("(org,archive,www,",tok.nextSearch());
 		assertEquals("(org,archive,www",tok.nextSearch());
 		assertEquals("(org,archive",tok.nextSearch());
 		assertEquals("(org",tok.nextSearch());
@@ -80,20 +116,6 @@ public class SURTTokenizerTest extends TestCase {
 		tok = toSurtT("http://brad.www.archive.org");
 		assertEquals("(org,archive,www,brad,)/\t",tok.nextSearch());
 		assertEquals("(org,archive,www,brad,)/",tok.nextSearch());
-		assertEquals("(org,archive,www,brad,",tok.nextSearch());
-		assertEquals("(org,archive,www,brad",tok.nextSearch());
-		assertEquals("(org,archive,www",tok.nextSearch());
-		assertEquals("(org,archive",tok.nextSearch());
-		assertEquals("(org",tok.nextSearch());
-		assertNull(tok.nextSearch());		
-	}	
-	/** test */
-	public void testLongPathMore() {
-		tok = toSurtT("http://brad.www.archive.org/one/two");
-		assertEquals("(org,archive,www,brad,)/one/two\t",tok.nextSearch());
-		assertEquals("(org,archive,www,brad,)/one/two",tok.nextSearch());
-		assertEquals("(org,archive,www,brad,)/one",tok.nextSearch());
-		assertEquals("(org,archive,www,brad,",tok.nextSearch());
 		assertEquals("(org,archive,www,brad",tok.nextSearch());
 		assertEquals("(org,archive,www",tok.nextSearch());
 		assertEquals("(org,archive",tok.nextSearch());
@@ -106,7 +128,7 @@ public class SURTTokenizerTest extends TestCase {
 		assertEquals("(org,archive,www,)/one/two\t",tok.nextSearch());
 		assertEquals("(org,archive,www,)/one/two",tok.nextSearch());
 		assertEquals("(org,archive,www,)/one",tok.nextSearch());
-		assertEquals("(org,archive,www,",tok.nextSearch());
+		assertEquals("(org,archive,www,)/",tok.nextSearch());
 		assertEquals("(org,archive,www",tok.nextSearch());
 		assertEquals("(org,archive",tok.nextSearch());
 		assertEquals("(org",tok.nextSearch());
@@ -118,7 +140,7 @@ public class SURTTokenizerTest extends TestCase {
 		assertEquals("(org,archive,www,)/cgi?foobar\t",tok.nextSearch());
 		assertEquals("(org,archive,www,)/cgi?foobar",tok.nextSearch());
 		assertEquals("(org,archive,www,)/cgi",tok.nextSearch());
-		assertEquals("(org,archive,www,",tok.nextSearch());
+		assertEquals("(org,archive,www,)/",tok.nextSearch());
 		assertEquals("(org,archive,www",tok.nextSearch());
 		assertEquals("(org,archive",tok.nextSearch());
 		assertEquals("(org",tok.nextSearch());
@@ -130,6 +152,7 @@ public class SURTTokenizerTest extends TestCase {
 		assertEquals("(org,archive,www,:8080)/cgi?foobar\t",tok.nextSearch());
 		assertEquals("(org,archive,www,:8080)/cgi?foobar",tok.nextSearch());
 		assertEquals("(org,archive,www,:8080)/cgi",tok.nextSearch());
+		assertEquals("(org,archive,www,:8080)/",tok.nextSearch());
 		assertEquals("(org,archive,www,:8080",tok.nextSearch());
 		assertEquals("(org,archive,www",tok.nextSearch());
 		assertEquals("(org,archive",tok.nextSearch());
@@ -142,6 +165,7 @@ public class SURTTokenizerTest extends TestCase {
 		assertEquals("(org,archive,www,@brad)/cgi?foobar\t",tok.nextSearch());
 		assertEquals("(org,archive,www,@brad)/cgi?foobar",tok.nextSearch());
 		assertEquals("(org,archive,www,@brad)/cgi",tok.nextSearch());
+		assertEquals("(org,archive,www,@brad)/",tok.nextSearch());
 		assertEquals("(org,archive,www,@brad",tok.nextSearch());
 		assertEquals("(org,archive,www",tok.nextSearch());
 		assertEquals("(org,archive",tok.nextSearch());
@@ -154,6 +178,7 @@ public class SURTTokenizerTest extends TestCase {
 		assertEquals("(org,archive,www,@brad:pass)/cgi?foobar\t",tok.nextSearch());
 		assertEquals("(org,archive,www,@brad:pass)/cgi?foobar",tok.nextSearch());
 		assertEquals("(org,archive,www,@brad:pass)/cgi",tok.nextSearch());
+		assertEquals("(org,archive,www,@brad:pass)/",tok.nextSearch());
 		assertEquals("(org,archive,www,@brad:pass",tok.nextSearch());
 		assertEquals("(org,archive,www",tok.nextSearch());
 		assertEquals("(org,archive",tok.nextSearch());
@@ -166,28 +191,30 @@ public class SURTTokenizerTest extends TestCase {
 		assertEquals("(org,archive,www,@brad:pass)/cgi?foobar\t",tok.nextSearch());
 		assertEquals("(org,archive,www,@brad:pass)/cgi?foobar",tok.nextSearch());
 		assertEquals("(org,archive,www,@brad:pass)/cgi",tok.nextSearch());
+		assertEquals("(org,archive,www,@brad:pass)/",tok.nextSearch());
 		assertEquals("(org,archive,www,@brad:pass",tok.nextSearch());
 		assertEquals("(org,archive,www",tok.nextSearch());
 		assertEquals("(org,archive",tok.nextSearch());
 		assertEquals("(org",tok.nextSearch());
 		assertNull(tok.nextSearch());		
 	}
-//	/** test */
 	// leave this guy out for now: was a bug in Heritrix thus archive-commons
 	// wait for new jar...
-//	public void testLoginPassPort() {
-//		tok = toSurtT("http://brad:pass@www.archive.org:8080/cgi?foobar");
-//		assertEquals("(org,archive,www,:8080@brad:pass)/cgi?foobar\t",tok.nextSearch());
-//		assertEquals("(org,archive,www,:8080@brad:pass)/cgi?foobar",tok.nextSearch());
-//		assertEquals("(org,archive,www,:8080@brad:pass)/cgi",tok.nextSearch());
-//		assertEquals("(org,archive,www,:8080@brad:pass",tok.nextSearch());
-//		assertEquals("(org,archive,www,:8080",tok.nextSearch());
-//		assertEquals("(org,archive,www",tok.nextSearch());
-//		assertEquals("(org,archive",tok.nextSearch());
-//		assertEquals("(org",tok.nextSearch());
-//		assertNull(tok.nextSearch());
-//	}
-//	
+	/** test */
+	public void testLoginPassPort() {
+		tok = toSurtT("http://brad:pass@www.archive.org:8080/cgi?foobar");
+		assertEquals("(org,archive,www,:8080@brad:pass)/cgi?foobar\t",tok.nextSearch());
+		assertEquals("(org,archive,www,:8080@brad:pass)/cgi?foobar",tok.nextSearch());
+		assertEquals("(org,archive,www,:8080@brad:pass)/cgi",tok.nextSearch());
+		assertEquals("(org,archive,www,:8080@brad:pass)/",tok.nextSearch());
+		assertEquals("(org,archive,www,:8080@brad:pass",tok.nextSearch());
+		assertEquals("(org,archive,www,:8080",tok.nextSearch());
+		assertEquals("(org,archive,www",tok.nextSearch());
+		assertEquals("(org,archive",tok.nextSearch());
+		assertEquals("(org",tok.nextSearch());
+		assertNull(tok.nextSearch());
+	}
+	
 	
 	private SURTTokenizer toSurtT(final String u) {
 		SURTTokenizer tok = null;

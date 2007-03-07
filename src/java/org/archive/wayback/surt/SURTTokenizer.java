@@ -78,11 +78,13 @@ public class SURTTokenizer {
 	public String nextSearch() {
 		if(!triedExact) {
 			triedExact = true;
-			//remainder = remainder.substring(0,remainder.length()-1);
 			return remainder + EXACT_SUFFIX;
 		}
 		if(!triedFull) {
 			triedFull = true;
+			if(remainder.endsWith(")/")) {
+				choppedPath = true;
+			}
 			return remainder;
 		}
 		if(!choppedArgs) {
@@ -93,14 +95,35 @@ public class SURTTokenizer {
 				return remainder;
 			}
 		}
+		// we have already returned remainder as-is, so we have slightly
+		// special handling here to make sure we continue to make progress:
+		// (com,foo,www,)/         => (com,foo,www,
+		// (com,foo,www,)/bar      => (com,foo,www,)/
+		// (com,foo,www,)/bar/     => (com,foo,www,)/bar
+		// (com,foo,www,)/bar/foo  => (com,foo,www,)/bar
+		// (com,foo,www,)/bar/foo/ => (com,foo,www,)/bar/foo
 		if(!choppedPath) {
 			int lastSlash = remainder.lastIndexOf('/');
 			if(lastSlash != -1) {
-				remainder = remainder.substring(0,lastSlash);
-				if(remainder.endsWith(")")) {
-					remainder = remainder.substring(0,remainder.length()-1);
+				if(lastSlash == (remainder.length()-1)) {
+					if(remainder.endsWith(")/")) {
+						String tmp = remainder;
+						remainder = remainder.substring(0,lastSlash-1);
+						choppedPath = true;
+						return tmp;
+					} else {
+						remainder = remainder.substring(0,lastSlash);
+						return remainder;
+					}
 				}
-				return remainder;
+				if(remainder.charAt(lastSlash-1) == ')') {
+					String tmp = remainder.substring(0,lastSlash+1);
+					remainder = remainder.substring(0,lastSlash-1);
+					return tmp;
+				} else {
+					remainder = remainder.substring(0,lastSlash);
+					return remainder;
+				}
 			}
 			choppedPath = true;
 		}
@@ -108,21 +131,15 @@ public class SURTTokenizer {
 			choppedLogin = true;
 			int lastAt = remainder.lastIndexOf('@');
 			if(lastAt != -1) {
+				String tmp = remainder;
 				remainder = remainder.substring(0,lastAt);
-				if(remainder.endsWith(",")) {
-					remainder = remainder.substring(0,remainder.length()-1);
-				}
-				return remainder;
+				return tmp;
 			}
 		}
 		if(!choppedPort) {
 			choppedPort = true;
 			int lastColon = remainder.lastIndexOf(':');
 			if(lastColon != -1) {
-				remainder = remainder.substring(0,lastColon);
-				if(remainder.endsWith(",")) {
-					remainder = remainder.substring(0,remainder.length()-1);
-				}
 				return remainder;
 			}
 		}
