@@ -17,7 +17,7 @@
   <groupId>org.archive</groupId>
   <artifactId>wayback</artifactId>
   <version>0.9.0-SNAPSHOT</version>
-  <packaging>war</packaging>
+  <packaging>pom</packaging>
   <name>Wayback</name>
   <description>The wayback project is an open source implementation of the
   Internet Archive's Wayback Machine.
@@ -165,6 +165,28 @@ $ JAVA_HOME=/usr/lib/j2sdk1.5-sun/ bash /0/builds/bin/maven-2.0.5/bin/mvn deploy
       <version>1.11.0-SNAPSHOT</version>
     </dependency>
   </dependencies>
+
+  <dependencyManagement>
+  <!--Dependeny management is not same as dependencies (ugh)-->
+  <dependencies>
+    <dependency>
+      <groupId>org.archive</groupId>
+      <artifactId>wayback-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.archive</groupId>
+      <artifactId>wayback-webapp</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.archive</groupId>
+      <artifactId>wayback-mapreduce</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+  </dependencies>
+  </dependencyManagement>
+
   <build>
     <plugins>
       <plugin>
@@ -175,16 +197,9 @@ $ JAVA_HOME=/usr/lib/j2sdk1.5-sun/ bash /0/builds/bin/maven-2.0.5/bin/mvn deploy
         </xdocDirectory>
         </configuration>
       </plugin>
-      <plugin>
-        <artifactId>maven-war-plugin</artifactId>
-        <configuration>
-          <warSourceDirectory>
-          ${basedir}/src/webapp
-          </warSourceDirectory>
-        </configuration>
-      </plugin>
     </plugins>
   </build>
+
   <reporting>
     <plugins>
       <plugin>
@@ -215,6 +230,7 @@ $ JAVA_HOME=/usr/lib/j2sdk1.5-sun/ bash /0/builds/bin/maven-2.0.5/bin/mvn deploy
       </plugin>
     </plugins>
   </reporting>
+
   <repositories>
     <repository>
       <releases>
@@ -233,6 +249,7 @@ $ JAVA_HOME=/usr/lib/j2sdk1.5-sun/ bash /0/builds/bin/maven-2.0.5/bin/mvn deploy
       <layout>default</layout>
     </repository>
   </repositories>
+
     <distributionManagement>
         <site>
             <id>website</id>
@@ -241,4 +258,11 @@ $ JAVA_HOME=/usr/lib/j2sdk1.5-sun/ bash /0/builds/bin/maven-2.0.5/bin/mvn deploy
             <url>${website.url}/projects/${artifactId}</url>
         </site>
     </distributionManagement>
+
+  <modules>
+    <module>wayback-core</module>
+    <module>wayback-webapp</module>
+    <module>wayback-mapreduce</module>
+  </modules>
+    
 </project>

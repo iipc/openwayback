@@ -1,0 +1,64 @@
+<?xml version="1.0"?>
+<!--
+    POM reference: http://maven.apache.org/pom.html
+
+    List of the better articles on maven:
+
+    http://www.javaworld.com/javaworld/jw-05-2006/jw-0529-maven.html
+    http://www.javaworld.com/javaworld/jw-02-2006/jw-0227-maven_p.html
+
+    URLs on converting from 1.0 to 2.0 maven (not much good generally):
+
+    http://wiki.osafoundation.org/bin/view/Journal/Maven2Upgrade
+    http://maven.apache.org/guides/mini/guide-m1-m2.html
+ -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+  <groupId>org.archive</groupId>
+  <artifactId>wayback</artifactId>
+  <version>0.9.0-SNAPSHOT</version>
+  </parent>
+  <groupId>org.archive</groupId>
+  <artifactId>wayback-mapreduce</artifactId>
+  <packaging>jar</packaging>
+  <name>Wayback MapReduce Indexing Job Jar</name>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.archive</groupId>
+      <artifactId>wayback-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache</groupId>
+      <artifactId>hadoop</artifactId>
+      <version>0.10.1-core</version>
+      <scope>compile</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <!-- NOTE: We don't need a groupId specification because the group is
+             org.apache.maven.plugins ...which is assumed by default.
+         -->
+        <artifactId>maven-assembly-plugin</artifactId>
+        <configuration>
+          <descriptorRefs>
+            <descriptorRef>jar-with-dependencies</descriptorRef>
+          </descriptorRefs>
+        </configuration>
+     <executions>
+     <execution>
+       <phase>package</phase>
+       <goals>
+         <goal>attached</goal>
+       </goals>
+     </execution>
+     </executions>
+      </plugin>
+
+    </plugins>
+  </build>
+</project>
