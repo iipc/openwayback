@@ -23,8 +23,8 @@
   <!--You cannot tell it not build the jar so name it 'placeholder'.
   Actual job jar is made using below assembly spec. at src/main/assembly
   -->
-  <artifactId>wayback-indexing</artifactId>
-  <packaging>jar</packaging>
+  <artifactId>wayback-mapreduce</artifactId>
+  <packaging>pom</packaging>
   <name>Wayback MapReduce Indexing Job Jar</name>
 
   <dependencies>
@@ -41,6 +41,9 @@
   </dependencies>
 
   <build>
+    <finalName>
+        wayback-placeholder
+    </finalName>
     <plugins>
       <plugin>
         <!-- NOTE: We don't need a groupId specification because the group is
@@ -48,18 +51,23 @@
          -->
         <artifactId>maven-assembly-plugin</artifactId>
         <configuration>
-          <descriptorRefs>
-            <descriptorRef>mapreduce-job
-            </descriptorRef>
-          </descriptorRefs>
-            <!--${project.build.finalName}
-            -->
+          <descriptors>
+          <descriptor>
+            src/main/assembly/mapreduce-job.xml
+          </descriptor>
+          </descriptors>
           <finalName>
-            wayback-mapreduce-job
+            ${project.artifactId}-${projects.version}
           </finalName>
           <appendAssemblyId>
-            true
+           false
           </appendAssemblyId>
+          <archive>
+            <manifest>
+              <!--Pointer to driver for wayback indexing-->
+              <mainClass>org.archive.wayback.Wayback</mainClass>
+            </manifest>
+          </archive>
         </configuration>
      <executions>
      <execution>
