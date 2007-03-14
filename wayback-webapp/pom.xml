@@ -19,6 +19,7 @@
   <artifactId>wayback</artifactId>
   <version>0.9.0-SNAPSHOT</version>
   </parent>
+  <groupId>org.archive.wayback</groupId>
   <artifactId>wayback-webapp</artifactId>
   <name>Wayback Web Application</name>
   <packaging>war</packaging>
@@ -40,7 +41,7 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.archive</groupId>
+      <groupId>org.archive.wayback</groupId>
       <artifactId>wayback-core</artifactId>
     </dependency>
   </dependencies>

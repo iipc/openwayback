@@ -170,18 +170,18 @@ $ JAVA_HOME=/usr/lib/j2sdk1.5-sun/ bash /0/builds/bin/maven-2.0.5/bin/mvn deploy
   <!--Dependeny management is not same as dependencies (ugh)-->
   <dependencies>
     <dependency>
-      <groupId>org.archive</groupId>
+      <groupId>org.archive.wayback</groupId>
       <artifactId>wayback-core</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.archive</groupId>
-      <artifactId>wayback-webapp</artifactId>
+      <groupId>org.archive.wayback</groupId>
+      <artifactId>wayback-mapreduce</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.archive</groupId>
-      <artifactId>wayback-mapreduce</artifactId>
+      <groupId>org.archive.wayback</groupId>
+      <artifactId>wayback-webapp</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>
