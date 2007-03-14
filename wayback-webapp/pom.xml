@@ -23,6 +23,9 @@
   <name>Wayback Web Application</name>
   <packaging>war</packaging>
   <build>
+    <finalName>
+        wayback-${project.version}
+    </finalName>
     <plugins>
       <plugin>
         <artifactId>maven-war-plugin</artifactId>

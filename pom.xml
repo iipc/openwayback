@@ -251,6 +251,12 @@ $ JAVA_HOME=/usr/lib/j2sdk1.5-sun/ bash /0/builds/bin/maven-2.0.5/bin/mvn deploy
   </repositories>
 
     <distributionManagement>
+        <repository>
+            <id>repository</id>
+            <name>Repository</name>
+            <!--Pass as command-line system property to maven-->
+            <url>${repository.url}</url>
+        </repository>
         <site>
             <id>website</id>
             <name>Website</name>
