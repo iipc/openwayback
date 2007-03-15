@@ -197,6 +197,22 @@ $ JAVA_HOME=/usr/lib/j2sdk1.5-sun/ bash /0/builds/bin/maven-2.0.5/bin/mvn deploy
         </xdocDirectory>
         </configuration>
       </plugin>
+      <plugin>
+        <!-- NOTE: We don't need a groupId specification because the group is
+             org.apache.maven.plugins ...which is assumed by default.
+         -->
+        <artifactId>maven-assembly-plugin</artifactId>
+        <configuration>
+          <descriptors>
+          <descriptor>
+            src/main/assembly/distribution.xml
+          </descriptor>
+          </descriptors>
+          <finalName>
+            ${project.artifactId}
+          </finalName>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 
