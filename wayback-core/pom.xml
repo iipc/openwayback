@@ -24,13 +24,11 @@
   <name>Wayback Core Classes</name>
   <packaging>jar</packaging>
   <build>
+      <sourceDirectory>../src/java</sourceDirectory>
     <plugins>
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
         <configuration>
-          <classesDirectory>
-          ${basedir}/../src/java
-          </classesDirectory>
             <archive>
                 <manifest>
                     <mainClass>org.archive.wayback.Wayback</mainClass>
