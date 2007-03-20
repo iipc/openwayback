@@ -32,6 +32,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 import org.apache.commons.httpclient.URIException;
 import org.archive.wayback.ResourceIndex;
@@ -53,6 +54,9 @@ import org.archive.wayback.util.flatfile.FlatFile;
  * @version $Date$, $Revision$
  */
 public class AlphaPartitionedIndex implements ResourceIndex {
+	private static final Logger LOGGER =
+        Logger.getLogger(AlphaPartitionedIndex.class.getName());
+
 
 	/**
 	 * config name for path where map file is found
@@ -93,6 +97,8 @@ public class AlphaPartitionedIndex implements ResourceIndex {
 			throw new ConfigurationException("Non numeric " 
 					+ RANGE_CHECK_INTERVAL);			
 		}
+		LOGGER.info("Initialized AlphaPartitionedIndex on file (" + mapPath +
+				") checking every " + checkInterval + " seconds");
 	}
 	
 	private void reloadMapFile() throws IOException {
@@ -145,6 +151,7 @@ public class AlphaPartitionedIndex implements ResourceIndex {
 //		RangeGroup[] newGroups = (RangeGroup[]) c.toArray();
 		Arrays.sort(newGroups,comparator);
 		groups = newGroups;
+		LOGGER.info("Reloaded assignments from " + mapPath);
 	}
 	
 	private void checkMapFile() throws IOException {
@@ -173,7 +180,7 @@ public class AlphaPartitionedIndex implements ResourceIndex {
 			throw new ResourceIndexNotAvailableException(e.getMessage());
 		}
 
-		if(groups.length == 0) {
+		if(groups == null || groups.length == 0) {
 			throw new ResourceIndexNotAvailableException("empty map file");			
 		}
 
@@ -195,6 +202,8 @@ public class AlphaPartitionedIndex implements ResourceIndex {
 		if(loc < 0) {
 			loc = (loc * -1) - 2;
 		}
+		LOGGER.info("Using group(" + groups[loc].getName() + ") for url (" +
+				keyUrl + ")");
 		return groups[loc];
 	}
 	
