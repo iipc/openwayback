@@ -242,6 +242,7 @@ public class Resource extends InputStream {
 	 */
 	public void close() throws IOException {
 		//LOGGER.info("About to close..("+arcReader+")");
+		arcRecord.close();
 		arcReader.close();
 		LOGGER.info("closed..("+arcReader+")");
 	}
