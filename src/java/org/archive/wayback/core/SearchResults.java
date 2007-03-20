@@ -24,6 +24,7 @@
  */
 package org.archive.wayback.core;
 
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Properties;
@@ -156,5 +157,34 @@ public class SearchResults {
 	 */
 	public Properties getFilters() {
 		return filters;
+	}
+	/**
+	 * @param wbRequest
+	 * @return The closest SearchResult to the request.
+	 * @throws ParseException
+	 */
+	public SearchResult getClosest(WaybackRequest wbRequest) {
+
+		SearchResult closest = null;
+		long closestDistance = 0;
+		SearchResult cur = null;
+		Timestamp wantTimestamp;
+		wantTimestamp = Timestamp.parseBefore(wbRequest
+				.get(WaybackConstants.REQUEST_EXACT_DATE));
+
+		Iterator itr = results.iterator();
+		while (itr.hasNext()) {
+			cur = (SearchResult) itr.next();
+			long curDistance;
+			Timestamp curTimestamp = Timestamp.parseBefore(cur
+					.get(WaybackConstants.RESULT_CAPTURE_DATE));
+			curDistance = curTimestamp.absDistanceFromTimestamp(wantTimestamp);
+			
+			if ((closest == null) || (curDistance < closestDistance)) {
+				closest = cur;
+				closestDistance = curDistance;
+			}
+		}
+		return closest;
 	}
 }
