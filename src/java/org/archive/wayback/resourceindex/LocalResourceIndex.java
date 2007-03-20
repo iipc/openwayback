@@ -28,13 +28,15 @@ import java.io.IOException;
 import java.util.Properties;
 
 import org.apache.commons.httpclient.URIException;
+import org.archive.net.UURI;
+import org.archive.net.UURIFactory;
 import org.archive.wayback.ResourceIndex;
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.resourceindex.filters.CounterFilter;
 import org.archive.wayback.resourceindex.filters.DateRangeFilter;
 import org.archive.wayback.resourceindex.filters.EndDateFilter;
-import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.resourceindex.filters.GuardRailFilter;
+import org.archive.wayback.resourceindex.filters.HostMatchFilter;
 import org.archive.wayback.resourceindex.filters.SelfRedirectFilter;
 import org.archive.wayback.resourceindex.filters.StartDateFilter;
 import org.archive.wayback.resourceindex.filters.UrlMatchFilter;
@@ -64,27 +66,15 @@ import org.archive.wayback.util.UrlCanonicalizer;
 public class LocalResourceIndex implements ResourceIndex {
 
 	/**
-	 * configuration name for URL prefix to access exclusion service
-	 */
-	private final static String EXCLUSION_PREFIX = "resourceindex.exclusionurl";
-
-	/**
-	 * configuration name for User Agent to send to exclusion service
-	 */
-	private final static String EXCLUSION_UA = "resourceindex.exclusionua";
-
-	/**
 	 * maximum number of records to return
 	 */
 	private final static int MAX_RECORDS = 1000;
 	
 	private int maxRecords = MAX_RECORDS;
 
-	private String exclusionUrlPrefix = null;
-
-	private String exclusionUserAgent = null;
-
-	private SearchResultSource source;
+	protected SearchResultSource source;
+	
+	private ExclusionFilterFactory exclusionFactory = null;
 	
 	private UrlCanonicalizer canonicalizer = new UrlCanonicalizer(); 
 
@@ -95,11 +85,8 @@ public class LocalResourceIndex implements ResourceIndex {
 	 */
 	public void init(Properties p) throws ConfigurationException {
 		source = SearchResultSourceFactory.get(p);
+		exclusionFactory = ExclusionFilterFactoryFactory.get(p);
 
-		exclusionUrlPrefix = (String) p.get(EXCLUSION_PREFIX);
-
-		exclusionUserAgent = (String) p.get(EXCLUSION_UA);
-		
 		String maxRecordsConfig = (String) p.get(
 				WaybackConstants.MAX_RESULTS_CONFIG_NAME);
 		if(maxRecordsConfig != null) {
@@ -107,11 +94,17 @@ public class LocalResourceIndex implements ResourceIndex {
 		}
 	}
 
-	private ExclusionFilter getExclusionFilter() {
-		if (exclusionUrlPrefix != null) {
-			return new ExclusionFilter(exclusionUrlPrefix, exclusionUserAgent);
+	private SearchResultFilter getExclusionFilter() 
+	throws ResourceIndexNotAvailableException {
+		SearchResultFilter filter = null;
+		if(exclusionFactory != null) {
+			filter = exclusionFactory.get();
+			if(filter == null) {
+				throw new ResourceIndexNotAvailableException("Exclusion " +
+						"Service Unavailable");
+			}
 		}
-		return null;
+		return filter;
 	}
 
 	private void filterRecords(CloseableIterator itr, ObjectFilter filter,
@@ -148,6 +141,29 @@ public class LocalResourceIndex implements ResourceIndex {
 		return getRequired(wbRequest, field, null);
 	}
 
+	private HostMatchFilter getExactHostFilter(WaybackRequest wbRequest) { 
+
+		HostMatchFilter filter = null;
+		String exactHostFlag = wbRequest.get(
+				WaybackConstants.REQUEST_EXACT_HOST_ONLY);
+		if(exactHostFlag != null && 
+				exactHostFlag.equals(WaybackConstants.REQUEST_YES)) {
+
+			String searchUrl = wbRequest.get(WaybackConstants.REQUEST_URL);
+			try {
+
+				UURI searchURI = UURIFactory.getInstance(searchUrl);
+				String exactHost = searchURI.getHost();
+				filter = new HostMatchFilter(exactHost);
+
+			} catch (URIException e) {
+				// Really, this isn't gonna happen, we've already canonicalized
+				// it... should really optimize and do that just once.
+				e.printStackTrace();
+			}
+		}
+		return filter;
+	}
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -208,10 +224,16 @@ public class LocalResourceIndex implements ResourceIndex {
 		GuardRailFilter guardrail = new GuardRailFilter(maxRecords);
 
 		// checks an exclusion service for every matching record
-		ExclusionFilter exclusion = getExclusionFilter();
+		SearchResultFilter exclusion = getExclusionFilter();
 
-		// this filter will just count how many results matched:
-		CounterFilter counter = new CounterFilter();
+		// count how many results got to the ExclusionFilter:
+		CounterFilter preExCounter = new CounterFilter();
+		// count how many results got past the ExclusionFilter, or how
+		// many total matched, if there was no ExclusionFilter:
+		CounterFilter finalCounter = new CounterFilter();
+		
+		// has the user asked for only results on the exact host specified?
+		HostMatchFilter hostMatchFilter = getExactHostFilter(wbRequest);
 
 		if (searchType.equals(WaybackConstants.REQUEST_REPLAY_QUERY)
 				|| searchType.equals(WaybackConstants.REQUEST_CLOSEST_QUERY)) {
@@ -227,7 +249,21 @@ public class LocalResourceIndex implements ResourceIndex {
 			forwardFilters.addFilter(new UrlMatchFilter(keyUrl));
 			reverseFilters.addFilter(new UrlMatchFilter(keyUrl));
 
-			// stop matching if we hit a date outside the search range:
+			if(hostMatchFilter != null) {
+				forwardFilters.addFilter(hostMatchFilter);
+				reverseFilters.addFilter(hostMatchFilter);
+			}
+			
+			// be sure to only include records within the date range we want:
+			// The bin search may start the forward filters at a record older
+			// than we want. Since the fowardFilters only include an abort
+			// endDateFilter, we might otherwise include a record before the 
+			// requested range.
+			DateRangeFilter drFilter = new DateRangeFilter(startDate,endDate);
+			forwardFilters.addFilter(drFilter);
+			reverseFilters.addFilter(drFilter);
+			
+			// abort processing if we hit a date outside the search range:
 			forwardFilters.addFilter(new EndDateFilter(endDate));
 			reverseFilters.addFilter(new StartDateFilter(startDate));
 
@@ -241,9 +277,17 @@ public class LocalResourceIndex implements ResourceIndex {
 			reverseFilters.addFilter(selfRedirectFilter);
 			
 			// possibly filter via exclusions:
-			if (exclusion != null) {
+			if(exclusion == null) {
+				forwardFilters.addFilter(finalCounter);
+				reverseFilters.addFilter(finalCounter);
+			} else {
+				forwardFilters.addFilter(preExCounter);
 				forwardFilters.addFilter(exclusion);
+				forwardFilters.addFilter(finalCounter);
+
+				reverseFilters.addFilter(preExCounter);
 				reverseFilters.addFilter(exclusion);
+				reverseFilters.addFilter(finalCounter);
 			}
 
 			int resultsPerDirection = (int) Math.floor(resultsPerPage / 2);
@@ -255,10 +299,6 @@ public class LocalResourceIndex implements ResourceIndex {
 						resultsPerDirection + 1));
 			}
 			reverseFilters.addFilter(new WindowEndFilter(resultsPerDirection));
-
-			// add the same counter:
-			forwardFilters.addFilter(counter);
-			reverseFilters.addFilter(counter);
 
 			startKey = keyUrl + " " + exactDate;
 
@@ -281,13 +321,19 @@ public class LocalResourceIndex implements ResourceIndex {
 			filters.addFilter(guardrail);
 
 			filters.addFilter(new UrlMatchFilter(keyUrl));
+			if(hostMatchFilter != null) {
+				filters.addFilter(hostMatchFilter);
+			}
 			filters.addFilter(new EndDateFilter(endDate));
 			// possibly filter via exclusions:
-			if (exclusion != null) {
+			if (exclusion == null) {
+				filters.addFilter(finalCounter);
+			} else {
+				filters.addFilter(preExCounter);
 				filters.addFilter(exclusion);
+				filters.addFilter(finalCounter);
 			}
 			startKey = keyUrl + " " + startDate;
-			filters.addFilter(counter);
 
 			// add the start and end windowing filters:
 			filters.addFilter(new WindowStartFilter(startResult));
@@ -308,14 +354,20 @@ public class LocalResourceIndex implements ResourceIndex {
 			filters.addFilter(guardrail);
 
 			filters.addFilter(new UrlPrefixMatchFilter(keyUrl));
+			if(hostMatchFilter != null) {
+				filters.addFilter(hostMatchFilter);
+			}
 			filters.addFilter(new DateRangeFilter(startDate, endDate));
 
 			// possibly filter via exclusions:
-			if (exclusion != null) {
+			if (exclusion == null) {
+				filters.addFilter(finalCounter);
+			} else {
+				filters.addFilter(preExCounter);
 				filters.addFilter(exclusion);
+				filters.addFilter(finalCounter);
 			}
 			startKey = keyUrl;
-			filters.addFilter(counter);
 
 			// add the start and end windowing filters:
 			filters.addFilter(new WindowStartFilter(startResult));
@@ -336,10 +388,12 @@ public class LocalResourceIndex implements ResourceIndex {
 					+ WaybackConstants.REQUEST_URL_PREFIX_QUERY);
 		}
 
-		int matched = counter.getNumMatched();
+		int matched = finalCounter.getNumMatched();
 		if (matched == 0) {
-			if (exclusion != null && exclusion.blockedAll()) {
-				throw new AccessControlException("All results Excluded");
+			if (exclusion != null) {
+				if(preExCounter.getNumMatched() > 0) {
+					throw new AccessControlException("All results Excluded");
+				}
 			}
 			throw new ResourceNotInArchiveException("the URL " + keyUrl
 					+ " is not in the archive.");
