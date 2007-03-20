@@ -194,42 +194,35 @@ public class BDBRecordSet {
 		}
 	}
 
-    /**
-     * persistantly store key-value pair 
-     * @param keyStr
-     * @param valueStr
-     */
-    public void put(String keyStr, String valueStr) {
-        try {
-            DatabaseEntry key = new DatabaseEntry(stringToBytes(keyStr));
-            DatabaseEntry data = new DatabaseEntry(stringToBytes(valueStr));
-            db.put(null, key, data);            
-         } catch (DatabaseException e) {
-             e.printStackTrace();
-        }
-    }
+	/**
+	 * persistantly store key-value pair 
+	 * @param keyStr
+	 * @param valueStr
+	 * @throws DatabaseException 
+	 */
+	public void put(String keyStr, String valueStr) throws DatabaseException {
+		DatabaseEntry key = new DatabaseEntry(stringToBytes(keyStr));
+		DatabaseEntry data = new DatabaseEntry(stringToBytes(valueStr));
+		db.put(null, key, data);            
+	}
     
     /**
      * retrieve the value assoicated with keyStr from persistant storage
      * @param keyStr
      * @return String value associated with key, or null if no key is found
      * or an error occurs
+     * @throws DatabaseException 
      */
-    public String get(String keyStr) {
-        String result = null;
-        try {
-            DatabaseEntry key = new DatabaseEntry(stringToBytes(keyStr));
-            DatabaseEntry data = new DatabaseEntry();
-            if (db.get(null, key, data, LockMode.DEFAULT) == 
-            	OperationStatus.SUCCESS) {
-            	
-                byte[] bytes = data.getData();
-                result = bytesToString(bytes);
-            }
-         } catch (DatabaseException e) {
-             e.printStackTrace();
-        }
-        return result;
+    public String get(String keyStr) throws DatabaseException {
+		String result = null;
+		DatabaseEntry key = new DatabaseEntry(stringToBytes(keyStr));
+		DatabaseEntry data = new DatabaseEntry();
+		if (db.get(null, key, data, LockMode.DEFAULT) 
+				== OperationStatus.SUCCESS) {
+		
+			result = bytesToString(data.getData());
+		}
+		return result;
     }
     
     /**
