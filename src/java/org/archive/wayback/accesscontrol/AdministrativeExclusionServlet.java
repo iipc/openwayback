@@ -202,6 +202,9 @@ public class AdministrativeExclusionServlet extends WaybackServlet {
 			} catch (ParseException e) {
 				e.printStackTrace();
 				page.append(formatException(e));
+			} catch (DatabaseException e) {
+				e.printStackTrace();
+				page.append(formatException(e));
 			}
 		}
 		page.append("</body></html>");
@@ -366,7 +369,7 @@ public class AdministrativeExclusionServlet extends WaybackServlet {
 	}
 
 	private void handleRuleCreate(AdministrativeExclusionAuthority auth,
-			Map queryMap) throws ParseException, URIException {
+			Map queryMap) throws ParseException, URIException, DatabaseException {
 
 		AdministrativeExclusionRule rule = new AdministrativeExclusionRule();
 
