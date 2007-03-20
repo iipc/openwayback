@@ -1,0 +1,169 @@
+/* CachedMapExclusionService
+ *
+ * $Id$
+ *
+ * Created on 6:49:42 PM Mar 5, 2007.
+ *
+ * Copyright (C) 2007 Internet Archive.
+ *
+ * This file is part of wayback-svn.
+ *
+ * wayback-svn is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or
+ * any later version.
+ *
+ * wayback-svn is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser Public License
+ * along with wayback-svn; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+package org.archive.wayback.accesscontrol.staticmap;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+import java.util.logging.Logger;
+
+import org.archive.wayback.PropertyConfigurable;
+import org.archive.wayback.exception.ConfigurationException;
+import org.archive.wayback.resourceindex.ExclusionFilterFactory;
+import org.archive.wayback.resourceindex.SearchResultFilter;
+import org.archive.wayback.util.CloseableIterator;
+import org.archive.wayback.util.flatfile.FlatFile;
+
+/**
+ *
+ *
+ * @author brad
+ * @version $Date$, $Revision$
+ */
+public class StaticMapExclusionFilterFactory implements PropertyConfigurable, 
+ExclusionFilterFactory {
+	private static final Logger LOGGER =
+        Logger.getLogger(StaticMapExclusionFilterFactory.class.getName());
+
+
+	private final static String EXCLUSION_PATH =
+		"resourceindex.exclusionpath";
+	private final static int checkInterval = 1;
+	Map currentMap = null;
+	File file = null;
+	long lastUpdated = 0;
+	/**
+	 * Thread object of update thread -- also is flag indicating if the thread
+	 * has already been started -- static, and access to it is synchronized.
+	 */
+	private static Thread updateThread = null;
+	
+
+	/* (non-Javadoc)
+	 * @see org.archive.wayback.PropertyConfigurable#init(java.util.Properties)
+	 */
+	public void init(Properties p) throws ConfigurationException {
+		// TODO Auto-generated method stub
+		String path = (String) p.get(EXCLUSION_PATH);
+		if((path == null) || path.length() == 0) {
+			throw new ConfigurationException("Invalid/missing " + 
+					EXCLUSION_PATH + "configuration");
+		}
+		file = new File(path);
+		try {
+			reloadFile();
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new ConfigurationException(e.getLocalizedMessage());
+		}
+		LOGGER.info("starting CachedMapExclusion with file " + path);
+		startup();
+	}
+	private void reloadFile() throws IOException {
+		long currentMod = file.lastModified();
+		if(currentMod == lastUpdated) {
+			return;
+		}
+		LOGGER.info("Reloading exclusion file " + file.getAbsolutePath());
+		HashMap newMap = new HashMap();
+		FlatFile ff = new FlatFile(file.getAbsolutePath());
+		try {
+			CloseableIterator itr = (CloseableIterator) ff.getSequentialIterator();
+			while(itr.hasNext()) {
+				newMap.put(itr.next(), null);
+			}
+			currentMap = newMap;
+			lastUpdated = currentMod;
+			LOGGER.info("Reload " + file.getAbsolutePath() + " OK");
+		} catch(IOException e) {
+			lastUpdated = -1;
+			currentMap = null;
+			e.printStackTrace();
+		}
+	}
+	/**
+	 * @return SearchResultFilter 
+	 */
+	public SearchResultFilter get() {
+		if(currentMap == null) {
+			return null;
+		}
+		return new StaticMapExclusionFilter(currentMap); 
+	}
+	
+	private void startup() throws ConfigurationException {
+		if (updateThread == null) {
+			startUpdateThread();
+		}
+	}
+	
+	private synchronized void startUpdateThread() {
+		if (updateThread != null) {
+			return;
+		}
+		updateThread = new CacheUpdaterThread(this,checkInterval);
+		updateThread.start();
+	}
+	
+	private class CacheUpdaterThread extends Thread {
+		/**
+		 * object which merges CDX files with the BDBResourceIndex
+		 */
+		private StaticMapExclusionFilterFactory service = null;
+
+		private int runInterval;
+
+		/**
+		 * @param service 
+		 * @param runInterval
+		 */
+		public CacheUpdaterThread(StaticMapExclusionFilterFactory service, int runInterval) {
+			super("CacheUpdaterThread");
+			super.setDaemon(true);
+			this.service = service;
+			this.runInterval = runInterval;
+			LOGGER.info("CacheUpdaterThread is alive.");
+		}
+
+		public void run() {
+			int sleepInterval = runInterval;
+			while (true) {
+				try {
+					try {
+						service.reloadFile();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					Thread.sleep(sleepInterval * 1000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+}

@@ -52,7 +52,7 @@ public class AdministrativeExclusionAuthority implements ExclusionAuthority {
 	private static String DB_NAME = "adminexclusion.dbname";
 	private static String INDEX_PATH = "adminexclusion.dbpath";
 	
-	RoboCache roboCache;
+//	RoboCache roboCache;
 	BDBRecordSet db;
 
 	/* (non-Javadoc)
@@ -101,7 +101,8 @@ public class AdministrativeExclusionAuthority implements ExclusionAuthority {
 		
 		// we only get here when we are suppose to return the value from the
 		// current robots.txt document:
-		return roboCache.checkExclusion(userAgent,urlString,captureDate);
+//		return roboCache.checkExclusion(userAgent,urlString,captureDate);
+		return null;
 	}
 	
 	/**
@@ -153,8 +154,8 @@ public class AdministrativeExclusionAuthority implements ExclusionAuthority {
 			throw new ConfigurationException(e.getMessage());
 		}
 		
-		roboCache = new RoboCache();
-		roboCache.init(p);
+//		roboCache = new RoboCache();
+//		roboCache.init(p);
 	}
 
 	private AdministrativeExclusionRule getRuleFor(final String surtPrefix,
