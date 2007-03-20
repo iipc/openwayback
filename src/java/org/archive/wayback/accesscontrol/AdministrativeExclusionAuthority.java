@@ -158,7 +158,7 @@ public class AdministrativeExclusionAuthority implements ExclusionAuthority {
 	}
 
 	private AdministrativeExclusionRule getRuleFor(final String surtPrefix,
-			final String dateStr) {
+			final String dateStr) throws DatabaseException {
 		AdministrativeExclusionRules rules = new AdministrativeExclusionRules(surtPrefix);
 		String encoded = (String) db.get(surtPrefix);
 		if(encoded != null) {
@@ -170,8 +170,9 @@ public class AdministrativeExclusionAuthority implements ExclusionAuthority {
 	/**
 	 * @param surtPrefix
 	 * @param rule
+	 * @throws DatabaseException 
 	 */
-	public void addRuleFor(final String surtPrefix, AdministrativeExclusionRule rule) {
+	public void addRuleFor(final String surtPrefix, AdministrativeExclusionRule rule) throws DatabaseException {
 		AdministrativeExclusionRules rules = new AdministrativeExclusionRules(surtPrefix);
 		String encoded = (String) db.get(surtPrefix);
 		if(encoded != null) {
