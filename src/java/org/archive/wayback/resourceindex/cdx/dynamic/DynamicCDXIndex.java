@@ -252,6 +252,7 @@ public class DynamicCDXIndex  extends CompositeSearchResultSource {
 			for(int i=0; i< toBeDownloaded.length; i++) {
 				String neededMD5 = (String) toBeDownloaded[i];
 				File target = index.dataFileForMD5(neededMD5);
+				File tmpTarget = new File(target.getAbsolutePath() + ".TMP");
 				Object locs[] = md5File.getLocationsForMD5(neededMD5);
 				boolean gotFile = false;
 				for(int j=0; j< locs.length; j++) {
@@ -259,14 +260,20 @@ public class DynamicCDXIndex  extends CompositeSearchResultSource {
 					URL u = new URL(loc);
 					try {
 						if(loc.endsWith(".gz")) {
-							downloader.downloadGZ(u,target);
+							downloader.downloadGZ(u,tmpTarget);
 						} else {
-							downloader.download(u,target);
+							downloader.download(u,tmpTarget);
 						}
 						String gotMD5 = downloader.getLastDigest();
 						if(gotMD5.equals(neededMD5)) {
 							gotFile = true;
+							tmpTarget.renameTo(target);
 							break;
+						} else {
+							tmpTarget.delete();
+							LOGGER.warning("Bad file contents. Location(" + 
+									loc +") should have MD5(" + neededMD5 +
+									") but has MD5(" + gotMD5 +")");
 						}
 					} catch (IOException e) {
 						e.printStackTrace();
