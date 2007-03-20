@@ -42,17 +42,12 @@ import org.archive.io.arc.ARCRecordMetaData;
 import org.archive.net.UURI;
 import org.archive.net.UURIFactory;
 import org.archive.wayback.WaybackConstants;
-import org.archive.wayback.bdb.BDBRecord;
-import org.archive.wayback.bdb.BDBRecordSet;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.resourceindex.cdx.CDXLineToSearchResultAdapter;
 import org.archive.wayback.util.AdaptedIterator;
-import org.archive.wayback.util.Adapter;
 import org.archive.wayback.util.UrlCanonicalizer;
 import org.archive.wayback.util.flatfile.FlatFile;
-
-import com.sleepycat.je.DatabaseEntry;
 
 /**
  * Transforms an ARC file into SearchResults, or a serialized SearchResults
@@ -149,12 +144,11 @@ public class ArcIndexer {
 	 * @param rec
 	 * @param arc
 	 * @return SearchResult for this document
-	 * @throws NullPointerException
 	 * @throws IOException
 	 * @throws ParseException
 	 */
-	private static SearchResult arcRecordToSearchResult(final ARCRecord rec)
-			throws NullPointerException, IOException, ParseException {
+	public static SearchResult arcRecordToSearchResult(final ARCRecord rec)
+			throws IOException, ParseException {
 		rec.close();
 		ARCRecordMetaData meta = rec.getMetaData();
 
@@ -381,37 +375,6 @@ public class ArcIndexer {
 				new CDXLineToSearchResultAdapter());
 		return new AdaptedIterator(searchResultItr,
 				new SearchResultToBDBRecordAdapter());
-	}
-
-	private class SearchResultToBDBRecordAdapter implements Adapter {
-
-		ArcIndexer indexer = new ArcIndexer();
-
-		DatabaseEntry key = new DatabaseEntry();
-
-		DatabaseEntry value = new DatabaseEntry();
-
-		BDBRecord record = new BDBRecord(key, value);
-
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see org.archive.wayback.util.Adapter#adapt(java.lang.Object)
-		 */
-		public Object adapt(Object o) {
-			if (!(o instanceof SearchResult)) {
-				throw new IllegalArgumentException(
-						"Argument is not a SearchResult");
-			}
-			SearchResult result = (SearchResult) o;
-			key.setData(BDBRecordSet.stringToBytes(ArcIndexer
-					.searchResultToString(result, ArcIndexer.TYPE_CDX_KEY)));
-			value.setData(BDBRecordSet.stringToBytes(ArcIndexer
-					.searchResultToString(result, ArcIndexer.TYPE_CDX_VALUE)));
-
-			return record;
-		}
-
 	}
 
 	/**
