@@ -54,22 +54,22 @@ public class SearchResultSourceFactory {
 	/**
 	 * configuration name for implementor of SearchResultSource
 	 */
-	private final static String SOURCE_CLASS = "resourceindex.sourceclass";
+	public final static String SOURCE_CLASS = "resourceindex.sourceclass";
 
 	/**
 	 * indicates one or more CDX files implementing SearchResultSource
 	 */
-	private final static String SOURCE_CLASS_CDX = "CDX";
+	public final static String SOURCE_CLASS_CDX = "CDX";
 
 	/**
 	 * indicates a BDB implementing SearchResultSource
 	 */
-	private final static String SOURCE_CLASS_BDB = "BDB";
+	public final static String SOURCE_CLASS_BDB = "BDB";
 
 	/**
 	 * indicates a dynamic set of  CDX files implementing SearchResultSource
 	 */
-	private final static String SOURCE_CLASS_DYNAMIC_CDX = "DYNACDX";
+	public final static String SOURCE_CLASS_DYNAMIC_CDX = "DYNACDX";
 
 	/**
 	 * configuration name for CDX Paths
@@ -79,7 +79,7 @@ public class SearchResultSourceFactory {
 	/**
 	 * configuration name for directory containing index
 	 */
-	private final static String INDEX_PATH = "resourceindex.indexpath";
+	public final static String INDEX_PATH = "resourceindex.indexpath";
 
 	/**
 	 * configuration name for directory containing new CDX files to merge into
@@ -114,7 +114,7 @@ public class SearchResultSourceFactory {
 	/**
 	 * configuration name for BDBJE database name within the db directory
 	 */
-	private final static String DB_NAME = "resourceindex.dbname";
+	public final static String DB_NAME = "resourceindex.dbname";
 
 	private final static String CDX_INTERVAL = "resourceindex.cdxinterval";
 	private final static String CDX_NODE_NAME = "resourceindex.nodename";
