@@ -183,6 +183,16 @@ public interface WaybackConstants {
 	 */
 	public static final String REQUEST_LOCALE_LANG = "requestlocalelang";
 
+	/**
+	 * Request: Indicates user only wants results that exactly match the 
+	 * requested hostname -- no canonicalization.
+	 */
+	public static final String REQUEST_EXACT_HOST_ONLY = "requestexacthost";
+	/**
+	 * Request: indicates positive value for any request boolean flag.
+	 */
+	public static final String REQUEST_YES = "yes";
+
 	
 	/**
 	 * Results: int total number of records matching, not all necc. returned.
