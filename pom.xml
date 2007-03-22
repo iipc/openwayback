@@ -162,7 +162,7 @@ $ JAVA_HOME=/usr/lib/j2sdk1.5-sun/ bash /0/builds/bin/maven-2.0.5/bin/mvn deploy
     -Dfile=/tmp/archive-commons-1.11.0-SNAPSHOT.jar  -Durl=file:/0/maven2-repository/  \
     -DgroupId=org.archive -DartifactId=archive-commons -Dpackaging=jar -Dversion=1.11.0-SNAPSHOT
              -->
-      <version>1.11.0-SNAPSHOT</version>
+      <version>1.12.0</version>
     </dependency>
   </dependencies>
 
