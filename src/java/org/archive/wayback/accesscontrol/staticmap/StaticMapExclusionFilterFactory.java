@@ -35,6 +35,7 @@ import org.archive.wayback.PropertyConfigurable;
 import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.resourceindex.ExclusionFilterFactory;
 import org.archive.wayback.resourceindex.SearchResultFilter;
+import org.archive.wayback.surt.SURTTokenizer;
 import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.flatfile.FlatFile;
 
@@ -52,7 +53,7 @@ ExclusionFilterFactory {
 
 	private final static String EXCLUSION_PATH =
 		"resourceindex.exclusionpath";
-	private final static int checkInterval = 1;
+	private final static int checkInterval = 10;
 	Map currentMap = null;
 	File file = null;
 	long lastUpdated = 0;
@@ -89,12 +90,15 @@ ExclusionFilterFactory {
 			return;
 		}
 		LOGGER.info("Reloading exclusion file " + file.getAbsolutePath());
-		HashMap newMap = new HashMap();
+		HashMap<String, Object> newMap = new HashMap<String, Object>();
 		FlatFile ff = new FlatFile(file.getAbsolutePath());
 		try {
 			CloseableIterator itr = (CloseableIterator) ff.getSequentialIterator();
 			while(itr.hasNext()) {
-				newMap.put(itr.next(), null);
+				String line = (String) itr.next();
+				String surt = line.startsWith("(") ? line : 
+					SURTTokenizer.prefixKey(line);
+				newMap.put(surt, null);
 			}
 			currentMap = newMap;
 			lastUpdated = currentMod;
