@@ -85,7 +85,6 @@ public class RobotRules {
 				(InputStream) is));
         String read;
         ArrayList current = null;
-//        String catchall = null;
         while (br != null) {
             do {
                 read = br.readLine();
@@ -110,6 +109,7 @@ public class RobotRules {
                         current = new ArrayList();
                     }
                     rules.put(ua, current);
+                    LOGGER.fine("Found User-agent(" + ua + ") rules...");
                     continue;
                 }
                 if (read.matches("(?i)Disallow:.*")) {
@@ -130,39 +130,48 @@ public class RobotRules {
         }
     }
 	
+	private boolean blocksPath(String path, String curUA, List uaRules) {
+		
+		Iterator disItr = uaRules.iterator();
+		while (disItr.hasNext()) {
+			String disallowedPath = (String) disItr.next();
+			if (disallowedPath.length() == 0) {
+
+				LOGGER.fine("UA(" + curUA
+						+ ") has empty disallow: Go for it!");
+				return false;
+
+			} else {
+				LOGGER.fine("UA(" + curUA + ") has ("
+						+ disallowedPath + ") blocked...("
+						+ disallowedPath.length() + ")");
+				if (path.startsWith(disallowedPath)) {
+					LOGGER.fine("THIS APPLIES!!!");
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
 	/**
+	 * Checks first the specified ua UserAgent, if rules are present for it,
+	 * and then falls back to using rules for the '*' UserAgent.
+	 * 
 	 * @param path
 	 * @param ua
 	 * @return boolean value where true indicates the path is blocked for ua
 	 */
 	public boolean blocksPathForUA(String path, String ua) {
-		Iterator itr = rules.keySet().iterator();
-		while (itr.hasNext()) {
-			String curUA = (String) itr.next();
-			if (curUA.equals(GLOBAL_USER_AGENT)
-					|| curUA.equals(ua)) {
-				Iterator disItr = ((List)rules.get(curUA)).iterator();
-				while (disItr.hasNext()) {
-					String disallowedPath = (String) disItr.next();
-					if (disallowedPath.length() == 0) {
 
-						LOGGER.fine("UA(" + curUA
-								+ ") has empty disallow: Go for it!");
-						return false;
+		if(rules.containsKey(ua.toLowerCase())) {
 
-					} else {
-						LOGGER.fine("UA(" + curUA + ") has ("
-								+ disallowedPath + ") blocked...("
-								+ disallowedPath.length() + ")");
-						if (path.startsWith(disallowedPath)) {
-							LOGGER.fine("THIS APPLIES!!!");
-							return true;
-						}
-					}
-				}
-			} else {
-				LOGGER.finer("Skipping irrelevant UA(" + curUA + ")"); 
-			}
+			return blocksPath(path,ua,(List) rules.get(ua.toLowerCase()));
+
+		} else if(rules.containsKey(GLOBAL_USER_AGENT)) {
+
+			return blocksPath(path,GLOBAL_USER_AGENT,
+					(List) rules.get(GLOBAL_USER_AGENT));			
 		}
 		return false;
 	}
