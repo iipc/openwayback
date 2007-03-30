@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 import org.archive.io.ArchiveRecord;
 import org.archive.io.WriterPoolSettings;
@@ -54,15 +55,23 @@ import org.archive.wayback.exception.ConfigurationException;
  * @version $Date$, $Revision$
  */
 public class ARCCacheDirectory implements PropertyConfigurable {
+	private static final Logger LOGGER = Logger.getLogger(
+			ARCCacheDirectory.class.getName());
 
 	private final static int MAX_POOL_WRITERS = 5;
 
 	private final static int MAX_POOL_WAIT = 60 * 1000;
 
 	private static final String OPEN_SUFFIX = ".open";
-	private static final String LIVE_WEB_ARC_DIR = "liveweb.arc.dir";
+	/**
+	 * directory where live generated ARCs are stored
+	 */
+	public static final String LIVE_WEB_ARC_DIR = "liveweb.arc.dir";
 
-	private static final String LIVE_WEB_ARC_PREFIX = "liveweb.arc.prefix";
+	/**
+	 * prefeix for live generated ARC files.
+	 */
+	public static final String LIVE_WEB_ARC_PREFIX = "liveweb.arc.prefix";
 	private ARCWriterPool pool = null;
 	private File arcDir = null;
 
@@ -148,8 +157,15 @@ public class ARCCacheDirectory implements PropertyConfigurable {
 			}
 		}
 
-		ARCReader reader = ARCReaderFactory.get(arc,true,offset);
-
+		LOGGER.info("Retrieving record at " + offset + " in " + 
+				arc.getAbsolutePath());
+		ARCReader reader = null;
+		try {
+			reader = ARCReaderFactory.get(arc,true,offset);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+		
 		ArchiveRecord aRec = reader.get(offset);
 		if(!(aRec instanceof ARCRecord)) {
 			throw new IOException("Not ARCRecord...");

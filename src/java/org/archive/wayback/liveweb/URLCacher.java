@@ -26,7 +26,6 @@ package org.archive.wayback.liveweb;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,6 +39,7 @@ import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
+import org.apache.commons.httpclient.ConnectTimeoutException;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.HttpClient;
@@ -69,10 +69,23 @@ import org.archive.wayback.exception.LiveDocumentNotAvailableException;
 public class URLCacher implements PropertyConfigurable {
 	private static final Logger LOGGER = Logger.getLogger(
 			URLCacher.class.getName());
-
+	
 	private static final String CACHE_PATH = "liveweb.tmp.dir";
 	
 	protected File tmpDir = null;
+	private final ThreadLocal tl = new ThreadLocal() {
+        protected synchronized Object initialValue() {
+    		HttpClient http = new HttpClient();
+    		IPHttpConnectionManager manager = new IPHttpConnectionManager();
+    		manager.getParams().setConnectionTimeout(10000);
+    		manager.getParams().setSoTimeout(10000);
+    		http.setHttpConnectionManager(manager);
+			return http;
+        }
+    };
+    private HttpClient getHttpClient() {
+        return (HttpClient) tl.get();
+    }
 
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.PropertyConfigurable#init(java.util.Properties)
@@ -94,107 +107,126 @@ public class URLCacher implements PropertyConfigurable {
 						tmpDir.getAbsolutePath() + ")");
 			}
 		}
+		LOGGER.info("URLCacher storing temp files in " + cachePath);
 	}
 
-	private File getTempFile() {
+	private File getTmpFile() {
 		String tmpName;
+		File tmpFile;
 		try {
-			File foo = File.createTempFile("robot-tmp-",null);
-			tmpName = foo.getName();
-			foo.delete();
+			tmpFile = File.createTempFile("robot-tmp-",null);
+			tmpName = tmpFile.getName();
+			tmpFile.delete();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			tmpName = "oops";
+			tmpName = "oops" + Thread.currentThread().getName();
 			e.printStackTrace();
 		}
-		File tmpFile = new File(tmpDir,tmpName);
+		tmpFile = new File(tmpDir,tmpName);
+		if (tmpFile.exists()) {
+			tmpFile.delete();
+		}
 		return tmpFile;
 	}
 	
+	private ExtendedGetMethod urlToFile(String urlString, File file) 
+		throws LiveDocumentNotAvailableException, URIException, IOException {
+		
+		HttpClient http = getHttpClient();
+		OutputStream os = new FileOutputStream(file);
+		ExtendedGetMethod method = new ExtendedGetMethod(os);
+		LaxURI lURI = new LaxURI(urlString,true);
+		method.setURI(lURI);
+		try {
+			http.executeMethod(method);
+			os.close();
+		} catch (HttpException e) {
+			e.printStackTrace();
+			throw new LiveDocumentNotAvailableException(urlString);
+		} catch(UnknownHostException e) {
+			LOGGER.info("Unknown host for URL " + urlString);
+			throw new LiveDocumentNotAvailableException(urlString);
+		} catch(ConnectTimeoutException e) {
+			LOGGER.info("Connection Timeout for URL " + urlString);
+			throw new LiveDocumentNotAvailableException(urlString);			
+		}
+		LOGGER.info("Stored " + urlString + " in " + file.getAbsolutePath());
+		return method;
+	}
 	
+	private ARCLocation storeFile(File file, ARCWriter writer, String url,
+			ExtendedGetMethod method) throws IOException {
+		
+		FileInputStream fis = new FileInputStream(file);
+		int len = (int) file.length();
+		String mime = method.getMime();
+		String ip = method.getRemoteIP();
+		Date captureDate = method.getCaptureDate();
+			
+		writer.checkSize();
+		final long arcOffset = writer.getPosition();
+		final String arcPath = writer.getFile().getAbsolutePath();
+
+		writer.write(url,mime,ip,captureDate.getTime(),len,fis);
+		writer.checkSize();
+//		long newSize = writer.getPosition();
+//		long oSize = writer.getFile().length();
+		LOGGER.info("Wrote " + url + " at " + arcPath + ":" + arcOffset);
+		fis.close();
+		
+		return new ARCLocation() {
+			private String filename = arcPath;
+			private long offset = arcOffset;
+
+			public String getName() { return this.filename; }
+
+			public long getOffset() { return this.offset;   }
+		};
+	}
+
 	/**
 	 * Retrieve urlString, and store using ARCWriter, returning 
 	 * ARCLocation where the document was stored.
 	 *
-	 * @param writer 
+	 * @param cache 
 	 * @param urlString
 	 * @return ARCLocation where document was stored
 	 * @throws LiveDocumentNotAvailableException 
 	 * @throws URIException 
 	 * @throws IOException if something internal went wrong.
 	 */
-	public ARCLocation cache(ARCWriter writer, String urlString)
-		throws LiveDocumentNotAvailableException, URIException, IOException {
+	public ARCLocation cache(ARCCacheDirectory cache, String urlString)
+		throws LiveDocumentNotAvailableException, IOException, URIException {
+
+		// localize URL
+		File tmpFile = getTmpFile();
+		ExtendedGetMethod method;
+		try {
+			method = urlToFile(urlString,tmpFile);
+		} catch (LiveDocumentNotAvailableException e) {
+			LOGGER.info("Attempted to get " + urlString + " failed...");
+			tmpFile.delete();
+			throw e;
+		} catch (URIException e) {
+			tmpFile.delete();
+			throw e;
+		} catch (IOException e) {
+			tmpFile.delete();
+			throw e;
+		}
+		
+		// store URL
 		ARCLocation location = null;
-		OutputStream os = null;
-		HttpClient http = new HttpClient();
-		File file = getTempFile();
-		if (file.exists()) {
-			file.delete();
-		}
-		os = new FileOutputStream(file);
-		ExtendedGetMethod method = new ExtendedGetMethod(os);
-		method.setURI(new LaxURI(urlString, true));
+		ARCWriter writer = null;
 		try {
-			http.setHttpConnectionManager(new IPHttpConnectionManager());
-			http.getHttpConnectionManager().getParams().setConnectionTimeout(1000);
-			http.getHttpConnectionManager().getParams().setSoTimeout(1000);
-			http.executeMethod(method);
-			os.close();
-		} catch (HttpException e) {
-			e.printStackTrace();
-			file.delete();
-			throw new LiveDocumentNotAvailableException(urlString);
-		} catch(UnknownHostException e) {
-			file.delete();
-			throw new LiveDocumentNotAvailableException(urlString);
-		} catch (IOException e) {
-			e.printStackTrace();
-			file.delete();
-			throw e;
-		}
-		try {
-			FileInputStream fis = new FileInputStream(file);
-			int len = (int) file.length();
-			String mime = method.getMime();
-			String ip = method.getRemoteIP();
-			Date captureDate = method.getCaptureDate();
-			
-			writer.checkSize();
-			String arcPathTmp = writer.getFile().getAbsolutePath();
-			final long oldOffset = writer.getPosition();
-
-			writer.write(urlString,mime,ip,captureDate.getTime(),len,fis);
-			fis.close();
-			
-			final long newOffset = writer.getPosition();
-			
-			LOGGER.info("Stored ("+urlString+") in ("+arcPathTmp+") at ("+newOffset+") old("+oldOffset+") from("+file.getAbsolutePath()+")");
-			final String arcPath = arcPathTmp;
-			//writer.close();
-			
-			location = new ARCLocation() {
-				private String filename = arcPath;
-
-				private long offset = oldOffset;
-
-				public String getName() {
-					return this.filename;
-				}
-
-				public long getOffset() {
-					return this.offset;
-				}
-			};
-
-		} catch (FileNotFoundException e) {
-			file.delete();
-			throw e;
-		} catch (IOException e) {
-			file.delete();
-			throw e;
+			writer = cache.getWriter();
+			location = storeFile(tmpFile, writer, urlString, method);
+		} catch (IOException e2) {
+			cache.returnWriter(writer);
+			tmpFile.delete();
+			throw e2;
 		} finally {
-			file.delete();
+			cache.returnWriter(writer);
+			tmpFile.delete();
 		}
 		return location;
 	}
@@ -214,18 +246,21 @@ public class URLCacher implements PropertyConfigurable {
 		ARCWriter writer = new ARCWriter(new AtomicInteger(), 
 				Arrays.asList(files), "test", compress,
 				DEFAULT_MAX_ARC_FILE_SIZE);
+		Properties p = new Properties();
+		p.setProperty(ARCCacheDirectory.LIVE_WEB_ARC_DIR, args[0]);
+		p.setProperty(ARCCacheDirectory.LIVE_WEB_ARC_PREFIX, "test");
+		p.setProperty(CACHE_PATH, arcDir.getAbsolutePath());
 
+		URLCacher uc = new URLCacher();
+		ARCCacheDirectory cache = new ARCCacheDirectory();
+		try {
+			cache.init(p);
+			uc.init(p);
+		} catch (ConfigurationException e) {
+			e.printStackTrace();
+			System.exit(1);
+		}
 		for(int k = 1; k < args.length; k++) {
-			URLCacher uc = null;
-			try {
-				Properties p = new Properties();
-				p.setProperty(CACHE_PATH, arcDir.getAbsolutePath());
-				uc = new URLCacher();
-				uc.init(p);
-			} catch (ConfigurationException e) {
-				e.printStackTrace();
-				System.exit(1);
-			}
 			try {
 				url = new URL(args[k]);
 			} catch (MalformedURLException e1) {
@@ -233,7 +268,7 @@ public class URLCacher implements PropertyConfigurable {
 				continue;
 			}
 			try {
-				uc.cache(writer, url.toString());
+				uc.cache(cache, url.toString());
 			} catch (URIException e) {
 				e.printStackTrace();
 			} catch (LiveDocumentNotAvailableException e) {
@@ -245,7 +280,6 @@ public class URLCacher implements PropertyConfigurable {
 		try {
 			writer.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -287,7 +321,7 @@ public class URLCacher implements PropertyConfigurable {
 				String statusLine = this.getStatusLine().toString() + "\r\n"; 
 				os.write(statusLine.getBytes());
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
+				// TODO hrm..?
 				e.printStackTrace();
 			}
 		}
@@ -321,7 +355,7 @@ public class URLCacher implements PropertyConfigurable {
 				os.close();
 
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
+				// TODO don't eat it
 				e.printStackTrace();
 			}
 		}
