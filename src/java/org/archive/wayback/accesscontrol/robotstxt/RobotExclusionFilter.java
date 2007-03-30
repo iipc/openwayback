@@ -27,7 +27,12 @@ package org.archive.wayback.accesscontrol.robotstxt;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.archive.util.ArchiveUtils;
 import org.archive.wayback.WaybackConstants;
@@ -53,14 +58,15 @@ public class RobotExclusionFilter extends SearchResultFilter {
 	private final static String HTTP_PREFIX = "http://";
 	private final static String ROBOT_SUFFIX = "/robots.txt";
 
-	private final static int extra_len = HTTP_PREFIX.length() +
-		ROBOT_SUFFIX.length();
 
-	
+	private static String WWWN_REGEX = "^www[0-9]+\\.";
+	private final static Pattern WWWN_PATTERN = Pattern.compile(WWWN_REGEX);
 	private LiveWebCache webCache = null;
 	private HashMap rulesCache = null;
 	private long maxCacheMS = 0;
 	private String userAgent = null;
+	private StringBuilder sb = null;
+	private final static RobotRules emptyRules = new RobotRules();
 	
 	/**
 	 * Construct a new RobotExclusionFilter that uses webCache to pull 
@@ -79,42 +85,86 @@ public class RobotExclusionFilter extends SearchResultFilter {
 		this.webCache = webCache;
 		this.userAgent = userAgent;
 		this.maxCacheMS = maxCacheMS;
+		sb = new StringBuilder(100);
 	}
-	private String searchResultToRobotUrlString(SearchResult result) {
-		 String resultHost = result.get(WaybackConstants.RESULT_ORIG_HOST);
-		 StringBuilder sb = new StringBuilder(resultHost.length() + extra_len);
-		 sb.append(HTTP_PREFIX).append(resultHost).append(ROBOT_SUFFIX);
-		 return sb.toString();
+
+	private String hostToRobotUrlString(String host) {
+		sb.setLength(0);
+		sb.append(HTTP_PREFIX).append(host).append(ROBOT_SUFFIX);
+		return sb.toString();
+	}
+	
+	/*
+	 * Return a List of all robots.txt urls to attempt for this url:
+	 * If originalURL starts with "www.DOMAIN":
+	 * 	[originalURL,DOMAIN]
+	 * If url starts with "www[0-9]+.DOMAIN":
+	 *  [originalURL,www.DOMAIN,DOMAIN]
+	 * Otherwise:
+	 *  [originalURL,www.originalURL]
+	 */
+	protected List searchResultToRobotUrlStrings(String resultHost) {
+		ArrayList list = new ArrayList();
+		list.add(hostToRobotUrlString(resultHost));
+		
+		if(resultHost.startsWith("www")) {
+			if(resultHost.startsWith("www.")) {
+				list.add(hostToRobotUrlString(resultHost.substring(4)));
+			} else {
+				Matcher m = WWWN_PATTERN.matcher(resultHost);
+				if(m.find()) {
+					String massagedHost = resultHost.substring(m.end());
+					list.add(hostToRobotUrlString("www." + massagedHost));
+					list.add(hostToRobotUrlString(massagedHost));
+				}
+			}
+		} else {
+			list.add(hostToRobotUrlString("www." + resultHost));			
+		}
+		return list;
 	}
 	
 	private RobotRules getRules(SearchResult result) {
 		RobotRules rules = null;
 		RobotRules tmpRules = null;
-		String urlString = searchResultToRobotUrlString(result);
-		if(rulesCache.containsKey(urlString)) {
-			rules = (RobotRules) rulesCache.get(urlString);
-		} else {
-			try {
-				
-				tmpRules = new RobotRules();
-				Resource resource = webCache.getCachedResource(new URL(urlString),
-						maxCacheMS,true);
-				resource.parseHeaders();
-				tmpRules.parse(resource);
-				rulesCache.put(urlString,tmpRules);
-				rules = tmpRules;
-				
-			} catch (LiveDocumentNotAvailableException e) {
-				// special-case, allow empty rules if no longer available.
-				rulesCache.put(urlString,tmpRules);
-				rules = tmpRules;
-			} catch (MalformedURLException e) {
-				e.printStackTrace();
-				rules = null;
-			} catch (IOException e) {
-				e.printStackTrace();
-				rules = null;
+		String host = result.get(WaybackConstants.RESULT_ORIG_HOST);
+		List urlStrings = searchResultToRobotUrlStrings(host);
+		Iterator itr = urlStrings.iterator();
+		String firstUrlString = null;
+
+		while(rules == null && itr.hasNext()) {
+			String urlString = (String) itr.next();
+			if(firstUrlString == null) {
+				firstUrlString = urlString;
 			}
+			if(rulesCache.containsKey(urlString)) {
+				rules = (RobotRules) rulesCache.get(urlString);
+			} else {
+				try {
+					
+					tmpRules = new RobotRules();
+					Resource resource = webCache.getCachedResource(new URL(urlString),
+							maxCacheMS,true);
+					resource.parseHeaders();
+					tmpRules.parse(resource);
+					rulesCache.put(firstUrlString,tmpRules);
+					rules = tmpRules;
+					
+				} catch (LiveDocumentNotAvailableException e) {
+					continue;
+				} catch (MalformedURLException e) {
+					e.printStackTrace();
+					return null;
+				} catch (IOException e) {
+					e.printStackTrace();
+					return null;
+				}
+			}
+		}
+		if(rules == null) {
+			// special-case, allow empty rules if no longer available.
+			rulesCache.put(firstUrlString,emptyRules);
+			rules = emptyRules;
 		}
 		return rules;
 	}
