@@ -246,7 +246,7 @@ public class SearchResultSourceFactory {
 		String definitionUrl = getRequiredValue(p,CDX_DEFINITION_URL,null);
 		String md5Url = getRequiredValue(p,CDX_MD5_URL,null);
 		String extraNodeName = getRequiredValue(p,CDX_NODE_NAME,"");
-		List names = InetAddressUtil.getAllLocalHostNames();
+		List<String> names = InetAddressUtil.getAllLocalHostNames();
 		if(extraNodeName.length() > 0) {
 			names.add(extraNodeName);
 		}

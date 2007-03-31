@@ -40,8 +40,8 @@ import org.archive.wayback.core.SearchResult;
  */
 public class TagMagix {
 
-	// TODO: should this be a HashTable (synchronized) ?
-	private static HashMap pcPatterns = new HashMap();
+	private static HashMap<String,Pattern> pcPatterns = 
+		new HashMap<String,Pattern>();
 	
 	 
 	private static String QUOTED_ATTR_VALUE= "(?:\"[^\">]*\")";
@@ -62,10 +62,10 @@ public class TagMagix {
 	 * @param attrName
 	 * @return Pattern to match the tag-attribute's value
 	 */
-	private static Pattern getPattern(String tagName, String attrName) {
+	private synchronized static Pattern getPattern(String tagName, String attrName) {
 
 		String key = tagName + "    " + attrName;
-		Pattern pc = (Pattern) pcPatterns.get(key);
+		Pattern pc = pcPatterns.get(key);
 		if(pc == null) {
 			
 			String tagPatString = "<\\s*" + tagName + "\\s+[^>]*\\b" + attrName + 

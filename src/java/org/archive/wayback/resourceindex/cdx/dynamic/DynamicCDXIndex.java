@@ -216,19 +216,19 @@ public class DynamicCDXIndex  extends CompositeSearchResultSource {
 		}
 		
 		private Object[] getDesiredMD5s() throws IOException {
-			ArrayList allRanges = new ArrayList();
+			ArrayList<String> allRanges = new ArrayList<String>();
 			for(int i = 0; i < nodeNames.length; i++) {
 				Object ranges[] = rangeFile.getRangesForNode((String) nodeNames[i]);
 				for(int j=0; j<ranges.length; j++) {
-					allRanges.add(ranges[j]);
+					allRanges.add((String)ranges[j]);
 				}
 			}
 			Object ranges[] = allRanges.toArray();
-			ArrayList md5sNeeded = new ArrayList();
+			ArrayList<String> md5sNeeded = new ArrayList<String>();
 			for(int i = 0; i < ranges.length; i++) {
 				Object rangeMD5s[] = definitionFile.getMD5sForRange((String) ranges[i]);
 				for(int j=0; j < rangeMD5s.length; j++) {
-					md5sNeeded.add(rangeMD5s[j]);
+					md5sNeeded.add((String)rangeMD5s[j]);
 				}
 			}
 			return md5sNeeded.toArray();
@@ -299,16 +299,17 @@ public class DynamicCDXIndex  extends CompositeSearchResultSource {
 					Object current[] = getCurrentMD5s();
 
 					// work to do?
-					HashMap desiredMap = new HashMap();
-					ArrayList extra = new ArrayList();
+					HashMap<String,Object> desiredMap = 
+						new HashMap<String, Object>();
+					ArrayList<String> extra = new ArrayList<String>();
 					for(int i=0; i< desired.length; i++) {
-						desiredMap.put(desired[i],null);
+						desiredMap.put((String)desired[i],null);
 					}
 					for(int i=0; i< current.length; i++) {
 						if(desiredMap.containsKey(current[i])) {
 							desiredMap.remove(current[i]);
 						} else {
-							extra.add(current[i]);
+							extra.add((String)current[i]);
 						}
 					}
 					Set needed = desiredMap.keySet();

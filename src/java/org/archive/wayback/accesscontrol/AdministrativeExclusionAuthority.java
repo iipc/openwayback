@@ -110,9 +110,10 @@ public class AdministrativeExclusionAuthority implements ExclusionAuthority {
 	 * @return String representation of rules
 	 * @throws DatabaseException 
 	 */
-	public ArrayList matchRules(String surt) throws DatabaseException {
+	public ArrayList<AdministrativeExclusionRules> matchRules(String surt) throws DatabaseException {
 		BDBRecordIterator itr = db.recordIterator(surt);
-		ArrayList matching = new ArrayList();
+		ArrayList<AdministrativeExclusionRules> matching = 
+			new ArrayList<AdministrativeExclusionRules>();
 		while(itr.hasNext()) {
 			BDBRecord record = (BDBRecord) itr.next();
 			AdministrativeExclusionRules rules = recordToRules(record);

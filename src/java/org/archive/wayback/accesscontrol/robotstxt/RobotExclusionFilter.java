@@ -62,7 +62,7 @@ public class RobotExclusionFilter extends SearchResultFilter {
 	private static String WWWN_REGEX = "^www[0-9]+\\.";
 	private final static Pattern WWWN_PATTERN = Pattern.compile(WWWN_REGEX);
 	private LiveWebCache webCache = null;
-	private HashMap rulesCache = null;
+	private HashMap<String,RobotRules> rulesCache = null;
 	private long maxCacheMS = 0;
 	private String userAgent = null;
 	private StringBuilder sb = null;
@@ -80,7 +80,7 @@ public class RobotExclusionFilter extends SearchResultFilter {
 	public RobotExclusionFilter(LiveWebCache webCache, String userAgent,
 			long maxCacheMS) {
 
-		rulesCache = new HashMap();
+		rulesCache = new HashMap<String,RobotRules>();
 
 		this.webCache = webCache;
 		this.userAgent = userAgent;
@@ -104,7 +104,7 @@ public class RobotExclusionFilter extends SearchResultFilter {
 	 *  [originalURL,www.originalURL]
 	 */
 	protected List searchResultToRobotUrlStrings(String resultHost) {
-		ArrayList list = new ArrayList();
+		ArrayList<String> list = new ArrayList<String>();
 		list.add(hostToRobotUrlString(resultHost));
 		
 		if(resultHost.startsWith("www")) {
@@ -138,7 +138,7 @@ public class RobotExclusionFilter extends SearchResultFilter {
 				firstUrlString = urlString;
 			}
 			if(rulesCache.containsKey(urlString)) {
-				rules = (RobotRules) rulesCache.get(urlString);
+				rules = rulesCache.get(urlString);
 			} else {
 				try {
 					

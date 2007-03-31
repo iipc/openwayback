@@ -83,7 +83,7 @@ public class LocalARCResourceStore implements ResourceStore {
 	
 	private String getRequired(Properties p,String key) 
 	throws ConfigurationException {
-		String val = (String) p.getProperty(key);
+		String val = p.getProperty(key);
 		if((val == null) || val.length() < 1) {
 			throw new ConfigurationException("No configuration " + key);
 		}
@@ -174,7 +174,7 @@ public class LocalARCResourceStore implements ResourceStore {
 	public void queueNewArcsForIndex() throws IOException {
 		
 		// build a HashMap of what has been queued already:
-		HashMap queued = new HashMap();
+		HashMap<String,String> queued = new HashMap<String, String>();
 		String entries[] = queuedDir.list();
 		if(entries != null) {
 			for (int i = 0; i < entries.length; i++) {

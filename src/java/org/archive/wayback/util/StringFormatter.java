@@ -40,7 +40,7 @@ public class StringFormatter {
 
 	ResourceBundle bundle = null;
 	Locale locale = null;
-	Map formats = null;
+	Map<String,MessageFormat> formats = null;
 	/**
 	 * @param bundle
 	 * @param locale
@@ -48,11 +48,11 @@ public class StringFormatter {
 	public StringFormatter(ResourceBundle bundle, Locale locale) {
 		this.bundle = bundle;
 		this.locale = locale;
-		formats = new HashMap();
+		formats = new HashMap<String,MessageFormat>();
 	}
 	
 	private MessageFormat getFormat(String pattern) {
-		MessageFormat format = (MessageFormat) formats.get(pattern);
+		MessageFormat format = formats.get(pattern);
 		if(format == null) {
 			format = new MessageFormat(pattern,locale);
 			formats.put(pattern,format);

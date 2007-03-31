@@ -46,7 +46,7 @@ import org.archive.wayback.exception.ResourceNotInArchiveException;
  */
 public class RangeGroup implements ResourceIndex {
 
-	private HashMap members = null;
+	private HashMap<String,RangeMember> members = null;
 	private String name;
 	private String start;
 	private String end;
@@ -61,7 +61,7 @@ public class RangeGroup implements ResourceIndex {
 		this.name = name;
 		this.start = start;
 		this.end = end;
-		members = new HashMap();
+		members = new HashMap<String,RangeMember>();
 	}
 	
 	/**
@@ -70,7 +70,9 @@ public class RangeGroup implements ResourceIndex {
 	 * @param urls
 	 */
 	public synchronized void setMembers(String[] urls) {
-		HashMap newMembers = new HashMap();
+		HashMap<String,RangeMember> newMembers = 
+			new HashMap<String,RangeMember>();
+		
 		for(int i=0; i < urls.length; i++) {
 			if(members.containsKey(urls[i])) {
 				newMembers.put(urls[i],members.get(urls[i]));
@@ -125,9 +127,9 @@ public class RangeGroup implements ResourceIndex {
 	protected synchronized RangeMember findBestMember() {
 		RangeMember best = null;
 		int lowestWeight = RangeMember.UNUSABLE_WEIGHT;
-		Iterator itr = members.values().iterator();
+		Iterator<RangeMember> itr = members.values().iterator();
 		while(itr.hasNext()) {
-			RangeMember cur = (RangeMember) itr.next();
+			RangeMember cur = itr.next();
 			int curWeight = cur.getWeight();
 			if(curWeight != RangeMember.UNUSABLE_WEIGHT) {
 				

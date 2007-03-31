@@ -56,7 +56,7 @@ public class ResultsPartitionsFactory {
 	 * @param wbRequest 
 	 * @return ArrayList of ResultsPartition objects
 	 */
-	public static ArrayList get(SearchResults results,
+	public static ArrayList<ResultsPartition> get(SearchResults results,
 			WaybackRequest wbRequest) {
 		String rsd = results.getFilter(WaybackConstants.REQUEST_START_DATE);
 		String red = results.getFilter(WaybackConstants.REQUEST_END_DATE);
@@ -82,7 +82,8 @@ public class ResultsPartitionsFactory {
 
 		// now use the partitioner to initialize and populate the 
 		// ResultPartition objects:
-		ArrayList partitions = new ArrayList();
+		ArrayList<ResultsPartition> partitions = 
+			new ArrayList<ResultsPartition>();
 
 		Calendar startCal = partitioner.dateStrToCalendar(rsd);
 		Calendar lastCal = partitioner.dateStrToCalendar(red);

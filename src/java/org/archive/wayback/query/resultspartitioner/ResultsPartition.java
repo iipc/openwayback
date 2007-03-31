@@ -41,7 +41,7 @@ public class ResultsPartition {
 	private String endDateStr = null;   // exclusive
 	private String title = null;
 
-	private ArrayList matches = null;
+	private ArrayList<SearchResult> matches = null;
 	
 	/**
 	 * @return number of SearchResult objects in this partition
@@ -61,7 +61,7 @@ public class ResultsPartition {
 		this.startDateStr = startDateStr;
 		this.endDateStr = endDateStr;
 		this.title= title;
-		matches = new ArrayList();
+		matches = new ArrayList<SearchResult>();
 	}
 	
 	/**
@@ -70,9 +70,9 @@ public class ResultsPartition {
 	 * @param results
 	 */
 	public void filter(SearchResults results) {
-		Iterator itr = results.iterator();
+		Iterator<SearchResult> itr = results.iterator();
 		while(itr.hasNext()) {
-			SearchResult result = (SearchResult) itr.next();
+			SearchResult result = itr.next();
 			String captureDate = result.get(
 					WaybackConstants.RESULT_CAPTURE_DATE);
 			if((captureDate.compareTo(startDateStr) >= 0) 
@@ -92,7 +92,7 @@ public class ResultsPartition {
 	/**
 	 * @return Returns the matches.
 	 */
-	public ArrayList getMatches() {
+	public ArrayList<SearchResult> getMatches() {
 		return matches;
 	}
 }

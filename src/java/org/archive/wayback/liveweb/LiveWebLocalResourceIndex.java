@@ -83,7 +83,7 @@ public class LiveWebLocalResourceIndex extends LocalResourceIndex {
 	 * @param result
 	 */
 	public void addSearchResult(SearchResult result) {
-		ArrayList l = new ArrayList();
+		ArrayList<SearchResult> l = new ArrayList<SearchResult>();
 		l.add(result);
 		BDBIndex bdbSource = (BDBIndex) source;
 		bdbSource.insertRecords(new AdaptedIterator(l.iterator(),

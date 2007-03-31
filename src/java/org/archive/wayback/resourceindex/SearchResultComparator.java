@@ -35,7 +35,7 @@ import org.archive.wayback.core.SearchResult;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class SearchResultComparator implements Comparator {
+public class SearchResultComparator implements Comparator<Object> {
 
 	private boolean backwards;
 	/**

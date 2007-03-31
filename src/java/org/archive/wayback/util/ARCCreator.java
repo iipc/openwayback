@@ -48,12 +48,12 @@ public class ARCCreator {
     Logger logger = Logger.getLogger(getClass().getName());
 
 	private static String DEFAULT_PREFIX = "test-arc";
-	private HashMap components = new HashMap();
+	private HashMap<String,RecordComponents> components = 
+		new HashMap<String,RecordComponents>();
 
 
 	private RecordComponents getRecordComponents(final String key) {
-		RecordComponents rc;
-		rc = (RecordComponents) components.get(key);
+		RecordComponents rc = components.get(key);
 		if(rc == null) {
 			rc = new RecordComponents(key);
 			components.put(key,rc);
@@ -118,7 +118,7 @@ public class ARCCreator {
 		Arrays.sort(arr);
 		for(int i = 0; i < arr.length; i++) {
 			String key = (String) arr[i];
-			RecordComponents rc = (RecordComponents) components.get(key);
+			RecordComponents rc = components.get(key);
 			rc.writeRecord(writer,srcDir);
 			logger.info("Wrote record keyed " + rc.key);			
 		}

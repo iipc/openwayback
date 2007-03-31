@@ -38,7 +38,7 @@ import java.util.Iterator;
 public class AdministrativeExclusionRules {
 
 	private static String DELIMITER = ",";
-	private ArrayList rules = null;
+	private ArrayList<AdministrativeExclusionRule> rules = null;
 	private String surtPrefix;
 	/**
 	 * @param surtPrefix
@@ -57,18 +57,21 @@ public class AdministrativeExclusionRules {
 	public ArrayList filterRules(final String dateStr) {
 		
 		if(rules == null) {
-			return new ArrayList();
+			return new ArrayList<AdministrativeExclusionRule>();
 		}
 		
 		// first separate the rules into ADD and DELETE, only keeping the newest
 		// for any START-END-TYPE
 		
-		HashMap adds = new HashMap();
-		HashMap deletes = new HashMap();
-		HashMap cur = null;
+		HashMap<String, AdministrativeExclusionRule> adds = 
+			new HashMap<String, AdministrativeExclusionRule>();
+		
+		HashMap<String, AdministrativeExclusionRule> deletes = 
+			new HashMap<String, AdministrativeExclusionRule>();
+		HashMap<String, AdministrativeExclusionRule> cur = null;
+
 		for(int i = 0; i < rules.size(); i++) {
-			AdministrativeExclusionRule rule = 
-				(AdministrativeExclusionRule) rules.get(i);
+			AdministrativeExclusionRule rule = rules.get(i);
 			if(!rule.appliesToDateStr(dateStr)) {
 				continue;
 			}
@@ -108,7 +111,7 @@ public class AdministrativeExclusionRules {
 		// now the "adds" HashMap contains only rules that apply now, for the
 		// current time we are interested in.
 
-		return new ArrayList(adds.values());
+		return new ArrayList<AdministrativeExclusionRule>(adds.values());
 	}
 	
 	/**
@@ -166,7 +169,7 @@ public class AdministrativeExclusionRules {
 	 * @param encodedRules
 	 */
 	public void loadRules(final String encodedRules) {
-		rules = new ArrayList();
+		rules = new ArrayList<AdministrativeExclusionRule>();
 		String ruleChunks[] = encodedRules.split(DELIMITER);
 		for(int i = 0; i < ruleChunks.length; i++) {
 			AdministrativeExclusionRule rule = parseRule(ruleChunks[i]);
@@ -181,7 +184,7 @@ public class AdministrativeExclusionRules {
 	 */
 	public void addRule(AdministrativeExclusionRule rule) {
 		if(rules == null) {
-			rules = new ArrayList();
+			rules = new ArrayList<AdministrativeExclusionRule>();
 		}
 		rules.add(rule);
 	}
@@ -194,10 +197,9 @@ public class AdministrativeExclusionRules {
 			return "";
 		}
 		StringBuilder builder = new StringBuilder(rules.size() * 120);
-		Iterator itr = rules.iterator();
+		Iterator<AdministrativeExclusionRule> itr = rules.iterator();
 		while(itr.hasNext()) {
-			AdministrativeExclusionRule rule = (AdministrativeExclusionRule) 
-				itr.next();
+			AdministrativeExclusionRule rule = itr.next();
 			if(builder.length() > 0) {
 				builder.append(DELIMITER);
 			}

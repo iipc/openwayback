@@ -101,11 +101,15 @@ public class AlphaPartitionedIndex implements ResourceIndex {
 				") checking every " + checkInterval + " seconds");
 	}
 	
+	@SuppressWarnings("unchecked")
 	private void reloadMapFile() throws IOException {
 		FlatFile ff = new FlatFile(mapPath);
 		Iterator itr = ff.getSequentialIterator();
-		HashMap newGroupsMap = new HashMap();
-		HashMap oldGroupsMap = new HashMap();
+		HashMap<String,RangeGroup> newGroupsMap = 
+			new HashMap<String,RangeGroup>();
+		HashMap<String,RangeGroup> oldGroupsMap = 
+			new HashMap<String,RangeGroup>();
+		
 		if(groups != null) {
 			for(int i = 0; i < groups.length; i++) {
 				oldGroupsMap.put(groups[i].getName(),groups[i]);
@@ -127,7 +131,7 @@ public class AlphaPartitionedIndex implements ResourceIndex {
 			}
 			RangeGroup group = null;
 			if(oldGroupsMap.containsKey(name)) {
-				group = (RangeGroup) oldGroupsMap.get(name);
+				group = oldGroupsMap.get(name);
 				if(start.compareTo(group.getStart()) != 0) {
 					throw new IOException("Change of start range in " + 
 							mapPath + " for range " + name);
@@ -142,7 +146,7 @@ public class AlphaPartitionedIndex implements ResourceIndex {
 			group.setMembers(members);
 			newGroupsMap.put(name,group);
 		}
-		Collection c = newGroupsMap.values();
+		Collection<RangeGroup> c = newGroupsMap.values();
 		RangeGroup[] newGroups = new RangeGroup[c.size()];
 		Iterator itrg = c.iterator();
 		for (int i=0; itrg.hasNext(); i++)
@@ -168,6 +172,7 @@ public class AlphaPartitionedIndex implements ResourceIndex {
 		}
 	}
 	
+	@SuppressWarnings("unchecked")
 	protected RangeGroup getRangeGroupForRequest(WaybackRequest wbRequest)
 		throws BadQueryException, ResourceIndexNotAvailableException {
 		

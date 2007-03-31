@@ -52,7 +52,6 @@ public class CDXIndex extends FlatFile implements SearchResultSource {
 	 */
 	public CDXIndex(File parent, String child) {
 		super(parent, child);
-		// TODO Auto-generated constructor stub
 	}
 	/**
 	 * @param path
@@ -121,7 +120,7 @@ public class CDXIndex extends FlatFile implements SearchResultSource {
 		return itr;
 	}
 
-	private class TimestampComparator implements Comparator {
+	private class TimestampComparator implements Comparator<Object> {
 		private int wantedSSE;
 		/**
 		 * @param wanted

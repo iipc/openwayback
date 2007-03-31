@@ -38,14 +38,14 @@ import org.archive.wayback.resourceindex.SearchResultFilter;
  * @version $Date$, $Revision$
  */
 public class MimeTypeFilter extends SearchResultFilter {
-	private HashMap validMimes = null;
+	private HashMap<String,Integer> validMimes = null;
 	
 	/**
 	 * @param mime String which is valid match for mime-type field
 	 */
 	public void addMime(final String mime) {
 		if(validMimes == null) {
-			validMimes = new HashMap();
+			validMimes = new HashMap<String, Integer>();
 		}
 		validMimes.put(mime.toLowerCase(),new Integer(1));
 	}

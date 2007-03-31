@@ -41,7 +41,7 @@ public class SearchResults {
 	/**
 	 * List of SearchResult objects for index records matching a query
 	 */
-	private ArrayList results = null;
+	private ArrayList<SearchResult> results = null;
 	/**
 	 * 14-digit timestamp of first capture date contained in the SearchResults
 	 */
@@ -62,7 +62,7 @@ public class SearchResults {
 	 */
 	public SearchResults() {
 		super();
-		results = new ArrayList();
+		results = new ArrayList<SearchResult>();
 	}
 	/**
 	 * @return true if no SearchResult objects, false otherwise.
@@ -112,7 +112,7 @@ public class SearchResults {
 	/**
 	 * @return an Iterator that contains the SearchResult objects
 	 */
-	public Iterator iterator() {
+	public Iterator<SearchResult> iterator() {
 		return results.iterator();
 	}
 	/**
@@ -141,7 +141,7 @@ public class SearchResults {
 	 * @return value of key 'key' in filters
 	 */
 	public String getFilter(String key) {
-		return (String) filters.get(key);
+		return filters.getProperty(key);
 	}
 
 	/**
@@ -150,7 +150,7 @@ public class SearchResults {
 	 * @return previous String value of key 'key' or null if there was none
 	 */
 	public String putFilter(String key, String value) {
-		return (String) filters.put(key, value);
+		return (String) filters.setProperty(key, value);
 	}
 	/**
 	 * @return Returns the filters.

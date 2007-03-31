@@ -37,13 +37,13 @@ import java.util.ArrayList;
 
 public class ObjectFilterChain implements ObjectFilter {
 
-	private ArrayList filters = null;
+	private ArrayList<ObjectFilter> filters = null;
 
 	/**
 	 * Constructor
 	 */
 	public ObjectFilterChain() {
-		this.filters = new ArrayList();
+		this.filters = new ArrayList<ObjectFilter>();
 	}
 
 	/**
@@ -62,8 +62,7 @@ public class ObjectFilterChain implements ObjectFilter {
 		int size = filters.size();
 		int result = FILTER_ABORT;
 		for (int i = 0; i < size; i++) {
-			ObjectFilter filter = (ObjectFilter) filters.get(i);
-			result = filter.filterObject(o);
+			result = filters.get(i).filterObject(o);
 			if (result == FILTER_ABORT) {
 				break;
 			} else if (result == FILTER_EXCLUDE) {

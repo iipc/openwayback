@@ -64,7 +64,7 @@ public class ResultsTimelinePartitionsFactory {
 	 * @param wbRequest 
 	 * @return ArrayList of ResultsPartition objects
 	 */
-	public static ArrayList getHour(SearchResults results,
+	public static ArrayList<ResultsPartition> getHour(SearchResults results,
 			WaybackRequest wbRequest) {
 		return get(hourRP,NUM_HOUR_PARTITIONS,results,wbRequest);
 	}
@@ -74,7 +74,7 @@ public class ResultsTimelinePartitionsFactory {
 	 * @param wbRequest 
 	 * @return ArrayList of ResultsPartition objects
 	 */
-	public static ArrayList getDay(SearchResults results,
+	public static ArrayList<ResultsPartition> getDay(SearchResults results,
 			WaybackRequest wbRequest) {
 		return get(dayRP,NUM_DAY_PARTITIONS,results,wbRequest);
 	}
@@ -84,7 +84,7 @@ public class ResultsTimelinePartitionsFactory {
 	 * @param wbRequest 
 	 * @return ArrayList of ResultsPartition objects
 	 */
-	public static ArrayList getMonth(SearchResults results,
+	public static ArrayList<ResultsPartition> getMonth(SearchResults results,
 			WaybackRequest wbRequest) {
 		return get(monthRP,NUM_MONTH_PARTITIONS,results,wbRequest);
 	}
@@ -94,7 +94,7 @@ public class ResultsTimelinePartitionsFactory {
 	 * @param wbRequest 
 	 * @return ArrayList of ResultsPartition objects
 	 */
-	public static ArrayList getYear(SearchResults results,
+	public static ArrayList<ResultsPartition> getYear(SearchResults results,
 			WaybackRequest wbRequest) {
 		return get(yearRP,NUM_YEAR_PARTITIONS,results,wbRequest);
 	}
@@ -104,7 +104,7 @@ public class ResultsTimelinePartitionsFactory {
 	 * @param wbRequest 
 	 * @return ArrayList of ResultsPartition objects
 	 */
-	public static ArrayList getAuto(SearchResults results,
+	public static ArrayList<ResultsPartition> getAuto(SearchResults results,
 			WaybackRequest wbRequest) {
 		int first = Timestamp.parseBefore(results.getFirstResultDate()).sse();
 		int last = Timestamp.parseAfter(results.getLastResultDate()).sse();
@@ -137,11 +137,12 @@ public class ResultsTimelinePartitionsFactory {
 		return WaybackConstants.REQUEST_RESOLUTION_YEARS;
 	}
 	
-	private static ArrayList get(ResultsPartitioner partitioner,
-			int partitionCount, SearchResults results, 
+	private static ArrayList<ResultsPartition> get(ResultsPartitioner 
+			partitioner, int partitionCount, SearchResults results, 
 			WaybackRequest wbRequest) {
 		
-		ArrayList partitions = new ArrayList();
+		ArrayList<ResultsPartition> partitions = 
+			new ArrayList<ResultsPartition>();
 
 		int i; // counter
 		int totalPartitions = (partitionCount * 2) + 1; // total # of partitions

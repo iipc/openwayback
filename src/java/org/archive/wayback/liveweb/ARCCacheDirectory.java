@@ -182,7 +182,7 @@ public class ARCCacheDirectory implements PropertyConfigurable {
 				return ARCConstants.DEFAULT_MAX_ARC_FILE_SIZE;
 			}
 
-			public List getOutputDirs() {
+			public List<File> getOutputDirs() {
 				return Arrays.asList(arcDirs);
 			}
 

@@ -60,9 +60,11 @@ public class WaybackLogic implements PropertyConfigurable {
 
 	private Properties configuration = null;
 	
-	Hashtable objectCache = new Hashtable();
+	Hashtable<String,PropertyConfigurable> objectCache = 
+		new Hashtable<String, PropertyConfigurable>();
 
-	private static Hashtable singletonCache = new Hashtable();
+	private static Hashtable<String, PropertyConfigurable> singletonCache =
+		new Hashtable<String, PropertyConfigurable>();
 	
 	private OpenSearchQueryParser qp = null;
 	
@@ -107,12 +109,12 @@ public class WaybackLogic implements PropertyConfigurable {
 			if (key.equals(classNameKey)) {
 
 				// special .classname value:
-				className = (String) p.get(key);
+				className = p.getProperty(key);
 
 			} else if (key.startsWith(propertyPrefix)) {
 
 				String finalKey = key.substring(propertyPrefix.length());
-				String value = (String) p.get(key);
+				String value = p.getProperty(key);
 				classProperties.put(finalKey, value);
 
 			}
@@ -151,7 +153,7 @@ public class WaybackLogic implements PropertyConfigurable {
 		if(!singletonCache.containsKey(className)) {
 			singletonCache.put(className,getInstance(configuration,className));
 		}
-		return (PropertyConfigurable) singletonCache.get(className);
+		return singletonCache.get(className);
 	}
 
 	/**
@@ -167,7 +169,7 @@ public class WaybackLogic implements PropertyConfigurable {
 		if(!objectCache.containsKey(className)) {
 			objectCache.put(className,getInstance(configuration,className));
 		}
-		return (PropertyConfigurable) objectCache.get(className);
+		return objectCache.get(className);
 	}
 	
 	/**

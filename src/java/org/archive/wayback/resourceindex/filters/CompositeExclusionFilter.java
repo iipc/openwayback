@@ -40,7 +40,9 @@ import org.archive.wayback.resourceindex.SearchResultFilter;
  */
 public class CompositeExclusionFilter extends SearchResultFilter {
 
-	private ArrayList filters = new ArrayList();
+	private ArrayList<SearchResultFilter> filters = 
+		new ArrayList<SearchResultFilter>();
+	
 	/**
 	 * @param filter to be added to the composite.
 	 */
@@ -51,10 +53,9 @@ public class CompositeExclusionFilter extends SearchResultFilter {
 	 * @see org.archive.wayback.resourceindex.SearchResultFilter#filterSearchResult(org.archive.wayback.core.SearchResult)
 	 */
 	public int filterSearchResult(SearchResult r) {
-		Iterator itr = filters.iterator();
+		Iterator<SearchResultFilter> itr = filters.iterator();
 		while(itr.hasNext()) {
-			SearchResultFilter filter = (SearchResultFilter) itr.next();
-			int result = filter.filterSearchResult(r);
+			int result = itr.next().filterSearchResult(r);
 			if(result != FILTER_INCLUDE) {
 				return result;
 			}

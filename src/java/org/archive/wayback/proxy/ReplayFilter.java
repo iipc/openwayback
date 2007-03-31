@@ -52,7 +52,7 @@ public class ReplayFilter extends RequestFilter {
 	 */
 	private static final String LOCAL_HOSTNAME = "query.localhostname";
 
-	private List localhostNames = null;
+	private List<String> localhostNames = null;
 	
 	/**
 	 * Constructor

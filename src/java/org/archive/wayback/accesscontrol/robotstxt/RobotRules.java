@@ -54,8 +54,10 @@ public class RobotRules {
 	public static final String GLOBAL_USER_AGENT = "*";
 
 	private boolean bSyntaxErrors = false;
-	private HashMap rules = new HashMap();
-	private LinkedList userAgents = new LinkedList();
+	private HashMap<String, ArrayList<String>> rules = 
+		new HashMap<String, ArrayList<String>>();
+
+	private LinkedList<String> userAgents = new LinkedList<String>();
 
 	/**
 	 * @return true if the robots.txt file looked suspicious, currently meaning
@@ -68,7 +70,7 @@ public class RobotRules {
 	/**
 	 * @return a List of all UserAgents Found in the Robots.txt document
 	 */
-	public List getUserAgentsFound() {
+	public List<String> getUserAgentsFound() {
 		return userAgents;
 	}
 	
@@ -84,7 +86,7 @@ public class RobotRules {
 		BufferedReader br = new BufferedReader(new InputStreamReader(
 				(InputStream) is));
         String read;
-        ArrayList current = null;
+        ArrayList<String> current = null;
         while (br != null) {
             do {
                 read = br.readLine();
@@ -106,7 +108,7 @@ public class RobotRules {
                     if (current == null || current.size() != 0) {
                         // only create new rules-list if necessary
                         // otherwise share with previous user-agent
-                        current = new ArrayList();
+                        current = new ArrayList<String>();
                     }
                     rules.put(ua, current);
                     LOGGER.fine("Found User-agent(" + ua + ") rules...");
@@ -130,11 +132,11 @@ public class RobotRules {
         }
     }
 	
-	private boolean blocksPath(String path, String curUA, List uaRules) {
+	private boolean blocksPath(String path, String curUA, List<String> uaRules) {
 		
-		Iterator disItr = uaRules.iterator();
+		Iterator<String> disItr = uaRules.iterator();
 		while (disItr.hasNext()) {
-			String disallowedPath = (String) disItr.next();
+			String disallowedPath = disItr.next();
 			if (disallowedPath.length() == 0) {
 
 				LOGGER.fine("UA(" + curUA
@@ -166,12 +168,12 @@ public class RobotRules {
 
 		if(rules.containsKey(ua.toLowerCase())) {
 
-			return blocksPath(path,ua,(List) rules.get(ua.toLowerCase()));
+			return blocksPath(path,ua,rules.get(ua.toLowerCase()));
 
 		} else if(rules.containsKey(GLOBAL_USER_AGENT)) {
 
 			return blocksPath(path,GLOBAL_USER_AGENT,
-					(List) rules.get(GLOBAL_USER_AGENT));			
+					rules.get(GLOBAL_USER_AGENT));			
 		}
 		return false;
 	}

@@ -40,13 +40,13 @@ import org.archive.wayback.util.CompositeSortedIterator;
  */
 public class CompositeSearchResultSource implements SearchResultSource {
 
-	protected ArrayList sources;
+	protected ArrayList<SearchResultSource> sources;
 
 	/**
 	 * Constructor
 	 */
 	public CompositeSearchResultSource() {
-		sources = new ArrayList();
+		sources = new ArrayList<SearchResultSource>();
 	}
 
 	/**
@@ -67,11 +67,10 @@ public class CompositeSearchResultSource implements SearchResultSource {
 	public CloseableIterator getPrefixIterator(String prefix)
 			throws ResourceIndexNotAvailableException {
 
-		Comparator comparator = new SearchResultComparator();
+		Comparator<Object> comparator = new SearchResultComparator();
 		CompositeSortedIterator itr = new CompositeSortedIterator(comparator);
 		for (int i = 0; i < sources.size(); i++) {
-			SearchResultSource source = (SearchResultSource) sources.get(i);
-			itr.addComponent(source.getPrefixIterator(prefix));
+			itr.addComponent(sources.get(i).getPrefixIterator(prefix));
 		}
 		return itr;
 	}
@@ -84,11 +83,10 @@ public class CompositeSearchResultSource implements SearchResultSource {
 	public CloseableIterator getPrefixReverseIterator(String prefix)
 			throws ResourceIndexNotAvailableException {
 
-		Comparator comparator = new SearchResultComparator(true);
+		Comparator<Object> comparator = new SearchResultComparator(true);
 		CompositeSortedIterator itr = new CompositeSortedIterator(comparator);
 		for (int i = 0; i < sources.size(); i++) {
-			SearchResultSource source = (SearchResultSource) sources.get(i);
-			itr.addComponent(source.getPrefixReverseIterator(prefix));
+			itr.addComponent(sources.get(i).getPrefixReverseIterator(prefix));
 		}
 		return itr;
 	}

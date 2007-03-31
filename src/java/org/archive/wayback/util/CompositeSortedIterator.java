@@ -42,16 +42,16 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
  */
 public class CompositeSortedIterator implements CloseableIterator {
 
-	private ArrayList components;
+	private ArrayList<PeekableIterator> components;
 	private Object next;
-	private Comparator comparator;
+	private Comparator<Object> comparator;
 	
 	/**
 	 * @param comparator Comparator to use for sorting order
 	 */
-	public CompositeSortedIterator(Comparator comparator) {
+	public CompositeSortedIterator(Comparator<Object> comparator) {
 		this.comparator = comparator;
-		components = new ArrayList();
+		components = new ArrayList<PeekableIterator>();
 		next = null;
 	}
 	/**
@@ -70,7 +70,7 @@ public class CompositeSortedIterator implements CloseableIterator {
 		// find lowest next:
 		PeekableIterator nextSource = null;
 		for(int i = 0; i < components.size(); i++) {
-			PeekableIterator pi = (PeekableIterator) components.get(i);
+			PeekableIterator pi = components.get(i);
 			if(pi.hasNext()) {
 				Object piNext = pi.peekNext();
 				if((next == null) || (comparator.compare(next,piNext) > 0)) {

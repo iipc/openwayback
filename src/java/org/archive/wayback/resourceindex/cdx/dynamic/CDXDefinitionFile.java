@@ -53,7 +53,7 @@ public class CDXDefinitionFile {
 	 * @throws IOException
 	 */
 	public Object[] getMD5sForRange(String rangeName) throws IOException {
-		HashMap matches = new HashMap();
+		HashMap<String,Object> matches = new HashMap<String, Object>();
 		Iterator itr = cachedFile.getSequentialIterator();
 		while(itr.hasNext()) {
 			String line = (String) itr.next();
