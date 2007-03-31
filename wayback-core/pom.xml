@@ -47,4 +47,17 @@
       </plugin>
     </plugins>
   </build>
+  <dependencies>
+    <dependency>
+      <groupId>org.archive</groupId>
+      <artifactId>archive-mapred</artifactId>
+      <version>0.2.0-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache</groupId>
+      <artifactId>hadoop</artifactId>
+      <version>0.12.2-core</version>
+      <scope>compile</scope>
+    </dependency>
+  </dependencies>
 </project>
