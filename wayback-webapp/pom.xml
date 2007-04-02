@@ -32,7 +32,7 @@
         <artifactId>maven-war-plugin</artifactId>
         <configuration>
           <warSourceDirectory>
-          ${basedir}/../src/webapp
+          src/main/webapp
           </warSourceDirectory>
         </configuration>
       </plugin>
