@@ -1,8 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project-modules id="moduleCoreId" project-version="1.5.0">
   <wb-module deploy-name="wayback-webapp">
-    <property name="context-root" value="wayback-webapp"/>
-    <wb-resource deploy-path="/" source-path="src/main/webapp"/>
     <property name="java-output-path" value="/target/classes"/>
+<property name="context-root" value="wayback"/>
+    <wb-resource deploy-path="/" source-path="src/main/webapp"/>
     <dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/var/M2_REPO/commons-cli/commons-cli/1.0-beta-2/commons-cli-1.0-beta-2.jar">
       <dependency-type>uses</dependency-type>
     </dependent-module>
@@ -42,6 +43,9 @@
     <dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/var/M2_REPO/commons-collections/commons-collections/3.1/commons-collections-3.1.jar">
       <dependency-type>uses</dependency-type>
     </dependent-module>
+<dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/var/M2_REPO/it/unimi/dsi/fastutil/5.0.3/fastutil-5.0.3.jar">
+<dependency-type>uses</dependency-type>
+</dependent-module>
     <wb-resource deploy-path="/WEB-INF/classes" source-path="src/main/java"/>
   </wb-module>
 </project-modules>
