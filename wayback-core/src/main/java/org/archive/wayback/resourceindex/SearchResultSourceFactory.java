@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Properties;
 
 import org.archive.util.InetAddressUtil;
+import org.archive.wayback.core.PropertyConfiguration;
 import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.resourceindex.bdb.BDBIndex;
 import org.archive.wayback.resourceindex.bdb.BDBIndexUpdater;
@@ -123,18 +124,6 @@ public class SearchResultSourceFactory {
 	private final static String CDX_DEFINITION_URL = "resourceindex.cdxdefnurl";
 	private final static String CDX_MD5_URL = "resourceindex.cdxmd5url";
 
-	private static String getRequiredValue(Properties p, String name, 
-			String defaultValue) throws ConfigurationException {
-		String value = p.getProperty(name);
-		if(value == null) {
-			if(defaultValue == null) {
-				throw new ConfigurationException("Missing property " + name);
-			}
-			value = defaultValue;
-		}
-		return value;
-	}
-	
 	/**
 	 * @param p
 	 * @return SearchResultSource as specified in Properties
@@ -144,13 +133,14 @@ public class SearchResultSourceFactory {
 		throws ConfigurationException {
 		
 		SearchResultSource src = null;
-		String className = getRequiredValue(p,SOURCE_CLASS,SOURCE_CLASS_BDB);
+		PropertyConfiguration pc = new PropertyConfiguration(p);
+		String className = pc.getString(SOURCE_CLASS,SOURCE_CLASS_BDB);
 		if(className.equals(SOURCE_CLASS_BDB)) {
-			src = getBDBIndex(p);
+			src = getBDBIndex(pc);
 		} else if(className.equals(SOURCE_CLASS_CDX)) {
-			src = getCDXIndex(p);
+			src = getCDXIndex(pc);
 		} else if(className.equals(SOURCE_CLASS_DYNAMIC_CDX)) {
-			src = getDynamicCDXIndex(p);
+			src = getDynamicCDXIndex(pc);
 		} else {
 			throw new ConfigurationException("Unknown " + SOURCE_CLASS + 
 					" configuration, try one of: " + SOURCE_CLASS_BDB + ", " +
@@ -159,10 +149,10 @@ public class SearchResultSourceFactory {
 		return src;
 	}
 	
-	private static SearchResultSource getCDXIndex(Properties p) 
+	private static SearchResultSource getCDXIndex(PropertyConfiguration pc) 
 		throws ConfigurationException {
 		
-		String pathString = getRequiredValue(p,CDX_PATHS,null);
+		String pathString = pc.getString(CDX_PATHS);
 		String paths[] = pathString.split(",");
 		if(paths.length > 1) {
 			CompositeSearchResultSource src = new CompositeSearchResultSource();
@@ -175,56 +165,32 @@ public class SearchResultSourceFactory {
 		return new CDXIndex(paths[0]);
 	}
 
-	// TODO: duplicated code -- refactor
-	private static void ensureDir(File dir) throws ConfigurationException {
-		if(!dir.isDirectory()) {
-			if(dir.exists()) {
-				throw new ConfigurationException("directory (" + 
-						dir.getAbsolutePath() + 
-						") exists but is not a directory.");
-			}
-			if(!dir.mkdirs()) {
-				throw new ConfigurationException("unable to create directory(" + 
-						dir.getAbsolutePath() + ")");
-			}
-		}
-	}
-
-	
-	private static SearchResultSource getBDBIndex(Properties p) 
+	private static SearchResultSource getBDBIndex(PropertyConfiguration pc) 
 		throws ConfigurationException {
 		
 		BDBIndex index = new BDBIndex();
-		String path = getRequiredValue(p,INDEX_PATH,null);
-		String name = getRequiredValue(p,DB_NAME,"DB1");
+		String path = pc.getString(INDEX_PATH);
+		String name = pc.getString(DB_NAME,"DB1");
 		try {
 			index.initializeDB(path,name);
 		} catch (DatabaseException e) {
 			throw new ConfigurationException(e.getMessage());
 		}
 		
-		String incomingPath = getRequiredValue(p,INCOMING_PATH,"");
+		String incomingPath = pc.getString(INCOMING_PATH, "");
 		if(incomingPath.length() > 0) {
-			File incoming = new File(incomingPath);
-			ensureDir(incoming);
+			File incoming = pc.getDir(INCOMING_PATH,true);
+
 			BDBIndexUpdater updater = new BDBIndexUpdater(index,incoming);
 
-			String mergedPath = getRequiredValue(p,MERGED_PATH,"");
-			String failedPath = getRequiredValue(p,FAILED_PATH,"");
-			String mergeInterval = getRequiredValue(p,MERGE_INTERVAL,"");
-			
-			if(mergedPath.length() > 0) {
-				File merged = new File(mergedPath);
-				ensureDir(merged);
-				updater.setMerged(merged);
+			if(pc.getString(MERGED_PATH,"").length() > 0) {
+				updater.setMerged(pc.getDir(MERGED_PATH,true));
 			}
-			if(failedPath.length() > 0) {
-				File failed = new File(failedPath);
-				ensureDir(failed);
-				updater.setFailed(failed);
+			if(pc.getString(FAILED_PATH,"").length() > 0) {
+				updater.setFailed(pc.getDir(FAILED_PATH,true));
 			}
-			if(mergeInterval.length() > 0) {
-				updater.setRunInterval(Integer.parseInt(mergeInterval));
+			if(pc.getString(MERGE_INTERVAL,"").length() > 0) {
+				updater.setRunInterval(pc.getInt(MERGE_INTERVAL));
 			}
 			updater.startup();
 		}
@@ -237,34 +203,33 @@ public class SearchResultSourceFactory {
 		return new CachedFile(new File(dir,name),new URL(url),interval);
 	}
 	
-	private static SearchResultSource getDynamicCDXIndex(Properties p)
-	throws ConfigurationException {
+	private static SearchResultSource getDynamicCDXIndex(PropertyConfiguration 
+			pc) throws ConfigurationException {
 
-		String interval = getRequiredValue(p,CDX_INTERVAL,"10000");
-		String dataDir = getRequiredValue(p,CDX_DIR,null);
-		String rangeUrl = getRequiredValue(p,CDX_RANGE_URL,null);
-		String definitionUrl = getRequiredValue(p,CDX_DEFINITION_URL,null);
-		String md5Url = getRequiredValue(p,CDX_MD5_URL,null);
-		String extraNodeName = getRequiredValue(p,CDX_NODE_NAME,"");
+		int intInterval = pc.getInt(CDX_INTERVAL, 10000);
+		long longInterval = pc.getLong(CDX_INTERVAL,10000);
+		File dataDir = pc.getDir(CDX_DIR,true);
+		
+		
+		String rangeUrl = pc.getString(CDX_RANGE_URL);
+		String definitionUrl = pc.getString(CDX_DEFINITION_URL);
+		String md5Url = pc.getString(CDX_MD5_URL);
+		String extraNodeName = pc.getString(CDX_NODE_NAME,"");
 		List<String> names = InetAddressUtil.getAllLocalHostNames();
 		if(extraNodeName.length() > 0) {
 			names.add(extraNodeName);
 		}
 		Object nodeNames[] = names.toArray();
 		
-		File dir = new File(dataDir);
-		ensureDir(dir);
-		
-		long intL = Long.parseLong(interval);
-		int intI = Integer.parseInt(interval);
 		
 		CachedFile rcf;
 		CachedFile dcf;
 		CachedFile mcf;
 		try {
-			rcf = makeCachedFile(rangeUrl,dir,"range.txt",intL);
-			dcf = makeCachedFile(definitionUrl,dir,"definition.txt",intL);
-			mcf = makeCachedFile(md5Url,dir,"md5.txt",intL);
+			rcf = makeCachedFile(rangeUrl,dataDir,"range.txt",longInterval);
+			dcf = makeCachedFile(definitionUrl,dataDir,"definition.txt",
+					longInterval);
+			mcf = makeCachedFile(md5Url,dataDir,"md5.txt",longInterval);
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 			throw new ConfigurationException(e.getLocalizedMessage());
@@ -274,6 +239,7 @@ public class SearchResultSourceFactory {
 		CDXDefinitionFile cdxFile = new CDXDefinitionFile(dcf);
 		MD5LocationFile md5File = new MD5LocationFile(mcf);
 		
-		return new DynamicCDXIndex(nodeNames,intI,dir,rangeFile,cdxFile,md5File);
+		return new DynamicCDXIndex(nodeNames,intInterval,dataDir,rangeFile,
+				cdxFile,md5File);
 	}
 }
