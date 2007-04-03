@@ -35,6 +35,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.archive.wayback.QueryRenderer;
 import org.archive.wayback.ResultURIConverter;
+import org.archive.wayback.core.PropertyConfiguration;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.UIResults;
 import org.archive.wayback.core.WaybackRequest;
@@ -59,10 +60,8 @@ public class Renderer implements QueryRenderer {
 	private final String PREFIX_QUERY_JSP = "PathQueryResults.jsp";
 
 	public void init(Properties p) throws ConfigurationException {
-		this.jspPath = (String) p.get(JSP_PATH);
-		if (this.jspPath == null || this.jspPath.length() <= 0) {
-			throw new ConfigurationException("Failed to find " + JSP_PATH);
-		}
+		PropertyConfiguration pc = new PropertyConfiguration(p);
+		jspPath = pc.getString(JSP_PATH);
 	}
 
 	public void renderException(HttpServletRequest httpRequest,

@@ -43,6 +43,7 @@ import org.archive.wayback.resourceindex.filters.UrlMatchFilter;
 import org.archive.wayback.resourceindex.filters.UrlPrefixMatchFilter;
 import org.archive.wayback.resourceindex.filters.WindowEndFilter;
 import org.archive.wayback.resourceindex.filters.WindowStartFilter;
+import org.archive.wayback.core.PropertyConfiguration;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.Timestamp;
@@ -84,14 +85,12 @@ public class LocalResourceIndex implements ResourceIndex {
 	 * @see org.archive.wayback.PropertyConfigurable#init(java.util.Properties)
 	 */
 	public void init(Properties p) throws ConfigurationException {
+		PropertyConfiguration pc = new PropertyConfiguration(p);
 		source = SearchResultSourceFactory.get(p);
 		exclusionFactory = ExclusionFilterFactoryFactory.get(p);
 
-		String maxRecordsConfig = (String) p.get(
-				WaybackConstants.MAX_RESULTS_CONFIG_NAME);
-		if(maxRecordsConfig != null) {
-			maxRecords = Integer.parseInt(maxRecordsConfig);
-		}
+		maxRecords = pc.getInt(WaybackConstants.MAX_RESULTS_CONFIG_NAME,
+				MAX_RECORDS);
 	}
 
 	private SearchResultFilter getExclusionFilter() 

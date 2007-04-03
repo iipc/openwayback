@@ -34,6 +34,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.archive.wayback.ResourceIndex;
+import org.archive.wayback.core.PropertyConfiguration;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.WaybackRequest;
@@ -108,11 +109,8 @@ public class RemoteResourceIndex implements ResourceIndex {
 	public void init(Properties p) throws ConfigurationException {
 		LOGGER.info("initializing RemoteCDXIndex...");
 
-		this.searchUrlBase = (String) p.get(SEARCH_BASE_URL);
-		if (this.searchUrlBase == null || this.searchUrlBase.length() <= 0) {
-			throw new IllegalArgumentException("Failed to find "
-					+ SEARCH_BASE_URL);
-		}
+		PropertyConfiguration pc = new PropertyConfiguration(p);
+		searchUrlBase = pc.getString(SEARCH_BASE_URL);
 		this.factory = DocumentBuilderFactory.newInstance();
 		this.factory.setNamespaceAware(false);
 		LOGGER.info("Using base search url " + this.searchUrlBase);

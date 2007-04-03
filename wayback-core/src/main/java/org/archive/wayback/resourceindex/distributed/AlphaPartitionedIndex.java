@@ -37,6 +37,7 @@ import java.util.logging.Logger;
 import org.apache.commons.httpclient.URIException;
 import org.archive.wayback.ResourceIndex;
 import org.archive.wayback.WaybackConstants;
+import org.archive.wayback.core.PropertyConfiguration;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.AccessControlException;
@@ -68,6 +69,7 @@ public class AlphaPartitionedIndex implements ResourceIndex {
 	public static String RANGE_CHECK_INTERVAL =
 		"resourceindex.distributed.checkinterval";
 	private static long MS_PER_SEC = 1000;
+	private static long DEFAULT_CHECK_INTERVAL = 100;
 	
 	private long lastLoadStat = 0;
 	private long nextCheck = 0;
@@ -81,22 +83,9 @@ public class AlphaPartitionedIndex implements ResourceIndex {
 	 * @see org.archive.wayback.PropertyConfigurable#init(java.util.Properties)
 	 */
 	public void init(Properties p) throws ConfigurationException {
-		mapPath = (String) p.get(RANGE_MAP_PATH);
-		if ((mapPath == null) || (mapPath.length() < 1)) {
-			throw new ConfigurationException("Failed to find " 
-					+ RANGE_MAP_PATH);
-		}
-		String checkIntervalStr = (String) p.get(RANGE_CHECK_INTERVAL);
-		if ((checkIntervalStr == null) || (checkIntervalStr.length() < 1)) {
-			throw new ConfigurationException("Failed to find " 
-					+ RANGE_CHECK_INTERVAL);
-		}
-		try {
-			checkInterval = Long.parseLong(checkIntervalStr);
-		} catch (NumberFormatException e) {
-			throw new ConfigurationException("Non numeric " 
-					+ RANGE_CHECK_INTERVAL);			
-		}
+		PropertyConfiguration pc = new PropertyConfiguration(p);
+		mapPath = pc.getString(RANGE_MAP_PATH);
+		checkInterval = pc.getLong(RANGE_CHECK_INTERVAL,DEFAULT_CHECK_INTERVAL);
 		LOGGER.info("Initialized AlphaPartitionedIndex on file (" + mapPath +
 				") checking every " + checkInterval + " seconds");
 	}

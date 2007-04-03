@@ -31,6 +31,7 @@ import java.util.logging.Logger;
 
 import org.archive.wayback.PropertyConfigurable;
 import org.archive.wayback.bdb.BDBRecordSet;
+import org.archive.wayback.core.PropertyConfiguration;
 import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.util.CloseableIterator;
 
@@ -71,32 +72,15 @@ public class FileLocationDB extends BDBRecordSet implements PropertyConfigurable
 	}
 	
 	public void init(Properties p) throws ConfigurationException {
-		String dbPath = (String) p.get(ARC_DB_PATH);
-		if ((dbPath == null) || (dbPath.length() < 1)) {
-			throw new ConfigurationException("Failed to find " + ARC_DB_PATH);
-		}
-		String dbName = (String) p.get(ARC_DB_NAME);
-		if ((dbName == null) || (dbName.length() < 1)) {
-			throw new ConfigurationException("Failed to find " + ARC_DB_NAME);
-		}
-		
-		String logPath = (String) p.get(ARC_DB_LOG);
-		if ((logPath == null) || (logPath.length() < 1)) {
-			throw new ConfigurationException("Failed to find " + ARC_DB_LOG);
-		}
-
+		PropertyConfiguration pc = new PropertyConfiguration(p);
+		File dbDir = pc.getDir(ARC_DB_PATH, true);
+		String dbName = pc.getString(ARC_DB_NAME);
+		String logPath = pc.getString(ARC_DB_LOG);
 		try {
 
-			File dbDir = new File(dbPath);
-			if(!dbDir.exists()) {
-				if(!dbDir.mkdirs()) {
-					throw new ConfigurationException("Failed to create " + dbPath);
-				}
-			}
-			
-			LOGGER.info("Initializing FileLocationDB at(" + dbPath + 
-					") named(" + dbName + ")");
-			initializeDB(dbPath, dbName);
+			LOGGER.info("Initializing FileLocationDB at(" + 
+					dbDir.getAbsolutePath() + ") named(" + dbName + ")");
+			initializeDB(dbDir.getAbsolutePath(), dbName);
 			log = new FileLocationDBLog(logPath);
 			
 		} catch (DatabaseException e) {

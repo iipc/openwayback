@@ -26,6 +26,7 @@ package org.archive.wayback.accesscontrol.remote;
 
 import java.util.Properties;
 
+import org.archive.wayback.core.PropertyConfiguration;
 import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.resourceindex.ExclusionFilterFactory;
 import org.archive.wayback.resourceindex.SearchResultFilter;
@@ -58,10 +59,9 @@ public class RemoteExclusionFilterFactory implements ExclusionFilterFactory {
 	 * @see org.archive.wayback.PropertyConfigurable#init(java.util.Properties)
 	 */
 	public void init(Properties p) throws ConfigurationException {
-		// TODO Auto-generated method stub
-		exclusionUrlPrefix = (String) p.get(EXCLUSION_PREFIX);
-
-		exclusionUserAgent = (String) p.get(EXCLUSION_UA);
+		PropertyConfiguration pc = new PropertyConfiguration(p);
+		exclusionUrlPrefix = pc.getString(EXCLUSION_PREFIX);
+		exclusionUserAgent = pc.getString(EXCLUSION_UA);
 	}
 
 	/* (non-Javadoc)

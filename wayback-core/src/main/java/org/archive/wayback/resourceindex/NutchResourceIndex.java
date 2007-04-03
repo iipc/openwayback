@@ -37,6 +37,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.archive.wayback.ResourceIndex;
 import org.archive.wayback.WaybackConstants;
+import org.archive.wayback.core.PropertyConfiguration;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.Timestamp;
@@ -97,31 +98,24 @@ public class NutchResourceIndex implements ResourceIndex {
 	 */
 	public void init(Properties p) throws ConfigurationException {
 		LOGGER.info("initializing NutchResourceIndex...");
+		PropertyConfiguration pc = new PropertyConfiguration(p);
+		searchUrlBase = pc.getString(SEARCH_BASE_URL);
+		LOGGER.info("Using base search url " + this.searchUrlBase);
+		maxRecords = pc.getInt(WaybackConstants.MAX_RESULTS_CONFIG_NAME,
+				MAX_RECORDS);
 
-		this.searchUrlBase = (String)p.get(SEARCH_BASE_URL);
-       if (this.searchUrlBase == null || this.searchUrlBase.length() <= 0) {
-           throw new IllegalArgumentException("Failed to find " +
-           		SEARCH_BASE_URL);
-       }
-       this.factory = DocumentBuilderFactory.newInstance();
-       this.factory.setNamespaceAware(true);
-       try {
+		this.factory = DocumentBuilderFactory.newInstance();
+		this.factory.setNamespaceAware(true);
+		try {
 			this.builder = this.factory.newDocumentBuilder();
 		} catch (ParserConfigurationException e) {
 			// TODO: quiet extra stacktrace..
 			e.printStackTrace();
 			throw new ConfigurationException(e.getMessage());
 		}
-       if (!this.builder.isNamespaceAware()) {
-           LOGGER.severe("Builder is not namespace aware.");
-       }
-       LOGGER.info("Using base search url " + this.searchUrlBase);
-		String maxRecordsConfig = (String) p.get(
-				WaybackConstants.MAX_RESULTS_CONFIG_NAME);
-		if(maxRecordsConfig != null) {
-			maxRecords = Integer.parseInt(maxRecordsConfig);
+		if (!this.builder.isNamespaceAware()) {
+			LOGGER.severe("Builder is not namespace aware.");
 		}
-       
 	}
 
 	/* (non-Javadoc)

@@ -33,6 +33,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.archive.wayback.PropertyConfigurable;
 import org.archive.wayback.WaybackConstants;
+import org.archive.wayback.core.PropertyConfiguration;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.exception.ConfigurationException;
@@ -83,10 +84,9 @@ public class OpenSearchQueryParser implements PropertyConfigurable {
 	 * @see org.archive.wayback.PropertyConfigurable#init(java.util.Properties)
 	 */
 	public void init(Properties p) throws ConfigurationException {
-		String max = p.getProperty(WaybackConstants.RESULTS_PER_PAGE_CONFIG_NAME);
-		if(max != null) {
-			maxRecords = Integer.parseInt(max);
-		}
+		PropertyConfiguration pc = new PropertyConfiguration(p);
+		maxRecords = pc.getInt(WaybackConstants.RESULTS_PER_PAGE_CONFIG_NAME, 
+				DEFAULT_MAX_RECORDS);
 	}	
 	
 	private String getMapParam(Map queryMap, String field) {

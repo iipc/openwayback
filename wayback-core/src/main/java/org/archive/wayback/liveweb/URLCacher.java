@@ -53,6 +53,7 @@ import org.archive.io.arc.ARCLocation;
 import org.archive.io.arc.ARCWriter;
 import org.archive.net.LaxURI;
 import org.archive.wayback.PropertyConfigurable;
+import org.archive.wayback.core.PropertyConfiguration;
 import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.exception.LiveDocumentNotAvailableException;
 
@@ -91,23 +92,10 @@ public class URLCacher implements PropertyConfigurable {
 	 * @see org.archive.wayback.PropertyConfigurable#init(java.util.Properties)
 	 */
 	public void init(Properties p) throws ConfigurationException {
-		String cachePath = (String) p.get(CACHE_PATH);
-		if (cachePath == null || cachePath.length() <= 0) {
-			throw new ConfigurationException("Failed to find " + CACHE_PATH);
-		}
-		tmpDir = new File(cachePath);
-		if(!tmpDir.exists()) {
-			if(!tmpDir.mkdirs()) {
-				throw new ConfigurationException("Unable to mkdirs(" + 
-						tmpDir.getAbsolutePath() + ")");
-			}
-		} else {
-			if(!tmpDir.isDirectory()) {
-				throw new ConfigurationException("Something non-dir-ish at(" +
-						tmpDir.getAbsolutePath() + ")");
-			}
-		}
-		LOGGER.info("URLCacher storing temp files in " + cachePath);
+		PropertyConfiguration pc = new PropertyConfiguration(p);
+		tmpDir = pc.getDir(CACHE_PATH,true);
+		LOGGER.info("URLCacher storing temp files in " + 
+				tmpDir.getAbsolutePath());
 	}
 
 	private File getTmpFile() {

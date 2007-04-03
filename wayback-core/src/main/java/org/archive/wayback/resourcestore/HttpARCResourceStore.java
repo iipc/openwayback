@@ -34,6 +34,7 @@ import org.archive.io.arc.ARCReaderFactory;
 import org.archive.io.arc.ARCRecord;
 import org.archive.wayback.ResourceStore;
 import org.archive.wayback.WaybackConstants;
+import org.archive.wayback.core.PropertyConfiguration;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.exception.ConfigurationException;
@@ -55,10 +56,8 @@ public class HttpARCResourceStore implements ResourceStore {
 	private String urlPrefix = null;
 
 	public void init(Properties p) throws ConfigurationException {
-		urlPrefix = (String) p.get(ARC_URL_PREFIX);
-		if ((urlPrefix == null) || (urlPrefix.length() < 1)) {
-			throw new ConfigurationException("Failed to find " + ARC_URL_PREFIX);
-		}
+		PropertyConfiguration pc = new PropertyConfiguration(p);
+		urlPrefix = pc.getString(ARC_URL_PREFIX);
 		if(!urlPrefix.endsWith("/")) {
 			urlPrefix = urlPrefix + "/";
 		}

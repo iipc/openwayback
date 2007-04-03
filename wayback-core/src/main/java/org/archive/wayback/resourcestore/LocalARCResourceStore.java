@@ -38,6 +38,7 @@ import org.archive.io.arc.ARCReaderFactory;
 import org.archive.io.arc.ARCRecord;
 import org.archive.wayback.ResourceStore;
 import org.archive.wayback.WaybackConstants;
+import org.archive.wayback.core.PropertyConfiguration;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.SearchResults;
@@ -65,7 +66,6 @@ public class LocalARCResourceStore implements ResourceStore {
 	private static final String INDEX_TARGET = "resourcestore.indextarget";
 	private static final String INDEX_INTERVAL = "resourcestore.indexinterval";
 
-	private String path = null;
 	private File arcDir = null;
 	private File tmpDir = null;
 	private File workDir = null;
@@ -81,49 +81,20 @@ public class LocalARCResourceStore implements ResourceStore {
 	 */
 	private static Thread indexThread = null;
 	
-	private String getRequired(Properties p,String key) 
-	throws ConfigurationException {
-		String val = p.getProperty(key);
-		if((val == null) || val.length() < 1) {
-			throw new ConfigurationException("No configuration " + key);
-		}
-		return val;
-	}
-	
-	private void ensureDir(File dir) throws ConfigurationException {
-		if(!dir.isDirectory()) {
-			if(dir.exists()) {
-				throw new ConfigurationException("directory (" + 
-						dir.getAbsolutePath() + 
-						") exists but is not a directory.");
-			}
-			if(!dir.mkdirs()) {
-				throw new ConfigurationException("unable to create directory(" + 
-						dir.getAbsolutePath() + ")");
-			}
-		}
-	}
-	
 	public void init(Properties p) throws ConfigurationException {
-		path = getRequired(p,RESOURCE_PATH);
-		arcDir = new File(path);
+		PropertyConfiguration pc = new PropertyConfiguration(p);
+		arcDir = pc.getDir(RESOURCE_PATH, true);
 		String autoIndex = p.getProperty(AUTO_INDEX);
 		if((autoIndex != null) && (autoIndex.compareTo("1") == 0)) {
-			tmpDir = new File(getRequired(p,TMP_PATH));
-			workDir = new File(getRequired(p,WORK_PATH));
-			queuedDir = new File(getRequired(p,QUEUED_PATH));
-			indexTarget = getRequired(p,INDEX_TARGET);
-			ensureDir(tmpDir);
-			ensureDir(workDir);
-			ensureDir(queuedDir);
+			tmpDir = pc.getDir(TMP_PATH,true);
+			workDir = pc.getDir(WORK_PATH,true);
+			queuedDir = pc.getDir(QUEUED_PATH,true);
+			indexTarget = pc.getString(INDEX_TARGET);
 			
 			if(indexTarget.startsWith("http://")) {
 				indexClient = new IndexClient(indexTarget);
 			}
-			String interval = p.getProperty(INDEX_INTERVAL);
-			if((interval != null ) && (interval.length() > 0)) {
-				runInterval = Integer.parseInt(interval);
-			}
+			runInterval = pc.getInt(INDEX_INTERVAL,DEFAULT_RUN_INTERVAL_MS);
 			startAutoIndexThread();
 		}
 	}
@@ -138,7 +109,7 @@ public class LocalARCResourceStore implements ResourceStore {
 		}
 		File arcFile = new File(arcName);
 		if (!arcFile.isAbsolute()) {
-			arcFile = new File(this.path, arcName);
+			arcFile = new File(arcDir, arcName);
 		}
 		if (!arcFile.exists() || !arcFile.canRead()) {
 			

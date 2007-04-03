@@ -40,6 +40,7 @@ import org.archive.io.arc.ARCRecord;
 import org.archive.io.arc.ARCWriter;
 import org.archive.io.arc.ARCWriterPool;
 import org.archive.wayback.PropertyConfigurable;
+import org.archive.wayback.core.PropertyConfiguration;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.exception.ConfigurationException;
 
@@ -75,35 +76,10 @@ public class ARCCacheDirectory implements PropertyConfigurable {
 	private ARCWriterPool pool = null;
 	private File arcDir = null;
 
-	private String getProp(Properties p, String key) 
-		throws ConfigurationException {
-	
-		if(p.containsKey(key)) {
-			String v = p.getProperty(key);
-			if(v == null || v.length() < 1) {
-				throw new ConfigurationException("Empty configuration " + key);				
-			}
-			return v;
-		} else {
-			throw new ConfigurationException("Missing configuration " + key);
-		}
-
-	}
-	
 	public void init(Properties p) throws ConfigurationException {
-		String arcDirS = getProp(p,LIVE_WEB_ARC_DIR);
-		arcDir = new File(arcDirS);
-		if (!arcDir.isDirectory()) {
-			if (arcDir.exists()) {
-				throw new ConfigurationException("Path(" + arcDirS + ") " +
-						"exists but is not a directory");
-			}
-			if(!arcDir.mkdirs()) {
-				throw new ConfigurationException("Unable to mkdir(" + arcDirS +
-						")");
-			}
-		}
-		String arcPrefix = getProp(p,LIVE_WEB_ARC_PREFIX);
+		PropertyConfiguration pc = new PropertyConfiguration(p);
+		arcDir = pc.getDir(LIVE_WEB_ARC_DIR,true);
+		String arcPrefix = pc.getString(LIVE_WEB_ARC_PREFIX);
 		File[] files = { arcDir };
 		WriterPoolSettings settings = getSettings(true, arcPrefix, files);
 		pool = new ARCWriterPool(settings, MAX_POOL_WRITERS, MAX_POOL_WAIT);

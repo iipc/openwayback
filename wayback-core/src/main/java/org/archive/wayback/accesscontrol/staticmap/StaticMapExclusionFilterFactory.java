@@ -31,7 +31,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Logger;
 
-import org.archive.wayback.PropertyConfigurable;
+import org.archive.wayback.core.PropertyConfiguration;
 import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.resourceindex.ExclusionFilterFactory;
 import org.archive.wayback.resourceindex.SearchResultFilter;
@@ -45,8 +45,7 @@ import org.archive.wayback.util.flatfile.FlatFile;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class StaticMapExclusionFilterFactory implements PropertyConfigurable, 
-ExclusionFilterFactory {
+public class StaticMapExclusionFilterFactory implements ExclusionFilterFactory {
 	private static final Logger LOGGER =
         Logger.getLogger(StaticMapExclusionFilterFactory.class.getName());
 
@@ -68,20 +67,16 @@ ExclusionFilterFactory {
 	 * @see org.archive.wayback.PropertyConfigurable#init(java.util.Properties)
 	 */
 	public void init(Properties p) throws ConfigurationException {
-		// TODO Auto-generated method stub
-		String path = (String) p.get(EXCLUSION_PATH);
-		if((path == null) || path.length() == 0) {
-			throw new ConfigurationException("Invalid/missing " + 
-					EXCLUSION_PATH + "configuration");
-		}
-		file = new File(path);
+		PropertyConfiguration pc = new PropertyConfiguration(p);
+		file = pc.getFile(EXCLUSION_PATH);
 		try {
 			reloadFile();
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw new ConfigurationException(e.getLocalizedMessage());
 		}
-		LOGGER.info("starting CachedMapExclusion with file " + path);
+		LOGGER.info("starting CachedMapExclusion with file " + 
+				file.getAbsolutePath());
 		startup();
 	}
 	private void reloadFile() throws IOException {

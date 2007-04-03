@@ -24,6 +24,7 @@
  */
 package org.archive.wayback.accesscontrol;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Properties;
 
@@ -31,6 +32,7 @@ import org.apache.commons.httpclient.URIException;
 import org.archive.wayback.bdb.BDBRecord;
 import org.archive.wayback.bdb.BDBRecordSet;
 import org.archive.wayback.bdb.BDBRecordIterator;
+import org.archive.wayback.core.PropertyConfiguration;
 import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.surt.SURTTokenizer;
 
@@ -135,20 +137,13 @@ public class AdministrativeExclusionAuthority implements ExclusionAuthority {
 	 * @see org.archive.wayback.PropertyConfigurable#init(java.util.Properties)
 	 */
 	public void init(Properties p) throws ConfigurationException {
-
-		String dbPath = (String) p.get(INDEX_PATH);
-		if (dbPath == null || (dbPath.length() <= 0)) {
-			throw new IllegalArgumentException("Failed to find " + INDEX_PATH);
-		}
-		String dbName = (String) p.get(DB_NAME);
-		if (dbName == null || (dbName.length() <= 0)) {
-			throw new IllegalArgumentException("Failed to find " + DB_NAME);
-		}
-
+		PropertyConfiguration pc = new PropertyConfiguration(p);
+		File dbDir = pc.getDir(INDEX_PATH,true);
+		String dbName = pc.getString(DB_NAME);
 		try {
 
 			db = new BDBRecordSet();
-			db.initializeDB(dbPath,dbName);
+			db.initializeDB(dbDir.getAbsolutePath(),dbName);
 
 		} catch (DatabaseException e) {
 			e.printStackTrace();

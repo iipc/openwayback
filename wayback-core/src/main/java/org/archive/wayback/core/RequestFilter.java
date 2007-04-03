@@ -71,20 +71,11 @@ public abstract class RequestFilter implements Filter {
 	public RequestFilter() {
 		super();
 	}
-
-	/**
-	 * initialize this RequestFilter based on a Properties assembled from
-	 * Context and Filter init-params.
-	 * @param p
-	 * @throws ConfigurationException
+	/* (non-Javadoc)
+	 * @see javax.servlet.Filter#destroy()
 	 */
-	public void init(Properties p) throws ConfigurationException {
-		handlerUrl = (String) p.get(HANDLER_URL);
-		if ((handlerUrl == null) || (handlerUrl.length() <= 0)) {
-			throw new ConfigurationException("No config (" + HANDLER_URL + ")");
-		}
-	}
-	
+	public void destroy() {}
+
 	/* (non-Javadoc)
 	 * @see javax.servlet.Filter#init(javax.servlet.FilterConfig)
 	 */
@@ -116,6 +107,17 @@ public abstract class RequestFilter implements Filter {
 		if (!handle(request, response)) {
 			chain.doFilter(request, response);
 		}
+	}
+
+	/**
+	 * initialize this RequestFilter based on a Properties assembled from
+	 * Context and Filter init-params.
+	 * @param p
+	 * @throws ConfigurationException
+	 */
+	public void init(Properties p) throws ConfigurationException {
+		PropertyConfiguration pc = new PropertyConfiguration(p);
+		handlerUrl = pc.getString(HANDLER_URL);
 	}
 
 	/**
@@ -157,10 +159,4 @@ public abstract class RequestFilter implements Filter {
 	protected abstract WaybackRequest parseRequest(
 			HttpServletRequest httpRequest);
 
-	/* (non-Javadoc)
-	 * @see javax.servlet.Filter#destroy()
-	 */
-	public void destroy() {
-
-	}
 }

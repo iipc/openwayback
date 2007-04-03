@@ -26,7 +26,7 @@ package org.archive.wayback.accesscontrol.robotstxt;
 
 import java.util.Properties;
 
-import org.archive.wayback.PropertyConfigurable;
+import org.archive.wayback.core.PropertyConfiguration;
 import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.liveweb.LiveWebCache;
 import org.archive.wayback.resourceindex.ExclusionFilterFactory;
@@ -38,8 +38,7 @@ import org.archive.wayback.resourceindex.SearchResultFilter;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class RobotExclusionFilterFactory implements PropertyConfigurable, 
-	ExclusionFilterFactory {
+public class RobotExclusionFilterFactory implements ExclusionFilterFactory {
 
 	private final static String ROBOT_USER_AGENT = "robotexclusion.useragent";
 	private final static String ROBOT_CACHE_AGE = "robotexclusion.cacheagems";
@@ -49,26 +48,13 @@ public class RobotExclusionFilterFactory implements PropertyConfigurable,
 	private String userAgent = null;
 	private long maxCacheMS = 0;
 
-	private String getProp(Properties p, String key) 
-		throws ConfigurationException {
-
-		if(p.containsKey(key)) {
-			String v = p.getProperty(key);
-			if(v == null || v.length() < 1) {
-				throw new ConfigurationException("Empty configuration " + key);				
-			}
-			return v;
-		} else {
-			throw new ConfigurationException("Missing configuration " + key);
-		}
-	}
-
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.PropertyConfigurable#init(java.util.Properties)
 	 */
 	public void init(Properties p) throws ConfigurationException {
-		userAgent = getProp(p,ROBOT_USER_AGENT);
-		maxCacheMS = Long.parseLong(getProp(p,ROBOT_CACHE_AGE));
+		PropertyConfiguration pc = new PropertyConfiguration(p);
+		userAgent = pc.getString(ROBOT_USER_AGENT);
+		maxCacheMS = pc.getLong(ROBOT_CACHE_AGE);
 		webCache = new LiveWebCache();
 		webCache.init(p);
 	}
