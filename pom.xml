@@ -162,9 +162,9 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
         <configuration>
-          <javadocDirectory>
+          <source>
                 wayback-core/src/main/java
-            </javadocDirectory>
+            </source>
         </configuration>
       </plugin>
       <plugin>
