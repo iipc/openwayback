@@ -116,6 +116,11 @@
     </dependency>
     <dependency>
       <groupId>org.archive.wayback</groupId>
+      <artifactId>wayback-mapreduce-prereq</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.archive.wayback</groupId>
       <artifactId>wayback-webapp</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -181,7 +186,6 @@
       </plugin>
     </plugins>
   </reporting>
-
   <repositories>
     <repository>
       <releases>
@@ -218,8 +222,9 @@
 
   <modules>
     <module>wayback-core</module>
-    <module>wayback-webapp</module>
+    <module>wayback-mapreduce-prereq</module>
     <module>wayback-mapreduce</module>
+    <module>wayback-webapp</module>
   </modules>
     
 </project>

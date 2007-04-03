@@ -28,7 +28,7 @@ import org.archive.mapred.ARCMapRunner;
 import org.archive.wayback.resourceindex.indexer.ArcIndexer;
 
 /**
- * Hadoop Driver for generation of alphabettically partitioned Wayback CDX 
+ * Hadoop Driver for generation of alphabetically partitioned Wayback CDX 
  * files using the Hadoop framework. 
  *
  * @author brad
@@ -89,7 +89,7 @@ public class Driver {
 		jobConf.setOutputKeyClass(Text.class);
 		jobConf.setOutputValueClass(Text.class);
 		jobConf.set("mapred.partitioner.class",
-				"org.apache.hadoop.examples.AlphaPartitioner");
+				"org.archive.wayback.resourceindex.indexer.hadoop.AlphaPartitioner");
 
 		jobConf.setMapperClass(MapClass.class);        
 //		jobConf.setMapperClass(IdentityMapper.class);
@@ -151,5 +151,4 @@ public class Driver {
 				+ (end_time.getTime() - startTime.getTime()) / 1000
 				+ " seconds.");
 	}
-
 }

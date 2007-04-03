@@ -1,16 +1,11 @@
 <?xml version="1.0"?>
 <!--
-    POM reference: http://maven.apache.org/pom.html
-
-    List of the better articles on maven:
-
-    http://www.javaworld.com/javaworld/jw-05-2006/jw-0529-maven.html
-    http://www.javaworld.com/javaworld/jw-02-2006/jw-0227-maven_p.html
-
-    URLs on converting from 1.0 to 2.0 maven (not much good generally):
-
-    http://wiki.osafoundation.org/bin/view/Journal/Maven2Upgrade
-    http://maven.apache.org/guides/mini/guide-m1-m2.html
+    Assembly the mapreduce job jar.
+    Assembly is done as attachment to pakaging
+    step using the maven-assembly-plugin.  The
+    packaging for this module is pom, not jar
+    (You cannot have packaging and the
+    assembly product be same).  
  -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
@@ -19,13 +14,10 @@
   <artifactId>wayback</artifactId>
   <version>0.9.0-SNAPSHOT</version>
   </parent>
-  <!--You cannot tell it not build the jar so name it 'placeholder'.
-  Actual job jar is made using below assembly spec. at src/main/assembly
-  -->
   <groupId>org.archive.wayback</groupId>
   <artifactId>wayback-mapreduce</artifactId>
   <packaging>pom</packaging>
-  <name>Wayback MapReduce Indexing Job Jar</name>
+  <name>Wayback MapReduce Job Jar Assembly</name>
 
   <dependencies>
     <dependency>
@@ -33,10 +25,8 @@
       <artifactId>wayback-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.apache</groupId>
-      <artifactId>hadoop</artifactId>
-      <version>0.12.2-core</version>
-      <scope>compile</scope>
+      <groupId>org.archive.wayback</groupId>
+      <artifactId>wayback-mapreduce-prereq</artifactId>
     </dependency>
     <dependency>
       <groupId>org.archive</groupId>
@@ -69,8 +59,7 @@
           </appendAssemblyId>
           <archive>
             <manifest>
-              <!--Pointer to driver for wayback indexing-->
-              <mainClass>org.archive.wayback.Wayback</mainClass>
+              <mainClass>org.archive.wayback.resourceindex.indexer.hadoop.Driver</mainClass>
             </manifest>
           </archive>
         </configuration>
@@ -83,7 +72,6 @@
      </execution>
      </executions>
       </plugin>
-
     </plugins>
   </build>
 </project>
