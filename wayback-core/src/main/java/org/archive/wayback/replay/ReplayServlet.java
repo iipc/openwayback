@@ -24,8 +24,6 @@
 package org.archive.wayback.replay;
 
 import java.io.IOException;
-import java.text.ParseException;
-import java.util.Iterator;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
@@ -40,7 +38,6 @@ import org.archive.wayback.ResourceStore;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.SearchResults;
-import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.core.WaybackServlet;
 import org.archive.wayback.exception.BetterRequestException;
@@ -67,32 +64,6 @@ public class ReplayServlet extends WaybackServlet {
 	 */
 	public ReplayServlet() {
 		super();
-	}
-
-	private SearchResult getClosest(SearchResults results,
-			WaybackRequest wbRequest) throws ParseException {
-
-		SearchResult closest = null;
-		long closestDistance = 0;
-		SearchResult cur = null;
-		Timestamp wantTimestamp;
-		wantTimestamp = Timestamp.parseBefore(wbRequest
-				.get(WaybackConstants.REQUEST_EXACT_DATE));
-
-		Iterator itr = results.iterator();
-		while (itr.hasNext()) {
-			cur = (SearchResult) itr.next();
-			long curDistance;
-			Timestamp curTimestamp = Timestamp.parseBefore(cur
-					.get(WaybackConstants.RESULT_CAPTURE_DATE));
-			curDistance = curTimestamp.absDistanceFromTimestamp(wantTimestamp);
-			
-			if ((closest == null) || (curDistance < closestDistance)) {
-				closest = cur;
-				closestDistance = curDistance;
-			}
-		}
-		return closest;
 	}
 
 	public void doGet(HttpServletRequest httpRequest,
@@ -125,7 +96,7 @@ public class ReplayServlet extends WaybackServlet {
 			SearchResults results = idx.query(wbRequest);
 
 			// TODO: check which versions are actually accessible right now?
-			SearchResult closest = getClosest(results, wbRequest);
+			SearchResult closest = results.getClosest(wbRequest);
 			resource = store.retrieveResource(closest);
 
 			renderer.renderResource(httpRequest, httpResponse, wbRequest,
