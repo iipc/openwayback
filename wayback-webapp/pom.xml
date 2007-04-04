@@ -32,8 +32,13 @@
         <artifactId>maven-war-plugin</artifactId>
         <configuration>
           <warSourceDirectory>
-          src/main/webapp
+	        src/main/webapp
           </warSourceDirectory>
+          <archive>
+            <addMavenDescriptor>
+              false
+            </addMavenDescriptor>
+          </archive>
         </configuration>
       </plugin>
     </plugins>
