@@ -25,6 +25,7 @@ import org.apache.hadoop.mapred.lib.IdentityReducer;
 import org.apache.hadoop.util.ReflectionUtils;
 import org.archive.io.arc.ARCRecord;
 import org.archive.mapred.ARCMapRunner;
+import org.archive.mapred.ARCRecordMapper;
 import org.archive.wayback.resourceindex.indexer.ArcIndexer;
 
 /**
@@ -43,7 +44,7 @@ public class Driver {
 	 * @author brad
 	 * @version $Date$, $Revision$
 	 */
-	public static class MapClass extends MapReduceBase implements Mapper {
+	public static class MapClass extends MapReduceBase implements ARCRecordMapper {
 
 		private Text outKey = new Text();
 		private Text outValue = new Text("");
@@ -61,6 +62,8 @@ public class Driver {
 				e.printStackTrace();
 			}
 		}
+		public void onARCOpen() throws IOException {}
+		public void onARCClose() throws IOException {}
 	}
 
 	static void printUsage() {
