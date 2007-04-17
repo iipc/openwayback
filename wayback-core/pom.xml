@@ -115,6 +115,11 @@ $ JAVA_HOME=/usr/lib/j2sdk1.5-sun/ bash /0/builds/bin/maven-2.0.5/bin/mvn deploy
             <artifactId>mg4j</artifactId>
             <version>1.0.1</version>
         </dependency>
+        <dependency>
+            <groupId>it.unimi.dsi</groupId>
+            <artifactId>fastutil</artifactId>
+            <version>5.0.3</version>
+        </dependency>
 
   </dependencies>
 </project>
