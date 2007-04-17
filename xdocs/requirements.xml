@@ -37,5 +37,13 @@
 				</p>
 			</subsection>
 		</section>
+		<section name="Building HEAD from src Requirements" >
+			<subsection name="Maven">
+				<p>
+					The HEAD is an in-progress migration from Maven 1.0.2 to
+					Maven 2.0.
+				</p>
+			</subsection>
+		</section>		
 	</body>
 </document>
