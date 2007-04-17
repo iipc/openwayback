@@ -170,6 +170,13 @@ public class UIQueryResults extends UIResults {
 	}
 
 	/**
+	 * @return the ResultURIConverter
+	 */
+	public ResultURIConverter getURIConverter() {
+		return uriConverter;
+	}
+	
+	/**
 	 * @param result
 	 * @return Date representing captureDate of SearchResult result
 	 */
