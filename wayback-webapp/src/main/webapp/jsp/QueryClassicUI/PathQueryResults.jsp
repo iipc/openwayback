@@ -7,6 +7,8 @@
 <%@ page import="org.archive.wayback.core.UIResults" %>
 <%@ page import="org.archive.wayback.query.UIQueryResults" %>
 <%@ page import="org.archive.wayback.util.StringFormatter" %>
+<%@ page import="org.archive.wayback.query.PathQuerySearchResultPartition" %>
+<%@ page import="org.archive.wayback.query.PathQuerySearchResultPartitioner" %>
 <jsp:include page="../../template/UI-header.jsp" />
 <%
 
@@ -17,11 +19,17 @@ String searchString = results.getSearchUrl();
 Date searchStartDate = results.getStartTimestamp().getDate();
 Date searchEndDate = results.getEndTimestamp().getDate();
 
+PathQuerySearchResultPartitioner partitioner = 
+	new PathQuerySearchResultPartitioner(results.getResults(),
+			results.getURIConverter());
+
 int firstResult = results.getFirstResult();
 int lastResult = results.getLastResult();
 int resultCount = results.getResultsMatching();
 
-Iterator itr = results.resultsIterator();
+int totalCaptures = partitioner.numResultsTotal();
+int totalUrls = partitioner.numUrls();
+
 %>
 <%= fmt.format("PathPrefixQuery.showingResults",firstResult,lastResult,
 				resultCount,searchString) %>
@@ -29,76 +37,48 @@ Iterator itr = results.resultsIterator();
 <%= fmt.format("PathQuery.resultRange",searchStartDate,searchEndDate) %>
 <hr></hr>
 <%
-boolean first = false;
-String lastUrlKey = null;
-String lastMD5 = null;
+Iterator itr = partitioner.iterator();
 while(itr.hasNext()) {
-	SearchResult result = (SearchResult) itr.next();
-
-	String url = result.get(WaybackConstants.RESULT_URL);
-	String urlKey = result.get(WaybackConstants.RESULT_URL_KEY);
-	// TODO: Localization
-	String prettyDate = result.get(WaybackConstants.RESULT_CAPTURE_DATE);
-	String origHost = result.get(WaybackConstants.RESULT_ORIG_HOST);
-	String MD5 = result.get(WaybackConstants.RESULT_MD5_DIGEST);
-	String redirectFlag = (0 == result.get(
-		WaybackConstants.RESULT_REDIRECT_URL).compareTo("-")) 
-		?	"" : fmt.format("PathQuery.redirectIndicator");
-	String httpResponse = result.get(WaybackConstants.RESULT_HTTP_CODE);
-	String mimeType = result.get(WaybackConstants.RESULT_MIME_TYPE);
-
-	String arcFile = result.get(WaybackConstants.RESULT_ARC_FILE);
-	String arcOffset = result.get(WaybackConstants.RESULT_OFFSET);
-
-	String replayUrl = results.resultToReplayUrl(result);
-
-	boolean newUrl = false;
-	if(lastUrlKey == null) {
-		lastUrlKey = urlKey;
-		lastMD5 = "";
-		newUrl = true;
-	} else if(0 != lastUrlKey.compareTo(urlKey)) {
-		newUrl = true;
-		lastMD5 = "";
-		lastUrlKey = urlKey;
-	}
-	if(newUrl) {
+	PathQuerySearchResultPartition partition = 
+		(PathQuerySearchResultPartition) itr.next();
+	String url = partition.getUrl();
+	String queryUrl = partition.queryUrl();
+	String replayUrl = partition.replayUrl();
+	int numCaptures = partition.getNumResults();
+	Date firstDate = partition.getFirstDate();
+	Date lastDate = partition.getLastDate();
+	int numVersions = partition.getNumVersions();
+	if(numCaptures == 1) {
 		%>
-		<hr></hr><b><%= url %></b><br></br>
-		<%
-	}
-	if(0 != MD5.compareTo(lastMD5)) {
-		lastMD5 = MD5;
-
-		%>
-
-		<a href="<%= replayUrl %>"><%= prettyDate %></a>
-		<span style="color:black;"><%= origHost %></span>
-		<span style="color:gray;"><%= httpResponse %></span>
-		<span style="color:brown;"><%= mimeType %></span>
-<!--
-		<span style="color:red;"><%= arcFile %></span>
-		<span style="color:red;"><%= arcOffset %></span>
--->
-		<%= redirectFlag %>
-		<%= fmt.format("PathQuery.newVersionIndicator") %>
+		<a href="<%= replayUrl %>">
+			<%= url %>
+		</a>
+		<span class="mainSearchText">
+			<%= fmt.format("PathPrefixQuery.versionCount",numVersions) %>
+		</span>
 		<br></br>
-
+		<span class="mainSearchText">
+			<%= fmt.format("PathPrefixQuery.singleCaptureDate",firstDate) %>
+		</span>
 		<%
 	} else {
 		%>
-
-		&nbsp;&nbsp;&nbsp;<a href="<%= replayUrl %>"><%= prettyDate %></a>
-		<span style="color:green;"><%= origHost %></span>
-		<span style="color:lightgray;"><%= fmt.format("PathPrefixQuery.unchangedIndicator")%></span>
-<!--
-		<span style="color:red;"><%= arcFile %></span>
-		<span style="color:red;"><%= arcOffset %></span>
--->
+		<a href="<%= queryUrl %>">
+			<%= url %>
+		</a>
+		<span class="mainSearchText">
+			<%= fmt.format("PathPrefixQuery.versionCount",numVersions) %>
+		</span>
 		<br></br>
-
-		<%	
+		<span class="mainSearchText">
+			<%= fmt.format("PathPrefixQuery.multiCaptureDate",numCaptures,firstDate,lastDate) %>
+		</span>
+		<%		
 	}
+	%>
+	<br></br>
+	<br></br>	
+	<%
 }
 // show page indicators:
 int curPage = results.getCurPage();
