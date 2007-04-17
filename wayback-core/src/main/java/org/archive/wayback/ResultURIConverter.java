@@ -120,6 +120,17 @@ public abstract class ResultURIConverter implements PropertyConfigurable {
 	}
 
 	/**
+	 * Convert a SearchResult into an URL that will result in a Query for all
+	 * versions of a the URL represented in the SearchResult argument
+	 * 
+	 * @param result
+	 * @return user-viewable String URL that will replay the ResourceResult
+	 */
+	public String makeQueryURI(final SearchResult result) {
+		return makeReplayURI("*",searchResultToAbsoluteUrl(result));
+	}
+
+	/**
 	 * create a URL that will drive the client back to the URL argument in
 	 * replay mode, possibly resolving the URL against this SearchResult
 	 * 
