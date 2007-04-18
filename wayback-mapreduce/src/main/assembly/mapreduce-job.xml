@@ -27,7 +27,7 @@
         <exclude>commons-pool:commons-pool</exclude>
         <exclude>commons-logging:commons-logging</exclude>
 
-  </excludes>
+      </excludes>
     </dependencySet>
   </dependencySets>
 </assembly>
