@@ -54,8 +54,8 @@
             </unsubscribe>
       <post>archive-access-discuss</post>
       <archive>
-            http://sourceforge.net/mailarchive/forum.php?forum_id=45842
-            </archive>
+            http://sourceforge.net/mailarchive/forum.php?forum_name=archive-access-discuss
+      </archive>
     </mailingList>
     <mailingList>
       <name>Archive Access ARC Tools Commits</name>
