@@ -144,11 +144,10 @@
         <artifactId>maven-assembly-plugin</artifactId>
         <inherited>false</inherited>
         <configuration>
-          <includeSite>true</includeSite>
           <descriptors>
-          <descriptor>
-            src/main/assembly/distribution.xml
-          </descriptor>
+            <descriptor>
+              src/main/assembly/distribution.xml
+            </descriptor>
           </descriptors>
           <finalName>
             ${project.artifactId}
