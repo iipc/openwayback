@@ -189,8 +189,8 @@ public class SURTTokenizer {
 			key = key.substring(7);
 		}
 		if(prefix) {
-			if(key.endsWith(")/")) {
-				key = key.substring(0,key.length()-2);
+			if(key.endsWith(",)/")) {
+				key = key.substring(0,key.length()-3);
 			}
 		}
 		return key;
