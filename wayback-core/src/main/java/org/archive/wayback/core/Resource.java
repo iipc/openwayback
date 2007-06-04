@@ -70,7 +70,7 @@ public class Resource extends InputStream {
 	ARCRecord arcRecord = null;
 	/**
 	 * object for ARCReader -- need to hold on to this in order to call close()
-	 * to release filehandle after completing access to this record.
+	 * to release filehandle after completing access to this record. optional
 	 */
 	ARCReader arcReader = null;
 	/**
@@ -243,8 +243,10 @@ public class Resource extends InputStream {
 	public void close() throws IOException {
 		//LOGGER.info("About to close..("+arcReader+")");
 		arcRecord.close();
-		arcReader.close();
-		LOGGER.info("closed..("+arcReader+")");
+		if(arcReader != null) {
+			arcReader.close();
+			LOGGER.info("closed..("+arcReader+")");
+		}
 	}
 	
 	/**
