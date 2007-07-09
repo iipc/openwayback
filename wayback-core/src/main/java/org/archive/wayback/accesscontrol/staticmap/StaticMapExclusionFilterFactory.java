@@ -53,7 +53,7 @@ public class StaticMapExclusionFilterFactory implements ExclusionFilterFactory {
 	private final static String EXCLUSION_PATH =
 		"resourceindex.exclusionpath";
 	private final static int checkInterval = 10;
-	Map currentMap = null;
+	Map<String,Object> currentMap = null;
 	File file = null;
 	long lastUpdated = 0;
 	/**
@@ -79,23 +79,14 @@ public class StaticMapExclusionFilterFactory implements ExclusionFilterFactory {
 				file.getAbsolutePath());
 		startup();
 	}
-	private void reloadFile() throws IOException {
+	protected void reloadFile() throws IOException {
 		long currentMod = file.lastModified();
 		if(currentMod == lastUpdated) {
 			return;
 		}
 		LOGGER.info("Reloading exclusion file " + file.getAbsolutePath());
-		HashMap<String, Object> newMap = new HashMap<String, Object>();
-		FlatFile ff = new FlatFile(file.getAbsolutePath());
 		try {
-			CloseableIterator itr = (CloseableIterator) ff.getSequentialIterator();
-			while(itr.hasNext()) {
-				String line = (String) itr.next();
-				String surt = line.startsWith("(") ? line : 
-					SURTTokenizer.prefixKey(line);
-				newMap.put(surt, null);
-			}
-			currentMap = newMap;
+			currentMap = loadFile(file.getAbsolutePath());
 			lastUpdated = currentMod;
 			LOGGER.info("Reload " + file.getAbsolutePath() + " OK");
 		} catch(IOException e) {
@@ -104,6 +95,19 @@ public class StaticMapExclusionFilterFactory implements ExclusionFilterFactory {
 			e.printStackTrace();
 		}
 	}
+	protected Map<String,Object> loadFile(String path) throws IOException {
+		Map<String, Object> newMap = new HashMap<String, Object>();
+		FlatFile ff = new FlatFile(path);
+		CloseableIterator itr = (CloseableIterator) ff.getSequentialIterator();
+		while(itr.hasNext()) {
+			String line = (String) itr.next();
+			String surt = line.startsWith("(") ? line : 
+				SURTTokenizer.prefixKey(line);
+			newMap.put(surt, null);
+		}
+		return newMap;
+	}
+	
 	/**
 	 * @return SearchResultFilter 
 	 */
