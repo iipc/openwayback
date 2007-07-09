@@ -168,7 +168,7 @@ public class BDBRecordSet {
 	/**
 	 * @param itr
 	 */
-	public void insertRecords(final Iterator itr) {
+	public void insertRecords(final Iterator<BDBRecord> itr) {
 		OperationStatus status = null;
 		try {
 			Transaction txn = env.beginTransaction(null, null);
