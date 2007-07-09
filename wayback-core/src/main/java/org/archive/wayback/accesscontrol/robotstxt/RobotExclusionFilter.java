@@ -106,7 +106,7 @@ public class RobotExclusionFilter extends SearchResultFilter {
 	 * Otherwise:
 	 *  [originalURL,www.originalURL]
 	 */
-	protected List searchResultToRobotUrlStrings(String resultHost) {
+	protected List<String> searchResultToRobotUrlStrings(String resultHost) {
 		ArrayList<String> list = new ArrayList<String>();
 		list.add(hostToRobotUrlString(resultHost));
 		
@@ -131,8 +131,8 @@ public class RobotExclusionFilter extends SearchResultFilter {
 		RobotRules rules = null;
 		RobotRules tmpRules = null;
 		String host = result.get(WaybackConstants.RESULT_ORIG_HOST);
-		List urlStrings = searchResultToRobotUrlStrings(host);
-		Iterator itr = urlStrings.iterator();
+		List<String> urlStrings = searchResultToRobotUrlStrings(host);
+		Iterator<String> itr = urlStrings.iterator();
 		String firstUrlString = null;
 
 		while(rules == null && itr.hasNext()) {
