@@ -26,6 +26,8 @@ package org.archive.wayback.core;
 
 import java.util.Properties;
 
+import org.archive.wayback.WaybackConstants;
+
 /**
  *
  *
@@ -82,4 +84,29 @@ public class SearchResult {
 		return data;
 	}
 
+	/**
+	 * @return the (probably) 14-digit timestamp indicating when this capture
+	 * was made.
+	 */
+	public String getCaptureDate() {
+		return get(WaybackConstants.RESULT_CAPTURE_DATE);
+	}
+	
+	/**
+	 * @return the url that created this request, without the leading http://
+	 */
+	public String getUrl() {
+		return get(WaybackConstants.RESULT_URL);
+	}
+
+	/**
+	 * @return the url that created this request, including the leading http://
+	 */
+	public String getAbsoluteUrl() {
+		String url = get(WaybackConstants.RESULT_URL);
+		if(url.startsWith(WaybackConstants.HTTP_URL_PREFIX)) {
+			return url;
+		}
+		return WaybackConstants.HTTP_URL_PREFIX + url;
+	}
 }
