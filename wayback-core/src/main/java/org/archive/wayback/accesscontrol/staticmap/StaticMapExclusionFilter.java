@@ -42,15 +42,15 @@ public class StaticMapExclusionFilter extends SearchResultFilter {
 
 	private String lastChecked = null;
 	private boolean lastCheckedExcluded = false;
-	Map exclusionMap = null;
+	Map<String,Object> exclusionMap = null;
 	/**
 	 * @param map
 	 */
-	public StaticMapExclusionFilter(Map map) {
+	public StaticMapExclusionFilter(Map<String,Object> map) {
 		exclusionMap = map;
 	}
 	
-	private boolean isExcluded(String url) {
+	protected boolean isExcluded(String url) {
 		try {
 			SURTTokenizer st = new SURTTokenizer(url);
 			while(true) {
