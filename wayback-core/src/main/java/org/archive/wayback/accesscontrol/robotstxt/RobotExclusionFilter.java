@@ -49,6 +49,9 @@ import org.archive.wayback.resourceindex.SearchResultFilter;
  * This class caches parsed RobotRules that are retrieved, so using the same 
  * instance to filter multiple SearchResults from the same host will be more
  * efficient.
+ * 
+ * Instances are expected to be transient for each request: The internally
+ * cached StringBuilder is not thread safe.
  *
  * @author brad
  * @version $Date$, $Revision$
