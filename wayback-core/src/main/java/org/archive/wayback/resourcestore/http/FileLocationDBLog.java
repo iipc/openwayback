@@ -104,6 +104,7 @@ public class FileLocationDBLog extends File {
 		FileWriter writer = new FileWriter(this, true);
 		writer.write(arcName + "\n");
 		writer.flush();
+		writer.close();
 	}
 
 	private class BufferedRangeIterator implements CloseableIterator {
@@ -158,7 +159,7 @@ public class FileLocationDBLog extends File {
 		public Object next() {
 			String returnString = next;
 			next = null;
-			bytesSent += returnString.length() + 1;
+			bytesSent += returnString.length() + 1; // TODO: not X-platform!
 			return returnString;
 		}
 
