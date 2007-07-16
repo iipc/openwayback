@@ -75,7 +75,9 @@ public class FramesetReplayRenderer extends RawReplayRenderer {
 
 			// always use the "timeline" adapter for the top frame:
 			uriConverter.setTimelineMode();
-			String timelineURL = uriConverter.makeReplayURI(result);
+			String captureDate = result.getCaptureDate();
+			String url = result.getAbsoluteUrl();
+			String timelineURL = uriConverter.makeReplayURI(captureDate,url);
 
 			// switch between the "inline" and the "meta" adapters based on the
 			// REQUEST_META_MODE flag for the bottom frame:
@@ -86,7 +88,7 @@ public class FramesetReplayRenderer extends RawReplayRenderer {
 				uriConverter.setInlineMode();			
 			}
 			StringFormatter fmt = wbRequest.getFormatter();
-			String replayURL = uriConverter.makeReplayURI(result);
+			String replayURL = uriConverter.makeReplayURI(captureDate,url);
 			String title = fmt.format("TimelineView.frameSetTitle");
 
 			StringBuilder framesetHTML = new StringBuilder(600);
@@ -123,7 +125,9 @@ public class FramesetReplayRenderer extends RawReplayRenderer {
 
 			// not exact version: redirect-o-rama:
 			uriConverter.setFramesetMode();
-			String betterURI = uriConverter.makeReplayURI(result);
+			String captureDate = result.getCaptureDate();
+			String url = result.getAbsoluteUrl();
+			String betterURI = uriConverter.makeReplayURI(captureDate,url);
 			httpResponse.sendRedirect(betterURI);
 
 		}
