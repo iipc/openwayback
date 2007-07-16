@@ -26,8 +26,12 @@ package org.archive.wayback.timeline;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.Properties;
+
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.WaybackConstants;
+import org.archive.wayback.core.PropertyConfiguration;
+import org.archive.wayback.exception.ConfigurationException;
 
 /**
  * Exotic implementation of ResultURIConverter that is aware of 4 contexts
@@ -39,35 +43,55 @@ import org.archive.wayback.WaybackConstants;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class TimelineReplayResultURIConverter extends ResultURIConverter {
+public class TimelineReplayResultURIConverter implements ResultURIConverter {
 	private final static String META_MODE_YES = "yes";
 	
 	private final static String REPLAY_URI_PREFIX_PROPERTY = "replayuriprefix";
 	private final static String META_URI_PREFIX_PROPERTY = "metauriprefix";
-	private final static String FRAMESET_URI_PREFIX_PROPERTY = "frameseturiprefix";
 	private final static String TIMELINE_URI_PREFIX_PROPERTY = "timelineuriprefix";
+	private final static String FRAMESET_URI_PREFIX_PROPERTY = "frameseturiprefix";
 	
-	private final static String REPLAY_URI_DEFAULT_SUFFIX = "replay";
-	private final static String META_URI_DEFAULT_SUFFIX = "meta";
-	private final static String FRAMESET_URI_DEFAULT_SUFFIX = "frameset";
-	private final static String TIMELINE_URI_DEFAULT_SUFFIX = "timeline";
+//	private final static String REPLAY_URI_DEFAULT_SUFFIX = "replay";
+//	private final static String META_URI_DEFAULT_SUFFIX = "meta";
+//	private final static String FRAMESET_URI_DEFAULT_SUFFIX = "frameset";
+//	private final static String TIMELINE_URI_DEFAULT_SUFFIX = "timeline";
 
-	protected String prefixPropertyName = FRAMESET_URI_PREFIX_PROPERTY;
-	protected String defaultSuffix = FRAMESET_URI_DEFAULT_SUFFIX;
+//	protected String prefixPropertyName = FRAMESET_URI_PREFIX_PROPERTY;
+//	protected String defaultSuffix = FRAMESET_URI_DEFAULT_SUFFIX;
 	
-	protected String getPrefix() {
-		return getConfigOrContextRelative(prefixPropertyName,defaultSuffix);
+	private String replayURIPrefix = null;
+	private String metaURIPrefix = null;
+	private String timelineURIPrefix = null;
+	private String framesetURIPrefix = null;
+	
+	private String currentPrefix = null;
+
+	public void init(Properties p) throws ConfigurationException {
+		PropertyConfiguration pc = new PropertyConfiguration(p);
+		replayURIPrefix = pc.getString(REPLAY_URI_PREFIX_PROPERTY);
+		metaURIPrefix = pc.getString(META_URI_PREFIX_PROPERTY);
+		timelineURIPrefix = pc.getString(TIMELINE_URI_PREFIX_PROPERTY);
+		framesetURIPrefix = pc.getString(FRAMESET_URI_PREFIX_PROPERTY);
+		currentPrefix = framesetURIPrefix;
 	}
+
+	
+//	protected String getPrefix() {
+//		return getConfigOrContextRelative(prefixPropertyName,defaultSuffix);
+//	}
 	
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.ResultURIConverter#makeReplayURI(java.lang.String, java.lang.String)
 	 */
 	public String makeReplayURI(String datespec, String url) {
-		String resolution = wbRequest.get(WaybackConstants.REQUEST_RESOLUTION);
-		String metaMode = wbRequest.get(WaybackConstants.REQUEST_META_MODE);
+//		String resolution = wbRequest.get(WaybackConstants.REQUEST_RESOLUTION);
+//		String metaMode = wbRequest.get(WaybackConstants.REQUEST_META_MODE);
+		String resolution = null;
+		String metaMode = null;
 
+		
 		StringBuilder buf = new StringBuilder(100);
-		buf.append(getPrefix());
+		buf.append(currentPrefix);
 		buf.append("?q=exactdate:").append(datespec);
 		if(resolution != null && resolution.length() > 0) {
 			buf.append("%20").append(WaybackConstants.REQUEST_RESOLUTION);
@@ -88,33 +112,69 @@ public class TimelineReplayResultURIConverter extends ResultURIConverter {
 		}
 		return buf.toString();
 	}	
-
-	/**
-	 * configure the uriConverter to return frameset urls
-	 */
-	public void setFramesetMode() {
-		prefixPropertyName = FRAMESET_URI_PREFIX_PROPERTY;
-		defaultSuffix = FRAMESET_URI_DEFAULT_SUFFIX;
-	}
-	/**
-	 * configure the uriConverter to return timline urls
-	 */
-	public void setTimelineMode() {
-		prefixPropertyName = TIMELINE_URI_PREFIX_PROPERTY;
-		defaultSuffix = TIMELINE_URI_DEFAULT_SUFFIX;
-	}
 	/**
 	 * configure the uriConverter to return inline urls
 	 */
 	public void setInlineMode() {
-		prefixPropertyName = REPLAY_URI_PREFIX_PROPERTY;
-		defaultSuffix = REPLAY_URI_DEFAULT_SUFFIX;
+		currentPrefix = replayURIPrefix;
+//		prefixPropertyName = REPLAY_URI_PREFIX_PROPERTY;
+//		defaultSuffix = REPLAY_URI_DEFAULT_SUFFIX;
 	}
 	/**
 	 * configure the uriConverter to return meta urls
 	 */
 	public void setMetaMode() {
-		prefixPropertyName = META_URI_PREFIX_PROPERTY;
-		defaultSuffix = META_URI_DEFAULT_SUFFIX;
+		currentPrefix = metaURIPrefix;
+//		prefixPropertyName = META_URI_PREFIX_PROPERTY;
+//		defaultSuffix = META_URI_DEFAULT_SUFFIX;
+	}
+
+	/**
+	 * configure the uriConverter to return timline urls
+	 */
+	public void setTimelineMode() {
+		currentPrefix = timelineURIPrefix;
+//		prefixPropertyName = TIMELINE_URI_PREFIX_PROPERTY;
+//		defaultSuffix = TIMELINE_URI_DEFAULT_SUFFIX;
+	}
+	/**
+	 * configure the uriConverter to return frameset urls
+	 */
+	public void setFramesetMode() {
+		currentPrefix = framesetURIPrefix;
+//		prefixPropertyName = FRAMESET_URI_PREFIX_PROPERTY;
+//		defaultSuffix = FRAMESET_URI_DEFAULT_SUFFIX;
+	}
+
+
+	/**
+	 * @param replayURIPrefix the replayURIPrefix to set
+	 */
+	public void setReplayURIPrefix(String replayURIPrefix) {
+		this.replayURIPrefix = replayURIPrefix;
+	}
+
+
+	/**
+	 * @param metaURIPrefix the metaURIPrefix to set
+	 */
+	public void setMetaURIPrefix(String metaURIPrefix) {
+		this.metaURIPrefix = metaURIPrefix;
+	}
+
+
+	/**
+	 * @param timelineURIPrefix the timelineURIPrefix to set
+	 */
+	public void setTimelineURIPrefix(String timelineURIPrefix) {
+		this.timelineURIPrefix = timelineURIPrefix;
+	}
+
+
+	/**
+	 * @param framesetURIPrefix the framesetURIPrefix to set
+	 */
+	public void setFramesetURIPrefix(String framesetURIPrefix) {
+		this.framesetURIPrefix = framesetURIPrefix;
 	}
 }
