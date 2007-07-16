@@ -303,6 +303,28 @@ public class UrlCanonicalizer {
 		
 		return (m != null) && m.matches();
 	}
+	
+	/**
+	 * @param baseUrl
+	 * @param url
+	 * @return url resolved against baseUrl, unless it is absolute already
+	 */
+	public static String resolveUrl(String baseUrl, String url) {
+		// TODO: this only works for http://
+		if(url.startsWith("http://")) {
+			return url;
+		}
+		UURI absBaseURI;
+		UURI resolvedURI = null;
+		try {
+			absBaseURI = UURIFactory.getInstance(baseUrl);
+			resolvedURI = UURIFactory.getInstance(absBaseURI, url);
+		} catch (URIException e) {
+			e.printStackTrace();
+			return url;
+		}
+		return resolvedURI.getEscapedURI();
+	}
 
 	private static void USAGE() {
 		System.err.println("Usage: [-f FIELD] [-d DELIM]");
