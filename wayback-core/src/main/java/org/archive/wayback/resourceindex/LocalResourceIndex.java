@@ -32,6 +32,7 @@ import org.archive.net.UURI;
 import org.archive.net.UURIFactory;
 import org.archive.wayback.ResourceIndex;
 import org.archive.wayback.WaybackConstants;
+import org.archive.wayback.resourceindex.filters.CaptureToUrlResultFilter;
 import org.archive.wayback.resourceindex.filters.CounterFilter;
 import org.archive.wayback.resourceindex.filters.DateRangeFilter;
 import org.archive.wayback.resourceindex.filters.EndDateFilter;
@@ -43,10 +44,12 @@ import org.archive.wayback.resourceindex.filters.UrlMatchFilter;
 import org.archive.wayback.resourceindex.filters.UrlPrefixMatchFilter;
 import org.archive.wayback.resourceindex.filters.WindowEndFilter;
 import org.archive.wayback.resourceindex.filters.WindowStartFilter;
+import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.PropertyConfiguration;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.Timestamp;
+import org.archive.wayback.core.UrlSearchResults;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.AccessControlException;
 import org.archive.wayback.exception.BadQueryException;
@@ -173,8 +176,7 @@ public class LocalResourceIndex implements ResourceIndex {
 			ResourceNotInArchiveException, BadQueryException,
 			AccessControlException {
 
-		SearchResults results = new SearchResults(); // return value
-														// placeholder
+		SearchResults results = null; // return value placeholder
 
 		String startKey; // actual key where search will begin
 		String keyUrl; // "purified" URL request
@@ -237,6 +239,7 @@ public class LocalResourceIndex implements ResourceIndex {
 		if (searchType.equals(WaybackConstants.REQUEST_REPLAY_QUERY)
 				|| searchType.equals(WaybackConstants.REQUEST_CLOSEST_QUERY)) {
 
+			results = new CaptureSearchResults(); 
 			ObjectFilterChain forwardFilters = new ObjectFilterChain();
 			ObjectFilterChain reverseFilters = new ObjectFilterChain();
 
@@ -315,6 +318,7 @@ public class LocalResourceIndex implements ResourceIndex {
 
 		} else if (searchType.equals(WaybackConstants.REQUEST_URL_QUERY)) {
 
+			results = new CaptureSearchResults(); 
 			// build up the FilterChain(s):
 			ObjectFilterChain filters = new ObjectFilterChain();
 			filters.addFilter(guardrail);
@@ -348,6 +352,7 @@ public class LocalResourceIndex implements ResourceIndex {
 
 		} else if (searchType.equals(WaybackConstants.REQUEST_URL_PREFIX_QUERY)) {
 
+			results = new UrlSearchResults(); 
 			// build up the FilterChain(s):
 			ObjectFilterChain filters = new ObjectFilterChain();
 			filters.addFilter(guardrail);
@@ -357,13 +362,14 @@ public class LocalResourceIndex implements ResourceIndex {
 				filters.addFilter(hostMatchFilter);
 			}
 			filters.addFilter(new DateRangeFilter(startDate, endDate));
-
 			// possibly filter via exclusions:
 			if (exclusion == null) {
+				filters.addFilter(new CaptureToUrlResultFilter());
 				filters.addFilter(finalCounter);
 			} else {
 				filters.addFilter(preExCounter);
 				filters.addFilter(exclusion);
+				filters.addFilter(new CaptureToUrlResultFilter());
 				filters.addFilter(finalCounter);
 			}
 			startKey = keyUrl;
@@ -420,6 +426,27 @@ public class LocalResourceIndex implements ResourceIndex {
 				.valueOf(results.getResultCount()));
 
 		return results;
+	}
+
+	/**
+	 * @param maxRecords the maxRecords to set
+	 */
+	public void setMaxRecords(int maxRecords) {
+		this.maxRecords = maxRecords;
+	}
+
+	/**
+	 * @param source the source to set
+	 */
+	public void setSource(SearchResultSource source) {
+		this.source = source;
+	}
+
+	/**
+	 * @param exclusionFactory the exclusionFactory to set
+	 */
+	public void setExclusionFactory(ExclusionFilterFactory exclusionFactory) {
+		this.exclusionFactory = exclusionFactory;
 	}
 
 }
