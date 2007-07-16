@@ -117,7 +117,7 @@ public class ReplayFilter extends RequestFilter {
 			
             try {
                 wbRequest.fixup(httpRequest);
-                String wbPrefix = wbRequest.getDefaultWaybackPrefix();
+                String wbPrefix = wbRequest.getContextPrefix();
                 if(urlStr.startsWith(wbPrefix)) {
                 	wbRequest.setBetterRequestURI(urlStr);
                 }
