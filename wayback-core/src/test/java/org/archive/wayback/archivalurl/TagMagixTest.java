@@ -26,8 +26,6 @@ package org.archive.wayback.archivalurl;
 
 import java.util.Properties;
 
-import org.archive.wayback.WaybackConstants;
-import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.exception.ConfigurationException;
 
 import junit.framework.TestCase;
@@ -39,7 +37,69 @@ import junit.framework.TestCase;
  * @version $Date$, $Revision$
  */
 public class TagMagixTest extends TestCase {
+	
+	// snipped and modified from http://www.sudaneseonline.com/ on 20070418...
+	// note: leading space in description META content
+	// note: added newlines in Content-Language META tag
+	// note: no quotes around Author META content
+	
+	String thePage = "<html>\n" +
+	"<head>\n" +
+	"<meta http-equiv=\"Content-Language\" \n   content=\"ar-eg\">\n" +
+	"<meta http-equiv=\"Content-Type\" content=\"text/html; charset=windows-1256\">\n" +
+	"<meta name=\"resource-type\" content=\"document\">\n" +
+	"<meta name=\"classification\" content=\"News\">\n" +
+	"<meta name=\"test1234\" content=\"one\ntwo\">\n" +
+	"<meta name=\"description\" content=\" A voice of the Sudan people on the  Internet\">\n" +
 
+	"<meta http-equiv=\"Content-Language\" \n   content=\"ar-sa\">\n" +
+	"<meta http-equiv=\"Content-Type\" content=\"text/html; charset=windows-1256\">\n" +
+	"<META NAME=\"Author\" CONTENT=Bakri Abubakr http://bayanit.com/>\n" +
+	"<META NAME=\"Author2\" CONTENT=\"Bakri Abubakr http://bayanit.com/\">\n" +
+	"</head>\n" +
+	"<body>foo</body>\n" +
+	"</html>\n";
+
+	/**
+	 * Tests the code that finds attribute values in tags
+	 */
+	public void testFindAttr() {
+		
+		checkAttrValue(thePage,"meta","http-equiv","Content-Language");
+	}
+	/**
+	 * 
+	 */
+	public void testFindAttrWhere() {
+		checkAttrWhereValue(thePage,"meta","content","http-equiv",
+				"Content-Type","text/html; charset=windows-1256");
+
+		checkAttrWhereValue(thePage,"meta","content","http-equiv",
+				"Content-Language","ar-eg");
+
+		checkAttrWhereValue(thePage,"meta","content","name",
+				"classification","News");
+
+		checkAttrWhereValue(thePage,"meta","content","name",
+				"test1234","one\ntwo");
+		
+		checkAttrWhereValue(thePage,"meta","content","name",
+				"ClAsSification","News");
+
+		checkAttrWhereValue(thePage,"meta","content","name",
+				"description"," A voice of the Sudan people on the  Internet");
+
+		checkAttrWhereValue(thePage,"meta","content","name",
+				"description-no-existo",null);
+
+		checkAttrWhereValue(thePage,"meta","content","name",
+				"author","Bakri");
+
+		checkAttrWhereValue(thePage,"meta","content","name",
+				"author2","Bakri Abubakr http://bayanit.com/");
+	}
+	
+	
 	/**
 	 * Test method for 'org.archive.wayback.archivalurl.TagMagix.markupTag(StringBuffer, String, String, String, String, String)'
 	 */
@@ -195,7 +255,7 @@ public class TagMagixTest extends TestCase {
 		checkMarkup(
 				"<b><link rel=\"stylesheet\"\n goo=\"1\"\n href=\"/_style/style.css\"></b>",
 				"<b><link rel=\"stylesheet\"\n goo=\"1\"\n href=\"http://web.archive.org/wayback/2004/http://archive.org/_style/style.css\"></b>",
-				"LINK","HREF","http://web.archive.org/wayback/","2004","archive.org/dir/");
+				"LINK","HREF","http://web.archive.org/wayback/","2004","http://archive.org/dir/");
 		
 		// Javascript escaped quote attribute:
 		checkMarkup(
@@ -206,15 +266,28 @@ public class TagMagixTest extends TestCase {
 		
 	}
 
+	private void checkAttrValue(String page, String tag, String attr, 
+			String wantValue) {
+		StringBuilder sb = new StringBuilder(page);
+		String foundValue = TagMagix.getTagAttr(sb, tag, attr);
+		assertEquals(foundValue,wantValue);
+	}
+	private void checkAttrWhereValue(String page, String tag, String attr, 
+			String whereAttr, String whereVal, String wantValue) {
+		StringBuilder sb = new StringBuilder(page);
+		String foundValue = TagMagix.getTagAttrWhere(sb, tag, attr, whereAttr,whereVal);
+		if(foundValue != null) {
+			assertEquals(foundValue,wantValue);
+		} else {
+			assertNull(wantValue);
+		}
+	}
 	
 	private void checkMarkup(String orig, String want, String tag, String attr, String prefix, String ts, String url) {
 		StringBuilder buf = new StringBuilder(orig);
-		SearchResult result = new SearchResult();
-		result.put(WaybackConstants.RESULT_CAPTURE_DATE,ts);
-		if(url.startsWith("http://")) {
-			url = url.substring(7);
-		}
-		result.put(WaybackConstants.RESULT_URL,url);
+//		if(url.startsWith("http://")) {
+//			url = url.substring(7);
+//		}
 		ArchivalUrlResultURIConverter uriC = new ArchivalUrlResultURIConverter();
 		Properties initp = new Properties();
 		initp.put("replayuriprefix",prefix);
@@ -226,7 +299,7 @@ public class TagMagixTest extends TestCase {
 					false);
 		}
 		
-		TagMagix.markupTagREURIC(buf,uriC,result,url,tag,attr);
+		TagMagix.markupTagREURIC(buf,uriC,ts,url,tag,attr);
 		String marked = buf.toString();
 		assertEquals(want,marked);
 	}
