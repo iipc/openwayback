@@ -27,6 +27,7 @@ package org.archive.wayback.proxy;
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.replay.BaseReplayRenderer;
+import org.archive.wayback.util.UrlCanonicalizer;
 
 /**
  * 
@@ -50,9 +51,12 @@ public class RawReplayRenderer extends BaseReplayRenderer {
 	protected String filterHeader(final String key, final String value,
 			final ResultURIConverter uriConverter, SearchResult result) {
 		String finalHeaderValue = value;
-		if (0 == key.indexOf(HTTP_LOCATION_HEADER)) {
-			finalHeaderValue = uriConverter
-					.makeRedirectReplayURI(result, value);
+		String keyUp = key.toUpperCase();
+		if (0 == keyUp.indexOf(HTTP_LOCATION_HEADER.toUpperCase())) {
+			String baseUrl = result.getAbsoluteUrl();
+			String captureDate = result.getCaptureDate();
+			String url = UrlCanonicalizer.resolveUrl(baseUrl, value);
+			return uriConverter.makeReplayURI(captureDate,url);
 		}
 		return finalHeaderValue;
 	}
