@@ -30,12 +30,15 @@ import java.util.Iterator;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.httpclient.URIException;
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.ResultURIConverter;
+import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.UIResults;
+import org.archive.wayback.core.UrlSearchResults;
 import org.archive.wayback.core.WaybackRequest;
 
 /**
@@ -72,7 +75,6 @@ public class UIQueryResults extends UIResults {
 	private int curPage;
 
 	private SearchResults results;
-	private HttpServletRequest httpRequest;
 	private ResultURIConverter uriConverter;
 
 	/**
@@ -116,9 +118,24 @@ public class UIQueryResults extends UIResults {
 		
 		this.results = results;
 		this.uriConverter = uriConverter;
-		this.httpRequest = httpRequest;
 	}
 
+	/**
+	 * @return true if the underlying SearchResult objects contain Capture level 
+	 * data
+	 */
+	public boolean isCaptureResults() {
+		return (results instanceof CaptureSearchResults);
+	}
+	
+	/**
+	 * @return true if the underlying SearchResult objects contain Url level 
+	 * data
+	 */
+	public boolean isUrlResults() {
+		return (results instanceof UrlSearchResults);		
+	}
+	
 	/**
 	 * @return Timestamp end cutoff requested by user
 	 */
@@ -157,7 +174,7 @@ public class UIQueryResults extends UIResults {
 	/**
 	 * @return Iterator of ResourceResults
 	 */
-	public Iterator resultsIterator() {
+	public Iterator<SearchResult> resultsIterator() {
 		return results.iterator();
 	}
 
@@ -166,7 +183,9 @@ public class UIQueryResults extends UIResults {
 	 * @return URL string that will replay the specified Resource Result.
 	 */
 	public String resultToReplayUrl(SearchResult result) {
-		return uriConverter.makeReplayURI(result);
+		String url = result.getAbsoluteUrl();
+		String captureDate = result.getCaptureDate();
+		return uriConverter.makeReplayURI(captureDate,url);
 	}
 
 	/**
@@ -174,6 +193,42 @@ public class UIQueryResults extends UIResults {
 	 */
 	public ResultURIConverter getURIConverter() {
 		return uriConverter;
+	}
+	
+	/**
+	 * @param url
+	 * @param timestamp
+	 * @return String url that will replay the url at timestamp
+	 */
+	public String makeReplayUrl(String url, String timestamp) {
+		return uriConverter.makeReplayURI(timestamp, url);
+	}
+	
+	/**
+	 * @param url
+	 * @return String url that will make a query for all captures of an URL.
+	 */
+	public String makeCaptureQueryUrl(String url) {
+		WaybackRequest newWBR = wbRequest.clone();
+		
+		newWBR.put(WaybackConstants.REQUEST_TYPE,
+				WaybackConstants.REQUEST_URL_QUERY);
+		try {
+			newWBR.setRequestUrl(url);
+		} catch (URIException e) {
+			// should not happen...
+			e.printStackTrace();
+		}
+		return newWBR.getContextPrefix() + "query?" +
+			newWBR.getQueryArguments(1);
+	}
+	
+	/**
+	 * @param timestamp
+	 * @return Date for the timestamp string
+	 */
+	public Date timestampToDate(String timestamp) {
+		return new Timestamp(timestamp).getDate();
 	}
 	
 	/**
@@ -234,8 +289,7 @@ public class UIQueryResults extends UIResults {
 	 *         different page of results for the same query
 	 */
 	public String urlForPage(int pageNum) {
-		//http://localhost:8080/wayback/query?q=url:peagreenboat.com%20type:urlprefixquery&count=20&start_page=4
-		return httpRequest.getContextPath() + "/query?" +
+		return wbRequest.getContextPrefix() + "query?" +
 			wbRequest.getQueryArguments(pageNum);
 	}
 
