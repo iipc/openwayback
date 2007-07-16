@@ -39,22 +39,45 @@ import java.util.Iterator;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class FlatFile extends File {
+public class FlatFile {
 
 	private static final long serialVersionUID = 6174187801001601557L;
 	private long lastMatchOffset;
+	private File file = null;
+	/**
+	 * 
+	 */
+	public FlatFile() {
+		
+	}
 	/**
 	 * @param parent
 	 * @param child
 	 */
 	public FlatFile(File parent, String child) {
-		super(parent, child);
+		file = new File(parent,child);
 	}
 	/**
 	 * @param path
 	 */
 	public FlatFile(String path) {
-		super(path);
+		file = new File(path);
+	}
+	
+	/**
+	 * @param path to set
+	 */
+	public void setPath(String path) {
+		file = new File(path);
+	}
+	/**
+	 * @return current String path, or null if none has been set
+	 */
+	public String getPath() {
+		if(file == null) {
+			return null;
+		}
+		return file.getAbsolutePath();
 	}
 
 	/**
@@ -110,7 +133,7 @@ public class FlatFile extends File {
 	 * @throws IOException
 	 */
 	public Iterator getSequentialIterator() throws IOException {
-		BufferedReader br = new BufferedReader(new FileReader(this));
+		BufferedReader br = new BufferedReader(new FileReader(file));
 		return new RecordIterator(br);
 	}
 	
@@ -121,7 +144,7 @@ public class FlatFile extends File {
 	 */
 	public Iterator getRecordIterator(final String prefix) throws IOException {
 		RecordIterator itr = null;
-		RandomAccessFile raf = new RandomAccessFile(this,"r");
+		RandomAccessFile raf = new RandomAccessFile(file,"r");
 		long offset = findKeyOffset(raf,prefix);
 		lastMatchOffset = offset;
 		BufferedReader br = new BufferedReader(new FileReader(raf.getFD()));
@@ -140,7 +163,7 @@ public class FlatFile extends File {
 		throws IOException {
 
 		ReverseRecordIterator itr = null;
-		RandomAccessFile raf = new RandomAccessFile(this,"r");
+		RandomAccessFile raf = new RandomAccessFile(file,"r");
 		long offset = findKeyOffset(raf,prefix);
 		if(offset < 1) {
 			return new ReverseRecordIterator(null);
