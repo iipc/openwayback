@@ -70,7 +70,12 @@ public class BDBIndexUpdater {
 	 * has already been started -- static, and access to it is synchronized.
 	 */
 	private static Thread updateThread = null;
-	
+	/**
+	 * Default constructor
+	 */
+	public BDBIndexUpdater() {
+		
+	}
 	/**
 	 * @param index
 	 * @param incoming
@@ -81,26 +86,19 @@ public class BDBIndexUpdater {
 	}
 
 	/**
-	 * @param failed The failed to set.
+	 * start the background index merging thread
+	 * @throws ConfigurationException
 	 */
-	public void setFailed(File failed) {
-		this.failed = failed;
+	public void init() throws ConfigurationException {
+		if(index == null) {
+			throw new ConfigurationException("No index target on bdb updater");
+		}
+		if(incoming == null) {
+			throw new ConfigurationException("No incoming on bdb updater");			
+		}
+		startUpdateThread();
 	}
-
-	/**
-	 * @param merged The merged to set.
-	 */
-	public void setMerged(File merged) {
-		this.merged = merged;
-	}
-
-	/**
-	 * @param runInterval The runInterval to set.
-	 */
-	public void setRunInterval(int runInterval) {
-		this.runInterval = runInterval;
-	}
-
+	
 	/** Ensure the argument directory exists
 	 * @param dir
 	 * @throws IOException
@@ -171,6 +169,25 @@ public class BDBIndexUpdater {
 		return target;
 	}
 
+	private File ensureDir(String path) throws ConfigurationException {
+		if(path.length() < 1) {
+			throw new ConfigurationException("Empty directory path");
+		}
+		File dir = new File(path);
+		if(dir.exists()) {
+			if(!dir.isDirectory()) {
+				throw new ConfigurationException("path " + path + "exists" +
+						"but is not a directory");
+			}
+		} else {
+			if(!dir.mkdirs()) {
+				throw new ConfigurationException("unable to create directory" +
+						" at " + path);
+			}
+		}
+		return dir;
+	}
+
 	private void handleMerged(File f) {
 		if (merged == null) {
 			if (!f.delete()) {
@@ -227,6 +244,104 @@ public class BDBIndexUpdater {
 		return numMerged;
 	}
 
+	/**
+	 * @return the index
+	 */
+	public BDBIndex getIndex() {
+		return index;
+	}
+
+	/**
+	 * @param index the index to set
+	 */
+	public void setIndex(BDBIndex index) {
+		this.index = index;
+	}
+
+	/**
+	 * @return the incoming
+	 */
+	public String getIncoming() {
+		if(incoming == null) {
+			return null;
+		}
+		return incoming.getAbsolutePath();
+	}
+
+	/**
+	 * @param incoming the incoming to set
+	 * @throws ConfigurationException 
+	 */
+	public void setIncoming(String incoming) throws ConfigurationException {
+		this.incoming = ensureDir(incoming);
+	}
+
+
+	/**
+	 * @return the merged
+	 */
+	public String getMerged() {
+		if(merged == null) {
+			return null;
+		}
+		return merged.getAbsolutePath();
+	}
+
+	/**
+	 * @param merged The merged to set.
+	 * @throws ConfigurationException 
+	 */
+	public void setMerged(String merged) throws ConfigurationException {
+		this.merged = ensureDir(merged);
+	}
+	/**
+	 * @param merged
+	 * @throws IOException
+	 */
+	public void setMerged(File merged) throws IOException {
+		ensureDir(merged);
+		this.merged = merged;
+	}
+
+	/**
+	 * @return the failed
+	 */
+	public String getFailed() {
+		if(failed == null) {
+			return null;
+		}
+		return failed.getAbsolutePath();
+	}
+
+	/**
+	 * @param failed The failed to set.
+	 * @throws ConfigurationException 
+	 */
+	public void setFailed(String failed) throws ConfigurationException {
+		this.failed = ensureDir(failed);
+	}
+	/**
+	 * @param failed
+	 * @throws IOException
+	 */
+	public void setFailed(File failed) throws IOException {
+		ensureDir(failed);
+		this.failed = failed;
+	}
+
+	/**
+	 * @return the runInterval
+	 */
+	public int getRunInterval() {
+		return runInterval;
+	}
+
+	/**
+	 * @param runInterval The runInterval to set.
+	 */
+	public void setRunInterval(int runInterval) {
+		this.runInterval = runInterval;
+	}
 	/**
 	 * Thread that repeatedly calls mergeAll on the BDBIndexUpdater.
 	 * 
