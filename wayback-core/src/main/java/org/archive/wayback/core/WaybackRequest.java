@@ -53,6 +53,9 @@ public class WaybackRequest {
 
 	private int pageNum = 1;
 	
+	private String contextPrefix = null;
+	private String serverPrefix = null;
+	
 	private String betterRequestURI = null;
 
 	private Properties filters = new Properties();
@@ -76,6 +79,24 @@ public class WaybackRequest {
 	 */
 	public WaybackRequest() {
 		super();
+	}
+
+	/**
+	 * @return true if REQUEST_TYPE is set, and is set to REQUEST_REPLAY_QUERY
+	 */
+	public boolean isReplayRequest() {
+		String type = get(WaybackConstants.REQUEST_TYPE);
+		if(type != null && type.equals(WaybackConstants.REQUEST_REPLAY_QUERY)) {
+			return true;
+		}
+		return false;
+	}
+	/**
+	 * @return true if true if REQUEST_TYPE is not set, or is set to a value 
+	 * other than REQUEST_REPLAY_QUERY
+	 */
+	public boolean isQueryRequest() {
+		return !isReplayRequest();
 	}
 
 	/**
@@ -161,6 +182,15 @@ public class WaybackRequest {
 		}
 	}
 	
+	/**
+	 * Set the Locale for the request, which impacts UI Strings
+	 * @param l
+	 */
+	public void setLocale(Locale l) {
+		ResourceBundle b = ResourceBundle.getBundle(UI_RESOURCE_BUNDLE_NAME,l);
+		formatter = new StringFormatter(b,l);
+	}
+	
 	private String getUserLocale(HttpServletRequest httpRequest) {
 		Locale l = httpRequest.getLocale();
 		ResourceBundle b = ResourceBundle.getBundle(UI_RESOURCE_BUNDLE_NAME,
@@ -196,27 +226,43 @@ public class WaybackRequest {
 	}
 
 	/**
+	 * @param prefix
+	 */
+	public void setServerPrefix(String prefix) {
+		serverPrefix = prefix;
+	}
+
+	/**
+	 * @param prefix
+	 * @return an absolute String URL that will point to the root of the
+	 * server that is handling the request. 
+	 */
+	public String getServerPrefix() {
+		if(serverPrefix == null) {
+			return "";
+		}
+		return serverPrefix;
+	}
+
+	
+	/**
+	 * @param prefix
+	 */
+	public void setContextPrefix(String prefix) {
+		contextPrefix = prefix;
+	}
+	/**
 	 * Construct an absolute URL that points to the root of the context that
 	 * recieved the request, including a trailing "/".
 	 * 
 	 * @return String absolute URL pointing to the Context root where the
 	 *         request was revieved.
 	 */
-	public String getDefaultWaybackPrefix() {
-		String waybackHostname = get(WaybackConstants.REQUEST_WAYBACK_HOSTNAME);
-		String waybackPort = get(WaybackConstants.REQUEST_WAYBACK_PORT);
-		String waybackContext = get(WaybackConstants.REQUEST_WAYBACK_CONTEXT);
-		StringBuilder prefix = new StringBuilder();
-		prefix.append(WaybackConstants.HTTP_URL_PREFIX);
-		prefix.append(waybackHostname);
-		if (waybackPort.compareTo(WaybackConstants.HTTP_DEFAULT_PORT) != 0) {
-			prefix.append(":").append(waybackPort);
+	public String getContextPrefix() {
+		if(contextPrefix == null) {
+			return "";
 		}
-		//prefix.append("/");
-		if (waybackContext != null && waybackContext.length() > 0) {
-			prefix.append(waybackContext).append("/");
-		}
-		return prefix.toString();
+		return contextPrefix;
 	}
 
 	/**
@@ -279,7 +325,7 @@ public class WaybackRequest {
 			String key = (String) e.nextElement();
 			boolean isStandard = false;
 			for(int i=0; i<standardHeaders.length; i++) {
-				if(standardHeaders[i].compareTo(key) == 0) {
+				if(standardHeaders[i].equals(key)) {
 					isStandard = true;
 					break;
 				}
@@ -326,6 +372,33 @@ public class WaybackRequest {
 	 * @return StringFormatter based on user request info
 	 */
 	public StringFormatter getFormatter() {
+		if(formatter == null) {
+			setLocale(Locale.getAvailableLocales()[0]);
+		}
 		return formatter;
+	}
+	public WaybackRequest clone() {
+		WaybackRequest wbRequest = new WaybackRequest();
+
+		wbRequest.contextPrefix = contextPrefix;
+		wbRequest.resultsPerPage = resultsPerPage;
+
+		wbRequest.pageNum = pageNum;
+		
+		wbRequest.contextPrefix = contextPrefix;
+		wbRequest.serverPrefix = serverPrefix;
+		
+		wbRequest.betterRequestURI = betterRequestURI;
+
+		
+		wbRequest.formatter = formatter;
+
+		wbRequest.filters = new Properties();
+		for (Enumeration e = filters.keys(); e.hasMoreElements();) {
+			String key = (String) e.nextElement();
+			String val = (String) filters.get(key);
+			wbRequest.filters.put(key, val);
+		}
+		return wbRequest;
 	}
 }
