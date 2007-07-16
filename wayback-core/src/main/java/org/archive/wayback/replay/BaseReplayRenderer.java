@@ -42,6 +42,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.archive.wayback.ReplayRenderer;
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.WaybackConstants;
+import org.archive.wayback.archivalurl.TagMagix;
 import org.archive.wayback.core.PropertyConfiguration;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.SearchResult;
@@ -285,37 +286,70 @@ public class BaseReplayRenderer implements ReplayRenderer {
 		}
 	}
 
+	private String contentTypeToCharset(final String contentType) {
+		int offset = contentType.indexOf(CHARSET_TOKEN);
+		if (offset != -1) {
+			return contentType.substring(offset + CHARSET_TOKEN.length());
+		}
+		return null;
+	}
+	
 	/**
-	 * Attempt to divine the character encoding of the document:
-	 *   1) then see if the Content-Type HTTP header helps (with a "charset=")
-	 *   2) then assume... "UTF-8"
-	 *   
-	 * This should probably use the value from a META tag, if available, before
-	 * #1 and #2..
+	 * Attempt to divine the character encoding of the document from the 
+	 * Content-Type HTTP header (with a "charset=")
 	 * 
 	 * @param resource
-	 * @return String character set guessed
+	 * @return String character set found or null if the header was not present
 	 * @throws IOException 
 	 */
-	protected String getCharsetFallback(Resource resource) throws IOException {
+	protected String getCharsetFromHeaders(Resource resource) 
+	throws IOException {
+		
 		String charsetName = null;
 
 		Properties httpHeaders = resource.getHttpHeaders();
 		String ctype = httpHeaders.getProperty(HTTP_CONTENT_TYPE_HEADER);
 		if (ctype != null) {
-			int offset = ctype.indexOf(CHARSET_TOKEN);
-			if (offset != -1) {
-				charsetName = ctype.substring(offset
-						+ CHARSET_TOKEN.length());
-			}
-		}
-		if (charsetName == null) {
-			charsetName = "UTF-8";
+			charsetName = contentTypeToCharset(ctype);
 		}
 		return charsetName;
 	}
 
-	protected String getCharset(Resource resource) throws IOException {
+	/**
+	 * Attempt to find a META tag in the HTML that hints at the character set
+	 * used to write the document.
+	 * 
+	 * @param resource
+	 * @return String character set found from META tags in the HTML
+	 * @throws IOException
+	 */
+	protected String getCharsetFromMeta(Resource resource) throws IOException {
+		String charsetName = null;
+
+		byte[] bbuffer = new byte[MAX_CHARSET_READAHEAD];
+		resource.mark(MAX_CHARSET_READAHEAD);
+		resource.read(bbuffer, 0, MAX_CHARSET_READAHEAD);
+		resource.reset();
+		// convert to UTF-8 String -- which hopefully will not mess up the
+		// characters we're interested in...
+		StringBuilder sb = new StringBuilder(new String(bbuffer,"UTF-8"));
+		String metaContentType = TagMagix.getTagAttrWhere(sb, "META",
+				"content", "http-equiv", "Content-Type");
+		if(metaContentType != null) {
+			charsetName = contentTypeToCharset(metaContentType);
+		}
+		return charsetName;
+	}
+	
+	/**
+	 * Attempts to figure out the character set of the document using
+	 * the excellent juniversalchardet library.
+	 * 
+	 * @param resource
+	 * @return String character encoding found, or null if nothing looked good.
+	 * @throws IOException
+	 */
+	protected String getCharsetFromBytes(Resource resource) throws IOException {
 		String charsetName = null;
 
 		byte[] bbuffer = new byte[MAX_CHARSET_READAHEAD];
@@ -336,6 +370,30 @@ public class BaseReplayRenderer implements ReplayRenderer {
 	    detector.reset();
 
 		return charsetName;
+	}
+
+	/**
+	 * Use META tags, byte-character-detection, HTTP headers, hope, and prayer
+	 * to figure out what character encoding is being used for the document.
+	 * If nothing else works, assumes UTF-8 for now.
+	 * 
+	 * @param resource
+	 * @return String charset for Resource
+	 * @throws IOException
+	 */
+	protected String getCharset(Resource resource) throws IOException {
+		
+		String charSet = getCharsetFromMeta(resource);
+		if(charSet == null) {
+			charSet = getCharsetFromBytes(resource);
+			if(charSet == null) {
+				charSet = getCharsetFromHeaders(resource);
+				if(charSet == null) {
+					charSet = "UTF-8";
+				}
+			}
+		}
+		return charSet;
 	}
 	
 	/** 
@@ -367,7 +425,7 @@ public class BaseReplayRenderer implements ReplayRenderer {
 			SearchResult result, Resource resource,
 			ResultURIConverter uriConverter) throws ServletException,
 			IOException {
-		// TODO Auto-generated method stub
+
 		if (resource == null) {
 			throw new IllegalArgumentException("No resource");
 		}
@@ -396,9 +454,6 @@ public class BaseReplayRenderer implements ReplayRenderer {
 
 			// get the charset:
 			String charSet = getCharset(resource);
-			if(charSet == null) {
-				charSet = getCharsetFallback(resource);
-			}
 
 			// convert bytes to characters for charset:
 			InputStreamReader isr = new InputStreamReader(resource, charSet);
@@ -425,5 +480,19 @@ public class BaseReplayRenderer implements ReplayRenderer {
 			ServletOutputStream out = httpResponse.getOutputStream();
 			out.write(ba);
 		}
+	}
+
+	/**
+	 * @return the jspPath
+	 */
+	public String getJspPath() {
+		return jspPath;
+	}
+
+	/**
+	 * @param jspPath the jspPath to set
+	 */
+	public void setJspPath(String jspPath) {
+		this.jspPath = jspPath;
 	}
 }
