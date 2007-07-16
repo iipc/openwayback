@@ -24,7 +24,11 @@
  */
 package org.archive.wayback.archivalurl;
 
+import java.util.Properties;
+
 import org.archive.wayback.ResultURIConverter;
+import org.archive.wayback.core.PropertyConfiguration;
+import org.archive.wayback.exception.ConfigurationException;
 
 /**
  *
@@ -32,19 +36,32 @@ import org.archive.wayback.ResultURIConverter;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class ArchivalUrlResultURIConverter extends ResultURIConverter {
+public class ArchivalUrlResultURIConverter implements ResultURIConverter {
 	/**
 	 * configuration name for URL prefix of replay server
 	 */
 	private final static String REPLAY_URI_PREFIX_PROPERTY = "replayuriprefix";
-	private String getReplayUriPrefix() {
-		return getConfigOrContextRelative(REPLAY_URI_PREFIX_PROPERTY,"");
+	private String replayURIPrefix = null;
+	public void init(Properties p) throws ConfigurationException {
+		PropertyConfiguration pc = new PropertyConfiguration(p);
+		replayURIPrefix = pc.getString(REPLAY_URI_PREFIX_PROPERTY);
 	}
 	
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.ResultURIConverter#makeReplayURI(java.lang.String, java.lang.String)
 	 */
 	public String makeReplayURI(String datespec, String url) {
-		return getReplayUriPrefix() + datespec + "/" + url;
+		if(replayURIPrefix == null) {
+			return datespec + "/" + url;
+		} else {
+			return replayURIPrefix + datespec + "/" + url;
+		}
+	}
+
+	/**
+	 * @param replayURIPrefix the replayURIPrefix to set
+	 */
+	public void setReplayURIPrefix(String replayURIPrefix) {
+		this.replayURIPrefix = replayURIPrefix;
 	}
 }
