@@ -33,7 +33,6 @@ import org.archive.wayback.WaybackConstants;
  * @version $Date$, $Revision$
  */
 public class UrlSearchResults extends SearchResults {
-	private UrlSearchResultAccumulator accumulator = null;
 
 	public String getResultsType() {
 		return WaybackConstants.RESULTS_TYPE_URL;
@@ -48,11 +47,5 @@ public class UrlSearchResults extends SearchResults {
 	@Override
 	public void addSearchResult(SearchResult result, boolean append) {
 		addSearchResultRaw(result,append);
-//		if(accumulator != null && accumulator.sameUrl(result)) {
-//			accumulator.addSearchResult(result);
-//		} else {
-//			accumulator = new UrlSearchResultAccumulator(result);
-//			addSearchResultRaw(accumulator.getResult(),append);
-//		}
 	}
 }
