@@ -34,9 +34,12 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.archive.wayback.ResourceIndex;
+import org.archive.wayback.WaybackConstants;
+import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.PropertyConfiguration;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.SearchResults;
+import org.archive.wayback.core.UrlSearchResults;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.AccessControlException;
 import org.archive.wayback.exception.BadQueryException;
@@ -181,9 +184,25 @@ public class RemoteResourceIndex implements ResourceIndex {
 			}
 		}
 	}
+	private String getResultsType(Document document) {
+		NodeList list = document.getElementsByTagName(
+				WaybackConstants.RESULTS_TYPE);
+		if(list.getLength() == 1) {
+			return list.item(0).getTextContent();
+		} else {
+			return WaybackConstants.RESULTS_TYPE_CAPTURE;
+		}
+	}
+	
 	protected SearchResults documentToSearchResults(Document document) {
-		SearchResults results = new SearchResults();
+		SearchResults results = null;
 		NodeList filters = getRequestFilters(document);
+		String resultsType = getResultsType(document);
+		if(resultsType.equals(WaybackConstants.RESULTS_TYPE_CAPTURE)) {
+			results = new CaptureSearchResults();
+		} else {
+			results = new UrlSearchResults();
+		}
 		for(int i = 0; i < filters.getLength(); i++) {
 			String key = filters.item(i).getNodeName();
 			String value = filters.item(i).getTextContent();
@@ -196,7 +215,7 @@ public class RemoteResourceIndex implements ResourceIndex {
 		for(int i = 0; i < xresults.getLength(); i++) {
 			Node xresult = xresults.item(i);
 			SearchResult result = searchElementToSearchResult(xresult);
-			results.addSearchResult(result);
+			results.addSearchResultRaw(result,true);
 		}
 		return results;
 	}
