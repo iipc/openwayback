@@ -193,6 +193,22 @@ public interface WaybackConstants {
 	 */
 	public static final String REQUEST_YES = "yes";
 
+	/**
+	 * Results: type of results: "Capture" or "Url"
+	 */
+	public static final String RESULTS_TYPE = "resultstype";
+
+	/**
+	 * Results: indicates SearchResult objects within the SearchResults are of
+	 * type UrlSearchResults.
+	 */
+	public static final String RESULTS_TYPE_URL = "resultstypeurl";
+	
+	/**
+	 * Results: indicates SearchResult objects within the SearchResults are of
+	 * type CaptureSearchResults.
+	 */
+	public static final String RESULTS_TYPE_CAPTURE = "resultstypecapture";
 	
 	/**
 	 * Results: int total number of records matching, not all necc. returned.
