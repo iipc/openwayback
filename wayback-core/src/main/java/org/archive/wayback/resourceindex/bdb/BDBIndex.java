@@ -33,8 +33,9 @@ import java.util.Iterator;
 
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.bdb.BDBRecordSet;
+import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.SearchResult;
-import org.archive.wayback.core.SearchResults;
+import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
 import org.archive.wayback.resourceindex.SearchResultSource;
 import org.archive.wayback.resourceindex.indexer.ArcIndexer;
@@ -50,6 +51,20 @@ import com.sleepycat.je.DatabaseException;
  * @version $Date$, $Revision$
  */
 public class BDBIndex extends BDBRecordSet implements SearchResultSource {
+	private String bdbPath = null;
+	private String bdbName = null;
+	private BDBIndexUpdater updater = null;
+	/**
+	 * @throws DatabaseException
+	 * @throws ConfigurationException
+	 */
+	public void init() throws DatabaseException, ConfigurationException {
+		initializeDB(bdbPath,bdbName);
+		if(updater != null) {
+			updater.setIndex(this);
+			updater.startup();
+		}
+	}
 
 	private CloseableIterator adaptIterator(Iterator itr) {
 		return new AdaptedIterator(itr,new BDBRecordToSearchResultAdapter());
@@ -128,7 +143,7 @@ public class BDBIndex extends BDBRecordSet implements SearchResultSource {
 		
 		if(op.compareTo("-r") == 0) {
 			PrintWriter pw = new PrintWriter(System.out);
-			SearchResults results = new SearchResults();
+			CaptureSearchResults results = new CaptureSearchResults();
 			if(args.length == 4) {
 				String prefix = args[3];
 				CloseableIterator itr = null;
@@ -152,7 +167,7 @@ public class BDBIndex extends BDBRecordSet implements SearchResultSource {
 							e.printStackTrace();
 							System.exit(2);
 						}
-						results = new SearchResults();
+						results = new CaptureSearchResults();
 					}
 				}
 				if(results.getResultCount() > 0) {
@@ -181,7 +196,7 @@ public class BDBIndex extends BDBRecordSet implements SearchResultSource {
 							e.printStackTrace();
 							System.exit(2);
 						}
-						results = new SearchResults();
+						results = new CaptureSearchResults();
 					}
 				}
 				if(results.getResultCount() > 0) {
@@ -243,5 +258,43 @@ public class BDBIndex extends BDBRecordSet implements SearchResultSource {
 		} else {
 			USAGE();
 		}
+	}
+	/**
+	 * @return the bdbPath
+	 */
+	public String getBdbPath() {
+		return bdbPath;
+	}
+	/**
+	 * @param bdbPath the bdbPath to set
+	 */
+	public void setBdbPath(String bdbPath) {
+		this.bdbPath = bdbPath;
+	}
+	/**
+	 * @return the bdbName
+	 */
+	public String getBdbName() {
+		return bdbName;
+	}
+	/**
+	 * @param bdbName the bdbName to set
+	 */
+	public void setBdbName(String bdbName) {
+		this.bdbName = bdbName;
+	}
+
+	/**
+	 * @return the updater
+	 */
+	public BDBIndexUpdater getUpdater() {
+		return updater;
+	}
+
+	/**
+	 * @param updater the updater to set
+	 */
+	public void setUpdater(BDBIndexUpdater updater) {
+		this.updater = updater;
 	}
 }
