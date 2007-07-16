@@ -64,13 +64,13 @@ public class TimelineReplayRenderer extends JSReplayRenderer {
 				throw new IllegalArgumentException("ResultURIConverter must "
 						+ "be of class TimelineReplayResultURIConverter");
 			}
-			TimelineReplayResultURIConverter uriConverter = 
-				(TimelineReplayResultURIConverter) baseUriConverter;
+			TimelineReplayResultURIConverter uriConverter = (TimelineReplayResultURIConverter) baseUriConverter;
 
 			// BUGBUG?? this should be setFramesetMode, right??
 			uriConverter.setInlineMode();
-
-			String betterURI = uriConverter.makeReplayURI(result);
+			String captureDate = result.getCaptureDate();
+			String url = result.getAbsoluteUrl();
+			String betterURI = uriConverter.makeReplayURI(captureDate,url);
 			httpResponse.sendRedirect(betterURI);
 		}
 	}
@@ -97,10 +97,10 @@ public class TimelineReplayRenderer extends JSReplayRenderer {
 			throw new IllegalArgumentException("ResultURIConverter must be "
 					+ "of class TimelineReplayResultURIConverter");
 		}
-		TimelineReplayResultURIConverter uriConverter = 
-			(TimelineReplayResultURIConverter) baseUriConverter;
-		
-		String pageUrl = result.get(WaybackConstants.RESULT_URL);
+		TimelineReplayResultURIConverter uriConverter = (TimelineReplayResultURIConverter) baseUriConverter;
+
+		String pageUrl = result.getAbsoluteUrl();
+		String captureDate = result.getCaptureDate();
 
 		String existingBaseHref = TagMagix.getBaseHref(page);
 		if (existingBaseHref != null) {
@@ -108,17 +108,17 @@ public class TimelineReplayRenderer extends JSReplayRenderer {
 		}
 
 		uriConverter.setFramesetMode();
-		TagMagix.markupTagREURIC(page, uriConverter, result, pageUrl, "META",
-				"URL");
+		TagMagix.markupTagREURIC(page, uriConverter, captureDate, pageUrl,
+				"META", "URL");
 
 		uriConverter.setInlineMode();
-		TagMagix.markupTagREURIC(page, uriConverter, result, pageUrl, "FRAME",
-				"SRC");
-		TagMagix.markupTagREURIC(page, uriConverter, result, pageUrl, "LINK",
-				"HREF");
+		TagMagix.markupTagREURIC(page, uriConverter, captureDate, pageUrl,
+				"FRAME", "SRC");
+		TagMagix.markupTagREURIC(page, uriConverter, captureDate, pageUrl,
+				"LINK", "HREF");
 		// TODO: The classic WM added a js_ to the datespec, so NotInArchives
 		// can return an valid javascript doc, and not cause Javascript errors.
-		TagMagix.markupTagREURIC(page, uriConverter, result, pageUrl,
+		TagMagix.markupTagREURIC(page, uriConverter, captureDate, pageUrl,
 				"SCRIPT", "SRC");
 
 		if (existingBaseHref == null) {
@@ -151,32 +151,31 @@ public class TimelineReplayRenderer extends JSReplayRenderer {
 			throw new IllegalArgumentException("ResultURIConverter must be "
 					+ "of class TimelineReplayResultURIConverter");
 		}
-		TimelineReplayResultURIConverter uriConverter = 
-			(TimelineReplayResultURIConverter) baseUriConverter;
+		TimelineReplayResultURIConverter uriConverter = (TimelineReplayResultURIConverter) baseUriConverter;
 
 		uriConverter.setInlineMode();
-		String sWaybackReplayCGI = uriConverter.getReplayUriPrefix(result);
+		String sWaybackReplayCGI = uriConverter.makeReplayURI(resourceTS,"");
 
 		uriConverter.setFramesetMode();
-		String sWaybackFramesetCGI = uriConverter.getReplayUriPrefix(result);
+		String sWaybackFramesetCGI = uriConverter.makeReplayURI(resourceTS,"");
 		StringFormatter fmt = wbRequest.getFormatter();
-		
-		String wmNotice = fmt.format("ReplayView.banner",resourceUrl,
+
+		String wmNotice = fmt.format("ReplayView.banner", resourceUrl,
 				captureDate);
 		String wmHideNotice = fmt.format("ReplayView.bannerHideLink");
-		
+
 		StringBuilder ins = new StringBuilder(300);
 		ins.append("<script type=\"text/javascript\">\n\n");
-		ins.append(fmt.format("ReplayView.javaScriptComment",captureDate,
+		ins.append(fmt.format("ReplayView.javaScriptComment", captureDate,
 				new Date()));
-		ins.append("var sWayBackFramesetCGI = \"" + sWaybackFramesetCGI +
-				"\";\n");
+		ins.append("var sWayBackFramesetCGI = \"" + sWaybackFramesetCGI
+				+ "\";\n");
 		ins.append("var sWayBackReplayCGI = \"" + sWaybackReplayCGI + "\";\n");
 		ins.append("var wmNotice = \"" + wmNotice + "\";\n");
 		ins.append("var wmHideNotice = \"" + wmHideNotice + "\";\n");
 		ins.append("</script>\n");
 		ins.append(scriptUrlInserts);
-		
+
 		int insertPoint = page.lastIndexOf("</body>");
 		if (-1 == insertPoint) {
 			insertPoint = page.lastIndexOf("</BODY>");
