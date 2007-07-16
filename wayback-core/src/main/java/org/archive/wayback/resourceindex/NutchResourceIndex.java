@@ -41,6 +41,7 @@ import org.archive.wayback.core.PropertyConfiguration;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.Timestamp;
+import org.archive.wayback.core.UrlSearchResults;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.AccessControlException;
 import org.archive.wayback.exception.BadQueryException;
@@ -142,7 +143,7 @@ public class NutchResourceIndex implements ResourceIndex {
 					e.getMessage());
 		}
 
-		SearchResults results = new SearchResults();
+		SearchResults results = new UrlSearchResults();
 		NodeList channel = getSearchChannel(document);
 		NodeList nodes = getSearchItems(document);
 
