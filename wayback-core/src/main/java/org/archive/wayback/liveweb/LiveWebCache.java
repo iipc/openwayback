@@ -36,6 +36,7 @@ import org.archive.io.arc.ARCLocation;
 import org.archive.io.arc.ARCRecord;
 import org.archive.wayback.PropertyConfigurable;
 import org.archive.wayback.WaybackConstants;
+import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.SearchResults;
@@ -159,9 +160,13 @@ public class LiveWebCache implements PropertyConfigurable {
 		Resource resource = null;
 		WaybackRequest wbRequest = makeCacheWBRequest(url,maxCacheMS,bUseOlder);
 		
-		SearchResults results;
+		CaptureSearchResults results = null;
 		try {
-			results = index.query(wbRequest);
+			SearchResults gresults = index.query(wbRequest);
+			if(!(gresults instanceof CaptureSearchResults)) {
+				throw new IOException("bad result type...");
+			}
+			results = (CaptureSearchResults) gresults;
 		} catch (ResourceNotInArchiveException e) {
 //			e.printStackTrace();
 			throw e;
