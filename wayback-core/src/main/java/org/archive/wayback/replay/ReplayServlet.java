@@ -35,6 +35,7 @@ import org.archive.wayback.ReplayRenderer;
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.ResourceIndex;
 import org.archive.wayback.ResourceStore;
+import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.SearchResults;
@@ -91,12 +92,16 @@ public class ReplayServlet extends WaybackServlet {
 			ResourceIndex idx = wayback.getResourceIndex();
 			ResourceStore store = wayback.getResourceStore();
 			ResultURIConverter uriConverter = wayback.getURIConverter();
-			uriConverter.setWbRequest(wbRequest);
+//			uriConverter.setWbRequest(wbRequest);
 
 			SearchResults results = idx.query(wbRequest);
+			if(!(results instanceof CaptureSearchResults)) {
+				throw new ConfigurationException("Bad results...");
+			}
+			CaptureSearchResults captureResults = (CaptureSearchResults) results;
 
 			// TODO: check which versions are actually accessible right now?
-			SearchResult closest = results.getClosest(wbRequest);
+			SearchResult closest = captureResults.getClosest(wbRequest);
 			resource = store.retrieveResource(closest);
 
 			renderer.renderResource(httpRequest, httpResponse, wbRequest,
