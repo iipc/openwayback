@@ -88,7 +88,6 @@ public class QueryServlet extends WaybackServlet {
 
 			ResourceIndex idx = wayback.getResourceIndex();
 			ResultURIConverter uriConverter = wayback.getURIConverter();
-			uriConverter.setWbRequest(wbRequest);
 
 			SearchResults results;
 
@@ -100,7 +99,7 @@ public class QueryServlet extends WaybackServlet {
                 // Annotate the closest matching hit so that it can 
                 // be retrieved later from the xml.
                 try {
-                    annotateClosest(results, wbRequest, httpRequest);
+                	annotateClosest(results, wbRequest, httpRequest);
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
@@ -157,9 +156,9 @@ public class QueryServlet extends WaybackServlet {
         Timestamp wantTimestamp;
         wantTimestamp = Timestamp.parseBefore(requestsDate);
 
-        Iterator itr = results.iterator();
+        Iterator<SearchResult> itr = results.iterator();
         while (itr.hasNext()) {
-            cur = (SearchResult) itr.next();
+            cur = itr.next();
             long curDistance;
             Timestamp curTimestamp = Timestamp.parseBefore(cur
                     .get(WaybackConstants.RESULT_CAPTURE_DATE));
