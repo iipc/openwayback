@@ -49,6 +49,9 @@ public class UIResults {
 	 * @return Returns the wbRequest.
 	 */
 	public WaybackRequest getWbRequest() {
+		if(wbRequest == null) {
+			wbRequest = new WaybackRequest();
+		}
 		return wbRequest;
 	}
 
@@ -56,7 +59,7 @@ public class UIResults {
 	 * @return StringFormatter localized to user request
 	 */
 	public StringFormatter getFormatter() {
-		return wbRequest.getFormatter();
+		return getWbRequest().getFormatter();
 	}
 	/**
 	 * Store this UIResults in the HttpServletRequest argument.
@@ -146,5 +149,18 @@ public class UIResults {
 		replaceAll(encoded,"gt","&#62;");
 		replaceAll(encoded,"quot","&#34;");
 		return encoded.toString();
+	}
+	/**
+	 * @return URL that points to the root of the current WaybackContext
+	 */
+	public String getContextPrefix() {
+		return getWbRequest().getContextPrefix();
+	}
+
+	/**
+	 * @return URL that points to the root of the Server
+	 */
+	public String getServerPrefix() {
+		return getWbRequest().getServerPrefix();
 	}
 }
