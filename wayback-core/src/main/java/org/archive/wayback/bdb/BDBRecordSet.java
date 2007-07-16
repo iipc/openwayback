@@ -246,4 +246,18 @@ public class BDBRecordSet {
 	public String getPath() {
 		return path;
 	}
+
+	/**
+	 * @param path the path to set
+	 */
+	public void setPath(String path) {
+		this.path = path;
+	}
+
+	/**
+	 * @param dbName the dbName to set
+	 */
+	public void setDbName(String dbName) {
+		this.dbName = dbName;
+	}
 }
