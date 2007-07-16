@@ -25,6 +25,7 @@
 package org.archive.wayback.resourceindex;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
@@ -157,12 +158,15 @@ public class SearchResultSourceFactory {
 		if(paths.length > 1) {
 			CompositeSearchResultSource src = new CompositeSearchResultSource();
 			for(int i = 0; i < paths.length; i++) {
-				CDXIndex component = new CDXIndex(paths[i]);
+				CDXIndex component = new CDXIndex();
+				component.setPath(paths[i]);
 				src.addSource(component);
 			}
 			return src;
 		}
-		return new CDXIndex(paths[0]);
+		CDXIndex index = new CDXIndex();
+		index.setPath(paths[0]);
+		return index;
 	}
 
 	private static SearchResultSource getBDBIndex(PropertyConfiguration pc) 
@@ -182,12 +186,15 @@ public class SearchResultSourceFactory {
 			File incoming = pc.getDir(INCOMING_PATH,true);
 
 			BDBIndexUpdater updater = new BDBIndexUpdater(index,incoming);
-
+			try {
 			if(pc.getString(MERGED_PATH,"").length() > 0) {
 				updater.setMerged(pc.getDir(MERGED_PATH,true));
 			}
 			if(pc.getString(FAILED_PATH,"").length() > 0) {
 				updater.setFailed(pc.getDir(FAILED_PATH,true));
+			}
+			} catch(IOException e) {
+				throw new ConfigurationException(e.getLocalizedMessage());
 			}
 			if(pc.getString(MERGE_INTERVAL,"").length() > 0) {
 				updater.setRunInterval(pc.getInt(MERGE_INTERVAL));
