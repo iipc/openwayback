@@ -26,8 +26,12 @@ package org.archive.wayback.proxy;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.Properties;
+
 import org.archive.wayback.ResultURIConverter;
-import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.WaybackConstants;
+import org.archive.wayback.core.PropertyConfiguration;
+import org.archive.wayback.exception.ConfigurationException;
 
 /**
  *
@@ -35,21 +39,25 @@ import org.archive.wayback.core.SearchResult;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class RedirectResultURIConverter extends ResultURIConverter {
+public class RedirectResultURIConverter implements ResultURIConverter {
 	
-	private static final String DEFAULT_REDIRECT_JSP = "jsp/QueryUI/Redirect.jsp";
     private static final String REDIRECT_PATH_PROPERTY = "proxy.redirectpath";
-
-    private String getRedirectPath() {
-		return getConfigOrContextRelative(REDIRECT_PATH_PROPERTY,DEFAULT_REDIRECT_JSP);
+	private String redirectURI = null;
+	public void init(Properties p) throws ConfigurationException {
+		PropertyConfiguration pc = new PropertyConfiguration(p);
+		redirectURI = pc.getString(REDIRECT_PATH_PROPERTY);
 	}
+
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.ResultURIConverter#makeReplayURI(java.lang.String, java.lang.String)
 	 */
 	public String makeReplayURI(String datespec, String url) {
 		String res = null;
+		if(!url.startsWith(WaybackConstants.HTTP_URL_PREFIX)) {
+			url = WaybackConstants.HTTP_URL_PREFIX + url;
+		}
         try {
-			res = getRedirectPath() + "?url=" + URLEncoder.encode(url, "UTF-8") + 
+			res = redirectURI + "?url=" + URLEncoder.encode(url, "UTF-8") + 
 				"&time=" + URLEncoder.encode(datespec, "UTF-8");
 		} catch (UnsupportedEncodingException e) {
 			// should not be able to happen -- with hard-coded UTF-8, anyways..
@@ -59,10 +67,9 @@ public class RedirectResultURIConverter extends ResultURIConverter {
 	}
 
 	/**
-	 * @param result 
-	 * @return Returns the replayUriPrefix.
+	 * @param redirectURI the redirectURI to set
 	 */
-	public String getReplayUriPrefix(final SearchResult result) {
-		return "";
+	public void setRedirectURI(String redirectURI) {
+		this.redirectURI = redirectURI;
 	}
 }
