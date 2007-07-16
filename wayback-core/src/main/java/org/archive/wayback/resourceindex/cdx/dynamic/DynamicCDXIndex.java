@@ -120,7 +120,9 @@ public class DynamicCDXIndex  extends CompositeSearchResultSource {
 		sources.clear();
 		for(int i = 0; i< md5s.length; i++) {
 			File cdx = dataFileForMD5((String) md5s[i]);
-			addSource(new CDXIndex(cdx.getAbsolutePath()));
+			CDXIndex index = new CDXIndex();
+			index.setPath(cdx.getAbsolutePath());
+			addSource(index);
 		}
 	}
 	

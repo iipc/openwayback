@@ -24,7 +24,6 @@
  */
 package org.archive.wayback.resourceindex.cdx;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -46,19 +45,6 @@ import org.archive.wayback.util.flatfile.FlatFile;
  */
 public class CDXIndex extends FlatFile implements SearchResultSource {
 
-	/**
-	 * @param parent
-	 * @param child
-	 */
-	public CDXIndex(File parent, String child) {
-		super(parent, child);
-	}
-	/**
-	 * @param path
-	 */
-	public CDXIndex(String path) {
-		super(path);
-	}
 	/**
 	 * 
 	 */
