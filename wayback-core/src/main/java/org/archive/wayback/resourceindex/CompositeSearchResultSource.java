@@ -27,8 +27,10 @@ package org.archive.wayback.resourceindex;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
+import org.archive.wayback.resourceindex.cdx.CDXIndex;
 import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.CompositeSortedIterator;
 
@@ -40,7 +42,7 @@ import org.archive.wayback.util.CompositeSortedIterator;
  */
 public class CompositeSearchResultSource implements SearchResultSource {
 
-	protected ArrayList<SearchResultSource> sources;
+	protected List<SearchResultSource> sources;
 
 	/**
 	 * Constructor
@@ -96,5 +98,40 @@ public class CompositeSearchResultSource implements SearchResultSource {
 	 */
 	public void cleanup(CloseableIterator c) throws IOException{
 		c.close();
+	}
+
+	/**
+	 * @return null -- only present for Spring
+	 */
+	public List<String> getCDXSources() {
+		return null;
+	}
+	
+	/**
+	 * Sets the list of files searched for queries against this 
+	 * SearchResultSource to the list of paths cdxs
+	 * @param cdxs
+	 */
+	public void setCDXSources(List<String> cdxs) {
+		sources = new ArrayList<SearchResultSource>();
+		for(int i = 0; i < cdxs.size(); i++) {
+			CDXIndex index = new CDXIndex();
+			index.setPath(cdxs.get(i));
+			addSource(index);
+		}
+	}
+	
+	/**
+	 * @param sources the sources to set
+	 */
+	public void setSources(List<SearchResultSource> sources) {
+		this.sources = sources;
+	}
+
+	/**
+	 * @return the sources
+	 */
+	public List<SearchResultSource> getSources() {
+		return sources;
 	}
 }
