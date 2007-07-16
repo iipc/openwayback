@@ -99,6 +99,15 @@ public class LocalARCResourceStore implements ResourceStore {
 		}
 	}
 
+	public void init() throws ConfigurationException {
+		if(arcDir == null) {
+			throw new ConfigurationException("No arcDir set");
+		}
+		if(indexTarget != null) {
+			startAutoIndexThread();
+		}
+	}
+	
 	public Resource retrieveResource(SearchResult result) throws IOException, 
 		ResourceNotAvailableException {
 
@@ -337,5 +346,118 @@ public class LocalARCResourceStore implements ResourceStore {
 				}
 			}
 		}
+	}
+	
+	// TODO: refactor to single location
+	private File ensureDir(String path) throws ConfigurationException {
+		if(path.length() < 1) {
+			throw new ConfigurationException("Empty directory path");
+		}
+		File dir = new File(path);
+		if(dir.exists()) {
+			if(!dir.isDirectory()) {
+				throw new ConfigurationException("path " + path + "exists" +
+						"but is not a directory");
+			}
+		} else {
+			if(!dir.mkdirs()) {
+				throw new ConfigurationException("unable to create directory" +
+						" at " + path);
+			}
+		}
+		return dir;
+	}
+
+
+	/**
+	 * @return String path to tmpDir
+	 */
+	public String getTmpDir() {
+		if(tmpDir == null) {
+			return null;
+		}
+		return tmpDir.getAbsolutePath();
+	}
+	/**
+	 * @param tmpDir the tmpDir to set
+	 * @throws ConfigurationException 
+	 */
+	public void setTmpDir(String tmpDir) throws ConfigurationException {
+		this.tmpDir = ensureDir(tmpDir);
+	}
+
+	/**
+	 * @return String path to workDir
+	 */
+	public String getWorkDir() {
+		if(workDir == null) {
+			return null;
+		}
+		return workDir.getAbsolutePath();
+	}
+	/**
+	 * @param workDir the workDir to set
+	 * @throws ConfigurationException 
+	 */
+	public void setWorkDir(String workDir) throws ConfigurationException {
+		this.workDir = ensureDir(workDir);
+	}
+
+	/**
+	 * @return String path to queuedDir
+	 */
+	public String getQueuedDir() {
+		if(queuedDir == null) {
+			return null;
+		}
+		return queuedDir.getAbsolutePath();
+	}
+	/**
+	 * @param queuedDir the queuedDir to set
+	 * @throws ConfigurationException 
+	 */
+	public void setQueuedDir(String queuedDir) throws ConfigurationException {
+		this.queuedDir = ensureDir(queuedDir);
+	}
+
+	/**
+	 * @return
+	 */
+	public String getIndexTarget() {
+		return indexTarget;
+	}
+	/**
+	 * @param indexTarget the indexTarget to set
+	 */
+	public void setIndexTarget(String indexTarget) {
+		this.indexTarget = indexTarget;
+	}
+
+	/**
+	 * @return integer milliseconds between polls for new ARC content.
+	 */
+	public int getRunInterval() {
+		return runInterval;
+	}
+	/**
+	 * @param runInterval the runInterval to set
+	 */
+	public void setRunInterval(int runInterval) {
+		this.runInterval = runInterval;
+	}
+	/**
+	 * @return the arcDir
+	 */
+	public String getArcDir() {
+		if(arcDir == null) {
+			return null;
+		}
+		return arcDir.getAbsolutePath();
+	}
+	/**
+	 * @param arcDir the arcDir to set
+	 */
+	public void setArcDir(String arcDir) {
+		this.arcDir = new File(arcDir);
 	}
 }
