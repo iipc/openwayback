@@ -42,6 +42,7 @@ import org.archive.io.arc.ARCRecordMetaData;
 import org.archive.net.UURI;
 import org.archive.net.UURIFactory;
 import org.archive.wayback.WaybackConstants;
+import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.resourceindex.cdx.CDXLineToSearchResultAdapter;
@@ -109,7 +110,7 @@ public class ArcIndexer {
 	 * @throws IOException
 	 */
 	public SearchResults indexArc(File arc) throws IOException {
-		SearchResults results = new SearchResults();
+		CaptureSearchResults results = new CaptureSearchResults();
 		ARCReader arcReader = ARCReaderFactory.get(arc);
 		try {
 			arcReader.setParseHttpHeaders(true);
