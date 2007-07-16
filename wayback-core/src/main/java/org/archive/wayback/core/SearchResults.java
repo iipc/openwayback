@@ -24,12 +24,9 @@
  */
 package org.archive.wayback.core;
 
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Properties;
-
-import org.archive.wayback.WaybackConstants;
 
 /**
  *
@@ -37,19 +34,19 @@ import org.archive.wayback.WaybackConstants;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class SearchResults {
+public abstract class SearchResults {
 	/**
 	 * List of SearchResult objects for index records matching a query
 	 */
-	private ArrayList<SearchResult> results = null;
+	protected ArrayList<SearchResult> results = null;
 	/**
 	 * 14-digit timestamp of first capture date contained in the SearchResults
 	 */
-	private String firstResultDate;
+	protected String firstResultDate;
 	/**
 	 * 14-digit timestamp of last capture date contained in the SearchResults
 	 */
-	private String lastResultDate;
+	protected String lastResultDate;
 	/**
 	 * Expandable data bag for tuples associated with the search results, 
 	 * likely examples might be "total matching documents", "index of first 
@@ -72,12 +69,30 @@ public class SearchResults {
 	}
 	
 	/**
+	 * @param result
+	 * @param append
+	 */
+	public void addSearchResultRaw(final SearchResult result, 
+			final boolean append) {
+
+		if(append) {
+			results.add(result);
+		} else {
+			results.add(0,result);
+		}
+	}
+	
+	/**
+	 * @return one of "Url" or "Capture" depending on the type of results
+	 * contained in this object
+	 */
+	public abstract String getResultsType();
+	
+	/**
 	 * append a result
 	 * @param result
 	 */
-	public void addSearchResult(final SearchResult result) {
-		addSearchResult(result,true);
-	}
+	public abstract void addSearchResult(final SearchResult result);
 	/**
 	 * add a result to this results, at either the begginning or at the end,
 	 * depending on the append argument
@@ -85,22 +100,8 @@ public class SearchResults {
 	 *            SearchResult to add to this set
 	 * @param append 
 	 */
-	public void addSearchResult(final SearchResult result, final boolean append) {
-		String resultDate = result.get(WaybackConstants.RESULT_CAPTURE_DATE);
-		if((firstResultDate == null) || 
-				(firstResultDate.compareTo(resultDate) > 0)) {
-			firstResultDate = resultDate;
-		}
-		if((lastResultDate == null) || 
-				(lastResultDate.compareTo(resultDate) < 0)) {
-			lastResultDate = resultDate;
-		}
-		if(append) {
-			results.add(result);
-		} else {
-			results.add(0,result);
-		}
-	}
+	public abstract void addSearchResult(final SearchResult result, 
+			final boolean append);
 	
 	/**
 	 * @return number of SearchResult objects contained in these SearchResults
@@ -157,34 +158,5 @@ public class SearchResults {
 	 */
 	public Properties getFilters() {
 		return filters;
-	}
-	/**
-	 * @param wbRequest
-	 * @return The closest SearchResult to the request.
-	 * @throws ParseException
-	 */
-	public SearchResult getClosest(WaybackRequest wbRequest) {
-
-		SearchResult closest = null;
-		long closestDistance = 0;
-		SearchResult cur = null;
-		Timestamp wantTimestamp;
-		wantTimestamp = Timestamp.parseBefore(wbRequest
-				.get(WaybackConstants.REQUEST_EXACT_DATE));
-
-		Iterator itr = results.iterator();
-		while (itr.hasNext()) {
-			cur = (SearchResult) itr.next();
-			long curDistance;
-			Timestamp curTimestamp = Timestamp.parseBefore(cur
-					.get(WaybackConstants.RESULT_CAPTURE_DATE));
-			curDistance = curTimestamp.absDistanceFromTimestamp(wantTimestamp);
-			
-			if ((closest == null) || (curDistance < closestDistance)) {
-				closest = cur;
-				closestDistance = curDistance;
-			}
-		}
-		return closest;
 	}
 }
