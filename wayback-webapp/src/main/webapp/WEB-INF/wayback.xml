@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+<beans>
+
+	<bean id="bdbsearchresultsource" 
+		class="org.archive.wayback.resourceindex.bdb.BDBIndex"
+		init-method="init">
+		<property name="bdbName" value="DB1" />
+		<property name="bdbPath" value="/tmp/wayback/index/" />
+	</bean>
+
+	<bean id="cdxsearchresultsource" class="org.archive.wayback.resourceindex.cdx.CDXIndex">
+		<property name="path" value="/tmp/wayback/cdx-index/index.cdx" />
+	</bean>
+
+	<bean id="compositecdxresultsource" class="org.archive.wayback.resourceindex.CompositeSearchResultSource">
+		<property name="CDXSources">
+			<list>
+				<value>/tmp/wayback/cdx-index/index.cdx.1</value>
+				<value>/tmp/wayback/cdx-index/index.cdx.2</value>
+			</list>
+		</property>
+	</bean>	
+
+	<bean id="localbdbindex" class="org.archive.wayback.resourceindex.LocalResourceIndex">
+		<property name="source" ref="bdbsearchresultsource" />
+		<property name="maxRecords" value="10000" />
+	</bean>
+	<bean id="localcdxindex" class="org.archive.wayback.resourceindex.LocalResourceIndex">
+		<property name="source" ref="cdxsearchresultsource" />
+		<property name="maxRecords" value="10000" />
+	</bean>
+
+	<bean id="localstore" class="org.archive.wayback.resourcestore.LocalARCResourceStore">
+		<property name="arcDir" value="/tmp/wayback/arcs/" />
+	</bean>
+
+	<bean id="standardquery" class="org.archive.wayback.query.Renderer">
+	</bean>
+	<bean id="calendarquery" class="org.archive.wayback.query.Renderer">
+	</bean>
+	<bean id="xmlquery" class="org.archive.wayback.query.Renderer">
+		<property name="captureJsp" value="/jsp/XMLResults.jsp" />
+		<property name="urlJsp" value="/jsp/XMLResults.jsp" />
+		<property name="errorJsp" value="/jsp/XMLError.jsp" />
+	</bean>
+
+
+	<bean id="archivalurlreplay" class="org.archive.wayback.archivalurl.JSReplayRenderer">
+		<property name="JSInserts">
+			<list>
+				<value>http://localhost:8080/wm.js</value>
+			</list>
+		</property>
+	</bean>
+	<bean id="archivalurluriconverter" 
+		class="org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter">
+		<property name="replayURIPrefix" value="http://localhost:8080/wayback/" />
+	</bean>
+	<bean id="archivalurlparser" class="org.archive.wayback.archivalurl.ArchivalUrlRequestParser" init-method="init">
+		<property name="maxRecords" value="1000" />
+	</bean>
+
+
+	<bean id="proxyreplay" class="org.archive.wayback.proxy.RawReplayRenderer">
+	</bean>
+	<bean id="proxyuriconverter" class="org.archive.wayback.proxy.RedirectResultURIConverter">
+		<property name="redirectURI" value="http://localhost:8090/jsp/QueryUI/Redirect.jsp" />
+	</bean>
+	<bean id="proxyparser" class="org.archive.wayback.proxy.ProxyRequestParser" init-method="init">
+		<property name="maxRecords" value="1000" />
+	</bean>
+
+
+	<bean id="archivalcontext" abstract="true"
+		class="org.archive.wayback.webapp.WaybackContext">
+		<property name="index" ref="localbdbindex" />
+		<property name="store" ref="localstore" />
+		<property name="query" ref="standardquery" />
+		<property name="replay" ref="archivalurlreplay" />
+		<property name="parser" ref="archivalurlparser" />
+		<property name="uriConverter" ref="archivalurluriconverter" />
+	</bean>
+
+	<bean name="8080:wayback" class="org.archive.wayback.webapp.WaybackContext">
+		<property name="configs">
+			<props>
+				<prop key="key1">key1-value</prop>
+				<prop key="key2">key2-value</prop>
+			</props>
+		</property>
+		<property name="index">
+			<bean class="org.archive.wayback.resourceindex.LocalResourceIndex">
+				<property name="source">
+					<bean class="org.archive.wayback.resourceindex.bdb.BDBIndex"
+						init-method="init">
+						<property name="bdbName" value="DB1" />
+						<property name="bdbPath" value="/tmp/wayback/index/" />
+						<property name="updater">
+							<bean class="org.archive.wayback.resourceindex.bdb.BDBIndexUpdater">
+								<property name="incoming" value="/tmp/wayback/index-data/incoming/" />
+								<property name="failed" value="/tmp/wayback/index-data/failed/" />
+								<property name="merged" value="/tmp/wayback/index-data/merged/" />
+								<property name="runInterval" value="10000" />
+							</bean>
+						</property>
+					</bean>
+				</property>
+				<property name="maxRecords" value="10000" />
+			</bean>
+		</property>
+
+		<property name="store">
+			<bean class="org.archive.wayback.resourcestore.LocalARCResourceStore"
+				init-method="init">
+				<property name="arcDir" value="/tmp/wayback/arcs/" />
+				<property name="queuedDir" value="/tmp/wayback/arc-indexer/queued" />
+				<property name="tmpDir" value="/tmp/wayback/arc-indexer/tmp" />
+				<property name="workDir" value="/tmp/wayback/arc-indexer/work" />
+				<property name="indexTarget" value="/tmp/wayback/index-data/incoming" />
+				<property name="runInterval" value="10000" />				
+			</bean>
+		</property>
+		
+		<property name="query">
+			<bean class="org.archive.wayback.query.Renderer">
+				<property name="captureJsp" value="/jsp/HTMLResults.jsp" />
+			</bean>
+		</property>
+
+		<property name="replay">
+			<bean class="org.archive.wayback.archivalurl.JSReplayRenderer">
+				<property name="JSInserts">
+					<list>
+						<value>http://localhost:8080/wm.js</value>
+					</list>
+				</property>
+			</bean>
+		</property>
+
+		<property name="parser">
+			<bean class="org.archive.wayback.archivalurl.ArchivalUrlRequestParser"
+				init-method="init">
+				<property name="maxRecords" value="1000" />
+			</bean>
+		</property>
+
+		<property name="uriConverter">
+			<bean class="org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter">
+				<property name="replayURIPrefix" value="http://localhost:8080/wayback/" />
+			</bean>
+		</property>
+	</bean>
+
+
+	<bean name="8080:wayback-xml" parent="8080:wayback">
+		<property name="configs">
+			<props>
+				<prop key="key1">xml-key1-value</prop>
+				<prop key="key2">xml-key2-value</prop>
+			</props>
+		</property>
+		<property name="query" ref="xmlquery"/>
+	</bean>
+
+</beans>
