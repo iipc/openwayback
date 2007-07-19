@@ -5,6 +5,8 @@
 <%
 UIResults results = UIResults.getFromRequest(request);
 StringFormatter fmt = results.getFormatter();
+String contextRoot = results.getContextPrefix();
+String serverRoot = results.getServerPrefix();
 %>
 <!-- HEADER -->
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -13,8 +15,8 @@ StringFormatter fmt = results.getFormatter();
 		<meta http-equiv="content-type" content="text/html;charset=iso-8859-1">
 		      
 		<link rel="stylesheet" type="text/css" 
-			href="<%= request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath() %>/css/styles.css"
-			src="<%= request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath() %>/css/styles.css">
+			href="<%= contextRoot %>css/styles.css"
+			src="<%= contextRoot %>css/styles.css">
 		<title><%= fmt.format("UIGlobal.pageTitle") %></title>
 		<base target="_top">
 	</head>
@@ -28,7 +30,7 @@ StringFormatter fmt = results.getFormatter();
 
 				<!-- WAYBACK LOGO -->
 				
-				<td width="26%"><a href="<%= request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath() %>"><img src="<%= request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath() %>/images/wayback_logo_sm.gif" width="153" height="54" border="0"></a></td>
+				<td width="26%"><a href="<%= contextRoot %>"><img src="<%= contextRoot %>images/wayback_logo_sm.gif" width="153" height="54" border="0"></a></td>
 
 				<!-- /WAYBACK LOGO -->
 			
@@ -51,11 +53,11 @@ StringFormatter fmt = results.getFormatter();
 
 
 									<!-- URL FORM -->
-									<form action="<%= request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath() %>/query" method="GET">
+									<form action="<%= contextRoot %>query" method="GET">
 
 
 										<tr>
-											<td nowrap align="center"><img src="<%= request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath() %>/images/shim.gif" width="1" height="20"> 
+											<td nowrap align="center"><img src="<%= contextRoot %>images/shim.gif" width="1" height="20"> 
 
 												<b class="mainBodyW">
 													<font size="2" color="#FFFFFF" face="Arial, Helvetica, sans-serif">
@@ -83,7 +85,7 @@ StringFormatter fmt = results.getFormatter();
 												&nbsp;
 												<input type="Submit" name="Submit" value="<%= fmt.format("UIGlobal.urlSearchButton") %>" align="absMiddle">
 												&nbsp;
-												<a href="<%= request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath() %>/jsp/QueryUI/requestform.jsp" style="color:white;font-size:11px">
+												<a href="<%= contextRoot %>advanced_search.jsp" style="color:white;font-size:11px">
 													<%= fmt.format("UIGlobal.advancedSearchLink") %>
 												</a>
 
@@ -103,4 +105,3 @@ StringFormatter fmt = results.getFormatter();
 			<!-- /GREEN BANNER -->
 		</table>
 <!-- /HEADER -->
-	  
