@@ -30,7 +30,6 @@ import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 
 import org.archive.wayback.exception.ConfigurationException;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.xml.XmlBeanFactory;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -56,7 +55,7 @@ public class RequestMapper {
 //	private WaybackContext defaultContext = null;
 //	private ServletContext servletContext = null;
 	
-	private BeanFactory factory = null;
+	private XmlBeanFactory factory = null;
 	/**
 	 * @param configPath
 	 * @param servletContext
@@ -73,6 +72,7 @@ public class RequestMapper {
 		String resolvedPath = servletContext.getRealPath(configPath);
 		Resource resource = new FileSystemResource(resolvedPath);
 		factory = new XmlBeanFactory(resource);
+		factory.preInstantiateSingletons();
 	}
 	
 	private String getContextID(HttpServletRequest request) {
