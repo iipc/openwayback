@@ -43,7 +43,7 @@ import org.archive.wayback.ReplayRenderer;
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.archivalurl.TagMagix;
-import org.archive.wayback.core.PropertyConfiguration;
+//import org.archive.wayback.core.PropertyConfiguration;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.UIResults;
@@ -64,14 +64,11 @@ public class BaseReplayRenderer implements ReplayRenderer {
 	// in several places, this class defers generation of client responses
 	// to a .jsp file, once the business logic of replaying is done.
 
-	// this constant indicates the name of the configuration in the web.xml
-	// where the directory holding all the .jsps is found:
-	private final static String JSP_PATH = "replayui.jsppath";
-
-	// and this variable stores the .jsp directory configuration found 
-	// at init() time
-	protected String jspPath;
-
+	private String errorJsp = "/jsp/HTMLError.jsp";
+	private String imageErrorJsp = "/jsp/HTMLError.jsp";
+	private String javascriptErrorJsp = "/jsp/JavaScriptError.jsp";
+	private String cssErrorJsp = "/jsp/CSSError.jsp";
+	
 	// if documents are marked up before sending to clients, the data is
 	// decoded into a String in chunks. This is how big a chunk to decode with.
 	private final static int C_BUFFER_SIZE = 4096;
@@ -86,28 +83,15 @@ public class BaseReplayRenderer implements ReplayRenderer {
 	private final static String CHARSET_TOKEN = "charset=";
 
 	private final static int BYTE_BUFFER_SIZE = 4096;
-
 	
-
 	protected final Pattern IMAGE_REGEX = Pattern
 			.compile(".*\\.(jpg|jpeg|gif|png|bmp|tiff|tif)$");
-
-	private final String ERROR_JSP = "ErrorResult.jsp";
-
-	private final String ERROR_JAVASCRIPT = "ErrorJavascript.jsp";
-
-	private final String ERROR_CSS = "ErrorCSS.jsp";
-
-	// Showing the 1 pixel gif actually blocks the alt text.. better to return
-	// a normal error page
-//	private final String ERROR_IMAGE = "error_image.gif";
-	private final String ERROR_IMAGE = "ErrorResult.jsp";
 
 	/*  INITIALIZATION:  */
 
 	public void init(Properties p) throws ConfigurationException {
-		PropertyConfiguration pc = new PropertyConfiguration(p);
-		jspPath = pc.getString(JSP_PATH);
+//		PropertyConfiguration pc = new PropertyConfiguration(p);
+//		jspPath = pc.getString(JSP_PATH);
 	}
 
 	/*  ERROR HANDLING RESPONSES:  */
@@ -150,7 +134,7 @@ public class BaseReplayRenderer implements ReplayRenderer {
 			WaybackException exception) throws ServletException, IOException {
 
 		// the "standard HTML" response handler:
-		String finalJspPath = jspPath + "/" + ERROR_JSP;
+		String finalJspPath = errorJsp;
 
 		// try to not cause client errors by sending the HTML response if
 		// this request is ebedded, and is obviously one of the special types:
@@ -158,22 +142,22 @@ public class BaseReplayRenderer implements ReplayRenderer {
 
 			if (requestIsJavascript(httpRequest, wbRequest)) {
 
-				finalJspPath = jspPath + "/" + ERROR_JAVASCRIPT;
+				finalJspPath = javascriptErrorJsp;
 
 			} else if (requestIsCSS(httpRequest, wbRequest)) {
 
-				finalJspPath = jspPath + "/" + ERROR_CSS;
+				finalJspPath = cssErrorJsp;
 
 			} else if (requestIsImage(httpRequest, wbRequest)) {
 
-				finalJspPath = jspPath + "/" + ERROR_IMAGE;
+				finalJspPath = imageErrorJsp;
 
 			}
 		}
 
 		httpRequest.setAttribute("exception", exception);
 		UIResults uiResults = new UIResults(wbRequest);
-		uiResults.storeInRequest(httpRequest);
+		uiResults.storeInRequest(httpRequest, finalJspPath);
 
 		RequestDispatcher dispatcher = httpRequest
 				.getRequestDispatcher(finalJspPath);
@@ -483,16 +467,58 @@ public class BaseReplayRenderer implements ReplayRenderer {
 	}
 
 	/**
-	 * @return the jspPath
+	 * @return the errorJsp
 	 */
-	public String getJspPath() {
-		return jspPath;
+	public String getErrorJsp() {
+		return errorJsp;
 	}
 
 	/**
-	 * @param jspPath the jspPath to set
+	 * @param errorJsp the errorJsp to set
 	 */
-	public void setJspPath(String jspPath) {
-		this.jspPath = jspPath;
+	public void setErrorJsp(String errorJsp) {
+		this.errorJsp = errorJsp;
+	}
+
+	/**
+	 * @return the imageErrorJsp
+	 */
+	public String getImageErrorJsp() {
+		return imageErrorJsp;
+	}
+
+	/**
+	 * @param imageErrorJsp the imageErrorJsp to set
+	 */
+	public void setImageErrorJsp(String imageErrorJsp) {
+		this.imageErrorJsp = imageErrorJsp;
+	}
+
+	/**
+	 * @return the javascriptErrorJsp
+	 */
+	public String getJavascriptErrorJsp() {
+		return javascriptErrorJsp;
+	}
+
+	/**
+	 * @param javascriptErrorJsp the javascriptErrorJsp to set
+	 */
+	public void setJavascriptErrorJsp(String javascriptErrorJsp) {
+		this.javascriptErrorJsp = javascriptErrorJsp;
+	}
+
+	/**
+	 * @return the cssErrorJsp
+	 */
+	public String getCssErrorJsp() {
+		return cssErrorJsp;
+	}
+
+	/**
+	 * @param cssErrorJsp the cssErrorJsp to set
+	 */
+	public void setCssErrorJsp(String cssErrorJsp) {
+		this.cssErrorJsp = cssErrorJsp;
 	}
 }
