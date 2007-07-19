@@ -167,24 +167,13 @@ public class RangeGroup implements ResourceIndex {
 	/**
 	 * @return Comparator suitable for sorting RangeGroup objects
 	 */
-	public static Comparator getComparator() {
-		return new Comparator() {
-
-			private RangeGroup objectToRangeGroup(Object o) 
-			throws IllegalArgumentException {
-				if(!(o instanceof RangeGroup)) {
-					throw new IllegalArgumentException("Compares RangeGroups");
-				}
-				return (RangeGroup) o;
-			}
+	public static Comparator<RangeGroup> getComparator() {
+		return new Comparator<RangeGroup>() {
 
 			/* (non-Javadoc)
 			 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
 			 */
-			public int compare(Object arg0, Object arg1) {
-	
-				RangeGroup r1 = objectToRangeGroup(arg0);
-				RangeGroup r2 = objectToRangeGroup(arg1);
+			public int compare(RangeGroup r1, RangeGroup r2) {
 				return r1.getStart().compareTo(r2.getStart());
 			}
 		};
