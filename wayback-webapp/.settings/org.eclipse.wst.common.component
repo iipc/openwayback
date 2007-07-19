@@ -2,50 +2,16 @@
 <project-modules id="moduleCoreId" project-version="1.5.0">
   <wb-module deploy-name="wayback-webapp">
     <property name="java-output-path" value="/target/classes"/>
-<property name="context-root" value="wayback"/>
+<property name="context-root"/>
     <wb-resource deploy-path="/" source-path="src/main/webapp"/>
-    <dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/var/M2_REPO/commons-cli/commons-cli/1.0-beta-2/commons-cli-1.0-beta-2.jar">
-      <dependency-type>uses</dependency-type>
-    </dependent-module>
-    <dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/var/M2_REPO/com/sleepycat/je/3.2.13/je-3.2.13.jar">
-      <dependency-type>uses</dependency-type>
-    </dependent-module>
-    <dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/var/M2_REPO/commons-logging/commons-logging/1.0.4/commons-logging-1.0.4.jar">
-      <dependency-type>uses</dependency-type>
-    </dependent-module>
-    <dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/var/M2_REPO/commons-codec/commons-codec/1.3/commons-codec-1.3.jar">
-      <dependency-type>uses</dependency-type>
-    </dependent-module>
-    <dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/var/M2_REPO/org/gnu/libidn/0.5.9/libidn-0.5.9.jar">
-      <dependency-type>uses</dependency-type>
-    </dependent-module>
-    <dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/var/M2_REPO/commons-httpclient/commons-httpclient/3.0.1/commons-httpclient-3.0.1.jar">
-      <dependency-type>uses</dependency-type>
-    </dependent-module>
     <dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/var/M2_REPO/org/archive/archive-mapred/0.2.0-SNAPSHOT/archive-mapred-0.2.0-SNAPSHOT.jar">
       <dependency-type>uses</dependency-type>
     </dependent-module>
-    <dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/var/M2_REPO/it/unimi/dsi/mg4j/1.0.1/mg4j-1.0.1.jar">
+<dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/var/M2_REPO/org/archive/wayback/wayback-core/0.9.0-SNAPSHOT/wayback-core-0.9.0-SNAPSHOT.jar">
       <dependency-type>uses</dependency-type>
     </dependent-module>
-    <dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/var/M2_REPO/commons-pool/commons-pool/1.3/commons-pool-1.3.jar">
-      <dependency-type>uses</dependency-type>
-    </dependent-module>
-    <dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/var/M2_REPO/org/mozilla/juniversalchardet/1.0/juniversalchardet-1.0.jar">
-      <dependency-type>uses</dependency-type>
-    </dependent-module>
-    <dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/var/M2_REPO/org/archive/archive-commons/1.12.0/archive-commons-1.12.0.jar">
-      <dependency-type>uses</dependency-type>
-    </dependent-module>
-    <dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/var/M2_REPO/org/archive/wayback/wayback-core/0.9.0-SNAPSHOT/wayback-core-0.9.0-SNAPSHOT.jar">
-      <dependency-type>uses</dependency-type>
-    </dependent-module>
-    <dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/var/M2_REPO/commons-collections/commons-collections/3.1/commons-collections-3.1.jar">
-      <dependency-type>uses</dependency-type>
-    </dependent-module>
-<dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/var/M2_REPO/it/unimi/dsi/fastutil/5.0.3/fastutil-5.0.3.jar">
-<dependency-type>uses</dependency-type>
-</dependent-module>
     <wb-resource deploy-path="/WEB-INF/classes" source-path="src/main/java"/>
+<wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/webapp"/>
+<wb-resource deploy-path="/WEB-INF/classes" source-path="/src/test/java"/>
   </wb-module>
 </project-modules>
