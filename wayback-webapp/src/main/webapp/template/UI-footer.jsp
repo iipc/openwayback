@@ -3,16 +3,18 @@
 <%
 UIResults results = UIResults.getFromRequest(request);
 StringFormatter fmt = results.getFormatter();
+String contextRoot = results.getContextPrefix();
+String serverRoot = results.getServerPrefix();
 %>
 <!-- FOOTER -->
 		<div align="center">
 			<hr noshade size="1" align="center">
 			
 			<p>
-				<a href="<%= request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath() %>">
+				<a href="<%= contextRoot %>">
 					<%= fmt.format("UIGlobal.homeLink") %>
 				</a> |
-				<a href="<%= request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath() %>/help.jsp">
+				<a href="<%= contextRoot %>help.jsp">
 					<%= fmt.format("UIGlobal.helpLink") %>
 				</a>
 			</p>
