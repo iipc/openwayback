@@ -35,6 +35,7 @@ import java.util.logging.Logger;
 
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.URIException;
+import org.archive.io.ArchiveRecord;
 import org.archive.io.arc.ARCReader;
 import org.archive.io.arc.ARCReaderFactory;
 import org.archive.io.arc.ARCRecord;
@@ -116,7 +117,7 @@ public class ArcIndexer {
 			arcReader.setParseHttpHeaders(true);
 			// doh. this does not generate quite the columns we need:
 			// arcReader.createCDXIndexFile(arcPath);
-			Iterator itr = arcReader.iterator();
+			Iterator<ArchiveRecord> itr = arcReader.iterator();
 			while (itr.hasNext()) {
 				ARCRecord rec = (ARCRecord) itr.next();
 				SearchResult result;
@@ -273,9 +274,9 @@ public class ArcIndexer {
 		if(addHeader) {
 			pw.println(CDX_HEADER_MAGIC);
 		}
-		Iterator itr = results.iterator();
+		Iterator<SearchResult> itr = results.iterator();
 		while (itr.hasNext()) {
-			SearchResult result = (SearchResult) itr.next();
+			SearchResult result = itr.next();
 			pw.println(searchResultToString(result, TYPE_CDX_LINE));
 		}
 		pw.flush();
