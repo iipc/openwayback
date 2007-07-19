@@ -25,6 +25,7 @@
 package org.archive.wayback.webapp;
 
 import java.io.IOException;
+import java.util.Properties;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -76,6 +77,7 @@ public class WaybackContext implements BeanNameAware {
 	private QueryRenderer query = null;
 	private RequestParser parser = null;
 	private ResultURIConverter uriConverter = null;
+	private Properties configs = null;
 
 	/**
 	 * 
@@ -216,10 +218,11 @@ public class WaybackContext implements BeanNameAware {
 		
 		WaybackRequest wbRequest = new WaybackRequest();
 		wbRequest.setContextPrefix(getAbsoluteLocalPrefix(httpRequest));
+		wbRequest.setContext(this);
 		UIResults uiResults = new UIResults(wbRequest);
-		uiResults.storeInRequest(httpRequest);
-		RequestDispatcher dispatcher = null;
 		String translated = "/" + translateRequestPathQuery(httpRequest);
+		uiResults.storeInRequest(httpRequest,translated);
+		RequestDispatcher dispatcher = null;
 //		// special case for the front '/' page:
 //		if(translated.length() == 0) {
 //			translated = "/";
@@ -252,7 +255,7 @@ public class WaybackContext implements BeanNameAware {
 			wbRequest = parser.parse(httpRequest, this);
 
 			if(wbRequest != null) {
-
+				wbRequest.setContext(this);
 				handled = true;
 				wbRequest.setContextPrefix(getAbsoluteLocalPrefix(httpRequest));
 //				wbRequest.setWbContext(this);
@@ -377,5 +380,19 @@ public class WaybackContext implements BeanNameAware {
 	 */
 	public int getContextPort() {
 		return contextPort;
+	}
+
+	/**
+	 * @return the configs
+	 */
+	public Properties getConfigs() {
+		return configs;
+	}
+
+	/**
+	 * @param configs the configs to set
+	 */
+	public void setConfigs(Properties configs) {
+		this.configs = configs;
 	}
 }
