@@ -24,9 +24,12 @@
  */
 package org.archive.wayback.core;
 
+import java.util.Properties;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.archive.wayback.util.StringFormatter;
+import org.archive.wayback.webapp.WaybackContext;
 
 /**
  *
@@ -37,6 +40,8 @@ import org.archive.wayback.util.StringFormatter;
 public class UIResults {
 	private final static String FERRET_NAME = "ui-results";
 	protected WaybackRequest wbRequest;
+	private String contentJsp = null;
+	
 	
 	/**
 	 * @param wbRequest Wayback Request argument
@@ -64,8 +69,11 @@ public class UIResults {
 	/**
 	 * Store this UIResults in the HttpServletRequest argument.
 	 * @param httpRequest
+	 * @param contentJsp 
 	 */
-	public void storeInRequest(HttpServletRequest httpRequest) {
+	public void storeInRequest(HttpServletRequest httpRequest, 
+			String contentJsp) {
+		this.contentJsp = contentJsp;
 		httpRequest.setAttribute(FERRET_NAME, this);		
 	}
 
@@ -78,7 +86,7 @@ public class UIResults {
 		if(results == null) {
 			results = getGeneric(httpRequest);
 			// why not store it in case someone else needs it...
-			results.storeInRequest(httpRequest);
+//			results.storeInRequest(httpRequest,"");
 		}
 		return results;
 	}
@@ -163,4 +171,32 @@ public class UIResults {
 	public String getServerPrefix() {
 		return getWbRequest().getServerPrefix();
 	}
+	/**
+	 * @return the contentJsp
+	 */
+	public String getContentJsp() {
+		return contentJsp;
+	}
+	/**
+	 * @param contentJsp the contentJsp to set
+	 */
+	public void setContentJsp(String contentJsp) {
+		this.contentJsp = contentJsp;
+	}
+	/**
+	 * @param configName
+	 * @return String configuration for the context, if present, otherwise null
+	 */
+	public String getContextConfig(final String configName) {
+		String configValue = null;
+		WaybackContext context = getWbRequest().getContext();
+		if(context != null) {
+			Properties configs = context.getConfigs();
+			if(configs != null) {
+				configValue = configs.getProperty(configName);
+			}
+		}
+		return configValue;
+	}
+	
 }
