@@ -85,7 +85,8 @@ public class FileLocationDBClient {
 	 * @return Iterator of arc file names between marks start and end
 	 * @throws IOException
 	 */
-	public Iterator getArcsBetweenMarks(long start, long end) throws IOException {
+	public Iterator<String> getArcsBetweenMarks(long start, long end) 
+	throws IOException {
 		NameValuePair[] args = {
 				new NameValuePair(
 						FileLocationDBServlet.OPERATION_ARGUMENT,
@@ -284,7 +285,8 @@ public class FileLocationDBClient {
 			long start = Long.parseLong(args[3]);
 			long end = Long.parseLong(args[4]);
 			try {
-				Iterator it = locationClient.getArcsBetweenMarks(start,end);
+				Iterator<String> it = 
+					locationClient.getArcsBetweenMarks(start,end);
 				while(it.hasNext()) {
 					String next = (String) it.next();
 					System.out.println(next);
