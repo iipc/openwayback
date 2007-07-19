@@ -45,12 +45,30 @@ public class CaptureToUrlResultFilter extends SearchResultFilter {
 	private HashMap<String,Object> digests;
 	private SearchResult resultRef = null;
 
-	private final static String RESULT_URL = "result.url";
-	private final static String RESULT_FIRST_CAPTURE = "result.firstcapture";
-	private final static String RESULT_LAST_CAPTURE = "result.lastcapture";
-	private final static String RESULT_NUM_CAPTURES = "result.numcaptures";
-	private final static String RESULT_NUM_VERSIONS = "result.numversions";
-	private final static String RESULT_ORIGINAL_URL = "result.originalurl";
+	/**
+	 * 
+	 */
+	public final static String RESULT_URL = "result.url";
+	/**
+	 * 
+	 */
+	public final static String RESULT_FIRST_CAPTURE = "result.firstcapture";
+	/**
+	 * 
+	 */
+	public final static String RESULT_LAST_CAPTURE = "result.lastcapture";
+	/**
+	 * 
+	 */
+	public final static String RESULT_NUM_CAPTURES = "result.numcaptures";
+	/**
+	 * 
+	 */
+	public final static String RESULT_NUM_VERSIONS = "result.numversions";
+	/**
+	 * 
+	 */
+	public final static String RESULT_ORIGINAL_URL = "result.originalurl";
 	
 	private void fungeSearchResult(SearchResult result) {
 		String originalUrl = result.get(WaybackConstants.RESULT_URL);
