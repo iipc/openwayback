@@ -48,4 +48,8 @@ public interface RequestParser extends PropertyConfigurable {
 	 */
 	public abstract WaybackRequest parse(HttpServletRequest httpRequest, 
 			WaybackContext wbContext) throws BadQueryException;
+	/**
+	 * @param maxRecords
+	 */
+	public void setMaxRecords(int maxRecords);
 }

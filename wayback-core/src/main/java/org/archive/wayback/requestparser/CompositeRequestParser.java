@@ -59,6 +59,9 @@ public class CompositeRequestParser extends BaseRequestParser {
 	 */
 	public void init() {
 		parsers = getRequestParsers();
+		for(int i = 0; i < parsers.length; i++) {
+			parsers[i].setMaxRecords(maxRecords);
+		}
 	}
 
 	

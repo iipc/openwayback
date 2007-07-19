@@ -69,7 +69,7 @@ public class FormRequestParser extends BaseRequestParser {
 			} else {
 				return null;
 			}
-			
+			wbRequest.setResultsPerPage(maxRecords);
 			Set<String> keys = queryMap.keySet();
 			Iterator<String> itr = keys.iterator();
 			while(itr.hasNext()) {
