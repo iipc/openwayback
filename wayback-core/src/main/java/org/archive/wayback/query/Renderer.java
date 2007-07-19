@@ -49,19 +49,30 @@ import org.archive.wayback.exception.WaybackException;
  * @version $Date$, $Revision$
  */
 public class Renderer implements QueryRenderer {
-	private final static String JSP_PATH = "queryui.jsppath";
 
-	private String jspPath = null;
-
-	private final String ERROR_JSP = "ErrorResult.jsp";
-
-	private final String QUERY_JSP = "QueryResults.jsp";
-
-	private final String PREFIX_QUERY_JSP = "PathQueryResults.jsp";
-
+	private String templateJsp = "/index.jsp";
+	private String errorJsp = "/jsp/HTMLError.jsp";
+	private String captureJsp = "/jsp/HTMLResults.jsp";
+	private String urlJsp = "/jsp/HTMLResults.jsp";
+	
 	public void init(Properties p) throws ConfigurationException {
 		PropertyConfiguration pc = new PropertyConfiguration(p);
-		jspPath = pc.getString(JSP_PATH);
+//		jspPath = pc.getString(JSP_PATH);
+	}
+
+	/**
+	 * @param request
+	 * @param response
+	 * @param jspName
+	 * @throws ServletException
+	 * @throws IOException
+	 */
+	private void proxyRequest(HttpServletRequest request,
+			HttpServletResponse response, final String jspPath)
+			throws ServletException, IOException {
+
+		RequestDispatcher dispatcher = request.getRequestDispatcher(jspPath);
+		dispatcher.forward(request, response);
 	}
 
 	public void renderException(HttpServletRequest httpRequest,
@@ -70,14 +81,9 @@ public class Renderer implements QueryRenderer {
 
 		httpRequest.setAttribute("exception", exception);
 		UIResults uiResults = new UIResults(wbRequest);
-		uiResults.storeInRequest(httpRequest);
+		uiResults.storeInRequest(httpRequest,errorJsp);
 
-		String finalJspPath = jspPath + "/" + ERROR_JSP;
-
-		RequestDispatcher dispatcher = httpRequest
-				.getRequestDispatcher(finalJspPath);
-
-		dispatcher.forward(httpRequest, httpResponse);
+		proxyRequest(httpRequest,httpResponse,errorJsp);
 	}
 
 	public void renderUrlResults(HttpServletRequest httpRequest,
@@ -95,8 +101,8 @@ public class Renderer implements QueryRenderer {
 			throw new ServletException(e.getMessage());
 		}
 
-		uiResults.storeInRequest(httpRequest);
-		proxyRequest(httpRequest, httpResponse, QUERY_JSP);
+		uiResults.storeInRequest(httpRequest,captureJsp);
+		proxyRequest(httpRequest, httpResponse, captureJsp);
 
 	}
 
@@ -118,26 +124,50 @@ public class Renderer implements QueryRenderer {
 			throw new ServletException(e.getMessage());
 		}
 
-		uiResults.storeInRequest(httpRequest);
-		proxyRequest(httpRequest, httpResponse, PREFIX_QUERY_JSP);
+		uiResults.storeInRequest(httpRequest,urlJsp);
+		proxyRequest(httpRequest, httpResponse, urlJsp);
 
 	}
 
 	/**
-	 * @param request
-	 * @param response
-	 * @param jspName
-	 * @throws ServletException
-	 * @throws IOException
+	 * @return the errorJsp
 	 */
-	private void proxyRequest(HttpServletRequest request,
-			HttpServletResponse response, final String jspName)
-			throws ServletException, IOException {
+	public String getErrorJsp() {
+		return errorJsp;
+	}
 
-		String finalJspPath = jspPath + "/" + jspName;
+	/**
+	 * @param errorJsp the errorJsp to set
+	 */
+	public void setErrorJsp(String errorJsp) {
+		this.errorJsp = errorJsp;
+	}
 
-		RequestDispatcher dispatcher = request
-				.getRequestDispatcher(finalJspPath);
-		dispatcher.forward(request, response);
+	/**
+	 * @return the captureJsp
+	 */
+	public String getCaptureJsp() {
+		return captureJsp;
+	}
+
+	/**
+	 * @param captureJsp the captureJsp to set
+	 */
+	public void setCaptureJsp(String captureJsp) {
+		this.captureJsp = captureJsp;
+	}
+
+	/**
+	 * @return the urlJsp
+	 */
+	public String getUrlJsp() {
+		return urlJsp;
+	}
+
+	/**
+	 * @param urlJsp the urlJsp to set
+	 */
+	public void setUrlJsp(String urlJsp) {
+		this.urlJsp = urlJsp;
 	}
 }
