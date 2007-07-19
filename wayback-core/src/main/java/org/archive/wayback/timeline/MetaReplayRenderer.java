@@ -62,12 +62,13 @@ public class MetaReplayRenderer extends BaseReplayRenderer {
 			ResultURIConverter uriConverter) throws ServletException,
 			IOException {
 
-		String finalJspPath = jspPath + "/" + RESULT_META_JSP;
+//		String finalJspPath = jspPath + "/" + RESULT_META_JSP;
+		String finalJspPath = "/" + RESULT_META_JSP;
 
 		UIReplayResult uiResult = new UIReplayResult(httpRequest, wbRequest,
 				result, resource, uriConverter);
 
-		uiResult.storeInRequest(httpRequest);
+		uiResult.storeInRequest(httpRequest, finalJspPath);
 
 		RequestDispatcher dispatcher = httpRequest
 				.getRequestDispatcher(finalJspPath);
