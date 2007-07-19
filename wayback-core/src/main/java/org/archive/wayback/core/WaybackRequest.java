@@ -39,6 +39,7 @@ import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.exception.BetterRequestException;
 import org.archive.wayback.query.OpenSearchQueryParser;
 import org.archive.wayback.util.StringFormatter;
+import org.archive.wayback.webapp.WaybackContext;
 
 /**
  * Abstraction of all the data associated with a users request to the Wayback
@@ -57,6 +58,7 @@ public class WaybackRequest {
 	private String serverPrefix = null;
 	
 	private String betterRequestURI = null;
+	private WaybackContext context = null;
 
 	private Properties filters = new Properties();
 	
@@ -400,5 +402,19 @@ public class WaybackRequest {
 			wbRequest.filters.put(key, val);
 		}
 		return wbRequest;
+	}
+
+	/**
+	 * @return the context
+	 */
+	public WaybackContext getContext() {
+		return context;
+	}
+
+	/**
+	 * @param context the context to set
+	 */
+	public void setContext(WaybackContext context) {
+		this.context = context;
 	}
 }
