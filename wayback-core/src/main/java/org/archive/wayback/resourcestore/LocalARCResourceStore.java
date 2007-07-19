@@ -99,6 +99,9 @@ public class LocalARCResourceStore implements ResourceStore {
 		}
 	}
 
+	/**
+	 * @throws ConfigurationException
+	 */
 	public void init() throws ConfigurationException {
 		if(arcDir == null) {
 			throw new ConfigurationException("No arcDir set");
