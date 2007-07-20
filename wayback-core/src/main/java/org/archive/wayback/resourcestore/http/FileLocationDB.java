@@ -24,14 +24,9 @@
  */
 package org.archive.wayback.resourcestore.http;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.Properties;
-import java.util.logging.Logger;
 
-import org.archive.wayback.PropertyConfigurable;
 import org.archive.wayback.bdb.BDBRecordSet;
-import org.archive.wayback.core.PropertyConfiguration;
 import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.util.CloseableIterator;
 
@@ -43,9 +38,7 @@ import com.sleepycat.je.DatabaseException;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class FileLocationDB extends BDBRecordSet implements PropertyConfigurable {
-	private static final Logger LOGGER = Logger.getLogger(
-			FileLocationDB.class.getName());
+public class FileLocationDB extends BDBRecordSet {
 
 	/**
 	 * String id for implementation class of FileLocationDBs.
@@ -63,6 +56,9 @@ public class FileLocationDB extends BDBRecordSet implements PropertyConfigurable
 	private final static String urlDelimiterRE = " ";
 
 	private FileLocationDBLog log;
+	private String logPath = null;
+	private String bdbPath = null;
+	private String bdbName = null;
 	
 	/**
 	 * Constructor
@@ -71,22 +67,16 @@ public class FileLocationDB extends BDBRecordSet implements PropertyConfigurable
 		super();
 	}
 	
-	public void init(Properties p) throws ConfigurationException {
-		PropertyConfiguration pc = new PropertyConfiguration(p);
-		File dbDir = pc.getDir(ARC_DB_PATH, true);
-		String dbName = pc.getString(ARC_DB_NAME);
-		String logPath = pc.getString(ARC_DB_LOG);
-		try {
-
-			LOGGER.info("Initializing FileLocationDB at(" + 
-					dbDir.getAbsolutePath() + ") named(" + dbName + ")");
-			initializeDB(dbDir.getAbsolutePath(), dbName);
-			log = new FileLocationDBLog(logPath);
-			
-		} catch (DatabaseException e) {
-			e.printStackTrace();
-			throw new ConfigurationException(e.getMessage());
+	/**
+	 * @throws DatabaseException
+	 * @throws ConfigurationException
+	 */
+	public void init() throws DatabaseException, ConfigurationException {
+		if(logPath == null) {
+			throw new ConfigurationException("No logPath");
 		}
+		log = new FileLocationDBLog(logPath);
+		initializeDB(bdbPath,bdbName);		
 	}
 	
 	/**
@@ -204,5 +194,47 @@ public class FileLocationDB extends BDBRecordSet implements PropertyConfigurable
 	 */
 	public long getCurrentMark() {
 		return log.getCurrentMark();
+	}
+
+	/**
+	 * @return the logPath
+	 */
+	public String getLogPath() {
+		return logPath;
+	}
+
+	/**
+	 * @param logPath the logPath to set
+	 */
+	public void setLogPath(String logPath) {
+		this.logPath = logPath;
+	}
+
+	/**
+	 * @return the bdbPath
+	 */
+	public String getBdbPath() {
+		return bdbPath;
+	}
+
+	/**
+	 * @param bdbPath the bdbPath to set
+	 */
+	public void setBdbPath(String bdbPath) {
+		this.bdbPath = bdbPath;
+	}
+
+	/**
+	 * @return the bdbName
+	 */
+	public String getBdbName() {
+		return bdbName;
+	}
+
+	/**
+	 * @param bdbName the bdbName to set
+	 */
+	public void setBdbName(String bdbName) {
+		this.bdbName = bdbName;
 	}
 }
