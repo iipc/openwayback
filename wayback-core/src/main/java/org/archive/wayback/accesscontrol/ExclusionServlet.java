@@ -27,13 +27,11 @@ package org.archive.wayback.accesscontrol;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
-//import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.archive.wayback.core.WaybackServlet;
-import org.archive.wayback.exception.ConfigurationException;
+import org.archive.wayback.webapp.ServletRequestContext;
 
 /**
  * 
@@ -41,14 +39,8 @@ import org.archive.wayback.exception.ConfigurationException;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class ExclusionServlet extends WaybackServlet {
+public class ExclusionServlet extends ServletRequestContext {
 	private static final long serialVersionUID = 1L;
-
-//	private static final Logger LOGGER = Logger
-//			.getLogger(ExclusionServlet.class.getName());
-
-	private final static String EXCLUSION_AUTHORITY_CLASSNAME = 
-		"exclusionauthority";
 
 	private static final String OPERATION_ARGUMENT = "operation";
 
@@ -60,30 +52,17 @@ public class ExclusionServlet extends WaybackServlet {
 
 	private static final String OPERATION_CHECK = "check";
 
+	private ExclusionAuthority exclusionAuthority = null;
 //	private static final String OPERATION_PURGE = "purge";
 
-	/**
-	 * possibly initializes and returns the ExclusionAuthority
-	 * 
-	 * @return Returns the RoboCache.
-	 * @throws ServletException
-	 */
-	public ExclusionAuthority getExclusionAuthority() throws ServletException {
-		try {
-			return (ExclusionAuthority) wayback
-					.getCachedInstance(EXCLUSION_AUTHORITY_CLASSNAME);
-		} catch (ConfigurationException e) {
-			e.printStackTrace();
-			throw new ServletException(e);
-		}
-	}
 
-	public void doGet(HttpServletRequest httpRequest,
+	public boolean handleRequest(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse) throws IOException,
 			ServletException {
-		ExclusionAuthority exclAuth = getExclusionAuthority();
+		ExclusionAuthority exclAuth = exclusionAuthority;
 
-		Map queryArgs = httpRequest.getParameterMap();
+		@SuppressWarnings("unchecked")
+		Map<String,String[]> queryArgs = httpRequest.getParameterMap();
 		String url = getMapParam(queryArgs, URL_ARGUMENT);
 		String operation = getMapParam(queryArgs, OPERATION_ARGUMENT);
 		String userAgent = getMapParam(queryArgs, USER_AGENT_ARGUMENT);
@@ -139,5 +118,20 @@ public class ExclusionServlet extends WaybackServlet {
 		httpResponse.setContentType(eclResponse.getContentType());
 		OutputStream os = httpResponse.getOutputStream();
 		eclResponse.writeResponse(os);
+		return true;
+	}
+
+	/**
+	 * @param exclusionAuthority the exclusionAuthority to set
+	 */
+	public void setExclusionAuthority(ExclusionAuthority exclusionAuthority) {
+		this.exclusionAuthority = exclusionAuthority;
+	}
+
+	/**
+	 * @return the exclusionAuthority
+	 */
+	public ExclusionAuthority getExclusionAuthority() {
+		return exclusionAuthority;
 	}
 }

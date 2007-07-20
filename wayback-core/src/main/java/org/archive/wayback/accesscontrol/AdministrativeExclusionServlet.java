@@ -37,9 +37,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.httpclient.URIException;
 import org.archive.wayback.core.Timestamp;
-import org.archive.wayback.core.WaybackServlet;
-import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.surt.SURTTokenizer;
+import org.archive.wayback.webapp.ServletRequestContext;
 
 import com.sleepycat.je.DatabaseException;
 
@@ -55,9 +54,8 @@ import com.sleepycat.je.DatabaseException;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class AdministrativeExclusionServlet extends WaybackServlet {
+public class AdministrativeExclusionServlet extends ServletRequestContext {
 
-	private static String ADMIN_EXCLUSION_AUTH_CLASSNAME = "exclusionauthority";
 	private static final String DEFAULT_USER_AGENT = "ia_archiver";
 	private static final String HTML_BR = "<br></br>";
 	private static final long serialVersionUID = 1L;
@@ -102,25 +100,8 @@ public class AdministrativeExclusionServlet extends WaybackServlet {
 	private static final int RULE_STATUS_INACTIVE = 1;
 	private static final int RULE_STATUS_DELETE = 2;
 	
+	private AdministrativeExclusionAuthority exclusionAuthority = null;
 
-	/**
-	 * possibly initializes and returns the queryRenderer
-	 * 
-	 * @return Returns the RoboCache.
-	 * @throws ServletException
-	 */
-	public AdministrativeExclusionAuthority getExclusionAuthority() 
-	throws ServletException {
-		try {
-			// TODO: verify type
-			return (AdministrativeExclusionAuthority) wayback
-					.getCachedInstance(ADMIN_EXCLUSION_AUTH_CLASSNAME);
-		} catch (ConfigurationException e) {
-			e.printStackTrace();
-			throw new ServletException(e);
-		}
-	}
-	
 	private void showPage(HttpServletResponse response, StringBuilder page) 
 	throws IOException {
 		response.setContentType("text/html");
@@ -131,14 +112,15 @@ public class AdministrativeExclusionServlet extends WaybackServlet {
 		return e.getMessage();
 	}
 
-	public void doGet(HttpServletRequest httpRequest,
-			HttpServletResponse httpResponse) throws IOException,
-			ServletException {
-		AdministrativeExclusionAuthority exclAuth = getExclusionAuthority();
+	public boolean handleRequest(HttpServletRequest httpRequest,
+			HttpServletResponse httpResponse) throws ServletException,
+			IOException {
+		AdministrativeExclusionAuthority exclAuth = exclusionAuthority;
 
 		StringBuilder page = new StringBuilder(1024);
 		page.append("<html><head><title>Wayback: Administrative Exclusions</title></head><body>");
-		Map queryArgs = httpRequest.getParameterMap();
+		@SuppressWarnings("unchecked")
+		Map<String,String[]> queryArgs = httpRequest.getParameterMap();
 		String operation = getMapParam(queryArgs,FORM_OPERATION);
 		if(operation == null) {
 			page.append(makeCheckForm(queryArgs));
@@ -174,25 +156,10 @@ public class AdministrativeExclusionServlet extends WaybackServlet {
 			}
 			page.append(makeQueryForm(queryArgs));
 			page.append(makeCreateForm(queryArgs));
+
+		} else if((operation.equals(MODIFY_FORM_OPERATION) 
+				|| operation.equals(DELETE_FORM_OPERATION))) {
 			
-		} else {
-			page.append("GET request cannot change database");
-		}
-		page.append("</body></html>");
-		showPage(httpResponse,page);
-	}
-	public void doPost(HttpServletRequest httpRequest,
-			HttpServletResponse httpResponse) throws IOException,
-			ServletException {
-		AdministrativeExclusionAuthority exclAuth = getExclusionAuthority();
-		Map queryArgs = httpRequest.getParameterMap();
-		String operation = getMapParam(queryArgs,FORM_OPERATION);
-		StringBuilder page = new StringBuilder(1024);
-		page.append("<html><head><title>Wayback: Administrative Exclusions</title></head><body>");
-		page.append(makeCheckForm(queryArgs));
-		page.append(makeQueryForm(queryArgs));
-		page.append(makeCreateForm(queryArgs));
-		if(operation != null && (operation.equals(MODIFY_FORM_OPERATION) || operation.equals(DELETE_FORM_OPERATION))) {
 			try {
 				handleRuleCreate(exclAuth,queryArgs);
 				page.append("OK - added rule");
@@ -206,12 +173,15 @@ public class AdministrativeExclusionServlet extends WaybackServlet {
 				e.printStackTrace();
 				page.append(formatException(e));
 			}
+
+		} else {
+			page.append("Unknown operation");
 		}
 		page.append("</body></html>");
 		showPage(httpResponse,page);
+		return true;
 	}
-	
-	
+
 	// HTML GENERATION METHODS: 
 	
 	private String htmlEncode(String orig) {
@@ -221,7 +191,8 @@ public class AdministrativeExclusionServlet extends WaybackServlet {
 		return orig;
 	}
 	
-	private String makeFormTextInput(String label, String name, Map queryArgs,
+	private String makeFormTextInput(String label, String name, 
+			Map<String,String[]> queryArgs,
 			String suffix) {
 		String value = "";
 		if(queryArgs != null) {
@@ -231,7 +202,7 @@ public class AdministrativeExclusionServlet extends WaybackServlet {
 			 value + "\"></input>" + suffix;		
 	}
 	private String makeFormTextAreaInput(String label, String name, 
-			Map queryArgs, String suffix) {
+			Map<String,String[]> queryArgs, String suffix) {
 		String value = "";
 		if(queryArgs != null) {
 			value = htmlEncode(getMapParamOrEmpty(queryArgs,name));
@@ -241,7 +212,7 @@ public class AdministrativeExclusionServlet extends WaybackServlet {
 	}
 
 	private String makeFormCheckInput(String label, String name, String value, 
-			Map queryArgs, String suffix) {
+			Map<String,String[]> queryArgs, String suffix) {
 		String curValue = getMapParam(queryArgs,name);
 		String checked = "";
 		if(curValue != null && curValue.equals(value)) {
@@ -274,14 +245,14 @@ public class AdministrativeExclusionServlet extends WaybackServlet {
 
 	// CHECK FORM AND HANDLING
 	
-	private String makeCheckForm(Map queryArgs) {
+	private String makeCheckForm(Map<String,String[]> queryArgs) {
 		String content = makeFormTextInput("Url",CHECK_FORM_URL,queryArgs," ") +
 			makeFormTextInput("Timestamp",CHECK_FORM_TIMESTAMP,queryArgs," ");
 		return makeHeaderForm("Test Exclusion","GET",CHECK_FORM_OPERATION,content);
 	}
 
 	private String handleRuleCheck(AdministrativeExclusionAuthority excl, 
-			Map queryArgs) throws Exception {
+			Map<String,String[]> queryArgs) throws Exception {
 		String url = getRequiredMapParam(queryArgs,CHECK_FORM_URL);
 		String timestamp = getRequiredMapParam(queryArgs,CHECK_FORM_TIMESTAMP);
 		String userAgent = DEFAULT_USER_AGENT;
@@ -292,7 +263,7 @@ public class AdministrativeExclusionServlet extends WaybackServlet {
 
 	// RULE QUERY FORM AND HANDLING
 	
-	private String makeQueryForm(Map queryArgs) {
+	private String makeQueryForm(Map<String,String[]> queryArgs) {
 		StringBuilder content = new StringBuilder(1024);
 		content.append(makeFormTextInput("Url",QUERY_FORM_URL,queryArgs,""));
 		content.append(makeFormCheckInput("all",QUERY_FORM_ALL,QUERY_FORM_ALL_VALUE,queryArgs,""));
@@ -300,12 +271,13 @@ public class AdministrativeExclusionServlet extends WaybackServlet {
 	}
 
 	private String handleRuleQuery(AdministrativeExclusionAuthority excl, 
-			Map queryArgs) throws ParseException, URIException, DatabaseException {
+			Map<String,String[]> queryArgs) throws ParseException, URIException,
+			DatabaseException {
 		String url = getRequiredMapParam(queryArgs,QUERY_FORM_URL);
 		String all = getMapParam(queryArgs,QUERY_FORM_ALL);
 		boolean showAll = (all != null && all.equals(QUERY_FORM_ALL_VALUE));
 		String surt = SURTTokenizer.prefixKey(url);
-		ArrayList matching = excl.matchRules(surt);
+		ArrayList<AdministrativeExclusionRules> matching = excl.matchRules(surt);
 		StringBuilder matchHTML = new StringBuilder();
 		rulesToTable(matchHTML,matching,url,showAll);
 		return matchHTML.toString();
@@ -339,7 +311,7 @@ public class AdministrativeExclusionServlet extends WaybackServlet {
 		return makeForm("POST", DELETE_FORM_OPERATION, sb.toString());
 	}
 	
-	private String makeCreateForm(Map queryArgs) {
+	private String makeCreateForm(Map<String,String[]> queryArgs) {
 		StringBuilder sb = new StringBuilder(1024);
 		sb.append(makeFormTextInput("Url",MODIFY_FORM_URL,queryArgs,""));
 		sb.append(makeFormCheckInput("(prefix)",MODIFY_FORM_PREFIX,
@@ -369,7 +341,7 @@ public class AdministrativeExclusionServlet extends WaybackServlet {
 	}
 
 	private void handleRuleCreate(AdministrativeExclusionAuthority auth,
-			Map queryMap) throws ParseException, URIException, DatabaseException {
+			Map<String,String[]> queryMap) throws ParseException, URIException, DatabaseException {
 
 		AdministrativeExclusionRule rule = new AdministrativeExclusionRule();
 
@@ -443,7 +415,8 @@ public class AdministrativeExclusionServlet extends WaybackServlet {
 			String key = rule.key();
 			boolean deleted = false;
 			
-			Iterator itr = rules.getRules().iterator();
+			Iterator<AdministrativeExclusionRule> itr = 
+				rules.getRules().iterator();
 			while(itr.hasNext()) {
 				AdministrativeExclusionRule daRule = 
 					(AdministrativeExclusionRule) itr.next();
@@ -519,19 +492,19 @@ public class AdministrativeExclusionServlet extends WaybackServlet {
 		page.append("</tr>\n");
 	}
 
-	private void rulesToTable(StringBuilder page,ArrayList matching, 
-			String url, boolean showAll) {
+	private void rulesToTable(StringBuilder page,
+			ArrayList<AdministrativeExclusionRules> matching, String url,
+			boolean showAll) {
 		
 		if(matching.size() > 0) {
 			page.append("<table border=1>");
 			ruleHeaderRow(page);
-			Iterator itr = matching.iterator();
+			Iterator<AdministrativeExclusionRules> itr = matching.iterator();
 			while(itr.hasNext()) {
-				AdministrativeExclusionRules rules = 
-					(AdministrativeExclusionRules) itr.next();
+				AdministrativeExclusionRules rules = itr.next();
 
 				String surtPrefix = rules.getSurtPrefix();
-				Iterator ruleItr = null;
+				Iterator<AdministrativeExclusionRule> ruleItr = null;
 				if(showAll) {
 					ruleItr = rules.getRules().iterator();
 				} else {
@@ -549,6 +522,4 @@ public class AdministrativeExclusionServlet extends WaybackServlet {
 			page.append("<p>No records match("+url+")</p>\n");
 		}
 	}
-
-
 }
