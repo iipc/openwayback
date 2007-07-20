@@ -37,7 +37,7 @@ import org.archive.net.UURI;
 import org.archive.net.UURIFactory;
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.exception.BetterRequestException;
-import org.archive.wayback.query.OpenSearchQueryParser;
+import org.archive.wayback.requestparser.OpenSearchRequestParser;
 import org.archive.wayback.util.StringFormatter;
 import org.archive.wayback.webapp.WaybackContext;
 
@@ -349,9 +349,9 @@ public class WaybackRequest {
 			// oops.. what to do?
 			e.printStackTrace();
 		}
-		return OpenSearchQueryParser.SEARCH_QUERY + "=" + escapedQuery + "&"
-				+ OpenSearchQueryParser.SEARCH_RESULTS + "=" + numPerPage + "&"
-				+ OpenSearchQueryParser.START_PAGE + "=" + pageNum;
+		return OpenSearchRequestParser.SEARCH_QUERY + "=" + escapedQuery + "&"
+				+ OpenSearchRequestParser.SEARCH_RESULTS + "=" + numPerPage + "&"
+				+ OpenSearchRequestParser.START_PAGE + "=" + pageNum;
 	}
 
     /**
