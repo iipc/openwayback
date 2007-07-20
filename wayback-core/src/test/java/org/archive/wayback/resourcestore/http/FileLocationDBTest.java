@@ -27,7 +27,6 @@ package org.archive.wayback.resourcestore.http;
 import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
-import java.util.Properties;
 
 import org.archive.wayback.resourcestore.http.FileLocationDB;
 
@@ -58,12 +57,11 @@ public class FileLocationDBTest extends TestCase {
 		dbPath = tmpFile.getAbsolutePath();
 		dbName = "test-FileLocationDB";
 		db = new FileLocationDB();
-		Properties p = new Properties();
-		p.setProperty(FileLocationDB.ARC_DB_PATH,dbPath);
-		p.setProperty(FileLocationDB.ARC_DB_NAME,dbName);
-		p.setProperty(FileLocationDB.ARC_DB_LOG,tmpLogFile.getAbsolutePath());
 		
-		db.init(p);
+		db.setBdbName(dbName);
+		db.setBdbPath(dbPath);
+		db.setLogPath(tmpLogFile.getAbsolutePath());
+		db.init();
 		
 		super.setUp();
 	}
