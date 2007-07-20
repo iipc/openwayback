@@ -54,7 +54,8 @@ public class AdministrativeExclusionRules {
 	 * @param dateStr
 	 * @return ArrayList of applicable and current rules for dateStr
 	 */
-	public ArrayList filterRules(final String dateStr) {
+	public ArrayList<AdministrativeExclusionRule> filterRules(final String 
+			dateStr) {
 		
 		if(rules == null) {
 			return new ArrayList<AdministrativeExclusionRule>();
@@ -94,14 +95,12 @@ public class AdministrativeExclusionRules {
 
 		// now, remove any ADD for which there is a later DELETE:
 
-		Iterator itr = deletes.values().iterator();
+		Iterator<AdministrativeExclusionRule> itr = deletes.values().iterator();
 		while(itr.hasNext()) {
-			AdministrativeExclusionRule deleteRule = 
-				(AdministrativeExclusionRule) itr.next();
+			AdministrativeExclusionRule deleteRule = itr.next();
 			String key = deleteRule.key();
 			if(adds.containsKey(key)) {
-				AdministrativeExclusionRule addRule = 
-					(AdministrativeExclusionRule) adds.get(key);
+				AdministrativeExclusionRule addRule = adds.get(key);
 				if(deleteRule.getWhen() > addRule.getWhen()) {
 					adds.remove(key);
 				}
@@ -122,12 +121,11 @@ public class AdministrativeExclusionRules {
 	 * applied
 	 */
 	public AdministrativeExclusionRule getApplicableRule(final String dateStr) {
-		ArrayList applicable = filterRules(dateStr);
+		ArrayList<AdministrativeExclusionRule> applicable = filterRules(dateStr);
 		// first look for Excludes:
-		Iterator itr = applicable.iterator();
+		Iterator<AdministrativeExclusionRule> itr = applicable.iterator();
 		while(itr.hasNext()) {
-			AdministrativeExclusionRule rule = 
-				(AdministrativeExclusionRule) itr.next();
+			AdministrativeExclusionRule rule = itr.next();
 			if(rule.isExclude()) {
 				return rule;
 			}
@@ -227,7 +225,7 @@ public class AdministrativeExclusionRules {
 	/**
 	 * @return Returns the rules.
 	 */
-	public ArrayList getRules() {
+	public ArrayList<AdministrativeExclusionRule> getRules() {
 		return rules;
 	}
 }
