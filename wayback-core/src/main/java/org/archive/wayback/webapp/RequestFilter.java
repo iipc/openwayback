@@ -99,7 +99,7 @@ public class RequestFilter implements Filter {
 	throws IOException, ServletException {
 
 		boolean handled = false;
-		WaybackContext context = mapper.mapContext(httpRequest);
+		RequestContext context = mapper.mapContext(httpRequest);
 		if(context != null) {
 			handled = context.handleRequest(httpRequest,httpResponse);
 		}

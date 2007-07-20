@@ -97,16 +97,22 @@ public class RequestMapper {
 	 * @param request
 	 * @return WaybackContext that handles the specific incoming HTTP request
 	 */
-	public WaybackContext mapContext(HttpServletRequest request) {
+	public RequestContext mapContext(HttpServletRequest request) {
 
-		WaybackContext context = null;
+		RequestContext context = null;
 		String contextID = String.valueOf(request.getLocalPort());
 		if(factory.containsBean(contextID)) {
-			context = (WaybackContext) factory.getBean(contextID);
+			Object o = factory.getBean(contextID);
+			if(o instanceof RequestContext) {
+				context = (RequestContext) o;
+			}
 		} else {
 			contextID = getContextID(request);
 			if(factory.containsBean(contextID)) {
-				context = (WaybackContext) factory.getBean(contextID);
+				Object o = factory.getBean(contextID);
+				if(o instanceof RequestContext) {
+					context = (RequestContext) o;
+				}
 			}
 		}
 		return context;

@@ -67,7 +67,7 @@ import org.springframework.beans.factory.BeanNameAware;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class WaybackContext implements BeanNameAware {
+public class WaybackContext implements RequestContext, BeanNameAware {
 
 	private int contextPort = 0;
 	private String contextName = null;
