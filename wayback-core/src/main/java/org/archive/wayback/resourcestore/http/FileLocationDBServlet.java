@@ -34,9 +34,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.archive.wayback.core.WaybackServlet;
-import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.resourcestore.http.FileLocationDB;
+import org.archive.wayback.webapp.ServletRequestContext;
 
 import com.sleepycat.je.DatabaseException;
 
@@ -46,7 +45,7 @@ import com.sleepycat.je.DatabaseException;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class FileLocationDBServlet extends WaybackServlet {
+public class FileLocationDBServlet extends ServletRequestContext {
 
 	protected static final String OPERATION_ARGUMENT = "operation";
 	protected static final String NAME_ARGUMENT = "name";
@@ -61,45 +60,13 @@ public class FileLocationDBServlet extends WaybackServlet {
 	protected static final String NO_LOCATION_PREFIX = "ERROR No locations for";
 
 	private static final long serialVersionUID = 1L;
+	private FileLocationDB locationDB = null;
 
-
-	/**
-	 * Constructor
-	 */
-	public FileLocationDBServlet() {
-		super();
-	}
-
-	private FileLocationDB getLocationDB() throws ServletException {
-		try {
-			return (FileLocationDB) wayback.getCachedSingleton(
-					FileLocationDB.FILE_LOCATION_DB_CLASS);
-		} catch (ConfigurationException e) {
-			throw new ServletException(e);
-		}
-	}
-	
-	public void destroy() {
-		try {
-			getLocationDB().shutdownDB();
-		} catch (DatabaseException e) {
-			e.printStackTrace();
-		} catch (ServletException e) {
-			e.printStackTrace();
-		}
-	}
-	
-	public void doPost(HttpServletRequest httpRequest,
+	public boolean handleRequest(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse) throws IOException,
 			ServletException {
-		doGet(httpRequest,httpResponse);
-	}
-
-	public void doGet(HttpServletRequest httpRequest,
-			HttpServletResponse httpResponse) throws IOException,
-			ServletException {
-
-		Map queryMap = httpRequest.getParameterMap();
+		@SuppressWarnings("unchecked")
+		Map<String,String[]> queryMap = httpRequest.getParameterMap();
 		String message;
 		FileLocationDB locationDB = getLocationDB();
 		try {
@@ -113,9 +80,11 @@ public class FileLocationDBServlet extends WaybackServlet {
 			httpResponse.sendError(HttpServletResponse.SC_BAD_REQUEST,
 					e.getMessage());
 		}
+		return true;
 	}
 
-	private String handleOperation(FileLocationDB locationDB, Map queryMap)
+	private String handleOperation(FileLocationDB locationDB, 
+			Map<String,String[]> queryMap)
 			throws ParseException {
 
 		String operation = getRequiredMapParam(queryMap, OPERATION_ARGUMENT);
@@ -177,15 +146,25 @@ public class FileLocationDBServlet extends WaybackServlet {
 		} catch (DatabaseException e) {
 			e.printStackTrace();
 			message = e.getMessage();
-		} catch (ServletException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			message = e.getMessage();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			message = e.getMessage();
 		}
 		return message;
+	}
+
+	/**
+	 * @return the locationDB
+	 */
+	public FileLocationDB getLocationDB() {
+		return locationDB;
+	}
+
+	/**
+	 * @param locationDB the locationDB to set
+	 */
+	public void setLocationDB(FileLocationDB locationDB) {
+		this.locationDB = locationDB;
 	}
 }

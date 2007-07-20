@@ -35,9 +35,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.archive.wayback.core.WaybackServlet;
-import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.resourcestore.http.FileLocationDB;
+import org.archive.wayback.webapp.ServletRequestContext;
 
 import com.sleepycat.je.DatabaseException;
 
@@ -47,7 +46,7 @@ import com.sleepycat.je.DatabaseException;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class ArcProxyServlet extends WaybackServlet {
+public class ArcProxyServlet extends ServletRequestContext {
 
 	private static final String RANGE_HTTP_HEADER = "Range";
 	private static final String CONTENT_TYPE_HEADER = "Content-Type";
@@ -56,31 +55,14 @@ public class ArcProxyServlet extends WaybackServlet {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-
-	private FileLocationDB getLocationDB() throws ServletException {
-		try {
-			return (FileLocationDB) wayback.getCachedSingleton(
-					FileLocationDB.FILE_LOCATION_DB_CLASS);
-		} catch (ConfigurationException e) {
-			throw new ServletException(e);
-		}
-	}
-	public void destroy() {
-		try {
-			getLocationDB().shutdownDB();
-		} catch (DatabaseException e) {
-			e.printStackTrace();
-		} catch (ServletException e) {
-			e.printStackTrace();
-		}
-	}
-	public void doGet(HttpServletRequest httpRequest,
+	private FileLocationDB locationDB = null;
+	
+	public boolean handleRequest(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse) throws IOException,
 			ServletException {
 
-		FileLocationDB locationDB = getLocationDB();
 		try {
-			String arc = httpRequest.getPathTranslated();
+			String arc = httpRequest.getRequestURI();
 			arc = arc.substring(arc.lastIndexOf('/')+1);
 			if(arc.length() == 0) {
 				throw new ParseException("no/invalid arc",0);
@@ -123,7 +105,20 @@ public class ArcProxyServlet extends WaybackServlet {
 			httpResponse.sendError(HttpServletResponse.SC_NOT_FOUND,
 					e.getMessage());
 		}
+		return true;
 	}
 
+	/**
+	 * @return the locationDB
+	 */
+	public FileLocationDB getLocationDB() {
+		return locationDB;
+	}
 
+	/**
+	 * @param locationDB the locationDB to set
+	 */
+	public void setLocationDB(FileLocationDB locationDB) {
+		this.locationDB = locationDB;
+	}
 }
