@@ -289,16 +289,7 @@ public class TagMagixTest extends TestCase {
 //			url = url.substring(7);
 //		}
 		ArchivalUrlResultURIConverter uriC = new ArchivalUrlResultURIConverter();
-		Properties initp = new Properties();
-		initp.put("replayuriprefix",prefix);
-		try {
-			uriC.init(initp);
-		} catch (ConfigurationException e) {
-			e.printStackTrace();
-			assertTrue("failed initialization of uriCovnerter " + e.getMessage(),
-					false);
-		}
-		
+		uriC.setReplayURIPrefix(prefix);
 		TagMagix.markupTagREURIC(buf,uriC,ts,url,tag,attr);
 		String marked = buf.toString();
 		assertEquals(want,marked);
