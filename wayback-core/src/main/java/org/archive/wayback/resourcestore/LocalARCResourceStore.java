@@ -28,7 +28,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.HashMap;
-import java.util.Properties;
 import java.util.logging.Logger;
 
 import org.apache.commons.httpclient.HttpException;
@@ -38,7 +37,6 @@ import org.archive.io.arc.ARCReaderFactory;
 import org.archive.io.arc.ARCRecord;
 import org.archive.wayback.ResourceStore;
 import org.archive.wayback.WaybackConstants;
-import org.archive.wayback.core.PropertyConfiguration;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.SearchResults;
@@ -58,13 +56,6 @@ public class LocalARCResourceStore implements ResourceStore {
         Logger.getLogger(LocalARCResourceStore.class.getName());
 
 	private final static int DEFAULT_RUN_INTERVAL_MS = 10000;
-	private static final String RESOURCE_PATH = "resourcestore.arcpath";
-	private static final String AUTO_INDEX = "resourcestore.autoindex";
-	private static final String TMP_PATH = "resourcestore.tmppath";
-	private static final String WORK_PATH = "resourcestore.workpath";
-	private static final String QUEUED_PATH = "resourcestore.queuedpath";
-	private static final String INDEX_TARGET = "resourcestore.indextarget";
-	private static final String INDEX_INTERVAL = "resourcestore.indexinterval";
 
 	private File arcDir = null;
 	private File tmpDir = null;
@@ -81,24 +72,6 @@ public class LocalARCResourceStore implements ResourceStore {
 	 */
 	private static Thread indexThread = null;
 	
-	public void init(Properties p) throws ConfigurationException {
-		PropertyConfiguration pc = new PropertyConfiguration(p);
-		arcDir = pc.getDir(RESOURCE_PATH, true);
-		String autoIndex = p.getProperty(AUTO_INDEX);
-		if((autoIndex != null) && (autoIndex.compareTo("1") == 0)) {
-			tmpDir = pc.getDir(TMP_PATH,true);
-			workDir = pc.getDir(WORK_PATH,true);
-			queuedDir = pc.getDir(QUEUED_PATH,true);
-			indexTarget = pc.getString(INDEX_TARGET);
-			
-			if(indexTarget.startsWith("http://")) {
-				indexClient = new IndexClient(indexTarget);
-			}
-			runInterval = pc.getInt(INDEX_INTERVAL,DEFAULT_RUN_INTERVAL_MS);
-			startAutoIndexThread();
-		}
-	}
-
 	/**
 	 * @throws ConfigurationException
 	 */

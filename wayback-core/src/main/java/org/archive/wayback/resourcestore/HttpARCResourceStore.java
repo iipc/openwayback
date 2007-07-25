@@ -26,7 +26,6 @@ package org.archive.wayback.resourcestore;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.Properties;
 
 import org.archive.io.ArchiveRecord;
 import org.archive.io.arc.ARCReader;
@@ -34,10 +33,8 @@ import org.archive.io.arc.ARCReaderFactory;
 import org.archive.io.arc.ARCRecord;
 import org.archive.wayback.ResourceStore;
 import org.archive.wayback.WaybackConstants;
-import org.archive.wayback.core.PropertyConfiguration;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.SearchResult;
-import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.exception.ResourceNotAvailableException;
 
 
@@ -51,17 +48,9 @@ import org.archive.wayback.exception.ResourceNotAvailableException;
  * @version $Date$, $Revision$
  */
 public class HttpARCResourceStore implements ResourceStore {
-	private static final String ARC_URL_PREFIX = "resourcestore.arcurlprefix";
 
 	private String urlPrefix = null;
 
-	public void init(Properties p) throws ConfigurationException {
-		PropertyConfiguration pc = new PropertyConfiguration(p);
-		urlPrefix = pc.getString(ARC_URL_PREFIX);
-		if(!urlPrefix.endsWith("/")) {
-			urlPrefix = urlPrefix + "/";
-		}
-	}
 
 	public Resource retrieveResource(SearchResult result) throws IOException, 
 		ResourceNotAvailableException {
@@ -98,5 +87,19 @@ public class HttpARCResourceStore implements ResourceStore {
 					e.getLocalizedMessage());
 		}
 		return r;
+	}
+
+	/**
+	 * @return the urlPrefix
+	 */
+	public String getUrlPrefix() {
+		return urlPrefix;
+	}
+
+	/**
+	 * @param urlPrefix the urlPrefix to set
+	 */
+	public void setUrlPrefix(String urlPrefix) {
+		this.urlPrefix = urlPrefix;
 	}
 }
