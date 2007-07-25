@@ -45,8 +45,6 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.archive.wayback.resourceindex.SearchResultSourceFactory;
-
 /**
  * Filter that accepts PUT HTTP requests to insert CDX files into the incoming
  * directory for a local BDBIndex.
@@ -56,10 +54,13 @@ import org.archive.wayback.resourceindex.SearchResultSourceFactory;
  */
 public class RemoteSubmitFilter implements Filter  {
 
+	private final static String INCOMING_PATH = "config-tmp.incoming";
 	private final static String HTTP_PUT_METHOD = "PUT";
 	private File incoming = null;
 	private File tmpIncoming = null;
 	
+	// TODO: get rid of this
+	@SuppressWarnings("unchecked")
 	public void init(FilterConfig c) throws ServletException {
 
 		Properties p = new Properties();
@@ -73,7 +74,7 @@ public class RemoteSubmitFilter implements Filter  {
 			p.put(key, c.getInitParameter(key));
 		}
 		
-		String cfgName = SearchResultSourceFactory.INCOMING_PATH;
+		String cfgName = INCOMING_PATH;
 		String incomingPath = p.getProperty(cfgName);
 		if((incomingPath == null) || incomingPath.length() == 0) {
 			throw new ServletException("Invalid or missing " + cfgName +
