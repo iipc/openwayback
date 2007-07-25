@@ -25,7 +25,7 @@
 package org.archive.wayback.resourceindex.filters;
 
 import org.archive.wayback.core.SearchResult;
-import org.archive.wayback.resourceindex.SearchResultFilter;
+import org.archive.wayback.util.ObjectFilter;
 
 /**
  * SearchResultFilter which INCLUDEs all checked records, but keeps track of 
@@ -34,7 +34,7 @@ import org.archive.wayback.resourceindex.SearchResultFilter;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class CounterFilter extends SearchResultFilter {
+public class CounterFilter implements ObjectFilter<SearchResult> {
 
 	private int numMatched = 0;
 	
@@ -48,7 +48,7 @@ public class CounterFilter extends SearchResultFilter {
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.resourceindex.SearchResultFilter#filterSearchResult(org.archive.wayback.core.SearchResult)
 	 */
-	public int filterSearchResult(SearchResult r) {
+	public int filterObject(SearchResult r) {
 		numMatched++;
 		return FILTER_INCLUDE;
 	}

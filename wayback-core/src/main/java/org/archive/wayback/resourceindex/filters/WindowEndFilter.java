@@ -25,7 +25,7 @@
 package org.archive.wayback.resourceindex.filters;
 
 import org.archive.wayback.core.SearchResult;
-import org.archive.wayback.resourceindex.SearchResultFilter;
+import org.archive.wayback.util.ObjectFilter;
 
 /**
  * SearchResultFitler that includes the first N records seen.
@@ -33,7 +33,7 @@ import org.archive.wayback.resourceindex.SearchResultFilter;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class WindowEndFilter extends SearchResultFilter {
+public class WindowEndFilter implements ObjectFilter<SearchResult> {
 
 	private int windowSize = 0;
 	private int numSeen = 0;
@@ -49,7 +49,7 @@ public class WindowEndFilter extends SearchResultFilter {
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.resourceindex.SearchResultFilter#filterSearchResult(org.archive.wayback.core.SearchResult)
 	 */
-	public int filterSearchResult(SearchResult r) {
+	public int filterObject(SearchResult r) {
 		numSeen++;
 		if(numSeen <= windowSize) {
 			return FILTER_INCLUDE;

@@ -26,7 +26,7 @@ package org.archive.wayback.resourceindex.filters;
 
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.SearchResult;
-import org.archive.wayback.resourceindex.SearchResultFilter;
+import org.archive.wayback.util.ObjectFilter;
 
 /**
  * SearchResultFilter that excludes records outside of start and end range.
@@ -35,7 +35,7 @@ import org.archive.wayback.resourceindex.SearchResultFilter;
  * @version $Date$, $Revision$
  */
 
-public class DateRangeFilter extends SearchResultFilter {
+public class DateRangeFilter implements ObjectFilter<SearchResult> {
 	
 	private String first = null;
 	private String last = null;
@@ -52,7 +52,7 @@ public class DateRangeFilter extends SearchResultFilter {
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.resourceindex.SearchResultFilter#filterSearchResult(org.archive.wayback.core.SearchResult)
 	 */
-	public int filterSearchResult(SearchResult r) {
+	public int filterObject(SearchResult r) {
 		String captureDate = r.get(WaybackConstants.RESULT_CAPTURE_DATE);
 		return ((first.compareTo(captureDate) > 0) ||
 				(last.compareTo(captureDate) < 0)) ? 

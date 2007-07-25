@@ -25,7 +25,7 @@
 package org.archive.wayback.resourceindex.filters;
 
 import org.archive.wayback.core.SearchResult;
-import org.archive.wayback.resourceindex.SearchResultFilter;
+import org.archive.wayback.util.ObjectFilter;
 
 /**
  * SearchResultFilter which aborts processing when too many records have been 
@@ -34,7 +34,7 @@ import org.archive.wayback.resourceindex.SearchResultFilter;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class GuardRailFilter extends SearchResultFilter {
+public class GuardRailFilter implements ObjectFilter<SearchResult> {
 	private int maxRecordsToScan = 0;
 	private int recordsScanned = 0;
 	
@@ -49,7 +49,7 @@ public class GuardRailFilter extends SearchResultFilter {
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.resourceindex.SearchResultFilter#filterSearchResult(org.archive.wayback.core.SearchResult)
 	 */
-	public int filterSearchResult(SearchResult r) {
+	public int filterObject(SearchResult r) {
 		recordsScanned++;
 		if(recordsScanned > maxRecordsToScan) {
 			return FILTER_ABORT;

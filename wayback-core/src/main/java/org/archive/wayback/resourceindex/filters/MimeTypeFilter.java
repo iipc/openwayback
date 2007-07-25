@@ -28,7 +28,7 @@ import java.util.HashMap;
 
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.SearchResult;
-import org.archive.wayback.resourceindex.SearchResultFilter;
+import org.archive.wayback.util.ObjectFilter;
 
 /**
  * SearchResultFilter which includes only records matching one or more supplied
@@ -37,7 +37,7 @@ import org.archive.wayback.resourceindex.SearchResultFilter;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class MimeTypeFilter extends SearchResultFilter {
+public class MimeTypeFilter implements ObjectFilter<SearchResult> {
 	private HashMap<String,Integer> validMimes = null;
 	
 	/**
@@ -53,7 +53,7 @@ public class MimeTypeFilter extends SearchResultFilter {
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.resourceindex.SearchResultFilter#filterSearchResult(org.archive.wayback.core.SearchResult)
 	 */
-	public int filterSearchResult(SearchResult r) {
+	public int filterObject(SearchResult r) {
 		String mime = r.get(WaybackConstants.RESULT_MIME_TYPE).toLowerCase();
 		return validMimes.containsKey(mime) ? FILTER_INCLUDE : FILTER_EXCLUDE;
 	}

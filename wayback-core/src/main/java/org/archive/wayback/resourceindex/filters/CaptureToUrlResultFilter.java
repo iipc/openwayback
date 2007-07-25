@@ -29,7 +29,7 @@ import java.util.Properties;
 
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.SearchResult;
-import org.archive.wayback.resourceindex.SearchResultFilter;
+import org.archive.wayback.util.ObjectFilter;
 
 /**
  *
@@ -37,7 +37,7 @@ import org.archive.wayback.resourceindex.SearchResultFilter;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class CaptureToUrlResultFilter extends SearchResultFilter {
+public class CaptureToUrlResultFilter implements ObjectFilter<SearchResult> {
 	private String currentUrl;
 	private String firstCapture;
 	private String lastCapture;
@@ -89,11 +89,8 @@ public class CaptureToUrlResultFilter extends SearchResultFilter {
 		resultRef.put(RESULT_NUM_CAPTURES,"1");
 		resultRef.put(RESULT_NUM_VERSIONS,"1");
 	}
-	/* (non-Javadoc)
-	 * @see org.archive.wayback.resourceindex.SearchResultFilter#filterSearchResult(org.archive.wayback.core.SearchResult)
-	 */
-	@Override
-	public int filterSearchResult(SearchResult r) {
+
+	public int filterObject(SearchResult r) {
 		String urlKey = r.get(WaybackConstants.RESULT_URL_KEY);
 		if(resultRef == null || !currentUrl.equals(urlKey)) {
 			fungeSearchResult(r);

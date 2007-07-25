@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import org.archive.wayback.core.SearchResult;
-import org.archive.wayback.resourceindex.SearchResultFilter;
+import org.archive.wayback.util.ObjectFilter;
 
 /**
  * SearchResultFilter that abstracts multiple SearchResultFilters -- if all
@@ -38,24 +38,24 @@ import org.archive.wayback.resourceindex.SearchResultFilter;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class CompositeExclusionFilter extends SearchResultFilter {
+public class CompositeExclusionFilter implements ObjectFilter<SearchResult> {
 
-	private ArrayList<SearchResultFilter> filters = 
-		new ArrayList<SearchResultFilter>();
+	private ArrayList<ObjectFilter<SearchResult>> filters = 
+		new ArrayList<ObjectFilter<SearchResult>>();
 	
 	/**
 	 * @param filter to be added to the composite.
 	 */
-	public void addComponent(SearchResultFilter filter) {
+	public void addComponent(ObjectFilter<SearchResult> filter) {
 		filters.add(filter);
 	}
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.resourceindex.SearchResultFilter#filterSearchResult(org.archive.wayback.core.SearchResult)
 	 */
-	public int filterSearchResult(SearchResult r) {
-		Iterator<SearchResultFilter> itr = filters.iterator();
+	public int filterObject(SearchResult r) {
+		Iterator<ObjectFilter<SearchResult>> itr = filters.iterator();
 		while(itr.hasNext()) {
-			int result = itr.next().filterSearchResult(r);
+			int result = itr.next().filterObject(r);
 			if(result != FILTER_INCLUDE) {
 				return result;
 			}

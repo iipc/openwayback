@@ -26,7 +26,7 @@ package org.archive.wayback.resourceindex.filters;
 
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.SearchResult;
-import org.archive.wayback.resourceindex.SearchResultFilter;
+import org.archive.wayback.util.ObjectFilter;
 
 /**
  * SearchResultFilter which includes any URL which begins with a given prefix, 
@@ -37,7 +37,7 @@ import org.archive.wayback.resourceindex.SearchResultFilter;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class UrlPrefixMatchFilter extends SearchResultFilter {
+public class UrlPrefixMatchFilter implements ObjectFilter<SearchResult> {
 
 	private String prefix;
 	
@@ -51,7 +51,7 @@ public class UrlPrefixMatchFilter extends SearchResultFilter {
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.resourceindex.SearchResultFilter#filterSearchResult(org.archive.wayback.core.SearchResult)
 	 */
-	public int filterSearchResult(SearchResult r) {
+	public int filterObject(SearchResult r) {
 		String resultUrl = r.get(WaybackConstants.RESULT_URL_KEY);
 		return resultUrl.startsWith(prefix)	? FILTER_INCLUDE : FILTER_ABORT;
 	}
