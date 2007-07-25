@@ -25,12 +25,9 @@
 package org.archive.wayback.liveweb;
 
 import java.util.ArrayList;
-import java.util.Properties;
 
 import org.archive.wayback.core.SearchResult;
-import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.resourceindex.LocalResourceIndex;
-import org.archive.wayback.resourceindex.SearchResultSourceFactory;
 import org.archive.wayback.resourceindex.bdb.BDBIndex;
 import org.archive.wayback.resourceindex.indexer.SearchResultToBDBRecordAdapter;
 import org.archive.wayback.util.AdaptedIterator;
@@ -43,45 +40,12 @@ import org.archive.wayback.util.AdaptedIterator;
  * @version $Date$, $Revision$
  */
 public class LiveWebLocalResourceIndex extends LocalResourceIndex {
-	private final static String LW_DB_DIR = "liveweb.dbdir";
-	private final static String LW_DB_NAME = "liveweb.dbname";
-	
-	private String getProp(Properties p, String key) 
-		throws ConfigurationException {
-		
-		if(p.containsKey(key)) {
-			String v = p.getProperty(key);
-			if(v == null || v.length() < 1) {
-				throw new ConfigurationException("Empty configuration " + key);				
-			}
-			return v;
-		} else {
-			throw new ConfigurationException("Missing configuration " + key);
-		}
-		
-	}
 
-	public void init(Properties p) throws ConfigurationException {
-		// use alternate Properties, to differentiate config from normal 
-		// ResourceIndex
-		Properties newP = new Properties();
-
-		newP.setProperty(SearchResultSourceFactory.SOURCE_CLASS, 
-				SearchResultSourceFactory.SOURCE_CLASS_BDB);
-
-		newP.setProperty(SearchResultSourceFactory.INDEX_PATH,
-				getProp(p,LW_DB_DIR));
-
-		newP.setProperty(SearchResultSourceFactory.DB_NAME,
-				getProp(p,LW_DB_NAME));
-
-		super.init(newP);
-	}
-	
 	/**
 	 * Add a single SearchResult to the index.
 	 * @param result
 	 */
+	@SuppressWarnings("unchecked")
 	public void addSearchResult(SearchResult result) {
 		ArrayList<SearchResult> l = new ArrayList<SearchResult>();
 		l.add(result);

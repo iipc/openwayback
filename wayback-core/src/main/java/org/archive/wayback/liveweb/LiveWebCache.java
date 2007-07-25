@@ -28,13 +28,11 @@ import java.io.IOException;
 import java.net.URL;
 import java.text.ParseException;
 import java.util.Date;
-import java.util.Properties;
 import java.util.logging.Logger;
 
 import org.apache.commons.httpclient.URIException;
 import org.archive.io.arc.ARCLocation;
 import org.archive.io.arc.ARCRecord;
-import org.archive.wayback.PropertyConfigurable;
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.Resource;
@@ -42,7 +40,6 @@ import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
-import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.exception.LiveDocumentNotAvailableException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.exception.WaybackException;
@@ -55,7 +52,7 @@ import org.archive.wayback.util.UrlCanonicalizer;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class LiveWebCache implements PropertyConfigurable {
+public class LiveWebCache {
 	private static final Logger LOGGER = Logger.getLogger(
 			LiveWebCache.class.getName());
 
@@ -64,18 +61,6 @@ public class LiveWebCache implements PropertyConfigurable {
 	private URLCacher cacher = null;
 	private LiveWebLocalResourceIndex index = null;
 	static UrlCanonicalizer canonicalizer = new UrlCanonicalizer();
-	
-	/* (non-Javadoc)
-	 * @see org.archive.wayback.PropertyConfigurable#init(java.util.Properties)
-	 */
-	public void init(Properties p) throws ConfigurationException {
-		index = new LiveWebLocalResourceIndex();
-		index.init(p);
-		cacher = new URLCacher();
-		cacher.init(p);
-		arcCacheDir = new ARCCacheDirectory();
-		arcCacheDir.init(p);
-	}
 	
 	/**
 	 * closes all resources (currently unused...)
@@ -290,5 +275,61 @@ public class LiveWebCache implements PropertyConfigurable {
 			}
 		}
 		return resource;
+	}
+
+	/**
+	 * @return the maxFailedCacheMS
+	 */
+	public long getMaxFailedCacheMS() {
+		return maxFailedCacheMS;
+	}
+
+	/**
+	 * @param maxFailedCacheMS the maxFailedCacheMS to set
+	 */
+	public void setMaxFailedCacheMS(long maxFailedCacheMS) {
+		this.maxFailedCacheMS = maxFailedCacheMS;
+	}
+
+	/**
+	 * @return the arcCacheDir
+	 */
+	public ARCCacheDirectory getArcCacheDir() {
+		return arcCacheDir;
+	}
+
+	/**
+	 * @param arcCacheDir the arcCacheDir to set
+	 */
+	public void setArcCacheDir(ARCCacheDirectory arcCacheDir) {
+		this.arcCacheDir = arcCacheDir;
+	}
+
+	/**
+	 * @return the cacher
+	 */
+	public URLCacher getCacher() {
+		return cacher;
+	}
+
+	/**
+	 * @param cacher the cacher to set
+	 */
+	public void setCacher(URLCacher cacher) {
+		this.cacher = cacher;
+	}
+
+	/**
+	 * @return the index
+	 */
+	public LiveWebLocalResourceIndex getIndex() {
+		return index;
+	}
+
+	/**
+	 * @param index the index to set
+	 */
+	public void setIndex(LiveWebLocalResourceIndex index) {
+		this.index = index;
 	}
 }

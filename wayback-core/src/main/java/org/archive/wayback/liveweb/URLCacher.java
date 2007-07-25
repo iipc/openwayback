@@ -52,9 +52,6 @@ import org.apache.commons.httpclient.URIException;
 import org.archive.io.arc.ARCLocation;
 import org.archive.io.arc.ARCWriter;
 import org.archive.net.LaxURI;
-import org.archive.wayback.PropertyConfigurable;
-import org.archive.wayback.core.PropertyConfiguration;
-import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.exception.LiveDocumentNotAvailableException;
 
 /**
@@ -67,13 +64,14 @@ import org.archive.wayback.exception.LiveDocumentNotAvailableException;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class URLCacher implements PropertyConfigurable {
+public class URLCacher {
 	private static final Logger LOGGER = Logger.getLogger(
 			URLCacher.class.getName());
 	
 	private static final String CACHE_PATH = "liveweb.tmp.dir";
 	
 	protected File tmpDir = null;
+	@SuppressWarnings("unchecked")
 	private final ThreadLocal tl = new ThreadLocal() {
         protected synchronized Object initialValue() {
     		HttpClient http = new HttpClient();
@@ -87,16 +85,6 @@ public class URLCacher implements PropertyConfigurable {
     private HttpClient getHttpClient() {
         return (HttpClient) tl.get();
     }
-
-	/* (non-Javadoc)
-	 * @see org.archive.wayback.PropertyConfigurable#init(java.util.Properties)
-	 */
-	public void init(Properties p) throws ConfigurationException {
-		PropertyConfiguration pc = new PropertyConfiguration(p);
-		tmpDir = pc.getDir(CACHE_PATH,true);
-		LOGGER.info("URLCacher storing temp files in " + 
-				tmpDir.getAbsolutePath());
-	}
 
 	private File getTmpFile() {
 		String tmpName;
@@ -241,13 +229,13 @@ public class URLCacher implements PropertyConfigurable {
 
 		URLCacher uc = new URLCacher();
 		ARCCacheDirectory cache = new ARCCacheDirectory();
-		try {
-			cache.init(p);
-			uc.init(p);
-		} catch (ConfigurationException e) {
-			e.printStackTrace();
-			System.exit(1);
-		}
+//		try {
+////			cache.init(p);
+////			uc.init(p);
+//		} catch (ConfigurationException e) {
+//			e.printStackTrace();
+//			System.exit(1);
+//		}
 		for(int k = 1; k < args.length; k++) {
 			try {
 				url = new URL(args[k]);
@@ -431,6 +419,23 @@ public class URLCacher implements PropertyConfigurable {
 		public String getRemoteIP() {
 			return getSocket().getInetAddress().getHostAddress();
 		}
+	}
+
+	/**
+	 * @return the tmpDir
+	 */
+	public String getTmpDir() {
+		if(tmpDir == null) {
+			return null;
+		}
+		return tmpDir.getAbsolutePath();
+	}
+
+	/**
+	 * @param tmpDir the tmpDir to set
+	 */
+	public void setTmpDir(String tmpDir) {
+		this.tmpDir = new File(tmpDir);
 	}
 
 }
