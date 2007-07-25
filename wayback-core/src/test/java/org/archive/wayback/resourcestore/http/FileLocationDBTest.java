@@ -84,7 +84,7 @@ public class FileLocationDBTest extends TestCase {
 	}
 
 	private void testMarkLength(long start, long end, int count) throws IOException {
-		Iterator itr = db.getArcsBetweenMarks(start,end);
+		Iterator<String> itr = db.getArcsBetweenMarks(start,end);
 		int found = 0;
 		while(itr.hasNext()) {
 			itr.next();

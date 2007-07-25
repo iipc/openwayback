@@ -184,7 +184,8 @@ public class FileLocationDB extends BDBRecordSet {
 	 * @return Iterator for traversing arcs between start and end.
 	 * @throws IOException
 	 */
-	public CloseableIterator getArcsBetweenMarks(long start, long end) throws IOException {
+	public CloseableIterator<String> getArcsBetweenMarks(long start, long end) 
+	throws IOException {
 		return log.getArcsBetweenMarks(start, end);
 	}
 

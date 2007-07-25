@@ -87,7 +87,7 @@ public class FileLocationDBLog extends File {
 	 * @return CleanableIterator that returns all arcs between start and end
 	 * @throws IOException
 	 */
-	public CloseableIterator getArcsBetweenMarks(long start, long end)
+	public CloseableIterator<String> getArcsBetweenMarks(long start, long end)
 			throws IOException {
 
 		RandomAccessFile raf = new RandomAccessFile(this, "r");
@@ -107,7 +107,7 @@ public class FileLocationDBLog extends File {
 		writer.close();
 	}
 
-	private class BufferedRangeIterator implements CloseableIterator {
+	private class BufferedRangeIterator implements CloseableIterator<String> {
 		private RecordIterator itr;
 		private long bytesToSend;
 		private long bytesSent;
@@ -156,7 +156,7 @@ public class FileLocationDBLog extends File {
 		/* (non-Javadoc)
 		 * @see java.util.Iterator#next()
 		 */
-		public Object next() {
+		public String next() {
 			String returnString = next;
 			next = null;
 			bytesSent += returnString.length() + 1; // TODO: not X-platform!

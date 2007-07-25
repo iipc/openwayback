@@ -112,7 +112,7 @@ public class FileLocationDBServlet extends ServletRequestContext {
 
 				long start = Long.parseLong(getRequiredMapParam(queryMap, START_ARGUMENT));
 				long end = Long.parseLong(getRequiredMapParam(queryMap, END_ARGUMENT));
-				Iterator itr = locationDB.getArcsBetweenMarks(start,end);
+				Iterator<String> itr = locationDB.getArcsBetweenMarks(start,end);
 				StringBuilder str = new StringBuilder();
 				str.append("OK ");
 				while(itr.hasNext()) {

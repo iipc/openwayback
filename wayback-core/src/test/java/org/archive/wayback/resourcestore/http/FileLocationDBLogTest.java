@@ -61,7 +61,7 @@ public class FileLocationDBLogTest extends TestCase {
 		String newArc2 = "bar.arc.gz";
 		long mark1 = log.getCurrentMark();
 		assertEquals(mark1,0);
-		Iterator itr = log.getArcsBetweenMarks(0,0);
+		Iterator<String> itr = log.getArcsBetweenMarks(0,0);
 		assertFalse(itr.hasNext());
 		log.addArc(newArc1);
 		long mark2 = log.getCurrentMark();
