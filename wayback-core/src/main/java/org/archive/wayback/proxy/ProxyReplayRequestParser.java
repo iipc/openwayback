@@ -25,7 +25,6 @@
 package org.archive.wayback.proxy;
 
 import java.util.List;
-import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -35,7 +34,6 @@ import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadQueryException;
-import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.requestparser.BaseRequestParser;
 import org.archive.wayback.webapp.WaybackContext;
 
@@ -46,23 +44,9 @@ import org.archive.wayback.webapp.WaybackContext;
  * @version $Date$, $Revision$
  */
 public class ProxyReplayRequestParser extends BaseRequestParser {
-	/**
-	 * name of attribute in config Properties for specifying an additional 
-	 * hostname that should be considered "local" for discriminating between 
-	 * Replays and Queries
-	 */
-	private static final String LOCAL_HOSTNAME = "query.localhostname";
 
 	private List<String> localhostNames = null;
 
-	public void init(final Properties p) throws ConfigurationException {
-		this.localhostNames = InetAddressUtil.getAllLocalHostNames();
-		String extraLocalHostname = p.getProperty(LOCAL_HOSTNAME);
-		if ((extraLocalHostname != null) && (extraLocalHostname.length() > 0)) {
-			localhostNames.add(extraLocalHostname);
-		}
-		super.init(p);
-	}
 	/**
 	 * @param list
 	 */
