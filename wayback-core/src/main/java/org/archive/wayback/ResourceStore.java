@@ -35,7 +35,7 @@ import org.archive.wayback.exception.ResourceNotAvailableException;
  * @author Brad Tofel
  * @version $Date$, $Revision$
  */
-public interface ResourceStore extends PropertyConfigurable {
+public interface ResourceStore {
 	/**
 	 * Transform a SearchResult into a Resource
 	 * 

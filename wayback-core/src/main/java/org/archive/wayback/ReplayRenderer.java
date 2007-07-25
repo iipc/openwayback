@@ -41,7 +41,7 @@ import org.archive.wayback.exception.WaybackException;
  * @author brad
  * @version $Date$, $Revision$
  */
-public interface ReplayRenderer extends PropertyConfigurable {
+public interface ReplayRenderer {
 
 	/**
 	 * return a page to the client indicating that something went wrong, and

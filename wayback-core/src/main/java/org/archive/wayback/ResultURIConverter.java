@@ -30,7 +30,7 @@ package org.archive.wayback;
  * @author brad
  * @version $Date$, $Revision$
  */
-public interface ResultURIConverter extends PropertyConfigurable {
+public interface ResultURIConverter {
 	/**
 	 * return an absolute URL that will replay URL url at time datespec.
 	 * 

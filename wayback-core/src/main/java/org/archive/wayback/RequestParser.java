@@ -36,7 +36,7 @@ import org.archive.wayback.webapp.WaybackContext;
  * @author brad
  * @version $Date$, $Revision$
  */
-public interface RequestParser extends PropertyConfigurable {
+public interface RequestParser {
 	/**
 	 * attempt to transform an incoming HttpServletRequest into a 
 	 * WaybackRequest object. returns null if there is missing information.

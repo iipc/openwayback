@@ -36,7 +36,7 @@ import org.archive.wayback.exception.ResourceNotInArchiveException;
  * @author Brad Tofel
  * @version $Date$, $Revision$
  */
-public interface ResourceIndex extends PropertyConfigurable {
+public interface ResourceIndex {
 	/**
 	 * Transform a WMRequest into a ResourceResults.
 	 * 

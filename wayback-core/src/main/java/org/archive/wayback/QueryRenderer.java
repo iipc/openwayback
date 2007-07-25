@@ -40,7 +40,7 @@ import org.archive.wayback.exception.WaybackException;
  * @author brad
  * @version $Date$, $Revision$
  */
-public interface QueryRenderer extends PropertyConfigurable {
+public interface QueryRenderer {
 
 	/** Show an output page indicating that a request to the Wayback Machine
 	 * failed for some reason, as determined by the WaybackException argument.
