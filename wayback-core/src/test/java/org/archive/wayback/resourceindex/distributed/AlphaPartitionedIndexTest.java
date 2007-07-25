@@ -27,7 +27,6 @@ package org.archive.wayback.resourceindex.distributed;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Properties;
 
 import org.apache.commons.httpclient.URIException;
 import org.archive.wayback.WaybackConstants;
@@ -55,10 +54,8 @@ public class AlphaPartitionedIndexTest extends TestCase {
 		super.setUp();
 		createRangeMapFile();
 		index = new AlphaPartitionedIndex();
-		Properties p = new Properties();
-		p.put(AlphaPartitionedIndex.RANGE_MAP_PATH,rangeMapFile.getAbsolutePath());
-		p.put(AlphaPartitionedIndex.RANGE_CHECK_INTERVAL,"1000");
-		index.init(p);
+		index.setCheckInterval(1000);
+		index.setMapPath(rangeMapFile.getAbsolutePath());
 	}
 
 	/*
