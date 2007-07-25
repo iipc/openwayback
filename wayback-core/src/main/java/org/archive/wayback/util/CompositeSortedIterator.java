@@ -39,26 +39,27 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
  *
  * @author brad
  * @version $Date$, $Revision$
+ * @param <E> 
  */
-public class CompositeSortedIterator implements CloseableIterator {
+public class CompositeSortedIterator<E> implements CloseableIterator<E> {
 
-	private ArrayList<PeekableIterator> components;
-	private Object next;
-	private Comparator<Object> comparator;
+	private ArrayList<PeekableIterator<E>> components;
+	private E next;
+	private Comparator<E> comparator;
 	
 	/**
 	 * @param comparator Comparator to use for sorting order
 	 */
-	public CompositeSortedIterator(Comparator<Object> comparator) {
+	public CompositeSortedIterator(Comparator<E> comparator) {
 		this.comparator = comparator;
-		components = new ArrayList<PeekableIterator>();
+		components = new ArrayList<PeekableIterator<E>>();
 		next = null;
 	}
 	/**
 	 * @param itr Iterator which is a component of this composite
 	 */
-	public void addComponent(Iterator itr) {
-		components.add(new PeekableIterator(itr));	
+	public void addComponent(Iterator<E> itr) {
+		components.add(new PeekableIterator<E>(itr));	
 	}
 	/* (non-Javadoc)
 	 * @see java.util.Iterator#hasNext()
@@ -68,11 +69,11 @@ public class CompositeSortedIterator implements CloseableIterator {
 			return true;
 		}
 		// find lowest next:
-		PeekableIterator nextSource = null;
+		PeekableIterator<E> nextSource = null;
 		for(int i = 0; i < components.size(); i++) {
-			PeekableIterator pi = components.get(i);
+			PeekableIterator<E> pi = components.get(i);
 			if(pi.hasNext()) {
-				Object piNext = pi.peekNext();
+				E piNext = pi.peekNext();
 				if((next == null) || (comparator.compare(next,piNext) > 0)) {
 					nextSource = pi;
 					next = piNext;
@@ -87,11 +88,11 @@ public class CompositeSortedIterator implements CloseableIterator {
 	/* (non-Javadoc)
 	 * @see java.util.Iterator#next()
 	 */
-	public Object next() {
+	public E next() {
 		if(!hasNext()) {
 			throw new NoSuchElementException();
 		}
-		Object retObject = next;
+		E retObject = next;
 		next = null;
 		return retObject;
 	}
@@ -107,66 +108,8 @@ public class CompositeSortedIterator implements CloseableIterator {
 	 */
 	public void close() throws IOException {
 		for(int i = 0; i < components.size(); i++) {
-			PeekableIterator pi = (PeekableIterator) components.get(i);
+			PeekableIterator<E> pi = (PeekableIterator<E>) components.get(i);
 			pi.close();
-		}
-	}
-
-	private class PeekableIterator implements CloseableIterator {
-		private Object cachedNext;
-		private Iterator itr;
-		/**
-		 * @param itr
-		 */
-		public PeekableIterator(Iterator itr) {
-			this.itr = itr;
-			this.cachedNext = null;
-		}
-		/**
-		 * @return true if this Iterator has another element.
-		 */
-		public boolean hasNext() {
-			if(cachedNext != null) {
-				return true;
-			}
-			return itr.hasNext();
-		}
-		/**
-		 * @return Object that will be returned from next(), or null
-		 */
-		public Object peekNext() {
-			if(cachedNext == null) {
-				if(itr.hasNext()) {
-					cachedNext = itr.next();
-				}
-			}
-			return cachedNext;
-		}
-		/**
-		 * @return next Object 
-		 */
-		public Object next() {
-			if(cachedNext != null) {
-				Object retObject = cachedNext;
-				cachedNext = null;
-				return retObject;
-			}
-			return itr.next();
-		}
-		/* (non-Javadoc)
-		 * @see org.archive.wayback.util.Cleanable#clean()
-		 */
-		public void close() throws IOException {
-			if(itr instanceof CloseableIterator) {
-				CloseableIterator toBeClosed = (CloseableIterator) itr;
-				toBeClosed.close();
-			}
-		}
-		/* (non-Javadoc)
-		 * @see java.util.Iterator#remove()
-		 */
-		public void remove() {
-			throw new NotImplementedException();
 		}
 	}
 }
