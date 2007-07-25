@@ -25,7 +25,6 @@
 package org.archive.wayback.resourceindex;
 
 import java.io.IOException;
-import java.util.Properties;
 
 import org.apache.commons.httpclient.URIException;
 import org.archive.net.UURI;
@@ -45,7 +44,6 @@ import org.archive.wayback.resourceindex.filters.UrlPrefixMatchFilter;
 import org.archive.wayback.resourceindex.filters.WindowEndFilter;
 import org.archive.wayback.resourceindex.filters.WindowStartFilter;
 import org.archive.wayback.core.CaptureSearchResults;
-import org.archive.wayback.core.PropertyConfiguration;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.Timestamp;
@@ -53,7 +51,6 @@ import org.archive.wayback.core.UrlSearchResults;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.AccessControlException;
 import org.archive.wayback.exception.BadQueryException;
-import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.util.CloseableIterator;
@@ -82,23 +79,9 @@ public class LocalResourceIndex implements ResourceIndex {
 	
 	private UrlCanonicalizer canonicalizer = new UrlCanonicalizer(); 
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.archive.wayback.PropertyConfigurable#init(java.util.Properties)
-	 */
-	public void init(Properties p) throws ConfigurationException {
-		PropertyConfiguration pc = new PropertyConfiguration(p);
-		source = SearchResultSourceFactory.get(p);
-		exclusionFactory = ExclusionFilterFactoryFactory.get(p);
-
-		maxRecords = pc.getInt(WaybackConstants.MAX_RESULTS_CONFIG_NAME,
-				MAX_RECORDS);
-	}
-
-	private SearchResultFilter getExclusionFilter() 
+	private ObjectFilter<SearchResult> getExclusionFilter() 
 	throws ResourceIndexNotAvailableException {
-		SearchResultFilter filter = null;
+		ObjectFilter<SearchResult> filter = null;
 		if(exclusionFactory != null) {
 			filter = exclusionFactory.get();
 			if(filter == null) {
@@ -109,11 +92,12 @@ public class LocalResourceIndex implements ResourceIndex {
 		return filter;
 	}
 
-	private void filterRecords(CloseableIterator itr, ObjectFilter filter,
-			SearchResults results, boolean forwards) throws IOException {
+	private void filterRecords(CloseableIterator<SearchResult> itr,
+			ObjectFilter<SearchResult> filter, SearchResults results,
+			boolean forwards) throws IOException {
 
 		while (itr.hasNext()) {
-			SearchResult result = (SearchResult) itr.next();
+			SearchResult result = itr.next();
 			int ruling = filter.filterObject(result);
 			if (ruling == ObjectFilter.FILTER_ABORT) {
 				break;
@@ -225,7 +209,7 @@ public class LocalResourceIndex implements ResourceIndex {
 		GuardRailFilter guardrail = new GuardRailFilter(maxRecords);
 
 		// checks an exclusion service for every matching record
-		SearchResultFilter exclusion = getExclusionFilter();
+		ObjectFilter<SearchResult> exclusion = getExclusionFilter();
 
 		// count how many results got to the ExclusionFilter:
 		CounterFilter preExCounter = new CounterFilter();
@@ -240,8 +224,10 @@ public class LocalResourceIndex implements ResourceIndex {
 				|| searchType.equals(WaybackConstants.REQUEST_CLOSEST_QUERY)) {
 
 			results = new CaptureSearchResults(); 
-			ObjectFilterChain forwardFilters = new ObjectFilterChain();
-			ObjectFilterChain reverseFilters = new ObjectFilterChain();
+			ObjectFilterChain<SearchResult> forwardFilters = 
+				new ObjectFilterChain<SearchResult>();
+			ObjectFilterChain<SearchResult> reverseFilters = 
+				new ObjectFilterChain<SearchResult>();
 
 			// use the same guardrail for both:
 			forwardFilters.addFilter(guardrail);
@@ -320,7 +306,8 @@ public class LocalResourceIndex implements ResourceIndex {
 
 			results = new CaptureSearchResults(); 
 			// build up the FilterChain(s):
-			ObjectFilterChain filters = new ObjectFilterChain();
+			ObjectFilterChain<SearchResult> filters = 
+				new ObjectFilterChain<SearchResult>();
 			filters.addFilter(guardrail);
 
 			filters.addFilter(new UrlMatchFilter(keyUrl));
@@ -354,7 +341,8 @@ public class LocalResourceIndex implements ResourceIndex {
 
 			results = new UrlSearchResults(); 
 			// build up the FilterChain(s):
-			ObjectFilterChain filters = new ObjectFilterChain();
+			ObjectFilterChain<SearchResult> filters = 
+				new ObjectFilterChain<SearchResult>();
 			filters.addFilter(guardrail);
 
 			filters.addFilter(new UrlPrefixMatchFilter(keyUrl));

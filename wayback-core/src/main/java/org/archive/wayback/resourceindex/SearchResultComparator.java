@@ -35,7 +35,7 @@ import org.archive.wayback.core.SearchResult;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class SearchResultComparator implements Comparator<Object> {
+public class SearchResultComparator implements Comparator<SearchResult> {
 
 	private boolean backwards;
 	/**
@@ -52,11 +52,7 @@ public class SearchResultComparator implements Comparator<Object> {
 		backwards = false;
 	}
 	
-	private String objectToKey(Object o) {
-		if(!(o instanceof SearchResult)) {
-			throw new IllegalArgumentException("Need SearchResult arguments");
-		}
-		SearchResult r = (SearchResult) o;
+	private String objectToKey(SearchResult r) {
 		String urlKey = r.get(WaybackConstants.RESULT_URL_KEY);
 		String captureDate = r.get(WaybackConstants.RESULT_CAPTURE_DATE);
 		return urlKey + " " + captureDate;
@@ -64,7 +60,7 @@ public class SearchResultComparator implements Comparator<Object> {
 	/* (non-Javadoc)
 	 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
 	 */
-	public int compare(Object o1, Object o2) {
+	public int compare(SearchResult o1, SearchResult o2) {
 		String k1 = objectToKey(o1);
 		String k2 = objectToKey(o2);
 		if(backwards) {
