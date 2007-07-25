@@ -27,14 +27,12 @@ package org.archive.wayback.resourceindex.distributed;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Properties;
 
 import org.archive.wayback.ResourceIndex;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.AccessControlException;
 import org.archive.wayback.exception.BadQueryException;
-import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
 
@@ -78,18 +76,11 @@ public class RangeGroup implements ResourceIndex {
 				newMembers.put(urls[i],members.get(urls[i]));
 			} else {
 				RangeMember newMember = new RangeMember();
-				newMember.init(urls[i]);
+				newMember.setUrlBase(urls[i]);
 				newMembers.put(urls[i],newMember);
 			}
 		}
 		members = newMembers;
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.archive.wayback.PropertyConfigurable#init(java.util.Properties)
-	 */
-	public void init(Properties p) throws ConfigurationException {
-		// no op..
 	}
 
 	/* (non-Javadoc)

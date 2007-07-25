@@ -31,18 +31,15 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Properties;
 import java.util.logging.Logger;
 
 import org.apache.commons.httpclient.URIException;
 import org.archive.wayback.ResourceIndex;
 import org.archive.wayback.WaybackConstants;
-import org.archive.wayback.core.PropertyConfiguration;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.AccessControlException;
 import org.archive.wayback.exception.BadQueryException;
-import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.util.UrlCanonicalizer;
@@ -73,23 +70,13 @@ public class AlphaPartitionedIndex implements ResourceIndex {
 	
 	private long lastLoadStat = 0;
 	private long nextCheck = 0;
-	private long checkInterval;
+	private long checkInterval = DEFAULT_CHECK_INTERVAL;
 	private RangeGroup groups[] = null;
 	private String mapPath;
-	private static Comparator comparator = RangeGroup.getComparator();
+	private static Comparator<RangeGroup> comparator = 
+		RangeGroup.getComparator();
 	private UrlCanonicalizer canonicalizer = new UrlCanonicalizer();
 
-	/* (non-Javadoc)
-	 * @see org.archive.wayback.PropertyConfigurable#init(java.util.Properties)
-	 */
-	public void init(Properties p) throws ConfigurationException {
-		PropertyConfiguration pc = new PropertyConfiguration(p);
-		mapPath = pc.getString(RANGE_MAP_PATH);
-		checkInterval = pc.getLong(RANGE_CHECK_INTERVAL,DEFAULT_CHECK_INTERVAL);
-		LOGGER.info("Initialized AlphaPartitionedIndex on file (" + mapPath +
-				") checking every " + checkInterval + " seconds");
-	}
-	
 	@SuppressWarnings("unchecked")
 	private void reloadMapFile() throws IOException {
 		FlatFile ff = new FlatFile(mapPath);
@@ -219,5 +206,33 @@ public class AlphaPartitionedIndex implements ResourceIndex {
 	 */
 	public String canonicalize(final String url) throws URIException {
 		return canonicalizer.urlStringToKey(url);
+	}
+
+	/**
+	 * @return the checkInterval
+	 */
+	public long getCheckInterval() {
+		return checkInterval;
+	}
+
+	/**
+	 * @param checkInterval the checkInterval to set
+	 */
+	public void setCheckInterval(long checkInterval) {
+		this.checkInterval = checkInterval;
+	}
+
+	/**
+	 * @return the mapPath
+	 */
+	public String getMapPath() {
+		return mapPath;
+	}
+
+	/**
+	 * @param mapPath the mapPath to set
+	 */
+	public void setMapPath(String mapPath) {
+		this.mapPath = mapPath;
 	}
 }

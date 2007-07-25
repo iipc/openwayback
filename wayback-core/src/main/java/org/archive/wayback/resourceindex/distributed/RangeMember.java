@@ -24,14 +24,11 @@
  */
 package org.archive.wayback.resourceindex.distributed;
 
-import java.util.Properties;
-
 import org.archive.wayback.ResourceIndex;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.AccessControlException;
 import org.archive.wayback.exception.BadQueryException;
-import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.resourceindex.RemoteResourceIndex;
@@ -51,7 +48,6 @@ public class RangeMember implements ResourceIndex {
 	private long lastGoodResponse = System.currentTimeMillis();
 	private long lastFailedResponse = 0;
 	private int activeConnections = 0;
-	private String urlBase = null;
 
 	protected synchronized int getWeight() {
 		int weight = activeConnections;
@@ -75,26 +71,6 @@ public class RangeMember implements ResourceIndex {
 		lastFailedResponse = System.currentTimeMillis();
 	}
 	
-	
-	protected void init(String urlBase) {
-		this.urlBase = urlBase;
-		Properties p = new Properties();
-		p.put(RemoteResourceIndex.SEARCH_BASE_URL,urlBase);
-		try {
-			init(p);
-		} catch (ConfigurationException e) {
-			// should not be able to happen -- we added the property.
-			e.printStackTrace();
-		}
-	}
-
-	/* (non-Javadoc)
-	 * @see org.archive.wayback.resourceindex.RemoteResourceIndex#init(java.util.Properties)
-	 */
-	public void init(Properties p) throws ConfigurationException {
-		index.init(p);
-	}
-
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.resourceindex.RemoteResourceIndex#query(org.archive.wayback.core.WaybackRequest)
 	 */
@@ -105,6 +81,12 @@ public class RangeMember implements ResourceIndex {
 	 * @return Returns the urlBase.
 	 */
 	public String getUrlBase() {
-		return urlBase;
+		return index.getSearchUrlBase();
+	}
+	/**
+	 * @param urlBase the urlBase to set
+	 */
+	public void setUrlBase(String urlBase) {
+		index.setSearchUrlBase(urlBase);
 	}
 }
