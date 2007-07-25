@@ -23,9 +23,9 @@
 
 package org.archive.wayback.core;
 
-import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Locale;
-import java.util.Properties;
 import java.util.ResourceBundle;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -60,7 +60,7 @@ public class WaybackRequest {
 	private String betterRequestURI = null;
 	private WaybackContext context = null;
 
-	private Properties filters = new Properties();
+	private HashMap<String,String> filters = new HashMap<String,String>();
 	
 	private StringFormatter formatter = null;
 	private static String UI_RESOURCE_BUNDLE_NAME = "WaybackUI";
@@ -323,8 +323,9 @@ public class WaybackRequest {
 		int numPerPage = resultsPerPage;
 
 		StringBuffer queryString = new StringBuffer("");
-		for (Enumeration e = filters.keys(); e.hasMoreElements();) {
-			String key = (String) e.nextElement();
+		Iterator<String> itr = filters.keySet().iterator();
+		while(itr.hasNext()) {
+			String key = itr.next();
 			boolean isStandard = false;
 			for(int i=0; i<standardHeaders.length; i++) {
 				if(standardHeaders[i].equals(key)) {
@@ -333,7 +334,7 @@ public class WaybackRequest {
 				}
 			}
 			if(isStandard) continue;
-			String val = (String) filters.get(key);
+			String val = filters.get(key);
 			if (queryString.length() > 0) {
 				queryString.append(" ");
 			}
@@ -395,10 +396,11 @@ public class WaybackRequest {
 		
 		wbRequest.formatter = formatter;
 
-		wbRequest.filters = new Properties();
-		for (Enumeration e = filters.keys(); e.hasMoreElements();) {
-			String key = (String) e.nextElement();
-			String val = (String) filters.get(key);
+		wbRequest.filters = new HashMap<String,String>();
+		Iterator<String> itr = filters.keySet().iterator();
+		while(itr.hasNext()) {
+			String key = itr.next();
+			String val = filters.get(key);
 			wbRequest.filters.put(key, val);
 		}
 		return wbRequest;
