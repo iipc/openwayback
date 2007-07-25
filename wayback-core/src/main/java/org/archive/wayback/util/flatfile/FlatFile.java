@@ -31,6 +31,8 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Iterator;
 
+import org.archive.wayback.util.CloseableIterator;
+
 /**
  * Subclass of File, which allows binary searching, returning Iterators
  * that allow scanning forwards and backwards thru the (sorted) file starting
@@ -132,7 +134,7 @@ public class FlatFile {
 	 * @return Iterator returning one String object for each line in the file.
 	 * @throws IOException
 	 */
-	public Iterator getSequentialIterator() throws IOException {
+	public CloseableIterator<String> getSequentialIterator() throws IOException {
 		BufferedReader br = new BufferedReader(new FileReader(file));
 		return new RecordIterator(br);
 	}
@@ -142,7 +144,7 @@ public class FlatFile {
 	 * @return Iterator for records beggining with key
 	 * @throws IOException
 	 */
-	public Iterator getRecordIterator(final String prefix) throws IOException {
+	public Iterator<String> getRecordIterator(final String prefix) throws IOException {
 		RecordIterator itr = null;
 		RandomAccessFile raf = new RandomAccessFile(file,"r");
 		long offset = findKeyOffset(raf,prefix);

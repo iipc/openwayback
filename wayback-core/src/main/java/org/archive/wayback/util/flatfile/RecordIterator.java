@@ -36,7 +36,7 @@ import org.archive.wayback.util.CloseableIterator;
 * @author brad
 * @version $Date$, $Revision$
 */
-public class RecordIterator implements CloseableIterator {
+public class RecordIterator implements CloseableIterator<String> {
 	private BufferedReader br;
 
 	protected String next = null;
@@ -72,14 +72,14 @@ public class RecordIterator implements CloseableIterator {
 		return (next != null);
 	}
 
-	public Object next() {
+	public String next() {
 		if (!hasNext()) {
 			throw new NoSuchElementException();
 		}
 		// 'next' is guaranteed non-null by a hasNext() which returned true
-		Object returnObj = this.next;
+		String returnString = this.next;
 		this.next = null;
-		return returnObj;
+		return returnString;
 	}
 	/**
 	 * @throws IOException
