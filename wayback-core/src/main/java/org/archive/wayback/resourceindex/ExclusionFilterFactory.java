@@ -24,18 +24,18 @@
  */
 package org.archive.wayback.resourceindex;
 
-import org.archive.wayback.PropertyConfigurable;
-
+import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.util.ObjectFilter;
 /**
  *
  *
  * @author brad
  * @version $Date$, $Revision$
  */
-public interface ExclusionFilterFactory extends PropertyConfigurable {
+public interface ExclusionFilterFactory {
 	/**
-	 * @return a SearchResultFilter object that filters records based on
+	 * @return an ObjectFilter object that filters records based on
 	 * some set of exclusion rules.
 	 */
-	public SearchResultFilter get();
+	public ObjectFilter<SearchResult> get();
 }

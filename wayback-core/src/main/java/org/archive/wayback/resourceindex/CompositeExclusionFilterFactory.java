@@ -26,10 +26,10 @@ package org.archive.wayback.resourceindex;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.Properties;
 
-import org.archive.wayback.exception.ConfigurationException;
+import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.resourceindex.filters.CompositeExclusionFilter;
+import org.archive.wayback.util.ObjectFilter;
 
 /**
  * Class that provides SearchResult Filtering based on multiple
@@ -43,14 +43,6 @@ public class CompositeExclusionFilterFactory implements ExclusionFilterFactory {
 
 	private ArrayList<ExclusionFilterFactory> factories = 
 		new ArrayList<ExclusionFilterFactory>();
-
-	/* (non-Javadoc)
-	 * @see org.archive.wayback.PropertyConfigurable#init(java.util.Properties)
-	 */
-	public void init(Properties p) throws ConfigurationException {
-		// no-op...
-	}
-
 	
 	/**
 	 * @param factory to be added to the composite
@@ -62,12 +54,28 @@ public class CompositeExclusionFilterFactory implements ExclusionFilterFactory {
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.resourceindex.ExclusionFilterFactory#get()
 	 */
-	public SearchResultFilter get() {
+	public ObjectFilter<SearchResult> get() {
 		Iterator<ExclusionFilterFactory> itr = factories.iterator();
 		CompositeExclusionFilter filter = new CompositeExclusionFilter();
 		while(itr.hasNext()) {
 			filter.addComponent(itr.next().get());
 		}
 		return filter;
+	}
+
+
+	/**
+	 * @return the factories
+	 */
+	public ArrayList<ExclusionFilterFactory> getFactories() {
+		return factories;
+	}
+
+
+	/**
+	 * @param factories the factories to set
+	 */
+	public void setFactories(ArrayList<ExclusionFilterFactory> factories) {
+		this.factories = factories;
 	}
 }
