@@ -26,7 +26,6 @@ package org.archive.wayback.resourceindex;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Properties;
 import java.util.logging.Logger;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -36,7 +35,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.archive.wayback.ResourceIndex;
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.CaptureSearchResults;
-import org.archive.wayback.core.PropertyConfiguration;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.UrlSearchResults;
@@ -83,6 +81,7 @@ public class RemoteResourceIndex implements ResourceIndex {
 	private static final String WB_XML_ERROR_TITLE = "title";
 	private static final String WB_XML_ERROR_MESSAGE = "message";
 
+	@SuppressWarnings("unchecked")
 	private final ThreadLocal tl = new ThreadLocal() {
         protected synchronized Object initialValue() {
         	DocumentBuilder builder = null;
@@ -104,21 +103,16 @@ public class RemoteResourceIndex implements ResourceIndex {
         return (DocumentBuilder) tl.get();
     }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.archive.wayback.PropertyConfigurable#init(java.util.Properties)
-	 */
-	public void init(Properties p) throws ConfigurationException {
+    /**
+     * @throws ConfigurationException
+     */
+    public void init() throws ConfigurationException {
 		LOGGER.info("initializing RemoteCDXIndex...");
 
-		PropertyConfiguration pc = new PropertyConfiguration(p);
-		searchUrlBase = pc.getString(SEARCH_BASE_URL);
 		this.factory = DocumentBuilderFactory.newInstance();
 		this.factory.setNamespaceAware(false);
-		LOGGER.info("Using base search url " + this.searchUrlBase);
+		LOGGER.info("Using base search url " + this.searchUrlBase);		
 	}
-
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -279,5 +273,19 @@ public class RemoteResourceIndex implements ResourceIndex {
 	protected Document getFileDocument(File f)
 			throws IOException, SAXException {
 		return (getDocumentBuilder()).parse(f);
+	}
+
+	/**
+	 * @return the searchUrlBase
+	 */
+	public String getSearchUrlBase() {
+		return searchUrlBase;
+	}
+
+	/**
+	 * @param searchUrlBase the searchUrlBase to set
+	 */
+	public void setSearchUrlBase(String searchUrlBase) {
+		this.searchUrlBase = searchUrlBase;
 	}
 }

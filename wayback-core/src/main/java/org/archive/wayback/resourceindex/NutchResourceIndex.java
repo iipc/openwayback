@@ -28,7 +28,6 @@ import it.unimi.dsi.mg4j.util.MutableString;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.Properties;
 import java.util.logging.Logger;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -37,7 +36,6 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.archive.wayback.ResourceIndex;
 import org.archive.wayback.WaybackConstants;
-import org.archive.wayback.core.PropertyConfiguration;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.Timestamp;
@@ -62,9 +60,6 @@ import org.xml.sax.SAXException;
 public class NutchResourceIndex implements ResourceIndex {
 	   private static final Logger LOGGER =
 	        Logger.getLogger(NutchResourceIndex.class.getName());
-
-
-	private final static String SEARCH_BASE_URL = "resourceindex.baseurl";
 
 	private final static int MAX_RECORDS = 1000;
 	private int maxRecords = MAX_RECORDS;
@@ -93,17 +88,12 @@ public class NutchResourceIndex implements ResourceIndex {
    private static final String NUTCH_DEFAULT_HTTP_CODE = "200";
    private static final String NUTCH_DEFAULT_REDIRECT_URL = "-";
    
-
-	/* (non-Javadoc)
-	 * @see org.archive.wayback.PropertyConfigurable#init(java.util.Properties)
+	/**
+	 * @throws ConfigurationException
 	 */
-	public void init(Properties p) throws ConfigurationException {
+	public void init() throws ConfigurationException {
 		LOGGER.info("initializing NutchResourceIndex...");
-		PropertyConfiguration pc = new PropertyConfiguration(p);
-		searchUrlBase = pc.getString(SEARCH_BASE_URL);
 		LOGGER.info("Using base search url " + this.searchUrlBase);
-		maxRecords = pc.getInt(WaybackConstants.MAX_RESULTS_CONFIG_NAME,
-				MAX_RECORDS);
 
 		this.factory = DocumentBuilderFactory.newInstance();
 		this.factory.setNamespaceAware(true);
@@ -114,11 +104,7 @@ public class NutchResourceIndex implements ResourceIndex {
 			e.printStackTrace();
 			throw new ConfigurationException(e.getMessage());
 		}
-		if (!this.builder.isNamespaceAware()) {
-			LOGGER.severe("Builder is not namespace aware.");
-		}
 	}
-
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.ResourceIndex#query(org.archive.wayback.core.WaybackRequest)
 	 */
@@ -346,4 +332,28 @@ public class NutchResourceIndex implements ResourceIndex {
        d = this.builder.parse(url);
        return d;
    }
+/**
+ * @return the searchUrlBase
+ */
+public String getSearchUrlBase() {
+	return searchUrlBase;
+}
+/**
+ * @param searchUrlBase the searchUrlBase to set
+ */
+public void setSearchUrlBase(String searchUrlBase) {
+	this.searchUrlBase = searchUrlBase;
+}
+/**
+ * @return the maxRecords
+ */
+public int getMaxRecords() {
+	return maxRecords;
+}
+/**
+ * @param maxRecords the maxRecords to set
+ */
+public void setMaxRecords(int maxRecords) {
+	this.maxRecords = maxRecords;
+}
 }
