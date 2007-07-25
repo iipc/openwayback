@@ -38,14 +38,17 @@ import org.archive.wayback.util.Adapter;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class CDXLineToSearchResultAdapter implements Adapter {
+public class CDXLineToSearchResultAdapter implements Adapter<String,SearchResult> {
 
-	public Object adapt(Object o) {
+	public SearchResult adapt(String line) {
+		return doAdapt(line);
+	}
+	/**
+	 * @param line
+	 * @return SearchResult representation of input line
+	 */
+	public static SearchResult doAdapt(String line) {
 		SearchResult result = new SearchResult();
-		if(!(o instanceof String)) {
-			throw new IllegalArgumentException("Argument is not a String");
-		}
-		String line = (String) o;
 		String[] tokens = line.split(" ");
 		if (tokens.length != 9) {
 			return null;

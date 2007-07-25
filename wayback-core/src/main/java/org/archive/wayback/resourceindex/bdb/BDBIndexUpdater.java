@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.logging.Logger;
 
+import org.archive.wayback.bdb.BDBRecord;
 import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.resourceindex.indexer.ArcIndexer;
 
@@ -146,7 +147,7 @@ public class BDBIndexUpdater {
 	private boolean mergeFile(File cdxFile) {
 		boolean added = false;
 		try {
-			Iterator it = indexer.getCDXFileBDBRecordIterator(cdxFile);
+			Iterator<BDBRecord> it = indexer.getCDXFileBDBRecordIterator(cdxFile);
 			index.insertRecords(it);
 			added = true;
 		} catch (IOException e) {

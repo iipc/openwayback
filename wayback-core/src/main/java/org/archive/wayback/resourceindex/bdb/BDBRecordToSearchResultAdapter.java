@@ -27,7 +27,9 @@ package org.archive.wayback.resourceindex.bdb;
 import java.io.UnsupportedEncodingException;
 
 import org.archive.wayback.bdb.BDBRecord;
+import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.resourceindex.cdx.CDXLineToSearchResultAdapter;
+import org.archive.wayback.util.Adapter;
 
 /**
  * Adapter that converts a BDBRecord into a SearchResult
@@ -36,7 +38,7 @@ import org.archive.wayback.resourceindex.cdx.CDXLineToSearchResultAdapter;
  * @version $Date$, $Revision$
  */
 public class BDBRecordToSearchResultAdapter 
-	extends CDXLineToSearchResultAdapter {
+	implements Adapter<BDBRecord,SearchResult> {
 
 	private static int DEFAULT_SB_SIZE = 100;
 	private StringBuilder sb;
@@ -47,14 +49,11 @@ public class BDBRecordToSearchResultAdapter
 		sb = new StringBuilder(DEFAULT_SB_SIZE);
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.archive.wayback.util.Adapter#adapt(java.lang.Object)
+	/**
+	 * @param record
+	 * @return SearchResult representation of input BDBRecord
 	 */
-	public Object adapt(Object o) {
-		if(!(o instanceof BDBRecord)) {
-			throw new IllegalArgumentException("Argument is not a BDBRecord");
-		}
-		BDBRecord record = (BDBRecord) o;
+	public SearchResult adapt(BDBRecord record) {
 		sb.setLength(0);
 		try {
 			String key = new String(record.getKey().getData(),"UTF-8");
@@ -68,6 +67,6 @@ public class BDBRecordToSearchResultAdapter
 			// should not happen with UTF-8 hard-coded..
 			e.printStackTrace();
 		}
-		return super.adapt(sb.toString());
+		return CDXLineToSearchResultAdapter.doAdapt(sb.toString());
 	}
 }

@@ -50,14 +50,15 @@ public class CDXIndex extends FlatFile implements SearchResultSource {
 	 */
 	private static final long serialVersionUID = 1L;
 
-	private CloseableIterator adaptIterator(Iterator itr) {
-		return new AdaptedIterator(itr,new CDXLineToSearchResultAdapter());
+	private CloseableIterator<SearchResult> adaptIterator(Iterator<String> itr) {
+		return new AdaptedIterator<String,SearchResult>(itr,
+				new CDXLineToSearchResultAdapter());
 	}
 
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.resourceindex.SearchResultSource#getPrefixIterator(java.lang.String)
 	 */
-	public CloseableIterator getPrefixIterator(String prefix)
+	public CloseableIterator<SearchResult> getPrefixIterator(String prefix)
 		throws ResourceIndexNotAvailableException {
 		try {
 			return adaptIterator(getRecordIterator(prefix));
@@ -69,7 +70,7 @@ public class CDXIndex extends FlatFile implements SearchResultSource {
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.resourceindex.SearchResultSource#getPrefixReverseIterator(java.lang.String)
 	 */
-	public CloseableIterator getPrefixReverseIterator(String prefix)
+	public CloseableIterator<SearchResult> getPrefixReverseIterator(String prefix)
 		throws ResourceIndexNotAvailableException {
 		try {
 			return adaptIterator(getReverseRecordIterator(prefix));
@@ -84,7 +85,7 @@ public class CDXIndex extends FlatFile implements SearchResultSource {
 	 * @return Iterator of SearchResults of records starting with prefix
 	 * @throws IOException
 	 */
-	public Iterator getUrlIterator(final String prefix) throws IOException {
+	public Iterator<SearchResult> getUrlIterator(final String prefix) throws IOException {
 		return adaptIterator(getRecordIterator(prefix));
 	}
 	
@@ -94,19 +95,20 @@ public class CDXIndex extends FlatFile implements SearchResultSource {
 	 * @return Iterator of results in closest order to wantTS
 	 * @throws IOException
 	 */
-	public Iterator getClosestIterator(final String prefix, 
+	public Iterator<SearchResult> getClosestIterator(final String prefix, 
 			final Timestamp wantTS) throws IOException {
 		
-		Iterator forwardItr = adaptIterator(getRecordIterator(prefix));
-		Iterator reverseItr = adaptIterator(getReverseRecordIterator(prefix));
-		TimestampComparator comparator = new TimestampComparator(wantTS);
-		CompositeSortedIterator itr = new CompositeSortedIterator(comparator);
+		Iterator<SearchResult> forwardItr = adaptIterator(getRecordIterator(prefix));
+		Iterator<SearchResult> reverseItr = adaptIterator(getReverseRecordIterator(prefix));
+		Comparator<SearchResult> comparator = new TimestampComparator(wantTS);
+		CompositeSortedIterator<SearchResult> itr = 
+			new CompositeSortedIterator<SearchResult>(comparator);
 		itr.addComponent(forwardItr);
 		itr.addComponent(reverseItr);
 		return itr;
 	}
 
-	private class TimestampComparator implements Comparator<Object> {
+	private class TimestampComparator implements Comparator<SearchResult> {
 		private int wantedSSE;
 		/**
 		 * @param wanted
@@ -114,11 +116,7 @@ public class CDXIndex extends FlatFile implements SearchResultSource {
 		public TimestampComparator(Timestamp wanted) {
 			wantedSSE = wanted.sse();
 		}
-		private int searchResultToDistance(Object o) {
-			if(!(o instanceof SearchResult)) {
-				throw new IllegalArgumentException("Need SearchResult objects");
-			}
-			SearchResult sr = (SearchResult) o;
+		private int searchResultToDistance(SearchResult sr) {
 			String dateStr = sr.get(WaybackConstants.RESULT_CAPTURE_DATE);
 			Timestamp ts = new Timestamp(dateStr);
 			return Math.abs(wantedSSE - ts.sse());
@@ -126,7 +124,7 @@ public class CDXIndex extends FlatFile implements SearchResultSource {
 		/* (non-Javadoc)
 		 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
 		 */
-		public int compare(Object o1, Object o2) {
+		public int compare(SearchResult o1, SearchResult o2) {
 			int d1 = searchResultToDistance(o1);
 			int d2 = searchResultToDistance(o2);
 			if(d1 < d2) {
@@ -141,7 +139,7 @@ public class CDXIndex extends FlatFile implements SearchResultSource {
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.resourceindex.SearchResultSource#cleanup(org.archive.wayback.util.CleanableIterator)
 	 */
-	public void cleanup(CloseableIterator c) throws IOException {
+	public void cleanup(CloseableIterator<SearchResult> c) throws IOException {
 		c.close();
 	}
 }

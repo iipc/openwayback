@@ -37,7 +37,8 @@ import com.sleepycat.je.DatabaseEntry;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class SearchResultToBDBRecordAdapter implements Adapter {
+public class SearchResultToBDBRecordAdapter implements 
+	Adapter<SearchResult,BDBRecord> {
 
 	DatabaseEntry key = new DatabaseEntry();
 
@@ -50,12 +51,7 @@ public class SearchResultToBDBRecordAdapter implements Adapter {
 	 * 
 	 * @see org.archive.wayback.util.Adapter#adapt(java.lang.Object)
 	 */
-	public Object adapt(Object o) {
-		if (!(o instanceof SearchResult)) {
-			throw new IllegalArgumentException(
-					"Argument is not a SearchResult");
-		}
-		SearchResult result = (SearchResult) o;
+	public BDBRecord adapt(SearchResult result) {
 		key.setData(BDBRecordSet.stringToBytes(ArcIndexer
 				.searchResultToString(result, ArcIndexer.TYPE_CDX_KEY)));
 		value.setData(BDBRecordSet.stringToBytes(ArcIndexer

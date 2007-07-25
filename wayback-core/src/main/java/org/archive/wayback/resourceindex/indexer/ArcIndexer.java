@@ -43,6 +43,7 @@ import org.archive.io.arc.ARCRecordMetaData;
 import org.archive.net.UURI;
 import org.archive.net.UURIFactory;
 import org.archive.wayback.WaybackConstants;
+import org.archive.wayback.bdb.BDBRecord;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.SearchResults;
@@ -370,12 +371,13 @@ public class ArcIndexer {
 	 * cdxFile argument 
 	 * @throws IOException
 	 */
-	public Iterator getCDXFileBDBRecordIterator(File cdxFile) throws IOException {
+	public Iterator<BDBRecord> getCDXFileBDBRecordIterator(File cdxFile) throws IOException {
 		FlatFile ffile = new FlatFile(cdxFile.getAbsolutePath());
-		AdaptedIterator searchResultItr = new AdaptedIterator(
-				ffile.getSequentialIterator(),
+		AdaptedIterator<String,SearchResult> searchResultItr = 
+			new AdaptedIterator<String,SearchResult>(
+					ffile.getSequentialIterator(),
 				new CDXLineToSearchResultAdapter());
-		return new AdaptedIterator(searchResultItr,
+		return new AdaptedIterator<SearchResult,BDBRecord>(searchResultItr,
 				new SearchResultToBDBRecordAdapter());
 	}
 

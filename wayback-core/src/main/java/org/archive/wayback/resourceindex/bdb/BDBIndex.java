@@ -32,6 +32,7 @@ import java.io.PrintWriter;
 import java.util.Iterator;
 
 import org.archive.wayback.WaybackConstants;
+import org.archive.wayback.bdb.BDBRecord;
 import org.archive.wayback.bdb.BDBRecordSet;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.SearchResult;
@@ -66,8 +67,9 @@ public class BDBIndex extends BDBRecordSet implements SearchResultSource {
 		}
 	}
 
-	private CloseableIterator adaptIterator(Iterator itr) {
-		return new AdaptedIterator(itr,new BDBRecordToSearchResultAdapter());
+	private CloseableIterator<SearchResult> adaptIterator(
+			Iterator<BDBRecord> itr) {
+		return new AdaptedIterator<BDBRecord,SearchResult>(itr,new BDBRecordToSearchResultAdapter());
 	}
 
 	/*
@@ -75,7 +77,7 @@ public class BDBIndex extends BDBRecordSet implements SearchResultSource {
 	 * 
 	 * @see org.archive.wayback.resourceindex.SearchResultSource#getPrefixIterator(java.lang.String)
 	 */
-	public CloseableIterator getPrefixIterator(String prefix)
+	public CloseableIterator<SearchResult> getPrefixIterator(String prefix)
 			throws ResourceIndexNotAvailableException {
 		
 		try {
@@ -90,7 +92,7 @@ public class BDBIndex extends BDBRecordSet implements SearchResultSource {
 	 * 
 	 * @see org.archive.wayback.resourceindex.SearchResultSource#getPrefixReverseIterator(java.lang.String)
 	 */
-	public CloseableIterator getPrefixReverseIterator(String prefix)
+	public CloseableIterator<SearchResult> getPrefixReverseIterator(String prefix)
 			throws ResourceIndexNotAvailableException {
 		try {
 			return adaptIterator(recordIterator(prefix,false));
@@ -102,7 +104,7 @@ public class BDBIndex extends BDBRecordSet implements SearchResultSource {
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.resourceindex.SearchResultSource#cleanup(org.archive.wayback.util.CleanableIterator)
 	 */
-	public void cleanup(CloseableIterator c) throws IOException {
+	public void cleanup(CloseableIterator<SearchResult> c) throws IOException {
 		c.close();
 	}
 	
@@ -146,7 +148,7 @@ public class BDBIndex extends BDBRecordSet implements SearchResultSource {
 			CaptureSearchResults results = new CaptureSearchResults();
 			if(args.length == 4) {
 				String prefix = args[3];
-				CloseableIterator itr = null;
+				CloseableIterator<SearchResult> itr = null;
 				try {
 					itr = index.getPrefixIterator(prefix);
 				} catch (ResourceIndexNotAvailableException e) {
@@ -179,7 +181,7 @@ public class BDBIndex extends BDBRecordSet implements SearchResultSource {
 					}
 				}
 			} else {
-				CloseableIterator itr = null;
+				CloseableIterator<SearchResult> itr = null;
 				try {
 					itr = index.getPrefixIterator(" ");
 				} catch (ResourceIndexNotAvailableException e) {
