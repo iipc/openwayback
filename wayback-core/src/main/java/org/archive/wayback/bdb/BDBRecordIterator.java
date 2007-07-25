@@ -40,7 +40,7 @@ import com.sleepycat.je.OperationStatus;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class BDBRecordIterator implements CloseableIterator {
+public class BDBRecordIterator implements CloseableIterator<BDBRecord> {
 	
 	DatabaseEntry key;
 	DatabaseEntry value;
@@ -138,12 +138,12 @@ public class BDBRecordIterator implements CloseableIterator {
 	/* (non-Javadoc)
 	 * @see java.util.Iterator#next()
 	 */
-	public Object next() {
+	public BDBRecord next() {
 		if(!gotNext) {
 			throw new NoSuchElementException();
 		}
 		gotNext = false;
-		return (Object) record;
+		return record;
 	}
 
 	/* (non-Javadoc)
