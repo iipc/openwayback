@@ -1,5 +1,5 @@
-<%@ page import="java.util.Enumeration" %>
-<%@ page import="java.util.Properties" %>
+<%@ page import="java.util.Iterator" %>
+<%@ page import="java.util.Map" %>
 <%@ page import="org.archive.wayback.core.Timestamp" %>
 <%@ page import="org.archive.wayback.core.UIResults" %>
 <%@ page import="org.archive.wayback.replay.UIReplayResult" %>
@@ -17,7 +17,7 @@ String capturePrettyDateTime = fmt.format("MetaReplay.captureDateDisplay",
 	captureTS.getDate());
 String mimeType = uiResults.getMimeType();
 String digest = uiResults.getDigest();
-Properties headers = uiResults.getHttpHeaders();
+Map<String,String> headers = uiResults.getHttpHeaders();
 
 %>
 <html>
@@ -99,9 +99,10 @@ Properties headers = uiResults.getHttpHeaders();
 			</h2>
 			<table>
 			<%
-			for (Enumeration e = headers.keys(); e.hasMoreElements();) {
-				String key = (String) e.nextElement();
-				String value = (String) headers.get(key);
+			Iterator<String> itr = headers.keySet().iterator();
+			while(itr.hasNext()) {
+				String key = itr.next();
+				String value = headers.get(key);
 				%>
 				<tr>
 					<td class="field-cell">
