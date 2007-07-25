@@ -34,7 +34,7 @@ import java.util.logging.Logger;
 
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.SearchResult;
-import org.archive.wayback.resourceindex.SearchResultFilter;
+import org.archive.wayback.util.ObjectFilter;
 
 /**
  * SearchResultFilter which uses remote access control/exclusion service to
@@ -43,7 +43,7 @@ import org.archive.wayback.resourceindex.SearchResultFilter;
  * @author brad
  * @version $Date: 2006-10-17 15:21:15 -0700 (Tue, 17 Oct 2006) $, $Revision: 1276 $
  */
-public class RemoteExclusionFilter extends SearchResultFilter {
+public class RemoteExclusionFilter implements ObjectFilter<SearchResult> {
 	private static final Logger LOGGER = Logger.getLogger(RemoteExclusionFilter.class
 			.getName());
 
@@ -146,7 +146,7 @@ public class RemoteExclusionFilter extends SearchResultFilter {
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.resourceindex.SearchResultFilter#filterSearchResult(org.archive.wayback.core.SearchResult)
 	 */
-	public int filterSearchResult(SearchResult r) {
+	public int filterObject(SearchResult r) {
 		String captureDate = r.get(WaybackConstants.RESULT_CAPTURE_DATE);
 		String url = r.get(WaybackConstants.RESULT_URL);
 		return isBlocked(url,captureDate) ?	FILTER_EXCLUDE : FILTER_INCLUDE;

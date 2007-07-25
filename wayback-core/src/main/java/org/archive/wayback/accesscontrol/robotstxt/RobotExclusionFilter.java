@@ -40,7 +40,7 @@ import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.exception.LiveDocumentNotAvailableException;
 import org.archive.wayback.liveweb.LiveWebCache;
-import org.archive.wayback.resourceindex.SearchResultFilter;
+import org.archive.wayback.util.ObjectFilter;
 
 /**
  * SearchResultFilter that uses a LiveWebCache to retrieve robots.txt documents
@@ -56,7 +56,7 @@ import org.archive.wayback.resourceindex.SearchResultFilter;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class RobotExclusionFilter extends SearchResultFilter {
+public class RobotExclusionFilter implements ObjectFilter<SearchResult> {
 
 	private final static String HTTP_PREFIX = "http://";
 	private final static String ROBOT_SUFFIX = "/robots.txt";
@@ -175,9 +175,9 @@ public class RobotExclusionFilter extends SearchResultFilter {
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.resourceindex.SearchResultFilter#filterSearchResult(org.archive.wayback.core.SearchResult)
 	 */
-	public int filterSearchResult(SearchResult r) {
+	public int filterObject(SearchResult r) {
 
-		int filterResult = SearchResultFilter.FILTER_EXCLUDE; 
+		int filterResult = ObjectFilter.FILTER_EXCLUDE; 
 		RobotRules rules = getRules(r);
 		if(rules != null) {
 			String resultURL = r.get(WaybackConstants.RESULT_URL);
@@ -185,7 +185,7 @@ public class RobotExclusionFilter extends SearchResultFilter {
 			try {
 				url = new URL(ArchiveUtils.addImpliedHttpIfNecessary(resultURL));
 				if(!rules.blocksPathForUA(url.getPath(), userAgent)) {
-					filterResult = SearchResultFilter.FILTER_INCLUDE;
+					filterResult = ObjectFilter.FILTER_INCLUDE;
 				}
 			} catch (MalformedURLException e) {
 				e.printStackTrace();

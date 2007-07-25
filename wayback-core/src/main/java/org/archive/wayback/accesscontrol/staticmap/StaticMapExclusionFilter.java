@@ -29,8 +29,8 @@ import java.util.Map;
 import org.apache.commons.httpclient.URIException;
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.SearchResult;
-import org.archive.wayback.resourceindex.SearchResultFilter;
 import org.archive.wayback.surt.SURTTokenizer;
+import org.archive.wayback.util.ObjectFilter;
 
 /**
  *
@@ -38,7 +38,7 @@ import org.archive.wayback.surt.SURTTokenizer;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class StaticMapExclusionFilter extends SearchResultFilter {
+public class StaticMapExclusionFilter implements ObjectFilter<SearchResult> {
 
 	private String lastChecked = null;
 	private boolean lastCheckedExcluded = false;
@@ -71,19 +71,19 @@ public class StaticMapExclusionFilter extends SearchResultFilter {
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.resourceindex.SearchResultFilter#filterSearchResult(org.archive.wayback.core.SearchResult)
 	 */
-	public int filterSearchResult(SearchResult r) {
+	public int filterObject(SearchResult r) {
 		String url = r.get(WaybackConstants.RESULT_URL);
 		if(lastChecked != null) {
 			if(lastChecked.equals(url)) {
 				return lastCheckedExcluded ? 
-						SearchResultFilter.FILTER_EXCLUDE : 
-							SearchResultFilter.FILTER_INCLUDE;
+						ObjectFilter.FILTER_EXCLUDE : 
+							ObjectFilter.FILTER_INCLUDE;
 			}
 		}
 		lastChecked = url;
 		lastCheckedExcluded = isExcluded(url);
 		return lastCheckedExcluded ? 
-				SearchResultFilter.FILTER_EXCLUDE : 
-					SearchResultFilter.FILTER_INCLUDE;
+				ObjectFilter.FILTER_EXCLUDE : 
+					ObjectFilter.FILTER_INCLUDE;
 	}
 }
