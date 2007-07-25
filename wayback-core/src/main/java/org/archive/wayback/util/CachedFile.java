@@ -31,7 +31,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
-import java.util.Iterator;
 
 import org.archive.wayback.util.flatfile.FlatFile;
 
@@ -86,7 +85,7 @@ public class CachedFile extends FlatFile {
 	 * @return Iterator of lines in File
 	 * @throws IOException
 	 */
-	public Iterator getSequentialIterator() throws IOException {
+	public CloseableIterator<String> getSequentialIterator() throws IOException {
 		long nowMS = System.currentTimeMillis();
 		if(nowMS > nextCheckMS) {
 			refreshFromSource();

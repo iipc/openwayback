@@ -29,8 +29,9 @@ package org.archive.wayback.util;
  *
  * @author brad
  * @version $Date$, $Revision$
+ * @param <E> 
  */
-public interface ObjectFilter {
+public interface ObjectFilter<E> {
 	/**
 	 * constant indicating record should be included in the result set
 	 */
@@ -52,6 +53,6 @@ public interface ObjectFilter {
 	 * @param o Object which should be checked for inclusion/exclusion or abort
 	 * @return int of FILTER_INCLUDE, FILTER_EXCLUDE, or FILTER_ABORT
 	 */
-	public int filterObject(Object o);
+	public int filterObject(E o);
 
 }

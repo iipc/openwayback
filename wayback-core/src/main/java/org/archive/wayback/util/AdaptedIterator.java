@@ -33,16 +33,18 @@ import java.util.NoSuchElementException;
  *
  * @author brad
  * @version $Date$, $Revision$
+ * @param <S> 
+ * @param <T> 
  */
-public class AdaptedIterator implements CloseableIterator {
-	protected Iterator itr;
-	protected Adapter adapter;
-	private Object cachedNext = null;
+public class AdaptedIterator<S,T> implements CloseableIterator<T> {
+	protected Iterator<S> itr;
+	protected Adapter<S,T> adapter;
+	private T cachedNext = null;
 	/**
 	 * @param itr
 	 * @param adapter
 	 */
-	public AdaptedIterator(Iterator itr, Adapter adapter) {
+	public AdaptedIterator(Iterator<S> itr, Adapter<S,T> adapter) {
 		this.itr = itr;
 		this.adapter = adapter;
 	}
@@ -53,8 +55,8 @@ public class AdaptedIterator implements CloseableIterator {
 	public boolean hasNext() {
 		if(cachedNext != null) return true;
 		while(itr.hasNext()) {
-			Object o = itr.next();
-			Object adapted = adapter.adapt(o);
+			S o = itr.next();
+			T adapted = adapter.adapt(o);
 			if(adapted != null) {
 				cachedNext = adapted;
 				return true;
@@ -65,11 +67,11 @@ public class AdaptedIterator implements CloseableIterator {
 	/* (non-Javadoc)
 	 * @see java.util.Iterator#next()
 	 */
-	public Object next() {
+	public T next() {
 		if(cachedNext == null) {
 			throw new NoSuchElementException("call hasNext first!");
 		}
-		Object o = cachedNext;
+		T o = cachedNext;
 		cachedNext = null;
 		return o;
 	}
@@ -85,7 +87,7 @@ public class AdaptedIterator implements CloseableIterator {
 	 */
 	public void close() throws IOException {
 		if(itr instanceof CloseableIterator) {
-			CloseableIterator toBeClosed = (CloseableIterator) itr;
+			CloseableIterator<S> toBeClosed = (CloseableIterator<S>) itr;
 			toBeClosed.close();
 		}
 	}

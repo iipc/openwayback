@@ -33,6 +33,7 @@ import java.util.Iterator;
  *
  * @author brad
  * @version $Date$, $Revision$
+ * @param <E> 
  */
-public interface CloseableIterator extends Iterator, Closeable {
+public interface CloseableIterator<E> extends Iterator<E>, Closeable {
 }

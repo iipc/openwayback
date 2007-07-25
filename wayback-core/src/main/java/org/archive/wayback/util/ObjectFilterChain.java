@@ -33,31 +33,32 @@ import java.util.ArrayList;
  *
  * @author brad
  * @version $Date$, $Revision$
+ * @param <E> 
  */
 
-public class ObjectFilterChain implements ObjectFilter {
+public class ObjectFilterChain<E> implements ObjectFilter<E> {
 
-	private ArrayList<ObjectFilter> filters = null;
+	private ArrayList<ObjectFilter<E>> filters = null;
 
 	/**
 	 * Constructor
 	 */
 	public ObjectFilterChain() {
-		this.filters = new ArrayList<ObjectFilter>();
+		this.filters = new ArrayList<ObjectFilter<E>>();
 	}
 
 	/**
 	 * @param filter to be added to the chain. filters are processed in the 
 	 * order they are added to the chain.
 	 */
-	public void addFilter(ObjectFilter filter) {
+	public void addFilter(ObjectFilter<E> filter) {
 		filters.add(filter);
 	}
 
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.cdx.filter.RecordFilter#filterRecord(org.archive.wayback.cdx.CDXRecord)
 	 */
-	public int filterObject(Object o) {
+	public int filterObject(E o) {
 
 		int size = filters.size();
 		int result = FILTER_ABORT;

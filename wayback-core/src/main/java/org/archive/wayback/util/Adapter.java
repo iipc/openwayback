@@ -29,13 +29,15 @@ package org.archive.wayback.util;
  *
  * @author brad
  * @version $Date$, $Revision$
+ * @param <S> 
+ * @param <T> 
  */
-public interface Adapter {
+public interface Adapter<S,T> {
 	/**
 	 * Transform one object into another
 	 * 
 	 * @param o
 	 * @return new object that is adapted from the old
 	 */
-	public Object adapt(Object o);
+	public T adapt(S o);
 }
