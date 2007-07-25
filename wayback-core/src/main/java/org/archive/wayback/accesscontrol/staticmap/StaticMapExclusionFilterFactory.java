@@ -28,15 +28,13 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 import java.util.logging.Logger;
 
-import org.archive.wayback.core.PropertyConfiguration;
-import org.archive.wayback.exception.ConfigurationException;
+import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.resourceindex.ExclusionFilterFactory;
-import org.archive.wayback.resourceindex.SearchResultFilter;
 import org.archive.wayback.surt.SURTTokenizer;
 import org.archive.wayback.util.CloseableIterator;
+import org.archive.wayback.util.ObjectFilter;
 import org.archive.wayback.util.flatfile.FlatFile;
 
 /**
@@ -49,12 +47,9 @@ public class StaticMapExclusionFilterFactory implements ExclusionFilterFactory {
 	private static final Logger LOGGER =
         Logger.getLogger(StaticMapExclusionFilterFactory.class.getName());
 
-
-	private final static String EXCLUSION_PATH =
-		"resourceindex.exclusionpath";
 	private final static int checkInterval = 10;
-	Map<String,Object> currentMap = null;
-	File file = null;
+	private Map<String,Object> currentMap = null;
+	private File file = null;
 	long lastUpdated = 0;
 	/**
 	 * Thread object of update thread -- also is flag indicating if the thread
@@ -62,23 +57,15 @@ public class StaticMapExclusionFilterFactory implements ExclusionFilterFactory {
 	 */
 	private static Thread updateThread = null;
 	
-
-	/* (non-Javadoc)
-	 * @see org.archive.wayback.PropertyConfigurable#init(java.util.Properties)
+	/**
+	 * load exclusion file and startup polling thread to check for updates
+	 * @throws IOException 
 	 */
-	public void init(Properties p) throws ConfigurationException {
-		PropertyConfiguration pc = new PropertyConfiguration(p);
-		file = pc.getFile(EXCLUSION_PATH);
-		try {
-			reloadFile();
-		} catch (IOException e) {
-			e.printStackTrace();
-			throw new ConfigurationException(e.getLocalizedMessage());
-		}
-		LOGGER.info("starting CachedMapExclusion with file " + 
-				file.getAbsolutePath());
-		startup();
+	public void init() throws IOException {
+		reloadFile();
+		startUpdateThread();
 	}
+
 	protected void reloadFile() throws IOException {
 		long currentMod = file.lastModified();
 		if(currentMod == lastUpdated) {
@@ -98,30 +85,25 @@ public class StaticMapExclusionFilterFactory implements ExclusionFilterFactory {
 	protected Map<String,Object> loadFile(String path) throws IOException {
 		Map<String, Object> newMap = new HashMap<String, Object>();
 		FlatFile ff = new FlatFile(path);
-		CloseableIterator itr = (CloseableIterator) ff.getSequentialIterator();
+		CloseableIterator<String> itr = ff.getSequentialIterator();
 		while(itr.hasNext()) {
 			String line = (String) itr.next();
 			String surt = line.startsWith("(") ? line : 
 				SURTTokenizer.prefixKey(line);
 			newMap.put(surt, null);
 		}
+		itr.close();
 		return newMap;
 	}
 	
 	/**
 	 * @return SearchResultFilter 
 	 */
-	public SearchResultFilter get() {
+	public ObjectFilter<SearchResult> get() {
 		if(currentMap == null) {
 			return null;
 		}
 		return new StaticMapExclusionFilter(currentMap); 
-	}
-	
-	private void startup() throws ConfigurationException {
-		if (updateThread == null) {
-			startUpdateThread();
-		}
 	}
 	
 	private synchronized void startUpdateThread() {

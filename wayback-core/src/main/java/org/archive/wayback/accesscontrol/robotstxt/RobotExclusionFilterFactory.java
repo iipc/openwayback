@@ -24,13 +24,10 @@
  */
 package org.archive.wayback.accesscontrol.robotstxt;
 
-import java.util.Properties;
-
-import org.archive.wayback.core.PropertyConfiguration;
-import org.archive.wayback.exception.ConfigurationException;
+import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.liveweb.LiveWebCache;
 import org.archive.wayback.resourceindex.ExclusionFilterFactory;
-import org.archive.wayback.resourceindex.SearchResultFilter;
+import org.archive.wayback.util.ObjectFilter;
 
 /**
  *
@@ -40,29 +37,56 @@ import org.archive.wayback.resourceindex.SearchResultFilter;
  */
 public class RobotExclusionFilterFactory implements ExclusionFilterFactory {
 
-	private final static String ROBOT_USER_AGENT = "robotexclusion.useragent";
-	private final static String ROBOT_CACHE_AGE = "robotexclusion.cacheagems";
-
-
 	private LiveWebCache webCache = null;
 	private String userAgent = null;
 	private long maxCacheMS = 0;
 
 	/* (non-Javadoc)
-	 * @see org.archive.wayback.PropertyConfigurable#init(java.util.Properties)
-	 */
-	public void init(Properties p) throws ConfigurationException {
-		PropertyConfiguration pc = new PropertyConfiguration(p);
-		userAgent = pc.getString(ROBOT_USER_AGENT);
-		maxCacheMS = pc.getLong(ROBOT_CACHE_AGE);
-		webCache = new LiveWebCache();
-		webCache.init(p);
-	}
-
-	/* (non-Javadoc)
 	 * @see org.archive.wayback.resourceindex.ExclusionFilterFactory#get()
 	 */
-	public SearchResultFilter get() {
+	public ObjectFilter<SearchResult> get() {
 		return new RobotExclusionFilter(webCache,userAgent,maxCacheMS);
+	}
+
+	/**
+	 * @return the webCache
+	 */
+	public LiveWebCache getWebCache() {
+		return webCache;
+	}
+
+	/**
+	 * @param webCache the webCache to set
+	 */
+	public void setWebCache(LiveWebCache webCache) {
+		this.webCache = webCache;
+	}
+
+	/**
+	 * @return the userAgent
+	 */
+	public String getUserAgent() {
+		return userAgent;
+	}
+
+	/**
+	 * @param userAgent the userAgent to set
+	 */
+	public void setUserAgent(String userAgent) {
+		this.userAgent = userAgent;
+	}
+
+	/**
+	 * @return the maxCacheMS
+	 */
+	public long getMaxCacheMS() {
+		return maxCacheMS;
+	}
+
+	/**
+	 * @param maxCacheMS the maxCacheMS to set
+	 */
+	public void setMaxCacheMS(long maxCacheMS) {
+		this.maxCacheMS = maxCacheMS;
 	}
 }

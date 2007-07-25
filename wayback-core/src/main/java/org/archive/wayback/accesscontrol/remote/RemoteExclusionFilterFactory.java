@@ -24,12 +24,9 @@
  */
 package org.archive.wayback.accesscontrol.remote;
 
-import java.util.Properties;
-
-import org.archive.wayback.core.PropertyConfiguration;
-import org.archive.wayback.exception.ConfigurationException;
+import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.resourceindex.ExclusionFilterFactory;
-import org.archive.wayback.resourceindex.SearchResultFilter;
+import org.archive.wayback.util.ObjectFilter;
 
 /**
  *
@@ -39,36 +36,43 @@ import org.archive.wayback.resourceindex.SearchResultFilter;
  */
 public class RemoteExclusionFilterFactory implements ExclusionFilterFactory {
 
-	/**
-	 * configuration name for URL prefix to access exclusion service
-	 */
-	private final static String EXCLUSION_PREFIX = "resourceindex.exclusionurl";
-
-	/**
-	 * configuration name for User Agent to send to exclusion service
-	 */
-	private final static String EXCLUSION_UA = "resourceindex.exclusionua";
-
-
 	private String exclusionUrlPrefix = null;
 
 	private String exclusionUserAgent = null;
 
-
-	/* (non-Javadoc)
-	 * @see org.archive.wayback.PropertyConfigurable#init(java.util.Properties)
-	 */
-	public void init(Properties p) throws ConfigurationException {
-		PropertyConfiguration pc = new PropertyConfiguration(p);
-		exclusionUrlPrefix = pc.getString(EXCLUSION_PREFIX);
-		exclusionUserAgent = pc.getString(EXCLUSION_UA);
-	}
-
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.resourceindex.ExclusionFilterFactory#get()
 	 */
-	public SearchResultFilter get() {
+	public ObjectFilter<SearchResult> get() {
 		return new RemoteExclusionFilter(exclusionUrlPrefix, exclusionUserAgent);
+	}
+
+	/**
+	 * @return the exclusionUrlPrefix
+	 */
+	public String getExclusionUrlPrefix() {
+		return exclusionUrlPrefix;
+	}
+
+	/**
+	 * @param exclusionUrlPrefix the exclusionUrlPrefix to set
+	 */
+	public void setExclusionUrlPrefix(String exclusionUrlPrefix) {
+		this.exclusionUrlPrefix = exclusionUrlPrefix;
+	}
+
+	/**
+	 * @return the exclusionUserAgent
+	 */
+	public String getExclusionUserAgent() {
+		return exclusionUserAgent;
+	}
+
+	/**
+	 * @param exclusionUserAgent the exclusionUserAgent to set
+	 */
+	public void setExclusionUserAgent(String exclusionUserAgent) {
+		this.exclusionUserAgent = exclusionUserAgent;
 	}
 
 
