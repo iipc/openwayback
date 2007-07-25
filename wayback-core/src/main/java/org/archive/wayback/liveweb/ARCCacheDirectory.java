@@ -28,7 +28,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Properties;
 import java.util.logging.Logger;
 
 import org.archive.io.ArchiveRecord;
@@ -39,10 +38,8 @@ import org.archive.io.arc.ARCReaderFactory;
 import org.archive.io.arc.ARCRecord;
 import org.archive.io.arc.ARCWriter;
 import org.archive.io.arc.ARCWriterPool;
-import org.archive.wayback.PropertyConfigurable;
-import org.archive.wayback.core.PropertyConfiguration;
 import org.archive.wayback.core.Resource;
-import org.archive.wayback.exception.ConfigurationException;
+import org.archive.wayback.util.DirMaker;
 
 /**
  * Class which manages a growing set of ARC files, managed by an ARCWriterPool.
@@ -55,7 +52,7 @@ import org.archive.wayback.exception.ConfigurationException;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class ARCCacheDirectory implements PropertyConfigurable {
+public class ARCCacheDirectory {
 	private static final Logger LOGGER = Logger.getLogger(
 			ARCCacheDirectory.class.getName());
 
@@ -74,12 +71,16 @@ public class ARCCacheDirectory implements PropertyConfigurable {
 	 */
 	public static final String LIVE_WEB_ARC_PREFIX = "liveweb.arc.prefix";
 	private ARCWriterPool pool = null;
+	private String arcPath = null;
+	private String arcPrefix = "wayback-live";
 	private File arcDir = null;
 
-	public void init(Properties p) throws ConfigurationException {
-		PropertyConfiguration pc = new PropertyConfiguration(p);
-		arcDir = pc.getDir(LIVE_WEB_ARC_DIR,true);
-		String arcPrefix = pc.getString(LIVE_WEB_ARC_PREFIX);
+	/**
+	 * @throws IOException
+	 */
+	public void init() throws IOException {
+		// TODO: check that all props have been set
+		arcDir = DirMaker.ensureDir(arcPath,"arcPath");
 		File[] files = { arcDir };
 		WriterPoolSettings settings = getSettings(true, arcPrefix, files);
 		pool = new ARCWriterPool(settings, MAX_POOL_WRITERS, MAX_POOL_WAIT);
@@ -166,6 +167,7 @@ public class ARCCacheDirectory implements PropertyConfigurable {
 				return isCompressed;
 			}
 
+			@SuppressWarnings("unchecked")
 			public List getMetadata() {
 				return null;
 			}
