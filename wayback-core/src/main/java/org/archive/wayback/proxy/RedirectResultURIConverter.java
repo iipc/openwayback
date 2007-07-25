@@ -26,12 +26,9 @@ package org.archive.wayback.proxy;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.Properties;
 
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.WaybackConstants;
-import org.archive.wayback.core.PropertyConfiguration;
-import org.archive.wayback.exception.ConfigurationException;
 
 /**
  *
@@ -41,12 +38,7 @@ import org.archive.wayback.exception.ConfigurationException;
  */
 public class RedirectResultURIConverter implements ResultURIConverter {
 	
-    private static final String REDIRECT_PATH_PROPERTY = "proxy.redirectpath";
 	private String redirectURI = null;
-	public void init(Properties p) throws ConfigurationException {
-		PropertyConfiguration pc = new PropertyConfiguration(p);
-		redirectURI = pc.getString(REDIRECT_PATH_PROPERTY);
-	}
 
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.ResultURIConverter#makeReplayURI(java.lang.String, java.lang.String)
