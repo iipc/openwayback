@@ -26,7 +26,6 @@ package org.archive.wayback.query;
 
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.Properties;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -35,11 +34,9 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.archive.wayback.QueryRenderer;
 import org.archive.wayback.ResultURIConverter;
-import org.archive.wayback.core.PropertyConfiguration;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.UIResults;
 import org.archive.wayback.core.WaybackRequest;
-import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.exception.WaybackException;
 
 /**
@@ -50,16 +47,10 @@ import org.archive.wayback.exception.WaybackException;
  */
 public class Renderer implements QueryRenderer {
 
-	private String templateJsp = "/index.jsp";
 	private String errorJsp = "/jsp/HTMLError.jsp";
 	private String captureJsp = "/jsp/HTMLResults.jsp";
 	private String urlJsp = "/jsp/HTMLResults.jsp";
 	
-	public void init(Properties p) throws ConfigurationException {
-		PropertyConfiguration pc = new PropertyConfiguration(p);
-//		jspPath = pc.getString(JSP_PATH);
-	}
-
 	/**
 	 * @param request
 	 * @param response
