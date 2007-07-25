@@ -52,7 +52,7 @@ public class MD5LocationFile {
 	 */
 	public Object[] getLocationsForMD5(String md5) throws IOException {
 		HashMap<String,Object> matches = new HashMap<String,Object>();
-		Iterator itr = cachedFile.getSequentialIterator();
+		Iterator<String> itr = cachedFile.getSequentialIterator();
 		while(itr.hasNext()) {
 			String line = (String) itr.next();
 			if(line.startsWith(md5)) {

@@ -54,9 +54,9 @@ public class CDXDefinitionFile {
 	 */
 	public Object[] getMD5sForRange(String rangeName) throws IOException {
 		HashMap<String,Object> matches = new HashMap<String, Object>();
-		Iterator itr = cachedFile.getSequentialIterator();
+		Iterator<String> itr = cachedFile.getSequentialIterator();
 		while(itr.hasNext()) {
-			String line = (String) itr.next();
+			String line = itr.next();
 			if(line.startsWith(rangeName)) {
 				String md5s[] = line.substring(rangeName.length()+1).split(" ");
 				for(int i = 0; i<md5s.length; i++) {

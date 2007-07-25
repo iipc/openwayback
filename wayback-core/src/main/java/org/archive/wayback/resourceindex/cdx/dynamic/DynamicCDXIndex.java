@@ -35,6 +35,7 @@ import java.util.Set;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
+import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
 import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.FileDownloader;
@@ -77,7 +78,7 @@ import org.archive.wayback.resourceindex.cdx.dynamic.RangeAssignmentFile;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class DynamicCDXIndex  extends CompositeSearchResultSource {
+public class DynamicCDXIndex extends CompositeSearchResultSource {
 
 	private static final Logger LOGGER =
         Logger.getLogger(DynamicCDXIndex.class.getName());
@@ -150,7 +151,7 @@ public class DynamicCDXIndex  extends CompositeSearchResultSource {
 	 * 
 	 * @see org.archive.wayback.resourceindex.SearchResultSource#getPrefixIterator(java.lang.String)
 	 */
-	public CloseableIterator getPrefixIterator(String prefix)
+	public CloseableIterator<SearchResult> getPrefixIterator(String prefix)
 			throws ResourceIndexNotAvailableException {
 		if(getState() != STATE_SYNCHED) {
 			throw new ResourceIndexNotAvailableException("Not synchronized");
@@ -163,7 +164,7 @@ public class DynamicCDXIndex  extends CompositeSearchResultSource {
 	 * 
 	 * @see org.archive.wayback.resourceindex.SearchResultSource#getPrefixReverseIterator(java.lang.String)
 	 */
-	public CloseableIterator getPrefixReverseIterator(String prefix)
+	public CloseableIterator<SearchResult> getPrefixReverseIterator(String prefix)
 			throws ResourceIndexNotAvailableException {
 
 		if(getState() != STATE_SYNCHED) {
@@ -314,7 +315,7 @@ public class DynamicCDXIndex  extends CompositeSearchResultSource {
 							extra.add((String)current[i]);
 						}
 					}
-					Set needed = desiredMap.keySet();
+					Set<String> needed = desiredMap.keySet();
 					if((needed.size() + extra.size()) > 0) {
 						// whoops -- we're off:
 						index.setState(DynamicCDXIndex.STATE_SYNCHING);

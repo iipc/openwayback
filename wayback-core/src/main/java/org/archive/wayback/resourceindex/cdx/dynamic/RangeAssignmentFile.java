@@ -52,7 +52,7 @@ public class RangeAssignmentFile {
 	 */
 	public Object[] getRangesForNode(String nodeName) throws IOException {
 		ArrayList<String> matches = new ArrayList<String>();
-		Iterator itr = cachedFile.getSequentialIterator();
+		Iterator<String> itr = cachedFile.getSequentialIterator();
 		while(itr.hasNext()) {
 			String line = (String) itr.next();
 			if(line.indexOf(nodeName) > 0) {
