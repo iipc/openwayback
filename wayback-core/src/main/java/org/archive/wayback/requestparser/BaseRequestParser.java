@@ -25,16 +25,13 @@
 package org.archive.wayback.requestparser;
 
 import java.util.Map;
-import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.archive.wayback.RequestParser;
 import org.archive.wayback.WaybackConstants;
-import org.archive.wayback.core.PropertyConfiguration;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadQueryException;
-import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.webapp.WaybackContext;
 
 /**
@@ -66,12 +63,6 @@ public abstract class BaseRequestParser implements RequestParser {
 	protected final static int DEFAULT_MAX_RECORDS = 10;
 
 	protected int maxRecords = DEFAULT_MAX_RECORDS;
-
-	public void init(final Properties p) throws ConfigurationException {
-		PropertyConfiguration pc = new PropertyConfiguration(p);
-		maxRecords = pc.getInt(WaybackConstants.RESULTS_PER_PAGE_CONFIG_NAME, 
-				DEFAULT_MAX_RECORDS);		
-	}
 
 	protected static String getMapParam(Map<String,String[]> queryMap,
 			String field) {

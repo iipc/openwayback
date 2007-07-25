@@ -24,16 +24,11 @@
  */
 package org.archive.wayback.requestparser;
 
-import java.util.Properties;
-
 import javax.servlet.http.HttpServletRequest;
 
 import org.archive.wayback.RequestParser;
-import org.archive.wayback.WaybackConstants;
-import org.archive.wayback.core.PropertyConfiguration;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadQueryException;
-import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.webapp.WaybackContext;
 
 /**
@@ -45,15 +40,6 @@ import org.archive.wayback.webapp.WaybackContext;
 public class CompositeRequestParser extends BaseRequestParser {
 	private RequestParser[] parsers = null;
 	
-	public void init(final Properties p) throws ConfigurationException {
-		parsers = getRequestParsers();
-		for(int i = 0; i < parsers.length; i++) {
-			parsers[i].init(p);
-		}
-		PropertyConfiguration pc = new PropertyConfiguration(p);
-		maxRecords = pc.getInt(WaybackConstants.RESULTS_PER_PAGE_CONFIG_NAME, 
-				DEFAULT_MAX_RECORDS);		
-	}
 	/**
 	 * 
 	 */
