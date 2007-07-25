@@ -79,9 +79,9 @@ public class CaptureSearchResults extends SearchResults {
 		wantTimestamp = Timestamp.parseBefore(wbRequest
 				.get(WaybackConstants.REQUEST_EXACT_DATE));
 
-		Iterator itr = results.iterator();
+		Iterator<SearchResult> itr = results.iterator();
 		while (itr.hasNext()) {
-			cur = (SearchResult) itr.next();
+			cur = itr.next();
 			long curDistance;
 			Timestamp curTimestamp = Timestamp.parseBefore(cur
 					.get(WaybackConstants.RESULT_CAPTURE_DATE));
