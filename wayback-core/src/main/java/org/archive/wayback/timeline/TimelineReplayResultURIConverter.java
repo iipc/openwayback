@@ -26,12 +26,9 @@ package org.archive.wayback.timeline;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.Properties;
 
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.WaybackConstants;
-import org.archive.wayback.core.PropertyConfiguration;
-import org.archive.wayback.exception.ConfigurationException;
 
 /**
  * Exotic implementation of ResultURIConverter that is aware of 4 contexts
@@ -46,19 +43,6 @@ import org.archive.wayback.exception.ConfigurationException;
 public class TimelineReplayResultURIConverter implements ResultURIConverter {
 	private final static String META_MODE_YES = "yes";
 	
-	private final static String REPLAY_URI_PREFIX_PROPERTY = "replayuriprefix";
-	private final static String META_URI_PREFIX_PROPERTY = "metauriprefix";
-	private final static String TIMELINE_URI_PREFIX_PROPERTY = "timelineuriprefix";
-	private final static String FRAMESET_URI_PREFIX_PROPERTY = "frameseturiprefix";
-	
-//	private final static String REPLAY_URI_DEFAULT_SUFFIX = "replay";
-//	private final static String META_URI_DEFAULT_SUFFIX = "meta";
-//	private final static String FRAMESET_URI_DEFAULT_SUFFIX = "frameset";
-//	private final static String TIMELINE_URI_DEFAULT_SUFFIX = "timeline";
-
-//	protected String prefixPropertyName = FRAMESET_URI_PREFIX_PROPERTY;
-//	protected String defaultSuffix = FRAMESET_URI_DEFAULT_SUFFIX;
-	
 	private String replayURIPrefix = null;
 	private String metaURIPrefix = null;
 	private String timelineURIPrefix = null;
@@ -66,20 +50,6 @@ public class TimelineReplayResultURIConverter implements ResultURIConverter {
 	
 	private String currentPrefix = null;
 
-	public void init(Properties p) throws ConfigurationException {
-		PropertyConfiguration pc = new PropertyConfiguration(p);
-		replayURIPrefix = pc.getString(REPLAY_URI_PREFIX_PROPERTY);
-		metaURIPrefix = pc.getString(META_URI_PREFIX_PROPERTY);
-		timelineURIPrefix = pc.getString(TIMELINE_URI_PREFIX_PROPERTY);
-		framesetURIPrefix = pc.getString(FRAMESET_URI_PREFIX_PROPERTY);
-		currentPrefix = framesetURIPrefix;
-	}
-
-	
-//	protected String getPrefix() {
-//		return getConfigOrContextRelative(prefixPropertyName,defaultSuffix);
-//	}
-	
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.ResultURIConverter#makeReplayURI(java.lang.String, java.lang.String)
 	 */
