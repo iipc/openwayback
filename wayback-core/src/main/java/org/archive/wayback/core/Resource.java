@@ -27,9 +27,10 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -81,7 +82,7 @@ public class Resource extends InputStream {
 	 * Expandable property bag for holding metadata associated with this 
 	 * resource
 	 */
-	Properties metaData = new Properties();
+	Hashtable<String,String> metaData = new Hashtable<String,String>();
 	
 	private BufferedInputStream bis;
 	
@@ -117,16 +118,17 @@ public class Resource extends InputStream {
 
 			// copy all ARC record header fields to metaData, prefixing with 
 			// ARC_META_PREFIX
-			Map headerMetaMap = arcRecord.getMetaData().getHeaderFields();
-			Set keys = headerMetaMap.keySet();
-			Iterator itr = keys.iterator();
+			@SuppressWarnings("unchecked")
+			Map<String,String> headerMetaMap = arcRecord.getMetaData().getHeaderFields();
+			Set<String> keys = headerMetaMap.keySet();
+			Iterator<String> itr = keys.iterator();
 			while(itr.hasNext()) {
-				Object metaKey = itr.next();
-				Object metaValue = headerMetaMap.get(metaKey);
-				String metaStringValue = (metaValue == null) ? "" :
-					metaValue.toString();
-				metaData.put(ARC_META_PREFIX + metaKey.toString(), 
-						metaStringValue);
+				String metaKey = itr.next();
+				String metaValue = headerMetaMap.get(metaKey);
+				if(metaValue == null) {
+					metaValue = "";
+				}
+				metaData.put(ARC_META_PREFIX + metaKey,metaValue);
 			}
 		
 			parsedHeader = true;			
@@ -138,13 +140,13 @@ public class Resource extends InputStream {
 	 * @return a Properties of all elements in metaData starting with 'prefix'.
 	 *         keys in the returned Properties have 'prefix' removed.
 	 */
-	public Properties filterMeta(String prefix) {
-		Properties matching = new Properties();
-		for (Enumeration e = metaData.keys(); e.hasMoreElements();) {
-			String key = (String) e.nextElement();
+	public Map<String,String> filterMeta(String prefix) {
+		HashMap<String,String> matching = new HashMap<String,String>();
+		for (Enumeration<String> e = metaData.keys(); e.hasMoreElements();) {
+			String key = e.nextElement();
 			if (key.startsWith(prefix)) {
 				String finalKey = key.substring(prefix.length());
-				String value = (String) metaData.get(key);
+				String value = metaData.get(key);
 				matching.put(finalKey, value);
 			}
 		}
@@ -154,14 +156,14 @@ public class Resource extends InputStream {
 	/**
 	 * @return a Properties containing all HTTP header fields for this record
 	 */
-	public Properties getHttpHeaders() {
+	public Map<String,String> getHttpHeaders() {
 		return filterMeta(HTTP_HEADER_PREFIX);
 	}
 
 	/**
 	 * @return a Properties containing all ARC Meta fields for this record
 	 */
-	public Properties getARCMetadata() {
+	public Map<String,String> getARCMetadata() {
 		return filterMeta(ARC_META_PREFIX);
 	}
 	

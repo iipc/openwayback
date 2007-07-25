@@ -25,7 +25,7 @@
 package org.archive.wayback.replay;
 
 import java.io.IOException;
-import java.util.Properties;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -152,7 +152,7 @@ public class UIReplayResult extends UIResults {
 	/**
 	 * @return the HTTP Headers as Properties
 	 */
-	public Properties getHttpHeaders() {
+	public Map<String,String> getHttpHeaders() {
 		return resource.getHttpHeaders();
 	}
 }
