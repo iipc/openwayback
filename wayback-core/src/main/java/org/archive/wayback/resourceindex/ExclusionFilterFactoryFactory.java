@@ -57,17 +57,17 @@ public class ExclusionFilterFactoryFactory {
 		}
 		if(type.equals(FACTORY_TYPE_STATIC_MAP)) {
 			factory = new StaticMapExclusionFilterFactory();
-			factory.init(p);
+//			factory.init(p);
 		} else if(type.equals(FACTORY_TYPE_ROBOT_EXCLUSION)){
 			factory = new RobotExclusionFilterFactory();
-			factory.init(p);
+//			factory.init(p);
 		} else if(type.equals(FACTORY_TYPE_ROBOT_PLUS_MAP)) {
 			CompositeExclusionFilterFactory composite = null;
 			composite = new CompositeExclusionFilterFactory();
 			ExclusionFilterFactory robot = new RobotExclusionFilterFactory();
 			ExclusionFilterFactory staticMap = new StaticMapExclusionFilterFactory();
-			robot.init(p);
-			staticMap.init(p);
+//			robot.init(p);
+//			staticMap.init(p);
 			composite.addFactory(staticMap);
 			composite.addFactory(robot);
 			factory = composite;
