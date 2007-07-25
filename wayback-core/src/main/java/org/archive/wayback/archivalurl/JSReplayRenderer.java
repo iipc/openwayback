@@ -27,7 +27,6 @@ package org.archive.wayback.archivalurl;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
-import java.util.Properties;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -39,7 +38,6 @@ import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
-import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.replay.BaseReplayRenderer;
 import org.archive.wayback.util.StringFormatter;
 import org.archive.wayback.util.UrlCanonicalizer;
@@ -52,8 +50,6 @@ import org.archive.wayback.util.UrlCanonicalizer;
  *          1483 $
  */
 public class JSReplayRenderer extends BaseReplayRenderer {
-
-	private final static String REPLAY_JS_URI = "jsuri";
 
 	private final static String HTTP_LENGTH_HEADER = "Content-Length";
 
@@ -74,22 +70,6 @@ public class JSReplayRenderer extends BaseReplayRenderer {
 
 	protected String scriptUrlInserts = null;
 
-	public void init(Properties p) throws ConfigurationException {
-		String javascriptURI = (String) p.get(REPLAY_JS_URI);
-		if (javascriptURI == null || javascriptURI.length() <= 0) {
-			throw new ConfigurationException("Failed to find " + REPLAY_JS_URI);
-		}
-
-		scriptUrlInserts = "";
-		String scriptUrls[] = javascriptURI.split(",");
-		for (int i = 0; i < scriptUrls.length; i++) {
-			scriptUrlInserts += "<script type=\"text/javascript\" src=\""
-					+ scriptUrls[i] + "\" ></script>\n";
-		}
-
-		super.init(p);
-	}
-	
 	/**
 	 * @param list
 	 */
