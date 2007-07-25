@@ -74,10 +74,10 @@ public class RobotExclusionFilterTest extends TestCase {
 		compareListTo(f.searchResultToRobotUrlStrings("www.www.foo.com"),test6);
 	}
 	
-	private void compareListTo(List list, String strings[]) {
+	private void compareListTo(List<String> list, String strings[]) {
 		assertEquals(list.size(), strings.length);
 		for(int i = 0; i < strings.length; i++) {
-			String listS = (String) list.get(i);
+			String listS = list.get(i);
 			String arrayS = "http://" + strings[i] + "/robots.txt";
 			assertEquals(listS, arrayS);
 		}

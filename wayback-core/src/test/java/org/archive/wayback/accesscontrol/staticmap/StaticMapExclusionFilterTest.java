@@ -31,7 +31,6 @@ import java.util.Map;
 
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.SearchResult;
-import org.archive.wayback.resourceindex.SearchResultFilter;
 import org.archive.wayback.util.ObjectFilter;
 
 import junit.framework.TestCase;
@@ -73,7 +72,7 @@ public class StaticMapExclusionFilterTest extends TestCase {
 		String bases[] = {"http://www.peagreenboat.com/",
 							"http://peagreenboat.com/"};
 //		setTmpContents(bases);
-		SearchResultFilter filter = getFilter(bases);
+		ObjectFilter<SearchResult> filter = getFilter(bases);
 		assertTrue("unmassaged",isBlocked(filter,"www.peagreenboat.com"));
 		assertTrue("unmassaged",isBlocked(filter,"peagreenboat.com"));
 		assertFalse("other1",isBlocked(filter,"peagreenboatt.com"));
@@ -85,17 +84,17 @@ public class StaticMapExclusionFilterTest extends TestCase {
 		assertTrue("emptypath",isBlocked(filter,"www.peagreenboat.com/"));
 	}
 	
-	private boolean isBlocked(SearchResultFilter filter, String url) {
+	private boolean isBlocked(ObjectFilter<SearchResult> filter, String url) {
 		SearchResult result = new SearchResult();
 		result.put(WaybackConstants.RESULT_URL,url);
-		int filterResult = filter.filterSearchResult(result);
+		int filterResult = filter.filterObject(result);
 		if(filterResult == ObjectFilter.FILTER_EXCLUDE) {
 			return true;
 		}
 		return false;
 	}
 	
-	private StaticMapExclusionFilter getFilter(String lines[]) 
+	private ObjectFilter<SearchResult> getFilter(String lines[]) 
 		throws IOException {
 		
 		setTmpContents(lines);
