@@ -24,10 +24,6 @@
  */
 package org.archive.wayback.archivalurl;
 
-import java.util.Properties;
-
-import org.archive.wayback.exception.ConfigurationException;
-
 import junit.framework.TestCase;
 
 /**
