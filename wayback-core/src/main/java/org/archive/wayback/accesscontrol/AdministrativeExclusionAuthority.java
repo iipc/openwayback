@@ -24,16 +24,12 @@
  */
 package org.archive.wayback.accesscontrol;
 
-import java.io.File;
 import java.util.ArrayList;
-import java.util.Properties;
 
 import org.apache.commons.httpclient.URIException;
 import org.archive.wayback.bdb.BDBRecord;
 import org.archive.wayback.bdb.BDBRecordSet;
 import org.archive.wayback.bdb.BDBRecordIterator;
-import org.archive.wayback.core.PropertyConfiguration;
-import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.surt.SURTTokenizer;
 
 import com.sleepycat.je.DatabaseException;
@@ -47,15 +43,13 @@ import com.sleepycat.je.DatabaseException;
  */
 public class AdministrativeExclusionAuthority implements ExclusionAuthority {
 
-
+	// TODO: read from ResounceBundle
 	private static String ADMIN_NO_ROBOTS_MSG = "Administrative Robots Ignore:";
 	private static String ADMIN_INCLUDE_MSG = "Administrative Include:";
 	private static String ADMIN_EXCLUDE_MSG = "Administrative Exclude:";
-	private static String DB_NAME = "adminexclusion.dbname";
-	private static String INDEX_PATH = "adminexclusion.dbpath";
 	
 //	RoboCache roboCache;
-	BDBRecordSet db;
+	private BDBRecordSet db = null;
 
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.accesscontrol.ExclusionAuthority#checkExclusion(java.lang.String, java.lang.String, java.lang.String)
@@ -133,26 +127,6 @@ public class AdministrativeExclusionAuthority implements ExclusionAuthority {
 		rules.loadRules(encodedRules);
 		return rules;
 	}
-	/* (non-Javadoc)
-	 * @see org.archive.wayback.PropertyConfigurable#init(java.util.Properties)
-	 */
-	public void init(Properties p) throws ConfigurationException {
-		PropertyConfiguration pc = new PropertyConfiguration(p);
-		File dbDir = pc.getDir(INDEX_PATH,true);
-		String dbName = pc.getString(DB_NAME);
-		try {
-
-			db = new BDBRecordSet();
-			db.initializeDB(dbDir.getAbsolutePath(),dbName);
-
-		} catch (DatabaseException e) {
-			e.printStackTrace();
-			throw new ConfigurationException(e.getMessage());
-		}
-		
-//		roboCache = new RoboCache();
-//		roboCache.init(p);
-	}
 
 	private AdministrativeExclusionRule getRuleFor(final String surtPrefix,
 			final String dateStr) throws DatabaseException {
@@ -177,5 +151,19 @@ public class AdministrativeExclusionAuthority implements ExclusionAuthority {
 		}
 		rules.addRule(rule);
 		db.put(surtPrefix,rules.encodeRules());
+	}
+
+	/**
+	 * @return the db
+	 */
+	public BDBRecordSet getDb() {
+		return db;
+	}
+
+	/**
+	 * @param db the db to set
+	 */
+	public void setDb(BDBRecordSet db) {
+		this.db = db;
 	}
 }

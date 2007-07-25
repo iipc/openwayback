@@ -24,15 +24,13 @@
  */
 package org.archive.wayback.accesscontrol;
 
-import org.archive.wayback.PropertyConfigurable;
-
 /**
  *
  *
  * @author brad
  * @version $Date$, $Revision$
  */
-public interface ExclusionAuthority extends PropertyConfigurable{
+public interface ExclusionAuthority {
 	/**
 	 * determines whether userAgent can view urlString for captureDate, 
 	 * encapsulating the response in a returned ExclusionResponse object
