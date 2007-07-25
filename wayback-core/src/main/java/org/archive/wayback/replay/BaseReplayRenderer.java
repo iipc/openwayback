@@ -28,8 +28,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.util.Enumeration;
-import java.util.Properties;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -43,12 +43,10 @@ import org.archive.wayback.ReplayRenderer;
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.archivalurl.TagMagix;
-//import org.archive.wayback.core.PropertyConfiguration;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.UIResults;
 import org.archive.wayback.core.WaybackRequest;
-import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.exception.WaybackException;
 import org.mozilla.universalchardet.UniversalDetector;
 
@@ -86,13 +84,6 @@ public class BaseReplayRenderer implements ReplayRenderer {
 	
 	protected final Pattern IMAGE_REGEX = Pattern
 			.compile(".*\\.(jpg|jpeg|gif|png|bmp|tiff|tif)$");
-
-	/*  INITIALIZATION:  */
-
-	public void init(Properties p) throws ConfigurationException {
-//		PropertyConfiguration pc = new PropertyConfiguration(p);
-//		jspPath = pc.getString(JSP_PATH);
-	}
 
 	/*  ERROR HANDLING RESPONSES:  */
 
@@ -243,7 +234,7 @@ public class BaseReplayRenderer implements ReplayRenderer {
 	protected void copyRecordHttpHeader(HttpServletResponse response,
 			Resource resource, ResultURIConverter uriConverter,
 			SearchResult result) throws IOException {
-		Properties headers = resource.getHttpHeaders();
+		Map<String,String> headers = resource.getHttpHeaders();
 		int code = resource.getStatusCode();
 		// Only return legit status codes -- don't return any minus
 		// codes, etc.
@@ -255,9 +246,10 @@ public class BaseReplayRenderer implements ReplayRenderer {
 		}
 		response.setStatus(code);
 		if (headers != null) {
-			for (Enumeration e = headers.keys(); e.hasMoreElements();) {
-				String key = (String) e.nextElement();
-				String value = (String) headers.get(key);
+			Iterator<String> itr = headers.keySet().iterator();
+			while(itr.hasNext()) {
+				String key = itr.next();
+				String value = headers.get(key);
 				String finalValue = value;
 				if (value != null) {
 					finalValue = filterHeader(key, value, uriConverter, result);
@@ -291,8 +283,8 @@ public class BaseReplayRenderer implements ReplayRenderer {
 		
 		String charsetName = null;
 
-		Properties httpHeaders = resource.getHttpHeaders();
-		String ctype = httpHeaders.getProperty(HTTP_CONTENT_TYPE_HEADER);
+		Map<String,String> httpHeaders = resource.getHttpHeaders();
+		String ctype = httpHeaders.get(HTTP_CONTENT_TYPE_HEADER);
 		if (ctype != null) {
 			charsetName = contentTypeToCharset(ctype);
 		}
