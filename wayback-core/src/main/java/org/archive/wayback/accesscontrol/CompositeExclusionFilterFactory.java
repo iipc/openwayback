@@ -22,7 +22,7 @@
  * along with wayback-svn; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-package org.archive.wayback.resourceindex;
+package org.archive.wayback.accesscontrol;
 
 import java.util.ArrayList;
 import java.util.Iterator;

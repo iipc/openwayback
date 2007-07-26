@@ -43,6 +43,7 @@ import org.archive.wayback.resourceindex.filters.UrlMatchFilter;
 import org.archive.wayback.resourceindex.filters.UrlPrefixMatchFilter;
 import org.archive.wayback.resourceindex.filters.WindowEndFilter;
 import org.archive.wayback.resourceindex.filters.WindowStartFilter;
+import org.archive.wayback.accesscontrol.ExclusionFilterFactory;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.SearchResults;

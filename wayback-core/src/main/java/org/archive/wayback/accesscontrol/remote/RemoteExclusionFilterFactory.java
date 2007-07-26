@@ -24,8 +24,8 @@
  */
 package org.archive.wayback.accesscontrol.remote;
 
+import org.archive.wayback.accesscontrol.ExclusionFilterFactory;
 import org.archive.wayback.core.SearchResult;
-import org.archive.wayback.resourceindex.ExclusionFilterFactory;
 import org.archive.wayback.util.ObjectFilter;
 
 /**
