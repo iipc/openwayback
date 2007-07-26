@@ -22,7 +22,7 @@
  * along with wayback; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-package org.archive.wayback.accesscontrol;
+package org.archive.wayback.accesscontrol.ui;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -31,6 +31,7 @@ import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import org.archive.wayback.webapp.ServletRequestContext;
 
 /**

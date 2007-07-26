@@ -22,12 +22,13 @@
  * along with wayback; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-package org.archive.wayback.accesscontrol;
+package org.archive.wayback.accesscontrol.ui;
 
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+
 
 /**
  *
