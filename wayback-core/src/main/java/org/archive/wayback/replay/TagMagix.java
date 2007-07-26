@@ -22,7 +22,7 @@
  * along with wayback; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-package org.archive.wayback.archivalurl;
+package org.archive.wayback.replay;
 
 import java.util.HashMap;
 import java.util.regex.Matcher;

@@ -39,6 +39,7 @@ import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.replay.BaseReplayRenderer;
+import org.archive.wayback.replay.TagMagix;
 import org.archive.wayback.util.StringFormatter;
 import org.archive.wayback.util.UrlCanonicalizer;
 

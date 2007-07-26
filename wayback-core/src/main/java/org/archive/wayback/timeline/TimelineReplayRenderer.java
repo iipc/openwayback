@@ -34,11 +34,11 @@ import javax.servlet.http.HttpServletResponse;
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.archivalurl.JSReplayRenderer;
-import org.archive.wayback.archivalurl.TagMagix;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
+import org.archive.wayback.replay.TagMagix;
 import org.archive.wayback.util.StringFormatter;
 
 /**
