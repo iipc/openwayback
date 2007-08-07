@@ -25,23 +25,23 @@
 package org.archive.wayback.resourceindex.bdb;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.Iterator;
 
-import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.bdb.BDBRecord;
 import org.archive.wayback.bdb.BDBRecordSet;
-import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
 import org.archive.wayback.resourceindex.SearchResultSource;
-import org.archive.wayback.resourceindex.indexer.ArcIndexer;
+import org.archive.wayback.resourceindex.cdx.CDXLineToSearchResultAdapter;
+import org.archive.wayback.resourceindex.cdx.SearchResultToCDXLineAdapter;
 import org.archive.wayback.util.AdaptedIterator;
+import org.archive.wayback.util.Adapter;
 import org.archive.wayback.util.CloseableIterator;
+import org.archive.wayback.util.flatfile.RecordIterator;
 
 import com.sleepycat.je.DatabaseException;
 
@@ -133,8 +133,6 @@ public class BDBIndex extends BDBRecordSet implements SearchResultSource {
 		String name = args[1];
 		String op = args[2];
 		BDBIndex index = new BDBIndex();
-		int BATCH_SIZE = 1000;
-		ArcIndexer indexer = new ArcIndexer();
 
 		try {
 			index.initializeDB(path,name);
@@ -145,118 +143,75 @@ public class BDBIndex extends BDBRecordSet implements SearchResultSource {
 		
 		if(op.compareTo("-r") == 0) {
 			PrintWriter pw = new PrintWriter(System.out);
-			CaptureSearchResults results = new CaptureSearchResults();
+
+			CloseableIterator<SearchResult> itrSR = null;
+			Adapter<SearchResult,String> adapter = 
+				new SearchResultToCDXLineAdapter();
+			CloseableIterator<String> itrS;
+
 			if(args.length == 4) {
 				String prefix = args[3];
-				CloseableIterator<SearchResult> itr = null;
 				try {
-					itr = index.getPrefixIterator(prefix);
+					itrSR = index.getPrefixIterator(prefix);
 				} catch (ResourceIndexNotAvailableException e) {
 					e.printStackTrace();
 					System.exit(1);
 				}
-				while(itr.hasNext()) {
-					SearchResult result = (SearchResult) itr.next();
-					String urlS = result.get(WaybackConstants.RESULT_URL_KEY);
-					if(!urlS.startsWith(prefix)) {
-						break;
-					}
-					results.addSearchResult(result);
-					if(results.getResultCount() > BATCH_SIZE) {
-						try {
-							indexer.serializeResults(results,pw,false);
-						} catch (IOException e) {
-							e.printStackTrace();
-							System.exit(2);
-						}
-						results = new CaptureSearchResults();
-					}
-				}
-				if(results.getResultCount() > 0) {
-					try {
-						indexer.serializeResults(results,pw,false);
-					} catch (IOException e) {
-						e.printStackTrace();
-						System.exit(2);
-					}
-				}
-			} else {
-				CloseableIterator<SearchResult> itr = null;
-				try {
-					itr = index.getPrefixIterator(" ");
-				} catch (ResourceIndexNotAvailableException e) {
-					e.printStackTrace();
-					System.exit(1);
-				}
-				while(itr.hasNext()) {
-					SearchResult result = (SearchResult) itr.next();
-					results.addSearchResult(result);
-					if(results.getResultCount() > BATCH_SIZE) {
-						try {
-							indexer.serializeResults(results,pw,false);
-						} catch (IOException e) {
-							e.printStackTrace();
-							System.exit(2);
-						}
-						results = new CaptureSearchResults();
-					}
-				}
-				if(results.getResultCount() > 0) {
-					try {
-						indexer.serializeResults(results,pw,false);
-					} catch (IOException e) {
-						e.printStackTrace();
-						System.exit(2);
-					}
-				}
-				pw.flush();
-				pw.close();
-				
-			}
-			
-		} else if(op.compareTo("-w") == 0) {
-			File tmpCDX = null;
-			int total = 0;
-			int numInTmp = 0;
-			try {
-				tmpCDX = File.createTempFile("reader",".cdx");
-				PrintWriter pw = new PrintWriter(tmpCDX);
-				// need to break the results from STDIN into chunks -- each chunk
-				// is written to a file, then added to the index.
-				BufferedReader br = new BufferedReader(
-						new InputStreamReader(System.in));
-				
-				while(true) {
-					String line = br.readLine();
-					if(line == null) {
+				itrS = new AdaptedIterator<SearchResult,String>(itrSR,adapter);
+				while(itrS.hasNext()) {
+					String line = itrS.next();
+					if(!line.startsWith(prefix)) {
 						break;
 					}
 					pw.println(line);
-					numInTmp++;
-					total++;
-					if(numInTmp > BATCH_SIZE) {
-						pw.flush();
-						pw.close();
-						index.insertRecords(
-								indexer.getCDXFileBDBRecordIterator(tmpCDX));
-						System.err.println("Wrote " + numInTmp + " to index..");
-						pw = new PrintWriter(tmpCDX);
-						numInTmp = 0;
-					}
 				}
-				if(numInTmp > 0) {
-					pw.flush();
-					pw.close();
-					index.insertRecords(
-							indexer.getCDXFileBDBRecordIterator(tmpCDX));					
-					System.err.println("Wrote last " + numInTmp + " to index.");
+		
+			} else {
+				try {
+					itrSR = index.getPrefixIterator(" ");
+				} catch (ResourceIndexNotAvailableException e) {
+					e.printStackTrace();
+					System.exit(1);
 				}
-				tmpCDX.delete();
-				System.out.println("Total of " + total + " docs inserted.");
-			} catch (IOException e) {
-				e.printStackTrace();
-				System.exit(1);
+				itrS = new AdaptedIterator<SearchResult,String>(itrSR,adapter);
+
+				while(itrS.hasNext()) {
+					pw.println(itrS.next());
+				}
 			}
+
+			try {
+				itrS.close();
+				itrSR.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				System.exit(2);
+			}
+			pw.flush();
+			pw.close();
+			
+		} else if(op.compareTo("-w") == 0) {
+
+			BufferedReader br = new BufferedReader(
+					new InputStreamReader(System.in));
+			
+			RecordIterator itrS = new RecordIterator(br);
+
+			Adapter<String,SearchResult> adapterStoSR = 
+				new CDXLineToSearchResultAdapter();
+			
+			Iterator<SearchResult> itrSR = 
+				new AdaptedIterator<String,SearchResult>(itrS,adapterStoSR);
+			
+			Adapter<SearchResult,BDBRecord> adapterSRtoBDB = 
+				new SearchResultToBDBRecordAdapter();
+
+			Iterator<BDBRecord> itrBDB =
+				new AdaptedIterator<SearchResult,BDBRecord>(itrSR,
+						adapterSRtoBDB);
+
+			index.insertRecords(itrBDB);
 		} else {
 			USAGE();
 		}

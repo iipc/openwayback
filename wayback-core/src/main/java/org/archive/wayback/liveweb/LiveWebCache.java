@@ -26,7 +26,6 @@ package org.archive.wayback.liveweb;
 
 import java.io.IOException;
 import java.net.URL;
-import java.text.ParseException;
 import java.util.Date;
 import java.util.logging.Logger;
 
@@ -43,7 +42,8 @@ import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.LiveDocumentNotAvailableException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.exception.WaybackException;
-import org.archive.wayback.resourceindex.indexer.ArcIndexer;
+import org.archive.wayback.resourcestore.ARCRecordToSearchResultAdapter;
+import org.archive.wayback.util.Adapter;
 import org.archive.wayback.util.UrlCanonicalizer;
 
 /**
@@ -61,6 +61,8 @@ public class LiveWebCache {
 	private URLCacher cacher = null;
 	private LiveWebLocalResourceIndex index = null;
 	static UrlCanonicalizer canonicalizer = new UrlCanonicalizer();
+	private static Adapter<ARCRecord,SearchResult> adapter = 
+		new ARCRecordToSearchResultAdapter();
 	
 	/**
 	 * closes all resources (currently unused...)
@@ -202,23 +204,15 @@ public class LiveWebCache {
 			resource = arcCacheDir.getResource(name, offset);
 			// add the result to the index:
 			ARCRecord record = (ARCRecord) resource.getArcRecord();
-			try {
 				
-				SearchResult result = ArcIndexer.arcRecordToSearchResult(record);
-				index.addSearchResult(result);
-				LOGGER.info("Added URL(" + url.toString() + ") in " +
-						"ARC(" + name + ") at (" + offset + ") to LiveIndex");
+			SearchResult result = adapter.adapt(record);
+			index.addSearchResult(result);
+			LOGGER.info("Added URL(" + url.toString() + ") in " +
+					"ARC(" + name + ") at (" + offset + ") to LiveIndex");
 				
-				// we just read thru the doc in order to index it. Reset:
-				resource = arcCacheDir.getResource(name, offset);
-				
-			} catch (ParseException e) {
-				// TODO: This case could be a big problem -- we might be unable
-				// to store the fact that we have a local copy. That means we
-				// could be slamming somebody else's site.
-				e.printStackTrace();
-				throw new IOException(e.getLocalizedMessage());
-			}
+			// we just read thru the doc in order to index it. Reset:
+			resource = arcCacheDir.getResource(name, offset);
+
 		}
 		
 		return resource;

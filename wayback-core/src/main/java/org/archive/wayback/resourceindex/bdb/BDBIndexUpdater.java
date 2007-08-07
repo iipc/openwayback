@@ -30,8 +30,12 @@ import java.util.Iterator;
 import java.util.logging.Logger;
 
 import org.archive.wayback.bdb.BDBRecord;
+import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.exception.ConfigurationException;
-import org.archive.wayback.resourceindex.indexer.ArcIndexer;
+import org.archive.wayback.resourceindex.cdx.CDXLineToSearchResultAdapter;
+//import org.archive.wayback.resourcestore.ArcIndexer;
+import org.archive.wayback.util.AdaptedIterator;
+import org.archive.wayback.util.flatfile.FlatFile;
 
 /**
  * Class which starts a background thread that repeatedly scans an incoming
@@ -64,7 +68,7 @@ public class BDBIndexUpdater {
 
 	private int runInterval = DEFAULT_RUN_INTERVAL_MS;
 	
-	private ArcIndexer indexer = new ArcIndexer();
+//	private ArcIndexer indexer = new ArcIndexer();
 	
 	/**
 	 * Thread object of update thread -- also is flag indicating if the thread
@@ -147,7 +151,14 @@ public class BDBIndexUpdater {
 	private boolean mergeFile(File cdxFile) {
 		boolean added = false;
 		try {
-			Iterator<BDBRecord> it = indexer.getCDXFileBDBRecordIterator(cdxFile);
+			FlatFile ffile = new FlatFile(cdxFile.getAbsolutePath());
+			AdaptedIterator<String,SearchResult> searchResultItr = 
+				new AdaptedIterator<String,SearchResult>(
+						ffile.getSequentialIterator(),
+					new CDXLineToSearchResultAdapter());
+			Iterator<BDBRecord> it = new AdaptedIterator<SearchResult,BDBRecord>
+				(searchResultItr,new SearchResultToBDBRecordAdapter());
+
 			index.insertRecords(it);
 			added = true;
 		} catch (IOException e) {

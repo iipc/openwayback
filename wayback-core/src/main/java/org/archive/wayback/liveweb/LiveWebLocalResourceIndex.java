@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.resourceindex.LocalResourceIndex;
 import org.archive.wayback.resourceindex.bdb.BDBIndex;
-import org.archive.wayback.resourceindex.indexer.SearchResultToBDBRecordAdapter;
+import org.archive.wayback.resourceindex.bdb.SearchResultToBDBRecordAdapter;
 import org.archive.wayback.util.AdaptedIterator;
 
 /**
