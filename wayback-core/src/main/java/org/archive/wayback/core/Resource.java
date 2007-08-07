@@ -119,14 +119,15 @@ public class Resource extends InputStream {
 			// copy all ARC record header fields to metaData, prefixing with 
 			// ARC_META_PREFIX
 			@SuppressWarnings("unchecked")
-			Map<String,String> headerMetaMap = arcRecord.getMetaData().getHeaderFields();
+			Map<String,Object> headerMetaMap = arcRecord.getMetaData().getHeaderFields();
 			Set<String> keys = headerMetaMap.keySet();
 			Iterator<String> itr = keys.iterator();
 			while(itr.hasNext()) {
 				String metaKey = itr.next();
-				String metaValue = headerMetaMap.get(metaKey);
-				if(metaValue == null) {
-					metaValue = "";
+				Object value = headerMetaMap.get(metaKey);
+				String metaValue = "";
+				if(value != null) {
+					metaValue = value.toString();
 				}
 				metaData.put(ARC_META_PREFIX + metaKey,metaValue);
 			}
