@@ -91,6 +91,11 @@ public interface WaybackConstants {
 	public static final String REQUEST_TYPE = "type";
 
 	/**
+	 * Request: xml data requested 
+	 */
+	public static final String REQUEST_XML_DATA = "xmldata";
+
+	/**
 	 * Request: urlquery type request 
 	 */
 	public static final String REQUEST_URL_QUERY = "urlquery";
@@ -313,5 +318,10 @@ public interface WaybackConstants {
 	 * on each page
 	 */
 	public static final String RESULTS_PER_PAGE_CONFIG_NAME = "resultsperpage";
-	
+
+	/**
+	 * HTTP Header for redirection URL
+	 */
+	public final static String LOCATION_HTTP_HEADER = "Location";
+
 }
