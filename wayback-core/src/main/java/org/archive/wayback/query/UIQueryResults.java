@@ -24,7 +24,6 @@
  */
 package org.archive.wayback.query;
 
-import java.text.ParseException;
 import java.util.Date;
 import java.util.Iterator;
 
@@ -85,7 +84,6 @@ public class UIQueryResults extends UIResults {
 	 * @param wbRequest 
 	 * @param results
 	 * @param uriConverter 
-	 * @throws ParseException 
 	 */
 	public UIQueryResults(HttpServletRequest httpRequest, 
 			WaybackRequest wbRequest, SearchResults results,
