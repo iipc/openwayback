@@ -92,6 +92,11 @@ public class OpenSearchRequestParser extends BaseRequestParser {
 		} else if(base.startsWith(QUERY_BASE)){
 			wbRequest.put(WaybackConstants.REQUEST_TYPE,
 					WaybackConstants.REQUEST_URL_QUERY);
+		} else if(base.startsWith(XQUERY_BASE)){
+			wbRequest.put(WaybackConstants.REQUEST_TYPE,
+					WaybackConstants.REQUEST_URL_QUERY);
+			wbRequest.put(WaybackConstants.REQUEST_XML_DATA,"1");
+			
 		} else {
 			return null;
 		}
@@ -139,7 +144,10 @@ public class OpenSearchRequestParser extends BaseRequestParser {
 			// let's just let em all thru for now:
 			wbRequest.put(key, value);
 		}
-
+		if(wbRequest.get(WaybackConstants.REQUEST_START_DATE) == null) {
+			wbRequest.put(WaybackConstants.REQUEST_START_DATE, 
+					earliestTimestamp);
+		}
 		addHttpHeaderFields(wbRequest, httpRequest);
 
 		return wbRequest;

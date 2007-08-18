@@ -66,6 +66,11 @@ public class FormRequestParser extends BaseRequestParser {
 			} else if(base.startsWith(QUERY_BASE)) {
 				wbRequest.put(WaybackConstants.REQUEST_TYPE,
 						WaybackConstants.REQUEST_URL_QUERY);
+			} else if(base.startsWith(XQUERY_BASE)){
+				wbRequest.put(WaybackConstants.REQUEST_TYPE,
+						WaybackConstants.REQUEST_URL_QUERY);
+				wbRequest.put(WaybackConstants.REQUEST_XML_DATA,"1");
+				
 			} else {
 				return null;
 			}
@@ -80,6 +85,10 @@ public class FormRequestParser extends BaseRequestParser {
 				// just jam everything else in:
 				String val = getMapParam(queryMap,key);
 				wbRequest.put(key,val);
+			}
+			if(wbRequest.get(WaybackConstants.REQUEST_START_DATE) == null) {
+				wbRequest.put(WaybackConstants.REQUEST_START_DATE, 
+						earliestTimestamp);
 			}
 		}
 		if(wbRequest != null) {

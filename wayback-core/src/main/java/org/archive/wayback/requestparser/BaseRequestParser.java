@@ -30,6 +30,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.archive.wayback.RequestParser;
 import org.archive.wayback.WaybackConstants;
+import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.webapp.WaybackContext;
@@ -58,11 +59,16 @@ public abstract class BaseRequestParser implements RequestParser {
 
 	protected final static String QUERY_BASE = "query";
 
+	protected final static String XQUERY_BASE = "xmlquery";
+
 	protected final static String REPLAY_BASE = "replay";
 	
 	protected final static int DEFAULT_MAX_RECORDS = 10;
 
 	protected int maxRecords = DEFAULT_MAX_RECORDS;
+	
+	protected String earliestTimestamp = 
+		Timestamp.earliestTimestamp().getDateStr();
 
 	protected static String getMapParam(Map<String,String[]> queryMap,
 			String field) {
@@ -142,4 +148,17 @@ public abstract class BaseRequestParser implements RequestParser {
 	public void setMaxRecords(int maxRecords) {
 		this.maxRecords = maxRecords;
 	}
+	/**
+	 * @param timestamp
+	 */
+	public void setEarliestTimestamp(String timestamp) {
+		earliestTimestamp = Timestamp.parseBefore(timestamp).getDateStr();
+	}
+	/**
+	 * @return
+	 */
+	public String getEarliestTimestamp() {
+		return earliestTimestamp;
+	}
+	
 }

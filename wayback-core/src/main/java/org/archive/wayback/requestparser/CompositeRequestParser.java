@@ -47,6 +47,7 @@ public class CompositeRequestParser extends BaseRequestParser {
 		parsers = getRequestParsers();
 		for(int i = 0; i < parsers.length; i++) {
 			parsers[i].setMaxRecords(maxRecords);
+			parsers[i].setEarliestTimestamp(earliestTimestamp);
 		}
 	}
 

@@ -58,7 +58,12 @@ public class PathDatePrefixQueryRequestParser extends PathRequestParser {
 			String dateStr = matcher.group(1);
 			String urlStr = matcher.group(2);
 
-			String startDate = Timestamp.parseBefore(dateStr).getDateStr();
+			String startDate;
+			if(dateStr.length() == 0) {
+				startDate = earliestTimestamp;
+			} else {
+				startDate = Timestamp.parseBefore(dateStr).getDateStr();
+			}
 			String endDate = Timestamp.parseAfter(dateStr).getDateStr();
 			wbRequest.put(WaybackConstants.REQUEST_START_DATE,startDate);
 			wbRequest.put(WaybackConstants.REQUEST_END_DATE,endDate);
