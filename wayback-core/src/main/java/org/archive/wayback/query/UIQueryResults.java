@@ -87,8 +87,9 @@ public class UIQueryResults extends UIResults {
 	 * @param uriConverter 
 	 * @throws ParseException 
 	 */
-	public UIQueryResults(HttpServletRequest httpRequest, WaybackRequest wbRequest, SearchResults results,
-			ResultURIConverter uriConverter) throws ParseException {
+	public UIQueryResults(HttpServletRequest httpRequest, 
+			WaybackRequest wbRequest, SearchResults results,
+			ResultURIConverter uriConverter) {
 		super(wbRequest);
 		this.searchUrl = wbRequest.get(WaybackConstants.RESULT_URL);
 		this.startTimestamp = Timestamp.parseBefore(results.
