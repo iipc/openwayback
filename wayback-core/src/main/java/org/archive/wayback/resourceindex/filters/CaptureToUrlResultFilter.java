@@ -85,7 +85,7 @@ public class CaptureToUrlResultFilter implements ObjectFilter<SearchResult> {
 		resultRef.put(RESULT_ORIGINAL_URL,originalUrl);
 		resultRef.put(RESULT_URL,currentUrl);
 		resultRef.put(RESULT_FIRST_CAPTURE,firstCapture);
-		resultRef.put(RESULT_LAST_CAPTURE,firstCapture);
+		resultRef.put(RESULT_LAST_CAPTURE,lastCapture);
 		resultRef.put(RESULT_NUM_CAPTURES,"1");
 		resultRef.put(RESULT_NUM_VERSIONS,"1");
 	}
@@ -103,7 +103,7 @@ public class CaptureToUrlResultFilter implements ObjectFilter<SearchResult> {
 			firstCapture = captureDate;
 			resultRef.put(RESULT_FIRST_CAPTURE,firstCapture);
 		}
-		if(captureDate.compareTo(lastCapture) < 0) {
+		if(captureDate.compareTo(lastCapture) > 0) {
 			lastCapture = captureDate;
 			resultRef.put(RESULT_LAST_CAPTURE,lastCapture);
 		}
