@@ -52,4 +52,8 @@ public interface RequestParser {
 	 * @param maxRecords
 	 */
 	public void setMaxRecords(int maxRecords);
+	/**
+	 * @param timestamp
+	 */
+	public void setEarliestTimestamp(String timestamp);
 }
