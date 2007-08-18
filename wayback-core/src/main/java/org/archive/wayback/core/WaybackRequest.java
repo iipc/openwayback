@@ -36,7 +36,6 @@ import org.apache.commons.httpclient.URIException;
 import org.archive.net.UURI;
 import org.archive.net.UURIFactory;
 import org.archive.wayback.WaybackConstants;
-import org.archive.wayback.exception.BetterRequestException;
 import org.archive.wayback.requestparser.OpenSearchRequestParser;
 import org.archive.wayback.util.StringFormatter;
 import org.archive.wayback.webapp.WaybackContext;
@@ -56,8 +55,6 @@ public class WaybackRequest {
 	
 	private String contextPrefix = null;
 	private String serverPrefix = null;
-	
-	private String betterRequestURI = null;
 	private WaybackContext context = null;
 
 	private HashMap<String,String> filters = new HashMap<String,String>();
@@ -160,28 +157,6 @@ public class WaybackRequest {
 			return "";
 		}
 		return arg;
-	}
-	
-	/**
-	 * sets the better requestURI property. If set, a subsequent call to
-	 * checkBetterRequest() will throw a BetterRequestException with URI set to
-	 * the argument passed here.
-	 * 
-	 * @param betterRequestURI
-	 */
-	public void setBetterRequestURI(String betterRequestURI) {
-		this.betterRequestURI = betterRequestURI;
-	}
-	
-	/**
-	 * possibly throws a BetterRequestException if there is a better way
-	 * for the client to make the given request.
-	 * @throws BetterRequestException
-	 */
-	public void checkBetterRequest() throws BetterRequestException {
-		if(betterRequestURI != null) {
-			throw new BetterRequestException(betterRequestURI);
-		}
 	}
 	
 	/**
@@ -390,10 +365,7 @@ public class WaybackRequest {
 		
 		wbRequest.contextPrefix = contextPrefix;
 		wbRequest.serverPrefix = serverPrefix;
-		
-		wbRequest.betterRequestURI = betterRequestURI;
 
-		
 		wbRequest.formatter = formatter;
 
 		wbRequest.filters = new HashMap<String,String>();
