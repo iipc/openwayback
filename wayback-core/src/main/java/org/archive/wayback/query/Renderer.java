@@ -25,7 +25,6 @@
 package org.archive.wayback.query;
 
 import java.io.IOException;
-import java.text.ParseException;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -34,6 +33,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.archive.wayback.QueryRenderer;
 import org.archive.wayback.ResultURIConverter;
+import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.UIResults;
 import org.archive.wayback.core.WaybackRequest;
@@ -48,8 +48,10 @@ import org.archive.wayback.exception.WaybackException;
 public class Renderer implements QueryRenderer {
 
 	private String errorJsp = "/jsp/HTMLError.jsp";
+	private String xmlErrorJsp = "/jsp/XMLError.jsp";
 	private String captureJsp = "/jsp/HTMLResults.jsp";
 	private String urlJsp = "/jsp/HTMLResults.jsp";
+	private String xmlJsp = "/jsp/XMLResults.jsp";
 	
 	/**
 	 * @param request
@@ -72,9 +74,13 @@ public class Renderer implements QueryRenderer {
 
 		httpRequest.setAttribute("exception", exception);
 		UIResults uiResults = new UIResults(wbRequest);
-		uiResults.storeInRequest(httpRequest,errorJsp);
+		String jsp = errorJsp;
+		if(wbRequest.containsKey(WaybackConstants.REQUEST_XML_DATA)) {
+			jsp = xmlErrorJsp;
+		}
+		uiResults.storeInRequest(httpRequest,jsp);
 
-		proxyRequest(httpRequest,httpResponse,errorJsp);
+		proxyRequest(httpRequest,httpResponse,jsp);
 	}
 
 	public void renderUrlResults(HttpServletRequest httpRequest,
@@ -82,18 +88,15 @@ public class Renderer implements QueryRenderer {
 			SearchResults results, ResultURIConverter uriConverter)
 			throws ServletException, IOException {
 
-		UIQueryResults uiResults;
-		try {
-			uiResults = new UIQueryResults(httpRequest, wbRequest, results,
-					uriConverter);
-		} catch (ParseException e) {
-			// I don't think this should happen...
-			e.printStackTrace();
-			throw new ServletException(e.getMessage());
+		UIQueryResults uiResults = new UIQueryResults(httpRequest, wbRequest,
+				results, uriConverter);
+		String jsp = captureJsp;
+		if(wbRequest.containsKey(WaybackConstants.REQUEST_XML_DATA)) {
+			jsp = xmlJsp;
 		}
 
-		uiResults.storeInRequest(httpRequest,captureJsp);
-		proxyRequest(httpRequest, httpResponse, captureJsp);
+		uiResults.storeInRequest(httpRequest,jsp);
+		proxyRequest(httpRequest, httpResponse, jsp);
 
 	}
 
@@ -105,18 +108,15 @@ public class Renderer implements QueryRenderer {
 			SearchResults results, ResultURIConverter uriConverter)
 			throws ServletException, IOException {
 
-		UIQueryResults uiResults;
-		try {
-			uiResults = new UIQueryResults(httpRequest, wbRequest, results,
-					uriConverter);
-		} catch (ParseException e) {
-			// I don't think this should happen...
-			e.printStackTrace();
-			throw new ServletException(e.getMessage());
+		UIQueryResults uiResults = new UIQueryResults(httpRequest, wbRequest, 
+				results, uriConverter);
+		String jsp = urlJsp;
+		if(wbRequest.containsKey(WaybackConstants.REQUEST_XML_DATA)) {
+			jsp = xmlJsp;
 		}
 
-		uiResults.storeInRequest(httpRequest,urlJsp);
-		proxyRequest(httpRequest, httpResponse, urlJsp);
+		uiResults.storeInRequest(httpRequest,jsp);
+		proxyRequest(httpRequest, httpResponse, jsp);
 
 	}
 
