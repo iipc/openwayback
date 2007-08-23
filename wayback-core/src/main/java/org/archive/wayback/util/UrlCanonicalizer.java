@@ -198,11 +198,15 @@ public class UrlCanonicalizer {
 	 * @return String lookup key for URL argument.
 	 * @throws URIException 
 	 */
-	public String urlStringToKey(final String urlString)
-			throws URIException {
+	public String urlStringToKey(final String urlString) throws URIException {
 
 		String searchUrl = canonicalize(urlString);
 
+		// TODO: force https into http for the moment...
+		if(searchUrl.startsWith("https://")) {
+			searchUrl = searchUrl.substring(8);
+		}
+		
 		// TODO: this will only work with http:// scheme. should work with all?
 		// force add of scheme and possible add '/' with empty path:
 		if (searchUrl.startsWith("http://")) {
