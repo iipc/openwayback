@@ -26,6 +26,7 @@ package org.archive.wayback.accesscontrol.remote;
 
 import org.archive.wayback.accesscontrol.ExclusionFilterFactory;
 import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.util.ObjectFilter;
 
 /**
@@ -43,7 +44,7 @@ public class RemoteExclusionFilterFactory implements ExclusionFilterFactory {
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.resourceindex.ExclusionFilterFactory#get()
 	 */
-	public ObjectFilter<SearchResult> get() {
+	public ObjectFilter<SearchResult> get(WaybackRequest wbRequest) {
 		return new RemoteExclusionFilter(exclusionUrlPrefix, exclusionUserAgent);
 	}
 
@@ -73,6 +74,13 @@ public class RemoteExclusionFilterFactory implements ExclusionFilterFactory {
 	 */
 	public void setExclusionUserAgent(String exclusionUserAgent) {
 		this.exclusionUserAgent = exclusionUserAgent;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.archive.wayback.accesscontrol.ExclusionFilterFactory#shutdown()
+	 */
+	public void shutdown() {
+		// nothing to do..
 	}
 
 

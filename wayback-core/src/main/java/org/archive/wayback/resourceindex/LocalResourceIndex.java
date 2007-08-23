@@ -80,11 +80,12 @@ public class LocalResourceIndex implements ResourceIndex {
 	
 	private UrlCanonicalizer canonicalizer = new UrlCanonicalizer(); 
 
-	private ObjectFilter<SearchResult> getExclusionFilter() 
+	private ObjectFilter<SearchResult> getExclusionFilter(
+			WaybackRequest wbRequest) 
 	throws ResourceIndexNotAvailableException {
 		ObjectFilter<SearchResult> filter = null;
 		if(exclusionFactory != null) {
-			filter = exclusionFactory.get();
+			filter = exclusionFactory.get(wbRequest);
 			if(filter == null) {
 				throw new ResourceIndexNotAvailableException("Exclusion " +
 						"Service Unavailable");
@@ -210,7 +211,7 @@ public class LocalResourceIndex implements ResourceIndex {
 		GuardRailFilter guardrail = new GuardRailFilter(maxRecords);
 
 		// checks an exclusion service for every matching record
-		ObjectFilter<SearchResult> exclusion = getExclusionFilter();
+		ObjectFilter<SearchResult> exclusion = getExclusionFilter(wbRequest);
 
 		// count how many results got to the ExclusionFilter:
 		CounterFilter preExCounter = new CounterFilter();

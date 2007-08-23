@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.resourceindex.filters.CompositeExclusionFilter;
 import org.archive.wayback.util.ObjectFilter;
 
@@ -54,11 +55,11 @@ public class CompositeExclusionFilterFactory implements ExclusionFilterFactory {
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.resourceindex.ExclusionFilterFactory#get()
 	 */
-	public ObjectFilter<SearchResult> get() {
+	public ObjectFilter<SearchResult> get(WaybackRequest wbRequest) {
 		Iterator<ExclusionFilterFactory> itr = factories.iterator();
 		CompositeExclusionFilter filter = new CompositeExclusionFilter();
 		while(itr.hasNext()) {
-			filter.addComponent(itr.next().get());
+			filter.addComponent(itr.next().get(wbRequest));
 		}
 		return filter;
 	}
@@ -77,5 +78,16 @@ public class CompositeExclusionFilterFactory implements ExclusionFilterFactory {
 	 */
 	public void setFactories(ArrayList<ExclusionFilterFactory> factories) {
 		this.factories = factories;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.archive.wayback.accesscontrol.ExclusionFilterFactory#shutdown()
+	 */
+	public void shutdown() {
+		Iterator<ExclusionFilterFactory> itr = factories.iterator();
+		while(itr.hasNext()) {
+			ExclusionFilterFactory i = itr.next();
+			i.shutdown();
+		}
 	}
 }

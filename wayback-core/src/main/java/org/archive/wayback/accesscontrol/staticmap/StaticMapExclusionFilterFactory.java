@@ -32,6 +32,7 @@ import java.util.logging.Logger;
 
 import org.archive.wayback.accesscontrol.ExclusionFilterFactory;
 import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.surt.SURTTokenizer;
 import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.ObjectFilter;
@@ -47,7 +48,7 @@ public class StaticMapExclusionFilterFactory implements ExclusionFilterFactory {
 	private static final Logger LOGGER =
         Logger.getLogger(StaticMapExclusionFilterFactory.class.getName());
 
-	private final static int checkInterval = 10;
+	private int checkInterval = 10;
 	private Map<String,Object> currentMap = null;
 	private File file = null;
 	long lastUpdated = 0;
@@ -88,6 +89,10 @@ public class StaticMapExclusionFilterFactory implements ExclusionFilterFactory {
 		CloseableIterator<String> itr = ff.getSequentialIterator();
 		while(itr.hasNext()) {
 			String line = (String) itr.next();
+			line = line.trim();
+			if(line.length() == 0) {
+				continue;
+			}
 			String surt = line.startsWith("(") ? line : 
 				SURTTokenizer.prefixKey(line);
 			newMap.put(surt, null);
@@ -97,9 +102,10 @@ public class StaticMapExclusionFilterFactory implements ExclusionFilterFactory {
 	}
 	
 	/**
+	 * @param wbRequest 
 	 * @return SearchResultFilter 
 	 */
-	public ObjectFilter<SearchResult> get() {
+	public ObjectFilter<SearchResult> get(WaybackRequest wbRequest) {
 		if(currentMap == null) {
 			return null;
 		}
@@ -112,6 +118,12 @@ public class StaticMapExclusionFilterFactory implements ExclusionFilterFactory {
 		}
 		updateThread = new CacheUpdaterThread(this,checkInterval);
 		updateThread.start();
+	}
+	private synchronized void stopUpdateThread() {
+		if (updateThread == null) {
+			return;
+		}
+		updateThread.interrupt();
 	}
 	
 	private class CacheUpdaterThread extends Thread {
@@ -147,8 +159,45 @@ public class StaticMapExclusionFilterFactory implements ExclusionFilterFactory {
 					Thread.sleep(sleepInterval * 1000);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
+					return;
 				}
 			}
 		}
+	}
+
+	/**
+	 * @return the checkInterval
+	 */
+	public int getCheckInterval() {
+		return checkInterval;
+	}
+
+	/**
+	 * @param checkInterval the checkInterval to set
+	 */
+	public void setCheckInterval(int checkInterval) {
+		this.checkInterval = checkInterval;
+	}
+
+	/**
+	 * @return the path
+	 */
+	public String getFile() {
+		return file.getAbsolutePath();
+	}
+
+	/**
+	 * @param path the file to set
+	 */
+	public void setFile(String path) {
+		this.file = new File(path);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.archive.wayback.accesscontrol.ExclusionFilterFactory#shutdown()
+	 */
+	public void shutdown() {
+		// TODO Auto-generated method stub
+		stopUpdateThread();
 	}
 }
