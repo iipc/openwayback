@@ -113,8 +113,12 @@ public class URLCacher {
 		LaxURI lURI = new LaxURI(urlString,true);
 		method.setURI(lURI);
 		try {
-			http.executeMethod(method);
+			int code = http.executeMethod(method);
 			os.close();
+			// TODO: Contstant 200
+			if(code != 200) {
+				throw new LiveDocumentNotAvailableException(urlString);
+			}
 		} catch (HttpException e) {
 			e.printStackTrace();
 			throw new LiveDocumentNotAvailableException(urlString);
@@ -196,12 +200,13 @@ public class URLCacher {
 		try {
 			writer = cache.getWriter();
 			location = storeFile(tmpFile, writer, urlString, method);
-		} catch (IOException e2) {
-			cache.returnWriter(writer);
-			tmpFile.delete();
-			throw e2;
+		} catch(IOException e) {
+			e.printStackTrace();
+			throw e;
 		} finally {
-			cache.returnWriter(writer);
+			if(writer != null) {
+				cache.returnWriter(writer);
+			}
 			tmpFile.delete();
 		}
 		return location;
