@@ -44,6 +44,7 @@ import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.UIResults;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.WaybackException;
@@ -119,6 +120,14 @@ public class BaseReplayRenderer implements ReplayRenderer {
 		return (requestUrl != null) && requestUrl.endsWith(".css");
 	}
 
+	/**
+	 * @param httpRequest
+	 * @param httpResponse
+	 * @param wbRequest
+	 * @param exception
+	 * @throws ServletException
+	 * @throws IOException
+	 */
 	public void renderException(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
 			WaybackException exception) throws ServletException, IOException {
@@ -398,7 +407,7 @@ public class BaseReplayRenderer implements ReplayRenderer {
 	public void renderResource(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
 			SearchResult result, Resource resource,
-			ResultURIConverter uriConverter) throws ServletException,
+			ResultURIConverter uriConverter, SearchResults results) throws ServletException,
 			IOException {
 
 		if (resource == null) {
