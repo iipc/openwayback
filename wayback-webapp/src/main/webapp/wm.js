@@ -14,10 +14,14 @@ function xLateUrl(aCollection, sProp) {
          if(aCollection[i][sProp].indexOf("mailto:") == -1 &&
             aCollection[i][sProp].indexOf("javascript:") == -1) {
 
-            if(aCollection[i][sProp].indexOf("http") == 0) {
-               aCollection[i][sProp] = sWayBackCGI + aCollection[i][sProp];
+            var wmSpecial = aCollection[i].getAttribute("wmSpecial");
+            if(wmSpecial && wmSpecial.length > 0) {
             } else {
-               aCollection[i][sProp] = sWayBackCGI + xResolveUrl(aCollection[i][sProp]);
+                if(aCollection[i][sProp].indexOf("http") == 0) {
+                    aCollection[i][sProp] = sWayBackCGI + aCollection[i][sProp];
+                } else {
+                    aCollection[i][sProp] = sWayBackCGI + xResolveUrl(aCollection[i][sProp]);
+                }
             }
          }
       }
@@ -32,6 +36,7 @@ xLateUrl(document.getElementsByTagName("OBJECT"),"data");
 xLateUrl(document.getElementsByTagName("APPLET"),"codebase");
 xLateUrl(document.getElementsByTagName("APPLET"),"archive");
 xLateUrl(document.getElementsByTagName("EMBED"),"src");
+xLateUrl(document.getElementsByTagName("IFRAME"),"src");
 xLateUrl(document.getElementsByTagName("BODY"),"background");
 var forms = document.getElementsByTagName("FORM");
 if (forms) {
