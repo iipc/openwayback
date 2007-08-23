@@ -230,10 +230,10 @@
     </distributionManagement>
 
   <modules>
-    <module>wayback-core</module>
     <module>wayback-mapreduce-prereq</module>
     <module>wayback-mapreduce</module>
     <module>wayback-webapp</module>
+    <module>wayback-core</module>
   </modules>
     
 </project>
