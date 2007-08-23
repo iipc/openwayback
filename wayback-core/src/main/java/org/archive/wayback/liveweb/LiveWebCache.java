@@ -65,7 +65,7 @@ public class LiveWebCache {
 		new ARCRecordToSearchResultAdapter();
 	
 	/**
-	 * closes all resources (currently unused...)
+	 * closes all resources
 	 */
 	public void shutdown() {
 		arcCacheDir.shutdown();
