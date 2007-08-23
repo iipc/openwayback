@@ -41,14 +41,14 @@ import org.archive.wayback.exception.WaybackException;
  * @version $Date$, $Revision$
  */
 public interface QueryRenderer {
-
-	/** Show an output page indicating that a request to the Wayback Machine
-	 * failed for some reason, as determined by the WaybackException argument.
+	
+	/**
+	 * Render the contents of a WaybackException in either xml or html format.
 	 * 
-	 * @param httpRequest the HttpServletRequest
-	 * @param httpResponse the HttpServletResponse
-	 * @param wbRequest the WaybackRequest that caused the exception
-	 * @param exception the WaybackException thrown while handling
+	 * @param httpRequest
+	 * @param httpResponse
+	 * @param wbRequest
+	 * @param exception
 	 * @throws ServletException
 	 * @throws IOException
 	 */
