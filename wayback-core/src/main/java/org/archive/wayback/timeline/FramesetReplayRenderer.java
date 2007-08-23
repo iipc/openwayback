@@ -47,6 +47,16 @@ import org.archive.wayback.util.StringFormatter;
  */
 public class FramesetReplayRenderer extends RawReplayRenderer {
 	
+	/**
+	 * @param httpRequest
+	 * @param httpResponse
+	 * @param wbRequest
+	 * @param result
+	 * @param resource
+	 * @param baseUriConverter
+	 * @throws ServletException
+	 * @throws IOException
+	 */
 	public void renderResource(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
 			SearchResult result, Resource resource,
