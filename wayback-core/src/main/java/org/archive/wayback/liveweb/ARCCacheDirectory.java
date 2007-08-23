@@ -71,7 +71,6 @@ public class ARCCacheDirectory {
 	 */
 	public static final String LIVE_WEB_ARC_PREFIX = "liveweb.arc.prefix";
 	private ARCWriterPool pool = null;
-	private String arcPath = null;
 	private String arcPrefix = "wayback-live";
 	private File arcDir = null;
 
@@ -80,7 +79,7 @@ public class ARCCacheDirectory {
 	 */
 	public void init() throws IOException {
 		// TODO: check that all props have been set
-		arcDir = DirMaker.ensureDir(arcPath,"arcPath");
+		arcDir = DirMaker.ensureDir(arcDir.getAbsolutePath(),"arcPath");
 		File[] files = { arcDir };
 		WriterPoolSettings settings = getSettings(true, arcPrefix, files);
 		pool = new ARCWriterPool(settings, MAX_POOL_WRITERS, MAX_POOL_WAIT);
@@ -155,7 +154,7 @@ public class ARCCacheDirectory {
 	private WriterPoolSettings getSettings(final boolean isCompressed,
 			final String prefix, final File[] arcDirs) {
 		return new WriterPoolSettings() {
-			public int getMaxSize() {
+			public long getMaxSize() {
 				return ARCConstants.DEFAULT_MAX_ARC_FILE_SIZE;
 			}
 
@@ -178,8 +177,36 @@ public class ARCCacheDirectory {
 
 			public String getSuffix() {
 				// TODO: is correct?
-				return ARCConstants.DOT_ARC_FILE_EXTENSION;
+				return null;
 			}
 		};
+	}
+
+	/**
+	 * @return the arcPrefix
+	 */
+	public String getArcPrefix() {
+		return arcPrefix;
+	}
+
+	/**
+	 * @param arcPrefix the arcPrefix to set
+	 */
+	public void setArcPrefix(String arcPrefix) {
+		this.arcPrefix = arcPrefix;
+	}
+
+	/**
+	 * @return the arcDir
+	 */
+	public String getArcDir() {
+		return arcDir.getAbsolutePath();
+	}
+
+	/**
+	 * @param arcPath the arcPath to set
+	 */
+	public void setArcDir(String arcPath) {
+		this.arcDir = new File(arcPath);
 	}
 }
