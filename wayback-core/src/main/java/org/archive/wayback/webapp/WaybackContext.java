@@ -33,7 +33,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.archive.wayback.QueryRenderer;
-import org.archive.wayback.ReplayRenderer;
+import org.archive.wayback.ReplayDispatcher;
 import org.archive.wayback.RequestParser;
 import org.archive.wayback.ResourceIndex;
 import org.archive.wayback.ResourceStore;
@@ -45,12 +45,8 @@ import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.UIResults;
 import org.archive.wayback.core.WaybackRequest;
-import org.archive.wayback.exception.AccessControlException;
 import org.archive.wayback.exception.BadQueryException;
-import org.archive.wayback.exception.BetterRequestException;
-import org.archive.wayback.exception.ResourceIndexNotAvailableException;
 import org.archive.wayback.exception.ResourceNotAvailableException;
-import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.exception.WaybackException;
 import org.springframework.beans.factory.BeanNameAware;
 
@@ -69,11 +65,12 @@ import org.springframework.beans.factory.BeanNameAware;
  */
 public class WaybackContext implements RequestContext, BeanNameAware {
 
+	private boolean useServerName = false;
 	private int contextPort = 0;
 	private String contextName = null;
 	private ResourceIndex index = null;
 	private ResourceStore store = null;
-	private ReplayRenderer replay = null;
+	private ReplayDispatcher replay = null;
 	private QueryRenderer query = null;
 	private RequestParser parser = null;
 	private ResultURIConverter uriConverter = null;
@@ -209,7 +206,7 @@ public class WaybackContext implements RequestContext, BeanNameAware {
 	 * Canonical server and port information.
 	 */
 	public String getAbsoluteLocalPrefix(HttpServletRequest httpRequest) {
-		return getAbsoluteContextPrefix(httpRequest, false);
+		return getAbsoluteContextPrefix(httpRequest, useServerName);
 	}
 
 	private boolean dispatchLocal(HttpServletRequest httpRequest,
@@ -250,20 +247,16 @@ public class WaybackContext implements RequestContext, BeanNameAware {
 
 		WaybackRequest wbRequest = null;
 		boolean handled = false;
-		try {
 
+		try {
 			wbRequest = parser.parse(httpRequest, this);
 
 			if(wbRequest != null) {
 				wbRequest.setContext(this);
 				handled = true;
 				wbRequest.setContextPrefix(getAbsoluteLocalPrefix(httpRequest));
-//				wbRequest.setWbContext(this);
 				
 				if(wbRequest.isReplayRequest()) {
-
-					// maybe redirect to a better URI for the request given:			
-					wbRequest.checkBetterRequest();
 
 					handleReplay(wbRequest,httpRequest,httpResponse);
 					
@@ -273,49 +266,57 @@ public class WaybackContext implements RequestContext, BeanNameAware {
 				}
 			} else {
 				handled = dispatchLocal(httpRequest,httpResponse);
-//				throw new BadQueryException("Unable to understand request");
 			}
 
-		} catch (BetterRequestException bre) {
-
-			httpResponse.sendRedirect(bre.getBetterURI());
-
-		} catch (WaybackException e) {
+		} catch (BadQueryException e) {
 			query.renderException(httpRequest, httpResponse, wbRequest, e);
 		}
+
+
 		return handled;
 	}
 
 	private void handleReplay(WaybackRequest wbRequest, 
 			HttpServletRequest httpRequest, HttpServletResponse httpResponse) 
-	throws IOException, ServletException, ResourceIndexNotAvailableException,
-	ResourceNotInArchiveException, BadQueryException, AccessControlException, 
-	ResourceNotAvailableException {
+	throws IOException, ServletException {
 
-			
-		SearchResults results = index.query(wbRequest);
-		if(!(results instanceof CaptureSearchResults)) {
-			throw new ResourceNotAvailableException("Bad results...");
+		try {
+			SearchResults results = index.query(wbRequest);
+			if(!(results instanceof CaptureSearchResults)) {
+				throw new ResourceNotAvailableException("Bad results...");
+			}
+			CaptureSearchResults captureResults = (CaptureSearchResults) results;
+	
+			// TODO: check which versions are actually accessible right now?
+			SearchResult closest = captureResults.getClosest(wbRequest);
+			Resource resource = store.retrieveResource(closest);
+	
+			replay.renderResource(httpRequest, httpResponse, wbRequest,
+					closest, resource, uriConverter, captureResults);
+		} catch(WaybackException e) {
+			replay.renderException(httpRequest, httpResponse, wbRequest, e);
 		}
-		CaptureSearchResults captureResults = (CaptureSearchResults) results;
-
-		// TODO: check which versions are actually accessible right now?
-		SearchResult closest = captureResults.getClosest(wbRequest);
-		Resource resource = store.retrieveResource(closest);
-
-		replay.renderResource(httpRequest, httpResponse, wbRequest,
-				closest, resource, uriConverter);
 	}
 
 	private void handleQuery(WaybackRequest wbRequest, 
 			HttpServletRequest httpRequest, HttpServletResponse httpResponse) 
-	throws ServletException, IOException, ResourceIndexNotAvailableException, 
-	ResourceNotInArchiveException, BadQueryException, AccessControlException {
+	throws ServletException, IOException {
 
-		SearchResults results = index.query(wbRequest);
+		try {
+			SearchResults results = index.query(wbRequest);
+			if(results.getResultsType().equals(
+					WaybackConstants.RESULTS_TYPE_CAPTURE)) {
 
-		query.renderUrlResults(httpRequest,httpResponse,wbRequest,
-				results,uriConverter);
+				query.renderUrlResults(httpRequest,httpResponse,wbRequest,
+						results,uriConverter);
+
+			} else {
+				query.renderUrlPrefixResults(httpRequest,httpResponse,wbRequest,
+						results,uriConverter);
+			}
+		} catch(WaybackException e) {
+			query.renderException(httpRequest, httpResponse, wbRequest, e);
+		}
 	}
 
 	/**
@@ -349,7 +350,7 @@ public class WaybackContext implements RequestContext, BeanNameAware {
 	/**
 	 * @param replay the replay to set
 	 */
-	public void setReplay(ReplayRenderer replay) {
+	public void setReplay(ReplayDispatcher replay) {
 		this.replay = replay;
 	}
 
@@ -394,5 +395,19 @@ public class WaybackContext implements RequestContext, BeanNameAware {
 	 */
 	public void setConfigs(Properties configs) {
 		this.configs = configs;
+	}
+
+	/**
+	 * @return the useServerName
+	 */
+	public boolean isUseServerName() {
+		return useServerName;
+	}
+
+	/**
+	 * @param useServerName the useServerName to set
+	 */
+	public void setUseServerName(boolean useServerName) {
+		this.useServerName = useServerName;
 	}
 }
