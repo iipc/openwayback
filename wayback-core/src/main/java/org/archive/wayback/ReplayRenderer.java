@@ -32,6 +32,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.WaybackException;
 
@@ -44,22 +45,6 @@ import org.archive.wayback.exception.WaybackException;
 public interface ReplayRenderer {
 
 	/**
-	 * return a page to the client indicating that something went wrong, and
-	 * describing in as much detail as available, what went wrong, in a format
-	 * appropriate to the context in which the resource was requested.
-	 * 
-	 * @param httpRequest
-	 * @param httpResponse
-	 * @param wbRequest
-	 * @param exception
-	 * @throws ServletException
-	 * @throws IOException
-	 */
-	public void renderException(HttpServletRequest httpRequest,
-			HttpServletResponse httpResponse, WaybackRequest wbRequest,
-			WaybackException exception) throws ServletException, IOException;
-
-	/**
 	 * return a resource to the user.
 	 * 
 	 * @param httpRequest the HttpServletRequest
@@ -69,12 +54,14 @@ public interface ReplayRenderer {
 	 * @param resource resource to replay
 	 * @param uriConverter the URI converter to use to translate matching
 	 *                      results into replayable URLs
+	 * @param results 
 	 * @throws ServletException
 	 * @throws IOException
+	 * @throws WaybackException 
 	 */
 	public void renderResource(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
 			SearchResult result, Resource resource, 
-			ResultURIConverter uriConverter) throws ServletException,
-			IOException;
+			ResultURIConverter uriConverter, SearchResults results)
+	throws ServletException, IOException, WaybackException;
 }
