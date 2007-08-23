@@ -36,6 +36,7 @@ import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.archivalurl.JSReplayRenderer;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.replay.TagMagix;
@@ -52,13 +53,13 @@ public class TimelineReplayRenderer extends JSReplayRenderer {
 	public void renderResource(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
 			SearchResult result, Resource resource,
-			ResultURIConverter baseUriConverter) throws ServletException,
-			IOException {
+			ResultURIConverter baseUriConverter, SearchResults results)
+	throws ServletException,IOException {
 
 		// if we are not returning the exact date they asked for, redirect them:
 		if (isExactVersionRequested(wbRequest, result)) {
 			super.renderResource(httpRequest, httpResponse, wbRequest, result,
-					resource, baseUriConverter);
+					resource, baseUriConverter, results);
 		} else {
 			if (!(baseUriConverter instanceof TimelineReplayResultURIConverter)) {
 				throw new IllegalArgumentException("ResultURIConverter must "
