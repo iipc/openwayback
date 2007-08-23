@@ -26,7 +26,10 @@ import org.apache.hadoop.util.ReflectionUtils;
 import org.archive.io.arc.ARCRecord;
 import org.archive.mapred.ARCMapRunner;
 import org.archive.mapred.ARCRecordMapper;
-import org.archive.wayback.resourceindex.indexer.ArcIndexer;
+import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.resourcestore.ArcIndexer;
+import org.archive.wayback.resourcestore.ARCRecordToSearchResultAdapter;
+import org.archive.wayback.resourceindex.cdx.SearchResultToCDXLineAdapter;
 
 /**
  * Hadoop Driver for generation of alphabetically partitioned Wayback CDX 
@@ -48,18 +51,24 @@ public class Driver {
 
 		private Text outKey = new Text();
 		private Text outValue = new Text("");
+		private ARCRecordToSearchResultAdapter ARtoSR = 
+			new ARCRecordToSearchResultAdapter();
+		private SearchResultToCDXLineAdapter SRtoCDX =
+			new SearchResultToCDXLineAdapter();
+		
 		public void map(WritableComparable key, Writable value,
 				OutputCollector output, Reporter reporter) throws IOException {
 			ObjectWritable ow = (ObjectWritable) value;
 			ARCRecord rec = (ARCRecord) ow.get();
 			String line;
-			try {
-				line = ArcIndexer.arcRecordToCDXLine(rec);
+			SearchResult result = ARtoSR.adapt(rec);
+			if(result != null) {
+				line = SRtoCDX.adapt(result);
+				if(line != null) {
 
-				outKey.set(line);
-				output.collect(outKey, outValue);
-			} catch (ParseException e) {
-				e.printStackTrace();
+					outKey.set(line);
+					output.collect(outKey, outValue);
+				}
 			}
 		}
 		public void onARCOpen() throws IOException {}
