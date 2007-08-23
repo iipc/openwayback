@@ -2,6 +2,20 @@
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
 <beans>
 
+	<bean id="filelocationdb" class="org.archive.wayback.resourcestore.http.FileLocationDB"
+		init-method="init">
+		<property name="bdbPath" value="/tmp/wayback/arc-db" />
+		<property name="bdbName" value="DB1" />
+		<property name="logPath" value="/tmp/wayback/arc-db.log" />
+	</bean>
+
+	<bean name="8080:arcproxy" class="org.archive.wayback.resourcestore.http.ArcProxyServlet">
+		<property name="locationDB" ref="filelocationdb" />
+	</bean>
+	<bean name="8080:locationdb" class="org.archive.wayback.resourcestore.http.FileLocationDBServlet">
+		<property name="locationDB" ref="filelocationdb" />
+	</bean>
+
 	<bean id="bdbsearchresultsource" 
 		class="org.archive.wayback.resourceindex.bdb.BDBIndex"
 		init-method="init">
@@ -46,8 +60,8 @@
 	</bean>
 
 
-	<bean id="archivalurlreplay" class="org.archive.wayback.archivalurl.JSReplayRenderer">
-		<property name="JSInserts">
+	<bean id="archivalurlreplay" class="org.archive.wayback.archivalurl.ArchivalUrlReplayDispatcher">
+		<property name="jsInserts">
 			<list>
 				<value>http://localhost:8080/wm.js</value>
 			</list>
@@ -62,7 +76,7 @@
 	</bean>
 
 
-	<bean id="proxyreplay" class="org.archive.wayback.proxy.RawReplayRenderer">
+	<bean id="proxyreplay" class="org.archive.wayback.proxy.ProxyReplayDispatcher">
 	</bean>
 	<bean id="proxyuriconverter" class="org.archive.wayback.proxy.RedirectResultURIConverter">
 		<property name="redirectURI" value="http://localhost:8090/jsp/QueryUI/Redirect.jsp" />
@@ -89,6 +103,9 @@
 				<prop key="key2">key2-value</prop>
 			</props>
 		</property>
+<!--
+		<property name="index" ref="localcdxindex" />
+-->
 		<property name="index">
 			<bean class="org.archive.wayback.resourceindex.LocalResourceIndex">
 				<property name="source">
@@ -109,16 +126,19 @@
 				<property name="maxRecords" value="10000" />
 			</bean>
 		</property>
-
 		<property name="store">
 			<bean class="org.archive.wayback.resourcestore.LocalARCResourceStore"
 				init-method="init">
 				<property name="arcDir" value="/tmp/wayback/arcs/" />
 				<property name="queuedDir" value="/tmp/wayback/arc-indexer/queued" />
-				<property name="tmpDir" value="/tmp/wayback/arc-indexer/tmp" />
 				<property name="workDir" value="/tmp/wayback/arc-indexer/work" />
-				<property name="indexTarget" value="/tmp/wayback/index-data/incoming" />
-				<property name="runInterval" value="10000" />				
+				<property name="runInterval" value="10000" />
+				<property name="indexClient">
+					<bean class="org.archive.wayback.resourceindex.indexer.IndexClient">
+						<property name="tmpDir" value="/tmp/wayback/arc-indexer/tmp" />
+						<property name="target" value="/tmp/wayback/index-data/incoming" />						
+					</bean>
+				</property>		
 			</bean>
 		</property>
 		
@@ -129,10 +149,15 @@
 		</property>
 
 		<property name="replay">
-			<bean class="org.archive.wayback.archivalurl.JSReplayRenderer">
-				<property name="JSInserts">
+			<bean class="org.archive.wayback.archivalurl.ArchivalUrlReplayDispatcher">
+				<property name="jsInserts">
 					<list>
 						<value>http://localhost:8080/wm.js</value>
+					</list>
+				</property>
+				<property name="jspInserts">
+					<list>
+						<value>/jsp/TimelineUI/Timeline.jsp</value>
 					</list>
 				</property>
 			</bean>
@@ -142,6 +167,7 @@
 			<bean class="org.archive.wayback.archivalurl.ArchivalUrlRequestParser"
 				init-method="init">
 				<property name="maxRecords" value="1000" />
+				<property name="earliestTimestamp" value="1996" />
 			</bean>
 		</property>
 
@@ -153,14 +179,26 @@
 	</bean>
 
 
-	<bean name="8080:wayback-xml" parent="8080:wayback">
-		<property name="configs">
-			<props>
-				<prop key="key1">xml-key1-value</prop>
-				<prop key="key2">xml-key2-value</prop>
-			</props>
+	<bean name="8081" parent="8080:wayback">
+		<property name="useServerName" value="true" />
+		<property name="replay">
+			<bean class="org.archive.wayback.domainprefix.DomainPrefixReplayDispatcher" />
 		</property>
-		<property name="query" ref="xmlquery"/>
+
+		<property name="parser">
+			<bean class="org.archive.wayback.domainprefix.DomainPrefixCompositeRequestParser"
+				init-method="init">
+				<property name="hostPort" value="localhost.archive.org:8081" />
+				<property name="maxRecords" value="1000" />
+				<property name="earliestTimestamp" value="1996" />
+			</bean>
+		</property>
+
+		<property name="uriConverter">
+			<bean class="org.archive.wayback.domainprefix.DomainPrefixResultURIConverter">
+				<property name="hostPort" value="localhost.archive.org:8081" />
+			</bean>
+		</property>
 	</bean>
 
 </beans>
