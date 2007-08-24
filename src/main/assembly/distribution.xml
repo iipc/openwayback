@@ -32,11 +32,23 @@
       </includes>
     </fileSet>
     <fileSet>
+      <fileMode>0555</fileMode>
+      <directory>src/scripts</directory>
+      <outputDirectory>/bin</outputDirectory>
+      <includes>
+        <include>*</include>
+      </includes>
+    </fileSet>
+    <fileSet>
       <directory>target/site</directory>
       <outputDirectory>/docs</outputDirectory>
     </fileSet>
     <fileSet>
       <directory>wayback-core/src</directory>
+      <outputDirectory>/src</outputDirectory>
+    </fileSet>
+    <fileSet>
+      <directory>src</directory>
       <outputDirectory>/src</outputDirectory>
     </fileSet>
   </fileSets>
