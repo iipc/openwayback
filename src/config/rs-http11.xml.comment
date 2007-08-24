@@ -1,6 +1,0 @@
-HEADER: Remote-HTTP1.1 ResourceStore
-This section contains configuration for accessing ARC file data via HTTP 1.1
-from remote servers. This configuration requires all ARCs to appear as if they
-were in a single directory, on an HTTP 1.1 compliate web server. The ArcProxy
-configuration can be used to reverse-proxy HTTP 1.1 range requests to backend
-storage nodes using a BDB JE database to map ARC filenames to an specific URL.

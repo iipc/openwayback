@@ -1,4 +1,0 @@
-HEADER: Local-Dynamic-CDX ResourceIndex
-This section contains configuration for using a dynamically defined, 
-automatically updating ResourceIndex composed of one or more sorted CDX format 
-flat files, which are configured via HTTP accessible text files.

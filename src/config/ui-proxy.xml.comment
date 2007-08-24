@@ -1,7 +1,0 @@
-HEADER: Proxy UI	
-This section contains configuration for accessing content from the wayback
-machine as a proxy server. Client browsers are configured to make all web
-requests through the wayback machine, and it will serve content from ARC
-files instead of from the original websites. This section also contains
-configuration for serving XML index queries, which allows a firefox plugin
-toolbar to retrieve a list of all versions of the current document being viewed.

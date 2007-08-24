@@ -1,8 +1,0 @@
-HEADER: Local-ARC ResourceStore	
-This section contains configuration for accessing ARC files from a single
-directory on a local filesystem. If ARC files are spread across multiple
-local directories, a single directory be created, and populated with symbolic
-links to the various locations of the ARC files. This configuration section also 
-contains specific configuration for an indexing thread, which can optionally
-notice new ARC files, generate CDX flat files for new ARCs, and hand off these
-CDX files to a BDB resource index for merging.

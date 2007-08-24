@@ -1,9 +1,0 @@
-HEADER: ArcProxy/LocationDB Servlet Package
-This section contains configuration for a standalone webapp that implements
-a singleton FileLocationDB for multiple Wayback applications using the same 
-dataset. This has several purposes:
-1) there is a single location DB to update
-2) allows "reverse proxying" of all ARC files on a backend network, making them
-appear to be in a single exported directory.
-
-This should be the only configuration active in a separate webapp, if used.

@@ -1,4 +1,0 @@
-HEADER: Remote-BDB/CDX ResourceIndex	
-This section contains configuration for using a BDB/CDX index hosted on a
-remote server. The remote server holding the index must provide the XMLQuery
-interface.
