@@ -46,7 +46,15 @@ if (forms) {
 			if (typeof(f.action)  == "string") {
 				if(typeof(f.method)  == "string") {
 					if(typeof(f.method) != "post") {
-				    	f.action = sWayBackCGI + f.action;
+						var resolved = "";
+						var orig = f.action;
+						if(f.action.indexOf("http") == 0) {
+							resolved = f.action;
+						} else {
+							resolved = xResolveUrl(f.action);
+						}
+						// this does not work on firefox...
+				    	f.action = sWayBackCGI + resolved;
 				    }
 				}
 			}
