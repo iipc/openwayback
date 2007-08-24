@@ -37,7 +37,7 @@ public interface ExclusionFilterFactory {
 	/**
 	 * @param wbRequest 
 	 * @return an ObjectFilter object that filters records based on
-	 * some set of exclusion rules.
+	 * some set of exclusion rules appropriate to the wbRequest.
 	 */
 	public ObjectFilter<SearchResult> get(WaybackRequest wbRequest);
 	/**
