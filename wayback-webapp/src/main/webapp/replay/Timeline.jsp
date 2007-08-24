@@ -118,7 +118,6 @@ String firstDate = firstP.getTitle();
 String lastDate = lastP.getTitle();
 String titleString = "";
 %>
-<link rel="stylesheet" href="<%= contextRoot %>/css/timeline.css" type="text/css">
 <script type="text/javascript">
   function changeResolution() {
     document.timeline.submit();
@@ -167,11 +166,11 @@ overflow:hidden; border-width:1; border-style:outset; width:100%; height:80px; r
 			<table cellspacing="0" border="0" cellpadding="0" width="100%">
 				<tr>
 					<td>
-						<span class="smallboldfont"><%= fmt.format("TimelineView.viewingVersion",resultIndex,resultCount) %>&nbsp;</span>
+						<span><%= fmt.format("TimelineView.viewingVersion",resultIndex,resultCount) %>&nbsp;</span>
 					</td>
 				</tr>
 				<tr>
-					<td nowrap><span class="title"> <%= fmt.format("TimelineView.viewingVersionDate",exactDate) %> </span>&nbsp;&nbsp;</td>
+					<td nowrap><span> <%= fmt.format("TimelineView.viewingVersionDate",exactDate) %> </span>&nbsp;&nbsp;</td>
 				</tr>
 			</table>
 		</td>
@@ -182,9 +181,9 @@ overflow:hidden; border-width:1; border-style:outset; width:100%; height:80px; r
 					<td>
 						<table cellspacing="0" border="0" cellpadding="0"  width="100%">
 							<tr>
-								<td width="48%" nowrap><span class="smallfont"><%= firstDate %></span></td>
+								<td width="48%" nowrap><span><%= firstDate %></span></td>
 								<td align="center" valign="bottom" nowrap><img wmSpecial="1" src="<%= contextRoot %>/images/mark.jpg"></td>
-								<td width="48%" nowrap align="right"><span class="smallfont"><%= lastDate %></span></td>
+								<td width="48%" nowrap align="right"><span><%= lastDate %></span></td>
 							</tr>
 						</table>
 					</td>
