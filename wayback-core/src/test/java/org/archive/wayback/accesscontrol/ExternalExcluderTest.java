@@ -24,8 +24,8 @@
  */
 package org.archive.wayback.accesscontrol;
 
-import java.io.File;
-import java.io.IOException;
+//import java.io.File;
+//import java.io.IOException;
 
 import junit.framework.TestCase;
 
