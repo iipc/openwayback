@@ -2,7 +2,6 @@ package org.archive.wayback.resourceindex.indexer.hadoop;
 
 
 import java.io.IOException;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -17,7 +16,6 @@ import org.apache.hadoop.mapred.ClusterStatus;
 import org.apache.hadoop.mapred.JobClient;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.MapReduceBase;
-import org.apache.hadoop.mapred.Mapper;
 import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.mapred.TextOutputFormat;
@@ -27,7 +25,6 @@ import org.archive.io.arc.ARCRecord;
 import org.archive.mapred.ARCMapRunner;
 import org.archive.mapred.ARCRecordMapper;
 import org.archive.wayback.core.SearchResult;
-import org.archive.wayback.resourcestore.ArcIndexer;
 import org.archive.wayback.resourcestore.ARCRecordToSearchResultAdapter;
 import org.archive.wayback.resourceindex.cdx.SearchResultToCDXLineAdapter;
 
