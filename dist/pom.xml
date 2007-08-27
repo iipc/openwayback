@@ -1,0 +1,104 @@
+<?xml version="1.0"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <parent>
+  <groupId>org.archive</groupId>
+  <artifactId>wayback</artifactId>
+  <version>0.9.0-SNAPSHOT</version>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.archive.wayback</groupId>
+  <artifactId>wayback</artifactId>
+  <name>Wayback tar.gz Distribution</name>
+  <packaging>pom</packaging>
+
+  <pluginRepositories>
+    <pluginRepository>
+      <releases>
+        <enabled>true</enabled>
+        <updatePolicy>daily</updatePolicy>
+        <checksumPolicy>warn</checksumPolicy>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+        <updatePolicy>never</updatePolicy>
+        <checksumPolicy>fail</checksumPolicy>
+      </snapshots>
+      <id>agilejava</id>
+      <name>agilejava.com</name>
+      <url>http://www.agilejava.com/maven</url>
+      <layout>default</layout>
+    </pluginRepository>
+  </pluginRepositories>
+
+  <repositories>
+    <repository>
+      <releases>
+        <enabled>true</enabled>
+        <updatePolicy>always</updatePolicy>
+        <checksumPolicy>warn</checksumPolicy>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+        <updatePolicy>never</updatePolicy>
+        <checksumPolicy>fail</checksumPolicy>
+      </snapshots>
+      <id>internetarchive</id>
+      <name>Internet Archive Maven Repository</name>
+      <url>http://builds.archive.org:8080/maven2</url>
+      <layout>default</layout>
+    </repository>
+  </repositories>
+     
+  <dependencies>
+    <dependency>
+      <groupId>org.archive.wayback</groupId>
+      <artifactId>wayback-webapp</artifactId>
+      <version>0.9.0-SNAPSHOT</version>
+      <type>war</type>
+    </dependency>
+    <dependency>
+      <groupId>org.archive.wayback</groupId>
+      <artifactId>wayback-mapreduce</artifactId>
+      <version>0.9.0-SNAPSHOT</version>
+    </dependency>
+  </dependencies>
+    
+  <build>
+    <plugins>
+ 
+      <plugin>
+        <artifactId>maven-site-plugin</artifactId>
+        <configuration>
+          <xdocDirectory>
+            ${basedir}/xdocs
+          </xdocDirectory>
+        </configuration>
+      </plugin>
+ 
+      <plugin>
+        <!-- NOTE: We don't need a groupId specification because the group is
+             org.apache.maven.plugins ...which is assumed by default.
+         -->
+        <artifactId>maven-assembly-plugin</artifactId>
+        <inherited>false</inherited>
+        <configuration>
+          <descriptors>
+            <descriptor>src/main/assembly/distribution.xml</descriptor>
+          </descriptors>
+          <finalName>${project.artifactId}</finalName>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>attached</goal>
+            </goals>
+          </execution>
+	    </executions>        
+      </plugin>
+
+    </plugins>
+  </build>
+
+</project>

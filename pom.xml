@@ -19,11 +19,15 @@
   <version>0.9.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Wayback</name>
-  <description>The wayback project is an open source implementation of the
-  Internet Archive's Wayback Machine.
+
+  <description>
+    The wayback project is an open source implementation of the
+    Internet Archive's Wayback Machine.
   </description>
+  
   <url>http://archive-access.sourceforge.net/projects/wayback/</url>
   <inceptionYear>2005</inceptionYear>
+
   <licenses>
     <license>
       <name>GNU LESSER GENERAL PUBLIC LICENSE</name>
@@ -31,139 +35,134 @@
       <distribution>repo</distribution>
     </license>
   </licenses>
+
   <organization>
     <name>Internet Archive</name>
     <url>http://www.archive.org/</url>
   </organization>
+<!--  
   <issueManagement>
     <system>SourceForge</system>
     <url>http://sourceforge.net/tracker/?group_id=118427</url>
   </issueManagement>
+-->
+  <issueManagement>
+    <system>Jira</system>
+    <url>http://webteam.archive.org/jira</url>
+  </issueManagement>
+<!-- 
   <ciManagement>
     <system>cruisecontrol</system>
     <url>http://builds.archive.org:8080/cruisecontrol/</url>
   </ciManagement>
+-->
+  <ciManagement>
+    <system>continuum</system>
+    <url>http://builds.archive.org:8081/continuum/</url>
+  </ciManagement>
+  
   <mailingLists>
     <mailingList>
       <name>Archive Access ARC Tools Discussion List</name>
       <subscribe>
-            http://lists.sourceforge.net/lists/listinfo/archive-access-discuss
-            </subscribe>
+        http://lists.sourceforge.net/lists/listinfo/archive-access-discuss
+      </subscribe>
       <unsubscribe>
-            http://lists.sourceforge.net/lists/listinfo/archive-access-discuss
-            </unsubscribe>
+        http://lists.sourceforge.net/lists/listinfo/archive-access-discuss
+      </unsubscribe>
       <post>archive-access-discuss</post>
       <archive>
-            http://sourceforge.net/mailarchive/forum.php?forum_name=archive-access-discuss
+        http://sourceforge.net/mailarchive/forum.php?forum_name=archive-access-discuss
       </archive>
     </mailingList>
     <mailingList>
       <name>Archive Access ARC Tools Commits</name>
       <subscribe>
-            https://lists.sourceforge.net/lists/listinfo/archive-access-cvs
-            </subscribe>
+        https://lists.sourceforge.net/lists/listinfo/archive-access-cvs
+      </subscribe>
       <unsubscribe>
-            https://lists.sourceforge.net/lists/listinfo/archive-access-cvs
-            </unsubscribe>
+        https://lists.sourceforge.net/lists/listinfo/archive-access-cvs
+      </unsubscribe>
       <post>archive-access-cvs</post>
       <archive>
-            http://sourceforge.net/mailarchive/forum.php?forum=archive-access-cvs
-            </archive>
+        http://sourceforge.net/mailarchive/forum.php?forum=archive-access-cvs
+      </archive>
     </mailingList>
   </mailingLists>
+
   <scm>
-    <connection>scm:svn:https://archive-access.svn.sourceforge.net/svnroot/archive-access/trunk/archive-access/projects/wayback</connection>
+    <connection>
+      scm:svn:https://archive-access.svn.sourceforge.net/svnroot/archive-access/trunk/archive-access/projects/wayback
+    </connection>
     <tag>HEAD</tag>
-    <url>https://archive-access.svn.sourceforge.net/svnroot/archive-access/trunk/archive-access/projects/wayback</url>
+    <url>
+      https://archive-access.svn.sourceforge.net/svnroot/archive-access/trunk/archive-access/projects/wayback
+    </url>
   </scm>
+
   <prerequisites>
     <maven>2.0.5</maven>
   </prerequisites>
-  <developers>
-    <developer>
-        <name>Brad Tofel</name>
-        <id>bradtofel</id>
-        <email>brad at archive dot org</email>
-         <organization>Internet Archive</organization>
-         <url>http://www.archive.org</url>
-         <timezone>-8</timezone>
-    </developer>
-  </developers>
-  <dependencies>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>3.8.1</version>
-<!--Needed because we have test code under src/java.
-      <scope>test</scope>
-      -->
-    </dependency>
-
-  </dependencies>
 
   <dependencyManagement>
-  <!--Dependeny management is not same as dependencies (ugh)-->
-  <dependencies>
-    <dependency>
-      <groupId>org.archive.wayback</groupId>
-      <artifactId>wayback-core</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.archive.wayback</groupId>
-      <artifactId>wayback-mapreduce</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.archive.wayback</groupId>
-      <artifactId>wayback-mapreduce-prereq</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.archive.wayback</groupId>
-      <artifactId>wayback-webapp</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-  </dependencies>
+    <!--Dependeny management is not same as dependencies (ugh)-->
+    <dependencies>
+      <dependency>
+        <groupId>org.archive.wayback</groupId>
+        <artifactId>wayback-core</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.archive.wayback</groupId>
+        <artifactId>wayback-mapreduce-prereq</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.archive.wayback</groupId>
+        <artifactId>wayback-mapreduce</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.archive.wayback</groupId>
+        <artifactId>wayback-webapp</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+    </dependencies>
   </dependencyManagement>
 
-  <build>
-    <plugins>
-      <plugin>
-        <artifactId>maven-site-plugin</artifactId>
-        <configuration>
-          <xdocDirectory>
-            ${basedir}/xdocs
-        </xdocDirectory>
-        </configuration>
-      </plugin>
-      <plugin>
-        <!-- NOTE: We don't need a groupId specification because the group is
-             org.apache.maven.plugins ...which is assumed by default.
-         -->
-        <artifactId>maven-assembly-plugin</artifactId>
-        <inherited>false</inherited>
-        <configuration>
-          <descriptors>
-            <descriptor>
-              src/main/assembly/distribution.xml
-            </descriptor>
-          </descriptors>
-          <finalName>
-            ${project.artifactId}
-          </finalName>
-        </configuration>
-	     <executions>
-		     <execution>
-		       <phase>package</phase>
-		       <goals>
-		         <goal>attached</goal>
-		       </goals>
-		     </execution>
-	     </executions>        
-      </plugin>
-    </plugins>
-  </build>
+  <modules>
+    <module>wayback-core</module>
+    <module>wayback-mapreduce-prereq</module>
+    <module>wayback-mapreduce</module>
+    <module>wayback-webapp</module>
+    <module>dist</module>
+  </modules>
+
+  <distributionManagement>
+    <repository>
+      <id>repository</id>
+      <name>Repository</name>
+      <!--Pass as command-line system property to maven-->
+      <url>${repository.url}</url>
+    </repository>
+    <site>
+      <id>website</id>
+      <name>Website</name>
+      <!--Pass as command-line system property to maven-->
+      <url>${website.url}/projects/${artifactId}</url>
+    </site>
+  </distributionManagement>
+
+  <developers>
+    <developer>
+      <name>Brad Tofel</name>
+      <id>bradtofel</id>
+      <email>brad at archive dot org</email>
+      <organization>Internet Archive</organization>
+      <url>http://www.archive.org</url>
+      <timezone>-8</timezone>
+    </developer>
+  </developers>
 
   <reporting>
     <plugins>
@@ -171,9 +170,7 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
         <configuration>
-          <source>
-                wayback-core/src/main/java
-            </source>
+           <aggregate>true</aggregate>
         </configuration>
       </plugin>
       <plugin>
@@ -195,45 +192,16 @@
       </plugin>
     </plugins>
   </reporting>
-  <repositories>
-    <repository>
-      <releases>
-        <enabled>true</enabled>
-        <updatePolicy>always</updatePolicy>
-        <checksumPolicy>warn</checksumPolicy>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-        <updatePolicy>never</updatePolicy>
-        <checksumPolicy>fail</checksumPolicy>
-      </snapshots>
-      <id>internetarchive</id>
-      <name>Internet Archive Maven Repository</name>
-      <url>http://builds.archive.org:8080/maven2</url>
-      <layout>default</layout>
-    </repository>
-  </repositories>
 
-    <distributionManagement>
-        <repository>
-            <id>repository</id>
-            <name>Repository</name>
-            <!--Pass as command-line system property to maven-->
-            <url>${repository.url}</url>
-        </repository>
-        <site>
-            <id>website</id>
-            <name>Website</name>
-            <!--Pass as command-line system property to maven-->
-            <url>${website.url}/projects/${artifactId}</url>
-        </site>
-    </distributionManagement>
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>3.8.1</version>
+<!--Needed because we have test code under src/java.
+      <scope>test</scope>
+      -->
+    </dependency>
+  </dependencies>
 
-  <modules>
-    <module>wayback-mapreduce-prereq</module>
-    <module>wayback-mapreduce</module>
-    <module>wayback-webapp</module>
-    <module>wayback-core</module>
-  </modules>
-    
 </project>

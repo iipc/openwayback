@@ -3,13 +3,48 @@
   <formats>
     <format>tar.gz</format>
   </formats>
+
+  <includeBaseDirectory>true</includeBaseDirectory>
+  <dependencySets>
+    <dependencySet>
+      <excludes>
+        <exclude>wayback-webapp-0.9.0-SNAPSHOT.war</exclude>
+      </excludes>
+      <outputDirectory>/lib</outputDirectory>
+    </dependencySet>
+  </dependencySets>
+
   <fileSets>
+    <fileSet>
+      <includes>
+        <include>../wayback-webapp/target/*.war</include>
+      </includes>
+    </fileSet>
     <fileSet>
       <includes>
         <include>README*</include>
         <include>LICENSE*</include>
       </includes>
     </fileSet>
+    <fileSet>
+      <fileMode>0555</fileMode>
+      <directory>src/scripts</directory>
+      <outputDirectory>/bin</outputDirectory>
+      <includes>
+        <include>*</include>
+      </includes>
+    </fileSet>
+    <fileSet>
+      <directory>target/site</directory>
+      <outputDirectory>/docs</outputDirectory>
+    </fileSet>
+    <fileSet>
+      <directory>../target/site</directory>
+      <outputDirectory>/docs</outputDirectory>
+    </fileSet>
+  </fileSets>
+
+   <!-- 
     <fileSet>
       <directory>wayback-mapreduce/target</directory>
       <outputDirectory></outputDirectory>
@@ -32,18 +67,6 @@
       </includes>
     </fileSet>
     <fileSet>
-      <fileMode>0555</fileMode>
-      <directory>src/scripts</directory>
-      <outputDirectory>/bin</outputDirectory>
-      <includes>
-        <include>*</include>
-      </includes>
-    </fileSet>
-    <fileSet>
-      <directory>target/site</directory>
-      <outputDirectory>/docs</outputDirectory>
-    </fileSet>
-    <fileSet>
       <directory>wayback-core/src</directory>
       <outputDirectory>/src</outputDirectory>
     </fileSet>
@@ -52,4 +75,5 @@
       <outputDirectory>/src</outputDirectory>
     </fileSet>
   </fileSets>
+   -->
 </assembly>
