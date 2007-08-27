@@ -135,7 +135,9 @@ public abstract class BaseReplayDispatcher implements ReplayDispatcher {
 
 		RequestDispatcher dispatcher = httpRequest
 				.getRequestDispatcher(finalJspPath);
-
+		if(dispatcher == null) {
+			throw new ServletException("Null dispatcher for " + finalJspPath);
+		}
 		dispatcher.forward(httpRequest, httpResponse);
 	}
 
