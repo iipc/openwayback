@@ -10,7 +10,7 @@
 <%@ page import="org.archive.wayback.query.resultspartitioner.ResultsPartitionsFactory" %>
 <%@ page import="org.archive.wayback.query.resultspartitioner.ResultsPartition" %>
 <%@ page import="org.archive.wayback.util.StringFormatter" %>
-<jsp:include page="/template/UI-header.jsp" />
+<jsp:include page="/template/UI-header.jsp" flush="true" />
 <%
 
 UIQueryResults results = (UIQueryResults) UIResults.getFromRequest(request);
@@ -28,8 +28,8 @@ int resultCount = results.getResultsMatching();
 //String prettySearchStart = results.prettyDateFull(searchStartTs.getDate());
 //String prettySearchEnd = results.prettyDateFull(searchEndTs.getDate());
 
-ArrayList partitions = ResultsPartitionsFactory.get(results.getResults(),
-		results.getWbRequest());
+ArrayList<ResultsPartition> partitions = ResultsPartitionsFactory.get(
+		results.getResults(),results.getWbRequest());
 int numPartitions = partitions.size();
 %>
 <table border="0" cellpadding="5" width="100%" class="mainSearchBanner" cellspacing="0">
@@ -56,7 +56,7 @@ int numPartitions = partitions.size();
    <tr bgcolor="#CCCCCC">
 <%
 	for(int i = 0; i < numPartitions; i++) {
-		ResultsPartition partition = (ResultsPartition) partitions.get(i);
+		ResultsPartition partition = partitions.get(i);
 %>
       <td align="center" class="mainBigBody">
          <%= partition.getTitle() %>
@@ -93,7 +93,7 @@ int numPartitions = partitions.size();
 
 	for(int i = 0; i < numPartitions; i++) {
 		ResultsPartition partition = (ResultsPartition) partitions.get(i);
-		ArrayList partitionResults = partition.getMatches();
+		ArrayList<SearchResult> partitionResults = partition.getMatches();
 %>
       <td nowrap class="mainBody" valign="top">
 <%
@@ -105,7 +105,7 @@ int numPartitions = partitions.size();
 
 		  for(int j = 0; j < partitionResults.size(); j++) {
 		  
-		  	SearchResult result = (SearchResult) partitionResults.get(j);
+		  	SearchResult result = partitionResults.get(j);
 			String url = result.get(WaybackConstants.RESULT_URL);
 			String captureDate = result.get(WaybackConstants.RESULT_CAPTURE_DATE);
 			Timestamp captureTS = Timestamp.parseBefore(captureDate);
@@ -171,4 +171,4 @@ if(results.getNumPages() > 1) {
 	}
 }
 %>
-<jsp:include page="/template/UI-footer.jsp" />
+<jsp:include page="/template/UI-footer.jsp" flush="true" />
