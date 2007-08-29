@@ -46,9 +46,9 @@ SearchResult last = null;
 
 int resultCount = results.getResultsReturned();
 int resultIndex = 1;
-Iterator it = results.resultsIterator();
+Iterator<SearchResult> it = results.resultsIterator();
 while(it.hasNext()) {
-	SearchResult res = (SearchResult) it.next();
+	SearchResult res = it.next();
 	String resDateStr = res.get(WaybackConstants.RESULT_CAPTURE_DATE);
 	int compared = resDateStr.compareTo(exactDateStr.substring(0,resDateStr.length()));
 	if(compared < 0) {
@@ -88,7 +88,7 @@ if(minResolution.equals(WaybackConstants.REQUEST_RESOLUTION_HOURS)) {
 }
 String autoOptString = fmt.format("TimelineView.timeRange.auto",optimal);
 
-ArrayList partitions;
+ArrayList<ResultsPartition> partitions;
 if(resolution.equals(WaybackConstants.REQUEST_RESOLUTION_HOURS)) {
 	hoursOptSelected = "selected";
 	partitions = ResultsTimelinePartitionsFactory.getHour(results.getResults(),
