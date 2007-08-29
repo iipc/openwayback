@@ -168,6 +168,7 @@ public class FlatFile {
 		RandomAccessFile raf = new RandomAccessFile(file,"r");
 		long offset = findKeyOffset(raf,prefix);
 		if(offset < 1) {
+			raf.close();
 			return new ReverseRecordIterator(null);
 		}
 		raf.seek(raf.getFilePointer()-1);
