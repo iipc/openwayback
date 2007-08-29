@@ -9,7 +9,7 @@
 
 <%@ page import="org.archive.wayback.query.UIQueryResults" %>
 <%@ page import="org.archive.wayback.util.StringFormatter" %>
-<jsp:include page="/template/UI-header.jsp" />
+<jsp:include page="/template/UI-header.jsp" flush="true" />
 <%
 
 UIQueryResults results = (UIQueryResults) UIResults.getFromRequest(request);
@@ -190,4 +190,4 @@ if(curPage > results.getNumPages()) {
 }
 %>
 
-<jsp:include page="/template/UI-footer.jsp" />
+<jsp:include page="/template/UI-footer.jsp" flush="true" />
