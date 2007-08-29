@@ -279,7 +279,7 @@ public class WaybackContext implements RequestContext, BeanNameAware {
 	private void handleReplay(WaybackRequest wbRequest, 
 			HttpServletRequest httpRequest, HttpServletResponse httpResponse) 
 	throws IOException, ServletException {
-
+		Resource resource = null;
 		try {
 			SearchResults results = index.query(wbRequest);
 			if(!(results instanceof CaptureSearchResults)) {
@@ -289,12 +289,16 @@ public class WaybackContext implements RequestContext, BeanNameAware {
 	
 			// TODO: check which versions are actually accessible right now?
 			SearchResult closest = captureResults.getClosest(wbRequest);
-			Resource resource = store.retrieveResource(closest);
+			resource = store.retrieveResource(closest);
 	
 			replay.renderResource(httpRequest, httpResponse, wbRequest,
 					closest, resource, uriConverter, captureResults);
 		} catch(WaybackException e) {
 			replay.renderException(httpRequest, httpResponse, wbRequest, e);
+		} finally {
+			if(resource != null) {
+				resource.close();
+			}
 		}
 	}
 
