@@ -157,7 +157,7 @@
 				</property>
 				<property name="jspInserts">
 					<list>
-						<value>/jsp/TimelineUI/Timeline.jsp</value>
+						<value>/replay/Timeline.jsp</value>
 					</list>
 				</property>
 			</bean>
