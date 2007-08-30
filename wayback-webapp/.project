@@ -35,4 +35,11 @@
 		<nature>org.eclipse.wst.common.modulecore.ModuleCoreNature</nature>
 		<nature>org.eclipse.jem.workbench.JavaEMFNature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>wayback-core-src</name>
+			<type>2</type>
+			<location>../wayback-core/src/main/java</location>
+		</link>
+	</linkedResources>
 </projectDescription>
