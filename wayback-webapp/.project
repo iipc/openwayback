@@ -39,7 +39,7 @@
 		<link>
 			<name>wayback-core-src</name>
 			<type>2</type>
-			<locationURI>../wayback-core/src/main/java</locationURI>
+			<locationURI>WORKSPACE_ROOT/wayback/wayback-core/src/main/java</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>
