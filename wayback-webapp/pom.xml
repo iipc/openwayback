@@ -28,11 +28,13 @@
     <dependency>
       <groupId>org.archive.wayback</groupId>
       <artifactId>wayback-core</artifactId>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>tomcat</groupId>
       <artifactId>servlet-api</artifactId>
       <version>5.5.15</version>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
 </project>
