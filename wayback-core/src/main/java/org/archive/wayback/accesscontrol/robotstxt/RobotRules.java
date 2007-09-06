@@ -147,7 +147,7 @@ public class RobotRules {
 				LOGGER.fine("UA(" + curUA + ") has ("
 						+ disallowedPath + ") blocked...("
 						+ disallowedPath.length() + ")");
-				if (path.startsWith(disallowedPath)) {
+				if (disallowedPath.equals("/") || path.startsWith(disallowedPath)) {
 					LOGGER.fine("THIS APPLIES!!!");
 					return true;
 				}
