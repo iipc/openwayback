@@ -42,7 +42,7 @@ import org.archive.wayback.webapp.WaybackContext;
  */
 public class FormRequestParser extends BaseRequestParser {
 	/**
-	 * CGI argument name for Submit buttom...
+	 * CGI argument name for Submit button...
 	 */
 	private final static String SUBMIT_BUTTON = "Submit";
 
