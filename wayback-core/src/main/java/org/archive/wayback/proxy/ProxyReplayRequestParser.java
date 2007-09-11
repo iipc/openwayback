@@ -48,20 +48,14 @@ public class ProxyReplayRequestParser extends BaseRequestParser {
 	private List<String> localhostNames = null;
 
 	/**
-	 * @param list
-	 */
-	public void init(List<String> list) {
-		this.localhostNames = InetAddressUtil.getAllLocalHostNames();
-		if((list != null) && (list.size() > 0)) {
-			localhostNames.addAll(list);
-		}
-	}
-	/**
 	 * 
 	 */
 	public void init() {
-		List<String> empty = null;
-		init(empty);
+		if(localhostNames == null) {
+			localhostNames = InetAddressUtil.getAllLocalHostNames();
+		} else {
+			localhostNames.addAll(InetAddressUtil.getAllLocalHostNames());
+		}
 	}
 	private boolean isLocalRequest(HttpServletRequest httpRequest) {
 		return this.localhostNames.contains(httpRequest.getServerName());
@@ -112,6 +106,12 @@ public class ProxyReplayRequestParser extends BaseRequestParser {
 		addHttpHeaderFields(wbRequest, httpRequest);
 
 		return wbRequest;
+	}
+	public List<String> getLocalhostNames() {
+		return localhostNames;
+	}
+	public void setLocalhostNames(List<String> localhostNames) {
+		this.localhostNames = localhostNames;
 	}
 
 }

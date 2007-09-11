@@ -24,6 +24,8 @@
  */
 package org.archive.wayback.proxy;
 
+import java.util.List;
+
 import org.archive.wayback.RequestParser;
 import org.archive.wayback.requestparser.CompositeRequestParser;
 import org.archive.wayback.requestparser.FormRequestParser;
@@ -36,8 +38,8 @@ import org.archive.wayback.requestparser.OpenSearchRequestParser;
  * @version $Date$, $Revision$
  */
 public class ProxyRequestParser extends CompositeRequestParser {
+	private ProxyReplayRequestParser prrp = new ProxyReplayRequestParser();
 	protected RequestParser[] getRequestParsers() {
-		ProxyReplayRequestParser prrp = new ProxyReplayRequestParser();
 		prrp.init();
 		RequestParser[] theParsers = {
 				prrp,
@@ -45,5 +47,11 @@ public class ProxyRequestParser extends CompositeRequestParser {
 				new FormRequestParser() 
 				};
 		return theParsers;
+	}
+	public List<String> getLocalhostNames() {
+		return prrp.getLocalhostNames();
+	}
+	public void setLocalhostNames(List<String> localhostNames) {
+		prrp.setLocalhostNames(localhostNames);
 	}
 }
