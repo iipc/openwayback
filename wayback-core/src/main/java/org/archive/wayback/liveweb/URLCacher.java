@@ -30,7 +30,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.ConnectException;
 import java.net.MalformedURLException;
+import java.net.NoRouteToHostException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.Arrays;
@@ -128,6 +130,12 @@ public class URLCacher {
 		} catch(ConnectTimeoutException e) {
 			LOGGER.info("Connection Timeout for URL " + urlString);
 			throw new LiveDocumentNotAvailableException(urlString);			
+		} catch(NoRouteToHostException e) {
+			LOGGER.info("No route to host for URL " + urlString);
+			throw new LiveDocumentNotAvailableException(urlString);						
+		} catch(ConnectException e) {
+			LOGGER.info("ConnectException URL " + urlString);
+			throw new LiveDocumentNotAvailableException(urlString);						
 		}
 		LOGGER.info("Stored " + urlString + " in " + file.getAbsolutePath());
 		return method;
