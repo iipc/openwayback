@@ -73,7 +73,6 @@ public class ArchivalUrlReplayRenderer implements ReplayRenderer, HttpHeaderProc
 	private final static String HTTP_CONTENT_BASE_HEADER_UP = 
 		HTTP_CONTENT_BASE_HEADER.toUpperCase();
 
-	protected String scriptUrlInserts = null;
 	private List<String> jsInserts = null;
 	private List<String> jspInserts = null;
 
