@@ -58,7 +58,9 @@ public class StaticMapExclusionFilter implements ObjectFilter<SearchResult> {
 				if(nextSearch == null) {
 					break;
 				}
+				System.err.println("EXCLUSION-MAP:Checking " + nextSearch);
 				if(exclusionMap.containsKey(nextSearch)) {
+					System.err.println("EXCLUSION-MAP: EXCLUDED: \"" + nextSearch + "\" (" + url +")");
 					return true;
 				}
 			}

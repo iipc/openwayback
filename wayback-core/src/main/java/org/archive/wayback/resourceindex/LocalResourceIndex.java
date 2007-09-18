@@ -43,7 +43,6 @@ import org.archive.wayback.resourceindex.filters.UrlMatchFilter;
 import org.archive.wayback.resourceindex.filters.UrlPrefixMatchFilter;
 import org.archive.wayback.resourceindex.filters.WindowEndFilter;
 import org.archive.wayback.resourceindex.filters.WindowStartFilter;
-import org.archive.wayback.accesscontrol.ExclusionFilterFactory;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.SearchResults;
@@ -76,23 +75,7 @@ public class LocalResourceIndex implements ResourceIndex {
 
 	protected SearchResultSource source;
 	
-	private ExclusionFilterFactory exclusionFactory = null;
-	
 	private UrlCanonicalizer canonicalizer = new UrlCanonicalizer(); 
-
-	private ObjectFilter<SearchResult> getExclusionFilter(
-			WaybackRequest wbRequest) 
-	throws ResourceIndexNotAvailableException {
-		ObjectFilter<SearchResult> filter = null;
-		if(exclusionFactory != null) {
-			filter = exclusionFactory.get(wbRequest);
-			if(filter == null) {
-				throw new ResourceIndexNotAvailableException("Exclusion " +
-						"Service Unavailable");
-			}
-		}
-		return filter;
-	}
 
 	private void filterRecords(CloseableIterator<SearchResult> itr,
 			ObjectFilter<SearchResult> filter, SearchResults results,
@@ -211,7 +194,7 @@ public class LocalResourceIndex implements ResourceIndex {
 		GuardRailFilter guardrail = new GuardRailFilter(maxRecords);
 
 		// checks an exclusion service for every matching record
-		ObjectFilter<SearchResult> exclusion = getExclusionFilter(wbRequest);
+		ObjectFilter<SearchResult> exclusion = wbRequest.getExclusionFilter();
 
 		// count how many results got to the ExclusionFilter:
 		CounterFilter preExCounter = new CounterFilter();
@@ -267,18 +250,15 @@ public class LocalResourceIndex implements ResourceIndex {
 			reverseFilters.addFilter(selfRedirectFilter);
 			
 			// possibly filter via exclusions:
-			if(exclusion == null) {
-				forwardFilters.addFilter(finalCounter);
-				reverseFilters.addFilter(finalCounter);
-			} else {
+			if(exclusion != null) {
 				forwardFilters.addFilter(preExCounter);
 				forwardFilters.addFilter(exclusion);
-				forwardFilters.addFilter(finalCounter);
 
 				reverseFilters.addFilter(preExCounter);
 				reverseFilters.addFilter(exclusion);
-				reverseFilters.addFilter(finalCounter);
 			}
+			forwardFilters.addFilter(finalCounter);
+			reverseFilters.addFilter(finalCounter);
 
 			int resultsPerDirection = (int) Math.floor(resultsPerPage / 2);
 			if (resultsPerDirection * 2 == resultsPerPage) {
@@ -318,13 +298,11 @@ public class LocalResourceIndex implements ResourceIndex {
 			}
 			filters.addFilter(new EndDateFilter(endDate));
 			// possibly filter via exclusions:
-			if (exclusion == null) {
-				filters.addFilter(finalCounter);
-			} else {
+			if (exclusion != null) {
 				filters.addFilter(preExCounter);
 				filters.addFilter(exclusion);
-				filters.addFilter(finalCounter);
 			}
+			filters.addFilter(finalCounter);
 			startKey = keyUrl + " " + startDate;
 
 			// add the start and end windowing filters:
@@ -355,13 +333,12 @@ public class LocalResourceIndex implements ResourceIndex {
 			// possibly filter via exclusions:
 			if (exclusion == null) {
 				filters.addFilter(new CaptureToUrlResultFilter());
-				filters.addFilter(finalCounter);
 			} else {
 				filters.addFilter(preExCounter);
 				filters.addFilter(exclusion);
 				filters.addFilter(new CaptureToUrlResultFilter());
-				filters.addFilter(finalCounter);
 			}
+			filters.addFilter(finalCounter);
 			startKey = keyUrl;
 
 			// add the start and end windowing filters:
@@ -431,12 +408,4 @@ public class LocalResourceIndex implements ResourceIndex {
 	public void setSource(SearchResultSource source) {
 		this.source = source;
 	}
-
-	/**
-	 * @param exclusionFactory the exclusionFactory to set
-	 */
-	public void setExclusionFactory(ExclusionFilterFactory exclusionFactory) {
-		this.exclusionFactory = exclusionFactory;
-	}
-
 }

@@ -37,6 +37,7 @@ import org.archive.net.UURI;
 import org.archive.net.UURIFactory;
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.requestparser.OpenSearchRequestParser;
+import org.archive.wayback.util.ObjectFilter;
 import org.archive.wayback.util.StringFormatter;
 import org.archive.wayback.webapp.WaybackContext;
 
@@ -56,6 +57,7 @@ public class WaybackRequest {
 	private String contextPrefix = null;
 	private String serverPrefix = null;
 	private WaybackContext context = null;
+	private ObjectFilter<SearchResult> exclusionFilter = null;
 
 	private HashMap<String,String> filters = new HashMap<String,String>();
 	
@@ -390,5 +392,13 @@ public class WaybackRequest {
 	 */
 	public void setContext(WaybackContext context) {
 		this.context = context;
+	}
+
+	public ObjectFilter<SearchResult> getExclusionFilter() {
+		return exclusionFilter;
+	}
+
+	public void setExclusionFilter(ObjectFilter<SearchResult> exclusionFilter) {
+		this.exclusionFilter = exclusionFilter;
 	}
 }

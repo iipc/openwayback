@@ -39,20 +39,23 @@ import org.archive.wayback.ResourceIndex;
 import org.archive.wayback.ResourceStore;
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.WaybackConstants;
+import org.archive.wayback.accesscontrol.ExclusionFilterFactory;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.UIResults;
 import org.archive.wayback.core.WaybackRequest;
+import org.archive.wayback.exception.AuthenticationControlException;
 import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.exception.ResourceNotAvailableException;
 import org.archive.wayback.exception.WaybackException;
+import org.archive.wayback.util.operator.BooleanOperator;
 import org.springframework.beans.factory.BeanNameAware;
 
 /**
  * Retains all information about a particular Wayback configuration
- * withing a ServletContext, including holding references to the
+ * within a ServletContext, including holding references to the
  * implementation instances of the primary Wayback classes:
  * 
  *		ResourceIndex
@@ -75,6 +78,8 @@ public class WaybackContext implements RequestContext, BeanNameAware {
 	private RequestParser parser = null;
 	private ResultURIConverter uriConverter = null;
 	private Properties configs = null;
+	private ExclusionFilterFactory exclusionFactory = null;
+	private BooleanOperator<WaybackRequest> authentication = null;
 
 	/**
 	 * 
@@ -255,7 +260,15 @@ public class WaybackContext implements RequestContext, BeanNameAware {
 				wbRequest.setContext(this);
 				handled = true;
 				wbRequest.setContextPrefix(getAbsoluteLocalPrefix(httpRequest));
-				
+				if(authentication != null) {
+					if(!authentication.isTrue(wbRequest)) {
+						throw new AuthenticationControlException("Not authorized");
+					}
+				}
+
+				if(exclusionFactory != null) {
+					wbRequest.setExclusionFilter(exclusionFactory.get());
+				}
 				if(wbRequest.isReplayRequest()) {
 
 					handleReplay(wbRequest,httpRequest,httpResponse);
@@ -270,8 +283,9 @@ public class WaybackContext implements RequestContext, BeanNameAware {
 
 		} catch (BadQueryException e) {
 			query.renderException(httpRequest, httpResponse, wbRequest, e);
+		} catch (AuthenticationControlException e) {
+			query.renderException(httpRequest, httpResponse, wbRequest, e);
 		}
-
 
 		return handled;
 	}
@@ -413,5 +427,21 @@ public class WaybackContext implements RequestContext, BeanNameAware {
 	 */
 	public void setUseServerName(boolean useServerName) {
 		this.useServerName = useServerName;
+	}
+
+	public ExclusionFilterFactory getExclusionFactory() {
+		return exclusionFactory;
+	}
+
+	public void setExclusionFactory(ExclusionFilterFactory exclusionFactory) {
+		this.exclusionFactory = exclusionFactory;
+	}
+
+	public BooleanOperator<WaybackRequest> getAuthentication() {
+		return authentication;
+	}
+
+	public void setAuthentication(BooleanOperator<WaybackRequest> authentication) {
+		this.authentication = authentication;
 	}
 }

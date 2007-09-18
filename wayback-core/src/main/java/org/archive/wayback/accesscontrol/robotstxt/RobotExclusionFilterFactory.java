@@ -26,7 +26,6 @@ package org.archive.wayback.accesscontrol.robotstxt;
 
 import org.archive.wayback.accesscontrol.ExclusionFilterFactory;
 import org.archive.wayback.core.SearchResult;
-import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.liveweb.LiveWebCache;
 import org.archive.wayback.util.ObjectFilter;
 
@@ -45,7 +44,7 @@ public class RobotExclusionFilterFactory implements ExclusionFilterFactory {
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.resourceindex.ExclusionFilterFactory#get()
 	 */
-	public ObjectFilter<SearchResult> get(WaybackRequest wbRequest) {
+	public ObjectFilter<SearchResult> get() {
 		return new RobotExclusionFilter(webCache,userAgent,maxCacheMS);
 	}
 

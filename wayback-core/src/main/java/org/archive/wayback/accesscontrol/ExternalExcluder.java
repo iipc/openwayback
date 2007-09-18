@@ -28,7 +28,6 @@ import org.apache.commons.httpclient.URIException;
 import org.archive.net.LaxURI;
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.SearchResult;
-import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.util.ObjectFilter;
 import org.springframework.beans.factory.xml.XmlBeanFactory;
 import org.springframework.core.io.FileSystemResource;
@@ -94,8 +93,7 @@ public class ExternalExcluder {
 	 * at configPath 
 	 */
 	public static ExternalExcluder getExcluder(String configPath) {
-		WaybackRequest wbRequest = null;
-		return new ExternalExcluder(getFactory(configPath).get(wbRequest));
+		return new ExternalExcluder(getFactory(configPath).get());
 	}
 	/**
 	 * shutdown underlying resources.

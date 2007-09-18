@@ -25,7 +25,6 @@
 package org.archive.wayback.accesscontrol;
 
 import org.archive.wayback.core.SearchResult;
-import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.util.ObjectFilter;
 /**
  *
@@ -35,11 +34,10 @@ import org.archive.wayback.util.ObjectFilter;
  */
 public interface ExclusionFilterFactory {
 	/**
-	 * @param wbRequest 
 	 * @return an ObjectFilter object that filters records based on
-	 * some set of exclusion rules appropriate to the wbRequest.
+	 * some set of exclusion rules
 	 */
-	public ObjectFilter<SearchResult> get(WaybackRequest wbRequest);
+	public ObjectFilter<SearchResult> get();
 	/**
 	 * close any resources used by this ExclusionFilter system.
 	 */

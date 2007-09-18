@@ -32,7 +32,6 @@ import java.util.logging.Logger;
 
 import org.archive.wayback.accesscontrol.ExclusionFilterFactory;
 import org.archive.wayback.core.SearchResult;
-import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.surt.SURTTokenizer;
 import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.ObjectFilter;
@@ -48,7 +47,7 @@ public class StaticMapExclusionFilterFactory implements ExclusionFilterFactory {
 	private static final Logger LOGGER =
         Logger.getLogger(StaticMapExclusionFilterFactory.class.getName());
 
-	private int checkInterval = 10;
+	private int checkInterval = 0;
 	private Map<String,Object> currentMap = null;
 	private File file = null;
 	long lastUpdated = 0;
@@ -64,7 +63,9 @@ public class StaticMapExclusionFilterFactory implements ExclusionFilterFactory {
 	 */
 	public void init() throws IOException {
 		reloadFile();
-		startUpdateThread();
+		if(checkInterval > 0) {
+			startUpdateThread();
+		}
 	}
 
 	protected void reloadFile() throws IOException {
@@ -95,6 +96,7 @@ public class StaticMapExclusionFilterFactory implements ExclusionFilterFactory {
 			}
 			String surt = line.startsWith("(") ? line : 
 				SURTTokenizer.prefixKey(line);
+			System.err.println("EXCLUSION-MAP: adding " + surt);
 			newMap.put(surt, null);
 		}
 		itr.close();
@@ -105,7 +107,7 @@ public class StaticMapExclusionFilterFactory implements ExclusionFilterFactory {
 	 * @param wbRequest 
 	 * @return SearchResultFilter 
 	 */
-	public ObjectFilter<SearchResult> get(WaybackRequest wbRequest) {
+	public ObjectFilter<SearchResult> get() {
 		if(currentMap == null) {
 			return null;
 		}
@@ -166,14 +168,14 @@ public class StaticMapExclusionFilterFactory implements ExclusionFilterFactory {
 	}
 
 	/**
-	 * @return the checkInterval
+	 * @return the checkInterval in seconds
 	 */
 	public int getCheckInterval() {
 		return checkInterval;
 	}
 
 	/**
-	 * @param checkInterval the checkInterval to set
+	 * @param checkInterval the checkInterval in seconds to set
 	 */
 	public void setCheckInterval(int checkInterval) {
 		this.checkInterval = checkInterval;
@@ -197,7 +199,6 @@ public class StaticMapExclusionFilterFactory implements ExclusionFilterFactory {
 	 * @see org.archive.wayback.accesscontrol.ExclusionFilterFactory#shutdown()
 	 */
 	public void shutdown() {
-		// TODO Auto-generated method stub
 		stopUpdateThread();
 	}
 }
