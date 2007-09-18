@@ -71,7 +71,7 @@ public class RemoteResourceIndex implements ResourceIndex {
 
 	private String searchUrlBase;
 
-	private DocumentBuilderFactory factory;
+	private DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 
 	private static final String WB_XML_REQUEST_TAGNAME = "request";
 
@@ -109,7 +109,6 @@ public class RemoteResourceIndex implements ResourceIndex {
     public void init() throws ConfigurationException {
 		LOGGER.info("initializing RemoteCDXIndex...");
 
-		this.factory = DocumentBuilderFactory.newInstance();
 		this.factory.setNamespaceAware(false);
 		LOGGER.info("Using base search url " + this.searchUrlBase);		
 	}
@@ -252,7 +251,12 @@ public class RemoteResourceIndex implements ResourceIndex {
 
 	protected String getRequestUrl(WaybackRequest wbRequest)
 			throws BadQueryException {
-		return this.searchUrlBase + "?" + wbRequest.getQueryArguments();
+		WaybackRequest tmp = wbRequest.clone();
+		String type = tmp.get(WaybackConstants.REQUEST_TYPE);
+		if(type.equals(WaybackConstants.REQUEST_REPLAY_QUERY)) {
+			tmp.put(WaybackConstants.REQUEST_TYPE, WaybackConstants.REQUEST_URL_QUERY);
+		}
+		return this.searchUrlBase + "?" + tmp.getQueryArguments();
 	}
 
 	// extract the text content of a single tag under a node
