@@ -42,13 +42,28 @@ public class ExternalExcluderTest extends TestCase {
 	 */
 	public void testIt() {
 //		ExternalExcluder excluder = ExternalExcluder.getExcluder(configPath);
-//		//assertFalse(excluder.isExcluded("http://archive.torg/", "20050202020202"));
+		//assertFalse(excluder.isExcluded("http://archive.torg/", "20050202020202"));
 //		assertTrue(excluder.isExcluded("http://archive.org/cgi-bin/test.html", "20050202020202"));
 //		assertTrue(excluder.isExcluded("http://www.archive.org/cgi-bin/test.html", "20050202020202"));
 //		assertFalse(excluder.isExcluded("http://www.archive.org/cgi-brin/test.html", "20050202020202"));
 //		assertFalse(excluder.isExcluded("http://archive.org/cgi-brin/test.html", "20050202020202"));
 //		assertFalse(excluder.isExcluded("http://archive.com/cgi-brin/test.html", "20050202020202"));
 //		assertTrue(excluder.isExcluded("http://archives.com/cgi-brin/test.html", "20050202020202"));
+//		assertFalse(excluder.isExcluded("http://splat.baker.com/the-baker-reports/IW94-sp/report/people/brewster-kahle.html","19970303055135"));
+//		assertTrue(excluder.isExcluded("http://quotes.yahoo.com","19970303055135"));
+//
+//		assertTrue(excluder.isExcluded("http://www.xenu.net/","19970303055135"));
+//		assertTrue(excluder.isExcluded("http://www.xenu.net","19970303055135"));
+//		assertTrue(excluder.isExcluded("http://xenu.net/","19970303055135"));
+//		assertTrue(excluder.isExcluded("http://xenu.net","19970303055135"));
+//		assertTrue(excluder.isExcluded("www.xenu.net/","19970303055135"));
+//		assertTrue(excluder.isExcluded("xenu.net","19970303055135"));
+//		assertTrue(excluder.isExcluded("http://xenu.net/archives","19970303055135"));
+//		assertTrue(excluder.isExcluded("http://www.xenu.net/archives","19970303055135"));
+//
+//		assertTrue(excluder.isExcluded("xenu.net/archives","19970303055135"));
+//		assertTrue(excluder.isExcluded("www.xenu.net/archives","19970303055135"));
+//		
 //		ExternalExcluder.shutdown();
 	}
 	
