@@ -120,4 +120,7 @@ public class WaybackException extends Exception {
 	public int getStatus() {
 		return HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 	}
+	public void setupResponse(HttpServletResponse response) {
+		response.setStatus(getStatus());
+	}
 }
