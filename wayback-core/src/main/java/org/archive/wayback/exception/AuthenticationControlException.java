@@ -35,7 +35,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class AuthenticationControlException extends WaybackException {
 	private static final long serialVersionUID = 1L;
-	protected static final String ID = "accessControl";
+	protected static final String ID = "authenticationControl";
 
 	/**
 	 * Constructor
