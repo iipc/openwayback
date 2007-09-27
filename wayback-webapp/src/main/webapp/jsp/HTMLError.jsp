@@ -1,13 +1,15 @@
 <%@ page import="org.archive.wayback.exception.WaybackException" %>
 <%@ page import="org.archive.wayback.core.UIResults" %>
 <%@ page import="org.archive.wayback.util.StringFormatter" %>
+<%
+WaybackException e = (WaybackException) request.getAttribute("exception");
+e.setupResponse(response);
+%>
 <jsp:include page="/template/UI-header.jsp" flush="true" />
 <%
 
-WaybackException e = (WaybackException) request.getAttribute("exception");
 UIResults results = UIResults.getFromRequest(request);
 StringFormatter fmt = results.getFormatter();
-response.setStatus(e.getStatus());
 
 %>
 
