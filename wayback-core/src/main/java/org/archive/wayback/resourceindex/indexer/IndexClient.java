@@ -114,6 +114,9 @@ public class IndexClient {
 			// assume a local directory:
 			File toBeMergedDir = new File(target);
 			if(!toBeMergedDir.exists()) {
+				toBeMergedDir.mkdirs();
+			}
+			if(!toBeMergedDir.exists()) {
 				throw new IOException("Target " + target + " does not exist");
 			}
 			if(!toBeMergedDir.isDirectory()) {
@@ -360,5 +363,8 @@ public class IndexClient {
 	 */
 	public void setTmpDir(String tmpDir) {
 		this.tmpDir = new File(tmpDir);
+		if(!this.tmpDir.isDirectory()) {
+			this.tmpDir.mkdirs();
+		}
 	}
 }
