@@ -26,9 +26,11 @@ package org.archive.wayback.webapp;
 
 import org.archive.wayback.ResourceIndex;
 import org.archive.wayback.ResourceStore;
+import org.archive.wayback.exception.ConfigurationException;
 
 /**
- * Abstraction point for sharing document collection and index across multiple AccessPoints.
+ * Abstraction point for sharing document collection and index across multiple
+ * AccessPoints.
  *
  * @author brad
  * @version $Date$, $Revision$
@@ -36,13 +38,19 @@ import org.archive.wayback.ResourceStore;
 public class WaybackCollection {
 	private ResourceStore resourceStore = null;
 	private ResourceIndex resourceIndex = null;
-	public ResourceStore getResourceStore() {
+	public ResourceStore getResourceStore() throws ConfigurationException {
+		if(resourceStore == null) {
+			throw new ConfigurationException("No resourceStore declared");
+		}
 		return resourceStore;
 	}
 	public void setResourceStore(ResourceStore resourceStore) {
 		this.resourceStore = resourceStore;
 	}
-	public ResourceIndex getResourceIndex() {
+	public ResourceIndex getResourceIndex() throws ConfigurationException {
+		if(resourceIndex == null) {
+			throw new ConfigurationException("No resourceIndex declared");
+		}
 		return resourceIndex;
 	}
 	public void setResourceIndex(ResourceIndex resourceIndex) {
