@@ -35,8 +35,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.archive.wayback.QueryRenderer;
 import org.archive.wayback.ReplayDispatcher;
 import org.archive.wayback.RequestParser;
-import org.archive.wayback.ResourceIndex;
-import org.archive.wayback.ResourceStore;
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.accesscontrol.ExclusionFilterFactory;
@@ -71,8 +69,7 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 	private boolean useServerName = false;
 	private int contextPort = 0;
 	private String contextName = null;
-	private ResourceIndex index = null;
-	private ResourceStore store = null;
+	private WaybackCollection collection = null;
 	private ReplayDispatcher replay = null;
 	private QueryRenderer query = null;
 	private RequestParser parser = null;
@@ -295,7 +292,7 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 	throws IOException, ServletException {
 		Resource resource = null;
 		try {
-			SearchResults results = index.query(wbRequest);
+			SearchResults results = collection.getResourceIndex().query(wbRequest);
 			if(!(results instanceof CaptureSearchResults)) {
 				throw new ResourceNotAvailableException("Bad results...");
 			}
@@ -303,7 +300,7 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 	
 			// TODO: check which versions are actually accessible right now?
 			SearchResult closest = captureResults.getClosest(wbRequest);
-			resource = store.retrieveResource(closest);
+			resource = collection.getResourceStore().retrieveResource(closest);
 	
 			replay.renderResource(httpRequest, httpResponse, wbRequest,
 					closest, resource, uriConverter, captureResults);
@@ -321,7 +318,7 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 	throws ServletException, IOException {
 
 		try {
-			SearchResults results = index.query(wbRequest);
+			SearchResults results = collection.getResourceIndex().query(wbRequest);
 			if(results.getResultsType().equals(
 					WaybackConstants.RESULTS_TYPE_CAPTURE)) {
 
@@ -349,20 +346,6 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 	 */
 	public void setContextName(String contextName) {
 		this.contextName = contextName;
-	}
-
-	/**
-	 * @param index the index to set
-	 */
-	public void setIndex(ResourceIndex index) {
-		this.index = index;
-	}
-
-	/**
-	 * @param store the store to set
-	 */
-	public void setStore(ResourceStore store) {
-		this.store = store;
 	}
 
 	/**
@@ -443,5 +426,13 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 
 	public void setAuthentication(BooleanOperator<WaybackRequest> authentication) {
 		this.authentication = authentication;
+	}
+
+	public WaybackCollection getCollection() {
+		return collection;
+	}
+
+	public void setCollection(WaybackCollection collection) {
+		this.collection = collection;
 	}
 }
