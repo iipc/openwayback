@@ -64,11 +64,6 @@ public class RemoteResourceIndex implements ResourceIndex {
 	private static final Logger LOGGER = Logger.getLogger(RemoteResourceIndex
 			.class.getName());
 
-	/**
-	 * name of the property value indicating the url prefix of the remote index.
-	 */
-	public final static String SEARCH_BASE_URL = "resourceindex.baseurl";
-
 	private String searchUrlBase;
 
 	private DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
