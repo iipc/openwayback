@@ -36,10 +36,10 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.archive.wayback.ResourceIndex;
 import org.archive.wayback.WaybackConstants;
+import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.Timestamp;
-import org.archive.wayback.core.UrlSearchResults;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.AccessControlException;
 import org.archive.wayback.exception.BadQueryException;
@@ -68,11 +68,12 @@ public class NutchResourceIndex implements ResourceIndex {
    private static final String NUTCH_NS =
        "http://www.nutch.org/opensearchrss/1.0/";
    private String searchUrlBase;
-   private DocumentBuilderFactory factory;
+   private DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
    private DocumentBuilder builder;
    private static final String NUTCH_ARCNAME = "arcname";
    private static final String NUTCH_ARCOFFSET = "arcoffset";
    private static final String NUTCH_ARCDATE = "tstamp";
+   private static final String NUTCH_ARCDATE_ALT = "arcdate";
    private static final String NUTCH_DIGEST = "digest";
    private static final String NUTCH_PRIMARY_TYPE = "primaryType";
    private static final String NUTCH_SUB_TYPE = "subType";
@@ -95,7 +96,7 @@ public class NutchResourceIndex implements ResourceIndex {
 		LOGGER.info("initializing NutchResourceIndex...");
 		LOGGER.info("Using base search url " + this.searchUrlBase);
 
-		this.factory = DocumentBuilderFactory.newInstance();
+//		this.factory = DocumentBuilderFactory.newInstance();
 		this.factory.setNamespaceAware(true);
 		try {
 			this.builder = this.factory.newDocumentBuilder();
@@ -129,7 +130,15 @@ public class NutchResourceIndex implements ResourceIndex {
 					e.getMessage());
 		}
 
-		SearchResults results = new UrlSearchResults();
+		SearchResults results;
+		String type = wbRequest.get(WaybackConstants.REQUEST_TYPE);
+		if(type.equals(WaybackConstants.REQUEST_REPLAY_QUERY) ||
+				type.equals(WaybackConstants.REQUEST_URL_QUERY)) {
+			results = new CaptureSearchResults();			
+		} else {
+			// TODO: this is wrong, but needs exploration into what NutchWax can actually do.
+			throw new BadQueryException("Unable to perform path prefix requests with this index type");
+		}
 		NodeList channel = getSearchChannel(document);
 		NodeList nodes = getSearchItems(document);
 
@@ -174,7 +183,8 @@ public class NutchResourceIndex implements ResourceIndex {
 		return results;
 	}
 
-	private SearchResult elementToSearchResult(Element e) {
+	private SearchResult elementToSearchResult(Element e)
+		throws ResourceIndexNotAvailableException {
 
 		SearchResult result = new SearchResult();
 
@@ -184,6 +194,12 @@ public class NutchResourceIndex implements ResourceIndex {
         // The date in nutchwax is now named 'tstamp' and its
         // 17 characters rather than 14.  Pass first 14 only.
         String d = getNodeNutchContent(e,NUTCH_ARCDATE);
+        if(d == null) {
+        	d = getNodeNutchContent(e,NUTCH_ARCDATE_ALT);
+        }
+        if(d == null) {
+        	throw new ResourceIndexNotAvailableException("Missing arcdate field in search results");
+        }
         if (d.length() == 17) {
             d = d.substring(0, 14);
         }
@@ -289,8 +305,8 @@ public class NutchResourceIndex implements ResourceIndex {
         }
     	   // when searching for exacturl, we are mostly
     	   // interested in the different versions over the time
-           ms.append("&sort=date");
-           ms.append("&reverse=true");
+//           ms.append("&sort=date");
+//           ms.append("&reverse=true");
        }
        ms.append("&hitsPerPage=").append(hitsPerPage);
        ms.append("&start=").append(start);

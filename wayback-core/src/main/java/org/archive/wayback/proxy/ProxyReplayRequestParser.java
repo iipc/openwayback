@@ -35,7 +35,7 @@ import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.requestparser.BaseRequestParser;
-import org.archive.wayback.webapp.WaybackContext;
+import org.archive.wayback.webapp.AccessPoint;
 
 /**
  *
@@ -66,7 +66,7 @@ public class ProxyReplayRequestParser extends BaseRequestParser {
 	 */
 	@Override
 	public WaybackRequest parse(HttpServletRequest httpRequest,
-			WaybackContext wbContext) throws BadQueryException {
+			AccessPoint wbContext) throws BadQueryException {
 
 		if (isLocalRequest(httpRequest)) {
 			// local means query: let the following RequestParsers have a go 

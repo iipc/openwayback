@@ -32,7 +32,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadQueryException;
-import org.archive.wayback.webapp.WaybackContext;
+import org.archive.wayback.webapp.AccessPoint;
 
 /**
  *
@@ -74,7 +74,7 @@ public class OpenSearchRequestParser extends BaseRequestParser {
 	 * info from the httpRequest object.
 	 */
 	public WaybackRequest parse(HttpServletRequest httpRequest, 
-			WaybackContext wbContext) throws BadQueryException {
+			AccessPoint wbContext) throws BadQueryException {
 		
 		WaybackRequest wbRequest = null;
 		@SuppressWarnings("unchecked")

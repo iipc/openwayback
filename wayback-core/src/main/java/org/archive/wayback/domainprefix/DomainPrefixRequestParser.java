@@ -35,7 +35,7 @@ import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadQueryException;
-import org.archive.wayback.webapp.WaybackContext;
+import org.archive.wayback.webapp.AccessPoint;
 
 /**
  *
@@ -75,7 +75,7 @@ public class DomainPrefixRequestParser implements RequestParser {
 	 * @see org.archive.wayback.RequestParser#parse(javax.servlet.http.HttpServletRequest, org.archive.wayback.webapp.WaybackContext)
 	 */
 	public WaybackRequest parse(HttpServletRequest httpRequest,
-			WaybackContext wbContext) throws BadQueryException {
+			AccessPoint wbContext) throws BadQueryException {
 		
 		WaybackRequest wbRequest = null;
 		String server = httpRequest.getServerName() + 

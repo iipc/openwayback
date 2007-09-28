@@ -33,7 +33,7 @@ import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadQueryException;
-import org.archive.wayback.webapp.WaybackContext;
+import org.archive.wayback.webapp.AccessPoint;
 
 /**
  * Class that implements the RequestParser interface, and also understands how
@@ -133,7 +133,7 @@ public abstract class BaseRequestParser implements RequestParser {
 	 * @see org.archive.wayback.RequestParser#parse(javax.servlet.http.HttpServletRequest)
 	 */
 	public abstract WaybackRequest parse(HttpServletRequest httpRequest, 
-			WaybackContext wbContext) throws BadQueryException;
+			AccessPoint wbContext) throws BadQueryException;
 
 	/**
 	 * @return the maxRecords

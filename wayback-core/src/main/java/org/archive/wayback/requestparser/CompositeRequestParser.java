@@ -29,7 +29,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.archive.wayback.RequestParser;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadQueryException;
-import org.archive.wayback.webapp.WaybackContext;
+import org.archive.wayback.webapp.AccessPoint;
 
 /**
  *
@@ -64,7 +64,7 @@ public class CompositeRequestParser extends BaseRequestParser {
 	 * @see org.archive.wayback.RequestParser#parse(javax.servlet.http.HttpServletRequest)
 	 */
 	public WaybackRequest parse(HttpServletRequest httpRequest, 
-			WaybackContext wbContext) throws BadQueryException {
+			AccessPoint wbContext) throws BadQueryException {
 
 		WaybackRequest wbRequest = null;
 

@@ -28,7 +28,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadQueryException;
-import org.archive.wayback.webapp.WaybackContext;
+import org.archive.wayback.webapp.AccessPoint;
 
 /**
  * Subclass of RequestParser that acquires key request information from the
@@ -51,7 +51,7 @@ public abstract class PathRequestParser extends BaseRequestParser {
 	 */
 	@Override
 	public WaybackRequest parse(HttpServletRequest httpRequest,
-			WaybackContext wbContext) throws BadQueryException {
+			AccessPoint wbContext) throws BadQueryException {
 
 		String queryString = httpRequest.getQueryString();
 		String origRequestPath = httpRequest.getRequestURI();

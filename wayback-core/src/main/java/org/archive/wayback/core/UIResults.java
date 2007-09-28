@@ -29,7 +29,7 @@ import java.util.Properties;
 import javax.servlet.http.HttpServletRequest;
 
 import org.archive.wayback.util.StringFormatter;
-import org.archive.wayback.webapp.WaybackContext;
+import org.archive.wayback.webapp.AccessPoint;
 
 /**
  *
@@ -189,7 +189,7 @@ public class UIResults {
 	 */
 	public String getContextConfig(final String configName) {
 		String configValue = null;
-		WaybackContext context = getWbRequest().getContext();
+		AccessPoint context = getWbRequest().getContext();
 		if(context != null) {
 			Properties configs = context.getConfigs();
 			if(configs != null) {

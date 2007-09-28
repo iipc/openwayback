@@ -39,7 +39,7 @@ import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.requestparser.OpenSearchRequestParser;
 import org.archive.wayback.util.ObjectFilter;
 import org.archive.wayback.util.StringFormatter;
-import org.archive.wayback.webapp.WaybackContext;
+import org.archive.wayback.webapp.AccessPoint;
 
 /**
  * Abstraction of all the data associated with a users request to the Wayback
@@ -56,7 +56,7 @@ public class WaybackRequest {
 	
 	private String contextPrefix = null;
 	private String serverPrefix = null;
-	private WaybackContext context = null;
+	private AccessPoint context = null;
 	private ObjectFilter<SearchResult> exclusionFilter = null;
 
 	private HashMap<String,String> filters = new HashMap<String,String>();
@@ -383,14 +383,14 @@ public class WaybackRequest {
 	/**
 	 * @return the context
 	 */
-	public WaybackContext getContext() {
+	public AccessPoint getContext() {
 		return context;
 	}
 
 	/**
 	 * @param context the context to set
 	 */
-	public void setContext(WaybackContext context) {
+	public void setContext(AccessPoint context) {
 		this.context = context;
 	}
 

@@ -32,7 +32,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.WaybackRequest;
-import org.archive.wayback.webapp.WaybackContext;
+import org.archive.wayback.webapp.AccessPoint;
 
 /**
  *
@@ -51,7 +51,7 @@ public class FormRequestParser extends BaseRequestParser {
 	 * WaybackRequest object, except the Submit button argument.
 	 */
 	public WaybackRequest parse(HttpServletRequest httpRequest, 
-			WaybackContext wbContext) {
+			AccessPoint wbContext) {
 
 		WaybackRequest wbRequest = null;
 		@SuppressWarnings("unchecked")

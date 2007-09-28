@@ -66,7 +66,7 @@ import org.springframework.beans.factory.BeanNameAware;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class WaybackContext implements RequestContext, BeanNameAware {
+public class AccessPoint implements RequestContext, BeanNameAware {
 
 	private boolean useServerName = false;
 	private int contextPort = 0;
@@ -84,7 +84,7 @@ public class WaybackContext implements RequestContext, BeanNameAware {
 	/**
 	 * 
 	 */
-	public WaybackContext() {
+	public AccessPoint() {
 		
 	}
 	
