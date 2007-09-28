@@ -117,7 +117,7 @@ public class URLCacher {
 		try {
 			int code = http.executeMethod(method);
 			os.close();
-			// TODO: Contstant 200
+			// TODO: Constant 200
 			if(code != 200) {
 				throw new LiveDocumentNotAvailableException(urlString);
 			}
@@ -449,6 +449,9 @@ public class URLCacher {
 	 */
 	public void setTmpDir(String tmpDir) {
 		this.tmpDir = new File(tmpDir);
+		if(!this.tmpDir.exists()) {
+			this.tmpDir.mkdirs();
+		}
 	}
 
 }
