@@ -7,11 +7,11 @@
 
 Getting Eclipse Europa installed
 
-   [[1]] download and unpack eclipse-europa with "JEE" support
+   [[1]] download and unpack {{{http://www.eclipse.org/downloads/}eclipse-europa}} with "JEE" support
 
    [[2]] do latest software updates
 
-   [[3]] software update: find and install:
+   [[3]] "Help" \>\> "Software Updates" \>\> "Find and Install..."
 
       * Search for new features to install
 
@@ -26,7 +26,7 @@ Getting Eclipse Europa installed
    [[5]] Check box to install "Subclipse" features
 
    [[6]] on same dialog, choose "Select Required" button.\
-    this will select all dependencies from the Europa Discovery Site.
+    This will select all dependencies from the Europa Discovery Site.
 
    [[7]] "Next", then accept terms of aggreement, then "Next", then "Finish"
 
