@@ -1,0 +1,134 @@
+   ---
+   Setting up the Wayback Eclipse Development Environment
+   ---
+   Brad Tofel (brad at archive dot org)
+   ---
+
+
+Getting Eclipse Europa installed
+
+   [[1]] download and unpack eclipse-europa with "JEE" support
+
+   [[2]] do latest software updates
+
+   [[3]] software update: find and install:
+
+      * Search for new features to install
+
+         * New Remote Site
+
+            * Name: <<<Subclipse>>> <(or whatever)>
+
+            * Url: <<<http://subclipse.tigris.org/update_1.2.x>>>
+
+   [[4]] select both Subclipse and Europa Discovery Site search sites
+
+   [[5]] Check box to install "Subclipse" features
+
+   [[6]] on same dialog, choose "Select Required" button.\
+    this will select all dependencies from the Europa Discovery Site.
+
+   [[7]] "Next", then accept terms of aggreement, then "Next", then "Finish"
+
+   [[8]] Choose "Install All" on Feature Verification dialog.
+
+   [[9]] choose "yes" to restart now
+
+   [[10]] software update: find and install:
+
+      * Search for new features to install
+
+         * New Remote Site
+
+            * Name: <<<Maven 2>>> <(or whatever)>
+
+            * Url: <<<http://m2eclipse.codehaus.org/update/>>>
+
+   [[11]] search Maven 2 plugin site with "Finish"
+
+   [[12]] Check box to install "Subclipse" features
+
+   [[13]] "Next", then accept terms of agreement, then "Next", then "Finish"
+
+   [[14]] Choose "Install All" on Feature Verification dialog.
+
+   [[15]] choose "yes" to restart now
+
+
+Install Apache Tomcat
+
+   From {{http://tomcat.apache.org/download-55.cgi}}.
+
+Adding a Tomcat server to Eclipse
+
+   [[1]] Choose "File" \>\> "New" \>\> "Other..."
+
+   [[2]] Choose "Server" \>\> "Server", and click "Next"
+
+   [[3]] Fill out dialog "New Server:Define a New Server"
+
+      * Server's host name: <<<localhost>>>
+
+      * server type: "Apache" \>\> "Tomcat v5.5 Server", and click "Next"
+
+   [[4]] Fill out dialog "New Server:Tomcat Server"
+
+      * Name: <<<Apache Tomcat v5.5>>>
+
+      * Tomcat installation directory: <(locate directory where you installed Tomcat 5.5)>
+
+Add WORKSPACE_ROOT classpath variable
+
+   [[1]] Choose "Window" \>\> "Preferences..."
+
+   [[2]] "General" \>\> "Workspace" \>\> "Linked Resources" \>\> "New..."
+
+   [[3]] Fill in "New Variable" dialog:
+
+      * Name: <<<WORKSPACE_ROOT>>>
+
+      * Location: <(path to your workspace)>
+
+
+Checking out source from SVN
+
+   [[1]] Choose "File" \>\> "New" \>\> "Project..."
+
+   [[2]] Choose "SVN" \>\> "Checkout Projects from SVN"
+
+   [[3]] Choose "Create a new repository location", then "Next"
+
+   [[4]] Fill in SVN repository Url:
+
+      * Url: <<<https://archive-access.svn.sourceforge.net/svnroot/archive-access/trunk/archive-access/projects/wayback>>>
+
+   [[5]] select top directory, and click "Finish"
+
+   [[6]] wait for project to checkout and workspace to be rebuilt
+
+Running and Debugging webapp on local Tomcat server:
+
+   [[1]] Choose "File" \>\> "Import..."
+
+   [[2]] Choose "General" \>\> "Existing Projects into Workspace", then "Next"
+
+   [[3]] Choose "Select root directory" then "Browse..."
+
+   [[4]] under <<<wayback>>> choose <<<wayback-webapp>>> directory, and click "OK"
+
+   [[5]] "Finish"
+
+Configuring wayback-webapp to run on the Apache Tomcat 5.5 server
+
+   [[1]] On the Servers tab, right-click then choose "Add and Remove Projects..."
+
+   [[2]] add <<<wayback-webapp>>>, click "Finish"
+
+   [[3]] exit and restart Eclipse
+
+   [[4]] start server
+
+Accessing ARC file content:
+
+   [[1]] place arc.gz files in <</tmp/wayback/arcs/>> <(or whatever directory you've changed the store:arcDir property to)>
+    
