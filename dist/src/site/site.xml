@@ -29,12 +29,12 @@
       <item name="Requirements" href="requirements.html"/>
       <item name="Downloads" href="downloads.html"/>
       <item name="User Manual" href="user_manual.html"/>
+      <item name="Administrator Manual" href="administrator_manual.html"/>
+      <item name="Developer Manual" href="developer_manual.html"/>
       <item name="FAQ" href="/faq.html"/>
       <item name="API" href="./apidocs"/>
       <item name="Browse/Submit a Bug" 
         href="http://sourceforge.net/tracker/?group_id=118427&amp;atid=681137"/>
-      <item name="Go Yahoo!" 
-        href="http://www.yahoo.com/"/>
     </menu>
 
     <!--Its not possible to change the labels used in reports, not yet anyways.
