@@ -10,7 +10,7 @@
 		<section name="Runtime Requirements">
 			<subsection name="JAVA">
 				<p>
-					Tested working with SUN v1.5.0_01 and 1.4.2_03.
+					Tested working with SUN v1.5.0_01.
 				</p>
 			</subsection>
 			<subsection name="Tomcat">
