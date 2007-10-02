@@ -1,0 +1,1559 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<document>
+  <properties>
+    <title>Administrators Manual</title>
+    <author email="brad at archive dot org">Brad Tofel</author>
+    <revision>$$Id$$</revision>
+  </properties>
+  
+  <body>
+
+
+
+    <section name="Requirements">
+
+
+      <subsection name="Third Party Packages">
+        <p>
+          Please see the
+          <a href="requirements.html">
+            System Requirements
+          </a>
+          .
+        </p>
+      </subsection>
+
+
+      <subsection name="Wayback Software">
+        <p>
+          Please see the
+          <a href="downloads.html">
+            Software Downloads page
+          </a>
+          .
+        </p>
+      </subsection>
+
+
+    </section>
+
+
+
+    <section name="Installing">
+
+
+      <subsection name="Installing Tomcat">
+        <p>
+          Please refer to the README file included with your Tomcat distribution.
+        </p>
+      </subsection>
+
+
+      <subsection name="Installing Wayback">
+	      <p>
+	        Once you have downloaded the .tar.gz file from 
+	        sourceforge, you will need to unpack the file to access the
+	        webapp file, <b>wayback.war</b>.
+	      </p>
+		    <p>
+	        Installation and configuration of this software involves the
+	        following steps:
+	        <ol>
+	          <li>
+	            Placing .war file in appropriate location.
+	          </li>
+	          <li>
+	            Waiting for Tomcat to unpack the .war file.
+	          </li>
+	          <li>
+	            Customizing base wayback.xml file.
+	          </li>
+	          <li>
+	            Restarting tomcat.
+	          </li>
+	        </ol>
+	      </p>
+      </subsection>
+    </section>
+
+
+
+    <section name="Wayback Configuration Overview">
+       <p>
+         The wayback software provides Search and Replay access to documents
+         contained in a WaybackCollection. Search access allows users to
+         query a collection to locate documents, and is presently limited 
+         to URL based queries. Replay access allows users to view archived 
+         content in collections within a web browser. A WaybackCollection is
+         a combination of a ResourceStore, which contains the actual archived
+         documents, and a ResourceIndex, which provides URL based search of the
+         documents in the ResourceStore.
+       </p>
+       <p>
+         The Wayback machine is configured using Spring IOC, to specify and
+         configure concrete implementations of several basic modules. For
+         information about using Spring, please see
+         <a href="http://www.springframework.org/docs/reference/beans.html">
+           this page
+         </a>.
+       </p>
+    </section>
+
+
+
+    <section name="Defining WaybackCollections">
+	    <p>
+	      The XML configuration template for a Wayback collection follows:
+	      <pre>
+
+&lt;bean id=&quot;localbdbcollection&quot;
+	class=&quot;org.archive.wayback.webapp.WaybackCollection&quot;&gt;
+	&lt;property name=&quot;resourceStore&quot; ... /&gt;
+	&lt;property name=&quot;resourceIndex&quot; ... /&gt;
+&lt;/bean&gt;
+
+        </pre>
+      </p>
+      <p>
+        The resourceStore property refers to a bean implementing org.archive.wayback.ResourceStore.
+      </p>
+      <p>
+        The resourceIndex property refers to a bean implementing org.archive.wayback.ResourceIndex.
+      </p>
+		</section>
+
+
+
+    <section name="org.archive.wayback.ResourceStore implementations">
+
+
+      <subsection name="LocalARCResourceStore">
+	      <p>
+					This implementation works well for small
+					collections, where all the ARC files can be placed in a single 
+					directory on the same computer running the wayback application.
+					Using NFS or another network filesystem technology and symbolic 
+					links can allow this implementation to deal with ARC files in
+					multiple directories, or across multiple storage nodes. This
+					implementation also includes the capability to run a background
+					thread to automatically notice new ARC files appearing, index
+					those ARC files, and hand off the index data for merging with
+					a BDBResourceIndex.
+        </p>
+        <p>
+          The XML configuration template for a LocalARCResourceStore follows:
+          <pre>
+
+&lt;property name=&quot;resourceStore&quot;&gt;
+  &lt;bean class=&quot;org.archive.wayback.resourcestore.LocalARCResourceStore&quot;
+    init-method=&quot;init&quot;&gt;
+    &lt;property name=&quot;arcDir&quot; value=&quot;/tmp/wayback/arcs/&quot; /&gt;
+    &lt;property name=&quot;queuedDir&quot; value=&quot;/tmp/wayback/arc-indexer/queued&quot; /&gt;
+    &lt;property name=&quot;workDir&quot; value=&quot;/tmp/wayback/arc-indexer/work&quot; /&gt;
+    &lt;property name=&quot;runInterval&quot; value=&quot;10000&quot; /&gt;
+    &lt;property name=&quot;indexClient&quot;&gt;
+      &lt;bean class=&quot;org.archive.wayback.resourceindex.indexer.IndexClient&quot;&gt;
+        &lt;property name=&quot;tmpDir&quot; value=&quot;/tmp/wayback/arc-indexer/tmp&quot; /&gt;
+        &lt;property name=&quot;target&quot; value=&quot;/tmp/wayback/index-data/incoming&quot; /&gt;
+      &lt;/bean&gt;
+    &lt;/property&gt;
+  &lt;/bean&gt;
+&lt;/property&gt;
+
+		      </pre>
+        </p>
+        <p>
+          Required configuration:
+          <ul>
+            <li>
+              <b>
+                arcDir
+              </b>
+              is the local directory where ARC files will be 
+              located.
+            </li>
+          </ul>
+        </p>
+        <p>
+          Optional configuration (only needed for automatic indexing)
+          <ul>
+            <li>
+              <b>
+                queuedDir
+              </b>
+              names a local directory where the indexer will maintain state
+              about ARC files that have already been indexed.
+            </li>
+            <li>
+              <b>
+                workDir
+              </b>
+              names a local directory where the indexer will maintain state
+              about ARC files that are about to be indexed.
+            </li>
+            <li>
+              <b>
+                runInterval
+              </b>
+              indicates the number of milliseconds between polling arcDir
+              for newly created ARC files. Default is 10000.
+            </li>
+            <li>
+              <b>
+                tmpDir
+              </b>
+              names a local directory where index data will be stored
+              temporarily before handing off to <b>target</b>.
+            </li>
+            <li>
+              <b>
+                target
+              </b>
+              names:
+              <ol>
+                <li>
+                  a local directory where an BDBIndexUpdater is configured to
+                  look for new index data to be merged with a BDBIndex.
+                </li>
+                <li>
+                  a remote http:// URL where index data should be PUT, for 
+                  merging with a remote BDBIndex.
+                </li>
+              </ol>
+            </li>
+          </ul>
+        </p>
+      </subsection>
+
+
+      <subsection name="HttpARCResourceStore">
+        <p>
+	        This implementation allows the wayback
+	        application to access documents in remote ARC files via HTTP 1.1,
+	        and scales to millions of ARC files.
+        </p>
+	      <p>
+	        The XML configuration template for an HttpARCResourceStore follows:
+	        <pre>
+
+&lt;property name=&quot;resourceStore&quot;&gt;
+  &lt;bean class=&quot;org.archive.wayback.resourcestore.HttpARCResourceStore&quot;&gt;
+    &lt;property name=&quot;urlPrefix&quot; value=&quot;http://localhost:8080/arcproxy/&quot; /&gt;
+  &lt;/bean&gt;
+&lt;/property&gt;
+
+	        </pre>
+	      </p>
+	      <p>
+	        Required configuration:
+	        <ul>
+	          <li>
+	            <b>
+	              urlPrefix
+	            </b>
+	            this is the http:// prefix where ARC files are exported with an
+	            ArcProxy installation. See elsewhere in this document for 
+	            information about setting up an ArcProxy.
+	          </li>
+	        </ul>
+	      </p>
+	    </subsection>
+
+
+	  </section>
+
+
+
+    <section name="org.archive.wayback.ResourceIndex implementations">
+
+
+      <subsection name="LocalResourceIndex">
+        <p>
+	        This ResourceIndex implementation allows wayback to search one of
+	        several index formats hosted on the same machine as the wayback
+	        application. See below for details on which specific index formats
+	        are available.
+        </p>
+        <p>
+          The XML configuration template for a LocalResourceIndex follows:
+          <pre>
+
+&lt;property name=&quot;resourceIndex&quot;&gt;
+  &lt;bean class=&quot;org.archive.wayback.resourceindex.LocalResourceIndex&quot;&gt;
+    &lt;property name=&quot;source&quot; ... /&gt;
+    &lt;property name=&quot;maxRecords&quot; value=&quot;10000&quot; /&gt;
+  &lt;/bean&gt;
+&lt;/property&gt;
+
+          </pre>
+        </p>
+        <p>
+          <b>
+            maxRecords
+          </b>
+          specifies the maximum number of records to process, and thus that can
+          be returned, during a single query.
+        </p>
+        <br></br>
+        <p>
+          <b>
+            source
+          </b>
+          defines the format to be used for storing and searching records in 
+          the ResourceIndex. There are several possible implementations 
+          available:
+          <ul>
+            <li>
+              <b>
+                BDBIndex
+              </b>
+              This implementation is good for smaller scale installations, up
+              to 10's of millions of documents, and allows for fast incremental 
+              updates to the index. It also allows for automated index updating.
+              <pre>
+
+&lt;bean class=&quot;org.archive.wayback.resourceindex.bdb.BDBIndex&quot;
+  init-method=&quot;init&quot;&gt;
+  &lt;property name=&quot;bdbName&quot; value=&quot;DB1&quot; /&gt;
+  &lt;property name=&quot;bdbPath&quot; value=&quot;/tmp/wayback/index/&quot; /&gt;
+  &lt;property name=&quot;updater&quot;&gt;
+    &lt;bean class=&quot;org.archive.wayback.resourceindex.bdb.BDBIndexUpdater&quot;&gt;
+      &lt;property name=&quot;incoming&quot; value=&quot;/tmp/wayback/index-data/incoming/&quot; /&gt;
+      &lt;property name=&quot;failed&quot; value=&quot;/tmp/wayback/index-data/failed/&quot; /&gt;
+      &lt;property name=&quot;merged&quot; value=&quot;/tmp/wayback/index-data/merged/&quot; /&gt;
+      &lt;property name=&quot;runInterval&quot; value=&quot;10000&quot; /&gt;
+    &lt;/bean&gt;
+  &lt;/property&gt;
+&lt;/bean&gt;
+
+              </pre>
+              The <b>updater</b> property is optional. If used, a background
+              index merging thread will be started. Every <b>runInterval</b>
+              milliseconds, the thread will look for new files in the 
+              <b>incoming</b> directory. Any files present are assumed to be
+              in CDX file format, and will be merged into the index and
+              immediately available for access. Files that are not successfully
+              merged with the index are left in place (or moved to the
+              <b>failed</b> directory, if it is specified.) Files that are 
+              successfully merged are deleted (or moved to the <b>merged</b>
+              directory, if it is specified.)
+              <br></br>
+            </li>
+            <li>
+              <b>
+                CDXIndex
+              </b>
+              This implementation is good for larger scale installations, 
+              bounded mostly by the size of the index you can (first create, 
+              and later) store on a single machine. Using the command line tool
+              <b>index-client</b>, and the standard UNIX <b>sort</b> tool
+              (see note below on LC_ALL), you create a sorted flat text file
+              that is searched on each request. Building these sorted files, 
+              and updating the index are manual operations presently.
+              <pre>
+
+&lt;bean id=&quot;cdxsearchresultsource&quot; class=&quot;org.archive.wayback.resourceindex.cdx.CDXIndex&quot;&gt;
+  &lt;property name=&quot;path&quot; value=&quot;/tmp/wayback/cdx-index/index.cdx&quot; /&gt;
+&lt;/bean&gt;
+
+              </pre>
+            </li>
+            <li>
+              <b>
+                CompositeSearchResultSource
+              </b>
+              This implementation allows for searching multiple CDXIndex text
+              files for each request. For optimal search efficiency, multiple
+              index files should be merged (sort -mu) prior to production use,
+              but this implementation allows a trade-off in simplified index
+              management for a decrease in search performance.
+              <pre>
+
+&lt;bean id=&quot;compositecdxresultsource&quot; class=&quot;org.archive.wayback.resourceindex.CompositeSearchResultSource&quot;&gt;
+  &lt;property name=&quot;CDXSources&quot;&gt;
+    &lt;list&gt;
+      &lt;value&gt;/tmp/wayback/cdx-index/index.cdx.1&lt;/value&gt;
+      &lt;value&gt;/tmp/wayback/cdx-index/index.cdx.2&lt;/value&gt;
+    &lt;/list&gt;
+  &lt;/property&gt;
+&lt;/bean&gt;
+
+              </pre>
+            </li>
+          </ul>
+        </p>
+
+      </subsection>
+
+
+      <subsection name="RemoteResourceIndex configuration">
+        <p>
+          This ResourceIndex option allows hosting of a ResourceIndex on a
+          machine other than the machine hosting the Wayback webapp.
+        </p>
+        <p>
+          The XML configuration template for a RemoteResourceIndex follows:
+          <pre>
+
+&lt;bean id=&quot;remoteindex&quot; class=&quot;org.archive.wayback.resourceindex.RemoteResourceIndex&quot; init-method=&quot;init&quot;&gt;
+  &lt;property name=&quot;searchUrlBase&quot; value=&quot;http://wayback-index.archive.org:8080/wayback/xmlquery&quot; /&gt;
+&lt;/bean&gt;
+
+          </pre>
+          <b>searchUrlBase</b> indicates the URL prefix to which OpenSearchQuery
+          parameters are appended to access a Wayback AccessPoint running a 
+          LocalResourceIndex on a remote host to the Wayback application.
+        </p>
+
+      </subsection>
+
+
+      <subsection name="NutchResourceIndex configuration">
+        <p>
+	        This ResourceIndex option allows the wayback to query a Nutch
+	        full-text search engine. This ResourceIndex option is highly
+	        experimental. For help setting up a NutchResourceIndex, please see
+	        <a href="http://archive-access.sourceforge.net/projects/nutch/wayback.html">
+	          this page.
+          </a>
+        </p>
+        <p>
+          The XML configuration template for a NutchResourceIndex follows:
+          <pre>
+
+        &lt;property name=&quot;remotenutchindex&quot;&gt;
+          &lt;bean class=&quot;org.archive.wayback.resourceindex.NutchResourceIndex&quot; init-method=&quot;init&quot;&gt;
+            &lt;property name=&quot;searchUrlBase&quot; value=&quot;http://webteam-ws.us.archive.org:8080/katrina/opensearch&quot; /&gt;
+            &lt;property name=&quot;maxRecords&quot; value=&quot;100&quot; /&gt;
+          &lt;/bean&gt;
+        &lt;/property&gt;
+
+          </pre>
+          <b>searchUrlBase</b> indicates the URL prefix to which OpenSearchQuery
+          parameters are appended to access a Nutch servers XML query interface.
+          
+        </p>
+      </subsection>
+    </section>
+
+
+
+    <section name="Defining AccessPoints for WaybackCollections">
+      <p>
+        Once you have defined one or more WaybackCollections, you need to 
+        specify how those collections are exposed to end users. Collections are
+        exposed by defining an AccessPoint for that collection.
+      </p>
+      <p>
+        An AccessPoint is a combination of a WaybackCollection, a Query User
+        Interface, a Replay User Interface, and a URL by which users interact
+        with that AccessPoint. AccessPoints can also describe mechanisms for
+        excluding documents, and for limiting what users are allowed to 
+        interact with the AccessPoint.
+      </p>
+      <p>
+        AccessPoints can be used to provide different levels and types of
+        access to the same collection for different users. For example, you
+        can provide both Proxy and Archival URL mode access to a single
+        collection by defining 2 AccessPoints with different Replay User 
+        Interfaces but the same WaybackCollection. Using AccessPoints, you can
+        also provide different levels of access to a collection. For example,
+        users within a particular subnet may be able to access all documents
+        within a collection via one AccessPoint, but users outside that subnet
+        may only be restricted to viewing documents currently allowed by a
+        web sites current robots.txt file. 
+      </p>
+      <p>
+        The XML configuration template for an AccessPoint follows:
+        <pre>
+
+&lt;bean name=&quot;8080:wayback&quot; class=&quot;org.archive.wayback.webapp.AccessPoint&quot;&gt;
+  &lt;property name=&quot;collection&quot; ... /&gt;
+  &lt;property name=&quot;query&quot; ... /&gt;
+  &lt;property name=&quot;replay&quot; ... /&gt;
+  &lt;property name=&quot;parser&quot; ... /&gt;
+  &lt;property name=&quot;uriConverter&quot; ... /&gt;
+  &lt;property name=&quot;exclusionFactory&quot; ... /&gt;
+  &lt;property name=&quot;authentication&quot; ... /&gt;
+  &lt;property name=&quot;configs&quot; ... /&gt;
+&lt;/bean&gt;
+
+        </pre>
+      </p>
+      <p>
+        Required property configurations:
+        <ul>
+          <li>
+            <b>
+              collection
+            </b>
+            is a reference to the WaybackCollection for this AccessPoint.
+          </li>
+          <li>
+            <b>
+              query
+            </b>
+            defines what .jsp files to use to render results for queries to 
+            this AccessPoint. See the section "Query .jsp configuration" for 
+            more information.
+          </li>
+          <li>
+            <b>
+              replay
+            </b>
+            defines what Replay User Interface to use for this AccessPoint. See
+            the section "Setting up the Replay User Interface within an 
+            AccessPoint" for more information.
+          </li>
+          <li>
+            <b>
+              parser
+            </b>
+            defines how incoming requests are parsed and subsequently processed,
+            and is usually dependent on the Replay User Interface being used
+            with this AccessPoint.See the section "Setting up the Replay User
+            Interface within an AccessPoint" for more information.
+          </li>
+          <li>
+            <b>
+              uriConverter
+            </b>
+            defines how public URLs are constructed to provide Replay access
+            to this AccessPoint. This is usually dependant on the Replay User
+            Interface used with this AccessPoint. See the section "Setting up
+            the Replay User Interface within an AccessPoint" for more
+            information.
+          </li>
+        </ul>
+      </p>
+      <p>
+        Optional property configurations:
+        <ul>
+          <li>
+            <b>
+              exclusionFactory
+            </b>
+            defines how documents are excluded within this AccessPoint. See the
+            section "Excluding Documents within an AccessPoint" for more
+            information.
+          </li>
+          <li>
+            <b>
+              authentication
+            </b>
+            defines who is allowed to interact with this AccessPoint. See the
+            section "Limiting Access to an AccessPoint" for more information.
+          </li>
+          <li>
+            <b>
+              configs
+            </b>
+            Allows additional customizations within this AccessPoint. See the
+            section "Adding Additional Configurations to an AccessPoint" for
+            more information.
+          </li>
+        </ul>
+      </p>
+    </section>
+
+
+    <section name="Query .jsp configuration">
+      <p>
+        Wayback provides query results to a .jsp handler page, which is 
+        responsible for rendering final output to users. The actual .jsp file
+        invoked for the various response types can be configured as described
+        below. Included with the Wayback package are several reference .jsp
+        implementations, including one which outputs XML. This XML interface is
+        used by the Wayback software in distributed index configurations, but 
+        can also be used as an extension point for further user interface
+        customizations.
+      </p>
+      <br></br>
+      <p>
+        The XML configuration template for the query Renderer follows below,
+        including the default configuration for each value. The values indicate
+        the path to the .jsp file that will be executed to generate the output
+        for each class of query.
+        <pre>
+
+&lt;bean class=&quot;org.archive.wayback.query.Renderer&quot;&gt;
+  &lt;property name=&quot;errorJsp&quot; value=&quot;/jsp/HTMLError.jsp&quot; /&gt;
+  &lt;property name=&quot;xmlErrorJsp&quot; value=&quot;/jsp/XMLError.jsp&quot; /&gt;
+  &lt;property name=&quot;captureJsp&quot; value=&quot;/jsp/HTMLResults.jsp&quot; /&gt;
+  &lt;property name=&quot;urlJsp&quot; value=&quot;/jsp/HTMLResults.jsp&quot; /&gt;
+  &lt;property name=&quot;xmlJsp&quot; value=&quot;/jsp/XMLResults.jsp&quot; /&gt;
+&lt;/bean&gt;
+
+        </pre>
+        The following list indicates when each .jsp is executed:
+        <ul>
+          <li>
+            <b>
+              errorJsp
+            </b>
+            will be executed when any type of expected error condition occurs
+            during handling of a request.
+          </li>
+          <li>
+            <b>
+              xmlErrorJsp
+            </b>
+            will be executed when any type of expected error condition occurs
+            during handling of a request indicating that xml response data is
+            desired.
+          </li>
+          <li>
+            <b>
+              captureJsp
+            </b>
+            will be executed when results listing captures for a specific,
+            single URL are requested in HTML format.
+          </li>
+          <li>
+            <b>
+              urlJsp
+            </b>
+            will be executed when results listing captures for multiple URLs,
+            each URL having one or more captures, are requested in HTML format. 
+          </li>
+          <li>
+            <b>
+              xmlJsp
+            </b>
+            will be executed when results are requested in XML format.
+          </li>
+        </ul>
+      </p>
+    </section>
+
+    <section name="Setting up the Replay User Interface within an AccessPoint">
+      <p>
+        There are presently 2 Replay modes supported by the Wayback software,
+        Archival URL mode, and Proxy mode.
+      </p>
+      <subsection name="Archival URL">
+        <p>
+          Archival URL Replay mode uses a modified URL to designate
+          documents stored in ARC files. The general form of an 
+          Archival URL is:
+          <br></br>
+          <div>
+            <code>
+              http://HOSTNAME:PORT/CONTEXT/TIMESTAMP/URL
+            </code>
+          </div>
+          <br></br>
+          where
+          <ul>
+            <li>
+              <b>HOSTNAME</b> is the host where the Wayback Machine is
+              running.
+            </li>
+            <li>
+              <b>PORT</b> is the port where Tomcat is listening for 
+              incoming HTTP requests, which also refers to part of the name of
+              the Access Point. See below for example CONTEXT mappings.
+            </li>
+            <li>
+              <b>CONTEXT</b> is the context where the Wayback Machine
+              webapp has been deployed, plus the name of the Access Point. See
+              below for example CONTEXT mappings.
+            </li>
+            <li>
+              <b>TIMESTAMP</b> is 0 to 14 digits of a date, possibly
+              followed by an asterisk ('*'). The format of a 
+              TIMESTAMP is:
+              <div>
+                <code>
+                  YYYYMMDDHHmmss
+                </code>
+              </div>
+              where
+              <ul>
+                <li>
+                  <b>YYYY</b> represents a 4-digit year
+                </li>
+                <li>
+                  <b>MM</b> represents a 2-digit, 1-based month 
+                  (Jan = 1 - Dec = 12)
+                </li>
+                <li>
+                  <b>DD</b> represents a 2-digit day of the month
+                  (01-31)
+                </li>
+                <li>
+                  <b>HH</b> represents a 2-digit hour (01-24)
+                </li>
+                <li>
+                  <b>mm</b> represents a 2-digit minute (00-59)
+                </li>
+                <li>
+                  <b>ss</b> represents a 2-digit second (00-59)
+                </li>
+              </ul>
+              The following are example dates expressed as 
+              14-digit Timestamps:
+              <br></br>
+              <div>
+                Jan 13, 1999 03:34:35 (am UTC) - 19990113033435
+              </div>
+              <br></br>
+              <div>
+                Dec 31, 2004 23:01:00 (pm UTC) - 20041231230100
+              </div>
+              <br></br>
+            </li>
+            <li>
+              <b>URL</b> represents the actual URL that should be 
+              replayed.
+            </li>
+          </ul>
+          <br></br>
+          <div>
+            Here is an example Archival URL, on an assumed host 
+            <b>wayback.somehost.org</b>, with a wayback webapp deployed as
+            <b>ROOT</b>, via the Access Point named <b>80:archive</b> for the 
+            page <b>http://www.yahoo.com/</b> on Dec 31, 1999 at 12:00:00 UTC.
+            <br></br>
+            <div>
+              <code>
+                http://wayback.somehost.org/archive/19991231120000/http://www.yahoo.com/
+              </code>
+            </div>
+            <br></br>
+          </div>
+          <br></br>
+          <div>
+            Archival URL mode allows replay of all versions captured
+            of a particular URL, by modifying the Timestamp. When an
+            Archival URL Replay request is received for a URL, the
+            Wayback Machine will replay the closest version in time
+            to the Timestamp requested of the particular URL.
+          </div>
+          <br></br>
+          <div>
+            HTML documents returned in Archival URL Replay mode are 
+            modified from the original version to provide a replay 
+            experience more consistent to viewing the original
+            content. This is accomplished by the insertion of 
+            Javascript, which executes in the client browser after 
+            the page has loaded. This Javascript modifies most URLs
+            within the HTML page, both Anchors (links) as well as
+            embedded content (images, applets, etc) so that they 
+            become appropriate Archival URL requests back to the Wayback
+            application.
+          </div>
+          <br></br>
+          <div>
+            This Javascript is imperfect: sometimes requests 
+            "leak" to the live web temporarily, before the 
+            Javascript has executed. Also, not all URLs are 
+            rewritten correctly, especially URLs that are created 
+            by Javascript that was in the original page, and 
+            specialized file types containing links like Flash and
+            PDF documents.
+          </div>
+          <br></br>
+          <div>
+            The <b>name</b> of the Access Point bean in the Spring configuration
+            file determines the CONTEXT and PORT used in Archival URLs within
+            that Access Point. The Servlet context name where the Wayback 
+            application is deployed also factors into the CONTEXT used within
+            Archival URLs for each Access Point.
+          </div>
+          <br></br>
+          <div>
+            The following examples show the Archival URL prefix for the 
+            following two Access Points depending on the Wayback webapp being
+            deployed in two different contexts, "ROOT" and "wayback".
+          </div>
+          <br></br>
+          <div>
+            If the following Access Point definitions are present in the 
+            wayback.xml:
+            <pre>
+
+&lt;bean name=&quot;8080:wayback&quot; class=&quot;org.archive.wayback.webapp.AccessPoint&quot;&gt;
+  &lt;property name=&quot;collection&quot; ref=&quot;localcollection&quot; /&gt;
+  ...
+&lt;/bean&gt;
+
+&lt;bean name=&quot;8080:wayback2&quot; class=&quot;org.archive.wayback.webapp.AccessPoint&quot;&gt;
+  &lt;property name=&quot;collection&quot; ref=&quot;localcollection&quot; /&gt;
+  ...
+&lt;/bean&gt;
+
+            </pre>
+            then the following table shows the Archival URL prefixes to access
+            each collection on the host "wayback.somehost.org" assuming a
+            Tomcat Connector listening on port 8080:
+          </div>
+          <table>
+            <tr>
+              <th>
+                webapp deployed at
+              </th>
+              <th>
+                Access Point bean name
+              </th>
+              <th>
+                Archival URL prefix
+              </th>
+            </tr>
+            <tr>
+              <td>
+                ROOT
+              </td>
+              <td>
+                8080:wayback
+              </td>
+              <td>
+                http://wayback.somehost.org:8080/wayback/
+              </td>
+            </tr>
+            <tr>
+              <td>
+                ROOT
+              </td>
+              <td>
+                8080:wayback2
+              </td>
+              <td>
+                http://wayback.somehost.org:8080/wayback2/
+              </td>
+            </tr>
+            <tr>
+              <td>
+                wb-webapp
+              </td>
+              <td>
+                8080:wayback
+              </td>
+              <td>
+                http://wayback.somehost.org:8080/wb-webapp/wayback/
+              </td>
+            </tr>
+            <tr>
+              <td>
+                wb-webapp
+              </td>
+              <td>
+                8080:wayback2
+              </td>
+              <td>
+                http://wayback.somehost.org:8080/wb-webapp/wayback2/
+              </td>
+            </tr>
+          </table>
+        </p>
+        <p>
+          The properties <b>replay</b>, <b>parser</b>, and <b>uriConverter</b>
+          for Archival URL Access Points must be set to the following 
+          implementations:
+          <pre>
+
+    &lt;property name=&quot;replay&quot;&gt;
+      &lt;bean class=&quot;org.archive.wayback.archivalurl.ArchivalUrlReplayDispatcher&quot;&gt;
+        &lt;property name=&quot;jsInserts&quot;&gt;
+          &lt;list&gt;
+            &lt;value&gt;http://wayback.somehost.org:8080/wb-webapp/wm.js&lt;/value&gt;
+          &lt;/list&gt;
+        &lt;/property&gt;
+        &lt;property name=&quot;jspInserts&quot;&gt;
+          &lt;list&gt;
+            &lt;value&gt;/replay/Timeline.jsp&lt;/value&gt;
+          &lt;/list&gt;
+        &lt;/property&gt;
+      &lt;/bean&gt;
+    &lt;/property&gt;
+
+    &lt;property name=&quot;parser&quot;&gt;
+      &lt;bean class=&quot;org.archive.wayback.archivalurl.ArchivalUrlRequestParser&quot;
+        init-method=&quot;init&quot;&gt;
+        &lt;property name=&quot;maxRecords&quot; value=&quot;1000&quot; /&gt;
+        &lt;property name=&quot;earliestTimestamp&quot; value=&quot;1996&quot; /&gt;
+      &lt;/bean&gt;
+    &lt;/property&gt;
+
+    &lt;property name=&quot;uriConverter&quot;&gt;
+      &lt;bean class=&quot;org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter&quot;&gt;
+        &lt;property name=&quot;replayURIPrefix&quot; value=&quot;http://wayback.somehost.org:8080/wb-webapp/wayback/&quot; /&gt;
+      &lt;/bean&gt;
+    &lt;/property&gt;
+
+          </pre>
+        </p>
+        <table>
+          <tr>
+            <th>
+              configuration
+            </th>
+            <th>
+              optional/required
+            </th>
+            <th>
+              description
+            </th>
+          </tr>
+          <tr>
+            <td>
+              jsInserts
+            </td>
+            <td>
+              required
+            </td>
+            <td>
+              This list must include a reference to the wm.js javascript file,
+              but references to additional javascript files here will result in
+              a reference to those javascript URLs within all replayed HTML
+              pages. 
+            </td>
+          </tr>
+          <tr>
+            <td>
+              jspInserts
+            </td>
+            <td>
+              optional
+            </td>
+            <td>
+              If any values are referenced here, then those .jsp files will be
+              invoked for every replayed document, and the resulting output 
+              will be included in replayed HTML pages. The example included
+              here will result in a Timeline banner in-page presence being
+              included with each replayed HTML page, allowing navigation
+              between different versions of the current URL.
+            </td>
+          </tr>
+          <tr>
+            <td>
+              maxRecords
+            </td>
+            <td>
+              optional
+            </td>
+            <td>
+              Sets the default maximum requested records for Archival URL query
+              requests.
+            </td>
+          </tr>
+          <tr>
+            <td>
+              earliestTimestamp
+            </td>
+            <td>
+              optional
+            </td>
+            <td>
+              Set the default start date for requested records for Archival 
+              URL query requests.
+            </td>
+          </tr>
+          <tr>
+            <td>
+              replayURIPrefix
+            </td>
+            <td>
+              required
+            </td>
+            <td>
+              Points to the Archival URL prefix of the Access Point as
+              illustrated in the preceding table.
+            </td>
+          </tr>
+        </table>
+      </subsection>
+
+      <subsection name="Proxy">
+        <p>
+          Wayback can be configured to act as an HTTP proxy server. To utilize
+          this mode, the wayback webapp must be deployed as the ROOT context,
+          and client browser must be configured to proxy all HTTP requests
+          through the Wayback Machine application. Instead of retrieving
+          documents from the live web, the Wayback Machine will retrieve
+          documents from the local repository of ARC files.
+        </p>
+        <br></br>
+        <br></br>
+        <p>
+          Proxy Replay mode does not suffer from the shortcomings of
+          the inserted Javascript that the Archival URL mode uses,
+          but it has one major drawback: there is no way to
+          specify which version of a captured document should 
+          be replayed. Only the URL to be replayed is sent from the 
+          client browser to the Wayback Machine - no date information
+          is sent with the request.
+        </p>
+        <br></br>
+        <br></br>
+        <p>
+          In Proxy Replay mode, the Wayback Machine will return the 
+          most recent version captured of any requested page. This 
+          behavior can be changed by using the experimental Firefox-specific
+          plugin developed by Oskar Grenholm. You can find out more about 
+          this plugin and download it 
+          <a href="http://archive-access.sourceforge.net/projects/waxtoolbar/">
+            here
+          </a>.
+        </p>
+        <br></br>
+        <br></br>
+        <p>
+          Thanks Oskar!
+        </p>
+
+        <br></br>
+        <br></br>
+        <div>
+          The following is an example Proxy Replay Access Point definition. It
+          assumes to be running on a host <b>wayback.somehost.org</b>, that a
+          Tomcat Connector has been added for port <b>8090</b>,
+          that the Wayback webapp has been deployed at the ROOT context, and
+          that another Archival URL Access Point named "8080:wayback" has been
+          configured.
+          <pre>
+
+&lt;bean name=&quot;8090&quot; parent=&quot;8080:wayback&quot;&gt;
+  &lt;property name=&quot;replay&quot;&gt;
+    &lt;bean class=&quot;org.archive.wayback.proxy.ProxyReplayDispatcher&quot; /&gt;
+  &lt;/property&gt;
+  &lt;property name=&quot;uriconverter&quot;&gt;
+    &lt;bean class=&quot;org.archive.wayback.proxy.RedirectResultURIConverter&quot;&gt;
+      &lt;property name=&quot;redirectURI&quot; value=&quot;http://wayback.somehost.org:8090/jsp/Redirect.jsp&quot; /&gt;
+    &lt;/bean&gt;
+  &lt;/property&gt;
+  &lt;property name=&quot;parser&quot;&gt;
+    &lt;bean class=&quot;org.archive.wayback.proxy.ProxyRequestParser&quot; init-method=&quot;init&quot;&gt;
+      &lt;property name=&quot;localhostNames&quot;&gt;
+        &lt;list&gt;
+          &lt;value&gt;wayback.somehost.org&lt;/value&gt;
+        &lt;/list&gt;
+      &lt;/property&gt;
+      &lt;property name=&quot;maxRecords&quot; value=&quot;1000&quot; /&gt;
+    &lt;/bean&gt;
+  &lt;/property&gt;
+&lt;/bean&gt;
+
+          </pre>
+        </div>
+        <br></br>
+        <br></br>
+        <div>
+          <b>redirectURI</b> is required, and must be set to the name of the
+          host where the Wayback application is running. If this is not the 
+          primary name of the machine running the Wayback application, then you
+          may need to also specify the hostname used for the Wayback application
+          in the <b>localhostNames</b> configuration list.
+        </div> 
+      </subsection>
+
+    </section>
+
+
+
+    <section name="Excluding Documents within an AccessPoint">
+      <subsection name="Excluding Documents with live Robots.txt">
+        Documents may be excluded from access within an Access Point by
+        retroactively enforcing the policies in a web sites live robots.txt
+        documents by adding the following configuration in the Access Point.
+        <pre>
+
+&lt;property name=&quot;exclusionFactory&quot; ref=&quot;excluder-factory-robot&quot; /&gt;
+
+        </pre>
+
+        <br></br>
+        Please see the default wayback.xml packaged with this software for an 
+        example bean definition for the referenced <b>excluder-factory-robot</b>
+        bean.
+      </subsection>
+
+      <subsection name="Excluding Documents with an Administrative List">
+        Documents may be excluded from access within an Access Point by
+        using a plain text file listing URL prefixes which should be blocked.
+        If this option is used with a non-zero value for <b>checkInterval</b>,
+        the Wayback software will monitor the external file, and will
+        automatically reload the file when it changes.
+        <br></br>
+        The following Spring configuration defines a static exclusion file that
+        causes URLs listed in the file <b>/tmp/exclude.txt</b> to be blocked, 
+        with the file being checked for updates every 10 minutes.
+        <pre>
+
+&lt;bean id=&quot;static-exclusion&quot; class=&quot;org.archive.wayback.accesscontrol.staticmap.StaticMapExclusionFilterFactory&quot;&gt;
+  &lt;property name=&quot;file&quot; value=&quot;/tmp/exclude.txt&quot; /&gt;
+  &lt;property name=&quot;checkInterval&quot; value=&quot;600&quot; /&gt;
+&lt;/bean&gt;
+
+        </pre>
+        <br></br>
+        Adding the following configuration to an Access Point will cause the
+        excluded URLs named in <b>/tmp/exclude.txt</b> to be inaccessible:
+        <pre>
+
+&lt;property name=&quot;exclusionFactory&quot; ref=&quot;static-exclusion&quot;&gt;
+
+        </pre>
+      </subsection>
+
+    </section>
+
+    <section name="Restricting who can interact with an AccessPoint">
+
+      <subsection name="Limiting Access based on IP Addresses">
+        Access to a particular Access Point can be limited to a specific IP
+        address range by adding the following configuration to an Access Point
+        definition.
+
+        <pre>
+
+&lt;property name=&quot;authentication&quot;&gt;
+  &lt;bean class=&quot;org.archive.wayback.authenticationcontrol.IPMatchesBooleanOperator&quot;&gt;
+    &lt;property name=&quot;allowedRanges&quot;&gt;
+      &lt;list&gt;
+        &lt;value&gt;192.168.1.16/24&lt;/value&gt;
+      &lt;/list&gt;
+    &lt;/property&gt;
+  &lt;/bean&gt;
+&lt;/property&gt;
+
+        </pre>
+
+        which would have the affect of blocking users outside the 
+        <b>192.168.1.16/24</b> network. 
+      </subsection>
+
+      <subsection name="Limiting Access based on HTTP BASIC Authentication">
+        Access can be restricted to a particular Access Point using Tomcat's
+        built-in configuration options. By adding the following configuration to
+        the web.xml, which assumes an Access Point named "8080:secure" (or 
+        really for any port):
+        <pre>
+
+&lt;security-constraint&gt;
+  &lt;web-resource-collection&gt;
+    &lt;web-resource-name&gt;Secured-Wayback&lt;/web-resource-name&gt;
+    &lt;url-pattern&gt;/secure/*&lt;/url-pattern&gt;
+  &lt;/web-resource-collection&gt;
+  &lt;auth-constraint&gt;
+    &lt;role-name&gt;wayback&lt;/role-name&gt;
+  &lt;/auth-constraint&gt;
+&lt;/security-constraint&gt;
+
+&lt;login-config&gt;
+  &lt;auth-method&gt;BASIC&lt;/auth-method&gt;
+  &lt;realm-name&gt;Secured-Wayback&lt;/realm-name&gt;
+&lt;/login-config&gt;
+
+        </pre>
+        <br></br>
+        <br></br>
+        And then adding user configuration to the tomcat-users.xml file:
+        <pre>
+
+&lt;role rolename=&quot;wayback&quot;/&gt;
+&lt;user password=&quot;changeM3&quot; roles=&quot;wayback&quot; username=&quot;brad&quot;/&gt;
+
+        </pre>
+      </subsection>
+    </section>
+
+    <section name="Adding Additional Configurations to an AccessPoint">
+      <p>
+        The following configuration can be added to an Access Point:
+        <pre>
+
+&lt;property name=&quot;configs&quot;&gt;
+        &lt;props&gt;
+                &lt;prop key=&quot;inst&quot;&gt;Acrobatic Association&lt;/prop&gt;
+                &lt;prop key=&quot;logo&quot;&gt;http://images.somehost.com/logos/acro.jpg&lt;/prop&gt;
+        &lt;/props&gt;
+&lt;/property&gt;
+
+        </pre>
+      </p>
+      <p>
+        These configurations are then accessible in the common .jsp rendering
+        pages, allowing Collection or Access Point specific text to be relayed
+        to shared .jsp files, which can then retrieve the Access Point specific
+        configuration with the following code:
+        
+        <pre>
+
+UIResults results = UIResults.getFromRequest(request);
+String instString = results.getContextConfig("inst");
+String logoString = results.getContextConfig("logo");
+
+        </pre>
+      </p>
+    </section>
+
+    <section name="External Tools">
+
+      <p>
+        The wayback distribution includes several command-line tools
+        that assist in creating and testing index files, and populating
+        the ArcProxy location db.
+      </p>
+      <p>
+        All the command line tools can be found which can be found 
+        underneath the directory where you unpacked your distribution
+        at:<b>bin/*</b> (example: <i>bin/location-client</i>). You will
+        need to change permissions on the tools to allow them to be
+        executed:
+      </p>
+      <p>
+        <code>
+          chmod a+x bin/*
+        </code>
+      </p>
+
+      <subsection name="bdb-client">
+        <p>
+          This tool allows several maintenance operations to be 
+          performed on BDB files. There are two primary modes, read 
+          and write.
+          <ol>
+            <li>
+              <code>
+                bin/bdb-client -r BDB_DIR BDB_NAME [PREFIX]
+              </code>
+              <p>
+                Output records from a BDB database on STDOUT.
+              </p>
+              <p>
+                where:
+                <ul>
+                  <li>
+                    <i>BDB_DIR</i> Open BDB in this
+                    directory.
+                  </li>
+                  <li>
+                    <i>BDB_NAME</i> Open BDB with this name.
+                  </li>
+                  <li>
+                    <i>PREFIX</i> (optional) if present, 
+                    only output records whose KEY begins 
+                    with PREFIX. If this option is omitted,
+                    all records will be output from the
+                    BDB. Records are always output in sorted
+                    order.
+                  </li>
+                </ul>
+              </p>
+            </li>
+            <li>
+              <code>
+                bin/bdb-client -w BDB_DIR BDB_NAME
+              </code>
+              <p>
+                Read CDX format lines from STDIN, and insert
+                into a BDB, creating the BDB if needed.
+              </p>
+              <p>
+                where:
+                <ul>
+                  <li>
+                    <i>BDB_DIR</i> Open BDB in this
+                    directory.
+                  </li>
+                  <li>
+                    <i>BDB_NAME</i> Open BDB with this name.
+                  </li>
+                </ul>
+              </p>
+            </li>
+          </ol>
+        </p>
+      </subsection>
+
+      <subsection name="bin-search">
+        <p>
+          This tool allows binary searching against large sorted text 
+          files. It will output lines prefixed with a particular 
+          <i>key</i> on STDOUT.
+        </p>
+        <p>
+          <code>
+            bin/bin-search KEY FILE [FILE2 ...]
+          </code>
+          <ul>
+            <li>
+              <i>KEY</i> String prefix for lines that should be
+              output.
+            </li>
+            <li>
+              <i>FILE [FILE2 ...]</i> Sequentially search through
+              each file specified, outputting the lines prefixed
+              with KEY for each file. Note that the complete
+              output of bin-search will be sorted when used with
+              a single file, but when multiple files are searched,
+              the results may not be sorted completely.
+            </li>
+          </ul>
+        </p>
+      </subsection>
+
+      <subsection name="index-client">
+        <p>
+          This tool has two usages:
+          <ol>
+            <li>
+              <code>
+                bin/index-client ARC_PATH
+              </code>
+              <p>
+                Generation of a CDX format index data for a 
+                single ARC file named by ARC_PATH. The CDX 
+                format data is sent to STDOUT, and can be saved
+                to a file, sorted, etc. This is needed to
+                generate sorted CDX format indexes.
+              </p>
+            </li>
+            <li>
+              <code>
+                bin/index-client TMP_DIR INCOMING_URL LOCATION_URL ARC_DIR ARC_URL_PREFIX
+              </code>
+              <p>
+                where:
+                <ul>
+                  <li>
+                    <i>
+                      TMP_DIR
+                    </i>
+                    Temporary working directory where 
+                    ex.
+                    <b>
+                      /tmp/
+                    </b>
+                  </li>
+                  <li>
+                    <i>
+                      INCOMING_URL
+                    </i>
+                    HTTP path to the RemoteSubmitFilter 
+                    which allows remote submission of index
+                    data in CDX format for automatic merging
+                    with a BDB ResourceIndex.
+                    ex.
+                    <b>
+                      http://wayback-webapp.your-archive.org/wayback/index-incoming/
+                    </b>
+                  </li>
+                  <li>
+                    <i>
+                      LOCATION_URL
+                    </i>
+                    is the absolute URL where the ArcProxy can be 
+                    accessed. ex.
+                    <b>
+                      http://wayback-webapp.your-archive.org:8080/locationdb/locationDB
+                    </b>
+                  </li>
+                  <li>
+                    <i>
+                      ARC_DIR
+                    </i>
+                    is the absolute path to the directory on the local
+                    machine which holds ARC files ex.
+                    <b>
+                      /2/arc-collection-1
+                    </b>
+                  </li>
+                  <li>
+                    <i>
+                      ARC_URL_PREFIX
+                    </i>
+                    is the absolute URL where the directory ARC_DIR can
+                    be accessed. ex.
+                    <b>
+                      http://arc-storage-node-1.your-archive.org/2/arc-collection-1/
+                    </b>
+                  </li>
+                </ul>
+              </p>
+              <p>
+                If you chose the Http11 ResourceStore, and are 
+                using the BDB ResourceIndex implementation then
+                you will need to run this script with these
+                arguments once for each directory containing ARC
+                files (on each machine containing ARC files.)
+                For each ARC file found, this script will:
+                <ol>
+                  <li>
+                    generate the plain-text index file for
+                    the ARC file
+                  </li>
+                  <li>
+                    push that plain-text file onto the
+                    machine running the Wayback webapp, 
+                    where the ResourceIndex database is 
+                    stored. The plain-text index files will
+                    arrive in the IndexPipeline directory
+                    structure so they are merged into the
+                    ResourceIndex.
+                  </li>
+                  <li>
+                    notify the ArcProxy LocationDB of the
+                    URL where the ARC file can be accessed,
+                    for later Replay requests which require
+                    access to documents in the ARC file.
+                  </li>
+                </ol>
+              </p>
+            </li>
+          </ol>
+        </p>
+      </subsection>
+
+      <subsection name="location-client">
+        <p>
+          If you have already populated your ResourceIndex, and just
+          need to inform the ArcProxy LocationDB of where ARC files
+          are located. This script will allow you to synchronize the
+          ArcProxy LocationDB with the directories holding your ARC
+          files.
+        </p>
+        <p>
+          Execute the script once for each directory containing
+          ARC files (on each machine containing ARC files.) Again, 
+          this script will <b>not</b> index the content of the ARC 
+          files, but will only populate the ArcProxy LocationDB with 
+          the locations of ARC files.
+        </p>
+        <p>
+          <code>
+            bin/location-client sync LOCATION_URL ARC_DIR ARC_URL_PREFIX
+          </code>
+        </p>
+        <p>
+          where:
+          <ul>
+            <li>
+              <i>
+                LOCATION_URL
+              </i>
+              is the absolute URL where the ArcProxy can be 
+              accessed. ex.
+              <b>
+                http://wayback-webapp.your-archive.org:8080/locationdb/locationDB
+              </b>
+            </li>
+            <li>
+              <i>
+                ARC_DIR
+              </i>
+              is the absolute path to the directory on the local
+              machine which holds ARC files ex.
+              <b>
+                /2/arc-collection-1
+              </b>
+            </li>
+            <li>
+              <i>
+                ARC_URL_PREFIX
+              </i>
+              is the absolute URL where the directory ARC_DIR can
+              be accessed. ex.
+              <b>
+                http://arc-storage-node-1.your-archive.org/2/arc-collection-1/
+              </b>
+            </li>
+          </ul>
+        </p>
+      </subsection>
+
+      <subsection name="url-client">
+        <p>
+          URLs stored in BDB and CDX format ResourceIndexes are
+          <i>canonicalized</i> to a more genertic form. Before 
+          performing a lookup operation on the ResourceIndex, the same
+          canonicalization function is applied to requested URLs. This
+          tool will read space(" ") delimited lines from STDIN, and
+          output the same lines on STDOUT, but with one column
+          altered. The column that is changed is assumed to be a URL,
+          and the version output is the canonicalized form of the
+          input URL.
+        </p>
+        <p>
+          This tool is mostly useful for debugging the 
+          canonicalization function, but can also be used, if the
+          canonicalization function is altered, to update an existing
+          CDX index, without recreating CDX files from original ARCs.
+        </p>
+        <p>
+          <code>
+            bin/url-client [-cdx] [-f FIELD]
+          </code>
+          <ul>
+            <li>
+              <i>-cdx</i> Pass thru lines prefixed with " CDX "
+              unchanged.
+            </li>
+            <li>
+              <i>-f FIELD</i> alter column FIELD of each line,
+              instead of the default column 1.
+            </li>
+          </ul>
+        </p>
+      </subsection>
+
+    </section>
+
+
+    <section name="ArcProxy and LocationDB application">
+
+      <p>
+
+        The Wayback software includes an additional application, the ArcProxy,
+        which can simplify some distributed ResourceStore implementations. The
+        ArcProxy application exposes two external services, one used to 
+        configure the underlying database mapping ARC filenames to the actual,
+        fully qualified HTTP 1.1 URL, and a second service which reverse proxies
+        incoming HTTP 1.1 range requests to appropriate back-end storage nodes.
+      
+      </p>
+
+      <p>
+        The <b>arcproxy</b> reverse proxy service allows one or more HttpARCResourceStore
+        instances to configure a single URL prefix where all ARC files are
+        assumed to be located. This reverse proxy then uses a BDB JE to find the
+        actual current location of the ARC file, and forward the request to the
+        actual host holding the ARC file.
+      </p>
+      
+      <p>
+        The <b>locationdb</b> service allows population and management of the
+        BDB JE database(the <i>locationDB</i>) used by the <b>arcproxy</b>
+        service. There is also a command line tool, <b>location-client</b> 
+        described elsewhere in this document which provides command line access
+        to the management of the locationDB. 
+      </p>
+      
+      <p>
+        Adding the following configuration to wayback.xml will expose the 
+        arcproxy and locationdb services:
+      </p>
+      <pre>
+
+&lt;bean id=&quot;filelocationdb&quot; class=&quot;org.archive.wayback.resourcestore.http.FileLocationDB&quot;
+  init-method=&quot;init&quot;&gt;
+  &lt;property name=&quot;bdbPath&quot; value=&quot;/tmp/wayback/arc-db&quot; /&gt;
+  &lt;property name=&quot;bdbName&quot; value=&quot;DB1&quot; /&gt;
+  &lt;property name=&quot;logPath&quot; value=&quot;/tmp/wayback/arc-db.log&quot; /&gt;
+&lt;/bean&gt;
+
+&lt;bean name=&quot;8080:arcproxy&quot; class=&quot;org.archive.wayback.resourcestore.http.ArcProxyServlet&quot;&gt;
+  &lt;property name=&quot;locationDB&quot; ref=&quot;filelocationdb&quot; /&gt;
+&lt;/bean&gt;
+
+&lt;bean name=&quot;8080:locationdb&quot; class=&quot;org.archive.wayback.resourcestore.http.FileLocationDBServlet&quot;&gt;
+  &lt;property name=&quot;locationDB&quot; ref=&quot;filelocationdb&quot; /&gt;
+&lt;/bean&gt;
+
+      </pre>
+
+    </section>
+
+  </body>
+</document>
