@@ -2,6 +2,12 @@
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
 <beans>
 
+<!--
+    The following 3 beans are required when using the ArcProxy for providing 
+    HTTP 1.1 remote access to ARC files distributed across multiple computers 
+    or directories.
+-->
+<!-- 
 	<bean id="filelocationdb" class="org.archive.wayback.resourcestore.http.FileLocationDB"
 		init-method="init">
 		<property name="bdbPath" value="/tmp/wayback/arc-db" />
@@ -15,133 +21,160 @@
 	<bean name="8080:locationdb" class="org.archive.wayback.resourcestore.http.FileLocationDBServlet">
 		<property name="locationDB" ref="filelocationdb" />
 	</bean>
-
-	<bean id="bdbsearchresultsource" 
-		class="org.archive.wayback.resourceindex.bdb.BDBIndex"
-		init-method="init">
-		<property name="bdbName" value="DB1" />
-		<property name="bdbPath" value="/tmp/wayback/index/" />
-	</bean>
-
-	<bean id="cdxsearchresultsource" class="org.archive.wayback.resourceindex.cdx.CDXIndex">
-		<property name="path" value="/tmp/wayback/cdx-index/index.cdx" />
-	</bean>
-
-	<bean id="compositecdxresultsource" class="org.archive.wayback.resourceindex.CompositeSearchResultSource">
-		<property name="CDXSources">
-			<list>
-				<value>/tmp/wayback/cdx-index/index.cdx.1</value>
-				<value>/tmp/wayback/cdx-index/index.cdx.2</value>
-			</list>
-		</property>
-	</bean>	
-
-	<bean id="localbdbindex" class="org.archive.wayback.resourceindex.LocalResourceIndex">
-		<property name="source" ref="bdbsearchresultsource" />
-		<property name="maxRecords" value="10000" />
-	</bean>
-	<bean id="localcdxindex" class="org.archive.wayback.resourceindex.LocalResourceIndex">
-		<property name="source" ref="cdxsearchresultsource" />
-		<property name="maxRecords" value="10000" />
-	</bean>
-
-	<bean id="localstore" class="org.archive.wayback.resourcestore.LocalARCResourceStore">
-		<property name="arcDir" value="/tmp/wayback/arcs/" />
-	</bean>
-
-	<bean id="standardquery" class="org.archive.wayback.query.Renderer">
-	</bean>
-	<bean id="calendarquery" class="org.archive.wayback.query.Renderer">
-	</bean>
-	<bean id="xmlquery" class="org.archive.wayback.query.Renderer">
-		<property name="captureJsp" value="/jsp/XMLResults.jsp" />
-		<property name="urlJsp" value="/jsp/XMLResults.jsp" />
-		<property name="errorJsp" value="/jsp/XMLError.jsp" />
-	</bean>
-
-
-	<bean id="archivalurlreplay" class="org.archive.wayback.archivalurl.ArchivalUrlReplayDispatcher">
-		<property name="jsInserts">
-			<list>
-				<value>http://localhost:8080/wm.js</value>
-			</list>
-		</property>
-	</bean>
-	<bean id="archivalurluriconverter" 
-		class="org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter">
-		<property name="replayURIPrefix" value="http://localhost:8080/wayback/" />
-	</bean>
-	<bean id="archivalurlparser" class="org.archive.wayback.archivalurl.ArchivalUrlRequestParser" init-method="init">
-		<property name="maxRecords" value="1000" />
-	</bean>
-
-
-	<bean id="proxyreplay" class="org.archive.wayback.proxy.ProxyReplayDispatcher">
-	</bean>
-	<bean id="proxyuriconverter" class="org.archive.wayback.proxy.RedirectResultURIConverter">
-		<property name="redirectURI" value="http://localhost:8090/jsp/QueryUI/Redirect.jsp" />
-	</bean>
-	<bean id="proxyparser" class="org.archive.wayback.proxy.ProxyRequestParser" init-method="init">
-		<property name="maxRecords" value="1000" />
-	</bean>
-
-
-	<bean id="archivalcontext" abstract="true"
-		class="org.archive.wayback.webapp.WaybackContext">
-		<property name="index" ref="localbdbindex" />
-		<property name="store" ref="localstore" />
-		<property name="query" ref="standardquery" />
-		<property name="replay" ref="archivalurlreplay" />
-		<property name="parser" ref="archivalurlparser" />
-		<property name="uriConverter" ref="archivalurluriconverter" />
-	</bean>
-
-	<bean name="8080:wayback" class="org.archive.wayback.webapp.WaybackContext">
-		<property name="configs">
-			<props>
-				<prop key="key1">key1-value</prop>
-				<prop key="key2">key2-value</prop>
-			</props>
-		</property>
-<!--
-		<property name="index" ref="localcdxindex" />
 -->
-		<property name="index">
-			<bean class="org.archive.wayback.resourceindex.LocalResourceIndex">
-				<property name="source">
-					<bean class="org.archive.wayback.resourceindex.bdb.BDBIndex"
-						init-method="init">
-						<property name="bdbName" value="DB1" />
-						<property name="bdbPath" value="/tmp/wayback/index/" />
-						<property name="updater">
-							<bean class="org.archive.wayback.resourceindex.bdb.BDBIndexUpdater">
-								<property name="incoming" value="/tmp/wayback/index-data/incoming/" />
-								<property name="failed" value="/tmp/wayback/index-data/failed/" />
-								<property name="merged" value="/tmp/wayback/index-data/merged/" />
-								<property name="runInterval" value="10000" />
-							</bean>
-						</property>
-					</bean>
-				</property>
-				<property name="maxRecords" value="10000" />
-			</bean>
-		</property>
-		<property name="store">
-			<bean class="org.archive.wayback.resourcestore.LocalARCResourceStore"
-				init-method="init">
-				<property name="arcDir" value="/tmp/wayback/arcs/" />
-				<property name="queuedDir" value="/tmp/wayback/arc-indexer/queued" />
-				<property name="workDir" value="/tmp/wayback/arc-indexer/work" />
-				<property name="runInterval" value="10000" />
-				<property name="indexClient">
-					<bean class="org.archive.wayback.resourceindex.indexer.IndexClient">
-						<property name="tmpDir" value="/tmp/wayback/arc-indexer/tmp" />
-						<property name="target" value="/tmp/wayback/index-data/incoming" />						
-					</bean>
-				</property>		
-			</bean>
-		</property>
-		
+
+
+<!--
+    The following 2 beans are required when using exclusions based on live
+    robots.txt documents.
+-->
+<!--
+   <bean id="livewebcache" class="org.archive.wayback.liveweb.LiveWebCache">
+
+      <property name="arcCacheDir">
+        <bean class="org.archive.wayback.liveweb.ARCCacheDirectory"
+          init-method="init">
+          
+          <property name="arcDir" value="/tmp/wayback/liveweb/arcs/" />
+          <property name="arcPrefix" value="live" />
+        </bean>
+      </property>
+
+      <property name="cacher">
+        <bean class="org.archive.wayback.liveweb.URLCacher">
+          <property name="tmpDir" value="/tmp/wayback/liveweb/tmp/" />
+        </bean>
+      </property>
+
+      <property name="index">
+        <bean class="org.archive.wayback.liveweb.LiveWebLocalResourceIndex">
+
+          <property name="source">
+            <bean class="org.archive.wayback.resourceindex.bdb.BDBIndex"
+              init-method="init">
+
+              <property name="bdbName" value="DB1" />
+              <property name="bdbPath" value="/tmp/wayback/liveweb/db/" />
+            </bean>
+          </property>
+        </bean>
+      </property>
+   </bean>
+   
+    <bean id="excluder-factory-robot" class="org.archive.wayback.accesscontrol.robotstxt.RobotExclusionFilterFactory">
+      <property name="maxCacheMS" value="86400000" />
+      <property name="userAgent" value="ia_archiver" />
+      <property name="webCache" ref="livewebcache" />
+    </bean>
+-->
+
+  <bean id="localbdbcollection" class="org.archive.wayback.webapp.WaybackCollection">
+
+    <property name="resourceStore">
+      <bean class="org.archive.wayback.resourcestore.LocalARCResourceStore"
+        init-method="init">
+        <property name="arcDir" value="/tmp/wayback/arcs/" />
+        <property name="queuedDir" value="/tmp/wayback/arc-indexer/queued" />
+        <property name="workDir" value="/tmp/wayback/arc-indexer/work" />
+        <property name="runInterval" value="10000" />
+        <property name="indexClient">
+          <bean class="org.archive.wayback.resourceindex.indexer.IndexClient">
+            <property name="tmpDir" value="/tmp/wayback/arc-indexer/tmp" />
+            <property name="target" value="/tmp/wayback/index-data/incoming" />           
+          </bean>
+        </property>
+      </bean>
+    </property>
+
+    <property name="resourceIndex">
+      <bean class="org.archive.wayback.resourceindex.LocalResourceIndex">
+        <property name="source">
+          <bean class="org.archive.wayback.resourceindex.bdb.BDBIndex"
+            init-method="init">
+            <property name="bdbName" value="DB1" />
+            <property name="bdbPath" value="/tmp/wayback/index/" />
+            <property name="updater">
+              <bean class="org.archive.wayback.resourceindex.bdb.BDBIndexUpdater">
+                <property name="incoming" value="/tmp/wayback/index-data/incoming/" />
+                <property name="failed" value="/tmp/wayback/index-data/failed/" />
+                <property name="merged" value="/tmp/wayback/index-data/merged/" />
+                <property name="runInterval" value="10000" />
+              </bean>
+            </property>
+          </bean>
+        </property>
+        <property name="maxRecords" value="10000" />
+      </bean>
+    </property>
+  </bean>
+
+<!--
+    The following WaybackCollection bean template is required when using a
+    manually built local CDX index.
+-->
+<!--
+  <bean id="localcdxcollection" class="org.archive.wayback.webapp.WaybackCollection">
+
+    <property name="resourceStore">
+      <bean class="org.archive.wayback.resourcestore.LocalARCResourceStore"
+        init-method="init">
+        <property name="arcDir" value="/tmp/wayback/arcs/" />
+      </bean>
+    </property>
+
+    <property name="resourceIndex">
+      <bean class="org.archive.wayback.resourceindex.LocalResourceIndex">
+        <property name="source">
+				  <bean id="cdxsearchresultsource" class="org.archive.wayback.resourceindex.cdx.CDXIndex">
+				    <property name="path" value="/tmp/wayback/cdx-index/index.cdx" />
+				  </bean>
+        </property>
+        <property name="maxRecords" value="10000" />
+      </bean>
+    </property>
+  </bean>
+-->
+
+
+<!--
+    The following WaybackCollection bean template is required when using a
+    remote ResourceIndex and ResourceStore implementation. This will also 
+    required setting up an arcproxy and locationdb on the host specified by
+    the resourceStore:urlPrefix configuration, and an addition AccessPoint
+    on the host specified by the resourceIndex:searchUrlBase configuration.
+-->
+<!--
+  <bean id="remotecollection" class="org.archive.wayback.webapp.WaybackCollection">
+
+    <property name="resourceStore">
+      <bean class="org.archive.wayback.resourcestore.HttpARCResourceStore">
+        <property name="urlPrefix" value="http://localhost:8080/arcproxy/" />
+      </bean>
+    </property>
+
+    <property name="resourceIndex">
+		  <bean class="org.archive.wayback.resourceindex.RemoteResourceIndex"
+		    init-method="init">
+		    <property name="searchUrlBase" value="http://indexhost:8080/index/xmlquery" />
+		  </bean>
+    </property>
+  </bean>
+-->
+
+<!--
+    This is the only AccessPoint defined by default within this wayback.xml
+    Spring configuration file, providing an ArchivalURL Replay UI to the
+    "localbdbcollection" by providing ArchivalURL-specific implementations
+    of the replay, parser, and uriConverter.
+    
+    This AccessPoint currently will provide access only from the machine
+    running Tomcat. To provide external access, replace "localhost" with your
+    fully qualified hostname of the computer running Tomcat.
+-->
+	<bean name="8080:wayback" class="org.archive.wayback.webapp.AccessPoint">
+
+		<property name="collection" ref="localbdbcollection" />
+
 		<property name="query">
 			<bean class="org.archive.wayback.query.Renderer">
 				<property name="captureJsp" value="/jsp/HTMLResults.jsp" />
@@ -178,27 +211,78 @@
 		</property>
 	</bean>
 
-
-	<bean name="8081" parent="8080:wayback">
-		<property name="useServerName" value="true" />
-		<property name="replay">
-			<bean class="org.archive.wayback.domainprefix.DomainPrefixReplayDispatcher" />
-		</property>
-
-		<property name="parser">
-			<bean class="org.archive.wayback.domainprefix.DomainPrefixCompositeRequestParser"
-				init-method="init">
-				<property name="hostPort" value="localhost.archive.org:8081" />
-				<property name="maxRecords" value="1000" />
-				<property name="earliestTimestamp" value="1996" />
+<!--
+    The following AccessPoint inherits all configuration from the 8080:wayback
+    AccessPoint, but only allows access from the specified IP network.
+-->
+<!--
+	<bean name="8080:netsecure" parent="8080:wayback">
+		<property name="authentication">
+			<bean class="org.archive.wayback.authenticationcontrol.IPMatchesBooleanOperator">
+				<property name="allowedRanges">
+					<list>
+						<value>192.168.1.16/24</value>
+					</list>
+				</property>
 			</bean>
 		</property>
-
-		<property name="uriConverter">
-			<bean class="org.archive.wayback.domainprefix.DomainPrefixResultURIConverter">
-				<property name="hostPort" value="localhost.archive.org:8081" />
-			</bean>
-		</property>
+    <property name="uriConverter">
+      <bean class="org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter">
+        <property name="replayURIPrefix" value="http://192.168.1.16:8080/netsecure/" />
+      </bean>
+    </property>
 	</bean>
+-->
 
+<!--
+    The following AccessPoint inherits all configuration from the 8080:wayback
+    AccessPoint, but checks live web robots.txt documents to determine if 
+    archived content should be accessible.
+    
+    Note: using this AccessPoint requires enabling the "livewebcache" and 
+          "excluder-factory-robot" beans declared at the top of this file. 
+-->
+<!--
+  <bean name="8080:robots" parent="8080:wayback">
+    <property name="exclusionFactory" ref="excluder-factory-robot" />
+    <property name="uriConverter">
+      <bean class="org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter">
+        <property name="replayURIPrefix" value="http://localhost:8080/robots/" />
+      </bean>
+    </property>
+  </bean>
+-->
+
+
+<!--
+    The following AccessPoint inherits all configuration from the 8080:wayback
+    AccessPoint, but provides a Proxy Replay UI to the same collection. These
+    two access points can be used simultaneously on the same Tomcat 
+    installation.
+  
+    Note: using this AccessPoint requires adding a "Connector" on port 8090
+         in your Tomcat's server.xml file.
+ -->
+<!--
+  <bean name="8090" parent="8080:wayback">
+    <property name="replay">
+		  <bean class="org.archive.wayback.proxy.ProxyReplayDispatcher" />
+		</property>
+    <property name="uriconverter">
+		  <bean class="org.archive.wayback.proxy.RedirectResultURIConverter">
+		    <property name="redirectURI" value="http://foo.archive.org:8090/jsp/Redirect.jsp" />
+  		</bean>
+  	</property>
+  	<property name="parser">
+		  <bean class="org.archive.wayback.proxy.ProxyRequestParser" init-method="init">
+		    <property name="localhostNames">
+		      <list>
+		        <value>foo.archive.org</value>
+		      </list>
+		    </property>
+		    <property name="maxRecords" value="1000" />
+		  </bean>
+		</property>
+  </bean>
+-->
 </beans>
