@@ -3,6 +3,21 @@
 	"http://java.sun.com/dtd/web-app_2_3.dtd">
 <web-app>
 
+	<security-constraint>
+		<web-resource-collection>
+			<web-resource-name>Secured-Wayback</web-resource-name>
+	 		<url-pattern>/usersecure/*</url-pattern>
+		</web-resource-collection>
+		<auth-constraint>
+			<role-name>wayback</role-name>
+		</auth-constraint>
+	</security-constraint>
+	
+	<login-config>
+		<auth-method>BASIC</auth-method>
+		<realm-name>Secured-Wayback</realm-name>
+	</login-config>
+
 	<!-- General Installation information
 	 -->
     <context-param>
