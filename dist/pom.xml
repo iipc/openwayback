@@ -66,16 +66,7 @@
     
   <build>
     <plugins>
- 
-      <plugin>
-        <artifactId>maven-site-plugin</artifactId>
-        <configuration>
-          <xdocDirectory>
-            ${basedir}/xdocs
-          </xdocDirectory>
-        </configuration>
-      </plugin>
- 
+
       <plugin>
         <!-- NOTE: We don't need a groupId specification because the group is
              org.apache.maven.plugins ...which is assumed by default.
