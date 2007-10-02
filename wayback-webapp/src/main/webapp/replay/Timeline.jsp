@@ -312,7 +312,7 @@ overflow:hidden; border-width:1; border-style:outset; width:100%; height:80px; r
 			</form>
 		</td>
 		<td>
-			<img wmSpecial="1" alt='' height='1' src='images/1px.gif' width='5'>
+			<img wmSpecial="1" alt='' height='1' src='<%= contextRoot %>/images/1px.gif' width='5'>
 		</td>
 	</tr>
 </table>
