@@ -24,8 +24,11 @@
  */
 package org.archive.wayback.resourceindex.cdx;
 
+import java.util.Iterator;
+
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.util.AdaptedIterator;
 import org.archive.wayback.util.Adapter;
 
 /**
@@ -68,4 +71,8 @@ Adapter<SearchResult,String>{
 		return sb.toString();
 	}
 
+	public static Iterator<String> adapt(Iterator<SearchResult> input) {
+		return new AdaptedIterator<SearchResult,String>(input,
+				new SearchResultToCDXLineAdapter());
+	}
 }
