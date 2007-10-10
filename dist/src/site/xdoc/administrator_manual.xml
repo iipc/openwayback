@@ -346,7 +346,7 @@
               This implementation is good for larger scale installations, 
               bounded mostly by the size of the index you can (first create, 
               and later) store on a single machine. Using the command line tool
-              <b>index-client</b>, and the standard UNIX <b>sort</b> tool
+              <b>arc-indexer</b>, and the standard UNIX <b>sort</b> tool
               (see note below on LC_ALL), you create a sorted flat text file
               that is searched on each request. Building these sorted files, 
               and updating the index are manual operations presently.
@@ -1294,115 +1294,15 @@ String logoString = results.getContextConfig("logo");
         </p>
       </subsection>
 
-      <subsection name="index-client">
+      <subsection name="arc-indexer">
         <p>
-          This tool has two usages:
-          <ol>
-            <li>
-              <code>
-                bin/index-client ARC_PATH
-              </code>
-              <p>
-                Generation of a CDX format index data for a 
-                single ARC file named by ARC_PATH. The CDX 
-                format data is sent to STDOUT, and can be saved
-                to a file, sorted, etc. This is needed to
-                generate sorted CDX format indexes.
-              </p>
-            </li>
-            <li>
-              <code>
-                bin/index-client TMP_DIR INCOMING_URL LOCATION_URL ARC_DIR ARC_URL_PREFIX
-              </code>
-              <p>
-                where:
-                <ul>
-                  <li>
-                    <i>
-                      TMP_DIR
-                    </i>
-                    Temporary working directory where 
-                    ex.
-                    <b>
-                      /tmp/
-                    </b>
-                  </li>
-                  <li>
-                    <i>
-                      INCOMING_URL
-                    </i>
-                    HTTP path to the RemoteSubmitFilter 
-                    which allows remote submission of index
-                    data in CDX format for automatic merging
-                    with a BDB ResourceIndex.
-                    ex.
-                    <b>
-                      http://wayback-webapp.your-archive.org/wayback/index-incoming/
-                    </b>
-                  </li>
-                  <li>
-                    <i>
-                      LOCATION_URL
-                    </i>
-                    is the absolute URL where the ArcProxy can be 
-                    accessed. ex.
-                    <b>
-                      http://wayback-webapp.your-archive.org:8080/locationdb/locationDB
-                    </b>
-                  </li>
-                  <li>
-                    <i>
-                      ARC_DIR
-                    </i>
-                    is the absolute path to the directory on the local
-                    machine which holds ARC files ex.
-                    <b>
-                      /2/arc-collection-1
-                    </b>
-                  </li>
-                  <li>
-                    <i>
-                      ARC_URL_PREFIX
-                    </i>
-                    is the absolute URL where the directory ARC_DIR can
-                    be accessed. ex.
-                    <b>
-                      http://arc-storage-node-1.your-archive.org/2/arc-collection-1/
-                    </b>
-                  </li>
-                </ul>
-              </p>
-              <p>
-                If you chose the Http11 ResourceStore, and are 
-                using the BDB ResourceIndex implementation then
-                you will need to run this script with these
-                arguments once for each directory containing ARC
-                files (on each machine containing ARC files.)
-                For each ARC file found, this script will:
-                <ol>
-                  <li>
-                    generate the plain-text index file for
-                    the ARC file
-                  </li>
-                  <li>
-                    push that plain-text file onto the
-                    machine running the Wayback webapp, 
-                    where the ResourceIndex database is 
-                    stored. The plain-text index files will
-                    arrive in the IndexPipeline directory
-                    structure so they are merged into the
-                    ResourceIndex.
-                  </li>
-                  <li>
-                    notify the ArcProxy LocationDB of the
-                    URL where the ARC file can be accessed,
-                    for later Replay requests which require
-                    access to documents in the ARC file.
-                  </li>
-                </ol>
-              </p>
-            </li>
-          </ol>
+          This tool creates a CDX format index for the ARC file at ARC_PATH,
+          either on STDOUT, or at the path specified by CDX_PATH. The resulting
+          file can be sorted and merged with other CDX format index files to
+          generate CDX format ResourceIndex. 
+          <code>
+            bin/arc-indexer ARC_PATH [CDX_PATH]
+          </code>
         </p>
       </subsection>
 
