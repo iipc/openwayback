@@ -24,37 +24,21 @@
  */
 package org.archive.wayback.resourcestore;
 
-//import java.io.BufferedOutputStream;
 import java.io.File;
-//import java.io.FileOutputStream;
+import java.io.PrintWriter;
 import java.io.IOException;
-//import java.io.PrintWriter;
-//import java.text.ParseException;
 import java.util.Iterator;
-//import java.util.logging.Logger;
+import java.util.NoSuchElementException;
 
-//import org.apache.commons.httpclient.Header;
-//import org.apache.commons.httpclient.URIException;
 import org.archive.io.ArchiveRecord;
 import org.archive.io.arc.ARCReader;
 import org.archive.io.arc.ARCReaderFactory;
 import org.archive.io.arc.ARCRecord;
-//import org.archive.io.arc.ARCRecordMetaData;
-//import org.archive.net.UURI;
-//import org.archive.net.UURIFactory;
-//import org.archive.wayback.WaybackConstants;
-//import org.archive.wayback.bdb.BDBRecord;
-//import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.SearchResult;
-//import org.archive.wayback.core.SearchResults;
-//import org.archive.wayback.resourceindex.bdb.SearchResultToBDBRecordAdapter;
-//import org.archive.wayback.resourceindex.cdx.CDXLineToSearchResultAdapter;
-//import org.archive.wayback.resourceindex.cdx.SearchResultToCDXLineAdapter;
+import org.archive.wayback.resourceindex.cdx.SearchResultToCDXLineAdapter;
 import org.archive.wayback.util.AdaptedIterator;
 import org.archive.wayback.util.Adapter;
 import org.archive.wayback.util.CloseableIterator;
-//import org.archive.wayback.util.UrlCanonicalizer;
-//import org.archive.wayback.util.flatfile.FlatFile;
 
 /**
  * Transforms an ARC file into SearchResults, or a serialized SearchResults
@@ -70,32 +54,6 @@ public class ArcIndexer {
 	 */
 	public final static String CDX_HEADER_MAGIC = " CDX N b h m s k r V g";
 
-//	/**
-//	 * Logger for this class
-//	 */
-//	private static final Logger LOGGER = Logger.getLogger(ArcIndexer.class
-//			.getName());
-
-//	/**
-//	 * Constant indicating entire CDX line
-//	 */
-//	protected final static int TYPE_CDX_LINE = 0;
-//
-//	/**
-//	 * Constant indicating entire url + timestamp only
-//	 */
-//	protected final static int TYPE_CDX_KEY = 1;
-//
-//	/**
-//	 * Constant indicating trailing data fields from CDX line following url +
-//	 * timestamp
-//	 */
-//	protected final static int TYPE_CDX_VALUE = 2;
-
-//	static UrlCanonicalizer canonicalizer = new UrlCanonicalizer();
-
-//	private final static int DEFAULT_CAPACITY = 120;
-	
 	/**
 	 * @param arc
 	 * @return Iterator of SearchResults for input arc File
@@ -103,8 +61,8 @@ public class ArcIndexer {
 	 */
 	public CloseableIterator<SearchResult> iterator(File arc)
 	throws IOException {
-		ARCReader arcReader = ARCReaderFactory.get(arc);
-		arcReader.setParseHttpHeaders(true);
+//		ARCReader arcReader = ARCReaderFactory.get(arc);
+//		arcReader.setParseHttpHeaders(true);
 
 		Adapter<ArchiveRecord,ARCRecord> adapter1 =
 			new ArchiveRecordToARCRecordAdapter();
@@ -112,7 +70,7 @@ public class ArcIndexer {
 		Adapter<ARCRecord,SearchResult> adapter2 =
 			new ARCRecordToSearchResultAdapter();
 		
-		Iterator<ArchiveRecord> itr1 = arcReader.iterator();
+		Iterator<ArchiveRecord> itr1 = new DurableArchiveRecordIterator(arc);
 
 		CloseableIterator<ARCRecord> itr2 = 
 			new AdaptedIterator<ArchiveRecord,ARCRecord>(itr1,adapter1);
@@ -134,299 +92,122 @@ public class ArcIndexer {
 			}
 			return rec;
 		}
-		
 	}
 	
-//	/**
-//	 * Create a ResourceResults representing the records in ARC file at arcPath.
-//	 * 
-//	 * @param arc
-//	 * @return ResourceResults in arcPath.
-//	 * @throws IOException
-//	 */
-//	public SearchResults indexArc(File arc) throws IOException {
-//		CaptureSearchResults results = new CaptureSearchResults();
-//		ARCReader arcReader = ARCReaderFactory.get(arc);
-//		try {
-//			arcReader.setParseHttpHeaders(true);
-//			// doh. this does not generate quite the columns we need:
-//			// arcReader.createCDXIndexFile(arcPath);
-//			Iterator<ArchiveRecord> itr = arcReader.iterator();
-//			while (itr.hasNext()) {
-//				ARCRecord rec = (ARCRecord) itr.next();
-//				SearchResult result;
-//				try {
-//					result = arcRecordToSearchResult(rec);
-//				} catch (NullPointerException e) {
-//					e.printStackTrace();
-//					continue;
-//				} catch (ParseException e) {
-//					e.printStackTrace();
-//					continue;
-//				}
-//				if (result != null) {
-//					results.addSearchResult(result);
-//				}
-//			}
-//		} finally {
-//			arcReader.close();
-//		}
-//		return results;
-//	}
+	private class DurableArchiveRecordIterator 
+	implements Iterator<ArchiveRecord> {
 
-//	/**
-//	 * transform an ARCRecord into a SearchResult
-//	 * 
-//	 * @param rec
-//	 * @param arc
-//	 * @return SearchResult for this document
-//	 * @throws IOException
-//	 * @throws ParseException
-//	 */
-//	public static SearchResult arcRecordToSearchResult(final ARCRecord rec)
-//			throws IOException, ParseException {
-//		rec.close();
-//		ARCRecordMetaData meta = rec.getMetaData();
-//
-//		SearchResult result = new SearchResult();
-//        String arcName = meta.getArc(); 
-//        int index = arcName.lastIndexOf(File.separator);
-//        if (index > 0 && (index + 1) < arcName.length()) {
-//            arcName = arcName.substring(index + 1);
-//        }
-//		result.put(WaybackConstants.RESULT_ARC_FILE, arcName);
-//		result.put(WaybackConstants.RESULT_OFFSET, String.valueOf(meta
-//				.getOffset()));
-//
-//		// initialize with default HTTP code...
-//		result.put(WaybackConstants.RESULT_HTTP_CODE, "-");
-//
-//		result.put(WaybackConstants.RESULT_MD5_DIGEST, rec.getDigestStr());
-//		result.put(WaybackConstants.RESULT_MIME_TYPE, meta.getMimetype());
-//		result.put(WaybackConstants.RESULT_CAPTURE_DATE, meta.getDate());
-//
-//		String uriStr = meta.getUrl();
-//		if (uriStr.startsWith(ARCRecord.ARC_MAGIC_NUMBER)) {
-//			// skip filedesc record altogether...
-//			return null;
-//		}
-//		if (uriStr.startsWith(WaybackConstants.DNS_URL_PREFIX)) {
-//			// skip URL + HTTP header processing for dns records...
-//
-//			String origHost = uriStr.substring(WaybackConstants.DNS_URL_PREFIX
-//					.length());
-//			result.put(WaybackConstants.RESULT_ORIG_HOST, origHost);
-//			result.put(WaybackConstants.RESULT_REDIRECT_URL, "-");
-//			result.put(WaybackConstants.RESULT_URL, uriStr);
-//			result.put(WaybackConstants.RESULT_URL_KEY, uriStr);
-//
-//		} else {
-//
-//			UURI uri = UURIFactory.getInstance(uriStr);
-//			result.put(WaybackConstants.RESULT_URL, uriStr);
-//
-//			String uriHost = uri.getHost();
-//			if (uriHost == null) {
-//				LOGGER.info("No host in " + uriStr + " in " + meta.getArc());
-//			} else {
-//				result.put(WaybackConstants.RESULT_ORIG_HOST, uriHost);
-//
-//				String statusCode = (meta.getStatusCode() == null) ? "-" : meta
-//						.getStatusCode();
-//				result.put(WaybackConstants.RESULT_HTTP_CODE, statusCode);
-//
-//				String redirectUrl = "-";
-//				Header[] headers = rec.getHttpHeaders();
-//				if (headers != null) {
-//
-//					for (int i = 0; i < headers.length; i++) {
-//						if (headers[i].getName().equals(LOCATION_HTTP_HEADER)) {
-//							String locationStr = headers[i].getValue();
-//							// TODO: "Location" is supposed to be absolute:
-//							// (http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html)
-//							// (section 14.30) but Content-Location can be
-//							// relative.
-//							// is it correct to resolve a relative Location, as
-//							// we are?
-//							// it's also possible to have both in the HTTP
-//							// headers...
-//							// should we prefer one over the other?
-//							// right now, we're ignoring "Content-Location"
-//							try {
-//								UURI uriRedirect = UURIFactory.getInstance(uri,
-//										locationStr);
-//								redirectUrl = uriRedirect.getEscapedURI();
-//
-//							} catch (URIException e) {
-//								LOGGER.info("Bad Location: " + locationStr
-//										+ " for " + uriStr + " in "
-//										+ meta.getArc() + " Skipped");
-//							}
-//							break;
-//						}
-//					}
-//				}
-//				result.put(WaybackConstants.RESULT_REDIRECT_URL, redirectUrl);
-//
-//				String indexUrl = canonicalizer.urlStringToKey(meta.getUrl());
-//				result.put(WaybackConstants.RESULT_URL_KEY, indexUrl);
-//			}
-//
-//		}
-//		return result;
-//	}
-//
-//	/**
-//	 * Write out ResourceResults into CDX file at cdxPath
-//	 * 
-//	 * @param results
-//	 * @param target
-//	 * @throws IOException
-//	 */
-//	public void serializeResults(final SearchResults results, File target)
-//			throws IOException {
-//
-//		FileOutputStream os = new FileOutputStream(target);
-//		BufferedOutputStream bos = new BufferedOutputStream(os);
-//		PrintWriter pw = new PrintWriter(bos);
-//		try {
-//			serializeResults(results, pw);
-//		} finally {
-//			pw.close();
-//		}
-//	}
-//
-//	/**
-//	 * @param results
-//	 * @param pw
-//	 * @param addHeader 
-//	 * @throws IOException
-//	 */
-//	public void serializeResults(final SearchResults results, PrintWriter pw,
-//			final boolean addHeader)
-//			throws IOException {
-//		if(addHeader) {
-//			pw.println(CDX_HEADER_MAGIC);
-//		}
-//		Iterator<SearchResult> itrR = results.iterator();
-//		Iterator<String> itrS = new AdaptedIterator<SearchResult,String>(itrR,
-//				new SearchResultToCDXLineAdapter());
-//		while (itrS.hasNext()) {
-//			pw.println(itrS.next());
-//		}
-//		pw.flush();
-//	}
-//
-//	
-//	/**
-//	 * @param results
-//	 * @param pw
-//	 * @throws IOException
-//	 */
-//	public void serializeResults(final SearchResults results, PrintWriter pw)
-//			throws IOException {
-//		serializeResults(results,pw,true);
-//	}
+		private long lastRestart = 0;
+		private File arc = null;
+		Iterator<ArchiveRecord> innerItr = null;
+		ArchiveRecord cachedNext = null;
+		
+		public DurableArchiveRecordIterator(File arc) throws IOException {
+			this.arc = arc;
+			restart(0);
+		}
 
-//	/**
-//	 * @param rec
-//	 * @return String in "CDX format" for rec argument
-//	 * @throws IOException
-//	 * @throws ParseException
-//	 */
-//	public static String arcRecordToCDXLine(ARCRecord rec) 
-//	throws IOException, ParseException {
-//		return searchResultToString(arcRecordToSearchResult(rec),TYPE_CDX_LINE);
-//	}
+		private void restart(long offset) throws IOException {
+			ARCReader arcReader = ARCReaderFactory.get(arc,offset);
+			arcReader.setParseHttpHeaders(true);
+			innerItr = arcReader.iterator();
+		}
+		
+		private long parseErrorOffset(String message) {
+			long found = -1;
+			int idx = message.indexOf("Offset ");
+			if(idx >= 0) {
+				int idx2 = message.indexOf(")");
+				if(idx2 > 0) {
+					String part = message.substring(idx + 7,idx2);
+					System.err.println("Found(" + part +") from (" + message + ")");
+					found = Long.parseLong(part) + 100;
+				}
+			}
+			return found;
+		}
+		
+		public boolean hasNext() {
+			if(cachedNext != null) {
+				return true;
+			}
+			while(true) {
+				try {
+					if(!innerItr.hasNext()) {
+						return false;
+					}
+					cachedNext = innerItr.next();
+				} catch (RuntimeException e) {
+					long offset = parseErrorOffset(e.getMessage());
+					if(offset > 0) {
+						if(lastRestart == offset) {
+							return false;
+						}
+						lastRestart = offset;
+						try {
+							restart(offset);
+						} catch (IOException e1) {
+							throw new RuntimeException(e1);
+						}
+					} else {
+						throw e;
+					}
+				}
+				if(cachedNext != null) {
+					break;
+				}
+			}
+			return true;
+		}
+
+		public ArchiveRecord next() {
+			if(cachedNext == null) {
+				throw new NoSuchElementException("next() without hasNext()");
+			}
+			ArchiveRecord tmp = cachedNext;
+			cachedNext = null;
+			return tmp;
+		}
+
+		public void remove() {
+			throw new UnsupportedOperationException("remove unimplemented");
+		}
+	}
+
+	private static void USAGE() {
+		System.err.println("USAGE:");
+		System.err.println("");
+		System.err.println("arc-indexer ARCFILE");
+		System.err.println("arc-indexer ARCFILE CDXFILE");
+		System.err.println("");
+		System.err.println("Create a CDX format index at CDXFILE or to STDOUT");
+		System.exit(1);
+	}
 	
-//	/**
-//	 * Transform a SearchResult into a String representation.
-//	 * 
-//	 * @param result
-//	 * @param type
-//	 * @return String value of either line, key or value for the SearchResult
-//	 */
-//	protected static String searchResultToString(final SearchResult result,
-//			int type) {
-//
-//		StringBuilder sb = new StringBuilder(DEFAULT_CAPACITY);
-//
-//		if (type == TYPE_CDX_LINE) {
-//
-//			sb.append(result.get(WaybackConstants.RESULT_URL_KEY));
-//			sb.append(" ");
-//			sb.append(result.get(WaybackConstants.RESULT_CAPTURE_DATE));
-//			sb.append(" ");
-//			sb.append(result.get(WaybackConstants.RESULT_ORIG_HOST));
-//			sb.append(" ");
-//			sb.append(result.get(WaybackConstants.RESULT_MIME_TYPE));
-//			sb.append(" ");
-//			sb.append(result.get(WaybackConstants.RESULT_HTTP_CODE));
-//			sb.append(" ");
-//			sb.append(result.get(WaybackConstants.RESULT_MD5_DIGEST));
-//			sb.append(" ");
-//			sb.append(result.get(WaybackConstants.RESULT_REDIRECT_URL));
-//			sb.append(" ");
-//			sb.append(result.get(WaybackConstants.RESULT_OFFSET));
-//			sb.append(" ");
-//			sb.append(result.get(WaybackConstants.RESULT_ARC_FILE));
-//			
-//		} else if (type == TYPE_CDX_KEY) {
-//			
-//			sb.append(result.get(WaybackConstants.RESULT_URL_KEY));
-//			sb.append(" ");
-//			sb.append(result.get(WaybackConstants.RESULT_CAPTURE_DATE));
-//			sb.append(" ");
-//			sb.append(result.get(WaybackConstants.RESULT_OFFSET));
-//			sb.append(" ");
-//			sb.append(result.get(WaybackConstants.RESULT_ARC_FILE));
-//			
-//		} else if (type == TYPE_CDX_VALUE) {
-//
-//			sb.append(result.get(WaybackConstants.RESULT_ORIG_HOST));
-//			sb.append(" ");
-//			sb.append(result.get(WaybackConstants.RESULT_MIME_TYPE));
-//			sb.append(" ");
-//			sb.append(result.get(WaybackConstants.RESULT_HTTP_CODE));
-//			sb.append(" ");
-//			sb.append(result.get(WaybackConstants.RESULT_MD5_DIGEST));
-//			sb.append(" ");
-//			sb.append(result.get(WaybackConstants.RESULT_REDIRECT_URL));
-//
-//		} else {
-//			throw new IllegalArgumentException("Unknown transformation type");
-//		}
-//		return sb.toString();
-//	}
-
-//	/**
-//	 * @param cdxFile
-//	 * @return Iterator that will return BDBRecords, one for each line in 
-//	 * cdxFile argument 
-//	 * @throws IOException
-//	 */
-//	public Iterator<BDBRecord> getCDXFileBDBRecordIterator(File cdxFile) throws IOException {
-//		FlatFile ffile = new FlatFile(cdxFile.getAbsolutePath());
-//		AdaptedIterator<String,SearchResult> searchResultItr = 
-//			new AdaptedIterator<String,SearchResult>(
-//					ffile.getSequentialIterator(),
-//				new CDXLineToSearchResultAdapter());
-//		return new AdaptedIterator<SearchResult,BDBRecord>(searchResultItr,
-//				new SearchResultToBDBRecordAdapter());
-//	}
-
-//	/**
-//	 * @param args
-//	 */
-//	public static void main(String[] args) {
-//		ArcIndexer indexer = new ArcIndexer();
-//		File arc = new File(args[0]);
-//		File cdx = new File(args[1]);
-//		try {
-//			SearchResults results = indexer.indexArc(arc);
-//			indexer.serializeResults(results, cdx);
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
-//	}
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		ArcIndexer indexer = new ArcIndexer();
+		File arc = new File(args[0]);
+		PrintWriter pw = null;
+		try {
+			if(args.length == 1) {
+				// dump to STDOUT:
+				pw = new PrintWriter(System.out);
+			} else if(args.length == 2) {
+				pw = new PrintWriter(args[1]);
+			} else {
+				USAGE();
+			}
+			Iterator<SearchResult> res = indexer.iterator(arc);
+			Iterator<String> lines = SearchResultToCDXLineAdapter.adapt(res);
+			while(lines.hasNext()) {
+				pw.println(lines.next());
+			}
+			pw.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 }
