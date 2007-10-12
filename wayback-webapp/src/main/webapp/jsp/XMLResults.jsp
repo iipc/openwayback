@@ -26,7 +26,12 @@ Iterator itr = uiResults.resultsIterator();
 		<<%= key %>><%= value %></<%= key %>>
 		<%
 	}
+	String type = WaybackConstants.RESULTS_TYPE_CAPTURE;
+	if(uiResults.isUrlResults()) {
+		type = WaybackConstants.RESULTS_TYPE_URL;
+	}
 %>
+    <<%= WaybackConstants.RESULTS_TYPE %>><%= type %></<%= WaybackConstants.RESULTS_TYPE %>>
 	</request>
 	<results>
 <%
