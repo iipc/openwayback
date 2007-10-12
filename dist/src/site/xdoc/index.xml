@@ -9,6 +9,54 @@
 
   <body>
     <section name="News">
+        <subsection name="New Release - 1.0.0, 10/12/2007">
+          <p>
+            Release 1.0.0 has several significant changes, most notably a
+            completely new configuration mechanism using Spring IOC. This new
+            configuration system introduces some deployment concepts:
+            <ul>
+              <li>
+                <b>WaybackCollections</b> define a set of documents via the
+                previously existing ResourceStore and ResourceIndex 
+                implementations.
+              </li>
+              <li>
+                <b>AccessPoints</b> define a method by which users can access
+                and interact with a WaybackCollection. A single 
+                WaybackCollection may be exposed to users through several
+                AccessPoints simultaneously. Each AccessPoint specifies an
+                access URL, a Query interface, a Replay interface, and
+                several optional access restrictions, including limiting who
+                can connect to the AccessPoint, and which documents in the 
+                WaybackCollection are available through the AccessPoint.   
+              </li>
+            </ul>
+            This new configuration frameworks allows hosting of hundreds of
+            individual collections within a single wayback installation, each
+            with potentially multiple AccessPoints.
+          </p>
+          <p>
+            This version also includes a major refactoring of the Replay User
+            Interface framework, simplifying extension and the creation of novel
+            replay modes. Specifically, one or more external .jsp files can 
+            be used to generate additional HTML content within replayed HTML 
+            pages. The Timeline Replay mode has been completely replaced by one
+            of these external .jsp files, which inserts the Timeline banner 
+            inside replayed HTML pages.
+          </p>
+          <p>
+            This version includes a very experimental new Replay mode, 
+            <i>domain-prefix</i> replay mode, which performs all markup and
+            recontextualization of replayed HTML documents on the server-side,
+            eliminating the need for client-side Javascript execution. Please
+            ask on the discussion list for assistance in using this Replay mode.
+          </p>
+          <p>
+            Lastly, this version has some internal improvements which should 
+            reduce memory consumption, and the software is now built using 
+            maven2.  
+          </p>
+        </subsection>
         <subsection name="New Release - 0.8.0, 01/11/2007">
             <p>
             	Release 0.8.0 offers several new features, most notably a CDX
@@ -77,7 +125,7 @@
         </subsection>
         <subsection name="First Release - 0.2.0, 12/09/2005">
             <p>First public release of the open source wayback.
-            See below in the <a href="Introduction">Introduction</a>
+            See below in the <a href="#Introduction">Introduction</a>
             section for a listing of initial features.
             </p>
         </subsection>
