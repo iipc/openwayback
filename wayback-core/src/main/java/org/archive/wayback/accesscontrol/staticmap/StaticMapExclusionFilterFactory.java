@@ -96,7 +96,7 @@ public class StaticMapExclusionFilterFactory implements ExclusionFilterFactory {
 			}
 			String surt = line.startsWith("(") ? line : 
 				SURTTokenizer.prefixKey(line);
-			System.err.println("EXCLUSION-MAP: adding " + surt);
+			LOGGER.fine("EXCLUSION-MAP: adding " + surt);
 			newMap.put(surt, null);
 		}
 		itr.close();

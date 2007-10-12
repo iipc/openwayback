@@ -25,6 +25,7 @@
 package org.archive.wayback.accesscontrol.staticmap;
 
 import java.util.Map;
+import java.util.logging.Logger;
 
 import org.apache.commons.httpclient.URIException;
 import org.archive.wayback.WaybackConstants;
@@ -39,6 +40,8 @@ import org.archive.wayback.util.ObjectFilter;
  * @version $Date$, $Revision$
  */
 public class StaticMapExclusionFilter implements ObjectFilter<SearchResult> {
+	private static final Logger LOGGER = Logger.getLogger(
+			StaticMapExclusionFilter.class.getName());
 
 	private String lastChecked = null;
 	private boolean lastCheckedExcluded = false;
@@ -58,9 +61,9 @@ public class StaticMapExclusionFilter implements ObjectFilter<SearchResult> {
 				if(nextSearch == null) {
 					break;
 				}
-				System.err.println("EXCLUSION-MAP:Checking " + nextSearch);
+				LOGGER.fine("EXCLUSION-MAP:Checking " + nextSearch);
 				if(exclusionMap.containsKey(nextSearch)) {
-					System.err.println("EXCLUSION-MAP: EXCLUDED: \"" + nextSearch + "\" (" + url +")");
+					LOGGER.fine("EXCLUSION-MAP: EXCLUDED: \"" + nextSearch + "\" (" + url +")");
 					return true;
 				}
 			}
