@@ -155,13 +155,11 @@
         <artifactId>wayback-mapreduce-prereq</artifactId>
         <version>${project.version}</version>
       </dependency>
-      <!--
       <dependency>
         <groupId>org.archive.wayback</groupId>
         <artifactId>wayback-mapreduce</artifactId>
         <version>${project.version}</version>
       </dependency>
-        -->
       <dependency>
         <groupId>org.archive.wayback</groupId>
         <artifactId>wayback-webapp</artifactId>
@@ -173,9 +171,7 @@
   <modules>
     <module>wayback-core</module>
     <module>wayback-mapreduce-prereq</module>
-<!-- 
     <module>wayback-mapreduce</module>
--->
     <module>wayback-webapp</module>
     <module>dist</module>
   </modules>
