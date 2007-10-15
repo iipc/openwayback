@@ -265,6 +265,7 @@
  -->
 <!--
 <bean name="8090" parent="8080:wayback">
+  <property name="useServerName" value="true" />
 	<property name="replay">
 	  <bean class="org.archive.wayback.proxy.ProxyReplayDispatcher" />
 	</property>

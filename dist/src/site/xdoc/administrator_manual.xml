@@ -1014,6 +1014,7 @@
           <pre>
 
 &lt;bean name=&quot;8090&quot; parent=&quot;8080:wayback&quot;&gt;
+  &lt;property name=&quot;useServerName&quot; value=&quot;true&quot; /&gt;
   &lt;property name=&quot;replay&quot;&gt;
     &lt;bean class=&quot;org.archive.wayback.proxy.ProxyReplayDispatcher&quot; /&gt;
   &lt;/property&gt;
