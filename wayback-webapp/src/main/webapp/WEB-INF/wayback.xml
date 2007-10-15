@@ -264,25 +264,25 @@
          in your Tomcat's server.xml file.
  -->
 <!--
-  <bean name="8090" parent="8080:wayback">
-    <property name="replay">
-		  <bean class="org.archive.wayback.proxy.ProxyReplayDispatcher" />
-		</property>
-    <property name="uriconverter">
-		  <bean class="org.archive.wayback.proxy.RedirectResultURIConverter">
-		    <property name="redirectURI" value="http://foo.archive.org:8090/jsp/Redirect.jsp" />
-  		</bean>
-  	</property>
-  	<property name="parser">
-		  <bean class="org.archive.wayback.proxy.ProxyRequestParser" init-method="init">
-		    <property name="localhostNames">
-		      <list>
-		        <value>foo.archive.org</value>
-		      </list>
-		    </property>
-		    <property name="maxRecords" value="1000" />
-		  </bean>
-		</property>
-  </bean>
+<bean name="8090" parent="8080:wayback">
+	<property name="replay">
+	  <bean class="org.archive.wayback.proxy.ProxyReplayDispatcher" />
+	</property>
+	<property name="uriConverter">
+		<bean class="org.archive.wayback.proxy.RedirectResultURIConverter">
+		  <property name="redirectURI" value="http://foo.archive.org:8090/jsp/Redirect.jsp" />
+		</bean>
+	</property>
+	<property name="parser">
+		<bean class="org.archive.wayback.proxy.ProxyRequestParser" init-method="init">
+			<property name="localhostNames">
+				<list>
+				  <value>foo.archive.org</value>
+				</list>
+			</property>
+			<property name="maxRecords" value="1000" />
+		</bean>
+	</property>
+</bean>
 -->
 </beans>
