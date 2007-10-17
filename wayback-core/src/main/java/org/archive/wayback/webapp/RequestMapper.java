@@ -77,11 +77,10 @@ public class RequestMapper {
 	
 	private String getContextID(HttpServletRequest request) {
 		String requestPath = request.getRequestURI();
-//		String absolutePath = servletContext.getRealPath(requestPath);
-//		File tmpFile = new File(absolutePath);
-//		if(tmpFile.exists()) {
-//			return null;
-//		}
+		String contextPath = request.getContextPath();
+		if(requestPath.startsWith(contextPath)) {
+			requestPath = requestPath.substring(contextPath.length());
+		}
 		String collection = "";
 		if(requestPath.startsWith("/")) {
 			int secondSlash = requestPath.indexOf("/",1);
