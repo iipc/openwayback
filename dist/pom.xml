@@ -3,7 +3,7 @@
   <parent>
 	  <groupId>org.archive</groupId>
 	  <artifactId>wayback</artifactId>
-    <version>1.0.1</version>
+    <version>1.1.0</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -54,13 +54,13 @@
     <dependency>
       <groupId>org.archive.wayback</groupId>
       <artifactId>wayback-webapp</artifactId>
-      <version>1.0.1</version>
+      <version>1.1.0</version>
       <type>war</type>
     </dependency>
     <dependency>
       <groupId>org.archive.wayback</groupId>
       <artifactId>wayback-mapreduce</artifactId>
-      <version>1.0.1</version>
+      <version>1.1.0</version>
     </dependency>
   </dependencies>
     
