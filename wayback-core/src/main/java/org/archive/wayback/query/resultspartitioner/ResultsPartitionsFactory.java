@@ -24,7 +24,6 @@
  */
 package org.archive.wayback.query.resultspartitioner;
 
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -32,6 +31,7 @@ import java.util.Date;
 import org.archive.util.ArchiveUtils;
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.SearchResults;
+import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
 
 /**
@@ -60,15 +60,10 @@ public class ResultsPartitionsFactory {
 			WaybackRequest wbRequest) {
 		String rsd = results.getFilter(WaybackConstants.REQUEST_START_DATE);
 		String red = results.getFilter(WaybackConstants.REQUEST_END_DATE);
-		Date startDate = new Date();
-		Date endDate = new Date();
-		try {
-			startDate = ArchiveUtils.parse14DigitDate(rsd);
-			endDate = ArchiveUtils.parse14DigitDate(red);
-		} catch (ParseException e) {
-			// TODO: better..
-			e.printStackTrace();
-		}
+
+		Date startDate = Timestamp.parseBefore(rsd).getDate();
+		Date endDate = Timestamp.parseAfter(red).getDate();
+
 		long msSpanned = endDate.getTime() - startDate.getTime();
 		int secsSpanned = (int) Math.ceil(msSpanned / 1000);
 
