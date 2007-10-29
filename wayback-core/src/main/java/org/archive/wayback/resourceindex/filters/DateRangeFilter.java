@@ -26,6 +26,7 @@ package org.archive.wayback.resourceindex.filters;
 
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.util.ObjectFilter;
 
 /**
@@ -45,8 +46,8 @@ public class DateRangeFilter implements ObjectFilter<SearchResult> {
 	 * @param last String latest date to include
 	 */
 	public DateRangeFilter(final String first, final String last) {
-		this.first = first;
-		this.last = last;
+		this.first = Timestamp.parseBefore(first).getDateStr();
+		this.last = Timestamp.parseAfter(last).getDateStr();
 	}
 
 	/* (non-Javadoc)

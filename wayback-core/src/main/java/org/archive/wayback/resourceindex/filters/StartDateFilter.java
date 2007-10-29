@@ -26,6 +26,7 @@ package org.archive.wayback.resourceindex.filters;
 
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.util.ObjectFilter;
 
 /**
@@ -47,7 +48,7 @@ public class StartDateFilter implements ObjectFilter<SearchResult> {
 	 * 		records
 	 */
 	public StartDateFilter(final String startDate) {
-		this.startDate = startDate;
+		this.startDate = Timestamp.parseBefore(startDate).getDateStr();
 	}
 
 	/* (non-Javadoc)

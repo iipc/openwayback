@@ -26,7 +26,9 @@ package org.archive.wayback.resourceindex.filters;
 
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.util.ObjectFilter;
+
 
 /**
  * SearchResultFilter which includes all records until 1 is found beyond end 
@@ -44,7 +46,7 @@ public class EndDateFilter implements ObjectFilter<SearchResult> {
 	 * @param endDate String timestamp which marks the end of includable records
 	 */
 	public EndDateFilter(final String endDate) {
-		this.endDate = endDate;
+		this.endDate = Timestamp.parseAfter(endDate).getDateStr();
 	}
 
 	/* (non-Javadoc)
