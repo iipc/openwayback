@@ -44,19 +44,24 @@ public class ResultsTimelinePartitionsFactory {
 	private static int NUM_HOUR_PARTITIONS = 12;
 	private static int NUM_DAY_PARTITIONS = 15;
 	private static int NUM_MONTH_PARTITIONS = 12;
+	private static int NUM_TWO_MONTH_PARTITIONS = 12;
 	private static int NUM_YEAR_PARTITIONS = 10;
 	
 	// These are sort of "ball park" figures. Should be using calendars
 	// for better accuracy..
-	private static int MAX_HOUR_SECONDS = 60 * 60 * NUM_HOUR_PARTITIONS;
-	private static int MAX_DAY_SECONDS = 60 * 60 * 24 * NUM_DAY_PARTITIONS;
-	private static int MAX_MONTH_SECONDS = 60 * 60 * 24 * 30 * NUM_MONTH_PARTITIONS;
+	private static int MAX_HOUR_SECONDS = 2 * 60 * 60 * NUM_HOUR_PARTITIONS;
+	private static int MAX_DAY_SECONDS = 2 * 60 * 60 * 24 * NUM_DAY_PARTITIONS;
+	private static int MAX_MONTH_SECONDS = 2 * 60 * 60 * 24 * 30 * 
+		NUM_MONTH_PARTITIONS;
+	private static int MAX_TWO_MONTH_SECONDS = 2 * 60 * 60 * 24 * 2* 30 * 
+		NUM_MONTH_PARTITIONS;
 	//private static int MAX_YEAR_SECONDS = 60 * 60 * 24 * 365 * NUM_YEAR_PARTITIONS;
 	
 	
 	private static HourResultsPartitioner hourRP = new HourResultsPartitioner();
 	private static DayResultsPartitioner dayRP = new DayResultsPartitioner();
 	private static MonthResultsPartitioner monthRP = new MonthResultsPartitioner();
+	private static TwoMonthResultsPartitioner twoMonthRP = new TwoMonthResultsPartitioner();
 	private static YearResultsPartitioner yearRP = new YearResultsPartitioner();
 	
 	/**
@@ -94,6 +99,16 @@ public class ResultsTimelinePartitionsFactory {
 	 * @param wbRequest 
 	 * @return ArrayList of ResultsPartition objects
 	 */
+	public static ArrayList<ResultsPartition> getTwoMonth(SearchResults results,
+			WaybackRequest wbRequest) {
+		return get(twoMonthRP,NUM_TWO_MONTH_PARTITIONS,results,wbRequest);
+	}
+
+	/**
+	 * @param results
+	 * @param wbRequest 
+	 * @return ArrayList of ResultsPartition objects
+	 */
 	public static ArrayList<ResultsPartition> getYear(SearchResults results,
 			WaybackRequest wbRequest) {
 		return get(yearRP,NUM_YEAR_PARTITIONS,results,wbRequest);
@@ -115,6 +130,8 @@ public class ResultsTimelinePartitionsFactory {
 			return getDay(results,wbRequest);			
 		} else if(diff < MAX_MONTH_SECONDS) {
 			return getMonth(results,wbRequest);
+		} else if(diff < MAX_TWO_MONTH_SECONDS) {
+			return getTwoMonth(results,wbRequest);
 		}
 		return getYear(results,wbRequest);			
 	}
