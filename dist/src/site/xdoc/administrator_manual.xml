@@ -1081,7 +1081,7 @@
         with the file being checked for updates every 10 minutes.
         <pre>
 
-&lt;bean id=&quot;static-exclusion&quot; class=&quot;org.archive.wayback.accesscontrol.staticmap.StaticMapExclusionFilterFactory&quot;&gt;
+&lt;bean id=&quot;static-exclusion&quot; class=&quot;org.archive.wayback.accesscontrol.staticmap.StaticMapExclusionFilterFactory&quot; init-method=&quot;init&quot;&gt;
   &lt;property name=&quot;file&quot; value=&quot;/tmp/exclude.txt&quot; /&gt;
   &lt;property name=&quot;checkInterval&quot; value=&quot;600&quot; /&gt;
 &lt;/bean&gt;
