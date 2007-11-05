@@ -58,11 +58,16 @@ public class ResultsPartitionsFactory {
 	 */
 	public static ArrayList<ResultsPartition> get(SearchResults results,
 			WaybackRequest wbRequest) {
-		String rsd = results.getFilter(WaybackConstants.REQUEST_START_DATE);
-		String red = results.getFilter(WaybackConstants.REQUEST_END_DATE);
+		Timestamp startTS = Timestamp.parseBefore(results.getFilter(
+				WaybackConstants.REQUEST_START_DATE));
+		Timestamp endTS = Timestamp.parseAfter(results.getFilter(
+				WaybackConstants.REQUEST_END_DATE));
+		
+		String rsd = startTS.getDateStr();
+		String red = endTS.getDateStr();
 
-		Date startDate = Timestamp.parseBefore(rsd).getDate();
-		Date endDate = Timestamp.parseAfter(red).getDate();
+		Date startDate = startTS.getDate();
+		Date endDate = endTS.getDate();
 
 		long msSpanned = endDate.getTime() - startDate.getTime();
 		int secsSpanned = (int) Math.ceil(msSpanned / 1000);
