@@ -25,6 +25,7 @@
 package org.archive.wayback.webapp;
 
 import java.io.IOException;
+import java.util.TimeZone;
 import java.util.logging.Logger;
 
 import javax.servlet.Filter;
@@ -59,6 +60,7 @@ public class RequestFilter implements Filter {
 	public void init(FilterConfig config) throws ServletException {
 
 		LOGGER.info("Wayback Filter initializing...");
+		TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
 		try {
 			mapper = new RequestMapper(config.getServletContext());
 		} catch (ConfigurationException e) {
