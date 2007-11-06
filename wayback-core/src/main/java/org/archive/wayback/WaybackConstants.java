@@ -140,6 +140,11 @@ public interface WaybackConstants {
 	 * Request: month resolution (TimeLine mode)
 	 */
 	public static final String REQUEST_RESOLUTION_MONTHS = "months";
+
+	/**
+	 * Request: two-month resolution (TimeLine mode)
+	 */
+	public static final String REQUEST_RESOLUTION_TWO_MONTHS = "twomonths";
 	
 	/**
 	 * Request: year resolution (TimeLine mode)
@@ -306,6 +311,13 @@ public interface WaybackConstants {
 	 * not redirect
 	 */
 	public static final String RESULT_REDIRECT_URL = "redirecturl";
+
+	/**
+	 * Result: flag within a SearchResult that indicates this is the closest to
+	 * a particular requested date.
+	 */
+	public static final String RESULT_CLOSEST_INDICATOR = "closest";
+	public static final String RESULT_CLOSEST_VALUE = "true";
 	
 	/**
 	 * Name of configuration in web.xml for maximum number of results to return
