@@ -30,11 +30,11 @@ import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.httpclient.URIException;
-import org.archive.wayback.RequestParser;
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadQueryException;
+import org.archive.wayback.requestparser.BaseRequestParser;
 import org.archive.wayback.webapp.AccessPoint;
 
 /**
@@ -43,11 +43,9 @@ import org.archive.wayback.webapp.AccessPoint;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class DomainPrefixRequestParser implements RequestParser {
+public class DomainPrefixRequestParser extends BaseRequestParser {
 
 	String hostPort = "localhost:8081";
-	String earliest = Timestamp.earliestTimestamp().getDateStr();
-	int maxRecords = 1000;
 
 	private final Pattern REPLAY_REGEX = 
 		Pattern.compile("^(\\d{1,14})\\.(.*)$");
@@ -108,12 +106,14 @@ public class DomainPrefixRequestParser implements RequestParser {
 						String dateStr = queryMatcher.group(1);
 						String host = queryMatcher.group(2);
 						String startDate;
+						String endDate;
 						if(dateStr.length() == 0) {
-							startDate = earliest;
+							startDate = earliestTimestamp;
+							endDate = latestTimestamp;
 						} else {
 							startDate = Timestamp.parseBefore(dateStr).getDateStr();
+							endDate = Timestamp.parseAfter(dateStr).getDateStr();
 						}
-						String endDate = Timestamp.parseAfter(dateStr).getDateStr();
 						wbRequest.put(WaybackConstants.REQUEST_START_DATE,startDate);
 						wbRequest.put(WaybackConstants.REQUEST_END_DATE,endDate);
 						wbRequest.put(WaybackConstants.REQUEST_TYPE,
@@ -132,33 +132,6 @@ public class DomainPrefixRequestParser implements RequestParser {
 			}
 		}
 		return wbRequest;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.archive.wayback.RequestParser#setEarliestTimestamp(java.lang.String)
-	 */
-	public void setEarliestTimestamp(String timestamp) {
-		earliest = timestamp;
-	}
-
-	/**
-	 * @return the earliest timestamp
-	 */
-	public String getEarliestTimestamp() {
-		return earliest;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.archive.wayback.RequestParser#setMaxRecords(int)
-	 */
-	public void setMaxRecords(int maxRecords) {
-		this.maxRecords = maxRecords; 
-	}
-	/**
-	 * @return the maxRecords
-	 */
-	public int getMaxRecords() {
-		return maxRecords;
 	}
 
 	/**

@@ -24,6 +24,7 @@
  */
 package org.archive.wayback.archivalurl.requestparser;
 
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -42,6 +43,8 @@ import org.archive.wayback.requestparser.PathRequestParser;
  * @version $Date$, $Revision$
  */
 public class ReplayRequestParser extends PathRequestParser {
+	private static final Logger LOGGER = Logger.getLogger(
+			ReplayRequestParser.class.getName());
 	/**
 	 * Regex which parses Archival URL replay requests into timestamp + url
 	 */
@@ -51,10 +54,11 @@ public class ReplayRequestParser extends PathRequestParser {
 	public WaybackRequest parse(String requestPath) {
 		WaybackRequest wbRequest = null;
 		Matcher matcher = WB_REQUEST_REGEX.matcher(requestPath);
+		String urlStr = null;
 		if (matcher != null && matcher.matches()) {
 			wbRequest = new WaybackRequest();
 			String dateStr = matcher.group(1);
-			String urlStr = matcher.group(2);
+			urlStr = matcher.group(2);
 			if (!urlStr.startsWith("http://")) {
 				urlStr = "http://" + urlStr;
 			}
@@ -71,8 +75,8 @@ public class ReplayRequestParser extends PathRequestParser {
 			String startDate = null;
 			String endDate = null;
 			if (dateStr.length() == 14) {
-				startDate = Timestamp.earliestTimestamp().getDateStr();
-				endDate = Timestamp.currentTimestamp().getDateStr();
+				startDate = earliestTimestamp;
+				endDate = latestTimestamp;
 			} else {
 
 				// classic behavior:
@@ -81,8 +85,8 @@ public class ReplayRequestParser extends PathRequestParser {
 				// dateStr = endDate;
 
 				// "better" behavior:
-				startDate = Timestamp.earliestTimestamp().getDateStr();
-				endDate = Timestamp.currentTimestamp().getDateStr();
+				startDate = earliestTimestamp;
+				endDate = latestTimestamp;
 				dateStr = Timestamp.parseAfter(dateStr).getDateStr();
 
 			}
@@ -100,6 +104,9 @@ public class ReplayRequestParser extends PathRequestParser {
 //				}
 				wbRequest.setRequestUrl(urlStr);
 			} catch (URIException e) {
+				if(urlStr != null) {
+					LOGGER.severe("Failed parse of url(" + urlStr + ")");
+				}
 				e.printStackTrace();
 				wbRequest = null;
 			}

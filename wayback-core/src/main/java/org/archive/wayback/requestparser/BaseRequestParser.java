@@ -69,6 +69,8 @@ public abstract class BaseRequestParser implements RequestParser {
 	
 	protected String earliestTimestamp = 
 		Timestamp.earliestTimestamp().getDateStr();
+	protected String latestTimestamp = 
+		Timestamp.latestTimestamp().getDateStr();
 
 	protected static String getMapParam(Map<String,String[]> queryMap,
 			String field) {
@@ -159,6 +161,14 @@ public abstract class BaseRequestParser implements RequestParser {
 	 */
 	public String getEarliestTimestamp() {
 		return earliestTimestamp;
+	}
+
+	public String getLatestTimestamp() {
+		return latestTimestamp;
+	}
+
+	public void setLatestTimestamp(String timestamp) {
+		this.latestTimestamp = Timestamp.parseAfter(timestamp).getDateStr();
 	}
 	
 }

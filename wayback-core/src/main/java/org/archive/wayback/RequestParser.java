@@ -56,4 +56,8 @@ public interface RequestParser {
 	 * @param timestamp
 	 */
 	public void setEarliestTimestamp(String timestamp);
+	/**
+	 * @param timestamp
+	 */
+	public void setLatestTimestamp(String timestamp);
 }
