@@ -92,7 +92,7 @@ public class UIQueryResults extends UIResults {
 		this.searchUrl = wbRequest.get(WaybackConstants.RESULT_URL);
 		this.startTimestamp = Timestamp.parseBefore(results.
 				getFilter(WaybackConstants.REQUEST_START_DATE));
-		this.endTimestamp = Timestamp.parseBefore(results.getFilter(
+		this.endTimestamp = Timestamp.parseAfter(results.getFilter(
 				WaybackConstants.REQUEST_END_DATE));
 		
 		this.firstResultTimestamp = Timestamp.parseBefore(results
