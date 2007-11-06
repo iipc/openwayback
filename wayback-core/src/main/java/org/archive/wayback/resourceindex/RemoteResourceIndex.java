@@ -203,7 +203,7 @@ public class RemoteResourceIndex implements ResourceIndex {
 		for(int i = 0; i < xresults.getLength(); i++) {
 			Node xresult = xresults.item(i);
 			SearchResult result = searchElementToSearchResult(xresult);
-			results.addSearchResultRaw(result,true);
+			results.addSearchResult(result,true);
 		}
 		return results;
 	}
