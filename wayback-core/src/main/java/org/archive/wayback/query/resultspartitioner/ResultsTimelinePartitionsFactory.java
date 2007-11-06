@@ -44,7 +44,7 @@ public class ResultsTimelinePartitionsFactory {
 	private static int NUM_HOUR_PARTITIONS = 12;
 	private static int NUM_DAY_PARTITIONS = 15;
 	private static int NUM_MONTH_PARTITIONS = 12;
-	private static int NUM_TWO_MONTH_PARTITIONS = 12;
+	private static int NUM_TWO_MONTH_PARTITIONS = 16;
 	private static int NUM_YEAR_PARTITIONS = 10;
 	
 	// These are sort of "ball park" figures. Should be using calendars
@@ -54,14 +54,14 @@ public class ResultsTimelinePartitionsFactory {
 	private static int MAX_MONTH_SECONDS = 2 * 60 * 60 * 24 * 30 * 
 		NUM_MONTH_PARTITIONS;
 	private static int MAX_TWO_MONTH_SECONDS = 2 * 60 * 60 * 24 * 2* 30 * 
-		NUM_MONTH_PARTITIONS;
+		NUM_TWO_MONTH_PARTITIONS;
 	//private static int MAX_YEAR_SECONDS = 60 * 60 * 24 * 365 * NUM_YEAR_PARTITIONS;
 	
 	
 	private static HourResultsPartitioner hourRP = new HourResultsPartitioner();
 	private static DayResultsPartitioner dayRP = new DayResultsPartitioner();
 	private static MonthResultsPartitioner monthRP = new MonthResultsPartitioner();
-	private static TwoMonthResultsPartitioner twoMonthRP = new TwoMonthResultsPartitioner();
+	private static TwoMonthTimelineResultsPartitioner twoMonthRP = new TwoMonthTimelineResultsPartitioner();
 	private static YearResultsPartitioner yearRP = new YearResultsPartitioner();
 	
 	/**
@@ -150,6 +150,8 @@ public class ResultsTimelinePartitionsFactory {
 			return WaybackConstants.REQUEST_RESOLUTION_DAYS;
 		} else if(diff < MAX_MONTH_SECONDS) {
 			return WaybackConstants.REQUEST_RESOLUTION_MONTHS;
+		} else if(diff < MAX_TWO_MONTH_SECONDS) {
+			return WaybackConstants.REQUEST_RESOLUTION_TWO_MONTHS;
 		}
 		return WaybackConstants.REQUEST_RESOLUTION_YEARS;
 	}
