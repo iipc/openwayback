@@ -53,6 +53,7 @@ import org.archive.wayback.exception.AccessControlException;
 import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
+import org.archive.wayback.util.AdaptedIterator;
 import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.ObjectFilter;
 import org.archive.wayback.util.ObjectFilterChain;
@@ -75,12 +76,18 @@ public class LocalResourceIndex implements ResourceIndex {
 
 	protected SearchResultSource source;
 	
-	private UrlCanonicalizer canonicalizer = new UrlCanonicalizer(); 
+	private UrlCanonicalizer canonicalizer = new UrlCanonicalizer();
+	
+	private boolean dedupeRecords = false;
 
 	private void filterRecords(CloseableIterator<SearchResult> itr,
 			ObjectFilter<SearchResult> filter, SearchResults results,
 			boolean forwards) throws IOException {
 
+		if(dedupeRecords) {
+			itr = new AdaptedIterator<SearchResult, SearchResult>(itr,
+					new DeduplicationSearchResultAnnotationAdapter());
+		}
 		while (itr.hasNext()) {
 			SearchResult result = itr.next();
 			int ruling = filter.filterObject(result);
@@ -407,5 +414,13 @@ public class LocalResourceIndex implements ResourceIndex {
 	 */
 	public void setSource(SearchResultSource source) {
 		this.source = source;
+	}
+
+	public boolean isDedupeRecords() {
+		return dedupeRecords;
+	}
+
+	public void setDedupeRecords(boolean dedupeRecords) {
+		this.dedupeRecords = dedupeRecords;
 	}
 }
