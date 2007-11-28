@@ -24,6 +24,7 @@
  */
 package org.archive.wayback.webapp;
 
+import java.util.ArrayList;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletContext;
@@ -50,6 +51,8 @@ public class RequestMapper {
 	
 	private final static String PORT_SEPARATOR = ":";
 	
+	private final static String ACCESS_POINT_CLASSNAME =
+		"org.archive.wayback.webapp.AccessPoint";
 
 	private final static String CONFIG_PATH = "config-path";
 //	private WaybackContext defaultContext = null;
@@ -87,6 +90,8 @@ public class RequestMapper {
 			if(secondSlash != -1) {
 				collection = PORT_SEPARATOR + 
 					requestPath.substring(1,requestPath.indexOf("/",1));
+			} else {
+				collection = PORT_SEPARATOR + requestPath.substring(1);
 			}
 		}
 		return String.valueOf(request.getLocalPort()) + collection;
@@ -99,14 +104,14 @@ public class RequestMapper {
 	public RequestContext mapContext(HttpServletRequest request) {
 
 		RequestContext context = null;
-		String contextID = String.valueOf(request.getLocalPort());
-		if(factory.containsBean(contextID)) {
-			Object o = factory.getBean(contextID);
+		String portStr = String.valueOf(request.getLocalPort());
+		if(factory.containsBean(portStr)) {
+			Object o = factory.getBean(portStr);
 			if(o instanceof RequestContext) {
 				context = (RequestContext) o;
 			}
 		} else {
-			contextID = getContextID(request);
+			String contextID = getContextID(request);
 			if(factory.containsBean(contextID)) {
 				Object o = factory.getBean(contextID);
 				if(o instanceof RequestContext) {
@@ -114,9 +119,31 @@ public class RequestMapper {
 				}
 			}
 		}
+		if(context == null) {
+			ArrayList<String> names = getAccessPointNamesOnPort(portStr);
+			request.setAttribute("AccessPointNames", names);
+		}
 		return context;
 	}
 
+	@SuppressWarnings("unchecked")
+	public ArrayList<String> getAccessPointNamesOnPort(String portStr) {
+		ArrayList<String> names = new ArrayList<String>();
+		try {
+			Class accessPointClass = Class.forName(ACCESS_POINT_CLASSNAME);
+			String[] apNames = factory.getBeanNamesForType(accessPointClass);
+			String portStrColon = portStr + ":";
+			for(String apName : apNames) {
+				if(apName.startsWith(portStrColon)) {
+					names.add(apName.substring(portStrColon.length()));
+				}
+			}
+		} catch (ClassNotFoundException e) {
+			// boy, we're in trouble now..
+			e.printStackTrace();
+		}
+		return names;
+	}
 	/**
 	 * clean up all WaybackContexts, which should release resources gracefully.
 	 */
