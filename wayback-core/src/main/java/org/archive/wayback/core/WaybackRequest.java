@@ -30,6 +30,7 @@ import java.util.ResourceBundle;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.httpclient.URIException;
@@ -201,7 +202,13 @@ public class WaybackRequest {
 		put(WaybackConstants.REQUEST_REMOTE_USER, emptyIfNull(httpRequest
 				.getRemoteUser()));
 		put(WaybackConstants.REQUEST_LOCALE_LANG,getUserLocale(httpRequest));
-		// TODO: cookies...
+
+		Cookie[] cookies = httpRequest.getCookies();
+		if(cookies != null) {
+			for(Cookie cookie : cookies) {
+				put(cookie.getName(),cookie.getValue());
+			}
+		}
 	}
 
 	/**
