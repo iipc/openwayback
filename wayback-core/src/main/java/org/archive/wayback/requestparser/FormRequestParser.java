@@ -96,7 +96,7 @@ public class FormRequestParser extends BaseRequestParser {
 			}
 		}
 		if(wbRequest != null) {
-			addHttpHeaderFields(wbRequest, httpRequest);
+			wbRequest.fixup(httpRequest);
 		}
 
 		return wbRequest;

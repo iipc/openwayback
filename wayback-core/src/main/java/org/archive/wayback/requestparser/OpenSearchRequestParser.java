@@ -152,7 +152,7 @@ public class OpenSearchRequestParser extends BaseRequestParser {
 			wbRequest.put(WaybackConstants.REQUEST_END_DATE, 
 					latestTimestamp);
 		}
-		addHttpHeaderFields(wbRequest, httpRequest);
+		wbRequest.fixup(httpRequest);
 
 		return wbRequest;
 	}

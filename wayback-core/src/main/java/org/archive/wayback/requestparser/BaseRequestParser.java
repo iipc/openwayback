@@ -29,7 +29,6 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
 import org.archive.wayback.RequestParser;
-import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadQueryException;
@@ -100,37 +99,6 @@ public abstract class BaseRequestParser implements RequestParser {
 		return (val == null) ? "" : val;
 	}
 
-
-	private void putUnlessNull(WaybackRequest request, String key, String val) {
-		if(val != null) {
-			request.put(key, val);
-		}
-	}
-	
-	protected void addHttpHeaderFields(WaybackRequest wbRequest, 
-			HttpServletRequest httpRequest) {
-		
-		// attempt to get the HTTP referer if present..
-		putUnlessNull(wbRequest,WaybackConstants.REQUEST_REFERER_URL,
-				httpRequest.getHeader("REFERER"));
-		putUnlessNull(wbRequest,WaybackConstants.REQUEST_REMOTE_ADDRESS, 
-				httpRequest.getRemoteAddr());
-		putUnlessNull(wbRequest,WaybackConstants.REQUEST_WAYBACK_HOSTNAME,
-				httpRequest.getLocalName());
-		putUnlessNull(wbRequest,WaybackConstants.REQUEST_WAYBACK_PORT,
-				String.valueOf(httpRequest.getLocalPort()));
-		putUnlessNull(wbRequest,WaybackConstants.REQUEST_WAYBACK_CONTEXT,
-				httpRequest.getContextPath());
-		putUnlessNull(wbRequest,WaybackConstants.REQUEST_AUTH_TYPE, 
-				httpRequest.getAuthType());
-		putUnlessNull(wbRequest,WaybackConstants.REQUEST_REMOTE_USER,
-				httpRequest.getRemoteUser());
-		putUnlessNull(wbRequest,WaybackConstants.REQUEST_LOCALE_LANG,
-				httpRequest.getLocale().getDisplayLanguage());
-		
-		wbRequest.setLocale(httpRequest.getLocale());
-	}
-	
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.RequestParser#parse(javax.servlet.http.HttpServletRequest)
 	 */

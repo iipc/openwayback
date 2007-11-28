@@ -103,7 +103,7 @@ public class ProxyReplayRequestParser extends BaseRequestParser {
 			id = httpRequest.getRemoteAddr();
 		wbRequest.put(WaybackConstants.REQUEST_EXACT_DATE, Timestamp
 				.getTimestampForId(httpRequest.getContextPath(), id));
-		addHttpHeaderFields(wbRequest, httpRequest);
+		wbRequest.fixup(httpRequest);
 
 		return wbRequest;
 	}
