@@ -68,13 +68,12 @@ public class BDBIndexUpdater {
 
 	private int runInterval = DEFAULT_RUN_INTERVAL_MS;
 	
-//	private ArcIndexer indexer = new ArcIndexer();
-	
 	/**
 	 * Thread object of update thread -- also is flag indicating if the thread
-	 * has already been started -- static, and access to it is synchronized.
+	 * has already been started. Access to it is synchronized.
 	 */
-	private static Thread updateThread = null;
+	private Thread updateThread = null;
+
 	/**
 	 * Default constructor
 	 */
