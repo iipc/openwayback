@@ -40,8 +40,7 @@ import org.archive.wayback.util.Adapter;
 import org.archive.wayback.util.CloseableIterator;
 
 /**
- * Transforms an ARC file into SearchResults, or a serialized SearchResults
- * file(CDX).
+ * Transforms an ARC file into Iterator<SearchResult>.
  * 
  * @author brad
  * @version $Date$, $Revision$
@@ -92,86 +91,6 @@ public class ArcIndexer {
 			return rec;
 		}
 	}
-	
-//	private class DurableArchiveRecordIterator 
-//	implements Iterator<ArchiveRecord> {
-//
-//		private long lastRestart = 0;
-//		private File arc = null;
-//		Iterator<ArchiveRecord> innerItr = null;
-//		ArchiveRecord cachedNext = null;
-//		
-//		public DurableArchiveRecordIterator(File arc) throws IOException {
-//			this.arc = arc;
-//			restart(0);
-//		}
-//
-//		private void restart(long offset) throws IOException {
-//			ARCReader arcReader = ARCReaderFactory.get(arc,offset);
-//			arcReader.setParseHttpHeaders(true);
-//			innerItr = arcReader.iterator();
-//		}
-//		
-//		private long parseErrorOffset(String message) {
-//			long found = -1;
-//			int idx = message.indexOf("Offset ");
-//			if(idx >= 0) {
-//				int idx2 = message.indexOf(")");
-//				if(idx2 > 0) {
-//					String part = message.substring(idx + 7,idx2);
-//					System.err.println("Found(" + part +") from (" + message + ")");
-//					found = Long.parseLong(part) + 100;
-//				}
-//			}
-//			return found;
-//		}
-//		
-//		public boolean hasNext() {
-//			if(cachedNext != null) {
-//				return true;
-//			}
-//			while(true) {
-//				try {
-//					if(!innerItr.hasNext()) {
-//						return false;
-//					}
-//					cachedNext = innerItr.next();
-//				} catch (RuntimeException e) {
-//					long offset = parseErrorOffset(e.getMessage());
-//					if(offset > 0) {
-//						if(lastRestart == offset) {
-//							return false;
-//						}
-//						lastRestart = offset;
-//						try {
-//							restart(offset);
-//						} catch (IOException e1) {
-//							throw new RuntimeException(e1);
-//						}
-//					} else {
-//						throw e;
-//					}
-//				}
-//				if(cachedNext != null) {
-//					break;
-//				}
-//			}
-//			return true;
-//		}
-//
-//		public ArchiveRecord next() {
-//			if(cachedNext == null) {
-//				throw new NoSuchElementException("next() without hasNext()");
-//			}
-//			ArchiveRecord tmp = cachedNext;
-//			cachedNext = null;
-//			return tmp;
-//		}
-//
-//		public void remove() {
-//			throw new UnsupportedOperationException("remove unimplemented");
-//		}
-//	}
 
 	private static void USAGE() {
 		System.err.println("USAGE:");
