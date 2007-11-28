@@ -20,6 +20,10 @@ public class ResourceFactory {
 
 		Resource r = null;
 		String name = file.getName();
+		if(name.endsWith(LocalResourceStore.OPEN_EXTENSION)) {
+			name = name.substring(0, name.length() - 
+					LocalResourceStore.OPEN_EXTENSION.length());
+		}
 		if(name.endsWith(LocalResourceStore.ARC_EXTENSION) || 
 				name.endsWith(LocalResourceStore.ARC_GZ_EXTENSION)) {
 
@@ -37,8 +41,8 @@ public class ResourceFactory {
 
 			WARCReader reader = WARCReaderFactory.get(file);
 			ArchiveRecord rec = reader.get(offset);
-			if(!(rec instanceof ARCRecord)) {
-				throw new ResourceNotAvailableException("Bad ARCRecord format");
+			if(!(rec instanceof WARCRecord)) {
+				throw new ResourceNotAvailableException("Bad WARCRecord format");
 			}
 			WarcResource wr = new WarcResource((WARCRecord) rec, reader);
 			wr.parseHeaders();
