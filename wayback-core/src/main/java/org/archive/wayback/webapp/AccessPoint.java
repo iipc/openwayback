@@ -137,6 +137,10 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 		}
 		String contextPath = getContextPath(httpRequest);
 		if (!origRequestPath.startsWith(contextPath)) {
+			if(contextPath.startsWith(origRequestPath)) {
+				// missing trailing '/', just omit:
+				return "";
+			}
 			return null;
 		}
 		return origRequestPath.substring(contextPath.length());
@@ -321,7 +325,10 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 			SearchResults results = collection.getResourceIndex().query(wbRequest);
 			if(results.getResultsType().equals(
 					WaybackConstants.RESULTS_TYPE_CAPTURE)) {
-
+				CaptureSearchResults cResults = (CaptureSearchResults) results;
+				SearchResult closest = cResults.getClosest(wbRequest);
+				closest.put(WaybackConstants.RESULT_CLOSEST_INDICATOR, 
+						WaybackConstants.RESULT_CLOSEST_VALUE);
 				query.renderUrlResults(httpRequest,httpResponse,wbRequest,
 						results,uriConverter);
 
