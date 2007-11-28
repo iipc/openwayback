@@ -60,16 +60,10 @@ public class IndexClient {
 	private static final Logger LOGGER = Logger.getLogger(IndexClient
 			.class.getName());
 	
-//	private final static String ARC_SUFFIX = ".arc";
-//	private final static String ARC_GZ_SUFFIX = ".arc.gz";
-//	private final static String CDX_SUFFIX = ".cdx";
-	
 	private String target = null;
 	private File tmpDir = null;
 	
-//	private String submitUrl = null;
 	private HttpClient client = new HttpClient();
-//	private ArcIndexer indexer = null; 
 
 	/**
 	 * @param cdx
@@ -180,159 +174,6 @@ public class IndexClient {
 		boolean added = addCDX(tmpFile);
 		return added;
 	}
-	
-//	
-//	/**
-//	 * Inject File argument into the index pipeline specified for this client
-//	 * using HTTP PUT
-//	 * 
-//	 * @param cdx
-//	 * @throws HttpException
-//	 * @throws IOException
-//	 */
-//	public void uploadCDX(File cdx) throws HttpException, IOException {
-//		String basename = cdx.getName();
-//		String finalUrl = submitUrl + "/" + basename;
-//		PutMethod method = new PutMethod(finalUrl);
-//        method.setRequestEntity(new InputStreamRequestEntity(
-//        		new FileInputStream(cdx)));
-//
-//		int statusCode = client.executeMethod(method);
-//        if (statusCode != HttpStatus.SC_OK) {
-//            throw new IOException("Method failed: " + method.getStatusLine()
-//            		+ " for URL " + finalUrl + " on file " 
-//            		+ cdx.getAbsolutePath());
-//        }
-//        LOGGER.info("Uploaded cdx " + cdx.getAbsolutePath());
-//	}
-//	
-//	/**
-//	 * Create a CDX file for the arc argument, and add it to the remote
-//	 * index pipeline for this client.
-//	 * 
-//	 * @param arc
-//	 * @param workDir 
-//	 * @throws IOException 
-//	 */
-//	public void addArcToIndex(File arc,File workDir) throws IOException {
-//		String arcBase = arc.getName();
-//		if(arcBase.endsWith(ARC_SUFFIX)) {
-//			arcBase = arcBase.substring(0,arcBase.length() - 
-//					ARC_SUFFIX.length());
-//		}
-//		String cdxBase = arcBase + CDX_SUFFIX;
-//		File tmpCDX = new File(workDir,cdxBase);
-//		LOGGER.info("Indexing arc " + arc.getAbsolutePath());
-//		SearchResults results = indexer.indexArc(arc);
-//		indexer.serializeResults(results, tmpCDX);
-//		uploadCDX(tmpCDX);
-//		if(!tmpCDX.delete()) {
-//			throw new IOException("Unable to unlink " + 
-//					tmpCDX.getAbsolutePath());
-//		}
-//	}
-//	
-//	/**
-//	 * @param arc
-//	 * @param os
-//	 * @throws IOException
-//	 */
-//	public void dumpArcIndex(File arc, OutputStream os) throws IOException {
-//		BufferedOutputStream bos = new BufferedOutputStream(os);
-//		PrintWriter pw = new PrintWriter(bos);
-//		SearchResults results = indexer.indexArc(arc);
-//		indexer.serializeResults(results,pw);
-//	}
-//	
-//	/**
-//	 * Index each ARC in directory, upload CDX to the remote pipeline, and
-//	 * poke the remote locationDB to let it know where this ARC can be found.
-//	 * 
-//	 * @param directory
-//	 * @param httpPrefix
-//	 * @param locationClient 
-//	 * @param workDir 
-//	 * @throws IOException 
-//	 */
-//	public void indexDirectory(File directory, String httpPrefix,
-//			FileLocationDBClient locationClient, File workDir) 
-//	throws IOException {
-//		if(!workDir.isDirectory()) {
-//			if(workDir.exists()) {
-//				throw new IOException("workDir path " + 
-//						workDir.getAbsolutePath() +	" exists but is not a " +
-//								"directory");
-//			}
-//			if(!workDir.mkdirs()) {
-//				throw new IOException("Failed to mkdir(" + 
-//						workDir.getAbsolutePath() + ")");
-//			}
-//		}
-//		
-//		if(!httpPrefix.endsWith("/")) {
-//			httpPrefix += "/";
-//		}
-//		
-//		FileFilter filter = new FileFilter() {
-//			public boolean accept(File daFile) {
-//				return daFile.getName().endsWith(ARC_SUFFIX);
-//			}
-//		};
-//
-//		File[] arcs = directory.listFiles(filter);
-//		if(arcs == null) {
-//			throw new IOException("Directory " + directory.getAbsolutePath() +
-//					" is not a directory or had an IO error");
-//		}
-//		for(int i = 0; i < arcs.length; i++) {
-//			File arc = arcs[i];
-//			String arcName = arc.getName();
-//			String arcUrl = httpPrefix + arcName;
-//			addArcToIndex(arc,workDir);
-//			LOGGER.info("Adding location " + arcUrl + " for arc " + arcName);
-//			locationClient.addArcUrl(arcName,arcUrl);
-//		}
-//	}
-//	
-//	/**
-//	 * @param args
-//	 */
-//	public static void main(String[] args) {
-//		if(args.length == 1) {
-//			File arc = new File(args[0]);
-//			ArcIndexer indexer = new ArcIndexer();
-//			
-//			BufferedOutputStream bos = new BufferedOutputStream(System.out);
-//			PrintWriter pw = new PrintWriter(bos);
-//			SearchResults results;
-//			try {
-//				results = indexer.indexArc(arc);
-//				indexer.serializeResults(results,pw);
-//			} catch (IOException e) {
-//				e.printStackTrace();
-//				System.exit(1);
-//			}
-//			return;
-//		} else if(args.length != 5) {
-//			System.err.println("Usage: workDir pipelineUrl locationUrl arcDir arcUrlPrefix");
-//			System.err.println("Usage: arcPath");
-//			return;
-//		}
-//		File workDir = new File(args[0]);
-//		String pipelineUrl = args[1];
-//		String locationUrl = args[2];
-//		File arcDir = new File(args[3]);
-//		String arcDirPrefix = args[4];
-//		IndexClient pipeClient;
-//		FileLocationDBClient locClient = new FileLocationDBClient(locationUrl);
-//		try {
-//			pipeClient = new IndexClient(pipelineUrl);
-//			pipeClient.indexDirectory(arcDir,arcDirPrefix,locClient,workDir);
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//			System.exit(1);
-//		}
-//	}
 
 	/**
 	 * @return the target
