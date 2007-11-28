@@ -26,236 +26,118 @@ package org.archive.wayback.core;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
-import java.util.logging.Logger;
-
-import org.apache.commons.httpclient.Header;
-import org.archive.io.ArchiveRecord;
-import org.archive.io.arc.ARCReader;
-import org.archive.io.arc.ARCRecord;
 
 /**
- * Slightly more than an ARCRecord. This class is designed to be an abstraction
- * to allow the Wayback to operator with non-ARC file format resources. Probably
- * the interface required will end up looking very much like ARCRecord, but can
- * be reimplemented to handle new ARC formats or non-ARC formats.
+ * Abstraction on top of a document stored in a WaybackCollection. Currently
+ * implemented subclasses include ArcResource and WarcResource.
  * 
  * @author Brad Tofel
  * @version $Date$, $Revision$
  */
-public class Resource extends InputStream {
-	/**
-	 * Logger for this class
-	 */
-	private static final Logger LOGGER = Logger.getLogger(Resource.class
-			.getName());
+public abstract class Resource extends InputStream {
+	
+	private InputStream is;
 
-	/**
-	 * String prefix for ARC file related metadata namespace of keys within 
-	 * metaData Properties bag.
-	 */
-	private static String ARC_META_PREFIX = "arcmeta.";
-	/**
-	 * String prefix for HTTP Header related metadata namespace of keys within 
-	 * metaData Properties bag.
-	 */
-	private static String HTTP_HEADER_PREFIX = "httpheader.";
-	/**
-	 * object for ARCRecord
-	 */
-	ARCRecord arcRecord = null;
-	/**
-	 * object for ARCReader -- need to hold on to this in order to call close()
-	 * to release filehandle after completing access to this record. optional
-	 */
-	ARCReader arcReader = null;
-	/**
-	 * flag to indicate if the ARCRecord skipHTTPHeader() has been called
-	 */
-	boolean parsedHeader = false;
-	/**
-	 * Expandable property bag for holding metadata associated with this 
-	 * resource
-	 */
-	Hashtable<String,String> metaData = new Hashtable<String,String>();
-	
-	private BufferedInputStream bis;
-	
-	/**
-	 * Constructor
-	 * 
-	 * @param rec
-	 * @param reader 
-	 */
-	public Resource(final ARCRecord rec,final ARCReader reader) {
-		super();
-		arcRecord = rec;
-		arcReader = reader;
-		bis = new BufferedInputStream(rec);
+    public abstract void close() throws IOException;
+	public abstract int getStatusCode();
+	public abstract long getRecordLength();
+	public abstract Map<String,String> getHttpHeaders();
+
+	protected void setInputStream(InputStream is) {
+		if(is.markSupported()) {
+			this.is = is;
+		} else {
+			this.is = new BufferedInputStream(is);
+		}
 	}
-
-	/** parse the headers on the underlying ARC record, and extract all 
+	/**
+	 * @return
 	 * @throws IOException
-	 */
-	public void parseHeaders () throws IOException {
-		if(!parsedHeader) {
-			arcRecord.skipHttpHeader();
-			// copy all HTTP headers to metaData, prefixing with 
-			// HTTP_HEADER_PREFIX
-			Header[] headers = arcRecord.getHttpHeaders();
-			if (headers != null) {
-				for (int i = 0; i < headers.length; i++) {
-					String value = headers[i].getValue();
-					String name = headers[i].getName();
-					metaData.put(HTTP_HEADER_PREFIX + name,value);
-				}
-			}
-
-			// copy all ARC record header fields to metaData, prefixing with 
-			// ARC_META_PREFIX
-			@SuppressWarnings("unchecked")
-			Map<String,Object> headerMetaMap = arcRecord.getMetaData().getHeaderFields();
-			Set<String> keys = headerMetaMap.keySet();
-			Iterator<String> itr = keys.iterator();
-			while(itr.hasNext()) {
-				String metaKey = itr.next();
-				Object value = headerMetaMap.get(metaKey);
-				String metaValue = "";
-				if(value != null) {
-					metaValue = value.toString();
-				}
-				metaData.put(ARC_META_PREFIX + metaKey,metaValue);
-			}
-		
-			parsedHeader = true;			
-		}
-	}
-
-	/**
-	 * @param prefix
-	 * @return a Properties of all elements in metaData starting with 'prefix'.
-	 *         keys in the returned Properties have 'prefix' removed.
-	 */
-	public Map<String,String> filterMeta(String prefix) {
-		HashMap<String,String> matching = new HashMap<String,String>();
-		for (Enumeration<String> e = metaData.keys(); e.hasMoreElements();) {
-			String key = e.nextElement();
-			if (key.startsWith(prefix)) {
-				String finalKey = key.substring(prefix.length());
-				String value = metaData.get(key);
-				matching.put(finalKey, value);
-			}
-		}
-		return matching;
-	}
-	
-	/**
-	 * @return a Properties containing all HTTP header fields for this record
-	 */
-	public Map<String,String> getHttpHeaders() {
-		return filterMeta(HTTP_HEADER_PREFIX);
-	}
-
-	/**
-	 * @return a Properties containing all ARC Meta fields for this record
-	 */
-	public Map<String,String> getARCMetadata() {
-		return filterMeta(ARC_META_PREFIX);
-	}
-	
-	/**
-	 * (non-Javadoc)
-	 * @see org.archive.io.arc.ARCRecord#getStatusCode()
-	 * @return int HTTP status code returned with this document. 
-	 */
-	public int getStatusCode() {
-		return arcRecord.getStatusCode();
-	}
-
-	/**
-	 * @return the ARCRecord underlying this Resource.
-	 */
-	public ArchiveRecord getArcRecord() {
-		return arcRecord;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.archive.io.arc.ARCRecord#read()
-	 */
-	public int read() throws IOException {
-		return bis.read();
-	}
-
-	/* (non-Javadoc)
-	 * @see org.archive.io.arc.ARCRecord#read(byte[], int, int)
-	 */
-	public int read(byte[] arg0, int arg1, int arg2) throws IOException {
-		return bis.read(arg0, arg1, arg2);
-	}
-
-	/* (non-Javadoc)
-	 * @see java.io.InputStream#read(byte[])
-	 */
-	public int read(byte[] b) throws IOException {
-		return bis.read(b);
-	}
-
-	/* (non-Javadoc)
-	 * @see org.archive.io.arc.ARCRecord#skip(long)
-	 */
-	public long skip(long arg0) throws IOException {
-		return bis.skip(arg0);
-	}
-
-	/* (non-Javadoc)
 	 * @see java.io.BufferedInputStream#available()
 	 */
 	public int available() throws IOException {
-		return bis.available();
+		if(is == null) {
+			throw new IOException("No InputStream");
+		}
+		return is.available();
 	}
-
-	/* (non-Javadoc)
+	/**
+	 * @param readlimit
 	 * @see java.io.BufferedInputStream#mark(int)
 	 */
 	public void mark(int readlimit) {
-		bis.mark(readlimit);
+		if(is != null) {
+			is.mark(readlimit);
+		}
 	}
-
-	/* (non-Javadoc)
+	/**
+	 * @return
 	 * @see java.io.BufferedInputStream#markSupported()
 	 */
 	public boolean markSupported() {
-		return bis.markSupported();
+		if(is == null) {
+			return false;
+		}
+		return is.markSupported();
 	}
-
-	/* (non-Javadoc)
+	/**
+	 * @return
+	 * @throws IOException
+	 * @see java.io.BufferedInputStream#read()
+	 */
+	public int read() throws IOException {
+		if(is == null) {
+			throw new IOException("No InputStream");
+		}
+		return is.read();
+	}
+	/**
+	 * @param b
+	 * @param off
+	 * @param len
+	 * @return
+	 * @throws IOException
+	 * @see java.io.BufferedInputStream#read(byte[], int, int)
+	 */
+	public int read(byte[] b, int off, int len) throws IOException {
+		if(is == null) {
+			throw new IOException("No InputStream");
+		}
+		return is.read(b, off, len);
+	}
+	/**
+	 * @param b
+	 * @return
+	 * @throws IOException
+	 * @see java.io.FilterInputStream#read(byte[])
+	 */
+	public int read(byte[] b) throws IOException {
+		if(is == null) {
+			throw new IOException("No InputStream");
+		}
+		return is.read(b);
+	}
+	/**
+	 * @throws IOException
 	 * @see java.io.BufferedInputStream#reset()
 	 */
 	public void reset() throws IOException {
-		bis.reset();
-	}
-
-	/* (non-Javadoc)
-	 * @see org.archive.io.arc.ARCRecord#close()
-	 */
-	public void close() throws IOException {
-		//LOGGER.info("About to close..("+arcReader+")");
-		arcRecord.close();
-		if(arcReader != null) {
-			arcReader.close();
-			LOGGER.info("closed..("+arcReader+")");
+		if(is == null) {
+			throw new IOException("No InputStream");
 		}
+		is.reset();
 	}
-	
 	/**
-	 * @return byte length claimed in ARC record metadata line.
+	 * @param n
+	 * @return
+	 * @throws IOException
+	 * @see java.io.BufferedInputStream#skip(long)
 	 */
-	public long getRecordLength() {
-		return arcRecord.getMetaData().getLength();
+	public long skip(long n) throws IOException {
+		if(is == null) {
+			throw new IOException("No InputStream");
+		}
+		return is.skip(n);
 	}
 }
