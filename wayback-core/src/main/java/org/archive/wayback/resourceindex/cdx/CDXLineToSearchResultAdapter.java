@@ -61,7 +61,10 @@ public class CDXLineToSearchResultAdapter implements Adapter<String,SearchResult
 		String httpResponseCode = tokens[4];
 		String md5Fragment = tokens[5];
 		String redirectUrl = tokens[6];
-		long compressedOffset = Long.parseLong(tokens[7]);
+		long compressedOffset = -1;
+		if(!tokens[7].equals("-")) {
+			compressedOffset = Long.parseLong(tokens[7]);
+		}
 		String arcFileName = tokens[8];
 
 		String origUrl = url;
