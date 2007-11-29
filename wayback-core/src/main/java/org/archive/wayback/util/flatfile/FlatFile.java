@@ -28,6 +28,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.util.Iterator;
 
@@ -175,6 +176,14 @@ public class FlatFile {
 		lastMatchOffset = offset - 1;
 		itr = new ReverseRecordIterator(new ReverseBufferedReader(raf));
 		return itr;
+	}
+	
+	public void store(Iterator<String> itr) throws IOException {
+		PrintWriter pw = new PrintWriter(file);
+		while(itr.hasNext()) {
+			pw.println(file);
+		}
+		pw.close();
 	}
 	
 	private static void USAGE() {
