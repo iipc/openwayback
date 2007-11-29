@@ -24,16 +24,12 @@
  */
 package org.archive.wayback.resourceindex.indexer;
 
-//import java.io.BufferedOutputStream;
 import java.io.File;
-//import java.io.FileFilter;
 import java.io.BufferedOutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
-//import java.io.OutputStream;
-//import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.logging.Logger;
 
@@ -42,9 +38,6 @@ import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
 import org.apache.commons.httpclient.methods.PutMethod;
-//import org.archive.wayback.core.SearchResults;
-//import org.archive.wayback.resourcestore.ArcIndexer;
-//import org.archive.wayback.resourcestore.http.FileLocationDBClient;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.resourceindex.cdx.SearchResultToCDXLineAdapter;
 import org.archive.wayback.util.AdaptedIterator;
