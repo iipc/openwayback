@@ -43,6 +43,7 @@ import org.archive.wayback.exception.LiveDocumentNotAvailableException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.exception.WaybackException;
 import org.archive.wayback.resourcestore.ARCRecordToSearchResultAdapter;
+import org.archive.wayback.resourcestore.ArcResource;
 import org.archive.wayback.util.Adapter;
 import org.archive.wayback.util.UrlCanonicalizer;
 
@@ -203,15 +204,18 @@ public class LiveWebCache {
 					"ARC(" + name + ") at (" + offset + ")");
 			resource = arcCacheDir.getResource(name, offset);
 			// add the result to the index:
-			ARCRecord record = (ARCRecord) resource.getArcRecord();
+			if(resource instanceof ArcResource) {
+				ArcResource aResource = (ArcResource) resource;
+				ARCRecord record = (ARCRecord) aResource.getArcRecord();
 				
-			SearchResult result = adapter.adapt(record);
-			index.addSearchResult(result);
-			LOGGER.info("Added URL(" + url.toString() + ") in " +
-					"ARC(" + name + ") at (" + offset + ") to LiveIndex");
+				SearchResult result = adapter.adapt(record);
+				index.addSearchResult(result);
+				LOGGER.info("Added URL(" + url.toString() + ") in " +
+						"ARC(" + name + ") at (" + offset + ") to LiveIndex");
 				
-			// we just read thru the doc in order to index it. Reset:
-			resource = arcCacheDir.getResource(name, offset);
+				// we just read thru the doc in order to index it. Reset:
+				resource = arcCacheDir.getResource(name, offset);
+			}
 
 		}
 		

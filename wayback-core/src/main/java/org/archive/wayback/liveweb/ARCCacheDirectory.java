@@ -30,15 +30,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 
-import org.archive.io.ArchiveRecord;
 import org.archive.io.WriterPoolSettings;
 import org.archive.io.arc.ARCConstants;
-import org.archive.io.arc.ARCReader;
-import org.archive.io.arc.ARCReaderFactory;
-import org.archive.io.arc.ARCRecord;
 import org.archive.io.arc.ARCWriter;
 import org.archive.io.arc.ARCWriterPool;
 import org.archive.wayback.core.Resource;
+import org.archive.wayback.exception.ResourceNotAvailableException;
+import org.archive.wayback.resourcestore.ResourceFactory;
 import org.archive.wayback.util.DirMaker;
 
 /**
@@ -119,7 +117,6 @@ public class ARCCacheDirectory {
 	 * @throws IOException 
 	 */
 	public Resource getResource(String path, long offset) throws IOException {
-		Resource resource = null;
 		File arc = new File(path);
 		if(!arc.exists()) {
 			String base = arc.getName();
@@ -132,23 +129,13 @@ public class ARCCacheDirectory {
 				}
 			}
 		}
-
 		LOGGER.info("Retrieving record at " + offset + " in " + 
-				arc.getAbsolutePath());
-		ARCReader reader = null;
+				arc.getAbsolutePath()); 
 		try {
-			reader = ARCReaderFactory.get(arc,true,offset);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
+			return ResourceFactory.getResource(arc, offset);
+		} catch (ResourceNotAvailableException e1) {
+			throw new IOException(e1.getMessage());
 		}
-		
-		ArchiveRecord aRec = reader.get(offset);
-		if(!(aRec instanceof ARCRecord)) {
-			throw new IOException("Not ARCRecord...");
-		}
-		ARCRecord rec = (ARCRecord) aRec;
-		resource = new Resource(rec,reader);
-		return resource;
 	}
 	
 	private WriterPoolSettings getSettings(final boolean isCompressed,
