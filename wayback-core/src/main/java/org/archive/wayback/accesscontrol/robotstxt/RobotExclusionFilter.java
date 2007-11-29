@@ -148,7 +148,6 @@ public class RobotExclusionFilter implements ObjectFilter<SearchResult> {
 					tmpRules = new RobotRules();
 					Resource resource = webCache.getCachedResource(new URL(urlString),
 							maxCacheMS,true);
-					resource.parseHeaders();
 					tmpRules.parse(resource);
 					rulesCache.put(firstUrlString,tmpRules);
 					rules = tmpRules;
