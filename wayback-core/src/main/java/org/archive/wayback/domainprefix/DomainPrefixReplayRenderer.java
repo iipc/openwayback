@@ -76,7 +76,6 @@ public class DomainPrefixReplayRenderer implements ReplayRenderer, HttpHeaderPro
 			SearchResult result, Resource resource,
 			ResultURIConverter uriConverter, SearchResults results)
 			throws ServletException, IOException, BadContentException {
-		resource.parseHeaders();
 		
 		HttpHeaderOperation.copyHTTPMessageHeader(resource, httpResponse);
 
