@@ -41,6 +41,7 @@ public class UIResults {
 	private final static String FERRET_NAME = "ui-results";
 	protected WaybackRequest wbRequest;
 	private String contentJsp = null;
+	private String originalRequestURL = null;
 	
 	
 	/**
@@ -74,7 +75,8 @@ public class UIResults {
 	public void storeInRequest(HttpServletRequest httpRequest, 
 			String contentJsp) {
 		this.contentJsp = contentJsp;
-		httpRequest.setAttribute(FERRET_NAME, this);		
+		this.originalRequestURL = httpRequest.getRequestURL().toString();
+		httpRequest.setAttribute(FERRET_NAME, this);
 	}
 
 	/**
@@ -197,6 +199,9 @@ public class UIResults {
 			}
 		}
 		return configValue;
+	}
+	public String getOriginalRequestURL() {
+		return originalRequestURL;
 	}
 	
 }
