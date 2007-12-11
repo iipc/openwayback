@@ -61,9 +61,6 @@ public class TransparentReplayRenderer implements ReplayRenderer, HttpHeaderProc
 			ResultURIConverter uriConverter, SearchResults results)
 			throws ServletException, IOException, BadContentException {
 
-		// cause underlying resource to read thru HTTP headers:
-		resource.parseHeaders();
-
 		HttpHeaderOperation.copyHTTPMessageHeader(resource, httpResponse);
 		
 		Map<String,String> headers = HttpHeaderOperation.processHeaders(
