@@ -71,7 +71,6 @@ public class UIReplayResult extends UIResults {
 		this.result = result;
 		this.resource = resource;
 		this.uriConverter = uriConverter;
-		resource.parseHeaders();
 	}
 
 	/**
