@@ -28,7 +28,8 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- *
+ * Lots of things need to transform Strings to Files, constructing them if 
+ * needed. These are static methods for doing that.
  *
  * @author brad
  * @version $Date$, $Revision$
@@ -58,5 +59,14 @@ public class DirMaker {
 			}
 		}
 		return dir;
+	}
+	public static File ensureDir(String path) throws IOException {
+		return ensureDir(path,"");
+	}
+	public static String getAbsolutePath(File file) {
+		if(file == null) {
+			return null;
+		}
+		return file.getAbsolutePath();
 	}
 }
