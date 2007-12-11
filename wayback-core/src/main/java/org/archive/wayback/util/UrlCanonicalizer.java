@@ -27,6 +27,7 @@ package org.archive.wayback.util;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -341,7 +342,8 @@ public class UrlCanonicalizer {
 		UrlCanonicalizer canonicalizer = new UrlCanonicalizer();
 		int n = 0;
 		int i = 0;
-		int column = 0;
+		ArrayList<Integer> columns = new ArrayList<Integer>();
+		
 		long lineNumber = 0;
 		boolean cdxPassThru = false;
 		String delimiter = " ";
@@ -357,7 +359,7 @@ public class UrlCanonicalizer {
 			}
 			String val = args[n+1];
 			if(arg.compareTo("-f") == 0) {
-				column = Integer.parseInt(val) - 1;
+				columns.add(new Integer(val));
 			} else if(arg.compareTo("-d") == 0) {
 				delimiter = val;
 			} else {
@@ -365,9 +367,20 @@ public class UrlCanonicalizer {
 			}
 			n += 2;
 		}
+		// place default '0' in case none specified:
+		if(columns.size() == 0) {
+			columns.add(new Integer(1));
+		}
+		
+		// convert to int[]:
+		int[] cols = new int[columns.size()];
+		for(int idx = 0; idx < columns.size(); idx++) {
+			cols[idx] = columns.get(idx).intValue() - 1;
+		}
 		BufferedReader r = new BufferedReader(new InputStreamReader(System.in));
 		StringBuilder sb = new StringBuilder();
 		String line = null;
+		
 		while(true) {
 			try {
 				line = r.readLine();
@@ -384,27 +397,29 @@ public class UrlCanonicalizer {
 				continue;
 			}
 			String parts[] = line.split(delimiter);
-			if(column >= parts.length) {
-				System.err.println("Invalid line " + lineNumber + " (" +
-						line + ") skipped");
-			} else {
-				try {
-					parts[column] = canonicalizer.urlStringToKey(parts[column]);
-				} catch (URIException e) {
-					System.err.println("Invalid URL in line " + lineNumber + " (" +
-							line + ") skipped");					
-					e.printStackTrace();
-					continue;
-				}
-				sb.setLength(0);
-				for(i = 0; i < parts.length; i++) {
-					sb.append(parts[i]);
-					if(i < (parts.length-1)) {
-						sb.append(delimiter);
+			for(int column : cols) {
+				if(column >= parts.length) {
+					System.err.println("Invalid line " + lineNumber + " (" +
+							line + ") skipped");
+				} else {
+					try {
+						parts[column] = canonicalizer.urlStringToKey(parts[column]);
+					} catch (URIException e) {
+						System.err.println("Invalid URL in line " + lineNumber + " (" +
+								line + ") skipped (" + parts[column] + ")");
+						e.printStackTrace();
+						continue;
 					}
 				}
-				System.out.println(sb.toString());
 			}
+			sb.setLength(0);
+			for(i = 0; i < parts.length; i++) {
+				sb.append(parts[i]);
+				if(i < (parts.length-1)) {
+					sb.append(delimiter);
+				}
+			}
+			System.out.println(sb.toString());
 		}
 	}
 }
