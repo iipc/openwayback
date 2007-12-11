@@ -43,7 +43,7 @@ import org.archive.wayback.exception.ResourceNotAvailableException;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class HttpARCResourceStore implements ResourceStore {
+public class Http11ResourceStore implements ResourceStore {
 
 	private String urlPrefix = null;
 
