@@ -45,6 +45,7 @@ import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.exception.ResourceNotAvailableException;
 import org.archive.wayback.resourceindex.indexer.IndexClient;
 //import org.archive.wayback.util.CloseableIterator;
+import org.archive.wayback.util.DirMaker;
 
 /**
  * Implements ResourceStore using a local directory of ARC files.
@@ -59,10 +60,8 @@ public class LocalARCResourceStore implements ResourceStore {
 	private final static int DEFAULT_RUN_INTERVAL_MS = 10000;
 
 	private File arcDir = null;
-//	private File tmpDir = null;
 	private File workDir = null;
 	private File queuedDir = null;
-//	private String indexTarget = null;
 	private int runInterval = DEFAULT_RUN_INTERVAL_MS;
 	private IndexClient indexClient = null;
 	private ArcIndexer indexer = new ArcIndexer();
@@ -71,7 +70,7 @@ public class LocalARCResourceStore implements ResourceStore {
 	 * Thread object of update thread -- also is flag indicating if the thread
 	 * has already been started -- static, and access to it is synchronized.
 	 */
-	private static Thread indexThread = null;
+	private Thread indexThread = null;
 	
 	/**
 	 * @throws ConfigurationException
@@ -111,7 +110,7 @@ public class LocalARCResourceStore implements ResourceStore {
 			if(!(rec instanceof ARCRecord)) {
 				throw new ResourceNotAvailableException("Bad ARCRecord format");
 			}
-			Resource r = new Resource((ARCRecord) rec, reader);
+			Resource r = new ArcResource((ARCRecord) rec, reader);
 			return r;
 		}
 	}
@@ -159,40 +158,6 @@ public class LocalARCResourceStore implements ResourceStore {
 		}
 	}
 	
-//	private boolean uploadCDX(File cdxFile) {
-//		boolean uploaded = false;
-//		if(indexClient == null) {
-//			// assume we just need to move it to a local directory:
-//			File toBeMergedDir = new File(indexTarget);
-//			File toBeMergedFile = new File(toBeMergedDir,cdxFile.getName());
-//			if(toBeMergedFile.exists()) {
-//				LOGGER.severe("WARNING: "+toBeMergedFile.getAbsolutePath() +
-//						"already exists!");
-//			} else {
-//				if(cdxFile.renameTo(toBeMergedFile)) {
-//					LOGGER.info("Queued " + toBeMergedFile.getAbsolutePath() + 
-//							" for merging.");
-//					uploaded = true;
-//				} else {
-//					LOGGER.severe("FAILED rename("+cdxFile.getAbsolutePath()+
-//							") to ("+toBeMergedFile.getAbsolutePath()+")");
-//				}
-//			}
-//		} else {
-//			// use indexClient to upload:
-//			try {
-//				indexClient.uploadCDX(cdxFile);
-//				LOGGER.info("Uploaded " + cdxFile.getAbsolutePath());
-//				uploaded = true;
-//			} catch (HttpException e) {
-//				e.printStackTrace();
-//			} catch (IOException e) {
-//				e.printStackTrace();
-//			}
-//		}
-//		return uploaded;
-//	}
-//	
 	/**
 	 * Index up to 'max' ARC files queued for indexing, queueing the resulting 
 	 * CDX files for merging with the BDBIndex.
@@ -330,91 +295,34 @@ public class LocalARCResourceStore implements ResourceStore {
 			}
 		}
 	}
-	
-	// TODO: refactor to single location
-	private File ensureDir(String path) throws ConfigurationException {
-		if(path.length() < 1) {
-			throw new ConfigurationException("Empty directory path");
-		}
-		File dir = new File(path);
-		if(dir.exists()) {
-			if(!dir.isDirectory()) {
-				throw new ConfigurationException("path " + path + "exists" +
-						"but is not a directory");
-			}
-		} else {
-			if(!dir.mkdirs()) {
-				throw new ConfigurationException("unable to create directory" +
-						" at " + path);
-			}
-		}
-		return dir;
-	}
-
-//
-//	/**
-//	 * @return String path to tmpDir
-//	 */
-//	public String getTmpDir() {
-//		if(tmpDir == null) {
-//			return null;
-//		}
-//		return tmpDir.getAbsolutePath();
-//	}
-//	/**
-//	 * @param tmpDir the tmpDir to set
-//	 * @throws ConfigurationException 
-//	 */
-//	public void setTmpDir(String tmpDir) throws ConfigurationException {
-//		this.tmpDir = ensureDir(tmpDir);
-//	}
 
 	/**
 	 * @return String path to workDir
 	 */
 	public String getWorkDir() {
-		if(workDir == null) {
-			return null;
-		}
-		return workDir.getAbsolutePath();
+		return DirMaker.getAbsolutePath(workDir);
 	}
 	/**
 	 * @param workDir the workDir to set
-	 * @throws ConfigurationException 
+	 * @throws IOException 
 	 */
-	public void setWorkDir(String workDir) throws ConfigurationException {
-		this.workDir = ensureDir(workDir);
+	public void setWorkDir(String workDir) throws IOException {
+		this.workDir = DirMaker.ensureDir(workDir);
 	}
 
 	/**
 	 * @return String path to queuedDir
 	 */
 	public String getQueuedDir() {
-		if(queuedDir == null) {
-			return null;
-		}
-		return queuedDir.getAbsolutePath();
+		return DirMaker.getAbsolutePath(queuedDir);
 	}
 	/**
 	 * @param queuedDir the queuedDir to set
-	 * @throws ConfigurationException 
+	 * @throws IOException 
 	 */
-	public void setQueuedDir(String queuedDir) throws ConfigurationException {
-		this.queuedDir = ensureDir(queuedDir);
+	public void setQueuedDir(String queuedDir) throws IOException {
+		this.queuedDir = DirMaker.ensureDir(queuedDir);
 	}
-//
-//	/**
-//	 * @return
-//	 */
-//	public String getIndexTarget() {
-//		return indexTarget;
-//	}
-//	/**
-//	 * @param indexTarget the indexTarget to set
-//	 */
-//	public void setIndexTarget(String indexTarget) {
-//		this.indexTarget = indexTarget;
-//	}
 
 	/**
 	 * @return integer milliseconds between polls for new ARC content.
@@ -432,16 +340,14 @@ public class LocalARCResourceStore implements ResourceStore {
 	 * @return the arcDir
 	 */
 	public String getArcDir() {
-		if(arcDir == null) {
-			return null;
-		}
-		return arcDir.getAbsolutePath();
+		return DirMaker.getAbsolutePath(arcDir);
 	}
 	/**
 	 * @param arcDir the arcDir to set
+	 * @throws IOException 
 	 */
-	public void setArcDir(String arcDir) {
-		this.arcDir = new File(arcDir);
+	public void setArcDir(String arcDir) throws IOException {
+		this.arcDir = DirMaker.ensureDir(arcDir);
 	}
 
 	/**
