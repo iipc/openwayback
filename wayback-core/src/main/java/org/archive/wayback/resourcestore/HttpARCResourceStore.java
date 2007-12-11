@@ -27,10 +27,6 @@ package org.archive.wayback.resourcestore;
 import java.io.IOException;
 import java.net.URL;
 
-import org.archive.io.ArchiveRecord;
-import org.archive.io.arc.ARCReader;
-import org.archive.io.arc.ARCReaderFactory;
-import org.archive.io.arc.ARCRecord;
 import org.archive.wayback.ResourceStore;
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.Resource;
@@ -58,30 +54,24 @@ public class HttpARCResourceStore implements ResourceStore {
 		// extract ARC filename + add .arc.gz if it is not present
 		String arcName = result.get(WaybackConstants.RESULT_ARC_FILE);
 		if(arcName == null || arcName.length() < 1) {
-			throw new IOException("No ARC name in search result...");
-		}
-		if (!arcName.endsWith(ARCReader.DOT_COMPRESSED_ARC_FILE_EXTENSION)) {
-			arcName += ARCReader.DOT_COMPRESSED_ARC_FILE_EXTENSION;
+			throw new IOException("No ARC/WARC name in search result...");
 		}
 
 		// extract ARC offset + convert to long
 		final String offsetString = result.get(WaybackConstants.RESULT_OFFSET);
 		if(offsetString == null || offsetString.length() < 1) {
-			throw new IOException("No ARC offset in search result...");
+			throw new IOException("No ARC/WARC offset in search result...");
 		}
 		final long offset = Long.parseLong(offsetString);
 
 		String arcUrl = urlPrefix + arcName;
 		Resource r = null;
 		try {
-			ARCReader ar = ARCReaderFactory.get(new URL(arcUrl),offset);
-			// TODO: handle other types...
-			ArchiveRecord rec = ar.get();
-			if(!(rec instanceof ARCRecord)) {
-				throw new ResourceNotAvailableException("Bad ARCRecord format");
-			}
-			r = new Resource((ARCRecord) rec,ar);
+
+			r = ResourceFactory.getResource(new URL(arcUrl), offset);
+
 		} catch (IOException e) {
+
 			e.printStackTrace();
 			throw new ResourceNotAvailableException("Unable to retrieve",
 					e.getLocalizedMessage());
