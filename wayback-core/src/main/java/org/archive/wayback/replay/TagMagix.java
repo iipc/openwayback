@@ -283,4 +283,14 @@ public class TagMagix {
 	public static String getBaseHref(StringBuilder page) {
 		return getTagAttr(page, "BASE", "HREF");
 	}
+	
+	public static int getEndOfFirstTag(StringBuilder page, String tag) {
+		Pattern tagPattern = getWholeTagPattern(tag);
+		Matcher tagMatcher = tagPattern.matcher(page);
+		int offset = -1;
+		if(tagMatcher.find()) {
+			offset = tagMatcher.end();
+		}
+		return offset;
+	}
 }
