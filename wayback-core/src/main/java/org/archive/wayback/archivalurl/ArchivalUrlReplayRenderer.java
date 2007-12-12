@@ -25,7 +25,6 @@
 package org.archive.wayback.archivalurl;
 
 import java.io.IOException;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -36,17 +35,14 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.archive.wayback.ReplayRenderer;
 import org.archive.wayback.ResultURIConverter;
-import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.SearchResults;
-import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadContentException;
 import org.archive.wayback.replay.HTMLPage;
 import org.archive.wayback.replay.HttpHeaderProcessor;
 import org.archive.wayback.replay.HttpHeaderOperation;
-import org.archive.wayback.util.StringFormatter;
 import org.archive.wayback.util.UrlCanonicalizer;
 
 /**
@@ -61,20 +57,10 @@ import org.archive.wayback.util.UrlCanonicalizer;
  */
 public class ArchivalUrlReplayRenderer implements ReplayRenderer, HttpHeaderProcessor {
 
-	private final static String HTTP_LENGTH_HEADER = "Content-Length";
-	private final static String HTTP_LENGTH_HEADER_UP = 
-		HTTP_LENGTH_HEADER.toUpperCase();
-
-	private final static String HTTP_LOCATION_HEADER = "Location";
-	private final static String HTTP_LOCATION_HEADER_UP = 
-		HTTP_LOCATION_HEADER.toUpperCase();
-
-	private final static String HTTP_CONTENT_BASE_HEADER = "Content-Length";
-	private final static String HTTP_CONTENT_BASE_HEADER_UP = 
-		HTTP_CONTENT_BASE_HEADER.toUpperCase();
 
 	private List<String> jsInserts = null;
 	private List<String> jspInserts = null;
+	private boolean serverSideRendering = false;
 
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.ReplayRenderer#renderResource(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.archive.wayback.core.WaybackRequest, org.archive.wayback.core.SearchResult, org.archive.wayback.core.Resource, org.archive.wayback.ResultURIConverter, org.archive.wayback.core.SearchResults)
@@ -85,41 +71,23 @@ public class ArchivalUrlReplayRenderer implements ReplayRenderer, HttpHeaderProc
 			ResultURIConverter uriConverter, SearchResults results)
 			throws ServletException, IOException, BadContentException {
 
-		resource.parseHeaders();
-		
+		StringBuilder toInsert = new StringBuilder(300);
+
 		HttpHeaderOperation.copyHTTPMessageHeader(resource, httpResponse);
-		
+
 		Map<String,String> headers = HttpHeaderOperation.processHeaders(
 				resource, result, uriConverter, this);
+
 	
 		// Load content into an HTML page, and resolve load-time URLs:
 		HTMLPage page = new HTMLPage(resource,result,uriConverter);
 		page.readFully();
-		page.resolvePageUrls();
 		
-		// generate JS insert:
-		StringFormatter fmt = wbRequest.getFormatter();
-
-		String resourceTS = result.getCaptureDate();
-		String resourceUrl = result.get(WaybackConstants.RESULT_URL);
-		Timestamp captureTS = Timestamp.parseBefore(resourceTS);
-		Date captureDate = captureTS.getDate();
-		String contextPath = uriConverter.makeReplayURI(resourceTS, "");
-
-		
-		StringBuilder toInsert = new StringBuilder(300);
-
-		toInsert.append("<script type=\"text/javascript\">\n\n");
-		toInsert.append(fmt.format("ReplayView.javaScriptComment", captureDate,
-				new Date()));
-		String wmNotice = fmt.format("ReplayView.banner", resourceUrl,
-				captureDate);
-		String wmHideNotice = fmt.format("ReplayView.bannerHideLink");
-		toInsert.append("var sWayBackCGI = \"" + contextPath + "\";\n");
-		toInsert.append("var wmNotice = \"" + wmNotice + "\";\n");
-		toInsert.append("var wmHideNotice = \"" + wmHideNotice + "\";\n");
-		toInsert.append("</script>\n");
-
+		if(serverSideRendering) {
+			page.resolveAllPageUrls();
+		} else {
+			page.resolvePageUrls();
+		}
 		if(jsInserts != null) {
 			Iterator<String> itr = jsInserts.iterator();
 			while(itr.hasNext()) {
@@ -134,15 +102,19 @@ public class ArchivalUrlReplayRenderer implements ReplayRenderer, HttpHeaderProc
 			}
 		}
 
-		// add the javascript, and dump the result out to the client:
-		page.insertAtEndOfBody(toInsert.toString());
+		// insert the new content:
+		if(serverSideRendering) {
+			page.insertAtStartOfBody(toInsert.toString());
+		} else {
+			page.insertAtEndOfBody(toInsert.toString());
+		}
+		
+		// set the corrected length:
+		int bytes = page.getBytes().length;
+		headers.put(HTTP_LENGTH_HEADER, String.valueOf(bytes));
 
 		// send back the headers:
 		HttpHeaderOperation.sendHeaders(headers, httpResponse);
-
-		// plus the corrected length:
-		int bytes = page.getBytes().length;
-		headers.put(HTTP_LENGTH_HEADER, String.valueOf(bytes));
 
 		page.writeToOutputStream(httpResponse.getOutputStream());
 	}
@@ -204,5 +176,19 @@ public class ArchivalUrlReplayRenderer implements ReplayRenderer, HttpHeaderProc
 	 */
 	public void setJspInserts(List<String> jspInserts) {
 		this.jspInserts = jspInserts;
+	}
+
+	/**
+	 * @return the isServerSideRendering
+	 */
+	public boolean isServerSideRendering() {
+		return serverSideRendering;
+	}
+
+	/**
+	 * @param isServerSideRendering the isServerSideRendering to set
+	 */
+	public void setServerSideRendering(boolean serverSideRendering) {
+		this.serverSideRendering = serverSideRendering;
 	}
 }

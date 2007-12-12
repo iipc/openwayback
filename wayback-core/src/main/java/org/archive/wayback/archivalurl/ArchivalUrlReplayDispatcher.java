@@ -33,7 +33,6 @@ import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.replay.BaseReplayDispatcher;
 import org.archive.wayback.replay.DateRedirectReplayRenderer;
-import org.archive.wayback.replay.TransparentReplayRenderer;
 
 /**
  *
@@ -54,7 +53,9 @@ public class ArchivalUrlReplayDispatcher
 	// TODO: make this configurable
 	private final static long MAX_HTML_MARKUP_LENGTH = 1024 * 1024 * 5;
 	
-	private ReplayRenderer transparent = new TransparentReplayRenderer();
+	private ReplayRenderer transparent = 
+		new ArchivalUrlTransparentReplayRenderer();
+
 	private ReplayRenderer redirect = new DateRedirectReplayRenderer();
 	private ArchivalUrlReplayRenderer archivalHTML =
 		new ArchivalUrlReplayRenderer();
@@ -75,6 +76,8 @@ public class ArchivalUrlReplayDispatcher
 			return redirect;
 		}
 		
+		// TODO: handle .css docs -- embedded URLs there need to be fixed
+
 		// HTML and XHTML docs smaller than some size get marked up as HTML
 		if (resource.getRecordLength() < MAX_HTML_MARKUP_LENGTH) {
 
@@ -122,5 +125,21 @@ public class ArchivalUrlReplayDispatcher
 	 */
 	public void setJspInserts(List<String> jspInserts) {
 		archivalHTML.setJspInserts(jspInserts);
+	}
+
+	/**
+	 * @return
+	 * @see org.archive.wayback.archivalurl.ArchivalUrlReplayRenderer#isServerSideRendering()
+	 */
+	public boolean isServerSideRendering() {
+		return archivalHTML.isServerSideRendering();
+	}
+
+	/**
+	 * @param isServerSideRendering
+	 * @see org.archive.wayback.archivalurl.ArchivalUrlReplayRenderer#setServerSideRendering(boolean)
+	 */
+	public void setServerSideRendering(boolean isServerSideRendering) {
+		archivalHTML.setServerSideRendering(isServerSideRendering);
 	}
 }
