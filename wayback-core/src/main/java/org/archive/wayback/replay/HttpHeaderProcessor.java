@@ -36,6 +36,18 @@ import org.archive.wayback.core.SearchResult;
  * @version $Date$, $Revision$
  */
 public interface HttpHeaderProcessor {
+
+	public final static String HTTP_LENGTH_HEADER = "Content-Length";
+	public final static String HTTP_LENGTH_HEADER_UP = 
+		HTTP_LENGTH_HEADER.toUpperCase();
+
+	public final static String HTTP_LOCATION_HEADER = "Location";
+	public final static String HTTP_LOCATION_HEADER_UP = 
+		HTTP_LOCATION_HEADER.toUpperCase();
+
+	public final static String HTTP_CONTENT_BASE_HEADER = "Content-Base";
+	public final static String HTTP_CONTENT_BASE_HEADER_UP = 
+		HTTP_CONTENT_BASE_HEADER.toUpperCase();
 	
 	/**
 	 * optionally add header key:value to output for later returning to client
