@@ -318,6 +318,28 @@ public interface WaybackConstants {
 	 */
 	public static final String RESULT_CLOSEST_INDICATOR = "closest";
 	public static final String RESULT_CLOSEST_VALUE = "true";
+
+	/**
+	 * Result: this key being present indicates that this particular capture
+	 * was not actually stored, and that other values within this SearchResult
+	 * are actually values from a different record which *should* be identical
+	 * to this capture, had it been stored.
+	 */
+	public static final String RESULT_DUPLICATE_ANNOTATION = "duplicate";
+
+	/**
+	 * flag indicates that this document was downloaded and verified as 
+	 * identical to a previous capture by digest.
+	 */
+	public static final String RESULT_DUPLICATE_DIGEST = "digest";
+
+	/**
+	 * flag indicates that this document was NOT downloaded, but that the
+	 * origin server indicated that the document had not changed, based on
+	 * If-Modified HTTP request headers.
+	 */
+	public static final String RESULT_DUPLICATE_HTTP = "http";
+	
 	
 	/**
 	 * Name of configuration in web.xml for maximum number of results to return
