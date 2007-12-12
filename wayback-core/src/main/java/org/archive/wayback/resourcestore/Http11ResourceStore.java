@@ -35,10 +35,10 @@ import org.archive.wayback.exception.ResourceNotAvailableException;
 
 
 /**
- * Implements ResourceStore where ARCs are accessed via HTTP 1.1 range requests.
- * All ARC files are assumed to be "rooted" at a particular HTTP URL, within
- * a single directory, implying an ARC file reverse-proxy to connect through
- * to actual HTTP ARC locations.
+ * Implements ResourceStore where ARC/WARCs are accessed via HTTP 1.1 range
+ * requests. All files are assumed to be "rooted" at a particular HTTP URL, 
+ * within a single directory, implying a file reverse-proxy to connect through
+ * to actual HTTP ARC/WARC locations.
  *
  * @author brad
  * @version $Date$, $Revision$
@@ -51,24 +51,24 @@ public class Http11ResourceStore implements ResourceStore {
 	public Resource retrieveResource(SearchResult result) throws IOException, 
 		ResourceNotAvailableException {
 
-		// extract ARC filename + add .arc.gz if it is not present
-		String arcName = result.get(WaybackConstants.RESULT_ARC_FILE);
-		if(arcName == null || arcName.length() < 1) {
+		// extract ARC filename
+		String fileName = result.get(WaybackConstants.RESULT_ARC_FILE);
+		if(fileName == null || fileName.length() < 1) {
 			throw new IOException("No ARC/WARC name in search result...");
 		}
 
-		// extract ARC offset + convert to long
+		// extract offset + convert to long
 		final String offsetString = result.get(WaybackConstants.RESULT_OFFSET);
 		if(offsetString == null || offsetString.length() < 1) {
 			throw new IOException("No ARC/WARC offset in search result...");
 		}
 		final long offset = Long.parseLong(offsetString);
 
-		String arcUrl = urlPrefix + arcName;
+		String fileUrl = urlPrefix + fileName;
 		Resource r = null;
 		try {
 
-			r = ResourceFactory.getResource(new URL(arcUrl), offset);
+			r = ResourceFactory.getResource(new URL(fileUrl), offset);
 
 		} catch (IOException e) {
 
