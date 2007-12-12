@@ -214,39 +214,64 @@ public class HTMLPage {
 		String captureDate = result.getCaptureDate();
 
 		String existingBaseHref = TagMagix.getBaseHref(sb);
-		if (existingBaseHref != null) {
+		if (existingBaseHref == null) {
+			insertAtStartOfHead("<base href=\"" + pageUrl + "\" />");
+		} else {
 			pageUrl = existingBaseHref;
 		}
 
-		TagMagix.markupTagREURIC(sb, uriConverter, captureDate, pageUrl,
-				"FRAME", "SRC");
-//		TagMagix.markupTagREURIC(page, uriConverter, captureDate, pageUrl,
-//				"IFRAME", "SRC");
-		TagMagix.markupTagREURIC(sb, uriConverter, captureDate, pageUrl,
-				"META", "URL");
-		TagMagix.markupTagREURIC(sb, uriConverter, captureDate, pageUrl,
-				"LINK", "HREF");
+		String markups[][] = {
+				{"FRAME","SRC"},
+				{"META","URL"},
+				{"LINK","HREF"},
+				{"SCRIPT","SRC"}
+		};
 		// TODO: The classic WM added a js_ to the datespec, so NotInArchives
 		// can return an valid javascript doc, and not cause Javascript errors.
-		TagMagix.markupTagREURIC(sb, uriConverter, captureDate, pageUrl,
-				"SCRIPT", "SRC");
-
-		if (existingBaseHref == null) {
-			String baseTag = "<base href=\"" + pageUrl + "\" />";
-			int insertPoint = sb.indexOf("<head>");
-			if (-1 == insertPoint) {
-				insertPoint = sb.indexOf("<HEAD>");
-			}
-			if (-1 == insertPoint) {
-				insertPoint = 0;
-			} else {
-				insertPoint += 6; // just after the tag
-			}
-			sb.insert(insertPoint, baseTag);
+		for(String tagAttr[] : markups) {
+			TagMagix.markupTagREURIC(sb, uriConverter, captureDate, pageUrl,
+					tagAttr[0], tagAttr[1]);
 		}
 	}
 	
+	/**
+	 * Update all URLs inside the page, so they resolve correctly to absolute 
+	 * URLs within the Wayback service.
+	 */
+	public void resolveAllPageUrls() {
 
+		// TODO: get url from Resource instead of SearchResult?
+		String pageUrl = result.getAbsoluteUrl();
+		String captureDate = result.getCaptureDate();
+
+		String existingBaseHref = TagMagix.getBaseHref(sb);
+		if (existingBaseHref != null) {
+			pageUrl = existingBaseHref;
+		}
+		ResultURIConverter ruc = new SpecialResultURIConverter(uriConverter);
+		
+		// TODO: forms...?
+		String markups[][] = {
+				{"FRAME","SRC"},
+				{"META","URL"},
+				{"LINK","HREF"},
+				{"SCRIPT","SRC"},
+				{"IMG","SRC"},
+				{"A","HREF"},
+				{"AREA","HREF"},
+				{"OBJECT","CODEBASE"},
+				{"OBJECT","CDATA"},
+				{"APPLET","CODEBASE"},
+				{"APPLET","ARCHIVE"},
+				{"EMBED","SRC"},
+				{"IFRAME","SRC"},
+				{"BODY","BACKGROUND"},
+		};
+		for(String tagAttr[] : markups) {
+			TagMagix.markupTagREURIC(sb, ruc, captureDate, pageUrl,
+					tagAttr[0], tagAttr[1]);
+		}
+	}
 	/**
 	 * @param charSet
 	 * @throws IOException 
@@ -310,7 +335,18 @@ public class HTMLPage {
 		}
 		os.write(b);
 	}
-	
+
+	/**
+	 * @param toInsert
+	 */	
+	public void insertAtStartOfHead(String toInsert) {
+		int insertPoint = TagMagix.getEndOfFirstTag(sb,"head");
+		if (-1 == insertPoint) {
+			insertPoint = 0;
+		}
+		sb.insert(insertPoint,toInsert);
+	}
+
 	/**
 	 * @param toInsert
 	 */
@@ -324,6 +360,16 @@ public class HTMLPage {
 		}
 		sb.insert(insertPoint,toInsert);
 	}
+	/**
+	 * @param toInsert
+	 */
+	public void insertAtStartOfBody(String toInsert) {
+		int insertPoint = TagMagix.getEndOfFirstTag(sb,"body");
+		if (-1 == insertPoint) {
+			insertPoint = 0;
+		}
+		sb.insert(insertPoint,toInsert);
+	}	
 	/**
 	 * @param jspPath
 	 * @param httpRequest
@@ -372,5 +418,23 @@ public class HTMLPage {
 	 */
 	public void setCharSet(String charSet) {
 		this.charSet = charSet;
+	}
+
+	private class SpecialResultURIConverter implements ResultURIConverter {
+		private static final String EMAIL_PROTOCOL_PREFIX = "mailto:";
+		private static final String JAVASCRIPT_PROTOCOL_PREFIX = "javascript:";
+		private ResultURIConverter base = null;
+		public SpecialResultURIConverter(ResultURIConverter base) {
+			this.base = base;
+		}
+		public String makeReplayURI(String datespec, String url) {
+			if(url.startsWith(EMAIL_PROTOCOL_PREFIX)) {
+				return url;
+			}
+			if(url.startsWith(JAVASCRIPT_PROTOCOL_PREFIX)) {
+				return url;
+			}
+			return base.makeReplayURI(datespec, url);
+		}
 	}
 }
