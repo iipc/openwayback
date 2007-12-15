@@ -13,6 +13,7 @@ import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.exception.ResourceNotAvailableException;
+import org.archive.wayback.util.DirMaker;
 
 /**
  * Class which implements a local ARC, WARC, ARC.gz, WARC.gz, ResourceStore
@@ -112,12 +113,12 @@ public class LocalResourceStore implements ResourceStore {
 		return null;
 	}
 	
-	public File getDataDir() {
-		return dataDir;
+	public String getDataDir() {
+		return DirMaker.getAbsolutePath(dataDir);
 	}
 
-	public void setDataDir(File dataDir) {
-		this.dataDir = dataDir;
+	public void setDataDir(String dataDir) throws IOException {
+		this.dataDir = DirMaker.ensureDir(dataDir);
 	}
 	
 	private class ArcWarcFilenameFilter implements FilenameFilter {
