@@ -100,7 +100,7 @@ public class TagMagix {
 		Pattern pc = wholeTagPatterns.get(tagName);
 		if (pc == null) {
 
-			String tagPatString = "<\\s*" + tagName + "\\s+[^>]+>";
+			String tagPatString = "<\\s*" + tagName + "((>)|(\\s+[^>]*>))";
 
 			pc = Pattern.compile(tagPatString, Pattern.CASE_INSENSITIVE);
 			wholeTagPatterns.put(tagName, pc);

@@ -98,6 +98,23 @@ public class TagMagixTest extends TestCase {
 				"author2","Bakri Abubakr http://bayanit.com/");
 	}
 	
+	public void testFindEndOfFirst() {
+		findEndOf("<head>","head",6);
+		findEndOf("<html><head><body>","head",12);
+		findEndOf("<html><head goo=bar><body>","head",20);
+		findEndOf("<html><head goo=bar><body>full","body",26);
+		findEndOf("<html><head goo=bar><body >full","body",27);
+		findEndOf("<html><head goo=bar><body >full","body",27);
+		findEndOf("<html><head goo=bar><body yar=bam>full","body",34);
+		findEndOf("<html><head goo=bar><body yar='bam'>full","body",36);
+		findEndOf("<html><head goo=bar><body yar=\"bam\">full","body",36);
+	}
+	
+	public void findEndOf(String page, String tag, int offset) {
+		StringBuilder sb = new StringBuilder(page);
+		int found = TagMagix.getEndOfFirstTag(sb,tag);
+		assertEquals("FAILED find end of " +tag+ " in ("+page+")",offset,found);
+	}
 	
 	/**
 	 * Test method for 'org.archive.wayback.archivalurl.TagMagix.markupTag(StringBuffer, String, String, String, String, String)'
