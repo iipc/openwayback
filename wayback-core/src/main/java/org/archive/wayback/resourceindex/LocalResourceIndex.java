@@ -34,6 +34,7 @@ import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.resourceindex.filters.CaptureToUrlResultFilter;
 import org.archive.wayback.resourceindex.filters.CounterFilter;
 import org.archive.wayback.resourceindex.filters.DateRangeFilter;
+import org.archive.wayback.resourceindex.filters.DuplicateRecordFilter;
 import org.archive.wayback.resourceindex.filters.EndDateFilter;
 import org.archive.wayback.resourceindex.filters.GuardRailFilter;
 import org.archive.wayback.resourceindex.filters.HostMatchFilter;
@@ -224,7 +225,11 @@ public class LocalResourceIndex implements ResourceIndex {
 			// use the same guardrail for both:
 			forwardFilters.addFilter(guardrail);
 			reverseFilters.addFilter(guardrail);
-
+			
+			// BUGBUG: won't work when closest is a dupe!
+			forwardFilters.addFilter(new DuplicateRecordFilter());
+			reverseFilters.addFilter(new DuplicateRecordFilter());
+			
 			// match URL key:
 			forwardFilters.addFilter(new UrlMatchFilter(keyUrl));
 			reverseFilters.addFilter(new UrlMatchFilter(keyUrl));
@@ -298,6 +303,7 @@ public class LocalResourceIndex implements ResourceIndex {
 			ObjectFilterChain<SearchResult> filters = 
 				new ObjectFilterChain<SearchResult>();
 			filters.addFilter(guardrail);
+			filters.addFilter(new DuplicateRecordFilter());
 
 			filters.addFilter(new UrlMatchFilter(keyUrl));
 			if(hostMatchFilter != null) {
@@ -331,6 +337,7 @@ public class LocalResourceIndex implements ResourceIndex {
 			ObjectFilterChain<SearchResult> filters = 
 				new ObjectFilterChain<SearchResult>();
 			filters.addFilter(guardrail);
+			filters.addFilter(new DuplicateRecordFilter());
 
 			filters.addFilter(new UrlPrefixMatchFilter(keyUrl));
 			if(hostMatchFilter != null) {
