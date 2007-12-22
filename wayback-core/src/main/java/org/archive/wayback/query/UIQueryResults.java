@@ -74,6 +74,7 @@ public class UIQueryResults extends UIResults {
 	private int curPage;
 
 	private SearchResults results;
+	private SearchResult result;
 	private ResultURIConverter uriConverter;
 
 	/**
@@ -311,5 +312,13 @@ public class UIQueryResults extends UIResults {
 	 */
 	public Timestamp getExactRequestedTimestamp() {
 		return exactRequestedTimestamp;
+	}
+
+	public SearchResult getResult() {
+		return result;
+	}
+
+	public void setResult(SearchResult result) {
+		this.result = result;
 	}
 }

@@ -383,11 +383,12 @@ public class HTMLPage {
 	 */
 	public String includeJspString(String jspPath, 
 			HttpServletRequest httpRequest, HttpServletResponse httpResponse,
-			WaybackRequest wbRequest, SearchResults results) 
+			WaybackRequest wbRequest, SearchResults results, SearchResult result) 
 	throws ServletException, IOException {
 		
 		UIQueryResults uiResults = new UIQueryResults(httpRequest, wbRequest,
 				results, uriConverter);
+		uiResults.setResult(result);
 
 		StringHttpServletResponseWrapper wrappedResponse = 
 			new StringHttpServletResponseWrapper(httpResponse);

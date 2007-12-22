@@ -98,7 +98,7 @@ public class ArchivalUrlReplayRenderer implements ReplayRenderer, HttpHeaderProc
 			Iterator<String> itr = jspInserts.iterator();
 			while(itr.hasNext()) {
 				toInsert.append(page.includeJspString(itr.next(), httpRequest, 
-						httpResponse, wbRequest, results));
+						httpResponse, wbRequest, results, result));
 			}
 		}
 
