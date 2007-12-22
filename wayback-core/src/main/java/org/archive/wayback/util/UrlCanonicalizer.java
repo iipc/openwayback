@@ -221,11 +221,20 @@ public class UrlCanonicalizer {
 			searchUrl = "http://" + searchUrl;
 		}
 
+		// unescape anythying that can be:
+		UURI tmpURI = UURIFactory.getInstance(searchUrl);
+		tmpURI.setPath(tmpURI.getPath());
+		
+		
 		// convert to UURI to perform require URI fixup:
-		UURI searchURI = UURIFactory.getInstance(searchUrl);
+		UURI searchURI = UURIFactory.getInstance(tmpURI.getURI());
 
+
+		
+		
 		// replace ' ' with '+' (this is only to match Alexa's canonicalization)
-		String newPath = searchURI.getPath().replace(' ','+');
+		String newPath = searchURI.getEscapedPath().replace("%20","+");
+//		String newPath = searchURI.getPath().replace(' ','+');
 		
 		// replace multiple consecutive '/'s in the path.
 		while(newPath.contains("//")) {
@@ -237,15 +246,30 @@ public class UrlCanonicalizer {
 //		if((newPath.length() > 1) && newPath.endsWith("/")) {
 //			newPath = newPath.substring(0,newPath.length()-1);
 //		}
-		searchURI.setPath(newPath);
+//		searchURI.setEscapedPath(newPath);
+//		searchURI.setRawPath(newPath.toCharArray());
+//		String query = searchURI.getEscapedQuery();
 		
 		// TODO: handle non HTTP port stripping, too.
-		String portStr = "";
+//		String portStr = "";
+//		if(searchURI.getPort() != 80 && searchURI.getPort() != -1) {
+//			portStr = ":" + searchURI.getPort();
+//		}
+//		return searchURI.getHostBasename() + portStr + 
+//		searchURI.getEscapedPathQuery();
+		
+		StringBuilder sb = new StringBuilder(searchUrl.length());
+		sb.append(searchURI.getHostBasename());
 		if(searchURI.getPort() != 80 && searchURI.getPort() != -1) {
-			portStr = ":" + searchURI.getPort();
+			sb.append(":").append(searchURI.getPort());
 		}
-		return searchURI.getHostBasename() + portStr + 
-			searchURI.getEscapedPathQuery();
+		sb.append(newPath);
+		if(searchURI.getEscapedQuery() != null) {
+			sb.append("?").append(searchURI.getEscapedQuery());
+		}
+		
+
+		return sb.toString();
 	}
 
 	

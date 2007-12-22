@@ -88,12 +88,17 @@ public class UrlCanonicalizerTest extends TestCase {
 
 		// do not add trailing '/' non-empty path and without protocol
 		checkCanonicalization("foo.com/boo","foo.com/boo");
+
+		// TEST
+		// replace escaped ' ' with '+' in path plus keep trailing slash and query
+		checkCanonicalization("foo.com/pa%20th?a=b","foo.com/pa+th?a=b");
+		
 		
 		// replace escaped ' ' with '+' in path
 		checkCanonicalization("foo.com/pa%20th","foo.com/pa+th");
 		
-		// replace escaped ' ' with '+' in path plus kill trailing slash
-//		checkCanonicalization("foo.com/pa%20th/","foo.com/pa+th");
+		// replace escaped ' ' with '+' in path plus leave trailing slash
+		checkCanonicalization("foo.com/pa%20th/","foo.com/pa+th/");
 
 		// replace multiple consecutive /'s in path
 		checkCanonicalization("foo.com//goo","foo.com/goo");
@@ -104,11 +109,11 @@ public class UrlCanonicalizerTest extends TestCase {
 		// leave alone consecutive /'s after ?
 		checkCanonicalization("foo.com/b?jar=//goo","foo.com/b?jar=//goo");
 
-		// replace multiple consecutive /'s in path, plus kill trailing /
-//		checkCanonicalization("foo.com///goo/","foo.com/goo");
+		// replace multiple consecutive /'s in path, plus leave trailing /
+		checkCanonicalization("foo.com///goo/","foo.com/goo/");
 
 		// replace escaped ' ' with '+' in path plus keep trailing slash and query
-		checkCanonicalization("foo.com/pa%20th?a=b","foo.com/pa+th?a=b");
+		checkCanonicalization("foo.com/pa%20th/?a=b","foo.com/pa+th/?a=b");
 		
 		
 		// replace escaped ' ' with '+' in path but not in query key
@@ -117,6 +122,23 @@ public class UrlCanonicalizerTest extends TestCase {
 		// replace escaped ' ' with '+' in path but not in query value
 		checkCanonicalization("foo.com/pa%20th?a=b%20b","foo.com/pa+th?a=b%20b");
 
+		
+		// no change in '!' escaping
+		checkCanonicalization("foo.com/pa!th","foo.com/pa!th");
+
+		// no change in '+' escaping
+		checkCanonicalization("foo.com/pa+th","foo.com/pa+th");
+
+		// unescape legal escaped '!' (%21)
+		checkCanonicalization("foo.com/pa%21th","foo.com/pa!th");
+
+		// leave '%' (%25)
+		checkCanonicalization("foo.com/pa%th","foo.com/pa%th");
+
+		// unescape '%' (%25)
+		checkCanonicalization("foo.com/pa%25th","foo.com/pa%th");
+		
+		
 		// replace escaped ' ' with '+' in path, unescape legal '!' in path
 		// no change in query escaping
 		checkCanonicalization("foo.com/pa%20t%21h?a%20a=b","foo.com/pa+t!h?a%20a=b");
