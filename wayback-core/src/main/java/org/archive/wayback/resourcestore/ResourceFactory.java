@@ -34,13 +34,13 @@ public class ResourceFactory {
 		}
 		if (isArc(name)) {
 
-			ARCReader reader = ARCReaderFactory.get(file);
-			r = ARCArchiveRecordToResource(reader.get(offset),reader);
+			ARCReader reader = ARCReaderFactory.get(file,offset);
+			r = ARCArchiveRecordToResource(reader.get(),reader);
 
 		} else if (isWarc(name)) {
 
-			WARCReader reader = WARCReaderFactory.get(file);
-			r = WARCArchiveRecordToResource(reader.get(offset),reader);
+			WARCReader reader = WARCReaderFactory.get(file,offset);
+			r = WARCArchiveRecordToResource(reader.get(),reader);
 
 		} else {
 			throw new ResourceNotAvailableException("Unknown extension");
