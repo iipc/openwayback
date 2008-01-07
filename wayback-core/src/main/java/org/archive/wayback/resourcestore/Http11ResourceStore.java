@@ -63,7 +63,13 @@ public class Http11ResourceStore implements ResourceStore {
 			throw new IOException("No ARC/WARC offset in search result...");
 		}
 		final long offset = Long.parseLong(offsetString);
-
+		if(!fileName.endsWith(LocalResourceStore.ARC_EXTENSION)
+				&& !fileName.endsWith(LocalResourceStore.ARC_GZ_EXTENSION)
+				&& !fileName.endsWith(LocalResourceStore.WARC_EXTENSION)
+				&& !fileName.endsWith(LocalResourceStore.WARC_GZ_EXTENSION)) {
+			fileName = fileName + LocalResourceStore.ARC_GZ_EXTENSION;
+		}
+				
 		String fileUrl = urlPrefix + fileName;
 		Resource r = null;
 		try {
