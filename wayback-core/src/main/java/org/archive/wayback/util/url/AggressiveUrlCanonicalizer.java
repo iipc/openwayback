@@ -34,6 +34,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.httpclient.URIException;
 import org.archive.net.UURI;
 import org.archive.net.UURIFactory;
+import org.archive.wayback.UrlCanonicalizer;
 
 /**
  * Class that performs the standard Heritrix URL canonicalization. Eventually,
@@ -43,8 +44,7 @@ import org.archive.net.UURIFactory;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class AggressiveUrlCanonicalizer {
-
+public class AggressiveUrlCanonicalizer implements UrlCanonicalizer {
 	
 	private static final String CDX_PREFIX = " CDX ";
     /**
