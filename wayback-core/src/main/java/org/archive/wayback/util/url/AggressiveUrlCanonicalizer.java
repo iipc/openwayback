@@ -43,7 +43,7 @@ import org.archive.net.UURIFactory;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class UrlCanonicalizer {
+public class AggressiveUrlCanonicalizer {
 
 	
 	private static final String CDX_PREFIX = " CDX ";
@@ -305,7 +305,7 @@ public class UrlCanonicalizer {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		UrlCanonicalizer canonicalizer = new UrlCanonicalizer();
+		AggressiveUrlCanonicalizer canonicalizer = new AggressiveUrlCanonicalizer();
 		int n = 0;
 		int i = 0;
 		ArrayList<Integer> columns = new ArrayList<Integer>();
