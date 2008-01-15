@@ -43,7 +43,7 @@ import org.archive.wayback.exception.BadContentException;
 import org.archive.wayback.replay.HTMLPage;
 import org.archive.wayback.replay.HttpHeaderProcessor;
 import org.archive.wayback.replay.HttpHeaderOperation;
-import org.archive.wayback.util.UrlCanonicalizer;
+import org.archive.wayback.util.url.UrlOperations;
 
 /**
  * ReplayRenderer responsible for marking up HTML pages so they replay in
@@ -139,7 +139,7 @@ public class ArchivalUrlReplayRenderer implements ReplayRenderer, HttpHeaderProc
 			String baseUrl = result.getAbsoluteUrl();
 			String cd = result.getCaptureDate();
 			// by the spec, these should be absolute already, but just in case:
-			String u = UrlCanonicalizer.resolveUrl(baseUrl, value);
+			String u = UrlOperations.resolveUrl(baseUrl, value);
 
 			output.put(key, uriConverter.makeReplayURI(cd,u));
 

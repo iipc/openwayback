@@ -25,8 +25,6 @@
 package org.archive.wayback.domainprefix;
 
 import java.io.IOException;
-//import java.util.Date;
-//import java.util.Iterator;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -37,7 +35,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.archive.wayback.ReplayRenderer;
 import org.archive.wayback.ResultURIConverter;
-//import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.SearchResults;
@@ -47,8 +44,7 @@ import org.archive.wayback.exception.BadContentException;
 import org.archive.wayback.replay.HTMLPage;
 import org.archive.wayback.replay.HttpHeaderProcessor;
 import org.archive.wayback.replay.HttpHeaderOperation;
-//import org.archive.wayback.util.StringFormatter;
-import org.archive.wayback.util.UrlCanonicalizer;
+import org.archive.wayback.util.url.UrlOperations;
 
 /**
  *
@@ -126,7 +122,7 @@ public class DomainPrefixReplayRenderer implements ReplayRenderer, HttpHeaderPro
 			String baseUrl = result.getAbsoluteUrl();
 			String cd = result.getCaptureDate();
 			// by the spec, these should be absolute already, but just in case:
-			String u = UrlCanonicalizer.resolveUrl(baseUrl, value);
+			String u = UrlOperations.resolveUrl(baseUrl, value);
 
 			output.put(key, uriConverter.makeReplayURI(cd,u));
 

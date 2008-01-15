@@ -5,7 +5,7 @@ import java.util.Map;
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.replay.TransparentReplayRenderer;
-import org.archive.wayback.util.UrlCanonicalizer;
+import org.archive.wayback.util.url.UrlOperations;
 
 /**
  * Slight extension to TransparentReplayRenderer, which rewrites Location and
@@ -32,7 +32,7 @@ extends TransparentReplayRenderer {
 			String baseUrl = result.getAbsoluteUrl();
 			String cd = result.getCaptureDate();
 			// by the spec, these should be absolute already, but just in case:
-			String u = UrlCanonicalizer.resolveUrl(baseUrl, value);
+			String u = UrlOperations.resolveUrl(baseUrl, value);
 
 			output.put(key, uriConverter.makeReplayURI(cd,u));
 
