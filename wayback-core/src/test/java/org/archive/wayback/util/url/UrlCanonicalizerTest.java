@@ -22,9 +22,10 @@
  * along with Wayback; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-package org.archive.wayback.util;
+package org.archive.wayback.util.url;
 
 import org.apache.commons.httpclient.URIException;
+import org.archive.wayback.util.url.UrlCanonicalizer;
 
 import junit.framework.TestCase;
 
@@ -41,16 +42,6 @@ public class UrlCanonicalizerTest extends TestCase {
 	 */
 	public void testUrlStringToKey() {
 
-		checkAuthority("foo.com",true);
-		checkAuthority("foo.con",false);
-		checkAuthority("foo.de",true);
-		checkAuthority("foo.denny",false);
-		checkAuthority("1.1.1.1",true);
-		checkAuthority("23.4.4.foo",false);
-		checkAuthority("23.4.4.com",true);
-		checkAuthority("com.23.4.4.134",false);
-		
-		
 		// simple strip of http://
 		checkCanonicalization("http://foo.com/","foo.com/");
 
@@ -190,15 +181,6 @@ public class UrlCanonicalizerTest extends TestCase {
 		// but not other ports...
 		checkCanonicalization("http://www.chub.org:8080/foo","chub.org:8080/foo");
 
-	}
-	
-	private void checkAuthority(String s, boolean want) {
-		boolean got = canonicalizer.isAuthority(s);
-		if(want) {
-			assertTrue("String("+s+") could be an Authority",want == got);
-		} else {
-			assertTrue("String("+s+") is not an Authority",want == got);	
-		}
 	}
 	
 	private void checkCanonicalization(String orig, String want) {
