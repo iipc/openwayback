@@ -328,6 +328,13 @@ public interface WaybackConstants {
 	public static final String RESULT_DUPLICATE_ANNOTATION = "duplicate";
 
 	/**
+	 * Result: this key is present when the RESULT_DUPLICATE_ANNOTATION is also
+	 * present, with the value indicating the last date that was actually
+	 * stored for this duplicate.
+	 */
+	public static final String RESULT_DUPLICATE_STORED_DATE = "duplicate-date";
+
+	/**
 	 * flag indicates that this document was downloaded and verified as 
 	 * identical to a previous capture by digest.
 	 */
