@@ -34,6 +34,7 @@ implements Adapter<SearchResult,SearchResult> {
 		WaybackConstants.RESULT_REDIRECT_URL
 	};
 	private String lastDigest = null;
+	private String lastTimeStamp = null;
 	private HashMap<String,String> lastValues = new HashMap<String,String>();
 	private SearchResult annotate(SearchResult o) {
 		String thisDigest = o.get(WaybackConstants.RESULT_MD5_DIGEST);
@@ -45,10 +46,12 @@ implements Adapter<SearchResult,SearchResult> {
 		}
 		o.put(WaybackConstants.RESULT_DUPLICATE_ANNOTATION, 
 				WaybackConstants.RESULT_DUPLICATE_DIGEST);
+		o.put(WaybackConstants.RESULT_DUPLICATE_STORED_DATE, lastTimeStamp);
 		return o;
 	}
 	private SearchResult remember(SearchResult o) {
 		lastDigest = o.get(WaybackConstants.RESULT_MD5_DIGEST);
+		lastTimeStamp = o.get(WaybackConstants.RESULT_CAPTURE_DATE);
 		for(String field : FIELDS) {
 			lastValues.put(field, o.get(field));
 		}
