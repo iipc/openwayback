@@ -29,7 +29,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.archive.wayback.ResultURIConverter;
-import org.archive.wayback.util.UrlCanonicalizer;
+import org.archive.wayback.util.url.UrlOperations;
 
 /**
  * Library for updating arbitrary attributes in arbitrary tags to rewrite HTML
@@ -171,7 +171,7 @@ public class TagMagix {
 				quote = "\\\"";
 				url = url.substring(2, url.length() - 2);
 			}
-			String finalUrl = UrlCanonicalizer.resolveUrl(baseUrl,url);
+			String finalUrl = UrlOperations.resolveUrl(baseUrl,url);
 			String replayUrl = quote
 					+ uriConverter.makeReplayURI(captureDate, finalUrl) + quote;
 
