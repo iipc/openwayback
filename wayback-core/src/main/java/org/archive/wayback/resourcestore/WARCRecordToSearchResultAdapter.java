@@ -121,7 +121,7 @@ implements Adapter<WARCRecord,SearchResult>{
 		return result;
 	}
 	
-	private void addUrlDataToSearchResult(SearchResult result, String urlStr)
+	private UURI addUrlDataToSearchResult(SearchResult result, String urlStr)
 	throws IOException {
 
 		result.put(WaybackConstants.RESULT_URL, urlStr);
@@ -141,6 +141,8 @@ implements Adapter<WARCRecord,SearchResult>{
 
 		String urlKey = canonicalizer.urlStringToKey(urlStr);
 		result.put(WaybackConstants.RESULT_URL_KEY, urlKey);
+
+		return uri;
 	}
 
 	private SearchResult adaptDNS(ArchiveRecordHeader header, WARCRecord rec) 
@@ -218,7 +220,7 @@ implements Adapter<WARCRecord,SearchResult>{
 				String.valueOf(header.getOffset()));
 		
 		String origUrl = header.getUrl();
-		addUrlDataToSearchResult(result,origUrl);
+		UURI uri = addUrlDataToSearchResult(result,origUrl);
 
 		// need to parse the documents HTTP message and headers here: WARCReader
 		// does not implement this... yet..
@@ -243,7 +245,9 @@ implements Adapter<WARCRecord,SearchResult>{
                 ARCConstants.DEFAULT_ENCODING);
 
 		rec.close();
-		result.put(WaybackConstants.RESULT_MD5_DIGEST, rec.getDigestStr());
+		result.put(WaybackConstants.RESULT_MD5_DIGEST, 
+				transformDigest(header.getHeaderValue(
+						WARCRecord.HEADER_KEY_PAYLOAD_DIGEST)));
 
 		if (headers != null) {
 	
@@ -263,7 +267,7 @@ implements Adapter<WARCRecord,SearchResult>{
 					// should we prefer one over the other?
 					// right now, we're ignoring "Content-Location"
 					try {
-						UURI uriRedirect = UURIFactory.getInstance(origUrl,
+						UURI uriRedirect = UURIFactory.getInstance(uri,
 								locationStr);
 						result.put(WaybackConstants.RESULT_REDIRECT_URL,
 								uriRedirect.getEscapedURI());
