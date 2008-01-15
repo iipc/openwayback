@@ -32,6 +32,7 @@ import java.util.logging.Logger;
 import org.apache.commons.httpclient.URIException;
 import org.archive.io.arc.ARCLocation;
 import org.archive.io.arc.ARCRecord;
+import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.Resource;
@@ -44,8 +45,7 @@ import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.exception.WaybackException;
 import org.archive.wayback.resourcestore.ARCRecordToSearchResultAdapter;
 import org.archive.wayback.resourcestore.ArcResource;
-import org.archive.wayback.util.Adapter;
-import org.archive.wayback.util.UrlCanonicalizer;
+import org.archive.wayback.util.url.AggressiveUrlCanonicalizer;
 
 /**
  *
@@ -61,9 +61,14 @@ public class LiveWebCache {
 	private ARCCacheDirectory arcCacheDir = null;
 	private URLCacher cacher = null;
 	private LiveWebLocalResourceIndex index = null;
-	static UrlCanonicalizer canonicalizer = new UrlCanonicalizer();
-	private static Adapter<ARCRecord,SearchResult> adapter = 
-		new ARCRecordToSearchResultAdapter();
+	private UrlCanonicalizer canonicalizer = null;
+	private ARCRecordToSearchResultAdapter adapter = null;
+	
+	public LiveWebCache() {
+		canonicalizer = new AggressiveUrlCanonicalizer();
+		adapter = new ARCRecordToSearchResultAdapter();
+		adapter.setCanonicalizer(canonicalizer);
+	}
 	
 	/**
 	 * closes all resources
@@ -329,5 +334,14 @@ public class LiveWebCache {
 	 */
 	public void setIndex(LiveWebLocalResourceIndex index) {
 		this.index = index;
+	}
+
+	public UrlCanonicalizer getCanonicalizer() {
+		return canonicalizer;
+	}
+
+	public void setCanonicalizer(UrlCanonicalizer canonicalizer) {
+		this.canonicalizer = canonicalizer;
+		adapter.setCanonicalizer(canonicalizer);
 	}
 }

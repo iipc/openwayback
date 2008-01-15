@@ -34,10 +34,11 @@ import org.archive.io.arc.ARCRecord;
 import org.archive.io.arc.ARCRecordMetaData;
 import org.archive.net.UURI;
 import org.archive.net.UURIFactory;
+import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.util.Adapter;
-import org.archive.wayback.util.UrlCanonicalizer;
+import org.archive.wayback.util.url.AggressiveUrlCanonicalizer;
 
 /**
  *
@@ -51,9 +52,11 @@ implements Adapter<ARCRecord,SearchResult>{
 	private static final Logger LOGGER = Logger.getLogger(
 			ARCRecordToSearchResultAdapter.class.getName());
 
-	// TODO: make this configurable based on the ResourceIndex
-	private static UrlCanonicalizer canonicalizer = new UrlCanonicalizer();
-
+	private UrlCanonicalizer canonicalizer = null;
+	
+	public ARCRecordToSearchResultAdapter() {
+		canonicalizer = new AggressiveUrlCanonicalizer();
+	}
 //	public static SearchResult arcRecordToSearchResult(final ARCRecord rec)
 //	throws IOException, ParseException {
 	/* (non-Javadoc)
@@ -160,5 +163,11 @@ implements Adapter<ARCRecord,SearchResult>{
 		
 		}
 		return result;
+	}
+	public UrlCanonicalizer getCanonicalizer() {
+		return canonicalizer;
+	}
+	public void setCanonicalizer(UrlCanonicalizer canonicalizer) {
+		this.canonicalizer = canonicalizer;
 	}
 }

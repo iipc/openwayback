@@ -25,10 +25,11 @@
 package org.archive.wayback.resourceindex.filters;
 
 import org.apache.commons.httpclient.URIException;
+import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.util.ObjectFilter;
-import org.archive.wayback.util.UrlCanonicalizer;
+import org.archive.wayback.util.url.AggressiveUrlCanonicalizer;
 
 /**
  * SearchResultFilter which INCLUDEs all records, unless they redirect to 
@@ -39,7 +40,10 @@ import org.archive.wayback.util.UrlCanonicalizer;
  */
 public class SelfRedirectFilter implements ObjectFilter<SearchResult> {
 
-	private UrlCanonicalizer canonicalizer = new UrlCanonicalizer();
+	private UrlCanonicalizer canonicalizer = new AggressiveUrlCanonicalizer();
+	public SelfRedirectFilter() {
+		canonicalizer = new AggressiveUrlCanonicalizer();
+	}
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.resourceindex.SearchResultFilter#filterSearchResult(org.archive.wayback.core.SearchResult)
 	 */
@@ -62,5 +66,11 @@ public class SelfRedirectFilter implements ObjectFilter<SearchResult> {
 			}
 		}
 		return FILTER_INCLUDE;
+	}
+	public UrlCanonicalizer getCanonicalizer() {
+		return canonicalizer;
+	}
+	public void setCanonicalizer(UrlCanonicalizer canonicalizer) {
+		this.canonicalizer = canonicalizer;
 	}
 }

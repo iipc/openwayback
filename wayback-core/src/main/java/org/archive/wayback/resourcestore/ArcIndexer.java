@@ -33,11 +33,14 @@ import org.archive.io.ArchiveRecord;
 import org.archive.io.arc.ARCReader;
 import org.archive.io.arc.ARCReaderFactory;
 import org.archive.io.arc.ARCRecord;
+import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.resourceindex.cdx.SearchResultToCDXLineAdapter;
 import org.archive.wayback.util.AdaptedIterator;
 import org.archive.wayback.util.Adapter;
 import org.archive.wayback.util.CloseableIterator;
+import org.archive.wayback.util.url.AggressiveUrlCanonicalizer;
+import org.archive.wayback.util.url.IdentityUrlCanonicalizer;
 
 /**
  * Transforms an ARC file into Iterator<SearchResult>.
@@ -51,7 +54,12 @@ public class ArcIndexer {
 	 * CDX Header line for these fields. not very configurable..
 	 */
 	public final static String CDX_HEADER_MAGIC = " CDX N b h m s k r V g";
-
+	private UrlCanonicalizer canonicalizer = null;
+	
+	public ArcIndexer() {
+		canonicalizer = new AggressiveUrlCanonicalizer();
+	}
+	
 	/**
 	 * @param arc
 	 * @return Iterator of SearchResults for input arc File
@@ -65,8 +73,9 @@ public class ArcIndexer {
 		Adapter<ArchiveRecord,ARCRecord> adapter1 =
 			new ArchiveRecordToARCRecordAdapter();
 
-		Adapter<ARCRecord,SearchResult> adapter2 =
+		ARCRecordToSearchResultAdapter adapter2 =
 			new ARCRecordToSearchResultAdapter();
+		adapter2.setCanonicalizer(canonicalizer);
 		
 		Iterator<ArchiveRecord> itr1 = arcReader.iterator();
 
@@ -76,6 +85,58 @@ public class ArcIndexer {
 		return new AdaptedIterator<ARCRecord,SearchResult>(itr2,adapter2);
 	}
 	
+	public UrlCanonicalizer getCanonicalizer() {
+		return canonicalizer;
+	}
+
+	public void setCanonicalizer(UrlCanonicalizer canonicalizer) {
+		this.canonicalizer = canonicalizer;
+	}
+
+	private static void USAGE() {
+		System.err.println("USAGE:");
+		System.err.println("");
+		System.err.println("arc-indexer [-identity] ARCFILE");
+		System.err.println("arc-indexer [-identity] ARCFILE CDXFILE");
+		System.err.println("");
+		System.err.println("Create a CDX format index at CDXFILE or to STDOUT.");
+		System.err.println("With -identity, perform no url canonicalization.");
+		System.exit(1);
+	}
+	
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		ArcIndexer indexer = new ArcIndexer();
+		int idx = 0;
+		if(args[0] != null && args[0].equals("-identity")) {
+			indexer.setCanonicalizer(new IdentityUrlCanonicalizer());
+			idx++;
+		}
+		File arc = new File(args[idx]);
+		idx++;
+		PrintWriter pw = null;
+		try {
+			if(args.length == idx) {
+				// dump to STDOUT:
+				pw = new PrintWriter(System.out);
+			} else if(args.length == (idx + 1)) {
+				pw = new PrintWriter(args[idx]);
+			} else {
+				USAGE();
+			}
+			Iterator<SearchResult> res = indexer.iterator(arc);
+			Iterator<String> lines = SearchResultToCDXLineAdapter.adapt(res);
+			while(lines.hasNext()) {
+				pw.println(lines.next());
+			}
+			pw.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.exit(1);
+		}
+	}
 	
 	private class ArchiveRecordToARCRecordAdapter 
 	implements Adapter<ArchiveRecord,ARCRecord> {
@@ -89,43 +150,6 @@ public class ArcIndexer {
 				rec = (ARCRecord) o;
 			}
 			return rec;
-		}
-	}
-
-	private static void USAGE() {
-		System.err.println("USAGE:");
-		System.err.println("");
-		System.err.println("arc-indexer ARCFILE");
-		System.err.println("arc-indexer ARCFILE CDXFILE");
-		System.err.println("");
-		System.err.println("Create a CDX format index at CDXFILE or to STDOUT");
-		System.exit(1);
-	}
-	
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		ArcIndexer indexer = new ArcIndexer();
-		File arc = new File(args[0]);
-		PrintWriter pw = null;
-		try {
-			if(args.length == 1) {
-				// dump to STDOUT:
-				pw = new PrintWriter(System.out);
-			} else if(args.length == 2) {
-				pw = new PrintWriter(args[1]);
-			} else {
-				USAGE();
-			}
-			Iterator<SearchResult> res = indexer.iterator(arc);
-			Iterator<String> lines = SearchResultToCDXLineAdapter.adapt(res);
-			while(lines.hasNext()) {
-				pw.println(lines.next());
-			}
-			pw.close();
-		} catch (Exception e) {
-			e.printStackTrace();
 		}
 	}
 }

@@ -16,10 +16,11 @@ import org.archive.io.warc.WARCConstants;
 import org.archive.io.warc.WARCRecord;
 import org.archive.net.UURI;
 import org.archive.net.UURIFactory;
+import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.util.Adapter;
-import org.archive.wayback.util.UrlCanonicalizer;
+import org.archive.wayback.util.url.AggressiveUrlCanonicalizer;
 
 /**
  * Adapts certain WARCRecords into SearchResults. DNS and response records are
@@ -52,8 +53,11 @@ implements Adapter<WARCRecord,SearchResult>{
 	private static final Logger LOGGER = Logger.getLogger(
 			WARCRecordToSearchResultAdapter.class.getName());
 
-	// TODO: make this configurable based on the ResourceIndex
-	private static UrlCanonicalizer canonicalizer = new UrlCanonicalizer();
+	private UrlCanonicalizer canonicalizer = null;
+
+	public WARCRecordToSearchResultAdapter() {
+		canonicalizer = new AggressiveUrlCanonicalizer();
+	}
 
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.util.Adapter#adapt(java.lang.Object)
@@ -302,5 +306,13 @@ implements Adapter<WARCRecord,SearchResult>{
 		}
 
 		return result;
+	}
+
+	public UrlCanonicalizer getCanonicalizer() {
+		return canonicalizer;
+	}
+
+	public void setCanonicalizer(UrlCanonicalizer canonicalizer) {
+		this.canonicalizer = canonicalizer;
 	}
 }

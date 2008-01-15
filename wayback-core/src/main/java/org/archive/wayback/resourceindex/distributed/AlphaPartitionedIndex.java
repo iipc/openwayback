@@ -35,6 +35,7 @@ import java.util.logging.Logger;
 
 import org.apache.commons.httpclient.URIException;
 import org.archive.wayback.ResourceIndex;
+import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.WaybackRequest;
@@ -42,8 +43,8 @@ import org.archive.wayback.exception.AccessControlException;
 import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
-import org.archive.wayback.util.UrlCanonicalizer;
 import org.archive.wayback.util.flatfile.FlatFile;
+import org.archive.wayback.util.url.AggressiveUrlCanonicalizer;
 
 /**
  *
@@ -75,8 +76,12 @@ public class AlphaPartitionedIndex implements ResourceIndex {
 	private String mapPath;
 	private static Comparator<RangeGroup> comparator = 
 		RangeGroup.getComparator();
-	private UrlCanonicalizer canonicalizer = new UrlCanonicalizer();
+	private UrlCanonicalizer canonicalizer = null;
 
+	public AlphaPartitionedIndex() {
+		canonicalizer = new AggressiveUrlCanonicalizer();
+	}
+	
 	@SuppressWarnings("unchecked")
 	private void reloadMapFile() throws IOException {
 		FlatFile ff = new FlatFile(mapPath);
@@ -234,5 +239,13 @@ public class AlphaPartitionedIndex implements ResourceIndex {
 	 */
 	public void setMapPath(String mapPath) {
 		this.mapPath = mapPath;
+	}
+
+	public UrlCanonicalizer getCanonicalizer() {
+		return canonicalizer;
+	}
+
+	public void setCanonicalizer(UrlCanonicalizer canonicalizer) {
+		this.canonicalizer = canonicalizer;
 	}
 }

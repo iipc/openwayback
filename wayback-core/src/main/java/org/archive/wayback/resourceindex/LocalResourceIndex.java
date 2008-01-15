@@ -25,11 +25,13 @@
 package org.archive.wayback.resourceindex;
 
 import java.io.IOException;
+import java.util.Iterator;
 
 import org.apache.commons.httpclient.URIException;
 import org.archive.net.UURI;
 import org.archive.net.UURIFactory;
 import org.archive.wayback.ResourceIndex;
+import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.resourceindex.filters.CaptureToUrlResultFilter;
 import org.archive.wayback.resourceindex.filters.CounterFilter;
@@ -39,7 +41,6 @@ import org.archive.wayback.resourceindex.filters.EndDateFilter;
 import org.archive.wayback.resourceindex.filters.GuardRailFilter;
 import org.archive.wayback.resourceindex.filters.HostMatchFilter;
 import org.archive.wayback.resourceindex.filters.SelfRedirectFilter;
-import org.archive.wayback.resourceindex.filters.StartDateFilter;
 import org.archive.wayback.resourceindex.filters.UrlMatchFilter;
 import org.archive.wayback.resourceindex.filters.UrlPrefixMatchFilter;
 import org.archive.wayback.resourceindex.filters.WindowEndFilter;
@@ -58,7 +59,7 @@ import org.archive.wayback.util.AdaptedIterator;
 import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.ObjectFilter;
 import org.archive.wayback.util.ObjectFilterChain;
-import org.archive.wayback.util.UrlCanonicalizer;
+import org.archive.wayback.util.url.AggressiveUrlCanonicalizer;
 
 /**
  * 
@@ -77,11 +78,15 @@ public class LocalResourceIndex implements ResourceIndex {
 
 	protected SearchResultSource source;
 	
-	private UrlCanonicalizer canonicalizer = new UrlCanonicalizer();
+	private UrlCanonicalizer canonicalizer = null;
 	
 	private boolean dedupeRecords = false;
 
-	private void filterRecords(CloseableIterator<SearchResult> itr,
+	public LocalResourceIndex() {
+		canonicalizer = new AggressiveUrlCanonicalizer();
+	}
+	
+	private void filterRecords(Iterator<SearchResult> itr,
 			ObjectFilter<SearchResult> filter, SearchResults results,
 			boolean forwards) throws IOException {
 
@@ -98,7 +103,11 @@ public class LocalResourceIndex implements ResourceIndex {
 				results.addSearchResult(result, forwards);
 			}
 		}
-		source.cleanup(itr);
+		if(itr instanceof CloseableIterator) {
+			CloseableIterator<SearchResult> citr =
+				(CloseableIterator<SearchResult>) itr;
+			source.cleanup(citr);
+		}
 	}
 
 	private String getRequired(WaybackRequest wbRequest, String field,
@@ -216,27 +225,27 @@ public class LocalResourceIndex implements ResourceIndex {
 		if (searchType.equals(WaybackConstants.REQUEST_REPLAY_QUERY)
 				|| searchType.equals(WaybackConstants.REQUEST_CLOSEST_QUERY)) {
 
-			results = new CaptureSearchResults(); 
+			results = new CaptureSearchResults();
+
 			ObjectFilterChain<SearchResult> forwardFilters = 
 				new ObjectFilterChain<SearchResult>();
-			ObjectFilterChain<SearchResult> reverseFilters = 
-				new ObjectFilterChain<SearchResult>();
+
+//			ObjectFilterChain<SearchResult> reverseFilters = 
+//				new ObjectFilterChain<SearchResult>();
 
 			// use the same guardrail for both:
 			forwardFilters.addFilter(guardrail);
-			reverseFilters.addFilter(guardrail);
+//			reverseFilters.addFilter(guardrail);
 			
-			// BUGBUG: won't work when closest is a dupe!
 			forwardFilters.addFilter(new DuplicateRecordFilter());
-			reverseFilters.addFilter(new DuplicateRecordFilter());
 			
 			// match URL key:
 			forwardFilters.addFilter(new UrlMatchFilter(keyUrl));
-			reverseFilters.addFilter(new UrlMatchFilter(keyUrl));
+//			reverseFilters.addFilter(new UrlMatchFilter(keyUrl));
 
 			if(hostMatchFilter != null) {
 				forwardFilters.addFilter(hostMatchFilter);
-				reverseFilters.addFilter(hostMatchFilter);
+//				reverseFilters.addFilter(hostMatchFilter);
 			}
 			
 			// be sure to only include records within the date range we want:
@@ -246,11 +255,11 @@ public class LocalResourceIndex implements ResourceIndex {
 			// requested range.
 			DateRangeFilter drFilter = new DateRangeFilter(startDate,endDate);
 			forwardFilters.addFilter(drFilter);
-			reverseFilters.addFilter(drFilter);
+//			reverseFilters.addFilter(drFilter);
 			
 			// abort processing if we hit a date outside the search range:
 			forwardFilters.addFilter(new EndDateFilter(endDate));
-			reverseFilters.addFilter(new StartDateFilter(startDate));
+//			reverseFilters.addFilter(new StartDateFilter(startDate));
 
 			// for replay, do not include records that redirect to
 			// themselves.. We'll leave this for both closest and replays,
@@ -258,39 +267,54 @@ public class LocalResourceIndex implements ResourceIndex {
 			// timeline in which case, we don't want to show captures that
 			// redirect to themselves in the timeline if they are not viewable.
 			SelfRedirectFilter selfRedirectFilter = new SelfRedirectFilter();
+			selfRedirectFilter.setCanonicalizer(canonicalizer);
 			forwardFilters.addFilter(selfRedirectFilter);
-			reverseFilters.addFilter(selfRedirectFilter);
+//			reverseFilters.addFilter(selfRedirectFilter);
 			
 			// possibly filter via exclusions:
 			if(exclusion != null) {
 				forwardFilters.addFilter(preExCounter);
 				forwardFilters.addFilter(exclusion);
 
-				reverseFilters.addFilter(preExCounter);
-				reverseFilters.addFilter(exclusion);
+//				reverseFilters.addFilter(preExCounter);
+//				reverseFilters.addFilter(exclusion);
 			}
 			forwardFilters.addFilter(finalCounter);
-			reverseFilters.addFilter(finalCounter);
+//			reverseFilters.addFilter(finalCounter);
 
-			int resultsPerDirection = (int) Math.floor(resultsPerPage / 2);
-			if (resultsPerDirection * 2 == resultsPerPage) {
-				forwardFilters.addFilter(new WindowEndFilter(
-						resultsPerDirection));
-			} else {
-				forwardFilters.addFilter(new WindowEndFilter(
-						resultsPerDirection + 1));
-			}
-			reverseFilters.addFilter(new WindowEndFilter(resultsPerDirection));
+			forwardFilters.addFilter(new WindowEndFilter(resultsPerPage));
+//			int resultsPerDirection = (int) Math.floor(resultsPerPage / 2);
+//			reverseFilters.addFilter(new WindowEndFilter(resultsPerDirection));
 
-			startKey = keyUrl + " " + exactDate;
+			startKey = keyUrl;
 
-			// first the reverse search:
 			try {
-				filterRecords(source.getPrefixIterator(startKey), reverseFilters,
-						results, true);
-				// then the forwards:
-				filterRecords(source.getPrefixReverseIterator(startKey),
-						forwardFilters, results, false);
+//				CloseableIterator<SearchResult> reverse =
+//					new AdaptedObjectFilterIterator<SearchResult>(
+//					source.getPrefixReverseIterator(startKey),
+//					reverseFilters);
+
+//				// reverse the reverseResults:
+//				ArrayList<SearchResult> reverseResults = 
+//					new ArrayList<SearchResult>();
+//				while(reverse.hasNext()) {
+//					reverseResults.add(0, reverse.next());
+//				}
+				
+				// now make a composite of the reverse and forwards:
+				
+				CloseableIterator<SearchResult> forward =
+					source.getPrefixIterator(startKey);
+//				
+//				CompositeIterator<SearchResult> resultsItr =
+//					new CompositeIterator<SearchResult>();
+//				resultsItr.addComponent(reverseResults.iterator());
+//				resultsItr.addComponent(forward);
+				
+				// and filter:
+//				filterRecords(resultsItr, forwardFilters, results, true);
+				filterRecords(forward, forwardFilters, results, true);
+
 			} catch (IOException e) {
 				throw new ResourceIndexNotAvailableException(
 						e.getLocalizedMessage());
@@ -345,13 +369,11 @@ public class LocalResourceIndex implements ResourceIndex {
 			}
 			filters.addFilter(new DateRangeFilter(startDate, endDate));
 			// possibly filter via exclusions:
-			if (exclusion == null) {
-				filters.addFilter(new CaptureToUrlResultFilter());
-			} else {
+			if (exclusion != null) {
 				filters.addFilter(preExCounter);
 				filters.addFilter(exclusion);
-				filters.addFilter(new CaptureToUrlResultFilter());
 			}
+			filters.addFilter(new CaptureToUrlResultFilter());
 			filters.addFilter(finalCounter);
 			startKey = keyUrl;
 
@@ -429,5 +451,13 @@ public class LocalResourceIndex implements ResourceIndex {
 
 	public void setDedupeRecords(boolean dedupeRecords) {
 		this.dedupeRecords = dedupeRecords;
+	}
+
+	public UrlCanonicalizer getCanonicalizer() {
+		return canonicalizer;
+	}
+
+	public void setCanonicalizer(UrlCanonicalizer canonicalizer) {
+		this.canonicalizer = canonicalizer;
 	}
 }
