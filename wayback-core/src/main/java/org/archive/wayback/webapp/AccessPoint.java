@@ -26,6 +26,7 @@ package org.archive.wayback.webapp;
 
 import java.io.IOException;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -47,6 +48,7 @@ import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.AuthenticationControlException;
 import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.exception.ResourceNotAvailableException;
+import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.exception.WaybackException;
 import org.archive.wayback.util.operator.BooleanOperator;
 import org.springframework.beans.factory.BeanNameAware;
@@ -66,6 +68,9 @@ import org.springframework.beans.factory.BeanNameAware;
  */
 public class AccessPoint implements RequestContext, BeanNameAware {
 
+	private static final Logger LOGGER = Logger.getLogger(
+			AccessPoint.class.getName());
+	
 	private boolean useServerName = false;
 	private int contextPort = 0;
 	private String contextName = null;
@@ -309,6 +314,7 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 			replay.renderResource(httpRequest, httpResponse, wbRequest,
 					closest, resource, uriConverter, captureResults);
 		} catch(WaybackException e) {
+			logNotInArchive(e,wbRequest);
 			replay.renderException(httpRequest, httpResponse, wbRequest, e);
 		} finally {
 			if(resource != null) {
@@ -337,7 +343,21 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 						results,uriConverter);
 			}
 		} catch(WaybackException e) {
+			logNotInArchive(e,wbRequest);
 			query.renderException(httpRequest, httpResponse, wbRequest, e);
+		}
+	}
+	
+	private void logNotInArchive(WaybackException e, WaybackRequest r) {
+		if(e instanceof ResourceNotInArchiveException) {
+			String url = r.get(WaybackConstants.REQUEST_URL);
+			StringBuilder sb = new StringBuilder(100);
+			sb.append("NotInArchive\t");
+			sb.append(contextName).append("\t");
+			sb.append(contextPort).append("\t");
+			sb.append(url);
+			
+			LOGGER.info(sb.toString());
 		}
 	}
 
