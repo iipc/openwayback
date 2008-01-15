@@ -25,7 +25,7 @@
 package org.archive.wayback.util.url;
 
 import org.apache.commons.httpclient.URIException;
-import org.archive.wayback.util.url.UrlCanonicalizer;
+import org.archive.wayback.util.url.AggressiveUrlCanonicalizer;
 
 import junit.framework.TestCase;
 
@@ -35,8 +35,8 @@ import junit.framework.TestCase;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class UrlCanonicalizerTest extends TestCase {
-	private UrlCanonicalizer canonicalizer = new UrlCanonicalizer();
+public class AggressiveUrlCanonicalizerTest extends TestCase {
+	private AggressiveUrlCanonicalizer canonicalizer = new AggressiveUrlCanonicalizer();
 	/**
 	 * Test method for 'org.archive.wayback.cdx.CDXRecord.urlStringToKey(String)'
 	 */
