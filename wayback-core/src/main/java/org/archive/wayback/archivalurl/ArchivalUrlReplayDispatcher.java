@@ -49,6 +49,7 @@ public class ArchivalUrlReplayDispatcher
 	 */
 	private final static String TEXT_HTML_MIME = "text/html";
 	private final static String TEXT_XHTML_MIME = "application/xhtml";
+	private final static String TEXT_CSS_MIME = "text/css";
 
 	// TODO: make this configurable
 	private final static long MAX_HTML_MARKUP_LENGTH = 1024 * 1024 * 5;
@@ -59,6 +60,8 @@ public class ArchivalUrlReplayDispatcher
 	private ReplayRenderer redirect = new DateRedirectReplayRenderer();
 	private ArchivalUrlReplayRenderer archivalHTML =
 		new ArchivalUrlReplayRenderer();
+	private ArchivalUrlCSSReplayRenderer archivalCSS =
+		new ArchivalUrlCSSReplayRenderer();
 
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.replay.ReplayRendererDispatcher#getRenderer(org.archive.wayback.core.WaybackRequest, org.archive.wayback.core.SearchResult, org.archive.wayback.core.Resource)
@@ -76,11 +79,10 @@ public class ArchivalUrlReplayDispatcher
 			return redirect;
 		}
 		
-		// TODO: handle .css docs -- embedded URLs there need to be fixed
-
-		// HTML and XHTML docs smaller than some size get marked up as HTML
+		// only bother attempting  markup on pages smaller than some size:
 		if (resource.getRecordLength() < MAX_HTML_MARKUP_LENGTH) {
 
+			// HTML and XHTML docs get marked up as HTML
 			if (-1 != result.get(WaybackConstants.RESULT_MIME_TYPE).indexOf(
 					TEXT_HTML_MIME)) {
 				return archivalHTML;
@@ -88,6 +90,11 @@ public class ArchivalUrlReplayDispatcher
 			if (-1 != result.get(WaybackConstants.RESULT_MIME_TYPE).indexOf(
 					TEXT_XHTML_MIME)) {
 				return archivalHTML;
+			}
+			// CSS docs get marked up as CSS
+			if (-1 != result.get(WaybackConstants.RESULT_MIME_TYPE).indexOf(
+					TEXT_CSS_MIME)) {
+				return archivalCSS;
 			}
 		}
 		
@@ -141,5 +148,6 @@ public class ArchivalUrlReplayDispatcher
 	 */
 	public void setServerSideRendering(boolean isServerSideRendering) {
 		archivalHTML.setServerSideRendering(isServerSideRendering);
+		archivalCSS.setServerSideRendering(isServerSideRendering);
 	}
 }
