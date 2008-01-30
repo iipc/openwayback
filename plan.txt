@@ -30,7 +30,19 @@
  - automatically maintained distributed index
  - basis for production Wayback Machine replacement
  - internationalization support
- 
+
+1.2 (Jan 2008)
+ - changed LocalArcResourceStore => LocalResourceStore
+    * supports compressed/uncompressed ARC + WARC format
+    * requires property arcDir => dataDir
+	  * major refactoring of Replay system, allowing mixing and matching of now-
+	    separable replay elements
+	  * server-side URL rewriting in archival URL mode for JavaScript-less client
+	    replay browsing
+	  * numerous bug-fixes
+	  * pluggable URL canonicalization module
+	  * initial support for de-duplicated WARC records
+
 == BRAINSTORMING ==
 
  Error-handling: 
