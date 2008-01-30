@@ -37,6 +37,7 @@ xLateUrl(document.getElementsByTagName("APPLET"),"codebase");
 xLateUrl(document.getElementsByTagName("APPLET"),"archive");
 xLateUrl(document.getElementsByTagName("EMBED"),"src");
 xLateUrl(document.getElementsByTagName("IFRAME"),"src");
+xLateUrl(document.getElementsByTagName("INPUT"),"src");
 xLateUrl(document.getElementsByTagName("BODY"),"background");
 var forms = document.getElementsByTagName("FORM");
 if (forms) {
