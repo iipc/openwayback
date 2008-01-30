@@ -81,6 +81,8 @@ if(minResolution.equals(WaybackConstants.REQUEST_RESOLUTION_HOURS)) {
 	optimal = fmt.format("TimelineView.timeRange.days");
 } else if(minResolution.equals(WaybackConstants.REQUEST_RESOLUTION_MONTHS)) {
 	optimal = fmt.format("TimelineView.timeRange.months");
+} else if(minResolution.equals(WaybackConstants.REQUEST_RESOLUTION_TWO_MONTHS)) {
+	  optimal = fmt.format("TimelineView.timeRange.twomonths");
 } else if(minResolution.equals(WaybackConstants.REQUEST_RESOLUTION_YEARS)) {
 	optimal = fmt.format("TimelineView.timeRange.years");
 } else {
@@ -101,6 +103,10 @@ if(resolution.equals(WaybackConstants.REQUEST_RESOLUTION_HOURS)) {
 	monthsOptSelected = "selected";
 	partitions = ResultsTimelinePartitionsFactory.getMonth(results.getResults(),
 		wbRequest);
+} else if(resolution.equals(WaybackConstants.REQUEST_RESOLUTION_TWO_MONTHS)) {
+	  monthsOptSelected = "selected";
+	  partitions = ResultsTimelinePartitionsFactory.getTwoMonth(results.getResults(),
+	    wbRequest);
 } else if(resolution.equals(WaybackConstants.REQUEST_RESOLUTION_YEARS)) {
 	yearsOptSelected = "selected";
 	partitions = ResultsTimelinePartitionsFactory.getYear(results.getResults(),
@@ -149,15 +155,9 @@ function handleDragClick() {
 
 
 </script>
-<!-- 
-overflow:hidden; border-width:1; border-style:outset; width:100%; height:80px; right:0; top:0; background-color:#dddddd;
- -->
+
 <div id="wm-ipp" style="position:relative;z-index:99999;border:1px solid;color:black;background-color:lightYellow;font-size:10px;font-family:sans-serif;padding:5px" >
-<!-- 
-<div onclick="handleDragClick()" id="wm-dragger" style="height:25px; width:100%; border-width:1; border-style:outset; background-color:#cccccc; text-align:right;">
-&lt;
-</div>
- -->
+
 <table cellspacing="0" border="0" cellpadding="0"  width="100%">
 	<tr>
 		<td width="1" nowrap></td>
@@ -174,7 +174,7 @@ overflow:hidden; border-width:1; border-style:outset; width:100%; height:80px; r
 				</tr>
 			</table>
 		</td>
-		<td width="400">
+		<td width="400" align="center">
 			<table>
 				<tr>
 					<td width="50%"></td>
@@ -281,8 +281,10 @@ overflow:hidden; border-width:1; border-style:outset; width:100%; height:80px; r
 				</tr>
 			</table>
 		</td>
-		<td align="right">
+		<td align="right" width="400">
 			<!-- Resolution -->
+			<!--
+			 need to get cookie data passing set up before this can be re-enabled:
 			<form wmSpecial="1" name="timeline" method="GET" target="_top" action="<%= contextRoot + "/frameset" %>">
 				<input type="hidden" name="url" value="<%= searchUrl %>">
 				<input type="hidden" name="exactdate" value="<%= exactDateStr %>">
@@ -306,7 +308,9 @@ overflow:hidden; border-width:1; border-style:outset; width:100%; height:80px; r
 					fmt.format("TimelineView.metaDataCheck") 
 				%><input type="checkbox" name="metamode" value="yes" <%=
 					metaChecked 
-				%> onClick="changeMeta()">&nbsp<a href="help.php" target="_top"><%=
+				%> onClick="changeMeta()">&nbsp
+				  -->
+				  <a wmSpecial="1" href="<%= contextRoot %>/help.jsp" target="_top"><%=
 					fmt.format("UIGlobal.helpLink")
 				%></a>
 			</form>
