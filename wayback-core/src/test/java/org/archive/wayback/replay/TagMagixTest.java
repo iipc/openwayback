@@ -281,7 +281,127 @@ public class TagMagixTest extends TestCase {
 		
 		
 	}
+	
+	public void testCSSMarkup() {
 
+		// basic, with quot apos + raw:
+		checkCSSMarkup("@import url(http://foo.com/f.css);",
+				"@import url(http://web.archive.org/wayback/2004/http://foo.com/f.css);",
+				"http://web.archive.org/wayback/","2004","http://foo.com/");
+		checkCSSMarkup("@import url('http://foo.com/f.css');",
+				"@import url('http://web.archive.org/wayback/2004/http://foo.com/f.css');",
+				"http://web.archive.org/wayback/","2004","http://foo.com/");
+		checkCSSMarkup("@import url(\"http://foo.com/f.css\");",
+				"@import url(\"http://web.archive.org/wayback/2004/http://foo.com/f.css\");",
+				"http://web.archive.org/wayback/","2004","http://foo.com/");
+
+
+		// same as basic, but with extra whitespace after "url"
+		checkCSSMarkup("@import url (http://foo.com/f.css);",
+				"@import url (http://web.archive.org/wayback/2004/http://foo.com/f.css);",
+				"http://web.archive.org/wayback/","2004","http://foo.com/");
+		checkCSSMarkup("@import url\t('http://foo.com/f.css');",
+				"@import url\t('http://web.archive.org/wayback/2004/http://foo.com/f.css');",
+				"http://web.archive.org/wayback/","2004","http://foo.com/");
+		checkCSSMarkup("@import url\n(\"http://foo.com/f.css\");",
+				"@import url\n(\"http://web.archive.org/wayback/2004/http://foo.com/f.css\");",
+				"http://web.archive.org/wayback/","2004","http://foo.com/");
+
+		// whitespace within url spec:
+		checkCSSMarkup("@import url( http://foo.com/f.css);",
+				"@import url( http://web.archive.org/wayback/2004/http://foo.com/f.css);",
+				"http://web.archive.org/wayback/","2004","http://foo.com/");
+		checkCSSMarkup("@import url('http://foo.com/f.css' );",
+				"@import url('http://web.archive.org/wayback/2004/http://foo.com/f.css' );",
+				"http://web.archive.org/wayback/","2004","http://foo.com/");
+		checkCSSMarkup("@import url( \"http://foo.com/f.css\" );",
+				"@import url( \"http://web.archive.org/wayback/2004/http://foo.com/f.css\" );",
+				"http://web.archive.org/wayback/","2004","http://foo.com/");
+		checkCSSMarkup("@import url(\t\"http://foo.com/f.css\"\t);",
+				"@import url(\t\"http://web.archive.org/wayback/2004/http://foo.com/f.css\"\t);",
+				"http://web.archive.org/wayback/","2004","http://foo.com/");
+		checkCSSMarkup("@import url(\n\"http://foo.com/f.css\"\n);",
+				"@import url(\n\"http://web.archive.org/wayback/2004/http://foo.com/f.css\"\n);",
+				"http://web.archive.org/wayback/","2004","http://foo.com/");
+		checkCSSMarkup("@import url(\r\n\"http://foo.com/f.css\"\n\r);",
+				"@import url(\r\n\"http://web.archive.org/wayback/2004/http://foo.com/f.css\"\n\r);",
+				"http://web.archive.org/wayback/","2004","http://foo.com/");
+
+		
+		
+	}
+	
+	public void testStyleUrlMarkup() {
+		// simple, server relative
+		checkStyleUrlMarkup("<table style=\"background: url(/css/b.gif)\"></table>",
+				"<table style=\"background: url(http://w.a.org/wb/2004/http://f.au/css/b.gif)\"></table>",
+				"http://w.a.org/wb/","2004","http://f.au/");
+		// server-relative, which now means something
+		checkStyleUrlMarkup("<table style=\"background: url(/css/b.gif)\"></table>",
+				"<table style=\"background: url(http://w.a.org/wb/2004/http://f.au/css/b.gif)\"></table>",
+				"http://w.a.org/wb/","2004","http://f.au/b/");
+
+		// path relative:
+		checkStyleUrlMarkup("<table style=\"background: url(css/b.gif)\"></table>",
+				"<table style=\"background: url(http://w.a.org/wb/2004/http://f.au/css/b.gif)\"></table>",
+				"http://w.a.org/wb/","2004","http://f.au/");
+		// path relative, meaningful:
+		checkStyleUrlMarkup("<table style=\"background: url(css/b.gif)\"></table>",
+				"<table style=\"background: url(http://w.a.org/wb/2004/http://f.au/b/css/b.gif)\"></table>",
+				"http://w.a.org/wb/","2004","http://f.au/b/");
+
+		// absolute:
+		checkStyleUrlMarkup("<table style=\"background: url(http://e.au/css/b.gif)\"></table>",
+				"<table style=\"background: url(http://w.a.org/wb/2004/http://e.au/css/b.gif)\"></table>",
+				"http://w.a.org/wb/","2004","http://f.au/b/");
+
+		// apos attribute
+		checkStyleUrlMarkup("<table style='background: url(/css/b.gif)'></table>",
+				"<table style='background: url(http://w.a.org/wb/2004/http://f.au/css/b.gif)'></table>",
+				"http://w.a.org/wb/","2004","http://f.au/");
+		
+		// quote attribute, apos url:
+		checkStyleUrlMarkup("<table style=\"background: url('/css/b.gif')\"></table>",
+				"<table style=\"background: url('http://w.a.org/wb/2004/http://f.au/css/b.gif')\"></table>",
+				"http://w.a.org/wb/","2004","http://f.au/");
+
+		// apos attribute, quote url:
+		checkStyleUrlMarkup("<table style='background: url(\"/css/b.gif\")'></table>",
+				"<table style='background: url(\"http://w.a.org/wb/2004/http://f.au/css/b.gif\")'></table>",
+				"http://w.a.org/wb/","2004","http://f.au/");
+
+		// apos attribute, quote url, plus semi-colon:
+		checkStyleUrlMarkup("<table style='background: url(\"/css/b.gif\");'></table>",
+				"<table style='background: url(\"http://w.a.org/wb/2004/http://f.au/css/b.gif\");'></table>",
+				"http://w.a.org/wb/","2004","http://f.au/");
+
+		// Two url()s in same attribute value:
+		checkStyleUrlMarkup("<table style=\"bg: url(/css/b.gif); fg: url(/css/f.gif);\"></table>",
+				"<table style=\"bg: url(http://w.a.org/wb/2004/http://f.au/css/b.gif); fg: url(http://w.a.org/wb/2004/http://f.au/css/f.gif);\"></table>",
+				"http://w.a.org/wb/","2004","http://f.au/");
+
+		// Two url()s in same quoted attribute value, with embedded apos:
+		checkStyleUrlMarkup("<table style=\"bg: url('/css/b.gif'); fg: url('/css/f.gif');\"></table>",
+				"<table style=\"bg: url('http://w.a.org/wb/2004/http://f.au/css/b.gif'); fg: url('http://w.a.org/wb/2004/http://f.au/css/f.gif');\"></table>",
+				"http://w.a.org/wb/","2004","http://f.au/");
+
+		// Two url()s in same apos'ed attribute value, with embedded quote:
+		checkStyleUrlMarkup("<table style='bg: url(\"/css/b.gif\"); fg: url(\"/css/f.gif\");'></table>",
+				"<table style='bg: url(\"http://w.a.org/wb/2004/http://f.au/css/b.gif\"); fg: url(\"http://w.a.org/wb/2004/http://f.au/css/f.gif\");'></table>",
+				"http://w.a.org/wb/","2004","http://f.au/");
+//
+//		NOT WORKING YET... Let's see if we get a complaint... Not even sure this
+//		is legit HTML:
+//		
+//		// Two url()s in same quoted attribute value, with embedded escaped quote:
+//		checkStyleUrlMarkup("<table style=\"bg: url(\\\"/css/b.gif\\\"); fg: url(\\\"/css/f.gif\\\");\"></table>",
+//				"<table style=\"bg: url(\\\"http://w.a.org/wb/2004/http://f.au/css/b.gif\\\"); fg: url(\\\"http://w.a.org/wb/2004/http://f.au/css/f.gif\\\");\"></table>",
+//				"http://w.a.org/wb/","2004","http://f.au/");
+		
+	
+	}
+	
+	
 	private void checkAttrValue(String page, String tag, String attr, 
 			String wantValue) {
 		StringBuilder sb = new StringBuilder(page);
@@ -299,11 +419,26 @@ public class TagMagixTest extends TestCase {
 		}
 	}
 	
+	private void checkCSSMarkup(String orig, String want,String prefix, String ts, String url) {
+		StringBuilder buf = new StringBuilder(orig);
+		ArchivalUrlResultURIConverter uriC = new ArchivalUrlResultURIConverter();
+		uriC.setReplayURIPrefix(prefix);
+		TagMagix.markupCSSImports(buf, uriC, ts, url);
+		String marked = buf.toString();
+		assertEquals(want,marked);
+	}
+	
+	private void checkStyleUrlMarkup(String orig, String want, String prefix, String ts, String url) {
+		StringBuilder buf = new StringBuilder(orig);
+		ArchivalUrlResultURIConverter uriC = new ArchivalUrlResultURIConverter();
+		uriC.setReplayURIPrefix(prefix);
+		TagMagix.markupStyleUrls(buf,uriC,ts,url);
+		String marked = buf.toString();
+		assertEquals(want,marked);
+	}
+	
 	private void checkMarkup(String orig, String want, String tag, String attr, String prefix, String ts, String url) {
 		StringBuilder buf = new StringBuilder(orig);
-//		if(url.startsWith("http://")) {
-//			url = url.substring(7);
-//		}
 		ArchivalUrlResultURIConverter uriC = new ArchivalUrlResultURIConverter();
 		uriC.setReplayURIPrefix(prefix);
 		TagMagix.markupTagREURIC(buf,uriC,ts,url,tag,attr);
