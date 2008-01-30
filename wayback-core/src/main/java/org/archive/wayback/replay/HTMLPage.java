@@ -232,6 +232,8 @@ public class HTMLPage {
 			TagMagix.markupTagREURIC(sb, uriConverter, captureDate, pageUrl,
 					tagAttr[0], tagAttr[1]);
 		}
+		TagMagix.markupCSSImports(sb,uriConverter, captureDate, pageUrl);
+		TagMagix.markupStyleUrls(sb,uriConverter,captureDate,pageUrl);
 	}
 	
 	/**
@@ -271,7 +273,17 @@ public class HTMLPage {
 			TagMagix.markupTagREURIC(sb, ruc, captureDate, pageUrl,
 					tagAttr[0], tagAttr[1]);
 		}
+		TagMagix.markupCSSImports(sb,uriConverter, captureDate, pageUrl);
+		TagMagix.markupStyleUrls(sb,uriConverter,captureDate,pageUrl);
 	}
+	
+	public void resolveCSSUrls() {
+		// TODO: get url from Resource instead of SearchResult?
+		String pageUrl = result.getAbsoluteUrl();
+		String captureDate = result.getCaptureDate();
+		TagMagix.markupCSSImports(sb,uriConverter, captureDate, pageUrl);
+	}
+
 	/**
 	 * @param charSet
 	 * @throws IOException 
