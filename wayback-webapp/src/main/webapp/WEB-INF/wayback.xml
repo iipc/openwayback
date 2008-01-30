@@ -71,16 +71,22 @@
   <bean id="localbdbcollection" class="org.archive.wayback.webapp.WaybackCollection">
 
     <property name="resourceStore">
-      <bean class="org.archive.wayback.resourcestore.LocalARCResourceStore"
+      <bean class="org.archive.wayback.resourcestore.LocalResourceStore"
         init-method="init">
-        <property name="arcDir" value="/tmp/wayback/arcs/" />
-        <property name="queuedDir" value="/tmp/wayback/arc-indexer/queued" />
-        <property name="workDir" value="/tmp/wayback/arc-indexer/work" />
-        <property name="runInterval" value="10000" />
-        <property name="indexClient">
-          <bean class="org.archive.wayback.resourceindex.indexer.IndexClient">
-            <property name="tmpDir" value="/tmp/wayback/arc-indexer/tmp" />
-            <property name="target" value="/tmp/wayback/index-data/incoming" />           
+
+        <property name="dataDir" value="/tmp/wayback/arcs/" />
+
+        <property name="indexThread">
+          <bean class="org.archive.wayback.resourcestore.AutoIndexThread">
+            <property name="queuedDir" value="/tmp/wayback/arc-indexer/queued" />
+            <property name="workDir" value="/tmp/wayback/arc-indexer/work" />
+            <property name="runInterval" value="10000" />
+            <property name="indexClient">
+              <bean class="org.archive.wayback.resourceindex.indexer.IndexClient">
+                <property name="tmpDir" value="/tmp/wayback/arc-indexer/tmp" />
+                <property name="target" value="/tmp/wayback/index-data/incoming" />           
+              </bean>
+            </property>
           </bean>
         </property>
       </bean>
@@ -116,9 +122,9 @@
   <bean id="localcdxcollection" class="org.archive.wayback.webapp.WaybackCollection">
 
     <property name="resourceStore">
-      <bean class="org.archive.wayback.resourcestore.LocalARCResourceStore"
+      <bean class="org.archive.wayback.resourcestore.LocalResourceStore"
         init-method="init">
-        <property name="arcDir" value="/tmp/wayback/arcs/" />
+        <property name="dataDir" value="/tmp/wayback/arcs/" />
       </bean>
     </property>
 
@@ -147,7 +153,7 @@
   <bean id="remotecollection" class="org.archive.wayback.webapp.WaybackCollection">
 
     <property name="resourceStore">
-      <bean class="org.archive.wayback.resourcestore.HttpARCResourceStore">
+      <bean class="org.archive.wayback.resourcestore.Http11ResourceStore">
         <property name="urlPrefix" value="http://localhost:8080/arcproxy/" />
       </bean>
     </property>
@@ -175,38 +181,53 @@
 
 		<property name="collection" ref="localbdbcollection" />
 
+    <property name="uriConverter">
+      <bean class="org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter">
+        <property name="replayURIPrefix" value="http://localhost:8080/wayback/" />
+      </bean>
+    </property>
+
 		<property name="query">
 			<bean class="org.archive.wayback.query.Renderer">
 				<property name="captureJsp" value="/jsp/HTMLResults.jsp" />
 			</bean>
 		</property>
 
-		<property name="replay">
-			<bean class="org.archive.wayback.archivalurl.ArchivalUrlReplayDispatcher">
-				<property name="jsInserts">
-					<list>
-						<value>http://localhost:8080/wm.js</value>
-					</list>
-				</property>
-				<property name="jspInserts">
-					<list>
-						<value>/replay/Timeline.jsp</value>
-					</list>
-				</property>
-			</bean>
-		</property>
+    <property name="replay">
+      <bean class="org.archive.wayback.archivalurl.ArchivalUrlReplayDispatcher">
+        <property name="serverSideRendering" value="false" />
+        <property name="jspInserts">
+          <list>
+            <value>/replay/ArchiveComment.jsp</value>
+            <value>/replay/ClientSideJSInsert.jsp</value>
+<!--
+  The following 2 .jsp include values will produce in-page elements within
+  replayed HTML pages. Both require client-side Javascript.
+-->
+<!-- 
+            <value>/replay/Disclaimer.jsp</value>
+            <value>/replay/Timeline.jsp</value>
+-->
+<!--
+  The following .jsp include value will produce a timeline within *all* replayed
+  pages, including all subframes within a frameset, but requires no client side
+  Javascript. It is intended for use in deployments which use:
+  
+      serverSideRendering=true
+-->
+<!--  
+            <value>/replay/JSLessTimeline.jsp</value>
+-->
+          </list>
+        </property>
+      </bean>
+    </property>
 
 		<property name="parser">
 			<bean class="org.archive.wayback.archivalurl.ArchivalUrlRequestParser"
 				init-method="init">
 				<property name="maxRecords" value="1000" />
 				<property name="earliestTimestamp" value="1996" />
-			</bean>
-		</property>
-
-		<property name="uriConverter">
-			<bean class="org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter">
-				<property name="replayURIPrefix" value="http://localhost:8080/wayback/" />
 			</bean>
 		</property>
 	</bean>
