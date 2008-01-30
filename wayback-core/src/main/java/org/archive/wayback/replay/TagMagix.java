@@ -59,9 +59,26 @@ public class TagMagix {
 
 	private static String RAW_ATTR_VALUE = "(?:[^ \\t\\n\\x0B\\f\\r>\"']+)";
 
+	private static String ANY_TAGNAME = "[a-z]+";
+	
+	private static String STYLE_ATTR_NAME = "style";
+	
 	private static String ANY_ATTR_VALUE = QUOTED_ATTR_VALUE + "|"
 			+ APOSED_ATTR_VALUE + "|" + ESC_QUOTED_ATTR_VALUE + "|"
 			+ RAW_ATTR_VALUE;
+	
+//	private static String cssUrlPatString = 
+//		"url\\s*\\(\\s*(['\"]?.+?['\"]?)\\s*\\)";
+	private static String cssUrlPatString = 
+		"url\\s*\\(\\s*([\\\\\"']*.+?[\\\\\"']*)\\s*\\)";
+	
+	private static String cssImportPatString = 
+		"@import\\s+" + cssUrlPatString;
+
+	private static Pattern cssImportPattern = 
+		Pattern.compile(cssImportPatString);
+	
+	private static Pattern cssUrlPattern = Pattern.compile(cssUrlPatString);
 
 	/**
 	 * get (and cache) a regex Pattern for locating an HTML attribute value
@@ -131,6 +148,65 @@ public class TagMagix {
 		return pc;
 	}
 
+	public static void markupCSSImports(StringBuilder page,
+			ResultURIConverter uriConverter, String captureDate,
+			String baseUrl) {
+		markupTagREURIC(page,uriConverter,captureDate,baseUrl,cssImportPattern);
+	}
+	
+	public static void markupStyleUrls(StringBuilder page,
+			ResultURIConverter uriConverter, String captureDate,
+			String baseUrl) {
+		Pattern stylePattern = getPattern(ANY_TAGNAME, STYLE_ATTR_NAME);
+		Matcher matcher = stylePattern.matcher(page);
+
+		int idx = 0;
+		while (matcher.find(idx)) {
+			String attrValue = matcher.group(1);
+			int origAttrLength = attrValue.length();
+			int attrStart = matcher.start(1);
+			int attrEnd = matcher.end(1);
+			if (attrValue.charAt(0) == '"') {
+				attrValue = attrValue.substring(1, origAttrLength - 1);
+				attrStart += 1;
+			} else if (attrValue.charAt(0) == '\'') {
+				attrValue = attrValue.substring(1, origAttrLength - 1);
+				attrStart += 1;
+			} else if (attrValue.charAt(0) == '\\') {
+				attrValue = attrValue.substring(2, origAttrLength - 2);
+				attrStart += 2;
+			}
+			
+			idx = attrEnd;
+			Matcher urlMatcher = cssUrlPattern.matcher(attrValue);
+			int attrIdx = 0;
+			while(urlMatcher.find(attrIdx)) {
+				String url = urlMatcher.group(1);
+				int origUrlLength = url.length();
+				int urlStart = urlMatcher.start(1);
+				int urlEnd = urlMatcher.end(1);
+				attrIdx = urlEnd;
+				if (url.charAt(0) == '"') {
+					url = url.substring(1, origUrlLength - 1);
+					urlStart += 1;
+				} else if (url.charAt(0) == '\'') {
+					url = url.substring(1, origUrlLength - 1);
+					urlStart += 1;
+				} else if (url.charAt(0) == '\\') {
+					url = url.substring(2, origUrlLength - 2);
+					urlStart += 2;
+				}
+				int urlLength = url.length();
+				String finalUrl = UrlOperations.resolveUrl(baseUrl,url);
+				String replayUrl = uriConverter.makeReplayURI(captureDate, finalUrl);
+				int delta = replayUrl.length() - urlLength;
+				page.replace(attrStart + urlStart, attrStart + urlStart + urlLength , replayUrl);
+				idx += delta;
+				attrStart += delta;
+			}
+		}
+	}
+	
 	/**
 	 * Alter the HTML document in page, updating URLs in the attrName attributes
 	 * of all tagName tags such that:
@@ -152,7 +228,13 @@ public class TagMagix {
 			String baseUrl, String tagName, String attrName) {
 
 		Pattern tagPat = getPattern(tagName, attrName);
-		Matcher matcher = tagPat.matcher(page);
+		markupTagREURIC(page,uriConverter,captureDate,baseUrl,tagPat);
+	}
+
+	public static void markupTagREURIC(StringBuilder page,
+			ResultURIConverter uriConverter, String captureDate,
+			String baseUrl, Pattern pattern) {
+		Matcher matcher = pattern.matcher(page);
 
 		int idx = 0;
 		while (matcher.find(idx)) {
@@ -163,13 +245,13 @@ public class TagMagix {
 			String quote = "";
 			if (url.charAt(0) == '"') {
 				quote = "\"";
-				url = url.substring(1, url.length() - 1);
+				url = url.substring(1, origUrlLength - 1);
 			} else if (url.charAt(0) == '\'') {
 				quote = "'";
-				url = url.substring(1, url.length() - 1);
+				url = url.substring(1, origUrlLength - 1);
 			} else if (url.charAt(0) == '\\') {
 				quote = "\\\"";
-				url = url.substring(2, url.length() - 2);
+				url = url.substring(2, origUrlLength - 2);
 			}
 			String finalUrl = UrlOperations.resolveUrl(baseUrl,url);
 			String replayUrl = quote
