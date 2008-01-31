@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.util.Map;
 
@@ -86,11 +87,23 @@ public class HTMLPage {
 		this.result = result;
 		this.uriConverter = uriConverter;
 	}
-	
+
 	private String contentTypeToCharset(final String contentType) {
 		int offset = contentType.indexOf(CHARSET_TOKEN);
 		if (offset != -1) {
-			return contentType.substring(offset + CHARSET_TOKEN.length());
+			String cs = contentType.substring(offset + CHARSET_TOKEN.length());
+			if(Charset.isSupported(cs)) {
+				return cs;
+			}
+			// test for extra spaces... there's at least one page out there that
+			// indicates it's charset with:
+
+//  <meta http-equiv="Content-type" content="text/html; charset=i so-8859-1">
+
+			// bad web page!
+			if(Charset.isSupported(cs.replace(" ", ""))) {
+				return cs.replace(" ", "");
+			}
 		}
 		return null;
 	}
