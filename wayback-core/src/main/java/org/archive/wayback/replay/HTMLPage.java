@@ -237,7 +237,8 @@ public class HTMLPage {
 				{"FRAME","SRC"},
 				{"META","URL"},
 				{"LINK","HREF"},
-				{"SCRIPT","SRC"}
+				{"SCRIPT","SRC"},
+				{TagMagix.ANY_TAGNAME,"background"}
 		};
 		// TODO: The classic WM added a js_ to the datespec, so NotInArchives
 		// can return an valid javascript doc, and not cause Javascript errors.
@@ -280,7 +281,7 @@ public class HTMLPage {
 				{"APPLET","ARCHIVE"},
 				{"EMBED","SRC"},
 				{"IFRAME","SRC"},
-				{"BODY","BACKGROUND"},
+				{TagMagix.ANY_TAGNAME,"background"}
 		};
 		for(String tagAttr[] : markups) {
 			TagMagix.markupTagREURIC(sb, ruc, captureDate, pageUrl,
