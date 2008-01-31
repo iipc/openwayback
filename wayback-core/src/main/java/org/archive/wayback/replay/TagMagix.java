@@ -59,7 +59,7 @@ public class TagMagix {
 
 	private static String RAW_ATTR_VALUE = "(?:[^ \\t\\n\\x0B\\f\\r>\"']+)";
 
-	private static String ANY_TAGNAME = "[a-z]+";
+	public static String ANY_TAGNAME = "[a-z]+";
 	
 	private static String STYLE_ATTR_NAME = "style";
 	
