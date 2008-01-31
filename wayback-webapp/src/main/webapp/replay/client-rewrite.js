@@ -17,10 +17,12 @@ function xLateUrl(aCollection, sProp) {
             var wmSpecial = aCollection[i].getAttribute("wmSpecial");
             if(wmSpecial && wmSpecial.length > 0) {
             } else {
-                if(aCollection[i][sProp].indexOf("http") == 0) {
-                    aCollection[i][sProp] = sWayBackCGI + aCollection[i][sProp];
-                } else {
-                    aCollection[i][sProp] = sWayBackCGI + xResolveUrl(aCollection[i][sProp]);
+                if(aCollection[i][sProp].indexOf(sWayBackCGI) == -1) {
+                    if(aCollection[i][sProp].indexOf("http") == 0) {
+                        aCollection[i][sProp] = sWayBackCGI + aCollection[i][sProp];
+                    } else {
+                        aCollection[i][sProp] = sWayBackCGI + xResolveUrl(aCollection[i][sProp]);
+                    }
                 }
             }
          }
