@@ -144,7 +144,7 @@ public class AggressiveUrlCanonicalizerTest extends TestCase {
 		String sid3 = "sid=9682993c8daa2c5497996114facdc805";
 		String sid4 = "ASPSESSIONIDAQBSDSRT=EOHBLBDDPFCLHKPGGKLILNAM";
 		String sid5 = "CFID=12412453&CFTOKEN=15501799";
-		//String sid6 = "CFID=3304324&CFTOKEN=57491900&jsessionid=a63098d96360$B0$D9$A";
+		String sid6 = "CFID=3304324&CFTOKEN=57491900&jsessionid=a63098d96360$B0$D9$A";
 
 		String fore = "http://foo.com/bar?bo=lo&";
 		String aft = "&gum=yum";
@@ -158,7 +158,7 @@ public class AggressiveUrlCanonicalizerTest extends TestCase {
 		checkCanonicalization(fore + sid3 + aft,want);
 		checkCanonicalization(fore + sid4 + aft,want);
 		checkCanonicalization(fore + sid5 + aft,want);
-		//checkCanonicalization(fore + sid6 + aft,want);
+		checkCanonicalization(fore + sid6 + aft,want);
 
 		// Check ASP_SESSIONID2:
 		checkCanonicalization(
@@ -173,7 +173,7 @@ public class AggressiveUrlCanonicalizerTest extends TestCase {
 		// Check ASP_SESSIONID3:
 		checkCanonicalization(
 				"http://legislature.mi.gov/(a(4hqa0555fwsecu455xqckv45)S(4hqa0555fwsecu455xqckv45)f(4hqa0555fwsecu455xqckv45))/mileg.aspx?page=sessionschedules",
-				"legislature.mi.gov/(a(4hqa0555fwsecu455xqckv45)f(4hqa0555fwsecu455xqckv45))/mileg.aspx?page=sessionschedules");
+				"legislature.mi.gov/mileg.aspx?page=sessionschedules");
 		
 		// strip port 80
 		checkCanonicalization("http://www.chub.org:80/foo","chub.org/foo");

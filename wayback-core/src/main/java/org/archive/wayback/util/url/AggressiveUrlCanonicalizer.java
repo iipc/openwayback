@@ -51,28 +51,39 @@ public class AggressiveUrlCanonicalizer implements UrlCanonicalizer {
      * Strip leading 'www.'
      */
     private static final Pattern STRIP_WWW_REGEX =
-        Pattern.compile("(?i)^(https?://)(?:www\\.)([^/]*/.+)$");
-    /**
-     * Strip leading 'www44.', 'www3.', etc.
-     */
-    private static final Pattern STRIP_WWWN_REGEX =
-        Pattern.compile("(?i)^(https?://)(?:www[0-9]+\\.)([^/]*/.+)$");
+        Pattern.compile("(?i)^(?:https?://)(www[0-9]*\\.)(?:[^/]*/.+)$");
+    private static final String STRIP_WWW_CHOOSER = "/www";
+//    /**
+//     * Strip leading 'www44.', 'www3.', etc.
+//     */
+//    private static final Pattern STRIP_WWWN_REGEX =
+//        Pattern.compile("(?i)^(https?://)(?:www[0-9]+\\.)([^/]*/.+)$");
     /**
      * Strip userinfo.
      */
     private static final Pattern STRIP_USERINFO_REGEX =
-        Pattern.compile("^((?:(?:https?)|(?:ftps?))://)(?:[^/]+@)(.*)$",
+        Pattern.compile("^(?:(?:(?:https?)|(?:ftps?))://)([^/]+@)(?:.*)$",
             Pattern.CASE_INSENSITIVE);
+    private static final String STRIP_USERINFO_CHOOSER = "@";
 
     /**
-     * Example: jsessionid=999A9EF028317A82AC83F0FDFE59385A.
      * Example: PHPSESSID=9682993c8daa2c5497996114facdc805.
      */
-    private static final Pattern STRIP_SESSION_ID_REGEX =
-    	 Pattern.compile("^(.+)(?:(?:(?:jsessionid)|(?:phpsessid))=" +
-    	                 "[0-9a-zA-Z]{32})(?:&(.*))?$",  
+    private static final Pattern STRIP_PHPSESSION_ID_REGEX =
+    	 Pattern.compile("^(?:.+)(phpsessid=" +
+    	                 "[0-9a-zA-Z]{32}&?)(?:(?:.*))?$",  
     	                 Pattern.CASE_INSENSITIVE);
+    private static final String STRIP_PHPSESSION_ID_CHOOSER = "phpsessid=";
 
+    
+    /**
+     * Example: jsessionid=999A9EF028317A82AC83F0FDFE59385A.
+     */
+    private static final Pattern STRIP_JSESSION_ID_REGEX =
+    	 Pattern.compile("^.*(jsessionid=[0-9a-zA-Z]{32}&?).*$",  
+    	                 Pattern.CASE_INSENSITIVE);
+    private static final String STRIP_JSESSION_ID_CHOOSER = "jsessionid=";
+    
     /**
      * Example: sid=9682993c8daa2c5497996114facdc805. 
      * 'sid=' can be tricky but all sid= followed by 32 byte string
@@ -81,16 +92,18 @@ public class AggressiveUrlCanonicalizer implements UrlCanonicalizer {
      * so have to have it run after the phpsessid elimination.
      */
     private static final Pattern STRIP_SID_REGEX =
-        Pattern.compile("^(.+)" +
-                "(?:sid=[0-9a-zA-Z]{32})(?:&(.*))?$", Pattern.CASE_INSENSITIVE);
+        Pattern.compile("^(?:.+)" +
+                "(sid=[0-9a-zA-Z]{32}&?)(?:(?:.*))?$", Pattern.CASE_INSENSITIVE);
+    private static final String STRIP_SID_CHOOSER = "sid=";
     
     /**
      * Example:ASPSESSIONIDAQBSDSRT=EOHBLBDDPFCLHKPGGKLILNAM.
      */
     private static final Pattern STRIP_ASPSESSION_REGEX =
-        Pattern.compile("^(.+)" +
-                "(?:ASPSESSIONID[a-zA-Z]{8}=[a-zA-Z]{24})(?:&(.*))?$",
+        Pattern.compile("^(?:.+)" +
+                "(ASPSESSIONID[a-zA-Z]{8}=[a-zA-Z]{24}&?)(?:(?:.*))?$",
                     Pattern.CASE_INSENSITIVE);
+    private static final String STRIP_ASPSESSION_CHOOSER = "aspsessionid";
 
     /**
      * Examples:
@@ -108,10 +121,10 @@ public class AggressiveUrlCanonicalizer implements UrlCanonicalizer {
      *     
      */
     private static final Pattern STRIP_ASPSESSION2_REGEX =
-    	Pattern.compile("^([^\\?]+/)" +
-    			"(?:\\((?:S\\(|)[0-9a-z]{24}\\)(?:\\)|)/)([^\\?]+\\.aspx.*)$",
+    	Pattern.compile(".*/(\\([0-9a-z]{24}\\)/)(?:[^\\?]+\\.aspx.*)$",
     			Pattern.CASE_INSENSITIVE);
-    
+    private static final String STRIP_ASPSESSION2_CHOOSER = ".aspx";
+
     /**
      * Examples:
      *
@@ -123,12 +136,10 @@ public class AggressiveUrlCanonicalizer implements UrlCanonicalizer {
      *     	  http://msdn2.microsoft.com/en-us/library/aa479315.aspx
      *     
      */   
-
     private static final Pattern STRIP_ASPSESSION3_REGEX =
-    	Pattern.compile("^([^\\?]+/" +
-    			"\\((?:a\\([0-9a-z]{24}\\)))(?:S\\([0-9a-z]{24}\\))" +
-    			"((?:f\\([0-9a-z]{24}\\))\\)/[^\\?]+\\.aspx.*)$",
+    	Pattern.compile(".*/(\\((?:[a-z]\\([0-9a-z]{24}\\))+\\)/)[^\\?]+\\.aspx.*$",
     			Pattern.CASE_INSENSITIVE);
+    private static final String STRIP_ASPSESSION3_CHOOSER = ".aspx";
     
     /**
      * Strip ColdFusion session IDs. Remove sessionids that look like the 
@@ -137,36 +148,52 @@ public class AggressiveUrlCanonicalizer implements UrlCanonicalizer {
      * CFID=3304324&CFTOKEN=57491900&jsessionid=a63098d96360$B0$D9$A
      */
     private static final Pattern STRIP_CFSESSION_REGEX = 
-    	Pattern.compile("^(.+)(?:cfid=[^&]+&cftoken=[^&]+(?:jsession=[^&]+)?)" +
-    			"(?:&(.*))?$",Pattern.CASE_INSENSITIVE);
+    	Pattern.compile(".+(cfid=[^&]+&cftoken=[^&]+(?:&jsessionid=[^&]+)?&?).*$",
+    			Pattern.CASE_INSENSITIVE);
+    private static final String STRIP_CFSESSION_CHOOSER = "cftoken=";
         
+	
+	private static final String choosers[] = {
+			STRIP_USERINFO_CHOOSER,
+			STRIP_WWW_CHOOSER,
+			STRIP_PHPSESSION_ID_CHOOSER,
+			STRIP_JSESSION_ID_CHOOSER,
+			STRIP_ASPSESSION_CHOOSER,
+			STRIP_ASPSESSION2_CHOOSER,
+			STRIP_ASPSESSION3_CHOOSER,
+			STRIP_SID_CHOOSER,
+			STRIP_CFSESSION_CHOOSER				
+	};
+	private static final Pattern strippers[] = {
+			STRIP_USERINFO_REGEX,
+			STRIP_WWW_REGEX,
+			STRIP_PHPSESSION_ID_REGEX,
+			STRIP_JSESSION_ID_REGEX,
+			STRIP_ASPSESSION_REGEX,
+			STRIP_ASPSESSION2_REGEX,
+			STRIP_ASPSESSION3_REGEX,
+			STRIP_SID_REGEX,
+			STRIP_CFSESSION_REGEX 
+    };
+
     /**
-     * Run a regex that strips elements of a string.
+     * Run a regex against a StringBuilder, removing group 1 if it matches.
      * 
      * Assumes the regex has a form that wants to strip elements of the passed
-     * string.  Assumes that if a match, appending group 1
-     * and group 2 yields desired result.
+     * string.  Assumes that if a match, group 1 should be removed
      * @param url Url to search in.
-     * @param matcher Matcher whose form yields a group 1 and group 2 if a
-     * match (non-null.
-     * @return Original <code>url</code> else concatenization of group 1
-     * and group 2.
+     * @param matcher Matcher whose form yields a group to remove
+     * @return true if the StringBuilder was modified
      */
-    protected String doStripRegexMatch(String url, Matcher matcher) {
-        return (matcher != null && matcher.matches())?
-            checkForNull(matcher.group(1)) + checkForNull(matcher.group(2)):
-            url;
+    protected boolean doStripRegexMatch(StringBuilder url, Matcher matcher) {
+    	if(matcher != null && matcher.matches()) {
+    		url.delete(matcher.start(1), matcher.end(1));
+    		return true;
+    	}
+    	return false;
     }
 
     /**
-     * @param string String to check.
-     * @return <code>string</code> if non-null, else empty string ("").
-     */
-    private String checkForNull(String string) {
-        return (string != null)? string: "";
-    }
-    
-	/**
 	 * return the canonical string key for the URL argument.
 	 * 
 	 * @param urlString
@@ -175,6 +202,9 @@ public class AggressiveUrlCanonicalizer implements UrlCanonicalizer {
 	 */
 	public String urlStringToKey(final String urlString) throws URIException {
 
+		if(urlString.startsWith("dns:")) {
+			return urlString;
+		}
 		String searchUrl = canonicalize(urlString);
 
 		// TODO: force https into http for the moment...
@@ -195,20 +225,20 @@ public class AggressiveUrlCanonicalizer implements UrlCanonicalizer {
 			searchUrl = "http://" + searchUrl;
 		}
 
-		// unescape anythying that can be:
+		// TODO: These next few lines look crazy -- need to be reworked.. This
+		// was the only easy way I could find to get the correct unescaping
+		// out of UURIs, possible a bug. Definitely needs some TLC in any case,
+		// as building UURIs is *not* a cheap operation.
+		
+		// unescape anything that can be:
 		UURI tmpURI = UURIFactory.getInstance(searchUrl);
 		tmpURI.setPath(tmpURI.getPath());
 		
-		
-		// convert to UURI to perform require URI fixup:
+		// convert to UURI to perform required URI fixup:
 		UURI searchURI = UURIFactory.getInstance(tmpURI.getURI());
-
-
-		
 		
 		// replace ' ' with '+' (this is only to match Alexa's canonicalization)
 		String newPath = searchURI.getEscapedPath().replace("%20","+");
-//		String newPath = searchURI.getPath().replace(' ','+');
 		
 		// replace multiple consecutive '/'s in the path.
 		while(newPath.contains("//")) {
@@ -241,12 +271,10 @@ public class AggressiveUrlCanonicalizer implements UrlCanonicalizer {
 		if(searchURI.getEscapedQuery() != null) {
 			sb.append("?").append(searchURI.getEscapedQuery());
 		}
-		
 
 		return sb.toString();
 	}
 
-	
 	/**
 	 * Idempotent operation that will determine the 'fuzziest'
 	 * form of the url argument. This operation is done prior to adding records
@@ -259,19 +287,23 @@ public class AggressiveUrlCanonicalizer implements UrlCanonicalizer {
 	 * @return canonicalized version of url argument.
 	 */
 	public String canonicalize(String url) {
-        url = doStripRegexMatch(url, STRIP_USERINFO_REGEX.matcher(url));
-        url = doStripRegexMatch(url, STRIP_WWW_REGEX.matcher(url));
-        url = doStripRegexMatch(url, STRIP_WWWN_REGEX.matcher(url));
-        url = doStripRegexMatch(url, STRIP_SESSION_ID_REGEX.matcher(url));
-        url = doStripRegexMatch(url, STRIP_ASPSESSION_REGEX.matcher(url));
-        url = doStripRegexMatch(url, STRIP_ASPSESSION2_REGEX.matcher(url));
-        url = doStripRegexMatch(url, STRIP_ASPSESSION3_REGEX.matcher(url));
-        url = doStripRegexMatch(url, STRIP_SID_REGEX.matcher(url));
-        url = doStripRegexMatch(url, STRIP_CFSESSION_REGEX.matcher(url));
-        url = url.toLowerCase();
+
         if (url == null || url.length() <= 0) {
             return url;
         }
+
+        // hang on, we're about to get aggressive:
+        url = url.toLowerCase();
+        StringBuilder sb = new StringBuilder(url);
+        boolean changed = false;
+		for(int i=0; i<choosers.length; i++) {
+			if(sb.indexOf(choosers[i]) != -1) {
+				changed |= doStripRegexMatch(sb,strippers[i].matcher(sb));
+			}
+		}
+		if(changed) {
+			url = sb.toString();
+		}
         
         int index = url.lastIndexOf('?');
         if (index > 0) {
@@ -285,8 +317,8 @@ public class AggressiveUrlCanonicalizer implements UrlCanonicalizer {
                     url = url.substring(0, url.length() - 2);
                 } else {
                     // The '&' is redundant.  Strip it.
-                    url = url.substring(0, index + 1) +
-                    url.substring(index + 2);
+                    url = url.substring(0, index + 1) + 
+                    	url.substring(index + 2);
                 }
             } else if (url.charAt(url.length() - 1) == '&') {
                 // If we have a lone '&' on end of query str,
