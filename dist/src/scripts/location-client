@@ -78,5 +78,5 @@ then
   CLASS_MAIN='org.archive.wayback.resourcestore.http.FileLocationDBClient'
 fi
 
-CLASSPATH=${CP} $JAVACMD ${JAVA_OPTS} $CLASS_MAIN $@
+CLASSPATH=${CP} $JAVACMD ${JAVA_OPTS} $CLASS_MAIN "$@"
 
