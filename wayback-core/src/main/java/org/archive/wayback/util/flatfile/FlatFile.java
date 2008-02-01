@@ -30,9 +30,11 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
+import java.util.Comparator;
 import java.util.Iterator;
 
 import org.archive.wayback.util.CloseableIterator;
+import org.archive.wayback.util.CompositeSortedIterator;
 
 /**
  * Subclass of File, which allows binary searching, returning Iterators
@@ -199,25 +201,36 @@ public class FlatFile {
 			USAGE();
 		}
 		String prefix = args[0];
-		for(int i=1; i < args.length; i++) {
-			FlatFile ff = new FlatFile(args[i]);
-			RecordIterator ri;
-			try {
-				ri = (RecordIterator) ff.getRecordIterator(prefix);
-				while(ri.hasNext()) {
-					String line = (String) ri.next();
-					if(!line.startsWith(prefix)) {
-						break;
+		CloseableIterator<String> itr;
+		try {
+			if(args.length == 2) {
+				FlatFile ff = new FlatFile(args[1]);
+				itr = (RecordIterator) ff.getRecordIterator(prefix);
+			} else {
+				Comparator<String> comp = new Comparator<String>() {
+					public int compare(String o1, String o2) {
+						return o1.compareTo(o2);
 					}
-					if(args.length > 2) {
-						System.out.println(args[i] + " " + line);
-					} else {
-						System.out.println(line);
-					}
+				};
+				CompositeSortedIterator<String> csi = 
+					new CompositeSortedIterator<String>(comp);
+				RecordIterator fitr;
+				for(int i=1; i < args.length; i++) {
+					FlatFile ff = new FlatFile(args[i]);
+					fitr = (RecordIterator) ff.getRecordIterator(prefix);
+					csi.addComponent(fitr);
 				}
-			} catch (IOException e) {
-				e.printStackTrace();
+				itr = csi;
 			}
+			while(itr.hasNext()) {
+				String line = (String) itr.next();
+				if(!line.startsWith(prefix)) {
+					break;
+				}
+				System.out.println(line);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 }
