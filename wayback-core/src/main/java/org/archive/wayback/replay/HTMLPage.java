@@ -29,6 +29,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
+import java.nio.charset.IllegalCharsetNameException;
 import java.text.ParseException;
 import java.util.Map;
 
@@ -88,11 +89,21 @@ public class HTMLPage {
 		this.uriConverter = uriConverter;
 	}
 
+	private boolean isCharsetSupported(String charsetName) {
+		// can you believe that this throws a runtime? Just asking if it's
+		// supported!!?! They coulda just said "no"...
+		try {
+			return Charset.isSupported(charsetName);
+		} catch(IllegalCharsetNameException e) {
+			return false;
+		}
+	}
+	
 	private String contentTypeToCharset(final String contentType) {
 		int offset = contentType.indexOf(CHARSET_TOKEN);
 		if (offset != -1) {
 			String cs = contentType.substring(offset + CHARSET_TOKEN.length());
-			if(Charset.isSupported(cs)) {
+			if(isCharsetSupported(cs)) {
 				return cs;
 			}
 			// test for extra spaces... there's at least one page out there that
@@ -101,7 +112,7 @@ public class HTMLPage {
 //  <meta http-equiv="Content-type" content="text/html; charset=i so-8859-1">
 
 			// bad web page!
-			if(Charset.isSupported(cs.replace(" ", ""))) {
+			if(isCharsetSupported(cs.replace(" ", ""))) {
 				return cs.replace(" ", "");
 			}
 		}
