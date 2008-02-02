@@ -340,7 +340,11 @@ public class LocalResourceIndex implements ResourceIndex {
 				filters.addFilter(exclusion);
 			}
 			filters.addFilter(finalCounter);
-			startKey = keyUrl + " " + startDate;
+			// OPTIMIZ: beginning the search at the startDate causes problems 
+			// with deduplicated results. We need to be smarter about rolling
+			// backwards a ways if we start on a deduped record.
+//			startKey = keyUrl + " " + startDate;
+			startKey = keyUrl + " ";
 
 			// add the start and end windowing filters:
 			filters.addFilter(new WindowStartFilter(startResult));
