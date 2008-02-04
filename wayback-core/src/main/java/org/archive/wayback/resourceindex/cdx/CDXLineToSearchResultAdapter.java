@@ -72,6 +72,9 @@ public class CDXLineToSearchResultAdapter implements Adapter<String,SearchResult
 			try {
 				UURI uri = UURIFactory.getInstance(
 						WaybackConstants.HTTP_URL_PREFIX + url);
+				if(uri.getPort() != -1) {
+					origHost += ":" + uri.getPort();
+				}
 				origUrl = origHost + uri.getEscapedPathQuery();
 			} catch (URIException e) {
 				// TODO Stifle? throw an error?
