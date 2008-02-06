@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<document>
+  <properties>
+    <title>Release Notes</title>
+    <author email="brad at archive dot org">Brad Tofel</author>
+    <revision>$Id: index.xml 2040 2007-10-12 23:21:40Z bradtofel $</revision>
+  </properties>
+
+  <body>
+    <section name="Releases">
+      <p>
+        Full listing of changes and bug fixes are not currently available prior
+        to release 1.2.0.
+      </p>
+    </section>
+    <section name="Release 1.2.0">
+      <subsection name="Features">
+        <ul>
+          <li>
+            now supports compressed and uncompressed ARC and WARC files.
+          </li>
+          <li>
+            initial revision of "deduplicated" WARC record handling, which
+            returns the last version that was actually stored when 
+            subsequent captures are not saved because they have not changed.
+          </li>
+          <li>
+            now filters (literal) duplicate records from the ResourceIndex,
+            in case the same capture (url + date) appears twice, or in two
+            CDX files.
+          </li>
+          <li>
+            UrlCanonicalizer is now pluggable, current functionality is now
+            implemented in AggressiveUrlCanonicalizer. Added
+            IdentityUrlCanonicalizer, which performs no canonicalization.
+          </li>
+          <li>
+            <b>bin-search</b> command line tool now outputs a single stream of 
+            sorted results from multiple files, instead of returning matches
+            from each file sequentially.
+          </li>
+          <li>
+            extracted several replay features into separately jspInserts that
+            can now be mixed and matched.
+          </li>
+          <li>
+            now handles most text/css URL rewriting, both inside HTML pages,
+            and in externally linked .css files.
+          </li>
+          <li>
+            externalized commented embedded inside replayed HTML pages into
+            jspInsert: ArchiveComment.jsp.
+          </li>
+          <li>
+            non-javascript Archival URL replay mode, where all URL rewriting
+            occurs on the server. This includes a non-javascript 
+            Timeline jspInsert.
+          </li>
+          <li>
+            added two-month timeline partition.
+          </li>
+          <li>
+            root page of webapp now lists access points, when users make
+            a request that does not specify one. Also, now access point
+            "slash-pages" are available "without the slash".
+          </li>
+        </ul>
+      </subsection>
+      <subsection name="Bug Fixes">
+        <ul>
+          <li>
+            Now rewrite Location and Content-Base HTTP headers in non-HTML
+            Archival URL replayed documents.
+          </li>
+          <li>
+            now rewrites all <b>background</b> attributes found in returned
+            pages (archival URL mode only) instead of just on BODY tags.
+          </li>
+          <li>
+            now rewrites <b>src</b> attributes on INPUT tags.
+          </li>
+          <li>
+            command line tools now allow whitespace arguments, important for
+            tools accepting delimter arguments.
+          </li>
+          <li>
+            replay URLs in query results now include non-standard ports, if
+            needed.
+          </li>
+          <li>
+            Timezone is now explicitly set to GMT/UTC, fixing a Calendar
+            result partioning problem.
+          </li>
+          <li>
+            uncaught character-encoding exceptions now handled, plus 
+            slightly improved detection of correct character encoding by
+            removing internal whitespace in declared encoding names.
+          </li>
+          <li>
+            archival URL parsing of query end-date now assumes latest
+            possible date given a partial end-date, instead of earliest
+            possible date.
+          </li>
+          <li>
+            re-implemented lost "closest" indicator for XML results.
+          </li>
+          <li>
+            now supports multiple auto index threads, one per ResourceStore,
+            and also multiple auto index merge threads, one per BDB 
+            ResourceIndex. 
+          </li>
+          <li>
+            fixed hard-coded maximum year issue.
+          </li>
+          <li>
+            reimplemented NotInArchive logging, which was lost in 1.0.0.
+          </li>
+        </ul>
+      </subsection>
+    </section>
+  </body>
+</document>
