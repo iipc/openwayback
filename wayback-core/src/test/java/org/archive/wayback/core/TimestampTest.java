@@ -24,6 +24,8 @@
  */
 package org.archive.wayback.core;
 
+import java.util.Calendar;
+
 import junit.framework.TestCase;
 
 import org.archive.wayback.core.Timestamp;
@@ -40,11 +42,13 @@ public class TimestampTest extends TestCase {
 	 */
 	public void testPadDateStr() {
 
+		String curYear = String.valueOf(Calendar.getInstance().get(Calendar.YEAR));
+		
 		assertEquals("padStart '1'","19960101000000",Timestamp.padStartDateStr("1"));
 		assertEquals("padEnd '1'","19991231235959",Timestamp.padEndDateStr("1"));
 		assertEquals("padStart '2'","20000101000000",Timestamp.padStartDateStr("2"));
-		assertEquals("padEnd","20081231235959",Timestamp.padEndDateStr("2"));
-		assertEquals("padEnd","20081231235959",Timestamp.padEndDateStr("3"));
+		assertEquals("padEnd",curYear + "1231235959",Timestamp.padEndDateStr("2"));
+		assertEquals("padEnd",curYear + "1231235959",Timestamp.padEndDateStr("3"));
 		assertEquals("padEnd","20061231235959",Timestamp.padEndDateStr("2006"));
 		assertEquals("padEnd","20061231235959",Timestamp.padEndDateStr("200613"));
 		assertEquals("padEnd","20071231235959",Timestamp.padEndDateStr("2007"));

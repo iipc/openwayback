@@ -43,7 +43,8 @@ public class Timestamp {
 	private final static String LOWER_TIMESTAMP_LIMIT = "10000000000000";
 	private final static String UPPER_TIMESTAMP_LIMIT = "29991939295959";
 	private final static String YEAR_LOWER_LIMIT      = "1996";
-	private final static String YEAR_UPPER_LIMIT      = "2008";
+	private final static String YEAR_UPPER_LIMIT      = 
+		String.valueOf(Calendar.getInstance().get(Calendar.YEAR));
 	private final static String MONTH_LOWER_LIMIT     = "01";
 	private final static String MONTH_UPPER_LIMIT     = "12";
 	private final static String DAY_LOWER_LIMIT       = "01";
