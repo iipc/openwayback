@@ -42,6 +42,7 @@
 	  * numerous bug-fixes
 	  * pluggable URL canonicalization module
 	  * initial support for de-duplicated WARC records
+	  
 
 == BRAINSTORMING ==
 
