@@ -289,6 +289,7 @@
   &lt;bean class=&quot;org.archive.wayback.resourceindex.LocalResourceIndex&quot;&gt;
     &lt;property name=&quot;source&quot; ... /&gt;
     &lt;property name=&quot;maxRecords&quot; value=&quot;10000&quot; /&gt;
+    &lt;property name=&quot;dedupeRecords&quot; value=&quot;false&quot; /&gt;
   &lt;/bean&gt;
 &lt;/property&gt;
 
@@ -301,7 +302,14 @@
           specifies the maximum number of records to process, and thus that can
           be returned, during a single query.
         </p>
-        <br></br>
+        <p>
+          <b>
+            dedupeRecords
+          </b>
+          set to true if you are using WARC files created by Heritrix 1.12 or
+          higher and configured the duplicate reduction features. See the 
+          section Duplicate Reduction below for more information.
+        </p>
         <p>
           <b>
             source
@@ -1644,6 +1652,29 @@ String logoString = results.getContextConfig("logo");
         </p>
       </subsection>
     </section>
-
+    <section name="Duplicate Reduction">
+      <p>
+        Heritrix 1.12 and above have the capability to write WARC files, which 
+        omit storing documents that have not changed since a previous visit. For
+        specifics on activating these features, please refer to the Heritrix 
+        documentation. When Heritrix is using these features, and notices that
+        a document has not changed since the last time it was visited, it 
+        creates an abbreviated WARC record, indicating that the document was
+        retrieved but not stored. In this abbreviated WARC record is an
+        indicator of the SHA1 digest of the document.
+      </p>
+      <p>
+        The wayback uses these identical SHA1 digests to map the location
+        (ARC/WARC + offset) of the original record that was stored to subsequent 
+        records that were not. When a request for a subsequent capture that was
+        not stored is received by wayback, it will return the content of the
+        previous stored record.
+      </p>
+      <p>
+        The matching of these digests occurs at query time, and is configured
+        by setting the "dedupeRecords" option of the LocalResourceIndex to 
+        "true".
+      </p>
+    </section>
   </body>
 </document>
