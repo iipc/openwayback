@@ -175,4 +175,36 @@ public abstract class BaseReplayDispatcher implements ReplayDispatcher {
 			renderException(httpRequest, httpResponse, wbRequest, e);
 		}
 	}
+
+	public String getErrorJsp() {
+		return errorJsp;
+	}
+
+	public void setErrorJsp(String errorJsp) {
+		this.errorJsp = errorJsp;
+	}
+
+	public String getImageErrorJsp() {
+		return imageErrorJsp;
+	}
+
+	public void setImageErrorJsp(String imageErrorJsp) {
+		this.imageErrorJsp = imageErrorJsp;
+	}
+
+	public String getJavascriptErrorJsp() {
+		return javascriptErrorJsp;
+	}
+
+	public void setJavascriptErrorJsp(String javascriptErrorJsp) {
+		this.javascriptErrorJsp = javascriptErrorJsp;
+	}
+
+	public String getCssErrorJsp() {
+		return cssErrorJsp;
+	}
+
+	public void setCssErrorJsp(String cssErrorJsp) {
+		this.cssErrorJsp = cssErrorJsp;
+	}
 }
