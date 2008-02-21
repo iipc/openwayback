@@ -26,10 +26,17 @@ package org.archive.wayback.proxy;
 
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.archive.wayback.RequestParser;
+import org.archive.wayback.WaybackConstants;
+import org.archive.wayback.core.Timestamp;
+import org.archive.wayback.core.WaybackRequest;
+import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.requestparser.CompositeRequestParser;
 import org.archive.wayback.requestparser.FormRequestParser;
 import org.archive.wayback.requestparser.OpenSearchRequestParser;
+import org.archive.wayback.webapp.AccessPoint;
 
 /**
  *
@@ -53,5 +60,21 @@ public class ProxyRequestParser extends CompositeRequestParser {
 	}
 	public void setLocalhostNames(List<String> localhostNames) {
 		prrp.setLocalhostNames(localhostNames);
+	}
+	public WaybackRequest parse(HttpServletRequest httpRequest,
+            AccessPoint wbContext) throws BadQueryException {
+	
+	    WaybackRequest wbRequest = super.parse(httpRequest, wbContext);
+	    if (wbRequest != null) {
+	            // Get the id from the request. If no id, use the ip-address instead.
+	            // Then get the timestamp (or rather datestr) matching this id.
+	            String id = httpRequest.getHeader("Proxy-Id");
+	            if (id == null)
+	                    id = httpRequest.getRemoteAddr();
+	            wbRequest.put(WaybackConstants.REQUEST_EXACT_DATE, Timestamp
+	                    .getTimestampForId(httpRequest.getContextPath(), id));
+	            wbRequest.fixup(httpRequest);
+	    }
+	    return wbRequest;
 	}
 }

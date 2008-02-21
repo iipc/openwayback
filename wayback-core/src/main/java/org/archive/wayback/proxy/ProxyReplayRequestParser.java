@@ -31,7 +31,6 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.httpclient.URIException;
 import org.archive.util.InetAddressUtil;
 import org.archive.wayback.WaybackConstants;
-import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.requestparser.BaseRequestParser;
@@ -95,15 +94,6 @@ public class ProxyReplayRequestParser extends BaseRequestParser {
 		}
 		wbRequest.put(WaybackConstants.REQUEST_TYPE,
 				WaybackConstants.REQUEST_REPLAY_QUERY);
-
-		// Get the id from the request. If no id, use the ip-address instead.
-		// Then get the timestamp (or rather datestr) matching this id.
-		String id = httpRequest.getHeader("Proxy-Id");
-		if (id == null)
-			id = httpRequest.getRemoteAddr();
-		wbRequest.put(WaybackConstants.REQUEST_EXACT_DATE, Timestamp
-				.getTimestampForId(httpRequest.getContextPath(), id));
-		wbRequest.fixup(httpRequest);
 
 		return wbRequest;
 	}
