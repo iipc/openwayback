@@ -24,9 +24,11 @@
  */
 package org.archive.wayback.resourcestore.http;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.logging.Logger;
@@ -51,6 +53,8 @@ public class FileLocationDBClient {
 
 	private final static String ARC_SUFFIX = ".arc";
 	private final static String ARC_GZ_SUFFIX = ".arc.gz";
+	private final static String WARC_SUFFIX = ".warc";
+	private final static String WARC_GZ_SUFFIX = ".warc.gz";
 	private final static String OK_RESPONSE_PREFIX = "OK ";
     private HttpClient client = null;
 	
@@ -228,7 +232,14 @@ public class FileLocationDBClient {
 				"\n" +
 				"\t mark-range LOCATION-DB-URL START END\n" +
 				"\t\temit to STDOUT one line with the name of all ARC files\n" +
-				"\t\tadded to the locationDB between marks START and END\n");
+				"\t\tadded to the locationDB between marks START and END\n" +
+				"\n" +
+				"\t add-stream LOCATION-DB-URL\n" +
+				"\t\tread lines from STDIN formatted like:\n" +
+				"\t\t\tNAME<SPACE>URL\n" +
+				"\t\tand for each line, inform locationDB that file NAME is\n" +
+				"\t\tlocated at URL\n"
+				);
 		System.exit(2);
 	}
 	
@@ -236,142 +247,170 @@ public class FileLocationDBClient {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		if(args.length < 3) {
+		if(args.length < 2) {
 			USAGE("");
 			System.exit(1);
 		}
 		String operation = args[0];
 		String url = args[1];
-		String arc = args[2];
 		if(!url.startsWith("http://")) {
 			USAGE("URL argument 1 must begin with http://");
 		}
 
-		FileLocationDBClient locationClient = new FileLocationDBClient(url); 
-		if(operation.equalsIgnoreCase("lookup")) {
-			if(args.length < 3) {
-				USAGE("lookup LOCATION-URL ARC");
-			}
+		FileLocationDBClient locationClient = new FileLocationDBClient(url);
+		
+		if(operation.equalsIgnoreCase("add-stream")) {
+			BufferedReader r = new BufferedReader(
+					new InputStreamReader(System.in));
+			String line;
 			try {
-				String[] locations = locationClient.arcToUrls(arc);
-				if(locations == null) {
-					System.err.println("No locations for " + arc);
-					System.exit(1);
-				}
-				for(int i=0; i <locations.length; i++) {
-					System.out.println(locations[i]);
-				}
-			} catch (IOException e) {
-				System.err.println(e.getMessage());
-				System.exit(1);
-			}
-			
-		} else if(operation.equalsIgnoreCase("get-mark")) {
-			if(args.length != 2) {
-				USAGE("get-mark LOCATION-URL");
-			}
-			try {
-				long mark = locationClient.getCurrentMark();
-				System.out.println(mark);
-			} catch (IOException e) {
-				System.err.println(e.getMessage());
-				System.exit(1);
-			}
-			
-		} else if(operation.equalsIgnoreCase("mark-range")) {
-			if(args.length != 4) {
-				USAGE("mark-range LOCATION-URL START END");
-			}
-			long start = Long.parseLong(args[3]);
-			long end = Long.parseLong(args[4]);
-			try {
-				Iterator<String> it = 
-					locationClient.getArcsBetweenMarks(start,end);
-				while(it.hasNext()) {
-					String next = (String) it.next();
-					System.out.println(next);
-				}
-			} catch (IOException e) {
-				System.err.println(e.getMessage());
-				System.exit(1);
-			}
-			
-			
-		} else if(operation.equalsIgnoreCase("add")) {
-			if(args.length != 4) {
-				USAGE("add LOCATION-URL ARC ARC-URL");
-			}
-			String arcUrl = args[3];
-			if(!arcUrl.startsWith("http://")) {
-				USAGE("ARC-URL argument 4 must begin with http://");
-			}
-			try {
-				locationClient.addArcUrl(arc,arcUrl);
-				System.out.println("OK");
-			} catch (IOException e) {
-				System.err.println(e.getMessage());
-				System.exit(1);
-			}
-			
-		} else if(operation.equalsIgnoreCase("remove")) {
-			
-			if(args.length != 4) {
-				USAGE("remove LOCATION-URL ARC ARC-URL");
-			}
-			String arcUrl = args[3];
-			if(!arcUrl.startsWith("http://")) {
-				USAGE("ARC-URL argument 4 must begin with http://");
-			}
-			try {
-				locationClient.removeArcUrl(arc,arcUrl);
-				System.out.println("OK");
-			} catch (IOException e) {
-				System.err.println(e.getMessage());
-				System.exit(1);
-			}
-
-		} else if(operation.equalsIgnoreCase("sync")) {
-			
-			if(args.length != 4) {
-				USAGE("sync LOCATION-URL DIR DIR-URL");
-			}
-			File dir = new File(arc);
-			String dirUrl = args[3];
-			if(!dirUrl.startsWith("http://")) {
-				USAGE("DIR-URL argument 4 must begin with http://");
-			}
-			try {
-				if(!dir.isDirectory()) {
-					USAGE("DIR " + arc + " is not a directory");
-				}
-				
-				FileFilter filter = new FileFilter() {
-					public boolean accept(File daFile) {
-						return daFile.isFile() && 
-							(daFile.getName().endsWith(ARC_SUFFIX) ||
-								daFile.getName().endsWith(ARC_GZ_SUFFIX));
+				while((line = r.readLine()) != null) {
+					String parts[] = line.split(" ");
+					if(parts.length != 2) {
+						System.err.println("Bad input(" + line + ")");
+						System.exit(2);
 					}
-				};
-				
-				File[] arcs = dir.listFiles(filter);
-				if(arcs == null) {
-					throw new IOException("Directory " + dir.getAbsolutePath() +
-							" is not a directory or had an IO error");
-				}
-				for(int i = 0; i < arcs.length; i++) {
-					File arcFile = arcs[i];
-					String arcName = arcFile.getName();
-					String arcUrl = dirUrl + arcName;
-					LOGGER.info("Adding location " + arcUrl + " for arc " + arcName);
-					locationClient.addArcUrl(arcName,arcUrl);
+					locationClient.addArcUrl(parts[0],parts[1]);
+					System.out.println("Added\t" + parts[0] + "\t" + parts[1]);
 				}
 			} catch (IOException e) {
-				System.err.println(e.getMessage());
+				e.printStackTrace();
 				System.exit(1);
 			}
 			
 		} else {
-			USAGE(" unknown operation " + operation);
+			if(args.length < 3) {
+				USAGE("");
+				System.exit(1);
+			}
+			String arc = args[2];
+			if(operation.equalsIgnoreCase("lookup")) {
+				if(args.length < 3) {
+					USAGE("lookup LOCATION-URL ARC");
+				}
+				try {
+					String[] locations = locationClient.arcToUrls(arc);
+					if(locations == null) {
+						System.err.println("No locations for " + arc);
+						System.exit(1);
+					}
+					for(int i=0; i <locations.length; i++) {
+						System.out.println(locations[i]);
+					}
+				} catch (IOException e) {
+					System.err.println(e.getMessage());
+					System.exit(1);
+				}
+				
+			} else if(operation.equalsIgnoreCase("get-mark")) {
+				if(args.length != 2) {
+					USAGE("get-mark LOCATION-URL");
+				}
+				try {
+					long mark = locationClient.getCurrentMark();
+					System.out.println(mark);
+				} catch (IOException e) {
+					System.err.println(e.getMessage());
+					System.exit(1);
+				}
+				
+			} else if(operation.equalsIgnoreCase("mark-range")) {
+				if(args.length != 4) {
+					USAGE("mark-range LOCATION-URL START END");
+				}
+				long start = Long.parseLong(args[3]);
+				long end = Long.parseLong(args[4]);
+				try {
+					Iterator<String> it = 
+						locationClient.getArcsBetweenMarks(start,end);
+					while(it.hasNext()) {
+						String next = (String) it.next();
+						System.out.println(next);
+					}
+				} catch (IOException e) {
+					System.err.println(e.getMessage());
+					System.exit(1);
+				}
+				
+				
+			} else if(operation.equalsIgnoreCase("add")) {
+				if(args.length != 4) {
+					USAGE("add LOCATION-URL ARC ARC-URL");
+				}
+				String arcUrl = args[3];
+				if(!arcUrl.startsWith("http://")) {
+					USAGE("ARC-URL argument 4 must begin with http://");
+				}
+				try {
+					locationClient.addArcUrl(arc,arcUrl);
+					System.out.println("OK");
+				} catch (IOException e) {
+					System.err.println(e.getMessage());
+					System.exit(1);
+				}
+				
+			} else if(operation.equalsIgnoreCase("remove")) {
+				
+				if(args.length != 4) {
+					USAGE("remove LOCATION-URL ARC ARC-URL");
+				}
+				String arcUrl = args[3];
+				if(!arcUrl.startsWith("http://")) {
+					USAGE("ARC-URL argument 4 must begin with http://");
+				}
+				try {
+					locationClient.removeArcUrl(arc,arcUrl);
+					System.out.println("OK");
+				} catch (IOException e) {
+					System.err.println(e.getMessage());
+					System.exit(1);
+				}
+	
+			} else if(operation.equalsIgnoreCase("sync")) {
+				
+				if(args.length != 4) {
+					USAGE("sync LOCATION-URL DIR DIR-URL");
+				}
+				File dir = new File(arc);
+				String dirUrl = args[3];
+				if(!dirUrl.startsWith("http://")) {
+					USAGE("DIR-URL argument 4 must begin with http://");
+				}
+				try {
+					if(!dir.isDirectory()) {
+						USAGE("DIR " + arc + " is not a directory");
+					}
+					
+					FileFilter filter = new FileFilter() {
+						public boolean accept(File daFile) {
+							return daFile.isFile() && 
+							(daFile.getName().endsWith(ARC_SUFFIX) ||
+								daFile.getName().endsWith(ARC_GZ_SUFFIX) ||
+								daFile.getName().endsWith(WARC_SUFFIX) ||
+								daFile.getName().endsWith(WARC_GZ_SUFFIX));
+						}
+					};
+					
+					File[] files = dir.listFiles(filter);
+					if(files == null) {
+						throw new IOException("Directory " + dir.getAbsolutePath() +
+								" is not a directory or had an IO error");
+					}
+					for(int i = 0; i < files.length; i++) {
+						File file = files[i];
+						String name = file.getName();
+						String fileUrl = dirUrl + name;
+						LOGGER.info("Adding location " + fileUrl + " for file " + name);
+						locationClient.addArcUrl(name,fileUrl);
+					}
+				} catch (IOException e) {
+					System.err.println(e.getMessage());
+					System.exit(1);
+				}
+				
+			} else {
+				USAGE(" unknown operation " + operation);
+			}
 		}
 	}
 }
