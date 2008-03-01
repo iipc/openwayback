@@ -13,6 +13,7 @@ import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.exception.ResourceNotAvailableException;
+import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.DirMaker;
 
 /**
@@ -88,8 +89,8 @@ public class LocalResourceStore implements ResourceStore {
 		}
 	}
 	
-	public Iterator<SearchResult> indexFile(File dataFile) throws IOException {
-		Iterator<SearchResult> itr = null;
+	public CloseableIterator<SearchResult> indexFile(File dataFile) throws IOException {
+		CloseableIterator<SearchResult> itr = null;
 		
 		String name = dataFile.getName();
 		if(name.endsWith(ARC_EXTENSION)) {
@@ -139,5 +140,8 @@ public class LocalResourceStore implements ResourceStore {
 	}
 	public void setIndexThread(AutoIndexThread indexThread) {
 		this.indexThread = indexThread;
+	}
+	public void shutdown() throws IOException {
+		// no-op. could shut down threads
 	}
 }

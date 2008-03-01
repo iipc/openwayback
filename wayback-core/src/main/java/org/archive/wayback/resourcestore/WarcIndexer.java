@@ -46,10 +46,11 @@ public class WarcIndexer {
 		
 		WARCReader reader = WARCReaderFactory.get(warc);
 		
-		Iterator<ArchiveRecord> itr1 = reader.iterator();
+		ArchiveReaderCloseableIterator itr1 = 
+			new ArchiveReaderCloseableIterator(reader,reader.iterator());
 
-		CloseableIterator<WARCRecord> itr2 = new AdaptedIterator<ArchiveRecord, WARCRecord>(
-				itr1, adapter1);
+		CloseableIterator<WARCRecord> itr2 = 
+			new AdaptedIterator<ArchiveRecord, WARCRecord>(itr1, adapter1);
 
 		return new AdaptedIterator<WARCRecord, SearchResult>(itr2, adapter2);
 	}

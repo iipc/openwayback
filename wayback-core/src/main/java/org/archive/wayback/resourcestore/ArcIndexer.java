@@ -77,7 +77,8 @@ public class ArcIndexer {
 			new ARCRecordToSearchResultAdapter();
 		adapter2.setCanonicalizer(canonicalizer);
 		
-		Iterator<ArchiveRecord> itr1 = arcReader.iterator();
+		ArchiveReaderCloseableIterator itr1 = 
+			new ArchiveReaderCloseableIterator(arcReader,arcReader.iterator());
 
 		CloseableIterator<ARCRecord> itr2 = 
 			new AdaptedIterator<ArchiveRecord,ARCRecord>(itr1,adapter1);

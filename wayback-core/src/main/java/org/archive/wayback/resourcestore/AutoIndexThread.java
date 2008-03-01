@@ -9,6 +9,7 @@ import java.util.logging.Logger;
 
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.resourceindex.indexer.IndexClient;
+import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.DirMaker;
 
 /**
@@ -150,7 +151,7 @@ public class AutoIndexThread extends Thread {
 					try {
 					
 						LOGGER.info("Indexing " + file.getAbsolutePath());
-						Iterator<SearchResult> itr = store.indexFile(file);
+						CloseableIterator<SearchResult> itr = store.indexFile(file);
 					
 						if(indexClient.addSearchResults(cdxBase, itr)) {
 							if (!workFlagFile.delete()) {
@@ -158,6 +159,7 @@ public class AutoIndexThread extends Thread {
 										+ workFlagFile.getAbsolutePath());
 							}
 						}
+						itr.close();
 						numIndexed++;
 					} catch (IOException e) {
 						LOGGER.severe("FAILED index: " + file.getAbsolutePath() 
