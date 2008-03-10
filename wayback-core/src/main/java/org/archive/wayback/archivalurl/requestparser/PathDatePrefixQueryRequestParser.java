@@ -61,8 +61,8 @@ public class PathDatePrefixQueryRequestParser extends PathRequestParser {
 			String startDate;
 			String endDate;			
 			if(dateStr.length() == 0) {
-				startDate = earliestTimestamp;
-				endDate = latestTimestamp;
+				startDate = getEarliestTimestamp();
+				endDate = getLatestTimestamp();
 			} else {
 				startDate = Timestamp.parseBefore(dateStr).getDateStr();
 				endDate = Timestamp.parseAfter(dateStr).getDateStr();

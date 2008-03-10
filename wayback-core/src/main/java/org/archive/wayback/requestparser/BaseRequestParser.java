@@ -66,10 +66,8 @@ public abstract class BaseRequestParser implements RequestParser {
 
 	protected int maxRecords = DEFAULT_MAX_RECORDS;
 	
-	protected String earliestTimestamp = 
-		Timestamp.earliestTimestamp().getDateStr();
-	protected String latestTimestamp = 
-		Timestamp.latestTimestamp().getDateStr();
+	protected String earliestTimestamp = null;
+	protected String latestTimestamp = null;
 
 	protected static String getMapParam(Map<String,String[]> queryMap,
 			String field) {
@@ -128,15 +126,21 @@ public abstract class BaseRequestParser implements RequestParser {
 	 * @return
 	 */
 	public String getEarliestTimestamp() {
-		return earliestTimestamp;
+		if(earliestTimestamp != null) {
+			return earliestTimestamp;
+			
+		}
+		return Timestamp.earliestTimestamp().getDateStr();
 	}
 
 	public String getLatestTimestamp() {
-		return latestTimestamp;
+		if(latestTimestamp != null) {
+			return latestTimestamp;
+		}
+		return Timestamp.latestTimestamp().getDateStr();
 	}
 
 	public void setLatestTimestamp(String timestamp) {
 		this.latestTimestamp = Timestamp.parseAfter(timestamp).getDateStr();
 	}
-	
 }

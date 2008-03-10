@@ -75,8 +75,8 @@ public class ReplayRequestParser extends PathRequestParser {
 			String startDate = null;
 			String endDate = null;
 			if (dateStr.length() == 14) {
-				startDate = earliestTimestamp;
-				endDate = latestTimestamp;
+				startDate = getEarliestTimestamp();
+				endDate = getLatestTimestamp();
 			} else {
 
 				// classic behavior:
@@ -85,8 +85,8 @@ public class ReplayRequestParser extends PathRequestParser {
 				// dateStr = endDate;
 
 				// "better" behavior:
-				startDate = earliestTimestamp;
-				endDate = latestTimestamp;
+				startDate = getEarliestTimestamp();
+				endDate = getLatestTimestamp();
 				dateStr = Timestamp.parseAfter(dateStr).getDateStr();
 
 			}

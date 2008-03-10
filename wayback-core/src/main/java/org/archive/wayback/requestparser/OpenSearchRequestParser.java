@@ -146,11 +146,11 @@ public class OpenSearchRequestParser extends BaseRequestParser {
 		}
 		if(wbRequest.get(WaybackConstants.REQUEST_START_DATE) == null) {
 			wbRequest.put(WaybackConstants.REQUEST_START_DATE, 
-					earliestTimestamp);
+					getEarliestTimestamp());
 		}
 		if(wbRequest.get(WaybackConstants.REQUEST_END_DATE) == null) {
 			wbRequest.put(WaybackConstants.REQUEST_END_DATE, 
-					latestTimestamp);
+					getLatestTimestamp());
 		}
 		wbRequest.fixup(httpRequest);
 
