@@ -2,6 +2,7 @@
    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <%@ page import="org.archive.wayback.core.UIResults" %>
 <%@ page import="org.archive.wayback.util.StringFormatter" %>
+<%@ page language="java" pageEncoding="utf-8" contentType="text/html;charset=utf-8"%>
 <%
 UIResults results = UIResults.getFromRequest(request);
 StringFormatter fmt = results.getFormatter();
@@ -12,7 +13,7 @@ String serverRoot = results.getServerPrefix();
 <html xmlns="http://www.w3.org/1999/xhtml">
 
 	<head>
-		<meta http-equiv="content-type" content="text/html;charset=iso-8859-1">
+		<meta http-equiv="content-type" content="text/html; charset=utf-8">
 		      
 		<link rel="stylesheet" type="text/css" 
 			href="<%= contextRoot %>css/styles.css"
@@ -53,7 +54,7 @@ String serverRoot = results.getServerPrefix();
 
 
 									<!-- URL FORM -->
-									<form action="<%= contextRoot %>query" method="GET">
+									<form action="<%= contextRoot %>query" method="get">
 
 
 										<tr>
@@ -83,7 +84,7 @@ String serverRoot = results.getServerPrefix();
 													<option>1996</option>
 												</select>
 												&nbsp;
-												<input type="Submit" name="Submit" value="<%= fmt.format("UIGlobal.urlSearchButton") %>" align="absMiddle">
+												<input type="submit" name="Submit" value="<%= fmt.format("UIGlobal.urlSearchButton") %>" align="absMiddle">
 												&nbsp;
 												<a href="<%= contextRoot %>advanced_search.jsp" style="color:white;font-size:11px">
 													<%= fmt.format("UIGlobal.advancedSearchLink") %>
