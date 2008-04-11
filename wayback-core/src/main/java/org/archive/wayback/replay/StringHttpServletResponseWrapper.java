@@ -37,7 +37,7 @@ import javax.servlet.http.HttpServletResponseWrapper;
  * @version $Date$, $Revision$
  */
 public class StringHttpServletResponseWrapper extends HttpServletResponseWrapper {
-
+	private final static String WRAPPED_CHAR_ENCODING = "UTF-8";
 	private StringWriter sw = new StringWriter();
 	
 	/**
@@ -45,6 +45,7 @@ public class StringHttpServletResponseWrapper extends HttpServletResponseWrapper
 	 */
 	public StringHttpServletResponseWrapper(HttpServletResponse response) {
 		super(response);
+		setCharacterEncoding(WRAPPED_CHAR_ENCODING);
 	}
 	public PrintWriter getWriter() {
 		return new PrintWriter(sw);

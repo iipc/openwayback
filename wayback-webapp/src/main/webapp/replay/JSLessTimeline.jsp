@@ -1,3 +1,4 @@
+<%@ page language="java" pageEncoding="utf-8" contentType="text/html;charset=utf-8"%>
 <%@ page import="java.util.Iterator" %>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.Date" %>
@@ -287,11 +288,11 @@ String titleString = "";
 				%><input type="checkbox" name="metamode" value="yes" <%=
 					metaChecked 
 				%> onClick="changeMeta()">&nbsp
-				  -->
-				  <a wmSpecial="1" href="<%= contextRoot %>/help.jsp" target="_top"><%=
-					fmt.format("UIGlobal.helpLink")
-				%></a>
 			</form>
+      -->
+      <a wmSpecial="1" href="<%= contextRoot %>/help.jsp" target="_top"><%=
+      fmt.format("UIGlobal.helpLink")
+      %></a>
 		</td>
 		<td>
 			<img wmSpecial="1" alt='' height='1' src='<%= contextRoot %>/images/1px.gif' width='5'>

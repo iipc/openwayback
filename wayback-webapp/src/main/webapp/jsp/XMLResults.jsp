@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<%@ page contentType="text/xml" %>
+<%@ page language="java" pageEncoding="utf-8" contentType="text/xml;charset=utf-8"%>
 <%@ page import="java.util.Iterator" %>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.Properties" %>
