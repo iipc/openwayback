@@ -363,4 +363,8 @@ public class LocalARCResourceStore implements ResourceStore {
 	public void setIndexClient(IndexClient indexClient) {
 		this.indexClient = indexClient;
 	}
+
+	public void shutdown() throws IOException {
+		// no-op... could shutdown threads...
+	}
 }

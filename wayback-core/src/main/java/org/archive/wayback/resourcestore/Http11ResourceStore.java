@@ -98,4 +98,8 @@ public class Http11ResourceStore implements ResourceStore {
 	public void setUrlPrefix(String urlPrefix) {
 		this.urlPrefix = urlPrefix;
 	}
+
+	public void shutdown() throws IOException {
+		// no-op
+	}
 }

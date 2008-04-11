@@ -46,4 +46,6 @@ public interface ResourceStore {
 	 */
 	public Resource retrieveResource(SearchResult result) throws IOException, 
 		ResourceNotAvailableException;
+
+	public void shutdown() throws IOException;
 }
