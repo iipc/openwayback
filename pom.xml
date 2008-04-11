@@ -187,7 +187,7 @@
       <id>website</id>
       <name>Website</name>
       <!--Pass as command-line system property to maven-->
-      <url>${website.url}/projects/${artifactId}</url>
+      <url>${website.url}/projects/${pom.artifactId}</url>
     </site>
   </distributionManagement>
 
