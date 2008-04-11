@@ -254,4 +254,12 @@ public class BDBIndex extends BDBRecordSet implements SearchResultSource {
 	public void setUpdater(BDBIndexUpdater updater) {
 		this.updater = updater;
 	}
+
+	public void shutdown() throws IOException {
+		try {
+			shutdownDB();
+		} catch (DatabaseException e) {
+			throw new IOException(e.getMessage());
+		}
+	}
 }

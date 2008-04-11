@@ -137,4 +137,10 @@ public class CompositeSearchResultSource implements SearchResultSource {
 	public List<SearchResultSource> getSources() {
 		return sources;
 	}
+
+	public void shutdown() throws IOException {
+		for(SearchResultSource source : sources) {
+			source.shutdown();
+		}
+	}
 }

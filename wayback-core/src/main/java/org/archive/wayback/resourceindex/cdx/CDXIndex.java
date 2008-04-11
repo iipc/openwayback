@@ -142,4 +142,8 @@ public class CDXIndex extends FlatFile implements SearchResultSource {
 	public void cleanup(CloseableIterator<SearchResult> c) throws IOException {
 		c.close();
 	}
+
+	public void shutdown() throws IOException {
+		// no-op
+	}
 }

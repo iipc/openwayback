@@ -62,4 +62,10 @@ public interface SearchResultSource {
 	 * @throws IOException 
 	 */
 	public void cleanup(CloseableIterator<SearchResult> c) throws IOException;
+
+	/**
+	 * @param c
+	 * @throws IOException 
+	 */
+	public void shutdown() throws IOException;
 }
