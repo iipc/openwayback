@@ -42,6 +42,10 @@ import org.archive.wayback.util.url.UrlOperations;
  */
 public class TagMagix {
 
+	// minimum length XXXX in a 'style=XXXX' declaration... mostly handy
+	// to keep us from trying to mark up javascript generated style code.
+	private static int MIN_STYLE_LENGTH = 3;
+	
 	private static HashMap<String, Pattern> pcPatterns = 
 		new HashMap<String, Pattern>();
 
@@ -166,6 +170,11 @@ public class TagMagix {
 			int origAttrLength = attrValue.length();
 			int attrStart = matcher.start(1);
 			int attrEnd = matcher.end(1);
+			idx = attrEnd;
+			if(origAttrLength < MIN_STYLE_LENGTH) {
+				continue;
+			}
+
 			if (attrValue.charAt(0) == '"') {
 				attrValue = attrValue.substring(1, origAttrLength - 1);
 				attrStart += 1;
@@ -177,7 +186,6 @@ public class TagMagix {
 				attrStart += 2;
 			}
 			
-			idx = attrEnd;
 			Matcher urlMatcher = cssUrlPattern.matcher(attrValue);
 			int attrIdx = 0;
 			while(urlMatcher.find(attrIdx)) {
