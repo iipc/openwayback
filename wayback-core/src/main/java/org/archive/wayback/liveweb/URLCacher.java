@@ -106,7 +106,7 @@ public class URLCacher {
 		return tmpFile;
 	}
 	
-	private ExtendedGetMethod urlToFile(String urlString, File file) 
+	protected ExtendedGetMethod urlToFile(String urlString, File file) 
 		throws LiveDocumentNotAvailableException, URIException, IOException {
 		
 		HttpClient http = getHttpClient();
@@ -282,7 +282,7 @@ public class URLCacher {
 
 		private String remoteIP = "";
 		private Date captureDate = null;
-		private String mime = "";
+		private String mime = "unk";
 		private OutputStream os = null;
 		
 		/**
