@@ -96,7 +96,6 @@ public class NutchResourceIndex implements ResourceIndex {
 		LOGGER.info("initializing NutchResourceIndex...");
 		LOGGER.info("Using base search url " + this.searchUrlBase);
 
-//		this.factory = DocumentBuilderFactory.newInstance();
 		this.factory.setNamespaceAware(true);
 		try {
 			this.builder = this.factory.newDocumentBuilder();
@@ -249,32 +248,29 @@ public class NutchResourceIndex implements ResourceIndex {
 	
    protected String getRequestUrl(WaybackRequest wbRequest) 
    throws BadQueryException {
-//   	final String urlStr, final String date,
-//   }
-//           final int count)
-//   throws IOException {
-   	String urlStr = wbRequest.get(WaybackConstants.REQUEST_URL);
-   	String exactDateStr = wbRequest.get(WaybackConstants.REQUEST_EXACT_DATE);
-    if (exactDateStr != null && exactDateStr.length() == 0) {
-        exactDateStr = null;
-    }
-   	String endDateStr = wbRequest.get(WaybackConstants.REQUEST_END_DATE);
-   	if (endDateStr == null || endDateStr.length() == 0) {
-   	   	endDateStr = wbRequest.get(WaybackConstants.REQUEST_DATE);
-   	}
-   	String startDateStr = wbRequest.get(WaybackConstants.REQUEST_START_DATE);
-   	if (startDateStr == null || startDateStr.length() == 0) {
-   		startDateStr = Timestamp.earliestTimestamp().getDateStr();
-   	}
-   	int hitsPerPage = wbRequest.getResultsPerPage();
-   	if(hitsPerPage < 1) {
-   		throw new BadQueryException("Hits per page must be positive");
-   	}
-   	if(hitsPerPage > maxRecords) {
-   		throw new BadQueryException("Hits per page must be less than " +
-   				maxRecords);
-   	}
-   	int start = (wbRequest.getPageNum()-1) * hitsPerPage;
+
+	   String urlStr = wbRequest.get(WaybackConstants.REQUEST_URL);
+	   String exactDateStr = wbRequest.get(WaybackConstants.REQUEST_EXACT_DATE);
+	    if (exactDateStr != null && exactDateStr.length() == 0) {
+	        exactDateStr = null;
+	    }
+	   	String endDateStr = wbRequest.get(WaybackConstants.REQUEST_END_DATE);
+	   	if (endDateStr == null || endDateStr.length() == 0) {
+	   	   	endDateStr = Timestamp.latestTimestamp().getDateStr();
+	   	}
+	   	String startDateStr = wbRequest.get(WaybackConstants.REQUEST_START_DATE);
+	   	if (startDateStr == null || startDateStr.length() == 0) {
+	   		startDateStr = Timestamp.earliestTimestamp().getDateStr();
+	   	}
+	   	int hitsPerPage = wbRequest.getResultsPerPage();
+	   	if(hitsPerPage < 1) {
+	   		throw new BadQueryException("Hits per page must be positive");
+	   	}
+	   	if(hitsPerPage > maxRecords) {
+	   		throw new BadQueryException("Hits per page must be less than " +
+	   				maxRecords);
+	   	}
+	   	int start = (wbRequest.getPageNum()-1) * hitsPerPage;
        if (urlStr == null || urlStr.length() <= 0) {
            throw new BadQueryException("Url is empty.");
        }
@@ -282,16 +278,8 @@ public class NutchResourceIndex implements ResourceIndex {
        MutableString ms = new MutableString(this.searchUrlBase)
            .append("?query=");
        // Add 'date:...+' to query string.
-       // As searching for exact dates is not what we want in most cases,
-       // we will only use this if REQUEST_[END_]DATE is empty;
-       if ((endDateStr == null || endDateStr.length() == 0)
-				&& exactDateStr != null && exactDateStr.length() > 0) {
-           ms.append("date%3A").append(exactDateStr).append('+');
-    	   
-       } else {
-           ms.append("date%3A").append(startDateStr).append('-').append(
-               exactDateStr != null ? exactDateStr : endDateStr).append('+');
-       }
+       ms.append("date%3A").append(startDateStr).append('-').append(endDateStr);
+       ms.append('+');
        // Add 'url:URL'.
        if(wbRequest.get(WaybackConstants.REQUEST_TYPE).equals(
 	                WaybackConstants.REQUEST_URL_PREFIX_QUERY)) {
@@ -303,10 +291,6 @@ public class NutchResourceIndex implements ResourceIndex {
         } catch (UnsupportedEncodingException e) {
             throw new BadQueryException(e.toString());
         }
-    	   // when searching for exacturl, we are mostly
-    	   // interested in the different versions over the time
-//           ms.append("&sort=date");
-//           ms.append("&reverse=true");
        }
        ms.append("&hitsPerPage=").append(hitsPerPage);
        ms.append("&start=").append(start);
@@ -348,28 +332,31 @@ public class NutchResourceIndex implements ResourceIndex {
        d = this.builder.parse(url);
        return d;
    }
-/**
- * @return the searchUrlBase
- */
-public String getSearchUrlBase() {
-	return searchUrlBase;
-}
-/**
- * @param searchUrlBase the searchUrlBase to set
- */
-public void setSearchUrlBase(String searchUrlBase) {
-	this.searchUrlBase = searchUrlBase;
-}
-/**
- * @return the maxRecords
- */
-public int getMaxRecords() {
-	return maxRecords;
-}
-/**
- * @param maxRecords the maxRecords to set
- */
-public void setMaxRecords(int maxRecords) {
-	this.maxRecords = maxRecords;
-}
+	/**
+	 * @return the searchUrlBase
+	 */
+	public String getSearchUrlBase() {
+		return searchUrlBase;
+	}
+	/**
+	 * @param searchUrlBase the searchUrlBase to set
+	 */
+	public void setSearchUrlBase(String searchUrlBase) {
+		this.searchUrlBase = searchUrlBase;
+	}
+	/**
+	 * @return the maxRecords
+	 */
+	public int getMaxRecords() {
+		return maxRecords;
+	}
+	/**
+	 * @param maxRecords the maxRecords to set
+	 */
+	public void setMaxRecords(int maxRecords) {
+		this.maxRecords = maxRecords;
+	}
+	public void shutdown() throws IOException {
+		
+	}
 }
