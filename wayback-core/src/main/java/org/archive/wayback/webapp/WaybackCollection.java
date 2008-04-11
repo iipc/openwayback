@@ -24,6 +24,8 @@
  */
 package org.archive.wayback.webapp;
 
+import java.io.IOException;
+
 import org.archive.wayback.ResourceIndex;
 import org.archive.wayback.ResourceStore;
 import org.archive.wayback.exception.ConfigurationException;
@@ -38,6 +40,7 @@ import org.archive.wayback.exception.ConfigurationException;
 public class WaybackCollection {
 	private ResourceStore resourceStore = null;
 	private ResourceIndex resourceIndex = null;
+	private boolean shutdownDone = false;
 	public ResourceStore getResourceStore() throws ConfigurationException {
 		if(resourceStore == null) {
 			throw new ConfigurationException("No resourceStore declared");
@@ -55,5 +58,17 @@ public class WaybackCollection {
 	}
 	public void setResourceIndex(ResourceIndex resourceIndex) {
 		this.resourceIndex = resourceIndex;
+	}
+	public void shutdown() throws IOException {
+		if(shutdownDone) {
+			return;
+		}
+		if(resourceStore != null) {
+			resourceStore.shutdown();
+		}
+		if(resourceIndex != null) {
+			resourceIndex.shutdown();
+		}
+		shutdownDone = true;
 	}
 }
