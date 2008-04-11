@@ -24,7 +24,11 @@
  */
 package org.archive.wayback.webapp;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletContext;
@@ -147,8 +151,41 @@ public class RequestMapper {
 	/**
 	 * clean up all WaybackContexts, which should release resources gracefully.
 	 */
+	@SuppressWarnings("unchecked")
 	public void destroy() {
 		LOGGER.info("shutting down contexts...");
-		//TODO: shut everything down
+		Class accessPointClass;
+		try {
+			accessPointClass = Class.forName(ACCESS_POINT_CLASSNAME);
+			Map beanMap = factory.getBeansOfType(accessPointClass);
+			Iterator beanNameItr = beanMap.keySet().iterator();
+			Collection accessPoints = beanMap.values();
+			while(beanNameItr.hasNext()) {
+				String apName = (String) beanNameItr.next();
+				AccessPoint ap = (AccessPoint) beanMap.get(apName);
+				try {
+					LOGGER.info("Shutting down AccessPoint " + apName);
+					ap.shutdown();
+					LOGGER.info("Successfully shut down " + apName);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			for(Object o : accessPoints) {
+				if(o instanceof AccessPoint) {
+					AccessPoint ap = (AccessPoint) o;
+					try {
+						ap.shutdown();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+			
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 	}
 }
