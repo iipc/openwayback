@@ -24,6 +24,8 @@
  */
 package org.archive.wayback.resourceindex.distributed;
 
+import java.io.IOException;
+
 import org.archive.wayback.ResourceIndex;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.WaybackRequest;
@@ -88,5 +90,8 @@ public class RangeMember implements ResourceIndex {
 	 */
 	public void setUrlBase(String urlBase) {
 		index.setSearchUrlBase(urlBase);
+	}
+	public void shutdown() throws IOException {
+		index.shutdown();
 	}
 }

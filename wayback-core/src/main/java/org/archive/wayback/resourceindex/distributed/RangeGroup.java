@@ -24,6 +24,7 @@
  */
 package org.archive.wayback.resourceindex.distributed;
 
+import java.io.IOException;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -168,5 +169,11 @@ public class RangeGroup implements ResourceIndex {
 				return r1.getStart().compareTo(r2.getStart());
 			}
 		};
+	}
+
+	public void shutdown() throws IOException {
+		for(RangeMember member : members.values()) {
+			member.shutdown();
+		}
 	}
 }

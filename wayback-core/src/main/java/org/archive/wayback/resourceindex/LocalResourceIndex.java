@@ -464,4 +464,8 @@ public class LocalResourceIndex implements ResourceIndex {
 	public void setCanonicalizer(UrlCanonicalizer canonicalizer) {
 		this.canonicalizer = canonicalizer;
 	}
+
+	public void shutdown() throws IOException {
+		source.shutdown();
+	}
 }

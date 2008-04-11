@@ -23,6 +23,8 @@
 
 package org.archive.wayback;
 
+import java.io.IOException;
+
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.AccessControlException;
@@ -53,4 +55,6 @@ public interface ResourceIndex {
 			throws ResourceIndexNotAvailableException,
 			ResourceNotInArchiveException, BadQueryException,
 			AccessControlException;
+
+	public void shutdown() throws IOException;
 }

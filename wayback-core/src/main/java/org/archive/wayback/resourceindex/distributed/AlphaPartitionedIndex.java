@@ -248,4 +248,10 @@ public class AlphaPartitionedIndex implements ResourceIndex {
 	public void setCanonicalizer(UrlCanonicalizer canonicalizer) {
 		this.canonicalizer = canonicalizer;
 	}
+
+	public void shutdown() throws IOException {
+		for(RangeGroup group : groups) {
+			group.shutdown();
+		}
+	}
 }

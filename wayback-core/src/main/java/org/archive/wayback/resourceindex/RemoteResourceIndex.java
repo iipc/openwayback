@@ -287,4 +287,8 @@ public class RemoteResourceIndex implements ResourceIndex {
 	public void setSearchUrlBase(String searchUrlBase) {
 		this.searchUrlBase = searchUrlBase;
 	}
+
+	public void shutdown() throws IOException {
+		// No-op
+	}
 }
