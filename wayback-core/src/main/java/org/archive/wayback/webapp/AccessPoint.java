@@ -348,6 +348,12 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 		}
 	}
 	
+	public void shutdown() throws IOException {
+		if(collection != null) {
+			collection.shutdown();
+		}
+	}
+	
 	private void logNotInArchive(WaybackException e, WaybackRequest r) {
 		if(e instanceof ResourceNotInArchiveException) {
 			String url = r.get(WaybackConstants.REQUEST_URL);
