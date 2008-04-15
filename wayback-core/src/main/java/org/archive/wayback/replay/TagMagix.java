@@ -75,12 +75,18 @@ public class TagMagix {
 //		"url\\s*\\(\\s*(['\"]?.+?['\"]?)\\s*\\)";
 	private static String cssUrlPatString = 
 		"url\\s*\\(\\s*([\\\\\"']*.+?[\\\\\"']*)\\s*\\)";
-	
+
 	private static String cssImportPatString = 
 		"@import\\s+" + cssUrlPatString;
 
+	private static String cssImportNoUrlPatString =
+		"@import\\s+([\"'].+?[\"'])";
+	
 	private static Pattern cssImportPattern = 
 		Pattern.compile(cssImportPatString);
+
+	private static Pattern cssImportNoUrlPattern = 
+		Pattern.compile(cssImportNoUrlPatString);
 	
 	private static Pattern cssUrlPattern = Pattern.compile(cssUrlPatString);
 
@@ -156,6 +162,7 @@ public class TagMagix {
 			ResultURIConverter uriConverter, String captureDate,
 			String baseUrl) {
 		markupTagREURIC(page,uriConverter,captureDate,baseUrl,cssImportPattern);
+		markupTagREURIC(page,uriConverter,captureDate,baseUrl,cssImportNoUrlPattern);
 	}
 	
 	public static void markupStyleUrls(StringBuilder page,

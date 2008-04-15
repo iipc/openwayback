@@ -327,7 +327,12 @@ public class TagMagixTest extends TestCase {
 				"@import url(\r\n\"http://web.archive.org/wayback/2004/http://foo.com/f.css\"\n\r);",
 				"http://web.archive.org/wayback/","2004","http://foo.com/");
 
-		
+		checkCSSMarkup("@import \"http://foo.com/f.css\";",
+				"@import \"http://web.archive.org/wayback/2004/http://foo.com/f.css\";",
+				"http://web.archive.org/wayback/","2004","http://foo.com/");
+		checkCSSMarkup("@import 'http://foo.com/f.css';",
+				"@import 'http://web.archive.org/wayback/2004/http://foo.com/f.css';",
+				"http://web.archive.org/wayback/","2004","http://foo.com/");
 		
 	}
 	
