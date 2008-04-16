@@ -67,6 +67,18 @@
       <property name="webCache" ref="livewebcache" />
     </bean>
 -->
+<!--
+	The following bean is an example using the Access Control Oracle, thanks Alex Osborne.
+	Currently this is pretty undocumented, but here is a place to get started:
+
+		http://webteam.archive.org/confluence/display/wayback/Exclusions+API
+-->
+<!--
+    <bean id="excluder-factory-oracle" class="org.archive.wayback.accesscontrol.oracleclient.OracleExclusionFilterFactory">
+      <property name="oracleUrl" value="http://192.168.1.11:8080/oracle-0.0.1-SNAPSHOT/" />
+      <property name="accessGroup" value="ia_archiver" />
+    </bean>
+-->
 
   <bean id="localbdbcollection" class="org.archive.wayback.webapp.WaybackCollection">
 
@@ -163,6 +175,33 @@
 		    init-method="init">
 		    <property name="searchUrlBase" value="http://indexhost:8080/index/xmlquery" />
 		  </bean>
+    </property>
+
+    
+  </bean>
+-->
+
+<!--
+    The following WaybackCollection bean template is an example for using a NutchWAX
+    full-text index with Wayback, using a RemoteResourceStore to access
+    replayed documents. You will need to change searchUrlBase to your local NutchWAX
+    installation. You may also need to ensure that the maxRecords on your RequestParser is
+    not greater than the maxRecords configured on the RemoteNutchResourceIndex.
+-->
+<!--
+  <bean id="remotenutchcollection" class="org.archive.wayback.webapp.WaybackCollection">
+
+    <property name="resourceStore">
+      <bean class="org.archive.wayback.resourcestore.Http11ResourceStore">
+        <property name="urlPrefix" value="http://localhost:8080/arcproxy/" />
+      </bean>
+    </property>
+
+    <property name="resourceIndex">
+      <bean class="org.archive.wayback.resourceindex.NutchResourceIndex" init-method="init">
+        <property name="searchUrlBase" value="http://webteam-ws.us.archive.org:8080/katrina/opensearch" />
+        <property name="maxRecords" value="100" />
+      </bean>
     </property>
   </bean>
 -->
