@@ -33,6 +33,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.archive.wayback.ResourceIndex;
+import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.SearchResult;
@@ -44,6 +45,10 @@ import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
+import org.archive.wayback.resourceindex.filters.SelfRedirectFilter;
+import org.archive.wayback.util.ObjectFilter;
+import org.archive.wayback.util.ObjectFilterChain;
+import org.archive.wayback.util.url.AggressiveUrlCanonicalizer;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -75,6 +80,7 @@ public class RemoteResourceIndex implements ResourceIndex {
 	private static final String WB_XML_ERROR_TAGNAME = "error";
 	private static final String WB_XML_ERROR_TITLE = "title";
 	private static final String WB_XML_ERROR_MESSAGE = "message";
+	private UrlCanonicalizer canonicalizer = new AggressiveUrlCanonicalizer();
 
 	@SuppressWarnings("unchecked")
 	private final ThreadLocal tl = new ThreadLocal() {
@@ -117,13 +123,15 @@ public class RemoteResourceIndex implements ResourceIndex {
 		ResourceNotInArchiveException, BadQueryException,
 		AccessControlException {
 
-		return urlToSearchResults(getRequestUrl(wbRequest));
+		return urlToSearchResults(getRequestUrl(wbRequest),
+				getSearchResultFilters(wbRequest));
 	}
 
-	protected SearchResults urlToSearchResults(String requestUrl)
-		throws ResourceIndexNotAvailableException,
-		ResourceNotInArchiveException, BadQueryException,
-		AccessControlException {
+	protected SearchResults urlToSearchResults(String requestUrl,
+			ObjectFilter<SearchResult> filter)
+			throws ResourceIndexNotAvailableException,
+			ResourceNotInArchiveException, BadQueryException,
+			AccessControlException {
 
 		Document document = null;
 		try {
@@ -141,7 +149,7 @@ public class RemoteResourceIndex implements ResourceIndex {
 		}
 
 		checkDocumentForExceptions(document);
-		return documentToSearchResults(document);
+		return documentToSearchResults(document, filter);
 	}
 	
 	protected void checkDocumentForExceptions(Document document) 
@@ -182,7 +190,27 @@ public class RemoteResourceIndex implements ResourceIndex {
 		}
 	}
 	
-	protected SearchResults documentToSearchResults(Document document) {
+	protected ObjectFilter<SearchResult> getSearchResultFilters(
+			WaybackRequest wbRequest) {
+		String searchType = wbRequest.get(WaybackConstants.REQUEST_TYPE);
+		ObjectFilterChain<SearchResult> filters = 
+										new ObjectFilterChain<SearchResult>();
+		
+		if (searchType.equals(WaybackConstants.REQUEST_REPLAY_QUERY)
+				|| searchType.equals(WaybackConstants.REQUEST_CLOSEST_QUERY)) {
+			
+			SelfRedirectFilter selfRedirectFilter = new SelfRedirectFilter();
+			selfRedirectFilter.setCanonicalizer(canonicalizer);
+			filters.addFilter(selfRedirectFilter);
+		} else {
+			// no filters for now
+			filters = null;
+		}
+		return filters;
+	}
+	
+	protected SearchResults documentToSearchResults(Document document,
+			ObjectFilter<SearchResult> filter) {
 		SearchResults results = null;
 		NodeList filters = getRequestFilters(document);
 		String resultsType = getResultsType(document);
@@ -203,7 +231,17 @@ public class RemoteResourceIndex implements ResourceIndex {
 		for(int i = 0; i < xresults.getLength(); i++) {
 			Node xresult = xresults.item(i);
 			SearchResult result = searchElementToSearchResult(xresult);
-			results.addSearchResult(result,true);
+			
+			int ruling = ObjectFilter.FILTER_INCLUDE;
+			if (filter != null) {
+				ruling = filter.filterObject(result);
+			}
+			
+			if (ruling == ObjectFilter.FILTER_ABORT) {
+				break;
+			} else if (ruling == ObjectFilter.FILTER_INCLUDE) {
+				results.addSearchResult(result, true);
+			}
 		}
 		return results;
 	}
@@ -290,5 +328,13 @@ public class RemoteResourceIndex implements ResourceIndex {
 
 	public void shutdown() throws IOException {
 		// No-op
+	}
+
+	public UrlCanonicalizer getCanonicalizer() {
+		return canonicalizer;
+	}
+
+	public void setCanonicalizer(UrlCanonicalizer canonicalizer) {
+		this.canonicalizer = canonicalizer;
 	}
 }
