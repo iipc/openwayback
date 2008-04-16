@@ -5,7 +5,7 @@
         xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee
             http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"
         version="2.4">
-
+<!--
 	<security-constraint>
 		<web-resource-collection>
 			<web-resource-name>Secured-Wayback</web-resource-name>
@@ -20,7 +20,7 @@
 		<auth-method>BASIC</auth-method>
 		<realm-name>Secured-Wayback</realm-name>
 	</login-config>
-
+-->
 	<!-- General Installation information
 	 -->
     <context-param>
