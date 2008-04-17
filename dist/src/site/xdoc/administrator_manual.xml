@@ -230,6 +230,12 @@
             </li>
           </ul>
         </p>
+        <p>
+          <b>Note:</b> upgrading from Wayback 1.0 to 1.2 requires changing
+          ResourceStore implementations from <b>LocalARCResourceStore</b> to
+          <b>LocalResourceStore</b>. <b>LocalARCResourceStore</b> is now
+          deprecated.
+        </p>
       </subsection>
 
 

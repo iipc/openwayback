@@ -35,7 +35,7 @@
       <item name="FAQ" href="/faq.html"/>
       <item name="API" href="./apidocs"/>
       <item name="Browse/Submit a Bug" 
-        href="http://sourceforge.net/tracker/?group_id=118427&amp;atid=681137"/>
+        href="http://webteam.archive.org/jira/secure/IssueNavigator.jspa?component=10031"/>
     </menu>
 
     <!--Its not possible to change the labels used in reports, not yet anyways.
