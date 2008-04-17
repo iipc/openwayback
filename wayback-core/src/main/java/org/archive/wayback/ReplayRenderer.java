@@ -54,7 +54,9 @@ public interface ReplayRenderer {
 	 * @param resource resource to replay
 	 * @param uriConverter the URI converter to use to translate matching
 	 *                      results into replayable URLs
-	 * @param results 
+	 * @param results all SearchResults that were returned from the 
+	 * 						ResourceIndex, probably including other capture
+	 * 						dates of the same URL.
 	 * @throws ServletException
 	 * @throws IOException
 	 * @throws WaybackException 
