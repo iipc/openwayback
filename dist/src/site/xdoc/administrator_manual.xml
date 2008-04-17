@@ -138,7 +138,11 @@
 					implementation also includes the capability to run a background
 					thread to automatically notice new ARC/WARC files appearing, index
 					those files, and hand off the index data for merging with
-					a BDBResourceIndex.
+					a BDBResourceIndex. When using automatic indexing, any files added to
+					the 'dataDir' will automatically be indexed and queued for merging 
+					with the ResourceIndex. Please see documentation for the 
+					BDBResourceIndex for information on configuring automatic merging of
+					indexed data with a BDBResourceIndex.
         </p>
         <p>
           The XML configuration template for a LocalResourceStore follows:
