@@ -130,11 +130,11 @@
 
   <scm>
     <connection>
-      scm:svn:https://archive-access.svn.sourceforge.net/svnroot/archive-access/trunk/archive-access/projects/wayback
+      scm:svn:https://archive-access.svn.sourceforge.net/svnroot/archive-access/trunk/archive-access/projects/
     </connection>
     <tag>HEAD</tag>
     <url>
-      https://archive-access.svn.sourceforge.net/svnroot/archive-access/trunk/archive-access/projects/wayback
+      https://archive-access.svn.sourceforge.net/svnroot/archive-access/trunk/archive-access/projects/
     </url>
   </scm>
 
