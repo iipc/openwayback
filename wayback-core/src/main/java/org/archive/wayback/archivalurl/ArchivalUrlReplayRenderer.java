@@ -112,6 +112,12 @@ public class ArchivalUrlReplayRenderer implements ReplayRenderer, HttpHeaderProc
 		// set the corrected length:
 		int bytes = page.getBytes().length;
 		headers.put(HTTP_LENGTH_HEADER, String.valueOf(bytes));
+		// Tomcat will always send a charset... It's trying to be smarter than
+		// we are. If the original page didn't include a "charset" as part of
+		// the "Content-Type" HTTP header, then Tomcat will use the default..
+		// who knows what that is, or what that will do to the page..
+		// let's try explicitly setting it to what we used:
+		httpResponse.setCharacterEncoding(page.getCharSet());
 
 		// send back the headers:
 		HttpHeaderOperation.sendHeaders(headers, httpResponse);
@@ -142,7 +148,9 @@ public class ArchivalUrlReplayRenderer implements ReplayRenderer, HttpHeaderProc
 			String u = UrlOperations.resolveUrl(baseUrl, value);
 
 			output.put(key, uriConverter.makeReplayURI(cd,u));
-
+		} else if(keyUp.startsWith(HTTP_CONTENT_TYPE_HEADER_UP)) {
+			output.put("X-Wayback-Orig-" + key,value);
+			output.put(key,value);
 		} else {
 			// others go out as-is:
 
