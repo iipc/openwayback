@@ -48,6 +48,10 @@ public interface HttpHeaderProcessor {
 	public final static String HTTP_CONTENT_BASE_HEADER = "Content-Base";
 	public final static String HTTP_CONTENT_BASE_HEADER_UP = 
 		HTTP_CONTENT_BASE_HEADER.toUpperCase();
+
+	public final static String HTTP_CONTENT_TYPE_HEADER = "Content-Type";
+	public final static String HTTP_CONTENT_TYPE_HEADER_UP = 
+		HTTP_CONTENT_TYPE_HEADER.toUpperCase();
 	
 	/**
 	 * optionally add header key:value to output for later returning to client
