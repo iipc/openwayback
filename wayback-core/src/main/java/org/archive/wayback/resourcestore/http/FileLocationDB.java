@@ -24,7 +24,9 @@
  */
 package org.archive.wayback.resourcestore.http;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 
 import org.archive.wayback.bdb.BDBRecordSet;
 import org.archive.wayback.exception.ConfigurationException;
@@ -238,4 +240,66 @@ public class FileLocationDB extends BDBRecordSet {
 	public void setBdbName(String bdbName) {
 		this.bdbName = bdbName;
 	}
+	private static void USAGE(String message) {
+		System.err.print("USAGE: " + message + "\n" +
+				"\tDBDIR DBNAME LOGPATH\n" +
+				"\n" +
+				"\t\tread lines from STDIN formatted like:\n" +
+				"\t\t\tNAME<SPACE>URL\n" +
+				"\t\tand for each line, add to locationDB that file NAME is\n" +
+				"\t\tlocated at URL. Use locationDB in DBDIR at DBNAME, \n" + 
+				"\t\tcreating if it does not exist.\n"
+				);
+		System.exit(2);
+	}
+	
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		if(args.length != 3) {
+			USAGE("");
+			System.exit(1);
+		}
+		String bdbPath = args[0];
+		String bdbName = args[1];
+		String logPath = args[2];
+		FileLocationDB db = new FileLocationDB();
+		db.setBdbPath(bdbPath);
+		db.setBdbName(bdbName);
+		db.setLogPath(logPath);
+		BufferedReader r = new BufferedReader(
+				new InputStreamReader(System.in));
+		String line;
+		int exitCode = 0;
+		try {
+			db.init();
+			while((line = r.readLine()) != null) {
+				String parts[] = line.split(" ");
+				if(parts.length != 2) {
+					System.err.println("Bad input(" + line + ")");
+					System.exit(2);
+				}
+				db.addArcUrl(parts[0],parts[1]);
+				System.out.println("Added\t" + parts[0] + "\t" + parts[1]);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+			exitCode = 1;
+		} catch (DatabaseException e) {
+			e.printStackTrace();
+			exitCode = 1;
+		} catch (ConfigurationException e) {
+			e.printStackTrace();
+			exitCode = 1;
+		} finally {
+			try {
+				db.shutdownDB();
+			} catch (DatabaseException e) {
+				e.printStackTrace();
+				exitCode = 1;
+			}
+		}
+		System.exit(exitCode);
+	}	
 }
