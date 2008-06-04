@@ -50,6 +50,9 @@ public class ArchivalUrlReplayDispatcher
 	private final static String TEXT_HTML_MIME = "text/html";
 	private final static String TEXT_XHTML_MIME = "application/xhtml";
 	private final static String TEXT_CSS_MIME = "text/css";
+	private final static String ASX_MIME = "video/x-ms-asf";
+	private final static String ASX_EXTENSION = ".asx";
+	
 
 	// TODO: make this configurable
 	private final static long MAX_HTML_MARKUP_LENGTH = 1024 * 1024 * 5;
@@ -62,6 +65,8 @@ public class ArchivalUrlReplayDispatcher
 		new ArchivalUrlReplayRenderer();
 	private ArchivalUrlCSSReplayRenderer archivalCSS =
 		new ArchivalUrlCSSReplayRenderer();
+	private ArchivalUrlASXReplayRenderer archivalASX =
+		new ArchivalUrlASXReplayRenderer();
 
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.replay.ReplayRendererDispatcher#getRenderer(org.archive.wayback.core.WaybackRequest, org.archive.wayback.core.SearchResult, org.archive.wayback.core.Resource)
@@ -82,19 +87,29 @@ public class ArchivalUrlReplayDispatcher
 		// only bother attempting  markup on pages smaller than some size:
 		if (resource.getRecordLength() < MAX_HTML_MARKUP_LENGTH) {
 
+			String resultMime = result.get(WaybackConstants.RESULT_MIME_TYPE);
 			// HTML and XHTML docs get marked up as HTML
-			if (-1 != result.get(WaybackConstants.RESULT_MIME_TYPE).indexOf(
-					TEXT_HTML_MIME)) {
+			if (-1 != resultMime.indexOf(TEXT_HTML_MIME)) {
 				return archivalHTML;
 			}
-			if (-1 != result.get(WaybackConstants.RESULT_MIME_TYPE).indexOf(
-					TEXT_XHTML_MIME)) {
+			if (-1 != resultMime.indexOf(TEXT_XHTML_MIME)) {
 				return archivalHTML;
 			}
 			// CSS docs get marked up as CSS
-			if (-1 != result.get(WaybackConstants.RESULT_MIME_TYPE).indexOf(
-					TEXT_CSS_MIME)) {
+			if (-1 != resultMime.indexOf(TEXT_CSS_MIME)) {
 				return archivalCSS;
+			}
+			if (-1 != resultMime.indexOf(ASX_MIME)) {
+				return archivalASX;
+			}
+			String resultPath = result.get(WaybackConstants.RESULT_URL_KEY);
+			resultPath = resultPath.substring(resultPath.indexOf('/'));
+			int queryIdx = resultPath.indexOf('?');
+			if(queryIdx > 0) {
+				resultPath = resultPath.substring(0,queryIdx-1);
+			}
+			if(resultPath.endsWith(ASX_EXTENSION)) {
+				return archivalASX;
 			}
 		}
 		
