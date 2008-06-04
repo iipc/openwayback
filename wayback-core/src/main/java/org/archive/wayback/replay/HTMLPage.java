@@ -309,6 +309,18 @@ public class HTMLPage {
 		TagMagix.markupCSSImports(sb,uriConverter, captureDate, pageUrl);
 	}
 
+	public void resolveASXRefUrls() {
+
+		// TODO: get url from Resource instead of SearchResult?
+		String pageUrl = result.getAbsoluteUrl();
+		String captureDate = result.getCaptureDate();
+		ResultURIConverter ruc = new MMSToHTTPResultURIConverter(uriConverter);
+		
+		TagMagix.markupTagREURIC(sb, ruc, captureDate, pageUrl,
+				"REF", "HREF");
+	}
+	
+	
 	/**
 	 * @param charSet
 	 * @throws IOException 
@@ -475,4 +487,20 @@ public class HTMLPage {
 			return base.makeReplayURI(datespec, url);
 		}
 	}
+
+	private class MMSToHTTPResultURIConverter implements ResultURIConverter {
+		private static final String MMS_PROTOCOL_PREFIX = "mms://";
+		private static final String HTTP_PROTOCOL_PREFIX = "http://";
+		private ResultURIConverter base = null;
+		public MMSToHTTPResultURIConverter(ResultURIConverter base) {
+			this.base = base;
+		}
+		public String makeReplayURI(String datespec, String url) {
+			if(url.startsWith(MMS_PROTOCOL_PREFIX)) {
+				url = HTTP_PROTOCOL_PREFIX + 
+					url.substring(MMS_PROTOCOL_PREFIX.length());
+			}
+			return base.makeReplayURI(datespec, url);
+		}
+	}	
 }
