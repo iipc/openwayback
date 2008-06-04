@@ -183,7 +183,7 @@ public class FlatFile {
 	public void store(Iterator<String> itr) throws IOException {
 		PrintWriter pw = new PrintWriter(file);
 		while(itr.hasNext()) {
-			pw.println(file);
+			pw.println(itr.next());
 		}
 		pw.close();
 	}
