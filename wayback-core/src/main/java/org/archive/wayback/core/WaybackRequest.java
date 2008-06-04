@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.ResourceBundle;
+import java.util.Set;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
@@ -259,6 +260,7 @@ public class WaybackRequest {
 	 * @param httpRequest
 	 */
 	public void fixup(HttpServletRequest httpRequest) {
+		extractHttpRequestInfo(httpRequest);
 		String startDate = get(WaybackConstants.REQUEST_START_DATE);
 		String endDate = get(WaybackConstants.REQUEST_END_DATE);
 		String exactDate = get(WaybackConstants.REQUEST_EXACT_DATE);
@@ -287,7 +289,6 @@ public class WaybackRequest {
 			put(WaybackConstants.REQUEST_EXACT_DATE, Timestamp
 					.padEndDateStr(exactDate));
 		}
-		extractHttpRequestInfo(httpRequest);
 	}
 
 	/**
@@ -407,5 +408,9 @@ public class WaybackRequest {
 
 	public void setExclusionFilter(ObjectFilter<SearchResult> exclusionFilter) {
 		this.exclusionFilter = exclusionFilter;
+	}
+
+	public Set<String> keySet() {
+		return filters.keySet();
 	}
 }
