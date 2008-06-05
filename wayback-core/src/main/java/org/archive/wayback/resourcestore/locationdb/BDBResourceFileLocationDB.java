@@ -29,8 +29,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 import org.archive.wayback.bdb.BDBRecordSet;
-import org.archive.wayback.resourcestore.locationdb2.ResourceFileLocationDB;
-import org.archive.wayback.resourcestore.locationdb2.ResourceFileLocationDBLog;
+import org.archive.wayback.resourcestore.locationdb.ResourceFileLocationDB;
+import org.archive.wayback.resourcestore.locationdb.ResourceFileLocationDBLog;
 import org.archive.wayback.util.CloseableIterator;
 
 import com.sleepycat.je.DatabaseException;
@@ -146,7 +146,7 @@ public class BDBResourceFileLocationDB implements ResourceFileLocationDB {
 		} else {
 			// null or empty value
 			newValue = url;
-			if(oldValue == null) log.addFile(name);
+			if(oldValue == null) log.addName(name);
 		}
 		
 		// did we find a value?

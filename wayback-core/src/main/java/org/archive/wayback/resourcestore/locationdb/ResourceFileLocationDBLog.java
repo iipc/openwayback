@@ -31,7 +31,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
-import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.flatfile.RecordIterator;
 
@@ -55,23 +54,23 @@ public class ResourceFileLocationDBLog extends File {
 
 	/**
 	 * @param pathname
-	 * @throws ConfigurationException
+	 * @throws IOException
 	 */
-	public ResourceFileLocationDBLog(String pathname) throws ConfigurationException {
+	public ResourceFileLocationDBLog(String pathname) throws IOException {
 		super(pathname);
 		if (!isFile()) {
 			if (exists()) {
-				throw new ConfigurationException("path(" + pathname
+				throw new IOException("path(" + pathname
 						+ ") exists but is not a file!");
 			}
 			try {
 				if (!createNewFile()) {
-					throw new ConfigurationException(
+					throw new IOException(
 							"Unable to create empty file " + pathname);
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
-				throw new ConfigurationException("Unable to create empty file "
+				throw new IOException("Unable to create empty file "
 						+ pathname);
 			}
 		}
@@ -87,10 +86,10 @@ public class ResourceFileLocationDBLog extends File {
 	/**
 	 * @param start
 	 * @param end
-	 * @return CleanableIterator that returns all arcs between start and end
+	 * @return CleanableIterator that returns all names between start and end
 	 * @throws IOException
 	 */
-	public CloseableIterator<String> getArcsBetweenMarks(long start, long end)
+	public CloseableIterator<String> getNamesBetweenMarks(long start, long end)
 			throws IOException {
 
 		RandomAccessFile raf = new RandomAccessFile(this, "r");
@@ -100,12 +99,12 @@ public class ResourceFileLocationDBLog extends File {
 	}
 
 	/**
-	 * @param arcName
+	 * @param name
 	 * @throws IOException
 	 */
-	public synchronized void addArc(String arcName) throws IOException {
+	public synchronized void addName(String name) throws IOException {
 		FileWriter writer = new FileWriter(this, true);
-		writer.write(arcName + "\n");
+		writer.write(name + "\n");
 		writer.flush();
 		writer.close();
 	}
