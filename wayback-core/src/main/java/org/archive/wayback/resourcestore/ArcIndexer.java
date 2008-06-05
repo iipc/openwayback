@@ -59,7 +59,7 @@ public class ArcIndexer {
 	public ArcIndexer() {
 		canonicalizer = new AggressiveUrlCanonicalizer();
 	}
-	
+
 	/**
 	 * @param arc
 	 * @return Iterator of SearchResults for input arc File
@@ -67,7 +67,26 @@ public class ArcIndexer {
 	 */
 	public CloseableIterator<SearchResult> iterator(File arc)
 	throws IOException {
-		ARCReader arcReader = ARCReaderFactory.get(arc);
+		return iterator(ARCReaderFactory.get(arc));
+	}
+
+	/**
+	 * @param pathOrUrl
+	 * @return Iterator of SearchResults for input pathOrUrl
+	 * @throws IOException
+	 */
+	public CloseableIterator<SearchResult> iterator(String pathOrUrl)
+	throws IOException {
+		return iterator(ARCReaderFactory.get(pathOrUrl));
+	}
+	
+	/**
+	 * @param arcReader
+	 * @return Iterator of SearchResults for input ARCReader
+	 * @throws IOException
+	 */
+	public CloseableIterator<SearchResult> iterator(ARCReader arcReader)
+	throws IOException {
 		arcReader.setParseHttpHeaders(true);
 
 		Adapter<ArchiveRecord,ARCRecord> adapter1 =

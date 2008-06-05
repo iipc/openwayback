@@ -31,11 +31,29 @@ public class WarcIndexer {
 	}
 	
 	/**
-	 * @param arc
+	 * @param warc
 	 * @return Iterator of SearchResults for input arc File
 	 * @throws IOException
 	 */
 	public CloseableIterator<SearchResult> iterator(File warc)
+			throws IOException {
+		return iterator(WARCReaderFactory.get(warc));
+	}
+	/**
+	 * @param pathOrUrl
+	 * @return Iterator of SearchResults for input pathOrUrl
+	 * @throws IOException
+	 */
+	public CloseableIterator<SearchResult> iterator(String pathOrUrl)
+			throws IOException {
+		return iterator(WARCReaderFactory.get(pathOrUrl));
+	}
+	/**
+	 * @param arc
+	 * @return Iterator of SearchResults for input arc File
+	 * @throws IOException
+	 */
+	public CloseableIterator<SearchResult> iterator(WARCReader reader)
 			throws IOException {
 
 		Adapter<ArchiveRecord, WARCRecord> adapter1 = new ArchiveRecordToWARCRecordAdapter();
@@ -43,9 +61,7 @@ public class WarcIndexer {
 		WARCRecordToSearchResultAdapter adapter2 = 
 			new WARCRecordToSearchResultAdapter();
 		adapter2.setCanonicalizer(canonicalizer);
-		
-		WARCReader reader = WARCReaderFactory.get(warc);
-		
+
 		ArchiveReaderCloseableIterator itr1 = 
 			new ArchiveReaderCloseableIterator(reader,reader.iterator());
 
