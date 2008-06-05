@@ -29,19 +29,18 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
-import java.text.ParseException;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.archive.wayback.resourcestore.locationdb.ResourceFileLocationDB;
 import org.archive.wayback.webapp.ServletRequestContext;
 
-import com.sleepycat.je.DatabaseException;
-
 /**
- *
+ * ServletRequestContext interface which uses a ResourceFileLocationDB to 
+ * reverse proxy an incoming HTTP request for a file by name to it's actual 
+ * back-end location. This will also forward HTTP byte range requests to the
+ * final location.
  *
  * @author brad
  * @version $Date$, $Revision$
@@ -61,49 +60,46 @@ public class FileProxyServlet extends ServletRequestContext {
 			HttpServletResponse httpResponse) throws IOException,
 			ServletException {
 
-		try {
-			String arc = httpRequest.getRequestURI();
-			arc = arc.substring(arc.lastIndexOf('/')+1);
-			if(arc.length() == 0) {
-				throw new ParseException("no/invalid arc",0);
-			}
-			String urls[] = locationDB.arcToUrls(arc);
-			if(urls == null || urls.length == 0) {
-				throw new DatabaseException("Unable to locate("+arc+")");
-			}
-			String urlString = urls[0];
-			String rangeHeader = httpRequest.getHeader(RANGE_HTTP_HEADER);
-			URL url = new URL(urlString);
-			URLConnection conn = url.openConnection();
-			if(rangeHeader != null) {
-				conn.addRequestProperty(RANGE_HTTP_HEADER,rangeHeader);
-			}
-			InputStream is = conn.getInputStream();
-			httpResponse.setStatus(HttpServletResponse.SC_OK);
-			String typeHeader = conn.getHeaderField(CONTENT_TYPE_HEADER);
-			if(typeHeader == null) {
-				typeHeader = CONTENT_TYPE;
-			}
-			httpResponse.setContentType(typeHeader);
-			OutputStream os = httpResponse.getOutputStream();
-			int BUF_SIZE = 4096;
-			byte[] buffer = new byte[BUF_SIZE];
-			try {
-				for (int r = -1; (r = is.read(buffer, 0, BUF_SIZE)) != -1;) {
-					os.write(buffer, 0, r);
-				}
-			} finally {
-				is.close();
-			}
-		} catch (ParseException e) {
-			e.printStackTrace();
+		String name = httpRequest.getRequestURI();
+		name = name.substring(name.lastIndexOf('/')+1);
+		if(name.length() == 0) {
 			httpResponse.sendError(HttpServletResponse.SC_BAD_REQUEST,
-					e.getMessage());
-		} catch (DatabaseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			httpResponse.sendError(HttpServletResponse.SC_NOT_FOUND,
-					e.getMessage());
+					"no/invalid name");
+		} else {
+			
+			String urls[] = locationDB.nameToUrls(name);
+
+			if(urls == null || urls.length == 0) {
+				
+				httpResponse.sendError(HttpServletResponse.SC_NOT_FOUND,
+						"Unable to locate("+name+")");
+			} else {
+
+				String urlString = urls[0];
+				String rangeHeader = httpRequest.getHeader(RANGE_HTTP_HEADER);
+				URL url = new URL(urlString);
+				URLConnection conn = url.openConnection();
+				if(rangeHeader != null) {
+					conn.addRequestProperty(RANGE_HTTP_HEADER,rangeHeader);
+				}
+				InputStream is = conn.getInputStream();
+				httpResponse.setStatus(HttpServletResponse.SC_OK);
+				String typeHeader = conn.getHeaderField(CONTENT_TYPE_HEADER);
+				if(typeHeader == null) {
+					typeHeader = CONTENT_TYPE;
+				}
+				httpResponse.setContentType(typeHeader);
+				OutputStream os = httpResponse.getOutputStream();
+				int BUF_SIZE = 4096;
+				byte[] buffer = new byte[BUF_SIZE];
+				try {
+					for(int r = -1; (r = is.read(buffer, 0, BUF_SIZE)) != -1;) {
+						os.write(buffer, 0, r);
+					}
+				} finally {
+					is.close();
+				}
+			}
 		}
 		return true;
 	}

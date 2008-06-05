@@ -34,13 +34,12 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.archive.wayback.resourcestore.locationdb.ResourceFileLocationDB;
 import org.archive.wayback.webapp.ServletRequestContext;
 
-import com.sleepycat.je.DatabaseException;
-
 /**
- *
+ * ServletRequestContext enabling remote HTTP GET/POST access to a local 
+ * ResourceFileLocationDB. See RemoveResourceFileLocationDB for the client
+ * class implemented against this.
  *
  * @author brad
  * @version $Date$, $Revision$
@@ -68,9 +67,8 @@ public class ResourceFileLocationDBServlet extends ServletRequestContext {
 		@SuppressWarnings("unchecked")
 		Map<String,String[]> queryMap = httpRequest.getParameterMap();
 		String message;
-		ResourceFileLocationDB locationDB = getLocationDB();
 		try {
-			message = handleOperation(locationDB,queryMap);
+			message = handleOperation(queryMap);
 			httpResponse.setStatus(HttpServletResponse.SC_OK);
 			httpResponse.setContentType("text/plain");
 			OutputStream os = httpResponse.getOutputStream();
@@ -83,18 +81,17 @@ public class ResourceFileLocationDBServlet extends ServletRequestContext {
 		return true;
 	}
 
-	private String handleOperation(ResourceFileLocationDB locationDB, 
-			Map<String,String[]> queryMap)
+	private String handleOperation(Map<String,String[]> queryMap)
 			throws ParseException {
 
 		String operation = getRequiredMapParam(queryMap, OPERATION_ARGUMENT);
 		String message;
 		try {
 			if (operation.equals(LOOKUP_OPERATION)) {
-				String arcName = getRequiredMapParam(queryMap, NAME_ARGUMENT);
+				String name = getRequiredMapParam(queryMap, NAME_ARGUMENT);
 
-				message = NO_LOCATION_PREFIX + " " + arcName;
-				String arcUrls[] = locationDB.arcToUrls(arcName);
+				message = NO_LOCATION_PREFIX + " " + name;
+				String arcUrls[] = locationDB.nameToUrls(name);
 				if (arcUrls != null && arcUrls.length > 0) {
 					StringBuffer buf = new StringBuffer("OK ");
 					for (int i = 0; i < arcUrls.length; i++) {
@@ -112,7 +109,7 @@ public class ResourceFileLocationDBServlet extends ServletRequestContext {
 
 				long start = Long.parseLong(getRequiredMapParam(queryMap, START_ARGUMENT));
 				long end = Long.parseLong(getRequiredMapParam(queryMap, END_ARGUMENT));
-				Iterator<String> itr = locationDB.getArcsBetweenMarks(start,end);
+				Iterator<String> itr = locationDB.getNamesBetweenMarks(start,end);
 				StringBuilder str = new StringBuilder();
 				str.append("OK ");
 				while(itr.hasNext()) {
@@ -123,17 +120,17 @@ public class ResourceFileLocationDBServlet extends ServletRequestContext {
 				
 			} else {
 
-				String arcName = getRequiredMapParam(queryMap, NAME_ARGUMENT);
-				String arcUrl = getRequiredMapParam(queryMap, URL_ARGUMENT);
+				String name = getRequiredMapParam(queryMap, NAME_ARGUMENT);
+				String url = getRequiredMapParam(queryMap, URL_ARGUMENT);
 				if (operation.equals(ADD_OPERATION)) {
 
-					locationDB.addArcUrl(arcName, arcUrl);
-					message = "OK added url " + arcUrl + " for " + arcName;
+					locationDB.addNameUrl(name, url);
+					message = "OK added url " + url + " for " + name;
 
 				} else if (operation.equals(REMOVE_OPERATION)) {
 
-					getLocationDB().removeArcUrl(arcName, arcUrl);
-					message = "OK removed url " + arcUrl + " for " + arcName;
+					locationDB.removeNameUrl(name, url);
+					message = "OK removed url " + url + " for " + name;
 
 				} else {
 
@@ -143,11 +140,7 @@ public class ResourceFileLocationDBServlet extends ServletRequestContext {
 				}
 			}
 
-		} catch (DatabaseException e) {
-			e.printStackTrace();
-			message = e.getMessage();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			message = e.getMessage();
 		}

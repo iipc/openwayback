@@ -38,7 +38,10 @@ import org.archive.wayback.util.flatfile.RecordIterator;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 /**
+ * Simple log file tracking new names being added to a ResourceFileLocationDB.
  * 
+ * Also supports returning an iterator of Strings to a byte range of the log, to
+ * simplify tracking deltas to the DB.
  * 
  * @author brad
  * @version $Date$, $Revision$

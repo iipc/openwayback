@@ -40,6 +40,8 @@ import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.util.ParameterFormatter;
 import org.archive.wayback.resourcestore.locationdb.ResourceFileLocationDBServlet;
+import org.archive.wayback.util.CloseableIterator;
+import org.archive.wayback.util.WrappedCloseableIterator;
 
 /**
  *
@@ -47,8 +49,8 @@ import org.archive.wayback.resourcestore.locationdb.ResourceFileLocationDBServle
  * @author brad
  * @version $Date$, $Revision$
  */
-public class ResourceFileLocationDBClient {
-	private static final Logger LOGGER = Logger.getLogger(ResourceFileLocationDBClient
+public class RemoteResourceFileLocationDB implements ResourceFileLocationDB {
+	private static final Logger LOGGER = Logger.getLogger(RemoteResourceFileLocationDB
 			.class.getName());
 
 	private final static String ARC_SUFFIX = ".arc";
@@ -63,7 +65,7 @@ public class ResourceFileLocationDBClient {
 	/**
 	 * @param serverUrl
 	 */
-	public ResourceFileLocationDBClient(final String serverUrl) {
+	public RemoteResourceFileLocationDB(final String serverUrl) {
 		super();
 		this.serverUrl = serverUrl;
 		this.client = new HttpClient();
@@ -71,10 +73,9 @@ public class ResourceFileLocationDBClient {
 	
 	/**
 	 * @return long value representing the current end "mark" of the db log
-	 * @throws NumberFormatException
 	 * @throws IOException
 	 */
-	public long getCurrentMark() throws NumberFormatException, IOException {
+	public long getCurrentMark() throws IOException {
 		NameValuePair[] args = {
 				new NameValuePair(
 						ResourceFileLocationDBServlet.OPERATION_ARGUMENT,
@@ -86,10 +87,10 @@ public class ResourceFileLocationDBClient {
 	/**
 	 * @param start
 	 * @param end
-	 * @return Iterator of arc file names between marks start and end
+	 * @return Iterator of file names between marks start and end
 	 * @throws IOException
 	 */
-	public Iterator<String> getArcsBetweenMarks(long start, long end) 
+	public CloseableIterator<String> getNamesBetweenMarks(long start, long end) 
 	throws IOException {
 		NameValuePair[] args = {
 				new NameValuePair(
@@ -102,17 +103,18 @@ public class ResourceFileLocationDBClient {
 						ResourceFileLocationDBServlet.END_ARGUMENT,
 						String.valueOf(end))
 		};		
-		return Arrays.asList(doGetMethod(args).split("\n")).iterator();
+		return new WrappedCloseableIterator<String>(
+				Arrays.asList(doGetMethod(args).split("\n")).iterator());
 	}
 	
 	/**
-	 * return an array of String URLs for all known locations of the ARC file
+	 * return an array of String URLs for all known locations of the file
 	 * in the DB.
-	 * @param arcName
+	 * @param name
 	 * @return String[] of URLs to arcName
 	 * @throws IOException
 	 */
-	public String[] arcToUrls(final String arcName) throws IOException {
+	public String[] nameToUrls(final String name) throws IOException {
 
 		NameValuePair[] args = {
 				new NameValuePair(
@@ -121,7 +123,7 @@ public class ResourceFileLocationDBClient {
 					
 				new NameValuePair(
 						ResourceFileLocationDBServlet.NAME_ARGUMENT,
-						arcName)
+						name)
 		};
 		String locations = doGetMethod(args);
 		if(locations != null) {
@@ -133,24 +135,24 @@ public class ResourceFileLocationDBClient {
 
 	/**
 	 * add an Url location for an arcName, unless it already exists
-	 * @param arcName
-	 * @param arcUrl
+	 * @param name
+	 * @param url
 	 * @throws IOException
 	 */
-	public void addArcUrl(final String arcName, final String arcUrl) 
+	public void addNameUrl(final String name, final String url) 
 	throws IOException {
-		doPostMethod(ResourceFileLocationDBServlet.ADD_OPERATION, arcName, arcUrl);
+		doPostMethod(ResourceFileLocationDBServlet.ADD_OPERATION, name, url);
 	}
 
 	/**
-	 * remove a single Url location for an arcName, if it exists
-	 * @param arcName
-	 * @param arcUrl
+	 * remove a single url location for a name, if it exists
+	 * @param name
+	 * @param url
 	 * @throws IOException
 	 */
-	public void removeArcUrl(final String arcName, final String arcUrl) 
+	public void removeNameUrl(final String name, final String url) 
 	throws IOException {
-		doPostMethod(ResourceFileLocationDBServlet.REMOVE_OPERATION, arcName, arcUrl);
+		doPostMethod(ResourceFileLocationDBServlet.REMOVE_OPERATION, name, url);
 	}
 	
 	private String doGetMethod(NameValuePair[] data) throws IOException {
@@ -208,6 +210,13 @@ public class ResourceFileLocationDBClient {
         }
 	}
 
+	/* (non-Javadoc)
+	 * @see org.archive.wayback.resourcestore.locationdb.ResourceFileLocationDB#shutdown()
+	 */
+	public void shutdown() throws IOException {
+		// NO-OP
+	}
+
 	private static void USAGE(String message) {
 		System.err.print("USAGE: " + message + "\n" +
 				"\t[lookup|add|remove|sync] ...\n" +
@@ -252,12 +261,13 @@ public class ResourceFileLocationDBClient {
 			System.exit(1);
 		}
 		String operation = args[0];
-		String url = args[1];
-		if(!url.startsWith("http://")) {
+		String dbUrl = args[1];
+		if(!dbUrl.startsWith("http://")) {
 			USAGE("URL argument 1 must begin with http://");
 		}
 
-		ResourceFileLocationDBClient locationClient = new ResourceFileLocationDBClient(url);
+		RemoteResourceFileLocationDB locationClient = 
+			new RemoteResourceFileLocationDB(dbUrl);
 		
 		if(operation.equalsIgnoreCase("add-stream")) {
 			BufferedReader r = new BufferedReader(
@@ -270,7 +280,7 @@ public class ResourceFileLocationDBClient {
 						System.err.println("Bad input(" + line + ")");
 						System.exit(2);
 					}
-					locationClient.addArcUrl(parts[0],parts[1]);
+					locationClient.addNameUrl(parts[0],parts[1]);
 					System.out.println("Added\t" + parts[0] + "\t" + parts[1]);
 				}
 			} catch (IOException e) {
@@ -283,15 +293,15 @@ public class ResourceFileLocationDBClient {
 				USAGE("");
 				System.exit(1);
 			}
-			String arc = args[2];
+			String name = args[2];
 			if(operation.equalsIgnoreCase("lookup")) {
 				if(args.length < 3) {
 					USAGE("lookup LOCATION-URL ARC");
 				}
 				try {
-					String[] locations = locationClient.arcToUrls(arc);
+					String[] locations = locationClient.nameToUrls(name);
 					if(locations == null) {
-						System.err.println("No locations for " + arc);
+						System.err.println("No locations for " + name);
 						System.exit(1);
 					}
 					for(int i=0; i <locations.length; i++) {
@@ -322,7 +332,7 @@ public class ResourceFileLocationDBClient {
 				long end = Long.parseLong(args[4]);
 				try {
 					Iterator<String> it = 
-						locationClient.getArcsBetweenMarks(start,end);
+						locationClient.getNamesBetweenMarks(start,end);
 					while(it.hasNext()) {
 						String next = (String) it.next();
 						System.out.println(next);
@@ -337,12 +347,12 @@ public class ResourceFileLocationDBClient {
 				if(args.length != 4) {
 					USAGE("add LOCATION-URL ARC ARC-URL");
 				}
-				String arcUrl = args[3];
-				if(!arcUrl.startsWith("http://")) {
+				String url = args[3];
+				if(!url.startsWith("http://")) {
 					USAGE("ARC-URL argument 4 must begin with http://");
 				}
 				try {
-					locationClient.addArcUrl(arc,arcUrl);
+					locationClient.addNameUrl(name,url);
 					System.out.println("OK");
 				} catch (IOException e) {
 					System.err.println(e.getMessage());
@@ -352,14 +362,14 @@ public class ResourceFileLocationDBClient {
 			} else if(operation.equalsIgnoreCase("remove")) {
 				
 				if(args.length != 4) {
-					USAGE("remove LOCATION-URL ARC ARC-URL");
+					USAGE("remove LOCATION-URL FILE-NAME FILE-URL");
 				}
-				String arcUrl = args[3];
-				if(!arcUrl.startsWith("http://")) {
-					USAGE("ARC-URL argument 4 must begin with http://");
+				String url = args[3];
+				if(!url.startsWith("http://")) {
+					USAGE("URL argument 4 must begin with http://");
 				}
 				try {
-					locationClient.removeArcUrl(arc,arcUrl);
+					locationClient.removeNameUrl(name,url);
 					System.out.println("OK");
 				} catch (IOException e) {
 					System.err.println(e.getMessage());
@@ -371,14 +381,14 @@ public class ResourceFileLocationDBClient {
 				if(args.length != 4) {
 					USAGE("sync LOCATION-URL DIR DIR-URL");
 				}
-				File dir = new File(arc);
+				File dir = new File(name);
 				String dirUrl = args[3];
 				if(!dirUrl.startsWith("http://")) {
 					USAGE("DIR-URL argument 4 must begin with http://");
 				}
 				try {
 					if(!dir.isDirectory()) {
-						USAGE("DIR " + arc + " is not a directory");
+						USAGE("DIR " + name + " is not a directory");
 					}
 					
 					FileFilter filter = new FileFilter() {
@@ -398,10 +408,11 @@ public class ResourceFileLocationDBClient {
 					}
 					for(int i = 0; i < files.length; i++) {
 						File file = files[i];
-						String name = file.getName();
-						String fileUrl = dirUrl + name;
-						LOGGER.info("Adding location " + fileUrl + " for file " + name);
-						locationClient.addArcUrl(name,fileUrl);
+						String fileName = file.getName();
+						String fileUrl = dirUrl + fileName;
+						LOGGER.info("Adding location " + fileUrl +
+								" for file " + fileName);
+						locationClient.addNameUrl(fileName,fileUrl);
 					}
 				} catch (IOException e) {
 					System.err.println(e.getMessage());

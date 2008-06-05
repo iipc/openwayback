@@ -1,4 +1,4 @@
-/* FileLocationDB
+/* BDBResourceFileLocationDB
  *
  * $Id$
  *
@@ -29,7 +29,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 import org.archive.wayback.bdb.BDBRecordSet;
-import org.archive.wayback.exception.ConfigurationException;
+import org.archive.wayback.resourcestore.locationdb2.ResourceFileLocationDB;
+import org.archive.wayback.resourcestore.locationdb2.ResourceFileLocationDBLog;
 import org.archive.wayback.util.CloseableIterator;
 
 import com.sleepycat.je.DatabaseException;
@@ -40,126 +41,142 @@ import com.sleepycat.je.DatabaseException;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class ResourceFileLocationDB extends BDBRecordSet {
-
-	/**
-	 * String id for implementation class of FileLocationDBs.
-	 */
-	public static final String FILE_LOCATION_DB_CLASS = "filelocationdb";
-	
-	protected static final String ARC_DB_PATH = "filelocationdb.path";
-
-	protected static final String ARC_DB_NAME = "filelocationdb.name";
-	
-	protected static final String ARC_DB_LOG = "filelocationdb.logpath";
+public class BDBResourceFileLocationDB implements ResourceFileLocationDB {
 
 	private final static String urlDelimiter = " ";
 	
 	private final static String urlDelimiterRE = " ";
 
 	private ResourceFileLocationDBLog log;
+	private BDBRecordSet bdb = null;
 	private String logPath = null;
 	private String bdbPath = null;
 	private String bdbName = null;
 	
-	/**
-	 * Constructor
-	 */
-	public ResourceFileLocationDB() {
-		super();
+	private IOException wrapDBException(DatabaseException e) {
+		return new IOException(e.getLocalizedMessage());
+	}
+	private String get(String key) throws IOException {
+		try {
+			return bdb.get(key);
+		} catch (DatabaseException e) {
+			throw wrapDBException(e);
+		}
+	}
+	private void put(String key, String value) throws IOException {
+		try {
+			bdb.put(key,value);
+		} catch (DatabaseException e) {
+			throw wrapDBException(e);
+		}
+	}
+	private void delete(String key) throws IOException {
+		try {
+			bdb.delete(key);
+		} catch (DatabaseException e) {
+			throw wrapDBException(e);
+		}
+	}
+	public void shutdown() throws IOException {
+		try {
+			bdb.shutdownDB();
+		} catch (DatabaseException e) {
+			throw wrapDBException(e);
+		}
 	}
 	
-	/**
-	 * @throws DatabaseException
-	 * @throws ConfigurationException
-	 */
-	public void init() throws DatabaseException, ConfigurationException {
+	public void init() throws IOException {
 		if(logPath == null) {
-			throw new ConfigurationException("No logPath");
+			throw new IOException("No logPath");
 		}
 		log = new ResourceFileLocationDBLog(logPath);
-		initializeDB(bdbPath,bdbName);		
-	}
-	
-	/**
-	 * return an array of String URLs for all known locations of the ARC file
-	 * in the DB.
-	 * @param arcName
-	 * @return String[] of URLs to arcName
-	 * @throws DatabaseException
-	 */
-	public String[] arcToUrls(final String arcName) throws DatabaseException {
-		
-		String[] arcUrls = null;
-		String valueString = get(arcName);
-		if(valueString != null && valueString.length() > 0) {
-			arcUrls = valueString.split(urlDelimiterRE);
+		bdb = new BDBRecordSet();
+		try {
+			bdb.initializeDB(bdbPath,bdbName);
+		} catch (DatabaseException e) {
+			throw wrapDBException(e);
 		}
-		return arcUrls;
+	}
+
+	/**
+	 * return an array of String URLs for all known locations of name in the DB.
+	 * @param name
+	 * @return String[] of URLs to name
+	 * @throws IOException
+	 */
+	public String[] nameToUrls(final String name) throws IOException {
+		
+		String[] urls = null;
+		String valueString = get(name);
+		if(valueString != null && valueString.length() > 0) {
+			urls = valueString.split(urlDelimiterRE);
+		}
+		return urls;
 	}
 	
 	/**
-	 * add an Url location for an arcName, unless it already exists
-	 * @param arcName
-	 * @param arcUrl
-	 * @throws DatabaseException
+	 * add an url location for a name, unless it already exists
+	 * @param name
+	 * @param url
 	 * @throws IOException 
 	 */
-	public void addArcUrl(final String arcName, final String arcUrl) throws DatabaseException, IOException {
+	public void addNameUrl(final String name, final String url) 
+	throws IOException {
 		
-		// need to first see if there is already an entry for this arcName.
-		// if not, add arcUrl as the value.
-		// if so, check the current arcUrl locations for arcName
-		//     if arcUrl exists, do nothing
-		//     if arcUrl does not exist, add, and set that as the value.
+		// need to first see if there is already an entry for this name.
+		// if not, add url as the value.
+		// if so, check the current url locations for name
+		//     if url exists, do nothing
+		//     if url does not exist, add, and set that as the value.
 		
 		String newValue = null;
-		String oldValue = get(arcName);
+		String oldValue = get(name);
 		if(oldValue != null && oldValue.length() > 0) {
 			String curUrls[] = oldValue.split(urlDelimiterRE);
 			boolean found = false;
 			for(int i=0; i < curUrls.length; i++) {
-				if(arcUrl.equals(curUrls[i])) {
+				if(url.equals(curUrls[i])) {
 					found = true;
 					break;
 				}
 			}
 			if(found == false) {
-				newValue = oldValue + " " + arcUrl;
+				newValue = oldValue + " " + url;
 			}
 		} else {
 			// null or empty value
-			newValue = arcUrl;
-			if(oldValue == null) log.addArc(arcName);
+			newValue = url;
+			if(oldValue == null) log.addFile(name);
 		}
 		
 		// did we find a value?
 		if(newValue != null) {
-			put(arcName,newValue);
+			put(name,newValue);
 		}
 	}
 
 	/**
-	 * remove a single Url location for an arcName, if it exists
-	 * @param arcName
-	 * @param arcUrl
-	 * @throws DatabaseException
+	 * remove a single url location for an name, if it exists
+	 * @param name
+	 * @param url
+	 * @throws IOException
 	 */
-	public void removeArcUrl(final String arcName, final String arcUrl) throws DatabaseException {
-		// need to first see if there is already an entry for this arcName.
+	public void removeNameUrl(final String name, final String url) 
+	throws IOException {
+		// need to first see if there is already an entry for this name.
 		// if not, do nothing
-		// if so, loop thru all current arcUrl locations for arcName
-		//     keep any that are not arcUrl
-		// if any locations are left, update to the new value, sans arcUrl
+		// if so, loop thru all current url locations for name
+		//     keep any that are not url
+		// if any locations are left, update to the new value, sans url
 		// if none are left, remove the entry from the db
 		
 		StringBuilder newValue = new StringBuilder();
-		String oldValue = get(arcName);
+		String oldValue = get(name);
 		if(oldValue != null && oldValue.length() > 0) {
 			String curUrls[] = oldValue.split(urlDelimiterRE);
 
 			for(int i=0; i < curUrls.length; i++) {
-				if(!arcUrl.equals(curUrls[i])) {
+				if(!url.equals(curUrls[i])) {
 					if(newValue.length() > 0) {
 						newValue.append(urlDelimiter);
 					}
@@ -170,12 +187,12 @@ public class ResourceFileLocationDB extends BDBRecordSet {
 			if(newValue.length() > 0) {
 				
 				// update
-				put(arcName, newValue.toString());
+				put(name, newValue.toString());
 				
 			} else {
 				
 				// remove the entry:
-				delete(arcName);
+				delete(name);
 			}
 		}
 	}
@@ -186,9 +203,9 @@ public class ResourceFileLocationDB extends BDBRecordSet {
 	 * @return Iterator for traversing arcs between start and end.
 	 * @throws IOException
 	 */
-	public CloseableIterator<String> getArcsBetweenMarks(long start, long end) 
+	public CloseableIterator<String> getNamesBetweenMarks(long start, long end) 
 	throws IOException {
-		return log.getArcsBetweenMarks(start, end);
+		return log.getNamesBetweenMarks(start, end);
 	}
 
 	/**
@@ -264,7 +281,7 @@ public class ResourceFileLocationDB extends BDBRecordSet {
 		String bdbPath = args[0];
 		String bdbName = args[1];
 		String logPath = args[2];
-		ResourceFileLocationDB db = new ResourceFileLocationDB();
+		BDBResourceFileLocationDB db = new BDBResourceFileLocationDB();
 		db.setBdbPath(bdbPath);
 		db.setBdbName(bdbName);
 		db.setLogPath(logPath);
@@ -280,22 +297,16 @@ public class ResourceFileLocationDB extends BDBRecordSet {
 					System.err.println("Bad input(" + line + ")");
 					System.exit(2);
 				}
-				db.addArcUrl(parts[0],parts[1]);
+				db.addNameUrl(parts[0],parts[1]);
 				System.out.println("Added\t" + parts[0] + "\t" + parts[1]);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
 			exitCode = 1;
-		} catch (DatabaseException e) {
-			e.printStackTrace();
-			exitCode = 1;
-		} catch (ConfigurationException e) {
-			e.printStackTrace();
-			exitCode = 1;
 		} finally {
 			try {
-				db.shutdownDB();
-			} catch (DatabaseException e) {
+				db.shutdown();
+			} catch (IOException e) {
 				e.printStackTrace();
 				exitCode = 1;
 			}
