@@ -1,6 +1,6 @@
 /* FileLocationDBTest
  *
- * $Id$
+ * $Id: FileLocationDBTest.java 1856 2007-07-25 00:17:15Z bradtofel $
  *
  * Created on 5:17:23 PM Aug 21, 2006.
  *
@@ -22,13 +22,13 @@
  * along with Wayback; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-package org.archive.wayback.resourcestore.http;
+package org.archive.wayback.resourcestore.locationdb;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
 
-import org.archive.wayback.resourcestore.http.FileLocationDB;
+import org.archive.wayback.resourcestore.locationdb.BDBResourceFileLocationDB;
 
 import junit.framework.TestCase;
 
@@ -36,10 +36,10 @@ import junit.framework.TestCase;
  *
  *
  * @author brad
- * @version $Date$, $Revision$
+ * @version $Date: 2007-07-24 17:17:15 -0700 (Tue, 24 Jul 2007) $, $Revision: 1856 $
  */
-public class FileLocationDBTest extends TestCase {
-	private FileLocationDB db = null;
+public class BDBResourceFileLocationDBTest extends TestCase {
+	private BDBResourceFileLocationDB db = null;
 	private String dbPath = null;
 	private String dbName = null;
 	private File tmpFile = null;
@@ -56,7 +56,7 @@ public class FileLocationDBTest extends TestCase {
 		assertTrue(tmpFile.mkdirs());
 		dbPath = tmpFile.getAbsolutePath();
 		dbName = "test-FileLocationDB";
-		db = new FileLocationDB();
+		db = new BDBResourceFileLocationDB();
 		
 		db.setBdbName(dbName);
 		db.setBdbPath(dbPath);
@@ -71,7 +71,7 @@ public class FileLocationDBTest extends TestCase {
 	 */
 	protected void tearDown() throws Exception {
 		super.tearDown();
-		db.shutdownDB();
+		db.shutdown();
 		if(tmpFile.isDirectory()) {
 			File files[] = tmpFile.listFiles();
 			for(int i = 0; i < files.length; i++) {
@@ -84,7 +84,7 @@ public class FileLocationDBTest extends TestCase {
 	}
 
 	private void testMarkLength(long start, long end, int count) throws IOException {
-		Iterator<String> itr = db.getArcsBetweenMarks(start,end);
+		Iterator<String> itr = db.getNamesBetweenMarks(start,end);
 		int found = 0;
 		while(itr.hasNext()) {
 			itr.next();
@@ -101,35 +101,35 @@ public class FileLocationDBTest extends TestCase {
 		String urls[] = null;
 		try {
 			// empty results OK:
-			urls = db.arcToUrls("arc1");
+			urls = db.nameToUrls("arc1");
 			assertNull(urls);
 			//assertEquals(urls.length,0);
 			testMarkLength(0,0,0);
 			
 			// add an URL, and get it back:
-			db.addArcUrl("arc1","url1");
-			urls = db.arcToUrls("arc1");
+			db.addNameUrl("arc1","url1");
+			urls = db.nameToUrls("arc1");
 			assertNotNull(urls);
 			assertEquals(1,urls.length);
 			assertEquals("url1",urls[0]);
 			testMarkLength(0,5,1);
 			
 			// add the same URL again, verify only comes back once:
-			db.addArcUrl("arc1","url1");
-			urls = db.arcToUrls("arc1");
+			db.addNameUrl("arc1","url1");
+			urls = db.nameToUrls("arc1");
 			assertNotNull(urls);
 			assertEquals(1,urls.length);
 			assertEquals("url1",urls[0]);
 			testMarkLength(0,5,1);
 
 			// check for empty results for a diff arc:
-			urls = db.arcToUrls("arc2");
+			urls = db.nameToUrls("arc2");
 			assertNull(urls);
 			//assertEquals(urls.length,0);
 			
 			// add a diff URL for first arc, verify both come back:
-			db.addArcUrl("arc1","url2");
-			urls = db.arcToUrls("arc1");
+			db.addNameUrl("arc1","url2");
+			urls = db.nameToUrls("arc1");
 			assertNotNull(urls);
 			assertEquals(2,urls.length);
 			assertEquals("url1",urls[0]);
@@ -137,13 +137,13 @@ public class FileLocationDBTest extends TestCase {
 			testMarkLength(0,5,1);
 			
 			// still nothing for arc2:
-			urls = db.arcToUrls("arc2");
+			urls = db.nameToUrls("arc2");
 			assertNull(urls);
 			//assertEquals(urls.length,0);
 
 			// add an URL for arc2, and get it back:
-			db.addArcUrl("arc2","url2-1");
-			urls = db.arcToUrls("arc2");
+			db.addNameUrl("arc2","url2-1");
+			urls = db.nameToUrls("arc2");
 			assertNotNull(urls);
 			assertEquals(1,urls.length);
 			assertEquals("url2-1",urls[0]);
@@ -151,43 +151,43 @@ public class FileLocationDBTest extends TestCase {
 			testMarkLength(5,10,1);
 
 			// remove unknown URL for arc2
-			db.removeArcUrl("arc2","url2-2");
-			urls = db.arcToUrls("arc2");
+			db.removeNameUrl("arc2","url2-2");
+			urls = db.nameToUrls("arc2");
 			assertNotNull(urls);
 			assertEquals(1,urls.length);
 			assertEquals("url2-1",urls[0]);
 			
 			// remove the right URL for arc2
-			db.removeArcUrl("arc2","url2-1");
-			urls = db.arcToUrls("arc2");
+			db.removeNameUrl("arc2","url2-1");
+			urls = db.nameToUrls("arc2");
 			assertNull(urls);
 			//assertEquals(urls.length,0);
 			
 			// remove non-existant URL for first arc, verify two still come back
-			db.removeArcUrl("arc1","url-non");
-			urls = db.arcToUrls("arc1");
+			db.removeNameUrl("arc1","url-non");
+			urls = db.nameToUrls("arc1");
 			assertNotNull(urls);
 			assertEquals(2,urls.length);
 			assertEquals("url1",urls[0]);
 			assertEquals("url2",urls[1]);
 			
 			// remove a right URL for arc1
-			db.removeArcUrl("arc1","url1");
-			urls = db.arcToUrls("arc1");
+			db.removeNameUrl("arc1","url1");
+			urls = db.nameToUrls("arc1");
 			assertNotNull(urls);
 			assertEquals(1,urls.length);
 			assertEquals("url2",urls[0]);
 
 			// remove a now wrong URL for arc1
-			db.removeArcUrl("arc1","url1");
-			urls = db.arcToUrls("arc1");
+			db.removeNameUrl("arc1","url1");
+			urls = db.nameToUrls("arc1");
 			assertNotNull(urls);
 			assertEquals(1,urls.length);
 			assertEquals("url2",urls[0]);
 
 			// remove a last URL for arc1
-			db.removeArcUrl("arc1","url2");
-			urls = db.arcToUrls("arc1");
+			db.removeNameUrl("arc1","url2");
+			urls = db.nameToUrls("arc1");
 			assertNull(urls);
 			//assertEquals(urls.length,0);
 			

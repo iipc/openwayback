@@ -1,6 +1,6 @@
 /* FileLocationDBLogTest
  *
- * $Id$
+ * $Id: FileLocationDBLogTest.java 1856 2007-07-25 00:17:15Z bradtofel $
  *
  * Created on 4:54:04 PM Aug 21, 2006.
  *
@@ -22,25 +22,28 @@
  * along with Wayback; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-package org.archive.wayback.resourcestore.http;
+package org.archive.wayback.resourcestore.locationdb;
 
 import java.io.File;
 import java.util.Iterator;
+
+import org.archive.wayback.resourcestore.locationdb.ResourceFileLocationDBLog;
+
 import junit.framework.TestCase;
 
 /**
  *
  *
  * @author brad
- * @version $Date$, $Revision$
+ * @version $Date: 2007-07-24 17:17:15 -0700 (Tue, 24 Jul 2007) $, $Revision: 1856 $
  */
-public class FileLocationDBLogTest extends TestCase {
-	FileLocationDBLog log;
+public class ResoruceFileLocationDBLogTest extends TestCase {
+	ResourceFileLocationDBLog log;
     protected void setUp() throws Exception {
         super.setUp();
 		File tmp = File.createTempFile("fldb","log");
 
-		log = new FileLocationDBLog(tmp.getAbsolutePath());        
+		log = new ResourceFileLocationDBLog(tmp.getAbsolutePath());        
     }
 
     /*
@@ -61,27 +64,27 @@ public class FileLocationDBLogTest extends TestCase {
 		String newArc2 = "bar.arc.gz";
 		long mark1 = log.getCurrentMark();
 		assertEquals(mark1,0);
-		Iterator<String> itr = log.getArcsBetweenMarks(0,0);
+		Iterator<String> itr = log.getNamesBetweenMarks(0,0);
 		assertFalse(itr.hasNext());
-		log.addArc(newArc1);
+		log.addName(newArc1);
 		long mark2 = log.getCurrentMark();
 		assertEquals(newArc1.length() + 1,mark2);
-		itr = log.getArcsBetweenMarks(mark1,mark2);
+		itr = log.getNamesBetweenMarks(mark1,mark2);
 		assertTrue(itr.hasNext());
 		String gotArc = (String) itr.next();
 		assertFalse(itr.hasNext());
 		assertTrue(newArc1.equals(gotArc));
-		log.addArc(newArc2);
+		log.addName(newArc2);
 		long mark3 = log.getCurrentMark();
 		assertEquals(newArc1.length() + newArc2.length() + 2, mark3);
 
-		itr = log.getArcsBetweenMarks(mark2,mark3);
+		itr = log.getNamesBetweenMarks(mark2,mark3);
 		assertTrue(itr.hasNext());
 		gotArc = (String) itr.next();
 		assertFalse(itr.hasNext());
 		assertTrue(newArc2.equals(gotArc));
 
-		itr = log.getArcsBetweenMarks(mark1,mark3);
+		itr = log.getNamesBetweenMarks(mark1,mark3);
 		assertTrue(itr.hasNext());
 		gotArc = (String) itr.next();
 		assertTrue(newArc1.equals(gotArc));
