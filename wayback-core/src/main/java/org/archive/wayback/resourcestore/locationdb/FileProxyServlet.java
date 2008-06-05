@@ -35,7 +35,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.archive.wayback.resourcestore.locationdb.FileLocationDB;
+import org.archive.wayback.resourcestore.locationdb.ResourceFileLocationDB;
 import org.archive.wayback.webapp.ServletRequestContext;
 
 import com.sleepycat.je.DatabaseException;
@@ -46,7 +46,7 @@ import com.sleepycat.je.DatabaseException;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class ArcProxyServlet extends ServletRequestContext {
+public class FileProxyServlet extends ServletRequestContext {
 
 	private static final String RANGE_HTTP_HEADER = "Range";
 	private static final String CONTENT_TYPE_HEADER = "Content-Type";
@@ -55,7 +55,7 @@ public class ArcProxyServlet extends ServletRequestContext {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	private FileLocationDB locationDB = null;
+	private ResourceFileLocationDB locationDB = null;
 	
 	public boolean handleRequest(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse) throws IOException,
@@ -111,14 +111,14 @@ public class ArcProxyServlet extends ServletRequestContext {
 	/**
 	 * @return the locationDB
 	 */
-	public FileLocationDB getLocationDB() {
+	public ResourceFileLocationDB getLocationDB() {
 		return locationDB;
 	}
 
 	/**
 	 * @param locationDB the locationDB to set
 	 */
-	public void setLocationDB(FileLocationDB locationDB) {
+	public void setLocationDB(ResourceFileLocationDB locationDB) {
 		this.locationDB = locationDB;
 	}
 }

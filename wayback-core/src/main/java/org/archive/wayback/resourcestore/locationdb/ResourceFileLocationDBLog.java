@@ -43,7 +43,7 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class FileLocationDBLog extends File {
+public class ResourceFileLocationDBLog extends File {
 
 	/**
 	 * 
@@ -54,7 +54,7 @@ public class FileLocationDBLog extends File {
 	 * @param pathname
 	 * @throws ConfigurationException
 	 */
-	public FileLocationDBLog(String pathname) throws ConfigurationException {
+	public ResourceFileLocationDBLog(String pathname) throws ConfigurationException {
 		super(pathname);
 		if (!isFile()) {
 			if (exists()) {

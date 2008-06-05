@@ -40,7 +40,7 @@ import com.sleepycat.je.DatabaseException;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class FileLocationDB extends BDBRecordSet {
+public class ResourceFileLocationDB extends BDBRecordSet {
 
 	/**
 	 * String id for implementation class of FileLocationDBs.
@@ -57,7 +57,7 @@ public class FileLocationDB extends BDBRecordSet {
 	
 	private final static String urlDelimiterRE = " ";
 
-	private FileLocationDBLog log;
+	private ResourceFileLocationDBLog log;
 	private String logPath = null;
 	private String bdbPath = null;
 	private String bdbName = null;
@@ -65,7 +65,7 @@ public class FileLocationDB extends BDBRecordSet {
 	/**
 	 * Constructor
 	 */
-	public FileLocationDB() {
+	public ResourceFileLocationDB() {
 		super();
 	}
 	
@@ -77,7 +77,7 @@ public class FileLocationDB extends BDBRecordSet {
 		if(logPath == null) {
 			throw new ConfigurationException("No logPath");
 		}
-		log = new FileLocationDBLog(logPath);
+		log = new ResourceFileLocationDBLog(logPath);
 		initializeDB(bdbPath,bdbName);		
 	}
 	
@@ -264,7 +264,7 @@ public class FileLocationDB extends BDBRecordSet {
 		String bdbPath = args[0];
 		String bdbName = args[1];
 		String logPath = args[2];
-		FileLocationDB db = new FileLocationDB();
+		ResourceFileLocationDB db = new ResourceFileLocationDB();
 		db.setBdbPath(bdbPath);
 		db.setBdbName(bdbName);
 		db.setLogPath(logPath);

@@ -34,7 +34,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.archive.wayback.resourcestore.locationdb.FileLocationDB;
+import org.archive.wayback.resourcestore.locationdb.ResourceFileLocationDB;
 import org.archive.wayback.webapp.ServletRequestContext;
 
 import com.sleepycat.je.DatabaseException;
@@ -45,7 +45,7 @@ import com.sleepycat.je.DatabaseException;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class FileLocationDBServlet extends ServletRequestContext {
+public class ResourceFileLocationDBServlet extends ServletRequestContext {
 
 	protected static final String OPERATION_ARGUMENT = "operation";
 	protected static final String NAME_ARGUMENT = "name";
@@ -60,7 +60,7 @@ public class FileLocationDBServlet extends ServletRequestContext {
 	protected static final String NO_LOCATION_PREFIX = "ERROR No locations for";
 
 	private static final long serialVersionUID = 1L;
-	private FileLocationDB locationDB = null;
+	private ResourceFileLocationDB locationDB = null;
 
 	public boolean handleRequest(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse) throws IOException,
@@ -68,7 +68,7 @@ public class FileLocationDBServlet extends ServletRequestContext {
 		@SuppressWarnings("unchecked")
 		Map<String,String[]> queryMap = httpRequest.getParameterMap();
 		String message;
-		FileLocationDB locationDB = getLocationDB();
+		ResourceFileLocationDB locationDB = getLocationDB();
 		try {
 			message = handleOperation(locationDB,queryMap);
 			httpResponse.setStatus(HttpServletResponse.SC_OK);
@@ -83,7 +83,7 @@ public class FileLocationDBServlet extends ServletRequestContext {
 		return true;
 	}
 
-	private String handleOperation(FileLocationDB locationDB, 
+	private String handleOperation(ResourceFileLocationDB locationDB, 
 			Map<String,String[]> queryMap)
 			throws ParseException {
 
@@ -157,14 +157,14 @@ public class FileLocationDBServlet extends ServletRequestContext {
 	/**
 	 * @return the locationDB
 	 */
-	public FileLocationDB getLocationDB() {
+	public ResourceFileLocationDB getLocationDB() {
 		return locationDB;
 	}
 
 	/**
 	 * @param locationDB the locationDB to set
 	 */
-	public void setLocationDB(FileLocationDB locationDB) {
+	public void setLocationDB(ResourceFileLocationDB locationDB) {
 		this.locationDB = locationDB;
 	}
 }

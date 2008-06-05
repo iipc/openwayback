@@ -39,7 +39,7 @@ import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.util.ParameterFormatter;
-import org.archive.wayback.resourcestore.locationdb.FileLocationDBServlet;
+import org.archive.wayback.resourcestore.locationdb.ResourceFileLocationDBServlet;
 
 /**
  *
@@ -47,8 +47,8 @@ import org.archive.wayback.resourcestore.locationdb.FileLocationDBServlet;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class FileLocationDBClient {
-	private static final Logger LOGGER = Logger.getLogger(FileLocationDBClient
+public class ResourceFileLocationDBClient {
+	private static final Logger LOGGER = Logger.getLogger(ResourceFileLocationDBClient
 			.class.getName());
 
 	private final static String ARC_SUFFIX = ".arc";
@@ -63,7 +63,7 @@ public class FileLocationDBClient {
 	/**
 	 * @param serverUrl
 	 */
-	public FileLocationDBClient(final String serverUrl) {
+	public ResourceFileLocationDBClient(final String serverUrl) {
 		super();
 		this.serverUrl = serverUrl;
 		this.client = new HttpClient();
@@ -77,8 +77,8 @@ public class FileLocationDBClient {
 	public long getCurrentMark() throws NumberFormatException, IOException {
 		NameValuePair[] args = {
 				new NameValuePair(
-						FileLocationDBServlet.OPERATION_ARGUMENT,
-						FileLocationDBServlet.GETMARK_OPERATION),
+						ResourceFileLocationDBServlet.OPERATION_ARGUMENT,
+						ResourceFileLocationDBServlet.GETMARK_OPERATION),
 		};		
 		return Long.parseLong(doGetMethod(args));
 	}
@@ -93,13 +93,13 @@ public class FileLocationDBClient {
 	throws IOException {
 		NameValuePair[] args = {
 				new NameValuePair(
-						FileLocationDBServlet.OPERATION_ARGUMENT,
-						FileLocationDBServlet.GETRANGE_OPERATION),
+						ResourceFileLocationDBServlet.OPERATION_ARGUMENT,
+						ResourceFileLocationDBServlet.GETRANGE_OPERATION),
 				new NameValuePair(
-						FileLocationDBServlet.START_ARGUMENT,
+						ResourceFileLocationDBServlet.START_ARGUMENT,
 						String.valueOf(start)),
 				new NameValuePair(
-						FileLocationDBServlet.END_ARGUMENT,
+						ResourceFileLocationDBServlet.END_ARGUMENT,
 						String.valueOf(end))
 		};		
 		return Arrays.asList(doGetMethod(args).split("\n")).iterator();
@@ -116,11 +116,11 @@ public class FileLocationDBClient {
 
 		NameValuePair[] args = {
 				new NameValuePair(
-						FileLocationDBServlet.OPERATION_ARGUMENT,
-						FileLocationDBServlet.LOOKUP_OPERATION),
+						ResourceFileLocationDBServlet.OPERATION_ARGUMENT,
+						ResourceFileLocationDBServlet.LOOKUP_OPERATION),
 					
 				new NameValuePair(
-						FileLocationDBServlet.NAME_ARGUMENT,
+						ResourceFileLocationDBServlet.NAME_ARGUMENT,
 						arcName)
 		};
 		String locations = doGetMethod(args);
@@ -139,7 +139,7 @@ public class FileLocationDBClient {
 	 */
 	public void addArcUrl(final String arcName, final String arcUrl) 
 	throws IOException {
-		doPostMethod(FileLocationDBServlet.ADD_OPERATION, arcName, arcUrl);
+		doPostMethod(ResourceFileLocationDBServlet.ADD_OPERATION, arcName, arcUrl);
 	}
 
 	/**
@@ -150,7 +150,7 @@ public class FileLocationDBClient {
 	 */
 	public void removeArcUrl(final String arcName, final String arcUrl) 
 	throws IOException {
-		doPostMethod(FileLocationDBServlet.REMOVE_OPERATION, arcName, arcUrl);
+		doPostMethod(ResourceFileLocationDBServlet.REMOVE_OPERATION, arcName, arcUrl);
 	}
 	
 	private String doGetMethod(NameValuePair[] data) throws IOException {
@@ -177,7 +177,7 @@ public class FileLocationDBClient {
         }
         String responseString = method.getResponseBodyAsString();
         if(!responseString.startsWith(OK_RESPONSE_PREFIX)) {
-        	if(responseString.startsWith(FileLocationDBServlet.NO_LOCATION_PREFIX)) {
+        	if(responseString.startsWith(ResourceFileLocationDBServlet.NO_LOCATION_PREFIX)) {
         		return null;
         	}
         	throw new IOException(responseString);
@@ -190,11 +190,11 @@ public class FileLocationDBClient {
 	throws IOException {
 	    PostMethod method = new PostMethod(serverUrl);
         NameValuePair[] data = {
-                new NameValuePair(FileLocationDBServlet.OPERATION_ARGUMENT,
+                new NameValuePair(ResourceFileLocationDBServlet.OPERATION_ARGUMENT,
                 		operation),
-                new NameValuePair(FileLocationDBServlet.NAME_ARGUMENT,
+                new NameValuePair(ResourceFileLocationDBServlet.NAME_ARGUMENT,
                    		arcName),
-                new NameValuePair(FileLocationDBServlet.URL_ARGUMENT,
+                new NameValuePair(ResourceFileLocationDBServlet.URL_ARGUMENT,
                    		arcUrl)
               };
         method.setRequestBody(data);
@@ -257,7 +257,7 @@ public class FileLocationDBClient {
 			USAGE("URL argument 1 must begin with http://");
 		}
 
-		FileLocationDBClient locationClient = new FileLocationDBClient(url);
+		ResourceFileLocationDBClient locationClient = new ResourceFileLocationDBClient(url);
 		
 		if(operation.equalsIgnoreCase("add-stream")) {
 			BufferedReader r = new BufferedReader(
