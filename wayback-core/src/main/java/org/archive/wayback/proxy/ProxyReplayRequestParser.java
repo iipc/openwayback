@@ -94,7 +94,7 @@ public class ProxyReplayRequestParser extends BaseRequestParser {
 		}
 		wbRequest.put(WaybackConstants.REQUEST_TYPE,
 				WaybackConstants.REQUEST_REPLAY_QUERY);
-
+		wbRequest.setResultsPerPage(maxRecords);
 		return wbRequest;
 	}
 	public List<String> getLocalhostNames() {
