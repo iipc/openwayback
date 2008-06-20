@@ -59,9 +59,6 @@ public class ReplayRequestParser extends PathRequestParser {
 			wbRequest = new WaybackRequest();
 			String dateStr = matcher.group(1);
 			urlStr = matcher.group(2);
-			if (!urlStr.startsWith("http://")) {
-				urlStr = "http://" + urlStr;
-			}
 
 			// The logic of the classic WM wrt timestamp bounding:
 			// if 14-digits are specified, assume min-max range boundaries
