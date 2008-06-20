@@ -348,7 +348,11 @@ public class WaybackRequest {
      */
 	public void setRequestUrl(String urlStr) throws URIException {
 	    if (!urlStr.startsWith("http://")) {
-	        urlStr = "http://" + urlStr;
+	    	if(urlStr.startsWith("http:/")) {
+	    		urlStr = "http://" + urlStr.substring(6);
+	    	} else {
+	    		urlStr = "http://" + urlStr;
+	    	}
 	    }
         // If its not http, next line throws exception. TODO: Fix.
 	    UURI requestURI = UURIFactory.getInstance(urlStr);
