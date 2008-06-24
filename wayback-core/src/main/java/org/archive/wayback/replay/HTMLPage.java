@@ -320,7 +320,11 @@ public class HTMLPage {
 				"REF", "HREF");
 	}
 	
-	
+	public void stripHTML() {
+		String stripped = sb.toString().replaceAll("\\<.*?>","");
+		sb.setLength(0);
+		sb.append(stripped);
+	}
 	/**
 	 * @param charSet
 	 * @throws IOException 
