@@ -51,12 +51,12 @@ import org.archive.wayback.util.flatfile.FlatFile;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class BDBIndexUpdater {
+public class LocalResourceIndexUpdater {
 	/**
 	 * Logger for this class
 	 */
 	private static final Logger LOGGER =
-	        Logger.getLogger(BDBIndexUpdater.class.getName());
+	        Logger.getLogger(LocalResourceIndexUpdater.class.getName());
 
 	private final static int DEFAULT_RUN_INTERVAL_MS = 10000;
 
@@ -79,14 +79,14 @@ public class BDBIndexUpdater {
 	/**
 	 * Default constructor
 	 */
-	public BDBIndexUpdater() {
+	public LocalResourceIndexUpdater() {
 		
 	}
 	/**
 	 * @param index
 	 * @param incoming
 	 */
-	public BDBIndexUpdater(BDBIndex index, File incoming) {
+	public LocalResourceIndexUpdater(BDBIndex index, File incoming) {
 		this.index = index;
 		this.incoming = incoming;
 	}
@@ -365,7 +365,7 @@ public class BDBIndexUpdater {
 		/**
 		 * object which merges CDX files with the BDBResourceIndex
 		 */
-		private BDBIndexUpdater updater = null;
+		private LocalResourceIndexUpdater updater = null;
 
 		private int runInterval;
 
@@ -373,7 +373,7 @@ public class BDBIndexUpdater {
 		 * @param updater
 		 * @param runInterval
 		 */
-		public BDBIndexUpdaterThread(BDBIndexUpdater updater, int runInterval) {
+		public BDBIndexUpdaterThread(LocalResourceIndexUpdater updater, int runInterval) {
 			super("BDBIndexUpdaterThread");
 			super.setDaemon(true);
 			this.updater = updater;
