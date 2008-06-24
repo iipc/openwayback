@@ -26,12 +26,12 @@ package org.archive.wayback.archivalurl;
 
 import java.util.List;
 
+import org.archive.wayback.ReplayDispatcher;
 import org.archive.wayback.ReplayRenderer;
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.WaybackRequest;
-import org.archive.wayback.replay.BaseReplayDispatcher;
 import org.archive.wayback.replay.DateRedirectReplayRenderer;
 
 /**
@@ -40,8 +40,7 @@ import org.archive.wayback.replay.DateRedirectReplayRenderer;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class ArchivalUrlReplayDispatcher 
-	extends BaseReplayDispatcher {
+public class ArchivalUrlReplayDispatcher implements ReplayDispatcher {
 
 	/**
 	 * MIME type of documents which should be marked up with javascript to
@@ -69,9 +68,8 @@ public class ArchivalUrlReplayDispatcher
 		new ArchivalUrlASXReplayRenderer();
 
 	/* (non-Javadoc)
-	 * @see org.archive.wayback.replay.ReplayRendererDispatcher#getRenderer(org.archive.wayback.core.WaybackRequest, org.archive.wayback.core.SearchResult, org.archive.wayback.core.Resource)
+	 * @see org.archive.wayback.ReplayDispatcher#getRenderer(org.archive.wayback.core.WaybackRequest, org.archive.wayback.core.SearchResult, org.archive.wayback.core.Resource)
 	 */
-	@Override
 	public ReplayRenderer getRenderer(WaybackRequest wbRequest,
 			SearchResult result, Resource resource) {
 

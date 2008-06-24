@@ -24,27 +24,27 @@
  */
 package org.archive.wayback.proxy;
 
+import org.archive.wayback.ReplayDispatcher;
 import org.archive.wayback.ReplayRenderer;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.WaybackRequest;
-import org.archive.wayback.replay.BaseReplayDispatcher;
 import org.archive.wayback.replay.TransparentReplayRenderer;
 
 /**
- *
+ * Trivial Replay dispatcher implementation, generally used in Proxy mode, that
+ * sends all documents back as-is.
  *
  * @author brad
  * @version $Date$, $Revision$
  */
-public class ProxyReplayDispatcher extends BaseReplayDispatcher {
+public class ProxyReplayDispatcher implements ReplayDispatcher {
 
 	private ReplayRenderer renderer = new TransparentReplayRenderer();
-	
+
 	/* (non-Javadoc)
-	 * @see org.archive.wayback.replay.ReplayRendererDispatcher#getRenderer(org.archive.wayback.core.WaybackRequest, org.archive.wayback.core.SearchResult, org.archive.wayback.core.Resource)
+	 * @see org.archive.wayback.ReplayDispatcher#getRenderer(org.archive.wayback.core.WaybackRequest, org.archive.wayback.core.SearchResult, org.archive.wayback.core.Resource)
 	 */
-	@Override
 	public ReplayRenderer getRenderer(WaybackRequest wbRequest,
 			SearchResult result, Resource resource) {
 		// always use the transparent:

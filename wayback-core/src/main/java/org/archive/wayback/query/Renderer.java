@@ -35,20 +35,18 @@ import org.archive.wayback.QueryRenderer;
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.SearchResults;
-import org.archive.wayback.core.UIResults;
 import org.archive.wayback.core.WaybackRequest;
-import org.archive.wayback.exception.WaybackException;
 
 /**
- *
+ * Brain-dead simple QueryRenderer implementation, which shunts all the work off
+ * to a .jsp file as defined by administrators. Also has basic logic to switch
+ * to a different .jsp to format request asking for XML data. 
  *
  * @author brad
  * @version $Date$, $Revision$
  */
 public class Renderer implements QueryRenderer {
 
-	private String errorJsp = "/jsp/HTMLError.jsp";
-	private String xmlErrorJsp = "/jsp/XMLError.jsp";
 	private String captureJsp = "/jsp/HTMLResults.jsp";
 	private String urlJsp = "/jsp/HTMLResults.jsp";
 	private String xmlJsp = "/jsp/XMLResults.jsp";
@@ -66,21 +64,6 @@ public class Renderer implements QueryRenderer {
 
 		RequestDispatcher dispatcher = request.getRequestDispatcher(jspPath);
 		dispatcher.forward(request, response);
-	}
-
-	public void renderException(HttpServletRequest httpRequest,
-			HttpServletResponse httpResponse, WaybackRequest wbRequest,
-			WaybackException exception) throws ServletException, IOException {
-
-		httpRequest.setAttribute("exception", exception);
-		UIResults uiResults = new UIResults(wbRequest);
-		String jsp = errorJsp;
-		if(wbRequest.containsKey(WaybackConstants.REQUEST_XML_DATA)) {
-			jsp = xmlErrorJsp;
-		}
-		uiResults.storeInRequest(httpRequest,jsp);
-
-		proxyRequest(httpRequest,httpResponse,jsp);
 	}
 
 	public void renderUrlResults(HttpServletRequest httpRequest,
@@ -121,20 +104,6 @@ public class Renderer implements QueryRenderer {
 	}
 
 	/**
-	 * @return the errorJsp
-	 */
-	public String getErrorJsp() {
-		return errorJsp;
-	}
-
-	/**
-	 * @param errorJsp the errorJsp to set
-	 */
-	public void setErrorJsp(String errorJsp) {
-		this.errorJsp = errorJsp;
-	}
-
-	/**
 	 * @return the captureJsp
 	 */
 	public String getCaptureJsp() {
@@ -160,5 +129,19 @@ public class Renderer implements QueryRenderer {
 	 */
 	public void setUrlJsp(String urlJsp) {
 		this.urlJsp = urlJsp;
+	}
+
+	/**
+	 * @return the xmlJsp
+	 */
+	public String getXmlJsp() {
+		return xmlJsp;
+	}
+
+	/**
+	 * @param xmlJsp the xmlJsp to set
+	 */
+	public void setXmlJsp(String xmlJsp) {
+		this.xmlJsp = xmlJsp;
 	}
 }

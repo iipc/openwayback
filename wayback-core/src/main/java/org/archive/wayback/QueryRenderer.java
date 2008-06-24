@@ -32,7 +32,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.WaybackRequest;
-import org.archive.wayback.exception.WaybackException;
 
 /**
  * 
@@ -42,20 +41,6 @@ import org.archive.wayback.exception.WaybackException;
  */
 public interface QueryRenderer {
 	
-	/**
-	 * Render the contents of a WaybackException in either xml or html format.
-	 * 
-	 * @param httpRequest
-	 * @param httpResponse
-	 * @param wbRequest
-	 * @param exception
-	 * @throws ServletException
-	 * @throws IOException
-	 */
-	public void renderException(HttpServletRequest httpRequest,
-			HttpServletResponse httpResponse, WaybackRequest wbRequest,
-			WaybackException exception) throws ServletException, IOException;
-
 	/** Show the SearchResults of the request for this particular URL
 	 *  
 	 * @param httpRequest the HttpServletRequest

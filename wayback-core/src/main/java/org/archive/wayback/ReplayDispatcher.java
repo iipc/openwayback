@@ -24,14 +24,9 @@
  */
 package org.archive.wayback;
 
-import java.io.IOException;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import org.archive.wayback.core.Resource;
+import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.WaybackRequest;
-import org.archive.wayback.exception.WaybackException;
 
 /**
  *
@@ -39,21 +34,16 @@ import org.archive.wayback.exception.WaybackException;
  * @author brad
  * @version $Date$, $Revision$
  */
-public interface ReplayDispatcher extends ReplayRenderer {
+public interface ReplayDispatcher {
 	/**
-	 * Render the contents of a WaybackException in either html, javascript, or
-	 * css format, depending on the guessed context, so errors in embedded 
-	 * documents do not cause unneeded errors in the embedding document.
 	 * 
-	 * @param httpRequest
-	 * @param httpResponse
+	 * Return a ReplayRenderer appropriate for the Resource.
+	 * 
 	 * @param wbRequest
-	 * @param exception
-	 * @throws ServletException
-	 * @throws IOException
+	 * @param result
+	 * @param resource
+	 * @return the correct ReplayRenderer for the Resource
 	 */
-	public void renderException(HttpServletRequest httpRequest,
-			HttpServletResponse httpResponse, WaybackRequest wbRequest,
-			WaybackException exception) throws ServletException, IOException;
-
+	public ReplayRenderer getRenderer(WaybackRequest wbRequest,
+			SearchResult result, Resource resource);
 }

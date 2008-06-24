@@ -24,12 +24,12 @@
  */
 package org.archive.wayback.domainprefix;
 
+import org.archive.wayback.ReplayDispatcher;
 import org.archive.wayback.ReplayRenderer;
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.WaybackRequest;
-import org.archive.wayback.replay.BaseReplayDispatcher;
 import org.archive.wayback.replay.DateRedirectReplayRenderer;
 import org.archive.wayback.replay.TransparentReplayRenderer;
 
@@ -39,7 +39,7 @@ import org.archive.wayback.replay.TransparentReplayRenderer;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class DomainPrefixReplayDispatcher extends BaseReplayDispatcher  {
+public class DomainPrefixReplayDispatcher implements ReplayDispatcher  {
 
 	private final static String TEXT_HTML_MIME = "text/html";
 	private final static String TEXT_XHTML_MIME = "application/xhtml";
@@ -53,9 +53,8 @@ public class DomainPrefixReplayDispatcher extends BaseReplayDispatcher  {
 	private DomainPrefixReplayRenderer html = new DomainPrefixReplayRenderer();
 	
 	/* (non-Javadoc)
-	 * @see org.archive.wayback.replay.BaseReplayDispatcher#getRenderer(org.archive.wayback.core.WaybackRequest, org.archive.wayback.core.SearchResult, org.archive.wayback.core.Resource)
+	 * @see org.archive.wayback.ReplayDispatcher#getRenderer(org.archive.wayback.core.WaybackRequest, org.archive.wayback.core.SearchResult, org.archive.wayback.core.Resource)
 	 */
-	@Override
 	public ReplayRenderer getRenderer(WaybackRequest wbRequest,
 			SearchResult result, Resource resource) {
 		// if the result is not for the exact date requested, redirect to the

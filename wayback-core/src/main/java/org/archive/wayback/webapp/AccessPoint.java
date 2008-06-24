@@ -33,8 +33,10 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.archive.wayback.ExceptionRenderer;
 import org.archive.wayback.QueryRenderer;
 import org.archive.wayback.ReplayDispatcher;
+import org.archive.wayback.ReplayRenderer;
 import org.archive.wayback.RequestParser;
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.WaybackConstants;
@@ -46,7 +48,7 @@ import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.UIResults;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.AuthenticationControlException;
-import org.archive.wayback.exception.BadQueryException;
+import org.archive.wayback.exception.BaseExceptionRenderer;
 import org.archive.wayback.exception.ResourceNotAvailableException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.exception.WaybackException;
@@ -76,6 +78,7 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 	private String contextName = null;
 	private WaybackCollection collection = null;
 	private ReplayDispatcher replay = null;
+	private ExceptionRenderer exception = new BaseExceptionRenderer();
 	private QueryRenderer query = null;
 	private RequestParser parser = null;
 	private ResultURIConverter uriConverter = null;
@@ -287,10 +290,9 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 				handled = dispatchLocal(httpRequest,httpResponse);
 			}
 
-		} catch (BadQueryException e) {
-			query.renderException(httpRequest, httpResponse, wbRequest, e);
-		} catch (AuthenticationControlException e) {
-			query.renderException(httpRequest, httpResponse, wbRequest, e);
+		} catch(WaybackException e) {
+			logNotInArchive(e,wbRequest);
+			exception.renderException(httpRequest, httpResponse, wbRequest, e);
 		}
 
 		return handled;
@@ -298,7 +300,7 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 
 	private void handleReplay(WaybackRequest wbRequest, 
 			HttpServletRequest httpRequest, HttpServletResponse httpResponse) 
-	throws IOException, ServletException {
+	throws IOException, ServletException, WaybackException {
 		Resource resource = null;
 		try {
 			SearchResults results = collection.getResourceIndex().query(wbRequest);
@@ -310,12 +312,9 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 			// TODO: check which versions are actually accessible right now?
 			SearchResult closest = captureResults.getClosest(wbRequest);
 			resource = collection.getResourceStore().retrieveResource(closest);
-	
-			replay.renderResource(httpRequest, httpResponse, wbRequest,
+			ReplayRenderer renderer = replay.getRenderer(wbRequest, closest, resource);
+			renderer.renderResource(httpRequest, httpResponse, wbRequest,
 					closest, resource, uriConverter, captureResults);
-		} catch(WaybackException e) {
-			logNotInArchive(e,wbRequest);
-			replay.renderException(httpRequest, httpResponse, wbRequest, e);
 		} finally {
 			if(resource != null) {
 				resource.close();
@@ -325,26 +324,21 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 
 	private void handleQuery(WaybackRequest wbRequest, 
 			HttpServletRequest httpRequest, HttpServletResponse httpResponse) 
-	throws ServletException, IOException {
+	throws ServletException, IOException, WaybackException {
 
-		try {
-			SearchResults results = collection.getResourceIndex().query(wbRequest);
-			if(results.getResultsType().equals(
-					WaybackConstants.RESULTS_TYPE_CAPTURE)) {
-				CaptureSearchResults cResults = (CaptureSearchResults) results;
-				SearchResult closest = cResults.getClosest(wbRequest);
-				closest.put(WaybackConstants.RESULT_CLOSEST_INDICATOR, 
-						WaybackConstants.RESULT_CLOSEST_VALUE);
-				query.renderUrlResults(httpRequest,httpResponse,wbRequest,
-						results,uriConverter);
+		SearchResults results = collection.getResourceIndex().query(wbRequest);
+		if(results.getResultsType().equals(
+				WaybackConstants.RESULTS_TYPE_CAPTURE)) {
+			CaptureSearchResults cResults = (CaptureSearchResults) results;
+			SearchResult closest = cResults.getClosest(wbRequest);
+			closest.put(WaybackConstants.RESULT_CLOSEST_INDICATOR, 
+					WaybackConstants.RESULT_CLOSEST_VALUE);
+			query.renderUrlResults(httpRequest,httpResponse,wbRequest,
+					results,uriConverter);
 
-			} else {
-				query.renderUrlPrefixResults(httpRequest,httpResponse,wbRequest,
-						results,uriConverter);
-			}
-		} catch(WaybackException e) {
-			logNotInArchive(e,wbRequest);
-			query.renderException(httpRequest, httpResponse, wbRequest, e);
+		} else {
+			query.renderUrlPrefixResults(httpRequest,httpResponse,wbRequest,
+					results,uriConverter);
 		}
 	}
 	
@@ -355,6 +349,7 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 	}
 	
 	private void logNotInArchive(WaybackException e, WaybackRequest r) {
+		// TODO: move this into ResourceNotInArchiveException constructor
 		if(e instanceof ResourceNotInArchiveException) {
 			String url = r.get(WaybackConstants.REQUEST_URL);
 			StringBuilder sb = new StringBuilder(100);
@@ -467,5 +462,13 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 
 	public void setCollection(WaybackCollection collection) {
 		this.collection = collection;
+	}
+
+	public ExceptionRenderer getException() {
+		return exception;
+	}
+
+	public void setException(ExceptionRenderer exception) {
+		this.exception = exception;
 	}
 }
