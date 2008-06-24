@@ -24,6 +24,7 @@
  */
 package org.archive.wayback.resourceindex.bdb;
 
+import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.bdb.BDBRecord;
 import org.archive.wayback.bdb.BDBRecordSet;
@@ -47,7 +48,13 @@ public class SearchResultToBDBRecordAdapter implements
 
 	BDBRecord record = new BDBRecord(key, value);
 
+	private UrlCanonicalizer canonicalizer = null;
+
 	private final static String DELIMITER = " ";
+	
+	public SearchResultToBDBRecordAdapter(UrlCanonicalizer canonicalizer) {
+		this.canonicalizer = canonicalizer;
+	}
 	
 	/*
 	 * (non-Javadoc)

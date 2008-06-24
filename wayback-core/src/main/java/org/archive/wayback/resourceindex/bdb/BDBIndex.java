@@ -30,18 +30,21 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.Iterator;
 
+import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.bdb.BDBRecord;
 import org.archive.wayback.bdb.BDBRecordSet;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
-import org.archive.wayback.resourceindex.SearchResultSource;
+import org.archive.wayback.resourceindex.UpdatableSearchResultSource;
 import org.archive.wayback.resourceindex.cdx.CDXLineToSearchResultAdapter;
 import org.archive.wayback.resourceindex.cdx.SearchResultToCDXLineAdapter;
+import org.archive.wayback.resourceindex.updater.BDBIndexUpdater;
 import org.archive.wayback.util.AdaptedIterator;
 import org.archive.wayback.util.Adapter;
 import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.flatfile.RecordIterator;
+import org.archive.wayback.util.url.AggressiveUrlCanonicalizer;
 
 import com.sleepycat.je.DatabaseException;
 
@@ -51,7 +54,9 @@ import com.sleepycat.je.DatabaseException;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class BDBIndex extends BDBRecordSet implements SearchResultSource {
+public class BDBIndex extends BDBRecordSet implements 
+		UpdatableSearchResultSource {
+	
 	private String bdbPath = null;
 	private String bdbName = null;
 	private BDBIndexUpdater updater = null;
@@ -107,7 +112,22 @@ public class BDBIndex extends BDBRecordSet implements SearchResultSource {
 	public void cleanup(CloseableIterator<SearchResult> c) throws IOException {
 		c.close();
 	}
-	
+
+	/* (non-Javadoc)
+	 * @see org.archive.wayback.resourceindex.UpdatableSearchResultSource#addSearchResults(java.util.Iterator)
+	 */
+	public void addSearchResults(Iterator<SearchResult> itr, 
+			UrlCanonicalizer canonicalizer) throws IOException {
+		Adapter<SearchResult,BDBRecord> adapterSRtoBDB = 
+			new SearchResultToBDBRecordAdapter(canonicalizer);
+
+		Iterator<BDBRecord> itrBDB =
+			new AdaptedIterator<SearchResult,BDBRecord>(itr,
+					adapterSRtoBDB);
+
+		insertRecords(itrBDB);
+		
+	}
 	private static void USAGE() {
 		System.err.println("Usage: DBPATH DBNAME -w");
 		System.err.println("\tRead lines from STDIN, inserting into BDBJE at\n" +
@@ -133,7 +153,7 @@ public class BDBIndex extends BDBRecordSet implements SearchResultSource {
 		String name = args[1];
 		String op = args[2];
 		BDBIndex index = new BDBIndex();
-
+		UrlCanonicalizer canonicalizer = new AggressiveUrlCanonicalizer();
 		try {
 			index.initializeDB(path,name);
 		} catch (DatabaseException e) {
@@ -204,14 +224,20 @@ public class BDBIndex extends BDBRecordSet implements SearchResultSource {
 			Iterator<SearchResult> itrSR = 
 				new AdaptedIterator<String,SearchResult>(itrS,adapterStoSR);
 			
-			Adapter<SearchResult,BDBRecord> adapterSRtoBDB = 
-				new SearchResultToBDBRecordAdapter();
-
-			Iterator<BDBRecord> itrBDB =
-				new AdaptedIterator<SearchResult,BDBRecord>(itrSR,
-						adapterSRtoBDB);
-
-			index.insertRecords(itrBDB);
+//			Adapter<SearchResult,BDBRecord> adapterSRtoBDB = 
+//				new SearchResultToBDBRecordAdapter();
+//
+//			Iterator<BDBRecord> itrBDB =
+//				new AdaptedIterator<SearchResult,BDBRecord>(itrSR,
+//						adapterSRtoBDB);
+//
+//			index.insertRecords(itrBDB);
+			try {
+				index.addSearchResults(itrSR, canonicalizer);
+			} catch (IOException e) {
+				e.printStackTrace();
+				System.exit(1);
+			}
 		} else {
 			USAGE();
 		}

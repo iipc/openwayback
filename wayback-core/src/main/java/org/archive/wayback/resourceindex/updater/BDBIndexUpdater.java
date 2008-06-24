@@ -22,7 +22,7 @@
  * along with Wayback; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-package org.archive.wayback.resourceindex.bdb;
+package org.archive.wayback.resourceindex.updater;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,6 +32,8 @@ import java.util.logging.Logger;
 import org.archive.wayback.bdb.BDBRecord;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.exception.ConfigurationException;
+import org.archive.wayback.resourceindex.bdb.BDBIndex;
+import org.archive.wayback.resourceindex.bdb.SearchResultToBDBRecordAdapter;
 import org.archive.wayback.resourceindex.cdx.CDXLineToSearchResultAdapter;
 //import org.archive.wayback.resourcestore.ArcIndexer;
 import org.archive.wayback.util.AdaptedIterator;
