@@ -22,7 +22,7 @@
  * along with Wayback; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-package org.archive.wayback.resourceindex.indexer;
+package org.archive.wayback.resourceindex.updater;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
