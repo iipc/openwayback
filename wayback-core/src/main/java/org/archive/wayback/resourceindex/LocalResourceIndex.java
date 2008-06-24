@@ -81,6 +81,8 @@ public class LocalResourceIndex implements ResourceIndex {
 	private UrlCanonicalizer canonicalizer = null;
 	
 	private boolean dedupeRecords = false;
+	
+	private ObjectFilter<SearchResult> annotater = null;
 
 	public LocalResourceIndex() {
 		canonicalizer = new AggressiveUrlCanonicalizer();
@@ -285,7 +287,9 @@ public class LocalResourceIndex implements ResourceIndex {
 			forwardFilters.addFilter(new WindowEndFilter(resultsPerPage));
 //			int resultsPerDirection = (int) Math.floor(resultsPerPage / 2);
 //			reverseFilters.addFilter(new WindowEndFilter(resultsPerDirection));
-
+			if(annotater != null) {
+				forwardFilters.addFilter(annotater);
+			}
 			startKey = keyUrl;
 
 			try {
@@ -349,6 +353,9 @@ public class LocalResourceIndex implements ResourceIndex {
 			// add the start and end windowing filters:
 			filters.addFilter(new WindowStartFilter(startResult));
 			filters.addFilter(new WindowEndFilter(resultsPerPage));
+			if(annotater != null) {
+				filters.addFilter(annotater);
+			}
 			try {
 				filterRecords(source.getPrefixIterator(startKey), filters, results,
 						true);
@@ -384,6 +391,9 @@ public class LocalResourceIndex implements ResourceIndex {
 			// add the start and end windowing filters:
 			filters.addFilter(new WindowStartFilter(startResult));
 			filters.addFilter(new WindowEndFilter(resultsPerPage));
+			if(annotater != null) {
+				filters.addFilter(annotater);
+			}
 			try {
 				filterRecords(source.getPrefixIterator(startKey), filters, results,
 						true);
@@ -467,5 +477,13 @@ public class LocalResourceIndex implements ResourceIndex {
 
 	public void shutdown() throws IOException {
 		source.shutdown();
+	}
+
+	public ObjectFilter<SearchResult> getAnnotater() {
+		return annotater;
+	}
+
+	public void setAnnotater(ObjectFilter<SearchResult> annotater) {
+		this.annotater = annotater;
 	}
 }
