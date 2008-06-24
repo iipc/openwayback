@@ -333,6 +333,26 @@ public class TagMagixTest extends TestCase {
 		checkCSSMarkup("@import 'http://foo.com/f.css';",
 				"@import 'http://web.archive.org/wayback/2004/http://foo.com/f.css';",
 				"http://web.archive.org/wayback/","2004","http://foo.com/");
+
+		checkCSSMarkup("@import \"http://foo.com/f.css\"; @import url( http://foo.com/f.css);",
+				"@import \"http://web.archive.org/wayback/2004/http://foo.com/f.css\"; @import url( http://web.archive.org/wayback/2004/http://foo.com/f.css);",
+				"http://web.archive.org/wayback/","2004","http://foo.com/");
+
+		checkCSSMarkup("@import \"http://foo.com/f.css\";\n@import url( http://foo.com/f.css);",
+				"@import \"http://web.archive.org/wayback/2004/http://foo.com/f.css\";\n@import url( http://web.archive.org/wayback/2004/http://foo.com/f.css);",
+				"http://web.archive.org/wayback/","2004","http://foo.com/");
+
+		checkCSSMarkup("@import url( http://foo.com/f.css);\n@import \"http://foo.com/f.css\";",
+				"@import url( http://web.archive.org/wayback/2004/http://foo.com/f.css);\n@import \"http://web.archive.org/wayback/2004/http://foo.com/f.css\";",
+				"http://web.archive.org/wayback/","2004","http://foo.com/");
+
+		checkCSSMarkup("background: #9caad1 url('/~alabama/images/bg.jpg') 0 0 repeat-y;",
+				"background: #9caad1 url('http://web.archive.org/wayback/2004/http://foo.com/~alabama/images/bg.jpg') 0 0 repeat-y;",
+				"http://web.archive.org/wayback/","2004","http://foo.com/");
+
+		checkCSSMarkup("background: #9caad1 url('/~alabama/images/bg.jpg') 0 0 repeat-y;",
+				"background: #9caad1 url('http://web.archive.org/wayback/2004/http://foo.com/~alabama/images/bg.jpg') 0 0 repeat-y;",
+				"http://web.archive.org/wayback/","2004","http://foo.com/b/");
 		
 	}
 	
