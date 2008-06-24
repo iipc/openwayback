@@ -126,7 +126,7 @@ public class ArchivalUrlReplayRenderer implements ReplayRenderer, HttpHeaderProc
 	}
 
 	/* (non-Javadoc)
-	 * @see org.archive.wayback.replay.HeaderFilter#filter(java.util.Map, java.lang.String, java.lang.String, org.archive.wayback.ResultURIConverter, org.archive.wayback.core.SearchResult)
+	 * @see org.archive.wayback.replay.HttpHeaderProcessor#filter(java.util.Map, java.lang.String, java.lang.String, org.archive.wayback.ResultURIConverter, org.archive.wayback.core.SearchResult)
 	 */
 	public void filter(Map<String, String> output, String key, String value,
 			ResultURIConverter uriConverter, SearchResult result) {
