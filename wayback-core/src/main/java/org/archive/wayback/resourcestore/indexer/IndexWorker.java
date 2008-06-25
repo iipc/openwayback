@@ -29,7 +29,7 @@ import java.util.logging.Logger;
 
 import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.core.SearchResult;
-import org.archive.wayback.resourceindex.indexer.IndexClient;
+import org.archive.wayback.resourceindex.updater.IndexClient;
 import org.archive.wayback.resourcestore.ArcIndexer;
 import org.archive.wayback.resourcestore.WarcIndexer;
 import org.archive.wayback.resourcestore.locationdb.ResourceFileLocationDB;
