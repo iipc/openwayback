@@ -8,7 +8,7 @@ import java.util.Iterator;
 import java.util.logging.Logger;
 
 import org.archive.wayback.core.SearchResult;
-import org.archive.wayback.resourceindex.indexer.IndexClient;
+import org.archive.wayback.resourceindex.updater.IndexClient;
 import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.DirMaker;
 
