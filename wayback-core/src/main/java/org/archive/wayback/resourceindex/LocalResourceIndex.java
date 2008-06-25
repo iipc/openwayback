@@ -445,6 +445,22 @@ public class LocalResourceIndex implements ResourceIndex {
 		return results;
 	}
 
+	public void addSearchResults(Iterator<SearchResult> itr) throws IOException,
+		UnsupportedOperationException {
+		if(source instanceof UpdatableSearchResultSource) {
+			UpdatableSearchResultSource updatable = 
+				(UpdatableSearchResultSource) source;
+			updatable.addSearchResults(itr,canonicalizer);
+		} else {
+			throw new UnsupportedOperationException("Underlying " +
+					"SearchResultSource is not Updatable.");
+		}
+	}
+
+	public boolean isUpdatable() {
+		return (source instanceof UpdatableSearchResultSource);
+	}
+	
 	/**
 	 * @param maxRecords the maxRecords to set
 	 */
