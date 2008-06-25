@@ -24,6 +24,9 @@
  */
 package org.archive.wayback.resourceindex.bdb;
 
+import java.util.logging.Logger;
+
+import org.apache.commons.httpclient.URIException;
 import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.bdb.BDBRecord;
@@ -41,7 +44,9 @@ import com.sleepycat.je.DatabaseEntry;
  */
 public class SearchResultToBDBRecordAdapter implements 
 	Adapter<SearchResult,BDBRecord> {
-
+	private static final Logger LOGGER =
+        Logger.getLogger(SearchResultToBDBRecordAdapter.class.getName());
+	
 	DatabaseEntry key = new DatabaseEntry();
 
 	DatabaseEntry value = new DatabaseEntry();
@@ -65,8 +70,16 @@ public class SearchResultToBDBRecordAdapter implements
 		StringBuilder keySB = new StringBuilder(40);
 		StringBuilder valSB = new StringBuilder(100);
 		
-		
-		keySB.append(result.get(WaybackConstants.RESULT_URL_KEY));
+		String origUrl = result.getAbsoluteUrl();
+		String urlKey;
+		try {
+			urlKey = canonicalizer.urlStringToKey(origUrl);
+		} catch (URIException e) {
+//			e.printStackTrace();
+			LOGGER.warning("FAILED canonicalize(" + origUrl +")");
+			urlKey = origUrl;
+		}
+		keySB.append(urlKey);
 		keySB.append(DELIMITER);
 		keySB.append(result.get(WaybackConstants.RESULT_CAPTURE_DATE));
 		keySB.append(DELIMITER);
