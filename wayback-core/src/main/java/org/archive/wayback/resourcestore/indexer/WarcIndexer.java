@@ -1,4 +1,4 @@
-package org.archive.wayback.resourcestore;
+package org.archive.wayback.resourcestore.indexer;
 
 import java.io.File;
 import java.io.IOException;
