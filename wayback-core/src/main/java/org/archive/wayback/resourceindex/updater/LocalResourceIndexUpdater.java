@@ -26,17 +26,14 @@ package org.archive.wayback.resourceindex.updater;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.logging.Logger;
 
-import org.archive.wayback.bdb.BDBRecord;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.exception.ConfigurationException;
-import org.archive.wayback.resourceindex.bdb.BDBIndex;
-import org.archive.wayback.resourceindex.bdb.SearchResultToBDBRecordAdapter;
+import org.archive.wayback.resourceindex.LocalResourceIndex;
 import org.archive.wayback.resourceindex.cdx.CDXLineToSearchResultAdapter;
-//import org.archive.wayback.resourcestore.ArcIndexer;
 import org.archive.wayback.util.AdaptedIterator;
+import org.archive.wayback.util.DirMaker;
 import org.archive.wayback.util.flatfile.FlatFile;
 
 /**
@@ -60,7 +57,7 @@ public class LocalResourceIndexUpdater {
 
 	private final static int DEFAULT_RUN_INTERVAL_MS = 10000;
 
-	private BDBIndex index = null;
+	private LocalResourceIndex index = null;
 
 	private File incoming = null;
 
@@ -77,77 +74,24 @@ public class LocalResourceIndexUpdater {
 	private Thread updateThread = null;
 
 	/**
-	 * Default constructor
-	 */
-	public LocalResourceIndexUpdater() {
-		
-	}
-	/**
-	 * @param index
-	 * @param incoming
-	 */
-	public LocalResourceIndexUpdater(BDBIndex index, File incoming) {
-		this.index = index;
-		this.incoming = incoming;
-	}
-
-	/**
 	 * start the background index merging thread
 	 * @throws ConfigurationException
 	 */
 	public void init() throws ConfigurationException {
 		if(index == null) {
-			throw new ConfigurationException("No index target on bdb updater");
+			throw new ConfigurationException("No index target");
+		}
+		if(!index.isUpdatable()) {
+			throw new ConfigurationException("ResourceIndex is not updatable");
 		}
 		if(incoming == null) {
-			throw new ConfigurationException("No incoming on bdb updater");			
+			throw new ConfigurationException("No incoming");			
 		}
-		startUpdateThread();
-	}
-	
-	/** Ensure the argument directory exists
-	 * @param dir
-	 * @throws IOException
-	 */
-	private void ensureDir(File dir) throws IOException {
-		if (!dir.isDirectory() && !dir.mkdirs()) {
-			throw new IOException("FAILED to create " + dir.getAbsolutePath());
+		if(runInterval > 0) {
+			updateThread = new UpdateThread(this,runInterval);
+			updateThread.start();
 		}
 	}
-	
-	/**
-	 * start a background thread that merges new CDX files in incoming into
-	 * the BDBIndex. 
-	 * 
-	 * @throws ConfigurationException
-	 */
-	public void startup() throws ConfigurationException {
-		try {
-			ensureDir(incoming);
-			if(merged != null) ensureDir(merged);
-			if(failed != null) ensureDir(failed);
-		} catch (IOException e) {
-			e.printStackTrace();
-			throw new ConfigurationException(e.getMessage());
-		}
-		
-		if (updateThread == null) {
-			startUpdateThread();
-		}
-	}
-	
-	/**
-	 * start the BDBIndexUpdaterThread thread, which will scan for new cdx files
-	 * in the incoming directory, and add them to the BDBIndex.
-	 */
-	private synchronized void startUpdateThread() {
-		if (updateThread != null) {
-			return;
-		}
-		updateThread = new BDBIndexUpdaterThread(this,runInterval);
-		updateThread.start();
-	}
-
 
 	private boolean mergeFile(File cdxFile) {
 		boolean added = false;
@@ -157,10 +101,7 @@ public class LocalResourceIndexUpdater {
 				new AdaptedIterator<String,SearchResult>(
 						ffile.getSequentialIterator(),
 					new CDXLineToSearchResultAdapter());
-			Iterator<BDBRecord> it = new AdaptedIterator<SearchResult,BDBRecord>
-				(searchResultItr,new SearchResultToBDBRecordAdapter());
-
-			index.insertRecords(it);
+			index.addSearchResults(searchResultItr);
 			added = true;
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -180,25 +121,6 @@ public class LocalResourceIndexUpdater {
 			target = new File(targetDir,f.getName() + "." + x);
 		}
 		return target;
-	}
-
-	private File ensureDir(String path) throws ConfigurationException {
-		if(path.length() < 1) {
-			throw new ConfigurationException("Empty directory path");
-		}
-		File dir = new File(path);
-		if(dir.exists()) {
-			if(!dir.isDirectory()) {
-				throw new ConfigurationException("path " + path + "exists" +
-						"but is not a directory");
-			}
-		} else {
-			if(!dir.mkdirs()) {
-				throw new ConfigurationException("unable to create directory" +
-						" at " + path);
-			}
-		}
-		return dir;
 	}
 
 	private void handleMerged(File f) {
@@ -260,86 +182,60 @@ public class LocalResourceIndexUpdater {
 	/**
 	 * @return the index
 	 */
-	public BDBIndex getIndex() {
+	public LocalResourceIndex getIndex() {
 		return index;
 	}
 
 	/**
 	 * @param index the index to set
 	 */
-	public void setIndex(BDBIndex index) {
+	public void setIndex(LocalResourceIndex index) {
 		this.index = index;
 	}
 
 	/**
-	 * @return the incoming
+	 * @return the incoming directory path, or null if not set 
 	 */
 	public String getIncoming() {
-		if(incoming == null) {
-			return null;
-		}
-		return incoming.getAbsolutePath();
+		return DirMaker.getAbsolutePath(incoming);
 	}
 
 	/**
 	 * @param incoming the incoming to set
-	 * @throws ConfigurationException 
+	 * @throws IOException 
 	 */
-	public void setIncoming(String incoming) throws ConfigurationException {
-		this.incoming = ensureDir(incoming);
+	public void setIncoming(String incoming) throws IOException {
+		this.incoming = DirMaker.ensureDir(incoming);
 	}
 
-
 	/**
-	 * @return the merged
+	 * @return the merged directory path, or null if not set
 	 */
 	public String getMerged() {
-		if(merged == null) {
-			return null;
-		}
-		return merged.getAbsolutePath();
+		return DirMaker.getAbsolutePath(merged);
 	}
 
-	/**
-	 * @param merged The merged to set.
-	 * @throws ConfigurationException 
-	 */
-	public void setMerged(String merged) throws ConfigurationException {
-		this.merged = ensureDir(merged);
-	}
 	/**
 	 * @param merged
 	 * @throws IOException
 	 */
-	public void setMerged(File merged) throws IOException {
-		ensureDir(merged);
-		this.merged = merged;
+	public void setMerged(String merged) throws IOException {
+		this.merged = DirMaker.ensureDir(merged);
 	}
 
 	/**
-	 * @return the failed
+	 * @return the failed directory path, or null if not set
 	 */
 	public String getFailed() {
-		if(failed == null) {
-			return null;
-		}
-		return failed.getAbsolutePath();
+		return DirMaker.getAbsolutePath(failed);
 	}
 
 	/**
 	 * @param failed The failed to set.
-	 * @throws ConfigurationException 
+	 * @throws IOException 
 	 */
-	public void setFailed(String failed) throws ConfigurationException {
-		this.failed = ensureDir(failed);
-	}
-	/**
-	 * @param failed
-	 * @throws IOException
-	 */
-	public void setFailed(File failed) throws IOException {
-		ensureDir(failed);
-		this.failed = failed;
+	public void setFailed(String failed) throws IOException {
+		this.failed = DirMaker.ensureDir(failed);
 	}
 
 	/**
@@ -355,13 +251,14 @@ public class LocalResourceIndexUpdater {
 	public void setRunInterval(int runInterval) {
 		this.runInterval = runInterval;
 	}
+
 	/**
 	 * Thread that repeatedly calls mergeAll on the BDBIndexUpdater.
 	 * 
 	 * @author Brad Tofel
 	 * @version $Date$, $Revision$
 	 */
-	private class BDBIndexUpdaterThread extends Thread {
+	private class UpdateThread extends Thread {
 		/**
 		 * object which merges CDX files with the BDBResourceIndex
 		 */
@@ -373,12 +270,14 @@ public class LocalResourceIndexUpdater {
 		 * @param updater
 		 * @param runInterval
 		 */
-		public BDBIndexUpdaterThread(LocalResourceIndexUpdater updater, int runInterval) {
-			super("BDBIndexUpdaterThread");
+		public UpdateThread(LocalResourceIndexUpdater updater,
+				int runInterval) {
+			
+			super("LocalResourceIndexUpdater.UpdateThread");
 			super.setDaemon(true);
 			this.updater = updater;
 			this.runInterval = runInterval;
-			LOGGER.info("BDBIndexUpdaterThread is alive.");
+			LOGGER.info("LocalResourceIndexUpdater.UpdateThread is alive.");
 		}
 
 		public void run() {
