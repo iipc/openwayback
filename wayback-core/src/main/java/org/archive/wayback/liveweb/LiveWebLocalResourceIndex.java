@@ -24,13 +24,11 @@
  */
 package org.archive.wayback.liveweb;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.resourceindex.LocalResourceIndex;
-import org.archive.wayback.resourceindex.bdb.BDBIndex;
-import org.archive.wayback.resourceindex.bdb.SearchResultToBDBRecordAdapter;
-import org.archive.wayback.util.AdaptedIterator;
 
 /**
  * Alternate LocalResourceIndex that supports an alternate BDB configuration,
@@ -44,13 +42,15 @@ public class LiveWebLocalResourceIndex extends LocalResourceIndex {
 	/**
 	 * Add a single SearchResult to the index.
 	 * @param result
+	 * @throws IOException 
+	 * @throws UnsupportedOperationException 
 	 */
 	@SuppressWarnings("unchecked")
-	public void addSearchResult(SearchResult result) {
+	public void addSearchResult(SearchResult result) 
+	throws UnsupportedOperationException, IOException {
+		
 		ArrayList<SearchResult> l = new ArrayList<SearchResult>();
 		l.add(result);
-		BDBIndex bdbSource = (BDBIndex) source;
-		bdbSource.insertRecords(new AdaptedIterator(l.iterator(),
-				new SearchResultToBDBRecordAdapter()));
+		addSearchResults(l.iterator());
 	}
 }
