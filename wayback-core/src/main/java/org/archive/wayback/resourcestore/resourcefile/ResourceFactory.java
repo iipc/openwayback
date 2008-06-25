@@ -1,4 +1,4 @@
-package org.archive.wayback.resourcestore;
+package org.archive.wayback.resourcestore.resourcefile;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,9 +28,9 @@ public class ResourceFactory {
 
 		Resource r = null;
 		String name = file.getName();
-		if (name.endsWith(LocalResourceStore.OPEN_EXTENSION)) {
+		if (name.endsWith(ArcWarcFilenameFilter.OPEN_SUFFIX)) {
 			name = name.substring(0, name.length()
-					- LocalResourceStore.OPEN_EXTENSION.length());
+					- ArcWarcFilenameFilter.OPEN_SUFFIX.length());
 		}
 		if (isArc(name)) {
 
@@ -71,14 +71,14 @@ public class ResourceFactory {
 
 	private static boolean isArc(final String name) {
 
-		return (name.endsWith(LocalResourceStore.ARC_EXTENSION)
-				|| name.endsWith(LocalResourceStore.ARC_GZ_EXTENSION));
+		return (name.endsWith(ArcWarcFilenameFilter.ARC_SUFFIX)
+				|| name.endsWith(ArcWarcFilenameFilter.ARC_GZ_SUFFIX));
 	}
 
 	private static boolean isWarc(final String name) {
 
-		return (name.endsWith(LocalResourceStore.WARC_EXTENSION)
-			|| name.endsWith(LocalResourceStore.WARC_GZ_EXTENSION));	
+		return (name.endsWith(ArcWarcFilenameFilter.WARC_SUFFIX)
+			|| name.endsWith(ArcWarcFilenameFilter.WARC_GZ_SUFFIX));	
 	}
 	
 	private static Resource ARCArchiveRecordToResource(ArchiveRecord rec,

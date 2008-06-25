@@ -1,4 +1,4 @@
-package org.archive.wayback.resourcestore;
+package org.archive.wayback.resourcestore.resourcefile;
 
 import java.io.IOException;
 import java.util.Hashtable;
