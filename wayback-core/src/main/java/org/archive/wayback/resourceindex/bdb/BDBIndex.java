@@ -39,7 +39,6 @@ import org.archive.wayback.exception.ResourceIndexNotAvailableException;
 import org.archive.wayback.resourceindex.UpdatableSearchResultSource;
 import org.archive.wayback.resourceindex.cdx.CDXLineToSearchResultAdapter;
 import org.archive.wayback.resourceindex.cdx.SearchResultToCDXLineAdapter;
-import org.archive.wayback.resourceindex.updater.BDBIndexUpdater;
 import org.archive.wayback.util.AdaptedIterator;
 import org.archive.wayback.util.Adapter;
 import org.archive.wayback.util.CloseableIterator;
@@ -59,17 +58,12 @@ public class BDBIndex extends BDBRecordSet implements
 	
 	private String bdbPath = null;
 	private String bdbName = null;
-	private BDBIndexUpdater updater = null;
 	/**
 	 * @throws DatabaseException
 	 * @throws ConfigurationException
 	 */
 	public void init() throws DatabaseException, ConfigurationException {
 		initializeDB(bdbPath,bdbName);
-		if(updater != null) {
-			updater.setIndex(this);
-			updater.startup();
-		}
 	}
 
 	private CloseableIterator<SearchResult> adaptIterator(
@@ -224,14 +218,6 @@ public class BDBIndex extends BDBRecordSet implements
 			Iterator<SearchResult> itrSR = 
 				new AdaptedIterator<String,SearchResult>(itrS,adapterStoSR);
 			
-//			Adapter<SearchResult,BDBRecord> adapterSRtoBDB = 
-//				new SearchResultToBDBRecordAdapter();
-//
-//			Iterator<BDBRecord> itrBDB =
-//				new AdaptedIterator<SearchResult,BDBRecord>(itrSR,
-//						adapterSRtoBDB);
-//
-//			index.insertRecords(itrBDB);
 			try {
 				index.addSearchResults(itrSR, canonicalizer);
 			} catch (IOException e) {
@@ -242,43 +228,33 @@ public class BDBIndex extends BDBRecordSet implements
 			USAGE();
 		}
 	}
+
 	/**
 	 * @return the bdbPath
 	 */
 	public String getBdbPath() {
 		return bdbPath;
 	}
+
 	/**
 	 * @param bdbPath the bdbPath to set
 	 */
 	public void setBdbPath(String bdbPath) {
 		this.bdbPath = bdbPath;
 	}
+
 	/**
 	 * @return the bdbName
 	 */
 	public String getBdbName() {
 		return bdbName;
 	}
+
 	/**
 	 * @param bdbName the bdbName to set
 	 */
 	public void setBdbName(String bdbName) {
 		this.bdbName = bdbName;
-	}
-
-	/**
-	 * @return the updater
-	 */
-	public BDBIndexUpdater getUpdater() {
-		return updater;
-	}
-
-	/**
-	 * @param updater the updater to set
-	 */
-	public void setUpdater(BDBIndexUpdater updater) {
-		this.updater = updater;
 	}
 
 	public void shutdown() throws IOException {
