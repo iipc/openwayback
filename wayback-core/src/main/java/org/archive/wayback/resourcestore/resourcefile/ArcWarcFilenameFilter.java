@@ -34,10 +34,11 @@ import java.io.FilenameFilter;
  * @version $Date$, $Revision$
  */
 public class ArcWarcFilenameFilter implements FilenameFilter {
-	private final static String ARC_SUFFIX = ".arc";
-	private final static String ARC_GZ_SUFFIX = ".arc.gz";
-	private final static String WARC_SUFFIX = ".warc";
-	private final static String WARC_GZ_SUFFIX = ".warc.gz";
+	public final static String ARC_SUFFIX = ".arc";
+	public final static String ARC_GZ_SUFFIX = ".arc.gz";
+	public final static String WARC_SUFFIX = ".warc";
+	public final static String WARC_GZ_SUFFIX = ".warc.gz";
+	public final static String OPEN_SUFFIX = ".open";
 	
 	public boolean accept(File dir, String name) {
 		return name.endsWith(ARC_SUFFIX) ||

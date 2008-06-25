@@ -13,6 +13,9 @@ import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.exception.ResourceNotAvailableException;
+import org.archive.wayback.resourcestore.indexer.ArcIndexer;
+import org.archive.wayback.resourcestore.indexer.WarcIndexer;
+import org.archive.wayback.resourcestore.resourcefile.ResourceFactory;
 import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.DirMaker;
 

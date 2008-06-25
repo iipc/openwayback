@@ -34,6 +34,7 @@ import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.exception.ResourceNotAvailableException;
 import org.archive.wayback.resourcestore.locationdb.ResourceFileLocationDB;
+import org.archive.wayback.resourcestore.resourcefile.ResourceFactory;
 
 /**
  * Simple ResourceStore implementation, which uses a ResourceFileLocationDB to

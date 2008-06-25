@@ -32,6 +32,8 @@ import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.exception.ResourceNotAvailableException;
+import org.archive.wayback.resourcestore.resourcefile.ArcWarcFilenameFilter;
+import org.archive.wayback.resourcestore.resourcefile.ResourceFactory;
 
 
 /**
@@ -63,11 +65,11 @@ public class Http11ResourceStore implements ResourceStore {
 			throw new IOException("No ARC/WARC offset in search result...");
 		}
 		final long offset = Long.parseLong(offsetString);
-		if(!fileName.endsWith(LocalResourceStore.ARC_EXTENSION)
-				&& !fileName.endsWith(LocalResourceStore.ARC_GZ_EXTENSION)
-				&& !fileName.endsWith(LocalResourceStore.WARC_EXTENSION)
-				&& !fileName.endsWith(LocalResourceStore.WARC_GZ_EXTENSION)) {
-			fileName = fileName + LocalResourceStore.ARC_GZ_EXTENSION;
+		if(!fileName.endsWith(ArcWarcFilenameFilter.ARC_SUFFIX)
+				&& !fileName.endsWith(ArcWarcFilenameFilter.ARC_GZ_SUFFIX)
+				&& !fileName.endsWith(ArcWarcFilenameFilter.WARC_SUFFIX)
+				&& !fileName.endsWith(ArcWarcFilenameFilter.WARC_GZ_SUFFIX)) {
+			fileName = fileName + ArcWarcFilenameFilter.ARC_GZ_SUFFIX;
 		}
 				
 		String fileUrl = urlPrefix + fileName;
