@@ -34,7 +34,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.archive.wayback.QueryRenderer;
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.WaybackConstants;
-import org.archive.wayback.core.SearchResults;
+import org.archive.wayback.core.CaptureSearchResults;
+import org.archive.wayback.core.UrlSearchResults;
 import org.archive.wayback.core.WaybackRequest;
 
 /**
@@ -47,9 +48,10 @@ import org.archive.wayback.core.WaybackRequest;
  */
 public class Renderer implements QueryRenderer {
 
-	private String captureJsp = "/jsp/HTMLResults.jsp";
-	private String urlJsp = "/jsp/HTMLResults.jsp";
-	private String xmlJsp = "/jsp/XMLResults.jsp";
+	private String captureJsp = "/query/HTMLCaptureResults.jsp";
+	private String urlJsp = "/query/HTMLUrlResults.jsp";
+	private String xmlCaptureJsp = "/query/XMLCaptureResults.jsp";
+	private String xmlUrlJsp = "/query/XMLUrlResults.jsp";
 	
 	/**
 	 * @param request
@@ -66,16 +68,16 @@ public class Renderer implements QueryRenderer {
 		dispatcher.forward(request, response);
 	}
 
-	public void renderUrlResults(HttpServletRequest httpRequest,
+	public void renderCaptureResults(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
-			SearchResults results, ResultURIConverter uriConverter)
+			CaptureSearchResults results, ResultURIConverter uriConverter)
 			throws ServletException, IOException {
 
-		UIQueryResults uiResults = new UIQueryResults(httpRequest, wbRequest,
+		UICaptureQueryResults uiResults = new UICaptureQueryResults(httpRequest, wbRequest,
 				results, uriConverter);
 		String jsp = captureJsp;
 		if(wbRequest.containsKey(WaybackConstants.REQUEST_XML_DATA)) {
-			jsp = xmlJsp;
+			jsp = xmlCaptureJsp;
 		}
 
 		uiResults.storeInRequest(httpRequest,jsp);
@@ -86,16 +88,16 @@ public class Renderer implements QueryRenderer {
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.QueryRenderer#renderUrlPrefixResults(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.archive.wayback.core.WaybackRequest, org.archive.wayback.core.SearchResults, org.archive.wayback.ResultURIConverter)
 	 */
-	public void renderUrlPrefixResults(HttpServletRequest httpRequest,
+	public void renderUrlResults(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
-			SearchResults results, ResultURIConverter uriConverter)
+			UrlSearchResults results, ResultURIConverter uriConverter)
 			throws ServletException, IOException {
 
-		UIQueryResults uiResults = new UIQueryResults(httpRequest, wbRequest, 
+		UIUrlQueryResults uiResults = new UIUrlQueryResults(httpRequest, wbRequest, 
 				results, uriConverter);
 		String jsp = urlJsp;
 		if(wbRequest.containsKey(WaybackConstants.REQUEST_XML_DATA)) {
-			jsp = xmlJsp;
+			jsp = xmlUrlJsp;
 		}
 
 		uiResults.storeInRequest(httpRequest,jsp);
@@ -132,16 +134,29 @@ public class Renderer implements QueryRenderer {
 	}
 
 	/**
-	 * @return the xmlJsp
+	 * @return the xmlCaptureJsp
 	 */
-	public String getXmlJsp() {
-		return xmlJsp;
+	public String getXmlCaptureJsp() {
+		return xmlCaptureJsp;
 	}
 
 	/**
-	 * @param xmlJsp the xmlJsp to set
+	 * @param xmlCaptureJsp the xmlCaptureJsp to set
 	 */
-	public void setXmlJsp(String xmlJsp) {
-		this.xmlJsp = xmlJsp;
+	public void setXmlCaptureJsp(String xmlCaptureJsp) {
+		this.xmlCaptureJsp = xmlCaptureJsp;
+	}
+	/**
+	 * @return the xmlUrlJsp
+	 */
+	public String getXmlUrlJsp() {
+		return xmlUrlJsp;
+	}
+
+	/**
+	 * @param xmlUrlJsp the xmlUrlJsp to set
+	 */
+	public void setXmlUrlJsp(String xmlUrlJsp) {
+		this.xmlUrlJsp = xmlUrlJsp;
 	}
 }
