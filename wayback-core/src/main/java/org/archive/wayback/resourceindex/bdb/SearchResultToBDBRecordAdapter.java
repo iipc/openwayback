@@ -28,10 +28,9 @@ import java.util.logging.Logger;
 
 import org.apache.commons.httpclient.URIException;
 import org.archive.wayback.UrlCanonicalizer;
-import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.bdb.BDBRecord;
 import org.archive.wayback.bdb.BDBRecordSet;
-import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.util.Adapter;
 
 import com.sleepycat.je.DatabaseEntry;
@@ -43,7 +42,7 @@ import com.sleepycat.je.DatabaseEntry;
  * @version $Date$, $Revision$
  */
 public class SearchResultToBDBRecordAdapter implements 
-	Adapter<SearchResult,BDBRecord> {
+	Adapter<CaptureSearchResult,BDBRecord> {
 	private static final Logger LOGGER =
         Logger.getLogger(SearchResultToBDBRecordAdapter.class.getName());
 	
@@ -66,11 +65,11 @@ public class SearchResultToBDBRecordAdapter implements
 	 * 
 	 * @see org.archive.wayback.util.Adapter#adapt(java.lang.Object)
 	 */
-	public BDBRecord adapt(SearchResult result) {
+	public BDBRecord adapt(CaptureSearchResult result) {
 		StringBuilder keySB = new StringBuilder(40);
 		StringBuilder valSB = new StringBuilder(100);
 		
-		String origUrl = result.getAbsoluteUrl();
+		String origUrl = result.getOriginalUrl();
 		String urlKey;
 		try {
 			urlKey = canonicalizer.urlStringToKey(origUrl);
@@ -81,22 +80,22 @@ public class SearchResultToBDBRecordAdapter implements
 		}
 		keySB.append(urlKey);
 		keySB.append(DELIMITER);
-		keySB.append(result.get(WaybackConstants.RESULT_CAPTURE_DATE));
+		keySB.append(result.getCaptureTimestamp());
 		keySB.append(DELIMITER);
-		keySB.append(result.get(WaybackConstants.RESULT_OFFSET));
+		keySB.append(result.getOffset());
 		keySB.append(DELIMITER);
-		keySB.append(result.get(WaybackConstants.RESULT_ARC_FILE));
+		keySB.append(result.getFile());
 		
 
-		valSB.append(result.get(WaybackConstants.RESULT_ORIG_HOST));
+		valSB.append(result.getOriginalUrl());
 		valSB.append(DELIMITER);
-		valSB.append(result.get(WaybackConstants.RESULT_MIME_TYPE));
+		valSB.append(result.getMimeType());
 		valSB.append(DELIMITER);
-		valSB.append(result.get(WaybackConstants.RESULT_HTTP_CODE));
+		valSB.append(result.getHttpCode());
 		valSB.append(DELIMITER);
-		valSB.append(result.get(WaybackConstants.RESULT_MD5_DIGEST));
+		valSB.append(result.getDigest());
 		valSB.append(DELIMITER);
-		valSB.append(result.get(WaybackConstants.RESULT_REDIRECT_URL));
+		valSB.append(result.getRedirectUrl());
 
 		key.setData(BDBRecordSet.stringToBytes(keySB.toString()));
 		value.setData(BDBRecordSet.stringToBytes(valSB.toString()));

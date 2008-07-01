@@ -25,75 +25,52 @@
 package org.archive.wayback.resourceindex.cdx;
 
 
-import org.apache.commons.httpclient.URIException;
-import org.archive.net.UURI;
-import org.archive.net.UURIFactory;
-import org.archive.wayback.WaybackConstants;
-import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.util.Adapter;
 
 /**
- * Adapter that converts a CDX record String into a SearchResult
+ * Adapter that converts a CDX record String into a CaptureSearchResult
  *
  * @author brad
  * @version $Date$, $Revision$
  */
-public class CDXLineToSearchResultAdapter implements Adapter<String,SearchResult> {
+public class CDXLineToSearchResultAdapter implements Adapter<String,CaptureSearchResult> {
 
-	public SearchResult adapt(String line) {
+	public CaptureSearchResult adapt(String line) {
 		return doAdapt(line);
 	}
 	/**
 	 * @param line
 	 * @return SearchResult representation of input line
 	 */
-	public static SearchResult doAdapt(String line) {
-		SearchResult result = new SearchResult();
+	public static CaptureSearchResult doAdapt(String line) {
+		CaptureSearchResult result = new CaptureSearchResult();
 		String[] tokens = line.split(" ");
 		if (tokens.length != 9) {
 			return null;
 			//throw new IllegalArgumentException("Need 9 columns("+line+")");
 		}
-		String url = tokens[0];
-		String captureDate = tokens[1];
-		String origHost = tokens[2];
+		String urlKey = tokens[0];
+		String captureTS = tokens[1];
+		String originalUrl = tokens[2];
 		String mimeType = tokens[3];
-		String httpResponseCode = tokens[4];
-		String md5Fragment = tokens[5];
+		String httpCode = tokens[4];
+		String digest = tokens[5];
 		String redirectUrl = tokens[6];
 		long compressedOffset = -1;
 		if(!tokens[7].equals("-")) {
 			compressedOffset = Long.parseLong(tokens[7]);
 		}
-		String arcFileName = tokens[8];
-
-		String origUrl = url;
-		if(!url.startsWith(WaybackConstants.DNS_URL_PREFIX)) {
-			try {
-				UURI uri = UURIFactory.getInstance(
-						WaybackConstants.HTTP_URL_PREFIX + url);
-				if(uri.getPort() != -1) {
-					origHost += ":" + uri.getPort();
-				}
-				origUrl = origHost + uri.getEscapedPathQuery();
-			} catch (URIException e) {
-				// TODO Stifle? throw an error?
-				e.printStackTrace();
-				return null;
-			}
-		}
-		
-		result.put(WaybackConstants.RESULT_URL, origUrl);
-		result.put(WaybackConstants.RESULT_URL_KEY, url);
-		result.put(WaybackConstants.RESULT_CAPTURE_DATE, captureDate);
-		result.put(WaybackConstants.RESULT_ORIG_HOST, origHost);
-		result.put(WaybackConstants.RESULT_MIME_TYPE, mimeType);
-		result.put(WaybackConstants.RESULT_HTTP_CODE, httpResponseCode);
-		result.put(WaybackConstants.RESULT_MD5_DIGEST, md5Fragment);
-		result.put(WaybackConstants.RESULT_REDIRECT_URL, redirectUrl);
-		// HACKHACK:
-		result.put(WaybackConstants.RESULT_OFFSET, String.valueOf(compressedOffset));
-		result.put(WaybackConstants.RESULT_ARC_FILE, arcFileName);
+		String fileName = tokens[8];
+		result.setUrlKey(urlKey);
+		result.setCaptureTimestamp(captureTS);
+		result.setOriginalUrl(originalUrl);
+		result.setMimeType(mimeType);
+		result.setHttpCode(httpCode);
+		result.setDigest(digest);
+		result.setRedirectUrl(redirectUrl);
+		result.setOffset(compressedOffset);
+		result.setFile(fileName);
 
 		return result;
 	}

@@ -26,10 +26,9 @@ package org.archive.wayback.resourceindex.cdx;
 
 import java.io.IOException;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.Iterator;
-import org.archive.wayback.WaybackConstants;
-import org.archive.wayback.core.SearchResult;
-import org.archive.wayback.core.Timestamp;
+import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
 import org.archive.wayback.resourceindex.SearchResultSource;
 import org.archive.wayback.util.AdaptedIterator;
@@ -50,15 +49,15 @@ public class CDXIndex extends FlatFile implements SearchResultSource {
 	 */
 	private static final long serialVersionUID = 1L;
 
-	private CloseableIterator<SearchResult> adaptIterator(Iterator<String> itr) {
-		return new AdaptedIterator<String,SearchResult>(itr,
+	private CloseableIterator<CaptureSearchResult> adaptIterator(Iterator<String> itr) {
+		return new AdaptedIterator<String,CaptureSearchResult>(itr,
 				new CDXLineToSearchResultAdapter());
 	}
 
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.resourceindex.SearchResultSource#getPrefixIterator(java.lang.String)
 	 */
-	public CloseableIterator<SearchResult> getPrefixIterator(String prefix)
+	public CloseableIterator<CaptureSearchResult> getPrefixIterator(String prefix)
 		throws ResourceIndexNotAvailableException {
 		try {
 			return adaptIterator(getRecordIterator(prefix));
@@ -70,7 +69,7 @@ public class CDXIndex extends FlatFile implements SearchResultSource {
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.resourceindex.SearchResultSource#getPrefixReverseIterator(java.lang.String)
 	 */
-	public CloseableIterator<SearchResult> getPrefixReverseIterator(String prefix)
+	public CloseableIterator<CaptureSearchResult> getPrefixReverseIterator(String prefix)
 		throws ResourceIndexNotAvailableException {
 		try {
 			return adaptIterator(getReverseRecordIterator(prefix));
@@ -82,10 +81,10 @@ public class CDXIndex extends FlatFile implements SearchResultSource {
 
 	/**
 	 * @param prefix
-	 * @return Iterator of SearchResults of records starting with prefix
+	 * @return Iterator of CaptureSearchResult of records starting with prefix
 	 * @throws IOException
 	 */
-	public Iterator<SearchResult> getUrlIterator(final String prefix) throws IOException {
+	public Iterator<CaptureSearchResult> getUrlIterator(final String prefix) throws IOException {
 		return adaptIterator(getRecordIterator(prefix));
 	}
 	
@@ -95,38 +94,36 @@ public class CDXIndex extends FlatFile implements SearchResultSource {
 	 * @return Iterator of results in closest order to wantTS
 	 * @throws IOException
 	 */
-	public Iterator<SearchResult> getClosestIterator(final String prefix, 
-			final Timestamp wantTS) throws IOException {
+	public Iterator<CaptureSearchResult> getClosestIterator(final String prefix, 
+			final Date wantDate) throws IOException {
 		
-		Iterator<SearchResult> forwardItr = adaptIterator(getRecordIterator(prefix));
-		Iterator<SearchResult> reverseItr = adaptIterator(getReverseRecordIterator(prefix));
-		Comparator<SearchResult> comparator = new TimestampComparator(wantTS);
-		CompositeSortedIterator<SearchResult> itr = 
-			new CompositeSortedIterator<SearchResult>(comparator);
+		Iterator<CaptureSearchResult> forwardItr = adaptIterator(getRecordIterator(prefix));
+		Iterator<CaptureSearchResult> reverseItr = adaptIterator(getReverseRecordIterator(prefix));
+		Comparator<CaptureSearchResult> comparator = new CaptureSRComparator(wantDate);
+		CompositeSortedIterator<CaptureSearchResult> itr = 
+			new CompositeSortedIterator<CaptureSearchResult>(comparator);
 		itr.addComponent(forwardItr);
 		itr.addComponent(reverseItr);
 		return itr;
 	}
 
-	private class TimestampComparator implements Comparator<SearchResult> {
-		private int wantedSSE;
+	private class CaptureSRComparator implements Comparator<CaptureSearchResult> {
+		private long wantTime;
 		/**
 		 * @param wanted
 		 */
-		public TimestampComparator(Timestamp wanted) {
-			wantedSSE = wanted.sse();
+		public CaptureSRComparator(Date wanted) {
+			wantTime = wanted.getTime();
 		}
-		private int searchResultToDistance(SearchResult sr) {
-			String dateStr = sr.get(WaybackConstants.RESULT_CAPTURE_DATE);
-			Timestamp ts = new Timestamp(dateStr);
-			return Math.abs(wantedSSE - ts.sse());
+		private long searchResultToDistance(CaptureSearchResult sr) {
+			return Math.abs(wantTime - sr.getCaptureDate().getTime());
 		}
 		/* (non-Javadoc)
 		 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
 		 */
-		public int compare(SearchResult o1, SearchResult o2) {
-			int d1 = searchResultToDistance(o1);
-			int d2 = searchResultToDistance(o2);
+		public int compare(CaptureSearchResult o1, CaptureSearchResult o2) {
+			long d1 = searchResultToDistance(o1);
+			long d2 = searchResultToDistance(o2);
 			if(d1 < d2) {
 				return -1;
 			} else if(d1 > d2) {
@@ -139,7 +136,7 @@ public class CDXIndex extends FlatFile implements SearchResultSource {
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.resourceindex.SearchResultSource#cleanup(org.archive.wayback.util.CleanableIterator)
 	 */
-	public void cleanup(CloseableIterator<SearchResult> c) throws IOException {
+	public void cleanup(CloseableIterator<CaptureSearchResult> c) throws IOException {
 		c.close();
 	}
 

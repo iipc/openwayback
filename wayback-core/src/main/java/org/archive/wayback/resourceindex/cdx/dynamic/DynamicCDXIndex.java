@@ -35,7 +35,7 @@ import java.util.Set;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
-import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
 import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.FileDownloader;
@@ -151,7 +151,7 @@ public class DynamicCDXIndex extends CompositeSearchResultSource {
 	 * 
 	 * @see org.archive.wayback.resourceindex.SearchResultSource#getPrefixIterator(java.lang.String)
 	 */
-	public CloseableIterator<SearchResult> getPrefixIterator(String prefix)
+	public CloseableIterator<CaptureSearchResult> getPrefixIterator(String prefix)
 			throws ResourceIndexNotAvailableException {
 		if(getState() != STATE_SYNCHED) {
 			throw new ResourceIndexNotAvailableException("Not synchronized");
@@ -164,7 +164,7 @@ public class DynamicCDXIndex extends CompositeSearchResultSource {
 	 * 
 	 * @see org.archive.wayback.resourceindex.SearchResultSource#getPrefixReverseIterator(java.lang.String)
 	 */
-	public CloseableIterator<SearchResult> getPrefixReverseIterator(String prefix)
+	public CloseableIterator<CaptureSearchResult> getPrefixReverseIterator(String prefix)
 			throws ResourceIndexNotAvailableException {
 
 		if(getState() != STATE_SYNCHED) {

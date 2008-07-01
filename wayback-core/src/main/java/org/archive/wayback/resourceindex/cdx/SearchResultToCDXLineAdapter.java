@@ -26,8 +26,7 @@ package org.archive.wayback.resourceindex.cdx;
 
 import java.util.Iterator;
 
-import org.archive.wayback.WaybackConstants;
-import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.util.AdaptedIterator;
 import org.archive.wayback.util.Adapter;
 
@@ -38,7 +37,7 @@ import org.archive.wayback.util.Adapter;
  * @version $Date$, $Revision$
  */
 public class SearchResultToCDXLineAdapter implements 
-Adapter<SearchResult,String>{
+Adapter<CaptureSearchResult,String>{
 
 	private static int DEFAULT_CAPACITY = 120;
 	private final static String DELIMITER = " ";
@@ -46,33 +45,33 @@ Adapter<SearchResult,String>{
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.util.Adapter#adapt(java.lang.Object)
 	 */
-	public String adapt(SearchResult result) {
+	public String adapt(CaptureSearchResult result) {
 		
 		StringBuilder sb = new StringBuilder(DEFAULT_CAPACITY);
 
-		sb.append(result.get(WaybackConstants.RESULT_URL_KEY));
+		sb.append(result.getUrlKey());
 		sb.append(DELIMITER);
-		sb.append(result.get(WaybackConstants.RESULT_CAPTURE_DATE));
+		sb.append(result.getCaptureTimestamp());
 		sb.append(DELIMITER);
-		sb.append(result.get(WaybackConstants.RESULT_ORIG_HOST));
+		sb.append(result.getOriginalUrl());
 		sb.append(DELIMITER);
-		sb.append(result.get(WaybackConstants.RESULT_MIME_TYPE));
+		sb.append(result.getMimeType());
 		sb.append(DELIMITER);
-		sb.append(result.get(WaybackConstants.RESULT_HTTP_CODE));
+		sb.append(result.getHttpCode());
 		sb.append(DELIMITER);
-		sb.append(result.get(WaybackConstants.RESULT_MD5_DIGEST));
+		sb.append(result.getDigest());
 		sb.append(DELIMITER);
-		sb.append(result.get(WaybackConstants.RESULT_REDIRECT_URL));
+		sb.append(result.getRedirectUrl());
 		sb.append(DELIMITER);
-		sb.append(result.get(WaybackConstants.RESULT_OFFSET));
+		sb.append(result.getOffset());
 		sb.append(DELIMITER);
-		sb.append(result.get(WaybackConstants.RESULT_ARC_FILE));
+		sb.append(result.getFile());
 			
 		return sb.toString();
 	}
 
-	public static Iterator<String> adapt(Iterator<SearchResult> input) {
-		return new AdaptedIterator<SearchResult,String>(input,
+	public static Iterator<String> adapt(Iterator<CaptureSearchResult> input) {
+		return new AdaptedIterator<CaptureSearchResult,String>(input,
 				new SearchResultToCDXLineAdapter());
 	}
 }

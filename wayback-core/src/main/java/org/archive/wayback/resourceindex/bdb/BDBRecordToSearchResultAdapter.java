@@ -27,7 +27,7 @@ package org.archive.wayback.resourceindex.bdb;
 import java.io.UnsupportedEncodingException;
 
 import org.archive.wayback.bdb.BDBRecord;
-import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.resourceindex.cdx.CDXLineToSearchResultAdapter;
 import org.archive.wayback.util.Adapter;
 
@@ -38,7 +38,7 @@ import org.archive.wayback.util.Adapter;
  * @version $Date$, $Revision$
  */
 public class BDBRecordToSearchResultAdapter 
-	implements Adapter<BDBRecord,SearchResult> {
+	implements Adapter<BDBRecord,CaptureSearchResult> {
 
 	private static int DEFAULT_SB_SIZE = 100;
 	private StringBuilder sb;
@@ -53,7 +53,7 @@ public class BDBRecordToSearchResultAdapter
 	 * @param record
 	 * @return SearchResult representation of input BDBRecord
 	 */
-	public SearchResult adapt(BDBRecord record) {
+	public CaptureSearchResult adapt(BDBRecord record) {
 		sb.setLength(0);
 		try {
 			String key = new String(record.getKey().getData(),"UTF-8");

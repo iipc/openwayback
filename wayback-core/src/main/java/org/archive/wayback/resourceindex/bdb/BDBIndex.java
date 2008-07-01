@@ -33,7 +33,7 @@ import java.util.Iterator;
 import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.bdb.BDBRecord;
 import org.archive.wayback.bdb.BDBRecordSet;
-import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
 import org.archive.wayback.resourceindex.UpdatableSearchResultSource;
@@ -66,9 +66,10 @@ public class BDBIndex extends BDBRecordSet implements
 		initializeDB(bdbPath,bdbName);
 	}
 
-	private CloseableIterator<SearchResult> adaptIterator(
+	private CloseableIterator<CaptureSearchResult> adaptIterator(
 			Iterator<BDBRecord> itr) {
-		return new AdaptedIterator<BDBRecord,SearchResult>(itr,new BDBRecordToSearchResultAdapter());
+		return new AdaptedIterator<BDBRecord,CaptureSearchResult>(itr,
+				new BDBRecordToSearchResultAdapter());
 	}
 
 	/*
@@ -76,7 +77,7 @@ public class BDBIndex extends BDBRecordSet implements
 	 * 
 	 * @see org.archive.wayback.resourceindex.SearchResultSource#getPrefixIterator(java.lang.String)
 	 */
-	public CloseableIterator<SearchResult> getPrefixIterator(String prefix)
+	public CloseableIterator<CaptureSearchResult> getPrefixIterator(String prefix)
 			throws ResourceIndexNotAvailableException {
 		
 		try {
@@ -91,7 +92,7 @@ public class BDBIndex extends BDBRecordSet implements
 	 * 
 	 * @see org.archive.wayback.resourceindex.SearchResultSource#getPrefixReverseIterator(java.lang.String)
 	 */
-	public CloseableIterator<SearchResult> getPrefixReverseIterator(String prefix)
+	public CloseableIterator<CaptureSearchResult> getPrefixReverseIterator(String prefix)
 			throws ResourceIndexNotAvailableException {
 		try {
 			return adaptIterator(recordIterator(prefix,false));
@@ -103,20 +104,20 @@ public class BDBIndex extends BDBRecordSet implements
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.resourceindex.SearchResultSource#cleanup(org.archive.wayback.util.CleanableIterator)
 	 */
-	public void cleanup(CloseableIterator<SearchResult> c) throws IOException {
+	public void cleanup(CloseableIterator<CaptureSearchResult> c) throws IOException {
 		c.close();
 	}
 
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.resourceindex.UpdatableSearchResultSource#addSearchResults(java.util.Iterator)
 	 */
-	public void addSearchResults(Iterator<SearchResult> itr, 
+	public void addSearchResults(Iterator<CaptureSearchResult> itr, 
 			UrlCanonicalizer canonicalizer) throws IOException {
-		Adapter<SearchResult,BDBRecord> adapterSRtoBDB = 
+		Adapter<CaptureSearchResult,BDBRecord> adapterSRtoBDB = 
 			new SearchResultToBDBRecordAdapter(canonicalizer);
 
 		Iterator<BDBRecord> itrBDB =
-			new AdaptedIterator<SearchResult,BDBRecord>(itr,
+			new AdaptedIterator<CaptureSearchResult,BDBRecord>(itr,
 					adapterSRtoBDB);
 
 		insertRecords(itrBDB);
@@ -158,8 +159,8 @@ public class BDBIndex extends BDBRecordSet implements
 		if(op.compareTo("-r") == 0) {
 			PrintWriter pw = new PrintWriter(System.out);
 
-			CloseableIterator<SearchResult> itrSR = null;
-			Adapter<SearchResult,String> adapter = 
+			CloseableIterator<CaptureSearchResult> itrSR = null;
+			Adapter<CaptureSearchResult,String> adapter = 
 				new SearchResultToCDXLineAdapter();
 			CloseableIterator<String> itrS;
 
@@ -171,7 +172,7 @@ public class BDBIndex extends BDBRecordSet implements
 					e.printStackTrace();
 					System.exit(1);
 				}
-				itrS = new AdaptedIterator<SearchResult,String>(itrSR,adapter);
+				itrS = new AdaptedIterator<CaptureSearchResult,String>(itrSR,adapter);
 				while(itrS.hasNext()) {
 					String line = itrS.next();
 					if(!line.startsWith(prefix)) {
@@ -187,7 +188,7 @@ public class BDBIndex extends BDBRecordSet implements
 					e.printStackTrace();
 					System.exit(1);
 				}
-				itrS = new AdaptedIterator<SearchResult,String>(itrSR,adapter);
+				itrS = new AdaptedIterator<CaptureSearchResult,String>(itrSR,adapter);
 
 				while(itrS.hasNext()) {
 					pw.println(itrS.next());
@@ -212,11 +213,11 @@ public class BDBIndex extends BDBRecordSet implements
 			
 			RecordIterator itrS = new RecordIterator(br);
 
-			Adapter<String,SearchResult> adapterStoSR = 
+			Adapter<String,CaptureSearchResult> adapterStoSR = 
 				new CDXLineToSearchResultAdapter();
 			
-			Iterator<SearchResult> itrSR = 
-				new AdaptedIterator<String,SearchResult>(itrS,adapterStoSR);
+			Iterator<CaptureSearchResult> itrSR = 
+				new AdaptedIterator<String,CaptureSearchResult>(itrS,adapterStoSR);
 			
 			try {
 				index.addSearchResults(itrSR, canonicalizer);
