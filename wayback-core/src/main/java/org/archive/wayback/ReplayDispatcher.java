@@ -25,7 +25,7 @@
 package org.archive.wayback;
 
 import org.archive.wayback.core.Resource;
-import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.WaybackRequest;
 
 /**
@@ -45,5 +45,5 @@ public interface ReplayDispatcher {
 	 * @return the correct ReplayRenderer for the Resource
 	 */
 	public ReplayRenderer getRenderer(WaybackRequest wbRequest,
-			SearchResult result, Resource resource);
+			CaptureSearchResult result, Resource resource);
 }

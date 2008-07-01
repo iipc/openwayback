@@ -26,7 +26,7 @@ package org.archive.wayback;
 import java.io.IOException;
 
 import org.archive.wayback.core.Resource;
-import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.exception.ResourceNotAvailableException;
 
 /**
@@ -44,7 +44,7 @@ public interface ResourceStore {
 	 * @throws IOException
 	 * @throws ResourceNotAvailableException 
 	 */
-	public Resource retrieveResource(SearchResult result) throws IOException, 
+	public Resource retrieveResource(CaptureSearchResult result) throws IOException, 
 		ResourceNotAvailableException;
 
 	public void shutdown() throws IOException;

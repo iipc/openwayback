@@ -30,7 +30,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.archive.wayback.core.SearchResults;
+import org.archive.wayback.core.CaptureSearchResults;
+import org.archive.wayback.core.UrlSearchResults;
 import org.archive.wayback.core.WaybackRequest;
 
 /**
@@ -52,9 +53,9 @@ public interface QueryRenderer {
 	 * @throws ServletException
 	 * @throws IOException
 	 */
-	public void renderUrlResults(HttpServletRequest httpRequest,
+	public void renderCaptureResults(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
-			SearchResults results, ResultURIConverter uriConverter)
+			CaptureSearchResults results, ResultURIConverter uriConverter)
 			throws ServletException, IOException;
 
 	/** Show the SearchResults of the request which may have resulted in 
@@ -69,9 +70,9 @@ public interface QueryRenderer {
 	 * @throws ServletException
 	 * @throws IOException
 	 */
-	public void renderUrlPrefixResults(HttpServletRequest httpRequest,
+	public void renderUrlResults(HttpServletRequest httpRequest,
 			HttpServletResponse response, WaybackRequest wbRequest,
-			SearchResults results, ResultURIConverter uriConverter)
+			UrlSearchResults results, ResultURIConverter uriConverter)
 			throws ServletException, IOException;
 
 }

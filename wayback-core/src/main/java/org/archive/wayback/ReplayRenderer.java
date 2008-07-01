@@ -31,8 +31,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.archive.wayback.core.Resource;
-import org.archive.wayback.core.SearchResult;
-import org.archive.wayback.core.SearchResults;
+import org.archive.wayback.core.CaptureSearchResult;
+import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.WaybackException;
 
@@ -50,11 +50,11 @@ public interface ReplayRenderer {
 	 * @param httpRequest the HttpServletRequest
 	 * @param httpResponse the HttpServletResponse
 	 * @param wbRequest the WaybackRequest that returned the results
-	 * @param result actual SearchResult that maps to resource to replay
+	 * @param result actual CaptureSearchResult that maps to resource to replay
 	 * @param resource resource to replay
 	 * @param uriConverter the URI converter to use to translate matching
 	 *                      results into replayable URLs
-	 * @param results all SearchResults that were returned from the 
+	 * @param results all CaptureSearchResults that were returned from the 
 	 * 						ResourceIndex, probably including other capture
 	 * 						dates of the same URL.
 	 * @throws ServletException
@@ -63,7 +63,7 @@ public interface ReplayRenderer {
 	 */
 	public void renderResource(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
-			SearchResult result, Resource resource, 
-			ResultURIConverter uriConverter, SearchResults results)
+			CaptureSearchResult result, Resource resource, 
+			ResultURIConverter uriConverter, CaptureSearchResults results)
 	throws ServletException, IOException, WaybackException;
 }
