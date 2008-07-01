@@ -26,8 +26,8 @@ package org.archive.wayback.proxy;
 
 import org.archive.wayback.ReplayDispatcher;
 import org.archive.wayback.ReplayRenderer;
+import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.Resource;
-import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.replay.TransparentReplayRenderer;
 
@@ -46,7 +46,7 @@ public class ProxyReplayDispatcher implements ReplayDispatcher {
 	 * @see org.archive.wayback.ReplayDispatcher#getRenderer(org.archive.wayback.core.WaybackRequest, org.archive.wayback.core.SearchResult, org.archive.wayback.core.Resource)
 	 */
 	public ReplayRenderer getRenderer(WaybackRequest wbRequest,
-			SearchResult result, Resource resource) {
+			CaptureSearchResult result, Resource resource) {
 		// always use the transparent:
 		return renderer;
 	}
