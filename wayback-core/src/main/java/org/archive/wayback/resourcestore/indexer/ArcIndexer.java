@@ -34,7 +34,7 @@ import org.archive.io.arc.ARCReader;
 import org.archive.io.arc.ARCReaderFactory;
 import org.archive.io.arc.ARCRecord;
 import org.archive.wayback.UrlCanonicalizer;
-import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.resourceindex.cdx.SearchResultToCDXLineAdapter;
 import org.archive.wayback.util.AdaptedIterator;
 import org.archive.wayback.util.Adapter;
@@ -43,7 +43,7 @@ import org.archive.wayback.util.url.AggressiveUrlCanonicalizer;
 import org.archive.wayback.util.url.IdentityUrlCanonicalizer;
 
 /**
- * Transforms an ARC file into Iterator<SearchResult>.
+ * Transforms an ARC file into Iterator<CaptureSearchResult>.
  * 
  * @author brad
  * @version $Date$, $Revision$
@@ -65,7 +65,7 @@ public class ArcIndexer {
 	 * @return Iterator of SearchResults for input arc File
 	 * @throws IOException
 	 */
-	public CloseableIterator<SearchResult> iterator(File arc)
+	public CloseableIterator<CaptureSearchResult> iterator(File arc)
 	throws IOException {
 		return iterator(ARCReaderFactory.get(arc));
 	}
@@ -75,7 +75,7 @@ public class ArcIndexer {
 	 * @return Iterator of SearchResults for input pathOrUrl
 	 * @throws IOException
 	 */
-	public CloseableIterator<SearchResult> iterator(String pathOrUrl)
+	public CloseableIterator<CaptureSearchResult> iterator(String pathOrUrl)
 	throws IOException {
 		return iterator(ARCReaderFactory.get(pathOrUrl));
 	}
@@ -85,7 +85,7 @@ public class ArcIndexer {
 	 * @return Iterator of SearchResults for input ARCReader
 	 * @throws IOException
 	 */
-	public CloseableIterator<SearchResult> iterator(ARCReader arcReader)
+	public CloseableIterator<CaptureSearchResult> iterator(ARCReader arcReader)
 	throws IOException {
 		arcReader.setParseHttpHeaders(true);
 
@@ -102,7 +102,7 @@ public class ArcIndexer {
 		CloseableIterator<ARCRecord> itr2 = 
 			new AdaptedIterator<ArchiveRecord,ARCRecord>(itr1,adapter1);
 		
-		return new AdaptedIterator<ARCRecord,SearchResult>(itr2,adapter2);
+		return new AdaptedIterator<ARCRecord,CaptureSearchResult>(itr2,adapter2);
 	}
 	
 	public UrlCanonicalizer getCanonicalizer() {
@@ -146,7 +146,7 @@ public class ArcIndexer {
 			} else {
 				USAGE();
 			}
-			Iterator<SearchResult> res = indexer.iterator(arc);
+			Iterator<CaptureSearchResult> res = indexer.iterator(arc);
 			Iterator<String> lines = SearchResultToCDXLineAdapter.adapt(res);
 			while(lines.hasNext()) {
 				pw.println(lines.next());

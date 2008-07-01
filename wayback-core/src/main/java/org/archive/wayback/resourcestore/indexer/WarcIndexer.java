@@ -10,7 +10,7 @@ import org.archive.io.warc.WARCReader;
 import org.archive.io.warc.WARCReaderFactory;
 import org.archive.io.warc.WARCRecord;
 import org.archive.wayback.UrlCanonicalizer;
-import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.resourceindex.cdx.SearchResultToCDXLineAdapter;
 import org.archive.wayback.util.AdaptedIterator;
 import org.archive.wayback.util.Adapter;
@@ -35,7 +35,7 @@ public class WarcIndexer {
 	 * @return Iterator of SearchResults for input arc File
 	 * @throws IOException
 	 */
-	public CloseableIterator<SearchResult> iterator(File warc)
+	public CloseableIterator<CaptureSearchResult> iterator(File warc)
 			throws IOException {
 		return iterator(WARCReaderFactory.get(warc));
 	}
@@ -44,7 +44,7 @@ public class WarcIndexer {
 	 * @return Iterator of SearchResults for input pathOrUrl
 	 * @throws IOException
 	 */
-	public CloseableIterator<SearchResult> iterator(String pathOrUrl)
+	public CloseableIterator<CaptureSearchResult> iterator(String pathOrUrl)
 			throws IOException {
 		return iterator(WARCReaderFactory.get(pathOrUrl));
 	}
@@ -53,7 +53,7 @@ public class WarcIndexer {
 	 * @return Iterator of SearchResults for input arc File
 	 * @throws IOException
 	 */
-	public CloseableIterator<SearchResult> iterator(WARCReader reader)
+	public CloseableIterator<CaptureSearchResult> iterator(WARCReader reader)
 			throws IOException {
 
 		Adapter<ArchiveRecord, WARCRecord> adapter1 = new ArchiveRecordToWARCRecordAdapter();
@@ -68,7 +68,7 @@ public class WarcIndexer {
 		CloseableIterator<WARCRecord> itr2 = 
 			new AdaptedIterator<ArchiveRecord, WARCRecord>(itr1, adapter1);
 
-		return new AdaptedIterator<WARCRecord, SearchResult>(itr2, adapter2);
+		return new AdaptedIterator<WARCRecord, CaptureSearchResult>(itr2, adapter2);
 	}
 
 	public UrlCanonicalizer getCanonicalizer() {
@@ -112,7 +112,7 @@ public class WarcIndexer {
 			} else {
 				USAGE();
 			}
-			Iterator<SearchResult> res = indexer.iterator(arc);
+			Iterator<CaptureSearchResult> res = indexer.iterator(arc);
 			Iterator<String> lines = SearchResultToCDXLineAdapter.adapt(res);
 			while (lines.hasNext()) {
 				pw.println(lines.next());

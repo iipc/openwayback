@@ -26,19 +26,17 @@ package org.archive.wayback.resourcestore.indexer;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.logging.Logger;
+//import java.util.logging.Logger;
 
 import org.apache.commons.httpclient.Header;
-import org.apache.commons.httpclient.URIException;
 import org.archive.io.arc.ARCRecord;
 import org.archive.io.arc.ARCRecordMetaData;
-import org.archive.net.UURI;
-import org.archive.net.UURIFactory;
 import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.WaybackConstants;
-import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.util.Adapter;
-import org.archive.wayback.util.url.AggressiveUrlCanonicalizer;
+import org.archive.wayback.util.url.IdentityUrlCanonicalizer;
+import org.archive.wayback.util.url.UrlOperations;
 
 /**
  *
@@ -47,22 +45,22 @@ import org.archive.wayback.util.url.AggressiveUrlCanonicalizer;
  * @version $Date$, $Revision$
  */
 public class ARCRecordToSearchResultAdapter 
-implements Adapter<ARCRecord,SearchResult>{
+implements Adapter<ARCRecord,CaptureSearchResult>{
 
-	private static final Logger LOGGER = Logger.getLogger(
-			ARCRecordToSearchResultAdapter.class.getName());
+//	private static final Logger LOGGER = Logger.getLogger(
+//			ARCRecordToSearchResultAdapter.class.getName());
 
 	private UrlCanonicalizer canonicalizer = null;
 	
 	public ARCRecordToSearchResultAdapter() {
-		canonicalizer = new AggressiveUrlCanonicalizer();
+		canonicalizer = new IdentityUrlCanonicalizer();
 	}
 //	public static SearchResult arcRecordToSearchResult(final ARCRecord rec)
 //	throws IOException, ParseException {
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.util.Adapter#adapt(java.lang.Object)
 	 */
-	public SearchResult adapt(ARCRecord rec) {
+	public CaptureSearchResult adapt(ARCRecord rec) {
 		try {
 			return adaptInner(rec);
 		} catch (IOException e) {
@@ -71,26 +69,25 @@ implements Adapter<ARCRecord,SearchResult>{
 		}
 	}
 	
-	private SearchResult adaptInner(ARCRecord rec) throws IOException {
+	private CaptureSearchResult adaptInner(ARCRecord rec) throws IOException {
 		rec.close();
 		ARCRecordMetaData meta = rec.getMetaData();
 		
-		SearchResult result = new SearchResult();
+		CaptureSearchResult result = new CaptureSearchResult();
 		String arcName = meta.getArc(); 
 		int index = arcName.lastIndexOf(File.separator);
 		if (index > 0 && (index + 1) < arcName.length()) {
 		    arcName = arcName.substring(index + 1);
 		}
-		result.put(WaybackConstants.RESULT_ARC_FILE, arcName);
-		result.put(WaybackConstants.RESULT_OFFSET, String.valueOf(meta
-				.getOffset()));
+		result.setFile(arcName);
+		result.setOffset(meta.getOffset());
 		
 		// initialize with default HTTP code...
-		result.put(WaybackConstants.RESULT_HTTP_CODE, "-");
+		result.setHttpCode("-");
 		
-		result.put(WaybackConstants.RESULT_MD5_DIGEST, rec.getDigestStr());
-		result.put(WaybackConstants.RESULT_MIME_TYPE, meta.getMimetype());
-		result.put(WaybackConstants.RESULT_CAPTURE_DATE, meta.getDate());
+		result.setDigest(rec.getDigestStr());
+		result.setMimeType(meta.getMimetype());
+		result.setCaptureTimestamp(meta.getDate());
 		
 		String uriStr = meta.getUrl();
 		if (uriStr.startsWith(ARCRecord.ARC_MAGIC_NUMBER)) {
@@ -100,67 +97,49 @@ implements Adapter<ARCRecord,SearchResult>{
 		if (uriStr.startsWith(WaybackConstants.DNS_URL_PREFIX)) {
 			// skip URL + HTTP header processing for dns records...
 		
-			String origHost = uriStr.substring(WaybackConstants.DNS_URL_PREFIX
-					.length());
-			result.put(WaybackConstants.RESULT_ORIG_HOST, origHost);
-			result.put(WaybackConstants.RESULT_REDIRECT_URL, "-");
-			result.put(WaybackConstants.RESULT_URL, uriStr);
-			result.put(WaybackConstants.RESULT_URL_KEY, uriStr);
+			result.setOriginalUrl(uriStr);
+			result.setRedirectUrl("-");
+			result.setUrlKey(uriStr);
 		
 		} else {
 		
-			UURI uri = UURIFactory.getInstance(uriStr);
-			result.put(WaybackConstants.RESULT_URL, uriStr);
+			result.setOriginalUrl(uriStr);
 		
-			String uriHost = uri.getHost();
-			if (uriHost == null) {
-				LOGGER.info("No host in " + uriStr + " in " + meta.getArc());
-			} else {
-				result.put(WaybackConstants.RESULT_ORIG_HOST, uriHost);
 		
-				String statusCode = (meta.getStatusCode() == null) ? "-" : meta
-						.getStatusCode();
-				result.put(WaybackConstants.RESULT_HTTP_CODE, statusCode);
-		
-				String redirectUrl = "-";
-				Header[] headers = rec.getHttpHeaders();
-				if (headers != null) {
-		
-					for (int i = 0; i < headers.length; i++) {
-						if (headers[i].getName().equals(
-								WaybackConstants.LOCATION_HTTP_HEADER)) {
+			String statusCode = (meta.getStatusCode() == null) ? "-" : meta
+					.getStatusCode();
+			result.setHttpCode(statusCode);
+	
+			String redirectUrl = "-";
+			Header[] headers = rec.getHttpHeaders();
+			if (headers != null) {
+	
+				for (int i = 0; i < headers.length; i++) {
+					if (headers[i].getName().equals(
+							WaybackConstants.LOCATION_HTTP_HEADER)) {
 
-							String locationStr = headers[i].getValue();
-							// TODO: "Location" is supposed to be absolute:
-							// (http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html)
-							// (section 14.30) but Content-Location can be
-							// relative.
-							// is it correct to resolve a relative Location, as
-							// we are?
-							// it's also possible to have both in the HTTP
-							// headers...
-							// should we prefer one over the other?
-							// right now, we're ignoring "Content-Location"
-							try {
-								UURI uriRedirect = UURIFactory.getInstance(uri,
-										locationStr);
-								redirectUrl = uriRedirect.getEscapedURI();
-		
-							} catch (URIException e) {
-								LOGGER.info("Bad Location: " + locationStr
-										+ " for " + uriStr + " in "
-										+ meta.getArc() + " Skipped");
-							}
-							break;
-						}
+						String locationStr = headers[i].getValue();
+						// TODO: "Location" is supposed to be absolute:
+						// (http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html)
+						// (section 14.30) but Content-Location can be
+						// relative.
+						// is it correct to resolve a relative Location, as
+						// we are?
+						// it's also possible to have both in the HTTP
+						// headers...
+						// should we prefer one over the other?
+						// right now, we're ignoring "Content-Location"
+						redirectUrl = UrlOperations.resolveUrl(uriStr, 
+								locationStr);
+	
+						break;
 					}
 				}
-				result.put(WaybackConstants.RESULT_REDIRECT_URL, redirectUrl);
+				result.setRedirectUrl(redirectUrl);
 		
-				String indexUrl = canonicalizer.urlStringToKey(meta.getUrl());
-				result.put(WaybackConstants.RESULT_URL_KEY, indexUrl);
+				String urlKey = canonicalizer.urlStringToKey(meta.getUrl());
+				result.setUrlKey(urlKey);
 			}
-		
 		}
 		return result;
 	}

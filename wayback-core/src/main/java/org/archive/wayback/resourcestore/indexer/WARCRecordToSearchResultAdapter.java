@@ -2,25 +2,23 @@ package org.archive.wayback.resourcestore.indexer;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.logging.Logger;
+//import java.util.logging.Logger;
 
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpParser;
 import org.apache.commons.httpclient.StatusLine;
-import org.apache.commons.httpclient.URIException;
 import org.apache.commons.httpclient.util.EncodingUtil;
 import org.archive.io.ArchiveRecordHeader;
 import org.archive.io.RecoverableIOException;
 import org.archive.io.arc.ARCConstants;
 import org.archive.io.warc.WARCConstants;
 import org.archive.io.warc.WARCRecord;
-import org.archive.net.UURI;
-import org.archive.net.UURIFactory;
 import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.WaybackConstants;
-import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.util.Adapter;
 import org.archive.wayback.util.url.AggressiveUrlCanonicalizer;
+import org.archive.wayback.util.url.UrlOperations;
 
 /**
  * Adapts certain WARCRecords into SearchResults. DNS and response records are
@@ -34,24 +32,12 @@ import org.archive.wayback.util.url.AggressiveUrlCanonicalizer;
  * @version $Date$, $Revision$
  */
 public class WARCRecordToSearchResultAdapter
-implements Adapter<WARCRecord,SearchResult>{
+implements Adapter<WARCRecord,CaptureSearchResult>{
 	
 	private final static String DEFAULT_VALUE = "-"; 
-	private final static String SEARCH_FIELDS[] = {
-			WaybackConstants.RESULT_URL,
-			WaybackConstants.RESULT_URL_KEY,
-			WaybackConstants.RESULT_ORIG_HOST,
-			WaybackConstants.RESULT_CAPTURE_DATE,
-			WaybackConstants.RESULT_MD5_DIGEST,
-			WaybackConstants.RESULT_MIME_TYPE,
-			WaybackConstants.RESULT_HTTP_CODE,
-			WaybackConstants.RESULT_REDIRECT_URL,
-			WaybackConstants.RESULT_ARC_FILE,
-			WaybackConstants.RESULT_OFFSET,
-	};
 
-	private static final Logger LOGGER = Logger.getLogger(
-			WARCRecordToSearchResultAdapter.class.getName());
+//	private static final Logger LOGGER = Logger.getLogger(
+//			WARCRecordToSearchResultAdapter.class.getName());
 
 	private UrlCanonicalizer canonicalizer = null;
 
@@ -62,7 +48,7 @@ implements Adapter<WARCRecord,SearchResult>{
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.util.Adapter#adapt(java.lang.Object)
 	 */
-	public SearchResult adapt(WARCRecord rec) {
+	public CaptureSearchResult adapt(WARCRecord rec) {
 		try {
 			return adaptInner(rec);
 		} catch (IOException e) {
@@ -117,75 +103,58 @@ implements Adapter<WARCRecord,SearchResult>{
 		return orig;
 	}
 
-	private SearchResult getBlankSearchResult() {
-		SearchResult result = new SearchResult();
-		for(String field : SEARCH_FIELDS) {
-			result.put(field, DEFAULT_VALUE);
-		}
+	private CaptureSearchResult getBlankSearchResult() {
+		CaptureSearchResult result = new CaptureSearchResult();
+
+		result.setUrlKey(DEFAULT_VALUE);
+		result.setOriginalUrl(DEFAULT_VALUE);
+		result.setCaptureTimestamp(DEFAULT_VALUE);
+		result.setDigest(DEFAULT_VALUE);
+		result.setMimeType(DEFAULT_VALUE);
+		result.setHttpCode(DEFAULT_VALUE);
+		result.setRedirectUrl(DEFAULT_VALUE);
+		result.setFile(DEFAULT_VALUE);
+		result.setOffset(0);
 		return result;
 	}
 	
-	private UURI addUrlDataToSearchResult(SearchResult result, String urlStr)
+	private void addUrlDataToSearchResult(CaptureSearchResult result, String urlStr)
 	throws IOException {
 
-		result.put(WaybackConstants.RESULT_URL, urlStr);
-		result.put(WaybackConstants.RESULT_URL_KEY, urlStr);
-
-	
-		UURI uri = UURIFactory.getInstance(urlStr);
-		String uriHost = uri.getHost();
-		if (uriHost == null) {
-
-			LOGGER.info("No host in " + urlStr);
-
-		} else {
-
-			result.put(WaybackConstants.RESULT_ORIG_HOST, uriHost);
-		}
-
+		result.setOriginalUrl(urlStr);
 		String urlKey = canonicalizer.urlStringToKey(urlStr);
-		result.put(WaybackConstants.RESULT_URL_KEY, urlKey);
-
-		return uri;
+		result.setUrlKey(urlKey);
 	}
 
-	private SearchResult adaptDNS(ArchiveRecordHeader header, WARCRecord rec) 
+	private CaptureSearchResult adaptDNS(ArchiveRecordHeader header, WARCRecord rec) 
 	throws IOException {
 
-		SearchResult result = getBlankSearchResult();
+		CaptureSearchResult result = getBlankSearchResult();
 
-		result.put(WaybackConstants.RESULT_CAPTURE_DATE, 
-				transformDate(header.getDate()));
-		result.put(WaybackConstants.RESULT_ARC_FILE,
-				transformWarcFilename(header.getReaderIdentifier()));
-		result.put(WaybackConstants.RESULT_OFFSET, 
-				String.valueOf(header.getOffset()));
+		result.setCaptureTimestamp(transformDate(header.getDate()));
+		result.setFile(transformWarcFilename(header.getReaderIdentifier()));
+		result.setOffset(header.getOffset());
 		
 		String uriStr = header.getUrl();
 		
-		String origHost = uriStr.substring(WaybackConstants.DNS_URL_PREFIX
-				.length());
-		result.put(WaybackConstants.RESULT_MIME_TYPE, header.getMimetype());
+		result.setMimeType(header.getMimetype());
 
-		result.put(WaybackConstants.RESULT_ORIG_HOST, origHost);
-		result.put(WaybackConstants.RESULT_URL, uriStr);
-		result.put(WaybackConstants.RESULT_URL_KEY, uriStr);
+		result.setOriginalUrl(uriStr);
+		result.setUrlKey(uriStr);
 
 		rec.close();
-		result.put(WaybackConstants.RESULT_MD5_DIGEST, rec.getDigestStr());
+		result.setDigest(rec.getDigestStr());
 
 		return result;
 	}
 
-	private SearchResult adaptRevisit(ArchiveRecordHeader header, WARCRecord rec) 
+	private CaptureSearchResult adaptRevisit(ArchiveRecordHeader header, WARCRecord rec) 
 	throws IOException {
 
-		SearchResult result = getBlankSearchResult();
+		CaptureSearchResult result = getBlankSearchResult();
 
-		result.put(WaybackConstants.RESULT_CAPTURE_DATE, 
-				transformDate(header.getDate()));
-		result.put(WaybackConstants.RESULT_MD5_DIGEST, 
-				transformDigest(header.getHeaderValue(
+		result.setCaptureTimestamp(transformDate(header.getDate()));
+		result.setDigest(transformDigest(header.getHeaderValue(
 						WARCRecord.HEADER_KEY_PAYLOAD_DIGEST)));
 		
 		addUrlDataToSearchResult(result,header.getUrl());
@@ -211,20 +180,17 @@ implements Adapter<WARCRecord,SearchResult>{
         return count;
     }
 	
-	private SearchResult adaptResponse(ArchiveRecordHeader header, WARCRecord rec) 
+	private CaptureSearchResult adaptResponse(ArchiveRecordHeader header, WARCRecord rec) 
 	throws IOException {
 
-		SearchResult result = getBlankSearchResult();
+		CaptureSearchResult result = getBlankSearchResult();
 
-		result.put(WaybackConstants.RESULT_CAPTURE_DATE, 
-				transformDate(header.getDate()));
-		result.put(WaybackConstants.RESULT_ARC_FILE,
-				transformWarcFilename(header.getReaderIdentifier()));
-		result.put(WaybackConstants.RESULT_OFFSET, 
-				String.valueOf(header.getOffset()));
+		result.setCaptureTimestamp(transformDate(header.getDate()));
+		result.setFile(transformWarcFilename(header.getReaderIdentifier()));
+		result.setOffset(header.getOffset());
 		
 		String origUrl = header.getUrl();
-		UURI uri = addUrlDataToSearchResult(result,origUrl);
+		addUrlDataToSearchResult(result,origUrl);
 
 		// need to parse the documents HTTP message and headers here: WARCReader
 		// does not implement this... yet..
@@ -242,15 +208,13 @@ implements Adapter<WARCRecord,SearchResult>{
            throw new RecoverableIOException("Failed parse of http status line.");
         }
         StatusLine status = new StatusLine(statusLine);
-		result.put(WaybackConstants.RESULT_HTTP_CODE, 
-				String.valueOf(status.getStatusCode()));
+		result.setHttpCode(String.valueOf(status.getStatusCode()));
         
 		Header[] headers = HttpParser.parseHeaders(rec,
                 ARCConstants.DEFAULT_ENCODING);
 
 		rec.close();
-		result.put(WaybackConstants.RESULT_MD5_DIGEST, 
-				transformDigest(header.getHeaderValue(
+		result.setDigest(transformDigest(header.getHeaderValue(
 						WARCRecord.HEADER_KEY_PAYLOAD_DIGEST)));
 
 		if (headers != null) {
@@ -270,28 +234,19 @@ implements Adapter<WARCRecord,SearchResult>{
 					// headers...
 					// should we prefer one over the other?
 					// right now, we're ignoring "Content-Location"
-					try {
-						UURI uriRedirect = UURIFactory.getInstance(uri,
-								locationStr);
-						result.put(WaybackConstants.RESULT_REDIRECT_URL,
-								uriRedirect.getEscapedURI());
-					} catch (URIException e) {
-						LOGGER.info("Bad Location: " + locationStr
-								+ " for " + origUrl + " in "
-								+ header.getReaderIdentifier() + " Skipped");
-					}
+					result.setRedirectUrl(
+							UrlOperations.resolveUrl(origUrl, locationStr));
 				} else if(httpHeader.getName().toLowerCase().equals("content-type")) {
-					result.put(WaybackConstants.RESULT_MIME_TYPE, 
-							transformHTTPMime(httpHeader.getValue()));
+					result.setMimeType(transformHTTPMime(httpHeader.getValue()));
 				}
 			}
 		}
 		return result;
 	}
 	
-	private SearchResult adaptInner(WARCRecord rec) throws IOException {
+	private CaptureSearchResult adaptInner(WARCRecord rec) throws IOException {
 		
-		SearchResult result = null;
+		CaptureSearchResult result = null;
 		ArchiveRecordHeader header = rec.getHeader();
 		String type = header.getHeaderValue(WARCConstants.HEADER_KEY_TYPE).toString();
 		if(type.equals(WARCConstants.RESPONSE)) {
