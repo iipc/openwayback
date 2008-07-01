@@ -36,7 +36,7 @@ import org.archive.io.arc.ARCWriter;
 import org.archive.io.arc.ARCWriterPool;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.exception.ResourceNotAvailableException;
-import org.archive.wayback.resourcestore.ResourceFactory;
+import org.archive.wayback.resourcestore.resourcefile.ResourceFactory;
 import org.archive.wayback.util.DirMaker;
 
 /**

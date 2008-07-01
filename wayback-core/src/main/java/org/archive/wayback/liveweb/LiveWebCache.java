@@ -34,17 +34,17 @@ import org.archive.io.arc.ARCLocation;
 import org.archive.io.arc.ARCRecord;
 import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.WaybackConstants;
-import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.Resource;
-import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.CaptureSearchResult;
+import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.LiveDocumentNotAvailableException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.exception.WaybackException;
-import org.archive.wayback.resourcestore.ARCRecordToSearchResultAdapter;
-import org.archive.wayback.resourcestore.ArcResource;
+import org.archive.wayback.resourcestore.indexer.ARCRecordToSearchResultAdapter;
+import org.archive.wayback.resourcestore.resourcefile.ArcResource;
 import org.archive.wayback.util.url.AggressiveUrlCanonicalizer;
 
 /**
@@ -100,8 +100,8 @@ public class LiveWebCache {
 		return req;
 	}
 	
-	private boolean isForgedFailRecentEnough(SearchResult result) {
-		String captureDate = result.get(WaybackConstants.RESULT_CAPTURE_DATE);
+	private boolean isForgedFailRecentEnough(CaptureSearchResult result) {
+		String captureDate = result.getCaptureTimestamp();
 		Timestamp t = new Timestamp(captureDate);
 		long maxAge = System.currentTimeMillis() - maxFailedCacheMS;
 		long failAge = t.getDate().getTime();
@@ -111,27 +111,25 @@ public class LiveWebCache {
 		return false;
 	}
 	
-	private boolean isForgedFailedSearchResult(SearchResult result) {
-		String arcFile = result.get(WaybackConstants.RESULT_ARC_FILE);
+	private boolean isForgedFailedSearchResult(CaptureSearchResult result) {
+		String arcFile = result.getFile();
 		return arcFile.equals("-");
 	}
 	
-	private SearchResult forgeFailedSearchResult(URL url) {
-		SearchResult result = new SearchResult();
+	private CaptureSearchResult forgeFailedSearchResult(URL url) {
+		CaptureSearchResult result = new CaptureSearchResult();
 
-		result.put(WaybackConstants.RESULT_ARC_FILE, "-");
-		result.put(WaybackConstants.RESULT_OFFSET, "0");
+		result.setFile("-");
+		result.setOffset(0);
 
-		result.put(WaybackConstants.RESULT_HTTP_CODE, "0");
+		result.setHttpCode("0");
 
-		result.put(WaybackConstants.RESULT_MD5_DIGEST, "-");
-		result.put(WaybackConstants.RESULT_MIME_TYPE, "-");
-		result.put(WaybackConstants.RESULT_CAPTURE_DATE, 
-				Timestamp.currentTimestamp().getDateStr());
+		result.setDigest("-");
+		result.setMimeType("-");
+		result.setCaptureDate(new Date());
 
-		result.put(WaybackConstants.RESULT_ORIG_HOST, url.getHost());
-		result.put(WaybackConstants.RESULT_REDIRECT_URL, "-");
-		result.put(WaybackConstants.RESULT_URL, url.toString());
+		result.setOriginalUrl(url.toString());
+		result.setRedirectUrl("-");
 
 		String indexUrl;
 		try {
@@ -141,7 +139,7 @@ public class LiveWebCache {
 			e.printStackTrace();
 			indexUrl = url.toString();
 		}
-		result.put(WaybackConstants.RESULT_URL_KEY, indexUrl);
+		result.setUrlKey(indexUrl);
 		
 		return result;
 	}
@@ -167,7 +165,7 @@ public class LiveWebCache {
 			e.printStackTrace();
 			throw new IOException(e.getMessage());
 		}
-		SearchResult result = results.getClosest(wbRequest);
+		CaptureSearchResult result = results.getClosest(wbRequest);
 		if(result != null) {
 			if(isForgedFailedSearchResult(result)) {
 				if(isForgedFailRecentEnough(result)) {
@@ -178,9 +176,8 @@ public class LiveWebCache {
 					throw new ResourceNotInArchiveException("Nope");
 				}
 			}
-			String name = (String) result.get(WaybackConstants.RESULT_ARC_FILE);
-			long offset = Long.parseLong(
-					(String) result.get(WaybackConstants.RESULT_OFFSET));
+			String name = result.getFile();
+			long offset = result.getOffset();
 			resource = arcCacheDir.getResource(name, offset);
 		}
 		return resource;
@@ -197,7 +194,7 @@ public class LiveWebCache {
 			location = cacher.cache(arcCacheDir, url.toString());
 		} catch(LiveDocumentNotAvailableException e) {
 			// record the failure, so we can fail early next time:
-			SearchResult result = forgeFailedSearchResult(url);
+			CaptureSearchResult result = forgeFailedSearchResult(url);
 			index.addSearchResult(result);
 			LOGGER.info("Added FAIL-URL(" + url.toString() + ") to LiveIndex");
 			throw e;
@@ -213,7 +210,7 @@ public class LiveWebCache {
 				ArcResource aResource = (ArcResource) resource;
 				ARCRecord record = (ARCRecord) aResource.getArcRecord();
 				
-				SearchResult result = adapter.adapt(record);
+				CaptureSearchResult result = adapter.adapt(record);
 				index.addSearchResult(result);
 				LOGGER.info("Added URL(" + url.toString() + ") in " +
 						"ARC(" + name + ") at (" + offset + ") to LiveIndex");

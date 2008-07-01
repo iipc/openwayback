@@ -27,7 +27,7 @@ package org.archive.wayback.liveweb;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.resourceindex.LocalResourceIndex;
 
 /**
@@ -46,10 +46,10 @@ public class LiveWebLocalResourceIndex extends LocalResourceIndex {
 	 * @throws UnsupportedOperationException 
 	 */
 	@SuppressWarnings("unchecked")
-	public void addSearchResult(SearchResult result) 
+	public void addSearchResult(CaptureSearchResult result) 
 	throws UnsupportedOperationException, IOException {
 		
-		ArrayList<SearchResult> l = new ArrayList<SearchResult>();
+		ArrayList<CaptureSearchResult> l = new ArrayList<CaptureSearchResult>();
 		l.add(result);
 		addSearchResults(l.iterator());
 	}
