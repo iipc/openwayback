@@ -38,7 +38,7 @@ import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
 import org.apache.commons.httpclient.methods.PutMethod;
-import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.resourceindex.cdx.SearchResultToCDXLineAdapter;
 import org.archive.wayback.util.AdaptedIterator;
 import org.archive.wayback.util.Adapter;
@@ -137,7 +137,7 @@ public class IndexClient {
 	 * @throws HttpException
 	 * @throws IOException
 	 */
-	public boolean addSearchResults(String base, Iterator<SearchResult> itr) 
+	public boolean addSearchResults(String base, Iterator<CaptureSearchResult> itr) 
 	throws HttpException, IOException {
 		
 		if(tmpDir == null) {
@@ -155,10 +155,10 @@ public class IndexClient {
 		BufferedOutputStream bos = new BufferedOutputStream(os);
 		PrintWriter pw = new PrintWriter(bos);
 		
-		Adapter<SearchResult,String> adapterSRtoS = 
+		Adapter<CaptureSearchResult,String> adapterSRtoS = 
 			new SearchResultToCDXLineAdapter();
 		Iterator<String> itrS = 
-			new AdaptedIterator<SearchResult,String>(itr,adapterSRtoS);
+			new AdaptedIterator<CaptureSearchResult,String>(itr,adapterSRtoS);
 		
 		while(itrS.hasNext()) {
 			pw.println(itrS.next());

@@ -28,7 +28,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.logging.Logger;
 
-import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.resourceindex.LocalResourceIndex;
 import org.archive.wayback.resourceindex.cdx.CDXLineToSearchResultAdapter;
@@ -97,8 +97,8 @@ public class LocalResourceIndexUpdater {
 		boolean added = false;
 		try {
 			FlatFile ffile = new FlatFile(cdxFile.getAbsolutePath());
-			AdaptedIterator<String,SearchResult> searchResultItr = 
-				new AdaptedIterator<String,SearchResult>(
+			AdaptedIterator<String,CaptureSearchResult> searchResultItr = 
+				new AdaptedIterator<String,CaptureSearchResult>(
 						ffile.getSequentialIterator(),
 					new CDXLineToSearchResultAdapter());
 			index.addSearchResults(searchResultItr);
