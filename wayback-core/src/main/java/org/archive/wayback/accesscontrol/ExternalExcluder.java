@@ -24,10 +24,8 @@
  */
 package org.archive.wayback.accesscontrol;
 
-import org.apache.commons.httpclient.URIException;
-import org.archive.net.LaxURI;
-import org.archive.wayback.WaybackConstants;
-import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.CaptureSearchResult;
+import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.util.ObjectFilter;
 import org.springframework.beans.factory.xml.XmlBeanFactory;
 import org.springframework.core.io.FileSystemResource;
@@ -44,12 +42,12 @@ import org.springframework.core.io.Resource;
  */
 public class ExternalExcluder {
 	private static ExclusionFilterFactory factory = null;
-	private ObjectFilter<SearchResult> filter = null;
+	private ObjectFilter<CaptureSearchResult> filter = null;
 	private final static String CONFIG_ID = "excluder-factory";
 	/**
 	 * @param filter
 	 */
-	public ExternalExcluder(ObjectFilter<SearchResult> filter) {
+	public ExternalExcluder(ObjectFilter<CaptureSearchResult> filter) {
 		this.filter = filter;
 	}
 	/**
@@ -58,20 +56,10 @@ public class ExternalExcluder {
 	 * @return true if the url-timestamp should not be shown to end users
 	 */
 	public boolean isExcluded(String urlString, String timestamp) {
-		SearchResult sr = new SearchResult();
+		CaptureSearchResult sr = new CaptureSearchResult();
 
-		LaxURI url = null;
-		String host = null;
-		try {
-			url = new LaxURI(urlString,true);
-			host = url.getHost();
-		} catch (URIException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return true;
-		}
-		sr.put(WaybackConstants.RESULT_ORIG_HOST, host);
-		sr.put(WaybackConstants.RESULT_URL, urlString);
+		sr.setOriginalUrl(urlString);
+		sr.setCaptureTimestamp(Timestamp.parseBefore(timestamp).getDateStr());
 		
 		int ruling = filter.filterObject(sr);
 		return (ruling != ObjectFilter.FILTER_INCLUDE);
