@@ -59,7 +59,7 @@ public class WaybackRequest {
 	private String contextPrefix = null;
 	private String serverPrefix = null;
 	private AccessPoint context = null;
-	private ObjectFilter<SearchResult> exclusionFilter = null;
+	private ObjectFilter<CaptureSearchResult> exclusionFilter = null;
 
 	private HashMap<String,String> filters = new HashMap<String,String>();
 	
@@ -372,7 +372,6 @@ public class WaybackRequest {
 	public WaybackRequest clone() {
 		WaybackRequest wbRequest = new WaybackRequest();
 
-		wbRequest.contextPrefix = contextPrefix;
 		wbRequest.resultsPerPage = resultsPerPage;
 
 		wbRequest.pageNum = pageNum;
@@ -406,11 +405,11 @@ public class WaybackRequest {
 		this.context = context;
 	}
 
-	public ObjectFilter<SearchResult> getExclusionFilter() {
+	public ObjectFilter<CaptureSearchResult> getExclusionFilter() {
 		return exclusionFilter;
 	}
 
-	public void setExclusionFilter(ObjectFilter<SearchResult> exclusionFilter) {
+	public void setExclusionFilter(ObjectFilter<CaptureSearchResult> exclusionFilter) {
 		this.exclusionFilter = exclusionFilter;
 	}
 
