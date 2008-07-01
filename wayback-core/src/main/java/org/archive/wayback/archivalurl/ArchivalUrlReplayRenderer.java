@@ -36,8 +36,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.archive.wayback.ReplayRenderer;
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.core.Resource;
-import org.archive.wayback.core.SearchResult;
-import org.archive.wayback.core.SearchResults;
+import org.archive.wayback.core.CaptureSearchResult;
+import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadContentException;
 import org.archive.wayback.replay.HTMLPage;
@@ -67,8 +67,8 @@ public class ArchivalUrlReplayRenderer implements ReplayRenderer, HttpHeaderProc
 	 */
 	public void renderResource(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
-			SearchResult result, Resource resource,
-			ResultURIConverter uriConverter, SearchResults results)
+			CaptureSearchResult result, Resource resource,
+			ResultURIConverter uriConverter, CaptureSearchResults results)
 			throws ServletException, IOException, BadContentException {
 
 		StringBuilder toInsert = new StringBuilder(300);
@@ -98,7 +98,7 @@ public class ArchivalUrlReplayRenderer implements ReplayRenderer, HttpHeaderProc
 			Iterator<String> itr = jspInserts.iterator();
 			while(itr.hasNext()) {
 				toInsert.append(page.includeJspString(itr.next(), httpRequest, 
-						httpResponse, wbRequest, results, result));
+						httpResponse, wbRequest, results, result, resource));
 			}
 		}
 
@@ -129,7 +129,7 @@ public class ArchivalUrlReplayRenderer implements ReplayRenderer, HttpHeaderProc
 	 * @see org.archive.wayback.replay.HttpHeaderProcessor#filter(java.util.Map, java.lang.String, java.lang.String, org.archive.wayback.ResultURIConverter, org.archive.wayback.core.SearchResult)
 	 */
 	public void filter(Map<String, String> output, String key, String value,
-			ResultURIConverter uriConverter, SearchResult result) {
+			ResultURIConverter uriConverter, CaptureSearchResult result) {
 
 		String keyUp = key.toUpperCase();
 
@@ -142,8 +142,8 @@ public class ArchivalUrlReplayRenderer implements ReplayRenderer, HttpHeaderProc
 		if (keyUp.startsWith(HTTP_LOCATION_HEADER_UP) ||
 				keyUp.startsWith(HTTP_CONTENT_BASE_HEADER_UP)) {
 
-			String baseUrl = result.getAbsoluteUrl();
-			String cd = result.getCaptureDate();
+			String baseUrl = result.getOriginalUrl();
+			String cd = result.getCaptureTimestamp();
 			// by the spec, these should be absolute already, but just in case:
 			String u = UrlOperations.resolveUrl(baseUrl, value);
 

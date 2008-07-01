@@ -3,7 +3,7 @@ package org.archive.wayback.archivalurl;
 import java.util.Map;
 
 import org.archive.wayback.ResultURIConverter;
-import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.replay.TransparentReplayRenderer;
 import org.archive.wayback.util.url.UrlOperations;
 
@@ -21,7 +21,7 @@ extends TransparentReplayRenderer {
 	 * @see org.archive.wayback.replay.HeaderFilter#filter(java.util.Map, java.lang.String, java.lang.String, org.archive.wayback.ResultURIConverter, org.archive.wayback.core.SearchResult)
 	 */
 	public void filter(Map<String, String> output, String key, String value,
-			ResultURIConverter uriConverter, SearchResult result) {
+			ResultURIConverter uriConverter, CaptureSearchResult result) {
 
 		String keyUp = key.toUpperCase();
 
@@ -29,8 +29,8 @@ extends TransparentReplayRenderer {
 		if (keyUp.startsWith(HTTP_LOCATION_HEADER_UP) ||
 				keyUp.startsWith(HTTP_CONTENT_BASE_HEADER_UP)) {
 
-			String baseUrl = result.getAbsoluteUrl();
-			String cd = result.getCaptureDate();
+			String baseUrl = result.getOriginalUrl();
+			String cd = result.getCaptureTimestamp();
 			// by the spec, these should be absolute already, but just in case:
 			String u = UrlOperations.resolveUrl(baseUrl, value);
 

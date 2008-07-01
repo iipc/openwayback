@@ -9,8 +9,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.core.Resource;
-import org.archive.wayback.core.SearchResult;
-import org.archive.wayback.core.SearchResults;
+import org.archive.wayback.core.CaptureSearchResult;
+import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadContentException;
 import org.archive.wayback.replay.HTMLPage;
@@ -22,8 +22,8 @@ public class ArchivalUrlCSSReplayRenderer extends ArchivalUrlReplayRenderer {
 	 */
 	public void renderResource(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
-			SearchResult result, Resource resource,
-			ResultURIConverter uriConverter, SearchResults results)
+			CaptureSearchResult result, Resource resource,
+			ResultURIConverter uriConverter, CaptureSearchResults results)
 			throws ServletException, IOException, BadContentException {
 		HttpHeaderOperation.copyHTTPMessageHeader(resource, httpResponse);
 

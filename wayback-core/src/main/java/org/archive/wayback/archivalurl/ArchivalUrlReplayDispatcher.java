@@ -30,7 +30,7 @@ import org.archive.wayback.ReplayDispatcher;
 import org.archive.wayback.ReplayRenderer;
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.Resource;
-import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.replay.DateRedirectReplayRenderer;
 
@@ -71,13 +71,13 @@ public class ArchivalUrlReplayDispatcher implements ReplayDispatcher {
 	 * @see org.archive.wayback.ReplayDispatcher#getRenderer(org.archive.wayback.core.WaybackRequest, org.archive.wayback.core.SearchResult, org.archive.wayback.core.Resource)
 	 */
 	public ReplayRenderer getRenderer(WaybackRequest wbRequest,
-			SearchResult result, Resource resource) {
+			CaptureSearchResult result, Resource resource) {
 
 		// if the result is not for the exact date requested, redirect to the
 		// exact date. some capture dates are not 14 digits, only compare as 
 		// many digits as are in the result date:
-		String reqDateStr = wbRequest.get(WaybackConstants.REQUEST_EXACT_DATE);
-		String resDateStr = result.get(WaybackConstants.RESULT_CAPTURE_DATE);
+		String reqDateStr = wbRequest.get(WaybackConstants.REQUEST_DATE);
+		String resDateStr = result.getCaptureTimestamp();
 		if(!resDateStr.equals(reqDateStr.substring(0, resDateStr.length()))) {
 			return redirect;
 		}
@@ -85,7 +85,7 @@ public class ArchivalUrlReplayDispatcher implements ReplayDispatcher {
 		// only bother attempting  markup on pages smaller than some size:
 		if (resource.getRecordLength() < MAX_HTML_MARKUP_LENGTH) {
 
-			String resultMime = result.get(WaybackConstants.RESULT_MIME_TYPE);
+			String resultMime = result.getMimeType();
 			// HTML and XHTML docs get marked up as HTML
 			if (-1 != resultMime.indexOf(TEXT_HTML_MIME)) {
 				return archivalHTML;
@@ -100,7 +100,7 @@ public class ArchivalUrlReplayDispatcher implements ReplayDispatcher {
 			if (-1 != resultMime.indexOf(ASX_MIME)) {
 				return archivalASX;
 			}
-			String resultPath = result.get(WaybackConstants.RESULT_URL_KEY);
+			String resultPath = result.getUrlKey();
 			resultPath = resultPath.substring(resultPath.indexOf('/'));
 			int queryIdx = resultPath.indexOf('?');
 			if(queryIdx > 0) {
