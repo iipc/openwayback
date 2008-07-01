@@ -26,8 +26,7 @@ package org.archive.wayback.resourceindex.filters;
 
 import org.apache.commons.httpclient.URIException;
 import org.archive.wayback.UrlCanonicalizer;
-import org.archive.wayback.WaybackConstants;
-import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.util.ObjectFilter;
 import org.archive.wayback.util.url.AggressiveUrlCanonicalizer;
 
@@ -38,22 +37,22 @@ import org.archive.wayback.util.url.AggressiveUrlCanonicalizer;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class SelfRedirectFilter implements ObjectFilter<SearchResult> {
+public class SelfRedirectFilter implements ObjectFilter<CaptureSearchResult> {
 
 	private UrlCanonicalizer canonicalizer = new AggressiveUrlCanonicalizer();
 	public SelfRedirectFilter() {
 		canonicalizer = new AggressiveUrlCanonicalizer();
 	}
 	/* (non-Javadoc)
-	 * @see org.archive.wayback.resourceindex.SearchResultFilter#filterSearchResult(org.archive.wayback.core.SearchResult)
+	 * @see org.archive.wayback.util.ObjectFilter#filterObject(java.lang.Object)
 	 */
-	public int filterObject(SearchResult r) {
-		String httpCode = r.get(WaybackConstants.RESULT_HTTP_CODE);
+	public int filterObject(CaptureSearchResult r) {
+		String httpCode = r.getHttpCode();
 		// only filter real 3XX http response codes:
 		if(httpCode.startsWith("3")) {
-			String redirect = r.get(WaybackConstants.RESULT_REDIRECT_URL);
+			String redirect = r.getRedirectUrl();
 			if(redirect.compareTo("-") != 0) {
-				String urlKey = r.get(WaybackConstants.RESULT_URL_KEY);
+				String urlKey = r.getUrlKey();
 				try {
 					String redirectKey = canonicalizer.urlStringToKey(redirect);
 					if(redirectKey.compareTo(urlKey) == 0) {

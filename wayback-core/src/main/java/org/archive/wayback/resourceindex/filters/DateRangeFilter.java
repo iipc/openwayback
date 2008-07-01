@@ -24,8 +24,7 @@
  */
 package org.archive.wayback.resourceindex.filters;
 
-import org.archive.wayback.WaybackConstants;
-import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.util.ObjectFilter;
 
@@ -36,7 +35,7 @@ import org.archive.wayback.util.ObjectFilter;
  * @version $Date$, $Revision$
  */
 
-public class DateRangeFilter implements ObjectFilter<SearchResult> {
+public class DateRangeFilter implements ObjectFilter<CaptureSearchResult> {
 	
 	private String first = null;
 	private String last = null;
@@ -51,10 +50,10 @@ public class DateRangeFilter implements ObjectFilter<SearchResult> {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.archive.wayback.resourceindex.SearchResultFilter#filterSearchResult(org.archive.wayback.core.SearchResult)
+	 * @see org.archive.wayback.util.ObjectFilter#filterObject(java.lang.Object)
 	 */
-	public int filterObject(SearchResult r) {
-		String captureDate = r.get(WaybackConstants.RESULT_CAPTURE_DATE);
+	public int filterObject(CaptureSearchResult r) {
+		String captureDate = r.getCaptureTimestamp();
 		return ((first.compareTo(captureDate) > 0) ||
 				(last.compareTo(captureDate) < 0)) ? 
 						FILTER_EXCLUDE : FILTER_INCLUDE;

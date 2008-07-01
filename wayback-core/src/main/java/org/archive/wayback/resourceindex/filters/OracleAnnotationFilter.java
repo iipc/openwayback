@@ -29,8 +29,7 @@ import java.util.Date;
 import org.archive.accesscontrol.AccessControlClient;
 import org.archive.accesscontrol.RuleOracleUnavailableException;
 import org.archive.accesscontrol.model.Rule;
-import org.archive.wayback.core.SearchResult;
-import org.archive.wayback.core.Timestamp;
+import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.util.ObjectFilter;
 
 /**
@@ -40,17 +39,17 @@ import org.archive.wayback.util.ObjectFilter;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class OracleAnnotationFilter implements ObjectFilter<SearchResult> {
+public class OracleAnnotationFilter implements ObjectFilter<CaptureSearchResult> {
 	private AccessControlClient client = null;
 	private String oracleUrl = null;
 	private String who = null;
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.util.ObjectFilter#filterObject(java.lang.Object)
 	 */
-	public int filterObject(SearchResult o) {
+	public int filterObject(CaptureSearchResult o) {
 		if(client != null) {
-			String url = o.getAbsoluteUrl();
-			Date capDate = Timestamp.parseAfter(o.getCaptureDate()).getDate();
+			String url = o.getOriginalUrl();
+			Date capDate = o.getCaptureDate();
 			try {
 				Rule r = client.getRule(url, capDate, new Date(), who);
 				if(r != null) {

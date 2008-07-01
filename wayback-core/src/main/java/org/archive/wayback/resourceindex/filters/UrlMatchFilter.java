@@ -24,8 +24,7 @@
  */
 package org.archive.wayback.resourceindex.filters;
 
-import org.archive.wayback.WaybackConstants;
-import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.util.ObjectFilter;
 
 /**
@@ -35,7 +34,7 @@ import org.archive.wayback.util.ObjectFilter;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class UrlMatchFilter implements ObjectFilter<SearchResult> {
+public class UrlMatchFilter implements ObjectFilter<CaptureSearchResult> {
 
 	private String url = null;
 	
@@ -47,10 +46,10 @@ public class UrlMatchFilter implements ObjectFilter<SearchResult> {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.archive.wayback.resourceindex.SearchResultFilter#filterSearchResult(org.archive.wayback.core.SearchResult)
+	 * @see org.archive.wayback.util.ObjectFilter#filterObject(java.lang.Object)
 	 */
-	public int filterObject(SearchResult r) {
-		String resultUrl = r.get(WaybackConstants.RESULT_URL_KEY);
+	public int filterObject(CaptureSearchResult r) {
+		String resultUrl = r.getUrlKey();
 		return url.equals(resultUrl) ? 
 				FILTER_INCLUDE : FILTER_ABORT;
 	}

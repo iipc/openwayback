@@ -24,7 +24,6 @@
  */
 package org.archive.wayback.resourceindex.filters;
 
-import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.util.ObjectFilter;
 
 /**
@@ -33,7 +32,7 @@ import org.archive.wayback.util.ObjectFilter;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class WindowStartFilter implements ObjectFilter<SearchResult> {
+public class WindowStartFilter<T> implements ObjectFilter<T> {
 
 	private int windowStart = 0;
 	private int numSeen = 0;
@@ -45,11 +44,14 @@ public class WindowStartFilter implements ObjectFilter<SearchResult> {
 		this.windowStart = windowStart;
 		this.numSeen = 0;
 	}
+	public int getNumSeen() {
+		return numSeen;
+	}
 
 	/* (non-Javadoc)
-	 * @see org.archive.wayback.resourceindex.SearchResultFilter#filterSearchResult(org.archive.wayback.core.SearchResult)
+	 * @see org.archive.wayback.util.ObjectFilter#filterObject(java.lang.Object)
 	 */
-	public int filterObject(SearchResult r) {
+	public int filterObject(T r) {
 		numSeen++;
 		if(numSeen > windowStart) {
 			return FILTER_INCLUDE;

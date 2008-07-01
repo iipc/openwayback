@@ -24,7 +24,7 @@
  */
 package org.archive.wayback.resourceindex.filters;
 
-import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.util.ObjectFilter;
 
 /**
@@ -34,7 +34,7 @@ import org.archive.wayback.util.ObjectFilter;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class GuardRailFilter implements ObjectFilter<SearchResult> {
+public class GuardRailFilter implements ObjectFilter<CaptureSearchResult> {
 	private int maxRecordsToScan = 0;
 	private int recordsScanned = 0;
 	
@@ -47,9 +47,9 @@ public class GuardRailFilter implements ObjectFilter<SearchResult> {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.archive.wayback.resourceindex.SearchResultFilter#filterSearchResult(org.archive.wayback.core.SearchResult)
+	 * @see org.archive.wayback.util.ObjectFilter#filterObject(java.lang.Object)
 	 */
-	public int filterObject(SearchResult r) {
+	public int filterObject(CaptureSearchResult r) {
 		recordsScanned++;
 		if(recordsScanned > maxRecordsToScan) {
 			return FILTER_ABORT;

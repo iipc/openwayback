@@ -27,7 +27,7 @@ package org.archive.wayback.resourceindex.filters;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.util.ObjectFilter;
 
 /**
@@ -38,22 +38,22 @@ import org.archive.wayback.util.ObjectFilter;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class CompositeExclusionFilter implements ObjectFilter<SearchResult> {
+public class CompositeExclusionFilter implements ObjectFilter<CaptureSearchResult> {
 
-	private ArrayList<ObjectFilter<SearchResult>> filters = 
-		new ArrayList<ObjectFilter<SearchResult>>();
+	private ArrayList<ObjectFilter<CaptureSearchResult>> filters = 
+		new ArrayList<ObjectFilter<CaptureSearchResult>>();
 	
 	/**
 	 * @param filter to be added to the composite.
 	 */
-	public void addComponent(ObjectFilter<SearchResult> filter) {
+	public void addComponent(ObjectFilter<CaptureSearchResult> filter) {
 		filters.add(filter);
 	}
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.resourceindex.SearchResultFilter#filterSearchResult(org.archive.wayback.core.SearchResult)
 	 */
-	public int filterObject(SearchResult r) {
-		Iterator<ObjectFilter<SearchResult>> itr = filters.iterator();
+	public int filterObject(CaptureSearchResult r) {
+		Iterator<ObjectFilter<CaptureSearchResult>> itr = filters.iterator();
 		while(itr.hasNext()) {
 			int result = itr.next().filterObject(r);
 			if(result != FILTER_INCLUDE) {
