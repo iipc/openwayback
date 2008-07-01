@@ -28,7 +28,7 @@ import java.io.IOException;
 import java.util.logging.Logger;
 
 import org.archive.wayback.UrlCanonicalizer;
-import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.resourceindex.updater.IndexClient;
 import org.archive.wayback.resourcestore.locationdb.ResourceFileLocationDB;
 import org.archive.wayback.util.CloseableIterator;
@@ -102,7 +102,7 @@ public class IndexWorker {
 			try {
 				if(pathsOrUrls != null) {
 					for(String pathOrUrl : pathsOrUrls) {
-						CloseableIterator<SearchResult> itr = indexFile(pathOrUrl);
+						CloseableIterator<CaptureSearchResult> itr = indexFile(pathOrUrl);
 						target.addSearchResults(name, itr);
 						itr.close();
 						break;
@@ -115,10 +115,10 @@ public class IndexWorker {
 		return worked;
 	}
 	
-	public CloseableIterator<SearchResult> indexFile(String pathOrUrl) 
+	public CloseableIterator<CaptureSearchResult> indexFile(String pathOrUrl) 
 	throws IOException {
 
-		CloseableIterator<SearchResult> itr = null;
+		CloseableIterator<CaptureSearchResult> itr = null;
 		
 		if(pathOrUrl.endsWith(ARC_EXTENSION)) {
 			itr = arcIndexer.iterator(pathOrUrl);
