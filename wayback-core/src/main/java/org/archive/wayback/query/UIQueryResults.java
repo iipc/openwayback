@@ -25,19 +25,15 @@
 package org.archive.wayback.query;
 
 import java.util.Date;
-import java.util.Iterator;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.commons.httpclient.URIException;
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.ResultURIConverter;
-import org.archive.wayback.core.CaptureSearchResults;
-import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.UIResults;
-import org.archive.wayback.core.UrlSearchResults;
 import org.archive.wayback.core.WaybackRequest;
 
 /**
@@ -58,24 +54,18 @@ public class UIQueryResults extends UIResults {
 
 	private Timestamp endTimestamp;
 
-	private Timestamp firstResultTimestamp;
-
-	private Timestamp lastResultTimestamp;
-	
 	private Timestamp exactRequestedTimestamp;
 
-	private int resultsReturned;
-	private int resultsMatching;
-	private int resultsPerPage;
-	private int firstResult;
-	private int lastResult;
+	private long resultsReturned;
+	private long resultsMatching;
+	private long resultsPerPage;
+	private long firstResult;
+	private long lastResult;
 	
 	private int numPages;
 	private int curPage;
 
-	private SearchResults results;
-	private SearchResult result;
-	private ResultURIConverter uriConverter;
+	private CaptureSearchResult result;
 
 	/**
 	 * Constructor -- chew search result summaries into format easier for JSPs
@@ -89,26 +79,17 @@ public class UIQueryResults extends UIResults {
 	public UIQueryResults(HttpServletRequest httpRequest, 
 			WaybackRequest wbRequest, SearchResults results,
 			ResultURIConverter uriConverter) {
-		super(wbRequest);
-		this.searchUrl = wbRequest.get(WaybackConstants.RESULT_URL);
+		super(wbRequest,uriConverter);
+		this.searchUrl = wbRequest.get(WaybackConstants.REQUEST_URL);
 		this.startTimestamp = Timestamp.parseBefore(results.
 				getFilter(WaybackConstants.REQUEST_START_DATE));
 		this.endTimestamp = Timestamp.parseAfter(results.getFilter(
 				WaybackConstants.REQUEST_END_DATE));
 		
-		this.firstResultTimestamp = Timestamp.parseBefore(results
-				.getFirstResultDate());
-		this.lastResultTimestamp = Timestamp.parseBefore(results
-				.getLastResultDate());
-
-		this.resultsReturned = Integer.parseInt(results.getFilter(
-				WaybackConstants.RESULTS_NUM_RETURNED));
-		this.resultsMatching = Integer.parseInt(results.getFilter(
-				WaybackConstants.RESULTS_NUM_RESULTS));
-		this.resultsPerPage = Integer.parseInt(results.getFilter(
-				WaybackConstants.RESULTS_REQUESTED));
-		this.firstResult = Integer.parseInt(results.getFilter(
-				WaybackConstants.RESULTS_FIRST_RETURNED)) + 1;
+		this.resultsReturned = results.getReturnedCount();
+		this.resultsMatching = results.getMatchingCount();
+		this.resultsPerPage = results.getNumRequested();
+		this.firstResult = results.getFirstReturned() + 1;
 		this.lastResult = ((firstResult - 1) + resultsReturned);
 		this.exactRequestedTimestamp = Timestamp.parseAfter(
 				wbRequest.get(WaybackConstants.REQUEST_EXACT_DATE));
@@ -116,45 +97,13 @@ public class UIQueryResults extends UIResults {
 		numPages = (int) Math.ceil((double)resultsMatching/(double)resultsPerPage);
 		curPage = (int) Math.floor(((double)(firstResult-1))/(double)resultsPerPage) + 1;
 		
-		this.results = results;
-		this.uriConverter = uriConverter;
 	}
 
-	/**
-	 * @return true if the underlying SearchResult objects contain Capture level 
-	 * data
-	 */
-	public boolean isCaptureResults() {
-		return (results instanceof CaptureSearchResults);
-	}
-	
-	/**
-	 * @return true if the underlying SearchResult objects contain Url level 
-	 * data
-	 */
-	public boolean isUrlResults() {
-		return (results instanceof UrlSearchResults);		
-	}
-	
 	/**
 	 * @return Timestamp end cutoff requested by user
 	 */
 	public Timestamp getEndTimestamp() {
 		return endTimestamp;
-	}
-
-	/**
-	 * @return first Timestamp in returned ResourceResults
-	 */
-	public Timestamp getFirstResultTimestamp() {
-		return firstResultTimestamp;
-	}
-
-	/**
-	 * @return last Timestamp in returned ResourceResults
-	 */
-	public Timestamp getLastResultTimestamp() {
-		return lastResultTimestamp;
 	}
 
 	/**
@@ -172,58 +121,6 @@ public class UIQueryResults extends UIResults {
 	}
 
 	/**
-	 * @return Iterator of ResourceResults
-	 */
-	public Iterator<SearchResult> resultsIterator() {
-		return results.iterator();
-	}
-
-	/**
-	 * @param result
-	 * @return URL string that will replay the specified Resource Result.
-	 */
-	public String resultToReplayUrl(SearchResult result) {
-		String url = result.getAbsoluteUrl();
-		String captureDate = result.getCaptureDate();
-		return uriConverter.makeReplayURI(captureDate,url);
-	}
-
-	/**
-	 * @return the ResultURIConverter
-	 */
-	public ResultURIConverter getURIConverter() {
-		return uriConverter;
-	}
-	
-	/**
-	 * @param url
-	 * @param timestamp
-	 * @return String url that will replay the url at timestamp
-	 */
-	public String makeReplayUrl(String url, String timestamp) {
-		return uriConverter.makeReplayURI(timestamp, url);
-	}
-	
-	/**
-	 * @param url
-	 * @return String url that will make a query for all captures of an URL.
-	 */
-	public String makeCaptureQueryUrl(String url) {
-		WaybackRequest newWBR = wbRequest.clone();
-		
-		newWBR.put(WaybackConstants.REQUEST_TYPE,
-				WaybackConstants.REQUEST_URL_QUERY);
-		try {
-			newWBR.setRequestUrl(url);
-		} catch (URIException e) {
-			// should not happen...
-			e.printStackTrace();
-		}
-		return newWBR.getContextPrefix() + "query?" +
-			newWBR.getQueryArguments(1);
-	}
-	
-	/**
 	 * @param timestamp
 	 * @return Date for the timestamp string
 	 */
@@ -235,37 +132,35 @@ public class UIQueryResults extends UIResults {
 	 * @param result
 	 * @return Date representing captureDate of SearchResult result
 	 */
-	public Date resultToDate(SearchResult result) {
-		Timestamp t = new Timestamp(result.get(
-				WaybackConstants.RESULT_CAPTURE_DATE));
-		return t.getDate();
+	public Date resultToDate(CaptureSearchResult result) {
+		return result.getCaptureDate();
 	}
 	
 	/**
 	 * @return Returns the firstResult.
 	 */
-	public int getFirstResult() {
+	public long getFirstResult() {
 		return firstResult;
 	}
 
 	/**
 	 * @return Returns the resultsMatching.
 	 */
-	public int getResultsMatching() {
+	public long getResultsMatching() {
 		return resultsMatching;
 	}
 
 	/**
 	 * @return Returns the resultsPerPage.
 	 */
-	public int getResultsPerPage() {
+	public long getResultsPerPage() {
 		return resultsPerPage;
 	}
 
 	/**
 	 * @return Returns the resultsReturned.
 	 */
-	public int getResultsReturned() {
+	public long getResultsReturned() {
 		return resultsReturned;
 	}
 
@@ -289,6 +184,7 @@ public class UIQueryResults extends UIResults {
 	 *         different page of results for the same query
 	 */
 	public String urlForPage(int pageNum) {
+		WaybackRequest wbRequest = getWbRequest();
 		return wbRequest.getContextPrefix() + "query?" +
 			wbRequest.getQueryArguments(pageNum);
 	}
@@ -296,15 +192,8 @@ public class UIQueryResults extends UIResults {
 	/**
 	 * @return Returns the lastResult.
 	 */
-	public int getLastResult() {
+	public long getLastResult() {
 		return lastResult;
-	}
-
-	/**
-	 * @return Returns the results.
-	 */
-	public SearchResults getResults() {
-		return results;
 	}
 	
 	/**
@@ -314,11 +203,11 @@ public class UIQueryResults extends UIResults {
 		return exactRequestedTimestamp;
 	}
 
-	public SearchResult getResult() {
+	public CaptureSearchResult getResult() {
 		return result;
 	}
 
-	public void setResult(SearchResult result) {
+	public void setResult(CaptureSearchResult result) {
 		this.result = result;
 	}
 }

@@ -30,8 +30,8 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
 import org.archive.wayback.ResultURIConverter;
-import org.archive.wayback.WaybackConstants;
-import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.CaptureSearchResult;
+import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.UIResults;
@@ -45,10 +45,11 @@ import org.archive.wayback.core.WaybackRequest;
  */
 public class UIReplayResult extends UIResults {
 	
-	private HttpServletRequest httpRequest; 
-	private SearchResult result;
+	private HttpServletRequest httpRequest;
+	private CaptureSearchResult result;
+	private CaptureSearchResults results;
 	private Resource resource;
-	private ResultURIConverter uriConverter;
+
 	
 	/**
 	 * Constructor -- chew search result summaries into format easier for JSPs
@@ -57,20 +58,22 @@ public class UIReplayResult extends UIResults {
 	 * @param httpRequest 
 	 * @param wbRequest 
 	 * @param result
+	 * @param results
 	 * @param resource
 	 * @param uriConverter 
 	 * @throws IOException 
 	 */
 	public UIReplayResult(HttpServletRequest httpRequest, 
-			WaybackRequest wbRequest, SearchResult result,
-			Resource resource, ResultURIConverter uriConverter) 
+			WaybackRequest wbRequest, CaptureSearchResult result,
+			CaptureSearchResults results, Resource resource, 
+			ResultURIConverter uriConverter) 
 	throws IOException {
 		
-		super(wbRequest);
+		super(wbRequest,uriConverter);
 		this.httpRequest = httpRequest;
 		this.result = result;
+		this.results = results;
 		this.resource = resource;
-		this.uriConverter = uriConverter;
 	}
 
 	/**
@@ -90,68 +93,62 @@ public class UIReplayResult extends UIResults {
 	/**
 	 * @return Returns the result.
 	 */
-	public SearchResult getResult() {
+	public CaptureSearchResult getResult() {
 		return result;
 	}
 
-	/**
-	 * @return Returns the uriConverter.
-	 */
-	public ResultURIConverter getUriConverter() {
-		return uriConverter;
-	}
-
-	/**
-	 * @return Returns the wbRequest.
-	 */
-	public WaybackRequest getWbRequest() {
-		return wbRequest;
-	}
-	
 	/**
 	 * @return the original URL, or at least as close as can be rebuilt from
 	 * the index info
 	 */
 	public String getOriginalUrl() {
-		return result.get(WaybackConstants.RESULT_URL);
+		return result.getOriginalUrl();
 	}
 	/**
 	 * @return the MimeURL key from the index of the result
 	 */
 	public String getUrlKey() {
-		return result.get(WaybackConstants.RESULT_URL_KEY);
+		return result.getUrlKey();
 	}
 	/**
 	 * @return a string offset+arc file name combo, which should uniquely
 	 * identify this document
 	 */
 	public String getArchiveID() {
-		return result.get(WaybackConstants.RESULT_OFFSET) + "/" + 
-			result.get(WaybackConstants.RESULT_ARC_FILE);
+		return result.getOffset() + "/" + result.getFile();
 	}
 	/**
 	 * @return the CaptureDate Timestamp of the result
 	 */
 	public Timestamp getCaptureTimestamp() {
-		return Timestamp.parseBefore(
-				result.get(WaybackConstants.RESULT_CAPTURE_DATE));
+		return Timestamp.parseBefore(result.getCaptureTimestamp());
 	}
 	/**
 	 * @return the MimeType String of the result
 	 */
 	public String getMimeType() {
-		return result.get(WaybackConstants.RESULT_MIME_TYPE);
+		return result.getMimeType();
 	}
+
 	/**
 	 * @return the Digest string of the result
 	 */
 	public String getDigest() {
-		return result.get(WaybackConstants.RESULT_MD5_DIGEST);
+		return result.getDigest();
 	}
+
 	/**
 	 * @return the HTTP Headers as Properties
 	 */
 	public Map<String,String> getHttpHeaders() {
 		return resource.getHttpHeaders();
+	}
+
+	public CaptureSearchResults getResults() {
+		return results;
+	}
+
+	public void setResults(CaptureSearchResults results) {
+		this.results = results;
 	}
 }

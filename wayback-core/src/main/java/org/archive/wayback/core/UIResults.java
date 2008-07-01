@@ -28,6 +28,9 @@ import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.httpclient.URIException;
+import org.archive.wayback.ResultURIConverter;
+import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.util.StringFormatter;
 import org.archive.wayback.webapp.AccessPoint;
 
@@ -39,7 +42,8 @@ import org.archive.wayback.webapp.AccessPoint;
  */
 public class UIResults {
 	private final static String FERRET_NAME = "ui-results";
-	protected WaybackRequest wbRequest;
+	private WaybackRequest wbRequest;
+	private ResultURIConverter uriConverter;
 	private String contentJsp = null;
 	private String originalRequestURL = null;
 	
@@ -47,9 +51,10 @@ public class UIResults {
 	/**
 	 * @param wbRequest Wayback Request argument
 	 */
-	public UIResults(WaybackRequest wbRequest) {
+	public UIResults(WaybackRequest wbRequest,ResultURIConverter uriConverter) {
 		super();
 		this.wbRequest = wbRequest;
+		this.uriConverter = uriConverter;
 	}
 	/**
 	 * @return Returns the wbRequest.
@@ -59,6 +64,25 @@ public class UIResults {
 			wbRequest = new WaybackRequest();
 		}
 		return wbRequest;
+	}
+	
+	/**
+	 * @param url
+	 * @return String url that will make a query for all captures of an URL.
+	 */
+	public String makeCaptureQueryUrl(String url) {
+		WaybackRequest newWBR = wbRequest.clone();
+		
+		newWBR.put(WaybackConstants.REQUEST_TYPE,
+				WaybackConstants.REQUEST_URL_QUERY);
+		try {
+			newWBR.setRequestUrl(url);
+		} catch (URIException e) {
+			// should not happen...
+			e.printStackTrace();
+		}
+		return newWBR.getContextPrefix() + "query?" +
+			newWBR.getQueryArguments(1);
 	}
 
 	/**
@@ -100,7 +124,7 @@ public class UIResults {
 	public static UIResults getGeneric(HttpServletRequest httpRequest) {
 		WaybackRequest wbRequest = new WaybackRequest();
 		wbRequest.fixup(httpRequest);
-		return new UIResults(wbRequest);
+		return new UIResults(wbRequest, null);
 	}
 	private static void replaceAll(StringBuffer s,
 			final String o, final String n) {
@@ -203,5 +227,35 @@ public class UIResults {
 	public String getOriginalRequestURL() {
 		return originalRequestURL;
 	}
+	/**
+	 * @param result
+	 * @return URL string that will replay the specified Resource Result.
+	 */
+	public String resultToReplayUrl(CaptureSearchResult result) {
+		if(uriConverter == null) {
+			return null;
+		}
+		String url = result.getOriginalUrl();
+		String captureDate = result.getCaptureTimestamp();
+		return uriConverter.makeReplayURI(captureDate,url);
+	}
+
+	/**
+	 * @return the ResultURIConverter
+	 */
+	public ResultURIConverter getURIConverter() {
+		return uriConverter;
+	}
 	
+	/**
+	 * @param url
+	 * @param timestamp
+	 * @return String url that will replay the url at timestamp
+	 */
+	public String makeReplayUrl(String url, String timestamp) {
+		if(uriConverter == null) {
+			return null;
+		}
+		return uriConverter.makeReplayURI(timestamp, url);
+	}	
 }
