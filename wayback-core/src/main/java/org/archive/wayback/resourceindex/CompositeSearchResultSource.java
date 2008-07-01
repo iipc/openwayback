@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
 import org.archive.wayback.resourceindex.cdx.CDXIndex;
 import org.archive.wayback.util.CloseableIterator;
@@ -67,12 +67,12 @@ public class CompositeSearchResultSource implements SearchResultSource {
 	 * 
 	 * @see org.archive.wayback.resourceindex.SearchResultSource#getPrefixIterator(java.lang.String)
 	 */
-	public CloseableIterator<SearchResult> getPrefixIterator(String prefix)
+	public CloseableIterator<CaptureSearchResult> getPrefixIterator(String prefix)
 			throws ResourceIndexNotAvailableException {
 
-		Comparator<SearchResult> comparator = new SearchResultComparator();
-		CompositeSortedIterator<SearchResult> itr = 
-			new CompositeSortedIterator<SearchResult>(comparator);
+		Comparator<CaptureSearchResult> comparator = new SearchResultComparator();
+		CompositeSortedIterator<CaptureSearchResult> itr = 
+			new CompositeSortedIterator<CaptureSearchResult>(comparator);
 		for (int i = 0; i < sources.size(); i++) {
 			itr.addComponent(sources.get(i).getPrefixIterator(prefix));
 		}
@@ -84,12 +84,12 @@ public class CompositeSearchResultSource implements SearchResultSource {
 	 * 
 	 * @see org.archive.wayback.resourceindex.SearchResultSource#getPrefixReverseIterator(java.lang.String)
 	 */
-	public CloseableIterator<SearchResult> getPrefixReverseIterator(
+	public CloseableIterator<CaptureSearchResult> getPrefixReverseIterator(
 			String prefix) throws ResourceIndexNotAvailableException {
 
-		Comparator<SearchResult> comparator = new SearchResultComparator(true);
-		CompositeSortedIterator<SearchResult> itr = 
-			new CompositeSortedIterator<SearchResult>(comparator);
+		Comparator<CaptureSearchResult> comparator = new SearchResultComparator(true);
+		CompositeSortedIterator<CaptureSearchResult> itr = 
+			new CompositeSortedIterator<CaptureSearchResult>(comparator);
 		for (int i = 0; i < sources.size(); i++) {
 			itr.addComponent(sources.get(i).getPrefixReverseIterator(prefix));
 		}
@@ -99,7 +99,7 @@ public class CompositeSearchResultSource implements SearchResultSource {
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.resourceindex.SearchResultSource#cleanup(org.archive.wayback.util.CleanableIterator)
 	 */
-	public void cleanup(CloseableIterator<SearchResult> c) throws IOException{
+	public void cleanup(CloseableIterator<CaptureSearchResult> c) throws IOException{
 		c.close();
 	}
 

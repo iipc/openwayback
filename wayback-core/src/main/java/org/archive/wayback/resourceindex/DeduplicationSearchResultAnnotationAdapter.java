@@ -2,8 +2,7 @@ package org.archive.wayback.resourceindex;
 
 import java.util.HashMap;
 
-import org.archive.wayback.WaybackConstants;
-import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.util.Adapter;
 
 /**
@@ -25,46 +24,38 @@ import org.archive.wayback.util.Adapter;
  * @version $Date$, $Revision$
  */
 public class DeduplicationSearchResultAnnotationAdapter 
-implements Adapter<SearchResult,SearchResult> {
+implements Adapter<CaptureSearchResult,CaptureSearchResult> {
 	private final static String EMPTY_VALUE = "-";
 
-	// these fields are all copied to deduped records as-is:
-	private final static String FIELDS[] = {
-		WaybackConstants.RESULT_ARC_FILE,
-		WaybackConstants.RESULT_OFFSET,
-		WaybackConstants.RESULT_HTTP_CODE,
-		WaybackConstants.RESULT_MIME_TYPE,
-		WaybackConstants.RESULT_REDIRECT_URL,
-	};
-	private HashMap<String,SearchResult> memory = null;
+	private HashMap<String,CaptureSearchResult> memory = null;
 
 	public DeduplicationSearchResultAnnotationAdapter() {
-		memory = new HashMap<String,SearchResult>();
+		memory = new HashMap<String,CaptureSearchResult>();
 	}
 
-	private SearchResult annotate(SearchResult o) {
-		String thisDigest = o.get(WaybackConstants.RESULT_MD5_DIGEST);
-		SearchResult last = memory.get(thisDigest);
+	private CaptureSearchResult annotate(CaptureSearchResult o) {
+		String thisDigest = o.getDigest();
+		CaptureSearchResult last = memory.get(thisDigest);
 		if(last == null) {
+			// TODO: log missing record digest reference
 			return null;
 		}
-		for(String field : FIELDS) {
-			o.put(field, last.get(field));
-		}
-		o.put(WaybackConstants.RESULT_DUPLICATE_ANNOTATION, 
-				WaybackConstants.RESULT_DUPLICATE_DIGEST);
-		o.put(WaybackConstants.RESULT_DUPLICATE_STORED_DATE, 
-				last.get(WaybackConstants.RESULT_CAPTURE_DATE));
+		o.setFile(last.getFile());
+		o.setOffset(last.getOffset());
+		o.setHttpCode(last.getHttpCode());
+		o.setMimeType(last.getMimeType());
+		o.setRedirectUrl(last.getRedirectUrl());
+		o.flagDuplicateDigest(last.getCaptureTimestamp());
 		return o;
 	}
 
-	private SearchResult remember(SearchResult o) {
-		memory.put(o.get(WaybackConstants.RESULT_MD5_DIGEST),o);
+	private CaptureSearchResult remember(CaptureSearchResult o) {
+		memory.put(o.getDigest(),o);
 		return o;
 	}
 
-	public SearchResult adapt(SearchResult o) {
-		if(o.get(FIELDS[0]).equals(EMPTY_VALUE)) {
+	public CaptureSearchResult adapt(CaptureSearchResult o) {
+		if(o.getFile().equals(EMPTY_VALUE)) {
 			return annotate(o);
 		}
 		return remember(o);

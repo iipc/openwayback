@@ -26,8 +26,7 @@ package org.archive.wayback.resourceindex;
 
 import java.util.Comparator;
 
-import org.archive.wayback.WaybackConstants;
-import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.CaptureSearchResult;
 
 /**
  *
@@ -35,7 +34,7 @@ import org.archive.wayback.core.SearchResult;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class SearchResultComparator implements Comparator<SearchResult> {
+public class SearchResultComparator implements Comparator<CaptureSearchResult> {
 
 	private boolean backwards;
 	/**
@@ -52,15 +51,15 @@ public class SearchResultComparator implements Comparator<SearchResult> {
 		backwards = false;
 	}
 	
-	private String objectToKey(SearchResult r) {
-		String urlKey = r.get(WaybackConstants.RESULT_URL_KEY);
-		String captureDate = r.get(WaybackConstants.RESULT_CAPTURE_DATE);
+	private String objectToKey(CaptureSearchResult r) {
+		String urlKey = r.getUrlKey();
+		String captureDate = r.getCaptureTimestamp();
 		return urlKey + " " + captureDate;
 	}
 	/* (non-Javadoc)
 	 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
 	 */
-	public int compare(SearchResult o1, SearchResult o2) {
+	public int compare(CaptureSearchResult o1, CaptureSearchResult o2) {
 		String k1 = objectToKey(o1);
 		String k2 = objectToKey(o2);
 		if(backwards) {

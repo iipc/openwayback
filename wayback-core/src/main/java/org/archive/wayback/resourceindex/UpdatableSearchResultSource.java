@@ -28,7 +28,7 @@ import java.io.IOException;
 import java.util.Iterator;
 
 import org.archive.wayback.UrlCanonicalizer;
-import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.CaptureSearchResult;
 
 /**
  *
@@ -37,6 +37,6 @@ import org.archive.wayback.core.SearchResult;
  * @version $Date$, $Revision$
  */
 public interface UpdatableSearchResultSource extends SearchResultSource {
-	public void addSearchResults(Iterator<SearchResult> itr, 
+	public void addSearchResults(Iterator<CaptureSearchResult> itr, 
 			UrlCanonicalizer canonicalizer) throws IOException;
 }

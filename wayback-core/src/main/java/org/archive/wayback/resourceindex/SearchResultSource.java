@@ -26,7 +26,7 @@ package org.archive.wayback.resourceindex;
 
 import java.io.IOException;
 
-import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
 import org.archive.wayback.util.CloseableIterator;
 
@@ -44,7 +44,7 @@ public interface SearchResultSource {
 	 *         results.
 	 * @throws ResourceIndexNotAvailableException 
 	 */
-	public CloseableIterator<SearchResult> getPrefixIterator(final String prefix)
+	public CloseableIterator<CaptureSearchResult> getPrefixIterator(final String prefix)
 			throws ResourceIndexNotAvailableException;
 
 	/**
@@ -54,14 +54,14 @@ public interface SearchResultSource {
 	 *         results.
 	 * @throws ResourceIndexNotAvailableException 
 	 */
-	public CloseableIterator<SearchResult> getPrefixReverseIterator(final String prefix)
+	public CloseableIterator<CaptureSearchResult> getPrefixReverseIterator(final String prefix)
 			throws ResourceIndexNotAvailableException;
 	
 	/**
 	 * @param c
 	 * @throws IOException 
 	 */
-	public void cleanup(CloseableIterator<SearchResult> c) throws IOException;
+	public void cleanup(CloseableIterator<CaptureSearchResult> c) throws IOException;
 
 	/**
 	 * @param c
