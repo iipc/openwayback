@@ -27,5 +27,42 @@ public class UrlOperationsTest extends TestCase {
 		} else {
 			assertTrue("String("+s+") is not an Authority",want == got);	
 		}
-	}	
+	}
+	public void testUrlToHost() {
+		assertEquals("foo.com",UrlOperations.urlToHost("dns:foo.com"));
+		
+		assertEquals("foo.com",UrlOperations.urlToHost("http://foo.com"));
+		assertEquals("foo.com",UrlOperations.urlToHost("https://foo.com"));
+		assertEquals("foo.com",UrlOperations.urlToHost("ftp://foo.com"));
+		
+		assertEquals("foo.com",UrlOperations.urlToHost("http://foo.com/"));
+		assertEquals("foo.com",UrlOperations.urlToHost("https://foo.com/"));
+		assertEquals("foo.com",UrlOperations.urlToHost("ftp://foo.com/"));
+		
+		assertEquals("foo.com",UrlOperations.urlToHost("http://foo.com:120/"));
+		assertEquals("foo.com",UrlOperations.urlToHost("https://foo.com:180/"));
+		assertEquals("foo.com",UrlOperations.urlToHost("ftp://foo.com:190/"));
+
+		assertEquals("foo.com",UrlOperations.urlToHost("http://foo.com:120"));
+		assertEquals("foo.com",UrlOperations.urlToHost("https://foo.com:180"));
+		assertEquals("foo.com",UrlOperations.urlToHost("ftp://foo.com:190"));
+
+		assertEquals("foo.com",UrlOperations.urlToHost("http://foo.com:120/path"));
+		assertEquals("foo.com",UrlOperations.urlToHost("https://foo.com:180/path"));
+		assertEquals("foo.com",UrlOperations.urlToHost("ftp://foo.com:190/path"));
+
+		assertEquals("foo.com",UrlOperations.urlToHost("http://foo.com:120/path/"));
+		assertEquals("foo.com",UrlOperations.urlToHost("https://foo.com:180/path/"));
+		assertEquals("foo.com",UrlOperations.urlToHost("ftp://foo.com:190/path/"));
+
+		assertEquals("foo.com",UrlOperations.urlToHost("http://foo.com:120/path:/"));
+		assertEquals("foo.com",UrlOperations.urlToHost("https://foo.com:180/path:/"));
+		assertEquals("foo.com",UrlOperations.urlToHost("ftp://foo.com:190/path:/"));
+		
+		assertEquals("foo.com",UrlOperations.urlToHost("http://foo.com/path:/"));
+		assertEquals("foo.com",UrlOperations.urlToHost("https://foo.com/path:/"));
+		assertEquals("foo.com",UrlOperations.urlToHost("ftp://foo.com/path:/"));
+		
+		
+	}
 }

@@ -16,6 +16,29 @@ import org.archive.net.UURIFactory;
  */
 public class UrlOperations {
 	
+	public final static String DNS_SCHEME = "dns:";
+	public final static String HTTP_SCHEME = "http://";
+	public final static String HTTPS_SCHEME = "https://";
+	public final static String FTP_SCHEME = "ftp://";
+	public final static String MMS_SCHEME = "mms://";
+	public final static String RTSP_SCHEME = "rtsp://";
+	// go brewster
+	public final static String WAIS_SCHEME = "wais://";
+	
+	public final static String ALL_SCHEMES[] = { 
+		HTTP_SCHEME,
+		HTTPS_SCHEME,
+		FTP_SCHEME,
+		MMS_SCHEME,
+		RTSP_SCHEME,
+		WAIS_SCHEME
+	};
+	
+	
+	public final static char PORT_SEPARATOR = ':';
+	public final static char PATH_START = '/';
+	
+	
 	private static final String CC_TLDS = "ac|ad|ae|af|ag|ai|al|am|an|ao|aq" +
 			"|ar|as|at|au|aw|ax|az|ba|bb|bd|be|bf|bg|bh|bi|bj|bm|bn|bo|br|bs" +
 			"|bt|bv|bw|by|bz|ca|cc|cd|cf|cg|ch|ci|ck|cl|cm|cn|co|cr|cu|cv|cx" +
@@ -72,5 +95,33 @@ public class UrlOperations {
 			return url;
 		}
 		return resolvedURI.getEscapedURI();
+	}
+	
+	public static String urlToHost(String url) {
+		if(url.startsWith("dns:")) {
+			return url.substring(4);
+		}
+		for(String scheme : ALL_SCHEMES) {
+			if(url.startsWith(scheme)) {
+				int hostIdx = scheme.length();
+				int portIdx = url.indexOf(PORT_SEPARATOR, hostIdx + 1);
+				int pathIdx = url.indexOf(PATH_START, hostIdx + 1);
+				if(portIdx == -1 && pathIdx == -1) {
+					return url.substring(hostIdx);
+				}
+				if(portIdx == -1) {
+					return url.substring(hostIdx,pathIdx);
+				}
+				if(pathIdx == -1) {
+					return url.substring(hostIdx,portIdx);
+				}
+				if(pathIdx > portIdx) {
+					return url.substring(hostIdx,portIdx);
+				} else {
+					return url.substring(hostIdx,pathIdx);
+				}
+			}
+		}
+		return url;
 	}
 }
