@@ -32,7 +32,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.core.Resource;
-import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.exception.BadContentException;
 
 /**
@@ -70,7 +70,7 @@ public class HttpHeaderOperation {
 	 * @return
 	 */
 	public static Map<String,String> processHeaders(Resource resource, 
-			SearchResult result, ResultURIConverter uriConverter, 
+			CaptureSearchResult result, ResultURIConverter uriConverter, 
 			HttpHeaderProcessor filter) {
 		HashMap<String,String> output = new HashMap<String,String>();
 		

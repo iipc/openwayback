@@ -35,8 +35,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.archive.wayback.ReplayRenderer;
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.core.Resource;
-import org.archive.wayback.core.SearchResult;
-import org.archive.wayback.core.SearchResults;
+import org.archive.wayback.core.CaptureSearchResult;
+import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadContentException;
 
@@ -57,8 +57,8 @@ public class TransparentReplayRenderer implements ReplayRenderer, HttpHeaderProc
 	 */
 	public void renderResource(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
-			SearchResult result, Resource resource,
-			ResultURIConverter uriConverter, SearchResults results)
+			CaptureSearchResult result, Resource resource,
+			ResultURIConverter uriConverter, CaptureSearchResults results)
 			throws ServletException, IOException, BadContentException {
 
 		HttpHeaderOperation.copyHTTPMessageHeader(resource, httpResponse);
@@ -80,7 +80,7 @@ public class TransparentReplayRenderer implements ReplayRenderer, HttpHeaderProc
 	 * @see org.archive.wayback.replay.HeaderFilter#filter(java.util.Map, java.lang.String, java.lang.String, org.archive.wayback.ResultURIConverter, org.archive.wayback.core.SearchResult)
 	 */
 	public void filter(Map<String, String> output, String key, String value,
-			ResultURIConverter uriConverter, SearchResult result) {
+			ResultURIConverter uriConverter, CaptureSearchResult result) {
 
 		// copy all HTTP headers, as-is.
 		output.put(key, value);

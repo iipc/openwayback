@@ -27,7 +27,7 @@ package org.archive.wayback.replay;
 import java.util.Map;
 
 import org.archive.wayback.ResultURIConverter;
-import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.CaptureSearchResult;
 
 /**
  *
@@ -63,5 +63,5 @@ public interface HttpHeaderProcessor {
 	 * @param result 
 	 */
 	public void filter(Map<String,String> output, String key, String value,
-			final ResultURIConverter uriConverter, SearchResult result);
+			final ResultURIConverter uriConverter, CaptureSearchResult result);
 }

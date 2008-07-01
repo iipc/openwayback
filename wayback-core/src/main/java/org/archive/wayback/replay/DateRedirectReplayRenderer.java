@@ -33,8 +33,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.archive.wayback.ReplayRenderer;
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.core.Resource;
-import org.archive.wayback.core.SearchResult;
-import org.archive.wayback.core.SearchResults;
+import org.archive.wayback.core.CaptureSearchResult;
+import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.WaybackRequest;
 
 /**
@@ -50,13 +50,13 @@ public class DateRedirectReplayRenderer implements ReplayRenderer {
 	 */
 	public void renderResource(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
-			SearchResult result, Resource resource,
-			ResultURIConverter uriConverter, SearchResults results)
+			CaptureSearchResult result, Resource resource,
+			ResultURIConverter uriConverter, CaptureSearchResults results)
 			throws ServletException, IOException {
 
 		// redirect to the better version:
-		String url = result.getAbsoluteUrl();
-		String captureDate = result.getCaptureDate();
+		String url = result.getOriginalUrl();
+		String captureDate = result.getCaptureTimestamp();
 		String betterURI = uriConverter.makeReplayURI(captureDate,url);
 		httpResponse.sendRedirect(betterURI);
 	}
