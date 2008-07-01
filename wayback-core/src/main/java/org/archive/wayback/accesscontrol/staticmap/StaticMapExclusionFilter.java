@@ -28,8 +28,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import org.apache.commons.httpclient.URIException;
-import org.archive.wayback.WaybackConstants;
-import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.surt.SURTTokenizer;
 import org.archive.wayback.util.ObjectFilter;
 
@@ -39,7 +38,7 @@ import org.archive.wayback.util.ObjectFilter;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class StaticMapExclusionFilter implements ObjectFilter<SearchResult> {
+public class StaticMapExclusionFilter implements ObjectFilter<CaptureSearchResult> {
 	private static final Logger LOGGER = Logger.getLogger(
 			StaticMapExclusionFilter.class.getName());
 
@@ -76,8 +75,8 @@ public class StaticMapExclusionFilter implements ObjectFilter<SearchResult> {
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.resourceindex.SearchResultFilter#filterSearchResult(org.archive.wayback.core.SearchResult)
 	 */
-	public int filterObject(SearchResult r) {
-		String url = r.get(WaybackConstants.RESULT_URL);
+	public int filterObject(CaptureSearchResult r) {
+		String url = r.getOriginalUrl();
 		if(lastChecked != null) {
 			if(lastChecked.equals(url)) {
 				return lastCheckedExcluded ? 

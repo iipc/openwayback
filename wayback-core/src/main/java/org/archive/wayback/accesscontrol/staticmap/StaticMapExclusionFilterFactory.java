@@ -31,7 +31,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import org.archive.wayback.accesscontrol.ExclusionFilterFactory;
-import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.surt.SURTTokenizer;
 import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.ObjectFilter;
@@ -107,7 +107,7 @@ public class StaticMapExclusionFilterFactory implements ExclusionFilterFactory {
 	 * @param wbRequest 
 	 * @return SearchResultFilter 
 	 */
-	public ObjectFilter<SearchResult> get() {
+	public ObjectFilter<CaptureSearchResult> get() {
 		if(currentMap == null) {
 			return null;
 		}
