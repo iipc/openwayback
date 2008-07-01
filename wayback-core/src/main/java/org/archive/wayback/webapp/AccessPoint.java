@@ -41,11 +41,12 @@ import org.archive.wayback.RequestParser;
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.accesscontrol.ExclusionFilterFactory;
+import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.Resource;
-import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.UIResults;
+import org.archive.wayback.core.UrlSearchResults;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.AuthenticationControlException;
 import org.archive.wayback.exception.BaseExceptionRenderer;
@@ -230,7 +231,7 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 		WaybackRequest wbRequest = new WaybackRequest();
 		wbRequest.setContextPrefix(getAbsoluteLocalPrefix(httpRequest));
 		wbRequest.setContext(this);
-		UIResults uiResults = new UIResults(wbRequest);
+		UIResults uiResults = new UIResults(wbRequest,uriConverter);
 		String translated = "/" + translateRequestPathQuery(httpRequest);
 		uiResults.storeInRequest(httpRequest,translated);
 		RequestDispatcher dispatcher = null;
@@ -310,7 +311,7 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 			CaptureSearchResults captureResults = (CaptureSearchResults) results;
 	
 			// TODO: check which versions are actually accessible right now?
-			SearchResult closest = captureResults.getClosest(wbRequest);
+			CaptureSearchResult closest = captureResults.getClosest(wbRequest);
 			resource = collection.getResourceStore().retrieveResource(closest);
 			ReplayRenderer renderer = replay.getRenderer(wbRequest, closest, resource);
 			renderer.renderResource(httpRequest, httpResponse, wbRequest,
@@ -327,18 +328,19 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 	throws ServletException, IOException, WaybackException {
 
 		SearchResults results = collection.getResourceIndex().query(wbRequest);
-		if(results.getResultsType().equals(
-				WaybackConstants.RESULTS_TYPE_CAPTURE)) {
+		if(results instanceof CaptureSearchResults) {
 			CaptureSearchResults cResults = (CaptureSearchResults) results;
-			SearchResult closest = cResults.getClosest(wbRequest);
-			closest.put(WaybackConstants.RESULT_CLOSEST_INDICATOR, 
-					WaybackConstants.RESULT_CLOSEST_VALUE);
-			query.renderUrlResults(httpRequest,httpResponse,wbRequest,
-					results,uriConverter);
+			CaptureSearchResult closest = cResults.getClosest(wbRequest);
+			closest.setClosest(true);
+			query.renderCaptureResults(httpRequest,httpResponse,wbRequest,
+					cResults,uriConverter);
 
+		} else if(results instanceof UrlSearchResults) {
+			UrlSearchResults uResults = (UrlSearchResults) results;
+			query.renderUrlResults(httpRequest,httpResponse,wbRequest,
+					uResults,uriConverter);
 		} else {
-			query.renderUrlPrefixResults(httpRequest,httpResponse,wbRequest,
-					results,uriConverter);
+			throw new WaybackException("Unknown index format");
 		}
 	}
 	
