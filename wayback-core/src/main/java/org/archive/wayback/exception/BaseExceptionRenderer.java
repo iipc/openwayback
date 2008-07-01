@@ -52,18 +52,18 @@ import org.archive.wayback.core.WaybackRequest;
  * @version $Date$, $Revision$
  */
 public class BaseExceptionRenderer implements ExceptionRenderer {
-	private String xmlErrorJsp = "/jsp/XMLError.jsp";
-	private String errorJsp = "/jsp/HTMLError.jsp";
-	private String imageErrorJsp = "/jsp/HTMLError.jsp";
-	private String javascriptErrorJsp = "/jsp/JavaScriptError.jsp";
-	private String cssErrorJsp = "/jsp/CSSError.jsp";
+	private String xmlErrorJsp = "/exception/XMLError.jsp";
+	private String errorJsp = "/exception/HTMLError.jsp";
+	private String imageErrorJsp = "/exception/HTMLError.jsp";
+	private String javascriptErrorJsp = "/exception/JavaScriptError.jsp";
+	private String cssErrorJsp = "/exception/CSSError.jsp";
 
 	protected final Pattern IMAGE_REGEX = Pattern
 			.compile(".*\\.(jpg|jpeg|gif|png|bmp|tiff|tif)$");
 
 	/* ERROR HANDLING RESPONSES: */
 
-	private boolean requestIsEmbedded(HttpServletRequest httpRequest,
+	protected boolean requestIsEmbedded(HttpServletRequest httpRequest,
 			WaybackRequest wbRequest) {
 		// without a wbRequest, assume it is not embedded: send back HTML
 		if (wbRequest == null) {
@@ -73,7 +73,7 @@ public class BaseExceptionRenderer implements ExceptionRenderer {
 		return (referer != null && referer.length() > 0);
 	}
 
-	private boolean requestIsImage(HttpServletRequest httpRequest,
+	protected boolean requestIsImage(HttpServletRequest httpRequest,
 			WaybackRequest wbRequest) {
 		String requestUrl = wbRequest.get(WaybackConstants.REQUEST_URL);
 		if (requestUrl == null)
@@ -82,34 +82,30 @@ public class BaseExceptionRenderer implements ExceptionRenderer {
 		return (matcher != null && matcher.matches());
 	}
 
-	private boolean requestIsJavascript(HttpServletRequest httpRequest,
+	protected boolean requestIsJavascript(HttpServletRequest httpRequest,
 			WaybackRequest wbRequest) {
 
 		String requestUrl = wbRequest.get(WaybackConstants.REQUEST_URL);
 		return (requestUrl != null) && requestUrl.endsWith(".js");
 	}
 
-	private boolean requestIsCSS(HttpServletRequest httpRequest,
+	protected boolean requestIsCSS(HttpServletRequest httpRequest,
 			WaybackRequest wbRequest) {
 
 		String requestUrl = wbRequest.get(WaybackConstants.REQUEST_URL);
 		return (requestUrl != null) && requestUrl.endsWith(".css");
 	}
 
-	/* (non-Javadoc)
-	 * @see org.archive.wayback.ExceptionRenderer#renderException(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.archive.wayback.core.WaybackRequest, org.archive.wayback.exception.WaybackException)
-	 */
-	public void renderException(HttpServletRequest httpRequest,
+	public String getExceptionHandler(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
-			WaybackException exception) throws ServletException, IOException {
-
+			WaybackException exception) {
 		// the "standard HTML" response handler:
-		String finalJspPath = errorJsp;
+		String jspPath = errorJsp;
 
 		if(wbRequest.isQueryRequest()) {
 
 			if(wbRequest.containsKey(WaybackConstants.REQUEST_XML_DATA)) {
-				finalJspPath = xmlErrorJsp;
+				jspPath = xmlErrorJsp;
 			}
 
 		} else if (requestIsEmbedded(httpRequest, wbRequest)) {
@@ -121,27 +117,38 @@ public class BaseExceptionRenderer implements ExceptionRenderer {
 
 			if (requestIsJavascript(httpRequest, wbRequest)) {
 
-				finalJspPath = javascriptErrorJsp;
+				jspPath = javascriptErrorJsp;
 
 			} else if (requestIsCSS(httpRequest, wbRequest)) {
 
-				finalJspPath = cssErrorJsp;
+				jspPath = cssErrorJsp;
 
 			} else if (requestIsImage(httpRequest, wbRequest)) {
 
-				finalJspPath = imageErrorJsp;
+				jspPath = imageErrorJsp;
 
 			}
 		}
+		return jspPath;
+	}
+	/* (non-Javadoc)
+	 * @see org.archive.wayback.ExceptionRenderer#renderException(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.archive.wayback.core.WaybackRequest, org.archive.wayback.exception.WaybackException)
+	 */
+	public void renderException(HttpServletRequest httpRequest,
+			HttpServletResponse httpResponse, WaybackRequest wbRequest,
+			WaybackException exception) throws ServletException, IOException {
+
+		String jspPath = getExceptionHandler(httpRequest, httpResponse, 
+				wbRequest, exception);
 
 		httpRequest.setAttribute("exception", exception);
-		UIResults uiResults = new UIResults(wbRequest);
-		uiResults.storeInRequest(httpRequest, finalJspPath);
+		UIResults uiResults = new UIResults(wbRequest,null);
+		uiResults.storeInRequest(httpRequest, jspPath);
 
 		RequestDispatcher dispatcher = httpRequest
-				.getRequestDispatcher(finalJspPath);
+				.getRequestDispatcher(jspPath);
 		if(dispatcher == null) {
-			throw new ServletException("Null dispatcher for " + finalJspPath);
+			throw new ServletException("Null dispatcher for " + jspPath);
 		}
 		dispatcher.forward(httpRequest, httpResponse);
 	}
