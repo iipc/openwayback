@@ -29,7 +29,7 @@ import java.util.Calendar;
 
 import org.archive.util.ArchiveUtils;
 import org.archive.wayback.WaybackConstants;
-import org.archive.wayback.core.SearchResults;
+import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
 
@@ -69,7 +69,7 @@ public class ResultsTimelinePartitionsFactory {
 	 * @param wbRequest 
 	 * @return ArrayList of ResultsPartition objects
 	 */
-	public static ArrayList<ResultsPartition> getHour(SearchResults results,
+	public static ArrayList<ResultsPartition> getHour(CaptureSearchResults results,
 			WaybackRequest wbRequest) {
 		return get(hourRP,NUM_HOUR_PARTITIONS,results,wbRequest);
 	}
@@ -79,7 +79,7 @@ public class ResultsTimelinePartitionsFactory {
 	 * @param wbRequest 
 	 * @return ArrayList of ResultsPartition objects
 	 */
-	public static ArrayList<ResultsPartition> getDay(SearchResults results,
+	public static ArrayList<ResultsPartition> getDay(CaptureSearchResults results,
 			WaybackRequest wbRequest) {
 		return get(dayRP,NUM_DAY_PARTITIONS,results,wbRequest);
 	}
@@ -89,7 +89,7 @@ public class ResultsTimelinePartitionsFactory {
 	 * @param wbRequest 
 	 * @return ArrayList of ResultsPartition objects
 	 */
-	public static ArrayList<ResultsPartition> getMonth(SearchResults results,
+	public static ArrayList<ResultsPartition> getMonth(CaptureSearchResults results,
 			WaybackRequest wbRequest) {
 		return get(monthRP,NUM_MONTH_PARTITIONS,results,wbRequest);
 	}
@@ -99,7 +99,7 @@ public class ResultsTimelinePartitionsFactory {
 	 * @param wbRequest 
 	 * @return ArrayList of ResultsPartition objects
 	 */
-	public static ArrayList<ResultsPartition> getTwoMonth(SearchResults results,
+	public static ArrayList<ResultsPartition> getTwoMonth(CaptureSearchResults results,
 			WaybackRequest wbRequest) {
 		return get(twoMonthRP,NUM_TWO_MONTH_PARTITIONS,results,wbRequest);
 	}
@@ -109,7 +109,7 @@ public class ResultsTimelinePartitionsFactory {
 	 * @param wbRequest 
 	 * @return ArrayList of ResultsPartition objects
 	 */
-	public static ArrayList<ResultsPartition> getYear(SearchResults results,
+	public static ArrayList<ResultsPartition> getYear(CaptureSearchResults results,
 			WaybackRequest wbRequest) {
 		return get(yearRP,NUM_YEAR_PARTITIONS,results,wbRequest);
 	}
@@ -119,10 +119,10 @@ public class ResultsTimelinePartitionsFactory {
 	 * @param wbRequest 
 	 * @return ArrayList of ResultsPartition objects
 	 */
-	public static ArrayList<ResultsPartition> getAuto(SearchResults results,
+	public static ArrayList<ResultsPartition> getAuto(CaptureSearchResults results,
 			WaybackRequest wbRequest) {
-		int first = Timestamp.parseBefore(results.getFirstResultDate()).sse();
-		int last = Timestamp.parseAfter(results.getLastResultDate()).sse();
+		int first = Timestamp.parseBefore(results.getFirstResultTimestamp()).sse();
+		int last = Timestamp.parseAfter(results.getLastResultTimestamp()).sse();
 		int diff = last - first;
 		if(diff < MAX_HOUR_SECONDS) {
 			return getHour(results,wbRequest);
@@ -140,9 +140,9 @@ public class ResultsTimelinePartitionsFactory {
 	 * @param results
 	 * @return String Constant of minimum resolution that will hold the results
 	 */
-	public static String getMinResolution(SearchResults results) {
-		int first = Timestamp.parseBefore(results.getFirstResultDate()).sse();
-		int last = Timestamp.parseAfter(results.getLastResultDate()).sse();
+	public static String getMinResolution(CaptureSearchResults results) {
+		int first = Timestamp.parseBefore(results.getFirstResultTimestamp()).sse();
+		int last = Timestamp.parseAfter(results.getLastResultTimestamp()).sse();
 		int diff = last - first;
 		if(diff < MAX_HOUR_SECONDS) {
 			return WaybackConstants.REQUEST_RESOLUTION_HOURS;
@@ -157,7 +157,7 @@ public class ResultsTimelinePartitionsFactory {
 	}
 	
 	private static ArrayList<ResultsPartition> get(ResultsPartitioner 
-			partitioner, int partitionCount, SearchResults results, 
+			partitioner, int partitionCount, CaptureSearchResults results, 
 			WaybackRequest wbRequest) {
 		
 		ArrayList<ResultsPartition> partitions = 

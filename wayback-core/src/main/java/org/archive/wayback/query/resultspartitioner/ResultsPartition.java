@@ -26,9 +26,8 @@ package org.archive.wayback.query.resultspartitioner;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import org.archive.wayback.core.SearchResult;
-import org.archive.wayback.core.SearchResults;
-import org.archive.wayback.WaybackConstants;
+import org.archive.wayback.core.CaptureSearchResult;
+import org.archive.wayback.core.CaptureSearchResults;
 
 /**
  *
@@ -41,7 +40,7 @@ public class ResultsPartition {
 	private String endDateStr = null;   // exclusive
 	private String title = null;
 
-	private ArrayList<SearchResult> matches = null;
+	private ArrayList<CaptureSearchResult> matches = null;
 	
 	/**
 	 * @return number of SearchResult objects in this partition
@@ -61,7 +60,7 @@ public class ResultsPartition {
 		this.startDateStr = startDateStr;
 		this.endDateStr = endDateStr;
 		this.title= title;
-		matches = new ArrayList<SearchResult>();
+		matches = new ArrayList<CaptureSearchResult>();
 	}
 	
 	/**
@@ -69,12 +68,11 @@ public class ResultsPartition {
 	 * within the time range of this partition into this partition.
 	 * @param results
 	 */
-	public void filter(SearchResults results) {
-		Iterator<SearchResult> itr = results.iterator();
+	public void filter(CaptureSearchResults results) {
+		Iterator<CaptureSearchResult> itr = results.iterator();
 		while(itr.hasNext()) {
-			SearchResult result = itr.next();
-			String captureDate = result.get(
-					WaybackConstants.RESULT_CAPTURE_DATE);
+			CaptureSearchResult result = itr.next();
+			String captureDate = result.getCaptureTimestamp();
 			if((captureDate.compareTo(startDateStr) >= 0) 
 					&& (captureDate.compareTo(endDateStr) < 0)) {
 				matches.add(result);
@@ -92,7 +90,7 @@ public class ResultsPartition {
 	/**
 	 * @return Returns the matches.
 	 */
-	public ArrayList<SearchResult> getMatches() {
+	public ArrayList<CaptureSearchResult> getMatches() {
 		return matches;
 	}
 }

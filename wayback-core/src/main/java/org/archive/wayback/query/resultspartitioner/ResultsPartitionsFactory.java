@@ -30,7 +30,7 @@ import java.util.Date;
 
 import org.archive.util.ArchiveUtils;
 import org.archive.wayback.WaybackConstants;
-import org.archive.wayback.core.SearchResults;
+import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
 
@@ -56,7 +56,7 @@ public class ResultsPartitionsFactory {
 	 * @param wbRequest 
 	 * @return ArrayList of ResultsPartition objects
 	 */
-	public static ArrayList<ResultsPartition> get(SearchResults results,
+	public static ArrayList<ResultsPartition> get(CaptureSearchResults results,
 			WaybackRequest wbRequest) {
 		Timestamp startTS = Timestamp.parseBefore(results.getFilter(
 				WaybackConstants.REQUEST_START_DATE));
