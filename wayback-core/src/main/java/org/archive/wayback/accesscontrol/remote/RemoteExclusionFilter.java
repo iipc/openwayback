@@ -32,8 +32,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.logging.Logger;
 
-import org.archive.wayback.WaybackConstants;
-import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.util.ObjectFilter;
 
 /**
@@ -43,7 +42,7 @@ import org.archive.wayback.util.ObjectFilter;
  * @author brad
  * @version $Date: 2006-10-17 15:21:15 -0700 (Tue, 17 Oct 2006) $, $Revision: 1276 $
  */
-public class RemoteExclusionFilter implements ObjectFilter<SearchResult> {
+public class RemoteExclusionFilter implements ObjectFilter<CaptureSearchResult> {
 	private static final Logger LOGGER = Logger.getLogger(RemoteExclusionFilter.class
 			.getName());
 
@@ -90,7 +89,7 @@ public class RemoteExclusionFilter implements ObjectFilter<SearchResult> {
 		finalUrl.append(URL_ARGUMENT);
 		finalUrl.append("=");
 		try {
-			finalUrl.append(URLEncoder.encode("http://"+urlString,"UTF-8"));
+			finalUrl.append(URLEncoder.encode(urlString,"UTF-8"));
 		} catch (UnsupportedEncodingException e) {
 			// TODO what happenned here?
 			e.printStackTrace();
@@ -146,9 +145,9 @@ public class RemoteExclusionFilter implements ObjectFilter<SearchResult> {
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.resourceindex.SearchResultFilter#filterSearchResult(org.archive.wayback.core.SearchResult)
 	 */
-	public int filterObject(SearchResult r) {
-		String captureDate = r.get(WaybackConstants.RESULT_CAPTURE_DATE);
-		String url = r.get(WaybackConstants.RESULT_URL);
+	public int filterObject(CaptureSearchResult r) {
+		String captureDate = r.getCaptureTimestamp();
+		String url = r.getOriginalUrl();
 		return isBlocked(url,captureDate) ?	FILTER_EXCLUDE : FILTER_INCLUDE;
 	}
 }
