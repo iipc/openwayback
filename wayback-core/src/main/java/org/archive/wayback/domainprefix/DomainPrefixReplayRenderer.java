@@ -36,8 +36,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.archive.wayback.ReplayRenderer;
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.core.Resource;
-import org.archive.wayback.core.SearchResult;
-import org.archive.wayback.core.SearchResults;
+import org.archive.wayback.core.CaptureSearchResult;
+import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadContentException;
@@ -69,8 +69,8 @@ public class DomainPrefixReplayRenderer implements ReplayRenderer, HttpHeaderPro
 	 */
 	public void renderResource(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
-			SearchResult result, Resource resource,
-			ResultURIConverter uriConverter, SearchResults results)
+			CaptureSearchResult result, Resource resource,
+			ResultURIConverter uriConverter, CaptureSearchResults results)
 			throws ServletException, IOException, BadContentException {
 		
 		HttpHeaderOperation.copyHTTPMessageHeader(resource, httpResponse);
@@ -82,7 +82,7 @@ public class DomainPrefixReplayRenderer implements ReplayRenderer, HttpHeaderPro
 		HTMLPage page = new HTMLPage(resource,result,uriConverter);
 		page.readFully();
 
-		String resourceTS = result.getCaptureDate();
+		String resourceTS = result.getCaptureTimestamp();
 		String captureTS = Timestamp.parseBefore(resourceTS).getDateStr();
 		
 		
@@ -108,7 +108,7 @@ public class DomainPrefixReplayRenderer implements ReplayRenderer, HttpHeaderPro
 	 * @see org.archive.wayback.replay.HeaderFilter#filter(java.util.Map, java.lang.String, java.lang.String, org.archive.wayback.ResultURIConverter, org.archive.wayback.core.SearchResult)
 	 */
 	public void filter(Map<String, String> output, String key, String value,
-			ResultURIConverter uriConverter, SearchResult result) {
+			ResultURIConverter uriConverter, CaptureSearchResult result) {
 		String keyUp = key.toUpperCase();
 
 		// omit Content-Length header
@@ -119,12 +119,13 @@ public class DomainPrefixReplayRenderer implements ReplayRenderer, HttpHeaderPro
 		// rewrite Location header URLs
 		if (keyUp.startsWith(HTTP_LOCATION_HEADER_UP)) {
 
-			String baseUrl = result.getAbsoluteUrl();
-			String cd = result.getCaptureDate();
+			String baseUrl = result.getOriginalUrl();
+			String resourceTS = result.getCaptureTimestamp();
+			String captureTS = Timestamp.parseBefore(resourceTS).getDateStr();
 			// by the spec, these should be absolute already, but just in case:
 			String u = UrlOperations.resolveUrl(baseUrl, value);
 
-			output.put(key, uriConverter.makeReplayURI(cd,u));
+			output.put(key, uriConverter.makeReplayURI(captureTS,u));
 
 		} else {
 			// others go out as-is:
