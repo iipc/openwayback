@@ -29,8 +29,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Map;
 
-import org.archive.wayback.WaybackConstants;
-import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.util.ObjectFilter;
 
 import junit.framework.TestCase;
@@ -72,21 +71,21 @@ public class StaticMapExclusionFilterTest extends TestCase {
 		String bases[] = {"http://www.peagreenboat.com/",
 							"http://peagreenboat.com/"};
 //		setTmpContents(bases);
-		ObjectFilter<SearchResult> filter = getFilter(bases);
-		assertTrue("unmassaged",isBlocked(filter,"www.peagreenboat.com"));
-		assertTrue("unmassaged",isBlocked(filter,"peagreenboat.com"));
-		assertFalse("other1",isBlocked(filter,"peagreenboatt.com"));
-		assertFalse("other2",isBlocked(filter,"peagreenboat.org"));
-		assertFalse("other3",isBlocked(filter,"www.peagreenboat.org"));
+		ObjectFilter<CaptureSearchResult> filter = getFilter(bases);
+		assertTrue("unmassaged",isBlocked(filter,"http://www.peagreenboat.com"));
+		assertTrue("unmassaged",isBlocked(filter,"http://peagreenboat.com"));
+		assertFalse("other1",isBlocked(filter,"http://peagreenboatt.com"));
+		assertFalse("other2",isBlocked(filter,"http://peagreenboat.org"));
+		assertFalse("other3",isBlocked(filter,"http://www.peagreenboat.org"));
 		// there is a problem with the SURTTokenizer... deal with ports!
-//		assertFalse("other4",isBlocked(filter,"www.peagreenboat.com:8080"));
-		assertTrue("subpath",isBlocked(filter,"www.peagreenboat.com/foo"));
-		assertTrue("emptypath",isBlocked(filter,"www.peagreenboat.com/"));
+//		assertFalse("other4",isBlocked(filter,"http://www.peagreenboat.com:8080"));
+		assertTrue("subpath",isBlocked(filter,"http://www.peagreenboat.com/foo"));
+		assertTrue("emptypath",isBlocked(filter,"http://www.peagreenboat.com/"));
 	}
 	
-	private boolean isBlocked(ObjectFilter<SearchResult> filter, String url) {
-		SearchResult result = new SearchResult();
-		result.put(WaybackConstants.RESULT_URL,url);
+	private boolean isBlocked(ObjectFilter<CaptureSearchResult> filter, String url) {
+		CaptureSearchResult result = new CaptureSearchResult();
+		result.setOriginalUrl(url);
 		int filterResult = filter.filterObject(result);
 		if(filterResult == ObjectFilter.FILTER_EXCLUDE) {
 			return true;
@@ -94,7 +93,7 @@ public class StaticMapExclusionFilterTest extends TestCase {
 		return false;
 	}
 	
-	private ObjectFilter<SearchResult> getFilter(String lines[]) 
+	private ObjectFilter<CaptureSearchResult> getFilter(String lines[]) 
 		throws IOException {
 		
 		setTmpContents(lines);
