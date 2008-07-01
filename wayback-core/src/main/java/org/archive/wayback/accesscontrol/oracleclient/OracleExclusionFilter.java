@@ -6,13 +6,10 @@ import org.archive.accesscontrol.AccessControlClient;
 import org.archive.accesscontrol.RobotsUnavailableException;
 import org.archive.accesscontrol.RuleOracleUnavailableException;
 import org.archive.util.ArchiveUtils;
-import org.archive.wayback.WaybackConstants;
-import org.archive.wayback.core.SearchResult;
-import org.archive.wayback.core.Timestamp;
+import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.util.ObjectFilter;
 
-public class OracleExclusionFilter implements ObjectFilter<SearchResult> {
-	ObjectFilter<SearchResult> robotFilter = null;
+public class OracleExclusionFilter implements ObjectFilter<CaptureSearchResult> {
 	AccessControlClient client = null;
 	private String accessGroup = null;
 	
@@ -27,10 +24,9 @@ public class OracleExclusionFilter implements ObjectFilter<SearchResult> {
 	}
 	
 	
-	public int filterObject(SearchResult o) {
-		String url = o.get(WaybackConstants.RESULT_URL);
-		Date captureDate = Timestamp.parseBefore(
-				o.get(WaybackConstants.RESULT_CAPTURE_DATE)).getDate();
+	public int filterObject(CaptureSearchResult o) {
+		String url = o.getOriginalUrl();
+		Date captureDate = o.getCaptureDate();
 		Date retrievalDate = new Date();
 		
 		String policy;
@@ -59,13 +55,5 @@ public class OracleExclusionFilter implements ObjectFilter<SearchResult> {
 			e.printStackTrace();
 		}
 		return FILTER_EXCLUDE;			
-	}
-
-	public ObjectFilter<SearchResult> getRobotFilter() {
-		return robotFilter;
-	}
-
-	public void setRobotFilter(ObjectFilter<SearchResult> robotFilter) {
-		this.robotFilter = robotFilter;
 	}
 }
