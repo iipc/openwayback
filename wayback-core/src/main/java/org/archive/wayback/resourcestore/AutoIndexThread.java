@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.logging.Logger;
 
-import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.resourceindex.updater.IndexClient;
 import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.DirMaker;
@@ -151,7 +151,7 @@ public class AutoIndexThread extends Thread {
 					try {
 					
 						LOGGER.info("Indexing " + file.getAbsolutePath());
-						CloseableIterator<SearchResult> itr = store.indexFile(file);
+						CloseableIterator<CaptureSearchResult> itr = store.indexFile(file);
 					
 						if(indexClient.addSearchResults(cdxBase, itr)) {
 							if (!workFlagFile.delete()) {

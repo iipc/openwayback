@@ -29,9 +29,8 @@ import java.io.IOException;
 import java.net.URL;
 
 import org.archive.wayback.ResourceStore;
-import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.Resource;
-import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.exception.ResourceNotAvailableException;
 import org.archive.wayback.resourcestore.locationdb.ResourceFileLocationDB;
 import org.archive.wayback.resourcestore.resourcefile.ResourceFactory;
@@ -50,26 +49,21 @@ public class LocalResourceFileResourceStore implements ResourceStore {
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.ResourceStore#retrieveResource(org.archive.wayback.core.SearchResult)
 	 */
-	public Resource retrieveResource(SearchResult result) throws IOException,
+	public Resource retrieveResource(CaptureSearchResult result) throws IOException,
 			ResourceNotAvailableException {
 		// extract ARC filename
-		String fileName = result.get(WaybackConstants.RESULT_ARC_FILE);
+		String fileName = result.getFile();
 		if(fileName == null || fileName.length() < 1) {
 			throw new IOException("No ARC/WARC name in search result...");
 		}
 
-		// extract offset + convert to long
-		final String offsetString = result.get(WaybackConstants.RESULT_OFFSET);
-		if(offsetString == null || offsetString.length() < 1) {
-			throw new IOException("No ARC/WARC offset in search result...");
-		}
 		String urls[] = db.nameToUrls(fileName);
 		if(urls == null || urls.length == 0) {
 			throw new ResourceNotAvailableException("Unable to locate(" +
 					fileName + ")");
 		}
 		
-		final long offset = Long.parseLong(offsetString);
+		final long offset = result.getOffset();
 
 		Resource r = null;
 		// TODO: attempt multiple threads?

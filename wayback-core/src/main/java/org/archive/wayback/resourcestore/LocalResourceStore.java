@@ -8,9 +8,8 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.archive.wayback.ResourceStore;
-import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.Resource;
-import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.exception.ResourceNotAvailableException;
 import org.archive.wayback.resourcestore.indexer.ArcIndexer;
@@ -49,13 +48,6 @@ public class LocalResourceStore implements ResourceStore {
 			indexThread.start();
 		}
 	}
-	protected String resultToFileName(SearchResult result) {
-		return result.get(WaybackConstants.RESULT_ARC_FILE);
-	}
-
-	protected long resultToOffset(SearchResult result) {
-		return Long.parseLong(result.get(WaybackConstants.RESULT_OFFSET));
-	}
 	
 	public File getLocalFile(String fileName) {
 		// try adding suffixes: empty string is first in the list
@@ -75,10 +67,10 @@ public class LocalResourceStore implements ResourceStore {
 		return null;
 	}
 	
-	public Resource retrieveResource(SearchResult result) throws IOException,
+	public Resource retrieveResource(CaptureSearchResult result) throws IOException,
 			ResourceNotAvailableException {
-		String fileName = resultToFileName(result);
-		long offset = resultToOffset(result);
+		String fileName = result.getFile();
+		long offset = result.getOffset();
 		File file = getLocalFile(fileName);
 		if (file == null) {
 			
@@ -92,8 +84,8 @@ public class LocalResourceStore implements ResourceStore {
 		}
 	}
 	
-	public CloseableIterator<SearchResult> indexFile(File dataFile) throws IOException {
-		CloseableIterator<SearchResult> itr = null;
+	public CloseableIterator<CaptureSearchResult> indexFile(File dataFile) throws IOException {
+		CloseableIterator<CaptureSearchResult> itr = null;
 		
 		String name = dataFile.getName();
 		if(name.endsWith(ARC_EXTENSION)) {
