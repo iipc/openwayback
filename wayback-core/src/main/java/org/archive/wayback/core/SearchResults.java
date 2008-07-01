@@ -24,9 +24,8 @@
  */
 package org.archive.wayback.core;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Properties;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -36,99 +35,41 @@ import java.util.Properties;
  */
 public abstract class SearchResults {
 	/**
-	 * List of SearchResult objects for index records matching a query
+	 * Results: int total number of records matching, not all necc. returned.
 	 */
-	protected ArrayList<SearchResult> results = null;
+	public static final String RESULTS_NUM_RESULTS = "numresults";
+	
 	/**
-	 * 14-digit timestamp of first capture date contained in the SearchResults
+	 * Results: int first record of all matching returned, 1-based 
 	 */
-	protected String firstResultDate;
+	public static final String RESULTS_FIRST_RETURNED = "firstreturned";
+
 	/**
-	 * 14-digit timestamp of last capture date contained in the SearchResults
+	 * Results: int total number of records *returned* in results 
 	 */
-	protected String lastResultDate;
+	public static final String RESULTS_NUM_RETURNED = "numreturned";
+	
+	/**
+	 * Results: int number of results requested
+	 */
+	public static final String RESULTS_REQUESTED = "resultsrequested";
 	/**
 	 * Expandable data bag for tuples associated with the search results, 
 	 * likely examples might be "total matching documents", "index of first 
 	 * document returned", etc. 
 	 */
-	private Properties filters = new Properties();
-	
+	private HashMap<String,String> filters = null;
 	/**
 	 * Constructor
 	 */
 	public SearchResults() {
-		super();
-		results = new ArrayList<SearchResult>();
+		filters = new HashMap<String,String>();
 	}
-	/**
-	 * @return true if no SearchResult objects, false otherwise.
-	 */
-	public boolean isEmpty() {
-		return results.isEmpty();
-	}
+	private long returnedCount = -1;
+	private long firstReturned = -1;
+	private long matchingCount = -1;
+	private long numRequested = -1;
 	
-	/**
-	 * @param result
-	 * @param append
-	 */
-	public void addSearchResultRaw(final SearchResult result, 
-			final boolean append) {
-
-		if(append) {
-			results.add(result);
-		} else {
-			results.add(0,result);
-		}
-	}
-	
-	/**
-	 * @return one of "Url" or "Capture" depending on the type of results
-	 * contained in this object
-	 */
-	public abstract String getResultsType();
-	
-	/**
-	 * append a result
-	 * @param result
-	 */
-	public abstract void addSearchResult(final SearchResult result);
-	/**
-	 * add a result to this results, at either the begginning or at the end,
-	 * depending on the append argument
-	 * @param result
-	 *            SearchResult to add to this set
-	 * @param append 
-	 */
-	public abstract void addSearchResult(final SearchResult result, 
-			final boolean append);
-	
-	/**
-	 * @return number of SearchResult objects contained in these SearchResults
-	 */
-	public int getResultCount() {
-		return results.size();
-	}
-	
-	/**
-	 * @return an Iterator that contains the SearchResult objects
-	 */
-	public Iterator<SearchResult> iterator() {
-		return results.iterator();
-	}
-	/**
-	 * @return Returns the firstResultDate.
-	 */
-	public String getFirstResultDate() {
-		return firstResultDate;
-	}
-	/**
-	 * @return Returns the lastResultDate.
-	 */
-	public String getLastResultDate() {
-		return lastResultDate;
-	}
-
 	/**
 	 * @param key
 	 * @return boolean, true if key 'key' exists in filters
@@ -142,7 +83,7 @@ public abstract class SearchResults {
 	 * @return value of key 'key' in filters
 	 */
 	public String getFilter(String key) {
-		return filters.getProperty(key);
+		return filters.get(key);
 	}
 
 	/**
@@ -151,12 +92,66 @@ public abstract class SearchResults {
 	 * @return previous String value of key 'key' or null if there was none
 	 */
 	public String putFilter(String key, String value) {
-		return (String) filters.setProperty(key, value);
+		return (String) filters.put(key, value);
 	}
 	/**
 	 * @return Returns the filters.
 	 */
-	public Properties getFilters() {
+	public Map<String,String> getFilters() {
 		return filters;
+	}
+	private long getLongFilter(String key) {
+		String tmp = getFilter(key);
+		if(tmp == null) {
+			return 0;
+		}
+		return Long.parseLong(tmp);
+	}
+
+	public long getReturnedCount() {
+		if(returnedCount == -1) {
+			returnedCount = getLongFilter(RESULTS_NUM_RETURNED);
+		}
+		return returnedCount;
+	}
+	public void setReturnedCount(long returnedCount) {
+		this.returnedCount = returnedCount;
+		putFilter(RESULTS_NUM_RETURNED, String.valueOf(returnedCount));
+	}
+
+	public long getFirstReturned() {
+		if(firstReturned == -1) {
+			firstReturned = getLongFilter(RESULTS_FIRST_RETURNED);
+		}
+		return firstReturned;
+	}
+
+	public void setFirstReturned(long firstReturned) {
+		this.firstReturned = firstReturned;
+		putFilter(RESULTS_FIRST_RETURNED, String.valueOf(firstReturned));
+	}
+
+	public long getMatchingCount() {
+		if(matchingCount == -1) {
+			matchingCount = getLongFilter(RESULTS_NUM_RESULTS);
+		}
+		return matchingCount;
+	}
+
+	public void setMatchingCount(long matchingCount) {
+		this.matchingCount = matchingCount;
+		putFilter(RESULTS_NUM_RESULTS, String.valueOf(matchingCount));
+	}
+
+	public long getNumRequested() {
+		if(numRequested == -1) {
+			numRequested = getLongFilter(RESULTS_REQUESTED);
+		}
+		return numRequested;
+	}
+
+	public void setNumRequested(long numRequested) {
+		this.numRequested = numRequested;
+		putFilter(RESULTS_REQUESTED, String.valueOf(numRequested));
 	}
 }
