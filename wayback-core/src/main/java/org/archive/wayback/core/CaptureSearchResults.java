@@ -24,7 +24,8 @@
  */
 package org.archive.wayback.core;
 
-import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 
 import org.archive.wayback.WaybackConstants;
@@ -36,14 +37,77 @@ import org.archive.wayback.WaybackConstants;
  * @version $Date$, $Revision$
  */
 public class CaptureSearchResults extends SearchResults {
-	public String getResultsType() {
-		return WaybackConstants.RESULTS_TYPE_CAPTURE;
+	/**
+	 * List of UrlSearchResult objects for index records matching a query
+	 */
+	private ArrayList<CaptureSearchResult> results = 
+		new ArrayList<CaptureSearchResult>();
+	/**
+	 * 14-digit timestamp of first capture date contained in the SearchResults
+	 */
+	private String firstResultTimestamp;
+	
+	/**
+	 * 14-digit timestamp of last capture date contained in the SearchResults
+	 */
+	private String lastResultTimestamp;
+
+	/**
+	 * @return Returns the 14-digit String Timestamp of the first Capture in
+	 * this set of SearchResult objects
+	 */
+	public String getFirstResultTimestamp() {
+		return firstResultTimestamp;
+	}
+	/**
+	 * @return Returns the firstResult Date.
+	 */
+	public Date getFirstResultDate() {
+		return new Timestamp(firstResultTimestamp).getDate();
+	}
+
+	/**
+	 * @return Returns the 14-digit String Timestamp of the last Capture in
+	 * this set of SearchResult objects
+	 */
+	public String getLastResultTimestamp() {
+		return lastResultTimestamp;
+	}
+	
+	public Date getLastResultDate() {
+		return new Timestamp(lastResultTimestamp).getDate();
+	}
+
+	/**
+	 * @param wbRequest
+	 * @return The closest CaptureSearchResult to the request.
+	 */
+	public CaptureSearchResult getClosest(WaybackRequest wbRequest) {
+
+		CaptureSearchResult closest = null;
+		long closestDistance = 0;
+		CaptureSearchResult cur = null;
+		long wantTime = Timestamp.parseBefore(wbRequest
+				.get(WaybackConstants.REQUEST_EXACT_DATE)).getDate().getTime();
+
+		Iterator<CaptureSearchResult> itr = results.iterator();
+		while (itr.hasNext()) {
+			cur = itr.next();
+			long curDistance = Math.abs(wantTime - 
+					cur.getCaptureDate().getTime());
+
+			if ((closest == null) || (curDistance < closestDistance)) {
+				closest = cur;
+				closestDistance = curDistance;
+			}
+		}
+		return closest;
 	}
 	/**
 	 * append a result
 	 * @param result
 	 */
-	public void addSearchResult(final SearchResult result) {
+	public void addSearchResult(CaptureSearchResult result) {
 		addSearchResult(result,true);
 	}
 	/**
@@ -53,45 +117,33 @@ public class CaptureSearchResults extends SearchResults {
 	 *            SearchResult to add to this set
 	 * @param append 
 	 */
-	public void addSearchResult(final SearchResult result, final boolean append) {
-		String resultDate = result.get(WaybackConstants.RESULT_CAPTURE_DATE);
-		if((firstResultDate == null) || 
-				(firstResultDate.compareTo(resultDate) > 0)) {
-			firstResultDate = resultDate;
+	public void addSearchResult(CaptureSearchResult result, boolean append) {
+		String resultDate = result.getCaptureTimestamp();
+		if((firstResultTimestamp == null) || 
+				(firstResultTimestamp.compareTo(resultDate) > 0)) {
+			firstResultTimestamp = resultDate;
 		}
-		if((lastResultDate == null) || 
-				(lastResultDate.compareTo(resultDate) < 0)) {
-			lastResultDate = resultDate;
+		if((lastResultTimestamp == null) || 
+				(lastResultTimestamp.compareTo(resultDate) < 0)) {
+			lastResultTimestamp = resultDate;
 		}
-		addSearchResultRaw(result,append);
-	}
-	/**
-	 * @param wbRequest
-	 * @return The closest SearchResult to the request.
-	 * @throws ParseException
-	 */
-	public SearchResult getClosest(WaybackRequest wbRequest) {
 
-		SearchResult closest = null;
-		long closestDistance = 0;
-		SearchResult cur = null;
-		Timestamp wantTimestamp;
-		wantTimestamp = Timestamp.parseBefore(wbRequest
-				.get(WaybackConstants.REQUEST_EXACT_DATE));
-
-		Iterator<SearchResult> itr = results.iterator();
-		while (itr.hasNext()) {
-			cur = itr.next();
-			long curDistance;
-			Timestamp curTimestamp = Timestamp.parseBefore(cur
-					.get(WaybackConstants.RESULT_CAPTURE_DATE));
-			curDistance = curTimestamp.absDistanceFromTimestamp(wantTimestamp);
-			
-			if ((closest == null) || (curDistance < closestDistance)) {
-				closest = cur;
-				closestDistance = curDistance;
-			}
+		if(append) {
+			results.add(result);
+		} else {
+			results.add(0,result);
 		}
-		return closest;
 	}	
+
+	public boolean isEmpty() {
+		return results.isEmpty();
+	}
+
+	public Iterator<CaptureSearchResult> iterator() {
+		return results.iterator();
+	}
+
+	public int size() {
+		return results.size();
+	}
 }

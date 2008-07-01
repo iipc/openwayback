@@ -24,7 +24,8 @@
  */
 package org.archive.wayback.core;
 
-import org.archive.wayback.WaybackConstants;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  *
@@ -33,19 +34,33 @@ import org.archive.wayback.WaybackConstants;
  * @version $Date$, $Revision$
  */
 public class UrlSearchResults extends SearchResults {
+	/**
+	 * List of UrlSearchResult objects for index records matching a query
+	 */
+	private ArrayList<UrlSearchResult> results = 
+		new ArrayList<UrlSearchResult>();
 
-	public String getResultsType() {
-		return WaybackConstants.RESULTS_TYPE_URL;
-	}
-	public void addSearchResult(SearchResult result) {
+	public void addSearchResult(UrlSearchResult result) {
 		addSearchResult(result,true);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.archive.wayback.core.SearchResults#addSearchResult(org.archive.wayback.core.SearchResult, boolean)
-	 */
-	@Override
-	public void addSearchResult(SearchResult result, boolean append) {
-		addSearchResultRaw(result,append);
+	public void addSearchResult(UrlSearchResult result, boolean append) {
+		if(append) {
+			results.add(result);
+		} else {
+			results.add(0,result);
+		}
+	}
+
+	public boolean isEmpty() {
+		return results.isEmpty();
+	}
+
+	public Iterator<UrlSearchResult> iterator() {
+		return results.iterator();
+	}
+
+	public int size() {
+		return results.size();
 	}
 }
