@@ -36,8 +36,8 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.archive.wayback.ResourceIndex;
 import org.archive.wayback.WaybackConstants;
+import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
-import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
@@ -77,7 +77,7 @@ public class NutchResourceIndex implements ResourceIndex {
    private static final String NUTCH_DIGEST = "digest";
    private static final String NUTCH_PRIMARY_TYPE = "primaryType";
    private static final String NUTCH_SUB_TYPE = "subType";
-   private static final String NUTCH_CAPTURE_HOST = "site";
+//   private static final String NUTCH_CAPTURE_HOST = "site";
    private static final String NUTCH_CAPTURE_URL = "link";
 
    private static final String NUTCH_SEARCH_RESULT_TAG = "item";
@@ -129,7 +129,7 @@ public class NutchResourceIndex implements ResourceIndex {
 					e.getMessage());
 		}
 
-		SearchResults results;
+		CaptureSearchResults results;
 		String type = wbRequest.get(WaybackConstants.REQUEST_TYPE);
 		if(type.equals(WaybackConstants.REQUEST_REPLAY_QUERY) ||
 				type.equals(WaybackConstants.REQUEST_URL_QUERY)) {
@@ -157,21 +157,21 @@ public class NutchResourceIndex implements ResourceIndex {
        	
            Element e = (Element) nodes.item(i);
 
-           SearchResult result = elementToSearchResult(e);
+           CaptureSearchResult result = elementToSearchResult(e);
            results.addSearchResult(result);
        }
        Element channelElement = (Element) channel.item(0);
        
-       results.putFilter(WaybackConstants.RESULTS_FIRST_RETURNED,
+       results.putFilter(SearchResults.RESULTS_FIRST_RETURNED,
        		getNodeContent(channelElement,NUTCH_FIRST_RESULT));
        
-       results.putFilter(WaybackConstants.RESULTS_NUM_RESULTS,
+       results.putFilter(SearchResults.RESULTS_NUM_RESULTS,
        		getNodeContent(channelElement,NUTCH_NUM_RESULTS));
        
-       results.putFilter(WaybackConstants.RESULTS_NUM_RETURNED,
+       results.putFilter(SearchResults.RESULTS_NUM_RETURNED,
        		getNodeContent(channelElement,NUTCH_NUM_RETURNED));
        
-       results.putFilter(WaybackConstants.RESULTS_REQUESTED,
+       results.putFilter(SearchResults.RESULTS_REQUESTED,
        		String.valueOf(wbRequest.getResultsPerPage()));
        
 		results.putFilter(WaybackConstants.REQUEST_START_DATE,
@@ -182,13 +182,12 @@ public class NutchResourceIndex implements ResourceIndex {
 		return results;
 	}
 
-	private SearchResult elementToSearchResult(Element e)
+	private CaptureSearchResult elementToSearchResult(Element e)
 		throws ResourceIndexNotAvailableException {
 
-		SearchResult result = new SearchResult();
+		CaptureSearchResult result = new CaptureSearchResult();
 
-		result.put(WaybackConstants.RESULT_ARC_FILE,
-				getNodeNutchContent(e,NUTCH_ARCNAME));
+		result.setFile(getNodeNutchContent(e,NUTCH_ARCNAME));
 		
         // The date in nutchwax is now named 'tstamp' and its
         // 17 characters rather than 14.  Pass first 14 only.
@@ -202,27 +201,21 @@ public class NutchResourceIndex implements ResourceIndex {
         if (d.length() == 17) {
             d = d.substring(0, 14);
         }
-		result.put(WaybackConstants.RESULT_CAPTURE_DATE, d);
+		result.setCaptureTimestamp(d);
 		
 		//result.put(WaybackConstants.RESULT_HTTP_CODE,getNodeContent(e,""));
-		result.put(WaybackConstants.RESULT_HTTP_CODE,NUTCH_DEFAULT_HTTP_CODE);
-		result.put(WaybackConstants.RESULT_MD5_DIGEST,
-				getNodeNutchContent(e,NUTCH_DIGEST));
+		result.setHttpCode(NUTCH_DEFAULT_HTTP_CODE);
+		result.setDigest(getNodeNutchContent(e,NUTCH_DIGEST));
 		
-		result.put(WaybackConstants.RESULT_MIME_TYPE,
-				getNodeNutchContent(e,NUTCH_PRIMARY_TYPE) + "/" + 
+		result.setMimeType(getNodeNutchContent(e,NUTCH_PRIMARY_TYPE) + "/" + 
 				getNodeNutchContent(e,NUTCH_SUB_TYPE));
 		
-		result.put(WaybackConstants.RESULT_OFFSET,
-				getNodeNutchContent(e,NUTCH_ARCOFFSET));
+		result.setOffset(Long.parseLong(getNodeNutchContent(e,NUTCH_ARCOFFSET)));
 		
-		result.put(WaybackConstants.RESULT_ORIG_HOST,
-				getNodeNutchContent(e,NUTCH_CAPTURE_HOST));
-//		result.put(WaybackConstants.RESULT_REDIRECT_URL,getNodeContent(e,""));
-		result.put(WaybackConstants.RESULT_REDIRECT_URL,
-				NUTCH_DEFAULT_REDIRECT_URL);
-		result.put(WaybackConstants.RESULT_URL,getNodeContent(e,
-				NUTCH_CAPTURE_URL));
+		result.setRedirectUrl(NUTCH_DEFAULT_REDIRECT_URL);
+		result.setCaptureTimestamp(getNodeContent(e,NUTCH_CAPTURE_URL));
+		result.setOriginalUrl(getNodeContent(e,NUTCH_CAPTURE_URL));
+		result.setUrlKey(getNodeContent(e,NUTCH_CAPTURE_URL));
 		
 		return result;
 	}

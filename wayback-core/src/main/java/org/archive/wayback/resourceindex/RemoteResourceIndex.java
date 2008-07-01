@@ -35,9 +35,11 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.archive.wayback.ResourceIndex;
 import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.WaybackConstants;
+import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.SearchResults;
+import org.archive.wayback.core.UrlSearchResult;
 import org.archive.wayback.core.UrlSearchResults;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.AccessControlException;
@@ -122,13 +124,13 @@ public class RemoteResourceIndex implements ResourceIndex {
 		throws ResourceIndexNotAvailableException,
 		ResourceNotInArchiveException, BadQueryException,
 		AccessControlException {
-
+//		throw new ResourceIndexNotAvailableException("oops");
 		return urlToSearchResults(getRequestUrl(wbRequest),
 				getSearchResultFilters(wbRequest));
 	}
 
 	protected SearchResults urlToSearchResults(String requestUrl,
-			ObjectFilter<SearchResult> filter)
+			ObjectFilter<CaptureSearchResult> filter)
 			throws ResourceIndexNotAvailableException,
 			ResourceNotInArchiveException, BadQueryException,
 			AccessControlException {
@@ -190,11 +192,11 @@ public class RemoteResourceIndex implements ResourceIndex {
 		}
 	}
 	
-	protected ObjectFilter<SearchResult> getSearchResultFilters(
+	protected ObjectFilter<CaptureSearchResult> getSearchResultFilters(
 			WaybackRequest wbRequest) {
 		String searchType = wbRequest.get(WaybackConstants.REQUEST_TYPE);
-		ObjectFilterChain<SearchResult> filters = 
-										new ObjectFilterChain<SearchResult>();
+		ObjectFilterChain<CaptureSearchResult> filters = 
+										new ObjectFilterChain<CaptureSearchResult>();
 		
 		if (searchType.equals(WaybackConstants.REQUEST_REPLAY_QUERY)
 				|| searchType.equals(WaybackConstants.REQUEST_CLOSEST_QUERY)) {
@@ -210,14 +212,14 @@ public class RemoteResourceIndex implements ResourceIndex {
 	}
 	
 	protected SearchResults documentToSearchResults(Document document,
-			ObjectFilter<SearchResult> filter) {
+			ObjectFilter<CaptureSearchResult> filter) {
 		SearchResults results = null;
 		NodeList filters = getRequestFilters(document);
 		String resultsType = getResultsType(document);
 		if(resultsType.equals(WaybackConstants.RESULTS_TYPE_CAPTURE)) {
-			results = new CaptureSearchResults();
+			results = documentToCaptureSearchResults(document,filter);
 		} else {
-			results = new UrlSearchResults();
+			results = documentToUrlSearchResults(document);
 		}
 		for(int i = 0; i < filters.getLength(); i++) {
 			String key = filters.item(i).getNodeName();
@@ -226,11 +228,26 @@ public class RemoteResourceIndex implements ResourceIndex {
 				results.putFilter(key,value);
 			}
 		}
-		
+		return results;
+	}
+	private UrlSearchResults documentToUrlSearchResults(
+			Document document) {
+		UrlSearchResults results = new UrlSearchResults();
 		NodeList xresults = getSearchResults(document);
 		for(int i = 0; i < xresults.getLength(); i++) {
 			Node xresult = xresults.item(i);
-			SearchResult result = searchElementToSearchResult(xresult);
+			UrlSearchResult result = searchElementToUrlSearchResult(xresult);
+			results.addSearchResult(result, true);
+		}
+		return results;
+	}
+	private CaptureSearchResults documentToCaptureSearchResults(
+			Document document, ObjectFilter<CaptureSearchResult> filter) {
+		CaptureSearchResults results = new CaptureSearchResults();
+		NodeList xresults = getSearchResults(document);
+		for(int i = 0; i < xresults.getLength(); i++) {
+			Node xresult = xresults.item(i);
+			CaptureSearchResult result = searchElementToCaptureSearchResult(xresult);
 			
 			int ruling = ObjectFilter.FILTER_INCLUDE;
 			if (filter != null) {
@@ -245,10 +262,20 @@ public class RemoteResourceIndex implements ResourceIndex {
 		}
 		return results;
 	}
+	private UrlSearchResult searchElementToUrlSearchResult(Node e) {
 
-	private SearchResult searchElementToSearchResult(Node e) {
+		UrlSearchResult result = new UrlSearchResult();
+		addNodeDataToSearchResult(e,result);
+		return result;
+	}
+	private CaptureSearchResult searchElementToCaptureSearchResult(Node e) {
 
-		SearchResult result = new SearchResult();
+		CaptureSearchResult result = new CaptureSearchResult();
+		addNodeDataToSearchResult(e,result);
+		return result;
+	}
+
+	private void addNodeDataToSearchResult(Node e, SearchResult result) {
 
 		NodeList chitlens = e.getChildNodes();
 		for(int i = 0; i < chitlens.getLength(); i++) {
@@ -258,7 +285,6 @@ public class RemoteResourceIndex implements ResourceIndex {
 				result.put(key,value);
 			}
 		}
-		return result;
 	}
 
 	protected NodeList getRequestFilters(Document d) {
