@@ -40,10 +40,10 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.core.Resource;
-import org.archive.wayback.core.SearchResult;
-import org.archive.wayback.core.SearchResults;
+import org.archive.wayback.core.CaptureSearchResult;
+import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.WaybackRequest;
-import org.archive.wayback.query.UIQueryResults;
+import org.archive.wayback.replay.UIReplayResult;
 import org.mozilla.universalchardet.UniversalDetector;
 
 /**
@@ -68,7 +68,7 @@ public class HTMLPage {
 	private final static int C_BUFFER_SIZE = 4096;
 
 	private Resource resource = null;
-	private SearchResult result = null; 
+	private CaptureSearchResult result = null; 
 	private ResultURIConverter uriConverter = null;
 	/**
 	 * the internal StringBuilder
@@ -82,7 +82,7 @@ public class HTMLPage {
 	 * @param result
 	 * @param uriConverter 
 	 */
-	public HTMLPage(Resource resource, SearchResult result, 
+	public HTMLPage(Resource resource, CaptureSearchResult result, 
 			ResultURIConverter uriConverter) {
 		this.resource = resource;
 		this.result = result;
@@ -234,8 +234,8 @@ public class HTMLPage {
 	public void resolvePageUrls() {
 
 		// TODO: get url from Resource instead of SearchResult?
-		String pageUrl = result.getAbsoluteUrl();
-		String captureDate = result.getCaptureDate();
+		String pageUrl = result.getOriginalUrl();
+		String captureDate = result.getCaptureTimestamp();
 
 		String existingBaseHref = TagMagix.getBaseHref(sb);
 		if (existingBaseHref == null) {
@@ -268,8 +268,8 @@ public class HTMLPage {
 	public void resolveAllPageUrls() {
 
 		// TODO: get url from Resource instead of SearchResult?
-		String pageUrl = result.getAbsoluteUrl();
-		String captureDate = result.getCaptureDate();
+		String pageUrl = result.getOriginalUrl();
+		String captureDate = result.getCaptureTimestamp();
 
 		String existingBaseHref = TagMagix.getBaseHref(sb);
 		if (existingBaseHref != null) {
@@ -304,16 +304,16 @@ public class HTMLPage {
 	
 	public void resolveCSSUrls() {
 		// TODO: get url from Resource instead of SearchResult?
-		String pageUrl = result.getAbsoluteUrl();
-		String captureDate = result.getCaptureDate();
+		String pageUrl = result.getOriginalUrl();
+		String captureDate = result.getCaptureTimestamp();
 		TagMagix.markupCSSImports(sb,uriConverter, captureDate, pageUrl);
 	}
 
 	public void resolveASXRefUrls() {
 
 		// TODO: get url from Resource instead of SearchResult?
-		String pageUrl = result.getAbsoluteUrl();
-		String captureDate = result.getCaptureDate();
+		String pageUrl = result.getOriginalUrl();
+		String captureDate = result.getCaptureTimestamp();
 		ResultURIConverter ruc = new MMSToHTTPResultURIConverter(uriConverter);
 		
 		TagMagix.markupTagREURIC(sb, ruc, captureDate, pageUrl,
@@ -436,12 +436,12 @@ public class HTMLPage {
 	 */
 	public String includeJspString(String jspPath, 
 			HttpServletRequest httpRequest, HttpServletResponse httpResponse,
-			WaybackRequest wbRequest, SearchResults results, SearchResult result) 
+			WaybackRequest wbRequest, CaptureSearchResults results, 
+			CaptureSearchResult result, Resource resource) 
 	throws ServletException, IOException {
 		
-		UIQueryResults uiResults = new UIQueryResults(httpRequest, wbRequest,
-				results, uriConverter);
-		uiResults.setResult(result);
+		UIReplayResult uiResults = new UIReplayResult(httpRequest, wbRequest,
+				result, results, resource, uriConverter);
 
 		StringHttpServletResponseWrapper wrappedResponse = 
 			new StringHttpServletResponseWrapper(httpResponse);
