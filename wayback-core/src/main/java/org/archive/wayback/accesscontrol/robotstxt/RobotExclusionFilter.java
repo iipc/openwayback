@@ -35,15 +35,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.archive.util.ArchiveUtils;
-import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.Resource;
-import org.archive.wayback.core.SearchResult;
+import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.exception.LiveDocumentNotAvailableException;
 import org.archive.wayback.liveweb.LiveWebCache;
 import org.archive.wayback.util.ObjectFilter;
 
 /**
- * SearchResultFilter that uses a LiveWebCache to retrieve robots.txt documents
+ * CaptureSearchResult Filter that uses a LiveWebCache to retrieve robots.txt documents
  * from the live web, and filters SearchResults based on the rules therein.
  * 
  * This class caches parsed RobotRules that are retrieved, so using the same 
@@ -56,7 +55,7 @@ import org.archive.wayback.util.ObjectFilter;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class RobotExclusionFilter implements ObjectFilter<SearchResult> {
+public class RobotExclusionFilter implements ObjectFilter<CaptureSearchResult> {
 
 	private final static String HTTP_PREFIX = "http://";
 	private final static String ROBOT_SUFFIX = "/robots.txt";
@@ -127,10 +126,10 @@ public class RobotExclusionFilter implements ObjectFilter<SearchResult> {
 		return list;
 	}
 	
-	private RobotRules getRules(SearchResult result) {
+	private RobotRules getRules(CaptureSearchResult result) {
 		RobotRules rules = null;
 		RobotRules tmpRules = null;
-		String host = result.get(WaybackConstants.RESULT_ORIG_HOST);
+		String host = result.getOriginalHost();
 		List<String> urlStrings = searchResultToRobotUrlStrings(host);
 		Iterator<String> itr = urlStrings.iterator();
 		String firstUrlString = null;
@@ -174,12 +173,12 @@ public class RobotExclusionFilter implements ObjectFilter<SearchResult> {
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.resourceindex.SearchResultFilter#filterSearchResult(org.archive.wayback.core.SearchResult)
 	 */
-	public int filterObject(SearchResult r) {
+	public int filterObject(CaptureSearchResult r) {
 
 		int filterResult = ObjectFilter.FILTER_EXCLUDE; 
 		RobotRules rules = getRules(r);
 		if(rules != null) {
-			String resultURL = r.get(WaybackConstants.RESULT_URL);
+			String resultURL = r.getOriginalUrl();
 			URL url;
 			try {
 				url = new URL(ArchiveUtils.addImpliedHttpIfNecessary(resultURL));
