@@ -48,6 +48,9 @@ public class WindowEndFilter<T> implements ObjectFilter<T> {
 	public int getNumReturned() {
 		return numReturned;
 	}
+	public int getNumSeen() {
+		return numSeen;
+	}
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.util.ObjectFilter#filterObject(java.lang.Object)
 	 */
