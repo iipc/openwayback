@@ -24,8 +24,8 @@ import org.apache.hadoop.util.ReflectionUtils;
 import org.archive.io.arc.ARCRecord;
 import org.archive.mapred.ARCMapRunner;
 import org.archive.mapred.ARCRecordMapper;
-import org.archive.wayback.core.SearchResult;
-import org.archive.wayback.resourcestore.ARCRecordToSearchResultAdapter;
+import org.archive.wayback.core.CaptureSearchResult;
+import org.archive.wayback.resourcestore.indexer.ARCRecordToSearchResultAdapter;
 import org.archive.wayback.resourceindex.cdx.SearchResultToCDXLineAdapter;
 
 /**
@@ -58,7 +58,7 @@ public class Driver {
 			ObjectWritable ow = (ObjectWritable) value;
 			ARCRecord rec = (ARCRecord) ow.get();
 			String line;
-			SearchResult result = ARtoSR.adapt(rec);
+			CaptureSearchResult result = ARtoSR.adapt(rec);
 			if(result != null) {
 				line = SRtoCDX.adapt(result);
 				if(line != null) {
