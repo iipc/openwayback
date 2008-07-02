@@ -16,7 +16,7 @@ StringFormatter fmt = results.getFormatter();
 
 String searchString = results.getSearchUrl();
 
-  int resultCount = results.getResultsReturned();
+long resultCount = results.getResultsReturned();
 
   Timestamp searchStartTs = results.getStartTimestamp();
   Timestamp searchEndTs = results.getEndTimestamp();

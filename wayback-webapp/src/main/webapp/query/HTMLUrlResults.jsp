@@ -25,11 +25,11 @@ Date searchEndDate = results.getEndTimestamp().getDate();
 //  new PathQuerySearchResultPartitioner(results.getResults(),
 //      results.getURIConverter());
 
-int firstResult = results.getFirstResult();
-int lastResult = results.getLastResult();
-int resultCount = results.getResultsMatching();
+long firstResult = results.getFirstResult();
+long lastResult = results.getLastResult();
+long resultCount = results.getResultsMatching();
 
-int totalCaptures = results.getResultsMatching();
+long totalCaptures = results.getResultsMatching();
 
 %>
 <%= fmt.format("PathPrefixQuery.showingResults",firstResult,lastResult,
