@@ -4,11 +4,12 @@
 <%@ page import="java.util.Date" %>
 <%@ page import="java.text.ParseException" %>
 <%@ page import="org.archive.wayback.WaybackConstants" %>
-<%@ page import="org.archive.wayback.core.SearchResult" %>
+<%@ page import="org.archive.wayback.core.CaptureSearchResult" %>
+<%@ page import="org.archive.wayback.core.CaptureSearchResults" %>
 <%@ page import="org.archive.wayback.core.Timestamp" %>
 <%@ page import="org.archive.wayback.core.UIResults" %>
 <%@ page import="org.archive.wayback.core.WaybackRequest" %>
-<%@ page import="org.archive.wayback.query.UIQueryResults" %>
+<%@ page import="org.archive.wayback.replay.UIReplayResult" %>
 <%@ page import="org.archive.wayback.query.resultspartitioner.ResultsTimelinePartitionsFactory" %>
 <%@ page import="org.archive.wayback.query.resultspartitioner.ResultsPartition" %>
 <%@ page import="org.archive.wayback.util.StringFormatter" %>
@@ -17,53 +18,51 @@
 String contextRoot = request.getScheme() + "://" + request.getServerName() + ":" 
 	+ request.getServerPort() + request.getContextPath();
 
-UIQueryResults results = (UIQueryResults) UIResults.getFromRequest(request);
+UIReplayResult results = (UIReplayResult) UIResults.getFromRequest(request);
 StringFormatter fmt = results.getFormatter();
-
-Timestamp searchStartTs = results.getStartTimestamp();
-Timestamp searchEndTs = results.getEndTimestamp();
-Timestamp exactTs = results.getExactRequestedTimestamp();
-String searchUrl = results.getSearchUrl();
-Date exactDate = exactTs.getDate();
-
-String exactDateStr = exactTs.getDateStr();
 WaybackRequest wbRequest = results.getWbRequest();
+CaptureSearchResults cResults = results.getResults();
+
+String exactDateStr = wbRequest.get(WaybackConstants.REQUEST_DATE);
+String searchUrl = wbRequest.get(WaybackConstants.REQUEST_URL);
 String resolution = wbRequest.get(WaybackConstants.REQUEST_RESOLUTION);
-if(resolution == null) {
-	resolution = WaybackConstants.REQUEST_RESOLUTION_AUTO;
-}
 String metaMode = wbRequest.get(WaybackConstants.REQUEST_META_MODE);
+
+Date exactDate = Timestamp.parseBefore(exactDateStr).getDate();
+
+
+if(resolution == null) {
+  resolution = WaybackConstants.REQUEST_RESOLUTION_AUTO;
+}
 String metaChecked = "";
 if(metaMode != null && metaMode.equals("yes")) {
-	metaChecked = "checked";
+  metaChecked = "checked";
 }
 
-String searchString = results.getSearchUrl();
+CaptureSearchResult first = null;
+CaptureSearchResult prev = null;
+CaptureSearchResult next = null;
+CaptureSearchResult last = null;
 
-SearchResult first = null;
-SearchResult prev = null;
-SearchResult next = null;
-SearchResult last = null;
-
-int resultCount = results.getResultsReturned();
+long resultCount = cResults.getReturnedCount();
 int resultIndex = 1;
-Iterator<SearchResult> it = results.resultsIterator();
+Iterator<CaptureSearchResult> it = cResults.iterator();
 while(it.hasNext()) {
-	SearchResult res = it.next();
-	String resDateStr = res.get(WaybackConstants.RESULT_CAPTURE_DATE);
-	int compared = resDateStr.compareTo(exactDateStr.substring(0,resDateStr.length()));
-	if(compared < 0) {
-		resultIndex++;
-		prev = res;
-		if(first == null) {
-			first = res;
-		}
-	} else if(compared > 0) {
-		last = res;
-		if(next == null) {
-			next = res;
-		}
-	}
+  CaptureSearchResult res = it.next();
+  String resDateStr = res.getCaptureTimestamp();
+  int compared = resDateStr.compareTo(exactDateStr.substring(0,resDateStr.length()));
+  if(compared < 0) {
+    resultIndex++;
+    prev = res;
+    if(first == null) {
+      first = res;
+    }
+  } else if(compared > 0) {
+    last = res;
+    if(next == null) {
+      next = res;
+    }
+  }
 }
 // string to indicate which select option is currently active
 String yearsOptSelected = "";
@@ -72,50 +71,49 @@ String daysOptSelected = "";
 String hoursOptSelected = "";
 String autoOptSelected = "";
 
-String minResolution = ResultsTimelinePartitionsFactory.getMinResolution(
-							results.getResults());
+String minResolution = ResultsTimelinePartitionsFactory.getMinResolution(cResults);
 
 String optimal = "";
 if(minResolution.equals(WaybackConstants.REQUEST_RESOLUTION_HOURS)) {
-	optimal = fmt.format("TimelineView.timeRange.hours");
+  optimal = fmt.format("TimelineView.timeRange.hours");
 } else if(minResolution.equals(WaybackConstants.REQUEST_RESOLUTION_DAYS)) {
-	optimal = fmt.format("TimelineView.timeRange.days");
+  optimal = fmt.format("TimelineView.timeRange.days");
 } else if(minResolution.equals(WaybackConstants.REQUEST_RESOLUTION_MONTHS)) {
-	optimal = fmt.format("TimelineView.timeRange.months");
+  optimal = fmt.format("TimelineView.timeRange.months");
 } else if(minResolution.equals(WaybackConstants.REQUEST_RESOLUTION_TWO_MONTHS)) {
-	  optimal = fmt.format("TimelineView.timeRange.twomonths");
+    optimal = fmt.format("TimelineView.timeRange.twomonths");
 } else if(minResolution.equals(WaybackConstants.REQUEST_RESOLUTION_YEARS)) {
-	optimal = fmt.format("TimelineView.timeRange.years");
+  optimal = fmt.format("TimelineView.timeRange.years");
 } else {
-	optimal = fmt.format("TimelineView.timeRange.unknown");
+  optimal = fmt.format("TimelineView.timeRange.unknown");
 }
 String autoOptString = fmt.format("TimelineView.timeRange.auto",optimal);
 
 ArrayList<ResultsPartition> partitions;
 if(resolution.equals(WaybackConstants.REQUEST_RESOLUTION_HOURS)) {
-	hoursOptSelected = "selected";
-	partitions = ResultsTimelinePartitionsFactory.getHour(results.getResults(),
-		wbRequest);
+  hoursOptSelected = "selected";
+  partitions = ResultsTimelinePartitionsFactory.getHour(results.getResults(),
+    wbRequest);
 } else if(resolution.equals(WaybackConstants.REQUEST_RESOLUTION_DAYS)) {
-	daysOptSelected = "selected";
-	partitions = ResultsTimelinePartitionsFactory.getDay(results.getResults(),
-		wbRequest);
+  daysOptSelected = "selected";
+  partitions = ResultsTimelinePartitionsFactory.getDay(results.getResults(),
+    wbRequest);
 } else if(resolution.equals(WaybackConstants.REQUEST_RESOLUTION_MONTHS)) {
-	monthsOptSelected = "selected";
-	partitions = ResultsTimelinePartitionsFactory.getMonth(results.getResults(),
-		wbRequest);
+  monthsOptSelected = "selected";
+  partitions = ResultsTimelinePartitionsFactory.getMonth(results.getResults(),
+    wbRequest);
 } else if(resolution.equals(WaybackConstants.REQUEST_RESOLUTION_TWO_MONTHS)) {
-	  monthsOptSelected = "selected";
-	  partitions = ResultsTimelinePartitionsFactory.getTwoMonth(results.getResults(),
-	    wbRequest);
+    monthsOptSelected = "selected";
+    partitions = ResultsTimelinePartitionsFactory.getTwoMonth(results.getResults(),
+      wbRequest);
 } else if(resolution.equals(WaybackConstants.REQUEST_RESOLUTION_YEARS)) {
-	yearsOptSelected = "selected";
-	partitions = ResultsTimelinePartitionsFactory.getYear(results.getResults(),
-		wbRequest);
+  yearsOptSelected = "selected";
+  partitions = ResultsTimelinePartitionsFactory.getYear(results.getResults(),
+    wbRequest);
 } else {
-	autoOptSelected = "selected";
-	partitions = ResultsTimelinePartitionsFactory.getAuto(results.getResults(),
-		wbRequest);
+  autoOptSelected = "selected";
+  partitions = ResultsTimelinePartitionsFactory.getAuto(results.getResults(),
+    wbRequest);
 }
 int numPartitions = partitions.size();
 ResultsPartition firstP = (ResultsPartition) partitions.get(0);
@@ -196,7 +194,7 @@ function handleDragClick() {
 						if(first != null) {
 							titleString = "title=\"" + 
 								fmt.format("TimelineView.firstVersionTitle",
-									results.resultToDate(first)) + "\"";
+									first.getCaptureDate()) + "\"";
 							%><a wmSpecial="1" href="<%= results.resultToReplayUrl(first) %>"><%
 						}
 						%><img <%= titleString %> wmSpecial="1" border=0 width=19 height=20 src="<%= contextRoot %>/images/first.jpg"><%
@@ -207,7 +205,7 @@ function handleDragClick() {
 						if(prev != null) {
 							titleString = "title=\"" + 
 								fmt.format("TimelineView.prevVersionTitle",
-									results.resultToDate(prev)) + "\"";
+									prev.getCaptureDate()) + "\"";
 							%><a wmSpecial="1" href="<%= results.resultToReplayUrl(prev) %>"><%
 						}
 						%><img <%= titleString %> wmSpecial="1" border=0 width=13 height=20 src="<%= contextRoot %>/images/prev.jpg"><%
@@ -226,15 +224,15 @@ function handleDragClick() {
 		String prettyDateTime = null;
 		if(numResults == 1) {
 			imageUrl = contextRoot + "/images/mark_one.jpg";
-		  	SearchResult result = (SearchResult) partitionResults.get(0);
+		  	CaptureSearchResult result = (CaptureSearchResult) partitionResults.get(0);
 			replayUrl = results.resultToReplayUrl(result);
-			prettyDateTime = fmt.format("TimelineView.markDateTitle",results.resultToDate(result));
+			prettyDateTime = fmt.format("TimelineView.markDateTitle",result.getCaptureDate());
 			
 		} else if (numResults > 1) {
 			imageUrl = contextRoot + "/images/mark_several.jpg";
-		  	SearchResult result = (SearchResult) partitionResults.get(numResults - 1);
+		  	CaptureSearchResult result = (CaptureSearchResult) partitionResults.get(numResults - 1);
 			replayUrl = results.resultToReplayUrl(result);
-			prettyDateTime = fmt.format("TimelineView.markDateTitle",results.resultToDate(result));
+			prettyDateTime = fmt.format("TimelineView.markDateTitle",result.getCaptureDate());
 
 		}
 		if((i > 0) && (i < numPartitions)) {
@@ -260,7 +258,7 @@ function handleDragClick() {
 						if(next != null) {
 							titleString = "title=\"" + 
 								fmt.format("TimelineView.nextVersionTitle",
-									results.resultToDate(next)) + "\"";
+									next.getCaptureDate()) + "\"";
 							%><a wmSpecial="1" href="<%= results.resultToReplayUrl(next) %>"><%
 						}
 						%><img wmSpecial="1" <%= titleString %> border=0 width=13 height=20 src="<%= contextRoot %>/images/next.jpg"><%
@@ -271,7 +269,7 @@ function handleDragClick() {
 						if(last != null) {
 							titleString = "title=\"" + 
 								fmt.format("TimelineView.lastVersionTitle",
-									results.resultToDate(last)) + "\"";
+									last.getCaptureDate()) + "\"";
 							%><a wmSpecial="1" href="<%= results.resultToReplayUrl(last) %>"><%
 						}
 						%><img wmSpecial="1" <%= titleString %> border=0 width=19 height=20 src="<%= contextRoot %>/images/last.jpg"><%

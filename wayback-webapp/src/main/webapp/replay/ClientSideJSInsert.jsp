@@ -4,13 +4,12 @@
 <%@ page import="org.archive.wayback.core.Timestamp" %>
 <%@ page import="org.archive.wayback.core.UIResults" %>
 <%@ page import="org.archive.wayback.core.WaybackRequest" %>
-<%@ page import="org.archive.wayback.query.UIQueryResults" %>
+<%@ page import="org.archive.wayback.replay.UIReplayResult" %>
 <%@ page import="org.archive.wayback.util.StringFormatter" %>
 <%
-UIQueryResults results = (UIQueryResults) UIResults.getFromRequest(request);
-ResultURIConverter uriConverter = results.getURIConverter();
-String requestDate = results.getExactRequestedTimestamp().getDateStr();
-String contextPath = uriConverter.makeReplayURI(requestDate, "");
+UIReplayResult results = (UIReplayResult) UIResults.getFromRequest(request);
+String requestDate = results.getResult().getCaptureTimestamp();
+String contextPath = results.makeReplayUrl("",requestDate);
 String contextRoot = request.getScheme() + "://" + request.getServerName() + ":" 
   + request.getServerPort() + request.getContextPath();
 

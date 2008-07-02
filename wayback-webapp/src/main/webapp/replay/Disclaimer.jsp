@@ -2,21 +2,20 @@
 <%@ page import="java.util.Date" %>
 <%@ page import="org.archive.wayback.WaybackConstants" %>
 <%@ page import="org.archive.wayback.core.Timestamp" %>
-<%@ page import="org.archive.wayback.core.SearchResult" %>
+<%@ page import="org.archive.wayback.core.CaptureSearchResult" %>
 <%@ page import="org.archive.wayback.core.UIResults" %>
 <%@ page import="org.archive.wayback.core.WaybackRequest" %>
-<%@ page import="org.archive.wayback.query.UIQueryResults" %>
+<%@ page import="org.archive.wayback.replay.UIReplayResult" %>
 <%@ page import="org.archive.wayback.util.StringFormatter" %>
 <%
-UIQueryResults results = (UIQueryResults) UIResults.getFromRequest(request);
+UIReplayResult results = (UIReplayResult) UIResults.getFromRequest(request);
 
 StringFormatter fmt = results.getFormatter();
-SearchResult result = results.getResult();
+CaptureSearchResult result = results.getResult();
 String dupeMsg = "";
 if(result != null) {
-        String dupeType = result.get(WaybackConstants.RESULT_DUPLICATE_ANNOTATION);
-        if(dupeType != null) {
-                String dupeDate = result.get(WaybackConstants.RESULT_DUPLICATE_STORED_DATE);
+        if(result.isDuplicateDigest()) {
+                String dupeDate = result.getDuplicateDigestStoredTimestamp();
                 String prettyDate = "";
                 if(dupeDate != null) {
                 	  Timestamp dupeTS = Timestamp.parseBefore(dupeDate);
@@ -29,10 +28,10 @@ if(result != null) {
         }
 }
 
-Date requestDate = results.getExactRequestedTimestamp().getDate();
-String requestUrl = results.getSearchUrl();
+Date resultDate = result.getCaptureDate();
+String resultUrl = result.getOriginalUrl();
 
-String wmNotice = fmt.format("ReplayView.banner", requestUrl, requestDate);
+String wmNotice = fmt.format("ReplayView.banner", resultUrl, resultDate);
 String wmHideNotice = fmt.format("ReplayView.bannerHideLink");
 
 String contextRoot = request.getScheme() + "://" + request.getServerName() + ":"

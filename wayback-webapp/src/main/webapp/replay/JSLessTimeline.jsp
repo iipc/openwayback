@@ -4,11 +4,12 @@
 <%@ page import="java.util.Date" %>
 <%@ page import="java.text.ParseException" %>
 <%@ page import="org.archive.wayback.WaybackConstants" %>
-<%@ page import="org.archive.wayback.core.SearchResult" %>
+<%@ page import="org.archive.wayback.core.CaptureSearchResult" %>
+<%@ page import="org.archive.wayback.core.CaptureSearchResults" %>
 <%@ page import="org.archive.wayback.core.Timestamp" %>
 <%@ page import="org.archive.wayback.core.UIResults" %>
 <%@ page import="org.archive.wayback.core.WaybackRequest" %>
-<%@ page import="org.archive.wayback.query.UIQueryResults" %>
+<%@ page import="org.archive.wayback.replay.UIReplayResult" %>
 <%@ page import="org.archive.wayback.query.resultspartitioner.ResultsTimelinePartitionsFactory" %>
 <%@ page import="org.archive.wayback.query.resultspartitioner.ResultsPartition" %>
 <%@ page import="org.archive.wayback.util.StringFormatter" %>
@@ -17,40 +18,38 @@
 String contextRoot = request.getScheme() + "://" + request.getServerName() + ":" 
 	+ request.getServerPort() + request.getContextPath();
 
-UIQueryResults results = (UIQueryResults) UIResults.getFromRequest(request);
+UIReplayResult results = (UIReplayResult) UIResults.getFromRequest(request);
 StringFormatter fmt = results.getFormatter();
-
-Timestamp searchStartTs = results.getStartTimestamp();
-Timestamp searchEndTs = results.getEndTimestamp();
-Timestamp exactTs = results.getExactRequestedTimestamp();
-String searchUrl = results.getSearchUrl();
-Date exactDate = exactTs.getDate();
-
-String exactDateStr = exactTs.getDateStr();
 WaybackRequest wbRequest = results.getWbRequest();
+CaptureSearchResults cResults = results.getResults();
+
+String exactDateStr = wbRequest.get(WaybackConstants.REQUEST_DATE);
+String searchUrl = wbRequest.get(WaybackConstants.REQUEST_URL);
 String resolution = wbRequest.get(WaybackConstants.REQUEST_RESOLUTION);
+String metaMode = wbRequest.get(WaybackConstants.REQUEST_META_MODE);
+
+Date exactDate = Timestamp.parseBefore(exactDateStr).getDate();
+
+
 if(resolution == null) {
 	resolution = WaybackConstants.REQUEST_RESOLUTION_AUTO;
 }
-String metaMode = wbRequest.get(WaybackConstants.REQUEST_META_MODE);
 String metaChecked = "";
 if(metaMode != null && metaMode.equals("yes")) {
 	metaChecked = "checked";
 }
 
-String searchString = results.getSearchUrl();
+CaptureSearchResult first = null;
+CaptureSearchResult prev = null;
+CaptureSearchResult next = null;
+CaptureSearchResult last = null;
 
-SearchResult first = null;
-SearchResult prev = null;
-SearchResult next = null;
-SearchResult last = null;
-
-int resultCount = results.getResultsReturned();
+long resultCount = cResults.getReturnedCount();
 int resultIndex = 1;
-Iterator<SearchResult> it = results.resultsIterator();
+Iterator<CaptureSearchResult> it = cResults.iterator();
 while(it.hasNext()) {
-	SearchResult res = it.next();
-	String resDateStr = res.get(WaybackConstants.RESULT_CAPTURE_DATE);
+	CaptureSearchResult res = it.next();
+	String resDateStr = res.getCaptureTimestamp();
 	int compared = resDateStr.compareTo(exactDateStr.substring(0,resDateStr.length()));
 	if(compared < 0) {
 		resultIndex++;
@@ -72,8 +71,7 @@ String daysOptSelected = "";
 String hoursOptSelected = "";
 String autoOptSelected = "";
 
-String minResolution = ResultsTimelinePartitionsFactory.getMinResolution(
-							results.getResults());
+String minResolution = ResultsTimelinePartitionsFactory.getMinResolution(cResults);
 
 String optimal = "";
 if(minResolution.equals(WaybackConstants.REQUEST_RESOLUTION_HOURS)) {
@@ -174,7 +172,7 @@ String titleString = "";
 						if(first != null) {
 							titleString = "title=\"" + 
 								fmt.format("TimelineView.firstVersionTitle",
-									results.resultToDate(first)) + "\"";
+									first.getCaptureDate()) + "\"";
 							%><a wmSpecial="1" href="<%= results.resultToReplayUrl(first) %>"><%
 						}
 						%><img <%= titleString %> wmSpecial="1" border=0 width=19 height=20 src="<%= contextRoot %>/images/first.jpg"><%
@@ -185,7 +183,7 @@ String titleString = "";
 						if(prev != null) {
 							titleString = "title=\"" + 
 								fmt.format("TimelineView.prevVersionTitle",
-									results.resultToDate(prev)) + "\"";
+										prev.getCaptureDate()) + "\"";
 							%><a wmSpecial="1" href="<%= results.resultToReplayUrl(prev) %>"><%
 						}
 						%><img <%= titleString %> wmSpecial="1" border=0 width=13 height=20 src="<%= contextRoot %>/images/prev.jpg"><%
@@ -204,15 +202,15 @@ String titleString = "";
 		String prettyDateTime = null;
 		if(numResults == 1) {
 			imageUrl = contextRoot + "/images/mark_one.jpg";
-		  	SearchResult result = (SearchResult) partitionResults.get(0);
+		  	CaptureSearchResult result = (CaptureSearchResult) partitionResults.get(0);
 			replayUrl = results.resultToReplayUrl(result);
-			prettyDateTime = fmt.format("TimelineView.markDateTitle",results.resultToDate(result));
+			prettyDateTime = fmt.format("TimelineView.markDateTitle",result.getCaptureDate());
 			
 		} else if (numResults > 1) {
 			imageUrl = contextRoot + "/images/mark_several.jpg";
-		  	SearchResult result = (SearchResult) partitionResults.get(numResults - 1);
+			CaptureSearchResult result = (CaptureSearchResult) partitionResults.get(numResults - 1);
 			replayUrl = results.resultToReplayUrl(result);
-			prettyDateTime = fmt.format("TimelineView.markDateTitle",results.resultToDate(result));
+			prettyDateTime = fmt.format("TimelineView.markDateTitle",result.getCaptureDate());
 
 		}
 		if((i > 0) && (i < numPartitions)) {
@@ -238,7 +236,7 @@ String titleString = "";
 						if(next != null) {
 							titleString = "title=\"" + 
 								fmt.format("TimelineView.nextVersionTitle",
-									results.resultToDate(next)) + "\"";
+									next.getCaptureDate()) + "\"";
 							%><a wmSpecial="1" href="<%= results.resultToReplayUrl(next) %>"><%
 						}
 						%><img wmSpecial="1" <%= titleString %> border=0 width=13 height=20 src="<%= contextRoot %>/images/next.jpg"><%
@@ -249,7 +247,7 @@ String titleString = "";
 						if(last != null) {
 							titleString = "title=\"" + 
 								fmt.format("TimelineView.lastVersionTitle",
-									results.resultToDate(last)) + "\"";
+									last.getCaptureDate()) + "\"";
 							%><a wmSpecial="1" href="<%= results.resultToReplayUrl(last) %>"><%
 						}
 						%><img wmSpecial="1" <%= titleString %> border=0 width=19 height=20 src="<%= contextRoot %>/images/last.jpg"><%

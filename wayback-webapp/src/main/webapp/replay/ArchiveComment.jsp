@@ -2,12 +2,12 @@
 <%@ page import="java.util.Date" %>
 <%@ page import="org.archive.wayback.core.Timestamp" %>
 <%@ page import="org.archive.wayback.core.UIResults" %>
-<%@ page import="org.archive.wayback.query.UIQueryResults" %>
+<%@ page import="org.archive.wayback.replay.UIReplayResult" %>
 <%@ page import="org.archive.wayback.util.StringFormatter" %>
 <%
-UIQueryResults results = (UIQueryResults) UIResults.getFromRequest(request);
+UIReplayResult results = (UIReplayResult) UIResults.getFromRequest(request);
 StringFormatter fmt = results.getFormatter();
-Date exactDate = results.getExactRequestedTimestamp().getDate();
+Date exactDate = results.getResult().getCaptureDate();
 Date now = new Date();
 String prettyDateFormat = "{0,date,H:mm:ss MMM d, yyyy}";
 String prettyArchiveString = fmt.format(prettyDateFormat,exactDate);
