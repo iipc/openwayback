@@ -478,7 +478,7 @@ public class LocalResourceIndex implements ResourceIndex {
 		}
 		public void annotateResults(SearchResults results) {
 			results.setFirstReturned(startResult);
-			results.setReturnedCount(resultsPerPage);
+			results.setNumRequested(resultsPerPage);
 
 			// how many went by the filters:
 			results.setMatchingCount(startFilter.getNumSeen());
