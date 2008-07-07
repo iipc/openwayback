@@ -311,7 +311,8 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 			CaptureSearchResults captureResults = (CaptureSearchResults) results;
 	
 			// TODO: check which versions are actually accessible right now?
-			CaptureSearchResult closest = captureResults.getClosest(wbRequest);
+			CaptureSearchResult closest = captureResults.getClosest(wbRequest, 
+					true);
 			resource = collection.getResourceStore().retrieveResource(closest);
 			ReplayRenderer renderer = replay.getRenderer(wbRequest, closest, resource);
 			renderer.renderResource(httpRequest, httpResponse, wbRequest,
