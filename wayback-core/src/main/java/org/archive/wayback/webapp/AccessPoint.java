@@ -354,7 +354,7 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 	private void logNotInArchive(WaybackException e, WaybackRequest r) {
 		// TODO: move this into ResourceNotInArchiveException constructor
 		if(e instanceof ResourceNotInArchiveException) {
-			String url = r.get(WaybackConstants.REQUEST_URL);
+			String url = r.get(WaybackRequest.REQUEST_URL);
 			StringBuilder sb = new StringBuilder(100);
 			sb.append("NotInArchive\t");
 			sb.append(contextName).append("\t");

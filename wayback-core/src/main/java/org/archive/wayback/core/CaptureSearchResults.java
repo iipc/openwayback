@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 
-import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.exception.AnchorWindowTooSmallException;
 
 /**
@@ -113,7 +112,7 @@ public class CaptureSearchResults extends SearchResults {
 		String anchorDate = wbRequest.get(WaybackRequest.REQUEST_ANCHOR_DATE);
 		long maxWindow = -1;
 		long wantTime = Timestamp.parseBefore(wbRequest
-				.get(WaybackConstants.REQUEST_EXACT_DATE)).getDate().getTime();
+				.get(WaybackRequest.REQUEST_EXACT_DATE)).getDate().getTime();
 		if(anchorDate != null) {
 			wantTime = Timestamp.parseBefore(anchorDate).getDate().getTime();
 			String anchorWindow = wbRequest.get(WaybackRequest.REQUEST_ANCHOR_WINDOW);

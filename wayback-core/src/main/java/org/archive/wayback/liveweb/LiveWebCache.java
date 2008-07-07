@@ -33,14 +33,12 @@ import org.apache.commons.httpclient.URIException;
 import org.archive.io.arc.ARCLocation;
 import org.archive.io.arc.ARCRecord;
 import org.archive.wayback.UrlCanonicalizer;
-import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
-import org.archive.wayback.exception.AnchorWindowTooSmallException;
 import org.archive.wayback.exception.LiveDocumentNotAvailableException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.exception.WaybackException;
@@ -82,9 +80,9 @@ public class LiveWebCache {
 			boolean bUseOlder) throws URIException {
 		WaybackRequest req = new WaybackRequest();
 		req.setRequestUrl(url.toString());
-		req.put(WaybackConstants.REQUEST_TYPE, 
-				WaybackConstants.REQUEST_CLOSEST_QUERY);
-		req.put(WaybackConstants.REQUEST_EXACT_DATE,
+		req.put(WaybackRequest.REQUEST_TYPE, 
+				WaybackRequest.REQUEST_CLOSEST_QUERY);
+		req.put(WaybackRequest.REQUEST_EXACT_DATE,
 				Timestamp.currentTimestamp().getDateStr());
 		Timestamp earliest = null;
 		if(bUseOlder) {
@@ -93,11 +91,11 @@ public class LiveWebCache {
 			Date d = new Date(System.currentTimeMillis() - maxCacheMS);
 			earliest = new Timestamp(d);
 		}
-		req.put(WaybackConstants.REQUEST_START_DATE,earliest.getDateStr());
+		req.put(WaybackRequest.REQUEST_START_DATE,earliest.getDateStr());
 		// for now, assume all live web requests are only satisfiable by the 
 		// exact host -- no massaging.
-		req.put(WaybackConstants.REQUEST_EXACT_HOST_ONLY,
-				WaybackConstants.REQUEST_YES);
+		req.put(WaybackRequest.REQUEST_EXACT_HOST_ONLY,
+				WaybackRequest.REQUEST_YES);
 		return req;
 	}
 	
@@ -166,12 +164,7 @@ public class LiveWebCache {
 			e.printStackTrace();
 			throw new IOException(e.getMessage());
 		}
-		CaptureSearchResult result;
-		try {
-			result = results.getClosest(wbRequest,false);
-		} catch (AnchorWindowTooSmallException e) {
-			throw new ResourceNotInArchiveException("Not In archive..");
-		}
+		CaptureSearchResult result = results.getClosest(wbRequest);
 		if(result != null) {
 			if(isForgedFailedSearchResult(result)) {
 				if(isForgedFailRecentEnough(result)) {

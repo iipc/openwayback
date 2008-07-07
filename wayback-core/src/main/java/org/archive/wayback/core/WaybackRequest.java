@@ -37,7 +37,6 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.httpclient.URIException;
 import org.archive.net.UURI;
 import org.archive.net.UURIFactory;
-import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.requestparser.OpenSearchRequestParser;
 import org.archive.wayback.util.ObjectFilter;
 import org.archive.wayback.util.StringFormatter;
@@ -67,17 +66,144 @@ public class WaybackRequest {
 	private HashMap<String,String> filters = new HashMap<String,String>();
 	
 	private StringFormatter formatter = null;
+	/**
+	 * Request: Authorization Type: "BASIC", "SSL", or "" if none.
+	 */
+	public static final String REQUEST_AUTH_TYPE = "requestauthtype";
+	/**
+	 * Request: Wayback Context: the string context used in the request,
+	 * if applicable.
+	 */
+	public static final String REQUEST_WAYBACK_CONTEXT = "waybackcontext";
+	/**
+	 * Request: Wayback Port: the port the remote user connected to for this
+	 * request.  
+	 */
+	public static final String REQUEST_WAYBACK_PORT = "waybackport";
+	/**
+	 * Request: Wayback Hostname: the string "Host:" HTTP header  
+	 */
+	public static final String REQUEST_WAYBACK_HOSTNAME = "waybackhostname";
+	/**
+	 * Request: Remote Address, string IP address: "127.0.0.1" 
+	 */
+	public static final String REQUEST_REMOTE_ADDRESS = "remoteaddress";
+	/**
+	 * Request: auto resolution (TimeLine mode)
+	 */
+	public static final String REQUEST_RESOLUTION_AUTO = "auto";
+	/**
+	 * Request: year resolution (TimeLine mode)
+	 */
+	public static final String REQUEST_RESOLUTION_YEARS = "years";
+	/**
+	 * Request: two-month resolution (TimeLine mode)
+	 */
+	public static final String REQUEST_RESOLUTION_TWO_MONTHS = "twomonths";
+	/**
+	 * Request: month resolution (TimeLine mode)
+	 */
+	public static final String REQUEST_RESOLUTION_MONTHS = "months";
+	/**
+	 * Request: day resolution (TimeLine mode)
+	 */
+	public static final String REQUEST_RESOLUTION_DAYS = "days";
+	/**
+	 * Request: hour resolution (TimeLine mode)
+	 */
+	public static final String REQUEST_RESOLUTION_HOURS = "hours";
+	/**
+	 * Request: replay actual document or metadata for document: "yes" means 
+	 * replay metadata only, not the actual document: (TimeLine mode)
+	 */
+	public static final String REQUEST_META_MODE = "metamode";
+	/**
+	 * Request: resolution of results to be displayed: (TimeLine mode)
+	 */
+	public static final String REQUEST_RESOLUTION = "resolution";
+	/**
+	 * Request: closest type request 
+	 */
+	public static final String REQUEST_CLOSEST_QUERY = "urlclosestquery";
+	/**
+	 * Request: replay type request 
+	 */
+	public static final String REQUEST_REPLAY_QUERY = "replay";
+	/**
+	 * Request: urlprefixquery type request 
+	 */
+	public static final String REQUEST_URL_PREFIX_QUERY = "urlprefixquery";
+	/**
+	 * Request: urlquery type request 
+	 */
+	public static final String REQUEST_URL_QUERY = "urlquery";
+	/**
+	 * Request: xml data requested 
+	 */
+	public static final String REQUEST_XML_DATA = "xmldata";
+	/**
+	 * Request: defines type - urlquery, urlprefixquery, or replay 
+	 */
+	public static final String REQUEST_TYPE = "type";
+	/**
+	 * Request: URL of referrer, if supplied, or "" if not 
+	 */
+	public static final String REQUEST_REFERER_URL = "refererurl";
+	/**
+	 * Request: Original URL or URL prefix requested.
+	 * This version differs from @{link {@link REQUEST_URL} in that its
+	 * the URL before it was passed via the UURIFactory cleanup.
+	 */
+	public static final String REQUEST_URL_CLEANED = "cleanedurl";
+	/**
+	 * Request: URL or URL prefix requested 
+	 */
+	public static final String REQUEST_URL = "url";
+	/**
+	 * Request: (replay) find closest result to this 14-digit timestamp 
+	 */
+	public static final String REQUEST_EXACT_DATE = "exactdate";
+	/**
+	 * Request: filter results after this 14-digit timestamp 
+	 */
+	public static final String REQUEST_END_DATE = "enddate";
+	/**
+	 * Request: filter results before this 14-digit timestamp 
+	 */
+	public static final String REQUEST_START_DATE = "startdate";
+	/**
+	 * Request: (query) filter results to those prefixed with this (possibly 
+	 * partial) 14-digit timestamp 
+	 */
+	public static final String REQUEST_DATE = "date";
+	/**
+	 * Request: Remote User or "" if the request did not contain auth info.
+	 */
+	public static final String REQUEST_REMOTE_USER = "requestremoteuser";
+	/**
+	 * Request: Best Guess at users requested locale.
+	 */
+	public static final String REQUEST_LOCALE_LANG = "requestlocalelang";
+	/**
+	 * Request: Indicates user only wants results that exactly match the 
+	 * requested hostname -- no canonicalization.
+	 */
+	public static final String REQUEST_EXACT_HOST_ONLY = "requestexacthost";
+	/**
+	 * Request: indicates positive value for any request boolean flag.
+	 */
+	public static final String REQUEST_YES = "yes";
 	private static String UI_RESOURCE_BUNDLE_NAME = "WaybackUI";
 
 	private final static String standardHeaders[] = {
-			WaybackConstants.REQUEST_REFERER_URL,
-			WaybackConstants.REQUEST_REMOTE_ADDRESS,
-			WaybackConstants.REQUEST_WAYBACK_HOSTNAME,
-			WaybackConstants.REQUEST_WAYBACK_PORT,
-			WaybackConstants.REQUEST_WAYBACK_CONTEXT,
-			WaybackConstants.REQUEST_AUTH_TYPE,
-			WaybackConstants.REQUEST_REMOTE_USER,
-			WaybackConstants.REQUEST_LOCALE_LANG };
+			WaybackRequest.REQUEST_REFERER_URL,
+			WaybackRequest.REQUEST_REMOTE_ADDRESS,
+			WaybackRequest.REQUEST_WAYBACK_HOSTNAME,
+			WaybackRequest.REQUEST_WAYBACK_PORT,
+			WaybackRequest.REQUEST_WAYBACK_CONTEXT,
+			WaybackRequest.REQUEST_AUTH_TYPE,
+			WaybackRequest.REQUEST_REMOTE_USER,
+			WaybackRequest.REQUEST_LOCALE_LANG };
 
 	/**
 	 * Constructor, possibly/probably this should BE a Properties, instead of
@@ -91,8 +217,8 @@ public class WaybackRequest {
 	 * @return true if REQUEST_TYPE is set, and is set to REQUEST_REPLAY_QUERY
 	 */
 	public boolean isReplayRequest() {
-		String type = get(WaybackConstants.REQUEST_TYPE);
-		if(type != null && type.equals(WaybackConstants.REQUEST_REPLAY_QUERY)) {
+		String type = get(WaybackRequest.REQUEST_TYPE);
+		if(type != null && type.equals(WaybackRequest.REQUEST_REPLAY_QUERY)) {
 			return true;
 		}
 		return false;
@@ -191,21 +317,21 @@ public class WaybackRequest {
 	 */
 	private void extractHttpRequestInfo(HttpServletRequest httpRequest) {
 		// attempt to get the HTTP referer if present..
-		put(WaybackConstants.REQUEST_REFERER_URL, emptyIfNull(httpRequest
+		put(WaybackRequest.REQUEST_REFERER_URL, emptyIfNull(httpRequest
 				.getHeader("REFERER")));
-		put(WaybackConstants.REQUEST_REMOTE_ADDRESS, emptyIfNull(httpRequest
+		put(WaybackRequest.REQUEST_REMOTE_ADDRESS, emptyIfNull(httpRequest
 				.getRemoteAddr()));
-		put(WaybackConstants.REQUEST_WAYBACK_HOSTNAME, emptyIfNull(httpRequest
+		put(WaybackRequest.REQUEST_WAYBACK_HOSTNAME, emptyIfNull(httpRequest
 				.getLocalName()));
-		put(WaybackConstants.REQUEST_WAYBACK_PORT, String.valueOf(httpRequest
+		put(WaybackRequest.REQUEST_WAYBACK_PORT, String.valueOf(httpRequest
 				.getLocalPort()));
-		put(WaybackConstants.REQUEST_WAYBACK_CONTEXT, emptyIfNull(httpRequest
+		put(WaybackRequest.REQUEST_WAYBACK_CONTEXT, emptyIfNull(httpRequest
 				.getContextPath()));
-		put(WaybackConstants.REQUEST_AUTH_TYPE, emptyIfNull(httpRequest
+		put(WaybackRequest.REQUEST_AUTH_TYPE, emptyIfNull(httpRequest
 				.getAuthType()));
-		put(WaybackConstants.REQUEST_REMOTE_USER, emptyIfNull(httpRequest
+		put(WaybackRequest.REQUEST_REMOTE_USER, emptyIfNull(httpRequest
 				.getRemoteUser()));
-		put(WaybackConstants.REQUEST_LOCALE_LANG,getUserLocale(httpRequest));
+		put(WaybackRequest.REQUEST_LOCALE_LANG,getUserLocale(httpRequest));
 
 		Cookie[] cookies = httpRequest.getCookies();
 		if(cookies != null) {
@@ -264,32 +390,32 @@ public class WaybackRequest {
 	 */
 	public void fixup(HttpServletRequest httpRequest) {
 		extractHttpRequestInfo(httpRequest);
-		String startDate = get(WaybackConstants.REQUEST_START_DATE);
-		String endDate = get(WaybackConstants.REQUEST_END_DATE);
-		String exactDate = get(WaybackConstants.REQUEST_EXACT_DATE);
-		String partialDate = get(WaybackConstants.REQUEST_DATE);
+		String startDate = get(WaybackRequest.REQUEST_START_DATE);
+		String endDate = get(WaybackRequest.REQUEST_END_DATE);
+		String exactDate = get(WaybackRequest.REQUEST_EXACT_DATE);
+		String partialDate = get(WaybackRequest.REQUEST_DATE);
 		if (partialDate == null) {
 			partialDate = "";
 		}
 		if (startDate == null || startDate.length() == 0) {
-			put(WaybackConstants.REQUEST_START_DATE, Timestamp
+			put(WaybackRequest.REQUEST_START_DATE, Timestamp
 					.padStartDateStr(partialDate));
 		} else if (startDate.length() < 14) {
-			put(WaybackConstants.REQUEST_START_DATE, Timestamp
+			put(WaybackRequest.REQUEST_START_DATE, Timestamp
 					.padStartDateStr(startDate));
 		}
 		if (endDate == null || endDate.length() == 0) {
-			put(WaybackConstants.REQUEST_END_DATE, Timestamp
+			put(WaybackRequest.REQUEST_END_DATE, Timestamp
 					.padEndDateStr(partialDate));
 		} else if (endDate.length() < 14) {
-			put(WaybackConstants.REQUEST_END_DATE, Timestamp
+			put(WaybackRequest.REQUEST_END_DATE, Timestamp
 					.padEndDateStr(endDate));
 		}
 		if (exactDate == null || exactDate.length() == 0) {
-			put(WaybackConstants.REQUEST_EXACT_DATE, Timestamp
+			put(WaybackRequest.REQUEST_EXACT_DATE, Timestamp
 					.padEndDateStr(partialDate));
 		} else if (exactDate.length() < 14) {
-			put(WaybackConstants.REQUEST_EXACT_DATE, Timestamp
+			put(WaybackRequest.REQUEST_EXACT_DATE, Timestamp
 					.padEndDateStr(exactDate));
 		}
 	}
@@ -359,8 +485,8 @@ public class WaybackRequest {
 	    }
         // If its not http, next line throws exception. TODO: Fix.
 	    UURI requestURI = UURIFactory.getInstance(urlStr);
-	    put(WaybackConstants.REQUEST_URL_CLEANED, requestURI.toString());
-        put(WaybackConstants.REQUEST_URL, urlStr);
+	    put(WaybackRequest.REQUEST_URL_CLEANED, requestURI.toString());
+        put(WaybackRequest.REQUEST_URL, urlStr);
 	}
 
 	/**

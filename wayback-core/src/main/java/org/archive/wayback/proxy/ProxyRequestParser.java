@@ -29,7 +29,6 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
 import org.archive.wayback.RequestParser;
-import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadQueryException;
@@ -71,7 +70,7 @@ public class ProxyRequestParser extends CompositeRequestParser {
 	            String id = httpRequest.getHeader("Proxy-Id");
 	            if (id == null)
 	                    id = httpRequest.getRemoteAddr();
-	            wbRequest.put(WaybackConstants.REQUEST_EXACT_DATE, Timestamp
+	            wbRequest.put(WaybackRequest.REQUEST_EXACT_DATE, Timestamp
 	                    .getTimestampForId(httpRequest.getContextPath(), id));
 	            wbRequest.fixup(httpRequest);
 	    }

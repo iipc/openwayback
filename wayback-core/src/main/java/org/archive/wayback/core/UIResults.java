@@ -30,7 +30,6 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.httpclient.URIException;
 import org.archive.wayback.ResultURIConverter;
-import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.util.StringFormatter;
 import org.archive.wayback.webapp.AccessPoint;
 
@@ -73,8 +72,8 @@ public class UIResults {
 	public String makeCaptureQueryUrl(String url) {
 		WaybackRequest newWBR = wbRequest.clone();
 		
-		newWBR.put(WaybackConstants.REQUEST_TYPE,
-				WaybackConstants.REQUEST_URL_QUERY);
+		newWBR.put(WaybackRequest.REQUEST_TYPE,
+				WaybackRequest.REQUEST_URL_QUERY);
 		try {
 			newWBR.setRequestUrl(url);
 		} catch (URIException e) {

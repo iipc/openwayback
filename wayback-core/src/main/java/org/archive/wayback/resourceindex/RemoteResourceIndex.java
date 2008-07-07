@@ -34,7 +34,6 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.archive.wayback.ResourceIndex;
 import org.archive.wayback.UrlCanonicalizer;
-import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.SearchResult;
@@ -184,22 +183,22 @@ public class RemoteResourceIndex implements ResourceIndex {
 	}
 	private String getResultsType(Document document) {
 		NodeList list = document.getElementsByTagName(
-				WaybackConstants.RESULTS_TYPE);
+				SearchResults.RESULTS_TYPE);
 		if(list.getLength() == 1) {
 			return list.item(0).getTextContent();
 		} else {
-			return WaybackConstants.RESULTS_TYPE_CAPTURE;
+			return SearchResults.RESULTS_TYPE_CAPTURE;
 		}
 	}
 	
 	protected ObjectFilter<CaptureSearchResult> getSearchResultFilters(
 			WaybackRequest wbRequest) {
-		String searchType = wbRequest.get(WaybackConstants.REQUEST_TYPE);
+		String searchType = wbRequest.get(WaybackRequest.REQUEST_TYPE);
 		ObjectFilterChain<CaptureSearchResult> filters = 
 										new ObjectFilterChain<CaptureSearchResult>();
 		
-		if (searchType.equals(WaybackConstants.REQUEST_REPLAY_QUERY)
-				|| searchType.equals(WaybackConstants.REQUEST_CLOSEST_QUERY)) {
+		if (searchType.equals(WaybackRequest.REQUEST_REPLAY_QUERY)
+				|| searchType.equals(WaybackRequest.REQUEST_CLOSEST_QUERY)) {
 			
 			SelfRedirectFilter selfRedirectFilter = new SelfRedirectFilter();
 			selfRedirectFilter.setCanonicalizer(canonicalizer);
@@ -216,7 +215,7 @@ public class RemoteResourceIndex implements ResourceIndex {
 		SearchResults results = null;
 		NodeList filters = getRequestFilters(document);
 		String resultsType = getResultsType(document);
-		if(resultsType.equals(WaybackConstants.RESULTS_TYPE_CAPTURE)) {
+		if(resultsType.equals(SearchResults.RESULTS_TYPE_CAPTURE)) {
 			results = documentToCaptureSearchResults(document,filter);
 		} else {
 			results = documentToUrlSearchResults(document);
@@ -311,9 +310,9 @@ public class RemoteResourceIndex implements ResourceIndex {
 	protected String getRequestUrl(WaybackRequest wbRequest)
 			throws BadQueryException {
 		WaybackRequest tmp = wbRequest.clone();
-		String type = tmp.get(WaybackConstants.REQUEST_TYPE);
-		if(type.equals(WaybackConstants.REQUEST_REPLAY_QUERY)) {
-			tmp.put(WaybackConstants.REQUEST_TYPE, WaybackConstants.REQUEST_URL_QUERY);
+		String type = tmp.get(WaybackRequest.REQUEST_TYPE);
+		if(type.equals(WaybackRequest.REQUEST_REPLAY_QUERY)) {
+			tmp.put(WaybackRequest.REQUEST_TYPE, WaybackRequest.REQUEST_URL_QUERY);
 		}
 		return this.searchUrlBase + "?" + tmp.getQueryArguments();
 	}

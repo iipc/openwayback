@@ -69,6 +69,23 @@ public abstract class SearchResults {
 	private long firstReturned = -1;
 	private long matchingCount = -1;
 	private long numRequested = -1;
+
+	/**
+	 * Results: indicates SearchResult objects within the SearchResults are of
+	 * type UrlSearchResults.
+	 */
+	public static final String RESULTS_TYPE_URL = "resultstypeurl";
+
+	/**
+	 * Results: indicates SearchResult objects within the SearchResults are of
+	 * type CaptureSearchResults.
+	 */
+	public static final String RESULTS_TYPE_CAPTURE = "resultstypecapture";
+
+	/**
+	 * Results: type of results: "Capture" or "Url"
+	 */
+	public static final String RESULTS_TYPE = "resultstype";
 	
 	/**
 	 * @param key

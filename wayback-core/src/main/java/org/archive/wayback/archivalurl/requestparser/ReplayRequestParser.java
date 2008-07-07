@@ -30,7 +30,6 @@ import java.util.regex.Pattern;
 
 
 import org.apache.commons.httpclient.URIException;
-import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.requestparser.PathRequestParser;
@@ -87,12 +86,12 @@ public class ReplayRequestParser extends PathRequestParser {
 				dateStr = Timestamp.parseAfter(dateStr).getDateStr();
 
 			}
-			wbRequest.put(WaybackConstants.REQUEST_EXACT_DATE, dateStr);
-			wbRequest.put(WaybackConstants.REQUEST_START_DATE, startDate);
-			wbRequest.put(WaybackConstants.REQUEST_END_DATE, endDate);
+			wbRequest.put(WaybackRequest.REQUEST_EXACT_DATE, dateStr);
+			wbRequest.put(WaybackRequest.REQUEST_START_DATE, startDate);
+			wbRequest.put(WaybackRequest.REQUEST_END_DATE, endDate);
 
-			wbRequest.put(WaybackConstants.REQUEST_TYPE,
-					WaybackConstants.REQUEST_REPLAY_QUERY);
+			wbRequest.put(WaybackRequest.REQUEST_TYPE,
+					WaybackRequest.REQUEST_REPLAY_QUERY);
 
 			try {
 //				String wbPrefix = wbRequest.getDefaultWaybackPrefix();

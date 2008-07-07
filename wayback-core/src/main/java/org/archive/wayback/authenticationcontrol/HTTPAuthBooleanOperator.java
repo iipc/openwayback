@@ -2,7 +2,6 @@ package org.archive.wayback.authenticationcontrol;
 
 import java.util.List;
 
-import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.util.operator.BooleanOperator;
 
@@ -12,7 +11,7 @@ public class HTTPAuthBooleanOperator implements BooleanOperator<WaybackRequest> 
 		if(allowedUsers == null) {
 			return false;
 		}
-		String currentUser = value.get(WaybackConstants.REQUEST_REMOTE_USER);
+		String currentUser = value.get(WaybackRequest.REQUEST_REMOTE_USER);
 		if(currentUser == null) {
 			return false;
 		}

@@ -32,7 +32,6 @@ import org.archive.net.UURI;
 import org.archive.net.UURIFactory;
 import org.archive.wayback.ResourceIndex;
 import org.archive.wayback.UrlCanonicalizer;
-import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.CaptureToUrlSearchResultAdapter;
@@ -218,32 +217,32 @@ public class LocalResourceIndex implements ResourceIndex {
 			AccessControlException {
 		SearchResults results = null; // return value placeholder
 		String searchType = getRequired(wbRequest,
-				WaybackConstants.REQUEST_TYPE);
+				WaybackRequest.REQUEST_TYPE);
 
-		if (searchType.equals(WaybackConstants.REQUEST_REPLAY_QUERY)
-				|| searchType.equals(WaybackConstants.REQUEST_CLOSEST_QUERY)) {
+		if (searchType.equals(WaybackRequest.REQUEST_REPLAY_QUERY)
+				|| searchType.equals(WaybackRequest.REQUEST_CLOSEST_QUERY)) {
 
 			results = doCaptureQuery(wbRequest,
 					CaptureQueryFilterState.TYPE_REPLAY);
 
-		} else if (searchType.equals(WaybackConstants.REQUEST_URL_QUERY)) {
+		} else if (searchType.equals(WaybackRequest.REQUEST_URL_QUERY)) {
 
 			results = doCaptureQuery(wbRequest, 
 					CaptureQueryFilterState.TYPE_CAPTURE);
 
-		} else if (searchType.equals(WaybackConstants.REQUEST_URL_PREFIX_QUERY)) {
+		} else if (searchType.equals(WaybackRequest.REQUEST_URL_PREFIX_QUERY)) {
 
 			results = doUrlQuery(wbRequest);
 
 		} else {
 
 			throw new BadQueryException("Unknown query type(" + searchType
-					+ "), must be " + WaybackConstants.REQUEST_REPLAY_QUERY
-					+ ", " + WaybackConstants.REQUEST_CLOSEST_QUERY + ", "
-					+ WaybackConstants.REQUEST_URL_QUERY + ", or "
-					+ WaybackConstants.REQUEST_URL_PREFIX_QUERY);
+					+ "), must be " + WaybackRequest.REQUEST_REPLAY_QUERY
+					+ ", " + WaybackRequest.REQUEST_CLOSEST_QUERY + ", "
+					+ WaybackRequest.REQUEST_URL_QUERY + ", or "
+					+ WaybackRequest.REQUEST_URL_PREFIX_QUERY);
 		}
-		results.putFilter(WaybackConstants.REQUEST_TYPE, searchType);
+		results.putFilter(WaybackRequest.REQUEST_TYPE, searchType);
 		return results;
 	}
 
@@ -323,24 +322,24 @@ public class LocalResourceIndex implements ResourceIndex {
 		throws BadQueryException {
 			
 			String searchUrl = getRequired(request, 
-					WaybackConstants.REQUEST_URL);
+					WaybackRequest.REQUEST_URL);
 			try {
 				keyUrl = canonicalizer.urlStringToKey(searchUrl);
 			} catch (URIException e) {
 				throw new BadQueryException("invalid "
-						+ WaybackConstants.REQUEST_URL + " " + searchUrl);
+						+ WaybackRequest.REQUEST_URL + " " + searchUrl);
 			}
 
 			filter = new ObjectFilterChain<CaptureSearchResult>();
 			startDate = getRequired(request,
-					WaybackConstants.REQUEST_START_DATE,
+					WaybackRequest.REQUEST_START_DATE,
 					Timestamp.earliestTimestamp().getDateStr());
 			endDate = getRequired(request,
-					WaybackConstants.REQUEST_END_DATE,
+					WaybackRequest.REQUEST_END_DATE,
 					Timestamp.latestTimestamp().getDateStr());
 			if(type == TYPE_REPLAY) {
 				exactDate = getRequired(request,
-						WaybackConstants.REQUEST_EXACT_DATE, Timestamp
+						WaybackRequest.REQUEST_EXACT_DATE, Timestamp
 								.latestTimestamp().getDateStr());
 			}
 
@@ -411,11 +410,11 @@ public class LocalResourceIndex implements ResourceIndex {
 						+ " is not in the archive.");
 			}
 			// now we need to set some filter properties on the results:
-			results.putFilter(WaybackConstants.REQUEST_URL, keyUrl);
-			results.putFilter(WaybackConstants.REQUEST_START_DATE, startDate);
-			results.putFilter(WaybackConstants.REQUEST_END_DATE, endDate);
+			results.putFilter(WaybackRequest.REQUEST_URL, keyUrl);
+			results.putFilter(WaybackRequest.REQUEST_START_DATE, startDate);
+			results.putFilter(WaybackRequest.REQUEST_END_DATE, endDate);
 			if(exactDate != null) {
-				results.putFilter(WaybackConstants.REQUEST_EXACT_DATE, exactDate);
+				results.putFilter(WaybackRequest.REQUEST_EXACT_DATE, exactDate);
 			}
 		}
 	}
@@ -423,11 +422,11 @@ public class LocalResourceIndex implements ResourceIndex {
 
 		HostMatchFilter filter = null;
 		String exactHostFlag = r.get(
-				WaybackConstants.REQUEST_EXACT_HOST_ONLY);
+				WaybackRequest.REQUEST_EXACT_HOST_ONLY);
 		if(exactHostFlag != null && 
-				exactHostFlag.equals(WaybackConstants.REQUEST_YES)) {
+				exactHostFlag.equals(WaybackRequest.REQUEST_YES)) {
 
-			String searchUrl = r.get(WaybackConstants.REQUEST_URL);
+			String searchUrl = r.get(WaybackRequest.REQUEST_URL);
 			try {
 
 				UURI searchURI = UURIFactory.getInstance(searchUrl);

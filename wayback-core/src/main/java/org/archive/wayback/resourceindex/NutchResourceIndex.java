@@ -35,7 +35,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.archive.wayback.ResourceIndex;
-import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.SearchResults;
@@ -130,9 +129,9 @@ public class NutchResourceIndex implements ResourceIndex {
 		}
 
 		CaptureSearchResults results;
-		String type = wbRequest.get(WaybackConstants.REQUEST_TYPE);
-		if(type.equals(WaybackConstants.REQUEST_REPLAY_QUERY) ||
-				type.equals(WaybackConstants.REQUEST_URL_QUERY)) {
+		String type = wbRequest.get(WaybackRequest.REQUEST_TYPE);
+		if(type.equals(WaybackRequest.REQUEST_REPLAY_QUERY) ||
+				type.equals(WaybackRequest.REQUEST_URL_QUERY)) {
 			results = new CaptureSearchResults();			
 		} else {
 			// TODO: this is wrong, but needs exploration into what NutchWax can actually do.
@@ -174,10 +173,10 @@ public class NutchResourceIndex implements ResourceIndex {
        results.putFilter(SearchResults.RESULTS_REQUESTED,
        		String.valueOf(wbRequest.getResultsPerPage()));
        
-		results.putFilter(WaybackConstants.REQUEST_START_DATE,
+		results.putFilter(WaybackRequest.REQUEST_START_DATE,
 				Timestamp.earliestTimestamp().getDateStr());
 		
-       results.putFilter(WaybackConstants.REQUEST_END_DATE,
+       results.putFilter(WaybackRequest.REQUEST_END_DATE,
        		Timestamp.latestTimestamp().getDateStr());
 		return results;
 	}
@@ -242,16 +241,16 @@ public class NutchResourceIndex implements ResourceIndex {
    protected String getRequestUrl(WaybackRequest wbRequest) 
    throws BadQueryException {
 
-	   String urlStr = wbRequest.get(WaybackConstants.REQUEST_URL);
-	   String exactDateStr = wbRequest.get(WaybackConstants.REQUEST_EXACT_DATE);
+	   String urlStr = wbRequest.get(WaybackRequest.REQUEST_URL);
+	   String exactDateStr = wbRequest.get(WaybackRequest.REQUEST_EXACT_DATE);
 	    if (exactDateStr != null && exactDateStr.length() == 0) {
 	        exactDateStr = null;
 	    }
-	   	String endDateStr = wbRequest.get(WaybackConstants.REQUEST_END_DATE);
+	   	String endDateStr = wbRequest.get(WaybackRequest.REQUEST_END_DATE);
 	   	if (endDateStr == null || endDateStr.length() == 0) {
 	   	   	endDateStr = Timestamp.latestTimestamp().getDateStr();
 	   	}
-	   	String startDateStr = wbRequest.get(WaybackConstants.REQUEST_START_DATE);
+	   	String startDateStr = wbRequest.get(WaybackRequest.REQUEST_START_DATE);
 	   	if (startDateStr == null || startDateStr.length() == 0) {
 	   		startDateStr = Timestamp.earliestTimestamp().getDateStr();
 	   	}
@@ -274,8 +273,8 @@ public class NutchResourceIndex implements ResourceIndex {
        ms.append("date%3A").append(startDateStr).append('-').append(endDateStr);
        ms.append('+');
        // Add 'url:URL'.
-       if(wbRequest.get(WaybackConstants.REQUEST_TYPE).equals(
-	                WaybackConstants.REQUEST_URL_PREFIX_QUERY)) {
+       if(wbRequest.get(WaybackRequest.REQUEST_TYPE).equals(
+	                WaybackRequest.REQUEST_URL_PREFIX_QUERY)) {
            ms.append("url%3A").append(urlStr);
        } else {
            try {

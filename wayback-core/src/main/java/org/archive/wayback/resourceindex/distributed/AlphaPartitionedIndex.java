@@ -36,7 +36,6 @@ import java.util.logging.Logger;
 import org.apache.commons.httpclient.URIException;
 import org.archive.wayback.ResourceIndex;
 import org.archive.wayback.UrlCanonicalizer;
-import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.AccessControlException;
@@ -171,9 +170,9 @@ public class AlphaPartitionedIndex implements ResourceIndex {
 		}
 
 	
-		String searchUrl = wbRequest.get(WaybackConstants.REQUEST_URL);
+		String searchUrl = wbRequest.get(WaybackRequest.REQUEST_URL);
 		if (searchUrl == null) {
-			throw new BadQueryException("No " + WaybackConstants.REQUEST_URL 
+			throw new BadQueryException("No " + WaybackRequest.REQUEST_URL 
 					+ " specified");
 		}
 
@@ -181,7 +180,7 @@ public class AlphaPartitionedIndex implements ResourceIndex {
 			keyUrl = canonicalizer.urlStringToKey(searchUrl);
 		} catch (URIException e) {
 			throw new BadQueryException("invalid "
-					+ WaybackConstants.REQUEST_URL + " " + searchUrl);
+					+ WaybackRequest.REQUEST_URL + " " + searchUrl);
 		}
 		RangeGroup dummy = new RangeGroup("",keyUrl,"");
 		int loc = Arrays.binarySearch(groups,dummy,comparator);

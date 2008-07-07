@@ -28,7 +28,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.httpclient.URIException;
-import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.requestparser.PathRequestParser;
@@ -62,10 +61,10 @@ public class PathDateRangeQueryRequestParser extends PathRequestParser {
 
 			String startDate = Timestamp.parseBefore(startDateStr).getDateStr();
 			String endDate = Timestamp.parseAfter(endDateStr).getDateStr();
-			wbRequest.put(WaybackConstants.REQUEST_START_DATE,startDate);
-			wbRequest.put(WaybackConstants.REQUEST_END_DATE,endDate);
-			wbRequest.put(WaybackConstants.REQUEST_TYPE,
-					WaybackConstants.REQUEST_URL_QUERY);
+			wbRequest.put(WaybackRequest.REQUEST_START_DATE,startDate);
+			wbRequest.put(WaybackRequest.REQUEST_END_DATE,endDate);
+			wbRequest.put(WaybackRequest.REQUEST_TYPE,
+					WaybackRequest.REQUEST_URL_QUERY);
 			try {
                 wbRequest.setRequestUrl(urlStr);
 			} catch (URIException e) {

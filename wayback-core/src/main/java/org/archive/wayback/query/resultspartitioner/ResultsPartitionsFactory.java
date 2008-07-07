@@ -29,7 +29,6 @@ import java.util.Calendar;
 import java.util.Date;
 
 import org.archive.util.ArchiveUtils;
-import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
@@ -59,9 +58,9 @@ public class ResultsPartitionsFactory {
 	public static ArrayList<ResultsPartition> get(CaptureSearchResults results,
 			WaybackRequest wbRequest) {
 		Timestamp startTS = Timestamp.parseBefore(results.getFilter(
-				WaybackConstants.REQUEST_START_DATE));
+				WaybackRequest.REQUEST_START_DATE));
 		Timestamp endTS = Timestamp.parseAfter(results.getFilter(
-				WaybackConstants.REQUEST_END_DATE));
+				WaybackRequest.REQUEST_END_DATE));
 		
 		String rsd = startTS.getDateStr();
 		String red = endTS.getDateStr();

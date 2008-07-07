@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 
 import org.archive.util.ArchiveUtils;
-import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
@@ -145,15 +144,15 @@ public class ResultsTimelinePartitionsFactory {
 		int last = Timestamp.parseAfter(results.getLastResultTimestamp()).sse();
 		int diff = last - first;
 		if(diff < MAX_HOUR_SECONDS) {
-			return WaybackConstants.REQUEST_RESOLUTION_HOURS;
+			return WaybackRequest.REQUEST_RESOLUTION_HOURS;
 		} else if(diff < MAX_DAY_SECONDS) {
-			return WaybackConstants.REQUEST_RESOLUTION_DAYS;
+			return WaybackRequest.REQUEST_RESOLUTION_DAYS;
 		} else if(diff < MAX_MONTH_SECONDS) {
-			return WaybackConstants.REQUEST_RESOLUTION_MONTHS;
+			return WaybackRequest.REQUEST_RESOLUTION_MONTHS;
 		} else if(diff < MAX_TWO_MONTH_SECONDS) {
-			return WaybackConstants.REQUEST_RESOLUTION_TWO_MONTHS;
+			return WaybackRequest.REQUEST_RESOLUTION_TWO_MONTHS;
 		}
-		return WaybackConstants.REQUEST_RESOLUTION_YEARS;
+		return WaybackRequest.REQUEST_RESOLUTION_YEARS;
 	}
 	
 	private static ArrayList<ResultsPartition> get(ResultsPartitioner 
@@ -167,7 +166,7 @@ public class ResultsTimelinePartitionsFactory {
 		int totalPartitions = (partitionCount * 2) + 1; // total # of partitions
 
 		// first calculate the "center" based on the exact request date:
-		String reqDate = results.getFilter(WaybackConstants.REQUEST_EXACT_DATE);
+		String reqDate = results.getFilter(WaybackRequest.REQUEST_EXACT_DATE);
 		Calendar centerCal = partitioner.dateStrToCalendar(reqDate);
 		partitioner.alignStart(centerCal);
 		

@@ -26,7 +26,6 @@ package org.archive.wayback.domainprefix;
 
 import org.archive.wayback.ReplayDispatcher;
 import org.archive.wayback.ReplayRenderer;
-import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.WaybackRequest;
@@ -60,7 +59,7 @@ public class DomainPrefixReplayDispatcher implements ReplayDispatcher  {
 		// if the result is not for the exact date requested, redirect to the
 		// exact date. some capture dates are not 14 digits, only compare as 
 		// many digits as are in the result date:
-		String reqDateStr = wbRequest.get(WaybackConstants.REQUEST_EXACT_DATE);
+		String reqDateStr = wbRequest.get(WaybackRequest.REQUEST_EXACT_DATE);
 		String resDateStr = result.getCaptureTimestamp();
 		if((resDateStr.length() > reqDateStr.length()) ||
 				!resDateStr.equals(reqDateStr.substring(0, resDateStr.length()))) {

@@ -28,7 +28,6 @@ import java.util.Date;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.SearchResults;
@@ -80,11 +79,11 @@ public class UIQueryResults extends UIResults {
 			WaybackRequest wbRequest, SearchResults results,
 			ResultURIConverter uriConverter) {
 		super(wbRequest,uriConverter);
-		this.searchUrl = wbRequest.get(WaybackConstants.REQUEST_URL);
+		this.searchUrl = wbRequest.get(WaybackRequest.REQUEST_URL);
 		this.startTimestamp = Timestamp.parseBefore(results.
-				getFilter(WaybackConstants.REQUEST_START_DATE));
+				getFilter(WaybackRequest.REQUEST_START_DATE));
 		this.endTimestamp = Timestamp.parseAfter(results.getFilter(
-				WaybackConstants.REQUEST_END_DATE));
+				WaybackRequest.REQUEST_END_DATE));
 		
 		this.resultsReturned = results.getReturnedCount();
 		this.resultsMatching = results.getMatchingCount();
@@ -92,7 +91,7 @@ public class UIQueryResults extends UIResults {
 		this.firstResult = results.getFirstReturned() + 1;
 		this.lastResult = ((firstResult - 1) + resultsReturned);
 		this.exactRequestedTimestamp = Timestamp.parseAfter(
-				wbRequest.get(WaybackConstants.REQUEST_EXACT_DATE));
+				wbRequest.get(WaybackRequest.REQUEST_EXACT_DATE));
 		// calculate total pages:
 		numPages = (int) Math.ceil((double)resultsMatching/(double)resultsPerPage);
 		curPage = (int) Math.floor(((double)(firstResult-1))/(double)resultsPerPage) + 1;

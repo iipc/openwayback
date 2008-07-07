@@ -34,7 +34,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.archive.wayback.ExceptionRenderer;
-import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.UIResults;
 import org.archive.wayback.core.WaybackRequest;
 
@@ -69,13 +68,13 @@ public class BaseExceptionRenderer implements ExceptionRenderer {
 		if (wbRequest == null) {
 			return false;
 		}
-		String referer = wbRequest.get(WaybackConstants.REQUEST_REFERER_URL);
+		String referer = wbRequest.get(WaybackRequest.REQUEST_REFERER_URL);
 		return (referer != null && referer.length() > 0);
 	}
 
 	protected boolean requestIsImage(HttpServletRequest httpRequest,
 			WaybackRequest wbRequest) {
-		String requestUrl = wbRequest.get(WaybackConstants.REQUEST_URL);
+		String requestUrl = wbRequest.get(WaybackRequest.REQUEST_URL);
 		if (requestUrl == null)
 			return false;
 		Matcher matcher = IMAGE_REGEX.matcher(requestUrl);
@@ -85,14 +84,14 @@ public class BaseExceptionRenderer implements ExceptionRenderer {
 	protected boolean requestIsJavascript(HttpServletRequest httpRequest,
 			WaybackRequest wbRequest) {
 
-		String requestUrl = wbRequest.get(WaybackConstants.REQUEST_URL);
+		String requestUrl = wbRequest.get(WaybackRequest.REQUEST_URL);
 		return (requestUrl != null) && requestUrl.endsWith(".js");
 	}
 
 	protected boolean requestIsCSS(HttpServletRequest httpRequest,
 			WaybackRequest wbRequest) {
 
-		String requestUrl = wbRequest.get(WaybackConstants.REQUEST_URL);
+		String requestUrl = wbRequest.get(WaybackRequest.REQUEST_URL);
 		return (requestUrl != null) && requestUrl.endsWith(".css");
 	}
 
@@ -104,7 +103,7 @@ public class BaseExceptionRenderer implements ExceptionRenderer {
 
 		if(wbRequest.isQueryRequest()) {
 
-			if(wbRequest.containsKey(WaybackConstants.REQUEST_XML_DATA)) {
+			if(wbRequest.containsKey(WaybackRequest.REQUEST_XML_DATA)) {
 				jspPath = xmlErrorJsp;
 			}
 

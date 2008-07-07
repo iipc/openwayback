@@ -33,7 +33,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.archive.wayback.QueryRenderer;
 import org.archive.wayback.ResultURIConverter;
-import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.UrlSearchResults;
 import org.archive.wayback.core.WaybackRequest;
@@ -76,7 +75,7 @@ public class Renderer implements QueryRenderer {
 		UICaptureQueryResults uiResults = new UICaptureQueryResults(httpRequest, wbRequest,
 				results, uriConverter);
 		String jsp = captureJsp;
-		if(wbRequest.containsKey(WaybackConstants.REQUEST_XML_DATA)) {
+		if(wbRequest.containsKey(WaybackRequest.REQUEST_XML_DATA)) {
 			jsp = xmlCaptureJsp;
 		}
 
@@ -96,7 +95,7 @@ public class Renderer implements QueryRenderer {
 		UIUrlQueryResults uiResults = new UIUrlQueryResults(httpRequest, wbRequest, 
 				results, uriConverter);
 		String jsp = urlJsp;
-		if(wbRequest.containsKey(WaybackConstants.REQUEST_XML_DATA)) {
+		if(wbRequest.containsKey(WaybackRequest.REQUEST_XML_DATA)) {
 			jsp = xmlUrlJsp;
 		}
 

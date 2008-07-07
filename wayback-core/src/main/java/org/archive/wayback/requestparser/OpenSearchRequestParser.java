@@ -29,7 +29,6 @@ import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.webapp.AccessPoint;
@@ -87,15 +86,15 @@ public class OpenSearchRequestParser extends BaseRequestParser {
 		
 		String base = wbContext.translateRequestPath(httpRequest);
 		if(base.startsWith(REPLAY_BASE)) {
-			wbRequest.put(WaybackConstants.REQUEST_TYPE,
-					WaybackConstants.REQUEST_REPLAY_QUERY);
+			wbRequest.put(WaybackRequest.REQUEST_TYPE,
+					WaybackRequest.REQUEST_REPLAY_QUERY);
 		} else if(base.startsWith(QUERY_BASE)){
-			wbRequest.put(WaybackConstants.REQUEST_TYPE,
-					WaybackConstants.REQUEST_URL_QUERY);
+			wbRequest.put(WaybackRequest.REQUEST_TYPE,
+					WaybackRequest.REQUEST_URL_QUERY);
 		} else if(base.startsWith(XQUERY_BASE)){
-			wbRequest.put(WaybackConstants.REQUEST_TYPE,
-					WaybackConstants.REQUEST_URL_QUERY);
-			wbRequest.put(WaybackConstants.REQUEST_XML_DATA,"1");
+			wbRequest.put(WaybackRequest.REQUEST_TYPE,
+					WaybackRequest.REQUEST_URL_QUERY);
+			wbRequest.put(WaybackRequest.REQUEST_XML_DATA,"1");
 			
 		} else {
 			return null;
@@ -144,12 +143,12 @@ public class OpenSearchRequestParser extends BaseRequestParser {
 			// let's just let em all thru for now:
 			wbRequest.put(key, value);
 		}
-		if(wbRequest.get(WaybackConstants.REQUEST_START_DATE) == null) {
-			wbRequest.put(WaybackConstants.REQUEST_START_DATE, 
+		if(wbRequest.get(WaybackRequest.REQUEST_START_DATE) == null) {
+			wbRequest.put(WaybackRequest.REQUEST_START_DATE, 
 					getEarliestTimestamp());
 		}
-		if(wbRequest.get(WaybackConstants.REQUEST_END_DATE) == null) {
-			wbRequest.put(WaybackConstants.REQUEST_END_DATE, 
+		if(wbRequest.get(WaybackRequest.REQUEST_END_DATE) == null) {
+			wbRequest.put(WaybackRequest.REQUEST_END_DATE, 
 					getLatestTimestamp());
 		}
 		wbRequest.fixup(httpRequest);
