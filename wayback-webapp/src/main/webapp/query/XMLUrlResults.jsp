@@ -4,11 +4,11 @@
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.Enumeration" %>
-<%@ page import="org.archive.wayback.WaybackConstants" %>
-<%@ page import="org.archive.wayback.core.UrlSearchResults" %>
-<%@ page import="org.archive.wayback.core.UrlSearchResult" %>
+<%@ page import="org.archive.wayback.core.SearchResults" %>
 <%@ page import="org.archive.wayback.core.Timestamp" %>
 <%@ page import="org.archive.wayback.core.UIResults" %>
+<%@ page import="org.archive.wayback.core.UrlSearchResults" %>
+<%@ page import="org.archive.wayback.core.UrlSearchResult" %>
 <%@ page import="org.archive.wayback.query.UIUrlQueryResults" %>
 <%
 UIUrlQueryResults uiResults = (UIUrlQueryResults) UIResults.getFromRequest(request);
@@ -30,7 +30,7 @@ Iterator<UrlSearchResult> itr = uiResults.resultsIterator();
     <%
   }
 %>
-    <<%= WaybackConstants.RESULTS_TYPE %>><%= WaybackConstants.RESULTS_TYPE_URL %></<%= WaybackConstants.RESULTS_TYPE %>>
+    <<%= SearchResults.RESULTS_TYPE %>><%= SearchResults.RESULTS_TYPE_URL %></<%= SearchResults.RESULTS_TYPE %>>
   </request>
   <results>
 <%

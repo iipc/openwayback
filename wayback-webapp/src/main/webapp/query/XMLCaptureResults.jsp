@@ -4,9 +4,9 @@
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.Enumeration" %>
-<%@ page import="org.archive.wayback.WaybackConstants" %>
 <%@ page import="org.archive.wayback.core.CaptureSearchResult" %>
 <%@ page import="org.archive.wayback.core.CaptureSearchResults" %>
+<%@ page import="org.archive.wayback.core.SearchResults" %>
 <%@ page import="org.archive.wayback.core.Timestamp" %>
 <%@ page import="org.archive.wayback.core.UIResults" %>
 <%@ page import="org.archive.wayback.query.UICaptureQueryResults" %>
@@ -30,7 +30,7 @@ Iterator<CaptureSearchResult> itr = uiResults.resultsIterator();
     <%
   }
 %>
-    <<%= WaybackConstants.RESULTS_TYPE %>><%= WaybackConstants.RESULTS_TYPE_CAPTURE %></<%= WaybackConstants.RESULTS_TYPE %>>
+    <<%= SearchResults.RESULTS_TYPE %>><%= SearchResults.RESULTS_TYPE_CAPTURE %></<%= SearchResults.RESULTS_TYPE %>>
   </request>
   <results>
 <%
