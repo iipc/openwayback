@@ -52,6 +52,9 @@ import org.archive.wayback.webapp.AccessPoint;
  */
 public class WaybackRequest {
 
+	public final static String REQUEST_ANCHOR_DATE = "request.anchordate";
+	public final static String REQUEST_ANCHOR_WINDOW = "request.anchorwindow";
+
 	private int resultsPerPage = 10;
 
 	private int pageNum = 1;
