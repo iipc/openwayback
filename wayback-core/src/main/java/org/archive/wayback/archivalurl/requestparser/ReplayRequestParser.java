@@ -86,7 +86,7 @@ public class ReplayRequestParser extends PathRequestParser {
 				dateStr = Timestamp.parseAfter(dateStr).getDateStr();
 
 			}
-			wbRequest.put(WaybackRequest.REQUEST_EXACT_DATE, dateStr);
+			wbRequest.put(WaybackRequest.REQUEST_DATE, dateStr);
 			wbRequest.put(WaybackRequest.REQUEST_START_DATE, startDate);
 			wbRequest.put(WaybackRequest.REQUEST_END_DATE, endDate);
 
