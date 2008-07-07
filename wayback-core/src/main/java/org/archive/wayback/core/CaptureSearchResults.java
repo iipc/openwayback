@@ -29,6 +29,7 @@ import java.util.Date;
 import java.util.Iterator;
 
 import org.archive.wayback.WaybackConstants;
+import org.archive.wayback.exception.AnchorWindowTooSmallException;
 
 /**
  *
@@ -78,17 +79,46 @@ public class CaptureSearchResults extends SearchResults {
 		return new Timestamp(lastResultTimestamp).getDate();
 	}
 
+	public void markClosest(WaybackRequest wbRequest) {
+		CaptureSearchResult closest = getClosest(wbRequest);
+		if(closest != null) {
+			closest.setClosest(true);
+		}
+	}
 	/**
 	 * @param wbRequest
 	 * @return The closest CaptureSearchResult to the request.
 	 */
 	public CaptureSearchResult getClosest(WaybackRequest wbRequest) {
+		try {
+			return getClosest(wbRequest,false);
+		} catch (AnchorWindowTooSmallException e) {
+			// cannot happen with 2nd arg false...
+			e.printStackTrace();
+		}
+		return null;
+	}
+	/**
+	 * @param wbRequest
+	 * @return The closest CaptureSearchResult to the request.
+	 */
+	public CaptureSearchResult getClosest(WaybackRequest wbRequest, boolean err) 
+		throws AnchorWindowTooSmallException {
 
 		CaptureSearchResult closest = null;
 		long closestDistance = 0;
 		CaptureSearchResult cur = null;
+		String anchorDate = wbRequest.get(WaybackRequest.REQUEST_ANCHOR_DATE);
+		long maxWindow = -1;
 		long wantTime = Timestamp.parseBefore(wbRequest
 				.get(WaybackConstants.REQUEST_EXACT_DATE)).getDate().getTime();
+		if(anchorDate != null) {
+			wantTime = Timestamp.parseBefore(anchorDate).getDate().getTime();
+			String anchorWindow = wbRequest.get(WaybackRequest.REQUEST_ANCHOR_WINDOW);
+			if(anchorWindow != null) {
+				maxWindow = Long.parseLong(anchorWindow);
+			}
+		}
 
 		Iterator<CaptureSearchResult> itr = results.iterator();
 		while (itr.hasNext()) {
@@ -99,6 +129,13 @@ public class CaptureSearchResults extends SearchResults {
 			if ((closest == null) || (curDistance < closestDistance)) {
 				closest = cur;
 				closestDistance = curDistance;
+			}
+		}
+		if(err && (maxWindow != -1)) {
+			if(closestDistance > maxWindow) {
+				throw new AnchorWindowTooSmallException("Closest is " + 
+						closestDistance + " seconds away, Window is " + 
+						maxWindow);
 			}
 		}
 		return closest;
