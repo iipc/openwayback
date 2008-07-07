@@ -125,6 +125,7 @@ public class ResourceFileSourceUpdater {
 					}
 				} catch (InterruptedException e) {
 					e.printStackTrace();
+					return;
 				}
 			}
 		}

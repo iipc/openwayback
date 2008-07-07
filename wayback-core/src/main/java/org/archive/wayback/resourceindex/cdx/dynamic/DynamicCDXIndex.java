@@ -335,6 +335,7 @@ public class DynamicCDXIndex extends CompositeSearchResultSource {
 					sleep(sleepInterval);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
+					return;
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

@@ -293,6 +293,7 @@ public class LocalResourceIndexUpdater {
 					}
 				} catch (InterruptedException e) {
 					e.printStackTrace();
+					return;
 				}
 			}
 		}

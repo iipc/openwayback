@@ -56,6 +56,7 @@ public class AutoIndexThread extends Thread {
 				}
 			} catch (InterruptedException e) {
 				e.printStackTrace();
+				return;
 			}
 		}
 	}

@@ -168,6 +168,7 @@ public class ResourceFileLocationDBUpdater {
 					sleep(sleepInterval);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
+					return;
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
