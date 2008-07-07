@@ -40,6 +40,7 @@ import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
+import org.archive.wayback.exception.AnchorWindowTooSmallException;
 import org.archive.wayback.exception.LiveDocumentNotAvailableException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.exception.WaybackException;
@@ -165,7 +166,12 @@ public class LiveWebCache {
 			e.printStackTrace();
 			throw new IOException(e.getMessage());
 		}
-		CaptureSearchResult result = results.getClosest(wbRequest);
+		CaptureSearchResult result;
+		try {
+			result = results.getClosest(wbRequest,false);
+		} catch (AnchorWindowTooSmallException e) {
+			throw new ResourceNotInArchiveException("Not In archive..");
+		}
 		if(result != null) {
 			if(isForgedFailedSearchResult(result)) {
 				if(isForgedFailRecentEnough(result)) {
