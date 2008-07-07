@@ -476,10 +476,14 @@ public class LocalResourceIndex implements ResourceIndex {
 		public ObjectFilter<T> getFilter() {
 			return windowFilters;
 		}
-		public void annotateResults(SearchResults results) {
+		public void annotateResults(SearchResults results) 
+		throws BadQueryException {
 			results.setFirstReturned(startResult);
 			results.setNumRequested(resultsPerPage);
-
+			int numSeen = endFilter.getNumSeen();
+			if(numSeen == 0) {
+				throw new BadQueryException("No results in requested window");
+			}
 			// how many went by the filters:
 			results.setMatchingCount(startFilter.getNumSeen());
 
