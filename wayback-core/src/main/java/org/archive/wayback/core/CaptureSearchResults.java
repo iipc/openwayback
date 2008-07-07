@@ -100,6 +100,8 @@ public class CaptureSearchResults extends SearchResults {
 	}
 	/**
 	 * @param wbRequest
+	 * @param err if true, then check Request Anchor Window and Date, throwing
+	 *        exception if no Result is within the Window.
 	 * @return The closest CaptureSearchResult to the request.
 	 */
 	public CaptureSearchResult getClosest(WaybackRequest wbRequest, boolean err) 
