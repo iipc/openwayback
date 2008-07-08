@@ -129,9 +129,7 @@ public class NutchResourceIndex implements ResourceIndex {
 		}
 
 		CaptureSearchResults results;
-		String type = wbRequest.get(WaybackRequest.REQUEST_TYPE);
-		if(type.equals(WaybackRequest.REQUEST_REPLAY_QUERY) ||
-				type.equals(WaybackRequest.REQUEST_URL_QUERY)) {
+		if(wbRequest.isReplayRequest() || wbRequest.isCaptureQueryRequest()) {
 			results = new CaptureSearchResults();			
 		} else {
 			// TODO: this is wrong, but needs exploration into what NutchWax can actually do.
@@ -241,16 +239,16 @@ public class NutchResourceIndex implements ResourceIndex {
    protected String getRequestUrl(WaybackRequest wbRequest) 
    throws BadQueryException {
 
-	   String urlStr = wbRequest.get(WaybackRequest.REQUEST_URL);
-	   String exactDateStr = wbRequest.get(WaybackRequest.REQUEST_EXACT_DATE);
+	   String urlStr = wbRequest.getRequestUrl();
+	   String exactDateStr = wbRequest.getReplayTimestamp();
 	    if (exactDateStr != null && exactDateStr.length() == 0) {
 	        exactDateStr = null;
 	    }
-	   	String endDateStr = wbRequest.get(WaybackRequest.REQUEST_END_DATE);
+	   	String endDateStr = wbRequest.getEndTimestamp();
 	   	if (endDateStr == null || endDateStr.length() == 0) {
 	   	   	endDateStr = Timestamp.latestTimestamp().getDateStr();
 	   	}
-	   	String startDateStr = wbRequest.get(WaybackRequest.REQUEST_START_DATE);
+	   	String startDateStr = wbRequest.getStartTimestamp();
 	   	if (startDateStr == null || startDateStr.length() == 0) {
 	   		startDateStr = Timestamp.earliestTimestamp().getDateStr();
 	   	}
@@ -273,16 +271,15 @@ public class NutchResourceIndex implements ResourceIndex {
        ms.append("date%3A").append(startDateStr).append('-').append(endDateStr);
        ms.append('+');
        // Add 'url:URL'.
-       if(wbRequest.get(WaybackRequest.REQUEST_TYPE).equals(
-	                WaybackRequest.REQUEST_URL_PREFIX_QUERY)) {
-           ms.append("url%3A").append(urlStr);
+       if(wbRequest.isUrlQueryRequest()) {
+           ms.append("url%3A");
        } else {
-           try {
-            ms.append("exacturl%3A").
-                append(java.net.URLEncoder.encode(urlStr, "UTF-8"));
-        } catch (UnsupportedEncodingException e) {
-            throw new BadQueryException(e.toString());
-        }
+           ms.append("exacturl%3A");
+       }
+       try {
+            ms.append(java.net.URLEncoder.encode(urlStr, "UTF-8"));
+       } catch (UnsupportedEncodingException e) {
+    	   throw new BadQueryException(e.toString());
        }
        ms.append("&hitsPerPage=").append(hitsPerPage);
        ms.append("&start=").append(start);

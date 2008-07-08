@@ -79,7 +79,7 @@ public class UIQueryResults extends UIResults {
 			WaybackRequest wbRequest, SearchResults results,
 			ResultURIConverter uriConverter) {
 		super(wbRequest,uriConverter);
-		this.searchUrl = wbRequest.get(WaybackRequest.REQUEST_URL);
+		this.searchUrl = wbRequest.getRequestUrl();
 		this.startTimestamp = Timestamp.parseBefore(results.
 				getFilter(WaybackRequest.REQUEST_START_DATE));
 		this.endTimestamp = Timestamp.parseAfter(results.getFilter(
@@ -91,7 +91,7 @@ public class UIQueryResults extends UIResults {
 		this.firstResult = results.getFirstReturned() + 1;
 		this.lastResult = ((firstResult - 1) + resultsReturned);
 		this.exactRequestedTimestamp = Timestamp.parseAfter(
-				wbRequest.get(WaybackRequest.REQUEST_EXACT_DATE));
+				wbRequest.getReplayTimestamp());
 		// calculate total pages:
 		numPages = (int) Math.ceil((double)resultsMatching/(double)resultsPerPage);
 		curPage = (int) Math.floor(((double)(firstResult-1))/(double)resultsPerPage) + 1;

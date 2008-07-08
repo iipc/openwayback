@@ -230,7 +230,7 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 		
 		WaybackRequest wbRequest = new WaybackRequest();
 		wbRequest.setContextPrefix(getAbsoluteLocalPrefix(httpRequest));
-		wbRequest.setContext(this);
+		wbRequest.setAccessPoint(this);
 		UIResults uiResults = new UIResults(wbRequest,uriConverter);
 		String translated = "/" + translateRequestPathQuery(httpRequest);
 		uiResults.storeInRequest(httpRequest,translated);
@@ -267,7 +267,7 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 			wbRequest = parser.parse(httpRequest, this);
 
 			if(wbRequest != null) {
-				wbRequest.setContext(this);
+				wbRequest.setAccessPoint(this);
 				handled = true;
 				wbRequest.setContextPrefix(getAbsoluteLocalPrefix(httpRequest));
 				if(authentication != null) {
@@ -354,7 +354,7 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 	private void logNotInArchive(WaybackException e, WaybackRequest r) {
 		// TODO: move this into ResourceNotInArchiveException constructor
 		if(e instanceof ResourceNotInArchiveException) {
-			String url = r.get(WaybackRequest.REQUEST_URL);
+			String url = r.getRequestUrl();
 			StringBuilder sb = new StringBuilder(100);
 			sb.append("NotInArchive\t");
 			sb.append(contextName).append("\t");

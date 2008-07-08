@@ -29,7 +29,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 import org.apache.commons.httpclient.URIException;
-import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
@@ -90,7 +89,7 @@ public class AlphaPartitionedIndexTest extends TestCase {
 	 */
 	public void testGroupBalance() throws Exception {
 		WaybackRequest r = new WaybackRequest();
-		r.put(WaybackConstants.REQUEST_URL,index.canonicalize("apple.com/"));
+		r.setRequestUrl(index.canonicalize("apple.com/"));
 		RangeGroup g = index.getRangeGroupForRequest(r);
 		assertEquals(g.getName(),"b");
 		RangeMember b1 = g.findBestMember();
@@ -195,7 +194,7 @@ public class AlphaPartitionedIndexTest extends TestCase {
 			final String url, final String wantGroup) throws URIException,
 			BadQueryException, ResourceIndexNotAvailableException {
 		WaybackRequest r = new WaybackRequest();
-		r.put(WaybackConstants.REQUEST_URL,apIndex.canonicalize(url));
+		r.setRequestUrl(apIndex.canonicalize(url));
 		RangeGroup g = apIndex.getRangeGroupForRequest(r);
 		assertEquals(g.getName(),wantGroup);		
 	}

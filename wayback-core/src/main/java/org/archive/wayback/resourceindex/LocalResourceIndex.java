@@ -90,25 +90,6 @@ public class LocalResourceIndex implements ResourceIndex {
 		canonicalizer = new AggressiveUrlCanonicalizer();
 	}
 
-	private static String getRequired(WaybackRequest wbRequest, String field,
-			String defaultValue) throws BadQueryException {
-
-		String value = wbRequest.get(field);
-		if (value == null) {
-			if (defaultValue == null) {
-				throw new BadQueryException("No " + field + " specified");
-			} else {
-				value = defaultValue;
-			}
-		}
-		return value;
-	}
-
-	private static String getRequired(WaybackRequest wbRequest, String field)
-			throws BadQueryException {
-		return getRequired(wbRequest, field, null);
-	}
-
 	private CloseableIterator<CaptureSearchResult> getCaptureIterator(String k)
 		throws ResourceIndexNotAvailableException {
 
@@ -120,6 +101,7 @@ public class LocalResourceIndex implements ResourceIndex {
 		}
 		return captures;
 	}
+
 	private void cleanupIterator(CloseableIterator<? extends SearchResult> itr)
 	throws ResourceIndexNotAvailableException {
 		try {
@@ -216,33 +198,34 @@ public class LocalResourceIndex implements ResourceIndex {
 			ResourceNotInArchiveException, BadQueryException,
 			AccessControlException {
 		SearchResults results = null; // return value placeholder
-		String searchType = getRequired(wbRequest,
-				WaybackRequest.REQUEST_TYPE);
 
-		if (searchType.equals(WaybackRequest.REQUEST_REPLAY_QUERY)
-				|| searchType.equals(WaybackRequest.REQUEST_CLOSEST_QUERY)) {
+		if (wbRequest.isReplayRequest()) {
 
 			results = doCaptureQuery(wbRequest,
 					CaptureQueryFilterState.TYPE_REPLAY);
+			results.putFilter(WaybackRequest.REQUEST_TYPE, 
+					WaybackRequest.REQUEST_REPLAY_QUERY);
 
-		} else if (searchType.equals(WaybackRequest.REQUEST_URL_QUERY)) {
+		} else if (wbRequest.isCaptureQueryRequest()) {
 
 			results = doCaptureQuery(wbRequest, 
 					CaptureQueryFilterState.TYPE_CAPTURE);
+			results.putFilter(WaybackRequest.REQUEST_TYPE, 
+					WaybackRequest.REQUEST_CAPTURE_QUERY);
 
-		} else if (searchType.equals(WaybackRequest.REQUEST_URL_PREFIX_QUERY)) {
+		} else if (wbRequest.isUrlQueryRequest()) {
 
 			results = doUrlQuery(wbRequest);
+			results.putFilter(WaybackRequest.REQUEST_TYPE, 
+					WaybackRequest.REQUEST_URL_QUERY);
 
 		} else {
 
-			throw new BadQueryException("Unknown query type(" + searchType
-					+ "), must be " + WaybackRequest.REQUEST_REPLAY_QUERY
-					+ ", " + WaybackRequest.REQUEST_CLOSEST_QUERY + ", "
-					+ WaybackRequest.REQUEST_URL_QUERY + ", or "
-					+ WaybackRequest.REQUEST_URL_PREFIX_QUERY);
+			throw new BadQueryException("Unknown query type, must be " 
+					+ WaybackRequest.REQUEST_REPLAY_QUERY
+					+ ", " + WaybackRequest.REQUEST_CAPTURE_QUERY 
+					+ ", or " + WaybackRequest.REQUEST_URL_QUERY);
 		}
-		results.putFilter(WaybackRequest.REQUEST_TYPE, searchType);
 		return results;
 	}
 
@@ -321,8 +304,7 @@ public class LocalResourceIndex implements ResourceIndex {
 				UrlCanonicalizer canonicalizer, int type)
 		throws BadQueryException {
 			
-			String searchUrl = getRequired(request, 
-					WaybackRequest.REQUEST_URL);
+			String searchUrl = request.getRequestUrl();
 			try {
 				keyUrl = canonicalizer.urlStringToKey(searchUrl);
 			} catch (URIException e) {
@@ -331,18 +313,20 @@ public class LocalResourceIndex implements ResourceIndex {
 			}
 
 			filter = new ObjectFilterChain<CaptureSearchResult>();
-			startDate = getRequired(request,
-					WaybackRequest.REQUEST_START_DATE,
-					Timestamp.earliestTimestamp().getDateStr());
-			endDate = getRequired(request,
-					WaybackRequest.REQUEST_END_DATE,
-					Timestamp.latestTimestamp().getDateStr());
-			if(type == TYPE_REPLAY) {
-				exactDate = getRequired(request,
-						WaybackRequest.REQUEST_EXACT_DATE, Timestamp
-								.latestTimestamp().getDateStr());
+			startDate = request.getStartTimestamp();
+			if(startDate == null) {
+					startDate = Timestamp.earliestTimestamp().getDateStr();
 			}
-
+			endDate = request.getEndTimestamp();
+			if(endDate == null) {
+					endDate = Timestamp.latestTimestamp().getDateStr();
+			}
+			if(type == TYPE_REPLAY) {
+				exactDate = request.getReplayTimestamp();
+				if(exactDate == null) {
+					exactDate = Timestamp.latestTimestamp().getDateStr();
+				}
+			}
 			
 			finalCounter = new CounterFilter();
 			preExclusionCounter = new CounterFilter();
@@ -421,12 +405,9 @@ public class LocalResourceIndex implements ResourceIndex {
 	private static HostMatchFilter getExactHostFilter(WaybackRequest r) { 
 
 		HostMatchFilter filter = null;
-		String exactHostFlag = r.get(
-				WaybackRequest.REQUEST_EXACT_HOST_ONLY);
-		if(exactHostFlag != null && 
-				exactHostFlag.equals(WaybackRequest.REQUEST_YES)) {
+		if(r.isExactHost()) {
 
-			String searchUrl = r.get(WaybackRequest.REQUEST_URL);
+			String searchUrl = r.getRequestUrl();
 			try {
 
 				UURI searchURI = UURIFactory.getInstance(searchUrl);

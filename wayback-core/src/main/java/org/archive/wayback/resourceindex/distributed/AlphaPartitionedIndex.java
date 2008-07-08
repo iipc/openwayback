@@ -170,7 +170,7 @@ public class AlphaPartitionedIndex implements ResourceIndex {
 		}
 
 	
-		String searchUrl = wbRequest.get(WaybackRequest.REQUEST_URL);
+		String searchUrl = wbRequest.getRequestUrl();
 		if (searchUrl == null) {
 			throw new BadQueryException("No " + WaybackRequest.REQUEST_URL 
 					+ " specified");

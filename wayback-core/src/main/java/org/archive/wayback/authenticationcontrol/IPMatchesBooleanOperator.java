@@ -33,7 +33,7 @@ public class IPMatchesBooleanOperator implements BooleanOperator<WaybackRequest>
 		if(allowedRanges == null) {
 			return false;
 		}
-		String ipString = value.get(WaybackRequest.REQUEST_REMOTE_ADDRESS);
+		String ipString = value.getRemoteIPAddress();
 		if(ipString == null) {
 			return false;
 		}

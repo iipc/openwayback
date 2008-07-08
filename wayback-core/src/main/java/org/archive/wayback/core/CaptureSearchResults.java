@@ -109,16 +109,12 @@ public class CaptureSearchResults extends SearchResults {
 		CaptureSearchResult closest = null;
 		long closestDistance = 0;
 		CaptureSearchResult cur = null;
-		String anchorDate = wbRequest.get(WaybackRequest.REQUEST_ANCHOR_DATE);
+		String anchorDate = wbRequest.getAnchorTimestamp();
 		long maxWindow = -1;
-		long wantTime = Timestamp.parseBefore(wbRequest
-				.get(WaybackRequest.REQUEST_EXACT_DATE)).getDate().getTime();
+		long wantTime = wbRequest.getReplayDate().getTime();
 		if(anchorDate != null) {
 			wantTime = Timestamp.parseBefore(anchorDate).getDate().getTime();
-			String anchorWindow = wbRequest.get(WaybackRequest.REQUEST_ANCHOR_WINDOW);
-			if(anchorWindow != null) {
-				maxWindow = Long.parseLong(anchorWindow);
-			}
+			maxWindow = wbRequest.getAnchorWindow();
 		}
 
 		Iterator<CaptureSearchResult> itr = results.iterator();
@@ -132,7 +128,7 @@ public class CaptureSearchResults extends SearchResults {
 				closestDistance = curDistance;
 			}
 		}
-		if(err && (maxWindow != -1)) {
+		if(err && (maxWindow > 0)) {
 			if(closestDistance > maxWindow) {
 				throw new AnchorWindowTooSmallException("Closest is " + 
 						closestDistance + " seconds away, Window is " + 

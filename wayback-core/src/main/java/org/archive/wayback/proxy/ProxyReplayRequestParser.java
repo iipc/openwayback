@@ -28,7 +28,6 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.commons.httpclient.URIException;
 import org.archive.util.InetAddressUtil;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadQueryException;
@@ -85,14 +84,8 @@ public class ProxyReplayRequestParser extends BaseRequestParser {
 		String requestUrl = requestScheme + "://" + requestServer + requestPath;
 
 		wbRequest = new WaybackRequest();
-		try {
-			wbRequest.setRequestUrl(requestUrl);
-		} catch (URIException e) {
-			e.printStackTrace();
-			return null;
-		}
-		wbRequest.put(WaybackRequest.REQUEST_TYPE,
-				WaybackRequest.REQUEST_REPLAY_QUERY);
+		wbRequest.setRequestUrl(requestUrl);
+		wbRequest.setReplayRequest();
 		wbRequest.setResultsPerPage(maxRecords);
 		return wbRequest;
 	}

@@ -27,7 +27,6 @@ package org.archive.wayback.archivalurl.requestparser;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.httpclient.URIException;
 import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.requestparser.PathRequestParser;
@@ -58,17 +57,11 @@ public class PathPrefixDateRangeQueryRequestParser extends PathRequestParser {
 			String urlStr = matcher.group(3);
 			String startDate = Timestamp.parseBefore(startDateStr).getDateStr();
 			String endDate = Timestamp.parseAfter(endDateStr).getDateStr();
-			wbRequest.put(WaybackRequest.REQUEST_START_DATE,
-					startDate);
-			wbRequest.put(WaybackRequest.REQUEST_END_DATE,endDate);
+			wbRequest.setStartTimestamp(startDate);
+			wbRequest.setEndTimestamp(endDate);
 
-			wbRequest.put(WaybackRequest.REQUEST_TYPE,
-					WaybackRequest.REQUEST_URL_PREFIX_QUERY);
-			try {
-                wbRequest.setRequestUrl(urlStr);
-			} catch (URIException e) {
-				wbRequest = null;
-			}
+			wbRequest.setUrlQueryRequest();
+			wbRequest.setRequestUrl(urlStr);
 		}
 		return wbRequest;
 	}

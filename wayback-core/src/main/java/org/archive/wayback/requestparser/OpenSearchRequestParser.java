@@ -86,15 +86,12 @@ public class OpenSearchRequestParser extends BaseRequestParser {
 		
 		String base = wbContext.translateRequestPath(httpRequest);
 		if(base.startsWith(REPLAY_BASE)) {
-			wbRequest.put(WaybackRequest.REQUEST_TYPE,
-					WaybackRequest.REQUEST_REPLAY_QUERY);
+			wbRequest.setReplayRequest();
 		} else if(base.startsWith(QUERY_BASE)){
-			wbRequest.put(WaybackRequest.REQUEST_TYPE,
-					WaybackRequest.REQUEST_URL_QUERY);
+			wbRequest.setCaptureQueryRequest();
 		} else if(base.startsWith(XQUERY_BASE)){
-			wbRequest.put(WaybackRequest.REQUEST_TYPE,
-					WaybackRequest.REQUEST_URL_QUERY);
-			wbRequest.put(WaybackRequest.REQUEST_XML_DATA,"1");
+			wbRequest.setCaptureQueryRequest();
+			wbRequest.setXMLMode(true);
 			
 		} else {
 			return null;
@@ -143,13 +140,11 @@ public class OpenSearchRequestParser extends BaseRequestParser {
 			// let's just let em all thru for now:
 			wbRequest.put(key, value);
 		}
-		if(wbRequest.get(WaybackRequest.REQUEST_START_DATE) == null) {
-			wbRequest.put(WaybackRequest.REQUEST_START_DATE, 
-					getEarliestTimestamp());
+		if(wbRequest.getStartTimestamp() == null) {
+			wbRequest.setStartTimestamp(getEarliestTimestamp());
 		}
-		if(wbRequest.get(WaybackRequest.REQUEST_END_DATE) == null) {
-			wbRequest.put(WaybackRequest.REQUEST_END_DATE, 
-					getLatestTimestamp());
+		if(wbRequest.getEndTimestamp() == null) {
+			wbRequest.setEndTimestamp(getLatestTimestamp());
 		}
 		wbRequest.fixup(httpRequest);
 

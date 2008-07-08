@@ -11,7 +11,7 @@ public class HTTPAuthBooleanOperator implements BooleanOperator<WaybackRequest> 
 		if(allowedUsers == null) {
 			return false;
 		}
-		String currentUser = value.get(WaybackRequest.REQUEST_REMOTE_USER);
+		String currentUser = value.getRemoteUser();
 		if(currentUser == null) {
 			return false;
 		}

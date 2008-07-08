@@ -68,13 +68,13 @@ public class BaseExceptionRenderer implements ExceptionRenderer {
 		if (wbRequest == null) {
 			return false;
 		}
-		String referer = wbRequest.get(WaybackRequest.REQUEST_REFERER_URL);
+		String referer = wbRequest.getRefererUrl();
 		return (referer != null && referer.length() > 0);
 	}
 
 	protected boolean requestIsImage(HttpServletRequest httpRequest,
 			WaybackRequest wbRequest) {
-		String requestUrl = wbRequest.get(WaybackRequest.REQUEST_URL);
+		String requestUrl = wbRequest.getRequestUrl();
 		if (requestUrl == null)
 			return false;
 		Matcher matcher = IMAGE_REGEX.matcher(requestUrl);
@@ -84,14 +84,14 @@ public class BaseExceptionRenderer implements ExceptionRenderer {
 	protected boolean requestIsJavascript(HttpServletRequest httpRequest,
 			WaybackRequest wbRequest) {
 
-		String requestUrl = wbRequest.get(WaybackRequest.REQUEST_URL);
+		String requestUrl = wbRequest.getRequestUrl();
 		return (requestUrl != null) && requestUrl.endsWith(".js");
 	}
 
 	protected boolean requestIsCSS(HttpServletRequest httpRequest,
 			WaybackRequest wbRequest) {
 
-		String requestUrl = wbRequest.get(WaybackRequest.REQUEST_URL);
+		String requestUrl = wbRequest.getRequestUrl();
 		return (requestUrl != null) && requestUrl.endsWith(".css");
 	}
 
@@ -101,9 +101,9 @@ public class BaseExceptionRenderer implements ExceptionRenderer {
 		// the "standard HTML" response handler:
 		String jspPath = errorJsp;
 
-		if(wbRequest.isQueryRequest()) {
+		if(!wbRequest.isReplayRequest()) {
 
-			if(wbRequest.containsKey(WaybackRequest.REQUEST_XML_DATA)) {
+			if(wbRequest.isXMLMode()) {
 				jspPath = xmlErrorJsp;
 			}
 

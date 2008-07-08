@@ -80,10 +80,8 @@ public class LiveWebCache {
 			boolean bUseOlder) throws URIException {
 		WaybackRequest req = new WaybackRequest();
 		req.setRequestUrl(url.toString());
-		req.put(WaybackRequest.REQUEST_TYPE, 
-				WaybackRequest.REQUEST_CLOSEST_QUERY);
-		req.put(WaybackRequest.REQUEST_EXACT_DATE,
-				Timestamp.currentTimestamp().getDateStr());
+		req.setReplayRequest();
+		req.setReplayTimestamp(Timestamp.currentTimestamp().getDateStr());
 		Timestamp earliest = null;
 		if(bUseOlder) {
 			earliest = Timestamp.earliestTimestamp();
@@ -91,11 +89,10 @@ public class LiveWebCache {
 			Date d = new Date(System.currentTimeMillis() - maxCacheMS);
 			earliest = new Timestamp(d);
 		}
-		req.put(WaybackRequest.REQUEST_START_DATE,earliest.getDateStr());
+		req.setStartTimestamp(earliest.getDateStr());
 		// for now, assume all live web requests are only satisfiable by the 
 		// exact host -- no massaging.
-		req.put(WaybackRequest.REQUEST_EXACT_HOST_ONLY,
-				WaybackRequest.REQUEST_YES);
+		req.setExactHost(true);
 		return req;
 	}
 	

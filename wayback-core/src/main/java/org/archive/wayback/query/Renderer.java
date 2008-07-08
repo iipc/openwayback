@@ -72,10 +72,10 @@ public class Renderer implements QueryRenderer {
 			CaptureSearchResults results, ResultURIConverter uriConverter)
 			throws ServletException, IOException {
 
-		UICaptureQueryResults uiResults = new UICaptureQueryResults(httpRequest, wbRequest,
-				results, uriConverter);
+		UICaptureQueryResults uiResults = new UICaptureQueryResults(httpRequest,
+				wbRequest, results, uriConverter);
 		String jsp = captureJsp;
-		if(wbRequest.containsKey(WaybackRequest.REQUEST_XML_DATA)) {
+		if(wbRequest.isXMLMode()) {
 			jsp = xmlCaptureJsp;
 		}
 
@@ -95,7 +95,7 @@ public class Renderer implements QueryRenderer {
 		UIUrlQueryResults uiResults = new UIUrlQueryResults(httpRequest, wbRequest, 
 				results, uriConverter);
 		String jsp = urlJsp;
-		if(wbRequest.containsKey(WaybackRequest.REQUEST_XML_DATA)) {
+		if(wbRequest.isXMLMode()) {
 			jsp = xmlUrlJsp;
 		}
 

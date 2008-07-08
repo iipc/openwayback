@@ -70,8 +70,10 @@ public class ProxyRequestParser extends CompositeRequestParser {
 	            String id = httpRequest.getHeader("Proxy-Id");
 	            if (id == null)
 	                    id = httpRequest.getRemoteAddr();
-	            wbRequest.put(WaybackRequest.REQUEST_EXACT_DATE, Timestamp
-	                    .getTimestampForId(httpRequest.getContextPath(), id));
+	            // TODO: This is hacky.
+	            String replayDateStr = Timestamp.getTimestampForId(
+	            		httpRequest.getContextPath(), id); 
+	            wbRequest.setReplayTimestamp(replayDateStr);
 	            wbRequest.fixup(httpRequest);
 	    }
 	    return wbRequest;
