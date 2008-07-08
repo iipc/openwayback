@@ -162,8 +162,9 @@ public class WaybackRequest {
 	public static final String REQUEST_START_DATE = "startdate";
 
 	/**
-	 * GUARANTEED PRESENT for Replay requests only, no meaning for Query 
-	 * requests.
+	 * GUARANTEED PRESENT for Replay requests only. If present for Query 
+	 * requests, then it will be interpreted as a partial timestamp for missing
+	 * REQUEST_START_DATE and REQUEST_END_DATE fields.
 	 * Original (RAW/possibly partial) 14-digit timestamp of date requested for
 	 * Replay 
 	 */
