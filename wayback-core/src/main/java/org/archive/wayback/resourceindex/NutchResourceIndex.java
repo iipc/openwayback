@@ -28,6 +28,8 @@ import it.unimi.dsi.mg4j.util.MutableString;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -71,11 +73,14 @@ public class NutchResourceIndex implements ResourceIndex {
    private DocumentBuilder builder;
    private static final String NUTCH_ARCNAME = "arcname";
    private static final String NUTCH_ARCOFFSET = "arcoffset";
-   private static final String NUTCH_ARCDATE = "tstamp";
-   private static final String NUTCH_ARCDATE_ALT = "arcdate";
+//   private static final String NUTCH_FILENAME = "filename";
+//   private static final String NUTCH_FILEOFFSET = "fileoffset";
+   private static final String NUTCH_ARCDATE = "date";
+//   private static final String NUTCH_ARCDATE_ALT = "arcdate";
    private static final String NUTCH_DIGEST = "digest";
-   private static final String NUTCH_PRIMARY_TYPE = "primaryType";
-   private static final String NUTCH_SUB_TYPE = "subType";
+   private static final String NUTCH_MIME_TYPE = "type";
+//   private static final String NUTCH_PRIMARY_TYPE = "primaryType";
+//   private static final String NUTCH_SUB_TYPE = "subType";
 //   private static final String NUTCH_CAPTURE_HOST = "site";
    private static final String NUTCH_CAPTURE_URL = "link";
 
@@ -117,6 +122,7 @@ public class NutchResourceIndex implements ResourceIndex {
 		Document document = null;
 		try {
 			// HTTP Request + parse
+			LOGGER.info("Requesting OpenSearch: " + requestUrl);
 			document =  getHttpDocument(requestUrl);
 		} catch (IOException e) {
 			// TODO: better error for user:
@@ -132,8 +138,10 @@ public class NutchResourceIndex implements ResourceIndex {
 		if(wbRequest.isReplayRequest() || wbRequest.isCaptureQueryRequest()) {
 			results = new CaptureSearchResults();			
 		} else {
-			// TODO: this is wrong, but needs exploration into what NutchWax can actually do.
-			throw new BadQueryException("Unable to perform path prefix requests with this index type");
+			// TODO: this is wrong, but needs exploration into what NutchWax 
+			//       can actually do.
+			throw new BadQueryException("Unable to perform path " +
+					"prefix requests with this index type");
 		}
 		NodeList channel = getSearchChannel(document);
 		NodeList nodes = getSearchItems(document);
@@ -154,8 +162,12 @@ public class NutchResourceIndex implements ResourceIndex {
        	
            Element e = (Element) nodes.item(i);
 
-           CaptureSearchResult result = elementToSearchResult(e);
-           results.addSearchResult(result);
+           List<CaptureSearchResult> resultsList = itemToSearchResults(e);
+           if(resultsList != null) {
+        	   for(CaptureSearchResult result : resultsList) {
+        		   results.addSearchResult(result);
+        	   }
+           }
        }
        Element channelElement = (Element) channel.item(0);
        
@@ -179,42 +191,45 @@ public class NutchResourceIndex implements ResourceIndex {
 		return results;
 	}
 
-	private CaptureSearchResult elementToSearchResult(Element e)
+	private List<CaptureSearchResult> itemToSearchResults(Element e)
 		throws ResourceIndexNotAvailableException {
 
-		CaptureSearchResult result = new CaptureSearchResult();
+		String fileName = getNodeNutchContent(e,NUTCH_ARCNAME);
+		String httpCode = NUTCH_DEFAULT_HTTP_CODE;
+		String digest = getNodeNutchContent(e,NUTCH_DIGEST);
+		String mimeType = getNodeNutchContent(e,NUTCH_MIME_TYPE);
+		String offsetStr = getNodeNutchContent(e,NUTCH_ARCOFFSET);
+		long offset = 0;
+		if(offsetStr != null && offsetStr.length() > 0) {
+			offset = Long.parseLong(offsetStr);
+		}
+		String redirectUrl = NUTCH_DEFAULT_REDIRECT_URL;
+		String originalUrl = getNodeContent(e,NUTCH_CAPTURE_URL);
+		String urlKey = originalUrl;
+		
+		NodeList nodes = e.getElementsByTagNameNS(NUTCH_NS,NUTCH_ARCDATE);
+		int numDates = nodes.getLength();
+		ArrayList<CaptureSearchResult> results = null;
 
-		result.setFile(getNodeNutchContent(e,NUTCH_ARCNAME));
+		if(numDates > 0) {
+			results = new ArrayList<CaptureSearchResult>();
 		
-        // The date in nutchwax is now named 'tstamp' and its
-        // 17 characters rather than 14.  Pass first 14 only.
-        String d = getNodeNutchContent(e,NUTCH_ARCDATE);
-        if(d == null) {
-        	d = getNodeNutchContent(e,NUTCH_ARCDATE_ALT);
-        }
-        if(d == null) {
-        	throw new ResourceIndexNotAvailableException("Missing arcdate field in search results");
-        }
-        if (d.length() == 17) {
-            d = d.substring(0, 14);
-        }
-		result.setCaptureTimestamp(d);
-		
-		//result.put(WaybackConstants.RESULT_HTTP_CODE,getNodeContent(e,""));
-		result.setHttpCode(NUTCH_DEFAULT_HTTP_CODE);
-		result.setDigest(getNodeNutchContent(e,NUTCH_DIGEST));
-		
-		result.setMimeType(getNodeNutchContent(e,NUTCH_PRIMARY_TYPE) + "/" + 
-				getNodeNutchContent(e,NUTCH_SUB_TYPE));
-		
-		result.setOffset(Long.parseLong(getNodeNutchContent(e,NUTCH_ARCOFFSET)));
-		
-		result.setRedirectUrl(NUTCH_DEFAULT_REDIRECT_URL);
-		result.setCaptureTimestamp(getNodeContent(e,NUTCH_CAPTURE_URL));
-		result.setOriginalUrl(getNodeContent(e,NUTCH_CAPTURE_URL));
-		result.setUrlKey(getNodeContent(e,NUTCH_CAPTURE_URL));
-		
-		return result;
+			for(int i = 0; i < numDates; i++) {
+				String captureDate = nodes.item(i).getTextContent();
+				CaptureSearchResult result = new CaptureSearchResult();
+				result.setFile(fileName);
+				result.setCaptureTimestamp(captureDate);
+				result.setHttpCode(httpCode);
+				result.setDigest(digest);
+				result.setMimeType(mimeType);
+				result.setOffset(offset);
+				result.setRedirectUrl(redirectUrl);
+				result.setOriginalUrl(originalUrl);
+				result.setUrlKey(urlKey);
+				results.add(result);
+			}
+		}
+		return results;
 	}
 	
    protected NodeList getSearchChannel(Document d) {
@@ -271,13 +286,13 @@ public class NutchResourceIndex implements ResourceIndex {
        ms.append("date%3A").append(startDateStr).append('-').append(endDateStr);
        ms.append('+');
        // Add 'url:URL'.
-       if(wbRequest.isUrlQueryRequest()) {
+//       if(wbRequest.isUrlQueryRequest()) {
            ms.append("url%3A");
-       } else {
-           ms.append("exacturl%3A");
-       }
+//       } else {
+//           ms.append("exacturl%3A");
+//       }
        try {
-            ms.append(java.net.URLEncoder.encode(urlStr, "UTF-8"));
+            ms.append(java.net.URLEncoder.encode("\""+urlStr+"\"", "UTF-8"));
        } catch (UnsupportedEncodingException e) {
     	   throw new BadQueryException(e.toString());
        }
