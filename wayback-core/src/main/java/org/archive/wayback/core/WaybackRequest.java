@@ -473,7 +473,7 @@ public class WaybackRequest {
 	}	
 	private boolean getBoolean(String key) {
 		String value = get(key);
-		return(value == null || !value.equals(REQUEST_YES));
+		return(value != null && value.equals(REQUEST_YES));
 	}	
 	/**
 	 * @param key
