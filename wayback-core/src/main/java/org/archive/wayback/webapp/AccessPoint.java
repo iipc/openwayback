@@ -61,10 +61,14 @@ import org.springframework.beans.factory.BeanNameAware;
  * within a ServletContext, including holding references to the
  * implementation instances of the primary Wayback classes:
  * 
- *		ResourceIndex
- *		ResourceStore
- *		QueryUI
- *		ReplayUI  
+ * 		RequestParser
+ *		ResourceIndex(via WaybackCollection)
+ *		ResourceStore(via WaybackCollection)
+ *		QueryRenderer
+ *		ReplayDispatcher
+ *		ExceptionRenderer
+ *		ResultURIConverter
+ *
  *
  * @author brad
  * @version $Date$, $Revision$
@@ -331,8 +335,7 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 		SearchResults results = collection.getResourceIndex().query(wbRequest);
 		if(results instanceof CaptureSearchResults) {
 			CaptureSearchResults cResults = (CaptureSearchResults) results;
-			CaptureSearchResult closest = cResults.getClosest(wbRequest);
-			closest.setClosest(true);
+			cResults.markClosest(wbRequest);
 			query.renderCaptureResults(httpRequest,httpResponse,wbRequest,
 					cResults,uriConverter);
 
