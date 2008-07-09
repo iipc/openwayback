@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.logging.Logger;
 
+import org.archive.wayback.Shutdownable;
 import org.archive.wayback.resourcestore.locationdb.ResourceFileLocationDB;
 import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.DirMaker;
@@ -45,7 +46,7 @@ import org.archive.wayback.util.DirMaker;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class IndexQueueUpdater {
+public class IndexQueueUpdater implements Shutdownable {
 
 	private static final Logger LOGGER =
         Logger.getLogger(IndexQueueUpdater.class.getName());

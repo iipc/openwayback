@@ -27,6 +27,7 @@ package org.archive.wayback.resourcestore.indexer;
 import java.io.IOException;
 import java.util.logging.Logger;
 
+import org.archive.wayback.Shutdownable;
 import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.resourceindex.updater.IndexClient;
@@ -45,7 +46,7 @@ import org.archive.wayback.util.url.IdentityUrlCanonicalizer;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class IndexWorker {
+public class IndexWorker implements Shutdownable {
 	private static final Logger LOGGER =
         Logger.getLogger(IndexWorker.class.getName());
 

@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.logging.Logger;
 
+import org.archive.wayback.Shutdownable;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.resourceindex.LocalResourceIndex;
@@ -48,7 +49,7 @@ import org.archive.wayback.util.flatfile.FlatFile;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class LocalResourceIndexUpdater {
+public class LocalResourceIndexUpdater implements Shutdownable {
 	/**
 	 * Logger for this class
 	 */
@@ -71,7 +72,7 @@ public class LocalResourceIndexUpdater {
 	 * Thread object of update thread -- also is flag indicating if the thread
 	 * has already been started. Access to it is synchronized.
 	 */
-	private Thread updateThread = null;
+	private Thread thread = null;
 
 	/**
 	 * start the background index merging thread
@@ -88,8 +89,19 @@ public class LocalResourceIndexUpdater {
 			throw new ConfigurationException("No incoming");			
 		}
 		if(runInterval > 0) {
-			updateThread = new UpdateThread(this,runInterval);
-			updateThread.start();
+			thread = new UpdateThread(this,runInterval);
+			thread.start();
+		}
+	}
+	
+	public void shutdown() {
+		if(thread != null) {
+			thread.interrupt();
+			try {
+				thread.join(1000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 

@@ -25,9 +25,11 @@
 package org.archive.wayback.webapp;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.archive.wayback.ResourceIndex;
 import org.archive.wayback.ResourceStore;
+import org.archive.wayback.Shutdownable;
 import org.archive.wayback.exception.ConfigurationException;
 
 /**
@@ -40,7 +42,27 @@ import org.archive.wayback.exception.ConfigurationException;
 public class WaybackCollection {
 	private ResourceStore resourceStore = null;
 	private ResourceIndex resourceIndex = null;
+	private List<Shutdownable> shutdownables = null;
 	private boolean shutdownDone = false;
+
+	public void shutdown() throws IOException {
+		if(shutdownDone) {
+			return;
+		}
+		if(resourceStore != null) {
+			resourceStore.shutdown();
+		}
+		if(resourceIndex != null) {
+			resourceIndex.shutdown();
+		}
+		if(shutdownables != null) {
+			for(Shutdownable s : shutdownables) {
+				s.shutdown();
+			}
+		}
+		shutdownDone = true;
+	}
+
 	public ResourceStore getResourceStore() throws ConfigurationException {
 		if(resourceStore == null) {
 			throw new ConfigurationException("No resourceStore declared");
@@ -59,16 +81,12 @@ public class WaybackCollection {
 	public void setResourceIndex(ResourceIndex resourceIndex) {
 		this.resourceIndex = resourceIndex;
 	}
-	public void shutdown() throws IOException {
-		if(shutdownDone) {
-			return;
-		}
-		if(resourceStore != null) {
-			resourceStore.shutdown();
-		}
-		if(resourceIndex != null) {
-			resourceIndex.shutdown();
-		}
-		shutdownDone = true;
+
+	public List<Shutdownable> getShutdownables() {
+		return shutdownables;
+	}
+
+	public void setShutdownables(List<Shutdownable> shutdownables) {
+		this.shutdownables = shutdownables;
 	}
 }

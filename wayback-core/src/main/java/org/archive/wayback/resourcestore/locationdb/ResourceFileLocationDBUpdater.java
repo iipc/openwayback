@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.logging.Logger;
 
+import org.archive.wayback.Shutdownable;
 import org.archive.wayback.resourcestore.resourcefile.ResourceFileList;
 import org.archive.wayback.resourcestore.resourcefile.ResourceFileLocation;
 import org.archive.wayback.util.DirMaker;
@@ -52,7 +53,7 @@ import org.archive.wayback.util.DirMaker;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class ResourceFileLocationDBUpdater {
+public class ResourceFileLocationDBUpdater implements Shutdownable {
 	private static final Logger LOGGER =
         Logger.getLogger(ResourceFileLocationDBUpdater.class.getName());
 
