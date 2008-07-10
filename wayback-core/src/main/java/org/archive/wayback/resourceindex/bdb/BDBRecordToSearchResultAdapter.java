@@ -26,10 +26,10 @@ package org.archive.wayback.resourceindex.bdb;
 
 import java.io.UnsupportedEncodingException;
 
-import org.archive.wayback.bdb.BDBRecord;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.resourceindex.cdx.CDXLineToSearchResultAdapter;
 import org.archive.wayback.util.Adapter;
+import org.archive.wayback.util.bdb.BDBRecord;
 
 /**
  * Adapter that converts a BDBRecord into a SearchResult

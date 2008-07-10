@@ -28,10 +28,10 @@ import java.util.logging.Logger;
 
 import org.apache.commons.httpclient.URIException;
 import org.archive.wayback.UrlCanonicalizer;
-import org.archive.wayback.bdb.BDBRecord;
-import org.archive.wayback.bdb.BDBRecordSet;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.util.Adapter;
+import org.archive.wayback.util.bdb.BDBRecord;
+import org.archive.wayback.util.bdb.BDBRecordSet;
 
 import com.sleepycat.je.DatabaseEntry;
 

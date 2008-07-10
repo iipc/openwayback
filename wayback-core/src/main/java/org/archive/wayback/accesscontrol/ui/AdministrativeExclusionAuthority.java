@@ -27,10 +27,10 @@ package org.archive.wayback.accesscontrol.ui;
 import java.util.ArrayList;
 
 import org.apache.commons.httpclient.URIException;
-import org.archive.wayback.bdb.BDBRecord;
-import org.archive.wayback.bdb.BDBRecordSet;
-import org.archive.wayback.bdb.BDBRecordIterator;
 import org.archive.wayback.surt.SURTTokenizer;
+import org.archive.wayback.util.bdb.BDBRecord;
+import org.archive.wayback.util.bdb.BDBRecordIterator;
+import org.archive.wayback.util.bdb.BDBRecordSet;
 
 import com.sleepycat.je.DatabaseException;
 
