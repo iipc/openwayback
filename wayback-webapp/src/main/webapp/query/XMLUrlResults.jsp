@@ -5,16 +5,14 @@
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.Enumeration" %>
 <%@ page import="org.archive.wayback.core.SearchResults" %>
-<%@ page import="org.archive.wayback.core.Timestamp" %>
 <%@ page import="org.archive.wayback.core.UIResults" %>
 <%@ page import="org.archive.wayback.core.UrlSearchResults" %>
 <%@ page import="org.archive.wayback.core.UrlSearchResult" %>
-<%@ page import="org.archive.wayback.query.UIUrlQueryResults" %>
 <%
-UIUrlQueryResults uiResults = (UIUrlQueryResults) UIResults.getFromRequest(request);
+UIResults uiResults = UIResults.extractUrlQuery(request);
 
-UrlSearchResults results = uiResults.getResults();
-Iterator<UrlSearchResult> itr = uiResults.resultsIterator();
+UrlSearchResults results = uiResults.getUrlResults();
+Iterator<UrlSearchResult> itr = results.iterator();
 %>
 <wayback>
   <request>

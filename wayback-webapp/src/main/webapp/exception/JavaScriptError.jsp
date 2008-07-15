@@ -4,9 +4,9 @@
 <%@ page import="org.archive.wayback.util.StringFormatter" %>
 <%
 
-WaybackException e = (WaybackException) request.getAttribute("exception");
-UIResults results = UIResults.getFromRequest(request);
-StringFormatter fmt = results.getFormatter();
+UIResults results = UIResults.extractException(request);
+WaybackException e = results.getException();
+StringFormatter fmt = results.getWbRequest().getFormatter();
 response.setStatus(e.getStatus());
 
 %>

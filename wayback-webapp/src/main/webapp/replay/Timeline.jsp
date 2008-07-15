@@ -6,10 +6,8 @@
 <%@ page import="org.archive.wayback.WaybackConstants" %>
 <%@ page import="org.archive.wayback.core.CaptureSearchResult" %>
 <%@ page import="org.archive.wayback.core.CaptureSearchResults" %>
-<%@ page import="org.archive.wayback.core.Timestamp" %>
 <%@ page import="org.archive.wayback.core.UIResults" %>
 <%@ page import="org.archive.wayback.core.WaybackRequest" %>
-<%@ page import="org.archive.wayback.replay.UIReplayResult" %>
 <%@ page import="org.archive.wayback.query.resultspartitioner.ResultsTimelinePartitionsFactory" %>
 <%@ page import="org.archive.wayback.query.resultspartitioner.ResultsPartition" %>
 <%@ page import="org.archive.wayback.util.StringFormatter" %>
@@ -18,24 +16,22 @@
 String contextRoot = request.getScheme() + "://" + request.getServerName() + ":" 
 	+ request.getServerPort() + request.getContextPath();
 
-UIReplayResult results = (UIReplayResult) UIResults.getFromRequest(request);
-StringFormatter fmt = results.getFormatter();
+UIResults results = UIResults.extractReplay(request);
 WaybackRequest wbRequest = results.getWbRequest();
-CaptureSearchResults cResults = results.getResults();
+StringFormatter fmt = wbRequest.getFormatter();
+CaptureSearchResults cResults = results.getCaptureResults();
 
-String exactDateStr = wbRequest.get(WaybackConstants.REQUEST_DATE);
-String searchUrl = wbRequest.get(WaybackConstants.REQUEST_URL);
-String resolution = wbRequest.get(WaybackConstants.REQUEST_RESOLUTION);
-String metaMode = wbRequest.get(WaybackConstants.REQUEST_META_MODE);
-
-Date exactDate = Timestamp.parseBefore(exactDateStr).getDate();
+String exactDateStr = wbRequest.getReplayTimestamp();
+Date exactDate = wbRequest.getReplayDate();
+String searchUrl = wbRequest.getRequestUrl();
+String resolution = wbRequest.getTimelineResolution();
 
 
 if(resolution == null) {
-  resolution = WaybackConstants.REQUEST_RESOLUTION_AUTO;
+  resolution = WaybackRequest.REQUEST_RESOLUTION_AUTO;
 }
 String metaChecked = "";
-if(metaMode != null && metaMode.equals("yes")) {
+if(wbRequest.isMetaMode()) {
   metaChecked = "checked";
 }
 
@@ -74,15 +70,15 @@ String autoOptSelected = "";
 String minResolution = ResultsTimelinePartitionsFactory.getMinResolution(cResults);
 
 String optimal = "";
-if(minResolution.equals(WaybackConstants.REQUEST_RESOLUTION_HOURS)) {
+if(minResolution.equals(WaybackRequest.REQUEST_RESOLUTION_HOURS)) {
   optimal = fmt.format("TimelineView.timeRange.hours");
-} else if(minResolution.equals(WaybackConstants.REQUEST_RESOLUTION_DAYS)) {
+} else if(minResolution.equals(WaybackRequest.REQUEST_RESOLUTION_DAYS)) {
   optimal = fmt.format("TimelineView.timeRange.days");
-} else if(minResolution.equals(WaybackConstants.REQUEST_RESOLUTION_MONTHS)) {
+} else if(minResolution.equals(WaybackRequest.REQUEST_RESOLUTION_MONTHS)) {
   optimal = fmt.format("TimelineView.timeRange.months");
-} else if(minResolution.equals(WaybackConstants.REQUEST_RESOLUTION_TWO_MONTHS)) {
+} else if(minResolution.equals(WaybackRequest.REQUEST_RESOLUTION_TWO_MONTHS)) {
     optimal = fmt.format("TimelineView.timeRange.twomonths");
-} else if(minResolution.equals(WaybackConstants.REQUEST_RESOLUTION_YEARS)) {
+} else if(minResolution.equals(WaybackRequest.REQUEST_RESOLUTION_YEARS)) {
   optimal = fmt.format("TimelineView.timeRange.years");
 } else {
   optimal = fmt.format("TimelineView.timeRange.unknown");
@@ -90,30 +86,24 @@ if(minResolution.equals(WaybackConstants.REQUEST_RESOLUTION_HOURS)) {
 String autoOptString = fmt.format("TimelineView.timeRange.auto",optimal);
 
 ArrayList<ResultsPartition> partitions;
-if(resolution.equals(WaybackConstants.REQUEST_RESOLUTION_HOURS)) {
+if(resolution.equals(WaybackRequest.REQUEST_RESOLUTION_HOURS)) {
   hoursOptSelected = "selected";
-  partitions = ResultsTimelinePartitionsFactory.getHour(results.getResults(),
-    wbRequest);
-} else if(resolution.equals(WaybackConstants.REQUEST_RESOLUTION_DAYS)) {
+  partitions = ResultsTimelinePartitionsFactory.getHour(cResults,wbRequest);
+} else if(resolution.equals(WaybackRequest.REQUEST_RESOLUTION_DAYS)) {
   daysOptSelected = "selected";
-  partitions = ResultsTimelinePartitionsFactory.getDay(results.getResults(),
-    wbRequest);
-} else if(resolution.equals(WaybackConstants.REQUEST_RESOLUTION_MONTHS)) {
+  partitions = ResultsTimelinePartitionsFactory.getDay(cResults,wbRequest);
+} else if(resolution.equals(WaybackRequest.REQUEST_RESOLUTION_MONTHS)) {
   monthsOptSelected = "selected";
-  partitions = ResultsTimelinePartitionsFactory.getMonth(results.getResults(),
-    wbRequest);
-} else if(resolution.equals(WaybackConstants.REQUEST_RESOLUTION_TWO_MONTHS)) {
+  partitions = ResultsTimelinePartitionsFactory.getMonth(cResults,wbRequest);
+} else if(resolution.equals(WaybackRequest.REQUEST_RESOLUTION_TWO_MONTHS)) {
     monthsOptSelected = "selected";
-    partitions = ResultsTimelinePartitionsFactory.getTwoMonth(results.getResults(),
-      wbRequest);
-} else if(resolution.equals(WaybackConstants.REQUEST_RESOLUTION_YEARS)) {
+    partitions = ResultsTimelinePartitionsFactory.getTwoMonth(cResults,wbRequest);
+} else if(resolution.equals(WaybackRequest.REQUEST_RESOLUTION_YEARS)) {
   yearsOptSelected = "selected";
-  partitions = ResultsTimelinePartitionsFactory.getYear(results.getResults(),
-    wbRequest);
+  partitions = ResultsTimelinePartitionsFactory.getYear(cResults,wbRequest);
 } else {
   autoOptSelected = "selected";
-  partitions = ResultsTimelinePartitionsFactory.getAuto(results.getResults(),
-    wbRequest);
+  partitions = ResultsTimelinePartitionsFactory.getAuto(cResults,wbRequest);
 }
 int numPartitions = partitions.size();
 ResultsPartition firstP = (ResultsPartition) partitions.get(0);
@@ -305,7 +295,7 @@ function handleDragClick() {
 					<option <%= autoOptSelected %> value="auto"><%= autoOptString %></option>
 				</select>&nbsp;<%= 
 					fmt.format("TimelineView.metaDataCheck") 
-				%><input type="checkbox" name="metamode" value="yes" <%=
+				%><input type="checkbox" name="<%= WaybackRequest.REQUEST_META_MODE %>" value="<%= WaybackRequest.REQUEST_YES %>" <%=
 					metaChecked 
 				%> onClick="changeMeta()">&nbsp
 			</form>

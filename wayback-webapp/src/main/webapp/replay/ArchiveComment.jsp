@@ -1,12 +1,10 @@
 <%@ page language="java" pageEncoding="utf-8" contentType="text/html;charset=utf-8"%>
 <%@ page import="java.util.Date" %>
-<%@ page import="org.archive.wayback.core.Timestamp" %>
 <%@ page import="org.archive.wayback.core.UIResults" %>
-<%@ page import="org.archive.wayback.replay.UIReplayResult" %>
 <%@ page import="org.archive.wayback.util.StringFormatter" %>
 <%
-UIReplayResult results = (UIReplayResult) UIResults.getFromRequest(request);
-StringFormatter fmt = results.getFormatter();
+UIResults results = UIResults.extractReplay(request);
+StringFormatter fmt = results.getWbRequest().getFormatter();
 Date exactDate = results.getResult().getCaptureDate();
 Date now = new Date();
 String prettyDateFormat = "{0,date,H:mm:ss MMM d, yyyy}";

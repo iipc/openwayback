@@ -3,7 +3,7 @@
 <%@ page import="org.archive.wayback.util.StringFormatter" %>
 <jsp:include page="template/UI-header.jsp" flush="true" />
 <%
-UIResults results = UIResults.getFromRequest(request);
+UIResults results = UIResults.getGeneric(request);
 StringFormatter fmt = results.getFormatter();
 Object names = request.getAttribute("AccessPointNames");
 if(names != null) {

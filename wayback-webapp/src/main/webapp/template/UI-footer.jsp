@@ -2,10 +2,10 @@
 <%@ page import="org.archive.wayback.core.UIResults" %>
 <%@ page import="org.archive.wayback.util.StringFormatter" %>
 <%
-UIResults results = UIResults.getFromRequest(request);
-StringFormatter fmt = results.getFormatter();
-String contextRoot = results.getContextPrefix();
-String serverRoot = results.getServerPrefix();
+UIResults results = UIResults.getGeneric(request);
+StringFormatter fmt = results.getWbRequest().getFormatter();
+String contextRoot = results.getWbRequest().getContextPrefix();
+String serverRoot = results.getWbRequest().getServerPrefix();
 %>
 <!-- FOOTER -->
 		<div align="center">

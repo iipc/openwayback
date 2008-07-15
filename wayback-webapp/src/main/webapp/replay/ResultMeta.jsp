@@ -1,24 +1,23 @@
 <%@ page language="java" pageEncoding="utf-8" contentType="text/html;charset=utf-8"%>
 <%@ page import="java.util.Iterator" %>
 <%@ page import="java.util.Map" %>
-<%@ page import="org.archive.wayback.core.Timestamp" %>
+<%@ page import="org.archive.wayback.core.CaptureSearchResult" %>
 <%@ page import="org.archive.wayback.core.UIResults" %>
-<%@ page import="org.archive.wayback.replay.UIReplayResult" %>
 <%@ page import="org.archive.wayback.util.StringFormatter" %>
 <%
 
-UIReplayResult uiResults = (UIReplayResult) UIResults.getFromRequest(request);
-StringFormatter fmt = uiResults.getFormatter();
-
-String origUrl = uiResults.getOriginalUrl();
-String urlKey = uiResults.getUrlKey();
-String archiveID = uiResults.getArchiveID();
-Timestamp captureTS = uiResults.getCaptureTimestamp();
+UIResults uiResults = UIResults.extractReplay(request);
+StringFormatter fmt = uiResults.getWbRequest().getFormatter();
+CaptureSearchResult result = uiResults.getResult();
+String origUrl = result.getOriginalUrl();
+String urlKey = result.getUrlKey();
+String archiveID = result.getFile() + "/" + result.getOffset();
+String captureTS = result.getCaptureTimestamp();
 String capturePrettyDateTime = fmt.format("MetaReplay.captureDateDisplay",
-	captureTS.getDate());
-String mimeType = uiResults.getMimeType();
-String digest = uiResults.getDigest();
-Map<String,String> headers = uiResults.getHttpHeaders();
+		result.getCaptureDate());
+String mimeType = result.getMimeType();
+String digest = result.getDigest();
+Map<String,String> headers = uiResults.getResource().getHttpHeaders();
 
 %>
 <html>

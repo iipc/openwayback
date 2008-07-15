@@ -7,14 +7,12 @@
 <%@ page import="org.archive.wayback.core.CaptureSearchResult" %>
 <%@ page import="org.archive.wayback.core.CaptureSearchResults" %>
 <%@ page import="org.archive.wayback.core.SearchResults" %>
-<%@ page import="org.archive.wayback.core.Timestamp" %>
 <%@ page import="org.archive.wayback.core.UIResults" %>
-<%@ page import="org.archive.wayback.query.UICaptureQueryResults" %>
 <%
-UICaptureQueryResults uiResults = (UICaptureQueryResults) UIResults.getFromRequest(request);
+UIResults uiResults = UIResults.extractCaptureQuery(request);
 
-CaptureSearchResults results = uiResults.getResults();
-Iterator<CaptureSearchResult> itr = uiResults.resultsIterator();
+CaptureSearchResults results = uiResults.getCaptureResults();
+Iterator<CaptureSearchResult> itr = results.iterator();
 %>
 <wayback>
   <request>

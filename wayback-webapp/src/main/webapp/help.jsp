@@ -2,7 +2,7 @@
 <%@ page import="org.archive.wayback.util.StringFormatter" %>
 <jsp:include page="/template/UI-header.jsp" flush="true" />
 <%
-UIResults results = UIResults.getFromRequest(request);
+UIResults results = UIResults.getGeneric(request);
 StringFormatter fmt = results.getFormatter();
 String url = "http://archive-access.sourceforge.net/projects/wayback/faq.html";
 %>

@@ -5,32 +5,31 @@
 <%@ page import="java.text.ParseException" %>
 <%@ page import="org.archive.wayback.WaybackConstants" %>
 <%@ page import="org.archive.wayback.core.CaptureSearchResult" %>
-<%@ page import="org.archive.wayback.core.Timestamp" %>
+<%@ page import="org.archive.wayback.core.CaptureSearchResults" %>
 <%@ page import="org.archive.wayback.core.UIResults" %>
-<%@ page import="org.archive.wayback.query.UICaptureQueryResults" %>
+<%@ page import="org.archive.wayback.core.WaybackRequest" %>
 <%@ page import="org.archive.wayback.query.resultspartitioner.ResultsPartitionsFactory" %>
 <%@ page import="org.archive.wayback.query.resultspartitioner.ResultsPartition" %>
 <%@ page import="org.archive.wayback.util.StringFormatter" %>
 <jsp:include page="/template/UI-header.jsp" flush="true" />
+<jsp:include page="/template/CookieJS.jsp" flush="true" />
 <%
+UIResults results = UIResults.extractCaptureQuery(request);
 
-UICaptureQueryResults results = (UICaptureQueryResults) UIResults.getFromRequest(request);
-StringFormatter fmt = results.getFormatter();
-String searchString = results.getSearchUrl();
+WaybackRequest wbRequest = results.getWbRequest();
+CaptureSearchResults cResults = results.getCaptureResults();
+StringFormatter fmt = wbRequest.getFormatter();
+String searchString = wbRequest.getRequestUrl();
 
-Date searchStartDate = results.getStartTimestamp().getDate();
-Date searchEndDate = results.getEndTimestamp().getDate();
-long firstResult = results.getFirstResult();
-long lastResult = results.getLastResult();
-long resultCount = results.getResultsMatching();
 
-//Timestamp searchStartTs = results.getStartTimestamp();
-//Timestamp searchEndTs = results.getEndTimestamp();
-//String prettySearchStart = results.prettyDateFull(searchStartTs.getDate());
-//String prettySearchEnd = results.prettyDateFull(searchEndTs.getDate());
+Date searchStartDate = wbRequest.getStartDate();
+Date searchEndDate = wbRequest.getEndDate();
+long firstResult = cResults.getFirstReturned();
+long lastResult = cResults.getReturnedCount() + firstResult;
+long resultCount = cResults.getMatchingCount();
 
-ArrayList<ResultsPartition> partitions = ResultsPartitionsFactory.get(
-    results.getResults(),results.getWbRequest());
+ArrayList<ResultsPartition> partitions = 
+	ResultsPartitionsFactory.get(cResults, wbRequest);
 int numPartitions = partitions.size();
 %>
 <table border="0" cellpadding="5" width="100%" class="mainSearchBanner" cellspacing="0">
@@ -39,6 +38,13 @@ int numPartitions = partitions.size();
             <%= fmt.format("PathQueryClassic.searchedFor",searchString) %>
       </td>
       <td align="right">
+            <select onchange="SetAnchorWindow(this.value)">
+              <option value="86400">1 day</option>
+              <option value="604800">1 week</option>
+              <option value="2592000">1 month</option>
+              <option value="31536000">1 year</option>
+              <option value="315360000">10 years</option>
+            </select>
             <%= fmt.format("PathQueryClassic.resultsSummary",resultCount) %>
       </td>
    </tr>
@@ -108,10 +114,10 @@ int numPartitions = partitions.size();
       
         CaptureSearchResult result = partitionResults.get(j);
       String url = result.getUrlKey();
-      String captureDate = result.getCaptureTimestamp();
-      Timestamp captureTS = Timestamp.parseBefore(captureDate);
+      String captureTimestamp = result.getCaptureTimestamp();
+      Date captureDate = result.getCaptureDate();
       String prettyDate = fmt.format("PathQuery.classicResultLinkText",
-        captureTS.getDate());
+        captureDate);
       String origHost = result.getOriginalHost();
       String MD5 = result.getDigest();
       String redirectFlag = (0 == result.getRedirectUrl().compareTo("-")) 
@@ -134,7 +140,7 @@ int numPartitions = partitions.size();
       }
       String updateStar = updated ? "*" : "";
 %>
-         <a href="<%= replayUrl %>"><%= prettyDate %></a> <%= updateStar %><br></br>
+         <a onclick="SetAnchorDate('<%= captureTimestamp %>');" href="<%= replayUrl %>"><%= prettyDate %></a> <%= updateStar %><br></br>
 <%
       
       }
@@ -153,12 +159,12 @@ int numPartitions = partitions.size();
 
 <%
 // show page indicators:
-if(results.getNumPages() > 1) {
-  int curPage = results.getCurPage();
+if(cResults.getNumPages() > 1) {
+  int curPage = cResults.getCurPageNum();
   %>
   <hr></hr>
   <%
-  for(int i = 1; i <= results.getNumPages(); i++) {
+  for(int i = 1; i <= cResults.getNumPages(); i++) {
     if(i == curPage) {
       %>
       <b><%= i %></b>

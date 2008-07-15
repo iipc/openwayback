@@ -1,25 +1,27 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<%@ page import="org.archive.wayback.core.WaybackRequest" %>
 <%@ page import="org.archive.wayback.core.UIResults" %>
 <%@ page import="org.archive.wayback.util.StringFormatter" %>
 <%@ page language="java" pageEncoding="utf-8" contentType="text/html;charset=utf-8"%>
 <%
-UIResults results = UIResults.getFromRequest(request);
-StringFormatter fmt = results.getFormatter();
-String contextRoot = results.getContextPrefix();
-String serverRoot = results.getServerPrefix();
+UIResults results = UIResults.getGeneric(request);
+WaybackRequest wbRequest = results.getWbRequest();
+StringFormatter fmt = wbRequest.getFormatter();
+String contextRoot = wbRequest.getContextPrefix();
+String serverRoot = wbRequest.getServerPrefix();
 %>
 <!-- HEADER -->
 <html xmlns="http://www.w3.org/1999/xhtml">
 
 	<head>
-		<meta http-equiv="content-type" content="text/html; charset=utf-8">
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
 		      
 		<link rel="stylesheet" type="text/css" 
 			href="<%= contextRoot %>css/styles.css"
-			src="<%= contextRoot %>css/styles.css">
+			src="<%= contextRoot %>css/styles.css" />
 		<title><%= fmt.format("UIGlobal.pageTitle") %></title>
-		<base target="_top">
+		<base target="_top" />
 	</head>
 
 	<body bgcolor="white" alink="red" vlink="#0000aa" link="blue" 
@@ -64,13 +66,14 @@ String serverRoot = results.getServerPrefix();
 													<font size="2" color="#FFFFFF" face="Arial, Helvetica, sans-serif">
 														<%= fmt.format("UIGlobal.enterWebAddress") %>
 													</font> 
-													<input type="hidden" name="type" value="urlquery">
-													<input type="text" name="url" value="http://" size="24" maxlength="256">
+													<input type="hidden" name="<%= WaybackRequest.REQUEST_TYPE %>" value="<%= WaybackRequest.REQUEST_CAPTURE_QUERY %>">
+													<input type="text" name="<%= WaybackRequest.REQUEST_URL %>" value="http://" size="24" maxlength="256">
 													&nbsp;
 												</b> 
-												<select name="date" size="1">
+												<select name="<%= WaybackRequest.REQUEST_DATE %>" size="1">
 													<option value="" selected><%= fmt.format("UIGlobal.selectYearAll") %></option>
-													<option>2007</option>
+                          <option>2008</option>
+                          <option>2007</option>
 													<option>2006</option>
 													<option>2005</option>
 													<option>2004</option>

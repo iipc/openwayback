@@ -3,14 +3,14 @@
 <%@ page import="org.archive.wayback.core.UIResults" %>
 <%@ page import="org.archive.wayback.util.StringFormatter" %>
 <%
-WaybackException e = (WaybackException) request.getAttribute("exception");
+UIResults results = UIResults.extractException(request);
+WaybackException e = results.getException();
 e.setupResponse(response);
 %>
 <jsp:include page="/template/UI-header.jsp" flush="true" />
 <%
 
-UIResults results = UIResults.getFromRequest(request);
-StringFormatter fmt = results.getFormatter();
+StringFormatter fmt = results.getWbRequest().getFormatter();
 
 %>
 

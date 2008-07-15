@@ -4,27 +4,26 @@
 <%@ page import="java.util.Date" %>
 <%@ page import="org.archive.wayback.WaybackConstants" %>
 <%@ page import="org.archive.wayback.core.CaptureSearchResult" %>
-<%@ page import="org.archive.wayback.core.Timestamp" %>
+<%@ page import="org.archive.wayback.core.CaptureSearchResults" %>
 <%@ page import="org.archive.wayback.core.UIResults" %>
-<%@ page import="org.archive.wayback.query.UICaptureQueryResults" %>
+<%@ page import="org.archive.wayback.core.WaybackRequest" %>
 <%@ page import="org.archive.wayback.util.StringFormatter" %>
 <jsp:include page="/template/UI-header.jsp" flush="true" />
 <%
 
-UICaptureQueryResults results = (UICaptureQueryResults) UIResults.getFromRequest(request);
-StringFormatter fmt = results.getFormatter();
+UIResults results = UIResults.extractCaptureQuery(request);
+WaybackRequest wbRequest = results.getWbRequest();
+CaptureSearchResults cResults = results.getCaptureResults();
+StringFormatter fmt = wbRequest.getFormatter();
 
-String searchString = results.getSearchUrl();
+String searchString = wbRequest.getRequestUrl();
 
-long resultCount = results.getResultsReturned();
+long resultCount = cResults.getReturnedCount();
+Date searchStartDate = wbRequest.getStartDate();
+Date searchEndDate = wbRequest.getEndDate();
 
-  Timestamp searchStartTs = results.getStartTimestamp();
-  Timestamp searchEndTs = results.getEndTimestamp();
-  Date searchStartDate = searchStartTs.getDate();
-  Date searchEndDate = searchEndTs.getDate();
-
-  Iterator<CaptureSearchResult> itr = results.resultsIterator();
-  %>
+Iterator<CaptureSearchResult> itr = cResults.iterator();
+%>
   <%= fmt.format("PathQuery.resultsSummary",resultCount,searchString) %>
   <br></br>
   <%= fmt.format("PathQuery.resultRange",searchStartDate,searchEndDate) %>
@@ -87,17 +86,17 @@ long resultCount = results.getResultsReturned();
   } 
 
 // show page indicators:
-int curPage = results.getCurPage();
-if(curPage > results.getNumPages()) {
+int curPage = cResults.getCurPageNum();
+if(curPage > cResults.getNumPages()) {
   %>
   <hr></hr>
   <a href="<%= results.urlForPage(1) %>">First results</a>
   <%
-} else if(results.getNumPages() > 1) {
+} else if(cResults.getNumPages() > 1) {
   %>
   <hr></hr>
   <%
-  for(int i = 1; i <= results.getNumPages(); i++) {
+  for(int i = 1; i <= cResults.getNumPages(); i++) {
     if(i == curPage) {
       %>
       <b><%= i %></b>

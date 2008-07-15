@@ -3,7 +3,7 @@
 <jsp:include page="/template/UI-header.jsp" flush="true" />
 <%
 
-UIResults results = UIResults.getFromRequest(request);
+UIResults results = UIResults.getGeneric(request);
 StringFormatter fmt = results.getFormatter();
 
 %>
