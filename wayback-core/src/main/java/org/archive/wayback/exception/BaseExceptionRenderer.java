@@ -28,7 +28,6 @@ import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -141,15 +140,8 @@ public class BaseExceptionRenderer implements ExceptionRenderer {
 				wbRequest, exception);
 
 		httpRequest.setAttribute("exception", exception);
-		UIResults uiResults = new UIResults(wbRequest,null);
-		uiResults.storeInRequest(httpRequest, jspPath);
-
-		RequestDispatcher dispatcher = httpRequest
-				.getRequestDispatcher(jspPath);
-		if(dispatcher == null) {
-			throw new ServletException("Null dispatcher for " + jspPath);
-		}
-		dispatcher.forward(httpRequest, httpResponse);
+		UIResults uiResults = new UIResults(wbRequest,null,exception);
+		uiResults.forward(httpRequest, httpResponse, jspPath);
 	}
 
 	public String getErrorJsp() {

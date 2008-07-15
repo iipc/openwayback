@@ -33,7 +33,6 @@ import java.nio.charset.IllegalCharsetNameException;
 import java.text.ParseException;
 import java.util.Map;
 
-import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -42,8 +41,8 @@ import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
+import org.archive.wayback.core.UIResults;
 import org.archive.wayback.core.WaybackRequest;
-import org.archive.wayback.replay.UIReplayResult;
 import org.mozilla.universalchardet.UniversalDetector;
 
 /**
@@ -440,14 +439,15 @@ public class HTMLPage {
 			CaptureSearchResult result, Resource resource) 
 	throws ServletException, IOException {
 		
-		UIReplayResult uiResults = new UIReplayResult(httpRequest, wbRequest,
-				result, results, resource, uriConverter);
+		UIResults uiResults = new UIResults(wbRequest,uriConverter,results,
+				result,resource);
 
 		StringHttpServletResponseWrapper wrappedResponse = 
 			new StringHttpServletResponseWrapper(httpResponse);
-		uiResults.storeInRequest(httpRequest,jspPath);
-		RequestDispatcher dispatcher = httpRequest.getRequestDispatcher(jspPath);
-		dispatcher.forward(httpRequest, wrappedResponse);
+		uiResults.forward(httpRequest, wrappedResponse, jspPath);
+//		uiResults.storeInRequest(httpRequest,jspPath);
+//		RequestDispatcher dispatcher = httpRequest.getRequestDispatcher(jspPath);
+//		dispatcher.forward(httpRequest, wrappedResponse);
 		return wrappedResponse.getStringResponse();
 	}
 	

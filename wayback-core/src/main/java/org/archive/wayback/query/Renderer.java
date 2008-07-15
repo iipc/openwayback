@@ -26,7 +26,6 @@ package org.archive.wayback.query;
 
 import java.io.IOException;
 
-import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -34,6 +33,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.archive.wayback.QueryRenderer;
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.core.CaptureSearchResults;
+import org.archive.wayback.core.UIResults;
 import org.archive.wayback.core.UrlSearchResults;
 import org.archive.wayback.core.WaybackRequest;
 
@@ -52,36 +52,17 @@ public class Renderer implements QueryRenderer {
 	private String xmlCaptureJsp = "/query/XMLCaptureResults.jsp";
 	private String xmlUrlJsp = "/query/XMLUrlResults.jsp";
 	
-	/**
-	 * @param request
-	 * @param response
-	 * @param jspName
-	 * @throws ServletException
-	 * @throws IOException
-	 */
-	private void proxyRequest(HttpServletRequest request,
-			HttpServletResponse response, final String jspPath)
-			throws ServletException, IOException {
-
-		RequestDispatcher dispatcher = request.getRequestDispatcher(jspPath);
-		dispatcher.forward(request, response);
-	}
-
 	public void renderCaptureResults(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
 			CaptureSearchResults results, ResultURIConverter uriConverter)
 			throws ServletException, IOException {
 
-		UICaptureQueryResults uiResults = new UICaptureQueryResults(httpRequest,
-				wbRequest, results, uriConverter);
 		String jsp = captureJsp;
 		if(wbRequest.isXMLMode()) {
 			jsp = xmlCaptureJsp;
 		}
-
-		uiResults.storeInRequest(httpRequest,jsp);
-		proxyRequest(httpRequest, httpResponse, jsp);
-
+		UIResults uiResults = new UIResults(wbRequest,uriConverter,results);
+		uiResults.forward(httpRequest, httpResponse, jsp);
 	}
 
 	/* (non-Javadoc)
@@ -92,16 +73,12 @@ public class Renderer implements QueryRenderer {
 			UrlSearchResults results, ResultURIConverter uriConverter)
 			throws ServletException, IOException {
 
-		UIUrlQueryResults uiResults = new UIUrlQueryResults(httpRequest, wbRequest, 
-				results, uriConverter);
 		String jsp = urlJsp;
 		if(wbRequest.isXMLMode()) {
 			jsp = xmlUrlJsp;
 		}
-
-		uiResults.storeInRequest(httpRequest,jsp);
-		proxyRequest(httpRequest, httpResponse, jsp);
-
+		UIResults uiResults = new UIResults(wbRequest,uriConverter,results);
+		uiResults.forward(httpRequest, httpResponse, jsp);
 	}
 
 	/**

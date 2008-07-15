@@ -171,4 +171,25 @@ public abstract class SearchResults {
 		this.numRequested = numRequested;
 		putFilter(RESULTS_REQUESTED, String.valueOf(numRequested));
 	}
+	
+	public int getNumPages() {
+		double resultsMatching = getMatchingCount();
+		double resultsPerPage = getNumRequested();
+		if(resultsPerPage == 0) {
+			return 1;
+		}
+		// calculate total pages:
+		int numPages = (int) Math.ceil(resultsMatching/resultsPerPage);
+		return numPages;
+	}
+	public int getCurPageNum() {
+		double resultsPerPage = getNumRequested();
+		double firstResult = getFirstReturned();
+		if(resultsPerPage == 0) {
+			return 1;
+		}
+		// calculate total pages:
+		int curPage = (int) Math.floor(firstResult/resultsPerPage) + 1;
+		return curPage;
+	}
 }

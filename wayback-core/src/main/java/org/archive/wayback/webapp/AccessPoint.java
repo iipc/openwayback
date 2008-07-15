@@ -28,7 +28,6 @@ import java.io.IOException;
 import java.util.Properties;
 import java.util.logging.Logger;
 
-import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -232,24 +231,32 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 			HttpServletResponse httpResponse) 
 	throws ServletException, IOException {
 		
+		String translated = "/" + translateRequestPathQuery(httpRequest);
+
 		WaybackRequest wbRequest = new WaybackRequest();
 		wbRequest.setContextPrefix(getAbsoluteLocalPrefix(httpRequest));
 		wbRequest.setAccessPoint(this);
+
 		UIResults uiResults = new UIResults(wbRequest,uriConverter);
-		String translated = "/" + translateRequestPathQuery(httpRequest);
-		uiResults.storeInRequest(httpRequest,translated);
-		RequestDispatcher dispatcher = null;
+		try {
+			uiResults.forward(httpRequest, httpResponse, translated);
+			return true;
+		} catch(IOException e) {
+			// TODO: figure out if we got IO because of a missing dispatcher
+		}
+//		uiResults.storeInRequest(httpRequest,translated);
+//		RequestDispatcher dispatcher = null;
 //		// special case for the front '/' page:
 //		if(translated.length() == 0) {
 //			translated = "/";
 //		} else {
 //			translated = "/" + translated;
 //		}
-		dispatcher = httpRequest.getRequestDispatcher(translated);
-		if(dispatcher != null) {
-			dispatcher.forward(httpRequest, httpResponse);
-			return true;
-		}
+//		dispatcher = httpRequest.getRequestDispatcher(translated);
+//		if(dispatcher != null) {
+//			dispatcher.forward(httpRequest, httpResponse);
+//			return true;
+//		}
 		return false;
 	}
 	
