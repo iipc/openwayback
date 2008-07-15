@@ -1,4 +1,4 @@
-<%@ page import="org.archive.wayback.core.BDBMap" %>
+<%@ page import="org.archive.wayback.util.bdb.BDBMap" %>
 
 <%
  String url = request.getParameter("url");
