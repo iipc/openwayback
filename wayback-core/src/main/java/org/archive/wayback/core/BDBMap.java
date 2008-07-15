@@ -135,7 +135,7 @@ public class BDBMap {
     		context = context.substring(1);
     	}
 		BDBMap map = null;
-    	synchronized(Timestamp.class) {
+    	synchronized(BDBMap.class) {
     		if(!bdbMaps.containsKey(context)) {
     			File bdbDir = new File(BDB_DIR,context);
     			bdbMaps.put(context,new BDBMap(context, 
