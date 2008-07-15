@@ -29,12 +29,12 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
 import org.archive.wayback.RequestParser;
-import org.archive.wayback.core.BDBMap;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.requestparser.CompositeRequestParser;
 import org.archive.wayback.requestparser.FormRequestParser;
 import org.archive.wayback.requestparser.OpenSearchRequestParser;
+import org.archive.wayback.util.bdb.BDBMap;
 import org.archive.wayback.webapp.AccessPoint;
 
 /**
