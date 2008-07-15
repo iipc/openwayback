@@ -21,7 +21,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.archive.wayback.core;
+package org.archive.wayback.util;
 
 import java.util.Calendar;
 import java.util.Date;

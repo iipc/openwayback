@@ -29,9 +29,9 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
 import org.archive.wayback.RequestParser;
-import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadQueryException;
+import org.archive.wayback.util.Timestamp;
 import org.archive.wayback.webapp.AccessPoint;
 
 /**

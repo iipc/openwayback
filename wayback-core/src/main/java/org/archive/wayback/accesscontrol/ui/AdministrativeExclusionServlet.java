@@ -36,8 +36,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.httpclient.URIException;
-import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.surt.SURTTokenizer;
+import org.archive.wayback.util.Timestamp;
 import org.archive.wayback.webapp.ServletRequestContext;
 
 import com.sleepycat.je.DatabaseException;

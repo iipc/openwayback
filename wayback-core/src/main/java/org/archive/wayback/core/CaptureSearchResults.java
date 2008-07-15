@@ -29,6 +29,7 @@ import java.util.Date;
 import java.util.Iterator;
 
 import org.archive.wayback.exception.AnchorWindowTooSmallException;
+import org.archive.wayback.util.Timestamp;
 
 /**
  *

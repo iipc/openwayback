@@ -38,12 +38,12 @@ import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
-import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadContentException;
 import org.archive.wayback.replay.HTMLPage;
 import org.archive.wayback.replay.HttpHeaderProcessor;
 import org.archive.wayback.replay.HttpHeaderOperation;
+import org.archive.wayback.util.Timestamp;
 import org.archive.wayback.util.url.UrlOperations;
 
 /**

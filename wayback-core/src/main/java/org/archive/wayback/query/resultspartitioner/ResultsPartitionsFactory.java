@@ -30,8 +30,8 @@ import java.util.Date;
 
 import org.archive.util.ArchiveUtils;
 import org.archive.wayback.core.CaptureSearchResults;
-import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
+import org.archive.wayback.util.Timestamp;
 
 /**
  *

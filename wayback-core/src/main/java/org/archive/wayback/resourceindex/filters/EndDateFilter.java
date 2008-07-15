@@ -25,8 +25,8 @@
 package org.archive.wayback.resourceindex.filters;
 
 import org.archive.wayback.core.CaptureSearchResult;
-import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.util.ObjectFilter;
+import org.archive.wayback.util.Timestamp;
 
 
 /**

@@ -25,8 +25,8 @@
 package org.archive.wayback.accesscontrol;
 
 import org.archive.wayback.core.CaptureSearchResult;
-import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.util.ObjectFilter;
+import org.archive.wayback.util.Timestamp;
 import org.springframework.beans.factory.xml.XmlBeanFactory;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;

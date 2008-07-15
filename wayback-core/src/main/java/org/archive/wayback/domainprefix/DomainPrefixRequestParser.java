@@ -29,10 +29,10 @@ import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.requestparser.BaseRequestParser;
+import org.archive.wayback.util.Timestamp;
 import org.archive.wayback.webapp.AccessPoint;
 
 /**

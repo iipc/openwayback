@@ -29,7 +29,7 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.text.ParseException;
 
-import org.archive.wayback.core.Timestamp;
+import org.archive.wayback.util.Timestamp;
 
 /**
  *

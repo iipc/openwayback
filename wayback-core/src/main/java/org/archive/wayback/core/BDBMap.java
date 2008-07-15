@@ -23,6 +23,8 @@ import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.util.Properties;
 
+import org.archive.wayback.util.Timestamp;
+
 import com.sleepycat.je.Database;
 import com.sleepycat.je.DatabaseConfig;
 import com.sleepycat.je.DatabaseEntry;

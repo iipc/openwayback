@@ -27,9 +27,9 @@ package org.archive.wayback.archivalurl.requestparser;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.requestparser.PathRequestParser;
+import org.archive.wayback.util.Timestamp;
 
 /**
  * RequestParser implementation that extracts request info from an Archival Url

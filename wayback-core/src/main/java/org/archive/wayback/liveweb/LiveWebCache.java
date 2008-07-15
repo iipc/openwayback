@@ -37,13 +37,13 @@ import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.SearchResults;
-import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.LiveDocumentNotAvailableException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.exception.WaybackException;
 import org.archive.wayback.resourcestore.indexer.ARCRecordToSearchResultAdapter;
 import org.archive.wayback.resourcestore.resourcefile.ArcResource;
+import org.archive.wayback.util.Timestamp;
 import org.archive.wayback.util.url.AggressiveUrlCanonicalizer;
 
 /**

@@ -29,8 +29,8 @@ import java.util.GregorianCalendar;
 import java.util.SimpleTimeZone;
 import java.util.TimeZone;
 
-import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
+import org.archive.wayback.util.Timestamp;
 
 /**
  *

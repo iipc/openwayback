@@ -37,7 +37,6 @@ import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.CaptureToUrlSearchResultAdapter;
 import org.archive.wayback.core.SearchResult;
 import org.archive.wayback.core.SearchResults;
-import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.UrlSearchResult;
 import org.archive.wayback.core.UrlSearchResults;
 import org.archive.wayback.core.WaybackRequest;
@@ -61,6 +60,7 @@ import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.ObjectFilter;
 import org.archive.wayback.util.ObjectFilterChain;
 import org.archive.wayback.util.ObjectFilterIterator;
+import org.archive.wayback.util.Timestamp;
 import org.archive.wayback.util.url.AggressiveUrlCanonicalizer;
 
 /**

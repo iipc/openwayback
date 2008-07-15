@@ -40,13 +40,13 @@ import org.archive.wayback.ResourceIndex;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.SearchResults;
-import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.AccessControlException;
 import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
+import org.archive.wayback.util.Timestamp;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -71,10 +71,10 @@ public class NutchResourceIndex implements ResourceIndex {
    private String searchUrlBase;
    private DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
    private DocumentBuilder builder;
-   private static final String NUTCH_ARCNAME = "arcname";
-   private static final String NUTCH_ARCOFFSET = "arcoffset";
-//   private static final String NUTCH_FILENAME = "filename";
-//   private static final String NUTCH_FILEOFFSET = "fileoffset";
+//   private static final String NUTCH_ARCNAME = "arcname";
+//   private static final String NUTCH_ARCOFFSET = "arcoffset";
+   private static final String NUTCH_FILENAME = "filename";
+   private static final String NUTCH_FILEOFFSET = "fileoffset";
    private static final String NUTCH_ARCDATE = "date";
 //   private static final String NUTCH_ARCDATE_ALT = "arcdate";
    private static final String NUTCH_DIGEST = "digest";
@@ -194,11 +194,11 @@ public class NutchResourceIndex implements ResourceIndex {
 	private List<CaptureSearchResult> itemToSearchResults(Element e)
 		throws ResourceIndexNotAvailableException {
 
-		String fileName = getNodeNutchContent(e,NUTCH_ARCNAME);
+		String fileName = getNodeNutchContent(e,NUTCH_FILENAME);
 		String httpCode = NUTCH_DEFAULT_HTTP_CODE;
 		String digest = getNodeNutchContent(e,NUTCH_DIGEST);
 		String mimeType = getNodeNutchContent(e,NUTCH_MIME_TYPE);
-		String offsetStr = getNodeNutchContent(e,NUTCH_ARCOFFSET);
+		String offsetStr = getNodeNutchContent(e,NUTCH_FILEOFFSET);
 		long offset = 0;
 		if(offsetStr != null && offsetStr.length() > 0) {
 			offset = Long.parseLong(offsetStr);
