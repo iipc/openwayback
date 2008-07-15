@@ -23,11 +23,9 @@
 
 package org.archive.wayback.core;
 
-import java.io.File;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.Properties;
 import java.util.SimpleTimeZone;
 import java.util.TimeZone;
 
@@ -59,13 +57,7 @@ public class Timestamp {
 
 	private final static String[] months = { "Jan", "Feb", "Mar", "Apr", "May",
 			"Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
-        
-    // Acts as a mapping between an ID and a timestamp to surf at.
-    // The dir should probably be configurable somehow.
-    private static String BDB_DIR = System.getProperty("java.io.tmpdir") +
-    	"/wayback/bdb";
-    private static Properties bdbMaps = new Properties();
-    
+
 	private String dateStr = null;
 	private Date date = null;
 
@@ -464,49 +456,4 @@ public class Timestamp {
 	public static Timestamp earliestTimestamp() {
 		return new Timestamp(SSE_1996);
 	}
-    
-	/**
-	 * @param context
-	 * @return singleton BDBMap for the context
-	 */
-	public static BDBMap getContextMap(String context) {
-    	if(context == null) context = "";
-    	if(context.startsWith("/")) {
-    		context = context.substring(1);
-    	}
-		BDBMap map = null;
-    	synchronized(Timestamp.class) {
-    		if(!bdbMaps.containsKey(context)) {
-    			File bdbDir = new File(BDB_DIR,context);
-    			bdbMaps.put(context,new BDBMap(context, 
-    					bdbDir.getAbsolutePath()));
-    		}
-    		map = (BDBMap) bdbMaps.get(context);
-    	}
-    	return map;
-	}
-    /**
-     * return the timestamp associated with the identifier argument, or now
-     * if no value is associated or something goes wrong.
-     * @param context 
-     * @param ip
-     * @return timestamp string value
-     */
-    public static String getTimestampForId(String context, String ip) {
-    	BDBMap bdbMap = getContextMap(context);
-        String dateStr = bdbMap.get(ip);
-        return (dateStr != null) ? dateStr : currentTimestamp().getDateStr();
-    }
-    
-   /**
-    * associate timestamp time with idenfier ip persistantly 
-    * @param context 
-    * @param ip
-    * @param time
-    */
-    public static void addTimestampForId(String context, String ip, String time) {
-    	BDBMap bdbMap = getContextMap(context);
-    	bdbMap.put(ip, time);
-    }
-
 }

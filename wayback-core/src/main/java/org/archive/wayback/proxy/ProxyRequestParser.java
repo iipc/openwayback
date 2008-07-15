@@ -29,7 +29,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
 import org.archive.wayback.RequestParser;
-import org.archive.wayback.core.Timestamp;
+import org.archive.wayback.core.BDBMap;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.requestparser.CompositeRequestParser;
@@ -71,7 +71,7 @@ public class ProxyRequestParser extends CompositeRequestParser {
 	            if (id == null)
 	                    id = httpRequest.getRemoteAddr();
 	            // TODO: This is hacky.
-	            String replayDateStr = Timestamp.getTimestampForId(
+	            String replayDateStr = BDBMap.getTimestampForId(
 	            		httpRequest.getContextPath(), id); 
 	            wbRequest.setReplayTimestamp(replayDateStr);
 	            wbRequest.fixup(httpRequest);
