@@ -126,18 +126,11 @@ public abstract class BaseRequestParser implements RequestParser {
 	 * @return
 	 */
 	public String getEarliestTimestamp() {
-		if(earliestTimestamp != null) {
-			return earliestTimestamp;
-			
-		}
-		return Timestamp.earliestTimestamp().getDateStr();
+		return earliestTimestamp;
 	}
 
 	public String getLatestTimestamp() {
-		if(latestTimestamp != null) {
-			return latestTimestamp;
-		}
-		return Timestamp.latestTimestamp().getDateStr();
+		return latestTimestamp;
 	}
 
 	public void setLatestTimestamp(String timestamp) {

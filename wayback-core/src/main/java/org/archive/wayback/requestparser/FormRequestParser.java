@@ -30,6 +30,7 @@ import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.archive.wayback.core.Timestamp;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.webapp.AccessPoint;
 
@@ -82,11 +83,23 @@ public class FormRequestParser extends BaseRequestParser {
 				String val = getMapParam(queryMap,key);
 				wbRequest.put(key,val);
 			}
-			if(wbRequest.getStartTimestamp()== null) {
-				wbRequest.setStartTimestamp(getEarliestTimestamp());
-			}
-			if(wbRequest.getEndTimestamp() == null) {
-				wbRequest.setEndTimestamp(getLatestTimestamp());
+			String partialTS = wbRequest.getReplayTimestamp();
+			if(partialTS != null) {
+				if(wbRequest.getStartTimestamp()== null) {
+					String startTS = Timestamp.parseBefore(partialTS).getDateStr();
+					wbRequest.setStartTimestamp(startTS);
+				}
+				if(wbRequest.getEndTimestamp() == null) {
+					String endTS = Timestamp.parseAfter(partialTS).getDateStr();
+					wbRequest.setEndTimestamp(endTS);
+				}
+			} else {
+				if(wbRequest.getStartTimestamp()== null) {
+					wbRequest.setStartTimestamp(getEarliestTimestamp());
+				}
+				if(wbRequest.getEndTimestamp() == null) {
+					wbRequest.setEndTimestamp(getLatestTimestamp());
+				}
 			}
 		}
 		if(wbRequest != null) {
