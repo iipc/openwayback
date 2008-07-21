@@ -115,7 +115,7 @@ public class CaptureSearchResults extends SearchResults {
 		long wantTime = wbRequest.getReplayDate().getTime();
 		if(anchorDate != null) {
 			wantTime = Timestamp.parseBefore(anchorDate).getDate().getTime();
-			maxWindow = wbRequest.getAnchorWindow();
+			maxWindow = wbRequest.getAnchorWindow() * 1000;
 		}
 
 		Iterator<CaptureSearchResult> itr = results.iterator();
