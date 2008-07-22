@@ -54,7 +54,7 @@ import org.mozilla.universalchardet.UniversalDetector;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class HTMLPage {
+public class TextDocument {
 
 	// hand off this many bytes to the chardet library
 	private final static int MAX_CHARSET_READAHEAD = 65536;
@@ -81,7 +81,7 @@ public class HTMLPage {
 	 * @param result
 	 * @param uriConverter 
 	 */
-	public HTMLPage(Resource resource, CaptureSearchResult result, 
+	public TextDocument(Resource resource, CaptureSearchResult result, 
 			ResultURIConverter uriConverter) {
 		this.resource = resource;
 		this.result = result;
