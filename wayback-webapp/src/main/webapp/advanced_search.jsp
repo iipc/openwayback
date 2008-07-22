@@ -1,10 +1,10 @@
 <%@ page import="org.archive.wayback.core.UIResults" %>
 <%@ page import="org.archive.wayback.util.StringFormatter" %>
-<jsp:include page="/template/UI-header.jsp" flush="true" />
+<jsp:include page="/WEB-INF/template/UI-header.jsp" flush="true" />
 <%
 
 UIResults results = UIResults.getGeneric(request);
-StringFormatter fmt = results.getFormatter();
+StringFormatter fmt = results.getWbRequest().getFormatter();
 
 %>
 <form action="../../replay">
@@ -23,4 +23,4 @@ StringFormatter fmt = results.getFormatter();
 <input type="HIDDEN" name="type" value="replay">
 <input type="SUBMIT" value="<%= fmt.format("AdvancedSearch.submitButton") %>">
 </form>
-<jsp:include page="/template/UI-footer.jsp" flush="true" />
+<jsp:include page="/WEB-INF/template/UI-footer.jsp" flush="true" />

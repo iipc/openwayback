@@ -1,7 +1,7 @@
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="org.archive.wayback.core.UIResults" %>
 <%@ page import="org.archive.wayback.util.StringFormatter" %>
-<jsp:include page="template/UI-header.jsp" flush="true" />
+<jsp:include page="/WEB-INF/template/UI-header.jsp" flush="true" />
 <%
 UIResults results = UIResults.getGeneric(request);
 StringFormatter fmt = results.getFormatter();
@@ -25,4 +25,4 @@ if(names != null) {
 <p>
 	<%= fmt.format("UIGlobal.indexPage") %>
 </p>
-<jsp:include page="template/UI-footer.jsp" flush="true" />
+<jsp:include page="/WEB-INF/template/UI-footer.jsp" flush="true" />
