@@ -54,6 +54,6 @@ public interface ExceptionRenderer {
 	 */
 	public void renderException(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
-			WaybackException exception)
+			WaybackException exception, ResultURIConverter uriConverter)
 		throws ServletException, IOException;
 }

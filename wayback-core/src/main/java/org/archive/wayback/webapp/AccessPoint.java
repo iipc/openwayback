@@ -304,7 +304,8 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 
 		} catch(WaybackException e) {
 			logNotInArchive(e,wbRequest);
-			exception.renderException(httpRequest, httpResponse, wbRequest, e);
+			exception.renderException(httpRequest, httpResponse, wbRequest, e, 
+					uriConverter);
 		}
 
 		return handled;

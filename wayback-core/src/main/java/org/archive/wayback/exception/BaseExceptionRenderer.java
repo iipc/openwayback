@@ -33,6 +33,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.archive.wayback.ExceptionRenderer;
+import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.core.UIResults;
 import org.archive.wayback.core.WaybackRequest;
 
@@ -134,13 +135,14 @@ public class BaseExceptionRenderer implements ExceptionRenderer {
 	 */
 	public void renderException(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
-			WaybackException exception) throws ServletException, IOException {
+			WaybackException exception, ResultURIConverter uriConverter)
+		throws ServletException, IOException {
 
 		String jspPath = getExceptionHandler(httpRequest, httpResponse, 
 				wbRequest, exception);
 
 		httpRequest.setAttribute("exception", exception);
-		UIResults uiResults = new UIResults(wbRequest,null,exception);
+		UIResults uiResults = new UIResults(wbRequest,uriConverter,exception);
 		uiResults.forward(httpRequest, httpResponse, jspPath);
 	}
 
