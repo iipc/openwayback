@@ -48,10 +48,12 @@ import org.archive.wayback.exception.BadContentException;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class TransparentReplayRenderer implements ReplayRenderer, HttpHeaderProcessor {
-
+public class TransparentReplayRenderer implements ReplayRenderer {
+	private HttpHeaderProcessor httpHeaderProcessor;
 	private final static int BUFFER_SIZE = 4096;
-	
+	public TransparentReplayRenderer(HttpHeaderProcessor httpHeaderProcessor) {
+		this.httpHeaderProcessor = httpHeaderProcessor;
+	}
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.ReplayRenderer#renderResource(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.archive.wayback.core.WaybackRequest, org.archive.wayback.core.SearchResult, org.archive.wayback.core.Resource, org.archive.wayback.ResultURIConverter, org.archive.wayback.core.SearchResults)
 	 */
@@ -64,7 +66,7 @@ public class TransparentReplayRenderer implements ReplayRenderer, HttpHeaderProc
 		HttpHeaderOperation.copyHTTPMessageHeader(resource, httpResponse);
 		
 		Map<String,String> headers = HttpHeaderOperation.processHeaders(
-				resource, result, uriConverter, this);
+				resource, result, uriConverter, httpHeaderProcessor);
 
 		HttpHeaderOperation.sendHeaders(headers, httpResponse);
 
@@ -74,15 +76,5 @@ public class TransparentReplayRenderer implements ReplayRenderer, HttpHeaderProc
 		for (int r = -1; (r = resource.read(buffer, 0, BUFFER_SIZE)) != -1;) {
 			os.write(buffer, 0, r);
 		}
-	}
-
-	/* (non-Javadoc)
-	 * @see org.archive.wayback.replay.HeaderFilter#filter(java.util.Map, java.lang.String, java.lang.String, org.archive.wayback.ResultURIConverter, org.archive.wayback.core.SearchResult)
-	 */
-	public void filter(Map<String, String> output, String key, String value,
-			ResultURIConverter uriConverter, CaptureSearchResult result) {
-
-		// copy all HTTP headers, as-is.
-		output.put(key, value);
 	}
 }
