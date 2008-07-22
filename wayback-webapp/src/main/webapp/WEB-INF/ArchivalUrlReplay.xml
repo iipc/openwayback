@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+
+  <bean id="archivalurlhttpheaderprocessor" class="org.archive.wayback.replay.RedirectRewritingHttpHeaderProcessor" />
+
+	<bean id="archivaldateredirectingreplayrenderer" class="org.archive.wayback.replay.DateRedirectReplayRenderer" />
+  <bean id="archivalcssreplayrenderer" class="org.archive.wayback.archivalurl.ArchivalUrlCSSReplayRenderer">
+    <constructor-arg><ref bean="archivalurlhttpheaderprocessor"/></constructor-arg>
+  </bean>
+  <bean id="archivalasxreplayrenderer" class="org.archive.wayback.archivalurl.ArchivalUrlASXReplayRenderer">
+    <constructor-arg><ref bean="archivalurlhttpheaderprocessor"/></constructor-arg>
+  </bean>
+  <bean id="archivaltransparentreplayrenderer" class="org.archive.wayback.replay.TransparentReplayRenderer">
+    <constructor-arg><ref bean="archivalurlhttpheaderprocessor"/></constructor-arg>
+  </bean>
+
+  <bean id="archivalserversidehtmlreplayrenderer" class="org.archive.wayback.archivalurl.ServerSideHTMLReplayRenderer">
+    <constructor-arg><ref bean="archivalurlhttpheaderprocessor"/></constructor-arg>
+    <property name="jspInserts">
+      <list>
+        <value>/WEB-INF/replay/ArchiveComment.jsp</value>
+<!--
+        <value>/WEB-INF/replay/JSLessTimeline.jsp</value>
+-->
+      </list>
+    </property>
+  </bean>
+
+  <bean id="archivalclientsidehtmlreplayrenderer" class="org.archive.wayback.archivalurl.ClientSideHTMLReplayRenderer">
+    <constructor-arg><ref bean="archivalurlhttpheaderprocessor"/></constructor-arg>
+    <property name="jspInserts">
+      <list>
+	      <value>/WEB-INF/replay/ArchiveComment.jsp</value>
+	      <value>/WEB-INF/replay/ClientSideJSInsert.jsp</value>
+	      <value>/WEB-INF/replay/DebugBanner.jsp</value>
+<!-- 
+        <value>/WEB-INF/replay/Disclaimer.jsp</value>
+        <value>/WEB-INF/replay/Timeline.jsp</value>
+-->
+      </list>
+    </property>
+  </bean>
+	
+  <bean id="archivalurlreplay" class="org.archive.wayback.replay.SelectorReplayDispatcher">
+    <property name="selectors">
+      <list>
+
+        <!-- REDIRECT IF NOT EXACT DATE -->
+	      <bean class="org.archive.wayback.replay.selector.DateMismatchSelector">
+	        <property name="renderer" ref="archivaldateredirectingreplayrenderer"/>
+	      </bean>
+
+        <!-- HTML REPLAY -->
+        <bean class="org.archive.wayback.replay.selector.MimeTypeSelector">
+          <property name="mimeContains">
+            <list>
+              <value>text/html</value>
+              <value>application/xhtml</value>
+            </list>
+          </property>
+          <property name="renderer" ref="archivalclientsidehtmlreplayrenderer"/>
+        </bean>
+
+        <!-- CSS REPLAY -->
+        <bean class="org.archive.wayback.replay.selector.MimeTypeSelector">
+          <property name="mimeContains">
+            <list>
+              <value>text/css</value>
+            </list>
+          </property>
+          <property name="renderer" ref="archivalcssreplayrenderer"/>
+        </bean>
+
+        <!-- ASX-MIME REPLAY -->
+        <bean class="org.archive.wayback.replay.selector.MimeTypeSelector">
+          <property name="mimeContains">
+            <list>
+              <value>video/x-ms-asf</value>
+            </list>
+          </property>
+          <property name="renderer" ref="archivalasxreplayrenderer"/>
+        </bean>
+
+        <!-- ASX-PATH REPLAY -->
+        <bean class="org.archive.wayback.replay.selector.PathMatchSelector">
+          <property name="pathContains">
+            <list>
+              <value>.asx</value>
+            </list>
+          </property>
+          <property name="renderer" ref="archivalasxreplayrenderer"/>
+        </bean>
+
+        <!-- DEFAULT-TRANSPARENT REPLAY -->
+        <bean class="org.archive.wayback.replay.selector.AlwaysMatchSelector">
+          <property name="renderer" ref="archivaltransparentreplayrenderer"/>
+        </bean>
+
+      </list>
+    </property>
+  </bean>
+</beans>

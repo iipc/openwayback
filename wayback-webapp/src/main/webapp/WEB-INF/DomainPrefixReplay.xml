@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+
+  <bean id="domainprefixhttpheaderprocessor" class="org.archive.wayback.replay.RedirectRewritingHttpHeaderProcessor" />
+
+  <bean id="domainprefixdateredirectingreplayrenderer" class="org.archive.wayback.replay.DateRedirectReplayRenderer" />
+  <bean id="domainprefixtransparentreplayrenderer" class="org.archive.wayback.replay.TransparentReplayRenderer">
+    <constructor-arg><ref bean="domainprefixhttpheaderprocessor"/></constructor-arg>
+  </bean>
+
+  <bean id="domainprefixtextreplayrenderer" class="org.archive.wayback.domainprefix.DomainPrefixTextReplayRenderer">
+    <constructor-arg><ref bean="domainprefixhttpheaderprocessor"/></constructor-arg>
+    <property name="jspInserts">
+      <list>
+        <value>/WEB-INF/replay/ArchiveComment.jsp</value>
+        <value>/WEB-INF/replay/DebugBanner.jsp</value>
+<!--
+        <value>/WEB-INF/replay/JSLessTimeline.jsp</value>
+-->
+      </list>
+    </property>
+  </bean>
+
+  <bean id="domainprefixreplay" class="org.archive.wayback.replay.SelectorReplayDispatcher">
+    <property name="selectors">
+      <list>
+
+        <!-- REDIRECT IF NOT EXACT DATE -->
+        <bean class="org.archive.wayback.replay.selector.DateMismatchSelector">
+          <property name="renderer" ref="domainprefixdateredirectingreplayrenderer"/>
+        </bean>
+
+        <!-- HTML REPLAY -->
+        <bean class="org.archive.wayback.replay.selector.MimeTypeSelector">
+          <property name="mimeContains">
+            <list>
+              <value>text/html</value>
+              <value>application/xhtml</value>
+            </list>
+          </property>
+          <property name="renderer" ref="domainprefixtextreplayrenderer"/>
+        </bean>
+        <!-- DEFAULT-TRANSPARENT REPLAY -->
+        <bean class="org.archive.wayback.replay.selector.AlwaysMatchSelector">
+          <property name="renderer" ref="domainprefixtransparentreplayrenderer"/>
+        </bean>
+
+      </list>
+    </property>
+  </bean>
+</beans>
