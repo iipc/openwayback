@@ -47,10 +47,10 @@ import org.archive.wayback.core.WaybackRequest;
  */
 public class Renderer implements QueryRenderer {
 
-	private String captureJsp = "/query/HTMLCaptureResults.jsp";
-	private String urlJsp = "/query/HTMLUrlResults.jsp";
-	private String xmlCaptureJsp = "/query/XMLCaptureResults.jsp";
-	private String xmlUrlJsp = "/query/XMLUrlResults.jsp";
+	private String captureJsp = "/WEB-INF/query/HTMLCaptureResults.jsp";
+	private String urlJsp = "/WEB-INF/query/HTMLUrlResults.jsp";
+	private String xmlCaptureJsp = "/WEB-INF/query/XMLCaptureResults.jsp";
+	private String xmlUrlJsp = "/WEB-INF/query/XMLUrlResults.jsp";
 	
 	public void renderCaptureResults(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,

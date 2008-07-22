@@ -51,11 +51,11 @@ import org.archive.wayback.core.WaybackRequest;
  * @version $Date$, $Revision$
  */
 public class BaseExceptionRenderer implements ExceptionRenderer {
-	private String xmlErrorJsp = "/exception/XMLError.jsp";
-	private String errorJsp = "/exception/HTMLError.jsp";
-	private String imageErrorJsp = "/exception/HTMLError.jsp";
-	private String javascriptErrorJsp = "/exception/JavaScriptError.jsp";
-	private String cssErrorJsp = "/exception/CSSError.jsp";
+	private String xmlErrorJsp = "/WEB-INF/exception/XMLError.jsp";
+	private String errorJsp = "/WEB-INF/exception/HTMLError.jsp";
+	private String imageErrorJsp = "/WEB-INF/exception/HTMLError.jsp";
+	private String javascriptErrorJsp = "/WEB-INF/exception/JavaScriptError.jsp";
+	private String cssErrorJsp = "/WEB-INF/exception/CSSError.jsp";
 
 	protected final Pattern IMAGE_REGEX = Pattern
 			.compile(".*\\.(jpg|jpeg|gif|png|bmp|tiff|tif)$");
