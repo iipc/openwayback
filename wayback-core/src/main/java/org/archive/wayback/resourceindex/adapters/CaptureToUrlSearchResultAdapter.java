@@ -22,10 +22,12 @@
  * along with wayback; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-package org.archive.wayback.core;
+package org.archive.wayback.resourceindex.adapters;
 
 import java.util.HashMap;
 
+import org.archive.wayback.core.CaptureSearchResult;
+import org.archive.wayback.core.UrlSearchResult;
 import org.archive.wayback.util.AdaptedIterator;
 import org.archive.wayback.util.Adapter;
 import org.archive.wayback.util.CloseableIterator;

@@ -1,4 +1,4 @@
-package org.archive.wayback.resourceindex;
+package org.archive.wayback.resourceindex.adapters;
 
 import java.util.HashMap;
 
