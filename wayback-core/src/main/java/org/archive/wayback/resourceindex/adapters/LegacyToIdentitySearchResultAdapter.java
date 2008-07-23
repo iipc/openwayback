@@ -36,7 +36,7 @@ import org.archive.wayback.util.url.UrlOperations;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class LegacyToIdentityFilter implements ObjectFilter<CaptureSearchResult> {
+public class LegacyToIdentitySearchResultAdapter implements ObjectFilter<CaptureSearchResult> {
 	private final static String DEFAULT_SCHEME = "http://";
 	
 	private int getEndOfHostIndex(String url) {
