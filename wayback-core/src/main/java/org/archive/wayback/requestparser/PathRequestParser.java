@@ -67,7 +67,6 @@ public abstract class PathRequestParser extends BaseRequestParser {
 		
 		WaybackRequest wbRequest = parse(requestPath);
 		if(wbRequest != null) {
-			wbRequest.fixup(httpRequest);
 			wbRequest.setResultsPerPage(maxRecords);
 		}
 

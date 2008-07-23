@@ -146,7 +146,6 @@ public class OpenSearchRequestParser extends BaseRequestParser {
 		if(wbRequest.getEndTimestamp() == null) {
 			wbRequest.setEndTimestamp(getLatestTimestamp());
 		}
-		wbRequest.fixup(httpRequest);
 
 		return wbRequest;
 	}

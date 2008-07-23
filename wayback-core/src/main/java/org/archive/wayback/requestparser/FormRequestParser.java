@@ -102,10 +102,6 @@ public class FormRequestParser extends BaseRequestParser {
 				}
 			}
 		}
-		if(wbRequest != null) {
-			wbRequest.fixup(httpRequest);
-		}
-
 		return wbRequest;
 	}
 }

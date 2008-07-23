@@ -720,10 +720,14 @@ public class WaybackRequest {
 				String.valueOf(httpRequest.getLocalPort()));
 		putUnlessNull(REQUEST_WAYBACK_CONTEXT, httpRequest.getContextPath());
 
-		Locale l = httpRequest.getLocale();
-		ResourceBundle b = ResourceBundle.getBundle(UI_RESOURCE_BUNDLE_NAME,
-				httpRequest.getLocale());
-		formatter = new StringFormatter(b,l);
+		Locale l = null;
+		if(accessPoint != null) {
+			l = accessPoint.getLocale();
+		}
+		if(l == null) {
+			l = httpRequest.getLocale();
+		}
+		setLocale(l);
 		putUnlessNull(REQUEST_LOCALE_LANG,l.getDisplayLanguage());
 
 		Cookie[] cookies = httpRequest.getCookies();

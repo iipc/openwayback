@@ -25,6 +25,7 @@
 package org.archive.wayback.webapp;
 
 import java.io.IOException;
+import java.util.Locale;
 import java.util.Properties;
 import java.util.logging.Logger;
 
@@ -89,6 +90,16 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 	private Properties configs = null;
 	private ExclusionFilterFactory exclusionFactory = null;
 	private BooleanOperator<WaybackRequest> authentication = null;
+	private String urlRoot = null;
+	private Locale locale = null;
+
+	public Locale getLocale() {
+		return locale;
+	}
+
+	public void setLocale(Locale locale) {
+		this.locale = locale;
+	}
 
 	/**
 	 * 
@@ -224,6 +235,9 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 	 * Canonical server and port information.
 	 */
 	public String getAbsoluteLocalPrefix(HttpServletRequest httpRequest) {
+		if(urlRoot != null) {
+			return urlRoot;
+		}
 		return getAbsoluteContextPrefix(httpRequest, useServerName);
 	}
 
@@ -236,7 +250,7 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 		WaybackRequest wbRequest = new WaybackRequest();
 		wbRequest.setContextPrefix(getAbsoluteLocalPrefix(httpRequest));
 		wbRequest.setAccessPoint(this);
-
+		wbRequest.fixup(httpRequest);
 		UIResults uiResults = new UIResults(wbRequest,uriConverter);
 		try {
 			uiResults.forward(httpRequest, httpResponse, translated);
@@ -278,9 +292,10 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 			wbRequest = parser.parse(httpRequest, this);
 
 			if(wbRequest != null) {
-				wbRequest.setAccessPoint(this);
 				handled = true;
+				wbRequest.setAccessPoint(this);
 				wbRequest.setContextPrefix(getAbsoluteLocalPrefix(httpRequest));
+				wbRequest.fixup(httpRequest);
 				if(authentication != null) {
 					if(!authentication.isTrue(wbRequest)) {
 						throw new AuthenticationControlException("Not authorized");
@@ -484,5 +499,13 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 
 	public void setException(ExceptionRenderer exception) {
 		this.exception = exception;
+	}
+
+	public String getUrlRoot() {
+		return urlRoot;
+	}
+
+	public void setUrlRoot(String urlRoot) {
+		this.urlRoot = urlRoot;
 	}
 }
