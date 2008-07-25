@@ -79,6 +79,11 @@
       <artifactId>spring-beans</artifactId>
       <version>2.5.1</version>
     </dependency>
+    <dependency>
+      <groupId>org.beanshell</groupId>
+      <artifactId>bsh</artifactId>
+      <version>2.0b4</version>
+    </dependency>
     <!-- 
       Doh... I'm not sure what package is configuring org.apache.commons-logging
       to use log4j, but it's breaking some command line tools.
