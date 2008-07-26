@@ -45,7 +45,6 @@ public class LiveWebLocalResourceIndex extends LocalResourceIndex {
 	 * @throws IOException 
 	 * @throws UnsupportedOperationException 
 	 */
-	@SuppressWarnings("unchecked")
 	public void addSearchResult(CaptureSearchResult result) 
 	throws UnsupportedOperationException, IOException {
 		
