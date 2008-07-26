@@ -152,7 +152,6 @@ public class AlphaPartitionedIndex implements ResourceIndex {
 		}
 	}
 	
-	@SuppressWarnings("unchecked")
 	protected RangeGroup getRangeGroupForRequest(WaybackRequest wbRequest)
 		throws BadQueryException, ResourceIndexNotAvailableException {
 		
