@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-modules id="moduleCoreId" project-version="1.5.0">
+<wb-module deploy-name="wayback">
+<wb-resource deploy-path="/" source-path="/wayback-webapp/src/main/webapp"/>
+<wb-resource deploy-path="/WEB-INF/classes" source-path="/wayback-core/src/main/java"/>
+<wb-resource deploy-path="/WEB-INF/classes" source-path="/wayback-core/src/test/java"/>
+<wb-resource deploy-path="/WEB-INF/classes" source-path="/wayback-mapreduce-prereq/src/main/java"/>
+<wb-resource deploy-path="/WEB-INF/classes" source-path="/wayback-webapp/src/main/java"/>
+<wb-resource deploy-path="/WEB-INF/classes" source-path="/wayback-webapp/src/test/java"/>
+<property name="context-root"/>
+<property name="java-output-path"/>
+</wb-module>
+</project-modules>
