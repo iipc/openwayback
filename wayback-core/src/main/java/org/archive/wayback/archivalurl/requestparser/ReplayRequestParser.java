@@ -66,6 +66,9 @@ public class ReplayRequestParser extends PathRequestParser {
 			if (dateStr.length() == 14) {
 				startDate = getEarliestTimestamp();
 				endDate = getLatestTimestamp();
+				if(endDate == null) {
+					endDate = Timestamp.currentTimestamp().getDateStr();
+				}
 			} else {
 
 				// classic behavior:
