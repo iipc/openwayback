@@ -30,13 +30,10 @@ String resultUrl = result.getOriginalUrl();
 
 String wmNotice = fmt.format("ReplayView.banner", resultUrl, resultDate);
 String wmHideNotice = fmt.format("ReplayView.bannerHideLink");
-
-String contextRoot = request.getScheme() + "://" + request.getServerName() + ":"
-+ request.getServerPort() + request.getContextPath();
-String jsUrl = contextRoot + "/replay/disclaim.js";
+String contextRoot = results.getWbRequest().getContextPrefix();
 %>
 <script type="text/javascript">
   var wmNotice = "<%= wmNotice %><%= dupeMsg %>";
   var wmHideNotice = "<%= wmHideNotice %>";
 </script>
-<script type="text/javascript" src="<%= jsUrl %>"></script>
+<script type="text/javascript" src="<%= contextRoot %>js/disclaim.js"></script>
