@@ -332,6 +332,12 @@ public class WaybackRequest {
 	
 	private static String UI_RESOURCE_BUNDLE_NAME = "WaybackUI";
 
+	private static String STD_LOGGED_IN_VER = "logged-in-ver";
+	private static String STD_LOGGED_IN_NAME = "logged-in-name";
+	private static String STD_LOGGED_IN_USER = "logged-in-user";
+	private static String STD_PHP_SESSION_ID = "PHPSESSID";
+	private static String STD_J_SESSION_ID = "JSESSIONID";
+	
 	/**
 	 * set of filter keys that are not forwarded to subsequent paginated 
 	 * requests.
@@ -344,7 +350,12 @@ public class WaybackRequest {
 			REQUEST_WAYBACK_CONTEXT,
 			REQUEST_AUTH_TYPE,
 			REQUEST_REMOTE_USER,
-			REQUEST_LOCALE_LANG };
+			REQUEST_LOCALE_LANG,
+			STD_LOGGED_IN_USER,
+			STD_LOGGED_IN_VER,
+			STD_LOGGED_IN_NAME,
+			STD_PHP_SESSION_ID,
+			STD_J_SESSION_ID };
 
 	/**
 	 * @return Returns the resultsPerPage.
