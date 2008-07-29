@@ -27,6 +27,7 @@ package org.archive.wayback.resourceindex.cdx;
 
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.util.Adapter;
+import org.archive.wayback.util.url.UrlOperations;
 
 /**
  * Adapter that converts a CDX record String into a CaptureSearchResult
@@ -36,6 +37,43 @@ import org.archive.wayback.util.Adapter;
  */
 public class CDXLineToSearchResultAdapter implements Adapter<String,CaptureSearchResult> {
 
+	
+	private final static String SCHEME_STRING = "://";
+	private final static String DEFAULT_SCHEME = "http://";
+	
+	private static int getEndOfHostIndex(String url) {
+		int portIdx = url.indexOf(UrlOperations.PORT_SEPARATOR);
+		int pathIdx = url.indexOf(UrlOperations.PATH_START);
+		if(portIdx == -1 && pathIdx == -1) {
+			return url.length();
+		}
+		if(portIdx == -1) {
+			return pathIdx;
+		}
+		if(pathIdx == -1) {
+			return portIdx;
+		}
+		if(pathIdx > portIdx) {
+			return portIdx;
+		} else {
+			return pathIdx;
+		}
+	}
+
+	/* (non-Javadoc)
+	 * @see org.archive.wayback.util.Adapter#adapt(java.lang.Object)
+	 */
+	public CaptureSearchResult adapt(CaptureSearchResult o) {
+		String urlKey = o.getUrlKey();
+		StringBuilder sb = new StringBuilder(urlKey.length());
+		sb.append(DEFAULT_SCHEME);
+		sb.append(o.getOriginalUrl());
+		sb.append(urlKey.substring(getEndOfHostIndex(urlKey)));
+		o.setOriginalUrl(sb.toString());
+		return o;
+	}
+	
+	
 	public CaptureSearchResult adapt(String line) {
 		return doAdapt(line);
 	}
@@ -53,6 +91,15 @@ public class CDXLineToSearchResultAdapter implements Adapter<String,CaptureSearc
 		String urlKey = tokens[0];
 		String captureTS = tokens[1];
 		String originalUrl = tokens[2];
+		
+		// convert from ORIG_HOST to ORIG_URL here:
+		if(!originalUrl.contains(SCHEME_STRING)) {
+			StringBuilder sb = new StringBuilder(urlKey.length());
+			sb.append(DEFAULT_SCHEME);
+			sb.append(originalUrl);
+			sb.append(urlKey.substring(getEndOfHostIndex(urlKey)));
+			originalUrl = sb.toString();
+		}
 		String mimeType = tokens[3];
 		String httpCode = tokens[4];
 		String digest = tokens[5];
