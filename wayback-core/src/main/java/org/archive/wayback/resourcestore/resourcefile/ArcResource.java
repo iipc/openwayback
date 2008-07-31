@@ -7,7 +7,7 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Logger;
+//import java.util.logging.Logger;
 
 import org.apache.commons.httpclient.Header;
 import org.archive.io.ArchiveRecord;
@@ -19,8 +19,8 @@ public class ArcResource extends Resource {
 	/**
 	 * Logger for this class
 	 */
-	private static final Logger LOGGER = Logger.getLogger(ArcResource.class
-			.getName());
+//	private static final Logger LOGGER = Logger.getLogger(ArcResource.class
+//			.getName());
 
 	/**
 	 * String prefix for ARC file related metadata namespace of keys within 
@@ -157,7 +157,7 @@ public class ArcResource extends Resource {
 		arcRecord.close();
 		if(arcReader != null) {
 			arcReader.close();
-			LOGGER.info("closed..("+arcReader+")");
+//			LOGGER.fine("closed..("+arcReader+")");
 		}
 	}
 	
