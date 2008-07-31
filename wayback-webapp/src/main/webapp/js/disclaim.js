@@ -1,26 +1,3 @@
-
-var interceptRunAlready = false;
-function intercept_js_href_iawm(destination) {
-	if(!interceptRunAlready &&top.location.href != destination) {
-		interceptRunAlready = true;
-		top.location.href = sWayBackCGI+xResolveUrl(destination);
-	}
-} 
-// ie triggers
-href_iawmWatcher = document.createElement("a");
-top.location.href_iawm = top.location.href;
-if(href_iawmWatcher.setExpression) {
-	href_iawmWatcher.setExpression("dummy","intercept_js_href_iawm(top.location.href_iawm)");
-}
-// mozilla triggers
-function intercept_js_moz(prop,oldval,newval) {
-	intercept_js_href_iawm(newval);
-	return newval;
-}
-if(top.location.watch) {
-	top.location.watch("href_iawm",intercept_js_moz);
-}
-
 var notice = 
      "<div style='" +
      "position:relative;z-index:99999;"+
