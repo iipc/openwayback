@@ -91,6 +91,9 @@ public class TextDocument {
 	private boolean isCharsetSupported(String charsetName) {
 		// can you believe that this throws a runtime? Just asking if it's
 		// supported!!?! They coulda just said "no"...
+		if(charsetName == null) {
+			return false;
+		}
 		try {
 			return Charset.isSupported(charsetName);
 		} catch(IllegalCharsetNameException e) {
@@ -192,8 +195,10 @@ public class TextDocument {
 
 	    // (5)
 	    detector.reset();
-
-		return charsetName;
+	    if(isCharsetSupported(charsetName)) {
+	    	return charsetName;
+	    }
+	    return null;
 	}
 
 	/**
