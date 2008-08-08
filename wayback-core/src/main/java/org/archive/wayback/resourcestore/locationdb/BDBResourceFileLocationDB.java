@@ -86,16 +86,16 @@ public class BDBResourceFileLocationDB implements ResourceFileLocationDB {
 	}
 	
 	public void init() throws IOException {
-		if(logPath == null) {
-			throw new IOException("No logPath");
-		}
-		log = new ResourceFileLocationDBLog(logPath);
 		bdb = new BDBRecordSet();
 		try {
 			bdb.initializeDB(bdbPath,bdbName);
 		} catch (DatabaseException e) {
 			throw wrapDBException(e);
 		}
+		if(logPath == null) {
+			throw new IOException("No logPath");
+		}
+		log = new ResourceFileLocationDBLog(logPath);
 	}
 
 	/**
