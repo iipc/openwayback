@@ -758,34 +758,34 @@ public class WaybackRequest {
 	 */
 	public void fixup(HttpServletRequest httpRequest) {
 		extractHttpRequestInfo(httpRequest);
-		String startDate = get(REQUEST_START_DATE);
-		String endDate = get(REQUEST_END_DATE);
-		String exactDate = get(REQUEST_EXACT_DATE);
-		String partialDate = get(REQUEST_DATE);
-		if (partialDate == null) {
-			partialDate = "";
-		}
-		if (startDate == null || startDate.length() == 0) {
-			put(REQUEST_START_DATE, Timestamp
-					.padStartDateStr(partialDate));
-		} else if (startDate.length() < 14) {
-			put(REQUEST_START_DATE, Timestamp
-					.padStartDateStr(startDate));
-		}
-		if (endDate == null || endDate.length() == 0) {
-			put(REQUEST_END_DATE, Timestamp
-					.padEndDateStr(partialDate));
-		} else if (endDate.length() < 14) {
-			put(REQUEST_END_DATE, Timestamp
-					.padEndDateStr(endDate));
-		}
-		if (exactDate == null || exactDate.length() == 0) {
-			put(REQUEST_EXACT_DATE, Timestamp
-					.padEndDateStr(partialDate));
-		} else if (exactDate.length() < 14) {
-			put(REQUEST_EXACT_DATE, Timestamp
-					.padEndDateStr(exactDate));
-		}
+//		String startDate = get(REQUEST_START_DATE);
+//		String endDate = get(REQUEST_END_DATE);
+//		String exactDate = get(REQUEST_EXACT_DATE);
+//		String partialDate = get(REQUEST_DATE);
+//		if (partialDate == null) {
+//			partialDate = "";
+//		}
+//		if (startDate == null || startDate.length() == 0) {
+//			put(REQUEST_START_DATE, Timestamp
+//					.padStartDateStr(partialDate));
+//		} else if (startDate.length() < 14) {
+//			put(REQUEST_START_DATE, Timestamp
+//					.padStartDateStr(startDate));
+//		}
+//		if (endDate == null || endDate.length() == 0) {
+//			put(REQUEST_END_DATE, Timestamp
+//					.padEndDateStr(partialDate));
+//		} else if (endDate.length() < 14) {
+//			put(REQUEST_END_DATE, Timestamp
+//					.padEndDateStr(endDate));
+//		}
+//		if (exactDate == null || exactDate.length() == 0) {
+//			put(REQUEST_EXACT_DATE, Timestamp
+//					.padEndDateStr(partialDate));
+//		} else if (exactDate.length() < 14) {
+//			put(REQUEST_EXACT_DATE, Timestamp
+//					.padEndDateStr(exactDate));
+//		}
 	}
 
 	/**
