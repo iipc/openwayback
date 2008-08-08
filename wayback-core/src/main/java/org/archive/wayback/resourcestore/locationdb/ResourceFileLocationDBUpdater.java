@@ -168,7 +168,7 @@ public class ResourceFileLocationDBUpdater implements Shutdownable {
 					}
 					sleep(sleepInterval);
 				} catch (InterruptedException e) {
-					e.printStackTrace();
+					LOGGER.info("Shutting Down.");
 					return;
 				} catch (IOException e) {
 					e.printStackTrace();

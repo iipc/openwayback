@@ -87,7 +87,9 @@ public class IndexQueueUpdater implements Shutdownable {
 			CloseableIterator<String> newNames = 
 				db.getNamesBetweenMarks(lastMarkPoint, currentMarkPoint);
 			while(newNames.hasNext()) {
-				queue.enqueue(newNames.next());
+				String newName = newNames.next();
+				LOGGER.info("Queued " + newName + " for indexing.");
+				queue.enqueue(newName);
 				added++;
 			}
 			newNames.close();
@@ -143,15 +145,13 @@ public class IndexQueueUpdater implements Shutdownable {
 					int updated = updater.updateQueue();
 					
 					if(updated > 0) {
-						LOGGER.info("Updated " + updated + " files..");
 						sleepInterval = runInterval;
 					} else {
-						LOGGER.info("Updated ZERO files..");
 						sleepInterval += runInterval;
 					}
 					sleep(sleepInterval);
 				} catch (InterruptedException e) {
-					e.printStackTrace();
+					LOGGER.info("Shutting Down.");
 					return;
 				} catch (IOException e) {
 					e.printStackTrace();

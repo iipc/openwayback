@@ -304,7 +304,7 @@ public class LocalResourceIndexUpdater implements Shutdownable {
 						sleepInterval = runInterval;
 					}
 				} catch (InterruptedException e) {
-					e.printStackTrace();
+					LOGGER.info("Shutting Down.");
 					return;
 				}
 			}

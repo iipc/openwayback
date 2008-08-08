@@ -125,7 +125,7 @@ public class ResourceFileSourceUpdater implements Shutdownable {
 								". Not sleeping.");
 					}
 				} catch (InterruptedException e) {
-					e.printStackTrace();
+					LOGGER.info("Shutting Down.");
 					return;
 				}
 			}

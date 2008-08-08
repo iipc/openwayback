@@ -103,6 +103,7 @@ public class IndexWorker implements Shutdownable {
 			try {
 				if(pathsOrUrls != null) {
 					for(String pathOrUrl : pathsOrUrls) {
+						LOGGER.info("Indexing " + name + " from " + pathOrUrl);
 						CloseableIterator<CaptureSearchResult> itr = indexFile(pathOrUrl);
 						target.addSearchResults(name, itr);
 						itr.close();
@@ -151,17 +152,15 @@ public class IndexWorker implements Shutdownable {
 					boolean worked = worker.doWork();
 					
 					if(worked) {
-						LOGGER.info("Did work, no sleep..");
 						sleepInterval = 0;
 					} else {
-						LOGGER.info("No Work to do - sleeping..");
 						sleepInterval += runInterval;
 					}
 					if(sleepInterval > 0) {
 						sleep(sleepInterval);
 					}
 				} catch (InterruptedException e) {
-					e.printStackTrace();
+					LOGGER.info("Shutting Down.");
 					return;
 				} catch (IOException e) {
 					e.printStackTrace();
