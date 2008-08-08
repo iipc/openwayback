@@ -29,6 +29,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * Local directory tree holding ARC and WARC files.
@@ -37,6 +38,8 @@ import java.util.List;
  * @version $Date$, $Revision$
  */
 public class DirectoryResourceFileSource implements ResourceFileSource {
+	private static final Logger LOGGER =
+        Logger.getLogger(DirectoryResourceFileSource.class.getName());
 
 	private static char SEPRTR = '_';
 	private String name = null;
@@ -68,16 +71,22 @@ public class DirectoryResourceFileSource implements ResourceFileSource {
 	 */
 	private void populateFileList(ResourceFileList list, File root, boolean recurse) 
 	throws IOException {
-		
-		File[] files = root.listFiles();
-		for(File file : files) {
-			if(file.isFile() && filter.accept(root, file.getName())) {
-				ResourceFileLocation location = new ResourceFileLocation(
-						file.getName(),file.getAbsolutePath());
-				list.add(location);
-			} else if(recurse && file.isDirectory()){
-				populateFileList(list, file, recurse);
+		if(root.isDirectory()) {
+			File[] files = root.listFiles();
+			if(files != null) {
+				for(File file : files) {
+					if(file.isFile() && filter.accept(root, file.getName())) {
+						ResourceFileLocation location = new ResourceFileLocation(
+								file.getName(),file.getAbsolutePath());
+						list.add(location);
+					} else if(recurse && file.isDirectory()){
+						populateFileList(list, file, recurse);
+					}
+				}
 			}
+		} else {
+			LOGGER.warning(root.getAbsolutePath() +	" is not a directory.");
+			return;
 		}
 	}
 	
