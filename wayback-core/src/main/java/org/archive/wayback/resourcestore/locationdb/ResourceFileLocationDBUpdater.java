@@ -90,8 +90,9 @@ public class ResourceFileLocationDBUpdater implements Shutdownable {
 			if(update.getName().endsWith(TMP_SUFFIX)) {
 				continue;
 			}
-			updated++;
-			synchronize(update);
+			if(synchronize(update)) {
+				updated++;
+			}
 		}
 		return updated;
 	}
@@ -160,10 +161,8 @@ public class ResourceFileLocationDBUpdater implements Shutdownable {
 					int updated = updater.synchronizeIncoming();
 					
 					if(updated > 0) {
-						LOGGER.info("Updated " + updated + " files..");
 						sleepInterval = runInterval;
 					} else {
-						LOGGER.info("Updated ZERO files..");
 						sleepInterval += runInterval;
 					}
 					sleep(sleepInterval);
