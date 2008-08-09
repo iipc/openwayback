@@ -23,6 +23,17 @@
     </property>
   </bean>
 
+
+<!--
+      <property name="annotater">
+        <bean class="org.archive.wayback.resourceindex.filters.OracleAnnotationFilter">
+          <property name="oracleUrl" value="http://localhost:8180/oracle/" />
+          <property name="who" value="annotation" />
+        </bean>
+      </property>
+-->
+
+
 <!-- ResourceIndex templates -->
 
   <bean id="remoteindex" class="org.archive.wayback.resourceindex.RemoteResourceIndex" init-method="init">
