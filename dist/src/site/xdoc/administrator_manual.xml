@@ -53,7 +53,7 @@
 	      <p>
 	        Once you have downloaded the .tar.gz file from 
 	        sourceforge, you will need to unpack the file to access the
-	        webapp file, <b>wayback.war</b>.
+	        webapp file, <b>wayback-webapp-1.4.0.war</b>.
 	      </p>
 		    <p>
 	        Installation and configuration of this software involves the
@@ -110,176 +110,23 @@
 	class=&quot;org.archive.wayback.webapp.WaybackCollection&quot;&gt;
 	&lt;property name=&quot;resourceStore&quot; ... /&gt;
 	&lt;property name=&quot;resourceIndex&quot; ... /&gt;
+	&lt;property name=&quot;shutdownables&quot; ... /&gt;
 &lt;/bean&gt;
 
         </pre>
       </p>
       <p>
-        The resourceStore property refers to a bean implementing org.archive.wayback.ResourceStore.
+        The resourceStore property refers to a bean implementing 
+        <a href="resource_store.html">org.archive.wayback.ResourceStore</a>.
       </p>
       <p>
-        The resourceIndex property refers to a bean implementing org.archive.wayback.ResourceIndex.
+        The resourceIndex property refers to a bean implementing 
+        <a href="resource_index.html">org.archive.wayback.ResourceIndex</a>.
       </p>
-		</section>
-
-
-
-    <section name="org.archive.wayback.ResourceStore implementations">
-
-
-      <subsection name="LocalResourceStore">
-	      <p>
-					This implementation works well for small
-					collections, where all the ARC/WARC files can be placed in a single 
-					directory on the same computer running the wayback application.
-					Using NFS or another network filesystem technology and symbolic 
-					links can allow this implementation to deal with files in
-					multiple directories, or across multiple storage nodes. This
-					implementation also includes the capability to run a background
-					thread to automatically notice new ARC/WARC files appearing, index
-					those files, and hand off the index data for merging with
-					a BDBResourceIndex. When using automatic indexing, any files added to
-					the 'dataDir' will automatically be indexed and queued for merging 
-					with the ResourceIndex. Please see documentation for the 
-					BDBResourceIndex for information on configuring automatic merging of
-					indexed data with a BDBResourceIndex.
-        </p>
-        <p>
-          The XML configuration template for a LocalResourceStore follows:
-          <pre>
-
-&lt;property name="resourceStore"&gt;
-  &lt;bean class="org.archive.wayback.resourcestore.LocalResourceStore"
-    init-method="init"&gt;
-
-    &lt;property name="dataDir" value="/tmp/wayback/arcs/" /&gt;
-
-    &lt;property name="indexThread"&gt;
-      &lt;bean class="org.archive.wayback.resourcestore.AutoIndexThread"&gt;
-        &lt;property name="queuedDir" value="/tmp/wayback/arc-indexer/queued" /&gt;
-        &lt;property name="workDir" value="/tmp/wayback/arc-indexer/work" /&gt;
-        &lt;property name="runInterval" value="10000" /&gt;
-        &lt;property name="indexClient"&gt;
-          &lt;bean class="org.archive.wayback.resourceindex.indexer.IndexClient"&gt;
-            &lt;property name="tmpDir" value="/tmp/wayback/arc-indexer/tmp" /&gt;
-            &lt;property name="target" value="/tmp/wayback/index-data/incoming" /&gt;
-          &lt;/bean&gt;
-        &lt;/property&gt;
-      &lt;/bean&gt;
-    &lt;/property&gt;
-  &lt;/bean&gt;
-&lt;/property&gt;
-
-		      </pre>
-        </p>
-        <p>
-          Required configuration:
-          <ul>
-            <li>
-              <b>
-                dataDir
-              </b>
-              is the local directory where ARC files will be 
-              located.
-            </li>
-          </ul>
-        </p>
-        <p>
-          Optional configuration (only needed if the indexThread property-bean
-          is specified, for automatic indexing)
-          <ul>
-            <li>
-              <b>
-                queuedDir
-              </b>
-              names a local directory where the indexer will maintain state
-              about ARC files that have already been indexed.
-            </li>
-            <li>
-              <b>
-                workDir
-              </b>
-              names a local directory where the indexer will maintain state
-              about ARC files that are about to be indexed.
-            </li>
-            <li>
-              <b>
-                runInterval
-              </b>
-              indicates the number of milliseconds between polling arcDir
-              for newly created ARC files. Default is 10000.
-            </li>
-            <li>
-              <b>
-                tmpDir
-              </b>
-              names a local directory where index data will be stored
-              temporarily before handing off to <b>target</b>.
-            </li>
-            <li>
-              <b>
-                target
-              </b>
-              names:
-              <ol>
-                <li>
-                  a local directory where an BDBIndexUpdater is configured to
-                  look for new index data to be merged with a BDBIndex.
-                </li>
-                <li>
-                  a remote http:// URL where index data should be PUT, for 
-                  merging with a remote BDBIndex.
-                </li>
-              </ol>
-            </li>
-          </ul>
-        </p>
-        <p>
-          <b>Note:</b> upgrading from Wayback 1.0 to 1.2 requires changing
-          ResourceStore implementations from <b>LocalARCResourceStore</b> to
-          <b>LocalResourceStore</b>. <b>LocalARCResourceStore</b> is now
-          deprecated.
-        </p>
-      </subsection>
-
-
-      <subsection name="Http11ResourceStore">
-        <p>
-	        This implementation allows the wayback application to access 
-	        documents in remote ARC/WARC files via HTTP 1.1, and scales to
-	        millions of ARC/WARC files.
-        </p>
-	      <p>
-	        The XML configuration template for an Http11ResourceStore follows:
-	        <pre>
-
-&lt;property name="resourceStore"&gt;
-  &lt;bean class="org.archive.wayback.resourcestore.Http11ResourceStore"&gt;
-    &lt;property name="urlPrefix" value="http://localhost:8080/arcproxy/" /&gt;
-  &lt;/bean&gt;
-&lt;/property&gt;
-
-	        </pre>
-	      </p>
-	      <p>
-	        Required configuration:
-	        <ul>
-	          <li>
-	            <b>
-	              urlPrefix
-	            </b>
-	            this is the http:// prefix where ARC/WARC files are exported with
-	            an ArcProxy installation. See elsewhere in this document for 
-	            information about setting up an ArcProxy.
-	          </li>
-	        </ul>
-	      </p>
-	    </subsection>
-
-
-	  </section>
-
-
+      <p>
+        The shutdownables property refers to a list of beans implementing org.archive.wayback.Shutdownable, typically worker Threads performing automatic updates of the Collection.
+      </p>
+	</section>
 
     <section name="org.archive.wayback.ResourceIndex implementations">
 
