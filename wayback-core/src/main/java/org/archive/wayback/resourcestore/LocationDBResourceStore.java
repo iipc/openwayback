@@ -42,7 +42,7 @@ import org.archive.wayback.resourcestore.resourcefile.ResourceFactory;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class LocalResourceFileResourceStore implements ResourceStore {
+public class LocationDBResourceStore implements ResourceStore {
 
 	private ResourceFileLocationDB db = null;
 

@@ -25,7 +25,6 @@
 package org.archive.wayback.resourcestore;
 
 import java.io.IOException;
-import java.net.URL;
 
 import org.archive.wayback.ResourceStore;
 import org.archive.wayback.core.Resource;
@@ -44,9 +43,9 @@ import org.archive.wayback.resourcestore.resourcefile.ResourceFactory;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class Http11ResourceStore implements ResourceStore {
+public class SimpleResourceStore implements ResourceStore {
 
-	private String urlPrefix = null;
+	private String prefix = null;
 
 
 	public Resource retrieveResource(CaptureSearchResult result) throws IOException, 
@@ -66,11 +65,11 @@ public class Http11ResourceStore implements ResourceStore {
 			fileName = fileName + ArcWarcFilenameFilter.ARC_GZ_SUFFIX;
 		}
 				
-		String fileUrl = urlPrefix + fileName;
+		String fileUrl = prefix + fileName;
 		Resource r = null;
 		try {
 
-			r = ResourceFactory.getResource(new URL(fileUrl), offset);
+			r = ResourceFactory.getResource(fileUrl, offset);
 
 		} catch (IOException e) {
 
@@ -82,17 +81,17 @@ public class Http11ResourceStore implements ResourceStore {
 	}
 
 	/**
-	 * @return the urlPrefix
+	 * @return the prefix
 	 */
-	public String getUrlPrefix() {
-		return urlPrefix;
+	public String getPrefix() {
+		return prefix;
 	}
 
 	/**
-	 * @param urlPrefix the urlPrefix to set
+	 * @param prefix the prefix to set
 	 */
-	public void setUrlPrefix(String urlPrefix) {
-		this.urlPrefix = urlPrefix;
+	public void setPrefix(String prefix) {
+		this.prefix = prefix;
 	}
 
 	public void shutdown() throws IOException {

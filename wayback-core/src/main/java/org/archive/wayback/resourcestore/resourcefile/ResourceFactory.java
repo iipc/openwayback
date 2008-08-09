@@ -23,6 +23,16 @@ import org.archive.wayback.exception.ResourceNotAvailableException;
  */
 public class ResourceFactory {
 
+	public static Resource getResource(String urlOrPath, long offset)
+	throws IOException, ResourceNotAvailableException {
+		if(urlOrPath.startsWith("http://")) {
+			return getResource(new URL(urlOrPath), offset);
+		} else {
+			// assume local path:
+			return getResource(new File(urlOrPath), offset);
+		}
+	}
+
 	public static Resource getResource(File file, long offset)
 			throws IOException, ResourceNotAvailableException {
 
