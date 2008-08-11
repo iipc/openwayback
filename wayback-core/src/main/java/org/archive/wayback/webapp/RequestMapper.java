@@ -27,7 +27,6 @@ package org.archive.wayback.webapp;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -35,6 +34,7 @@ import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 
 import org.archive.wayback.exception.ConfigurationException;
+import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.beans.factory.xml.XmlBeanFactory;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -55,12 +55,7 @@ public class RequestMapper {
 	
 	private final static String PORT_SEPARATOR = ":";
 	
-	private final static String ACCESS_POINT_CLASSNAME =
-		"org.archive.wayback.webapp.AccessPoint";
-
 	private final static String CONFIG_PATH = "config-path";
-//	private WaybackContext defaultContext = null;
-//	private ServletContext servletContext = null;
 	
 	private XmlBeanFactory factory = null;
 	/**
@@ -68,9 +63,9 @@ public class RequestMapper {
 	 * @param servletContext
 	 * @throws ConfigurationException 
 	 */
+	@SuppressWarnings("unchecked")
 	public RequestMapper(ServletContext servletContext) throws ConfigurationException {
 		
-//		this.servletContext = servletContext;
 		String configPath = servletContext.getInitParameter(CONFIG_PATH);
 		if(configPath == null) {
 			throw new ConfigurationException("Missing " + CONFIG_PATH 
@@ -79,6 +74,13 @@ public class RequestMapper {
 		String resolvedPath = servletContext.getRealPath(configPath);
 		Resource resource = new FileSystemResource(resolvedPath);
 		factory = new XmlBeanFactory(resource);
+		Map map = factory.getBeansOfType(PropertyPlaceholderConfigurer.class);
+		if(map != null) {
+			Collection<PropertyPlaceholderConfigurer> macros = map.values();
+			for(PropertyPlaceholderConfigurer macro : macros) {
+				macro.postProcessBeanFactory(factory);
+			}
+		}
 		factory.preInstantiateSingletons();
 	}
 	
@@ -130,21 +132,14 @@ public class RequestMapper {
 		return context;
 	}
 
-	@SuppressWarnings("unchecked")
 	public ArrayList<String> getAccessPointNamesOnPort(String portStr) {
 		ArrayList<String> names = new ArrayList<String>();
-		try {
-			Class accessPointClass = Class.forName(ACCESS_POINT_CLASSNAME);
-			String[] apNames = factory.getBeanNamesForType(accessPointClass);
-			String portStrColon = portStr + ":";
-			for(String apName : apNames) {
-				if(apName.startsWith(portStrColon)) {
-					names.add(apName.substring(portStrColon.length()));
-				}
+		String[] apNames = factory.getBeanNamesForType(AccessPoint.class);
+		String portStrColon = portStr + ":";
+		for(String apName : apNames) {
+			if(apName.startsWith(portStrColon)) {
+				names.add(apName.substring(portStrColon.length()));
 			}
-		} catch (ClassNotFoundException e) {
-			// boy, we're in trouble now..
-			e.printStackTrace();
 		}
 		return names;
 	}
@@ -154,16 +149,13 @@ public class RequestMapper {
 	@SuppressWarnings("unchecked")
 	public void destroy() {
 		LOGGER.info("shutting down contexts...");
-		Class accessPointClass;
-		try {
-			accessPointClass = Class.forName(ACCESS_POINT_CLASSNAME);
-			Map beanMap = factory.getBeansOfType(accessPointClass);
-			Iterator beanNameItr = beanMap.keySet().iterator();
-			Collection accessPoints = beanMap.values();
-			while(beanNameItr.hasNext()) {
-				String apName = (String) beanNameItr.next();
-				AccessPoint ap = (AccessPoint) beanMap.get(apName);
+		Map beanMap = factory.getBeansOfType(AccessPoint.class);
+		Collection accessPoints = beanMap.values();
+		for(Object o : accessPoints) {
+			if(o instanceof AccessPoint) {
+				AccessPoint ap = (AccessPoint) o;
 				try {
+					String apName = ap.getBeanName();
 					LOGGER.info("Shutting down AccessPoint " + apName);
 					ap.shutdown();
 					LOGGER.info("Successfully shut down " + apName);
@@ -171,21 +163,6 @@ public class RequestMapper {
 					e.printStackTrace();
 				}
 			}
-			for(Object o : accessPoints) {
-				if(o instanceof AccessPoint) {
-					AccessPoint ap = (AccessPoint) o;
-					try {
-						ap.shutdown();
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-				}
-			}
-			
-		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
-		
 	}
 }
