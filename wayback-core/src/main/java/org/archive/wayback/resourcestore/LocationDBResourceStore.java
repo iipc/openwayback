@@ -49,15 +49,21 @@ public class LocationDBResourceStore implements ResourceStore {
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.ResourceStore#retrieveResource(org.archive.wayback.core.SearchResult)
 	 */
-	public Resource retrieveResource(CaptureSearchResult result) throws IOException,
-			ResourceNotAvailableException {
+	public Resource retrieveResource(CaptureSearchResult result) 
+		throws ResourceNotAvailableException {
 		// extract ARC filename
 		String fileName = result.getFile();
 		if(fileName == null || fileName.length() < 1) {
-			throw new IOException("No ARC/WARC name in search result...");
+			throw new ResourceNotAvailableException("No ARC/WARC name in search result...");
 		}
 
-		String urls[] = db.nameToUrls(fileName);
+		String urls[];
+		try {
+			urls = db.nameToUrls(fileName);
+		} catch (IOException e1) {
+			e1.printStackTrace();
+			throw new ResourceNotAvailableException(e1.getLocalizedMessage());
+		}
 		if(urls == null || urls.length == 0) {
 			throw new ResourceNotAvailableException("Unable to locate(" +
 					fileName + ")");

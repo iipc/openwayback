@@ -41,11 +41,10 @@ public interface ResourceStore {
 	 * 
 	 * @param result
 	 * @return Resource object retrieved for the SearchResult
-	 * @throws IOException
 	 * @throws ResourceNotAvailableException 
 	 */
-	public Resource retrieveResource(CaptureSearchResult result) throws IOException, 
-		ResourceNotAvailableException;
+	public Resource retrieveResource(CaptureSearchResult result) 
+		throws ResourceNotAvailableException;
 
 	public void shutdown() throws IOException;
 }

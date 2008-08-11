@@ -48,13 +48,13 @@ public class SimpleResourceStore implements ResourceStore {
 	private String prefix = null;
 
 
-	public Resource retrieveResource(CaptureSearchResult result) throws IOException, 
-		ResourceNotAvailableException {
+	public Resource retrieveResource(CaptureSearchResult result)
+		throws ResourceNotAvailableException {
 
 		// extract ARC filename
 		String fileName = result.getFile();
 		if(fileName == null || fileName.length() < 1) {
-			throw new IOException("No ARC/WARC name in search result...");
+			throw new ResourceNotAvailableException("No ARC/WARC name in search result...");
 		}
 
 		final long offset = result.getOffset();
