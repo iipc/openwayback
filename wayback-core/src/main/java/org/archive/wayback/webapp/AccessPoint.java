@@ -81,6 +81,7 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 	private boolean useServerName = false;
 	private int contextPort = 0;
 	private String contextName = null;
+	private String beanName = null;
 	private WaybackCollection collection = null;
 	private ReplayDispatcher replay = null;
 	private ExceptionRenderer exception = new BaseExceptionRenderer();
@@ -112,7 +113,7 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 	 * @see org.springframework.beans.factory.BeanNameAware#setBeanName(java.lang.String)
 	 */
 	public void setBeanName(String beanName) {
-		// TODO Auto-generated method stub
+		this.beanName = beanName;
 		this.contextName = "";
 		int idx = beanName.indexOf(":");
 		if(idx > -1) {
@@ -125,6 +126,9 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 				e.printStackTrace();
 			}
 		}
+	}
+	public String getBeanName() {
+		return beanName;
 	}
 	/**
 	 * @param httpRequest
