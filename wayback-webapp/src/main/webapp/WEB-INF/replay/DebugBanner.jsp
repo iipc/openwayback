@@ -1,18 +1,30 @@
-<%@ page language="java" pageEncoding="utf-8" contentType="text/html;charset=utf-8"%>
-<%@ page import="java.util.Date" %>
-<%@ page import="java.util.Map" %>
-<%@ page import="java.util.Set" %>
-<%@ page import="java.util.Iterator" %>
-<%@ page import="org.archive.wayback.WaybackConstants" %>
-<%@ page import="org.archive.wayback.core.CaptureSearchResult" %>
-<%@ page import="org.archive.wayback.core.CaptureSearchResults" %>
-<%@ page import="org.archive.wayback.core.SearchResult" %>
-<%@ page import="org.archive.wayback.core.UIResults" %>
-<%@ page import="org.archive.wayback.core.WaybackRequest" %>
-<%@ page import="org.archive.wayback.util.StringFormatter" %>
-<%@ page import="org.archive.wayback.util.html.SelectHTML" %>
-<jsp:include page="/WEB-INF/template/CookieJS.jsp" flush="true" />
-<%
+<%@
+ page language="java" pageEncoding="utf-8" contentType="text/html;charset=utf-8"
+%><%@
+ page import="java.util.Date"
+%><%@
+ page import="java.util.Map"
+%><%@
+ page import="java.util.Set"
+%><%@
+ page import="java.util.Iterator"
+%><%@
+ page import="org.archive.wayback.WaybackConstants"
+%><%@
+ page import="org.archive.wayback.core.CaptureSearchResult"
+%><%@
+ page import="org.archive.wayback.core.CaptureSearchResults"
+%><%@
+ page import="org.archive.wayback.core.SearchResult"
+%><%@
+ page import="org.archive.wayback.core.UIResults"
+%><%@
+ page import="org.archive.wayback.core.WaybackRequest"
+%><%@
+ page import="org.archive.wayback.util.StringFormatter"
+%><%@
+ page import="org.archive.wayback.util.html.SelectHTML"
+%><jsp:include page="/WEB-INF/template/CookieJS.jsp" flush="true" /><%
 SelectHTML window = new SelectHTML("foo");
 window.setProps("onchange=\"SetAnchorWindow(this.value); location.reload(true);\"");
 window.addOption("1 day","86400");
