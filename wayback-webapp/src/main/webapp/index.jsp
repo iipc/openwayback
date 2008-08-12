@@ -4,14 +4,14 @@
 <jsp:include page="/WEB-INF/template/UI-header.jsp" flush="true" />
 <%
 UIResults results = UIResults.getGeneric(request);
-StringFormatter fmt = results.getFormatter();
+StringFormatter fmt = results.getWbRequest().getFormatter();
 Object names = request.getAttribute("AccessPointNames");
 if(names != null) {
 	if(names instanceof ArrayList) {
 		ArrayList<String> accessPoints = (ArrayList<String>) names;
 		if(accessPoints.size() > 0) {
 			%>
-			 You seems to be accessing this Wayback via an incorrect URL. Please try one of the following AccessPoints:<br></br>
+			 You seem to be accessing this Wayback via an incorrect URL. Please try one of the following AccessPoints:<br></br>
 			<%
 		}
 		for(String accessPoint : accessPoints) {
