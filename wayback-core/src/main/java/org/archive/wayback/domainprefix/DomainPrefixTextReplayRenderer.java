@@ -25,6 +25,8 @@
 package org.archive.wayback.domainprefix;
 
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -83,5 +85,20 @@ public class DomainPrefixTextReplayRenderer extends TextReplayRenderer {
 		page.sb.setLength(0);
 		page.sb.ensureCapacity(replaced.length());
 		page.sb.append(replaced);
+
+		List<String> jspInserts = getJspInserts();
+
+		StringBuilder toInsert = new StringBuilder(300);
+
+		if(jspInserts != null) {
+			Iterator<String> itr = jspInserts.iterator();
+			while(itr.hasNext()) {
+				toInsert.append(page.includeJspString(itr.next(), httpRequest, 
+						httpResponse, wbRequest, results, result, resource));
+			}
+		}
+
+		page.insertAtEndOfBody(toInsert.toString());
+
 	}
 }
