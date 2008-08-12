@@ -1,6 +1,8 @@
-<%@ page language="java" pageEncoding="utf-8" contentType="text/html;charset=utf-8"%>
-<%@ page import="org.archive.wayback.core.WaybackRequest" %>
-<script type="text/javascript">
+<%@
+ page language="java" pageEncoding="utf-8" contentType="text/html;charset=utf-8"
+%><%@
+ page import="org.archive.wayback.core.WaybackRequest"
+%><script type="text/javascript">
 function SetCookie(cookieName,cookieValue,nDays) {
   var today = new Date();
   var expire = new Date();
