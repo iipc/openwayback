@@ -286,11 +286,11 @@ public class NutchResourceIndex implements ResourceIndex {
        ms.append("date%3A").append(startDateStr).append('-').append(endDateStr);
        ms.append('+');
        // Add 'url:URL'.
-//       if(wbRequest.isUrlQueryRequest()) {
+       if(wbRequest.isUrlQueryRequest()) {
            ms.append("url%3A");
-//       } else {
-//           ms.append("exacturl%3A");
-//       }
+       } else {
+           ms.append("exacturl%3A");
+       }
        try {
             ms.append(java.net.URLEncoder.encode("\""+urlStr+"\"", "UTF-8"));
        } catch (UnsupportedEncodingException e) {
