@@ -16,6 +16,7 @@
     <property name="jspInserts">
       <list>
         <value>/WEB-INF/replay/ArchiveComment.jsp</value>
+        <value>/WEB-INF/replay/Disclaimer.jsp</value>
 <!--
         <value>/WEB-INF/replay/DebugBanner.jsp</value>
         <value>/WEB-INF/replay/JSLessTimeline.jsp</value>
