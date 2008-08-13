@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd"
+       default-init-method="init">
+
+<!--
+
+	This file contains a WaybackCollection implementation using a manually
+	created and administered CDX index file(s). It also uses the experimental
+	FlatFileResourceFileLocationDB, which enables mapping between ARC/WARC file
+	names and their absolute paths/URLs using a sorted text file 
+	"path-index.txt".
+	
+	The format of the path-index.txt is
+		<NAME><TAB><PATH-OR-URL>
+
+	Be sure to set the environment variable LC_ALL to "C" before sorting CDX
+	files and path-index.txt files.
+
+	All paths in this file reference the Spring property placeholder 
+	"wayback.basedir" defined in wayback.xml. That value may be changed to
+	alter top-level prefixes for these paths, or the values in this file can
+	be changed directly for further flexibility.
+
+-->
+
+  <bean id="localcdxcollection" class="org.archive.wayback.webapp.WaybackCollection">
+
+    <property name="resourceStore">
+      <bean class="org.archive.wayback.resourcestore.LocationDBResourceStore">
+        <property name="db">
+          <bean class="org.archive.wayback.resourcestore.locationdb.FlatFileResourceFileLocationDB">
+            <property name="path" value="${wayback.basedir}/path-index.txt" />
+          </bean>
+        </property>
+      </bean>
+    </property>
+
+    <property name="resourceIndex">
+      <bean class="org.archive.wayback.resourceindex.LocalResourceIndex">
+        <property name="source">
+
+          <bean class="org.archive.wayback.resourceindex.cdx.CDXIndex">
+            <property name="path" value="${wayback.basedir}/cdx-index/index.cdx" />
+          </bean>
+
+<!--
+	A CompositeSearchResultSource example, that allows searching through 
+	multiple sorted CDX files.
+-->
+<!--          
+          <bean class="org.archive.wayback.resourceindex.CompositeSearchResultSource">
+            <property name="CDXSources">
+              <list>
+                <value>${wayback.basedir}/cdx-index/index-1.cdx</value>
+                <value>${wayback.basedir}/cdx-index/index-2.cdx</value>
+              </list>
+            </property>
+          </bean>
+-->      
+        </property>
+        <property name="maxRecords" value="10000" />
+      </bean>
+    </property>
+  </bean>
+
+</beans>

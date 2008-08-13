@@ -53,16 +53,16 @@
   </bean>
 -->
 
-  <import resource="BDBCollection.xml"/>
 
 <!--
 	The XML files indicated in the following import tags contain alternate 
 	example implementations of WaybackCollections.
 -->
-  <import resource="CDXCollection.xml"/>
-  <import resource="RemoteCollection.xml"/>
   <import resource="NutchCollection.xml"/>
 <!--
+  <import resource="BDBCollection.xml"/>
+  <import resource="CDXCollection.xml"/>
+  <import resource="RemoteCollection.xml"/>
 -->
 
 
@@ -79,7 +79,7 @@
 -->
   <import resource="ArchivalUrlReplay.xml"/>
   <bean name="8080:wayback" class="org.archive.wayback.webapp.AccessPoint">
-    <property name="collection" ref="remotecollection" />
+    <property name="collection" ref="localbdbcollection" />
     <property name="replay" ref="archivalurlreplay" />
     <property name="query">
       <bean class="org.archive.wayback.query.Renderer">

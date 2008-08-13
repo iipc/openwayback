@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd"
+       default-init-method="init">
+<!--
+
+    The following WaybackCollection bean is an example using a NutchWAX
+    full-text index with Wayback, using a SimpleResourceStore to access
+    replayed documents. You will need to change searchUrlBase to your local
+    NutchWAX installation.
+
+	Please note that Wayback is supported for use with NutchWax version 0.14.1
+	or higher.
+
+	Please see RemoteCollection.xml for information on the meaning of the
+	SimpleResourceStore definition and options.
+
+	You also need to ensure that the maxRecords on your RequestParser is not
+	greater than the maxRecords configured on the RemoteNutchResourceIndex.
+
+-->
+
+  <bean id="remotenutchcollection" class="org.archive.wayback.webapp.WaybackCollection">
+
+    <property name="resourceStore">
+      <bean class="org.archive.wayback.resourcestore.SimpleResourceStore">
+         <property name="prefix" value="http://wayback.archive-it.org/fileproxy/" />
+      </bean>
+    </property>
+
+    <property name="resourceIndex">
+      <bean class="org.archive.wayback.resourceindex.NutchResourceIndex">
+        <property name="searchUrlBase" value="http://ia400138.us.archive.org:8080/nutch-1.0-dev/opensearch" />
+        <property name="maxRecords" value="100" />
+      </bean>
+    </property>
+  </bean>
+
+</beans>

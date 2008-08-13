@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd"
+       default-init-method="init">
+
+<!--
+
+	This file contains the default WaybackCollection implementation shipped
+	with Wayback. It consists of a LocalResourceIndex using a BDBIndex, and
+	uses several Worker Threads to implement automatic indexing.
+	
+	Several beans defined in this file reference the "resourcefilelocationdb"
+	bean defined in wayback.xml.
+
+	To customize where the automatic indexing system looks for ARC/WARC files,
+	see "resourcefilesourceupdater.sources" within this file.
+
+	To customize the location where the automatic indexing state data is stored
+	you can modify "wayback.basedir" in wayback.xml, or replace the properties
+	in this file for further flexibility.
+
+	For more information about the auto-indexing system, please see:
+
+	http://archive-access.sourceforge.net/projects/wayback/resource_store.html
+
+-->
+
+<!--
+	A LocalResourceIndex bean using a BDBIndex SearchResultSource.
+-->
+  <bean id="localbdbresourceindex" class="org.archive.wayback.resourceindex.LocalResourceIndex">
+    <property name="source">
+      <bean class="org.archive.wayback.resourceindex.bdb.BDBIndex">
+        <property name="bdbName" value="DB1" />
+        <property name="bdbPath" value="${wayback.basedir}/index/" />
+      </bean>
+    </property>
+    <property name="maxRecords" value="10000" />
+  </bean>
+  
+<!--
+	An IndexQueue implementation required for automatic indexing.
+-->
+  <bean id="indexqueue" class="org.archive.wayback.resourcestore.indexer.DirectoryIndexQueue">
+    <property name="path" value="${wayback.basedir}/index-data/queue" />
+  </bean>
+
+  <bean id="localbdbcollection" class="org.archive.wayback.webapp.WaybackCollection">
+
+    <property name="resourceStore">
+      <bean id="localresourcestore" class="org.archive.wayback.resourcestore.LocationDBResourceStore">
+        <property name="db" ref="resourcefilelocationdb" />
+      </bean>
+    </property>
+
+    <property name="resourceIndex" ref="localbdbresourceindex"/>
+
+    <property name="shutdownables">
+      <list>
+         <!-- This thread notices new files appearing in your resourcefilesources -->
+         <bean id="resourcefilesourceupdater" class="org.archive.wayback.resourcestore.resourcefile.ResourceFileSourceUpdater">
+          <property name="target" value="${wayback.basedir}/file-db/incoming" />
+          <property name="interval" value="100000" />
+          <property name="sources">
+            <list>
+              <!--
+              	This example looks for ARC/WARC files recursively under 2 
+              	directories: /tmp/wayback/files1 and /tmp/wayback/files2
+              	You can specify as few or as many ResourceFileSource instances
+              	as needed, but each must have a unique 'name' property.
+              -->
+              <bean class="org.archive.wayback.resourcestore.resourcefile.DirectoryResourceFileSource">
+                <property name="name" value="files1" />
+                <property name="prefix" value="/tmp/wayback/files1/" />
+              </bean>
+              <bean class="org.archive.wayback.resourcestore.resourcefile.DirectoryResourceFileSource">
+                <property name="name" value="files2" />
+                <property name="prefix" value="/tmp/wayback/files2/" />
+              </bean>
+            </list>
+          </property>
+        </bean>
+      
+        <!-- This thread updates the location db with updates from resourcefilesourceupdater -->
+        <bean id="resourcefilelocationdbupdater" class="org.archive.wayback.resourcestore.locationdb.ResourceFileLocationDBUpdater">
+          <property name="interval" value="100000" />
+          <property name="db" ref="resourcefilelocationdb" />
+          <property name="incomingDir" value="${wayback.basedir}/file-db/incoming" />
+          <property name="stateDir" value="${wayback.basedir}/file-db/state" />
+        </bean>
+        
+        <!-- This thread notices new files arriving in the filelocationdb, and queues them for indexing -->
+        <bean id="indexqueueupdater" class="org.archive.wayback.resourcestore.indexer.IndexQueueUpdater">
+          <property name="db" ref="resourcefilelocationdb" />
+          <property name="queue" ref="indexqueue" />
+          <property name="interval" value="1000" />
+          <property name="lastMark" value="${wayback.basedir}/index-data/queue.mark" />
+        </bean>
+      
+        <!-- This thread checks the to-be-indexed queue for files needing indexing, indexes them, and hands off the results for merging with the ResourceIndex -->
+        <bean id="indexworker" class="org.archive.wayback.resourcestore.indexer.IndexWorker">
+          <property name="db" ref="resourcefilelocationdb" />
+          <property name="queue" ref="indexqueue" />
+          <property name="interval" value="1000" />
+          <property name="target">
+            <bean class="org.archive.wayback.resourceindex.updater.IndexClient">
+              <property name="tmpDir" value="${wayback.basedir}/index-data/tmp/" />
+              <property name="target" value="${wayback.basedir}/index-data/incoming/" />
+            </bean>
+          </property>
+        </bean>
+        
+        <!-- This thread merges updates from the indexworker into the ResourceIndex -->
+        <bean class="org.archive.wayback.resourceindex.updater.LocalResourceIndexUpdater">
+
+          <property name="index" ref="localbdbresourceindex" />
+          <property name="incoming" value="${wayback.basedir}/index-data/incoming/" />
+          <property name="failed" value="${wayback.basedir}/index-data/failed/" />
+          <property name="merged" value="${wayback.basedir}/index-data/merged/" />
+          <property name="runInterval" value="10000" />
+        </bean>
+      </list>
+    </property>
+  </bean>
+
+
+</beans>
