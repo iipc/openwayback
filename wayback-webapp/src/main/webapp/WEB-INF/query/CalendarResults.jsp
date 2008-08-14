@@ -38,13 +38,8 @@ int numPartitions = partitions.size();
             <%= fmt.format("PathQueryClassic.searchedFor",searchString) %>
       </td>
       <td align="right">
-            <select onchange="SetAnchorWindow(this.value)">
-              <option value="86400">1 day</option>
-              <option value="604800">1 week</option>
-              <option value="2592000">1 month</option>
-              <option value="31536000">1 year</option>
-              <option value="315360000">10 years</option>
-            </select>
+            Set Anchor Window:
+            <jsp:include page="/WEB-INF/template/AnchorWindow.jsp" flush="true" />
             <%= fmt.format("PathQueryClassic.resultsSummary",resultCount) %>
       </td>
    </tr>

@@ -27,6 +27,8 @@ Iterator<CaptureSearchResult> itr = cResults.iterator();
   <%= fmt.format("PathQuery.resultsSummary",resultCount,searchString) %>
   <br></br>
   <%= fmt.format("PathQuery.resultRange",searchStartDate,searchEndDate) %>
+  Set Anchor Window:
+  <jsp:include page="/WEB-INF/template/AnchorWindow.jsp" flush="true" />
   <hr></hr>
   <%
   boolean first = false;
@@ -59,7 +61,7 @@ Iterator<CaptureSearchResult> itr = cResults.iterator();
     }
     if(updated) {
       %>
-      <a href="<%= replayUrl %>"><%= prettyDate %></a>
+      <a onclick="SetAnchorDate('<%= result.getCaptureTimestamp() %>');" href="<%= replayUrl %>"><%= prettyDate %></a>
       <span style="color:black;"><%= origHost %></span>
       <span style="color:gray;"><%= httpResponse %></span>
       <span style="color:brown;"><%= mimeType %></span>
@@ -74,7 +76,7 @@ Iterator<CaptureSearchResult> itr = cResults.iterator();
       <%
     } else {
       %>
-      &nbsp;&nbsp;&nbsp;<a href="<%= replayUrl %>"><%= prettyDate %></a>
+      &nbsp;&nbsp;&nbsp;<a onclick="SetAnchorDate('<%= result.getCaptureTimestamp() %>');" href="<%= replayUrl %>"><%= prettyDate %></a>
       <span style="color:green;"><%= origHost %></span>
   <!--
       <span style="color:red;"><%= arcFile %></span>

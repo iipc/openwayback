@@ -56,7 +56,7 @@ while(itr.hasNext()) {
 	  String ts = result.getFirstCaptureTimestamp();
 	  String anchor = uriConverter.makeReplayURI(ts,originalUrl);
     %>
-    <a href="<%= anchor %>">
+    <a onclick="SetAnchorDate('<%= ts %>');" href="<%= anchor %>">
       <%= urlKey %>
     </a>
     <span class="mainSearchText">
