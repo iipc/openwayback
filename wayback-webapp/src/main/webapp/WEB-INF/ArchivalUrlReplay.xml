@@ -37,8 +37,8 @@
         <value>/WEB-INF/replay/ClientSideJSInsert.jsp</value>
         <value>/WEB-INF/replay/Disclaimer.jsp</value>
 <!-- 
-        <value>/WEB-INF/replay/DebugBanner.jsp</value>
         <value>/WEB-INF/replay/Timeline.jsp</value>
+        <value>/WEB-INF/replay/DebugBanner.jsp</value>
 -->
       </list>
     </property>

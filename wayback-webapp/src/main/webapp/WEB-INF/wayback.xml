@@ -58,9 +58,9 @@
 	The XML files indicated in the following import tags contain alternate 
 	example implementations of WaybackCollections.
 -->
-  <import resource="NutchCollection.xml"/>
-<!--
   <import resource="BDBCollection.xml"/>
+<!--
+  <import resource="NutchCollection.xml"/>
   <import resource="CDXCollection.xml"/>
   <import resource="RemoteCollection.xml"/>
 -->
