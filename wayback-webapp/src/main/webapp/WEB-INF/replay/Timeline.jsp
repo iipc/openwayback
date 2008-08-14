@@ -11,6 +11,7 @@
 <%@ page import="org.archive.wayback.query.resultspartitioner.ResultsTimelinePartitionsFactory" %>
 <%@ page import="org.archive.wayback.query.resultspartitioner.ResultsPartition" %>
 <%@ page import="org.archive.wayback.util.StringFormatter" %>
+<jsp:include page="/WEB-INF/template/CookieJS.jsp" flush="true" />
 <%
 
 String contextRoot = request.getScheme() + "://" + request.getServerName() + ":" 
@@ -185,7 +186,7 @@ function handleDragClick() {
 							titleString = "title=\"" + 
 								fmt.format("TimelineView.firstVersionTitle",
 									first.getCaptureDate()) + "\"";
-							%><a wmSpecial="1" href="<%= results.resultToReplayUrl(first) %>"><%
+							%><a wmSpecial="1" onclick="SetAnchorDate('<%= first.getCaptureTimestamp() %>');" href="<%= results.resultToReplayUrl(first) %>"><%
 						}
 						%><img <%= titleString %> wmSpecial="1" border=0 width=19 height=20 src="<%= contextRoot %>/images/first.jpg"><%
 						if(first != null) {
@@ -196,7 +197,7 @@ function handleDragClick() {
 							titleString = "title=\"" + 
 								fmt.format("TimelineView.prevVersionTitle",
 									prev.getCaptureDate()) + "\"";
-							%><a wmSpecial="1" href="<%= results.resultToReplayUrl(prev) %>"><%
+							%><a wmSpecial="1" onclick="SetAnchorDate('<%= prev.getCaptureTimestamp() %>');" href="<%= results.resultToReplayUrl(prev) %>"><%
 						}
 						%><img <%= titleString %> wmSpecial="1" border=0 width=13 height=20 src="<%= contextRoot %>/images/prev.jpg"><%
 						if(first != null) {
@@ -212,17 +213,20 @@ function handleDragClick() {
 		String imageUrl = contextRoot + "/images/line.jpg";
 		String replayUrl = null;
 		String prettyDateTime = null;
+		String ts = null;
 		if(numResults == 1) {
 			imageUrl = contextRoot + "/images/mark_one.jpg";
 		  	CaptureSearchResult result = (CaptureSearchResult) partitionResults.get(0);
 			replayUrl = results.resultToReplayUrl(result);
 			prettyDateTime = fmt.format("TimelineView.markDateTitle",result.getCaptureDate());
+			ts = result.getCaptureTimestamp();
 			
 		} else if (numResults > 1) {
 			imageUrl = contextRoot + "/images/mark_several.jpg";
 		  	CaptureSearchResult result = (CaptureSearchResult) partitionResults.get(numResults - 1);
 			replayUrl = results.resultToReplayUrl(result);
 			prettyDateTime = fmt.format("TimelineView.markDateTitle",result.getCaptureDate());
+			ts = result.getCaptureTimestamp();
 
 		}
 		if((i > 0) && (i < numPartitions)) {
@@ -237,7 +241,7 @@ function handleDragClick() {
 		
 		} else {
 
-%><a wmSpecial="1" href="<%= replayUrl %>"><img wmSpecial="1" border=0 width=7 height=16 title="<%= prettyDateTime %>" src="<%= imageUrl %>"></a><%
+%><a wmSpecial="1" onclick="SetAnchorDate('<%= ts %>');" href="<%= replayUrl %>"><img wmSpecial="1" border=0 width=7 height=16 title="<%= prettyDateTime %>" src="<%= imageUrl %>"></a><%
 
 		}
 	}
@@ -249,10 +253,10 @@ function handleDragClick() {
 							titleString = "title=\"" + 
 								fmt.format("TimelineView.nextVersionTitle",
 									next.getCaptureDate()) + "\"";
-							%><a wmSpecial="1" href="<%= results.resultToReplayUrl(next) %>"><%
+							%><a wmSpecial="1" onclick="SetAnchorDate('<%= next.getCaptureTimestamp() %>');" href="<%= results.resultToReplayUrl(next) %>"><%
 						}
 						%><img wmSpecial="1" <%= titleString %> border=0 width=13 height=20 src="<%= contextRoot %>/images/next.jpg"><%
-						if(first != null) {
+						if(next != null) {
 							%></a><%
 						}
 						titleString = "";
@@ -260,10 +264,10 @@ function handleDragClick() {
 							titleString = "title=\"" + 
 								fmt.format("TimelineView.lastVersionTitle",
 									last.getCaptureDate()) + "\"";
-							%><a wmSpecial="1" href="<%= results.resultToReplayUrl(last) %>"><%
+							%><a wmSpecial="1" onclick="SetAnchorDate('<%= last.getCaptureTimestamp() %>');" href="<%= results.resultToReplayUrl(last) %>"><%
 						}
 						%><img wmSpecial="1" <%= titleString %> border=0 width=19 height=20 src="<%= contextRoot %>/images/last.jpg"><%
-						if(first != null) {
+						if(last != null) {
 							%></a><%
 						}
 					%></td>
