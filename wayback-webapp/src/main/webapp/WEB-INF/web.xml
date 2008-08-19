@@ -5,27 +5,12 @@
         xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee
             http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"
         version="2.4">
-<!--
-	<security-constraint>
-		<web-resource-collection>
-			<web-resource-name>Secured-Wayback</web-resource-name>
-	 		<url-pattern>/usersecure/*</url-pattern>
-		</web-resource-collection>
-		<auth-constraint>
-			<role-name>wayback</role-name>
-		</auth-constraint>
-	</security-constraint>
-	
-	<login-config>
-		<auth-method>BASIC</auth-method>
-		<realm-name>Secured-Wayback</realm-name>
-	</login-config>
--->
-	<!-- General Installation information
-	 -->
+
+    <!-- General Installation information
+     -->
     <context-param>
-		<param-name>config-path</param-name>
-		<param-value>WEB-INF/wayback.xml</param-value>
+        <param-name>config-path</param-name>
+        <param-value>WEB-INF/wayback.xml</param-value>
     </context-param>
     <filter>
         <filter-name>RequestFilter</filter-name>
@@ -35,4 +20,36 @@
         <filter-name>RequestFilter</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
+
+
+<!--
+    The following configuration will add HTTP Basic Authentication to an
+    an AccessPoint called "usersecure", which also needs to be defined in
+    the wayback.xml Spring configuration file.
+    
+    Also note that you will need to add one or more users to your 
+    tomcat-users.xml with in the role "wayback".
+-->
+
+<!--
+    <security-role>
+        <description>Secured-Wayback-Access</description>
+        <role-name>wayback</role-name>
+    </security-role>
+
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>Secured-Wayback</web-resource-name>
+            <url-pattern>/usersecure/*</url-pattern>
+        </web-resource-collection>
+        <auth-constraint>
+            <role-name>wayback</role-name>
+        </auth-constraint>
+    </security-constraint>
+    
+    <login-config>
+        <auth-method>BASIC</auth-method>
+        <realm-name>Secured-Wayback</realm-name>
+    </login-config>
+-->
 </web-app>
