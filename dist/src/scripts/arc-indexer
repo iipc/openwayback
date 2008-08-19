@@ -75,7 +75,7 @@ fi
 # Main ArcIndexer class.
 if [ -z "$CLASS_MAIN" ]
 then
-  CLASS_MAIN='org.archive.wayback.resourcestore.ArcIndexer'
+  CLASS_MAIN='org.archive.wayback.resourcestore.indexer.ArcIndexer'
 fi
 
 CLASSPATH=${CP} $JAVACMD ${JAVA_OPTS} $CLASS_MAIN "$@"

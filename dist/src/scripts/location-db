@@ -75,7 +75,7 @@ fi
 # Main ArcIndexer class.
 if [ -z "$CLASS_MAIN" ]
 then
-  CLASS_MAIN='org.archive.wayback.resourcestore.http.FileLocationDB'
+  CLASS_MAIN='org.archive.wayback.resourcestore.resourcefile.BDBResourceFileLocationDB'
 fi
 
 CLASSPATH=${CP} $JAVACMD ${JAVA_OPTS} $CLASS_MAIN "$@"
