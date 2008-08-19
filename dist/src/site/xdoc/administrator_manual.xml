@@ -552,7 +552,7 @@
         </p>
         <p>
           Additionally, there is an experimental Firefox-specific plugin 
-          developed by Oskar Grenholm, which sends a provides a novel interface
+          developed by Oskar Grenholm, which provides a novel interface
           to navigate between different captured versions of a page within
           Proxy mode, and also sends a special HTTP header which allows Wayback
           to uniquely associate the correct date with browsers, even those 
@@ -927,14 +927,19 @@
       <subsection name="Limiting Access based on HTTP BASIC Authentication">
         Access can be restricted to a particular Access Point using Tomcat's
         built-in configuration options. By adding the following configuration to
-        the web.xml, which assumes an Access Point named "8080:secure" (or 
+        the web.xml, which assumes an Access Point named "8080:usersecure" (or 
         really for any port):
         <pre>
+
+&lt;security-role&gt;
+  &lt;description&gt;Secured-Wayback&lt;/description&gt;
+  &lt;role-name&gt;wayback&lt;/role-name&gt;
+&lt;/security-role&gt;
 
 &lt;security-constraint&gt;
   &lt;web-resource-collection&gt;
     &lt;web-resource-name&gt;Secured-Wayback&lt;/web-resource-name&gt;
-    &lt;url-pattern&gt;/secure/*&lt;/url-pattern&gt;
+    &lt;url-pattern&gt;/usersecure/*&lt;/url-pattern&gt;
   &lt;/web-resource-collection&gt;
   &lt;auth-constraint&gt;
     &lt;role-name&gt;wayback&lt;/role-name&gt;
@@ -953,7 +958,7 @@
         <pre>
 
 &lt;role rolename=&quot;wayback&quot;/&gt;
-&lt;user password=&quot;changeM3&quot; roles=&quot;wayback&quot; username=&quot;brad&quot;/&gt;
+&lt;user password=&quot;changeM3&quot; roles=&quot;wayback&quot; name=&quot;brad&quot;/&gt;
 
         </pre>
       </subsection>

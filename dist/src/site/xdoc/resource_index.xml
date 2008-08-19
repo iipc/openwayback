@@ -41,17 +41,17 @@
         <p>
           The following configuration is required for a LocalResourceIndex:
           <ul>
-            <li>source - a bean implementing SearchResultSource, which can be
-                one of the following:
+            <li><b>source</b> - a bean implementing SearchResultSource, which
+                can be one of the following:
                 <ul>
-                  <li>BDBIndex - a BDBJE database holding records for all
+                  <li><b>BDBIndex</b> - a BDBJE database holding records for all
                       documents within the WaybackCollection. This 
                       implementation allows for fast incremental updates to the
                       index, and is required when using automatic indexing.
                       This implementation scales well to 10's of millions of
                       records.</li>
-                  <li>CDXIndex - a sorted flat file containing one line per
-                      document within the WaybackCollection. This 
+                  <li><b>CDXIndex</b> - a sorted flat file containing one line
+                      per document within the WaybackCollection. This 
                       implementation requires that the CDX file be manually
                       maintained, but scales to very large sizes, limited
                       primarily by the size of file you can build and store.
@@ -59,9 +59,9 @@
                       <b>arc-indexer</b> or <b>warc-indexer</b>, and the
                       standard UNIX <b>sort</b> tool.
                   </li>
-                  <li>CompositeSearchResultSource - an implementation allowing
-                      aggregation of multiple SearchResultSources into a single
-                      logical SearchResultSource. Use of BDBIndex 
+                  <li><b>CompositeSearchResultSource</b> - an implementation
+                      allowing aggregation of multiple SearchResultSources into
+                      a single logical SearchResultSource. Use of BDBIndex 
                       SearchResultSources within this class is experimental,
                       but this implementation has been used successfully in
                       production installations to serve results from several
@@ -84,23 +84,23 @@
         <p>
           The following configurations are optional for LocalResourceIndexes:
           <ul>
-            <li>maxRecords - integer maximum number of records to process for a
-                single request. Useful to prevent a single request from using
-                too much Disk and CPU resources.</li>
-            <li>dedupeRecords - boolean value that should be set to <i>true</i>
-                when using deduplicated WARC records. This causes Wayback to
-                modify search results as they are read from the index, so
-                records indicating a resource was inspected but not saved are
-                accessible within the Wayback. Please see the
+            <li><b>maxRecords</b> - integer maximum number of records to process
+                for a single request. Useful to prevent a single request from
+                using too much Disk and CPU resources.</li>
+            <li><b>dedupeRecords</b> - boolean value that should be set to
+                <i>true</i> when using deduplicated WARC records. This causes
+                Wayback to modify search results as they are read from the
+                index, so records indicating a resource was inspected but not
+                saved are accessible within the Wayback. Please see the
                 <a href="#Duplicate_Reduction">Duplicate Reduction</a> section
                 below for more information.</li>
-            <li>annotater - experimental hook for modifying or omitting records
-                as they are read from the index. For example, additional
+            <li><b>annotater</b> - experimental hook for modifying or omitting
+                records as they are read from the index. For example, additional
                 metadata could be associated with each record from an external
                 datasource, and this extra metadata could then be exposed to
                 end users through a .jsp customization.</li>
-            <li>canonicalizer - an implementation of UrlCanonicalizer. See the
-                section labeled URL Canonicalization below for more
+            <li><b>canonicalizer</b> - an implementation of UrlCanonicalizer.
+                See the section labeled URL Canonicalization below for more
                 information.</li>
           </ul>
         </p>
