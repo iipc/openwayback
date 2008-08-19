@@ -7,28 +7,52 @@
 
 <!--
 
-	This file contains the default WaybackCollection implementation shipped
-	with Wayback. It consists of a LocalResourceIndex using a BDBIndex, and
-	uses several Worker Threads to implement automatic indexing.
-	
-	Several beans defined in this file reference the "resourcefilelocationdb"
-	bean defined in wayback.xml.
+    This file contains the default WaybackCollection implementation shipped
+    with Wayback. It consists of a LocalResourceIndex using a BDBIndex, and
+    uses several Worker Threads to implement automatic indexing.
+    
+    Several beans defined in this file reference the "resourcefilelocationdb"
+    bean defined in wayback.xml.
 
-	To customize where the automatic indexing system looks for ARC/WARC files,
-	see "resourcefilesourceupdater.sources" within this file.
+    To customize where the automatic indexing system looks for ARC/WARC files,
+    edit the "datadirs" list below.
 
-	To customize the location where the automatic indexing state data is stored
-	you can modify "wayback.basedir" in wayback.xml, or replace the properties
-	in this file for further flexibility.
+    To customize the location where the automatic indexing state data is stored
+    you can modify "wayback.basedir" in wayback.xml, or replace the properties
+    in this file for further flexibility.
 
-	For more information about the auto-indexing system, please see:
+    For more information about the auto-indexing system, please see:
 
-	http://archive-access.sourceforge.net/projects/wayback/resource_store.html
+    http://archive-access.sourceforge.net/projects/wayback/resource_store.html
 
 -->
 
+
+  <!--
+    This example looks for ARC/WARC files recursively under 2 directories:
+      /tmp/wayback/files1 and /tmp/wayback/files2
+
+    You can specify as few or as many ResourceFileSource instances
+    as needed, but each must have a unique 'name' property.
+  -->
+
+  <bean id="datadirs" class="org.springframework.beans.factory.config.ListFactoryBean">
+    <property name="sourceList">
+      <list>
+        <bean class="org.archive.wayback.resourcestore.resourcefile.DirectoryResourceFileSource">
+          <property name="name" value="files1" />
+          <property name="prefix" value="/tmp/wayback/files1/" />
+        </bean>
+        <bean class="org.archive.wayback.resourcestore.resourcefile.DirectoryResourceFileSource">
+          <property name="name" value="files2" />
+          <property name="prefix" value="/tmp/wayback/files2/" />
+        </bean>
+      </list>
+    </property>
+  </bean>
+
 <!--
-	A LocalResourceIndex bean using a BDBIndex SearchResultSource.
+    A LocalResourceIndex bean using a BDBIndex SearchResultSource.
 -->
   <bean id="localbdbresourceindex" class="org.archive.wayback.resourceindex.LocalResourceIndex">
     <property name="source">
@@ -39,9 +63,9 @@
     </property>
     <property name="maxRecords" value="10000" />
   </bean>
-  
+
 <!--
-	An IndexQueue implementation required for automatic indexing.
+    An IndexQueue implementation required for automatic indexing.
 -->
   <bean id="indexqueue" class="org.archive.wayback.resourcestore.indexer.DirectoryIndexQueue">
     <property name="path" value="${wayback.basedir}/index-data/queue" />
@@ -63,29 +87,12 @@
          <bean id="resourcefilesourceupdater" class="org.archive.wayback.resourcestore.resourcefile.ResourceFileSourceUpdater">
           <property name="target" value="${wayback.basedir}/file-db/incoming" />
           <property name="interval" value="100000" />
-          <property name="sources">
-            <list>
-              <!--
-              	This example looks for ARC/WARC files recursively under 2 
-              	directories: /tmp/wayback/files1 and /tmp/wayback/files2
-              	You can specify as few or as many ResourceFileSource instances
-              	as needed, but each must have a unique 'name' property.
-              -->
-              <bean class="org.archive.wayback.resourcestore.resourcefile.DirectoryResourceFileSource">
-                <property name="name" value="files1" />
-                <property name="prefix" value="/tmp/wayback/files1/" />
-              </bean>
-              <bean class="org.archive.wayback.resourcestore.resourcefile.DirectoryResourceFileSource">
-                <property name="name" value="files2" />
-                <property name="prefix" value="/tmp/wayback/files2/" />
-              </bean>
-            </list>
-          </property>
+          <property name="sources" ref="datadirs" />
         </bean>
       
         <!-- This thread updates the location db with updates from resourcefilesourceupdater -->
         <bean id="resourcefilelocationdbupdater" class="org.archive.wayback.resourcestore.locationdb.ResourceFileLocationDBUpdater">
-          <property name="interval" value="100000" />
+          <property name="interval" value="1000" />
           <property name="db" ref="resourcefilelocationdb" />
           <property name="incomingDir" value="${wayback.basedir}/file-db/incoming" />
           <property name="stateDir" value="${wayback.basedir}/file-db/state" />
@@ -119,7 +126,7 @@
           <property name="incoming" value="${wayback.basedir}/index-data/incoming/" />
           <property name="failed" value="${wayback.basedir}/index-data/failed/" />
           <property name="merged" value="${wayback.basedir}/index-data/merged/" />
-          <property name="runInterval" value="10000" />
+          <property name="runInterval" value="1000" />
         </bean>
       </list>
     </property>
