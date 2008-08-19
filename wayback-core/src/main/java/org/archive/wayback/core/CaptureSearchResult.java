@@ -39,7 +39,7 @@ public class CaptureSearchResult extends SearchResult {
 	private long cachedOffset = -1;
 	private long cachedDate = -1;
 	
-	public static final String CAPTURE_ORIGINAL_URL = "originalurl";
+	public static final String CAPTURE_ORIGINAL_URL = "url";
 
 	/**
 	 * Result: canonicalized(lookup key) form of URL of captured document 
@@ -49,7 +49,7 @@ public class CaptureSearchResult extends SearchResult {
 	/**
 	 * Result: 14-digit timestamp when document was captured 
 	 */
-	public static final String CAPTURE_CAPTURE_TIMESTAMP = "capturetimestamp";
+	public static final String CAPTURE_CAPTURE_TIMESTAMP = "capturedate";
 
 	/**
 	 * Result: basename of ARC file containing this document.
