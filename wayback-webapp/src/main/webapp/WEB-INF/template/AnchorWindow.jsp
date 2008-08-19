@@ -9,6 +9,7 @@
 SelectHTML window = new SelectHTML("foo");
 window.setProps("onchange=\"SetAnchorWindow(this.value); location.reload(true);\"");
 window.addOption("none","0");
+window.addOption("1 minute","60");
 window.addOption("1 day","86400");
 window.addOption("1 week","604800");
 window.addOption("1 month","2592000");
