@@ -7,9 +7,6 @@
   <includeBaseDirectory>true</includeBaseDirectory>
   <dependencySets>
     <dependencySet>
-      <excludes>
-        <exclude>wayback-webapp-1.0.0-SNAPSHOT.war</exclude>
-      </excludes>
       <outputDirectory>/lib</outputDirectory>
     </dependencySet>
   </dependencySets>
