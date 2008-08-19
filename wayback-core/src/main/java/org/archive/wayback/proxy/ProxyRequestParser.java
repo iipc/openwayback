@@ -74,6 +74,7 @@ public class ProxyRequestParser extends CompositeRequestParser {
 	            String replayDateStr = BDBMap.getTimestampForId(
 	            		httpRequest.getContextPath(), id); 
 	            wbRequest.setReplayTimestamp(replayDateStr);
+	            wbRequest.setAnchorTimestamp(replayDateStr);
 	    }
 	    return wbRequest;
 	}
