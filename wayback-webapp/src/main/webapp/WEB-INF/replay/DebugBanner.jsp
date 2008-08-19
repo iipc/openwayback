@@ -25,17 +25,9 @@
 %><%@
  page import="org.archive.wayback.util.html.SelectHTML"
 %><jsp:include page="/WEB-INF/template/CookieJS.jsp" flush="true" /><%
-SelectHTML window = new SelectHTML("foo");
-window.setProps("onchange=\"SetAnchorWindow(this.value); location.reload(true);\"");
-window.addOption("1 day","86400");
-window.addOption("1 week","604800");
-window.addOption("1 month","2592000");
-window.addOption("1 year","31536000");
-window.addOption("10 years","315360000");
 UIResults results = UIResults.extractReplay(request);
 WaybackRequest wbr = results.getWbRequest();
 String contextRoot = wbr.getContextPrefix();
-window.setActive(wbr.get(WaybackRequest.REQUEST_ANCHOR_WINDOW));
 Set<String> keys = wbr.keySet();
 Iterator<String> keysItr = keys.iterator();
 Map<String,String> headers = results.getResource().getHttpHeaders();
@@ -124,7 +116,8 @@ while(keysItr.hasNext()) {
 %>
     </table>
   </div> 
-  <%= window.draw() %>
+  Set Anchor Window:
+  <jsp:include page="/WEB-INF/template/AnchorWindow.jsp" flush="true" />
   <button onclick="toggleID('cookieDiv');">CookieForm</button>
    <div id="cookieDiv" style="position:absolute; display:none; background-color:white; color:black;">
   <form name="setCookie">
@@ -151,15 +144,6 @@ while(keysItr.hasNext()) {
     </table>
   </form>
   </div>
-            <!--
-            <select onchange="SetAnchorWindow(this.value); location.reload(true);">
-              <option value="86400">1 day</option>
-              <option value="604800">1 week</option>
-              <option value="2592000">1 month</option>
-              <option value="31536000">1 year</option>
-              <option value="315360000">10 years</option>
-            </select>
-            -->
 </div>
 <script type="text/javascript" src="<%= contextRoot %>js/disclaim-element.js" ></script>
 <script type="text/javascript">
