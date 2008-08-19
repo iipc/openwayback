@@ -16,7 +16,10 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.archive</groupId>
   <artifactId>wayback</artifactId>
-  <version>1.3.0-SNAPSHOT</version>
+  <properties>
+  	<globalVersion>1.4.0</globalVersion>
+  </properties>
+  <version>1.4.0</version>
   <packaging>pom</packaging>
   <name>Wayback</name>
 
