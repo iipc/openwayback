@@ -112,12 +112,12 @@ public class WaybackRequest {
 	 * REQUEST_TYPE option indicating a query against the ResourceIndex for 
 	 * captures of URLs matching the REQUEST_URL 
 	 */
-	public static final String REQUEST_CAPTURE_QUERY = "capturequery";
+	public static final String REQUEST_CAPTURE_QUERY = "urlquery";
 	/**
 	 * REQUEST_TYPE option indicating a query against the ResourceIndex for 
 	 * summaries of URLs prefixed with the REQUEST_URL 
 	 */
-	public static final String REQUEST_URL_QUERY = "urlquery";
+	public static final String REQUEST_URL_QUERY = "prefixquery";
 	/*
 	 * **********************
 	 * /REQUEST TYPE CONSTANTS 
@@ -744,7 +744,12 @@ public class WaybackRequest {
 		Cookie[] cookies = httpRequest.getCookies();
 		if(cookies != null) {
 			for(Cookie cookie : cookies) {
-				put(cookie.getName(),cookie.getValue());
+				String name = cookie.getName();
+				String value = cookie.getValue();
+				String oldVal = get(name);
+				if(oldVal == null || oldVal.length() == 0) {
+					put(name,value);
+				}
 			}
 		}
 	}
