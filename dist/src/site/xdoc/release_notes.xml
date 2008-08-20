@@ -18,64 +18,26 @@
       <subsection name="Features">
         <ul>
           <li>
-            New command line tool <b>location-db</b> to create a location DB
-            offline, populating with lines read from STDIN.
+            <b>@</b> Completely new implementation of ResourceStore classes,
+            including recursive local directory scanning, scanning multiple
+            local directories, an experimental remote directory scanning
+            capability, and groundwork for future support of both non ARC/WARC
+            file formats and large scale automatic indexing.
           </li>
           <li>
-            Added new AccessControlSettingOperation authentication control
-            component, allowing the configuration of the appropriate Exclusion
-            system per-request, as defined by arbitrary BooleanOperators. See
-            ComplexAccessPoint.xml within the .war file for an example usage.
+            <b>@</b> Complete overhaul of the Replay system, allowing
+            jspInserts within ArchivalUrl, DomainPrefix, and Proxy replay
+            modes. Also includes groundwork for future fine-grained mime-type
+            and url-based Replay customizations.
           </li>
           <li>
-            Added .asx archival URL replay, which rewrites links inside archived
-            .asx files, attempting to make them point back into the Wayback
-            service.
+            Added capability to explicitly set Locale to use for an
+            AccessPoint, overriding the default behavior of using the user
+            agents specified preferred language.
           </li>
           <li>
             New flat file implementation of FileLocationDB. See 
             CDXCollection.xml within the .war file for and example usage.
-          </li>
-          <li>
-            Now accept "http:/" as identical to "http://" in the beginning of
-            a URL, working around a browser bug which stripped multiple "/"s in
-            URL paths.
-          </li>
-          <li>
-            <b>@</b> Completely new implementation of ResourceStore classes, including
-            recursive local directory scanning, multiple local directories, an
-            experimental remote directory scanning capability, and groundwork
-            for future support of both non ARC/WARC file formats and large
-            scale automatic indexing.
-          </li>
-          <li>
-            <b>@</b> Refactoring of ResourceIndex interfaces, to allow for future 
-            update-able ResourceIndex implementations beyond BDBIndex based
-            ResourceIndexes.
-          </li>
-          <li>
-            <b>*</b> Major internal refactoring of WaybackRequest object, providing more
-            stable get/set methods for accessing the standard internal fields
-            with type-safety.
-          </li>
-          <li>
-            <b>*</b> Major internal refactoring of SearchResults into
-            CaptureSearchResults and UrlSearchResults, which was previously
-            underspecified and often confusing. These new classes provide more
-            stable get/set methods for accessing the standard internal fields
-            with type-safety.
-          </li>
-          <li>
-            <b>*</b> Changed locations of replay, query, and exception .jsp files within
-            .war file to underneath WEB-INF, so they are not directly
-            accessible via HTTP.
-          </li>
-          <li>
-            German translation of default Wayback UI. Thanks Andreas! 
-          </li>
-          <li>
-            Czech translation of default Wayback UI. Thanks Lukáš Matějka!
-            (&lt;&lt; <a href="http://webteam.archive.org/jira/browse/ACC-29">ACC-29</a>)
           </li>
           <li>
             AnchorDate feature, tracking the date with which a user begins a 
@@ -90,6 +52,56 @@
             display captures outside the specified window.
           </li>
           <li>
+            New command line tool <b>location-db</b> to create a location DB
+            offline, populating with lines read from STDIN.
+          </li>
+          <li>
+            Added new AccessControlSettingOperation authentication control
+            component, allowing the configuration of the appropriate Exclusion
+            system per-request, as defined by arbitrary BooleanOperators. See
+            ComplexAccessPoint.xml within the .war file for an example usage.
+          </li>
+          <li>
+            Added .asx archival URL replay, which rewrites links inside
+            archived .asx files, attempting to make them point back into the
+            Wayback service.
+          </li>
+          <li>
+            Now accept "http:/" as identical to "http://" in the beginning of
+            a URL, working around a browser bug which stripped multiple "/"s in
+            URL paths.
+          </li>
+          <li>
+            <b>@</b> Refactoring of ResourceIndex interfaces, to allow for
+            future update-able ResourceIndex implementations beyond BDBIndex
+            based ResourceIndexes.
+          </li>
+          <li>
+            <b>*</b> Major internal refactoring of WaybackRequest object,
+            providing more stable get/set methods for accessing the standard
+            internal fields with type-safety.
+          </li>
+          <li>
+            <b>*</b> Major internal refactoring of SearchResults into
+            CaptureSearchResults and UrlSearchResults, which was previously
+            under-specified and often confusing. These new classes provide more
+            stable get/set methods for accessing the standard internal fields
+            with type-safety.
+          </li>
+          <li>
+            <b>*</b> Changed locations of replay, query, and exception .jsp
+            files within .war file to underneath WEB-INF, so they are not
+            directly accessible via HTTP.
+          </li>
+          <li>
+            German translation of default Wayback UI. Thanks Andreas! 
+          </li>
+          <li>
+            Czech translation of default Wayback UI. Thanks Lukáš Matějka!
+            (&lt;&lt;
+            <a href="http://webteam.archive.org/jira/browse/ACC-29">ACC-29</a>)
+          </li>
+          <li>
             All threads now notified of shut downs, allowing resources to be
             released cleanly.
           </li>
@@ -99,21 +111,14 @@
             classes.
           </li>
           <li>
-            <b>*</b> Refactor of the various UI*Results classes, which are used by
-            Query, Replay, and Exception .jsp files to access context 
+            <b>*</b> Refactor of the various UI*Results classes, which are used
+            by Query, Replay, and Exception .jsp files to access context 
             information into the single class, UIResults, which has a more
             stable interface.
           </li>
           <li>
-            <b>@</b> Complete overhaul of the Replay system, allowing jspInserts within
-            ArchivalUrl, DomainPrefix, and Proxy replay modes. Also includes
-            groundwork for future fine-grained mime-type and url-based Replay
-            customizations.
-          </li>
-          <li>
-            Added capability to explicitly set Locale to use for an AccessPoint,
-            overriding the default behavior of using the user agents specified
-            preferred language.
+            New AccessPoint.urlRoot optional configuration, enabling explicit
+            control over URLs generated for the UI.
           </li>
         </ul>
       </subsection>
@@ -150,18 +155,18 @@
           Wayback 1.4.0 includes substantial code changes aimed at extending
           current capabilities, enabling planned future features, and
           stabilizing interfaces used in .jsp customizations. Since these
-          changes would already require updating of current customizations made
-          to .jsp files, we chose to include many non-vital cleanups to the
-          code packages and source tree. The goal of implementing all of these
-          features within this single release is to hopefully minimize future
-          required updates.
+          changes would already require a significant update of existing
+          customizations made to .jsp files, many non-vital cleanups to the
+          source tree were included. The goal of implementing all of these
+          features within this single release is to minimize future required
+          updates.
         </p>
         <p>
           Below is a somewhat inclusive list of changes that will be required
           when upgrading to Wayback 1.4.0 from 1.2.X, divided into two main
           categories: changes required to Spring configuration, and changes
           required for .jsp customizations. Depending on the scope of the
-          existing customizations made in your installations, it may be simpler
+          existing customizations in your installations, it may be simpler
           to modify your existing customizations to conform to new interfaces
           and packages, and in other cases, it may be simpler to begin with the
           new reference implementations and modify them to meet your needs.
@@ -177,13 +182,84 @@
           New features with the <b>@</b> mark indicate features that will directly
           impact Spring XML configuration files used with 1.2.X. 
         </p>
+        <p>
+          <ul>
+            <li>
+              <b>org.archive.wayback.resourcestore.http.FileLocationDB</b> now:
+              <b>org.archive.wayback.resourcestore.locationdb.BDBResourceFileLocationDB</b>
+            </li>
+            <li>
+              <b>org.archive.wayback.resourcestore.http.FileLocationDBServlet</b> now:
+              <b>org.archive.wayback.resourcestore.locationdb.ResourceFileLocationDBServlet</b>
+            </li>
+            <li>
+              <b>org.archive.wayback.resourcestore.http.ArcProxyServlet</b> now:
+              <b>org.archive.wayback.resourcestore.locationdb.FileProxyServlet</b>
+            </li>
+            <li>
+              All ReplayUI implementations changed completely, now located in:
+              ArchivalUrlReplay.xml, DomainPrefixReplay.xml, ProxyReplay.xml.
+              Customizations to jspInserts should be straightforward on
+              inspecting these files.
+            </li>
+            <li>
+              <b>org.archive.wayback.resourcestore.Http11ResourceStore</b> now:
+              <b>org.archive.wayback.resourcestore.SimpleResourceStore</b>. See
+              RemoteCollection.xml for configuration example.
+            </li>
+            <li>
+              The new automatic indexing is most simply upgraded by modifying
+              the new example in BDBCollection.xml with your custom paths.
+            </li>
+          </ul>
+        </p>
       </subsection>
       <subsection name=".jsp upgrade information">
         <p>
           New features with the <b>*</b> mark indicate features that will directly
-          impact customizations made to .jsp files used with 1.2.X. 
+          impact customizations made to .jsp files used with 1.2.X. The bulk of
+          the changes fit three categories:
+          <ul>
+            <li>
+              class name and package changes requiring import tag updates.
+              Please see .jsps in new distribution for updated packages.
+            </li>
+            <li>
+              .jsp path changes due to webapp directory tree cleanup. Again,
+              please see the current locations in the new distribution.
+            </li>
+            <li>
+              <p>
+                Java changes within .jsp files due to UIResults refactoring.
+                Previously each type of response page had a unique class used
+                to marshal context information to the .jsp files. These have all
+                been refactored into a single class, 
+                <b>org.archive.wayback.core.UIResults</b> which has methods to
+                access the appropriate data in each case. Additionally, many
+                convenience methods that were present on the various UI*Results
+                classes have been removed, since convenience methods are now
+                available on the core classes:
+              </p>
+              <ul>
+                <li>WaybackRequest</li>
+                <li>CaptureSearchResult</li>
+                <li>CaptureSearchResults</li>
+                <li>UrlSearchResult</li>
+                <li>UrlSearchResults</li>
+              </ul>
+              <p>
+              As an example, the Timestamp class is no longer used in the .jsp
+              files, since all time information uses the Date class for
+              localization. All of the above classes now have methods to
+              directly return Dates.
+              </p>
+              <p>
+                For specific examples, please see the reference .jsp files
+                included with the new distribution.
+              </p>
+            </li>
+          </ul>
         </p>
-        Http11ResourceStore = SimpleResourceStore
       </subsection>
       
     </section>
