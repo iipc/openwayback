@@ -50,6 +50,11 @@
         Wayback Service. This browser configuration is not complex, but it 
         means that content cannot be accessed as a global URL.
         </p>
+        <p>
+          DomainPrefix mode is similar to ArchivalUrl mode, but uses a wildcard
+          DNS scheme to rewrite URLs, allowing all URL substitution to occur on
+          the server. This mode is considered experimental.
+        </p>
         <p>See the <a href="administrator_manual.html">Administrator Manual</a>
         to learn more about access modes.
         </p>
@@ -69,6 +74,23 @@
         </p>
     </section>
     <section name="News">
+        <subsection name="New Release - 1.4.0, 8/20/2008">
+          <p>
+            Release 1.4.0 has several new features, as well as several 
+            bug-fixes. This version includes substantial code changes and
+            refactoring to consolidate and expand current functionality as well
+            as enable several future planned features. Notable new features
+            include the ability to insert content in replayed HTML pages within
+            Proxy and DomainPrefix replay modes, the ability to scan multiple
+            local directories recursively for ARC/WARC files, and a feature
+            within Archival URL replay mode to prevent time drift during a
+            replay session.
+          </p>
+          <p>
+            Please see the <a href="release_notes.html">Release Notes</a> for
+            specific features and bug fixes.
+          </p>
+        </subsection>
         <subsection name="New Release - 1.2.0, 1/30/2008">
           <p>
             Release 1.2.0 has several new features, as well as several 
