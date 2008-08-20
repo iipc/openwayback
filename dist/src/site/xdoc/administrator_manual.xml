@@ -986,9 +986,11 @@
         
         <pre>
 
-UIQueryResults results = (UIQueryResults) UIResults.getFromRequest(request);
+UIResults results = UIResults.getGeneric(request);
 String instString = results.getContextConfig("inst");
 String logoString = results.getContextConfig("logo");
+
+...
 
         </pre>
       </p>
