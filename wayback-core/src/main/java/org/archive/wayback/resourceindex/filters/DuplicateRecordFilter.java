@@ -18,7 +18,7 @@ public class DuplicateRecordFilter implements ObjectFilter<CaptureSearchResult> 
 	 * @see org.archive.wayback.util.ObjectFilter#filterObject(java.lang.Object)
 	 */
 	public int filterObject(CaptureSearchResult o) {
-		String thisUrl = o.getUrlKey();
+		String thisUrl = o.getOriginalUrl();
 		String thisDate = o.getCaptureTimestamp();
 		int result = ObjectFilter.FILTER_INCLUDE;
 		if(lastUrl != null) {
