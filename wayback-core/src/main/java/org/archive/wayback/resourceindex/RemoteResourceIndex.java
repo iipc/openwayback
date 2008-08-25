@@ -207,7 +207,8 @@ public class RemoteResourceIndex implements ResourceIndex {
 	}
 	
 	protected SearchResults documentToSearchResults(Document document,
-			ObjectFilter<CaptureSearchResult> filter) {
+			ObjectFilter<CaptureSearchResult> filter) 
+	throws ResourceNotInArchiveException {
 		SearchResults results = null;
 		NodeList filters = getRequestFilters(document);
 		String resultsType = getResultsType(document);
@@ -237,9 +238,11 @@ public class RemoteResourceIndex implements ResourceIndex {
 		return results;
 	}
 	private CaptureSearchResults documentToCaptureSearchResults(
-			Document document, ObjectFilter<CaptureSearchResult> filter) {
+			Document document, ObjectFilter<CaptureSearchResult> filter) 
+	throws ResourceNotInArchiveException {
 		CaptureSearchResults results = new CaptureSearchResults();
 		NodeList xresults = getSearchResults(document);
+		int numAdded = 0;
 		for(int i = 0; i < xresults.getLength(); i++) {
 			Node xresult = xresults.item(i);
 			CaptureSearchResult result = searchElementToCaptureSearchResult(xresult);
@@ -252,8 +255,13 @@ public class RemoteResourceIndex implements ResourceIndex {
 			if (ruling == ObjectFilter.FILTER_ABORT) {
 				break;
 			} else if (ruling == ObjectFilter.FILTER_INCLUDE) {
+				numAdded++;
 				results.addSearchResult(result, true);
 			}
+		}
+		if(numAdded == 0) {
+			throw new ResourceNotInArchiveException("No documents matching" +
+					" filter");
 		}
 		return results;
 	}
