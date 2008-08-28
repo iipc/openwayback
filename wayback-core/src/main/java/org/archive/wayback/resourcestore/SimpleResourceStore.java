@@ -35,10 +35,10 @@ import org.archive.wayback.resourcestore.resourcefile.ResourceFactory;
 
 
 /**
- * Implements ResourceStore where ARC/WARCs are accessed via HTTP 1.1 range
- * requests. All files are assumed to be "rooted" at a particular HTTP URL, 
- * within a single directory, implying a file reverse-proxy to connect through
- * to actual HTTP ARC/WARC locations.
+ * Implements ResourceStore where ARC/WARCs are accessed via a local file or an
+ * HTTP 1.1 range request. All files are assumed to be "rooted" at a particular
+ * HTTP URL, or within a single local directory. The HTTP version may imply a
+ * file reverse-proxy to connect through to actual HTTP ARC/WARC locations.
  *
  * @author brad
  * @version $Date$, $Revision$
@@ -46,7 +46,6 @@ import org.archive.wayback.resourcestore.resourcefile.ResourceFactory;
 public class SimpleResourceStore implements ResourceStore {
 
 	private String prefix = null;
-
 
 	public Resource retrieveResource(CaptureSearchResult result)
 		throws ResourceNotAvailableException {
