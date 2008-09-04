@@ -83,7 +83,14 @@ public class UrlOperations {
 	public static String resolveUrl(String baseUrl, String url) {
 		// TODO: this only works for http://
 		if(url.startsWith("http://")) {
-			return url;
+			try {
+				return UURIFactory.getInstance(url).getEscapedURI();
+			} catch (URIException e) {
+				e.printStackTrace();
+				// can't let a space exist... send back close to whatever came
+				// in...
+				return url.replace(" ", "%20");
+			}
 		}
 		UURI absBaseURI;
 		UURI resolvedURI = null;
