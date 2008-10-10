@@ -822,6 +822,7 @@ public class WaybackRequest {
 			}
 			if(isStandard) continue;
 			String val = filters.get(key);
+			if(val == null) continue;
 			if (queryString.length() > 0) {
 				queryString.append(" ");
 			}
