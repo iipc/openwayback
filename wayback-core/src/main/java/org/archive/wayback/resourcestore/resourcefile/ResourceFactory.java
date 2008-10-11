@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 
+import org.archive.io.ArchiveReader;
 import org.archive.io.ArchiveRecord;
 import org.archive.io.arc.ARCReader;
 import org.archive.io.arc.ARCReaderFactory;
@@ -60,25 +61,27 @@ public class ResourceFactory {
 	}
 
 	public static Resource getResource(URL url, long offset)
-			throws IOException, ResourceNotAvailableException {
+	throws IOException, ResourceNotAvailableException {
+		
 		Resource r = null;
-		String name = url.getFile();
-		if (isArc(name)) {
-
-			ARCReader reader = ARCReaderFactory.get(url, offset);
-			r = ARCArchiveRecordToResource(reader.get(),reader);
-
-		} else if (isWarc(name)) {
-
-			WARCReader reader = WARCReaderFactory.get(url, offset);
-			r = WARCArchiveRecordToResource(reader.get(),reader);
-
+		// TODO: allow configuration of timeouts -- now using defaults..
+		TimeoutArchiveReaderFactory tarf = new TimeoutArchiveReaderFactory();
+		ArchiveReader reader = tarf.getArchiveReader(url,offset);
+		if(reader instanceof ARCReader) {
+			ARCReader areader = (ARCReader) reader;
+			r = ARCArchiveRecordToResource(areader.get(),areader);
+		
+		} else if(reader instanceof WARCReader) {
+			WARCReader wreader = (WARCReader) reader;
+			r = WARCArchiveRecordToResource(wreader.get(),wreader);
+			
 		} else {
-			throw new ResourceNotAvailableException("Unknown extension");
+			throw new ResourceNotAvailableException("Unknown ArchiveReader");
 		}
 		return r;
 	}
-
+	
+	
 	private static boolean isArc(final String name) {
 
 		return (name.endsWith(ArcWarcFilenameFilter.ARC_SUFFIX)

@@ -26,6 +26,8 @@ package org.archive.wayback.resourceindex;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.logging.Logger;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -71,7 +73,10 @@ public class RemoteResourceIndex implements ResourceIndex {
 			.class.getName());
 
 	private String searchUrlBase;
-
+	private int connectTimeout = 10000;
+	private int readTimeout = 10000;
+	
+	
 	private DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 
 	private static final String WB_XML_REQUEST_TAGNAME = "request";
@@ -333,7 +338,11 @@ public class RemoteResourceIndex implements ResourceIndex {
 	// do an HTTP request, plus parse the result into an XML DOM
 	protected Document getHttpDocument(String url)
 			throws IOException, SAXException {
-		return (getDocumentBuilder()).parse(url);
+		URL u = new URL(url);
+		URLConnection conn = u.openConnection();
+		conn.setConnectTimeout(connectTimeout);
+		conn.setReadTimeout(readTimeout);
+		return (getDocumentBuilder()).parse(conn.getInputStream(),url);
 	}
 	protected Document getFileDocument(File f)
 			throws IOException, SAXException {
@@ -364,5 +373,20 @@ public class RemoteResourceIndex implements ResourceIndex {
 
 	public void setCanonicalizer(UrlCanonicalizer canonicalizer) {
 		this.canonicalizer = canonicalizer;
+	}
+	public int getConnectTimeout() {
+		return connectTimeout;
+	}
+
+	public void setConnectTimeout(int connectTimeout) {
+		this.connectTimeout = connectTimeout;
+	}
+
+	public int getReadTimeout() {
+		return readTimeout;
+	}
+
+	public void setReadTimeout(int readTimeout) {
+		this.readTimeout = readTimeout;
 	}
 }
