@@ -86,6 +86,8 @@ public class LocalResourceIndex implements ResourceIndex {
 	private boolean dedupeRecords = false;
 	
 	private ObjectFilter<CaptureSearchResult> annotater = null;
+	
+	private ObjectFilter<CaptureSearchResult> filter = null;
 
 	public LocalResourceIndex() {
 		canonicalizer = new AggressiveUrlCanonicalizer();
@@ -122,7 +124,7 @@ public class LocalResourceIndex implements ResourceIndex {
 		CaptureSearchResults results = new CaptureSearchResults();
 
 		CaptureQueryFilterState filterState = 
-			new CaptureQueryFilterState(wbRequest,canonicalizer, type);
+			new CaptureQueryFilterState(wbRequest,canonicalizer, type, filter);
 		String keyUrl = filterState.getKeyUrl();
 
 		CloseableIterator<CaptureSearchResult> itr = getCaptureIterator(keyUrl);
@@ -159,7 +161,7 @@ public class LocalResourceIndex implements ResourceIndex {
 
 		CaptureQueryFilterState filterState = 
 			new CaptureQueryFilterState(wbRequest,canonicalizer,
-					CaptureQueryFilterState.TYPE_URL);
+					CaptureQueryFilterState.TYPE_URL, filter);
 		String keyUrl = filterState.getKeyUrl();
 
 		CloseableIterator<CaptureSearchResult> citr = getCaptureIterator(keyUrl);
@@ -287,6 +289,14 @@ public class LocalResourceIndex implements ResourceIndex {
 	public void setAnnotater(ObjectFilter<CaptureSearchResult> annotater) {
 		this.annotater = annotater;
 	}
+
+	public ObjectFilter<CaptureSearchResult> getFilter() {
+		return filter;
+	}
+
+	public void setFilter(ObjectFilter<CaptureSearchResult> filter) {
+		this.filter = filter;
+	}
 	
 	private class CaptureQueryFilterState {
 		public final static int TYPE_REPLAY = 0;
@@ -302,7 +312,8 @@ public class LocalResourceIndex implements ResourceIndex {
 		private String exactDate;
 		
 		public CaptureQueryFilterState(WaybackRequest request, 
-				UrlCanonicalizer canonicalizer, int type)
+				UrlCanonicalizer canonicalizer, int type, 
+				ObjectFilter<CaptureSearchResult> genericFilter)
 		throws BadQueryException {
 			
 			String searchUrl = request.getRequestUrl();
@@ -333,6 +344,9 @@ public class LocalResourceIndex implements ResourceIndex {
 			preExclusionCounter = new CounterFilter();
 			DateRangeFilter drFilter = new DateRangeFilter(startDate,endDate);
 
+			if(genericFilter != null) {
+				filter.addFilter(genericFilter);
+			}
 			// has the user asked for only results on the exact host specified?
 			ObjectFilter<CaptureSearchResult> exactHost = 
 				getExactHostFilter(request);
