@@ -26,14 +26,13 @@ Date searchStartDate = wbRequest.getStartDate();
 Date searchEndDate = wbRequest.getEndDate();
 
 long firstResult = uResults.getFirstReturned();
-long resultCount = uResults.getReturnedCount();
-long lastResult = resultCount + firstResult;
+long lastResult = uResults.getReturnedCount() + firstResult;
 
 long totalCaptures = uResults.getMatchingCount();
 
 %>
-<%= fmt.format("PathPrefixQuery.showingResults",firstResult,lastResult,
-        resultCount,searchString) %>
+<%= fmt.format("PathPrefixQuery.showingResults",firstResult + 1,lastResult,
+		totalCaptures,searchString) %>
 <br/>
 
 <hr></hr>
