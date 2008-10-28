@@ -8,8 +8,12 @@ UIResults results = UIResults.getGeneric(request);
 StringFormatter fmt = results.getWbRequest().getFormatter();
 
 %>
-<form action="../../replay">
-<%= fmt.format("AdvancedSearch.url") %>
+<form action="query">
+<%= fmt.format("AdvancedSearch.searchTypeLabel") %>
+<select name="type">
+  <option value="urlquery"><%= fmt.format("AdvancedSearch.searchTypeExactOption") %></option>
+  <option value="prefixquery"><%= fmt.format("AdvancedSearch.searchTypePrefixOption") %></option>
+</select>
 <input type="TEXT" name="url" width="80">
 <br></br>
 <%= fmt.format("AdvancedSearch.exactDate") %>
@@ -21,7 +25,6 @@ StringFormatter fmt = results.getWbRequest().getFormatter();
 <%= fmt.format("AdvancedSearch.latestDate") %>
 <input type="TEXT" name="enddate" width="80">
 <br></br>
-<input type="HIDDEN" name="type" value="replay">
 <input type="SUBMIT" value="<%= fmt.format("AdvancedSearch.submitButton") %>">
 </form>
 <jsp:include page="/WEB-INF/template/UI-footer.jsp" flush="true" />
