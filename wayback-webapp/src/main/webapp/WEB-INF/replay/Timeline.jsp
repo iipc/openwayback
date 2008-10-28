@@ -14,16 +14,15 @@
 <jsp:include page="/WEB-INF/template/CookieJS.jsp" flush="true" />
 <%
 
-String contextRoot = request.getScheme() + "://" + request.getServerName() + ":" 
-	+ request.getServerPort() + request.getContextPath();
 
 UIResults results = UIResults.extractReplay(request);
+String contextRoot = results.getWbRequest().getContextPrefix();
 WaybackRequest wbRequest = results.getWbRequest();
 StringFormatter fmt = wbRequest.getFormatter();
 CaptureSearchResults cResults = results.getCaptureResults();
 
-String exactDateStr = wbRequest.getReplayTimestamp();
-Date exactDate = wbRequest.getReplayDate();
+String exactDateStr = results.getResult().getCaptureTimestamp();
+Date exactDate = results.getResult().getCaptureDate();
 String searchUrl = wbRequest.getRequestUrl();
 String resolution = wbRequest.getTimelineResolution();
 
