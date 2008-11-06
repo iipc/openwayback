@@ -1110,8 +1110,11 @@ String logoString = results.getContextConfig("logo");
         </p>
         <p>
           The <b>-identity</b> option causes the tools to skip canonicalization
-          of URLs. See the documentation for the <b>url-client</b> tool, and
-          the <a href="resource_index.html#URL_Canonicalization">
+          of URLs. When using this option, you will need to pass the CDX 
+          records through the url-client tool before sorting them into a 
+          production CDX index.  See the documentation for the
+          <b>url-client</b> tool, and the
+          <a href="resource_index.html#URL_Canonicalization">
             URL Canonicalization
           </a> section for more information.
         </p>
@@ -1182,15 +1185,19 @@ String logoString = results.getContextConfig("logo");
           canonicalization function is applied to requested URLs. This
           tool will read space(" ") delimited lines from STDIN, and
           output the same lines on STDOUT, but with one column
-          altered. The column that is changed is assumed to be a URL,
+          altered. The column that is changed is assumed to be an URL,
           and the version output is the canonicalized form of the
           input URL.
         </p>
         <p>
-          This tool is mostly useful for debugging the 
-          canonicalization function, but can also be used, if the
-          canonicalization function is altered, to update an existing
-          CDX index, without recreating CDX files from original ARCs. See the
+          This tool is required when using the <b>arc-indexer</b> or 
+          <b>warc-indexer</b> tools with the <b>-identity</b> option. Typical
+          usage involves generating an <i>identity</i> CDX index, then
+          passing the lines in that index through this tool to canonicalize the
+          record URL key for queries. If the <i>identity</i> CDX files are
+          kept, then canonicalization schemes can be swapped without
+          reindexing the original ARC/WARC content. This tool can also be
+          useful for debugging the canonicalization function. See the
           section
           <a href="resource_index.html#URL_Canonicalization">
             URL Canonicalization

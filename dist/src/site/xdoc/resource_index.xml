@@ -275,8 +275,12 @@
             </li>
             <li>
               <b>user info removal</b>
-	              http://user@example.com =&gt; example.com, 
-	              http://user:password@example.com =&gt; example.com, 
+                  http://user@example.com =&gt; example.com, 
+                  http://user:password@example.com =&gt; example.com, 
+            </li>
+            <li>
+              <b>default port removal</b>
+                  http://example.com:80 =&gt; example.com, 
             </li>
             <li>
               <b>session ID removal</b>
@@ -313,12 +317,12 @@
         <p>
           At the IA, we have recently switched to building CDX files using the
           <b>-identity</b> option on the <b>arc-indexer</b> and 
-          <b>warc-indexer</b> tools, and have added an additional step in our
-          CDX creation processes which uses the <b>url-client</b> tool before
-          sorting and merging CDX files. By keeping the original "identity" CDX
-          files, we have been able to test various URL canonicalization
-          strategies without the overhead of re-processing all the source
-          materials.
+          <b>warc-indexer</b> tools. The <b>-identity</b> option
+          <b>requires</b> passing records through the <b>url-client</b>
+          tool before sorting and merging into production CDX files. By keeping
+          the original "identity" CDX files, we have been able to test various
+          URL canonicalization strategies without the overhead of 
+          re-processing all the ARC/WARC source materials.
         </p>
       </subsection>
       <subsection name="Future Directions within Wayback">
