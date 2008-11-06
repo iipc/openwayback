@@ -100,17 +100,22 @@ public class CaptureSearchResults extends SearchResults {
 	}
 	/**
 	 * @param wbRequest
-	 * @param err if true, then check Request Anchor Window and Date, throwing
-	 *        exception if no Result is within the Window.
+	 * @param useAnchor if true, then check Request Anchor Window and Date,
+	 * 		  throwing exception if no Result is within the Window.
 	 * @return The closest CaptureSearchResult to the request.
 	 */
-	public CaptureSearchResult getClosest(WaybackRequest wbRequest, boolean err) 
+	public CaptureSearchResult getClosest(WaybackRequest wbRequest, 
+			boolean useAnchor) 
 		throws AnchorWindowTooSmallException {
 
 		CaptureSearchResult closest = null;
 		long closestDistance = 0;
 		CaptureSearchResult cur = null;
-		String anchorDate = wbRequest.getAnchorTimestamp();
+		String anchorDate = null;
+		// TODO: check if HTTP request referrer is set before using? 
+		if(useAnchor) {
+			anchorDate = wbRequest.getAnchorTimestamp();
+		}
 		long maxWindow = -1;
 		long wantTime = wbRequest.getReplayDate().getTime();
 		if(anchorDate != null) {
@@ -129,7 +134,7 @@ public class CaptureSearchResults extends SearchResults {
 				closestDistance = curDistance;
 			}
 		}
-		if(err && (maxWindow > 0)) {
+		if(useAnchor && (maxWindow > 0)) {
 			if(closestDistance > maxWindow) {
 				throw new AnchorWindowTooSmallException("Closest is " + 
 						closestDistance + " seconds away, Window is " + 
