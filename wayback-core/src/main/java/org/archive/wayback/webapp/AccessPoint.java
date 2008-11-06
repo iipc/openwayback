@@ -79,6 +79,8 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 			AccessPoint.class.getName());
 	
 	private boolean useServerName = false;
+	private boolean useAnchorWindow = false;
+
 	private int contextPort = 0;
 	private String contextName = null;
 	private String beanName = null;
@@ -343,7 +345,7 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 	
 			// TODO: check which versions are actually accessible right now?
 			CaptureSearchResult closest = captureResults.getClosest(wbRequest, 
-					true);
+					useAnchorWindow);
 			resource = collection.getResourceStore().retrieveResource(closest);
 			ReplayRenderer renderer = replay.getRenderer(wbRequest, closest, resource);
 			renderer.renderResource(httpRequest, httpResponse, wbRequest,
@@ -471,6 +473,20 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 	 */
 	public void setUseServerName(boolean useServerName) {
 		this.useServerName = useServerName;
+	}
+
+	/**
+	 * @return the useAnchorWindow
+	 */
+	public boolean isUseAnchorWindow() {
+		return useAnchorWindow;
+	}
+
+	/**
+	 * @param useAnchorWindow the useAnchorWindow to set
+	 */
+	public void setUseAnchorWindow(boolean useAnchorWindow) {
+		this.useAnchorWindow = useAnchorWindow;
 	}
 
 	public ExclusionFilterFactory getExclusionFactory() {
