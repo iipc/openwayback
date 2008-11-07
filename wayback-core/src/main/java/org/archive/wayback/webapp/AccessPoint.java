@@ -80,6 +80,7 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 	
 	private boolean useServerName = false;
 	private boolean useAnchorWindow = false;
+	private boolean exactSchemeMatch = true;
 
 	private int contextPort = 0;
 	private String contextName = null;
@@ -217,11 +218,6 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 			prefix.append(":").append(waybackPort);
 		}
 		String contextPath = getContextPath(httpRequest);
-//		if(contextPath.length() > 1) {
-//			prefix.append(contextPath);
-//		} else {
-//			prefix.append(contextPath);
-//		}
 		prefix.append(contextPath);
 		return prefix.toString();
 	}
@@ -264,19 +260,6 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 		} catch(IOException e) {
 			// TODO: figure out if we got IO because of a missing dispatcher
 		}
-//		uiResults.storeInRequest(httpRequest,translated);
-//		RequestDispatcher dispatcher = null;
-//		// special case for the front '/' page:
-//		if(translated.length() == 0) {
-//			translated = "/";
-//		} else {
-//			translated = "/" + translated;
-//		}
-//		dispatcher = httpRequest.getRequestDispatcher(translated);
-//		if(dispatcher != null) {
-//			dispatcher.forward(httpRequest, httpResponse);
-//			return true;
-//		}
 		return false;
 	}
 	
@@ -299,9 +282,13 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 
 			if(wbRequest != null) {
 				handled = true;
+
+				// TODO: refactor this code into RequestParser implementations
 				wbRequest.setAccessPoint(this);
 				wbRequest.setContextPrefix(getAbsoluteLocalPrefix(httpRequest));
 				wbRequest.fixup(httpRequest);
+				// end of refactor
+
 				if(authentication != null) {
 					if(!authentication.isTrue(wbRequest)) {
 						throw new AuthenticationControlException("Not authorized");
@@ -311,6 +298,12 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 				if(exclusionFactory != null) {
 					wbRequest.setExclusionFilter(exclusionFactory.get());
 				}
+				// TODO: refactor this into RequestParser implementations, so a
+				// user could alter requests to change the behavior within a
+				// single AccessPoint. For now, this is a simple way to expose
+				// the feature to configuration.
+				wbRequest.setExactScheme(exactSchemeMatch);
+
 				if(wbRequest.isReplayRequest()) {
 
 					handleReplay(wbRequest,httpRequest,httpResponse);
@@ -487,6 +480,20 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 	 */
 	public void setUseAnchorWindow(boolean useAnchorWindow) {
 		this.useAnchorWindow = useAnchorWindow;
+	}
+	
+	/**
+	 * @return the exactSchemeMatch
+	 */
+	public boolean isExactSchemeMatch() {
+		return exactSchemeMatch;
+	}
+
+	/**
+	 * @param exactSchemeMatch the exactSchemeMatch to set
+	 */
+	public void setExactSchemeMatch(boolean exactSchemeMatch) {
+		this.exactSchemeMatch = exactSchemeMatch;
 	}
 
 	public ExclusionFilterFactory getExclusionFactory() {
