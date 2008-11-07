@@ -206,24 +206,31 @@ public class AggressiveUrlCanonicalizer implements UrlCanonicalizer {
 			return urlString;
 		}
 		String searchUrl = canonicalize(urlString);
-
-		// TODO: force https into http for the moment...
-		if(searchUrl.startsWith("https://")) {
-			searchUrl = searchUrl.substring(8);
+		String scheme = UrlOperations.urlToScheme(searchUrl);
+		if(scheme != null) {
+			searchUrl = searchUrl.substring(scheme.length());
+		} else {
+			scheme = UrlOperations.HTTP_SCHEME;
 		}
-		
+	
+		if (-1 == searchUrl.indexOf("/")) {
+			searchUrl = scheme + searchUrl + "/";
+		} else {
+			searchUrl = scheme + searchUrl;
+		}
+
 		// TODO: this will only work with http:// scheme. should work with all?
 		// force add of scheme and possible add '/' with empty path:
-		if (searchUrl.startsWith("http://")) {
-			if (-1 == searchUrl.indexOf('/', 8)) {
-				searchUrl = searchUrl + "/";
-			}
-		} else {
-			if (-1 == searchUrl.indexOf("/")) {
-				searchUrl = searchUrl + "/";
-			}
-			searchUrl = "http://" + searchUrl;
-		}
+//		if (searchUrl.startsWith("http://")) {
+//			if (-1 == searchUrl.indexOf('/', 8)) {
+//				searchUrl = searchUrl + "/";
+//			}
+//		} else {
+//			if (-1 == searchUrl.indexOf("/")) {
+//				searchUrl = searchUrl + "/";
+//			}
+//			searchUrl = "http://" + searchUrl;
+//		}
 
 		// TODO: These next few lines look crazy -- need to be reworked.. This
 		// was the only easy way I could find to get the correct unescaping
@@ -250,23 +257,18 @@ public class AggressiveUrlCanonicalizer implements UrlCanonicalizer {
 //		if((newPath.length() > 1) && newPath.endsWith("/")) {
 //			newPath = newPath.substring(0,newPath.length()-1);
 //		}
-//		searchURI.setEscapedPath(newPath);
-//		searchURI.setRawPath(newPath.toCharArray());
-//		String query = searchURI.getEscapedQuery();
-		
-		// TODO: handle non HTTP port stripping, too.
-//		String portStr = "";
-//		if(searchURI.getPort() != 80 && searchURI.getPort() != -1) {
-//			portStr = ":" + searchURI.getPort();
-//		}
-//		return searchURI.getHostBasename() + portStr + 
-//		searchURI.getEscapedPathQuery();
 		
 		StringBuilder sb = new StringBuilder(searchUrl.length());
 		sb.append(searchURI.getHostBasename());
-		if(searchURI.getPort() != 80 && searchURI.getPort() != -1) {
+
+		// omit port if scheme default:
+		int defaultSchemePort = UrlOperations.schemeToDefaultPort(scheme);
+		if(searchURI.getPort() != defaultSchemePort 
+				&& searchURI.getPort() != -1) {
+
 			sb.append(":").append(searchURI.getPort());
 		}
+
 		sb.append(newPath);
 		if(searchURI.getEscapedQuery() != null) {
 			sb.append("?").append(searchURI.getEscapedQuery());

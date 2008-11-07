@@ -45,15 +45,14 @@ public class AggressiveUrlCanonicalizerTest extends TestCase {
 		// simple strip of http://
 		checkCanonicalization("http://foo.com/","foo.com/");
 
-// would be nice to handle other protocols...
-//		// simple strip of https://
-//		checkCanonicalization("https://foo.com/","foo.com/");
-//
-//		// simple strip of ftp://
-//		checkCanonicalization("ftp://foo.com/","foo.com/");
-//
-//		// simple strip of rtsp://
-//		checkCanonicalization("rtsp://foo.com/","foo.com/");
+		// simple strip of https://
+		checkCanonicalization("https://foo.com/","foo.com/");
+
+		// simple strip of ftp://
+		checkCanonicalization("ftp://foo.com/","foo.com/");
+
+		// simple strip of rtsp://
+		checkCanonicalization("rtsp://foo.com/","foo.com/");
 
 		// strip leading 'www.'
 		checkCanonicalization("http://www.foo.com/","foo.com/");
@@ -63,6 +62,9 @@ public class AggressiveUrlCanonicalizerTest extends TestCase {
 		
 		// strip leading 'www##.'
 		checkCanonicalization("http://www12.foo.com/","foo.com/");
+
+		// strip leading 'www##.' with https
+		checkCanonicalization("https://www12.foo.com/","foo.com/");
 		
 		// strip leading 'www##.' with no protocol
 		checkCanonicalization("www12.foo.com/","foo.com/");
@@ -174,12 +176,52 @@ public class AggressiveUrlCanonicalizerTest extends TestCase {
 		checkCanonicalization(
 				"http://legislature.mi.gov/(a(4hqa0555fwsecu455xqckv45)S(4hqa0555fwsecu455xqckv45)f(4hqa0555fwsecu455xqckv45))/mileg.aspx?page=sessionschedules",
 				"legislature.mi.gov/mileg.aspx?page=sessionschedules");
+
+
+
+
+		// default port stripping:
 		
+		// FIRST the easy-on-the-eyes
+
 		// strip port 80
 		checkCanonicalization("http://www.chub.org:80/foo","chub.org/foo");
 
 		// but not other ports...
 		checkCanonicalization("http://www.chub.org:8080/foo","chub.org:8080/foo");
+		
+		// but not other ports... with "www#." massage
+		checkCanonicalization("http://www232.chub.org:8080/foo","chub.org:8080/foo");
+
+		// default HTTP (:80) stripping without a scheme:
+		checkCanonicalization("www.chub.org:80/foo","chub.org/foo");
+		
+		// no strip https port (443) without scheme:
+		checkCanonicalization("www.chub.org:443/foo","chub.org:443/foo");
+
+		// yes strip https port (443) with scheme:
+		checkCanonicalization("https://www.chub.org:443/foo","chub.org/foo");
+		
+		// NEXT the exhaustive:
+		String origHost = "www.chub.org";
+		String massagedHost = "chub.org";
+		String path = "/foo";
+		for(String scheme : UrlOperations.ALL_SCHEMES) {
+
+			int defaultPort = UrlOperations.schemeToDefaultPort(scheme);
+			int nonDefaultPort = 19991;
+
+			String origDefault = scheme + origHost + ":" + defaultPort + path;
+			String canonDefault = massagedHost + path;
+
+			String origNonDefault = 
+				scheme + origHost + ":" + nonDefaultPort + path;
+			String canonNonDefault =
+				massagedHost + ":" + nonDefaultPort + path;
+
+			checkCanonicalization(origDefault,canonDefault);
+			checkCanonicalization(origNonDefault,canonNonDefault);
+		}
 
 	}
 	
