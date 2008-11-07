@@ -24,9 +24,7 @@
  */
 package org.archive.wayback.resourcestore;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.util.logging.Logger;
 
 import org.archive.wayback.ResourceStore;
@@ -80,12 +78,7 @@ public class LocationDBResourceStore implements ResourceStore {
 				
 			try {
 
-				if(url.startsWith("http://")) {
-					r = ResourceFactory.getResource(new URL(url), offset);
-				} else {
-					// assume local path:
-					r = ResourceFactory.getResource(new File(url), offset);
-				}
+				r = ResourceFactory.getResource(url, offset);
 				// TODO: attempt to grab the first few KB? The underlying 
 				// 		InputStreams support mark(), so we could reset() after.
 				//      wait for now, currently this will parse HTTP headers, 
