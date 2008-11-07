@@ -26,9 +26,19 @@ public class WarcIndexer {
 	public final static String CDX_HEADER_MAGIC = " CDX N b h m s k r V g";
 
 	private UrlCanonicalizer canonicalizer = null;
+	private boolean processAll = false;
 	public WarcIndexer() {
 		canonicalizer = new AggressiveUrlCanonicalizer();
 	}
+
+	public boolean isProcessAll() {
+		return processAll;
+	}
+
+	public void setProcessAll(boolean processAll) {
+		this.processAll = processAll;
+	}
+
 	
 	/**
 	 * @param warc
@@ -61,6 +71,7 @@ public class WarcIndexer {
 		WARCRecordToSearchResultAdapter adapter2 = 
 			new WARCRecordToSearchResultAdapter();
 		adapter2.setCanonicalizer(canonicalizer);
+		adapter2.setProcessAll(processAll);
 
 		ArchiveReaderCloseableIterator itr1 = 
 			new ArchiveReaderCloseableIterator(reader,reader.iterator());
@@ -82,11 +93,12 @@ public class WarcIndexer {
 	private static void USAGE() {
 		System.err.println("USAGE:");
 		System.err.println("");
-		System.err.println("warc-indexer [-identity] WARCFILE");
-		System.err.println("warc-indexer [-identity] WARCFILE CDXFILE");
+		System.err.println("warc-indexer [-identity] [-all] WARCFILE");
+		System.err.println("warc-indexer [-identity] [-all] WARCFILE CDXFILE");
 		System.err.println("");
 		System.err.println("Create a CDX format index at CDXFILE or to STDOUT");
 		System.err.println("With -identity, perform no url canonicalization.");
+		System.err.println("With -all, output request and metadata records.");
 		System.exit(1);
 	}
 
@@ -96,8 +108,14 @@ public class WarcIndexer {
 	public static void main(String[] args) {
 		WarcIndexer indexer = new WarcIndexer();
 		int idx = 0;
-		if(args[0] != null && args[0].equals("-identity")) {
-			indexer.setCanonicalizer(new IdentityUrlCanonicalizer());
+		while(args[idx] != null) {
+			if(args[idx].equals("-identity")) {
+				indexer.setCanonicalizer(new IdentityUrlCanonicalizer());
+			} else if(args[idx].equals("-all")) {
+				indexer.setProcessAll(true);
+			} else {
+				break;
+			}
 			idx++;
 		}
 		File arc = new File(args[idx]);

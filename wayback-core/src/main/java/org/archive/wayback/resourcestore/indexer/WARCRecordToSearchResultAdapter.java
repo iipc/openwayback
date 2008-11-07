@@ -2,7 +2,7 @@ package org.archive.wayback.resourcestore.indexer;
 
 import java.io.File;
 import java.io.IOException;
-//import java.util.logging.Logger;
+import java.util.logging.Logger;
 
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpParser;
@@ -33,13 +33,22 @@ import org.archive.wayback.util.url.UrlOperations;
  */
 public class WARCRecordToSearchResultAdapter
 implements Adapter<WARCRecord,CaptureSearchResult>{
+	private static final Logger LOGGER =
+        Logger.getLogger(WARCRecordToSearchResultAdapter.class.getName());
 	
 	private final static String DEFAULT_VALUE = "-"; 
 
-//	private static final Logger LOGGER = Logger.getLogger(
-//			WARCRecordToSearchResultAdapter.class.getName());
-
 	private UrlCanonicalizer canonicalizer = null;
+	
+	private boolean processAll = false;
+
+	public boolean isProcessAll() {
+		return processAll;
+	}
+
+	public void setProcessAll(boolean processAll) {
+		this.processAll = processAll;
+	}
 
 	public WARCRecordToSearchResultAdapter() {
 		canonicalizer = new AggressiveUrlCanonicalizer();
@@ -75,12 +84,19 @@ implements Adapter<WARCRecord,CaptureSearchResult>{
 		return output.toString();
 	}
 	
-	private static String transformHTTPMime(final String input) {
+	private static String escapeSpaces(final String input) {
+		if(input.contains(" ")) {
+			return input.replace(" ", "%20");
+		}
+		return input;
+	}
+	
+	private static String transformHTTPMime(String input) {
 		int semiIdx = input.indexOf(";");
 		if(semiIdx > 0) {
-			return input.substring(0,semiIdx).trim();
+			return escapeSpaces(input.substring(0,semiIdx).trim());
 		}
-		return input.trim();
+		return escapeSpaces(input.trim());
 	}
 
 	private String transformWarcFilename(String readerIdentifier) {
@@ -148,16 +164,21 @@ implements Adapter<WARCRecord,CaptureSearchResult>{
 		return result;
 	}
 
-	private CaptureSearchResult adaptRevisit(ArchiveRecordHeader header, WARCRecord rec) 
+	private CaptureSearchResult adaptGeneric(ArchiveRecordHeader header,
+			WARCRecord rec, String mime) 
 	throws IOException {
 
 		CaptureSearchResult result = getBlankSearchResult();
 
 		result.setCaptureTimestamp(transformDate(header.getDate()));
+		result.setFile(transformWarcFilename(header.getReaderIdentifier()));
+		result.setOffset(header.getOffset());
 		result.setDigest(transformDigest(header.getHeaderValue(
-						WARCRecord.HEADER_KEY_PAYLOAD_DIGEST)));
+				WARCRecord.HEADER_KEY_PAYLOAD_DIGEST)));
 		
 		addUrlDataToSearchResult(result,header.getUrl());
+		
+		result.setMimeType(mime);
 
 		return result;
 	}
@@ -243,7 +264,7 @@ implements Adapter<WARCRecord,CaptureSearchResult>{
 		}
 		return result;
 	}
-	
+
 	private CaptureSearchResult adaptInner(WARCRecord rec) throws IOException {
 		
 		CaptureSearchResult result = null;
@@ -257,7 +278,17 @@ implements Adapter<WARCRecord,CaptureSearchResult>{
 				result = adaptResponse(header,rec);
 			}
 		} else if(type.equals(WARCConstants.REVISIT)) {
-			result = adaptRevisit(header,rec);
+			result = adaptGeneric(header,rec,"warc/revisit");
+		} else if(type.equals(WARCConstants.REQUEST)) {
+			if(processAll) {
+				result = adaptGeneric(header,rec,"warc/request");
+			}
+		} else if(type.equals(WARCConstants.METADATA)) {
+			if(processAll) {
+				result = adaptGeneric(header,rec,"warc/metadata");
+			}
+		} else {
+			LOGGER.info("Skipping record type : " + type);
 		}
 
 		return result;
