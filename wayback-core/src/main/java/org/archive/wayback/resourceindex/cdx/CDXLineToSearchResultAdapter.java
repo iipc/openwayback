@@ -60,20 +60,6 @@ public class CDXLineToSearchResultAdapter implements Adapter<String,CaptureSearc
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.archive.wayback.util.Adapter#adapt(java.lang.Object)
-	 */
-	public CaptureSearchResult adapt(CaptureSearchResult o) {
-		String urlKey = o.getUrlKey();
-		StringBuilder sb = new StringBuilder(urlKey.length());
-		sb.append(DEFAULT_SCHEME);
-		sb.append(o.getOriginalUrl());
-		sb.append(urlKey.substring(getEndOfHostIndex(urlKey)));
-		o.setOriginalUrl(sb.toString());
-		return o;
-	}
-	
-	
 	public CaptureSearchResult adapt(String line) {
 		return doAdapt(line);
 	}
