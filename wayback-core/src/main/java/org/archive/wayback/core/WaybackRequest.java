@@ -39,6 +39,7 @@ import org.archive.wayback.requestparser.OpenSearchRequestParser;
 import org.archive.wayback.util.ObjectFilter;
 import org.archive.wayback.util.StringFormatter;
 import org.archive.wayback.util.Timestamp;
+import org.archive.wayback.util.url.UrlOperations;
 import org.archive.wayback.webapp.AccessPoint;
 
 /**
@@ -185,6 +186,12 @@ public class WaybackRequest {
 	 */
 	public static final String REQUEST_EXACT_HOST_ONLY = "requestexacthost";
 
+	/**
+	 * Indicates user only wants results that were captured using the same 
+	 * scheme as that specified in REQUEST_URL.
+	 */
+	public static final String REQUEST_EXACT_SCHEME_ONLY = "requestexactscheme";
+	
 	/**
 	 * indicates positive value for any request boolean flag.
 	 */
@@ -556,16 +563,27 @@ public class WaybackRequest {
      * @param urlStr Request URL.
      */
 	public void setRequestUrl(String urlStr) {
-		// TODO: fix this to use other schemes
-		if (!urlStr.startsWith("http://")) {
+
+		// This looks a little confusing: We're trying to fixup an incoming
+		// request URL that starts with: 
+		//       "http:/www.archive.org"
+		// so it becomes:
+		//       "http://www.archive.org"
+		// (note the missing second "/" in the first)
+		// 
+		// if that is not the case, then see if the incoming scheme
+		// is known, adding an implied "http://" scheme if there doesn't appear
+		// to be a scheme..
+		// TODO: make the default "http://" configurable.
+		if (!urlStr.startsWith(UrlOperations.HTTP_SCHEME)) {
 	    	if(urlStr.startsWith("http:/")) {
-	    		urlStr = "http://" + urlStr.substring(6);
+	    		urlStr = UrlOperations.HTTP_SCHEME + urlStr.substring(6);
 	    	} else {
-	    		urlStr = "http://" + urlStr;
+	    		if(UrlOperations.urlToScheme(urlStr) == null) {
+	    			urlStr = UrlOperations.HTTP_SCHEME + urlStr;
+	    		}
 	    	}
 	    }
-//	    UURI requestURI = UURIFactory.getInstance(urlStr);
-//	    put(REQUEST_URL_CLEANED, requestURI.toString());
         put(REQUEST_URL, urlStr);
 	}
 	
@@ -613,6 +631,13 @@ public class WaybackRequest {
 	}
 	public boolean isExactHost() {
 		return getBoolean(REQUEST_EXACT_HOST_ONLY);
+	}
+
+	public void setExactScheme(boolean isExactScheme) {
+		setBoolean(REQUEST_EXACT_SCHEME_ONLY,isExactScheme);
+	}
+	public boolean isExactScheme() {
+		return getBoolean(REQUEST_EXACT_SCHEME_ONLY);
 	}
 	
 	public String getAnchorTimestamp() {
