@@ -94,7 +94,7 @@ public class ResourceFactory {
 			|| name.endsWith(ArcWarcFilenameFilter.WARC_GZ_SUFFIX));	
 	}
 	
-	private static Resource ARCArchiveRecordToResource(ArchiveRecord rec,
+	public static Resource ARCArchiveRecordToResource(ArchiveRecord rec,
 			ARCReader reader) throws ResourceNotAvailableException, IOException {
 
 		if (!(rec instanceof ARCRecord)) {
@@ -105,7 +105,7 @@ public class ResourceFactory {
 		return ar;
 	}
 
-	private static Resource WARCArchiveRecordToResource(ArchiveRecord rec,
+	public static Resource WARCArchiveRecordToResource(ArchiveRecord rec,
 			WARCReader reader) throws ResourceNotAvailableException, IOException {
 
 		if (!(rec instanceof WARCRecord)) {
