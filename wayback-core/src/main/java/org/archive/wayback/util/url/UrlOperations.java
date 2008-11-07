@@ -81,15 +81,16 @@ public class UrlOperations {
 	 * @return url resolved against baseUrl, unless it is absolute already
 	 */
 	public static String resolveUrl(String baseUrl, String url) {
-		// TODO: this only works for http://
-		if(url.startsWith("http://")) {
-			try {
-				return UURIFactory.getInstance(url).getEscapedURI();
-			} catch (URIException e) {
-				e.printStackTrace();
-				// can't let a space exist... send back close to whatever came
-				// in...
-				return url.replace(" ", "%20");
+		for(final String scheme : ALL_SCHEMES) {
+			if(url.startsWith(scheme)) {
+				try {
+					return UURIFactory.getInstance(url).getEscapedURI();
+				} catch (URIException e) {
+					e.printStackTrace();
+					// can't let a space exist... send back close to whatever came
+					// in...
+					return url.replace(" ", "%20");
+				}
 			}
 		}
 		UURI absBaseURI;
@@ -99,9 +100,37 @@ public class UrlOperations {
 			resolvedURI = UURIFactory.getInstance(absBaseURI, url);
 		} catch (URIException e) {
 			e.printStackTrace();
-			return url;
+			return url.replace(" ", "%20");
 		}
 		return resolvedURI.getEscapedURI();
+	}
+	
+	public static String urlToScheme(final String url) {
+		for(final String scheme : ALL_SCHEMES) {
+			if(url.startsWith(scheme)) {
+				return scheme;
+			}
+		}
+		return null;
+	}
+	
+	public static int schemeToDefaultPort(final String scheme) {
+		if(scheme.equals(HTTP_SCHEME)) {
+			return 80;
+		}
+		if(scheme.equals(HTTPS_SCHEME)) {
+			return 443;
+		}
+		if(scheme.equals(FTP_SCHEME)) {
+			return 21;
+		}
+		if(scheme.equals(RTSP_SCHEME)) {
+			return 554;
+		}
+		if(scheme.equals(MMS_SCHEME)) {
+			return 1755;
+		}
+		return -1;
 	}
 	
 	public static String urlToHost(String url) {

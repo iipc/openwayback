@@ -62,7 +62,33 @@ public class UrlOperationsTest extends TestCase {
 		assertEquals("foo.com",UrlOperations.urlToHost("http://foo.com/path:/"));
 		assertEquals("foo.com",UrlOperations.urlToHost("https://foo.com/path:/"));
 		assertEquals("foo.com",UrlOperations.urlToHost("ftp://foo.com/path:/"));
+	}
+
+	public void testResolveUrl() {
+		for(String scheme : UrlOperations.ALL_SCHEMES) {
+
+			assertEquals(scheme + "a.org/1/2",
+				UrlOperations.resolveUrl(scheme + "a.org/3/","/1/2"));
+
+			assertEquals(scheme + "b.org/1/2",
+				UrlOperations.resolveUrl(scheme + "a.org/3/",
+						scheme + "b.org/1/2"));
+
+			assertEquals(scheme + "a.org/3/1/2",
+				UrlOperations.resolveUrl(scheme + "a.org/3/","1/2"));
+
+			assertEquals(scheme + "a.org/1/2",
+				UrlOperations.resolveUrl(scheme + "a.org/3","1/2"));
 		
+		}
 		
 	}
+	public void testUrlToScheme() {
+		assertEquals("http://",UrlOperations.urlToScheme("http://a.com/"));
+		assertEquals("https://",UrlOperations.urlToScheme("https://a.com/"));
+		assertEquals("ftp://",UrlOperations.urlToScheme("ftp://a.com/"));
+		assertEquals("rtsp://",UrlOperations.urlToScheme("rtsp://a.com/"));
+		assertEquals("mms://",UrlOperations.urlToScheme("mms://a.com/"));
+		assertNull(UrlOperations.urlToScheme("blah://a.com/"));
+	}	
 }
