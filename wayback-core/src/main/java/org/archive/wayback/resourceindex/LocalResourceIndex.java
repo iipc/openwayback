@@ -51,6 +51,7 @@ import org.archive.wayback.resourceindex.filters.DuplicateRecordFilter;
 import org.archive.wayback.resourceindex.filters.EndDateFilter;
 import org.archive.wayback.resourceindex.filters.GuardRailFilter;
 import org.archive.wayback.resourceindex.filters.HostMatchFilter;
+import org.archive.wayback.resourceindex.filters.SchemeMatchFilter;
 import org.archive.wayback.resourceindex.filters.SelfRedirectFilter;
 import org.archive.wayback.resourceindex.filters.UrlMatchFilter;
 import org.archive.wayback.resourceindex.filters.UrlPrefixMatchFilter;
@@ -63,6 +64,7 @@ import org.archive.wayback.util.ObjectFilterChain;
 import org.archive.wayback.util.ObjectFilterIterator;
 import org.archive.wayback.util.Timestamp;
 import org.archive.wayback.util.url.AggressiveUrlCanonicalizer;
+import org.archive.wayback.util.url.UrlOperations;
 
 /**
  *
@@ -378,6 +380,10 @@ public class LocalResourceIndex implements ResourceIndex {
 				filter.addFilter(exactHost);
 			}
 
+			if(request.isExactScheme()) {
+				filter.addFilter(new SchemeMatchFilter(
+						UrlOperations.urlToScheme(request.getRequestUrl())));
+			}
 			// count how many results got to the ExclusionFilter:
 			filter.addFilter(preExclusionCounter);
 
@@ -417,6 +423,7 @@ public class LocalResourceIndex implements ResourceIndex {
 			}
 		}
 	}
+
 	private static HostMatchFilter getExactHostFilter(WaybackRequest r) { 
 
 		HostMatchFilter filter = null;
