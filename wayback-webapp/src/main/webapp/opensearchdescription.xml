@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/">
+  <ShortName>Wayback</ShortName>
+  <Description>Wayback Search Result RSS feed.</Description>
+  <Tags>wayback rss</Tags>
+  <Contact>archive-it@archive.org</Contact>
+  <Url type="application/rss+xml" 
+       template="http://wayback.archive-it.org/query?q={searchTerms}&amp;start_page={startPage?}&amp;count={count?}"/>
+</OpenSearchDescription>
