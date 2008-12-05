@@ -14,6 +14,61 @@
         to release 1.2.0.
       </p>
     </section>
+    <section name="Release 1.4.1">
+      <subsection name="Features">
+        <ul>
+          <li>
+            Index filter which allows including/excluding records based on HTTP 
+            response code field.(<i>ACC-43</i>)
+          </li>
+          <li>
+            Outputs log message instead of stack dump when failing to access
+            a Resource.
+          </li>
+        </ul>
+      </subsection>
+      <subsection name="Bug Fixes">
+        <ul>
+          <li>
+            Some redirect records were not being located in index due to bad
+            logic in Duplicate record filter.(<i>ACC-30</i>)
+          </li>
+          <li>
+            Wayback was not throwing a NotInArchiveException when 
+            Self-Redirect replay filter removes all records. (unreported)
+          </li>
+          <li>
+            Location HTTP header values were not being escaped before
+            placing in CDX, causing some records to have too many columns.
+            (<i>ACC-31</i>)
+          </li>
+          <li>
+            Search Result summary counts were incorrect in Url Prefix
+            searches.(<i>ACC-33</i>)
+          </li>
+          <li>
+            Implemented NoCache.jsp, a replay insert which adds a 
+            <b>Cache-Control: no-cache</b> HTTP header to all replayed
+            documents.(<i>ACC-34</i>)
+          </li>
+          <li>
+            Timeline.jsp was using Request Date, not Capture date, which
+            caused Proxy Mode Timeline to show the wrong date.
+            (<i>ACC-36</i>)
+          </li>
+          <li>
+            Advanced Search reference implementation .jsp was broken.
+            (<i>ACC-37</i>)
+          </li>
+          <li>
+            AnchorDate and AnchorWindow functionality is now disabled by
+            default, and can be enabled via configuration on an AccessPoint.
+            (<i>ACC-46</i>)
+          </li>
+        </ul>
+      </subsection>
+    </section>
+
     <section name="Release 1.4.0">
       <subsection name="Features">
         <ul>

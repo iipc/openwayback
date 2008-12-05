@@ -74,6 +74,16 @@
         </p>
     </section>
     <section name="News">
+        <subsection name="Maintenance Release - 1.4.1, 11/10/2008">
+          <p>
+            Release 1.4.1 fixes several problems discovered in the 1.4.0 
+            release, and most notably disables by default the AnchorDate and
+            AnchorWindow features which generated some confusion. Please
+            see the <a href="release_notes.html">release notes</a> for
+            a detailed list of changes.
+          </p>
+        </subsection>
+
         <subsection name="New Release - 1.4.0, 8/20/2008">
           <p>
             Release 1.4.0 has several new features, as well as several 
