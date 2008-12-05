@@ -423,6 +423,13 @@ public class TagMagixTest extends TestCase {
 //				"<table style=\"bg: url(\\\"http://w.a.org/wb/2004/http://f.au/css/b.gif\\\"); fg: url(\\\"http://w.a.org/wb/2004/http://f.au/css/f.gif\\\");\"></table>",
 //				"http://w.a.org/wb/","2004","http://f.au/");
 		
+		
+		checkStyleUrlMarkup("<td style=\"b-i:url(i/b.jpg);\n\"></td>",
+				"<td style=\"b-i:url(http://w.a.org/wb/2004/http://f.au/i/b.jpg);\n\"></td>",
+				"http://w.a.org/wb/","2004","http://f.au/");
+		
+//		    "<td style=\"background-image:url(images/banner.jpg);\n\"></td>"
+
 	
 	}
 	
@@ -449,15 +456,26 @@ public class TagMagixTest extends TestCase {
 		ArchivalUrlResultURIConverter uriC = new ArchivalUrlResultURIConverter();
 		uriC.setReplayURIPrefix(prefix);
 		TagMagix.markupCSSImports(buf, uriC, ts, url);
+		TagMagix.markupStyleUrls(buf,uriC,ts,url);
 		String marked = buf.toString();
 		assertEquals(want,marked);
 	}
 	
-	private void checkStyleUrlMarkup(String orig, String want, String prefix, String ts, String url) {
+	private void checkStyleOnlyUrlMarkup(String orig, String want, String prefix, String ts, String url) {
 		StringBuilder buf = new StringBuilder(orig);
 		ArchivalUrlResultURIConverter uriC = new ArchivalUrlResultURIConverter();
 		uriC.setReplayURIPrefix(prefix);
 		TagMagix.markupStyleUrls(buf,uriC,ts,url);
+		String marked = buf.toString();
+		assertEquals(want,marked);
+	}
+
+	private void checkStyleUrlMarkup(String orig, String want,String prefix, String ts, String url) {
+		StringBuilder buf = new StringBuilder(orig);
+		ArchivalUrlResultURIConverter uriC = new ArchivalUrlResultURIConverter();
+		uriC.setReplayURIPrefix(prefix);
+		TagMagix.markupCSSImports(buf, uriC, ts, url);
+		TagMagix.markupStyleUrls(buf, uriC, ts, url);
 		String marked = buf.toString();
 		assertEquals(want,marked);
 	}
