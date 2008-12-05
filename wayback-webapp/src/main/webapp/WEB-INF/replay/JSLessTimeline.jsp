@@ -149,7 +149,7 @@ String titleString = "";
 						<table cellspacing="0" border="0" cellpadding="0"  width="100%">
 							<tr>
 								<td width="48%" nowrap><span><%= firstDate %></span></td>
-								<td align="center" valign="bottom" nowrap><img wmSpecial="1" src="<%= contextRoot %>/images/mark.jpg"></td>
+								<td align="center" valign="bottom" nowrap><img style="display: inline;" wmSpecial="1" src="<%= contextRoot %>/images/mark.jpg"></td>
 								<td width="48%" nowrap align="right"><span><%= lastDate %></span></td>
 							</tr>
 						</table>
@@ -165,7 +165,7 @@ String titleString = "";
 									first.getCaptureDate()) + "\"";
 							%><a wmSpecial="1" href="<%= results.resultToReplayUrl(first) %>"><%
 						}
-						%><img <%= titleString %> wmSpecial="1" border=0 width=19 height=20 src="<%= contextRoot %>/images/first.jpg"><%
+						%><img style="display: inline;" <%= titleString %> wmSpecial="1" border=0 width=19 height=20 src="<%= contextRoot %>/images/first.jpg"><%
 						if(first != null) {
 							%></a><%
 						}
@@ -176,7 +176,7 @@ String titleString = "";
 										prev.getCaptureDate()) + "\"";
 							%><a wmSpecial="1" href="<%= results.resultToReplayUrl(prev) %>"><%
 						}
-						%><img <%= titleString %> wmSpecial="1" border=0 width=13 height=20 src="<%= contextRoot %>/images/prev.jpg"><%
+						%><img style="display: inline;" <%= titleString %> wmSpecial="1" border=0 width=13 height=20 src="<%= contextRoot %>/images/prev.jpg"><%
 						if(first != null) {
 							%></a><%
 						}
@@ -205,17 +205,17 @@ String titleString = "";
 		}
 		if((i > 0) && (i < numPartitions)) {
 
-%><img wmSpecial="1" border=0 width=1 height=16 src="<%= contextRoot %>/images/linemark.jpg"><%
+%><img style="display: inline;" wmSpecial="1" border=0 width=1 height=16 src="<%= contextRoot %>/images/linemark.jpg"><%
 		
 		}
 
 		if(replayUrl == null) {
 
-%><img wmSpecial="1" border=0 width=7 height=16 src="<%= imageUrl %>"><%
+%><img style="display: inline;" wmSpecial="1" border=0 width=7 height=16 src="<%= imageUrl %>"><%
 		
 		} else {
 
-%><a wmSpecial="1" href="<%= replayUrl %>"><img wmSpecial="1" border=0 width=7 height=16 title="<%= prettyDateTime %>" src="<%= imageUrl %>"></a><%
+%><a wmSpecial="1" href="<%= replayUrl %>"><img style="display: inline;" wmSpecial="1" border=0 width=7 height=16 title="<%= prettyDateTime %>" src="<%= imageUrl %>"></a><%
 
 		}
 	}
@@ -229,7 +229,7 @@ String titleString = "";
 									next.getCaptureDate()) + "\"";
 							%><a wmSpecial="1" href="<%= results.resultToReplayUrl(next) %>"><%
 						}
-						%><img wmSpecial="1" <%= titleString %> border=0 width=13 height=20 src="<%= contextRoot %>/images/next.jpg"><%
+						%><img style="display: inline;" wmSpecial="1" <%= titleString %> border=0 width=13 height=20 src="<%= contextRoot %>/images/next.jpg"><%
 						if(first != null) {
 							%></a><%
 						}
@@ -240,7 +240,7 @@ String titleString = "";
 									last.getCaptureDate()) + "\"";
 							%><a wmSpecial="1" href="<%= results.resultToReplayUrl(last) %>"><%
 						}
-						%><img wmSpecial="1" <%= titleString %> border=0 width=19 height=20 src="<%= contextRoot %>/images/last.jpg"><%
+						%><img style="display: inline;" wmSpecial="1" <%= titleString %> border=0 width=19 height=20 src="<%= contextRoot %>/images/last.jpg"><%
 						if(first != null) {
 							%></a><%
 						}
@@ -283,7 +283,7 @@ String titleString = "";
       %></a>
 		</td>
 		<td>
-			<img wmSpecial="1" alt='' height='1' src='<%= contextRoot %>/images/1px.gif' width='5'>
+			<img style="display: inline;" wmSpecial="1" alt='' height='1' src='<%= contextRoot %>/images/1px.gif' width='5'>
 		</td>
 	</tr>
 </table>

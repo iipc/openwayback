@@ -171,7 +171,7 @@ function handleDragClick() {
 						<table cellspacing="0" border="0" cellpadding="0"  width="100%">
 							<tr>
 								<td width="48%" nowrap><span><%= firstDate %></span></td>
-								<td align="center" valign="bottom" nowrap><img wmSpecial="1" src="<%= contextRoot %>/images/mark.jpg"></td>
+								<td align="center" valign="bottom" nowrap><img style="display: inline;" wmSpecial="1" src="<%= contextRoot %>/images/mark.jpg"></td>
 								<td width="48%" nowrap align="right"><span><%= lastDate %></span></td>
 							</tr>
 						</table>
@@ -187,7 +187,7 @@ function handleDragClick() {
 									first.getCaptureDate()) + "\"";
 							%><a wmSpecial="1" onclick="SetAnchorDate('<%= first.getCaptureTimestamp() %>');" href="<%= results.resultToReplayUrl(first) %>"><%
 						}
-						%><img <%= titleString %> wmSpecial="1" border=0 width=19 height=20 src="<%= contextRoot %>/images/first.jpg"><%
+						%><img style="display: inline;" <%= titleString %> wmSpecial="1" border=0 width=19 height=20 src="<%= contextRoot %>/images/first.jpg"><%
 						if(first != null) {
 							%></a><%
 						}
@@ -198,7 +198,7 @@ function handleDragClick() {
 									prev.getCaptureDate()) + "\"";
 							%><a wmSpecial="1" onclick="SetAnchorDate('<%= prev.getCaptureTimestamp() %>');" href="<%= results.resultToReplayUrl(prev) %>"><%
 						}
-						%><img <%= titleString %> wmSpecial="1" border=0 width=13 height=20 src="<%= contextRoot %>/images/prev.jpg"><%
+						%><img style="display: inline;" <%= titleString %> wmSpecial="1" border=0 width=13 height=20 src="<%= contextRoot %>/images/prev.jpg"><%
 						if(first != null) {
 							%></a><%
 						}
@@ -230,17 +230,17 @@ function handleDragClick() {
 		}
 		if((i > 0) && (i < numPartitions)) {
 
-%><img wmSpecial="1" border=0 width=1 height=16 src="<%= contextRoot %>/images/linemark.jpg"><%
+%><img style="display: inline;" wmSpecial="1" border=0 width=1 height=16 src="<%= contextRoot %>/images/linemark.jpg"><%
 		
 		}
 
 		if(replayUrl == null) {
 
-%><img wmSpecial="1" border=0 width=7 height=16 src="<%= imageUrl %>"><%
+%><img style="display: inline;" wmSpecial="1" border=0 width=7 height=16 src="<%= imageUrl %>"><%
 		
 		} else {
 
-%><a wmSpecial="1" onclick="SetAnchorDate('<%= ts %>');" href="<%= replayUrl %>"><img wmSpecial="1" border=0 width=7 height=16 title="<%= prettyDateTime %>" src="<%= imageUrl %>"></a><%
+%><a wmSpecial="1" onclick="SetAnchorDate('<%= ts %>');" href="<%= replayUrl %>"><img style="display: inline;" wmSpecial="1" border=0 width=7 height=16 title="<%= prettyDateTime %>" src="<%= imageUrl %>"></a><%
 
 		}
 	}
@@ -254,7 +254,7 @@ function handleDragClick() {
 									next.getCaptureDate()) + "\"";
 							%><a wmSpecial="1" onclick="SetAnchorDate('<%= next.getCaptureTimestamp() %>');" href="<%= results.resultToReplayUrl(next) %>"><%
 						}
-						%><img wmSpecial="1" <%= titleString %> border=0 width=13 height=20 src="<%= contextRoot %>/images/next.jpg"><%
+						%><img style="display: inline;" wmSpecial="1" <%= titleString %> border=0 width=13 height=20 src="<%= contextRoot %>/images/next.jpg"><%
 						if(next != null) {
 							%></a><%
 						}
@@ -265,7 +265,7 @@ function handleDragClick() {
 									last.getCaptureDate()) + "\"";
 							%><a wmSpecial="1" onclick="SetAnchorDate('<%= last.getCaptureTimestamp() %>');" href="<%= results.resultToReplayUrl(last) %>"><%
 						}
-						%><img wmSpecial="1" <%= titleString %> border=0 width=19 height=20 src="<%= contextRoot %>/images/last.jpg"><%
+						%><img style="display: inline;" wmSpecial="1" <%= titleString %> border=0 width=19 height=20 src="<%= contextRoot %>/images/last.jpg"><%
 						if(last != null) {
 							%></a><%
 						}
@@ -308,7 +308,7 @@ function handleDragClick() {
       %></a>
 		</td>
 		<td>
-			<img wmSpecial="1" alt='' height='1' src='<%= contextRoot %>/images/1px.gif' width='5'>
+			<img style="display: inline;" wmSpecial="1" alt='' height='1' src='<%= contextRoot %>/images/1px.gif' width='5'>
 		</td>
 	</tr>
 </table>
