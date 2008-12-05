@@ -45,6 +45,9 @@ public class DomainPrefixResultURIConverter implements ResultURIConverter {
 	public String makeReplayURI(String datespec, String url) {
 		String replayURI = "";
 		try {
+			if(url.contains(hostPort)) {
+				return url;
+			}
 			URI uri = new URI(url);
 			StringBuilder sb = new StringBuilder(90);
 			sb.append("http://");

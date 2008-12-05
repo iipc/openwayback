@@ -42,10 +42,14 @@ public class ArchivalUrlResultURIConverter implements ResultURIConverter {
 	 * @see org.archive.wayback.ResultURIConverter#makeReplayURI(java.lang.String, java.lang.String)
 	 */
 	public String makeReplayURI(String datespec, String url) {
+		String suffix = datespec + "/" + url;
 		if(replayURIPrefix == null) {
-			return datespec + "/" + url;
+			return suffix;
 		} else {
-			return replayURIPrefix + datespec + "/" + url;
+			if(url.startsWith(replayURIPrefix)) {
+				return url;
+			}
+			return replayURIPrefix + suffix;
 		}
 	}
 
