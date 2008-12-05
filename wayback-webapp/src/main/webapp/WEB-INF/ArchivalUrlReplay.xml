@@ -4,7 +4,9 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans
            http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
 
-  <bean id="archivalurlhttpheaderprocessor" class="org.archive.wayback.replay.RedirectRewritingHttpHeaderProcessor" />
+  <bean id="archivalurlhttpheaderprocessor" class="org.archive.wayback.replay.RedirectRewritingHttpHeaderProcessor">
+    <property name="prefix" value="X-Archive-Orig-" />
+  </bean>
 
   <bean id="archivaldateredirectingreplayrenderer" class="org.archive.wayback.replay.DateRedirectReplayRenderer" />
   <bean id="archivalcssreplayrenderer" class="org.archive.wayback.archivalurl.ArchivalUrlCSSReplayRenderer">

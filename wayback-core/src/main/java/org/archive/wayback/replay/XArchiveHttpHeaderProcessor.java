@@ -22,13 +22,10 @@ public class XArchiveHttpHeaderProcessor implements HttpHeaderProcessor {
 			ResultURIConverter uriConverter, CaptureSearchResult result) {
 		String keyUp = key.toUpperCase();
 
-		// rewrite Location header URLs
+		output.put(prefix + key,value);
 		if (keyUp.startsWith(HTTP_CONTENT_TYPE_HEADER_UP)) {
-			// let's leave this one alone... seems important.
+			// add this one as-is, too.
 			output.put(key, value);
-		} else {
-			// others go out with prefix:
-			output.put(prefix + key,value);
 		}
 	}
 }
