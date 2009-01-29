@@ -372,6 +372,7 @@ public class LocalResourceIndex implements ResourceIndex {
 				filter.addFilter(drFilter);
 			} else if(type == TYPE_URL) {
 				filter.addFilter(new UrlPrefixMatchFilter(keyUrl));				
+				filter.addFilter(drFilter);
 			} else {
 				throw new BadQueryException("Unknown type");
 			}
