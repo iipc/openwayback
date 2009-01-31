@@ -62,7 +62,9 @@ public class RedirectRewritingHttpHeaderProcessor
 		// first stick it in as-is, or with prefix, then maybe we'll overwrite
 		// with the later logic.
 		if(prefix == null) {
-			output.put(key, value);
+			if(!keyUp.equals(HTTP_LENGTH_HEADER_UP)) {
+				output.put(key, value);
+			}
 		} else {
 			output.put(prefix + key, value);
 		}
