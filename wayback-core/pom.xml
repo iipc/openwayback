@@ -57,7 +57,7 @@
     <dependency>
       <groupId>org.archive.heritrix</groupId>
       <artifactId>commons</artifactId>
-      <version>2.0.1-SNAPSHOT</version>
+      <version>2.0.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.archive.access-control</groupId>
@@ -67,7 +67,7 @@
     <dependency>
       <groupId>org.mozilla</groupId>
       <artifactId>juniversalchardet</artifactId>
-      <version>1.0</version>
+      <version>1.0.3</version>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
