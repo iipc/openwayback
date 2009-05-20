@@ -233,6 +233,18 @@ public class WaybackRequest {
 	 * Request: xml data requested 
 	 */
 	public static final String REQUEST_XML_DATA = "xmldata";
+	/**
+	 * Request: CSS context requested 
+	 */
+	public static final String REQUEST_CSS_CONTEXT = "csscontext";
+	/**
+	 * Request: JS context requested 
+	 */
+	public static final String REQUEST_JS_CONTEXT = "jscontext";
+	/**
+	 * Request: IMG context requested 
+	 */
+	public static final String REQUEST_IMAGE_CONTEXT = "imagecontext";
 	/*
 	 * *******************************
 	 * /OUTPUT TYPE CONSTANTS 
@@ -677,7 +689,28 @@ public class WaybackRequest {
 	public boolean isXMLMode() {
 		return getBoolean(REQUEST_XML_DATA);
 	}
+
+	public void setJSContext(boolean isJSContext) {
+		setBoolean(REQUEST_JS_CONTEXT,isJSContext);
+	}
+	public boolean isJSContext() {
+		return getBoolean(REQUEST_JS_CONTEXT);
+	}
+
+	public void setCSSContext(boolean isCSSContext) {
+		setBoolean(REQUEST_CSS_CONTEXT,isCSSContext);
+	}
+	public boolean isCSSContext() {
+		return getBoolean(REQUEST_CSS_CONTEXT);
+	}
 	
+	public void setIMGContext(boolean isIMGContext) {
+		setBoolean(REQUEST_IMAGE_CONTEXT,isIMGContext);
+	}
+	public boolean isIMGContext() {
+		return getBoolean(REQUEST_IMAGE_CONTEXT);
+	}
+
 	public String getWaybackContext() {
 		return get(REQUEST_WAYBACK_CONTEXT);
 	}
