@@ -44,6 +44,12 @@ public abstract class Resource extends InputStream {
 	public abstract long getRecordLength();
 	public abstract Map<String,String> getHttpHeaders();
 
+	private void validate() throws IOException {
+		if(is == null) {
+			throw new IOException("No InputStream");
+		}
+	}
+
 	protected void setInputStream(InputStream is) {
 		if(is.markSupported()) {
 			this.is = is;
@@ -57,9 +63,7 @@ public abstract class Resource extends InputStream {
 	 * @see java.io.BufferedInputStream#available()
 	 */
 	public int available() throws IOException {
-		if(is == null) {
-			throw new IOException("No InputStream");
-		}
+		validate();
 		return is.available();
 	}
 	/**
@@ -87,9 +91,7 @@ public abstract class Resource extends InputStream {
 	 * @see java.io.BufferedInputStream#read()
 	 */
 	public int read() throws IOException {
-		if(is == null) {
-			throw new IOException("No InputStream");
-		}
+		validate();
 		return is.read();
 	}
 	/**
@@ -101,9 +103,7 @@ public abstract class Resource extends InputStream {
 	 * @see java.io.BufferedInputStream#read(byte[], int, int)
 	 */
 	public int read(byte[] b, int off, int len) throws IOException {
-		if(is == null) {
-			throw new IOException("No InputStream");
-		}
+		validate();
 		return is.read(b, off, len);
 	}
 	/**
@@ -113,9 +113,7 @@ public abstract class Resource extends InputStream {
 	 * @see java.io.FilterInputStream#read(byte[])
 	 */
 	public int read(byte[] b) throws IOException {
-		if(is == null) {
-			throw new IOException("No InputStream");
-		}
+		validate();
 		return is.read(b);
 	}
 	/**
@@ -123,9 +121,7 @@ public abstract class Resource extends InputStream {
 	 * @see java.io.BufferedInputStream#reset()
 	 */
 	public void reset() throws IOException {
-		if(is == null) {
-			throw new IOException("No InputStream");
-		}
+		validate();
 		is.reset();
 	}
 	/**
@@ -135,9 +131,7 @@ public abstract class Resource extends InputStream {
 	 * @see java.io.BufferedInputStream#skip(long)
 	 */
 	public long skip(long n) throws IOException {
-		if(is == null) {
-			throw new IOException("No InputStream");
-		}
+		validate();
 		return is.skip(n);
 	}
 }
