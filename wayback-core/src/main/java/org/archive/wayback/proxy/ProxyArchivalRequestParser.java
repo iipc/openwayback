@@ -11,17 +11,17 @@ import org.archive.wayback.requestparser.FormRequestParser;
 import org.archive.wayback.requestparser.OpenSearchRequestParser;
 
 public class ProxyArchivalRequestParser extends ProxyRequestParser {
-	private ProxyReplayRequestParser prrp = new ProxyReplayRequestParser();
+	private ProxyReplayRequestParser prrp = new ProxyReplayRequestParser(this);
 	protected RequestParser[] getRequestParsers() {
 		prrp.init();
 		RequestParser[] theParsers = {
 				prrp,
-				new PathDatePrefixQueryRequestParser(),
-				new PathDateRangeQueryRequestParser(),
-				new PathPrefixDatePrefixQueryRequestParser(),
-				new PathPrefixDateRangeQueryRequestParser(),
-				new OpenSearchRequestParser(),
-				new FormRequestParser() 
+				new PathDatePrefixQueryRequestParser(this),
+				new PathDateRangeQueryRequestParser(this),
+				new PathPrefixDatePrefixQueryRequestParser(this),
+				new PathPrefixDateRangeQueryRequestParser(this),
+				new OpenSearchRequestParser(this),
+				new FormRequestParser(this) 
 				};
 		return theParsers;
 	}
