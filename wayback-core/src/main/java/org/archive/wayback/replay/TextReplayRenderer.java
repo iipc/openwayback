@@ -95,10 +95,11 @@ public abstract class TextReplayRenderer implements ReplayRenderer {
 		// the "Content-Type" HTTP header, then Tomcat will use the default..
 		// who knows what that is, or what that will do to the page..
 		// let's try explicitly setting it to what we used:
-		httpResponse.setCharacterEncoding(page.getCharSet());
+		headers.put("X-Wayback-Guessed-Charset", page.getCharSet());
 
 		// send back the headers:
 		HttpHeaderOperation.sendHeaders(headers, httpResponse);
+		httpResponse.setCharacterEncoding(page.getCharSet());
 
 		page.writeToOutputStream(httpResponse.getOutputStream());
 	}
