@@ -40,7 +40,14 @@ import org.archive.wayback.webapp.AccessPoint;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class FormRequestParser extends BaseRequestParser {
+public class FormRequestParser extends WrappedRequestParser {
+	/**
+	 * @param wrapped
+	 */
+	public FormRequestParser(BaseRequestParser wrapped) {
+		super(wrapped);
+	}
+
 	/**
 	 * CGI argument name for Submit button...
 	 */
@@ -71,7 +78,7 @@ public class FormRequestParser extends BaseRequestParser {
 			} else {
 				return null;
 			}
-			wbRequest.setResultsPerPage(maxRecords);
+			wbRequest.setResultsPerPage(getMaxRecords());
 			Set<String> keys = queryMap.keySet();
 			Iterator<String> itr = keys.iterator();
 			while(itr.hasNext()) {

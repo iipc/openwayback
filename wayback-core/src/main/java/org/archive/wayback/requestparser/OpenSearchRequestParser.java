@@ -39,7 +39,14 @@ import org.archive.wayback.webapp.AccessPoint;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class OpenSearchRequestParser extends BaseRequestParser {
+public class OpenSearchRequestParser extends WrappedRequestParser {
+
+	/**
+	 * @param wrapped
+	 */
+	public OpenSearchRequestParser(BaseRequestParser wrapped) {
+		super(wrapped);
+	}
 
 	/**
 	 * CGI argument name for query arguments
@@ -104,7 +111,7 @@ public class OpenSearchRequestParser extends BaseRequestParser {
 			int nr = Integer.parseInt(numResults);
 			wbRequest.setResultsPerPage(nr);
 		} else {
-			wbRequest.setResultsPerPage(maxRecords);
+			wbRequest.setResultsPerPage(getMaxRecords());
 		}
 		if (startPage != null) {
 			int sp = Integer.parseInt(startPage);

@@ -37,7 +37,14 @@ import org.archive.wayback.webapp.AccessPoint;
  * @author brad
  * @version $Date$, $Revision$
  */
-public abstract class PathRequestParser extends BaseRequestParser {
+public abstract class PathRequestParser extends WrappedRequestParser {
+
+	/**
+	 * @param wrapped
+	 */
+	public PathRequestParser(BaseRequestParser wrapped) {
+		super(wrapped);
+	}
 
 	/**
 	 * @param requestPath
@@ -67,7 +74,7 @@ public abstract class PathRequestParser extends BaseRequestParser {
 		
 		WaybackRequest wbRequest = parse(requestPath);
 		if(wbRequest != null) {
-			wbRequest.setResultsPerPage(maxRecords);
+			wbRequest.setResultsPerPage(getMaxRecords());
 		}
 
 		return wbRequest;
