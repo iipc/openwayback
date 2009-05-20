@@ -31,6 +31,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.IllegalCharsetNameException;
 import java.text.ParseException;
+import java.util.Iterator;
 import java.util.Map;
 
 import javax.servlet.ServletException;
@@ -102,7 +103,9 @@ public class TextDocument {
 	}
 	
 	private String contentTypeToCharset(final String contentType) {
-		int offset = contentType.indexOf(CHARSET_TOKEN);
+		int offset = 
+			contentType.toUpperCase().indexOf(CHARSET_TOKEN.toUpperCase());
+		
 		if (offset != -1) {
 			String cs = contentType.substring(offset + CHARSET_TOKEN.length());
 			if(isCharsetSupported(cs)) {
@@ -135,7 +138,16 @@ public class TextDocument {
 		String charsetName = null;
 
 		Map<String,String> httpHeaders = resource.getHttpHeaders();
-		String ctype = httpHeaders.get(HTTP_CONTENT_TYPE_HEADER);
+		Iterator<String> keys = httpHeaders.keySet().iterator();
+		String ctype = null;
+		while(keys.hasNext()) {
+			String headerKey = keys.next();
+			String keyCmp = headerKey.toUpperCase().trim();
+			if(keyCmp.equals(HTTP_CONTENT_TYPE_HEADER.toUpperCase())) {
+				ctype = httpHeaders.get(headerKey);
+				break;
+			}
+		}
 		if (ctype != null) {
 			charsetName = contentTypeToCharset(ctype);
 		}
@@ -212,11 +224,11 @@ public class TextDocument {
 	 */
 	protected String guessCharset() throws IOException {
 		
-		String charSet = getCharsetFromMeta(resource);
+		String charSet = getCharsetFromHeaders(resource);
 		if(charSet == null) {
 			charSet = getCharsetFromBytes(resource);
 			if(charSet == null) {
-				charSet = getCharsetFromHeaders(resource);
+				charSet = getCharsetFromMeta(resource);
 				if(charSet == null) {
 					charSet = "UTF-8";
 				}
@@ -365,6 +377,9 @@ public class TextDocument {
 	 * @throws UnsupportedEncodingException
 	 */
 	public byte[] getBytes() throws UnsupportedEncodingException {
+		if(resultBytes != null) {
+			return resultBytes;
+		}
 		if(sb == null) {
 			throw new IllegalStateException("No interal StringBuffer");
 		}
@@ -372,6 +387,10 @@ public class TextDocument {
 			resultBytes = sb.toString().getBytes(charSet);
 		}
 		return resultBytes;
+	}
+	
+	public void setResultBytes(byte[] resultBytes) {
+		this.resultBytes = resultBytes;
 	}
 	
 	/**
@@ -391,6 +410,13 @@ public class TextDocument {
 			throw new RuntimeException(e);
 		}
 		os.write(b);
+	}
+
+	/**
+	 * @param toInsert
+	 */	
+	public void insertAtStartOfDocument(String toInsert) {
+		sb.insert(0,toInsert);
 	}
 
 	/**
@@ -450,9 +476,6 @@ public class TextDocument {
 		StringHttpServletResponseWrapper wrappedResponse = 
 			new StringHttpServletResponseWrapper(httpResponse);
 		uiResults.forward(httpRequest, wrappedResponse, jspPath);
-//		uiResults.storeInRequest(httpRequest,jspPath);
-//		RequestDispatcher dispatcher = httpRequest.getRequestDispatcher(jspPath);
-//		dispatcher.forward(httpRequest, wrappedResponse);
 		return wrappedResponse.getStringResponse();
 	}
 	
