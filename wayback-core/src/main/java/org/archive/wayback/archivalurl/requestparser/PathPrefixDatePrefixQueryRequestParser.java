@@ -28,6 +28,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.archive.wayback.core.WaybackRequest;
+import org.archive.wayback.requestparser.BaseRequestParser;
 import org.archive.wayback.requestparser.PathRequestParser;
 import org.archive.wayback.util.Timestamp;
 
@@ -39,6 +40,13 @@ import org.archive.wayback.util.Timestamp;
  * @version $Date$, $Revision$
  */
 public class PathPrefixDatePrefixQueryRequestParser extends PathRequestParser {
+	/**
+	 * @param wrapped
+	 */
+	public PathPrefixDatePrefixQueryRequestParser(BaseRequestParser wrapped) {
+		super(wrapped);
+	}
+
 	/**
 	 * Regex which parses Archival URL queries into timestamp + URL for URLs
 	 * beginning with the URL prefix

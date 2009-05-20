@@ -28,6 +28,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.archive.wayback.core.WaybackRequest;
+import org.archive.wayback.requestparser.BaseRequestParser;
 import org.archive.wayback.requestparser.PathRequestParser;
 import org.archive.wayback.util.Timestamp;
 
@@ -44,6 +45,13 @@ public class ReplayRequestParser extends PathRequestParser {
 	 */
 	private final Pattern WB_REQUEST_REGEX = Pattern
 			.compile("^(\\d{1,14})/(.*)$");
+
+	/**
+	 * @param wrapped
+	 */
+	public ReplayRequestParser(BaseRequestParser wrapped) {
+		super(wrapped);
+	}
 
 	public WaybackRequest parse(String requestPath) {
 		WaybackRequest wbRequest = null;
