@@ -123,7 +123,13 @@ public class UIResults {
 	/*
 	 * GENERAL GETTERS:
 	 */
-	
+	/**
+	 * @return the uriConverter
+	 */
+	public ResultURIConverter getUriConverter() {
+		return uriConverter;
+	}
+
 	/**
 	 * @return Returns the wbRequest.
 	 */
