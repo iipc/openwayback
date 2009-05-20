@@ -27,6 +27,7 @@ package org.archive.wayback.core;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 
 import org.archive.wayback.exception.AnchorWindowTooSmallException;
 import org.archive.wayback.util.Timestamp;
@@ -179,6 +180,10 @@ public class CaptureSearchResults extends SearchResults {
 		return results.isEmpty();
 	}
 
+	public List<CaptureSearchResult> getResults() {
+		return results;
+	}
+	
 	public Iterator<CaptureSearchResult> iterator() {
 		return results.iterator();
 	}
