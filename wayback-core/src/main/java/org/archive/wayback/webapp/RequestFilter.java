@@ -37,11 +37,11 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.httpclient.URIException;
+import org.archive.net.UURI;
+import org.archive.net.UURIFactory;
 import org.archive.wayback.exception.ConfigurationException;
-
-//import org.archive.wayback.core.WaybackRequest;
-//import org.archive.wayback.exception.BadQueryException;
-//import org.archive.wayback.exception.ConfigurationException;
+import org.archive.wayback.util.url.UrlOperations;
 
 /**
  *
@@ -102,9 +102,55 @@ public class RequestFilter implements Filter {
 
 		boolean handled = false;
 		RequestContext context = mapper.mapContext(httpRequest);
-		if(context != null) {
+		if(context == null) {
+			try {
+			handled = 
+				handleServerRelativeArchivalRedirect(httpRequest, httpResponse);
+			} catch(URIException e) {
+				// TODO: Log this?
+				handled = false;
+			}
+		} else {
 			handled = context.handleRequest(httpRequest,httpResponse);
 		}
 		return handled;
+	}
+	
+	private boolean handleServerRelativeArchivalRedirect(
+			HttpServletRequest httpRequest,	HttpServletResponse httpResponse)
+	throws IOException {
+
+		boolean handled = false;
+		// hope that it's a server relative request, with a valid referrer:
+		String referer = httpRequest.getHeader("Referer");
+		if(referer != null) {
+			UURI uri = UURIFactory.getInstance(referer);
+			String path = uri.getPath();
+			int secondSlash = path.indexOf('/',1);
+			if(secondSlash > -1) {
+				String collection = path.substring(0,secondSlash);
+				String remainder = path.substring(secondSlash+1);
+				int thirdSlash = remainder.indexOf('/');
+				if(thirdSlash > -1) {
+					String datespec = remainder.substring(0,thirdSlash);
+					String url = remainder.substring(thirdSlash+1);
+					String thisPath = httpRequest.getRequestURI();
+					String resolved = UrlOperations.resolveUrl(url, thisPath);
+					String contextPath = httpRequest.getContextPath();
+					String finalUrl = uri.getScheme() + "://" + 
+						uri.getAuthority() + contextPath + collection + "/" 
+						+ datespec + "/" + resolved;
+					// cross your fingers!!!
+					LOGGER.info("Server-Relative-Redirect:\t" + referer + "\t" 
+							+ thisPath + "\t" + finalUrl);
+					httpResponse.sendRedirect(finalUrl);
+					handled = true;
+
+				}
+			}
+		}
+		
+		return handled;
+		
 	}
 }
