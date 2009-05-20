@@ -74,6 +74,9 @@ public class BaseExceptionRenderer implements ExceptionRenderer {
 
 	protected boolean requestIsImage(HttpServletRequest httpRequest,
 			WaybackRequest wbRequest) {
+		if(wbRequest.isIMGContext()) {
+			return true;
+		}
 		String requestUrl = wbRequest.getRequestUrl();
 		if (requestUrl == null)
 			return false;
@@ -83,14 +86,18 @@ public class BaseExceptionRenderer implements ExceptionRenderer {
 
 	protected boolean requestIsJavascript(HttpServletRequest httpRequest,
 			WaybackRequest wbRequest) {
-
+		if(wbRequest.isJSContext()) {
+			return true;
+		}
 		String requestUrl = wbRequest.getRequestUrl();
 		return (requestUrl != null) && requestUrl.endsWith(".js");
 	}
 
 	protected boolean requestIsCSS(HttpServletRequest httpRequest,
 			WaybackRequest wbRequest) {
-
+		if(wbRequest.isCSSContext()) {
+			return true;
+		}
 		String requestUrl = wbRequest.getRequestUrl();
 		return (requestUrl != null) && requestUrl.endsWith(".css");
 	}
