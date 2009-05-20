@@ -28,6 +28,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadQueryException;
+import org.archive.wayback.exception.BetterRequestException;
 import org.archive.wayback.webapp.AccessPoint;
 
 /**
@@ -47,17 +48,6 @@ public interface RequestParser {
 	 * @throws BadQueryException 
 	 */
 	public abstract WaybackRequest parse(HttpServletRequest httpRequest, 
-			AccessPoint wbContext) throws BadQueryException;
-	/**
-	 * @param maxRecords
-	 */
-	public void setMaxRecords(int maxRecords);
-	/**
-	 * @param timestamp
-	 */
-	public void setEarliestTimestamp(String timestamp);
-	/**
-	 * @param timestamp
-	 */
-	public void setLatestTimestamp(String timestamp);
+			AccessPoint wbContext) throws BadQueryException, 
+			BetterRequestException;
 }

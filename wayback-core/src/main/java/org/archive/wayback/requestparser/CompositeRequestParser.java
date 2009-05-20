@@ -29,15 +29,19 @@ import javax.servlet.http.HttpServletRequest;
 import org.archive.wayback.RequestParser;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadQueryException;
+import org.archive.wayback.exception.BetterRequestException;
 import org.archive.wayback.webapp.AccessPoint;
 
 /**
- *
+ * Abstract RequestParser implementation. Subclasses must implement
+ * the getRequestParsers() method. This implementation provides a parse() 
+ * implementation, which allows each RequestParser returned by the 
+ * getRequestParsers() method an attempt at parsing the incoming request.
  *
  * @author brad
  * @version $Date$, $Revision$
  */
-public class CompositeRequestParser extends BaseRequestParser {
+public abstract class CompositeRequestParser extends BaseRequestParser {
 	private RequestParser[] parsers = null;
 	
 	/**
@@ -45,31 +49,26 @@ public class CompositeRequestParser extends BaseRequestParser {
 	 */
 	public void init() {
 		parsers = getRequestParsers();
-		for(int i = 0; i < parsers.length; i++) {
-			parsers[i].setMaxRecords(maxRecords);
-			if(earliestTimestamp != null) {
-				parsers[i].setEarliestTimestamp(earliestTimestamp);
-			}
-			if(latestTimestamp != null) {
-				parsers[i].setLatestTimestamp(latestTimestamp);
-			}
-		}
 	}
 
 	
-	protected RequestParser[] getRequestParsers() {
-		RequestParser[] theParsers = {
-				new OpenSearchRequestParser(),
-				new FormRequestParser() 
-				};
-		return theParsers;
-	}
+	protected abstract RequestParser[] getRequestParsers();
+	
+// A basic example implementation method:
+
+//	protected abstract RequestParser[] getRequestParsers() {
+//		RequestParser[] theParsers = {
+//				new OpenSearchRequestParser(this),
+//				new FormRequestParser(this) 
+//				};
+//		return theParsers;
+//	}
 	
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.RequestParser#parse(javax.servlet.http.HttpServletRequest)
 	 */
 	public WaybackRequest parse(HttpServletRequest httpRequest, 
-			AccessPoint wbContext) throws BadQueryException {
+			AccessPoint wbContext) throws BadQueryException, BetterRequestException {
 
 		WaybackRequest wbRequest = null;
 

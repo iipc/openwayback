@@ -36,12 +36,12 @@ import org.archive.wayback.requestparser.OpenSearchRequestParser;
  * @version $Date$, $Revision$
  */
 public class DomainPrefixCompositeRequestParser extends CompositeRequestParser {
-	DomainPrefixRequestParser dprp = new DomainPrefixRequestParser();
+	DomainPrefixRequestParser dprp = new DomainPrefixRequestParser(this);
 	protected RequestParser[] getRequestParsers() {
 		RequestParser[] theParsers = {
 				dprp,
-				new OpenSearchRequestParser(),
-				new FormRequestParser() 
+				new OpenSearchRequestParser(this),
+				new FormRequestParser(this) 
 				};
 		return theParsers;
 	}

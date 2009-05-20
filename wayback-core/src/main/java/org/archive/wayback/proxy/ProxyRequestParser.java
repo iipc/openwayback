@@ -31,6 +31,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.archive.wayback.RequestParser;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadQueryException;
+import org.archive.wayback.exception.BetterRequestException;
 import org.archive.wayback.requestparser.CompositeRequestParser;
 import org.archive.wayback.requestparser.FormRequestParser;
 import org.archive.wayback.requestparser.OpenSearchRequestParser;
@@ -44,13 +45,13 @@ import org.archive.wayback.webapp.AccessPoint;
  * @version $Date$, $Revision$
  */
 public class ProxyRequestParser extends CompositeRequestParser {
-	private ProxyReplayRequestParser prrp = new ProxyReplayRequestParser();
+	private ProxyReplayRequestParser prrp = new ProxyReplayRequestParser(this);
 	protected RequestParser[] getRequestParsers() {
 		prrp.init();
 		RequestParser[] theParsers = {
 				prrp,
-				new OpenSearchRequestParser(),
-				new FormRequestParser() 
+				new OpenSearchRequestParser(this),
+				new FormRequestParser(this) 
 				};
 		return theParsers;
 	}
@@ -61,7 +62,7 @@ public class ProxyRequestParser extends CompositeRequestParser {
 		prrp.setLocalhostNames(localhostNames);
 	}
 	public WaybackRequest parse(HttpServletRequest httpRequest,
-            AccessPoint wbContext) throws BadQueryException {
+            AccessPoint wbContext) throws BadQueryException, BetterRequestException {
 	
 	    WaybackRequest wbRequest = super.parse(httpRequest, wbContext);
 	    if (wbRequest != null) {

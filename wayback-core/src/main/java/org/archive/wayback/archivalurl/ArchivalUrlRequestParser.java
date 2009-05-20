@@ -44,13 +44,13 @@ import org.archive.wayback.requestparser.OpenSearchRequestParser;
 public class ArchivalUrlRequestParser extends CompositeRequestParser {
 	protected RequestParser[] getRequestParsers() {
 		RequestParser[] theParsers = {
-				new ReplayRequestParser(),
-				new PathDatePrefixQueryRequestParser(),
-				new PathDateRangeQueryRequestParser(),
-				new PathPrefixDatePrefixQueryRequestParser(),
-				new PathPrefixDateRangeQueryRequestParser(),
-				new OpenSearchRequestParser(),
-				new FormRequestParser() 
+				new ReplayRequestParser(this),
+				new PathDatePrefixQueryRequestParser(this),
+				new PathDateRangeQueryRequestParser(this),
+				new PathPrefixDatePrefixQueryRequestParser(this),
+				new PathPrefixDateRangeQueryRequestParser(this),
+				new OpenSearchRequestParser(this),
+				new FormRequestParser(this) 
 				};
 		return theParsers;
 	}
