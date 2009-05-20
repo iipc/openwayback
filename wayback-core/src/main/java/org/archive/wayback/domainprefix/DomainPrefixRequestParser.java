@@ -32,6 +32,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.requestparser.BaseRequestParser;
+import org.archive.wayback.requestparser.WrappedRequestParser;
 import org.archive.wayback.util.Timestamp;
 import org.archive.wayback.webapp.AccessPoint;
 
@@ -41,7 +42,14 @@ import org.archive.wayback.webapp.AccessPoint;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class DomainPrefixRequestParser extends BaseRequestParser {
+public class DomainPrefixRequestParser extends WrappedRequestParser {
+
+	/**
+	 * @param wrapped
+	 */
+	public DomainPrefixRequestParser(BaseRequestParser wrapped) {
+		super(wrapped);
+	}
 
 	String hostPort = "localhost:8081";
 
