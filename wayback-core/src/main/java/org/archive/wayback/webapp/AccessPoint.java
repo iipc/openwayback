@@ -50,6 +50,7 @@ import org.archive.wayback.core.UrlSearchResults;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.AuthenticationControlException;
 import org.archive.wayback.exception.BaseExceptionRenderer;
+import org.archive.wayback.exception.BetterRequestException;
 import org.archive.wayback.exception.ResourceNotAvailableException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.exception.WaybackException;
@@ -96,6 +97,41 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 	private BooleanOperator<WaybackRequest> authentication = null;
 	private String urlRoot = null;
 	private Locale locale = null;
+
+	/**
+	 * @return the contextName
+	 */
+	public String getContextName() {
+		return contextName;
+	}
+
+	/**
+	 * @return the replay
+	 */
+	public ReplayDispatcher getReplay() {
+		return replay;
+	}
+
+	/**
+	 * @return the query
+	 */
+	public QueryRenderer getQuery() {
+		return query;
+	}
+
+	/**
+	 * @return the parser
+	 */
+	public RequestParser getParser() {
+		return parser;
+	}
+
+	/**
+	 * @return the uriConverter
+	 */
+	public ResultURIConverter getUriConverter() {
+		return uriConverter;
+	}
 
 	public Locale getLocale() {
 		return locale;
@@ -315,6 +351,10 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 			} else {
 				handled = dispatchLocal(httpRequest,httpResponse);
 			}
+
+		} catch(BetterRequestException e) {
+			httpResponse.sendRedirect(e.getBetterURI());
+			handled = true;
 
 		} catch(WaybackException e) {
 			logNotInArchive(e,wbRequest);
