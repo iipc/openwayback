@@ -59,4 +59,11 @@ public class ArchivalUrlResultURIConverter implements ResultURIConverter {
 	public void setReplayURIPrefix(String replayURIPrefix) {
 		this.replayURIPrefix = replayURIPrefix;
 	}
+
+	/**
+	 * @return the replayURIPrefix
+	 */
+	public String getReplayURIPrefix() {
+		return replayURIPrefix;
+	}
 }
