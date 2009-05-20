@@ -27,6 +27,7 @@ package org.archive.wayback.archivalurl.requestparser;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.archive.wayback.archivalurl.ArchivalUrlRequestParser;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.requestparser.BaseRequestParser;
 import org.archive.wayback.requestparser.PathRequestParser;
@@ -41,10 +42,11 @@ import org.archive.wayback.util.Timestamp;
  */
 public class ReplayRequestParser extends PathRequestParser {
 	/**
-	 * Regex which parses Archival URL replay requests into timestamp + url
+	 * Regex which parses Archival URL replay requests into:
+	 *      timestamp, flags, & url
 	 */
-	private final Pattern WB_REQUEST_REGEX = Pattern
-			.compile("^(\\d{1,14})/(.*)$");
+	public final static Pattern WB_REQUEST_REGEX = Pattern
+			.compile("^(\\d{1,14})(([a-z]{2}_)*)/(.*)$");
 
 	/**
 	 * @param wrapped
@@ -60,7 +62,9 @@ public class ReplayRequestParser extends PathRequestParser {
 		if (matcher != null && matcher.matches()) {
 			wbRequest = new WaybackRequest();
 			String dateStr = matcher.group(1);
-			urlStr = matcher.group(2);
+			urlStr = matcher.group(4);
+			String flags = matcher.group(2);
+			assignFlags(wbRequest,flags);
 
 			// The logic of the classic WM wrt timestamp bounding:
 			// if 14-digits are specified, assume min-max range boundaries
@@ -71,6 +75,11 @@ public class ReplayRequestParser extends PathRequestParser {
 
 			String startDate = null;
 			String endDate = null;
+			if (dateStr.length() == 12) {
+				// assume this is one of those old old alexa ARCs which has 
+				// some 12-digit dates. Pad with "00";
+				dateStr = dateStr.concat("00");
+			}
 			if (dateStr.length() == 14) {
 				startDate = getEarliestTimestamp();
 				endDate = getLatestTimestamp();
@@ -100,4 +109,23 @@ public class ReplayRequestParser extends PathRequestParser {
 		return wbRequest;
 	}
 
+	/**
+	 * @param wbRequest
+	 * @param flagsStr : "js_", "", "cs_", "cs_js_"
+	 */
+	private void assignFlags(WaybackRequest wbRequest, String flagsStr) {
+		if(flagsStr != null) {
+			String[] flags = flagsStr.split(
+					ArchivalUrlRequestParser.FLAG_DELIM);
+			for(String flag: flags) {
+				if(flag.equals(ArchivalUrlRequestParser.CSS_CONTEXT)) {
+					wbRequest.setCSSContext(true);
+				} else if(flag.equals(ArchivalUrlRequestParser.JS_CONTEXT)) {
+					wbRequest.setJSContext(true);
+				} else if(flag.equals(ArchivalUrlRequestParser.IMG_CONTEXT)) {
+					wbRequest.setIMGContext(true);
+				}
+			}
+		}
+	}
 }

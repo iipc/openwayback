@@ -42,6 +42,11 @@ import org.archive.wayback.requestparser.OpenSearchRequestParser;
  * @version $Date$, $Revision$
  */
 public class ArchivalUrlRequestParser extends CompositeRequestParser {
+	public final static String FLAG_DELIM = "_";
+	public final static String JS_CONTEXT = "js"; 
+	public final static String CSS_CONTEXT = "cs";
+	public final static String IMG_CONTEXT = "im";
+
 	protected RequestParser[] getRequestParsers() {
 		RequestParser[] theParsers = {
 				new ReplayRequestParser(this),
