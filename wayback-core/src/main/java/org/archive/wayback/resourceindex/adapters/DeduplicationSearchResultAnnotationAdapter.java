@@ -26,6 +26,7 @@ import org.archive.wayback.util.Adapter;
 public class DeduplicationSearchResultAnnotationAdapter 
 implements Adapter<CaptureSearchResult,CaptureSearchResult> {
 	private final static String EMPTY_VALUE = "-";
+	private final static String REVISIT_VALUE = "warc/revisit";
 
 	private HashMap<String,CaptureSearchResult> memory = null;
 
@@ -55,7 +56,8 @@ implements Adapter<CaptureSearchResult,CaptureSearchResult> {
 	}
 
 	public CaptureSearchResult adapt(CaptureSearchResult o) {
-		if(o.getFile().equals(EMPTY_VALUE)) {
+		if(o.getFile().equals(EMPTY_VALUE)
+				|| o.getMimeType().equals(REVISIT_VALUE)) {
 			return annotate(o);
 		}
 		return remember(o);
