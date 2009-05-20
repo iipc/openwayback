@@ -32,6 +32,7 @@ import org.archive.util.InetAddressUtil;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.requestparser.BaseRequestParser;
+import org.archive.wayback.requestparser.WrappedRequestParser;
 import org.archive.wayback.webapp.AccessPoint;
 
 /**
@@ -40,9 +41,16 @@ import org.archive.wayback.webapp.AccessPoint;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class ProxyReplayRequestParser extends BaseRequestParser {
+public class ProxyReplayRequestParser extends WrappedRequestParser {
 
 	private List<String> localhostNames = null;
+
+	/**
+	 * @param wrapped
+	 */
+	public ProxyReplayRequestParser(BaseRequestParser wrapped) {
+		super(wrapped);
+	}
 
 	/**
 	 * 
@@ -86,7 +94,7 @@ public class ProxyReplayRequestParser extends BaseRequestParser {
 		wbRequest = new WaybackRequest();
 		wbRequest.setRequestUrl(requestUrl);
 		wbRequest.setReplayRequest();
-		wbRequest.setResultsPerPage(maxRecords);
+		wbRequest.setResultsPerPage(getMaxRecords());
 		return wbRequest;
 	}
 	public List<String> getLocalhostNames() {
