@@ -207,6 +207,8 @@ public class LiveWebCache {
 				ARCRecord record = (ARCRecord) aResource.getArcRecord();
 				
 				CaptureSearchResult result = adapter.adapt(record);
+				// HACKHACK: we're getting the wrong offset from the ARCReader:
+				result.setOffset(offset);
 				index.addSearchResult(result);
 				LOGGER.info("Added URL(" + url.toString() + ") in " +
 						"ARC(" + name + ") at (" + offset + ") to LiveIndex");
