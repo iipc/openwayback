@@ -219,19 +219,6 @@ public class AggressiveUrlCanonicalizer implements UrlCanonicalizer {
 			searchUrl = scheme + searchUrl;
 		}
 
-		// TODO: this will only work with http:// scheme. should work with all?
-		// force add of scheme and possible add '/' with empty path:
-//		if (searchUrl.startsWith("http://")) {
-//			if (-1 == searchUrl.indexOf('/', 8)) {
-//				searchUrl = searchUrl + "/";
-//			}
-//		} else {
-//			if (-1 == searchUrl.indexOf("/")) {
-//				searchUrl = searchUrl + "/";
-//			}
-//			searchUrl = "http://" + searchUrl;
-//		}
-
 		// TODO: These next few lines look crazy -- need to be reworked.. This
 		// was the only easy way I could find to get the correct unescaping
 		// out of UURIs, possible a bug. Definitely needs some TLC in any case,
