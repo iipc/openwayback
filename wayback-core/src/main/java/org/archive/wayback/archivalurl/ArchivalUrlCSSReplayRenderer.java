@@ -1,6 +1,8 @@
 package org.archive.wayback.archivalurl;
 
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -35,5 +37,19 @@ public class ArchivalUrlCSSReplayRenderer extends TextReplayRenderer {
 			throws ServletException, IOException {
 
 		page.resolveCSSUrls();
+		// if any CSS-specific jsp inserts are configured, run and insert...
+		List<String> jspInserts = getJspInserts();
+
+		StringBuilder toInsert = new StringBuilder(300);
+
+		if (jspInserts != null) {
+			Iterator<String> itr = jspInserts.iterator();
+			while (itr.hasNext()) {
+				toInsert.append(page.includeJspString(itr.next(), httpRequest,
+						httpResponse, wbRequest, results, result, resource));
+			}
+		}
+
+		page.insertAtStartOfDocument(toInsert.toString());
 	}
 }
