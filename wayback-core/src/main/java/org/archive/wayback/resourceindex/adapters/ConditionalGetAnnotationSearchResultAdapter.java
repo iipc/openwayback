@@ -78,7 +78,7 @@ implements Adapter<CaptureSearchResult,CaptureSearchResult> {
 		o.setHttpCode(lastSeen.getHttpCode());
 		o.setMimeType(lastSeen.getMimeType());
 		o.setRedirectUrl(lastSeen.getRedirectUrl());
-		o.flagDuplicateDigest(lastSeen.getCaptureTimestamp());
+		o.flagDuplicateHTTP(lastSeen.getCaptureTimestamp());
 		return o;
 	}
 

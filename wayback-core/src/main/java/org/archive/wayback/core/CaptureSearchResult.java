@@ -203,6 +203,7 @@ public class CaptureSearchResult extends SearchResult {
 	public void setClosest(boolean value) {
 		putBoolean(CAPTURE_CLOSEST_INDICATOR,value);
 	}
+
 	public void flagDuplicateDigest(Date storedDate) {
 		put(CAPTURE_DUPLICATE_ANNOTATION,CAPTURE_DUPLICATE_DIGEST);
 		put(CAPTURE_DUPLICATE_STORED_TS,dateToTS(storedDate));
@@ -216,19 +217,40 @@ public class CaptureSearchResult extends SearchResult {
 		return (dupeType != null && dupeType.equals(CAPTURE_DUPLICATE_DIGEST));
 	}
 	public Date getDuplicateDigestStoredDate() {
-		String dupeType = get(CAPTURE_DUPLICATE_ANNOTATION);
-		Date date = null;
-		if(dupeType != null && dupeType.equals(CAPTURE_DUPLICATE_DIGEST)) {
-			date = tsToDate(get(CAPTURE_DUPLICATE_STORED_TS));
+		if(isDuplicateDigest()) {
+			return tsToDate(get(CAPTURE_DUPLICATE_STORED_TS));
 		}
-		return date;
+		return null;
 	}
 	public String getDuplicateDigestStoredTimestamp() {
-		String dupeType = get(CAPTURE_DUPLICATE_ANNOTATION);
-		String ts = null;
-		if(dupeType != null && dupeType.equals(CAPTURE_DUPLICATE_DIGEST)) {
-			ts = get(CAPTURE_DUPLICATE_STORED_TS);
+		if(isDuplicateDigest()) {
+			return get(CAPTURE_DUPLICATE_STORED_TS);
 		}
-		return ts;
+		return null;
+	}
+
+	public void flagDuplicateHTTP(Date storedDate) {
+		put(CAPTURE_DUPLICATE_ANNOTATION,CAPTURE_DUPLICATE_HTTP);
+		put(CAPTURE_DUPLICATE_STORED_TS,dateToTS(storedDate));
+	}
+	public void flagDuplicateHTTP(String storedTS) {
+		put(CAPTURE_DUPLICATE_ANNOTATION,CAPTURE_DUPLICATE_HTTP);
+		put(CAPTURE_DUPLICATE_STORED_TS,storedTS);
+	}
+	public boolean isDuplicateHTTP() {
+		String dupeType = get(CAPTURE_DUPLICATE_ANNOTATION);
+		return (dupeType != null && dupeType.equals(CAPTURE_DUPLICATE_HTTP));
+	}
+	public Date getDuplicateHTTPStoredDate() {
+		if(isDuplicateHTTP()) {
+			return tsToDate(get(CAPTURE_DUPLICATE_STORED_TS));
+		}
+		return null;
+	}
+	public String getDuplicateHTTPStoredTimestamp() {
+		if(isDuplicateHTTP()) {
+			return get(CAPTURE_DUPLICATE_STORED_TS);
+		}
+		return null;
 	}
 }
