@@ -24,8 +24,6 @@
  */
 package org.archive.wayback.resourceindex.adapters;
 
-import java.util.HashMap;
-
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.util.Adapter;
 
