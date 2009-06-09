@@ -28,8 +28,6 @@ import java.io.IOException;
 import java.util.Iterator;
 
 import org.apache.commons.httpclient.URIException;
-import org.archive.net.UURI;
-import org.archive.net.UURIFactory;
 import org.archive.wayback.ResourceIndex;
 import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.core.CaptureSearchResult;
@@ -43,12 +41,12 @@ import org.archive.wayback.exception.AccessControlException;
 import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
+import org.archive.wayback.resourceindex.adapters.ConditionalGetAnnotationSearchResultAdapter;
 import org.archive.wayback.resourceindex.adapters.CaptureToUrlSearchResultAdapter;
 import org.archive.wayback.resourceindex.adapters.DeduplicationSearchResultAnnotationAdapter;
 import org.archive.wayback.resourceindex.filters.CounterFilter;
 import org.archive.wayback.resourceindex.filters.DateRangeFilter;
 import org.archive.wayback.resourceindex.filters.DuplicateRecordFilter;
-import org.archive.wayback.resourceindex.filters.EndDateFilter;
 import org.archive.wayback.resourceindex.filters.GuardRailFilter;
 import org.archive.wayback.resourceindex.filters.HostMatchFilter;
 import org.archive.wayback.resourceindex.filters.SchemeMatchFilter;
@@ -101,6 +99,9 @@ public class LocalResourceIndex implements ResourceIndex {
 		CloseableIterator<CaptureSearchResult> captures = 
 			source.getPrefixIterator(k);
 		if(dedupeRecords) {
+			// hack hack!!!
+			captures = new AdaptedIterator<CaptureSearchResult, CaptureSearchResult>
+				(captures, new ConditionalGetAnnotationSearchResultAdapter());
 			captures = new AdaptedIterator<CaptureSearchResult, CaptureSearchResult>
 				(captures, new DeduplicationSearchResultAnnotationAdapter());
 		}
@@ -126,14 +127,15 @@ public class LocalResourceIndex implements ResourceIndex {
 		CaptureSearchResults results = new CaptureSearchResults();
 
 		CaptureQueryFilterState filterState = 
-			new CaptureQueryFilterState(wbRequest,canonicalizer, type, filter);
+			new CaptureQueryFilterState(wbRequest, canonicalizer, type, 
+					getUserFilters(wbRequest));
 		String keyUrl = filterState.getKeyUrl();
 
 		CloseableIterator<CaptureSearchResult> itr = getCaptureIterator(keyUrl);
 		// set up the common Filters:
 		ObjectFilter<CaptureSearchResult> filter = filterState.getFilter();
 		itr = new ObjectFilterIterator<CaptureSearchResult>(itr,filter);
-		
+
 		// Windowing:
 		WindowFilterState<CaptureSearchResult> window = 
 			new WindowFilterState<CaptureSearchResult>(wbRequest);
@@ -154,6 +156,7 @@ public class LocalResourceIndex implements ResourceIndex {
 		cleanupIterator(itr);
 		return results;		
 	}
+
 	public UrlSearchResults doUrlQuery(WaybackRequest wbRequest)
 		throws ResourceIndexNotAvailableException, 
 		ResourceNotInArchiveException, BadQueryException, 
@@ -163,7 +166,7 @@ public class LocalResourceIndex implements ResourceIndex {
 
 		CaptureQueryFilterState filterState = 
 			new CaptureQueryFilterState(wbRequest,canonicalizer,
-					CaptureQueryFilterState.TYPE_URL, filter);
+					CaptureQueryFilterState.TYPE_URL, getUserFilters(wbRequest));
 		String keyUrl = filterState.getKeyUrl();
 
 		CloseableIterator<CaptureSearchResult> citr = getCaptureIterator(keyUrl);
@@ -300,6 +303,27 @@ public class LocalResourceIndex implements ResourceIndex {
 		this.filter = filter;
 	}
 	
+	public ObjectFilterChain<CaptureSearchResult> getUserFilters(WaybackRequest request) {
+		ObjectFilterChain<CaptureSearchResult> userFilters =
+			new ObjectFilterChain<CaptureSearchResult>();
+
+		// has the user asked for only results on the exact host specified?
+		if(request.isExactHost()) {
+			userFilters.addFilter(new HostMatchFilter(
+					UrlOperations.urlToHost(request.getRequestUrl())));
+		}
+
+		if(request.isExactScheme()) {
+			userFilters.addFilter(new SchemeMatchFilter(
+					UrlOperations.urlToScheme(request.getRequestUrl())));
+		}
+		if(filter != null) {
+			userFilters.addFilter(filter);
+		}
+
+		return userFilters;
+	}
+	
 	private class CaptureQueryFilterState {
 		public final static int TYPE_REPLAY = 0;
 		public final static int TYPE_CAPTURE = 1;
@@ -315,7 +339,7 @@ public class LocalResourceIndex implements ResourceIndex {
 		
 		public CaptureQueryFilterState(WaybackRequest request, 
 				UrlCanonicalizer canonicalizer, int type, 
-				ObjectFilter<CaptureSearchResult> genericFilter)
+				ObjectFilterChain<CaptureSearchResult> userFilter)
 		throws BadQueryException {
 			
 			String searchUrl = request.getRequestUrl();
@@ -346,12 +370,6 @@ public class LocalResourceIndex implements ResourceIndex {
 			preExclusionCounter = new CounterFilter();
 			DateRangeFilter drFilter = new DateRangeFilter(startDate,endDate);
 
-			if(genericFilter != null) {
-				filter.addFilter(genericFilter);
-			}
-			// has the user asked for only results on the exact host specified?
-			ObjectFilter<CaptureSearchResult> exactHost = 
-				getExactHostFilter(request);
 			// checks an exclusion service for every matching record
 			ObjectFilter<CaptureSearchResult> exclusion = 
 				request.getExclusionFilter();
@@ -363,7 +381,7 @@ public class LocalResourceIndex implements ResourceIndex {
 			
 			if(type == TYPE_REPLAY) {
 				filter.addFilter(new UrlMatchFilter(keyUrl));
-				filter.addFilter(new EndDateFilter(endDate));
+				filter.addFilter(drFilter);
 				SelfRedirectFilter selfRedirectFilter= new SelfRedirectFilter();
 				selfRedirectFilter.setCanonicalizer(canonicalizer);
 				filter.addFilter(selfRedirectFilter);
@@ -377,14 +395,10 @@ public class LocalResourceIndex implements ResourceIndex {
 				throw new BadQueryException("Unknown type");
 			}
 
-			if(exactHost != null) {
-				filter.addFilter(exactHost);
+			if(userFilter != null) {
+				filter.addFilters(userFilter.getFilters());
 			}
 
-			if(request.isExactScheme()) {
-				filter.addFilter(new SchemeMatchFilter(
-						UrlOperations.urlToScheme(request.getRequestUrl())));
-			}
 			// count how many results got to the ExclusionFilter:
 			filter.addFilter(preExclusionCounter);
 
@@ -425,26 +439,6 @@ public class LocalResourceIndex implements ResourceIndex {
 		}
 	}
 
-	private static HostMatchFilter getExactHostFilter(WaybackRequest r) { 
-
-		HostMatchFilter filter = null;
-		if(r.isExactHost()) {
-
-			String searchUrl = r.getRequestUrl();
-			try {
-
-				UURI searchURI = UURIFactory.getInstance(searchUrl);
-				String exactHost = searchURI.getHost();
-				filter = new HostMatchFilter(exactHost);
-
-			} catch (URIException e) {
-				// Really, this isn't gonna happen, we've already canonicalized
-				// it... should really optimize and do that just once.
-				e.printStackTrace();
-			}
-		}
-		return filter;
-	}
 	private class WindowFilterState<T> {
 		int startResult; // calculated based on hits/page * pagenum
 		int resultsPerPage;
