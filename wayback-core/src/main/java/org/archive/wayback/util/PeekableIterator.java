@@ -27,8 +27,6 @@ package org.archive.wayback.util;
 import java.io.IOException;
 import java.util.Iterator;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
 /**
  *
  *
@@ -90,6 +88,6 @@ public class PeekableIterator<E> implements CloseableIterator<E> {
 	 * @see java.util.Iterator#remove()
 	 */
 	public void remove() {
-		throw new NotImplementedException();
+		throw new UnsupportedOperationException();
 	}
 }

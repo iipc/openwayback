@@ -31,8 +31,6 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
 /**
  * Composite of multiple Iterators that returns the next from a series of
  * all component Iterators based on Comparator constructor argument.
@@ -100,7 +98,7 @@ public class CompositeSortedIterator<E> implements CloseableIterator<E> {
 	 * @see java.util.Iterator#remove()
 	 */
 	public void remove() {
-		throw new NotImplementedException();
+		throw new UnsupportedOperationException();
 	}
 
 	/* (non-Javadoc)

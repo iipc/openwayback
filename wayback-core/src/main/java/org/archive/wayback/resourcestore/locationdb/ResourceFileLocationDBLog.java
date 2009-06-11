@@ -34,8 +34,6 @@ import java.io.RandomAccessFile;
 import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.flatfile.RecordIterator;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
 /**
  * Simple log file tracking new names being added to a ResourceFileLocationDB.
  * 
@@ -169,7 +167,7 @@ public class ResourceFileLocationDBLog extends File {
 		 * @see java.util.Iterator#remove()
 		 */
 		public void remove() {
-			throw new NotImplementedException();
+			throw new UnsupportedOperationException();
 		}
 	}
 }
