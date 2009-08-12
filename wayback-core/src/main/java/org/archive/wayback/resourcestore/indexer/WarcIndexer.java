@@ -136,6 +136,8 @@ public class WarcIndexer {
 				pw.println(lines.next());
 			}
 			pw.close();
+			System.exit(1);
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
