@@ -25,6 +25,7 @@
 package org.archive.wayback.util;
 
 import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * ObjectFilterChain implements AND logic to chain together multiple 
@@ -48,6 +49,20 @@ public class ObjectFilterChain<E> implements ObjectFilter<E> {
 	}
 
 	/**
+	 * @return the filters
+	 */
+	public ArrayList<ObjectFilter<E>> getFilters() {
+		return filters;
+	}
+
+	/**
+	 * @param filters the filters to set
+	 */
+	public void setFilters(ArrayList<ObjectFilter<E>> filters) {
+		this.filters = filters;
+	}
+
+	/**
 	 * @param filter to be added to the chain. filters are processed in the 
 	 * order they are added to the chain.
 	 */
@@ -55,6 +70,11 @@ public class ObjectFilterChain<E> implements ObjectFilter<E> {
 		filters.add(filter);
 	}
 
+	public void addFilters(Collection<ObjectFilter<E>> list) {
+		filters.addAll(list);
+	}
+	
+	
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.cdx.filter.RecordFilter#filterRecord(org.archive.wayback.cdx.CDXRecord)
 	 */
