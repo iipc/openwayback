@@ -25,7 +25,6 @@
 package org.archive.wayback.webapp;
 
 import java.io.IOException;
-import java.util.TimeZone;
 import java.util.logging.Logger;
 
 import javax.servlet.Filter;
