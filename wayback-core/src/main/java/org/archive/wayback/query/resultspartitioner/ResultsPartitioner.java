@@ -41,12 +41,7 @@ import org.archive.wayback.util.Timestamp;
 public abstract class ResultsPartitioner {
 	
 	protected Calendar getCalendar() {
-		String[] ids = TimeZone.getAvailableIDs(0);
-		if (ids.length < 1) {
-			return null;
-		}
-		TimeZone gmt = new SimpleTimeZone(0, ids[0]);
-		return new GregorianCalendar(gmt);		
+		return Calendar.getInstance(TimeZone.getTimeZone("GMT"));		
 	}
 	
 	protected Calendar dateStrToCalendar(String dateStr) {

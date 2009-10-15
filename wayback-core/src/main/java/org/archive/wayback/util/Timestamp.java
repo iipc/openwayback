@@ -42,7 +42,7 @@ public class Timestamp {
 	private final static String UPPER_TIMESTAMP_LIMIT = "29991939295959";
 	private final static String YEAR_LOWER_LIMIT      = "1996";
 	private final static String YEAR_UPPER_LIMIT      = 
-		String.valueOf(Calendar.getInstance().get(Calendar.YEAR));
+		String.valueOf(Calendar.getInstance(TimeZone.getTimeZone("GMT")).get(Calendar.YEAR));
 	private final static String MONTH_LOWER_LIMIT     = "01";
 	private final static String MONTH_UPPER_LIMIT     = "12";
 	private final static String DAY_LOWER_LIMIT       = "01";
@@ -327,14 +327,14 @@ public class Timestamp {
 		return finalDigits;
 	}
 	
-	private static String boundDigits(String input, String min, String max) {
-		String bounded = input;
-		if(input.compareTo(min) < 0) {
-			bounded = min;
-		} else if(input.compareTo(max) > 0) {
-			bounded = max;
+	private static String boundDigits(final String test, final String min, 
+			final String max) {
+		if(test.compareTo(min) < 0) {
+			return min;
+		} else if(test.compareTo(max) > 0) {
+			return max;
 		}
-		return bounded;
+		return test;
 	}
 	
 	// check each of YEAR, MONTH, DAY, HOUR, MINUTE, SECOND to make sure they

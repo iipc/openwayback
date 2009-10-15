@@ -60,7 +60,6 @@ public class RequestFilter implements Filter {
 	public void init(FilterConfig config) throws ServletException {
 
 		LOGGER.info("Wayback Filter initializing...");
-		TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
 		try {
 			mapper = new RequestMapper(config.getServletContext());
 		} catch (ConfigurationException e) {
