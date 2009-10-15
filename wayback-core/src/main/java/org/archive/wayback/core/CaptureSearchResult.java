@@ -37,9 +37,11 @@ import org.archive.wayback.util.url.UrlOperations;
 public class CaptureSearchResult extends SearchResult {
 	
 	private long cachedOffset = -1;
+	private long cachedEndOffset = -1;
 	private long cachedDate = -1;
 	
 	public static final String CAPTURE_ORIGINAL_URL = "url";
+	public static final String CAPTURE_ORIGINAL_HOST = "host";
 
 	/**
 	 * Result: canonicalized(lookup key) form of URL of captured document 
@@ -52,19 +54,19 @@ public class CaptureSearchResult extends SearchResult {
 	public static final String CAPTURE_CAPTURE_TIMESTAMP = "capturedate";
 
 	/**
-	 * Result: basename of ARC file containing this document.
+	 * Result: basename of ARC/WARC file containing this document.
 	 */
 	public static final String CAPTURE_FILE = "file";
 
 	/**
-	 * Result: compressed byte offset within ARC file where this document's
+	 * Result: compressed byte offset within ARC/WARC file where this document's
 	 * gzip envelope begins. 
 	 */
 	public static final String CAPTURE_OFFSET = "compressedoffset";
 
 	/**
-	 * Result: compressed byte offset within ARC file where this document's
-	 * gzip envelope Ends. 
+	 * Result: compressed byte offset within ARC/WARC file where this document's
+	 * gzip envelope Ends.
 	 */
 	public static final String CAPTURE_END_OFFSET = "compressedendoffset";
 	
@@ -92,6 +94,20 @@ public class CaptureSearchResult extends SearchResult {
 	 */
 	public static final String CAPTURE_REDIRECT_URL = "redirecturl";
 
+	/**
+	 * Result: String flags which indicate robot instructions found in an HTML
+	 * page. Currently one or more of:
+	 * <li>"A" - noarchive</li>
+	 * <li>"F" - nofollow</li>
+	 * <li>"I" - noindex</li>
+	 * @see http://noarchive.net/
+	 */
+	public static final String CAPTURE_ROBOT_FLAGS = "robotflags";
+	
+	public static final String CAPTURE_ROBOT_NOARCHIVE = "A";
+	public static final String CAPTURE_ROBOT_NOFOLLOW = "F";
+	public static final String CAPTURE_ROBOT_NOINDEX = "I";
+	
 	/**
 	 * Result: flag within a SearchResult that indicates this is the closest to
 	 * a particular requested date.
@@ -127,13 +143,35 @@ public class CaptureSearchResult extends SearchResult {
 	 */
 	public static final String CAPTURE_DUPLICATE_HTTP = "http";
 	public String getOriginalUrl() {
-		return get(CAPTURE_ORIGINAL_URL);
+		String url = get(CAPTURE_ORIGINAL_URL);
+		if(url == null) {
+			// convert from ORIG_HOST to ORIG_URL here:
+			url = getUrlKey();
+			String host = get(CAPTURE_ORIGINAL_HOST);
+			if(url != null && host != null) {
+				StringBuilder sb = new StringBuilder(url.length());
+				sb.append(UrlOperations.DEFAULT_SCHEME);
+				sb.append(host);
+				sb.append(UrlOperations.getURLPath(url));
+				url = sb.toString();
+				// cache it for next time...?
+				setOriginalUrl(url);
+			}
+		}
+		return url;
 	}
 	public void setOriginalUrl(String originalUrl) {
 		put(CAPTURE_ORIGINAL_URL,originalUrl);
 	}
 	public String getOriginalHost() {
-		return UrlOperations.urlToHost(getOriginalUrl());
+		String host = get(CAPTURE_ORIGINAL_HOST);
+		if(host == null) {
+			host = UrlOperations.urlToHost(getOriginalUrl());
+		}
+		return host;
+	}
+	public void setOriginalHost(String originalHost) {
+		put(CAPTURE_ORIGINAL_HOST,originalHost);
 	}
 	public String getUrlKey() {
 		return get(CAPTURE_URL_KEY);
@@ -172,6 +210,16 @@ public class CaptureSearchResult extends SearchResult {
 	public void setOffset(long offset) {
 		cachedOffset = offset;
 		put(CAPTURE_OFFSET,String.valueOf(offset));
+	}
+	public long getEndOffset() {
+		if(cachedEndOffset == -1) {
+			cachedEndOffset = Long.parseLong(get(CAPTURE_END_OFFSET));
+		}
+		return cachedEndOffset;
+	}
+	public void setEndOffset(long offset) {
+		cachedEndOffset = offset;
+		put(CAPTURE_END_OFFSET,String.valueOf(offset));
 	}
 	public String getMimeType() {
 		return get(CAPTURE_MIME_TYPE);
@@ -252,5 +300,47 @@ public class CaptureSearchResult extends SearchResult {
 			return get(CAPTURE_DUPLICATE_STORED_TS);
 		}
 		return null;
+	}
+	public String getRobotFlags() {
+		return get(CAPTURE_ROBOT_FLAGS);
+	}
+	public void setRobotFlags(String robotFlags) {
+		put(CAPTURE_ROBOT_FLAGS,robotFlags);
+	}
+	public void setRobotFlag(String flag) {
+		String flags = get(CAPTURE_ROBOT_FLAGS);
+		if(flags == null) {
+			flags = "";
+		}
+		if(!flags.contains(flag)) {
+			flags = flags + flag;
+		}
+		put(CAPTURE_ROBOT_FLAGS,flags);
+	}
+	public boolean isRobotFlagSet(String flag) {
+		String flags = get(CAPTURE_ROBOT_FLAGS);
+		if(flags == null) {
+			return false;
+		}
+		return flags.contains(flag); 
+	}
+
+	public boolean isRobotNoArchive() {
+		return isRobotFlagSet(CAPTURE_ROBOT_NOARCHIVE);
+	}
+	public boolean isRobotNoIndex() {
+		return isRobotFlagSet(CAPTURE_ROBOT_NOINDEX);
+	}
+	public boolean isRobotNoFollow() {
+		return isRobotFlagSet(CAPTURE_ROBOT_NOFOLLOW);
+	}
+	public void setRobotNoArchive() {
+		setRobotFlag(CAPTURE_ROBOT_NOARCHIVE);
+	}
+	public void setRobotNoIndex() {
+		setRobotFlag(CAPTURE_ROBOT_NOARCHIVE);
+	}
+	public void setRobotNoFollow() {
+		setRobotFlag(CAPTURE_ROBOT_NOARCHIVE);
 	}
 }
