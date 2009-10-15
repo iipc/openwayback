@@ -22,6 +22,9 @@ public class UrlOperations {
 	public final static String FTP_SCHEME = "ftp://";
 	public final static String MMS_SCHEME = "mms://";
 	public final static String RTSP_SCHEME = "rtsp://";
+	
+	public final static String DEFAULT_SCHEME = HTTP_SCHEME;	
+	
 	// go brewster
 	public final static String WAIS_SCHEME = "wais://";
 	
@@ -131,6 +134,25 @@ public class UrlOperations {
 			return 1755;
 		}
 		return -1;
+	}
+
+	public static String getURLPath(String url) {
+		int portIdx = url.indexOf(UrlOperations.PORT_SEPARATOR);
+		int pathIdx = url.indexOf(UrlOperations.PATH_START);
+		if(portIdx == -1 && pathIdx == -1) {
+			return "";
+		}
+		if(portIdx == -1) {
+			return url.substring(pathIdx);
+		}
+		if(pathIdx == -1) {
+			return url.substring(portIdx);
+		}
+		if(pathIdx > portIdx) {
+			return url.substring(portIdx);
+		} else {
+			return url.substring(pathIdx);
+		}
 	}
 	
 	public static String urlToHost(String url) {
