@@ -42,11 +42,17 @@ public class DateMismatchSelector extends BaseReplayRendererSelector {
 	@Override
 	public boolean canHandle(WaybackRequest wbRequest,
 			CaptureSearchResult result, Resource resource) {
+		
+		String reqDateStr = wbRequest.getReplayTimestamp();
+		String resDateStr = result.getCaptureTimestamp();
+		// if the request date is shorter than the result date, always redirect:
+		if(reqDateStr.length() < resDateStr.length()) {
+			return true;
+		}
+		
 		// if the result is not for the exact date requested, redirect to the
 		// exact date. some capture dates are not 14 digits, only compare as 
 		// many digits as are in the result date:
-		String reqDateStr = wbRequest.getReplayTimestamp();
-		String resDateStr = result.getCaptureTimestamp();
 		return !resDateStr.equals(reqDateStr.substring(0, resDateStr.length()));
 	}
 }
