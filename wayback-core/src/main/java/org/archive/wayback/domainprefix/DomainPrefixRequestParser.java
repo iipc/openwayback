@@ -84,7 +84,7 @@ public class DomainPrefixRequestParser extends WrappedRequestParser {
 		WaybackRequest wbRequest = null;
 		String server = httpRequest.getServerName() + 
 			":" + httpRequest.getServerPort();
-		if(server.endsWith(hostPort)) {
+		if(server.toLowerCase().endsWith(hostPort.toLowerCase())) {
 			int length = server.length() - hostPort.length();
 			if(server.length() > hostPort.length()) {
 				String prefix = server.substring(0,length - 1);
