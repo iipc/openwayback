@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Utils {
+	@SuppressWarnings("unchecked")
 	public static <T> List<BooleanOperator<T>> getOperators(BooleanOperator<T> top) {
 		ArrayList<BooleanOperator<T>> operators = new ArrayList<BooleanOperator<T>>();
 		ArrayList<BooleanOperator<T>> toInspect = new ArrayList<BooleanOperator<T>>();
