@@ -28,6 +28,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 
+import org.apache.commons.httpclient.ChunkedInputStream;
+
 /**
  * Abstraction on top of a document stored in a WaybackCollection. Currently
  * implemented subclasses include ArcResource and WarcResource.
@@ -56,6 +58,15 @@ public abstract class Resource extends InputStream {
 		} else {
 			this.is = new BufferedInputStream(is);
 		}
+	}
+	/**
+	 * indicate that there is a Transfer-Encoding: chunked header, so the input
+	 *   data should be dechunked as it is read.
+	 * @throws IOException
+	 */
+	public void setChunkedEncoding() throws IOException {
+		validate();
+		is = new ChunkedInputStream(is);
 	}
 	/**
 	 * @return

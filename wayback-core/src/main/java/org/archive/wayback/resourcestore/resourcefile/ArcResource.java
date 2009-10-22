@@ -14,6 +14,7 @@ import org.archive.io.ArchiveRecord;
 import org.archive.io.arc.ARCReader;
 import org.archive.io.arc.ARCRecord;
 import org.archive.wayback.core.Resource;
+import org.archive.wayback.replay.HttpHeaderOperation;
 
 public class ArcResource extends Resource {
 	/**
@@ -78,6 +79,13 @@ public class ArcResource extends Resource {
 					String value = headers[i].getValue();
 					String name = headers[i].getName();
 					metaData.put(HTTP_HEADER_PREFIX + name,value);
+					if(name.toUpperCase().contains(
+							HttpHeaderOperation.HTTP_TRANSFER_ENC_HEADER)) {
+						if(value.toUpperCase().contains(
+								HttpHeaderOperation.HTTP_CHUNKED_ENCODING_HEADER)) {
+							setChunkedEncoding();
+						}
+					}
 				}
 			}
 

@@ -13,6 +13,7 @@ import org.archive.io.arc.ARCConstants;
 import org.archive.io.warc.WARCReader;
 import org.archive.io.warc.WARCRecord;
 import org.archive.wayback.core.Resource;
+import org.archive.wayback.replay.HttpHeaderOperation;
 
 public class WarcResource extends Resource {
 	private WARCRecord rec = null;
@@ -66,10 +67,17 @@ public class WarcResource extends Resource {
         Header[] tmpHeaders = HttpParser.parseHeaders(rec,
                 ARCConstants.DEFAULT_ENCODING);
         headers = new Hashtable<String,String>();
+		this.setInputStream(rec);
         for(Header header: tmpHeaders) {
         	headers.put(header.getName(), header.getValue());
+			if(header.getName().toUpperCase().contains(
+					HttpHeaderOperation.HTTP_TRANSFER_ENC_HEADER)) {
+				if(header.getValue().toUpperCase().contains(
+						HttpHeaderOperation.HTTP_CHUNKED_ENCODING_HEADER)) {
+					setChunkedEncoding();
+				}
+			}
         }
-		this.setInputStream(rec);
 		parsedHeaders = true;
 	}
 	
