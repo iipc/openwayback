@@ -39,6 +39,8 @@ import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadContentException;
+import org.archive.wayback.replay.charset.CharsetDetector;
+import org.archive.wayback.replay.charset.StandardCharsetDetector;
 
 /**
  *
@@ -48,12 +50,9 @@ import org.archive.wayback.exception.BadContentException;
  */
 public abstract class TextReplayRenderer implements ReplayRenderer {
 
-	public final static String HTTP_LENGTH_HEADER = "Content-Length";
-	public final static String HTTP_LENGTH_HEADER_UP = 
-		HTTP_LENGTH_HEADER.toUpperCase();
-
 	private List<String> jspInserts = null;
 	private HttpHeaderProcessor httpHeaderProcessor;
+	private CharsetDetector charsetDetector = new StandardCharsetDetector();
 
 	public TextReplayRenderer(HttpHeaderProcessor httpHeaderProcessor) {
 		this.httpHeaderProcessor = httpHeaderProcessor;
@@ -80,16 +79,17 @@ public abstract class TextReplayRenderer implements ReplayRenderer {
 		Map<String,String> headers = HttpHeaderOperation.processHeaders(
 				resource, result, uriConverter, httpHeaderProcessor);
 	
+		String charSet = charsetDetector.getCharset(resource, wbRequest);
 		// Load content into an HTML page, and resolve load-time URLs:
 		TextDocument page = new TextDocument(resource,result,uriConverter);
-		page.readFully();
+		page.readFully(charSet);
 		
 		updatePage(page,httpRequest,httpResponse,wbRequest,result,resource,
 				uriConverter,results);
 
 		// set the corrected length:
 		int bytes = page.getBytes().length;
-		headers.put(HTTP_LENGTH_HEADER, String.valueOf(bytes));
+		headers.put(HttpHeaderOperation.HTTP_LENGTH_HEADER, String.valueOf(bytes));
 		// Tomcat will always send a charset... It's trying to be smarter than
 		// we are. If the original page didn't include a "charset" as part of
 		// the "Content-Type" HTTP header, then Tomcat will use the default..
@@ -116,5 +116,19 @@ public abstract class TextReplayRenderer implements ReplayRenderer {
 	 */
 	public void setJspInserts(List<String> jspInserts) {
 		this.jspInserts = jspInserts;
+	}
+
+	/**
+	 * @return the charsetDetector
+	 */
+	public CharsetDetector getCharsetDetector() {
+		return charsetDetector;
+	}
+
+	/**
+	 * @param charsetDetector the charsetDetector to set
+	 */
+	public void setCharsetDetector(CharsetDetector charsetDetector) {
+		this.charsetDetector = charsetDetector;
 	}
 }

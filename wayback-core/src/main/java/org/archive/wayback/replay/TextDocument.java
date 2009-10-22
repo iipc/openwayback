@@ -28,11 +28,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
-import java.nio.charset.IllegalCharsetNameException;
 import java.text.ParseException;
-import java.util.Iterator;
-import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -44,7 +40,6 @@ import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.UIResults;
 import org.archive.wayback.core.WaybackRequest;
-import org.mozilla.universalchardet.UniversalDetector;
 
 /**
  * Class which wraps functionality for converting a Resource(InputStream + 
@@ -56,13 +51,6 @@ import org.mozilla.universalchardet.UniversalDetector;
  * @version $Date$, $Revision$
  */
 public class TextDocument {
-
-	// hand off this many bytes to the chardet library
-	private final static int MAX_CHARSET_READAHEAD = 65536;
-	// ...if it also includes "charset="
-	private final static String CHARSET_TOKEN = "charset=";
-	// ...and if the chardet library fails, use the Content-Type header
-	private final static String HTTP_CONTENT_TYPE_HEADER = "Content-Type";
 	// if documents are marked up before sending to clients, the data is
 	// decoded into a String in chunks. This is how big a chunk to decode with.
 	private final static int C_BUFFER_SIZE = 4096;
@@ -89,153 +77,6 @@ public class TextDocument {
 		this.uriConverter = uriConverter;
 	}
 
-	private boolean isCharsetSupported(String charsetName) {
-		// can you believe that this throws a runtime? Just asking if it's
-		// supported!!?! They coulda just said "no"...
-		if(charsetName == null) {
-			return false;
-		}
-		try {
-			return Charset.isSupported(charsetName);
-		} catch(IllegalCharsetNameException e) {
-			return false;
-		}
-	}
-	
-	private String contentTypeToCharset(final String contentType) {
-		int offset = 
-			contentType.toUpperCase().indexOf(CHARSET_TOKEN.toUpperCase());
-		
-		if (offset != -1) {
-			String cs = contentType.substring(offset + CHARSET_TOKEN.length());
-			if(isCharsetSupported(cs)) {
-				return cs;
-			}
-			// test for extra spaces... there's at least one page out there that
-			// indicates it's charset with:
-
-//  <meta http-equiv="Content-type" content="text/html; charset=i so-8859-1">
-
-			// bad web page!
-			if(isCharsetSupported(cs.replace(" ", ""))) {
-				return cs.replace(" ", "");
-			}
-		}
-		return null;
-	}
-	
-	/**
-	 * Attempt to divine the character encoding of the document from the 
-	 * Content-Type HTTP header (with a "charset=")
-	 * 
-	 * @param resource
-	 * @return String character set found or null if the header was not present
-	 * @throws IOException 
-	 */
-	protected String getCharsetFromHeaders(Resource resource) 
-	throws IOException {
-		
-		String charsetName = null;
-
-		Map<String,String> httpHeaders = resource.getHttpHeaders();
-		Iterator<String> keys = httpHeaders.keySet().iterator();
-		String ctype = null;
-		while(keys.hasNext()) {
-			String headerKey = keys.next();
-			String keyCmp = headerKey.toUpperCase().trim();
-			if(keyCmp.equals(HTTP_CONTENT_TYPE_HEADER.toUpperCase())) {
-				ctype = httpHeaders.get(headerKey);
-				break;
-			}
-		}
-		if (ctype != null) {
-			charsetName = contentTypeToCharset(ctype);
-		}
-		return charsetName;
-	}
-
-	/**
-	 * Attempt to find a META tag in the HTML that hints at the character set
-	 * used to write the document.
-	 * 
-	 * @param resource
-	 * @return String character set found from META tags in the HTML
-	 * @throws IOException
-	 */
-	protected String getCharsetFromMeta(Resource resource) throws IOException {
-		String charsetName = null;
-
-		byte[] bbuffer = new byte[MAX_CHARSET_READAHEAD];
-		resource.mark(MAX_CHARSET_READAHEAD);
-		resource.read(bbuffer, 0, MAX_CHARSET_READAHEAD);
-		resource.reset();
-		// convert to UTF-8 String -- which hopefully will not mess up the
-		// characters we're interested in...
-		StringBuilder sb = new StringBuilder(new String(bbuffer,"UTF-8"));
-		String metaContentType = TagMagix.getTagAttrWhere(sb, "META",
-				"content", "http-equiv", "Content-Type");
-		if(metaContentType != null) {
-			charsetName = contentTypeToCharset(metaContentType);
-		}
-		return charsetName;
-	}
-	
-	/**
-	 * Attempts to figure out the character set of the document using
-	 * the excellent juniversalchardet library.
-	 * 
-	 * @param resource
-	 * @return String character encoding found, or null if nothing looked good.
-	 * @throws IOException
-	 */
-	protected String getCharsetFromBytes(Resource resource) throws IOException {
-		String charsetName = null;
-
-		byte[] bbuffer = new byte[MAX_CHARSET_READAHEAD];
-		   // (1)
-	    UniversalDetector detector = new UniversalDetector(null);
-
-	    // (2)
-		resource.mark(MAX_CHARSET_READAHEAD);
-		int len = resource.read(bbuffer, 0, MAX_CHARSET_READAHEAD);
-		resource.reset();
-		detector.handleData(bbuffer, 0, len);
-		// (3)
-		detector.dataEnd();
-	    // (4)
-	    charsetName = detector.getDetectedCharset();
-
-	    // (5)
-	    detector.reset();
-	    if(isCharsetSupported(charsetName)) {
-	    	return charsetName;
-	    }
-	    return null;
-	}
-
-	/**
-	 * Use META tags, byte-character-detection, HTTP headers, hope, and prayer
-	 * to figure out what character encoding is being used for the document.
-	 * If nothing else works, assumes UTF-8 for now.
-	 * 
-	 * @param resource
-	 * @return String charset for Resource
-	 * @throws IOException
-	 */
-	protected String guessCharset() throws IOException {
-		
-		String charSet = getCharsetFromHeaders(resource);
-		if(charSet == null) {
-			charSet = getCharsetFromBytes(resource);
-			if(charSet == null) {
-				charSet = getCharsetFromMeta(resource);
-				if(charSet == null) {
-					charSet = "UTF-8";
-				}
-			}
-		}
-		return charSet;
-	}
 
 	/**
 	 * Update URLs inside the page, so those URLs which must be correct at
@@ -346,9 +187,6 @@ public class TextDocument {
 	 * @throws IOException 
 	 */
 	public void readFully(String charSet) throws IOException {
-		if(charSet == null) {
-			charSet = guessCharset();
-		}
 		this.charSet = charSet;
 		int recordLength = (int) resource.getRecordLength();
 
