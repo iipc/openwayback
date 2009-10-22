@@ -36,7 +36,10 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 
 import org.archive.wayback.requestparser.OpenSearchRequestParser;
+import org.archive.wayback.resourceindex.filters.HostMatchFilter;
+import org.archive.wayback.resourceindex.filters.SchemeMatchFilter;
 import org.archive.wayback.util.ObjectFilter;
+import org.archive.wayback.util.ObjectFilterChain;
 import org.archive.wayback.util.StringFormatter;
 import org.archive.wayback.util.Timestamp;
 import org.archive.wayback.util.url.UrlOperations;
@@ -76,9 +79,21 @@ public class WaybackRequest {
 	/**
 	 * custom CaptureSearchResult Filter to use for this specific request. Can
 	 * be null, and is sometimes useful to allow an AccessPoint to have specific
-	 * and possibly variable filters.
+	 * and possibly variable filters. These filters relate specifically to
+	 * exclusion of results from the ResourceIndex. Compared to the 
+	 * resultFilters, if these filters redact all results, then an 
+	 * AccessControlException will be thrown.
 	 */
 	private ObjectFilter<CaptureSearchResult> exclusionFilter = null;
+
+	/**
+	 * custom CaptureSearchResult Filter to use for this specific request. Can
+	 * be null, and is sometimes useful to allow an AccessPoint to have specific
+	 * and possibly variable filters.
+	 */
+	private ObjectFilterChain<CaptureSearchResult> resultFilters = null;
+	
+	
 	/**
 	 * StringFormatter object set up with the users specific Locale, and the
 	 * Wayback UI ResourceBundle prepared for use, simplifying UI generation
@@ -245,6 +260,12 @@ public class WaybackRequest {
 	 * Request: IMG context requested 
 	 */
 	public static final String REQUEST_IMAGE_CONTEXT = "imagecontext";
+
+	/**
+	 * Request: Charset detection mode 
+	 */
+	public static final String REQUEST_CHARSET_MODE = "charsetmode";
+	
 	/*
 	 * *******************************
 	 * /OUTPUT TYPE CONSTANTS 
@@ -467,6 +488,35 @@ public class WaybackRequest {
 		this.exclusionFilter = exclusionFilter;
 	}
 
+	public ObjectFilter<CaptureSearchResult> getResultFilters() {
+		ObjectFilterChain<CaptureSearchResult> tmpFilters = 
+			new ObjectFilterChain<CaptureSearchResult>();
+		if(isExactHost()) {
+			tmpFilters.addFilter(new HostMatchFilter(
+					UrlOperations.urlToHost(getRequestUrl())));
+		}
+
+		if(isExactScheme()) {
+			tmpFilters.addFilter(new SchemeMatchFilter(
+					UrlOperations.urlToScheme(getRequestUrl())));
+		}
+		if(resultFilters != null) {
+			tmpFilters.addFilters(resultFilters.getFilters());
+		}
+		return tmpFilters;
+	}
+
+	public void setResultFilters(ObjectFilterChain<CaptureSearchResult> resultFilters) {
+		this.resultFilters = resultFilters;
+	}
+
+	public void addResultFilter(ObjectFilter<CaptureSearchResult> resultFilter) {
+		if(resultFilters == null) {
+			resultFilters = new ObjectFilterChain<CaptureSearchResult>();
+		}
+		resultFilters.addFilter(resultFilter);
+	}
+	
 	/**
 	 * @return StringFormatter based on user request info
 	 */
@@ -502,6 +552,17 @@ public class WaybackRequest {
 		} else {
 			remove(key);
 		}
+	}
+
+	private int getInt(String key) {
+		String value = get(key);
+		if(value == null) {
+			return -1;
+		}
+		return Integer.parseInt(value);
+	}	
+	private void setInt(String key, int value) {
+		put(key,String.valueOf(value));
 	}	
 	private boolean getBoolean(String key) {
 		String value = get(key);
@@ -549,7 +610,7 @@ public class WaybackRequest {
 		return isRequestType(REQUEST_CAPTURE_QUERY);
 	}
 	/**
-	 * marks this request as a Replay request
+	 * marks this request as a Capture Query request
 	 */
 	public void setCaptureQueryRequest() {
 		put(REQUEST_TYPE,REQUEST_CAPTURE_QUERY);
@@ -561,7 +622,7 @@ public class WaybackRequest {
 		return isRequestType(REQUEST_URL_QUERY);
 	}
 	/**
-	 * marks this request as a Replay request
+	 * marks this request as an Url Query request
 	 */
 	public void setUrlQueryRequest() {
 		put(REQUEST_TYPE,REQUEST_URL_QUERY);
@@ -711,6 +772,14 @@ public class WaybackRequest {
 		return getBoolean(REQUEST_IMAGE_CONTEXT);
 	}
 
+	public void setCharsetMode(int mode) {
+		setInt(REQUEST_CHARSET_MODE,mode);
+	}
+	public int getCharsetMode() {
+		int mode = getInt(REQUEST_CHARSET_MODE);
+		return (mode == -1) ? 0 : mode;
+	}
+	
 	public String getWaybackContext() {
 		return get(REQUEST_WAYBACK_CONTEXT);
 	}
