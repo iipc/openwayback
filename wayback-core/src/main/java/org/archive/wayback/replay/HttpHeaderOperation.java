@@ -42,6 +42,14 @@ import org.archive.wayback.exception.BadContentException;
  * @version $Date$, $Revision$
  */
 public class HttpHeaderOperation {
+	public final static String HTTP_LENGTH_HEADER = "Content-Length";
+	public final static String HTTP_LENGTH_HEADER_UP = 
+		HTTP_LENGTH_HEADER.toUpperCase();
+	public final static String HTTP_TRANSFER_ENC_HEADER = 
+		"Transfer-Encoding".toUpperCase();
+	public final static String HTTP_CHUNKED_ENCODING_HEADER = 
+		"chunked".toUpperCase();
+
 	
 	/**
 	 * @param resource
@@ -102,4 +110,31 @@ public class HttpHeaderOperation {
 			response.setHeader(key,value);
 		}
 	}
+	
+	public static String getContentLength(Map<String,String> headers) {
+		return getHeaderValue(headers,HTTP_LENGTH_HEADER);
+	}
+	public static boolean isChunkEncoded(Map<String,String> headers) {
+		String enc = getHeaderValue(headers,HTTP_TRANSFER_ENC_HEADER);
+		if(enc != null) {
+			return enc.toUpperCase().contains(HTTP_CHUNKED_ENCODING_HEADER);
+		}
+		return false;
+	}
+	public static String getHeaderValue(Map<String,String> headers, String k) {
+		String value = null;
+		Iterator<String> itr = headers.keySet().iterator();
+		String keyUp = k.toUpperCase();
+		while(itr.hasNext()) {
+			String key = itr.next();
+			if(key != null) {
+				if(key.toUpperCase().contains(keyUp)) {
+					value = headers.get(key);
+					break;
+				}
+			}
+		}
+		return value;
+	}
+
 }
