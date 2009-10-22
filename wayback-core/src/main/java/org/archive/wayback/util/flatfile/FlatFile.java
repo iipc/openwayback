@@ -48,7 +48,7 @@ public class FlatFile {
 
 	private static final long serialVersionUID = 6174187801001601557L;
 	private long lastMatchOffset;
-	private File file = null;
+	protected File file = null;
 	/**
 	 * 
 	 */
