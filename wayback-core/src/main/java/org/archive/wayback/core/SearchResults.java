@@ -25,6 +25,7 @@
 package org.archive.wayback.core;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -59,6 +60,12 @@ public abstract class SearchResults {
 	 * document returned", etc. 
 	 */
 	private HashMap<String,String> filters = null;
+
+	/**
+	 * List of URL strings that were not included in these results, but may be
+	 * what the user was looking for.
+	 */
+	private List<String> closeMatches = null;
 	/**
 	 * Constructor
 	 */
@@ -191,5 +198,14 @@ public abstract class SearchResults {
 		// calculate total pages:
 		int curPage = (int) Math.floor(firstResult/resultsPerPage) + 1;
 		return curPage;
+	}
+	
+
+	public List<String> getCloseMatches() {
+		return closeMatches;
+	}
+	
+	public void setCloseMatches(List<String> closeMatches) {
+		this.closeMatches = closeMatches;
 	}
 }
