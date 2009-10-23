@@ -41,7 +41,14 @@ Adapter<CaptureSearchResult,String>{
 
 	private static int DEFAULT_CAPACITY = 120;
 	private final static String DELIMITER = " ";
+	private boolean outputRobot = false;
 	
+	public boolean isOutputRobot() {
+		return outputRobot;
+	}
+	public void setIsOutputRobot(boolean isOutputRobot) {
+		this.outputRobot = isOutputRobot;
+	}
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.util.Adapter#adapt(java.lang.Object)
 	 */
@@ -63,15 +70,29 @@ Adapter<CaptureSearchResult,String>{
 		sb.append(DELIMITER);
 		sb.append(result.getRedirectUrl());
 		sb.append(DELIMITER);
+		if(outputRobot) {
+			String robotFlags = result.getRobotFlags();
+			if(robotFlags == null || robotFlags.equals("")) {
+				robotFlags = "-";
+			}
+			sb.append(robotFlags);
+			sb.append(DELIMITER);
+		}
 		sb.append(result.getOffset());
 		sb.append(DELIMITER);
 		sb.append(result.getFile());
 			
 		return sb.toString();
 	}
-
 	public static Iterator<String> adapt(Iterator<CaptureSearchResult> input) {
-		return new AdaptedIterator<CaptureSearchResult,String>(input,
-				new SearchResultToCDXLineAdapter());
+		return adapt(input,false);
+	}
+
+	public static Iterator<String> adapt(Iterator<CaptureSearchResult> input,
+			boolean isOutputRobot) {
+		SearchResultToCDXLineAdapter adapter =
+			new SearchResultToCDXLineAdapter();
+		adapter.setIsOutputRobot(isOutputRobot);
+		return new AdaptedIterator<CaptureSearchResult,String>(input,adapter);
 	}
 }

@@ -70,8 +70,13 @@ public class CDXLineToSearchResultAdapter implements Adapter<String,CaptureSearc
 	public static CaptureSearchResult doAdapt(String line) {
 		CaptureSearchResult result = new CaptureSearchResult();
 		String[] tokens = line.split(" ");
+		boolean hasRobotFlags = false;
 		if (tokens.length != 9) {
-			return null;
+			if(tokens.length == 10) {
+				hasRobotFlags = true;
+			} else {
+				return null;
+			}
 			//throw new IllegalArgumentException("Need 9 columns("+line+")");
 		}
 		String urlKey = tokens[0];
@@ -91,10 +96,17 @@ public class CDXLineToSearchResultAdapter implements Adapter<String,CaptureSearc
 		String digest = tokens[5];
 		String redirectUrl = tokens[6];
 		long compressedOffset = -1;
-		if(!tokens[7].equals("-")) {
-			compressedOffset = Long.parseLong(tokens[7]);
+		int nextToken = 7;
+		if(hasRobotFlags) {
+			result.setRobotFlags(tokens[nextToken]);
+			nextToken++;
 		}
-		String fileName = tokens[8];
+
+		if(!tokens[nextToken].equals("-")) {
+			compressedOffset = Long.parseLong(tokens[nextToken]);
+		}
+		nextToken++;
+		String fileName = tokens[nextToken];
 		result.setUrlKey(urlKey);
 		result.setCaptureTimestamp(captureTS);
 		result.setOriginalUrl(originalUrl);
