@@ -1,31 +1,7 @@
-/* ConditionalGetAnnotationSearchResultAdapter
- *
- * $Id$
- *
- * Created on 6:09:05 PM Mar 12, 2009.
- *
- * Copyright (C) 2009 Internet Archive.
- *
- * This file is part of wayback.
- *
- * wayback is free software; you can redistribute it and/or modify
- * it under the terms of the GNU Lesser Public License as published by
- * the Free Software Foundation; either version 2.1 of the License, or
- * any later version.
- *
- * wayback is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser Public License for more details.
- *
- * You should have received a copy of the GNU Lesser Public License
- * along with wayback; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
-package org.archive.wayback.resourceindex.adapters;
+package org.archive.wayback.resourceindex.filters;
 
 import org.archive.wayback.core.CaptureSearchResult;
-import org.archive.wayback.util.Adapter;
+import org.archive.wayback.util.ObjectFilter;
 
 /**
  * WARC file allows 2 forms of deduplication. The first actually downloads
@@ -55,22 +31,18 @@ import org.archive.wayback.util.Adapter;
  * @author brad
  * @version $Date$, $Revision$
  */
+public class ConditionalGetAnnotationFilter 
+implements ObjectFilter<CaptureSearchResult> {
 
-public class ConditionalGetAnnotationSearchResultAdapter
-implements Adapter<CaptureSearchResult,CaptureSearchResult> {
-	
 	private final static String EMPTY_VALUE = "-";
 	private final static String EMPTY_SHA1 = "3I42H3S6NNFQ2MSVX7XZKYAYSCX5QBYJ";
 
 	private CaptureSearchResult lastSeen = null;
 
-	public ConditionalGetAnnotationSearchResultAdapter() {
-	}
-
-	private CaptureSearchResult annotate(CaptureSearchResult o) {
+	private int annotate(CaptureSearchResult o) {
 		if(lastSeen == null) {
 			// TODO: log missing record digest reference
-			return null;
+			return FILTER_EXCLUDE;
 		}
 		o.setFile(lastSeen.getFile());
 		o.setOffset(lastSeen.getOffset());
@@ -79,21 +51,22 @@ implements Adapter<CaptureSearchResult,CaptureSearchResult> {
 		o.setMimeType(lastSeen.getMimeType());
 		o.setRedirectUrl(lastSeen.getRedirectUrl());
 		o.flagDuplicateHTTP(lastSeen.getCaptureTimestamp());
-		return o;
+		return FILTER_INCLUDE;
 	}
 
-	private CaptureSearchResult remember(CaptureSearchResult o) {
+	private int remember(CaptureSearchResult o) {
 		lastSeen = o;
-		return o;
+		return FILTER_INCLUDE;
 	}
 
-	public CaptureSearchResult adapt(CaptureSearchResult o) {
+	public int filterObject(CaptureSearchResult o) {
 		if(o.getFile().equals(EMPTY_VALUE)) {
 			if(o.getDigest().equals(EMPTY_SHA1)) {
 				return annotate(o);
 			}
-			return o;
+			return FILTER_INCLUDE;
 		}
 		return remember(o);
 	}
+
 }

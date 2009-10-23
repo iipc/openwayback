@@ -1,13 +1,13 @@
-package org.archive.wayback.resourceindex.adapters;
+package org.archive.wayback.resourceindex.filters;
 
 import java.util.HashMap;
 
 import org.archive.wayback.core.CaptureSearchResult;
-import org.archive.wayback.util.Adapter;
+import org.archive.wayback.util.ObjectFilter;
 
 /**
- * Adapter class that observes a stream of SearchResults tracking for each
- * complete record, a mapping of that records digest to:
+ * Filter class that observes a stream of SearchResults tracking for each
+ * complete record, a mapping of that records Digest to:
  *   Arc/Warc Filename
  * 	 Arc/Warc offset
  *   HTTP Response
@@ -15,31 +15,31 @@ import org.archive.wayback.util.Adapter;
  *   Redirect URL
  *   
  * If subsequent SearchResults are missing these fields ("-") and the Digest 
- * field has been seen, then the subsequent SearchResults are updated with the 
- * values from the kept copy matching that digest, and an additional annotation
- * field is added.
- * 
+ * field is in the map, then the SearchResults missing fields are replaced with 
+ * the values from the previously seen record with the same digest, and an 
+ * additional annotation field is added.
  * 
  * @author brad
  * @version $Date$, $Revision$
  */
-public class DeduplicationSearchResultAnnotationAdapter 
-implements Adapter<CaptureSearchResult,CaptureSearchResult> {
+public class WARCRevisitAnnotationFilter 
+implements ObjectFilter<CaptureSearchResult> {
+	
 	private final static String EMPTY_VALUE = "-";
 	private final static String REVISIT_VALUE = "warc/revisit";
 
 	private HashMap<String,CaptureSearchResult> memory = null;
 
-	public DeduplicationSearchResultAnnotationAdapter() {
+	public WARCRevisitAnnotationFilter() {
 		memory = new HashMap<String,CaptureSearchResult>();
 	}
 
-	private CaptureSearchResult annotate(CaptureSearchResult o) {
+	private int annotate(CaptureSearchResult o) {
 		String thisDigest = o.getDigest();
 		CaptureSearchResult last = memory.get(thisDigest);
 		if(last == null) {
-			// TODO: log missing record digest reference
-			return null;
+			// TODO: log missing record digest reference?
+			return FILTER_EXCLUDE;
 		}
 		o.setFile(last.getFile());
 		o.setOffset(last.getOffset());
@@ -47,15 +47,23 @@ implements Adapter<CaptureSearchResult,CaptureSearchResult> {
 		o.setMimeType(last.getMimeType());
 		o.setRedirectUrl(last.getRedirectUrl());
 		o.flagDuplicateDigest(last.getCaptureTimestamp());
-		return o;
+		return FILTER_INCLUDE;
 	}
 
-	private CaptureSearchResult remember(CaptureSearchResult o) {
+	private int remember(CaptureSearchResult o) {
 		memory.put(o.getDigest(),o);
-		return o;
+		return FILTER_INCLUDE;
 	}
 
-	public CaptureSearchResult adapt(CaptureSearchResult o) {
+//	public CaptureSearchResult adapt(CaptureSearchResult o) {
+//		if(o.getFile().equals(EMPTY_VALUE)
+//				|| o.getMimeType().equals(REVISIT_VALUE)) {
+//			return annotate(o);
+//		}
+//		return remember(o);
+//	}
+
+	public int filterObject(CaptureSearchResult o) {
 		if(o.getFile().equals(EMPTY_VALUE)
 				|| o.getMimeType().equals(REVISIT_VALUE)) {
 			return annotate(o);
