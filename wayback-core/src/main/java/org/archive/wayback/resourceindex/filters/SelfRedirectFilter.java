@@ -39,9 +39,12 @@ import org.archive.wayback.util.url.AggressiveUrlCanonicalizer;
  */
 public class SelfRedirectFilter implements ObjectFilter<CaptureSearchResult> {
 
-	private UrlCanonicalizer canonicalizer = new AggressiveUrlCanonicalizer();
+	private UrlCanonicalizer canonicalizer = null;
 	public SelfRedirectFilter() {
 		canonicalizer = new AggressiveUrlCanonicalizer();
+	}
+	public SelfRedirectFilter(UrlCanonicalizer canonicalizer) {
+		this.canonicalizer = canonicalizer;
 	}
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.util.ObjectFilter#filterObject(java.lang.Object)
