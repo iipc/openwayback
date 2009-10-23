@@ -46,6 +46,7 @@ public class ArchivalUrlRequestParser extends CompositeRequestParser {
 	public final static String JS_CONTEXT = "js"; 
 	public final static String CSS_CONTEXT = "cs";
 	public final static String IMG_CONTEXT = "im";
+	public final static String CHARSET_MODE = "cm";
 
 	protected RequestParser[] getRequestParsers() {
 		RequestParser[] theParsers = {

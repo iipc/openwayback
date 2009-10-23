@@ -46,7 +46,7 @@ public class ReplayRequestParser extends PathRequestParser {
 	 *      timestamp, flags, & url
 	 */
 	public final static Pattern WB_REQUEST_REGEX = Pattern
-			.compile("^(\\d{1,14})(([a-z]{2}_)*)/(.*)$");
+			.compile("^(\\d{1,14})(([a-z]{2}[0-9]*_)*)/(.*)$");
 
 	/**
 	 * @param wrapped
@@ -124,6 +124,11 @@ public class ReplayRequestParser extends PathRequestParser {
 					wbRequest.setJSContext(true);
 				} else if(flag.equals(ArchivalUrlRequestParser.IMG_CONTEXT)) {
 					wbRequest.setIMGContext(true);
+				} else if(flag.startsWith(ArchivalUrlRequestParser.CHARSET_MODE)) {
+					String modeString = flag.substring(
+							ArchivalUrlRequestParser.CHARSET_MODE.length());
+					int mode = Integer.parseInt(modeString);
+					wbRequest.setCharsetMode(mode);
 				}
 			}
 		}
