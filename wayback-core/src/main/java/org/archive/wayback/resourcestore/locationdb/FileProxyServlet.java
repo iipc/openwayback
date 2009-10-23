@@ -29,8 +29,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -39,6 +41,10 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.httpclient.ChunkedInputStream;
+import org.archive.util.anvl.ANVLRecord;
+import org.archive.wayback.util.http.HttpRequestMessage;
+import org.archive.wayback.util.http.HttpResponse;
 import org.archive.wayback.webapp.ServletRequestContext;
 
 /**
@@ -71,6 +77,10 @@ public class FileProxyServlet extends ServletRequestContext {
 	private static final long serialVersionUID = 1L;
 
 	private ResourceFileLocationDB locationDB = null;
+
+	private int socketTimeoutMs = 5000;
+
+	private int connectTimeoutMs = 1000;
 	
 	public boolean handleRequest(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse) throws IOException,
@@ -114,6 +124,7 @@ public class FileProxyServlet extends ServletRequestContext {
 					httpResponse.setStatus(HttpServletResponse.SC_OK);
 					// BUGBUG: this will be broken for non compressed data...
 					httpResponse.setContentType(ds.getContentType());
+					httpResponse.setBufferSize(BUF_SIZE);
 					ds.copyTo(httpResponse.getOutputStream());
 				}
 			}
@@ -126,15 +137,51 @@ public class FileProxyServlet extends ServletRequestContext {
 		DataSource ds = null;
 		if(location.startsWith("http://")) {
 			URL url = new URL(location);
-			URLConnection conn = url.openConnection();
+			String hostname = url.getHost();
+			int port = url.getPort();
+			if(port == -1) {
+				port = 80;
+			}
+			byte GET[] = "GET".getBytes();
+			byte HTTP11[] = "HTTP/1.1".getBytes();
+			InetAddress addr = InetAddress.getByName(hostname);
+			HttpRequestMessage requestMessage = new HttpRequestMessage(
+					GET,url.getFile().getBytes(),HTTP11);
+			ANVLRecord headers = new ANVLRecord();
+			headers.addLabelValue("Host", hostname);
+			
+			
 			if(offset != 0) {
-				conn.addRequestProperty(RANGE_HTTP_HEADER,
+				headers.addLabelValue(RANGE_HTTP_HEADER, 
 						HEADER_BYTES_PREFIX + String.valueOf(offset) + 
-						HEADER_BYTES_SUFFIX);
+							HEADER_BYTES_SUFFIX);
+			}
+			InetSocketAddress sockAddr = new InetSocketAddress(addr,port);
+			Socket socket = new Socket();
+			socket.setSoTimeout(socketTimeoutMs);
+			socket.setReceiveBufferSize(BUF_SIZE);
+
+			socket.connect(sockAddr, connectTimeoutMs);
+			OutputStream socketOut = socket.getOutputStream();
+			InputStream socketIn = socket.getInputStream();
+			socketOut.write(requestMessage.getBytes(true));
+			socketOut.write(headers.getUTF8Bytes());
+			socketOut.flush();
+			HttpResponse response = HttpResponse.load(socketIn);
+			String contentType = response.getHeaders().asMap().get("Content-Type");
+			if(contentType == null) {
+				contentType = "application/unknown";
+			}
+			String xferEncoding = response.getHeaders().asMap().get("Transfer-Encoding");
+			
+			if(xferEncoding != null) {
+				if(xferEncoding.equals("chunked")) {
+					socketIn = new ChunkedInputStream(socketIn);
+				}
 			}
 
-			ds = new URLDataSource(conn.getInputStream(),conn.getContentType());
-			
+			ds = new URLDataSource(socketIn,contentType);
+
 		} else {
 			// assume a local file path:
 			File f = new File(location);
@@ -204,6 +251,34 @@ public class FileProxyServlet extends ServletRequestContext {
 		this.locationDB = locationDB;
 	}
 	
+	/**
+	 * @return the socketTimeoutMs
+	 */
+	public int getSocketTimeoutMs() {
+		return socketTimeoutMs;
+	}
+
+	/**
+	 * @param socketTimeoutMs the socketTimeoutMs to set
+	 */
+	public void setSocketTimeoutMs(int socketTimeoutMs) {
+		this.socketTimeoutMs = socketTimeoutMs;
+	}
+
+	/**
+	 * @return the connectTimeoutMs
+	 */
+	public int getConnectTimeoutMs() {
+		return connectTimeoutMs;
+	}
+
+	/**
+	 * @param connectTimeoutMs the connectTimeoutMs to set
+	 */
+	public void setConnectTimeoutMs(int connectTimeoutMs) {
+		this.connectTimeoutMs = connectTimeoutMs;
+	}
+
 	private class ResourceLocation {
 		private String name = null;
 		private long offset = 0;
