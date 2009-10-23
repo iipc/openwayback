@@ -67,6 +67,14 @@ public class TransparentReplayRenderer implements ReplayRenderer {
 		
 		Map<String,String> headers = HttpHeaderOperation.processHeaders(
 				resource, result, uriConverter, httpHeaderProcessor);
+		
+		// HACKHACK: getContentLength() may not find the original content length
+		// if a HttpHeaderProcessor has mangled it too badly. Should this
+		// happen in the HttpHeaderProcessor itself?
+		String origLength = HttpHeaderOperation.getContentLength(headers);
+		if(origLength != null) {
+			headers.put(HttpHeaderOperation.HTTP_LENGTH_HEADER, origLength);
+		}
 
 		HttpHeaderOperation.sendHeaders(headers, httpResponse);
 
