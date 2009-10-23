@@ -49,7 +49,8 @@ public class CDXIndex extends FlatFile implements SearchResultSource {
 	 */
 	private static final long serialVersionUID = 1L;
 
-	private CloseableIterator<CaptureSearchResult> adaptIterator(Iterator<String> itr) {
+	protected CloseableIterator<CaptureSearchResult> adaptIterator(Iterator<String> itr)
+		throws IOException {
 		return new AdaptedIterator<String,CaptureSearchResult>(itr,
 				new CDXLineToSearchResultAdapter());
 	}
