@@ -25,6 +25,7 @@
 package org.archive.wayback.resourceindex.filters;
 
 import org.archive.wayback.core.CaptureSearchResult;
+import org.archive.wayback.resourceindex.filterfactory.QueryCaptureFilterGroup;
 import org.archive.wayback.util.ObjectFilter;
 import org.archive.wayback.util.url.UrlOperations;
 
@@ -39,12 +40,21 @@ import org.archive.wayback.util.url.UrlOperations;
 public class SchemeMatchFilter implements ObjectFilter<CaptureSearchResult> {
 
 	private String scheme = null;
-	
+	private QueryCaptureFilterGroup annotationTarget = null;
+
 	/**
 	 * @param hostname String of original host to match
 	 */
 	public SchemeMatchFilter(final String scheme) {
 		this.scheme = scheme;
+	}
+	/**
+	 * @param hostname String of original host to match
+	 */
+	public SchemeMatchFilter(final String scheme, 
+			QueryCaptureFilterGroup annotationTarget) {
+		this.scheme = scheme;
+		this.annotationTarget = annotationTarget;
 	}
 
 	/* (non-Javadoc)
@@ -53,8 +63,23 @@ public class SchemeMatchFilter implements ObjectFilter<CaptureSearchResult> {
 	public int filterObject(CaptureSearchResult r) {
 		String captureScheme = UrlOperations.urlToScheme(r.getOriginalUrl());
 		if(scheme == null) {
-			return captureScheme == null ? FILTER_INCLUDE : FILTER_EXCLUDE;
+			if(captureScheme == null) {
+				return FILTER_INCLUDE;
+			} else {
+				annotationTarget.addCloseMatch(r.getOriginalHost(),
+						r.getOriginalUrl());
+				return FILTER_EXCLUDE;
+			}
 		}
-		return scheme.equals(captureScheme) ? FILTER_INCLUDE : FILTER_EXCLUDE;
+
+		if(scheme.equals(captureScheme)) {
+			return FILTER_INCLUDE;
+		} else {
+			if(annotationTarget != null) {
+				annotationTarget.addCloseMatch(r.getOriginalHost(),
+						r.getOriginalUrl());
+			}
+			 return FILTER_EXCLUDE;
+		}
 	}
 }
