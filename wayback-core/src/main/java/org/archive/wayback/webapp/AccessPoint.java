@@ -25,6 +25,7 @@
 package org.archive.wayback.webapp;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.logging.Logger;
@@ -82,6 +83,7 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 	private boolean useServerName = false;
 	private boolean useAnchorWindow = false;
 	private boolean exactSchemeMatch = true;
+	private boolean exactHostMatch = false;
 
 	private int contextPort = 0;
 	private String contextName = null;
@@ -97,6 +99,24 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 	private BooleanOperator<WaybackRequest> authentication = null;
 	private String urlRoot = null;
 	private Locale locale = null;
+	private List<String> filePatterns = null;
+	private List<String> filePrefixes = null;
+	
+	public List<String> getFilePatterns() {
+		return filePatterns;
+	}
+
+	public void setFilePatterns(List<String> filePatterns) {
+		this.filePatterns = filePatterns;
+	}
+
+	public List<String> getFilePrefixes() {
+		return filePrefixes;
+	}
+
+	public void setFilePrefixes(List<String> filePrefixes) {
+		this.filePrefixes = filePrefixes;
+	}
 
 	/**
 	 * @return the contextName
@@ -346,6 +366,7 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 					
 				} else {
 
+					wbRequest.setExactHost(exactHostMatch);
 					handleQuery(wbRequest,httpRequest,httpResponse);
 				}
 			} else {
@@ -574,5 +595,19 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 
 	public void setUrlRoot(String urlRoot) {
 		this.urlRoot = urlRoot;
+	}
+
+	/**
+	 * @return the exactHostMatch
+	 */
+	public boolean isExactHostMatch() {
+		return exactHostMatch;
+	}
+
+	/**
+	 * @param exactHostMatch the exactHostMatch to set
+	 */
+	public void setExactHostMatch(boolean exactHostMatch) {
+		this.exactHostMatch = exactHostMatch;
 	}
 }
