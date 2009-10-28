@@ -213,7 +213,8 @@ public class CaptureSearchResult extends SearchResult {
 	}
 	public long getEndOffset() {
 		if(cachedEndOffset == -1) {
-			cachedEndOffset = Long.parseLong(get(CAPTURE_END_OFFSET));
+			String tmp = get(CAPTURE_END_OFFSET);
+			cachedEndOffset = tmp == null ? -1 : Long.parseLong(tmp);
 		}
 		return cachedEndOffset;
 	}
