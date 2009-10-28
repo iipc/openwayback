@@ -25,7 +25,9 @@
 package org.archive.wayback.resourceindex;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import org.apache.commons.httpclient.URIException;
 import org.archive.wayback.ResourceIndex;
@@ -41,36 +43,59 @@ import org.archive.wayback.exception.AccessControlException;
 import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
-import org.archive.wayback.resourceindex.adapters.ConditionalGetAnnotationSearchResultAdapter;
 import org.archive.wayback.resourceindex.adapters.CaptureToUrlSearchResultAdapter;
-import org.archive.wayback.resourceindex.adapters.DeduplicationSearchResultAnnotationAdapter;
-import org.archive.wayback.resourceindex.filters.CounterFilter;
-import org.archive.wayback.resourceindex.filters.DateRangeFilter;
-import org.archive.wayback.resourceindex.filters.DuplicateRecordFilter;
-import org.archive.wayback.resourceindex.filters.GuardRailFilter;
-import org.archive.wayback.resourceindex.filters.HostMatchFilter;
-import org.archive.wayback.resourceindex.filters.SchemeMatchFilter;
-import org.archive.wayback.resourceindex.filters.SelfRedirectFilter;
-import org.archive.wayback.resourceindex.filters.UrlMatchFilter;
-import org.archive.wayback.resourceindex.filters.UrlPrefixMatchFilter;
-import org.archive.wayback.resourceindex.filters.WindowEndFilter;
-import org.archive.wayback.resourceindex.filters.WindowStartFilter;
-import org.archive.wayback.util.AdaptedIterator;
+import org.archive.wayback.resourceindex.filterfactory.AccessPointCaptureFilterGroupFactory;
+import org.archive.wayback.resourceindex.filterfactory.CaptureFilterGroup;
+import org.archive.wayback.resourceindex.filterfactory.CoreCaptureFilterGroupFactory;
+import org.archive.wayback.resourceindex.filterfactory.ExclusionCaptureFilterGroupFactory;
+import org.archive.wayback.resourceindex.filterfactory.FilterGroupFactory;
+import org.archive.wayback.resourceindex.filterfactory.QueryCaptureFilterGroupFactory;
+import org.archive.wayback.resourceindex.filterfactory.WindowFilterGroup;
 import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.ObjectFilter;
 import org.archive.wayback.util.ObjectFilterChain;
 import org.archive.wayback.util.ObjectFilterIterator;
-import org.archive.wayback.util.Timestamp;
 import org.archive.wayback.util.url.AggressiveUrlCanonicalizer;
-import org.archive.wayback.util.url.UrlOperations;
 
 /**
- *
+ * ResourceIndex implementation which assumes a "local" SearchResultSource.
+ * 
+ * Extracting SearchResults from the source involves several layered steps:
+ * 
+ * 1) extraction of results based on a prefix into the index
+ * 2) passing each result through a series of adapters
+ *       these adapters can create new fields based on existing fields, or can
+ *       annotate fields as they are scanned in order
+ * 3) filtering results based on request filters, which may come from 
+ *       * WaybackRequest-specific parameters. 
+ *           Ex. exact host match only, exact scheme match only, ...
+ *       * AccessPoint-specific configuration 
+ *           Ex. only return records with (ARC/WARC) filename prefixed with XXX
+ *           Ex. block any dates not older than 6 months
+ * 4) filtering based on AccessControl configurations
+ *        Ex. block any urls with prefixes in file X
+ * 5) windowing filters, which provide pagination of the results, allowing
+ *        requests to specify "show results between 10 and 20"
+ * 6) post filter adapters, which may annotate final results with other 
+ *        information
+ *        Ex. for each result, consult DB to see if user-contributed messages
+ *            apply to the results 
+ * 
+ * After all results have been processed, we annotate the final SearchResultS
+ * object with summary information about the results included. As we set up the 
+ * chain of filters, we instrument the chain with counters that observe the 
+ * number of results that went into, and came out of the Exclusion filters.
+ * 
+ * If there were results presented to the Exclusion filter, but none were 
+ * emitted from it, an AccessControlException is thrown.
  *
  * @author brad
  * @version $Date$, $Revision$
  */
 public class LocalResourceIndex implements ResourceIndex {
+	public final static int TYPE_REPLAY = 0;
+	public final static int TYPE_CAPTURE = 1;
+	public final static int TYPE_URL = 2;
 
 	/**
 	 * maximum number of records to return
@@ -89,23 +114,16 @@ public class LocalResourceIndex implements ResourceIndex {
 	
 	private ObjectFilter<CaptureSearchResult> filter = null;
 
+	
+	List<FilterGroupFactory> fgFactories = null;
+	
 	public LocalResourceIndex() {
 		canonicalizer = new AggressiveUrlCanonicalizer();
-	}
-
-	private CloseableIterator<CaptureSearchResult> getCaptureIterator(String k)
-		throws ResourceIndexNotAvailableException {
-
-		CloseableIterator<CaptureSearchResult> captures = 
-			source.getPrefixIterator(k);
-		if(dedupeRecords) {
-			// hack hack!!!
-			captures = new AdaptedIterator<CaptureSearchResult, CaptureSearchResult>
-				(captures, new ConditionalGetAnnotationSearchResultAdapter());
-			captures = new AdaptedIterator<CaptureSearchResult, CaptureSearchResult>
-				(captures, new DeduplicationSearchResultAnnotationAdapter());
-		}
-		return captures;
+		fgFactories = new ArrayList<FilterGroupFactory>();
+		fgFactories.add(new CoreCaptureFilterGroupFactory());
+		fgFactories.add(new QueryCaptureFilterGroupFactory());
+		fgFactories.add(new ExclusionCaptureFilterGroupFactory());
+		fgFactories.add(new AccessPointCaptureFilterGroupFactory());
 	}
 
 	private void cleanupIterator(CloseableIterator<? extends SearchResult> itr)
@@ -119,42 +137,64 @@ public class LocalResourceIndex implements ResourceIndex {
 		}
 	}
 	
+	private List<CaptureFilterGroup> getRequestFilterGroups(WaybackRequest r) 
+	throws BadQueryException {
+		
+		ArrayList<CaptureFilterGroup> groups = 
+			new ArrayList<CaptureFilterGroup>();
+		for(FilterGroupFactory f : fgFactories) {
+			groups.add(f.getGroup(r, canonicalizer, this));
+		}
+		return groups;
+	}
+	
+	
 	public CaptureSearchResults doCaptureQuery(WaybackRequest wbRequest,
 			int type) throws ResourceIndexNotAvailableException,
 		ResourceNotInArchiveException, BadQueryException,
 		AccessControlException {
-		
-		CaptureSearchResults results = new CaptureSearchResults();
 
-		CaptureQueryFilterState filterState = 
-			new CaptureQueryFilterState(wbRequest, canonicalizer, type, 
-					getUserFilters(wbRequest));
-		String keyUrl = filterState.getKeyUrl();
-
-		CloseableIterator<CaptureSearchResult> itr = getCaptureIterator(keyUrl);
-		// set up the common Filters:
-		ObjectFilter<CaptureSearchResult> filter = filterState.getFilter();
-		itr = new ObjectFilterIterator<CaptureSearchResult>(itr,filter);
-
-		// Windowing:
-		WindowFilterState<CaptureSearchResult> window = 
-			new WindowFilterState<CaptureSearchResult>(wbRequest);
-		ObjectFilter<CaptureSearchResult> windowFilter = window.getFilter();
-		itr = new ObjectFilterIterator<CaptureSearchResult>(itr,windowFilter);
-		
-		
-		if(annotater != null) {
-			itr = new ObjectFilterIterator<CaptureSearchResult>(itr,annotater);
+		String urlKey;
+		try {
+			urlKey = canonicalizer.urlStringToKey(wbRequest.getRequestUrl());
+		} catch (URIException e) {
+			throw new BadQueryException("Bad URL(" + 
+					wbRequest.getRequestUrl() + ")");
 		}
+
+		// the CaptureSearchResults we are about to return:
+		CaptureSearchResults results = new CaptureSearchResults();
+		// the various filters to apply to the results:
+		ObjectFilterChain<CaptureSearchResult> filters = 
+			new ObjectFilterChain<CaptureSearchResult>();
+
+		// Groupings of filters for... sanity and summary annotation of results:
+		// Windows:
+		WindowFilterGroup<CaptureSearchResult> window = 
+			new WindowFilterGroup<CaptureSearchResult>(wbRequest,this);
+		List<CaptureFilterGroup> groups = getRequestFilterGroups(wbRequest); 
+
+		for(CaptureFilterGroup cfg : groups) {
+			filters.addFilters(cfg.getFilters());
+		}
+		filters.addFilters(window.getFilters());
 		
+		CloseableIterator<CaptureSearchResult> itr = 
+			new ObjectFilterIterator<CaptureSearchResult>(
+					source.getPrefixIterator(urlKey),filters);
+
 		while(itr.hasNext()) {
 			results.addSearchResult(itr.next());
 		}
 		
-		filterState.annotateResults(results);
+		for(CaptureFilterGroup cfg : groups) {
+			cfg.annotateResults(results);
+		}
 		window.annotateResults(results);
+
 		cleanupIterator(itr);
-		return results;		
+
+		return results;
 	}
 
 	public UrlSearchResults doUrlQuery(WaybackRequest wbRequest)
@@ -162,38 +202,61 @@ public class LocalResourceIndex implements ResourceIndex {
 		ResourceNotInArchiveException, BadQueryException, 
 		AccessControlException {
 		
+		String urlKey;
+		try {
+			urlKey = canonicalizer.urlStringToKey(wbRequest.getRequestUrl());
+		} catch (URIException e) {
+			throw new BadQueryException("Bad URL(" + 
+					wbRequest.getRequestUrl() + ")");
+		}
+
 		UrlSearchResults results = new UrlSearchResults();
 
-		CaptureQueryFilterState filterState = 
-			new CaptureQueryFilterState(wbRequest,canonicalizer,
-					CaptureQueryFilterState.TYPE_URL, getUserFilters(wbRequest));
-		String keyUrl = filterState.getKeyUrl();
+		// the various CAPTURE filters to apply to the results:
+		ObjectFilterChain<CaptureSearchResult> cFilters = 
+			new ObjectFilterChain<CaptureSearchResult>();
 
-		CloseableIterator<CaptureSearchResult> citr = getCaptureIterator(keyUrl);
-		// set up the common Filters:
-		ObjectFilter<CaptureSearchResult> filter = filterState.getFilter();
-		citr = new ObjectFilterIterator<CaptureSearchResult>(citr,filter);
 		
-		// adapt into UrlSearchResult:
-		
-		CloseableIterator<UrlSearchResult> itr = 
-			CaptureToUrlSearchResultAdapter.adaptCaptureIterator(citr);
-		
-		// Windowing:
-		WindowFilterState<UrlSearchResult> window = 
-			new WindowFilterState<UrlSearchResult>(wbRequest);
-		ObjectFilter<UrlSearchResult> windowFilter = window.getFilter();
-		itr = new ObjectFilterIterator<UrlSearchResult>(itr,windowFilter);
-		
-		while(itr.hasNext()) {
-			results.addSearchResult(itr.next());
+		// Groupings of filters for clarity(?) and summary annotation of 
+		// results:
+		List<CaptureFilterGroup> groups = getRequestFilterGroups(wbRequest); 
+		for(CaptureFilterGroup cfg : groups) {
+			cFilters.addFilters(cfg.getFilters());
 		}
 		
-		filterState.annotateResults(results);
-		window.annotateResults(results);
-		cleanupIterator(itr);
+		CloseableIterator<CaptureSearchResult> itrC = 
+			new ObjectFilterIterator<CaptureSearchResult>(
+					source.getPrefixIterator(urlKey),cFilters);
+
+		// we've filtered the appropriate CaptureResult objects within the 
+		// iterator, now we're going to convert whatever records make it past
+		// the filters into UrlSearchResults, and then do further window
+		// filtering on those results:
+		// Windows:
+		// the window URL filters to apply to the results, once they're 
+		// UrlSearchResult objects
+		ObjectFilterChain<UrlSearchResult> uFilters = 
+			new ObjectFilterChain<UrlSearchResult>();
+		WindowFilterGroup<UrlSearchResult> window = 
+			new WindowFilterGroup<UrlSearchResult>(wbRequest,this);
+		uFilters.addFilters(window.getFilters());
+		CloseableIterator<UrlSearchResult> itrU = 
+			new ObjectFilterIterator<UrlSearchResult>(
+					CaptureToUrlSearchResultAdapter.adaptCaptureIterator(itrC),
+					uFilters);
 		
-		return results;		
+		while(itrU.hasNext()) {
+			results.addSearchResult(itrU.next());
+		}
+		
+		for(CaptureFilterGroup cfg : groups) {
+			cfg.annotateResults(results);
+		}
+		window.annotateResults(results);
+
+		cleanupIterator(itrU);
+
+		return results;
 	}
 	
 	/*
@@ -209,15 +272,13 @@ public class LocalResourceIndex implements ResourceIndex {
 
 		if (wbRequest.isReplayRequest()) {
 
-			results = doCaptureQuery(wbRequest,
-					CaptureQueryFilterState.TYPE_REPLAY);
+			results = doCaptureQuery(wbRequest, TYPE_REPLAY);
 			results.putFilter(WaybackRequest.REQUEST_TYPE, 
 					WaybackRequest.REQUEST_REPLAY_QUERY);
 
 		} else if (wbRequest.isCaptureQueryRequest()) {
 
-			results = doCaptureQuery(wbRequest, 
-					CaptureQueryFilterState.TYPE_CAPTURE);
+			results = doCaptureQuery(wbRequest, TYPE_CAPTURE);
 			results.putFilter(WaybackRequest.REQUEST_TYPE, 
 					WaybackRequest.REQUEST_CAPTURE_QUERY);
 
@@ -259,6 +320,10 @@ public class LocalResourceIndex implements ResourceIndex {
 	public void setMaxRecords(int maxRecords) {
 		this.maxRecords = maxRecords;
 	}
+	public int getMaxRecords() {
+		return maxRecords;
+	}
+
 
 	/**
 	 * @param source the source to set
@@ -301,191 +366,5 @@ public class LocalResourceIndex implements ResourceIndex {
 
 	public void setFilter(ObjectFilter<CaptureSearchResult> filter) {
 		this.filter = filter;
-	}
-	
-	public ObjectFilterChain<CaptureSearchResult> getUserFilters(WaybackRequest request) {
-		ObjectFilterChain<CaptureSearchResult> userFilters =
-			new ObjectFilterChain<CaptureSearchResult>();
-
-		// has the user asked for only results on the exact host specified?
-		if(request.isExactHost()) {
-			userFilters.addFilter(new HostMatchFilter(
-					UrlOperations.urlToHost(request.getRequestUrl())));
-		}
-
-		if(request.isExactScheme()) {
-			userFilters.addFilter(new SchemeMatchFilter(
-					UrlOperations.urlToScheme(request.getRequestUrl())));
-		}
-		if(filter != null) {
-			userFilters.addFilter(filter);
-		}
-
-		return userFilters;
-	}
-	
-	private class CaptureQueryFilterState {
-		public final static int TYPE_REPLAY = 0;
-		public final static int TYPE_CAPTURE = 1;
-		public final static int TYPE_URL = 2;
-		
-		private ObjectFilterChain<CaptureSearchResult> filter = null;
-		private CounterFilter finalCounter = null;
-		private CounterFilter preExclusionCounter = null;
-		private String keyUrl = null;
-		private String startDate;
-		private String endDate;
-		private String exactDate;
-		
-		public CaptureQueryFilterState(WaybackRequest request, 
-				UrlCanonicalizer canonicalizer, int type, 
-				ObjectFilterChain<CaptureSearchResult> userFilter)
-		throws BadQueryException {
-			
-			String searchUrl = request.getRequestUrl();
-			try {
-				keyUrl = canonicalizer.urlStringToKey(searchUrl);
-			} catch (URIException e) {
-				throw new BadQueryException("invalid "
-						+ WaybackRequest.REQUEST_URL + " " + searchUrl);
-			}
-
-			filter = new ObjectFilterChain<CaptureSearchResult>();
-			startDate = request.getStartTimestamp();
-			if(startDate == null) {
-					startDate = Timestamp.earliestTimestamp().getDateStr();
-			}
-			endDate = request.getEndTimestamp();
-			if(endDate == null) {
-					endDate = Timestamp.latestTimestamp().getDateStr();
-			}
-			if(type == TYPE_REPLAY) {
-				exactDate = request.getReplayTimestamp();
-				if(exactDate == null) {
-					exactDate = Timestamp.latestTimestamp().getDateStr();
-				}
-			}
-			
-			finalCounter = new CounterFilter();
-			preExclusionCounter = new CounterFilter();
-			DateRangeFilter drFilter = new DateRangeFilter(startDate,endDate);
-
-			// checks an exclusion service for every matching record
-			ObjectFilter<CaptureSearchResult> exclusion = 
-				request.getExclusionFilter();
-
-			
-			// makes sure we don't inspect too many records: prevents DOS
-			filter.addFilter(new GuardRailFilter(maxRecords));
-			filter.addFilter(new DuplicateRecordFilter());
-			
-			if(type == TYPE_REPLAY) {
-				filter.addFilter(new UrlMatchFilter(keyUrl));
-				filter.addFilter(drFilter);
-				SelfRedirectFilter selfRedirectFilter= new SelfRedirectFilter();
-				selfRedirectFilter.setCanonicalizer(canonicalizer);
-				filter.addFilter(selfRedirectFilter);
-			} else if(type == TYPE_CAPTURE){
-				filter.addFilter(new UrlMatchFilter(keyUrl));
-				filter.addFilter(drFilter);
-			} else if(type == TYPE_URL) {
-				filter.addFilter(new UrlPrefixMatchFilter(keyUrl));				
-				filter.addFilter(drFilter);
-			} else {
-				throw new BadQueryException("Unknown type");
-			}
-
-			if(userFilter != null) {
-				filter.addFilters(userFilter.getFilters());
-			}
-
-			// count how many results got to the ExclusionFilter:
-			filter.addFilter(preExclusionCounter);
-
-			if(exclusion != null) {
-				filter.addFilter(exclusion);
-			}
-
-			// count how many results got past the ExclusionFilter, or how
-			// many total matched, if there was no ExclusionFilter:
-			filter.addFilter(finalCounter);
-		}
-		public String getKeyUrl() {
-			return keyUrl;
-		}
-		public ObjectFilter<CaptureSearchResult> getFilter() {
-			return filter;
-		}
-		public void annotateResults(SearchResults results) 
-			throws AccessControlException, ResourceNotInArchiveException {
-
-			int matched = finalCounter.getNumMatched();
-			if (matched == 0) {
-				if (preExclusionCounter != null) {
-					if(preExclusionCounter.getNumMatched() > 0) {
-						throw new AccessControlException("All results Excluded");
-					}
-				}
-				throw new ResourceNotInArchiveException("the URL " + keyUrl
-						+ " is not in the archive.");
-			}
-			// now we need to set some filter properties on the results:
-			results.putFilter(WaybackRequest.REQUEST_URL, keyUrl);
-			results.putFilter(WaybackRequest.REQUEST_START_DATE, startDate);
-			results.putFilter(WaybackRequest.REQUEST_END_DATE, endDate);
-			if(exactDate != null) {
-				results.putFilter(WaybackRequest.REQUEST_EXACT_DATE, exactDate);
-			}
-		}
-	}
-
-	private class WindowFilterState<T> {
-		int startResult; // calculated based on hits/page * pagenum
-		int resultsPerPage;
-		int pageNum;
-		ObjectFilterChain<T> windowFilters;
-		WindowStartFilter<T> startFilter;
-		WindowEndFilter<T> endFilter;
-		public WindowFilterState(WaybackRequest request) 
-			throws BadQueryException {
-
-			windowFilters = new ObjectFilterChain<T>();
-			// first grab all the info from the WaybackRequest, and validate it:
-			resultsPerPage = request.getResultsPerPage();
-			pageNum = request.getPageNum();
-
-			if (resultsPerPage < 1) {
-				throw new BadQueryException("resultsPerPage cannot be < 1");
-			}
-			if (resultsPerPage > maxRecords) {
-				throw new BadQueryException("resultsPerPage cannot be > "
-						+ maxRecords);
-			}
-			if (pageNum < 1) {
-				throw new BadQueryException("pageNum must be > 0");
-			}
-			startResult = (pageNum - 1) * resultsPerPage;
-			startFilter = new WindowStartFilter<T>(startResult);
-			endFilter = new WindowEndFilter<T>(resultsPerPage);
-			windowFilters.addFilter(startFilter);
-			windowFilters.addFilter(endFilter);
-		}
-		public ObjectFilter<T> getFilter() {
-			return windowFilters;
-		}
-		public void annotateResults(SearchResults results) 
-		throws BadQueryException {
-			results.setFirstReturned(startResult);
-			results.setNumRequested(resultsPerPage);
-			int numSeen = endFilter.getNumSeen();
-			if(numSeen == 0) {
-				throw new BadQueryException("No results in requested window");
-			}
-			// how many went by the filters:
-			results.setMatchingCount(startFilter.getNumSeen());
-
-			// how many were actually returned:
-			results.setReturnedCount(endFilter.getNumReturned());
-		}
 	}
 }
