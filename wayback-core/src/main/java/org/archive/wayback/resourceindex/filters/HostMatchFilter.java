@@ -25,6 +25,7 @@
 package org.archive.wayback.resourceindex.filters;
 
 import org.archive.wayback.core.CaptureSearchResult;
+import org.archive.wayback.resourceindex.filterfactory.QueryCaptureFilterGroup;
 import org.archive.wayback.util.ObjectFilter;
 
 /**
@@ -37,7 +38,17 @@ import org.archive.wayback.util.ObjectFilter;
 public class HostMatchFilter implements ObjectFilter<CaptureSearchResult> {
 
 	private String hostname = null;
+	private QueryCaptureFilterGroup annotationTarget = null;
 	
+	/**
+	 * @param hostname String of original host to match
+	 */
+	public HostMatchFilter(final String hostname,
+			QueryCaptureFilterGroup annotationTarget) {
+		this.hostname = hostname;
+		this.annotationTarget = annotationTarget;
+	}
+
 	/**
 	 * @param hostname String of original host to match
 	 */
@@ -50,6 +61,13 @@ public class HostMatchFilter implements ObjectFilter<CaptureSearchResult> {
 	 */
 	public int filterObject(CaptureSearchResult r) {
 		String origHost = r.getOriginalHost();
-		return hostname.equals(origHost) ? FILTER_INCLUDE : FILTER_EXCLUDE;
+		if(hostname.equals(origHost)) {
+			return FILTER_INCLUDE;
+		} else {
+			if(annotationTarget != null) {
+				annotationTarget.addCloseMatch(origHost, r.getOriginalUrl());
+			}
+			return FILTER_EXCLUDE;
+		}
 	}
 }
