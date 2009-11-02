@@ -24,9 +24,11 @@
  */
 package org.archive.wayback.replay;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
 
@@ -40,6 +42,10 @@ public class StringHttpServletResponseWrapper extends HttpServletResponseWrapper
 	private final static String WRAPPED_CHAR_ENCODING = "UTF-8";
 	private StringWriter sw = new StringWriter();
 	private String origEncoding = null;
+	private static final ServletOutputStream FAKE_OUT = new ServletOutputStream() {
+		public void write(int b) throws IOException {
+		}
+	}; 
 	
 	/**
 	 * @param response
@@ -49,6 +55,13 @@ public class StringHttpServletResponseWrapper extends HttpServletResponseWrapper
 		origEncoding = getCharacterEncoding();
 		setCharacterEncoding(WRAPPED_CHAR_ENCODING);
 	}
+	
+	@Override
+	public ServletOutputStream getOutputStream() throws IOException {
+		return FAKE_OUT; 
+	}
+
+	
 	public PrintWriter getWriter() {
 		return new PrintWriter(sw);
 	}
