@@ -35,7 +35,8 @@ public class SvnTest {
 	 *
 	 */
 	public String foo() {
-		return CURRENT_SVN_VERSION;
+		String tmp = CURRENT_SVN_VERSION.substring(5);
+		return tmp.substring(0,tmp.length()-2);
 	}
 	public static void main(String[] args) {
 		SvnTest s = new SvnTest();
