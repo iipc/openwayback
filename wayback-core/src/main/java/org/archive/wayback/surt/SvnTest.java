@@ -30,10 +30,15 @@ package org.archive.wayback.surt;
  *
  */
 public class SvnTest {
+	public static String CURRENT_SVN_VERSION = "$Rev$";
 	/**
-	 * @param fooArg
+	 *
 	 */
-	public static void foo(String fooArg) {
-		
+	public String foo() {
+		return CURRENT_SVN_VERSION;
+	}
+	public static void main(String[] args) {
+		SvnTest s = new SvnTest();
+		System.out.println("SvnTest version is " + s.foo());
 	}
 }
