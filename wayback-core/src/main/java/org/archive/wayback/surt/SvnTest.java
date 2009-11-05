@@ -1,6 +1,6 @@
 /* SvnTest
  *
- * $Id$:
+ * $$Id$$:
  *
  * Created on Nov 5, 2009.
  *
