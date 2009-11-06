@@ -4,28 +4,41 @@ function xResolveUrl(url) {
    image.src = url;
    return image.src;
 }
+var xWaybackIsIE = (navigator.appName=="Microsoft Internet Explorer");
 function xLateUrl(aCollection, sProp) {
    var i = 0;
    for(i = 0; i < aCollection.length; i++) {
       if(aCollection[i].getAttribute(sProp) &&
          (aCollection[i].getAttribute(sProp).length > 0) &&
-         (typeof(aCollection[i][sProp]) == "string")) {
-
-         if(aCollection[i][sProp].indexOf("mailto:") == -1 &&
-            aCollection[i][sProp].indexOf("javascript:") == -1) {
+         (typeof(aCollection[i][sProp]) == "string") &&
+         (aCollection[i][sProp].indexOf("mailto:") == -1) &&
+         (aCollection[i][sProp].indexOf("javascript:") == -1) &&
+	 (aCollection[i][sProp].indexOf(sWayBackCGI) == -1) ) {
 
             var wmSpecial = aCollection[i].getAttribute("wmSpecial");
-            if(wmSpecial && wmSpecial.length > 0) {
+            if((wmSpecial && wmSpecial.length > 0)) {
             } else {
-                if(aCollection[i][sProp].indexOf(sWayBackCGI) == -1) {
-                    if(aCollection[i][sProp].indexOf("http") == 0) {
-                        aCollection[i][sProp] = sWayBackCGI + aCollection[i][sProp];
-                    } else {
-                        aCollection[i][sProp] = sWayBackCGI + xResolveUrl(aCollection[i][sProp]);
-                    }
+              var newUrl;
+              if(aCollection[i][sProp].indexOf("http") == 0) {
+	        newUrl = sWayBackCGI + aCollection[i][sProp];
+              } else {
+                newUrl = sWayBackCGI + xResolveUrl(aCollection[i][sProp]);
+              }
+              if(navigator.appName=="Microsoft Internet Explorer") {
+                var inTmp = aCollection[i].innerHTML;
+                aCollection[i][sProp] = newUrl;
+		if(inTmp && 
+		   ( (inTmp.indexOf("@") > 0) 
+		     || (inTmp.indexOf("www.") == 0)
+		     || (inTmp.indexOf("http://") == 0)
+		   )
+		   ) {
+                  aCollection[i].innerHTML = inTmp;
                 }
+              } else {
+                aCollection[i][sProp] = newUrl;
+              }
             }
-         }
       }
    }
 }
