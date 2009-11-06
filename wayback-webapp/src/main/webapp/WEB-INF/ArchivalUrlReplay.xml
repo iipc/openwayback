@@ -2,23 +2,59 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
-           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd"
+           default-init-method="init">
 
+<!-- 
+	The following bean controls how HTTP headers from original documents
+	are returned to clients. This configuration will cause
+	all original HTTP headers to be prefixed with "X-Archive-Orig-". To return
+	the original HTTP headers as-is (except for Content-Length) comment out the
+	"prefix" property. This has significant implications on caching and cookies.
+ -->
   <bean id="archivalurlhttpheaderprocessor" class="org.archive.wayback.replay.RedirectRewritingHttpHeaderProcessor">
     <property name="prefix" value="X-Archive-Orig-" />
   </bean>
 
-  <bean id="archivaldateredirectingreplayrenderer" class="org.archive.wayback.replay.DateRedirectReplayRenderer" />
+<!-- 
+	Renderer for both CSS and Javascript, causing a comment containing 
+	archive inforation to be inserted in the returned documents. 
+ -->
   <bean id="archivalcssreplayrenderer" class="org.archive.wayback.archivalurl.ArchivalUrlCSSReplayRenderer">
     <constructor-arg><ref bean="archivalurlhttpheaderprocessor"/></constructor-arg>
+    <property name="jspInserts">
+      <list>
+        <value>/WEB-INF/replay/ArchiveCSSComment.jsp</value>
+      </list>
+    </property>
   </bean>
+  <bean id="archivaljsreplayrenderer" class="org.archive.wayback.archivalurl.ArchivalUrlJSReplayRenderer">
+    <constructor-arg><ref bean="archivalurlhttpheaderprocessor"/></constructor-arg>
+    <property name="jspInserts">
+      <list>
+        <value>/WEB-INF/replay/ArchiveCSSComment.jsp</value>
+      </list>
+    </property>
+  </bean>
+<!--
+	Renderer which rewrites mms:// URLs inside ASX mime types to be http:// 
+ -->
   <bean id="archivalasxreplayrenderer" class="org.archive.wayback.archivalurl.ArchivalUrlASXReplayRenderer">
     <constructor-arg><ref bean="archivalurlhttpheaderprocessor"/></constructor-arg>
   </bean>
+
+<!--
+	Renderer which returns documents as-is. Suitable for images, binary formats,
+	and anything else Wayback doesn't know how to handle yet. 
+ -->
   <bean id="archivaltransparentreplayrenderer" class="org.archive.wayback.replay.TransparentReplayRenderer">
     <constructor-arg><ref bean="archivalurlhttpheaderprocessor"/></constructor-arg>
   </bean>
 
+<!-- 
+	The following bean is an example of the experimental Regex-Based 
+	server-side HTML rewriting Renderer
+ -->
   <bean id="archivalserversidehtmlreplayrenderer" class="org.archive.wayback.archivalurl.ServerSideHTMLReplayRenderer">
     <constructor-arg><ref bean="archivalurlhttpheaderprocessor"/></constructor-arg>
     <property name="jspInserts">
@@ -31,14 +67,40 @@
     </property>
   </bean>
 
+<!-- 
+	Custom rules for rewriting HTML content using a SAX parser, for fine-tuned
+	server-side rewriting.
+ -->
+  <import resource="ArchivalUrlSaxReplay.xml"/>
+
+<!-- 
+	The following bean is an example of the new SAX based rewriting renderer. It
+	also uses a pluggable character encoding detector, which could allow clients
+	to issue special requests to Wayback to alter the detection strategy.
+ -->
+  <bean id="archivalsaxreplayrenderer" class="org.archive.wayback.archivalurl.ArchivalUrlSAXRewriteReplayRenderer">
+    <constructor-arg><ref bean="archivalurlhttpheaderprocessor"/></constructor-arg>
+    <property name="charsetDetector">
+    	<bean class="org.archive.wayback.replay.charset.RotatingCharsetDetector"/>
+    </property>
+    <property name="rules" ref="archivalSAXRules"/>
+  </bean>
+
+<!--
+	The following bean is an example of the "classic" or most mature ArchivalUrl
+	Replay system - it uses a combination of server-side regex rewriting and
+	a client-side javascript insert to rewite links within an HTML page.
+-->
   <bean id="archivalclientsidehtmlreplayrenderer" class="org.archive.wayback.archivalurl.ClientSideHTMLReplayRenderer">
     <constructor-arg><ref bean="archivalurlhttpheaderprocessor"/></constructor-arg>
     <property name="jspInserts">
       <list>
+        <value>/WEB-INF/replay/Timeline.jsp</value>
+<!-- 
+        <value>/WEB-INF/replay/DisclaimerHead.jsp</value>
         <value>/WEB-INF/replay/ArchiveComment.jsp</value>
         <value>/WEB-INF/replay/ClientSideJSInsert.jsp</value>
         <value>/WEB-INF/replay/Disclaimer.jsp</value>
-<!-- 
         <value>/WEB-INF/replay/Timeline.jsp</value>
         <value>/WEB-INF/replay/DebugBanner.jsp</value>
 -->
@@ -46,13 +108,34 @@
     </property>
   </bean>
 
+<!-- 
+	The main Archival URL replay dispatcher. It uses a list of Selectors to
+	determine which ReplayRenderer should be used for each document.
+ -->
   <bean id="archivalurlreplay" class="org.archive.wayback.replay.SelectorReplayDispatcher">
     <property name="selectors">
       <list>
 
         <!-- REDIRECT IF NOT EXACT DATE -->
         <bean class="org.archive.wayback.replay.selector.DateMismatchSelector">
-          <property name="renderer" ref="archivaldateredirectingreplayrenderer"/>
+          <property name="renderer">
+		    <bean class="org.archive.wayback.archivalurl.ArchivalUrlDateRedirectReplayRenderer" />
+          </property>
+        </bean>
+
+        <!-- Explicit (via "cs_" flag) CSS REPLAY -->
+        <bean class="org.archive.wayback.replay.selector.CSSRequestSelector">
+          <property name="renderer" ref="archivalcssreplayrenderer"/>
+        </bean>
+
+        <!-- Explicit (via "js_" flag) JS REPLAY -->
+        <bean class="org.archive.wayback.replay.selector.JSRequestSelector">
+          <property name="renderer" ref="archivaljsreplayrenderer"/>
+        </bean>
+
+        <!-- Explicit (via "im_" flag) IMG REPLAY -->
+        <bean class="org.archive.wayback.replay.selector.IMGRequestSelector">
+          <property name="renderer" ref="archivaltransparentreplayrenderer"/>
         </bean>
 
         <!-- HTML REPLAY -->
@@ -63,8 +146,12 @@
               <value>application/xhtml</value>
             </list>
           </property>
+          <property name="renderer" ref="archivalsaxreplayrenderer"/>
+<!-- 
           <property name="renderer" ref="archivalclientsidehtmlreplayrenderer"/>
+ -->        
         </bean>
+        
 
         <!-- CSS REPLAY -->
         <bean class="org.archive.wayback.replay.selector.MimeTypeSelector">

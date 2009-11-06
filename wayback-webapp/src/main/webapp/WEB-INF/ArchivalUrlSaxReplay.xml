@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd"
+	default-init-method="init">
+
+
+	<bean id="anchorURLRewriter"
+		class="org.archive.wayback.replay.html.transformer.URLStringTransformer">
+	</bean>
+	<bean id="imageURLRewriter"
+		class="org.archive.wayback.replay.html.transformer.URLStringTransformer">
+		<property name="flags" value="im_" />
+	</bean>
+	<bean id="jsURLRewriter"
+		class="org.archive.wayback.replay.html.transformer.URLStringTransformer">
+		<property name="flags" value="js_" />
+	</bean>
+	<bean id="cssURLRewriter"
+		class="org.archive.wayback.replay.html.transformer.URLStringTransformer">
+		<property name="flags" value="cs_" />
+	</bean>
+	<bean id="baseHrefHandler"
+		class="org.archive.wayback.replay.html.transformer.BaseHrefStringTransformer">
+	</bean>
+	<bean id="cssAttributeHandler"
+		class="org.archive.wayback.replay.html.transformer.InlineCSSStringTransformer">
+	</bean>
+	<bean id="cssBlockHandler"
+		class="org.archive.wayback.replay.html.transformer.BlockCSSStringTransformer">
+	</bean>
+
+
+
+	<bean id="archivalSAXRules"
+		class="org.archive.wayback.replay.html.ReplayParseEventDelegator">
+		<property name="parserVisitors">
+			<list>
+				<bean class="org.archive.wayback.replay.html.rules.CommentRule">
+				</bean>
+				<bean
+					class="org.archive.wayback.replay.html.rules.AfterBodyStartTagJSPExecRule">
+					<property name="jspPath" value="/WEB-INF/replay/DebugBanner.jsp" />
+				</bean>
+
+				<bean class="org.archive.wayback.replay.html.rules.AttributeModifyingRule">
+					<property name="tagName" value="A" />
+					<property name="modifyAttributeName" value="HREF" />
+					<property name="transformer" ref="anchorURLRewriter" />
+				</bean>
+
+				<bean class="org.archive.wayback.replay.html.rules.AttributeModifyingRule">
+					<property name="tagName" value="IMG" />
+					<property name="modifyAttributeName" value="SRC" />
+					<property name="transformer" ref="imageURLRewriter" />
+				</bean>
+				<bean class="org.archive.wayback.replay.html.rules.AttributeModifyingRule">
+					<property name="tagName" value="SCRIPT" />
+					<property name="modifyAttributeName" value="SRC" />
+					<property name="transformer" ref="jsURLRewriter" />
+				</bean>
+
+				<bean class="org.archive.wayback.replay.html.rules.AttributeModifyingRule">
+					<property name="tagName" value="BASE" />
+					<property name="modifyAttributeName" value="HREF" />
+					<property name="transformer" ref="baseHrefHandler" />
+				</bean>
+
+				<bean class="org.archive.wayback.replay.html.rules.AttributeModifyingRule">
+					<property name="modifyAttributeName" value="BACKGROUND" />
+					<property name="transformer" ref="imageURLRewriter" />
+				</bean>
+				<bean class="org.archive.wayback.replay.html.rules.AttributeModifyingRule">
+					<property name="tagName" value="FRAME" />
+					<property name="modifyAttributeName" value="SRC" />
+					<property name="transformer" ref="anchorURLRewriter" />
+				</bean>
+				<bean class="org.archive.wayback.replay.html.rules.AttributeModifyingRule">
+					<property name="tagName" value="INPUT" />
+					<property name="modifyAttributeName" value="SRC" />
+					<property name="transformer" ref="imageURLRewriter" />
+				</bean>
+				<bean class="org.archive.wayback.replay.html.rules.AttributeModifyingRule">
+					<property name="tagName" value="IFRAME" />
+					<property name="modifyAttributeName" value="SRC" />
+					<property name="transformer" ref="anchorURLRewriter" />
+				</bean>
+				<bean class="org.archive.wayback.replay.html.rules.AttributeModifyingRule">
+					<property name="tagName" value="META" />
+					<property name="modifyAttributeName" value="URL" />
+					<property name="transformer" ref="anchorURLRewriter" />
+				</bean>
+				<bean class="org.archive.wayback.replay.html.rules.AttributeModifyingRule">
+					<property name="tagName" value="FORM" />
+					<property name="modifyAttributeName" value="ACTION" />
+					<property name="transformer" ref="anchorURLRewriter" />
+				</bean>
+
+				<bean class="org.archive.wayback.replay.html.rules.AttributeModifyingRule">
+
+					<property name="tagName" value="LINK" />
+					<property name="whereAttributeName" value="rel" />
+					<property name="whereAttributeValue" value="Stylesheet" />
+
+					<property name="modifyAttributeName" value="HREF" />
+					<property name="transformer" ref="cssURLRewriter" />
+				</bean>
+				<bean class="org.archive.wayback.replay.html.rules.AttributeModifyingRule">
+					<property name="tagName" value="LINK" />
+					<property name="whereAttributeName" value="rel" />
+					<property name="whereAttributeValue" value="shortcut icon" />
+					<property name="modifyAttributeName" value="HREF" />
+					<property name="transformer" ref="imageURLRewriter" />
+				</bean>
+				<bean class="org.archive.wayback.replay.html.rules.AttributeModifyingRule">
+					<property name="tagName" value="LINK" />
+					<property name="modifyAttributeName" value="HREF" />
+					<property name="transformer" ref="anchorURLRewriter" />
+				</bean>
+				<bean class="org.archive.wayback.replay.html.rules.AttributeModifyingRule">
+					<property name="tagName" value="AREA" />
+					<property name="modifyAttributeName" value="HREF" />
+					<property name="transformer" ref="anchorURLRewriter" />
+				</bean>
+
+				<bean class="org.archive.wayback.replay.html.rules.AttributeModifyingRule">
+					<property name="tagName" value="OBJECT" />
+					<property name="modifyAttributeName" value="CODEBASE" />
+					<property name="transformer" ref="anchorURLRewriter" />
+				</bean>
+				<bean class="org.archive.wayback.replay.html.rules.AttributeModifyingRule">
+					<property name="tagName" value="OBJECT" />
+					<property name="modifyAttributeName" value="CDATA" />
+					<property name="transformer" ref="anchorURLRewriter" />
+				</bean>
+				<bean class="org.archive.wayback.replay.html.rules.AttributeModifyingRule">
+					<property name="tagName" value="APPLET" />
+					<property name="modifyAttributeName" value="CODEBASE" />
+					<property name="transformer" ref="anchorURLRewriter" />
+				</bean>
+				<bean class="org.archive.wayback.replay.html.rules.AttributeModifyingRule">
+					<property name="tagName" value="APPLET" />
+					<property name="modifyAttributeName" value="ARCHIVE" />
+					<property name="transformer" ref="anchorURLRewriter" />
+				</bean>
+				<bean class="org.archive.wayback.replay.html.rules.AttributeModifyingRule">
+					<property name="tagName" value="EMBED" />
+					<property name="modifyAttributeName" value="SRC" />
+					<property name="transformer" ref="anchorURLRewriter" />
+				</bean>
+				<bean class="org.archive.wayback.replay.html.rules.StyleContentRule">
+					<property name="transformer" ref="cssBlockHandler" />
+				</bean>
+				<bean class="org.archive.wayback.replay.html.rules.AttributeModifyingRule">
+					<property name="modifyAttributeName" value="style" />
+					<property name="transformer" ref="cssAttributeHandler" />
+				</bean>
+			</list>
+		</property>
+	</bean>
+
+</beans>
