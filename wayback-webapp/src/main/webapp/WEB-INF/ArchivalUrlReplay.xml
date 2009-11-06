@@ -97,11 +97,9 @@
       <list>
         <value>/WEB-INF/replay/Timeline.jsp</value>
 <!-- 
-        <value>/WEB-INF/replay/DisclaimerHead.jsp</value>
         <value>/WEB-INF/replay/ArchiveComment.jsp</value>
         <value>/WEB-INF/replay/ClientSideJSInsert.jsp</value>
         <value>/WEB-INF/replay/Disclaimer.jsp</value>
-        <value>/WEB-INF/replay/Timeline.jsp</value>
         <value>/WEB-INF/replay/DebugBanner.jsp</value>
 -->
       </list>
