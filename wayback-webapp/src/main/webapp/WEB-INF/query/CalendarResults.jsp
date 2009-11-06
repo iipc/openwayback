@@ -1,4 +1,5 @@
 <%@ page language="java" pageEncoding="utf-8" contentType="text/html;charset=utf-8"%>
+<%@ page import="java.util.List" %>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.Date" %>
 <%@ page import="java.util.Iterator" %>
@@ -20,6 +21,7 @@ WaybackRequest wbRequest = results.getWbRequest();
 CaptureSearchResults cResults = results.getCaptureResults();
 StringFormatter fmt = wbRequest.getFormatter();
 String searchString = wbRequest.getRequestUrl();
+List<String> closeMatches = cResults.getCloseMatches();
 
 
 Date searchStartDate = wbRequest.getStartDate();
@@ -153,6 +155,22 @@ int numPartitions = partitions.size();
 
 
 <%
+if(closeMatches != null && !closeMatches.isEmpty()) {
+	WaybackRequest tmp = wbRequest.clone();
+	
+	
+	%>
+	Close Matches:<br>
+	<%
+	for(String closeMatch : closeMatches) {
+		tmp.setRequestUrl(closeMatch);
+		String link = tmp.getContextPrefix() + "query?" +
+			tmp.getQueryArguments();
+		%>
+		<a href="<%= link %>"><%= closeMatch %></a><br>
+		<%
+	}
+}
 // show page indicators:
 if(cResults.getNumPages() > 1) {
   int curPage = cResults.getCurPageNum();
