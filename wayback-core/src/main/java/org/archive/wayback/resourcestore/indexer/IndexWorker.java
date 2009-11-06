@@ -24,16 +24,23 @@
  */
 package org.archive.wayback.resourcestore.indexer;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Iterator;
 import java.util.logging.Logger;
 
 import org.archive.wayback.Shutdownable;
 import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.core.CaptureSearchResult;
+import org.archive.wayback.resourceindex.cdx.CDXFormatIndex;
+import org.archive.wayback.resourceindex.cdx.SearchResultToCDXFormatAdapter;
+import org.archive.wayback.resourceindex.cdx.format.CDXFormat;
+import org.archive.wayback.resourceindex.cdx.format.CDXFormatException;
 import org.archive.wayback.resourceindex.updater.IndexClient;
 import org.archive.wayback.resourcestore.locationdb.ResourceFileLocationDB;
 import org.archive.wayback.util.CloseableIterator;
-//import org.archive.wayback.util.url.AggressiveUrlCanonicalizer;
+import org.archive.wayback.util.url.AggressiveUrlCanonicalizer;
 import org.archive.wayback.util.url.IdentityUrlCanonicalizer;
 
 /**
@@ -112,6 +119,7 @@ public class IndexWorker implements Shutdownable {
 				}
 			} catch(IOException e) {
 				LOGGER.severe("FAILED to index or upload (" + name + ")");
+				e.printStackTrace();
 			}
 		}
 		return worked;
@@ -133,7 +141,86 @@ public class IndexWorker implements Shutdownable {
 		}		
 		return itr;
 	}
+
+	private static void USAGE() {
+		System.err.println("USAGE:");
+		System.err.println("");
+		System.err.println("cdx-indexer [-format FORMAT|-identity] FILE");
+		System.err.println("cdx-indexer [-format FORMAT|-identity] FILE CDXFILE");
+		System.err.println("");
+		System.err.println("Create a CDX format index from ARC or WARC file");
+		System.err.println("FILE at CDXFILE or to STDOUT.");
+		System.err.println("With -identity, perform no url canonicalization.");
+		System.err.println("With -format, output CDX in format FORMAT.");
+		System.exit(1);
+	}
 	
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		String cdxSpec = CDXFormatIndex.CDX_HEADER_MAGIC;
+		PrintWriter pw = new PrintWriter(System.out);
+		UrlCanonicalizer canonicalizer = new AggressiveUrlCanonicalizer();
+		boolean setFormat = false;
+		boolean isIdentity = false;
+		String path = null;
+		for(int idx = 0; idx < args.length; idx++) {
+			if(args[idx].equals("-identity")) {
+				canonicalizer = new IdentityUrlCanonicalizer();
+				isIdentity = true;
+			} else if(args[idx].equals("-format")) {
+				idx++;
+				if(idx >= args.length) {
+					USAGE();
+				}
+				cdxSpec = args[idx];
+				setFormat = true;
+			} else {
+				// either input filename:
+				if(path == null) {
+					path = args[idx];
+				} else {
+					// or if that's already been specified, then target file:
+					if(idx+1 != args.length){
+						USAGE();
+					}
+					try {
+						pw = new PrintWriter(args[idx]);
+					} catch (FileNotFoundException e) {
+						e.printStackTrace();
+						System.exit(1);
+					}
+					break;
+				}
+			}
+		}
+		if(!setFormat && isIdentity) {
+			cdxSpec = cdxSpec.replace(" N ", " a ");
+		}
+		IndexWorker worker = new IndexWorker();
+		worker.canonicalizer = canonicalizer;
+		worker.interval = 0;
+		worker.init();
+		try {
+			CloseableIterator<CaptureSearchResult> itr = worker.indexFile(path);
+			CDXFormat cdxFormat = new CDXFormat(cdxSpec);
+			Iterator<String> lines = 
+				SearchResultToCDXFormatAdapter.adapt(itr, cdxFormat);
+			pw.println(cdxSpec);
+			while(lines.hasNext()) {
+				pw.println(lines.next());
+			}
+			pw.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+			System.exit(1);
+		} catch (CDXFormatException e) {
+			e.printStackTrace();
+			System.exit(1);
+		}
+		
+	}	
 	
 	private class WorkerThread extends Thread {
 		private long runInterval = 120000;

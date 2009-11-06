@@ -25,9 +25,7 @@
 package org.archive.wayback.resourcestore.indexer;
 
 import java.io.File;
-import java.io.PrintWriter;
 import java.io.IOException;
-import java.util.Iterator;
 
 import org.archive.io.ArchiveRecord;
 import org.archive.io.arc.ARCReader;
@@ -35,12 +33,10 @@ import org.archive.io.arc.ARCReaderFactory;
 import org.archive.io.arc.ARCRecord;
 import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.core.CaptureSearchResult;
-import org.archive.wayback.resourceindex.cdx.SearchResultToCDXLineAdapter;
 import org.archive.wayback.util.AdaptedIterator;
 import org.archive.wayback.util.Adapter;
 import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.url.AggressiveUrlCanonicalizer;
-import org.archive.wayback.util.url.IdentityUrlCanonicalizer;
 
 /**
  * Transforms an ARC file into Iterator<CaptureSearchResult>.
@@ -50,10 +46,6 @@ import org.archive.wayback.util.url.IdentityUrlCanonicalizer;
  */
 public class ArcIndexer {
 
-	/**
-	 * CDX Header line for these fields. not very configurable..
-	 */
-	public final static String CDX_HEADER_MAGIC = " CDX N b h m s k r V g";
 	private UrlCanonicalizer canonicalizer = null;
 	
 	public ArcIndexer() {
@@ -113,51 +105,6 @@ public class ArcIndexer {
 		this.canonicalizer = canonicalizer;
 	}
 
-	private static void USAGE() {
-		System.err.println("USAGE:");
-		System.err.println("");
-		System.err.println("arc-indexer [-identity] ARCFILE");
-		System.err.println("arc-indexer [-identity] ARCFILE CDXFILE");
-		System.err.println("");
-		System.err.println("Create a CDX format index at CDXFILE or to STDOUT.");
-		System.err.println("With -identity, perform no url canonicalization.");
-		System.exit(1);
-	}
-	
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		ArcIndexer indexer = new ArcIndexer();
-		int idx = 0;
-		if(args[0] != null && args[0].equals("-identity")) {
-			indexer.setCanonicalizer(new IdentityUrlCanonicalizer());
-			idx++;
-		}
-		File arc = new File(args[idx]);
-		idx++;
-		PrintWriter pw = null;
-		try {
-			if(args.length == idx) {
-				// dump to STDOUT:
-				pw = new PrintWriter(System.out);
-			} else if(args.length == (idx + 1)) {
-				pw = new PrintWriter(args[idx]);
-			} else {
-				USAGE();
-			}
-			Iterator<CaptureSearchResult> res = indexer.iterator(arc);
-			Iterator<String> lines = SearchResultToCDXLineAdapter.adapt(res);
-			while(lines.hasNext()) {
-				pw.println(lines.next());
-			}
-			pw.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-			System.exit(1);
-		}
-	}
-	
 	private class ArchiveRecordToARCRecordAdapter 
 	implements Adapter<ArchiveRecord,ARCRecord> {
 

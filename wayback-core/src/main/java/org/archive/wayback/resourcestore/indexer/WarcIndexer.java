@@ -2,8 +2,6 @@ package org.archive.wayback.resourcestore.indexer;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.Iterator;
 
 import org.archive.io.ArchiveRecord;
 import org.archive.io.warc.WARCReader;
@@ -11,19 +9,12 @@ import org.archive.io.warc.WARCReaderFactory;
 import org.archive.io.warc.WARCRecord;
 import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.core.CaptureSearchResult;
-import org.archive.wayback.resourceindex.cdx.SearchResultToCDXLineAdapter;
 import org.archive.wayback.util.AdaptedIterator;
 import org.archive.wayback.util.Adapter;
 import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.url.AggressiveUrlCanonicalizer;
-import org.archive.wayback.util.url.IdentityUrlCanonicalizer;
 
 public class WarcIndexer {
-
-	/**
-	 * CDX Header line for these fields. not very configurable..
-	 */
-	public final static String CDX_HEADER_MAGIC = " CDX N b h m s k r V g";
 
 	private UrlCanonicalizer canonicalizer = null;
 	private boolean processAll = false;
@@ -88,59 +79,6 @@ public class WarcIndexer {
 
 	public void setCanonicalizer(UrlCanonicalizer canonicalizer) {
 		this.canonicalizer = canonicalizer;
-	}
-	
-	private static void USAGE() {
-		System.err.println("USAGE:");
-		System.err.println("");
-		System.err.println("warc-indexer [-identity] [-all] WARCFILE");
-		System.err.println("warc-indexer [-identity] [-all] WARCFILE CDXFILE");
-		System.err.println("");
-		System.err.println("Create a CDX format index at CDXFILE or to STDOUT");
-		System.err.println("With -identity, perform no url canonicalization.");
-		System.err.println("With -all, output request and metadata records.");
-		System.exit(1);
-	}
-
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		WarcIndexer indexer = new WarcIndexer();
-		int idx = 0;
-		while(args[idx] != null) {
-			if(args[idx].equals("-identity")) {
-				indexer.setCanonicalizer(new IdentityUrlCanonicalizer());
-			} else if(args[idx].equals("-all")) {
-				indexer.setProcessAll(true);
-			} else {
-				break;
-			}
-			idx++;
-		}
-		File arc = new File(args[idx]);
-		idx++;
-		PrintWriter pw = null;
-		try {
-			if (args.length == idx) {
-				// dump to STDOUT:
-				pw = new PrintWriter(System.out);
-			} else if (args.length == (idx+1)) {
-				pw = new PrintWriter(args[1]);
-			} else {
-				USAGE();
-			}
-			Iterator<CaptureSearchResult> res = indexer.iterator(arc);
-			Iterator<String> lines = SearchResultToCDXLineAdapter.adapt(res);
-			while (lines.hasNext()) {
-				pw.println(lines.next());
-			}
-			pw.close();
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			System.exit(1);
-		}
 	}
 
 	private class ArchiveRecordToWARCRecordAdapter implements
