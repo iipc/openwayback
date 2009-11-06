@@ -49,26 +49,13 @@
       <layout>default</layout>
     </repository>
   </repositories>
-     
   <dependencies>
     <dependency>
       <groupId>org.archive.wayback</groupId>
-      <artifactId>wayback-webapp</artifactId>
+      <artifactId>wayback-core</artifactId>
       <version>1.5.0-SNAPSHOT</version>
-      <type>war</type>
-    </dependency>
-    <dependency>
-      <groupId>org.archive.wayback</groupId>
-      <artifactId>wayback-mapreduce</artifactId>
-      <version>1.5.0-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-    	<groupId>javax.servlet</groupId>
-    	<artifactId>servlet-api</artifactId>
-    	<version>2.5</version>
     </dependency>
   </dependencies>
-    
   <build>
     <plugins>
 

@@ -14,11 +14,6 @@
   <fileSets>
     <fileSet>
       <includes>
-        <include>../wayback-webapp/target/*.war</include>
-      </includes>
-    </fileSet>
-    <fileSet>
-      <includes>
         <include>README*</include>
         <include>LICENSE*</include>
       </includes>
@@ -32,45 +27,18 @@
       </includes>
     </fileSet>
     <fileSet>
-      <directory>target/site</directory>
-      <outputDirectory>/docs</outputDirectory>
-    </fileSet>
-    <fileSet>
-      <directory>../target/site</directory>
-      <outputDirectory>/docs</outputDirectory>
-    </fileSet>
-  </fileSets>
-
-   <!-- 
-    <fileSet>
-      <directory>wayback-mapreduce/target</directory>
-      <outputDirectory></outputDirectory>
-      <includes>
-        <include>*.jar</include>
-      </includes>
-    </fileSet>
-    <fileSet>
-      <directory>wayback-core/target</directory>
-      <outputDirectory></outputDirectory>
-      <includes>
-        <include>*.jar</include>
-      </includes>
-    </fileSet>
-    <fileSet>
-      <directory>wayback-webapp/target</directory>
-      <outputDirectory></outputDirectory>
+      <directory>../wayback-webapp/target/</directory>
+      <outputDirectory>/</outputDirectory>
       <includes>
         <include>*.war</include>
       </includes>
     </fileSet>
-    <fileSet>
-      <directory>wayback-core/src</directory>
-      <outputDirectory>/src</outputDirectory>
-    </fileSet>
-    <fileSet>
-      <directory>src</directory>
-      <outputDirectory>/src</outputDirectory>
-    </fileSet>
   </fileSets>
-   -->
+  <files>
+    <file>
+      <source>../wayback-hadoop/target/wayback-hadoop-jar-with-dependencies.jar</source>
+      <destName>wayback-hadoop-${project.version}.jar</destName>
+    </file>
+  </files>
+
 </assembly>

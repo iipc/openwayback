@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
     POM reference: http://maven.apache.org/pom.html
 
@@ -43,22 +43,12 @@
     <name>Internet Archive</name>
     <url>http://www.archive.org/</url>
   </organization>
-<!--  
-  <issueManagement>
-    <system>SourceForge</system>
-    <url>http://sourceforge.net/tracker/?group_id=118427</url>
-  </issueManagement>
--->
+
   <issueManagement>
     <system>Jira</system>
-    <url>http://webteam.archive.org/jira/secure/IssueNavigator.jspa?component=10031</url>
+    <url>http://webarchive.jira.com/secure/IssueNavigator.jspa?component=10031</url>
   </issueManagement>
-<!-- 
-  <ciManagement>
-    <system>cruisecontrol</system>
-    <url>http://builds.archive.org:8080/cruisecontrol/</url>
-  </ciManagement>
--->
+
   <ciManagement>
     <system>continuum</system>
     <url>http://builds.archive.org:8081/continuum/</url>
@@ -142,7 +132,7 @@
   </scm>
 
   <prerequisites>
-    <maven>2.0.5</maven>
+    <maven>2.0.9</maven>
   </prerequisites>
 
   <dependencyManagement>
@@ -155,12 +145,12 @@
       </dependency>
       <dependency>
         <groupId>org.archive.wayback</groupId>
-        <artifactId>wayback-mapreduce-prereq</artifactId>
+        <artifactId>wayback-hadoop-java</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>org.archive.wayback</groupId>
-        <artifactId>wayback-mapreduce</artifactId>
+        <artifactId>wayback-hadoop</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
@@ -173,9 +163,9 @@
 
   <modules>
     <module>wayback-core</module>
-    <module>wayback-mapreduce-prereq</module>
-    <module>wayback-mapreduce</module>
     <module>wayback-webapp</module>
+    <module>wayback-hadoop-java</module>
+    <module>wayback-hadoop</module>
     <module>dist</module>
   </modules>
 
@@ -234,15 +224,15 @@
     </plugins>
   </reporting>
 
+<!--Needed because we have test code under src/java.
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>3.8.1</version>
-<!--Needed because we have test code under src/java.
       <scope>test</scope>
-      -->
     </dependency>
   </dependencies>
+      -->
 
 </project>
