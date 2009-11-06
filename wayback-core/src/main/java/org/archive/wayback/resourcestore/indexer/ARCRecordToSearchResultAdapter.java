@@ -36,7 +36,6 @@ import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.util.Adapter;
 import org.archive.wayback.util.url.IdentityUrlCanonicalizer;
-import org.archive.wayback.util.url.UrlOperations;
 
 /**
  *
@@ -50,13 +49,14 @@ implements Adapter<ARCRecord,CaptureSearchResult>{
 //	private static final Logger LOGGER = Logger.getLogger(
 //			ARCRecordToSearchResultAdapter.class.getName());
 
+	private HTTPRecordAnnotater annotater = null;
 	private UrlCanonicalizer canonicalizer = null;
 	
 	public ARCRecordToSearchResultAdapter() {
 		canonicalizer = new IdentityUrlCanonicalizer();
+		annotater = new HTTPRecordAnnotater();
 	}
-//	public static SearchResult arcRecordToSearchResult(final ARCRecord rec)
-//	throws IOException, ParseException {
+
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.util.Adapter#adapt(java.lang.Object)
 	 */
@@ -68,7 +68,7 @@ implements Adapter<ARCRecord,CaptureSearchResult>{
 			return null;
 		}
 	}
-	
+
 	private CaptureSearchResult adaptInner(ARCRecord rec) throws IOException {
 		rec.close();
 		ARCRecordMetaData meta = rec.getMetaData();
@@ -84,12 +84,14 @@ implements Adapter<ARCRecord,CaptureSearchResult>{
 		
 		// initialize with default HTTP code...
 		result.setHttpCode("-");
+		result.setRedirectUrl("-");
 		
 		result.setDigest(rec.getDigestStr());
-		result.setMimeType(meta.getMimetype());
 		result.setCaptureTimestamp(meta.getDate());
-		
 		String uriStr = meta.getUrl();
+		result.setOriginalUrl(uriStr);
+		
+		
 		if (uriStr.startsWith(ARCRecord.ARC_MAGIC_NUMBER)) {
 			// skip filedesc record altogether...
 			return null;
@@ -97,49 +99,20 @@ implements Adapter<ARCRecord,CaptureSearchResult>{
 		if (uriStr.startsWith(WaybackConstants.DNS_URL_PREFIX)) {
 			// skip URL + HTTP header processing for dns records...
 		
-			result.setOriginalUrl(uriStr);
-			result.setRedirectUrl("-");
 			result.setUrlKey(uriStr);
-		
+			result.setMimeType("text/dns");
+			result.setEndOffset(rec.compressedBytes);
+
 		} else {
 		
-			result.setOriginalUrl(uriStr);
-		
+			result.setUrlKey(canonicalizer.urlStringToKey(uriStr));
 		
 			String statusCode = (meta.getStatusCode() == null) ? "-" : meta
 					.getStatusCode();
 			result.setHttpCode(statusCode);
 	
-			String redirectUrl = "-";
 			Header[] headers = rec.getHttpHeaders();
-			if (headers != null) {
-	
-				for (int i = 0; i < headers.length; i++) {
-					if (headers[i].getName().equals(
-							WaybackConstants.LOCATION_HTTP_HEADER)) {
-
-						String locationStr = headers[i].getValue();
-						// TODO: "Location" is supposed to be absolute:
-						// (http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html)
-						// (section 14.30) but Content-Location can be
-						// relative.
-						// is it correct to resolve a relative Location, as
-						// we are?
-						// it's also possible to have both in the HTTP
-						// headers...
-						// should we prefer one over the other?
-						// right now, we're ignoring "Content-Location"
-						redirectUrl = UrlOperations.resolveUrl(uriStr, 
-								locationStr);
-	
-						break;
-					}
-				}
-				result.setRedirectUrl(redirectUrl);
-		
-				String urlKey = canonicalizer.urlStringToKey(meta.getUrl());
-				result.setUrlKey(urlKey);
-			}
+			annotater.annotateHTTPContent(result, rec, headers, meta.getMimetype());
 		}
 		return result;
 	}
@@ -148,5 +121,19 @@ implements Adapter<ARCRecord,CaptureSearchResult>{
 	}
 	public void setCanonicalizer(UrlCanonicalizer canonicalizer) {
 		this.canonicalizer = canonicalizer;
+	}
+
+	/**
+	 * @return the annotater
+	 */
+	public HTTPRecordAnnotater getAnnotater() {
+		return annotater;
+	}
+
+	/**
+	 * @param annotater the annotater to set
+	 */
+	public void setAnnotater(HTTPRecordAnnotater annotater) {
+		this.annotater = annotater;
 	}
 }
