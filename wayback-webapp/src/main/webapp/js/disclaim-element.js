@@ -5,25 +5,40 @@ function getFrameArea(frame) {
   return 0;
 }
 
-function disclaimElement(element) {
-  if(top!=self) {
-    if(top.document.body.tagName == "BODY") {
-      return;
-    }
-    largestArea = 0;
-    largestFrame = null;
-    for(i=0;i<top.frames.length;i++) {
-      frame = top.frames[i];
-      area = getFrameArea(frame);
-      if(area > largestArea) {
-        largestFrame = frame;
-        largestArea = area;
-      }
-    }
-    if(self!=largestFrame) {
-      return;
-    }
-  }
-  element.style.display="block";
-  document.body.insertBefore(element,document.body.firstChild);
+function isLargestFrame() {
+	if(top == self) {
+		return true;
+	}
+	if(top.document.body.tagName == "BODY") {
+		return false;
+	}
+	largestArea = 0;
+	largestFrame = null;
+	for(i=0;i<top.frames.length;i++) {
+		frame = top.frames[i];
+		area = getFrameArea(frame);
+		if(area > largestArea) {
+			largestFrame = frame;
+			largestArea = area;
+		}
+	}
+	return (self == largestFrame);
 }
+
+function disclaimElement(element) {
+	if(isLargestFrame()) {
+		element.style.display="block";
+		document.body.insertBefore(element,document.body.firstChild);
+	}
+}
+
+function disclaimToggle(largest, nonLargest) {
+	if(isLargestFrame()) {
+		largest.style.display="block";
+		nonLargest.style.display="none";
+	} else {
+		largest.style.display="none";
+		nonLargest.style.display="block";
+	}
+}
+
