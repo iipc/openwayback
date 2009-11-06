@@ -53,4 +53,8 @@ public interface WaybackConstants {
 	 */
 	public final static String LOCATION_HTTP_HEADER = "Location";
 
+	/**
+	 * HTTP Header for robot instructions. See http://noarchive.net/xrobots/
+	 */
+	public final static String X_ROBOTS_HTTP_HEADER = "X-Robots-Tag";
 }
