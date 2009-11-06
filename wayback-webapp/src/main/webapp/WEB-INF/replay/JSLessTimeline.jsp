@@ -21,8 +21,8 @@ WaybackRequest wbRequest = results.getWbRequest();
 StringFormatter fmt = wbRequest.getFormatter();
 CaptureSearchResults cResults = results.getCaptureResults();
 
-String exactDateStr = wbRequest.getReplayTimestamp();
-Date exactDate = wbRequest.getReplayDate();
+String exactDateStr = results.getResult().getCaptureTimestamp();
+Date exactDate = results.getResult().getCaptureDate();
 String searchUrl = wbRequest.getRequestUrl();
 String resolution = wbRequest.getTimelineResolution();
 
