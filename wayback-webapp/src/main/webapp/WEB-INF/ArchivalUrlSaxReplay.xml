@@ -33,7 +33,7 @@
 
 
 
-	<bean id="archivalSAXRules"
+	<bean id="archivalSAXDelegator"
 		class="org.archive.wayback.replay.html.ReplayParseEventDelegator">
 		<property name="parserVisitors">
 			<list>

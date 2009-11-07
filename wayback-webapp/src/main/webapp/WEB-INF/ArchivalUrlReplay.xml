@@ -83,7 +83,7 @@
     <property name="charsetDetector">
     	<bean class="org.archive.wayback.replay.charset.RotatingCharsetDetector"/>
     </property>
-    <property name="rules" ref="archivalSAXRules"/>
+    <property name="delegator" ref="archivalSAXDelegator"/>
   </bean>
 
 <!--
