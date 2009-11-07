@@ -1,4 +1,5 @@
-/*
+/* BDBMap
+ * 
  * Created on 2006-apr-05
  *
  * Copyright (C) 2006 Royal Library of Sweden.
