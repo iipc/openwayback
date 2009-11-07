@@ -1,6 +1,6 @@
 /* EclusionFilter
  *
- * $Id: ExclusionFilter.java 1276 2006-10-17 22:21:15Z bradtofel $
+ * $Id$
  *
  * Created on 3:30:05 PM Aug 17, 2006.
  *
@@ -40,7 +40,7 @@ import org.archive.wayback.util.ObjectFilter;
  * filter results.
  *
  * @author brad
- * @version $Date: 2006-10-17 15:21:15 -0700 (Tue, 17 Oct 2006) $, $Revision: 1276 $
+ * @version $Date$, $Revision$
  */
 public class RemoteExclusionFilter implements ObjectFilter<CaptureSearchResult> {
 	private static final Logger LOGGER = Logger.getLogger(RemoteExclusionFilter.class
