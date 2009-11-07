@@ -40,6 +40,7 @@
 
     <property name="resourceIndex">
       <bean class="org.archive.wayback.resourceindex.LocalResourceIndex">
+        <property name="canonicalizer" ref="waybackCanonicalizer" />
         <property name="source">
 
           <bean class="org.archive.wayback.resourceindex.cdx.CDXIndex">

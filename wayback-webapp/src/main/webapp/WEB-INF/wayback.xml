@@ -19,7 +19,7 @@
     </property>
   </bean>
 
-
+  <bean id="waybackCanonicalizer" class="org.archive.wayback.util.url.AggressiveUrlCanonicalizer" />
 <!--
 	The ResourceFileLocationDB implementation to use for mapping ARC/WARC names
 	to absolute paths/URLs via a BDBJE database.
