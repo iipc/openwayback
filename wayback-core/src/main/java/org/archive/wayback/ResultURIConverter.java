@@ -1,4 +1,4 @@
-/* ReplayURI
+/* ResultURIConverter
  *
  * $Id$
  *
@@ -25,7 +25,8 @@
 package org.archive.wayback;
 
 /**
- * 
+ * Interface for implementations that convert a string datespec and URL into
+ * an absolute URL that will replay the specified URL at the specified date.
  * 
  * @author brad
  * @version $Date$, $Revision$
