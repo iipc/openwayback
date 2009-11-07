@@ -25,8 +25,8 @@
 package org.archive.wayback.resourcestore;
 
 import java.io.IOException;
-import java.util.logging.Logger;
 
+import org.apache.log4j.Logger;
 import org.archive.wayback.ResourceStore;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.CaptureSearchResult;
@@ -85,7 +85,7 @@ public class LocationDBResourceStore implements ResourceStore {
 				//      which means we've already read some
 				
 			} catch (IOException e) {
-				LOGGER.warning("Unable to retrieve resource from " + url);
+				LOGGER.warn("Unable to retrieve resource from " + url);
 			}
 			if(r != null) {
 				break;

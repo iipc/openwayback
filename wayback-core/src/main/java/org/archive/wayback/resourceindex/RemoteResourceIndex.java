@@ -28,12 +28,12 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.logging.Logger;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.apache.log4j.Logger;
 import org.archive.wayback.ResourceIndex;
 import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.core.CaptureSearchResult;
@@ -96,7 +96,7 @@ public class RemoteResourceIndex implements ResourceIndex {
             	if(factory != null) {
 					builder = factory.newDocumentBuilder();
 					if (!builder.isNamespaceAware()) {
-						LOGGER.severe("Builder is not namespace aware.");
+						LOGGER.error("Builder is not namespace aware.");
 					}
             	}
 			} catch (ParserConfigurationException e) {

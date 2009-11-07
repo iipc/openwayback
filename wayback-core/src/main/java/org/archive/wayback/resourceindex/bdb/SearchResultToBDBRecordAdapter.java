@@ -24,9 +24,8 @@
  */
 package org.archive.wayback.resourceindex.bdb;
 
-import java.util.logging.Logger;
-
 import org.apache.commons.httpclient.URIException;
+import org.apache.log4j.Logger;
 import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.util.Adapter;
@@ -75,7 +74,7 @@ public class SearchResultToBDBRecordAdapter implements
 			urlKey = canonicalizer.urlStringToKey(origUrl);
 		} catch (URIException e) {
 //			e.printStackTrace();
-			LOGGER.warning("FAILED canonicalize(" + origUrl +")");
+			LOGGER.warn("FAILED canonicalize(" + origUrl +")");
 			urlKey = origUrl;
 		}
 		keySB.append(urlKey);

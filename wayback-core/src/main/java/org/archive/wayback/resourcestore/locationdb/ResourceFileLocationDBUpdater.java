@@ -27,8 +27,8 @@ package org.archive.wayback.resourcestore.locationdb;
 import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
-import java.util.logging.Logger;
 
+import org.apache.log4j.Logger;
 import org.archive.wayback.Shutdownable;
 import org.archive.wayback.resourcestore.resourcefile.ResourceFileList;
 import org.archive.wayback.resourcestore.resourcefile.ResourceFileLocation;

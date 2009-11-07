@@ -32,9 +32,9 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
+import org.apache.log4j.Logger;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
 import org.archive.wayback.util.CloseableIterator;
@@ -274,7 +274,7 @@ public class DynamicCDXIndex extends CompositeSearchResultSource {
 							break;
 						} else {
 							tmpTarget.delete();
-							LOGGER.warning("Bad file contents. Location(" + 
+							LOGGER.warn("Bad file contents. Location(" + 
 									loc +") should have MD5(" + neededMD5 +
 									") but has MD5(" + gotMD5 +")");
 						}

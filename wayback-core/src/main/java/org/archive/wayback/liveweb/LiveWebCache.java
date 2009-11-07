@@ -27,9 +27,9 @@ package org.archive.wayback.liveweb;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Date;
-import java.util.logging.Logger;
 
 import org.apache.commons.httpclient.URIException;
+import org.apache.log4j.Logger;
 import org.archive.io.arc.ARCLocation;
 import org.archive.io.arc.ARCRecord;
 import org.archive.wayback.UrlCanonicalizer;

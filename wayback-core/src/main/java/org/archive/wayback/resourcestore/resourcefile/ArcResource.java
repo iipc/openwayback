@@ -7,7 +7,6 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-//import java.util.logging.Logger;
 
 import org.apache.commons.httpclient.Header;
 import org.archive.io.ArchiveRecord;
@@ -17,11 +16,6 @@ import org.archive.wayback.core.Resource;
 import org.archive.wayback.replay.HttpHeaderOperation;
 
 public class ArcResource extends Resource {
-	/**
-	 * Logger for this class
-	 */
-//	private static final Logger LOGGER = Logger.getLogger(ArcResource.class
-//			.getName());
 
 	/**
 	 * String prefix for ARC file related metadata namespace of keys within 
@@ -161,11 +155,9 @@ public class ArcResource extends Resource {
 	 * @see org.archive.io.arc.ARCRecord#close()
 	 */
 	public void close() throws IOException {
-		//LOGGER.info("About to close..("+arcReader+")");
 		arcRecord.close();
 		if(arcReader != null) {
 			arcReader.close();
-//			LOGGER.fine("closed..("+arcReader+")");
 		}
 	}
 	

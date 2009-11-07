@@ -28,8 +28,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Logger;
 
+
+import org.apache.log4j.Logger;
 import org.archive.wayback.accesscontrol.ExclusionFilterFactory;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.surt.SURTTokenizer;
@@ -96,7 +97,7 @@ public class StaticMapExclusionFilterFactory implements ExclusionFilterFactory {
 			}
 			String surt = line.startsWith("(") ? line : 
 				SURTTokenizer.prefixKey(line);
-			LOGGER.fine("EXCLUSION-MAP: adding " + surt);
+			LOGGER.info("EXCLUSION-MAP: adding " + surt);
 			newMap.put(surt, null);
 		}
 		itr.close();

@@ -33,7 +33,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Logger;
+
+import org.apache.log4j.Logger;
 
 /**
  * Class which parses a robots.txt file, storing the rules contained therein,
@@ -111,7 +112,7 @@ public class RobotRules {
                         current = new ArrayList<String>();
                     }
                     rules.put(ua, current);
-                    LOGGER.fine("Found User-agent(" + ua + ") rules...");
+                    LOGGER.info("Found User-agent(" + ua + ") rules...");
                     continue;
                 }
                 if (read.matches("(?i)Disallow:.*")) {
@@ -139,16 +140,16 @@ public class RobotRules {
 			String disallowedPath = disItr.next();
 			if (disallowedPath.length() == 0) {
 
-				LOGGER.fine("UA(" + curUA
+				LOGGER.info("UA(" + curUA
 						+ ") has empty disallow: Go for it!");
 				return false;
 
 			} else {
-				LOGGER.fine("UA(" + curUA + ") has ("
+				LOGGER.info("UA(" + curUA + ") has ("
 						+ disallowedPath + ") blocked...("
 						+ disallowedPath.length() + ")");
 				if (disallowedPath.equals("/") || path.startsWith(disallowedPath)) {
-					LOGGER.fine("THIS APPLIES!!!");
+					LOGGER.info("THIS APPLIES!!!");
 					return true;
 				}
 			}

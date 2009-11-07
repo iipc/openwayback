@@ -26,7 +26,6 @@ package org.archive.wayback.resourcestore.indexer;
 
 import java.io.File;
 import java.io.IOException;
-//import java.util.logging.Logger;
 
 import org.apache.commons.httpclient.Header;
 import org.archive.io.arc.ARCRecord;

@@ -26,8 +26,8 @@ package org.archive.wayback.resourceindex.updater;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.logging.Logger;
 
+import org.apache.log4j.Logger;
 import org.archive.wayback.Shutdownable;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.exception.ConfigurationException;

@@ -25,7 +25,6 @@
 package org.archive.wayback.webapp;
 
 import java.io.IOException;
-import java.util.logging.Logger;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -37,6 +36,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.httpclient.URIException;
+import org.apache.log4j.Logger;
 import org.archive.net.UURI;
 import org.archive.net.UURIFactory;
 import org.archive.wayback.exception.ConfigurationException;

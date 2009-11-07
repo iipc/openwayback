@@ -29,7 +29,9 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
+
+import org.apache.log4j.Logger;
+
 
 /**
  * Local directory tree holding ARC and WARC files.
@@ -85,7 +87,7 @@ public class DirectoryResourceFileSource implements ResourceFileSource {
 				}
 			}
 		} else {
-			LOGGER.warning(root.getAbsolutePath() +	" is not a directory.");
+			LOGGER.warn(root.getAbsolutePath() +	" is not a directory.");
 			return;
 		}
 	}

@@ -39,7 +39,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Logger;
 
 import org.apache.commons.httpclient.ConnectTimeoutException;
 import org.apache.commons.httpclient.Header;
@@ -51,6 +50,7 @@ import org.apache.commons.httpclient.HttpMethodBase;
 import org.apache.commons.httpclient.HttpState;
 import org.apache.commons.httpclient.SimpleHttpConnectionManager;
 import org.apache.commons.httpclient.URIException;
+import org.apache.log4j.Logger;
 import org.archive.io.arc.ARCLocation;
 import org.archive.io.arc.ARCWriter;
 import org.archive.net.LaxURI;

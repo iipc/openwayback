@@ -32,8 +32,8 @@ import java.text.ParseException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Logger;
 
+import org.apache.log4j.Logger;
 import org.archive.io.arc.ARCConstants;
 import org.archive.io.arc.ARCWriter;
 import org.archive.util.ArchiveUtils;
@@ -45,7 +45,7 @@ import org.archive.util.ArchiveUtils;
  * @version $Date$, $Revision$
  */
 public class ARCCreator {
-    Logger logger = Logger.getLogger(getClass().getName());
+	private static Logger LOGGER = Logger.getLogger(ARCCreator.class.getName());
 
 	private static String DEFAULT_PREFIX = "test-arc";
 	private HashMap<String,RecordComponents> components = 
@@ -107,11 +107,11 @@ public class ARCCreator {
 				Arrays.asList(target),prefix,true,
 				ARCConstants.DEFAULT_MAX_ARC_FILE_SIZE);
 		File sources[] = srcDir.listFiles();
-		logger.info("Found " + sources.length + " files in " + srcDir);
+		LOGGER.info("Found " + sources.length + " files in " + srcDir);
 		for(int i = 0; i<sources.length; i++) {
 			addFile(sources[i]);
 		}
-		logger.info("Associated " + sources.length + " files in " + srcDir);
+		LOGGER.info("Associated " + sources.length + " files in " + srcDir);
 
 		// sort keys and write them all:
 		Object arr[] = components.keySet().toArray();
@@ -120,10 +120,10 @@ public class ARCCreator {
 			String key = (String) arr[i];
 			RecordComponents rc = components.get(key);
 			rc.writeRecord(writer,srcDir);
-			logger.info("Wrote record keyed " + rc.key);			
+			LOGGER.info("Wrote record keyed " + rc.key);			
 		}
 		writer.close();
-		logger.info("Closed arc file named " + 
+		LOGGER.info("Closed arc file named " + 
 				writer.getFile().getAbsolutePath());
 	}
 	

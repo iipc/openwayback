@@ -28,8 +28,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Iterator;
-import java.util.logging.Logger;
 
+import org.apache.log4j.Logger;
 import org.archive.wayback.Shutdownable;
 import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.core.CaptureSearchResult;
@@ -103,7 +103,7 @@ public class IndexWorker implements Shutdownable {
 			try {
 				pathsOrUrls = db.nameToUrls(name);
 			} catch(IOException e) {
-				LOGGER.severe("FAILED TO LOOKUP(" + name + ")" + 
+				LOGGER.error("FAILED TO LOOKUP(" + name + ")" + 
 						e.getLocalizedMessage());
 				return false;
 			}
@@ -118,7 +118,7 @@ public class IndexWorker implements Shutdownable {
 					}
 				}
 			} catch(IOException e) {
-				LOGGER.severe("FAILED to index or upload (" + name + ")");
+				LOGGER.error("FAILED to index or upload (" + name + ")");
 				e.printStackTrace();
 			}
 		}

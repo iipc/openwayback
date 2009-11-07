@@ -27,8 +27,8 @@ package org.archive.wayback.resourcestore.resourcefile;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.logging.Logger;
 
+import org.apache.log4j.Logger;
 import org.archive.wayback.Shutdownable;
 import org.archive.wayback.resourcestore.locationdb.ResourceFileLocationDBUpdater;
 import org.archive.wayback.util.DirMaker;
@@ -77,17 +77,17 @@ public class ResourceFileSourceUpdater implements Shutdownable {
 	private void synchronizeSource(ResourceFileSource source) {
 		String name = source.getName();
 		try {
-			LOGGER.fine("Synchronizing " + name);
+			LOGGER.info("Synchronizing " + name);
 			ResourceFileList list = source.getResourceFileList();
 			String tmp = name + ResourceFileLocationDBUpdater.TMP_SUFFIX; 
 			File tmpListTarget = new File(target,tmp);
 			File listTarget = new File(target,name);
 			list.store(tmpListTarget);
 			tmpListTarget.renameTo(listTarget);
-			LOGGER.fine("Synchronized " + name);
+			LOGGER.info("Synchronized " + name);
 		} catch (IOException e) {
 			e.printStackTrace();
-			LOGGER.warning("FAILED Synchronize " + name + e.getMessage());
+			LOGGER.warn("FAILED Synchronize " + name + e.getMessage());
 		}
 	}
 	
@@ -120,7 +120,7 @@ public class ResourceFileSourceUpdater implements Shutdownable {
 					if(sleepInterval > 0) {
 						sleep(sleepInterval);
 					} else {
-						LOGGER.warning("Last Synchronize took " + syncDuration +
+						LOGGER.warn("Last Synchronize took " + syncDuration +
 								" where interval is " + interval + 
 								". Not sleeping.");
 					}
