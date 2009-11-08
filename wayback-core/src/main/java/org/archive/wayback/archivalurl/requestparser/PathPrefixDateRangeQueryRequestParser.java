@@ -41,7 +41,7 @@ import org.archive.wayback.util.Timestamp;
  */
 public class PathPrefixDateRangeQueryRequestParser extends PathRequestParser {
 	/**
-	 * @param wrapped
+	 * @param wrapped BaseRequestParser which provides general configuration
 	 */
 	public PathPrefixDateRangeQueryRequestParser(BaseRequestParser wrapped) {
 		super(wrapped);

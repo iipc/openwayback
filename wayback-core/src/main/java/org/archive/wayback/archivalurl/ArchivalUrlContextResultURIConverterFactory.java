@@ -29,12 +29,17 @@ import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.replay.html.ContextResultURIConverterFactory;
 
 /**
+ * Factory which creates a context specific ArchivalUrlResultURIConverter,
+ * given a base ArchivalUrlResultURIConverter and the flags to add.
  * @author brad
  *
  */
 public class ArchivalUrlContextResultURIConverterFactory 
 	implements ContextResultURIConverterFactory {
 	private ArchivalUrlResultURIConverter converter = null;
+	/**
+	 * @param converter base ArchivalURLURLConverter to wrap
+	 */
 	public ArchivalUrlContextResultURIConverterFactory(
 			ArchivalUrlResultURIConverter converter) {
 		this.converter = converter;

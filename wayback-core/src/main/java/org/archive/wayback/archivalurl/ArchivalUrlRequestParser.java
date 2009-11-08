@@ -42,10 +42,26 @@ import org.archive.wayback.requestparser.OpenSearchRequestParser;
  * @version $Date$, $Revision$
  */
 public class ArchivalUrlRequestParser extends CompositeRequestParser {
+	/**
+	 * delimiter character for datespec flags
+	 */
 	public final static String FLAG_DELIM = "_";
+	/**
+	 * text/javascript context
+	 */
 	public final static String JS_CONTEXT = "js"; 
+	/**
+	 * text/css context
+	 */
 	public final static String CSS_CONTEXT = "cs";
+	/**
+	 * image/* context
+	 */
 	public final static String IMG_CONTEXT = "im";
+	/**
+	 * Charset detection strategy context - should be followed by an integer
+	 * indicating which strategy to use 
+	 */
 	public final static String CHARSET_MODE = "cm";
 
 	protected RequestParser[] getRequestParsers() {

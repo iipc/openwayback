@@ -54,12 +54,22 @@ import org.htmlparser.lexer.Lexer;
 import org.htmlparser.lexer.Page;
 import org.htmlparser.util.ParserException;
 
+/**
+ * ReplayRenderer which attempts to rewrite text/html documents so URLs 
+ * references within the document load from the correct ArchivalURL AccessPoint.
+ * 
+ * @author brad
+ *
+ */
 public class ArchivalUrlSAXRewriteReplayRenderer implements ReplayRenderer {
 	private ReplayParseEventDelegator delegator = null;
 	private HttpHeaderProcessor httpHeaderProcessor;
 	private CharsetDetector charsetDetector = new StandardCharsetDetector();
 	private final static String OUTPUT_CHARSET = "utf-8";
 
+	/**
+	 * @param httpHeaderProcessor which should process HTTP headers
+	 */
 	public ArchivalUrlSAXRewriteReplayRenderer(HttpHeaderProcessor httpHeaderProcessor) {
 		this.httpHeaderProcessor = httpHeaderProcessor;
 	}

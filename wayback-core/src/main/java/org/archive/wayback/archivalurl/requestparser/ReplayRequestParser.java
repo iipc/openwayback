@@ -49,7 +49,7 @@ public class ReplayRequestParser extends PathRequestParser {
 			.compile("^(\\d{1,14})(([a-z]{2}[0-9]*_)*)/(.*)$");
 
 	/**
-	 * @param wrapped
+	 * @param wrapped BaseRequestParser which provides general configuration
 	 */
 	public ReplayRequestParser(BaseRequestParser wrapped) {
 		super(wrapped);

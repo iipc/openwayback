@@ -39,10 +39,14 @@ import org.archive.wayback.replay.TextDocument;
 import org.archive.wayback.replay.TextReplayRenderer;
 import org.archive.wayback.replay.HttpHeaderProcessor;
 
+/**
+ * @author brad
+ *
+ */
 public class ArchivalUrlASXReplayRenderer extends TextReplayRenderer {
 
 	/**
-	 * @param httpHeaderProcessor
+	 * @param httpHeaderProcessor which should process HTTP headers
 	 */
 	public ArchivalUrlASXReplayRenderer(HttpHeaderProcessor httpHeaderProcessor) {
 		super(httpHeaderProcessor);

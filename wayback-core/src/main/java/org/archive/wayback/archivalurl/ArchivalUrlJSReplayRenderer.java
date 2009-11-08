@@ -45,7 +45,9 @@ import org.archive.wayback.replay.TextReplayRenderer;
 import org.archive.wayback.util.Timestamp;
 
 /**
- * 
+ * ReplayRenderer which attempts to rewrite absolute URLs within a 
+ * text/javascript document to make them load correctly from an ArchivalURL
+ * AccessPoint.
  * 
  * @author brad
  * @version $Date$, $Revision$
@@ -53,7 +55,7 @@ import org.archive.wayback.util.Timestamp;
 
 public class ArchivalUrlJSReplayRenderer extends TextReplayRenderer {
 	/**
-	 * @param httpHeaderProcessor
+	 * @param httpHeaderProcessor which should process HTTP headers
 	 */
 	public ArchivalUrlJSReplayRenderer(
 			HttpHeaderProcessor httpHeaderProcessor) {

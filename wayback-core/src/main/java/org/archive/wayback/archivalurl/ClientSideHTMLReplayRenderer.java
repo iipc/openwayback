@@ -42,14 +42,16 @@ import org.archive.wayback.replay.TextReplayRenderer;
 import org.archive.wayback.replay.HttpHeaderProcessor;
 
 /**
- *
+ * Classic ReplayRenderer which uses a combination of server-side modification 
+ * and embedded javascript to rewrite URLs within an HTML page to make embedded
+ * URLs point back to a specific ArchivalURL AccessPoint.
  *
  * @author brad
  * @version $Date$, $Revision$
  */
 public class ClientSideHTMLReplayRenderer extends TextReplayRenderer {
 	/**
-	 * @param httpHeaderProcessor
+	 * @param httpHeaderProcessor which should process HTTP headers
 	 */
 	public ClientSideHTMLReplayRenderer(HttpHeaderProcessor httpHeaderProcessor) {
 		super(httpHeaderProcessor);

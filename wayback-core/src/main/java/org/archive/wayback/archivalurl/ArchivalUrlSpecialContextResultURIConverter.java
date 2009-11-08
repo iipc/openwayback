@@ -27,7 +27,8 @@ package org.archive.wayback.archivalurl;
 import org.archive.wayback.ResultURIConverter;
 
 /**
- *
+ * wrapper around an ArchivalUrlResultURIConverter, adding flags after the
+ * datespec for a specific context ("js_" for javascript, "cs_" for CSS, etc)
  *
  * @author brad
  * @version $Date$, $Revision$
@@ -40,6 +41,11 @@ implements ResultURIConverter {
 	private String replayURIPrefix = null;
 	private String context;
 	
+	/**
+	 * @param converter ArchivalUrlResultURIConverter to wrap
+	 * @param context flags indicating the context of URLs created by this 
+	 * 				object
+	 */
 	public ArchivalUrlSpecialContextResultURIConverter(
 			ArchivalUrlResultURIConverter converter, String context) {
 		replayURIPrefix = converter.getReplayURIPrefix();

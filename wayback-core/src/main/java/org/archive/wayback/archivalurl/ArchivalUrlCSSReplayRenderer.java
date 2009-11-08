@@ -41,10 +41,16 @@ import org.archive.wayback.replay.TextDocument;
 import org.archive.wayback.replay.TextReplayRenderer;
 import org.archive.wayback.replay.HttpHeaderProcessor;
 
+/**
+ * ReplayRenderer which attempts to rewrite URLs found within a text/css 
+ * document to load from this context.
+ * @author brad
+ *
+ */
 public class ArchivalUrlCSSReplayRenderer extends TextReplayRenderer {
 
 	/**
-	 * @param httpHeaderProcessor
+	 * @param httpHeaderProcessor which should process HTTP headers
 	 */
 	public ArchivalUrlCSSReplayRenderer(HttpHeaderProcessor httpHeaderProcessor) {
 		super(httpHeaderProcessor);

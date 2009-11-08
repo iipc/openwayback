@@ -42,14 +42,15 @@ import org.archive.wayback.replay.TextReplayRenderer;
 import org.archive.wayback.replay.HttpHeaderProcessor;
 
 /**
- *
+ * ArchivalUrl ReplayRenderer which uses a series of RegEx's to rewrite embedded
+ * URLs to point back into a specific ArchivalUrl AccessPoint.
  *
  * @author brad
  * @version $Date$, $Revision$
  */
 public class ServerSideHTMLReplayRenderer extends TextReplayRenderer {
 	/**
-	 * @param httpHeaderProcessor
+	 * @param httpHeaderProcessor which should process HTTP headers
 	 */
 	public ServerSideHTMLReplayRenderer(HttpHeaderProcessor httpHeaderProcessor) {
 		super(httpHeaderProcessor);
