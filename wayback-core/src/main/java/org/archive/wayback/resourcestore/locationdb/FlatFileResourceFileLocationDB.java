@@ -50,6 +50,7 @@ public class FlatFileResourceFileLocationDB implements ResourceFileLocationDB  {
 		return null;
 	}
 
+	@SuppressWarnings("unchecked")
 	public String[] nameToUrls(String name) throws IOException {
 		ArrayList<String> urls = new ArrayList<String>();
 		String prefix = name + delimiter;
