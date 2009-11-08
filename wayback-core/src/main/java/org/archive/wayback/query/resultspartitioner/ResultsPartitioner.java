@@ -25,8 +25,6 @@
 package org.archive.wayback.query.resultspartitioner;
 
 import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.SimpleTimeZone;
 import java.util.TimeZone;
 
 import org.archive.wayback.core.WaybackRequest;
