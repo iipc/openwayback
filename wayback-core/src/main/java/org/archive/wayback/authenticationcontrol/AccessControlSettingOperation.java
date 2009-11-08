@@ -28,6 +28,13 @@ import org.archive.wayback.accesscontrol.ExclusionFilterFactory;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.util.operator.BooleanOperator;
 
+/**
+ * BooleanOperator which tests a delegate operator, and sets an 
+ * ExclusionFilterFactory on the WaybackRequest if the delegate is true.
+ * 
+ * @author brad
+ *
+ */
 public class AccessControlSettingOperation implements BooleanOperator<WaybackRequest> {
 
 	private ExclusionFilterFactory factory = null;
@@ -40,18 +47,33 @@ public class AccessControlSettingOperation implements BooleanOperator<WaybackReq
 		return true;
 	}
 
+	/**
+	 * @return ExclusionFilterFactory which will be set on operator matches
+	 */
 	public ExclusionFilterFactory getFactory() {
 		return factory;
 	}
 
+	/**
+	 * @param factory ExclusionFilterFactory which will be set on operator 
+	 * matches
+	 */
 	public void setFactory(ExclusionFilterFactory factory) {
 		this.factory = factory;
 	}
 
+	/**
+	 * @return the BooleanOperator delegate which determines if the factory
+	 * 			is applied
+	 */
 	public BooleanOperator<WaybackRequest> getOperator() {
 		return operator;
 	}
 
+	/**
+	 * @param operator the BooleanOperator delegate which determines if the 
+	 * 			factory is applied
+	 */
 	public void setOperator(BooleanOperator<WaybackRequest> operator) {
 		this.operator = operator;
 	}

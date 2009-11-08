@@ -29,6 +29,12 @@ import java.util.List;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.util.operator.BooleanOperator;
 
+/**
+ * BooleanOperator which returns true if the user has authenticated as one of
+ * a list of users with this server.
+ * @author brad
+ *
+ */
 public class HTTPAuthBooleanOperator implements BooleanOperator<WaybackRequest> {
 	private List<String> allowedUsers = null;
 	public boolean isTrue(WaybackRequest value) {
@@ -41,9 +47,15 @@ public class HTTPAuthBooleanOperator implements BooleanOperator<WaybackRequest> 
 		}
 		return allowedUsers.contains(currentUser);
 	}
+	/**
+	 * @return the List of users that this operator matches against.
+	 */
 	public List<String> getAllowedUsers() {
 		return allowedUsers;
 	}
+	/**
+	 * @param allowedUsers the List of users that this operator matches against.
+	 */
 	public void setAllowedUsers(List<String> allowedUsers) {
 		this.allowedUsers = allowedUsers;
 	}

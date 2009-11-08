@@ -32,15 +32,29 @@ import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.util.IPRange;
 import org.archive.wayback.util.operator.BooleanOperator;
 
+/**
+ * A BooleanOperator which results in true value if a users request originated
+ * from within a list of configured IP ranges.
+ * @author brad
+ *
+ */
 public class IPMatchesBooleanOperator implements BooleanOperator<WaybackRequest> {
 	private static final Logger LOGGER = Logger.getLogger(IPMatchesBooleanOperator
 			.class.getName());
 	private List<IPRange> allowedRanges = null;
 
+	/**
+	 * @return null. this is a placeholder for Spring's getter/setter 
+	 * 			examination
+	 */
 	public List<String> getAllowedRanges() {
 		return null;
 	}
 
+	/**
+	 * @param allowedRanges parses each String IPRange provided, added them to
+	 * 		the list of IPRanges which this operator matches
+	 */
 	public void setAllowedRanges(List<String> allowedRanges) {
 		this.allowedRanges = new ArrayList<IPRange>();
 		for(String ip : allowedRanges) {

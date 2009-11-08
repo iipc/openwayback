@@ -100,7 +100,7 @@ public class CaptureSearchResult extends SearchResult {
 	 * <li>"A" - noarchive</li>
 	 * <li>"F" - nofollow</li>
 	 * <li>"I" - noindex</li>
-	 * @see http://noarchive.net/
+	 * @see "http://noarchive.net/"
 	 */
 	public static final String CAPTURE_ROBOT_FLAGS = "robotflags";
 	
@@ -142,6 +142,11 @@ public class CaptureSearchResult extends SearchResult {
 	 * If-Modified HTTP request headers.
 	 */
 	public static final String CAPTURE_DUPLICATE_HTTP = "http";
+	/**
+	 * @return the original URL which resulted in the capture. If it is not 
+	 * available, the urlKey and original Host will be used to reconstruct 
+	 * something possibly closer to the original URL than the urlKey
+	 */
 	public String getOriginalUrl() {
 		String url = get(CAPTURE_ORIGINAL_URL);
 		if(url == null) {
@@ -160,6 +165,10 @@ public class CaptureSearchResult extends SearchResult {
 		}
 		return url;
 	}
+	/**
+	 * @param originalUrl as close to the original URL by which this Resource
+	 * 			was captured as is possible
+	 */
 	public void setOriginalUrl(String originalUrl) {
 		put(CAPTURE_ORIGINAL_URL,originalUrl);
 	}
