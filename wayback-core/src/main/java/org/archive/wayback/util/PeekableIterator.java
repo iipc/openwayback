@@ -78,6 +78,7 @@ public class PeekableIterator<E> implements CloseableIterator<E> {
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.util.Cleanable#clean()
 	 */
+	@SuppressWarnings("unchecked")
 	public void close() throws IOException {
 		if(itr instanceof CloseableIterator) {
 			CloseableIterator<E> toBeClosed = (CloseableIterator<E>) itr;

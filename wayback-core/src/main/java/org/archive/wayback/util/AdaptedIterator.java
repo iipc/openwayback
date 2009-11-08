@@ -85,6 +85,7 @@ public class AdaptedIterator<S,T> implements CloseableIterator<T> {
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.util.Cleanable#clean()
 	 */
+	@SuppressWarnings("unchecked")
 	public void close() throws IOException {
 		if(itr instanceof CloseableIterator) {
 			CloseableIterator<S> toBeClosed = (CloseableIterator<S>) itr;

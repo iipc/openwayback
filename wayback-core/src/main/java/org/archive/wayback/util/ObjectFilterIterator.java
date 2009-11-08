@@ -75,6 +75,7 @@ public class ObjectFilterIterator<T> implements CloseableIterator<T> {
 		return true;
 	}
 	
+	@SuppressWarnings("unchecked")
 	public void close() {
 		if(itr instanceof CloseableIterator) {
 			CloseableIterator<T> citr =
