@@ -57,9 +57,10 @@ public interface ReplayRenderer {
 	 * @param results all CaptureSearchResults that were returned from the 
 	 * 						ResourceIndex, probably including other capture
 	 * 						dates of the same URL.
-	 * @throws ServletException
-	 * @throws IOException
-	 * @throws WaybackException 
+	 * @throws ServletException per usual
+	 * @throws IOException per usual
+	 * @throws WaybackException if Wayback data specific, anticipated exceptions
+	 *                          occur
 	 */
 	public void renderResource(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,

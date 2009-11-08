@@ -42,8 +42,9 @@ import org.archive.wayback.liveweb.LiveWebCache;
 import org.archive.wayback.util.ObjectFilter;
 
 /**
- * CaptureSearchResult Filter that uses a LiveWebCache to retrieve robots.txt documents
- * from the live web, and filters SearchResults based on the rules therein.
+ * CaptureSearchResult Filter that uses a LiveWebCache to retrieve robots.txt
+ * documents from the live web, and filters SearchResults based on the rules 
+ * therein. 
  * 
  * This class caches parsed RobotRules that are retrieved, so using the same 
  * instance to filter multiple SearchResults from the same host will be more
@@ -75,9 +76,10 @@ public class RobotExclusionFilter implements ObjectFilter<CaptureSearchResult> {
 	 * robots.txt documents. filtering is based on userAgent, and cached 
 	 * documents newer than maxCacheMS in the webCache are considered valid.
 	 * 
-	 * @param webCache
-	 * @param userAgent
-	 * @param maxCacheMS
+	 * @param webCache LiveWebCache from which documents can be retrieved 
+	 * @param userAgent String user agent to use for requests to the live web.
+	 * @param maxCacheMS long number of milliseconds to cache documents in the
+	 *                   LiveWebCache
 	 */
 	public RobotExclusionFilter(LiveWebCache webCache, String userAgent,
 			long maxCacheMS) {

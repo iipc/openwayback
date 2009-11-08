@@ -28,6 +28,12 @@ import org.archive.wayback.accesscontrol.ExclusionFilterFactory;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.util.ObjectFilter;
 
+/**
+ * ExclusionFilterFactory implementation which connects to an Exclusion Oracle
+ * via HTTP to determine which SearchResults can be exposed
+ * @author brad
+ *
+ */
 public class OracleExclusionFilterFactory implements ExclusionFilterFactory {
 
 	private String oracleUrl = null;
@@ -43,18 +49,30 @@ public class OracleExclusionFilterFactory implements ExclusionFilterFactory {
 		// no-op... yet..
 	}
 
+	/**
+	 * @return String URL where Oracle HTTP server is located
+	 */
 	public String getOracleUrl() {
 		return oracleUrl;
 	}
 
+	/**
+	 * @param oracleUrl String URL where Oracle HTTP server is located
+	 */
 	public void setOracleUrl(String oracleUrl) {
 		this.oracleUrl = oracleUrl;
 	}
 
+	/**
+	 * @return String group to use with requests to the Oracle
+	 */
 	public String getAccessGroup() {
 		return accessGroup;
 	}
 
+	/**
+	 * @param accessGroup String group to use with requests to the Oracle
+	 */
 	public void setAccessGroup(String accessGroup) {
 		this.accessGroup = accessGroup;
 	}

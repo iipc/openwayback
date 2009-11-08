@@ -26,6 +26,20 @@ package org.archive.wayback;
 
 import org.apache.commons.httpclient.URIException;
 
+/**
+ * Interface for implementations that transform an input String URL into a
+ * canonical form, suitable for lookups in a ResourceIndex. URLs should be sent
+ * through the same canonicalizer they will be searched using, before being 
+ * inserted into a ResourceIndex.
+ * @author brad
+ *
+ */
 public interface UrlCanonicalizer {
+	/**
+	 * @param url String representation of an URL, in as original, and 
+	 * 		unchanged form as possible.
+	 * @return a lookup key appropriate for searching within a ResourceIndex.
+	 * @throws URIException if the input url String is not a valid URL.
+	 */
 	public String urlStringToKey(String url) throws URIException;
 }

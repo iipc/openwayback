@@ -29,7 +29,8 @@ import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.WaybackRequest;
 
 /**
- *
+ * Locate and return a ReplayRenderer appropriate for the users request 
+ * (accept header, for example) and the resulting Resource.
  *
  * @author brad
  * @version $Date$, $Revision$
@@ -39,10 +40,13 @@ public interface ReplayDispatcher {
 	 * 
 	 * Return a ReplayRenderer appropriate for the Resource.
 	 * 
-	 * @param wbRequest
-	 * @param result
-	 * @param resource
-	 * @return the correct ReplayRenderer for the Resource
+	 * @param wbRequest WaybackRequest being handled.
+	 * @param result CapturSearchResult from the ResourceIndex which is
+	 * 				 being returned.
+	 * @param resource Resource as returned by ResourceStore which should
+	 *               be returned to the user.
+	 * @return an appropriate ReplayRenderer for the Resource, given the request
+	 *         context
 	 */
 	public ReplayRenderer getRenderer(WaybackRequest wbRequest,
 			CaptureSearchResult result, Resource resource);

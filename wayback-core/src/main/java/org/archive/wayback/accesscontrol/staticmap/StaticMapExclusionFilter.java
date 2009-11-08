@@ -47,7 +47,7 @@ public class StaticMapExclusionFilter implements ObjectFilter<CaptureSearchResul
 	private boolean lastCheckedExcluded = false;
 	Map<String,Object> exclusionMap = null;
 	/**
-	 * @param map
+	 * @param map where each String key is a SURT that is blocked.
 	 */
 	public StaticMapExclusionFilter(Map<String,Object> map) {
 		exclusionMap = map;

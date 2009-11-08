@@ -33,28 +33,37 @@ import org.archive.wayback.exception.ResourceIndexNotAvailableException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
 
 /**
- * Transforms a WMRequest into a ResourceResults.
+ * Transforms a WaybackRequest into a ResourceResults.
  * 
  * @author Brad Tofel
  * @version $Date$, $Revision$
  */
 public interface ResourceIndex {
 	/**
-	 * Transform a WMRequest into a ResourceResults.
+	 * Transform a WaybackRequest into a ResourceResults.
 	 * 
-	 * @param request
-	 * @return ResourceResults containing ResourceResult objects matching the
-	 *         WMRequest
+	 * @param request WaybackRequest object from RequestParser
+	 * @return SearchResults containing SearchResult objects matching the
+	 *         WaybackRequest
 	 * 
-	 * @throws ResourceIndexNotAvailableException
-	 * @throws ResourceNotInArchiveException
-	 * @throws BadQueryException 
-	 * @throws AccessControlException 
+	 * @throws ResourceIndexNotAvailableException if the ResourceIndex
+	 * 			is not available (remote host down, local files missing, etc)
+	 * @throws ResourceNotInArchiveException if the ResourceIndex could be
+	 * 			contacted, but no SearchResult objects matched the request
+	 * @throws BadQueryException if the WaybackRequest is lacking information
+	 * 			required to make a reasonable search of this ResourceIndex
+	 * @throws AccessControlException if SearchResult objects actually matched,
+	 * 			but could not be returned due to AccessControl restrictions
+	 * 			(robots.txt documents, Administrative URL blocks, etc)
 	 */
 	public SearchResults query(final WaybackRequest request)
 			throws ResourceIndexNotAvailableException,
 			ResourceNotInArchiveException, BadQueryException,
 			AccessControlException;
 
+	/**
+	 * Release any resources used by this ResourceIndex cleanly
+	 * @throws IOException for usual causes
+	 */
 	public void shutdown() throws IOException;
 }

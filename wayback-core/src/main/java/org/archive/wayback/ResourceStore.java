@@ -30,21 +30,26 @@ import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.exception.ResourceNotAvailableException;
 
 /**
- * Transforms a SearchResult into a Resource.
+ * Transforms a CaptureSearchResult into a Resource.
  * 
  * @author Brad Tofel
  * @version $Date$, $Revision$
  */
 public interface ResourceStore {
 	/**
-	 * Transform a SearchResult into a Resource
+	 * Transform a CaptureSearchResult into a Resource
 	 * 
-	 * @param result
+	 * @param result CaptureSearchResult which should be retrieved
 	 * @return Resource object retrieved for the SearchResult
-	 * @throws ResourceNotAvailableException 
+	 * @throws ResourceNotAvailableException if the resource was unavailable
+	 * 			(down host, corrupted files, etc)
 	 */
 	public Resource retrieveResource(CaptureSearchResult result) 
 		throws ResourceNotAvailableException;
 
+	/**
+	 * Release any resources used by this ResourceIndex cleanly
+	 * @throws IOException for usual causes
+	 */
 	public void shutdown() throws IOException;
 }

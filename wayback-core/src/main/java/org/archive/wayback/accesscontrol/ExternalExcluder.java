@@ -45,14 +45,14 @@ public class ExternalExcluder {
 	private ObjectFilter<CaptureSearchResult> filter = null;
 	private final static String CONFIG_ID = "excluder-factory";
 	/**
-	 * @param filter
+	 * @param filter ObjectFilter responsible for excluding content
 	 */
 	public ExternalExcluder(ObjectFilter<CaptureSearchResult> filter) {
 		this.filter = filter;
 	}
 	/**
-	 * @param urlString
-	 * @param timestamp
+	 * @param urlString String URL that should be checked for blocking.
+	 * @param timestamp String 14-digit timestamp to check for blocking.
 	 * @return true if the url-timestamp should not be shown to end users
 	 */
 	public boolean isExcluded(String urlString, String timestamp) {
@@ -64,6 +64,7 @@ public class ExternalExcluder {
 		int ruling = filter.filterObject(sr);
 		return (ruling != ObjectFilter.FILTER_INCLUDE);
 	}
+
 	private static synchronized ExclusionFilterFactory getFactory(String 
 			configPath) {
 		if(factory != null) {
@@ -76,13 +77,17 @@ public class ExternalExcluder {
 	}
 	
 	/**
-	 * @param configPath
+	 * @param configPath String path to local Sprint XML configuration. This
+	 *        Spring config file must include a bean with id "excluder-factory"
+	 *        that implements 
+	 *        org.archive.wayback.accesscontrol.ExclusionFilterFactory
 	 * @return an excluder fully configured via the XML Spring configuration 
 	 * at configPath 
 	 */
 	public static ExternalExcluder getExcluder(String configPath) {
 		return new ExternalExcluder(getFactory(configPath).get());
 	}
+
 	/**
 	 * shutdown underlying resources.
 	 */

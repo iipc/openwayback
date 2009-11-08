@@ -79,8 +79,8 @@ public class RobotRules {
 	 * Read rules from InputStream argument into this RobotRules, as a 
 	 * side-effect, sets the bSyntaxErrors property.
 	 * 
-	 * @param is
-	 * @throws IOException 
+	 * @param is InputStream containing the robots.txt document
+	 * @throws IOException for usual reasons
 	 */
 	public void parse(InputStream is) throws IOException {
 		
@@ -161,8 +161,8 @@ public class RobotRules {
 	 * Checks first the specified ua UserAgent, if rules are present for it,
 	 * and then falls back to using rules for the '*' UserAgent.
 	 * 
-	 * @param path
-	 * @param ua
+	 * @param path String server relative path to check for access
+	 * @param ua String user agent to check for access
 	 * @return boolean value where true indicates the path is blocked for ua
 	 */
 	public boolean blocksPathForUA(String path, String ua) {

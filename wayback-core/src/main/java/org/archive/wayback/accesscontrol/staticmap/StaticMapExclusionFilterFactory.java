@@ -60,7 +60,7 @@ public class StaticMapExclusionFilterFactory implements ExclusionFilterFactory {
 	
 	/**
 	 * load exclusion file and startup polling thread to check for updates
-	 * @throws IOException 
+	 * @throws IOException if the exclusion file could not be read.
 	 */
 	public void init() throws IOException {
 		reloadFile();
@@ -105,8 +105,8 @@ public class StaticMapExclusionFilterFactory implements ExclusionFilterFactory {
 	}
 	
 	/**
-	 * @param wbRequest 
-	 * @return SearchResultFilter 
+	 * @return ObjectFilter which blocks CaptureSearchResults in the 
+	 * 						exclusion file. 
 	 */
 	public ObjectFilter<CaptureSearchResult> get() {
 		if(currentMap == null) {
@@ -138,8 +138,8 @@ public class StaticMapExclusionFilterFactory implements ExclusionFilterFactory {
 		private int runInterval;
 
 		/**
-		 * @param service 
-		 * @param runInterval
+		 * @param service ExclusionFactory which will be reloaded
+		 * @param runInterval int number of seconds between reloads
 		 */
 		public CacheUpdaterThread(StaticMapExclusionFilterFactory service, int runInterval) {
 			super("CacheUpdaterThread");

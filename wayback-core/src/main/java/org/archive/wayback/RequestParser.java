@@ -42,12 +42,15 @@ public interface RequestParser {
 	 * attempt to transform an incoming HttpServletRequest into a 
 	 * WaybackRequest object. returns null if there is missing information.
 	 * 
-	 * @param httpRequest
-	 * @param wbContext 
+	 * @param httpRequest ServletHttpRequest being handled
+	 * @param accessPoint AccessPoint which is attempting to parse the request 
 	 * @return populated WaybackRequest object if successful, null otherwise.
-	 * @throws BadQueryException 
-	 */
+	 * @throws BadQueryException if the request could match this AccessPoint,
+	 *         but is malformed: invalid datespec, URL, or flags
+	 * @throws BetterRequestException if the request should be redirected to
+	 *         provide better user feedback (corrected URL/date in address bar)
+	 */        
 	public abstract WaybackRequest parse(HttpServletRequest httpRequest, 
-			AccessPoint wbContext) throws BadQueryException, 
+			AccessPoint accessPoint) throws BadQueryException, 
 			BetterRequestException;
 }

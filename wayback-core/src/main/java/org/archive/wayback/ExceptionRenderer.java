@@ -45,12 +45,13 @@ public interface ExceptionRenderer {
 	 * css format, depending on the guessed context, so errors in embedded 
 	 * documents do not cause unneeded errors in the embedding document.
 	 * 
-	 * @param httpRequest
-	 * @param httpResponse
-	 * @param wbRequest
-	 * @param exception
-	 * @throws ServletException
-	 * @throws IOException
+	 * @param httpRequest from Servlet handling
+	 * @param httpResponse from Servlet handling
+	 * @param wbRequest as parsed by RequestParser
+	 * @param exception specific WaybackException subclass thrown
+	 * @param uriConverter for the AccessPoint handling the request
+	 * @throws ServletException per usual
+	 * @throws IOException per usual
 	 */
 	public void renderException(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,

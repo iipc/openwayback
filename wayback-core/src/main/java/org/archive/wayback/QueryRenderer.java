@@ -42,7 +42,8 @@ import org.archive.wayback.core.WaybackRequest;
  */
 public interface QueryRenderer {
 	
-	/** Show the SearchResults of the request for this particular URL
+	/** 
+	 * Display matching SearchResults for the WaybackRequest to the user.
 	 *  
 	 * @param httpRequest the HttpServletRequest
 	 * @param httpResponse the HttpServletResponse
@@ -50,8 +51,8 @@ public interface QueryRenderer {
 	 * @param results the SearchResults that the WaybackRequest matched
 	 * @param uriConverter the URI converter to use to translate matching
 	 *                      results into replayable URLs
-	 * @throws ServletException
-	 * @throws IOException
+	 * @throws ServletException per usual
+	 * @throws IOException per usual
 	 */
 	public void renderCaptureResults(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
@@ -67,8 +68,8 @@ public interface QueryRenderer {
 	 * @param results the SearchResults that the WaybackRequest matched
 	 * @param uriConverter the URI converter to use to translate matching
 	 *                      results into replayable URLs
-	 * @throws ServletException
-	 * @throws IOException
+	 * @throws ServletException per usual
+	 * @throws IOException per usual
 	 */
 	public void renderUrlResults(HttpServletRequest httpRequest,
 			HttpServletResponse response, WaybackRequest wbRequest,

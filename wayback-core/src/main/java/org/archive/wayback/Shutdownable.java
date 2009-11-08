@@ -33,5 +33,9 @@ import java.io.IOException;
  * @version $Date$, $Revision$
  */
 public interface Shutdownable {
+	/**
+	 * Release any resources used by this ResourceIndex cleanly
+	 * @throws IOException for usual causes
+	 */
 	public void shutdown() throws IOException;
 }

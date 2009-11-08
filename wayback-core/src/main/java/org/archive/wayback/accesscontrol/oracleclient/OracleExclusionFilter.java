@@ -46,6 +46,10 @@ public class OracleExclusionFilter implements ObjectFilter<CaptureSearchResult> 
 	private final static String POLICY_ROBOT = "robots";
 	
 	
+	/**
+	 * @param oracleUrl String URL prefix for the Oracle HTTP server
+	 * @param accessGroup String group to use with requests to the Oracle
+	 */
 	public OracleExclusionFilter(String oracleUrl, String accessGroup) {
 		client = new AccessControlClient(oracleUrl);
 		this.accessGroup = accessGroup;
@@ -76,10 +80,8 @@ public class OracleExclusionFilter implements ObjectFilter<CaptureSearchResult> 
 				}
 			}
 		} catch (RobotsUnavailableException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (RuleOracleUnavailableException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return FILTER_EXCLUDE;			
