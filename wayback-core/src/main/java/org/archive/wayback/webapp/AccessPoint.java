@@ -1,4 +1,4 @@
-/* WaybackContext
+/* AccessPoint
  *
  * $Id$
  *
@@ -102,18 +102,36 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 	private List<String> filePatterns = null;
 	private List<String> filePrefixes = null;
 	
+	/**
+	 * @return List of file patterns that will be matched when querying the 
+	 * ResourceIndex
+	 */
 	public List<String> getFilePatterns() {
 		return filePatterns;
 	}
 
+	/**
+	 * @param filePatterns List of file Patterns (regular expressions) that
+	 * 		will be matched when querying the ResourceIndex - only SearchResults
+	 *      matching one of these patterns will be returned.
+	 */
 	public void setFilePatterns(List<String> filePatterns) {
 		this.filePatterns = filePatterns;
 	}
 
+	/**
+	 * @return List of file String prefixes that will be matched when querying 
+	 * 		the ResourceIndex
+	 */
 	public List<String> getFilePrefixes() {
 		return filePrefixes;
 	}
 
+	/**
+	 * @param filePrefixes List of String file prefixes that will be matched
+	 * 		when querying the ResourceIndex - only SearchResults from files 
+	 * 		with a prefix matching one of those in this List will be returned.
+	 */
 	public void setFilePrefixes(List<String> filePrefixes) {
 		this.filePrefixes = filePrefixes;
 	}
@@ -153,10 +171,18 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 		return uriConverter;
 	}
 
+	/**
+	 * @return explicit Locale to use within this AccessPoint.
+	 */
 	public Locale getLocale() {
 		return locale;
 	}
 
+	/**
+	 * @param locale explicit Locale to use for requests within this 
+	 * 		AccessPoint. If not set, will attempt to use the one specified by
+	 * 		each requests User Agent via HTTP headers
+	 */
 	public void setLocale(Locale locale) {
 		this.locale = locale;
 	}
@@ -186,18 +212,19 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 			}
 		}
 	}
+	/**
+	 * @return the name of the bean in the Spring configuration which defined
+	 * 			this AccessPoint.
+	 */
 	public String getBeanName() {
 		return beanName;
 	}
 	/**
-	 * @param httpRequest
-	 * @return the prefix of paths recieved by this server that are handled by
+	 * @param httpRequest HttpServletRequest which is being handled 
+	 * @return the prefix of paths received by this server that are handled by
 	 * this WaybackContext, including the trailing '/'
 	 */
 	public String getContextPath(HttpServletRequest httpRequest) {
-//		if(contextPort != 0) {
-//			return httpRequest.getContextPath();
-//		}
 		String httpContextPath = httpRequest.getContextPath();
 		if(contextName.length() == 0) {
 			return httpContextPath + "/";
@@ -206,8 +233,11 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 	}
 
 	/**
-	 * @param httpRequest
-	 * @param includeQuery
+	 * Remove any leading ServletContext and AccessPoint name path elements
+	 * from the incoming request path, returning the result as a String
+	 * 
+	 * @param httpRequest HttpServletRequest which is being handled 
+	 * @param includeQuery if true, include any query arguments
 	 * @return the portion of the request following the path to this context
 	 * without leading '/'
 	 */
@@ -233,7 +263,10 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 	}
 	
 	/**
-	 * @param httpRequest
+	 * Remove any leading ServletContext and AccessPoint name path elements
+	 * from the incoming request path, returning the result as a String
+
+	 * @param httpRequest HttpServletRequest which is being handled 
 	 * @return the portion of the request following the path to this context, 
 	 * including any query information,without leading '/'
 	 */
@@ -242,7 +275,7 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 	}	
 
 	/**
-	 * @param httpRequest
+	 * @param httpRequest HttpServletRequest which is being handled 
 	 * @return the portion of the request following the path to this context, 
 	 * excluding any query information, without leading '/'
 	 */
@@ -252,10 +285,10 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 	
 	/**
 	 * Construct an absolute URL that points to the root of the context that
-	 * recieved the request, including a trailing "/".
+	 * received the request, including a trailing "/".
 	 * 
 	 * @return String absolute URL pointing to the Context root where the
-	 *         request was revieved.
+	 *         request was received.
 	 */
 	private String getAbsoluteContextPrefix(HttpServletRequest httpRequest, 
 			boolean useRequestServer) {
@@ -279,7 +312,7 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 	}
 	
 	/**
-	 * @param httpRequest
+	 * @param httpRequest HttpServletRequest which is being handled 
 	 * @return absolute URL pointing to the base of this WaybackContext, using
 	 * Server and port information from the HttpServletRequest argument.
 	 */
@@ -288,7 +321,7 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 	}
 
 	/**
-	 * @param httpRequest
+	 * @param httpRequest HttpServletRequest which is being handled 
 	 * @return absolute URL pointing to the base of this WaybackContext, using
 	 * Canonical server and port information.
 	 */
@@ -320,11 +353,11 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 	}
 	
 	/**
-	 * @param httpRequest
-	 * @param httpResponse
+	 * @param httpRequest HttpServletRequest which is being handled 
+	 * @param httpResponse HttpServletResponse which is being handled 
 	 * @return true if the request was actually handled
-	 * @throws ServletException
-	 * @throws IOException
+	 * @throws ServletException per usual
+	 * @throws IOException per usual
 	 */
 	public boolean handleRequest(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse) 
@@ -431,6 +464,12 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 		}
 	}
 	
+	/**
+	 * Release any resources associated with this AccessPoint, including
+	 * stopping any background processing threads
+	 * 
+	 * @throws IOException per usual
+	 */
 	public void shutdown() throws IOException {
 		if(collection != null) {
 			collection.shutdown();
@@ -557,42 +596,77 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 		this.exactSchemeMatch = exactSchemeMatch;
 	}
 
+	/**
+	 * @return the ExclusionFilterFactory in use with this AccessPoint
+	 */
 	public ExclusionFilterFactory getExclusionFactory() {
 		return exclusionFactory;
 	}
 
+	/**
+	 * @param exclusionFactory all requests to this AccessPoint will create an
+	 * 		exclusionFilter from this factory when handling requests
+	 */
 	public void setExclusionFactory(ExclusionFilterFactory exclusionFactory) {
 		this.exclusionFactory = exclusionFactory;
 	}
 
+	/**
+	 * @return the configured AuthenticationControl operator in use with this
+	 * 		AccessPoint.
+	 */
 	public BooleanOperator<WaybackRequest> getAuthentication() {
 		return authentication;
 	}
 
+	/**
+	 * @param authentication the BooleanOperator which determines if incoming
+	 * 		requests are allowed to connect to this AccessPoint.
+	 */
 	public void setAuthentication(BooleanOperator<WaybackRequest> authentication) {
 		this.authentication = authentication;
 	}
 
+	/**
+	 * @return the WaybackCollection used by this AccessPoint
+	 */
 	public WaybackCollection getCollection() {
 		return collection;
 	}
 
+	/**
+	 * @param collection the WaybackCollection to use with this AccessPoint
+	 */
 	public void setCollection(WaybackCollection collection) {
 		this.collection = collection;
 	}
 
+	/**
+	 * @return the ExceptionRenderer in use with this AccessPoint
+	 */
 	public ExceptionRenderer getException() {
 		return exception;
 	}
 
+	/**
+	 * @param exception the ExceptionRender to use with this AccessPoint
+	 */
 	public void setException(ExceptionRenderer exception) {
 		this.exception = exception;
 	}
 
+	/**
+	 * @return the String url prefix to use when generating self referencing 
+	 * 			URLs
+	 */
 	public String getUrlRoot() {
 		return urlRoot;
 	}
 
+	/**
+	 * @param urlRoot explicit URL prefix to use when creating self referencing
+	 * 		URLs
+	 */
 	public void setUrlRoot(String urlRoot) {
 		this.urlRoot = urlRoot;
 	}
@@ -605,7 +679,10 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 	}
 
 	/**
-	 * @param exactHostMatch the exactHostMatch to set
+	 * @param exactHostMatch if true, then only SearchResults exactly matching
+	 * 		the requested hostname will be returned from this AccessPoint. If
+	 * 		false, then hosts which canonicalize to the same host as requested
+	 * 		hostname will be returned (www.)
 	 */
 	public void setExactHostMatch(boolean exactHostMatch) {
 		this.exactHostMatch = exactHostMatch;
