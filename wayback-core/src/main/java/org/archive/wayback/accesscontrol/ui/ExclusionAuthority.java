@@ -28,6 +28,7 @@ package org.archive.wayback.accesscontrol.ui;
 /**
  *
  *
+ * @deprecated superseded by ExclusionOracle
  * @author brad
  * @version $Date$, $Revision$
  */
@@ -36,11 +37,11 @@ public interface ExclusionAuthority {
 	 * determines whether userAgent can view urlString for captureDate, 
 	 * encapsulating the response in a returned ExclusionResponse object
 	 * 
-	 * @param userAgent
-	 * @param urlString
-	 * @param captureDate 
+	 * @param userAgent to check
+	 * @param urlString to check
+	 * @param captureDate to check
 	 * @return ExclusionResponse with answer to the query
-	 * @throws Exception 
+	 * @throws Exception if problems happen
 	 */
 	public ExclusionResponse checkExclusion(String userAgent, String urlString,
 			String captureDate)	throws Exception;

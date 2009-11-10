@@ -33,6 +33,7 @@ import java.util.Iterator;
 /**
  *
  *
+ * @deprecated superseded by ExclusionOracle
  * @author brad
  * @version $Date$, $Revision$
  */
@@ -42,7 +43,7 @@ public class AdministrativeExclusionRules {
 	private ArrayList<AdministrativeExclusionRule> rules = null;
 	private String surtPrefix;
 	/**
-	 * @param surtPrefix
+	 * @param surtPrefix for rules
 	 */
 	public AdministrativeExclusionRules(String surtPrefix) {
 		this.surtPrefix = surtPrefix;
@@ -52,7 +53,7 @@ public class AdministrativeExclusionRules {
 	 * first eliminating those outside the timestamp range, and then removing
 	 * ADD which have a (subsequent) DELETE
 	 * 
-	 * @param dateStr
+	 * @param dateStr to check
 	 * @return ArrayList of applicable and current rules for dateStr
 	 */
 	public ArrayList<AdministrativeExclusionRule> filterRules(final String 
@@ -117,7 +118,7 @@ public class AdministrativeExclusionRules {
 	/**
 	 * finds the most applicable rule for the date in question, and returns it
 	 * 
-	 * @param dateStr
+	 * @param dateStr to check
 	 * @return most applicable AdministrativeExclusionRule, or null if none 
 	 * applied
 	 */
@@ -165,7 +166,7 @@ public class AdministrativeExclusionRules {
 	/**
 	 * load rules found in the encoded string argument
 	 * 
-	 * @param encodedRules
+	 * @param encodedRules string
 	 */
 	public void loadRules(final String encodedRules) {
 		rules = new ArrayList<AdministrativeExclusionRule>();
@@ -179,7 +180,7 @@ public class AdministrativeExclusionRules {
 	}
 
 	/**
-	 * @param rule
+	 * @param rule to add
 	 */
 	public void addRule(AdministrativeExclusionRule rule) {
 		if(rules == null) {

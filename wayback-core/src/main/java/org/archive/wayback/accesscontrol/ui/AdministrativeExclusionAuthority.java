@@ -37,7 +37,7 @@ import com.sleepycat.je.DatabaseException;
 
 /**
  *
- *
+ * @deprecated superseded by ExclusionOracle
  * @author brad
  * @version $Date$, $Revision$
  */
@@ -102,9 +102,9 @@ public class AdministrativeExclusionAuthority implements ExclusionAuthority {
 	}
 	
 	/**
-	 * @param surt
+	 * @param surt to check
 	 * @return String representation of rules
-	 * @throws DatabaseException 
+	 * @throws DatabaseException if BDB problems. 
 	 */
 	public ArrayList<AdministrativeExclusionRules> matchRules(String surt) throws DatabaseException {
 		BDBRecordIterator itr = db.recordIterator(surt);
@@ -139,9 +139,9 @@ public class AdministrativeExclusionAuthority implements ExclusionAuthority {
 	}
 	
 	/**
-	 * @param surtPrefix
-	 * @param rule
-	 * @throws DatabaseException 
+	 * @param surtPrefix to add
+	 * @param rule for SURT
+	 * @throws DatabaseException on BDB errors 
 	 */
 	public void addRuleFor(final String surtPrefix, AdministrativeExclusionRule rule) throws DatabaseException {
 		AdministrativeExclusionRules rules = new AdministrativeExclusionRules(surtPrefix);

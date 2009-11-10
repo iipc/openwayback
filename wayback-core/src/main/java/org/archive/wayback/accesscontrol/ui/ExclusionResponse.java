@@ -50,6 +50,7 @@ import org.w3c.dom.Node;
  * this for now.
  *  
  *
+ * @deprecated superseded by ExclusionOracle
  * @author brad
  * @version $Date$, $Revision$
  */
@@ -85,10 +86,10 @@ public class ExclusionResponse {
 	/**
 	 * Constructor
 	 * 
-	 * @param hostname
-	 * @param responseType
-	 * @param authorized
-	 * @param message
+	 * @param hostname to check
+	 * @param responseType for response
+	 * @param authorized if OK to show
+	 * @param message arbitrary string...
 	 */
 	public ExclusionResponse(final String hostname, final String responseType,
 			final boolean authorized,final String message) {
@@ -101,9 +102,9 @@ public class ExclusionResponse {
 	/**
 	 * Constuctor
 	 * 
-	 * @param hostname
-	 * @param responseType
-	 * @param authorized
+	 * @param hostname to check
+	 * @param responseType for response
+	 * @param authorized if OK to show
 	 */
 	public ExclusionResponse(final String hostname, final String responseType,
 			final boolean authorized) {
@@ -117,7 +118,7 @@ public class ExclusionResponse {
 	/**
 	 * Send the HTTP message body to requesting client, via the OutputStream
 	 * 
-	 * @param os
+	 * @param os where bytes should be written
 	 */
 	public void writeResponse(OutputStream os) {
 		if(USE_XML) {

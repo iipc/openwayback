@@ -37,6 +37,7 @@ import org.archive.wayback.webapp.ServletRequestContext;
 /**
  * 
  * 
+ * @deprecated superseded by ExclusionOracle
  * @author brad
  * @version $Date$, $Revision$
  */

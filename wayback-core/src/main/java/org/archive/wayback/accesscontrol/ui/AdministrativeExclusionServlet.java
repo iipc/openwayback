@@ -51,6 +51,7 @@ import com.sleepycat.je.DatabaseException;
  * 	2) displaying current exclusion rules based on queries
  *  3) recieving POST requests from clients to add rules
  *  
+ * @deprecated superseded by ExclusionOracle
  * @author brad
  * @version $Date$, $Revision$
  */

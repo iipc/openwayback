@@ -31,6 +31,7 @@ import org.archive.wayback.util.ObjectFilter;
 /**
  *
  *
+ * @deprecated superseded by ExclusionOracle
  * @author brad
  * @version $Date$, $Revision$
  */

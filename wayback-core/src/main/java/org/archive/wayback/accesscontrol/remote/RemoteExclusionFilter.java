@@ -39,6 +39,7 @@ import org.archive.wayback.util.ObjectFilter;
  * SearchResultFilter which uses remote access control/exclusion service to
  * filter results.
  *
+ * @deprecated superseded by ExclusionOracle
  * @author brad
  * @version $Date$, $Revision$
  */

@@ -34,6 +34,7 @@ import org.archive.wayback.util.Timestamp;
 /**
  *
  *
+ * @deprecated superseded by ExclusionOracle
  * @author brad
  * @version $Date$, $Revision$
  */
@@ -138,8 +139,8 @@ public class AdministrativeExclusionRule {
 	/**
 	 * set all values from encoded String version
 	 * 
-	 * @param encoded
-	 * @throws ParseException
+	 * @param encoded rule
+	 * @throws ParseException if rule cannot be parsed
 	 */
 	public void decode(final String encoded) throws ParseException {
 		String parts[] = encoded.split(String.valueOf(SEPARATOR));
