@@ -64,7 +64,7 @@ public class AttributeModifyingRule implements ReplayParseEventDelegatorVisitor,
 			}
 			// if the value is specified, too, make sure that matches, as well:
 			if(whereAttributeValue != null) {
-				if(!nodeAttrVal.equals(whereAttributeValue)) {
+				if(!nodeAttrVal.toUpperCase().equals(whereAttributeValue)) {
 					return;
 				}
 			}
@@ -121,7 +121,7 @@ public class AttributeModifyingRule implements ReplayParseEventDelegatorVisitor,
 	 * @param whereAttributeValue the whereAttributeValue to set
 	 */
 	public void setWhereAttributeValue(String whereAttributeValue) {
-		this.whereAttributeValue = whereAttributeValue;
+		this.whereAttributeValue = whereAttributeValue.toUpperCase();
 	}
 
 	/**
