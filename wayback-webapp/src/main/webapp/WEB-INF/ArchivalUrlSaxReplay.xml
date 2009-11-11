@@ -30,6 +30,9 @@
 	<bean id="cssBlockHandler"
 		class="org.archive.wayback.replay.html.transformer.BlockCSSStringTransformer">
 	</bean>
+	<bean id="jsBlockHandler"
+		class="org.archive.wayback.replay.html.transformer.JSStringTransformer">
+	</bean>
 
 
 
@@ -151,6 +154,13 @@
 				</bean>
 				<bean class="org.archive.wayback.replay.html.rules.StyleContentRule">
 					<property name="transformer" ref="cssBlockHandler" />
+				</bean>
+				<bean class="org.archive.wayback.replay.html.rules.JSContentRule">
+					<property name="transformer" ref="jsBlockHandler" />
+				</bean>
+				<bean class="org.archive.wayback.replay.html.rules.AttributeModifyingRule">
+					<property name="modifyAttributeName" value="ONCLICK" />
+					<property name="transformer" ref="jsBlockRewriter" />
 				</bean>
 				<bean class="org.archive.wayback.replay.html.rules.AttributeModifyingRule">
 					<property name="modifyAttributeName" value="style" />
