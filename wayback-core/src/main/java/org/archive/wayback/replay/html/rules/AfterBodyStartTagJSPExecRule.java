@@ -52,6 +52,9 @@ import org.htmlparser.nodes.TagNode;
  * We also ensure we don't emit twice by storing a flag in the ParseContext once
  * we do emit.
  * 
+ * Lastly, if we see a "FRAMESET" tag in the page, we hold off on inserting 
+ * our content.
+ * 
  * @author brad
  *
  */
@@ -60,6 +63,7 @@ implements ReplayParseEventDelegatorVisitor, OpenTagHandler {
 	private final String[] okHeadTags = {
 		"HTML","HEAD","BASE","LINK","META","TITLE","STYLE","SCRIPT","BODY"
 	};
+	private final static String FRAMESET_TAG = "FRAMESET";
 	private final static String FERRET_DONE_KEY = 
 		AfterBodyStartTagJSPExecRule.class.toString(); 
 	public void visit(ReplayParseEventDelegator rules) {
@@ -105,8 +109,13 @@ implements ReplayParseEventDelegatorVisitor, OpenTagHandler {
 			} else {
 				// must be PHASE_PRE_MODIFY: if it's a body tag, emit now:
 				if(isNotTagAppearingInHead(node)) {
-					// and this is a tag that shouldn't be in the HEAD. Emit:
-					emit((ReplayParseContext) context,node);
+					if(node.getTagName().equals(FRAMESET_TAG)) {
+						// don't put content in pages with a FRAMESET:
+						context.putData(FERRET_DONE_KEY,"1");
+					} else {
+						// and this is a tag that shouldn't be in the HEAD. Emit:
+						emit((ReplayParseContext) context,node);
+					}
 				}
 			}
 		}
