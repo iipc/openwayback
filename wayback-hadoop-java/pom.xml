@@ -2,13 +2,13 @@
   <parent>
     <artifactId>wayback</artifactId>
     <groupId>org.archive</groupId>
-    <version>1.5.0-SNAPSHOT</version>
+    <version>1.5.3-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.archive.wayback</groupId>
   <artifactId>wayback-hadoop-java</artifactId>
   <name>Wayback Hadoop Java Code</name>
-  <version>1.5.0-SNAPSHOT</version>
+  <version>1.5.3-SNAPSHOT</version>
   <url>http://maven.apache.org</url>
   <packaging>jar</packaging>
 
@@ -29,7 +29,7 @@
       <groupId>org.archive.wayback</groupId>
       <artifactId>wayback-core</artifactId>
       <scope>compile</scope>
-      <version>1.5.0-SNAPSHOT</version>
+      <version>1.5.3-SNAPSHOT</version>
     </dependency>
   </dependencies>
   <build>
