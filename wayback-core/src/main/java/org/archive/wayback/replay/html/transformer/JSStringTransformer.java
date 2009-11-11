@@ -24,13 +24,31 @@
  */
 package org.archive.wayback.replay.html.transformer;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.archive.wayback.replay.html.ReplayParseContext;
 import org.archive.wayback.replay.html.StringTransformer;
 
+/**
+ * Attempts to rewrite any absolute URLs found within the text/javascript MIME
+ * 
+ * @author brad
+ *
+ */
 public class JSStringTransformer implements StringTransformer {
+	private final static Pattern httpPattern = Pattern
+	.compile("(http://[^/]*/)");
 
 	public String transform(ReplayParseContext context, String input) {
-		// TODO: hehehe....
-		return input;
+
+		StringBuffer replaced = new StringBuffer(input.length());
+		Matcher m = httpPattern.matcher(input);
+		while (m.find()) {
+			String host = m.group(1);
+			m.appendReplacement(replaced, context.contextualizeUrl(host));
+		}
+		m.appendTail(replaced);
+		return replaced.toString();
 	}
 }
