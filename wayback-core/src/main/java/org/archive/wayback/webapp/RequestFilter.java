@@ -133,6 +133,11 @@ public class RequestFilter implements Filter {
 					String datespec = remainder.substring(0,thirdSlash);
 					String url = remainder.substring(thirdSlash+1);
 					String thisPath = httpRequest.getRequestURI();
+					String queryString = httpRequest.getQueryString();
+					if (queryString != null) {
+						thisPath += "?" + queryString;
+					}
+
 					String resolved = UrlOperations.resolveUrl(url, thisPath);
 					String contextPath = httpRequest.getContextPath();
 					String finalUrl = uri.getScheme() + "://" + 
