@@ -14,6 +14,86 @@
         to release 1.2.0.
       </p>
     </section>
+    <section name="Release 1.4.2">
+      <subsection name="Features">
+        <ul>
+          <li>
+            Added exactSchemeOnly configuration to AccessPoint, allowing 
+            explicit distinction between http:// and https://(<i>ACC-32</i>)
+          </li>
+          <li>
+            Now times out requests to a slow/non-responsive RemoteResourceIndex
+            and remote(HTTP 1.1) ResourceStore nodes.(<i>ACC-38</i>)
+          </li>
+          <li>
+            experimental OpenSearchQuery .jsp implementations(<i>ACC-56</i>)
+          </li>
+          <li>
+            FileProxyServlet now accepts /OFFSET trailing path in addition to 
+            Content-Range HTTP header.(<i>ACC-74</i>)
+          </li>
+          <li>
+            warc-indexer now has -all option to produce a CDX line for ALL 
+            records, not just captures and revisits(<i>ACC-75</i>)
+          </li>
+          <li>
+            now includes file+offset for all records, keying off mime-time of 
+            warc/revist to determine revisits at query time.(<i>ACC-76</i>)
+          </li>
+          <li>
+            Allow prefixing of original HTTP headers with a fixed string.
+            (<i>ACC-77</i>)
+          </li>
+          <li>
+            Now Wayback rewrites Content-Base HTTP headers.(<i>ACC-78</i>)
+          </li>
+          <li>
+            Timeline.jsp improvements which prevent Timeline from being severely
+            distorted on some pages.
+          </li>
+          <li>
+            Improvement to ArchivalUrl client-rewrite.js to preserve link text,
+            working around a bug in Internet Explorer.
+          </li>
+        </ul>
+      </subsection>
+      <subsection name="Bug Fixes">
+        <ul>
+          <li>
+            Now all mime-types are escaped to prevent spaces from getting into
+            the CDX files.(<i>ACC-45</i>)
+          </li>
+          <li>
+            Some CSS URLs were being rewritten twice. (<i>ACC-53</i>)
+          </li>
+          <li>
+            No longer writing original pages Content-Length HTTP header to
+            output, which caused original pages with Lower-Case "L" in 
+            "Content-length" to return wrong length, truncating replayed 
+            documents. This caused some replayed pages to not have embedded 
+            disclaimers, nor javascript rewriting of links and images.
+            (<i>ACC-60</i>)
+          </li>
+          <li>
+            Fixed severe problem with live web robots.txt retrieval where wrong
+            offset was being writting into the live web ResourceIndex.
+            (<i>ACC-62</i>)
+          </li>
+          <li>
+            Charset extraction from HTTP headers is now case-insensitive.
+            (<i>ACC-63</i>)
+          </li>
+          <li>
+            No longer adding content to HTML pages with FrameSet tags, as they
+            were being broken.(<i>ACC-65</i>)
+          </li>
+          <li>
+            No longer set GMT as default timezone for entire JVM.(<i>ACC-70</i>)
+          </li>
+        </ul>
+      </subsection>
+    </section>
+    
     <section name="Release 1.4.1">
       <subsection name="Features">
         <ul>
