@@ -28,6 +28,10 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 
+import org.apache.commons.httpclient.URIException;
+import org.archive.net.UURI;
+import org.archive.net.UURIFactory;
+
 /**
  * Class which tracks the context and state involved with parsing an HTML
  * document via SAX events.
@@ -43,7 +47,7 @@ import java.util.HashMap;
  */
 
 public class ParseContext {
-	protected URL baseUrl = null;
+	protected UURI baseUrl = null;
 
 	private boolean inCSS = false;
 	private boolean inJS = false;
@@ -60,11 +64,21 @@ public class ParseContext {
 		return data.get(key);
 	}
 	public void setBaseUrl(URL url) {
-		baseUrl = url;
+		try {
+			baseUrl = UURIFactory.getInstance(url.toExternalForm());
+		} catch (URIException e) {
+			e.printStackTrace();
+		}
 	}
 	public String resolve(String url) throws MalformedURLException {
-		URL tmp = new URL(baseUrl,url);
-		return tmp.toString();
+		try {
+			return baseUrl.resolve(url).toString();
+		} catch (URIException e) {
+			e.printStackTrace();
+		}
+		return url;
+//		URL tmp = new URL(baseUrl,url);
+//		return tmp.toString();
 	}	
 	public String contextualizeUrl(String url) {
 	    if(url.startsWith("javascript:")) {

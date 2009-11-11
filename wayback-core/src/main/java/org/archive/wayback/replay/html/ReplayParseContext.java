@@ -46,7 +46,7 @@ public class ReplayParseContext extends ParseContext {
 			URL baseUrl, String datespec) {
 
 		this.uriConverterFactory = uriConverterFactory;
-		this.baseUrl = baseUrl;
+		setBaseUrl(baseUrl);
 		this.datespec = datespec;
 		converters = new HashMap<String,ResultURIConverter>();
 	}
@@ -142,5 +142,19 @@ public class ReplayParseContext extends ParseContext {
 	 */
 	public void setJspExec(JSPExecutor jspExec) {
 		this.jspExec = jspExec;
+	}
+
+	/**
+	 * @return the datespec
+	 */
+	public String getDatespec() {
+		return datespec;
+	}
+
+	/**
+	 * @param datespec the datespec to set
+	 */
+	public void setDatespec(String datespec) {
+		this.datespec = datespec;
 	}
 }
