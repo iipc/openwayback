@@ -24,7 +24,7 @@
  */
 package org.archive.wayback.util.htmllex;
 
-import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.HashMap;
 
@@ -54,15 +54,31 @@ public class ParseContext {
 	private boolean inScriptText = false;
 	private HashMap<String,String> data = null;
 
+	/**
+	 * constructor
+	 */
 	public ParseContext() {
 		data = new HashMap<String, String>();
 	}
+	/**
+	 * Stores arbitrary key value pairs in this ParseContext
+	 * @param key for storage
+	 * @param value for storage
+	 */
 	public void putData(String key, String value) {
 		data.put(key, value);
 	}
+	/**
+	 * Retrieves previously stored data for key key from this ParseContext
+	 * @param key under which value was stored
+	 * @return previously stored value for key or null, if nothing was stored
+	 */
 	public String getData(String key) {
 		return data.get(key);
 	}
+	/**
+	 * @param url against which relative URLs should be resolved for this parse
+	 */
 	public void setBaseUrl(URL url) {
 		try {
 			baseUrl = UURIFactory.getInstance(url.toExternalForm());
@@ -70,23 +86,37 @@ public class ParseContext {
 			e.printStackTrace();
 		}
 	}
-	public String resolve(String url) throws MalformedURLException {
+	/**
+	 * @param url which should be resolved against the baseUrl for this 
+	 * ParseContext.
+	 * @return absolute form of url, resolved against baseUrl if relative.
+	 * @throws URISyntaxException if the input URL is malformed
+	 */
+	public String resolve(String url) throws URISyntaxException {
+		int hashIdx = url.indexOf('#');
+		String frag = "";
+		if(hashIdx != -1) {
+			frag = url.substring(hashIdx);
+			url = url.substring(0,hashIdx);
+		}
 		try {
-			return baseUrl.resolve(url).toString();
+			return baseUrl.resolve(url).toString() + frag;
 		} catch (URIException e) {
 			e.printStackTrace();
 		}
 		return url;
-//		URL tmp = new URL(baseUrl,url);
-//		return tmp.toString();
 	}	
+	/**
+	 * @param url which should be resolved.
+	 * @return absolute form of input url, or url itself if javascript:
+	 */
 	public String contextualizeUrl(String url) {
 	    if(url.startsWith("javascript:")) {
 	    	return url;
 	    }
 		try {
 			return resolve(url);
-		} catch (MalformedURLException e) {
+		} catch (URISyntaxException e) {
 			e.printStackTrace();
 			return url;
 		}

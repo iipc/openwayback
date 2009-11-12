@@ -25,12 +25,8 @@
 
 package org.archive.wayback.util.htmllex;
 
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
-
-import org.archive.net.UURI;
-import org.archive.net.UURIFactory;
 
 import junit.framework.TestCase;
 
@@ -46,6 +42,14 @@ public class ParseContextTest extends TestCase {
 	public void testContextualizeUrl() {
 		ParseContext pc = new ParseContext();
 		try {
+			
+			URI tmp = new URI("http://base.com/foo.html#REF");
+			String ref = tmp.getFragment();
+			assertEquals("REF",ref);
+			tmp = new URI("http://base.com/foo.html");
+			assertNull(tmp.getFragment());
+
+			
 			pc.setBaseUrl(new URL("http://base.com/"));
 			assertEquals("http://base.com/images.gif",
 					pc.contextualizeUrl("/images.gif"));
@@ -57,6 +61,12 @@ public class ParseContextTest extends TestCase {
 					pc.contextualizeUrl("/image/1s.gif"));
 			assertEquals("http://base.com/image/1s.gif",
 					pc.contextualizeUrl("../../image/1s.gif"));
+			assertEquals("http://base.com/image/1s.gif",
+					pc.contextualizeUrl("/../../image/1s.gif"));
+			assertEquals("http://base.com/image/1.html#REF",
+					pc.contextualizeUrl("/../../image/1.html#REF"));
+			assertEquals("http://base.com/image/1.html#REF FOO",
+					pc.contextualizeUrl("/../../image/1.html#REF FOO"));
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
