@@ -100,7 +100,8 @@ public class ArchivalUrlSAXRewriteReplayRenderer implements ReplayRenderer {
 			url = new URL(result.getOriginalUrl());
 		} catch (MalformedURLException e1) {
 			// TODO: this shouldn't happen...
-			throw new IOException(e1);
+			e1.printStackTrace();
+			throw new IOException(e1.getMessage());
 		}
 
 		// To make sure we get the length, we have to buffer it all up...
@@ -132,7 +133,7 @@ public class ArchivalUrlSAXRewriteReplayRenderer implements ReplayRenderer {
 			delegator.handleParseComplete(context);
 		} catch (ParserException e) {
 			e.printStackTrace();
-			throw new IOException(e);
+			throw new IOException(e.getMessage());
 		}
 
 		// At this point, baos contains the utf-8 encoded bytes of our result:

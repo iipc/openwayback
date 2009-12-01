@@ -54,7 +54,8 @@ implements ReplayParseEventDelegatorVisitor, CloseTagHandler, ParseCompleteHandl
 			try {
 				super.emit(context, node);
 			} catch (ServletException e) {
-				throw new IOException(e);
+				e.printStackTrace();
+				throw new IOException(e.getMessage());
 			}
 		}
 	}
