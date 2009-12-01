@@ -160,7 +160,7 @@
 				</bean>
 				<bean class="org.archive.wayback.replay.html.rules.AttributeModifyingRule">
 					<property name="modifyAttributeName" value="ONCLICK" />
-					<property name="transformer" ref="jsBlockRewriter" />
+					<property name="transformer" ref="jsBlockHandler" />
 				</bean>
 				<bean class="org.archive.wayback.replay.html.rules.AttributeModifyingRule">
 					<property name="modifyAttributeName" value="style" />
