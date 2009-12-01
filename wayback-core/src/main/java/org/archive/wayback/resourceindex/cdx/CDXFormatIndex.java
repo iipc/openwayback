@@ -58,7 +58,7 @@ public class CDXFormatIndex extends CDXIndex {
 				try {
 					cdx = new CDXFormat(CDX_HEADER_MAGIC);
 				} catch (CDXFormatException e1) {
-					throw new IOException(e1);
+					throw new IOException(e1.getMessage());
 				}
 			}
 		}
