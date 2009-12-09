@@ -156,19 +156,50 @@ public class URLCacher {
 
 		writer.write(url,mime,ip,captureDate.getTime(),len,fis);
 		writer.checkSize();
-//		long newSize = writer.getPosition();
-//		long oSize = writer.getFile().length();
+		long newSize = writer.getPosition();
+		long oSize = writer.getFile().length();
+		final long arcEndOffset = oSize;
 		LOGGER.info("Wrote " + url + " at " + arcPath + ":" + arcOffset);
+		LOGGER.info("NewSize:" + newSize + " oSize: " + oSize);
 		fis.close();
 		
 		return new ARCLocation() {
 			private String filename = arcPath;
 			private long offset = arcOffset;
+			private long endOffset = arcEndOffset;
 
 			public String getName() { return this.filename; }
-
 			public long getOffset() { return this.offset;   }
+			public long getEndOffset() { return this.endOffset;   }
+			
 		};
+	}
+	private FileRegion storeFile2(File file, ARCWriter writer, String url,
+			ExtendedGetMethod method) throws IOException {
+		
+		FileInputStream fis = new FileInputStream(file);
+		int len = (int) file.length();
+		String mime = method.getMime();
+		String ip = method.getRemoteIP();
+		Date captureDate = method.getCaptureDate();
+			
+		writer.checkSize();
+		final long arcOffset = writer.getPosition();
+		final String arcPath = writer.getFile().getAbsolutePath();
+
+		writer.write(url,mime,ip,captureDate.getTime(),len,fis);
+		writer.checkSize();
+		long newSize = writer.getPosition();
+		long oSize = writer.getFile().length();
+		final long arcEndOffset = oSize;
+		LOGGER.info("Wrote " + url + " at " + arcPath + ":" + arcOffset);
+		LOGGER.info("NewSize:" + newSize + " oSize: " + oSize);
+		fis.close();
+		FileRegion fr = new FileRegion();
+		fr.file = writer.getFile();
+		fr.start = arcOffset;
+		fr.end = oSize;
+		return fr;
 	}
 
 	/**
@@ -219,6 +250,43 @@ public class URLCacher {
 		}
 		return location;
 	}
+	public FileRegion cache2(ARCCacheDirectory cache, String urlString)
+	throws LiveDocumentNotAvailableException, IOException, URIException {
+
+	// localize URL
+	File tmpFile = getTmpFile();
+	ExtendedGetMethod method;
+	try {
+		method = urlToFile(urlString,tmpFile);
+	} catch (LiveDocumentNotAvailableException e) {
+		LOGGER.info("Attempted to get " + urlString + " failed...");
+		tmpFile.delete();
+		throw e;
+	} catch (URIException e) {
+		tmpFile.delete();
+		throw e;
+	} catch (IOException e) {
+		tmpFile.delete();
+		throw e;
+	}
+	
+	// store URL
+	FileRegion region = null;
+	ARCWriter writer = null;
+	try {
+		writer = cache.getWriter();
+		region = storeFile2(tmpFile, writer, urlString, method);
+	} catch(IOException e) {
+		e.printStackTrace();
+		throw e;
+	} finally {
+		if(writer != null) {
+			cache.returnWriter(writer);
+		}
+		tmpFile.delete();
+	}
+	return region;
+}
 
 	/**
 	 * @param args
