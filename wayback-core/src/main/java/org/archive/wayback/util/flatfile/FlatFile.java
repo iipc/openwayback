@@ -126,6 +126,39 @@ public class FlatFile {
 	    fh.seek(min);
 	    return min;
 	}
+	public long findKeyOffsetLT(RandomAccessFile fh, String key) throws IOException {
+		int blockSize = 8192;
+		long fileSize = fh.length();
+		long min = 0;
+		long max = (long) fileSize / blockSize;
+		long mid;
+		String line;
+	    while (max - min > 1) {
+	    	mid = min + (long)((max - min) / 2);
+	    	fh.seek(mid * blockSize);
+	    	if(mid > 0) line = fh.readLine(); // probably a partial line
+	    	line = fh.readLine();
+	    	if (key.compareTo(line) > 0) {
+	    		min = mid;
+	    	} else {
+	    		max = mid;
+	    	}
+	    }
+	    // find the right line
+	    min = min * blockSize;
+	    fh.seek(min);
+	    if(min > 0) line = fh.readLine();
+	    long last = min;
+	    while(true) {
+	    	min = fh.getFilePointer();
+	    	line = fh.readLine();
+	    	if(line == null) break;
+	    	if(line.compareTo(key) >= 0) break;
+	    	last = min;
+	    }
+	    fh.seek(last);
+	    return last;
+	}
 	/**
 	 * @return Returns the lastMatchOffset.
 	 */
@@ -157,6 +190,16 @@ public class FlatFile {
 		return itr;
 	}
 
+	public Iterator<String> getRecordIteratorLT(final String prefix) throws IOException {
+		RecordIterator itr = null;
+		RandomAccessFile raf = new RandomAccessFile(file,"r");
+		long offset = findKeyOffsetLT(raf,prefix);
+		lastMatchOffset = offset;
+		BufferedReader br = new BufferedReader(new FileReader(raf.getFD()));
+		itr = new RecordIterator(br);
+		return itr;
+	}
+	
 	/**
 	 * 
 	 * @param prefix
