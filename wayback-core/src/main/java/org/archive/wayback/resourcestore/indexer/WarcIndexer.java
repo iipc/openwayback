@@ -71,7 +71,12 @@ public class WarcIndexer {
 	 */
 	public CloseableIterator<CaptureSearchResult> iterator(String pathOrUrl)
 			throws IOException {
-		return iterator(WARCReaderFactory.get(pathOrUrl));
+		File f = new File(pathOrUrl);
+		if(f.isFile()) {
+			return iterator(WARCReaderFactory.get(f));
+		} else {
+			return iterator(WARCReaderFactory.get(pathOrUrl));
+		}
 	}
 	/**
 	 * @param arc

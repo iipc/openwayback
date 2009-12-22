@@ -69,7 +69,12 @@ public class ArcIndexer {
 	 */
 	public CloseableIterator<CaptureSearchResult> iterator(String pathOrUrl)
 	throws IOException {
-		return iterator(ARCReaderFactory.get(pathOrUrl));
+		File f = new File(pathOrUrl);
+		if(f.isFile()) {
+			return iterator(ARCReaderFactory.get(f));
+		} else {
+			return iterator(ARCReaderFactory.get(pathOrUrl));
+		}
 	}
 	
 	/**
