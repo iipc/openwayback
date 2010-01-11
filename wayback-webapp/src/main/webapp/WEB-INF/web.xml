@@ -52,4 +52,11 @@
         <realm-name>Secured-Wayback</realm-name>
     </login-config>
 -->
+
+
+    <error-page>
+        <exception-type>java.lang.Exception</exception-type>
+        <location>/WEB-INF/exception/HTMLError.jsp</location>
+    </error-page>
+
 </web-app>
