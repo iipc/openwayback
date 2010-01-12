@@ -262,6 +262,12 @@ public class WaybackRequest {
 	public static final String REQUEST_IMAGE_CONTEXT = "imagecontext";
 
 	/**
+	 * Request: Identity context requested (totally transparent) 
+	 */
+	public static final String REQUEST_IDENTITY_CONTEXT = "identitycontext";
+		
+	
+	/**
 	 * Request: Charset detection mode 
 	 */
 	public static final String REQUEST_CHARSET_MODE = "charsetmode";
@@ -488,6 +494,7 @@ public class WaybackRequest {
 		this.exclusionFilter = exclusionFilter;
 	}
 
+	@Deprecated
 	public ObjectFilter<CaptureSearchResult> getResultFilters() {
 		ObjectFilterChain<CaptureSearchResult> tmpFilters = 
 			new ObjectFilterChain<CaptureSearchResult>();
@@ -770,6 +777,13 @@ public class WaybackRequest {
 	}
 	public boolean isIMGContext() {
 		return getBoolean(REQUEST_IMAGE_CONTEXT);
+	}
+
+	public void setIdentityContext(boolean isIdentityContext) {
+		setBoolean(REQUEST_IDENTITY_CONTEXT,isIdentityContext);
+	}
+	public boolean isIdentityContext() {
+		return getBoolean(REQUEST_IDENTITY_CONTEXT);
 	}
 
 	public void setCharsetMode(int mode) {

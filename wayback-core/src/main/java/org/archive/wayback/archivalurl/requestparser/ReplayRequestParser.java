@@ -124,6 +124,8 @@ public class ReplayRequestParser extends PathRequestParser {
 					wbRequest.setJSContext(true);
 				} else if(flag.equals(ArchivalUrlRequestParser.IMG_CONTEXT)) {
 					wbRequest.setIMGContext(true);
+				} else if(flag.equals(ArchivalUrlRequestParser.IDENTITY_CONTEXT)) {
+					wbRequest.setIdentityContext(true);
 				} else if(flag.startsWith(ArchivalUrlRequestParser.CHARSET_MODE)) {
 					String modeString = flag.substring(
 							ArchivalUrlRequestParser.CHARSET_MODE.length());

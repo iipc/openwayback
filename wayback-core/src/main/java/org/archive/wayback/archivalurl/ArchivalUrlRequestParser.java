@@ -59,6 +59,10 @@ public class ArchivalUrlRequestParser extends CompositeRequestParser {
 	 */
 	public final static String IMG_CONTEXT = "im";
 	/**
+	 * raw/identity context
+	 */
+	public final static String IDENTITY_CONTEXT = "id";
+	/**
 	 * Charset detection strategy context - should be followed by an integer
 	 * indicating which strategy to use 
 	 */
