@@ -39,7 +39,7 @@ public class LiveDocumentNotAvailableException extends WaybackException {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	protected static final String ID = "resourceIndexNotAvailable";
+	protected static final String ID = "liveDocumentNotAvailable";
 	protected static final String defaultMessage = "Live document unavailable";
 	/**
 	 * Constructor
