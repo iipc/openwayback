@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -38,6 +39,7 @@ import org.archive.util.ArchiveUtils;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.exception.LiveDocumentNotAvailableException;
+import org.archive.wayback.exception.LiveWebCacheUnavailableException;
 import org.archive.wayback.liveweb.LiveWebCache;
 import org.archive.wayback.util.ObjectFilter;
 
@@ -58,6 +60,8 @@ import org.archive.wayback.util.ObjectFilter;
  */
 public class RobotExclusionFilter implements ObjectFilter<CaptureSearchResult> {
 
+	private final static Logger LOGGER = Logger.getLogger(RobotExclusionFilter.class.getName());
+	
 	private final static String HTTP_PREFIX = "http://";
 	private final static String ROBOT_SUFFIX = "/robots.txt";
 
@@ -142,23 +146,36 @@ public class RobotExclusionFilter implements ObjectFilter<CaptureSearchResult> {
 				firstUrlString = urlString;
 			}
 			if(rulesCache.containsKey(urlString)) {
+				LOGGER.fine("ROBOT: Cached("+urlString+")");
 				rules = rulesCache.get(urlString);
 			} else {
 				try {
-					
+					LOGGER.fine("ROBOT: NotCached("+urlString+")");
+				
 					tmpRules = new RobotRules();
 					Resource resource = webCache.getCachedResource(new URL(urlString),
 							maxCacheMS,true);
+					if(resource.getStatusCode() != 200) {
+						LOGGER.info("ROBOT: NotAvailable("+urlString+")");
+						throw new LiveDocumentNotAvailableException(urlString);
+					}
 					tmpRules.parse(resource);
 					rulesCache.put(firstUrlString,tmpRules);
 					rules = tmpRules;
+					LOGGER.info("ROBOT: Downloaded("+urlString+")");
 					
 				} catch (LiveDocumentNotAvailableException e) {
+					// cache an empty rule: all OK
+//					rulesCache.put(firstUrlString, emptyRules);
+//					rules = emptyRules;
 					continue;
 				} catch (MalformedURLException e) {
 					e.printStackTrace();
 					return null;
 				} catch (IOException e) {
+					e.printStackTrace();
+					return null;
+				} catch (LiveWebCacheUnavailableException e) {
 					e.printStackTrace();
 					return null;
 				}
@@ -186,6 +203,8 @@ public class RobotExclusionFilter implements ObjectFilter<CaptureSearchResult> {
 				url = new URL(ArchiveUtils.addImpliedHttpIfNecessary(resultURL));
 				if(!rules.blocksPathForUA(url.getPath(), userAgent)) {
 					filterResult = ObjectFilter.FILTER_INCLUDE;
+				} else {
+					LOGGER.info("ROBOT: BLOCKED("+resultURL+")");
 				}
 			} catch (MalformedURLException e) {
 				e.printStackTrace();
