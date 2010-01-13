@@ -51,7 +51,24 @@ public class OracleExclusionFilter implements ObjectFilter<CaptureSearchResult> 
 	 * @param accessGroup String group to use with requests to the Oracle
 	 */
 	public OracleExclusionFilter(String oracleUrl, String accessGroup) {
+		this(oracleUrl,accessGroup,null);
+	}
+	/**
+	 * @param oracleUrl String URL prefix for the Oracle HTTP server
+	 * @param accessGroup String group to use with requests to the Oracle
+	 * @param proxyHostPort String proxyHost:proxyPort to use for robots.txt
+	 */
+	public OracleExclusionFilter(String oracleUrl, String accessGroup, 
+			String proxyHostPort) {
 		client = new AccessControlClient(oracleUrl);
+		if(proxyHostPort != null) {
+		   	int colonIdx = proxyHostPort.indexOf(':');
+	    	if(colonIdx > 0) {
+	    		String host = proxyHostPort.substring(0,colonIdx);
+	    		int port = Integer.valueOf(proxyHostPort.substring(colonIdx+1));
+	    		client.setRobotProxy(host, port);
+	    	}
+		}
 		this.accessGroup = accessGroup;
 	}
 	

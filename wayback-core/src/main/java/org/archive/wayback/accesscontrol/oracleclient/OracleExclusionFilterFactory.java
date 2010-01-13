@@ -38,10 +38,11 @@ public class OracleExclusionFilterFactory implements ExclusionFilterFactory {
 
 	private String oracleUrl = null;
 	private String accessGroup = null;
+	private String proxyHostPort = null;
 	
 	public ObjectFilter<CaptureSearchResult> get() {
 		OracleExclusionFilter filter = new OracleExclusionFilter(oracleUrl,
-				accessGroup);
+				accessGroup, proxyHostPort);
 		return filter;
 	}
 
@@ -75,6 +76,20 @@ public class OracleExclusionFilterFactory implements ExclusionFilterFactory {
 	 */
 	public void setAccessGroup(String accessGroup) {
 		this.accessGroup = accessGroup;
+	}
+
+	/**
+	 * @return the proxyHostPort
+	 */
+	public String getProxyHostPort() {
+		return proxyHostPort;
+	}
+
+	/**
+	 * @param proxyHostPort the proxyHostPort to set, ex. "localhost:3128"
+	 */
+	public void setProxyHostPort(String proxyHostPort) {
+		this.proxyHostPort = proxyHostPort;
 	}
 
 }
