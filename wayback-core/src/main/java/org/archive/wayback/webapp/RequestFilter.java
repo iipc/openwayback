@@ -39,6 +39,7 @@ import org.apache.commons.httpclient.URIException;
 import org.apache.log4j.Logger;
 import org.archive.net.UURI;
 import org.archive.net.UURIFactory;
+import org.archive.util.ArchiveUtils;
 import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.util.url.UrlOperations;
 
@@ -131,7 +132,8 @@ public class RequestFilter implements Filter {
 				int thirdSlash = remainder.indexOf('/');
 				if(thirdSlash > -1) {
 					String datespec = remainder.substring(0,thirdSlash);
-					String url = remainder.substring(thirdSlash+1);
+					String url = ArchiveUtils.addImpliedHttpIfNecessary(
+							remainder.substring(thirdSlash+1));
 					String thisPath = httpRequest.getRequestURI();
 					String queryString = httpRequest.getQueryString();
 					if (queryString != null) {
