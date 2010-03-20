@@ -180,7 +180,7 @@ public class FlatFile {
 	 * @return Iterator for records beggining with key
 	 * @throws IOException
 	 */
-	public Iterator<String> getRecordIterator(final String prefix) throws IOException {
+	public CloseableIterator<String> getRecordIterator(final String prefix) throws IOException {
 		RecordIterator itr = null;
 		RandomAccessFile raf = new RandomAccessFile(file,"r");
 		long offset = findKeyOffset(raf,prefix);
@@ -190,7 +190,7 @@ public class FlatFile {
 		return itr;
 	}
 
-	public Iterator<String> getRecordIteratorLT(final String prefix) throws IOException {
+	public CloseableIterator<String> getRecordIteratorLT(final String prefix) throws IOException {
 		RecordIterator itr = null;
 		RandomAccessFile raf = new RandomAccessFile(file,"r");
 		long offset = findKeyOffsetLT(raf,prefix);
