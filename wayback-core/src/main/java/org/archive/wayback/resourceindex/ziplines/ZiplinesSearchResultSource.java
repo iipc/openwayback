@@ -91,7 +91,7 @@ public class ZiplinesSearchResultSource implements SearchResultSource {
 	public void init() throws IOException {
 		chunkMap = new HashMap<String, String>();
 		FlatFile ff = new FlatFile(chunkMapPath);
-		Iterator<String> lines = ff.getSequentialIterator();
+		CloseableIterator<String> lines = ff.getSequentialIterator();
 		while(lines.hasNext()) {
 			String line = lines.next();
 			String[] parts = line.split("\\s");
@@ -101,6 +101,7 @@ public class ZiplinesSearchResultSource implements SearchResultSource {
 			}
 			chunkMap.put(parts[0],parts[1]);
 		}
+		lines.close();
 		chunkIndex = new FlatFile(chunkIndexPath);
 	}
 	protected CloseableIterator<CaptureSearchResult> adaptIterator(Iterator<String> itr) 
@@ -130,7 +131,7 @@ public class ZiplinesSearchResultSource implements SearchResultSource {
 	}
 	
 	public Iterator<String> getStringPrefixIterator(String prefix) throws ResourceIndexNotAvailableException, IOException {
-		Iterator<String> itr = chunkIndex.getRecordIteratorLT(prefix);
+		CloseableIterator<String> itr = chunkIndex.getRecordIteratorLT(prefix);
 		ArrayList<ZiplinedBlock> blocks = new ArrayList<ZiplinedBlock>();
 		boolean first = true;
 		while(itr.hasNext()) {
@@ -161,6 +162,7 @@ public class ZiplinesSearchResultSource implements SearchResultSource {
 			long offset = Long.parseLong(parts[2]);
 			blocks.add(new ZiplinedBlock(url, offset));
 		}
+		itr.close();
 		return new StringPrefixIterator(new ZiplinesChunkIterator(blocks),prefix);
 	}
 
