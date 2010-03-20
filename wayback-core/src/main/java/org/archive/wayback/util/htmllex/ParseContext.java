@@ -100,7 +100,7 @@ public class ParseContext {
 			url = url.substring(0,hashIdx);
 		}
 		try {
-			return baseUrl.resolve(url).toString() + frag;
+			return baseUrl.resolve(url,true).toString() + frag;
 		} catch (URIException e) {
 			e.printStackTrace();
 		}
