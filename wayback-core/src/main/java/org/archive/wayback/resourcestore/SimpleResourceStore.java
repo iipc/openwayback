@@ -25,6 +25,7 @@
 package org.archive.wayback.resourcestore;
 
 import java.io.IOException;
+import java.util.logging.Logger;
 
 import org.archive.wayback.ResourceStore;
 import org.archive.wayback.core.Resource;
@@ -45,6 +46,8 @@ import org.archive.wayback.resourcestore.resourcefile.ResourceFactory;
  */
 public class SimpleResourceStore implements ResourceStore {
 
+	private final static Logger LOGGER = Logger.getLogger(
+			SimpleResourceStore.class.getName());
 	private String prefix = null;
 
 	public Resource retrieveResource(CaptureSearchResult result)
@@ -71,7 +74,7 @@ public class SimpleResourceStore implements ResourceStore {
 			r = ResourceFactory.getResource(fileUrl, offset);
 
 		} catch (IOException e) {
-
+			LOGGER.warning("Unable to retrieve:" + fileUrl + ":" + offset);
 			e.printStackTrace();
 			throw new ResourceNotAvailableException("Unable to retrieve",
 					e.getLocalizedMessage());
