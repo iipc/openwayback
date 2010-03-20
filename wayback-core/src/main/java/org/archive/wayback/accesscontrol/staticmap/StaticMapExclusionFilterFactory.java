@@ -83,6 +83,8 @@ public class StaticMapExclusionFilterFactory implements ExclusionFilterFactory {
 			lastUpdated = -1;
 			currentMap = null;
 			e.printStackTrace();
+			LOGGER.error("Reload " + file.getAbsolutePath() + " FAILED:" + 
+					e.getLocalizedMessage());
 		}
 	}
 	protected Map<String,Object> loadFile(String path) throws IOException {
@@ -97,7 +99,7 @@ public class StaticMapExclusionFilterFactory implements ExclusionFilterFactory {
 			}
 			String surt = line.startsWith("(") ? line : 
 				SURTTokenizer.prefixKey(line);
-			LOGGER.info("EXCLUSION-MAP: adding " + surt);
+			LOGGER.trace("EXCLUSION-MAP: adding " + surt);
 			newMap.put(surt, null);
 		}
 		itr.close();
