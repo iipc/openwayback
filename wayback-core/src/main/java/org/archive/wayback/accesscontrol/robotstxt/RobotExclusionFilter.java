@@ -99,17 +99,29 @@ public class RobotExclusionFilter implements ObjectFilter<CaptureSearchResult> {
 	private String hostToRobotUrlString(String host) {
 		sb.setLength(0);
 		sb.append(HTTP_PREFIX).append(host).append(ROBOT_SUFFIX);
-		return sb.toString();
+		String robotUrl = sb.toString();
+		LOGGER.fine("Adding robot URL:" + robotUrl);
+		return robotUrl;
 	}
 	
 	/*
-	 * Return a List of all robots.txt urls to attempt for this url:
-	 * If originalURL starts with "www.DOMAIN":
-	 * 	[originalURL,DOMAIN]
-	 * If url starts with "www[0-9]+.DOMAIN":
-	 *  [originalURL,www.DOMAIN,DOMAIN]
+	 * Return a List of all robots.txt urls to attempt for this HOST:
+	 * If HOST starts with "www.DOMAIN":
+	 * 	   [
+	 *        http://HOST/robots.txt,
+	 *        http://DOMAIN/robots.txt
+	 *     ]
+	 * If HOST starts with "www[0-9]+.DOMAIN":
+	 *     [
+	 *        http://HOST/robots.txt,
+	 *        http://www.DOMAIN/robots.txt,
+	 *        http://DOMAIN/robots.txt
+	 *     ]
 	 * Otherwise:
-	 *  [originalURL,www.originalURL]
+	 *     [
+	 *        http://HOST/robots.txt,
+	 *        http://www.HOST/robots.txt
+	 *     ]
 	 */
 	protected List<String> searchResultToRobotUrlStrings(String resultHost) {
 		ArrayList<String> list = new ArrayList<String>();
@@ -135,22 +147,41 @@ public class RobotExclusionFilter implements ObjectFilter<CaptureSearchResult> {
 	private RobotRules getRules(CaptureSearchResult result) {
 		RobotRules rules = null;
 		RobotRules tmpRules = null;
-		String host = result.getOriginalHost();
+		String host;
+		try {
+			host = result.getOriginalHost();
+		} catch(Exception e) {
+			LOGGER.warning("ROBOT: Failed to get host from("+result.getOriginalUrl()+")");			
+			return null;
+		}
 		List<String> urlStrings = searchResultToRobotUrlStrings(host);
 		Iterator<String> itr = urlStrings.iterator();
 		String firstUrlString = null;
-
+//		StringBuilder sb = new StringBuilder();
+//		for(String ttt : urlStrings) {
+//			sb.append("RU(").append(ttt).append(")");
+//		}
+//		LOGGER.info("RobotUrls for("+host+")"+sb.toString());
+		// loop through them all. As soon as we get a response, store that
+		// in the cache for the FIRST url we tried and return it..
+		// If we get no responses for any of the robot URLs, use "empty" rules,
+		// and record that in the cache, too.
+		
 		while(rules == null && itr.hasNext()) {
 			String urlString = (String) itr.next();
 			if(firstUrlString == null) {
 				firstUrlString = urlString;
 			}
 			if(rulesCache.containsKey(urlString)) {
-				LOGGER.fine("ROBOT: Cached("+urlString+")");
+				LOGGER.info("ROBOT: Cached("+urlString+")");
 				rules = rulesCache.get(urlString);
+				if(!urlString.equals(firstUrlString)) {
+					LOGGER.info("Adding extra url("+firstUrlString+") for prev cached rules("+urlString+")");
+					rulesCache.put(firstUrlString, rules);
+				}
 			} else {
 				try {
-					LOGGER.fine("ROBOT: NotCached("+urlString+")");
+					LOGGER.info("ROBOT: NotCached("+urlString+")");
 				
 					tmpRules = new RobotRules();
 					Resource resource = webCache.getCachedResource(new URL(urlString),
@@ -165,18 +196,19 @@ public class RobotExclusionFilter implements ObjectFilter<CaptureSearchResult> {
 					LOGGER.info("ROBOT: Downloaded("+urlString+")");
 					
 				} catch (LiveDocumentNotAvailableException e) {
-					// cache an empty rule: all OK
-//					rulesCache.put(firstUrlString, emptyRules);
-//					rules = emptyRules;
-					continue;
+					LOGGER.info("ROBOT: LiveDocumentNotAvailableException("+urlString+")");
+
 				} catch (MalformedURLException e) {
 					e.printStackTrace();
+					LOGGER.info("ROBOT: MalformedURLException("+urlString+")");
 					return null;
 				} catch (IOException e) {
-					e.printStackTrace();
+					e.printStackTrace(System.err);
+					LOGGER.info("ROBOT: IOException("+urlString+"):"+e.getLocalizedMessage());
 					return null;
 				} catch (LiveWebCacheUnavailableException e) {
 					e.printStackTrace();
+					LOGGER.info("ROBOT: LiveWebCacheUnavailableException("+urlString+")");
 					return null;
 				}
 			}
@@ -185,6 +217,7 @@ public class RobotExclusionFilter implements ObjectFilter<CaptureSearchResult> {
 			// special-case, allow empty rules if no longer available.
 			rulesCache.put(firstUrlString,emptyRules);
 			rules = emptyRules;
+			LOGGER.info("No rules available, using emptyRules for:" + firstUrlString);
 		}
 		return rules;
 	}
@@ -203,6 +236,7 @@ public class RobotExclusionFilter implements ObjectFilter<CaptureSearchResult> {
 				url = new URL(ArchiveUtils.addImpliedHttpIfNecessary(resultURL));
 				if(!rules.blocksPathForUA(url.getPath(), userAgent)) {
 					filterResult = ObjectFilter.FILTER_INCLUDE;
+					LOGGER.fine("ROBOT: ALLOWED("+resultURL+")");
 				} else {
 					LOGGER.info("ROBOT: BLOCKED("+resultURL+")");
 				}
