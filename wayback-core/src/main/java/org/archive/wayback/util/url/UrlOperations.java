@@ -92,6 +92,9 @@ public class UrlOperations {
         Pattern.compile("(([0-9a-z_.-]+)\\.(" + ALL_TLD_PATTERN + "))|" +
         		"(" + IP_PATTERN + ")");
 
+    private static final Pattern AUTHORITY_REGEX_SIMPLE =
+        Pattern.compile("([0-9a-z_.-]++)");
+
     /**
 	 * @param urlPart
 	 * @return boolean indicating whether urlPart might be an Authority.
@@ -186,21 +189,10 @@ public class UrlOperations {
 		for(String scheme : ALL_SCHEMES) {
 			if(url.startsWith(scheme)) {
 				int hostIdx = scheme.length();
-				int portIdx = url.indexOf(PORT_SEPARATOR, hostIdx + 1);
-				int pathIdx = url.indexOf(PATH_START, hostIdx + 1);
-				if(portIdx == -1 && pathIdx == -1) {
-					return url.substring(hostIdx);
-				}
-				if(portIdx == -1) {
-					return url.substring(hostIdx,pathIdx);
-				}
-				if(pathIdx == -1) {
-					return url.substring(hostIdx,portIdx);
-				}
-				if(pathIdx > portIdx) {
-					return url.substring(hostIdx,portIdx);
-				} else {
-					return url.substring(hostIdx,pathIdx);
+
+				Matcher m = AUTHORITY_REGEX_SIMPLE.matcher(url.substring(hostIdx));
+				if(m.find()) {
+					return m.group(0);
 				}
 			}
 		}
