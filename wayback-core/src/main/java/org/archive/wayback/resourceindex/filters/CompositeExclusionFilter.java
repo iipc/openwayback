@@ -55,7 +55,11 @@ public class CompositeExclusionFilter implements ObjectFilter<CaptureSearchResul
 	public int filterObject(CaptureSearchResult r) {
 		Iterator<ObjectFilter<CaptureSearchResult>> itr = filters.iterator();
 		while(itr.hasNext()) {
-			int result = itr.next().filterObject(r);
+			ObjectFilter<CaptureSearchResult> filter = itr.next();
+			if(filter == null) {
+				return FILTER_EXCLUDE;
+			}
+			int result = filter.filterObject(r);
 			if(result != FILTER_INCLUDE) {
 				return result;
 			}
