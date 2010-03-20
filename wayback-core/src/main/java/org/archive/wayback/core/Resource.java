@@ -66,8 +66,49 @@ public abstract class Resource extends InputStream {
 	 */
 	public void setChunkedEncoding() throws IOException {
 		validate();
-		is = new ChunkedInputStream(is);
+		// peek ahead and make sure we have a line with hex numbers:
+		int max = 50;
+		is.mark(max+2);
+		int cur = 0;
+		boolean isChunked = false;
+		while(cur < max) {
+			int nextC = is.read();
+			if(nextC == 10) {
+				// must have read at least 1 hex char:
+				if(cur > 0) {
+					nextC = is.read();
+					if(nextC == 13) {
+						isChunked = true;
+						break;
+					}
+				}
+			} else {
+				// better be a hex character:
+				if(!isHex(nextC)) {
+					break;
+				}
+			}
+			cur++;
+		}
+		is.reset();
+		if(isChunked) {
+			is = new ChunkedInputStream(is);
+		}
 	}
+	
+	private boolean isHex(int c) {
+		if((c >= '0') && (c <= '9')) {
+			return true;
+		}
+		if((c >= 'a') && (c <= 'f')) {
+			return true;
+		}
+		if((c >= 'A') && (c <= 'F')) {
+			return true;
+		}
+		return false;
+	}
+	
 	/**
 	 * @return
 	 * @throws IOException
