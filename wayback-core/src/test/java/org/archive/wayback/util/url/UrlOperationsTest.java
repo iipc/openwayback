@@ -62,6 +62,9 @@ public class UrlOperationsTest extends TestCase {
 		assertEquals("foo.com",UrlOperations.urlToHost("http://foo.com/path:/"));
 		assertEquals("foo.com",UrlOperations.urlToHost("https://foo.com/path:/"));
 		assertEquals("foo.com",UrlOperations.urlToHost("ftp://foo.com/path:/"));
+		assertEquals("foo.com",UrlOperations.urlToHost("ftp://foo.com\\"));
+		assertEquals("www.foo.com",UrlOperations.urlToHost("http://www.foo.com\\"));
+		assertEquals("www.foo.com",UrlOperations.urlToHost("http://www.foo.com:80\\"));
 	}
 
 	public void testResolveUrl() {
