@@ -131,6 +131,10 @@ public class AggressiveUrlCanonicalizerTest extends TestCase {
 		// unescape '%' (%25)
 		checkCanonicalization("foo.com/pa%25th","foo.com/pa%th");
 		
+		//"http://wayback.archive-it.org/1726/20091231154920cs_/http://alumni.creighton.edu/atf/cf/%257B82F49357-B0BC-48DA-B47F-5701CAC6EDFE%257D/MENU-CSSPLAY.css"
+		checkCanonicalization("foo.com/{a}b","foo.com/%7Ba%7Db");
+		checkCanonicalization("foo.com/%7Ba%7Db","foo.com/%7Ba%7Db");
+		
 		
 		// replace escaped ' ' with '+' in path, unescape legal '!' in path
 		// no change in query escaping
