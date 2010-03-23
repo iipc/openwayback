@@ -27,11 +27,17 @@ package org.archive.wayback.archivalurl.requestparser;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.httpclient.URIException;
+import org.archive.net.UURIFactory;
+import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.archivalurl.ArchivalUrlRequestParser;
 import org.archive.wayback.core.WaybackRequest;
+import org.archive.wayback.exception.BetterRequestException;
 import org.archive.wayback.requestparser.BaseRequestParser;
 import org.archive.wayback.requestparser.PathRequestParser;
 import org.archive.wayback.util.Timestamp;
+import org.archive.wayback.util.url.UrlOperations;
+import org.archive.wayback.webapp.AccessPoint;
 
 /**
  * RequestParser implementation that extracts request info from a Replay
@@ -55,7 +61,8 @@ public class ReplayRequestParser extends PathRequestParser {
 		super(wrapped);
 	}
 
-	public WaybackRequest parse(String requestPath) {
+	public WaybackRequest parse(String requestPath, AccessPoint ap) 
+	throws BetterRequestException {
 		WaybackRequest wbRequest = null;
 		Matcher matcher = WB_REQUEST_REGEX.matcher(requestPath);
 		String urlStr = null;
@@ -105,6 +112,33 @@ public class ReplayRequestParser extends PathRequestParser {
 
 			wbRequest.setReplayRequest();
 			wbRequest.setRequestUrl(urlStr);
+		} else {
+			// see if the remainder looks like an URL:
+//			String scheme = UrlOperations.urlToScheme(requestPath);
+//			if(scheme != null) {
+//				// lets interpret this as a replay request missing the
+//				// timestamp: use "NOW"
+//				String nowTS = Timestamp.currentTimestamp().getDateStr();
+//				ResultURIConverter conv = ap.getUriConverter();
+//
+//				String betterURI = conv.makeReplayURI(nowTS, requestPath);
+//				throw new BetterRequestException(betterURI);
+//			} else {
+//				// not obviously an URL... see if UURI can handle it:
+//				String httpUrl = UrlOperations.HTTP_SCHEME + requestPath;
+//				try {
+//					UURIFactory.getInstance(httpUrl);
+//					// that worked. use httpUrl:
+//					String nowTS = Timestamp.currentTimestamp().getDateStr();
+//					ResultURIConverter conv = ap.getUriConverter();
+//
+//					String betterURI = conv.makeReplayURI(nowTS, requestPath);
+//					throw new BetterRequestException(betterURI);
+//				} catch (URIException e) {
+//					// oh well. lets just fail:
+//				}
+//			}
+		
 		}
 		return wbRequest;
 	}

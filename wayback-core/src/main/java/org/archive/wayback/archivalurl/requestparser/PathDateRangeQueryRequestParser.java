@@ -31,6 +31,7 @@ import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.requestparser.BaseRequestParser;
 import org.archive.wayback.requestparser.PathRequestParser;
 import org.archive.wayback.util.Timestamp;
+import org.archive.wayback.webapp.AccessPoint;
 
 /**
  * RequestParser implementation that extracts request info from an Archival Url
@@ -56,7 +57,7 @@ public class PathDateRangeQueryRequestParser extends PathRequestParser {
 			.compile("^(\\d{1,14})-(\\d{1,14})\\*/(.*[^*])$");
 	
 
-	public WaybackRequest parse(String requestPath) {
+	public WaybackRequest parse(String requestPath, AccessPoint ap) {
 		WaybackRequest wbRequest = null;
 		Matcher matcher = WB_QUERY2_REGEX.matcher(requestPath);
 		if (matcher != null && matcher.matches()) {

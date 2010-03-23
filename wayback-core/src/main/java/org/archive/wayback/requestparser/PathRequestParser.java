@@ -28,6 +28,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadQueryException;
+import org.archive.wayback.exception.BetterRequestException;
 import org.archive.wayback.webapp.AccessPoint;
 
 /**
@@ -48,17 +49,21 @@ public abstract class PathRequestParser extends WrappedRequestParser {
 
 	/**
 	 * @param requestPath
+	 * @param acessPoint 
 	 * @return WaybackRequest with information parsed from the requestPath, or
 	 * null if information could not be extracted.
+	 * @throws BetterRequestException 
 	 */
-	public abstract WaybackRequest parse(String requestPath);
+	public abstract WaybackRequest parse(String requestPath, 
+			AccessPoint acessPoint) throws BetterRequestException;
 
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.requestparser.BaseRequestParser#parse(javax.servlet.http.HttpServletRequest, org.archive.wayback.webapp.WaybackContext)
 	 */
 	@Override
 	public WaybackRequest parse(HttpServletRequest httpRequest,
-			AccessPoint wbContext) throws BadQueryException {
+			AccessPoint acessPoint) 
+		throws BadQueryException, BetterRequestException {
 
 		String queryString = httpRequest.getQueryString();
 		String origRequestPath = httpRequest.getRequestURI();
@@ -66,13 +71,13 @@ public abstract class PathRequestParser extends WrappedRequestParser {
 		if (queryString != null) {
 			origRequestPath += "?" + queryString;
 		}
-		String contextPath = wbContext.getContextPath(httpRequest);
+		String contextPath = acessPoint.getContextPath(httpRequest);
 		if (!origRequestPath.startsWith(contextPath)) {
 			return null;
 		}
 		String requestPath = origRequestPath.substring(contextPath.length());
 		
-		WaybackRequest wbRequest = parse(requestPath);
+		WaybackRequest wbRequest = parse(requestPath, acessPoint);
 		if(wbRequest != null) {
 			wbRequest.setResultsPerPage(getMaxRecords());
 		}
