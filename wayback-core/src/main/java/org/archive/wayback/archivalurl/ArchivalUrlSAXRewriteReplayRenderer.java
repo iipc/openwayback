@@ -123,8 +123,9 @@ public class ArchivalUrlSAXRewriteReplayRenderer implements ReplayRenderer {
 		// and finally, parse, using the special lexer that knows how to
 		// handle javascript blocks containing unescaped HTML entities:
 		Page lexPage = new Page(resource,charSet);
-    	ContextAwareLexer lex = new ContextAwareLexer(new Lexer(lexPage),
-    			context);
+		Lexer lexer = new Lexer(lexPage);
+		Lexer.STRICT_REMARKS = false;
+    	ContextAwareLexer lex = new ContextAwareLexer(lexer, context);
     	Node node;
     	try {
 			while((node = lex.nextNode()) != null) {
