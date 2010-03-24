@@ -424,7 +424,9 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 	throws IOException, ServletException, WaybackException {
 		Resource resource = null;
 		try {
+			PerformanceLogger p = new PerformanceLogger("replay");
 			SearchResults results = collection.getResourceIndex().query(wbRequest);
+			p.queried();
 			if(!(results instanceof CaptureSearchResults)) {
 				throw new ResourceNotAvailableException("Bad results...");
 			}
@@ -434,9 +436,12 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 			CaptureSearchResult closest = captureResults.getClosest(wbRequest, 
 					useAnchorWindow);
 			resource = collection.getResourceStore().retrieveResource(closest);
+			p.retrieved();
 			ReplayRenderer renderer = replay.getRenderer(wbRequest, closest, resource);
 			renderer.renderResource(httpRequest, httpResponse, wbRequest,
 					closest, resource, uriConverter, captureResults);
+			p.rendered();
+			p.write(wbRequest.getReplayTimestamp() + " " + wbRequest.getRequestUrl());
 		} finally {
 			if(resource != null) {
 				resource.close();
@@ -448,7 +453,9 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 			HttpServletRequest httpRequest, HttpServletResponse httpResponse) 
 	throws ServletException, IOException, WaybackException {
 
+		PerformanceLogger p = new PerformanceLogger("query");
 		SearchResults results = collection.getResourceIndex().query(wbRequest);
+		p.queried();
 		if(results instanceof CaptureSearchResults) {
 			CaptureSearchResults cResults = (CaptureSearchResults) results;
 			cResults.markClosest(wbRequest);
@@ -462,6 +469,8 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 		} else {
 			throw new WaybackException("Unknown index format");
 		}
+		p.rendered();
+		p.write(wbRequest.getRequestUrl());
 	}
 	
 	/**
