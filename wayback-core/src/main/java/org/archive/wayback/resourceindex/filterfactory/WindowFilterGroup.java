@@ -29,6 +29,7 @@ import java.util.List;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadQueryException;
+import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.resourceindex.LocalResourceIndex;
 import org.archive.wayback.resourceindex.filters.WindowEndFilter;
 import org.archive.wayback.resourceindex.filters.WindowStartFilter;
@@ -42,9 +43,10 @@ public class WindowFilterGroup<T> {
 	ObjectFilterChain<T> windowFilters;
 	WindowStartFilter<T> startFilter;
 	WindowEndFilter<T> endFilter;
+	private String requestUrl = null;
 	public WindowFilterGroup(WaybackRequest request, LocalResourceIndex index) 
 		throws BadQueryException {
-
+		requestUrl = request.getRequestUrl();
 		windowFilters = new ObjectFilterChain<T>();
 		// first grab all the info from the WaybackRequest, and validate it:
 		resultsPerPage = request.getResultsPerPage();
@@ -71,13 +73,24 @@ public class WindowFilterGroup<T> {
 	}
 
 	public void annotateResults(SearchResults results) 
-	throws BadQueryException {
+	throws BadQueryException, ResourceNotInArchiveException {
 		results.setFirstReturned(startResult);
 		results.setNumRequested(resultsPerPage);
+		int startSeen = startFilter.getNumSeen();
+		if(startSeen == 0) {
+				ResourceNotInArchiveException e = 
+					new ResourceNotInArchiveException("the URL " + requestUrl
+						+ " is not in the archive.");
+				e.setCloseMatches(results.getCloseMatches());
+				throw e;
+		}
+
 		int numSeen = endFilter.getNumSeen();
 		if(numSeen == 0) {
 			throw new BadQueryException("No results in requested window");
 		}
+		
+		
 		// how many went by the filters:
 		results.setMatchingCount(startFilter.getNumSeen());
 

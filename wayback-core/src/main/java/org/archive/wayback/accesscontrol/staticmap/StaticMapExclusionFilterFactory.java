@@ -33,6 +33,7 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 import org.archive.wayback.accesscontrol.ExclusionFilterFactory;
 import org.archive.wayback.core.CaptureSearchResult;
+import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.surt.SURTTokenizer;
 import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.ObjectFilter;
@@ -110,7 +111,7 @@ public class StaticMapExclusionFilterFactory implements ExclusionFilterFactory {
 	 * @return ObjectFilter which blocks CaptureSearchResults in the 
 	 * 						exclusion file. 
 	 */
-	public ObjectFilter<CaptureSearchResult> get() {
+	public ExclusionFilter get() {
 		if(currentMap == null) {
 			return null;
 		}

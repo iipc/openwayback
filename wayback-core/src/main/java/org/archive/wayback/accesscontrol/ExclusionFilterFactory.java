@@ -25,6 +25,7 @@
 package org.archive.wayback.accesscontrol;
 
 import org.archive.wayback.core.CaptureSearchResult;
+import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.util.ObjectFilter;
 /**
  *
@@ -37,7 +38,7 @@ public interface ExclusionFilterFactory {
 	 * @return an ObjectFilter object that filters records based on
 	 * some set of exclusion rules
 	 */
-	public ObjectFilter<CaptureSearchResult> get();
+	public ExclusionFilter get();
 	/**
 	 * close any resources used by this ExclusionFilter system.
 	 */

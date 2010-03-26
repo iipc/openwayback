@@ -33,7 +33,7 @@ import java.net.URLEncoder;
 
 import org.apache.log4j.Logger;
 import org.archive.wayback.core.CaptureSearchResult;
-import org.archive.wayback.util.ObjectFilter;
+import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 
 /**
  * SearchResultFilter which uses remote access control/exclusion service to
@@ -43,7 +43,7 @@ import org.archive.wayback.util.ObjectFilter;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class RemoteExclusionFilter implements ObjectFilter<CaptureSearchResult> {
+public class RemoteExclusionFilter extends ExclusionFilter {
 	private static final Logger LOGGER = Logger.getLogger(RemoteExclusionFilter.class
 			.getName());
 

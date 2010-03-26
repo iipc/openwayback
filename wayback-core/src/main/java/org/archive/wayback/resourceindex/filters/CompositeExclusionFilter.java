@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import org.archive.wayback.core.CaptureSearchResult;
+import org.archive.wayback.resourceindex.filterfactory.ExclusionCaptureFilterGroup;
 import org.archive.wayback.util.ObjectFilter;
 
 /**
@@ -38,22 +39,29 @@ import org.archive.wayback.util.ObjectFilter;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class CompositeExclusionFilter implements ObjectFilter<CaptureSearchResult> {
+public class CompositeExclusionFilter extends ExclusionFilter {
+	//implements ObjectFilter<CaptureSearchResult> {
 
-	private ArrayList<ObjectFilter<CaptureSearchResult>> filters = 
-		new ArrayList<ObjectFilter<CaptureSearchResult>>();
+	private ArrayList<ExclusionFilter> filters = 
+		new ArrayList<ExclusionFilter>();
 	
 	/**
 	 * @param filter to be added to the composite.
 	 */
-	public void addComponent(ObjectFilter<CaptureSearchResult> filter) {
+	public void addComponent(ExclusionFilter filter) {
 		filters.add(filter);
+	}
+	public void setFilterGroup(ExclusionCaptureFilterGroup filterGroup) {
+		this.filterGroup = filterGroup;
+		for(ExclusionFilter filter : filters) {
+			filter.setFilterGroup(filterGroup);
+		}
 	}
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.resourceindex.SearchResultFilter#filterSearchResult(org.archive.wayback.core.SearchResult)
 	 */
 	public int filterObject(CaptureSearchResult r) {
-		Iterator<ObjectFilter<CaptureSearchResult>> itr = filters.iterator();
+		Iterator<ExclusionFilter> itr = filters.iterator();
 		while(itr.hasNext()) {
 			ObjectFilter<CaptureSearchResult> filter = itr.next();
 			if(filter == null) {

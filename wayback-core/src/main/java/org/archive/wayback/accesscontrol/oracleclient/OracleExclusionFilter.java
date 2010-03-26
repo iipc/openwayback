@@ -31,20 +31,24 @@ import org.archive.accesscontrol.RobotsUnavailableException;
 import org.archive.accesscontrol.RuleOracleUnavailableException;
 import org.archive.util.ArchiveUtils;
 import org.archive.wayback.core.CaptureSearchResult;
+import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.util.ObjectFilter;
 
 /**
  * @author brad
  *
  */
-public class OracleExclusionFilter implements ObjectFilter<CaptureSearchResult> {
+public class OracleExclusionFilter extends ExclusionFilter {
 	AccessControlClient client = null;
 	private String accessGroup = null;
 	
 	private final static String POLICY_ALLOW = "allow";
 	private final static String POLICY_BLOCK = "block";
 	private final static String POLICY_ROBOT = "robots";
-	
+	private boolean notifiedRobotSeen = false;
+	private boolean notifiedRobotPassed = false;
+	private boolean notifiedAdminSeen = false;
+	private boolean notifiedAdminPassed = false;
 	
 	/**
 	 * @param oracleUrl String URL prefix for the Oracle HTTP server
@@ -84,12 +88,32 @@ public class OracleExclusionFilter implements ObjectFilter<CaptureSearchResult> 
 					accessGroup);
 			if(policy != null) {
 				if(policy.equals(POLICY_ALLOW)) {
+					if(!notifiedAdminSeen) {
+						notifiedAdminSeen = true;
+						filterGroup.setSawAdministrative();
+					}
+					if(!notifiedAdminPassed) {
+						notifiedAdminPassed = true;
+						filterGroup.setPassedAdministrative();
+					}
 					return FILTER_INCLUDE;
 				} else if(policy.equals(POLICY_BLOCK)) {
+					if(!notifiedAdminSeen) {
+						notifiedAdminSeen = true;
+						filterGroup.setSawAdministrative();
+					}
 					return FILTER_EXCLUDE;
 				} else if(policy.equals(POLICY_ROBOT)) {
+					if(!notifiedRobotSeen) {
+						notifiedRobotSeen = true;
+						filterGroup.setSawRobots();
+					}
 					return FILTER_INCLUDE;
 //					if(robotFilter != null) {
+//						if(!notifiedRobotPassed) {
+//							notifiedRobotPassed = true;
+//							filterGroup.setPassedRobot();
+//						}
 //						return robotFilter.filterObject(o);
 //					} else {
 //						return FILTER_EXCLUDE;

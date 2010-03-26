@@ -29,6 +29,7 @@ import java.util.Iterator;
 
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.resourceindex.filters.CompositeExclusionFilter;
+import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.util.ObjectFilter;
 
 /**
@@ -54,7 +55,7 @@ public class CompositeExclusionFilterFactory implements ExclusionFilterFactory {
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.resourceindex.ExclusionFilterFactory#get()
 	 */
-	public ObjectFilter<CaptureSearchResult> get() {
+	public ExclusionFilter get() {
 		Iterator<ExclusionFilterFactory> itr = factories.iterator();
 		CompositeExclusionFilter filter = new CompositeExclusionFilter();
 		while(itr.hasNext()) {

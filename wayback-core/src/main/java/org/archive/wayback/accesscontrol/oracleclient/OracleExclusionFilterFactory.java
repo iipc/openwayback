@@ -26,6 +26,7 @@ package org.archive.wayback.accesscontrol.oracleclient;
 
 import org.archive.wayback.accesscontrol.ExclusionFilterFactory;
 import org.archive.wayback.core.CaptureSearchResult;
+import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.util.ObjectFilter;
 
 /**
@@ -40,7 +41,7 @@ public class OracleExclusionFilterFactory implements ExclusionFilterFactory {
 	private String accessGroup = null;
 	private String proxyHostPort = null;
 	
-	public ObjectFilter<CaptureSearchResult> get() {
+	public ExclusionFilter get() {
 		OracleExclusionFilter filter = new OracleExclusionFilter(oracleUrl,
 				accessGroup, proxyHostPort);
 		return filter;

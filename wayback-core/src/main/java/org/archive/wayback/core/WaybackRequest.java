@@ -36,6 +36,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 
 import org.archive.wayback.requestparser.OpenSearchRequestParser;
+import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.resourceindex.filters.HostMatchFilter;
 import org.archive.wayback.resourceindex.filters.SchemeMatchFilter;
 import org.archive.wayback.util.ObjectFilter;
@@ -84,7 +85,7 @@ public class WaybackRequest {
 	 * resultFilters, if these filters redact all results, then an 
 	 * AccessControlException will be thrown.
 	 */
-	private ObjectFilter<CaptureSearchResult> exclusionFilter = null;
+	private ExclusionFilter exclusionFilter = null;
 
 	/**
 	 * custom CaptureSearchResult Filter to use for this specific request. Can
@@ -486,11 +487,11 @@ public class WaybackRequest {
 		this.accessPoint = accessPoint;
 	}
 
-	public ObjectFilter<CaptureSearchResult> getExclusionFilter() {
+	public ExclusionFilter getExclusionFilter() {
 		return exclusionFilter;
 	}
 
-	public void setExclusionFilter(ObjectFilter<CaptureSearchResult> exclusionFilter) {
+	public void setExclusionFilter(ExclusionFilter exclusionFilter) {
 		this.exclusionFilter = exclusionFilter;
 	}
 

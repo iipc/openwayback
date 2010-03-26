@@ -41,6 +41,7 @@ import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.exception.LiveDocumentNotAvailableException;
 import org.archive.wayback.exception.LiveWebCacheUnavailableException;
 import org.archive.wayback.liveweb.LiveWebCache;
+import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.util.ObjectFilter;
 
 /**
@@ -58,7 +59,7 @@ import org.archive.wayback.util.ObjectFilter;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class RobotExclusionFilter implements ObjectFilter<CaptureSearchResult> {
+public class RobotExclusionFilter extends ExclusionFilter {
 
 	private final static Logger LOGGER = Logger.getLogger(RobotExclusionFilter.class.getName());
 	
@@ -74,6 +75,8 @@ public class RobotExclusionFilter implements ObjectFilter<CaptureSearchResult> {
 	private String userAgent = null;
 	private StringBuilder sb = null;
 	private final static RobotRules emptyRules = new RobotRules();
+	private boolean notifiedSeen = false;
+	private boolean notifiedPassed = false;
 	
 	/**
 	 * Construct a new RobotExclusionFilter that uses webCache to pull 
@@ -226,7 +229,10 @@ public class RobotExclusionFilter implements ObjectFilter<CaptureSearchResult> {
 	 * @see org.archive.wayback.resourceindex.SearchResultFilter#filterSearchResult(org.archive.wayback.core.SearchResult)
 	 */
 	public int filterObject(CaptureSearchResult r) {
-
+		if(!notifiedSeen) {
+			filterGroup.setSawRobots();
+			notifiedSeen = true;
+		}
 		int filterResult = ObjectFilter.FILTER_EXCLUDE; 
 		RobotRules rules = getRules(r);
 		if(rules != null) {
@@ -235,6 +241,10 @@ public class RobotExclusionFilter implements ObjectFilter<CaptureSearchResult> {
 			try {
 				url = new URL(ArchiveUtils.addImpliedHttpIfNecessary(resultURL));
 				if(!rules.blocksPathForUA(url.getPath(), userAgent)) {
+					if(!notifiedPassed) {
+						filterGroup.setPassedRobots();
+						notifiedPassed = true;
+					}
 					filterResult = ObjectFilter.FILTER_INCLUDE;
 					LOGGER.fine("ROBOT: ALLOWED("+resultURL+")");
 				} else {

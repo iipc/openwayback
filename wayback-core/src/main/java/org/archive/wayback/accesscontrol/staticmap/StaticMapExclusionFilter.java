@@ -30,6 +30,7 @@ import java.util.Map;
 import org.apache.commons.httpclient.URIException;
 import org.apache.log4j.Logger;
 import org.archive.wayback.core.CaptureSearchResult;
+import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.surt.SURTTokenizer;
 import org.archive.wayback.util.ObjectFilter;
 
@@ -39,12 +40,14 @@ import org.archive.wayback.util.ObjectFilter;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class StaticMapExclusionFilter implements ObjectFilter<CaptureSearchResult> {
+public class StaticMapExclusionFilter extends ExclusionFilter {
 	private static final Logger LOGGER = Logger.getLogger(
 			StaticMapExclusionFilter.class.getName());
 
 	private String lastChecked = null;
 	private boolean lastCheckedExcluded = false;
+	private boolean notifiedSeen = false;
+	private boolean notifiedPassed = false;
 	Map<String,Object> exclusionMap = null;
 	/**
 	 * @param map where each String key is a SURT that is blocked.
@@ -77,18 +80,33 @@ public class StaticMapExclusionFilter implements ObjectFilter<CaptureSearchResul
 	 * @see org.archive.wayback.resourceindex.SearchResultFilter#filterSearchResult(org.archive.wayback.core.SearchResult)
 	 */
 	public int filterObject(CaptureSearchResult r) {
+		if(!notifiedSeen) { 
+			filterGroup.setSawAdministrative();
+			notifiedSeen = true;
+		}
 		String url = r.getOriginalUrl();
 		if(lastChecked != null) {
 			if(lastChecked.equals(url)) {
-				return lastCheckedExcluded ? 
-						ObjectFilter.FILTER_EXCLUDE : 
-							ObjectFilter.FILTER_INCLUDE;
+				if(lastCheckedExcluded) { 
+					return ObjectFilter.FILTER_EXCLUDE;
+				} else {
+					// don't need to: already did last time...
+					//filterGroup.setPassedAdministrative();
+					return ObjectFilter.FILTER_INCLUDE;
+				}
 			}
 		}
 		lastChecked = url;
 		lastCheckedExcluded = isExcluded(url);
-		return lastCheckedExcluded ? 
-				ObjectFilter.FILTER_EXCLUDE : 
-					ObjectFilter.FILTER_INCLUDE;
+		if(lastCheckedExcluded) {
+			return ObjectFilter.FILTER_EXCLUDE;
+		} else {
+			if(!notifiedPassed) {
+				filterGroup.setPassedAdministrative();
+				notifiedPassed = true;
+			}
+			return ObjectFilter.FILTER_INCLUDE;
+		}
+			
 	}
 }
