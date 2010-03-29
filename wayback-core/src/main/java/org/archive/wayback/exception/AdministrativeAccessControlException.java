@@ -1,4 +1,4 @@
-/* AdminstrativeAccessControlException
+/* AdministrativeAccessControlException
  *
  * $Id$:
  *
@@ -29,12 +29,12 @@ package org.archive.wayback.exception;
  * @author brad
  *
  */
-public class AdminstrativeAccessControlException extends AccessControlException {
+public class AdministrativeAccessControlException extends AccessControlException {
 
 	/**
 	 * @param message
 	 */
-	public AdminstrativeAccessControlException(String message) {
+	public AdministrativeAccessControlException(String message) {
 		super("Blocked Site Error",message);
 	}
 }
