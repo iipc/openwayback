@@ -90,29 +90,39 @@ public class OracleExclusionFilter extends ExclusionFilter {
 				if(policy.equals(POLICY_ALLOW)) {
 					if(!notifiedAdminSeen) {
 						notifiedAdminSeen = true;
-						filterGroup.setSawAdministrative();
+						if(filterGroup != null) {
+							filterGroup.setSawAdministrative();
+						}
 					}
 					if(!notifiedAdminPassed) {
 						notifiedAdminPassed = true;
-						filterGroup.setPassedAdministrative();
+						if(filterGroup != null) {
+							filterGroup.setPassedAdministrative();
+						}
 					}
 					return FILTER_INCLUDE;
 				} else if(policy.equals(POLICY_BLOCK)) {
 					if(!notifiedAdminSeen) {
 						notifiedAdminSeen = true;
-						filterGroup.setSawAdministrative();
+						if(filterGroup != null) {
+							filterGroup.setSawAdministrative();
+						}
 					}
 					return FILTER_EXCLUDE;
 				} else if(policy.equals(POLICY_ROBOT)) {
 					if(!notifiedRobotSeen) {
 						notifiedRobotSeen = true;
-						filterGroup.setSawRobots();
+						if(filterGroup != null) {
+							filterGroup.setSawRobots();
+						}
 					}
 					return FILTER_INCLUDE;
 //					if(robotFilter != null) {
 //						if(!notifiedRobotPassed) {
 //							notifiedRobotPassed = true;
-//							filterGroup.setPassedRobot();
+//							if(filterGroup != null) {
+//								filterGroup.setPassedRobot();
+//							}
 //						}
 //						return robotFilter.filterObject(o);
 //					} else {
