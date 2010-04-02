@@ -47,6 +47,16 @@ public class ByteOp {
 		}
 		return true;
 	}
+	
+	public static void discardStream(InputStream is) throws IOException {
+		discardStream(is,BUFFER_SIZE);
+	}
+	public static void discardStream(InputStream is,int size) throws IOException {
+		byte[] buffer = new byte[size];
+		while(is.read(buffer, 0, size) != -1) {
+		}
+	}
+	
 	/**
 	 * Write all bytes from is to os. Does not close either stream.
 	 * @param is to copy bytes from
