@@ -30,7 +30,7 @@ import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.AccessControlException;
-import org.archive.wayback.exception.AdminstrativeAccessControlException;
+import org.archive.wayback.exception.AdministrativeAccessControlException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.exception.RobotAccessControlException;
 import org.archive.wayback.resourceindex.filters.CounterFilter;
@@ -78,20 +78,9 @@ public class ExclusionCaptureFilterGroup implements CaptureFilterGroup {
 					" is blocked by the sites robots.txt file");
 		}
 		if(sawAdministrative && !passedAdministrative) {
-			throw new AdminstrativeAccessControlException(requestUrl +
+			throw new AdministrativeAccessControlException(requestUrl +
 					"  is not available in the Wayback Machine.");
 		}
-
-//		if(postCounter.getNumMatched() == 0) {
-//
-//			// nothing got to the counter after exclusions. If we have 
-//			// exclusions (detected by preCounter being non-null, and the 
-//			// preCounter passed any results, then they were all filtered by
-//			// the exclusions filter.
-//			if(preCounter != null && preCounter.getNumMatched() > 0) {
-//				throw new AccessControlException("All results Excluded");
-//			}
-//		}
 	}
 
 	public void setPassedRobots() {
