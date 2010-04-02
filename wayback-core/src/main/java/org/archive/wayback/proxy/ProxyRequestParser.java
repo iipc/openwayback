@@ -79,4 +79,17 @@ public class ProxyRequestParser extends CompositeRequestParser {
 	    }
 	    return wbRequest;
 	}
+	/**
+	 * @return the addDefaults
+	 */
+	public boolean isAddDefaults() {
+		return prrp.isAddDefaults();
+	}
+
+	/**
+	 * @param addDefaults the addDefaults to set
+	 */
+	public void setAddDefaults(boolean addDefaults) {
+		prrp.setAddDefaults(addDefaults);
+	}
 }

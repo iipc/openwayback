@@ -44,6 +44,7 @@ import org.archive.wayback.webapp.AccessPoint;
 public class ProxyReplayRequestParser extends WrappedRequestParser {
 
 	private List<String> localhostNames = null;
+	private boolean addDefaults = true;
 
 	/**
 	 * @param wrapped
@@ -59,7 +60,9 @@ public class ProxyReplayRequestParser extends WrappedRequestParser {
 		if(localhostNames == null) {
 			localhostNames = InetAddressUtil.getAllLocalHostNames();
 		} else {
-			localhostNames.addAll(InetAddressUtil.getAllLocalHostNames());
+			if(addDefaults) {
+				localhostNames.addAll(InetAddressUtil.getAllLocalHostNames());
+			}
 		}
 	}
 	private boolean isLocalRequest(HttpServletRequest httpRequest) {
@@ -104,4 +107,17 @@ public class ProxyReplayRequestParser extends WrappedRequestParser {
 		this.localhostNames = localhostNames;
 	}
 
+	/**
+	 * @return the addDefaults
+	 */
+	public boolean isAddDefaults() {
+		return addDefaults;
+	}
+
+	/**
+	 * @param addDefaults the addDefaults to set
+	 */
+	public void setAddDefaults(boolean addDefaults) {
+		this.addDefaults = addDefaults;
+	}
 }
