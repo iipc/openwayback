@@ -28,8 +28,10 @@ package org.archive.wayback.resourceindex.ziplines;
 import it.unimi.dsi.mg4j.util.FrontCodedStringList;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -82,6 +84,7 @@ public class ZiplinesSearchResultSource implements SearchResultSource {
 	private String chunkMapPath = null;
 	private HashMap<String,String> chunkMap = null;
 	private CDXFormat format = null;
+	private int maxBlocks = 1000;
 	
 	public ZiplinesSearchResultSource() {
 	}
@@ -130,40 +133,51 @@ public class ZiplinesSearchResultSource implements SearchResultSource {
 		}
 	}
 	
-	public Iterator<String> getStringPrefixIterator(String prefix) throws ResourceIndexNotAvailableException, IOException {
-		CloseableIterator<String> itr = chunkIndex.getRecordIteratorLT(prefix);
+	public Iterator<String> getStringPrefixIterator(String prefix) 
+		throws ResourceIndexNotAvailableException, IOException {
+
 		ArrayList<ZiplinedBlock> blocks = new ArrayList<ZiplinedBlock>();
 		boolean first = true;
-		while(itr.hasNext()) {
-			String blockDescriptor = itr.next();
-			String parts[] = blockDescriptor.split("\t");
-			if(parts.length != 3) {
-				throw new ResourceIndexNotAvailableException("Bad line(" + 
-						blockDescriptor + ")");
+		int numBlocks = 0;
+		boolean truncated = false;
+		CloseableIterator<String> itr = null;
+		try {
+			itr = chunkIndex.getRecordIteratorLT(prefix);
+			while(itr.hasNext()) {
+				if(numBlocks >= maxBlocks) {
+					truncated = true;
+					break;
+				}
+				String blockDescriptor = itr.next();
+				numBlocks++;
+				String parts[] = blockDescriptor.split("\t");
+				if(parts.length != 3) {
+					throw new ResourceIndexNotAvailableException("Bad line(" + 
+							blockDescriptor + ")");
+				}
+				// only compare the correct length:
+				String prefCmp = prefix;
+				String blockCmp = parts[0];
+				if(first) {
+					// always add first:
+					first = false;
+				} else if(!blockCmp.startsWith(prefCmp)) {
+					// all done;
+					break;
+				}
+				// add this and keep lookin...
+				String url = chunkMap.get(parts[1]);
+				long offset = Long.parseLong(parts[2]);
+				blocks.add(new ZiplinedBlock(url, offset));
 			}
-			// only compare the correct length:
-			String prefCmp = prefix;
-			String blockCmp = parts[0];
-//			if(prefCmp.length() < blockCmp.length()) {
-//				blockCmp = blockCmp.substring(0,prefCmp.length());
-//			} else {
-//				prefCmp = prefCmp.substring(0,blockCmp.length());
-//			}
-			if(first) {
-				// always add first:
-				first = false;
-//			} else if(blockCmp.compareTo(prefCmp) > 0) {
-			} else if(!blockCmp.startsWith(prefCmp)) {
-				// all done;
-				break;
+		} finally {
+			if(itr != null) {
+				itr.close();
 			}
-			// add this and keep lookin...
-			String url = chunkMap.get(parts[1]);
-			long offset = Long.parseLong(parts[2]);
-			blocks.add(new ZiplinedBlock(url, offset));
 		}
-		itr.close();
-		return new StringPrefixIterator(new ZiplinesChunkIterator(blocks),prefix);
+		ZiplinesChunkIterator zci = new ZiplinesChunkIterator(blocks);
+		zci.setTruncated(truncated);
+		return new StringPrefixIterator(zci,prefix);
 	}
 
 	/* (non-Javadoc)
@@ -216,5 +230,103 @@ public class ZiplinesSearchResultSource implements SearchResultSource {
 	public void setChunkMapPath(String chunkMapPath) {
 		this.chunkMapPath = chunkMapPath;
 	}
+	/**
+	 * @return the maxBlocks
+	 */
+	public int getMaxBlocks() {
+		return maxBlocks;
+	}
+	/**
+	 * @param maxBlocks the maxBlocks to set
+	 */
+	public void setMaxBlocks(int maxBlocks) {
+		this.maxBlocks = maxBlocks;
+	}		
 
+	private static void USAGE() {
+		System.err.println("USAGE:");
+		System.err.println("");
+		System.err.println("zl-bin-search [-format FORMAT] [-max MAX_BLOCKS] SUMMARY LOCATION KEY");
+		System.err.println("");
+		System.err.println("Search a ziplined compressed CDX format index for key");
+		System.err.println("KEY to STDOUT. SUMMARY and LOCATION are paths to the");
+		System.err.println("block summary and file location files.");
+		System.err.println("With -format, output CDX in format FORMAT.");
+		System.err.println("With -max, limit search at most MAX_BLOCKS blocks.");
+		System.exit(1);
+	}
+	
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+//		String cdxSpec = CDXFormatIndex.CDX_HEADER_MAGIC;
+		String cdxSpec = " CDX N b a m s k r V g";
+		CDXFormat format = null;
+		try {
+			format = new CDXFormat(cdxSpec);
+		} catch (CDXFormatException e1) {
+			e1.printStackTrace();
+			System.exit(1);
+		}
+		ZiplinesSearchResultSource zl = new ZiplinesSearchResultSource(format);
+		PrintWriter pw = new PrintWriter(System.out);
+		int idx;
+		for(idx = 0; idx < args.length; idx++) {
+			if(args[idx].equals("-format")) {
+				idx++;
+				if(idx >= args.length) {
+					USAGE();
+				}
+				try {
+					zl.setFormat(new CDXFormat(args[idx]));
+				} catch (CDXFormatException e1) {
+					e1.printStackTrace();
+					System.exit(1);
+				}
+			} else if(args[idx].equals("-max")) {
+				idx++;
+				if(idx >= args.length) {
+					USAGE();
+				}
+				try {
+					zl.setMaxBlocks(Integer.parseInt(args[idx]));
+				} catch(NumberFormatException e) {
+					USAGE();
+					System.exit(1);
+				}
+
+			} else {
+				break;
+			}
+		}
+		if(args.length < idx + 3) {
+			USAGE();
+		}
+		// first is summary path, then location path, then search key:
+		zl.setChunkIndexPath(args[idx++]);
+		zl.setChunkMapPath(args[idx++]);
+		String key = args[idx++];
+		
+		try {
+			zl.init();
+			Iterator<String> itr = zl.getStringPrefixIterator(key);
+			boolean truncated = ((StringPrefixIterator)itr).isTruncated();
+			while(itr.hasNext()) {
+				pw.println(itr.next());
+			}
+			pw.close();
+			if(truncated) {
+				System.err.println("Note that results are truncated...");
+			}
+		} catch (ResourceIndexNotAvailableException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			System.exit(1);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			System.exit(1);
+		}
+	}
 }

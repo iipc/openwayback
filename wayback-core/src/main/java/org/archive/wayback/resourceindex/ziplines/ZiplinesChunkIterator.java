@@ -37,20 +37,27 @@ import java.util.List;
 import java.util.RandomAccess;
 import java.util.zip.GZIPInputStream;
 
+import org.apache.log4j.Logger;
 import org.archive.wayback.util.CloseableIterator;
+import org.archive.wayback.webapp.AccessPoint;
 
 /**
  * @author brad
  *
  */
 public class ZiplinesChunkIterator implements CloseableIterator<String> {
+	private static final Logger LOGGER = Logger.getLogger(
+			ZiplinesChunkIterator.class.getName());
+
 	private BufferedReader br = null;
 	private Iterator<ZiplinedBlock> blockItr = null;
 	private String cachedNext = null;
+	private boolean truncated = false;
 	/**
 	 * @param blocks which should be fetched and unzipped, one after another
 	 */
 	public ZiplinesChunkIterator(List<ZiplinedBlock> blocks) {
+		LOGGER.info("initialized with " + blocks.size() + " blocks");
 		blockItr = blocks.iterator();
 	}
 	/* (non-Javadoc)
@@ -147,5 +154,17 @@ public class ZiplinesChunkIterator implements CloseableIterator<String> {
 			e.printStackTrace();
 			System.exit(1);
 		}
+	}
+	/**
+	 * @return the truncated
+	 */
+	public boolean isTruncated() {
+		return truncated;
+	}
+	/**
+	 * @param truncated the truncated to set
+	 */
+	public void setTruncated(boolean truncated) {
+		this.truncated = truncated;
 	}
 }

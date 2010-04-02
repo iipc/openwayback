@@ -39,9 +39,16 @@ public class StringPrefixIterator implements CloseableIterator<String> {
 	Iterator<String> inner = null;
 	private String cachedNext = null;
 	private boolean done = false;
+	private boolean truncated = false;
 	public StringPrefixIterator(Iterator<String> inner, String prefix) {
 		this.prefix = prefix;
 		this.inner = inner;
+		if(inner instanceof ZiplinesChunkIterator) {
+			truncated = ((ZiplinesChunkIterator)inner).isTruncated();
+		}
+	}
+	public boolean isTruncated() {
+		return truncated;
 	}
 	/* (non-Javadoc)
 	 * @see java.util.Iterator#hasNext()

@@ -32,11 +32,16 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.zip.GZIPInputStream;
 
+import org.apache.log4j.Logger;
+
 /**
  * @author brad
  *
  */
 public class ZiplinedBlock {
+	private static final Logger LOGGER = Logger.getLogger(
+			ZiplinedBlock.class.getName());
+
 	String urlOrPath = null;
 	long offset = -1;
 	public final static int BLOCK_SIZE = 128 * 1024;
@@ -56,11 +61,13 @@ public class ZiplinedBlock {
 	 * @throws IOException for usual reasons
 	 */
 	public BufferedReader readBlock() throws IOException {
-		URL u = new URL(urlOrPath);
-		URLConnection uc = u.openConnection();
 		StringBuilder sb = new StringBuilder(16);
 		sb.append(BYTES_HEADER).append(offset).append(BYTES_MINUS);
 		sb.append((offset + BLOCK_SIZE)-1);
+		LOGGER.trace("Reading block:" + urlOrPath + "("+sb.toString()+")");
+		// TODO: timeouts
+		URL u = new URL(urlOrPath);
+		URLConnection uc = u.openConnection();
 		uc.setRequestProperty(RANGE_HEADER, sb.toString());
 		return new BufferedReader(new InputStreamReader(
 				new GZIPInputStream(uc.getInputStream())));
