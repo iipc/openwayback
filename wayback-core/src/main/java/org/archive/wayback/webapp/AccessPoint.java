@@ -49,12 +49,14 @@ import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.UIResults;
 import org.archive.wayback.core.UrlSearchResults;
 import org.archive.wayback.core.WaybackRequest;
+import org.archive.wayback.exception.AdministrativeAccessControlException;
 import org.archive.wayback.exception.AuthenticationControlException;
 import org.archive.wayback.exception.BaseExceptionRenderer;
 import org.archive.wayback.exception.BetterRequestException;
 import org.archive.wayback.exception.ResourceNotAvailableException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.exception.WaybackException;
+import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.util.operator.BooleanOperator;
 import org.springframework.beans.factory.BeanNameAware;
 
@@ -385,7 +387,12 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 				}
 
 				if(exclusionFactory != null) {
-					wbRequest.setExclusionFilter(exclusionFactory.get());
+					ExclusionFilter exclusionFilter = exclusionFactory.get();
+					if(exclusionFilter == null) {
+						throw new AdministrativeAccessControlException(
+								"AccessControl list unavailable");
+					}
+					wbRequest.setExclusionFilter(exclusionFilter);
 				}
 				// TODO: refactor this into RequestParser implementations, so a
 				// user could alter requests to change the behavior within a
@@ -482,6 +489,9 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 	public void shutdown() throws IOException {
 		if(collection != null) {
 			collection.shutdown();
+		}
+		if(exclusionFactory != null) {
+			exclusionFactory.shutdown();
 		}
 	}
 	
