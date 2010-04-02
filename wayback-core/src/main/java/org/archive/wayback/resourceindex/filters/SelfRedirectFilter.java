@@ -29,6 +29,7 @@ import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.util.ObjectFilter;
 import org.archive.wayback.util.url.AggressiveUrlCanonicalizer;
+import org.archive.wayback.util.url.UrlOperations;
 
 /**
  * SearchResultFilter which INCLUDEs all records, unless they redirect to 
@@ -59,7 +60,14 @@ public class SelfRedirectFilter implements ObjectFilter<CaptureSearchResult> {
 				try {
 					String redirectKey = canonicalizer.urlStringToKey(redirect);
 					if(redirectKey.compareTo(urlKey) == 0) {
-						return FILTER_EXCLUDE;
+						// only omit if same scheme:
+						String origScheme = 
+							UrlOperations.urlToScheme(r.getOriginalUrl());
+						String redirScheme = 
+							UrlOperations.urlToScheme(redirect);
+						if(origScheme.compareTo(redirScheme) == 0) {
+							return FILTER_EXCLUDE;
+						}
 					}
 				} catch (URIException e) {
 					// emit message (is that right?) and continue
