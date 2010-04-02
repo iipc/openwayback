@@ -43,7 +43,7 @@ import org.archive.wayback.exception.AccessControlException;
 import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
-import org.archive.wayback.resourceindex.adapters.CaptureToUrlSearchResultAdapter;
+import org.archive.wayback.resourceindex.adapters.CaptureToUrlSearchResultIterator;
 import org.archive.wayback.resourceindex.filterfactory.AccessPointCaptureFilterGroupFactory;
 import org.archive.wayback.resourceindex.filterfactory.CaptureFilterGroup;
 import org.archive.wayback.resourceindex.filterfactory.CoreCaptureFilterGroupFactory;
@@ -242,7 +242,7 @@ public class LocalResourceIndex implements ResourceIndex {
 		uFilters.addFilters(window.getFilters());
 		CloseableIterator<UrlSearchResult> itrU = 
 			new ObjectFilterIterator<UrlSearchResult>(
-					CaptureToUrlSearchResultAdapter.adaptCaptureIterator(itrC),
+					new CaptureToUrlSearchResultIterator(itrC),
 					uFilters);
 		
 		while(itrU.hasNext()) {
