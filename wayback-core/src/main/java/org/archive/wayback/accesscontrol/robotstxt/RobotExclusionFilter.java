@@ -230,7 +230,9 @@ public class RobotExclusionFilter extends ExclusionFilter {
 	 */
 	public int filterObject(CaptureSearchResult r) {
 		if(!notifiedSeen) {
-			filterGroup.setSawRobots();
+			if(filterGroup != null) {
+				filterGroup.setSawRobots();
+			}
 			notifiedSeen = true;
 		}
 		int filterResult = ObjectFilter.FILTER_EXCLUDE; 
@@ -242,7 +244,9 @@ public class RobotExclusionFilter extends ExclusionFilter {
 				url = new URL(ArchiveUtils.addImpliedHttpIfNecessary(resultURL));
 				if(!rules.blocksPathForUA(url.getPath(), userAgent)) {
 					if(!notifiedPassed) {
-						filterGroup.setPassedRobots();
+						if(filterGroup != null) {
+							filterGroup.setPassedRobots();
+						}
 						notifiedPassed = true;
 					}
 					filterResult = ObjectFilter.FILTER_INCLUDE;
