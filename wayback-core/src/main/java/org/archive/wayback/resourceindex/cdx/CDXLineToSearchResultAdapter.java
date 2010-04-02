@@ -25,6 +25,7 @@
 package org.archive.wayback.resourceindex.cdx;
 
 
+import org.apache.log4j.Logger;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.util.Adapter;
 import org.archive.wayback.util.url.UrlOperations;
@@ -37,6 +38,8 @@ import org.archive.wayback.util.url.UrlOperations;
  */
 public class CDXLineToSearchResultAdapter implements Adapter<String,CaptureSearchResult> {
 
+	private static final Logger LOGGER = Logger.getLogger(
+			CDXLineToSearchResultAdapter.class.getName());
 	
 	private final static String SCHEME_STRING = "://";
 	private final static String DEFAULT_SCHEME = "http://";
@@ -103,7 +106,13 @@ public class CDXLineToSearchResultAdapter implements Adapter<String,CaptureSearc
 		}
 
 		if(!tokens[nextToken].equals("-")) {
-			compressedOffset = Long.parseLong(tokens[nextToken]);
+			try {
+				compressedOffset = Long.parseLong(tokens[nextToken]);
+			} catch (NumberFormatException e) {
+				LOGGER.warn("Bad compressed Offset field("+nextToken+") in (" +
+						line +")");
+				return null;
+			}
 		}
 		nextToken++;
 		String fileName = tokens[nextToken];
