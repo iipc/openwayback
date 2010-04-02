@@ -62,7 +62,7 @@ public class BDBIndex extends BDBRecordSet implements
 	 * @throws DatabaseException
 	 * @throws ConfigurationException
 	 */
-	public void init() throws DatabaseException, ConfigurationException {
+	public void init() throws IOException, ConfigurationException {
 		initializeDB(bdbPath,bdbName);
 	}
 
@@ -151,7 +151,7 @@ public class BDBIndex extends BDBRecordSet implements
 		UrlCanonicalizer canonicalizer = new AggressiveUrlCanonicalizer();
 		try {
 			index.initializeDB(path,name);
-		} catch (DatabaseException e) {
+		} catch (IOException e) {
 			e.printStackTrace();
 			System.exit(1);
 		}

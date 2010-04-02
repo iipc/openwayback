@@ -87,11 +87,7 @@ public class BDBResourceFileLocationDB implements ResourceFileLocationDB {
 	
 	public void init() throws IOException {
 		bdb = new BDBRecordSet();
-		try {
-			bdb.initializeDB(bdbPath,bdbName);
-		} catch (DatabaseException e) {
-			throw wrapDBException(e);
-		}
+		bdb.initializeDB(bdbPath,bdbName);
 		if(logPath == null) {
 			throw new IOException("No logPath");
 		}

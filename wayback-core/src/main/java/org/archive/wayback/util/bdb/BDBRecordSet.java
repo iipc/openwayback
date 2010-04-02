@@ -25,6 +25,7 @@
 package org.archive.wayback.util.bdb;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Iterator;
 
@@ -74,10 +75,10 @@ public class BDBRecordSet {
 	/**
 	 * @param thePath Directory where BDBJE files are stored
 	 * @param theDbName Name of files in thePath
-	 * @throws DatabaseException
+	 * @throws IOException for usual reasons, plus as database exceptions
 	 */
 	public void initializeDB(final String thePath, final String theDbName)
-			throws DatabaseException {
+			throws IOException {
 		path = thePath;
 		dbName = theDbName;
 
@@ -88,7 +89,7 @@ public class BDBRecordSet {
 		File file = new File(path);
 		if(!file.isDirectory()) {
 			if(!file.mkdirs()) {
-				throw new DatabaseException("failed mkdirs(" + path + ")");
+				throw new IOException("failed mkdirs(" + path + ")");
 			}
 		}
 		env = new Environment(file, environmentConfig);
