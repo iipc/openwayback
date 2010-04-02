@@ -81,7 +81,9 @@ public class StaticMapExclusionFilter extends ExclusionFilter {
 	 */
 	public int filterObject(CaptureSearchResult r) {
 		if(!notifiedSeen) { 
-			filterGroup.setSawAdministrative();
+			if(filterGroup != null) {
+				filterGroup.setSawAdministrative();
+			}
 			notifiedSeen = true;
 		}
 		String url = r.getOriginalUrl();
@@ -102,7 +104,9 @@ public class StaticMapExclusionFilter extends ExclusionFilter {
 			return ObjectFilter.FILTER_EXCLUDE;
 		} else {
 			if(!notifiedPassed) {
-				filterGroup.setPassedAdministrative();
+				if(filterGroup != null) {
+					filterGroup.setPassedAdministrative();
+				}
 				notifiedPassed = true;
 			}
 			return ObjectFilter.FILTER_INCLUDE;

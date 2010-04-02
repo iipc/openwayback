@@ -73,6 +73,9 @@ public class StaticMapExclusionFilterFactory implements ExclusionFilterFactory {
 	protected void reloadFile() throws IOException {
 		long currentMod = file.lastModified();
 		if(currentMod == lastUpdated) {
+			if(currentMod == 0) {
+				LOGGER.error("No exclude file at " + file.getAbsolutePath());
+			}
 			return;
 		}
 		LOGGER.info("Reloading exclusion file " + file.getAbsolutePath());
