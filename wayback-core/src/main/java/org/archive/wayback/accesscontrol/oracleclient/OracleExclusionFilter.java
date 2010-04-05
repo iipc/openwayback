@@ -32,7 +32,6 @@ import org.archive.accesscontrol.RuleOracleUnavailableException;
 import org.archive.util.ArchiveUtils;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
-import org.archive.wayback.util.ObjectFilter;
 
 /**
  * @author brad
@@ -46,7 +45,7 @@ public class OracleExclusionFilter extends ExclusionFilter {
 	private final static String POLICY_BLOCK = "block";
 	private final static String POLICY_ROBOT = "robots";
 	private boolean notifiedRobotSeen = false;
-	private boolean notifiedRobotPassed = false;
+//	private boolean notifiedRobotPassed = false;
 	private boolean notifiedAdminSeen = false;
 	private boolean notifiedAdminPassed = false;
 	
