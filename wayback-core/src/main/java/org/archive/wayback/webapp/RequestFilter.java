@@ -148,6 +148,10 @@ public class RequestFilter implements Filter {
 					// cross your fingers!!!
 					LOGGER.info("Server-Relative-Redirect:\t" + referer + "\t" 
 							+ thisPath + "\t" + finalUrl);
+
+					// Gotta make sure this is properly cached, or
+					// weird things happen:
+					httpResponse.addHeader("Vary", "Referer");
 					httpResponse.sendRedirect(finalUrl);
 					handled = true;
 
