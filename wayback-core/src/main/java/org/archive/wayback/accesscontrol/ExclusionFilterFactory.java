@@ -24,9 +24,7 @@
  */
 package org.archive.wayback.accesscontrol;
 
-import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
-import org.archive.wayback.util.ObjectFilter;
 /**
  *
  *

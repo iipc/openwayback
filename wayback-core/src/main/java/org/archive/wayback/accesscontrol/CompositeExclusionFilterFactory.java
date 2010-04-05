@@ -27,10 +27,8 @@ package org.archive.wayback.accesscontrol;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.resourceindex.filters.CompositeExclusionFilter;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
-import org.archive.wayback.util.ObjectFilter;
 
 /**
  * Class that provides SearchResult Filtering based on multiple
