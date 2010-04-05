@@ -82,6 +82,8 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 	private static final Logger LOGGER = Logger.getLogger(
 			AccessPoint.class.getName());
 	
+	private String liveWebPrefix = null;
+	
 	private boolean useServerName = false;
 	private boolean useAnchorWindow = false;
 	private boolean exactSchemeMatch = true;
@@ -243,7 +245,7 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 	 * @return the portion of the request following the path to this context
 	 * without leading '/'
 	 */
-	private String translateRequest(HttpServletRequest httpRequest, 
+	protected String translateRequest(HttpServletRequest httpRequest, 
 			boolean includeQuery) {
 
 		String origRequestPath = httpRequest.getRequestURI();
@@ -334,7 +336,7 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 		return getAbsoluteContextPrefix(httpRequest, useServerName);
 	}
 
-	private boolean dispatchLocal(HttpServletRequest httpRequest,
+	protected boolean dispatchLocal(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse) 
 	throws ServletException, IOException {
 		
@@ -418,11 +420,20 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 			handled = true;
 
 		} catch(WaybackException e) {
-			logNotInArchive(e,wbRequest);
-			exception.renderException(httpRequest, httpResponse, wbRequest, e, 
-					uriConverter);
+			boolean drawError = true;
+			if(e instanceof ResourceNotInArchiveException) {
+				if(liveWebPrefix != null) {
+					String liveUrl = liveWebPrefix + wbRequest.getRequestUrl();
+					httpResponse.sendRedirect(liveUrl);
+					drawError = false;
+				}
+			}
+			if(drawError) {
+				logNotInArchive(e,wbRequest);
+				exception.renderException(httpRequest, httpResponse, wbRequest, e, 
+						uriConverter);
+			}
 		}
-
 		return handled;
 	}
 
@@ -705,5 +716,19 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 	 */
 	public void setExactHostMatch(boolean exactHostMatch) {
 		this.exactHostMatch = exactHostMatch;
+	}
+
+	/**
+	 * @return the liveWebPrefix
+	 */
+	public String getLiveWebPrefix() {
+		return liveWebPrefix;
+	}
+
+	/**
+	 * @param liveWebPrefix the liveWebPrefix to set
+	 */
+	public void setLiveWebPrefix(String liveWebPrefix) {
+		this.liveWebPrefix = liveWebPrefix;
 	}
 }
