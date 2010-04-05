@@ -32,11 +32,9 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.archive.wayback.accesscontrol.ExclusionFilterFactory;
-import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.surt.SURTTokenizer;
 import org.archive.wayback.util.CloseableIterator;
-import org.archive.wayback.util.ObjectFilter;
 import org.archive.wayback.util.flatfile.FlatFile;
 
 /**

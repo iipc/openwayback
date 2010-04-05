@@ -25,10 +25,8 @@
 package org.archive.wayback.accesscontrol.robotstxt;
 
 import org.archive.wayback.accesscontrol.ExclusionFilterFactory;
-import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.liveweb.LiveWebCache;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
-import org.archive.wayback.util.ObjectFilter;
 
 /**
  *
