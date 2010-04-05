@@ -112,7 +112,7 @@ public class RobotRules {
                         current = new ArrayList<String>();
                     }
                     rules.put(ua, current);
-                    LOGGER.info("Found User-agent(" + ua + ") rules...");
+                    LOGGER.trace("Found User-agent(" + ua + ") rules...");
                     continue;
                 }
                 if (read.matches("(?i)Disallow:.*")) {
@@ -145,11 +145,12 @@ public class RobotRules {
 				return false;
 
 			} else {
-				LOGGER.info("UA(" + curUA + ") has ("
+				LOGGER.trace("UA(" + curUA + ") has ("
 						+ disallowedPath + ") blocked...("
 						+ disallowedPath.length() + ")");
 				if (disallowedPath.equals("/") || path.startsWith(disallowedPath)) {
-					LOGGER.info("THIS APPLIES!!!");
+					LOGGER.info("Rule(" + disallowedPath + ") applies to (" +
+							path + ")");
 					return true;
 				}
 			}
