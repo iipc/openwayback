@@ -176,7 +176,7 @@ public class RobotExclusionFilter extends ExclusionFilter {
 				firstUrlString = urlString;
 			}
 			if(rulesCache.containsKey(urlString)) {
-				LOGGER.info("ROBOT: Cached("+urlString+")");
+				LOGGER.fine("ROBOT: Cached("+urlString+")");
 				rules = rulesCache.get(urlString);
 				if(!urlString.equals(firstUrlString)) {
 					LOGGER.info("Adding extra url("+firstUrlString+") for prev cached rules("+urlString+")");
@@ -184,7 +184,7 @@ public class RobotExclusionFilter extends ExclusionFilter {
 				}
 			} else {
 				try {
-					LOGGER.info("ROBOT: NotCached("+urlString+")");
+					LOGGER.info("ROBOT: NotCached - Downloading("+urlString+")");
 				
 					tmpRules = new RobotRules();
 					Resource resource = webCache.getCachedResource(new URL(urlString),
