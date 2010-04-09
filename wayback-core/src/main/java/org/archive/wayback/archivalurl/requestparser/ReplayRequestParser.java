@@ -27,16 +27,12 @@ package org.archive.wayback.archivalurl.requestparser;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.httpclient.URIException;
-import org.archive.net.UURIFactory;
-import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.archivalurl.ArchivalUrlRequestParser;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BetterRequestException;
 import org.archive.wayback.requestparser.BaseRequestParser;
 import org.archive.wayback.requestparser.PathRequestParser;
 import org.archive.wayback.util.Timestamp;
-import org.archive.wayback.util.url.UrlOperations;
 import org.archive.wayback.webapp.AccessPoint;
 
 /**
