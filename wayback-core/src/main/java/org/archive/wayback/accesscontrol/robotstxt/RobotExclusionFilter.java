@@ -61,11 +61,11 @@ import org.archive.wayback.util.ObjectFilter;
  */
 public class RobotExclusionFilter extends ExclusionFilter {
 
-	private final static Logger LOGGER = Logger.getLogger(RobotExclusionFilter.class.getName());
-	
+	private final static Logger LOGGER = 
+		Logger.getLogger(RobotExclusionFilter.class.getName());
+
 	private final static String HTTP_PREFIX = "http://";
 	private final static String ROBOT_SUFFIX = "/robots.txt";
-
 
 	private static String WWWN_REGEX = "^www[0-9]+\\.";
 	private final static Pattern WWWN_PATTERN = Pattern.compile(WWWN_REGEX);
@@ -160,11 +160,7 @@ public class RobotExclusionFilter extends ExclusionFilter {
 		List<String> urlStrings = searchResultToRobotUrlStrings(host);
 		Iterator<String> itr = urlStrings.iterator();
 		String firstUrlString = null;
-//		StringBuilder sb = new StringBuilder();
-//		for(String ttt : urlStrings) {
-//			sb.append("RU(").append(ttt).append(")");
-//		}
-//		LOGGER.info("RobotUrls for("+host+")"+sb.toString());
+
 		// loop through them all. As soon as we get a response, store that
 		// in the cache for the FIRST url we tried and return it..
 		// If we get no responses for any of the robot URLs, use "empty" rules,
@@ -202,15 +198,13 @@ public class RobotExclusionFilter extends ExclusionFilter {
 					LOGGER.info("ROBOT: LiveDocumentNotAvailableException("+urlString+")");
 
 				} catch (MalformedURLException e) {
-					e.printStackTrace();
+//					e.printStackTrace();
 					LOGGER.info("ROBOT: MalformedURLException("+urlString+")");
 					return null;
 				} catch (IOException e) {
-					e.printStackTrace(System.err);
-					LOGGER.info("ROBOT: IOException("+urlString+"):"+e.getLocalizedMessage());
+					LOGGER.warning("ROBOT: IOException("+urlString+"):"+e.getLocalizedMessage());
 					return null;
 				} catch (LiveWebCacheUnavailableException e) {
-					e.printStackTrace();
 					LOGGER.info("ROBOT: LiveWebCacheUnavailableException("+urlString+")");
 					return null;
 				}
