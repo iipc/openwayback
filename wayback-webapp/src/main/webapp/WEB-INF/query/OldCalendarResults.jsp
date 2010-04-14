@@ -9,10 +9,8 @@
 <%@ page import="org.archive.wayback.core.CaptureSearchResults" %>
 <%@ page import="org.archive.wayback.core.UIResults" %>
 <%@ page import="org.archive.wayback.core.WaybackRequest" %>
-<%@ page import="org.archive.wayback.partition.CaptureSearchResultPartitionMap" %>
-<%@ page import="org.archive.wayback.util.partition.Partition" %>
-<%@ page import="org.archive.wayback.util.partition.Partitioner" %>
-<%@ page import="org.archive.wayback.util.partition.PartitionSize" %>
+<%@ page import="org.archive.wayback.query.resultspartitioner.ResultsPartitionsFactory" %>
+<%@ page import="org.archive.wayback.query.resultspartitioner.ResultsPartition" %>
 <%@ page import="org.archive.wayback.util.StringFormatter" %>
 <jsp:include page="/WEB-INF/template/UI-header.jsp" flush="true" />
 <jsp:include page="/WEB-INF/template/CookieJS.jsp" flush="true" />
@@ -22,7 +20,7 @@ UIResults results = UIResults.extractCaptureQuery(request);
 WaybackRequest wbRequest = results.getWbRequest();
 CaptureSearchResults cResults = results.getCaptureResults();
 StringFormatter fmt = wbRequest.getFormatter();
-String searchString = fmt.escapeHtml(wbRequest.getRequestUrl());
+String searchString = wbRequest.getRequestUrl();
 List<String> closeMatches = cResults.getCloseMatches();
 
 
@@ -32,16 +30,8 @@ long firstResult = cResults.getFirstReturned();
 long lastResult = cResults.getReturnedCount() + firstResult;
 long resultCount = cResults.getMatchingCount();
 
-CaptureSearchResultPartitionMap map = 
-	new CaptureSearchResultPartitionMap();
-Partitioner<CaptureSearchResult> partitioner = 
-	new Partitioner<CaptureSearchResult>(map);
-PartitionSize size = partitioner.getSize(searchStartDate,searchEndDate,13);
-List<Partition<CaptureSearchResult>> partitions = 
-	partitioner.getRange(size,searchStartDate,searchEndDate);
-
-Iterator<CaptureSearchResult> it = cResults.iterator();
-partitioner.populate(partitions,it);
+ArrayList<ResultsPartition> partitions = 
+	ResultsPartitionsFactory.get(cResults, wbRequest);
 int numPartitions = partitions.size();
 %>
 <table border="0" cellpadding="5" width="100%" class="mainSearchBanner" cellspacing="0">
@@ -70,10 +60,10 @@ int numPartitions = partitions.size();
    <tr bgcolor="#CCCCCC">
 <%
   for(int i = 0; i < numPartitions; i++) {
-	  Partition<CaptureSearchResult> partition = partitions.get(i);
+    ResultsPartition partition = partitions.get(i);
 %>
       <td align="center" class="mainBigBody">
-         <%= fmt.format("PartitionSize.dateHeader."+size.name(),partition.getStart(), partition.getEnd()) %>
+         <%= partition.getTitle() %>
       </td>
 <%
   }
@@ -87,10 +77,10 @@ int numPartitions = partitions.size();
    <tr bgcolor="#CCCCCC">
 <%
   for(int i = 0; i < numPartitions; i++) {
-	  Partition<CaptureSearchResult> partition = partitions.get(i);
+    ResultsPartition partition = (ResultsPartition) partitions.get(i);
 %>
       <td align="center" class="mainBigBody">
-         <%= fmt.format("Partition.columnSummary",partition.count()) %>
+         <%= fmt.format("ResultPartition.columnSummary",partition.resultsCount()) %>
       </td>
 <%
   }
@@ -106,8 +96,8 @@ int numPartitions = partitions.size();
   String lastMD5 = null;
 
   for(int i = 0; i < numPartitions; i++) {
-	  Partition<CaptureSearchResult> partition = partitions.get(i);
-	  List<CaptureSearchResult> partitionResults = partition.list();
+    ResultsPartition partition = (ResultsPartition) partitions.get(i);
+    ArrayList<CaptureSearchResult> partitionResults = partition.getMatches();
 %>
       <td nowrap class="mainBody" valign="top">
 <%
@@ -135,7 +125,7 @@ int numPartitions = partitions.size();
       String arcFile = result.getFile();
       String arcOffset = String.valueOf(result.getOffset());
     
-      String replayUrl = fmt.escapeHtml(results.resultToReplayUrl(result));
+      String replayUrl = results.resultToReplayUrl(result);
     
       boolean updated = false;
       if(lastMD5 == null) {
@@ -174,9 +164,8 @@ if(closeMatches != null && !closeMatches.isEmpty()) {
 	<%
 	for(String closeMatch : closeMatches) {
 		tmp.setRequestUrl(closeMatch);
-		String link = fmt.escapeHtml(tmp.getContextPrefix() + "query?" +
-			tmp.getQueryArguments());
-		closeMatch = fmt.escapeHtml(closeMatch);
+		String link = tmp.getContextPrefix() + "query?" +
+			tmp.getQueryArguments();
 		%>
 		<a href="<%= link %>"><%= closeMatch %></a><br>
 		<%
@@ -195,7 +184,7 @@ if(cResults.getNumPages() > 1) {
       <%    
     } else {
       %>
-      <a href="<%= fmt.escapeHtml(results.urlForPage(i)) %>"><%= i %></a>
+      <a href="<%= results.urlForPage(i) %>"><%= i %></a>
       <%
     }
   }
