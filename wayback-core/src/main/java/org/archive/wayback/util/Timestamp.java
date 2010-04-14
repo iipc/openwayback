@@ -289,6 +289,7 @@ public class Timestamp {
 		cal.set(Calendar.HOUR_OF_DAY,iHour);
 		cal.set(Calendar.MINUTE,iMinute);
 		cal.set(Calendar.SECOND,iSecond);
+		cal.set(Calendar.MILLISECOND,0);
 		
 		return cal;
 	}
