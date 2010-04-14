@@ -207,6 +207,11 @@ public class WaybackRequest {
 	 * scheme as that specified in REQUEST_URL.
 	 */
 	public static final String REQUEST_EXACT_SCHEME_ONLY = "requestexactscheme";
+
+	/**
+	 * Indicates user requested content from proxied from the live web.
+	 */
+	public static final String REQUEST_IS_LIVE_WEB = "requestliveweb";
 	
 	/**
 	 * indicates positive value for any request boolean flag.
@@ -719,6 +724,13 @@ public class WaybackRequest {
 	}
 	public boolean isExactScheme() {
 		return getBoolean(REQUEST_EXACT_SCHEME_ONLY);
+	}
+
+	public void setLiveWebRequest(boolean isLiveWebRequest) {
+		setBoolean(REQUEST_IS_LIVE_WEB,isLiveWebRequest);
+	}
+	public boolean isLiveWebRequest() {
+		return getBoolean(REQUEST_IS_LIVE_WEB);
 	}
 	
 	public String getAnchorTimestamp() {
