@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.apache.log4j.Logger;
+import org.archive.io.ArchiveFileConstants;
 import org.archive.io.WriterPoolSettings;
 import org.archive.io.arc.ARCConstants;
 import org.archive.io.arc.ARCWriter;
@@ -40,12 +41,11 @@ import org.archive.wayback.resourcestore.resourcefile.ResourceFactory;
 import org.archive.wayback.util.DirMaker;
 
 /**
- * Class which manages a growing set of ARC files, managed by an ARCWriterPool.
+ * Class uses an ARCWriterPool to provide access to a set of ARCWriters, 
+ * exposing getting and setters which simplify Spring configuration.
  * 
- * Clients can grab an ARCWriter that they use to append to one of the ARC 
- * files.
- * 
- * This class also transforms ARCLocations into ARCRecords, using an ARCReader. 
+ * This class also provides one method, getResource() which transforms a String
+ * path and an long offset into a Resource.
  *
  * @author brad
  * @version $Date$, $Revision$
@@ -54,33 +54,23 @@ public class ARCCacheDirectory {
 	private static final Logger LOGGER = Logger.getLogger(
 			ARCCacheDirectory.class.getName());
 
-	private final static int MAX_POOL_WRITERS = 5;
-
-	private final static int MAX_POOL_WAIT = 60 * 1000;
-
-	private static final String OPEN_SUFFIX = ".open";
-	/**
-	 * directory where live generated ARCs are stored
-	 */
-	public static final String LIVE_WEB_ARC_DIR = "liveweb.arc.dir";
-
-	/**
-	 * prefeix for live generated ARC files.
-	 */
-	public static final String LIVE_WEB_ARC_PREFIX = "liveweb.arc.prefix";
-	private ARCWriterPool pool = null;
+	private int poolWriters = 5;
+	private int maxPoolWait = 60 * 1000;	
+	private long maxARCSize = ARCConstants.DEFAULT_MAX_ARC_FILE_SIZE;
 	private String arcPrefix = "wayback-live";
+	
 	private File arcDir = null;
+	private ARCWriterPool pool = null;
 
 	/**
-	 * @throws IOException
+	 * @throws IOException for usual reasons
 	 */
 	public void init() throws IOException {
 		// TODO: check that all props have been set
 		arcDir = DirMaker.ensureDir(arcDir.getAbsolutePath(),"arcPath");
 		File[] files = { arcDir };
 		WriterPoolSettings settings = getSettings(true, arcPrefix, files);
-		pool = new ARCWriterPool(settings, MAX_POOL_WRITERS, MAX_POOL_WAIT);
+		pool = new ARCWriterPool(settings, poolWriters, maxPoolWait);
 	}
 	
 	/**
@@ -94,7 +84,7 @@ public class ARCCacheDirectory {
 	 * get an ARCWriter. be sure to return it to the pool with returnWriter.
 	 * 
 	 * @return an ARCWriter prepared to store an ARCRecord
-	 * @throws IOException
+	 * @throws IOException for usual reasons
 	 */
 	public ARCWriter getWriter() throws IOException {
 		return (ARCWriter) pool.borrowFile();
@@ -102,7 +92,7 @@ public class ARCCacheDirectory {
 	
 	/**
 	 * @param w previously borrowed ARCWriter
-	 * @throws IOException
+	 * @throws IOException for usual reasons
 	 */
 	public void returnWriter(ARCWriter w) throws IOException {
 		pool.returnFile(w);
@@ -111,10 +101,10 @@ public class ARCCacheDirectory {
 	/**
 	 * transform an ARCLocation into a Resource. Be sure to call close() on it
 	 * when processing is finished.
-	 * @param path 
-	 * @param offset 
+	 * @param path to ARC file
+	 * @param offset within file where record begins
 	 * @return the Resource for the location
-	 * @throws IOException 
+	 * @throws IOException for usual reasons
 	 */
 	public Resource getResource(String path, long offset) throws IOException {
 		File arc = new File(path);
@@ -122,9 +112,9 @@ public class ARCCacheDirectory {
 			String base = arc.getName();
 			arc = new File(arcDir,base);
 			if(!arc.exists()) {
-				if(base.endsWith(OPEN_SUFFIX)) {
+				if(base.endsWith(ArchiveFileConstants.OCCUPIED_SUFFIX)) {
 					String newBase = base.substring(0,base.length() -
-							OPEN_SUFFIX.length());
+							ArchiveFileConstants.OCCUPIED_SUFFIX.length());
 					arc = new File(arcDir,newBase);
 				}
 			}
@@ -142,7 +132,7 @@ public class ARCCacheDirectory {
 			final String prefix, final File[] arcDirs) {
 		return new WriterPoolSettings() {
 			public long getMaxSize() {
-				return ARCConstants.DEFAULT_MAX_ARC_FILE_SIZE;
+				return maxARCSize;
 			}
 
 			public List<File> getOutputDirs() {
@@ -163,7 +153,6 @@ public class ARCCacheDirectory {
 			}
 
 			public String getSuffix() {
-				// TODO: is correct?
 				return null;
 			}
 		};
@@ -195,5 +184,47 @@ public class ARCCacheDirectory {
 	 */
 	public void setArcDir(String arcPath) {
 		this.arcDir = new File(arcPath);
+	}
+
+	/**
+	 * @return the poolWriters
+	 */
+	public int getPoolWriters() {
+		return poolWriters;
+	}
+
+	/**
+	 * @param poolWriters the poolWriters to set
+	 */
+	public void setPoolWriters(int poolWriters) {
+		this.poolWriters = poolWriters;
+	}
+
+	/**
+	 * @return the maxPoolWait
+	 */
+	public int getMaxPoolWait() {
+		return maxPoolWait;
+	}
+
+	/**
+	 * @param maxPoolWait the maxPoolWait to set
+	 */
+	public void setMaxPoolWait(int maxPoolWait) {
+		this.maxPoolWait = maxPoolWait;
+	}
+
+	/**
+	 * @return the maxARCSize
+	 */
+	public long getMaxARCSize() {
+		return maxARCSize;
+	}
+
+	/**
+	 * @param maxARCSize the maxARCSize to set
+	 */
+	public void setMaxARCSize(long maxARCSize) {
+		this.maxARCSize = maxARCSize;
 	}
 }
