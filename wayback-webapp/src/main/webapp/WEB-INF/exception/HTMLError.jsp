@@ -5,12 +5,14 @@
 <%@ page import="org.archive.wayback.core.UIResults" %>
 <%@ page import="org.archive.wayback.core.WaybackRequest" %>
 <%@ page import="org.archive.wayback.util.StringFormatter" %>
+<%@ page import="org.archive.wayback.util.url.UrlOperations" %>
 <%
 UIResults results = UIResults.extractException(request);
 WaybackException e = results.getException();
+WaybackRequest wbr = results.getWbRequest();
 e.setupResponse(response);
-String contextRoot = results.getWbRequest().getContextPrefix();
-
+String contextRoot = wbr.getContextPrefix();
+String requestUrl = wbr.getRequestUrl();
 %>
 
 <jsp:include page="/WEB-INF/template/UI-header.jsp" flush="true" />
@@ -28,9 +30,10 @@ if(e instanceof ResourceNotInArchiveException) {
 	List<String> closeMatches = niae.getCloseMatches();
 	if(closeMatches != null && !closeMatches.isEmpty()) {
 %>
-		Other requests to try:<br>
+		<p>
+		Other possible close matches to try:<br></br>
 <%
-		WaybackRequest tmp = results.getWbRequest().clone();
+		WaybackRequest tmp = wbr.clone();
 		for(String closeMatch : closeMatches) {
 			tmp.setRequestUrl(closeMatch);
 			String link = tmp.getContextPrefix() + "query?" +
@@ -39,6 +42,23 @@ if(e instanceof ResourceNotInArchiveException) {
 			<a href="<%= link %>"><%= closeMatch %></a><br>
 <%
 		}
+	}
+	String parentUrl = UrlOperations.getUrlParentDir(requestUrl);
+	if(parentUrl != null) {
+		WaybackRequest tmp = wbr.clone();
+		tmp.setRequestUrl(parentUrl);
+		tmp.setUrlQueryRequest();
+		String link = tmp.getContextPrefix() + "query?" +
+			tmp.getQueryArguments();
+		String escapedLink = fmt.escapeHtml(link);
+		String escapedParentUrl = fmt.escapeHtml(parentUrl);
+		%>
+		</p>
+		<p>
+		More options:<br></br>
+			Try Searching all pages under <a href="<%= escapedLink %>"><%= escapedParentUrl %></a>
+		</p>
+		<%
 	}
 }
 %>
