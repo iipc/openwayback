@@ -9,6 +9,7 @@ import junit.framework.TestCase;
  * @version $Date$, $Revision$
  */
 public class UrlOperationsTest extends TestCase {
+
 	public void testIsAuthority() {
 		checkAuthority("foo.com",true);
 		checkAuthority("foo.con",false);
@@ -93,5 +94,40 @@ public class UrlOperationsTest extends TestCase {
 		assertEquals("rtsp://",UrlOperations.urlToScheme("rtsp://a.com/"));
 		assertEquals("mms://",UrlOperations.urlToScheme("mms://a.com/"));
 		assertNull(UrlOperations.urlToScheme("blah://a.com/"));
-	}	
+	}
+	
+	public void testGetUrlParentDir() {
+
+		assertEquals(                         "http://a.b/c/",
+				UrlOperations.getUrlParentDir("http://a.b/c/d"));
+
+		assertEquals(                         "http://a.b/",
+				UrlOperations.getUrlParentDir("http://a.b/c/"));
+
+		assertEquals(                         "http://a.b/",
+				UrlOperations.getUrlParentDir("http://a.b/c"));
+
+		assertEquals(                         "http://a.b/c/d/e/",
+				UrlOperations.getUrlParentDir("http://a.b/c/d/e/f"));
+
+		assertEquals(                         "http://a.b/",
+				UrlOperations.getUrlParentDir("http://a.b/c?d=e"));
+
+		assertEquals(                         null,
+				UrlOperations.getUrlParentDir("http://a.b/"));
+		
+		assertEquals(                         null,
+				UrlOperations.getUrlParentDir("http//a.b/"));
+
+		assertEquals(                         null,
+				UrlOperations.getUrlParentDir("http://"));
+
+		assertEquals(                         null,
+				UrlOperations.getUrlParentDir("http://#4.8gifdijdf"));
+
+		assertEquals(                         null,
+				UrlOperations.getUrlParentDir("http://#4.8gifdijdf/a/b"));
+		
+		
+	}
 }

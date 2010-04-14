@@ -28,6 +28,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.httpclient.URIException;
+import org.apache.log4j.Logger;
 import org.archive.net.UURI;
 import org.archive.net.UURIFactory;
 
@@ -39,6 +40,8 @@ import org.archive.net.UURIFactory;
  * @version $Date$, $Revision$
  */
 public class UrlOperations {
+	private static final Logger LOGGER = Logger.getLogger(
+			UrlOperations.class.getName());
 	
 	public final static String DNS_SCHEME = "dns:";
 	public final static String HTTP_SCHEME = "http://";
@@ -116,7 +119,7 @@ public class UrlOperations {
 				try {
 					return UURIFactory.getInstance(url).getEscapedURI();
 				} catch (URIException e) {
-					e.printStackTrace();
+					LOGGER.warn(e.getLocalizedMessage() + ": " + url);
 					// can't let a space exist... send back close to whatever came
 					// in...
 					return url.replace(" ", "%20");
@@ -129,7 +132,7 @@ public class UrlOperations {
 			absBaseURI = UURIFactory.getInstance(baseUrl);
 			resolvedURI = UURIFactory.getInstance(absBaseURI, url);
 		} catch (URIException e) {
-			e.printStackTrace();
+			LOGGER.warn(e.getLocalizedMessage() + ": " + url);
 			return url.replace(" ", "%20");
 		}
 		return resolvedURI.getEscapedURI();
@@ -197,5 +200,34 @@ public class UrlOperations {
 			}
 		}
 		return url;
+	}
+	
+	/**
+	 * Find and return the parent directory of the URL argument
+	 * @param url to find the parent directory of
+	 * @return parent directory of URL, or null, if either the url argument is
+	 * invalid, or if the url is the root of the authority.
+	 */
+	public static String getUrlParentDir(String url) {
+		
+		try {
+			UURI uri = UURIFactory.getInstance(url);
+			String path = uri.getPath();
+			if(path.length() > 1) {
+				int startIdx = path.length()-1;
+				if(path.charAt(path.length()-1) == '/') {
+					startIdx--;
+				}
+				int idx = path.lastIndexOf('/',startIdx);
+				if(idx >= 0) {
+					uri.setPath(path.substring(0,idx+1));
+					uri.setQuery(null);
+					return uri.toString();
+				}
+			}
+		} catch (URIException e) {
+			LOGGER.warn(e.getLocalizedMessage() + ": " + url);
+		}
+		return null;
 	}
 }
