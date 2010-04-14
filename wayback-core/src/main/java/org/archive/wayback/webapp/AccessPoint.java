@@ -453,6 +453,7 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 			// TODO: check which versions are actually accessible right now?
 			CaptureSearchResult closest = captureResults.getClosest(wbRequest, 
 					useAnchorWindow);
+			closest.setClosest(true);
 			resource = collection.getResourceStore().retrieveResource(closest);
 			p.retrieved();
 			ReplayRenderer renderer = replay.getRenderer(wbRequest, closest, resource);
