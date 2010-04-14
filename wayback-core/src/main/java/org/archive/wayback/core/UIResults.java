@@ -88,28 +88,75 @@ public class UIResults {
 	// Present for... requests that resulted in an expected Exception.
 	private WaybackException exception = null;
 	
+	/**
+	 * Constructor for a "generic" UIResults, where little/no context is 
+	 * available. Likely used for static UI requests, and more specifically, for
+	 * template .jsp files, including header/footer .jsps. These may be called
+	 * in multiple contexts, but don't expect much data to be avaialble beyond
+	 * the AccessPoint that handled the request.
+	 * @param wbRequest WaybackRequest with some or no information
+	 * @param uriConverter the ResultURIConveter to use with the AccessPoint
+	 * handling the request.
+	 */
 	public UIResults(WaybackRequest wbRequest,ResultURIConverter uriConverter) {
 		this.wbRequest = wbRequest;
 		this.uriConverter = uriConverter;
 	}
+
+	/**
+	 * Constructor for a "exception" UIResults, where little/no context is 
+	 * available. Likely used for exception rendering .jsp files.
+	 * @param wbRequest WaybackRequest with some or no information, but at 
+	 * least the AccessPoint that handled the request.
+	 * @param uriConverter the ResultURIConveter to use with the AccessPoint
+	 * handling the request.
+	 * @param exception WaybackException to be rendered.
+	 */
 	public UIResults(WaybackRequest wbRequest, ResultURIConverter uriConverter,
 			WaybackException exception) {
 		this.wbRequest = wbRequest;
 		this.uriConverter = uriConverter;
 		this.exception = exception;
 	}
+	/**
+	 * Constructor for "Url Query" UIResults, where the request successfully 
+	 * matched something from the index. Used to hand off search results and
+	 * context to the query rendering .jsp files.
+	 * @param wbRequest WaybackRequest with a valid request
+	 * @param uriConverter the ResultURIConveter to use with the AccessPoint
+	 * handling the request.
+	 * @param captureResults CaptureSearchResults object with matching data.
+	 */
 	public UIResults(WaybackRequest wbRequest, ResultURIConverter uriConverter,
 			CaptureSearchResults captureResults) {
 		this.wbRequest = wbRequest;
 		this.uriConverter = uriConverter;
 		this.captureResults = captureResults;
 	}
+	/**
+	 * Constructor for "Url Prefix Query" UIResults, where the request 
+	 * successfully matched something from the index. Used to hand off search 
+	 * results and context to the query rendering .jsp files.
+	 * @param wbRequest WaybackRequest with a valid request
+	 * @param uriConverter the ResultURIConveter to use with the AccessPoint
+	 * @param urlResults UrlSearchResults object with matching data.
+	 */
 	public UIResults(WaybackRequest wbRequest, ResultURIConverter uriConverter,
 			UrlSearchResults urlResults) {
 		this.wbRequest = wbRequest;
 		this.uriConverter = uriConverter;
 		this.urlResults = urlResults;
 	}
+	/**
+	 * Constructor for "Replay" UIResults, where the request 
+	 * successfully matched something from the index, the document was retrieved
+	 * from the ResourceStore, and is going to be shown to the user.
+	 * @param wbRequest WaybackRequest with some or no information
+	 * @param uriConverter the ResultURIConveter to use with the AccessPoint
+	 * @param captureResults CaptureSearchResults object with matching data.
+	 * @param result the specific CaptureSearchResult being replayed
+	 * @param resource the actual Resource being replayed
+	 */
 	public UIResults(WaybackRequest wbRequest, ResultURIConverter uriConverter,
 			CaptureSearchResults captureResults, CaptureSearchResult result,
 			Resource resource) {
@@ -123,12 +170,6 @@ public class UIResults {
 	/*
 	 * GENERAL GETTERS:
 	 */
-	/**
-	 * @return the uriConverter
-	 */
-	public ResultURIConverter getUriConverter() {
-		return uriConverter;
-	}
 
 	/**
 	 * @return Returns the wbRequest.
@@ -182,6 +223,10 @@ public class UIResults {
 		return contentJsp;
 	}
 
+	/**
+	 * @return the original URL as recieved by Wayback, before forwarding to
+	 * a .jsp
+	 */
 	public String getOriginalRequestURL() {
 		return originalRequestURL;
 	}
@@ -191,7 +236,9 @@ public class UIResults {
 	 */
 
 	/**
-	 * @param url
+	 * Create a self-referencing URL that will perform a query for all copies
+	 * of the given URL.
+	 * @param url to search for copies of
 	 * @return String url that will make a query for all captures of an URL.
 	 */
 	public String makeCaptureQueryUrl(String url) {
@@ -202,8 +249,11 @@ public class UIResults {
 		return newWBR.getContextPrefix() + "query?" +
 			newWBR.getQueryArguments(1);
 	}
+
 	/**
-	 * @param configName
+	 * Get a String generic AccessPoint config (ala AccessPoint.configs Spring
+	 * config)
+	 * @param configName key for configuration property
 	 * @return String configuration for the context, if present, otherwise null
 	 */
 	public String getContextConfig(final String configName) {
@@ -217,8 +267,10 @@ public class UIResults {
 		}
 		return configValue;
 	}
+
 	/**
-	 * @param result
+	 * Create a replay URL for the given CaptureSearchResult
+	 * @param result CaptureSearchResult to replay
 	 * @return URL string that will replay the specified Resource Result.
 	 */
 	public String resultToReplayUrl(CaptureSearchResult result) {
@@ -231,7 +283,9 @@ public class UIResults {
 	}
 
 	/**
-	 * @param pageNum
+	 * Create a self-referencing URL that will drive to the given page, 
+	 * simplifying rendering pagination
+	 * @param pageNum page number of results to link to.
 	 * @return String URL which will drive browser to search results for a
 	 *         different page of results for the same query
 	 */
@@ -245,24 +299,28 @@ public class UIResults {
 	 * FORWARD TO A .JSP
 	 */
 	
-	/**
-	 * Store this UIResults in the HttpServletRequest argument.
-	 * @param httpRequest
-	 * @param contentJsp 
-	 */
-	public void storeInRequest(HttpServletRequest httpRequest, 
-			String contentJsp) {
-		this.contentJsp = contentJsp;
-		this.originalRequestURL = httpRequest.getRequestURL().toString();
-		httpRequest.setAttribute(FERRET_NAME, this);
-	}
+//	/**
+//	 * Store this UIResults in the HttpServletRequest argument.
+//	 * @param httpRequest the HttpServletRequest to store this UIResults in.
+//	 * @param contentJsp th 
+//	 */
+//	public void storeInRequest(HttpServletRequest httpRequest, 
+//			String contentJsp) {
+//		this.contentJsp = contentJsp;
+//		this.originalRequestURL = httpRequest.getRequestURL().toString();
+//		httpRequest.setAttribute(FERRET_NAME, this);
+//	}
 
 	/**
-	 * @param request
-	 * @param response
-	 * @param targt
-	 * @throws ServletException
-	 * @throws IOException
+	 * Store this UIResults object in the given HttpServletRequest, then
+	 * forward the request to target, which should be a .jsp capable of drawing
+	 * the information stored in this object. 
+	 * @param request the HttpServletRequest
+	 * @param response the HttpServletResponse
+	 * @param target the String path to the .jsp to handle drawing the data, 
+	 * relative to the contextRoot (ex. "/WEB-INF/query/foo.jsp")
+	 * @throws ServletException for usual reasons...
+	 * @throws IOException for usual reasons...
 	 */
 	public void forward(HttpServletRequest request,
 			HttpServletResponse response, final String target)
@@ -282,7 +340,10 @@ public class UIResults {
 	 * EXTRACT FROM HttpServletRequest
 	 */
 	/**
-	 * @param httpRequest
+	 * Extract a generic UIResults from the HttpServletRequest. Probably used
+	 * by a header/footer template .jsp file.
+	 * @param httpRequest the HttpServletRequest where the UIResults was 
+	 * ferreted away
 	 * @return generic UIResult with info from httpRequest applied.
 	 */
 	public static UIResults getGeneric(HttpServletRequest httpRequest) {
@@ -296,9 +357,13 @@ public class UIResults {
 	}
 
 	/**
-	 * @param httpRequest
-	 * @return UIResults from httpRequest 
-	 * @throws ServletException 
+	 * Extract an Exception UIResults from the HttpServletRequest. Probably used
+	 * by a .jsp responsible for actual drawing errors for the user.
+	 * @param httpRequest the HttpServletRequest where the UIResults was 
+	 * ferreted away
+	 * @return Exception UIResult with info from httpRequest applied.
+	 * @throws ServletException if expected information is not available. Likely
+	 * means a programming bug, or a configuration problem.
 	 */
 	public static UIResults extractException(HttpServletRequest httpRequest)
 		throws ServletException {
@@ -319,9 +384,14 @@ public class UIResults {
 		return results;
 	}
 	/**
-	 * @param httpRequest
-	 * @return UIResults from httpRequest 
-	 * @throws ServletException 
+	 * Extract a CaptureQuery UIResults from the HttpServletRequest. Probably 
+	 * used by a .jsp responsible for actually drawing search results for the 
+	 * user.
+	 * @param httpRequest the HttpServletRequest where the UIResults was 
+	 * ferreted away
+	 * @return CaptureQuery UIResult with info from httpRequest applied.
+	 * @throws ServletException if expected information is not available. Likely
+	 * means a programming bug, or a configuration problem.
 	 */
 	public static UIResults extractCaptureQuery(HttpServletRequest httpRequest)
 		throws ServletException {
@@ -342,9 +412,14 @@ public class UIResults {
 		return results;
 	}
 	/**
-	 * @param httpRequest
-	 * @return UIResults from httpRequest 
-	 * @throws ServletException 
+	 * Extract a UrlQuery UIResults from the HttpServletRequest. Probably 
+	 * used by a .jsp responsible for actually drawing search results for the 
+	 * user.
+	 * @param httpRequest the HttpServletRequest where the UIResults was 
+	 * ferreted away
+	 * @return UrlQuery UIResult with info from httpRequest applied.
+	 * @throws ServletException if expected information is not available. Likely
+	 * means a programming bug, or a configuration problem.
 	 */
 	public static UIResults extractUrlQuery(HttpServletRequest httpRequest)
 		throws ServletException {
@@ -365,9 +440,14 @@ public class UIResults {
 		return results;
 	}
 	/**
-	 * @param httpRequest
-	 * @return UIResults from httpRequest 
-	 * @throws ServletException 
+	 * Extract a Replay UIResults from the HttpServletRequest. Probably 
+	 * used by a .jsp insert, responsible for rendering content into replayed 
+	 * Resources to enhance the Replay experience.
+	 * @param httpRequest the HttpServletRequest where the UIResults was 
+	 * ferreted away
+	 * @return Replay UIResult with info from httpRequest applied.
+	 * @throws ServletException if expected information is not available. Likely
+	 * means a programming bug, or a configuration problem.
 	 */
 	public static UIResults extractReplay(HttpServletRequest httpRequest)
 		throws ServletException {
@@ -400,6 +480,13 @@ public class UIResults {
 	 * STATIC CONVENIENCE METHODS
 	 */
 	
+	/**
+	 * @return the uriConverter
+	 * @deprecated use getURIConverter()
+	 */
+	public ResultURIConverter getUriConverter() {
+		return uriConverter;
+	}
 	
 	private static void replaceAll(StringBuffer s,
 			final String o, final String n) {
@@ -414,8 +501,9 @@ public class UIResults {
 	
 	/**
 	 * return a string appropriate for inclusion as an XML tag
-	 * @param tagName
+	 * @param tagName raw string to be encoded
 	 * @return encoded tagName
+	 * @deprecated use getFormatter().escapeHtml(String)
 	 */
 	public static String encodeXMLEntity(final String tagName) {
 		StringBuffer encoded = new StringBuffer(tagName);
@@ -430,8 +518,9 @@ public class UIResults {
 	
 	/**
 	 * return a string appropriate for inclusion as an XML tag
-	 * @param content
+	 * @param content to escape
 	 * @return encoded content
+	 * @deprecated use getFormatter().escapeHtml(String)
 	 */
 	public static String encodeXMLContent(final String content) {
 		StringBuffer encoded = new StringBuffer(content);
@@ -447,8 +536,9 @@ public class UIResults {
 
 	/**
 	 * return a string appropriate for inclusion as an XML tag
-	 * @param content
+	 * @param content to encode
 	 * @return encoded content
+	 * @deprecated use getFormatter().escapeHtml(String)
 	 */
 	public static String encodeXMLEntityQuote(final String content) {
 		StringBuffer encoded = new StringBuffer(content);
@@ -465,7 +555,7 @@ public class UIResults {
 	
 	/**
 	 * @return URL that points to the root of the current WaybackContext
-	 * @deprecated
+	 * @deprecated use getWbRequest().getContextPrefix()
 	 */
 	public String getContextPrefix() {
 		return getWbRequest().getContextPrefix();
@@ -473,7 +563,7 @@ public class UIResults {
 	
 	/**
 	 * @return StringFormatter localized to user request
-	 * @deprecated
+	 * @deprecated use getWbRequest().getFormatter()
 	 */
 	public StringFormatter getFormatter() {
 		return getWbRequest().getFormatter();
@@ -481,7 +571,7 @@ public class UIResults {
 
 	/**
 	 * @return URL that points to the root of the Server
-	 * @deprecated
+	 * @deprecated use getWbRequest().getServerPrefix()
 	 */
 	public String getServerPrefix() {
 		return getWbRequest().getServerPrefix();
@@ -489,17 +579,18 @@ public class UIResults {
 
 	/**
 	 * @param contentJsp the contentJsp to set
-	 * @deprecated
+	 * @deprecated use forward()
 	 */
 	public void setContentJsp(String contentJsp) {
 		this.contentJsp = contentJsp;
 	}
 
 	/**
-	 * @param url
-	 * @param timestamp
+	 * @param url to replay
+	 * @param timestamp to replay
 	 * @return String url that will replay the url at timestamp
-	 * @deprecated
+	 * @deprecated use resultToReplayUrl(CaptureSearchResult) or 
+	 * getURIConverter.makeReplayURI()
 	 */
 	public String makeReplayUrl(String url, String timestamp) {
 		if(uriConverter == null) {
