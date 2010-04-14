@@ -37,6 +37,7 @@ import org.archive.wayback.util.Timestamp;
  * 
  * @author brad
  * @version $Date$, $Revision$
+ * @deprecated use org.archive.wayback.util.parition.*
  */
 public class ResultsTimelinePartitionsFactory {
 

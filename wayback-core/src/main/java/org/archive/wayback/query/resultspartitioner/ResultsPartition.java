@@ -34,6 +34,7 @@ import org.archive.wayback.core.CaptureSearchResults;
  *
  * @author brad
  * @version $Date$, $Revision$
+ * @deprecated use org.archive.wayback.util.parition.*
  */
 public class ResultsPartition {
 	private String startDateStr = null; // inclusive

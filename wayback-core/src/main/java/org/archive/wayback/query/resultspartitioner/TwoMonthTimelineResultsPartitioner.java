@@ -28,6 +28,11 @@ import java.util.Calendar;
 
 import org.archive.wayback.core.WaybackRequest;
 
+/**
+ * @author brad
+ * @deprecated use org.archive.wayback.util.parition.*
+ *
+ */
 public class TwoMonthTimelineResultsPartitioner extends TwoMonthResultsPartitioner {
 	protected String rangeToTitle(Calendar start, Calendar end,
 			WaybackRequest wbRequest) {

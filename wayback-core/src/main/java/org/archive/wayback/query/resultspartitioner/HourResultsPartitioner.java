@@ -33,6 +33,7 @@ import org.archive.wayback.core.WaybackRequest;
  *
  * @author brad
  * @version $Date$, $Revision$
+ * @deprecated use org.archive.wayback.util.parition.*
  */
 public class HourResultsPartitioner extends ResultsPartitioner {
 	private static int MAX_SECONDS_SPANNED = 60 * 60 * 10;
