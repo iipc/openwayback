@@ -38,9 +38,20 @@ public class FileRegion {
 	File file = null;
 	long start = -1;
 	long end = -1;
+	boolean isFake = false;
+	/**
+	 * @return the number of bytes in this record, including headers. If the
+	 * containing file is compressed, then this represents the number of 
+	 * compressed bytes.
+	 */
 	public long getLength() {
 		return end - start;
 	}
+	/**
+	 * Copy this record to the provided OutputStream
+	 * @param o the OutputStream where the bytes should be sent.
+	 * @throws IOException for usual reasons
+	 */
 	public void copyToOutputStream(OutputStream o) throws IOException {
 		long left = end - start;
 		int BUFF_SIZE = 4096;
@@ -58,5 +69,4 @@ public class FileRegion {
 		}
 		raf.close();
 	}
-
 }
