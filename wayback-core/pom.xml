@@ -54,22 +54,21 @@
       <version>2.4</version>
       <scope>provided</scope>
     </dependency>
-    <!--
     <dependency>
       <groupId>org.archive.heritrix</groupId>
-      <artifactId>commons</artifactId>
-      <version>3.0.0-SNAPSHOT</version>
-    </dependency>
-    -->
-    <dependency>
-      <groupId>org.archive.heritrix</groupId>
-      <artifactId>commons</artifactId>
-      <version>2.0.3-SNAPSHOT</version>
+      <artifactId>heritrix-commons</artifactId>
+      <version>3.1.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.archive.access-control</groupId>
       <artifactId>access-control</artifactId>
       <version>0.0.1-SNAPSHOT</version>
+      <exclusions>
+        <exclusion>
+          <groupId>commons-pool</groupId>
+          <artifactId>commons-pool</artifactId>
+        </exclusion>
+      </exclusions>       
     </dependency>
     <dependency>
       <groupId>org.mozilla</groupId>
