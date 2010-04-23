@@ -204,4 +204,13 @@ public class StringFormatter {
 	public String escapeJavaScript(String raw) {
 		return StringEscapeUtils.escapeJavaScript(raw);
 	}
+
+	/**
+	 * Convert... spaces to &nbsp;
+	 * @param input to replace
+	 * @return with spaces replaced
+	 */
+	public String spaceToNBSP(String input) {
+		return input.replaceAll(" ", "&nbsp;");
+	}
 }
