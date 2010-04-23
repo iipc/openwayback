@@ -35,7 +35,14 @@ public class UrlOperationsTest extends TestCase {
 		assertEquals("foo.com",UrlOperations.urlToHost("http://foo.com"));
 		assertEquals("foo.com",UrlOperations.urlToHost("https://foo.com"));
 		assertEquals("foo.com",UrlOperations.urlToHost("ftp://foo.com"));
-		
+
+		assertEquals("www.google.com",UrlOperations.urlToHost("http://www.GOOGLE.COM"));
+		assertEquals("google.com",UrlOperations.urlToHost("http://GOOGLE.COM/"));
+		assertEquals("google.com",UrlOperations.urlToHost("http://GOOGLE.COM"));
+		assertEquals("google.com",UrlOperations.urlToHost("http://GOOGLE.COM:80"));
+		assertEquals("google.com",UrlOperations.urlToHost("http://GOOGLE.COM:80/"));
+		assertEquals("google.com",UrlOperations.urlToHost("http://GOOGLE.COM:80/foo"));
+
 		assertEquals("foo.com",UrlOperations.urlToHost("http://foo.com/"));
 		assertEquals("foo.com",UrlOperations.urlToHost("https://foo.com/"));
 		assertEquals("foo.com",UrlOperations.urlToHost("ftp://foo.com/"));
@@ -66,8 +73,34 @@ public class UrlOperationsTest extends TestCase {
 		assertEquals("foo.com",UrlOperations.urlToHost("ftp://foo.com\\"));
 		assertEquals("www.foo.com",UrlOperations.urlToHost("http://www.foo.com\\"));
 		assertEquals("www.foo.com",UrlOperations.urlToHost("http://www.foo.com:80\\"));
-	}
 
+		
+		assertEquals("foo.com",UrlOperations.urlToHost("http://user@foo.com"));
+		assertEquals("www.foo.com",UrlOperations.urlToHost("http://user@www.foo.com"));
+		assertEquals("www.foo.com",UrlOperations.urlToHost("http://user:pass@www.foo.com"));
+
+		assertEquals("www.foo.com",UrlOperations.urlToHost("http://user:pass@www.foo.com/"));
+		assertEquals("www.foo.com",UrlOperations.urlToHost("http://user:pass@www.foo.com/boo@foo"));
+	}
+	public void testUrlToUserInfo() {
+		assertEquals(null,UrlOperations.urlToUserInfo("dns:foo.com"));
+		assertEquals(null,UrlOperations.urlToUserInfo("http://foo.com"));
+		assertEquals(null,UrlOperations.urlToUserInfo("https://foo.com"));
+		assertEquals(null,UrlOperations.urlToUserInfo("ftp://foo.com"));
+		assertEquals(null,UrlOperations.urlToUserInfo("ftp://foo.com/"));
+		assertEquals(null,UrlOperations.urlToUserInfo("http://foo.com:80/"));
+		assertEquals(null,UrlOperations.urlToUserInfo("http://foo.com:80"));
+		assertEquals(null,UrlOperations.urlToUserInfo("http://www.foo.com:80\\"));
+		
+		assertEquals("user",UrlOperations.urlToUserInfo("http://user@foo.com"));
+		assertEquals("user",UrlOperations.urlToUserInfo("http://user@www.foo.com"));
+		assertEquals("user:pass",UrlOperations.urlToUserInfo("http://user:pass@www.foo.com"));
+		assertEquals("user:pass",UrlOperations.urlToUserInfo("http://user:pass@www.foo.com:8080"));
+		assertEquals("user:pass",UrlOperations.urlToUserInfo("http://user:pass@www.foo.com:8080/boo@arb"));
+
+		assertEquals("www.foo.com",UrlOperations.urlToHost("http://user:pass@www.foo.com/"));
+		assertEquals("www.foo.com",UrlOperations.urlToHost("http://user:pass@www.foo.com/boo@foo"));
+	}
 	public void testResolveUrl() {
 		for(String scheme : UrlOperations.ALL_SCHEMES) {
 
@@ -83,9 +116,7 @@ public class UrlOperationsTest extends TestCase {
 
 			assertEquals(scheme + "a.org/1/2",
 				UrlOperations.resolveUrl(scheme + "a.org/3","1/2"));
-		
 		}
-		
 	}
 	public void testUrlToScheme() {
 		assertEquals("http://",UrlOperations.urlToScheme("http://a.com/"));

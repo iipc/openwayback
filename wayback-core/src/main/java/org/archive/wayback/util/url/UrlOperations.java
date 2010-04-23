@@ -24,6 +24,8 @@
  */
 package org.archive.wayback.util.url;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -97,6 +99,10 @@ public class UrlOperations {
 
     private static final Pattern AUTHORITY_REGEX_SIMPLE =
         Pattern.compile("([0-9a-z_.-]++)");
+    private static final Pattern HOST_REGEX_SIMPLE =
+        Pattern.compile("(?:[0-9a-z_.:-]+@)?([0-9a-z_.-]++)");
+    private static final Pattern USERINFO_REGEX_SIMPLE =
+        Pattern.compile("([0-9a-z_.:-]+)(?:@[0-9a-z_.-]++)");
 
     /**
 	 * @param urlPart
@@ -184,22 +190,43 @@ public class UrlOperations {
 			return url.substring(pathIdx);
 		}
 	}
-	
+
 	public static String urlToHost(String url) {
-		if(url.startsWith("dns:")) {
-			return url.substring(4);
+		String lcUrl = url.toLowerCase();
+		if(lcUrl.startsWith("dns:")) {
+			return lcUrl.substring(4);
 		}
 		for(String scheme : ALL_SCHEMES) {
-			if(url.startsWith(scheme)) {
-				int hostIdx = scheme.length();
+			if(lcUrl.startsWith(scheme)) {
+				int authorityIdx = scheme.length();
 
-				Matcher m = AUTHORITY_REGEX_SIMPLE.matcher(url.substring(hostIdx));
+				Matcher m = 
+					HOST_REGEX_SIMPLE.matcher(lcUrl.substring(authorityIdx));
 				if(m.find()) {
-					return m.group(0);
+					return m.group(1);
 				}
 			}
 		}
 		return url;
+	}
+
+	public static String urlToUserInfo(String url) {
+		String lcUrl = url.toLowerCase();
+		if(lcUrl.startsWith("dns:")) {
+			return null;
+		}
+		for(String scheme : ALL_SCHEMES) {
+			if(lcUrl.startsWith(scheme)) {
+				int authorityIdx = scheme.length();
+
+				Matcher m = 
+					USERINFO_REGEX_SIMPLE.matcher(lcUrl.substring(authorityIdx));
+				if(m.find()) {
+					return m.group(1);
+				}
+			}
+		}
+		return null;
 	}
 	
 	/**
