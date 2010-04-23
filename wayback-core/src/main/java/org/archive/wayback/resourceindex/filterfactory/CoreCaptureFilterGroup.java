@@ -32,6 +32,7 @@ import org.archive.wayback.resourceindex.LocalResourceIndex;
 import org.archive.wayback.resourceindex.filters.ConditionalGetAnnotationFilter;
 import org.archive.wayback.resourceindex.filters.DuplicateRecordFilter;
 import org.archive.wayback.resourceindex.filters.GuardRailFilter;
+import org.archive.wayback.resourceindex.filters.UserInfoInAuthorityFilter;
 import org.archive.wayback.resourceindex.filters.WARCRevisitAnnotationFilter;
 import org.archive.wayback.util.ObjectFilter;
 import org.archive.wayback.util.ObjectFilterChain;
@@ -47,6 +48,7 @@ public class CoreCaptureFilterGroup implements CaptureFilterGroup {
 			chain.addFilter(new WARCRevisitAnnotationFilter());
 			chain.addFilter(new ConditionalGetAnnotationFilter());
 		}
+		chain.addFilter(new UserInfoInAuthorityFilter());
 	}
 	public List<ObjectFilter<CaptureSearchResult>> getFilters() {
 		return chain.getFilters();
