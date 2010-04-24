@@ -50,6 +50,11 @@
   <bean id="archivaltransparentreplayrenderer" class="org.archive.wayback.replay.TransparentReplayRenderer">
     <constructor-arg><ref bean="archivalurlhttpheaderprocessor"/></constructor-arg>
   </bean>
+  <bean id="identityreplayrenderer" class="org.archive.wayback.replay.TransparentReplayRenderer">
+    <constructor-arg>
+      <bean id="identityhttpheaderprocessor" class="org.archive.wayback.replay.IdentityHttpHeaderProcessor"/>
+    </constructor-arg>
+  </bean>
 
 <!-- 
 	The following bean is an example of the experimental Regex-Based 
@@ -134,6 +139,11 @@
         <!-- Explicit (via "im_" flag) IMG REPLAY -->
         <bean class="org.archive.wayback.replay.selector.IMGRequestSelector">
           <property name="renderer" ref="archivaltransparentreplayrenderer"/>
+        </bean>
+
+        <!-- Explicit (via "id_" flag) IDENTITY/RAW REPLAY -->
+        <bean class="org.archive.wayback.replay.selector.IdentityRequestSelector">
+          <property name="renderer" ref="identityreplayrenderer"/>
         </bean>
 
         <!-- HTML REPLAY -->
