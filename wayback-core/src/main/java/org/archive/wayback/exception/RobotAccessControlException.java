@@ -30,11 +30,13 @@ package org.archive.wayback.exception;
  *
  */
 public class RobotAccessControlException extends AccessControlException {
+	protected static final String ID = "accessRobots";
 
 	/**
 	 * @param message
 	 */
 	public RobotAccessControlException(String message) {
 		super("Blocked By Robots",message);
+		id = ID;
 	}
 }
