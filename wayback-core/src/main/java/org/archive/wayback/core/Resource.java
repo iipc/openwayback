@@ -124,7 +124,7 @@ public abstract class Resource extends InputStream {
 		}
 		is.reset();
 		if(isChunked) {
-			is = new ChunkedInputStream(is);
+			setInputStream(new ChunkedInputStream(is));
 		}
 	}
 	
