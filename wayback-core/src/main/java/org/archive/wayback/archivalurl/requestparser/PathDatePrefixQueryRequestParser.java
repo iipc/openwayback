@@ -53,7 +53,7 @@ public class PathDatePrefixQueryRequestParser extends PathRequestParser {
 	 * URL
 	 */
 	private final static Pattern WB_QUERY_REGEX = Pattern
-			.compile("^(\\d{0,13})\\*/(.*[^*])$");
+			.compile("^(\\d{0,14})\\*/(.*[^*])$");
 
 	public WaybackRequest parse(String requestPath, AccessPoint ap) {
 		
@@ -66,16 +66,24 @@ public class PathDatePrefixQueryRequestParser extends PathRequestParser {
 			String urlStr = matcher.group(2);
 
 			String startDate;
-			String endDate;			
+			String endDate;
+			String requestDate;
 			if(dateStr.length() == 0) {
 				startDate = getEarliestTimestamp();
 				endDate = getLatestTimestamp();
+				requestDate = endDate;
+			} else if(dateStr.length() == 14) {
+				startDate = getEarliestTimestamp();
+				endDate = getLatestTimestamp();
+				requestDate = Timestamp.parseAfter(dateStr).getDateStr();
 			} else {
 				startDate = Timestamp.parseBefore(dateStr).getDateStr();
 				endDate = Timestamp.parseAfter(dateStr).getDateStr();
+				requestDate = endDate;
 			}
 			wbRequest.setStartTimestamp(startDate);
 			wbRequest.setEndTimestamp(endDate);
+			wbRequest.setReplayTimestamp(requestDate);
 			wbRequest.setCaptureQueryRequest();
             wbRequest.setRequestUrl(urlStr);
 		}
