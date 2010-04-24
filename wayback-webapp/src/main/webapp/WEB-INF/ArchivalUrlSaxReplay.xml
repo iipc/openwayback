@@ -33,6 +33,9 @@
 	<bean id="jsBlockHandler"
 		class="org.archive.wayback.replay.html.transformer.JSStringTransformer">
 	</bean>
+    <bean id="metaRefreshHandler"
+            class="org.archive.wayback.replay.html.transformer.MetaRefreshUrlStringTransformer">
+    </bean>
 
 
 
@@ -40,12 +43,28 @@
 		class="org.archive.wayback.replay.html.ReplayParseEventDelegator">
 		<property name="parserVisitors">
 			<list>
+			<!-- this bean dumps each tag as it was found, inside comments,
+			before meddling, which can help with debugging.
 				<bean class="org.archive.wayback.replay.html.rules.CommentRule">
 				</bean>
+			  -->
 				<bean
 					class="org.archive.wayback.replay.html.rules.AfterBodyStartTagJSPExecRule">
+					<property name="jspPath" value="/WEB-INF/replay/DisclaimChooser.jsp" />
+					<!--
 					<property name="jspPath" value="/WEB-INF/replay/DebugBanner.jsp" />
+					<property name="jspPath" value="/WEB-INF/replay/Disclaimer.jsp" />
+					  -->
 				</bean>
+                <bean class="org.archive.wayback.replay.html.rules.AttributeModifyingRule">
+
+                        <property name="tagName" value="META" />
+                        <property name="whereAttributeName" value="http-equiv" />
+                        <property name="whereAttributeValue" value="refresh" />
+
+                        <property name="modifyAttributeName" value="content" />
+                        <property name="transformer" ref="metaRefreshHandler" />
+                </bean>
 
 				<bean class="org.archive.wayback.replay.html.rules.AttributeModifyingRule">
 					<property name="tagName" value="A" />
