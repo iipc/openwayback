@@ -193,13 +193,6 @@ public class AggressiveUrlCanonicalizer implements UrlCanonicalizer {
     	return false;
     }
 
-    /**
-	 * return the canonical string key for the URL argument.
-	 * 
-	 * @param urlString
-	 * @return String lookup key for URL argument.
-	 * @throws URIException 
-	 */
 	public String urlStringToKey(final String urlString) throws URIException {
 
 		if(urlString.startsWith("dns:")) {
@@ -323,7 +316,7 @@ public class AggressiveUrlCanonicalizer implements UrlCanonicalizer {
 		System.exit(3);
 	}
 	/**
-	 * @param args
+	 * @param args program arguments
 	 */
 	public static void main(String[] args) {
 		AggressiveUrlCanonicalizer canonicalizer = new AggressiveUrlCanonicalizer();
