@@ -77,6 +77,8 @@ public abstract class AbstractRequestHandler implements RequestHandler {
 	public static String getRequiredMapParam(Map<String,String[]> queryMap,
 			String field)
 	throws BadQueryException {
+		// TODO: Throw something different, org.archive.wayback.util should have
+		// no references outside of org.archive.wayback.util 
 		String value = getMapParam(queryMap,field);
 		if(value == null) {
 			throw new BadQueryException("missing field " + field);
