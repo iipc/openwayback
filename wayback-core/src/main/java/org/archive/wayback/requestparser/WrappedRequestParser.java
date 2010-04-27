@@ -45,28 +45,19 @@ public abstract class WrappedRequestParser extends BaseRequestParser {
 	
 	private BaseRequestParser wrapped = null;
 
+	/**
+	 * @param wrapped the delegate to retrieve RequestParser configuration
+	 */
 	public WrappedRequestParser(BaseRequestParser wrapped) {
 		this.wrapped = wrapped;
 	}
 
-	/**
-	 * @return
-	 * @see org.archive.wayback.requestparser.BaseRequestParser#getEarliestTimestamp()
-	 */
 	public String getEarliestTimestamp() {
 		return wrapped.getEarliestTimestamp();
 	}
-	/**
-	 * @return
-	 * @see org.archive.wayback.requestparser.BaseRequestParser#getLatestTimestamp()
-	 */
 	public String getLatestTimestamp() {
 		return wrapped.getLatestTimestamp();
 	}
-	/**
-	 * @return
-	 * @see org.archive.wayback.requestparser.BaseRequestParser#getMaxRecords()
-	 */
 	public int getMaxRecords() {
 		return wrapped.getMaxRecords();
 	}
