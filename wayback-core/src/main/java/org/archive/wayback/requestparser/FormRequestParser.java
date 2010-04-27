@@ -59,7 +59,7 @@ public class FormRequestParser extends WrappedRequestParser {
 	 * WaybackRequest object, except the Submit button argument.
 	 */
 	public WaybackRequest parse(HttpServletRequest httpRequest, 
-			AccessPoint wbContext) {
+			AccessPoint accessPoint) {
 
 		WaybackRequest wbRequest = null;
 		@SuppressWarnings("unchecked")
@@ -67,7 +67,7 @@ public class FormRequestParser extends WrappedRequestParser {
 		if(queryMap.size() > 0) {
 			wbRequest = new WaybackRequest();
 			
-			String base = wbContext.translateRequestPath(httpRequest);
+			String base = accessPoint.translateRequestPath(httpRequest);
 			if(base.startsWith(REPLAY_BASE)) {
 				wbRequest.setReplayRequest();
 			} else if(base.startsWith(QUERY_BASE)) {
@@ -88,7 +88,7 @@ public class FormRequestParser extends WrappedRequestParser {
 					continue;
 				}
 				// just jam everything else in:
-				String val = getMapParam(queryMap,key);
+				String val = AccessPoint.getMapParam(queryMap,key);
 				wbRequest.put(key,val);
 			}
 			String partialTS = wbRequest.getReplayTimestamp();

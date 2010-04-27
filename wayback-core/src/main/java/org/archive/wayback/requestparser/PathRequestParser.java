@@ -33,7 +33,7 @@ import org.archive.wayback.webapp.AccessPoint;
 
 /**
  * Subclass of RequestParser that acquires key request information from the
- * path component following the wayback context. 
+ * path component within the handling AccessPoint. 
  *
  * @author brad
  * @version $Date$, $Revision$
@@ -41,43 +41,35 @@ import org.archive.wayback.webapp.AccessPoint;
 public abstract class PathRequestParser extends WrappedRequestParser {
 
 	/**
-	 * @param wrapped
+	 * @param wrapped the BaseRequestParser being wrapped
 	 */
 	public PathRequestParser(BaseRequestParser wrapped) {
 		super(wrapped);
 	}
 
 	/**
-	 * @param requestPath
-	 * @param acessPoint 
-	 * @return WaybackRequest with information parsed from the requestPath, or
-	 * null if information could not be extracted.
-	 * @throws BetterRequestException 
-	 */
+	 * attempt to transform an incoming HttpServletRequest into a 
+	 * WaybackRequest object. returns null if there is missing information.
+	 * 
+	 * @param requestPath the AccessPoint relative path as received by the 
+	 * 		   AccessPoint
+	 * @param accessPoint AccessPoint which is attempting to parse the request 
+	 * @return populated WaybackRequest object if successful, null otherwise.
+	 * @throws BadQueryException if the request could match this AccessPoint,
+	 *         but is malformed: invalid datespec, URL, or flags
+	 * @throws BetterRequestException if the request should be redirected to
+	 *         provide better user feedback (corrected URL/date in address bar)
+	 */        
 	public abstract WaybackRequest parse(String requestPath, 
-			AccessPoint acessPoint) throws BetterRequestException;
+			AccessPoint accessPoint) throws BetterRequestException, 
+			BadQueryException;
 
-	/* (non-Javadoc)
-	 * @see org.archive.wayback.requestparser.BaseRequestParser#parse(javax.servlet.http.HttpServletRequest, org.archive.wayback.webapp.WaybackContext)
-	 */
-	@Override
 	public WaybackRequest parse(HttpServletRequest httpRequest,
-			AccessPoint acessPoint) 
+			AccessPoint accessPoint) 
 		throws BadQueryException, BetterRequestException {
 
-		String queryString = httpRequest.getQueryString();
-		String origRequestPath = httpRequest.getRequestURI();
-
-		if (queryString != null) {
-			origRequestPath += "?" + queryString;
-		}
-		String contextPath = acessPoint.getContextPath(httpRequest);
-		if (!origRequestPath.startsWith(contextPath)) {
-			return null;
-		}
-		String requestPath = origRequestPath.substring(contextPath.length());
-		
-		WaybackRequest wbRequest = parse(requestPath, acessPoint);
+		String requestPath = accessPoint.translateRequestPathQuery(httpRequest);
+		WaybackRequest wbRequest = parse(requestPath, accessPoint);
 		if(wbRequest != null) {
 			wbRequest.setResultsPerPage(getMaxRecords());
 		}

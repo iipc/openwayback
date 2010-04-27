@@ -40,7 +40,7 @@ import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.archive.io.arc.ARCRecord;
 import org.archive.wayback.util.ByteOp;
-import org.archive.wayback.webapp.ServletRequestContext;
+import org.archive.wayback.util.webapp.AbstractRequestHandler;
 
 /**
  * 
@@ -54,7 +54,7 @@ import org.archive.wayback.webapp.ServletRequestContext;
  * @author brad
  *
  */
-public class ARCUnwrappingProxy extends ServletRequestContext {
+public class ARCUnwrappingProxy extends AbstractRequestHandler {
 	
     private MultiThreadedHttpConnectionManager connectionManager = null;
     private HostConfiguration hostConfiguration = null;
@@ -66,13 +66,6 @@ public class ARCUnwrappingProxy extends ServletRequestContext {
     	hostConfiguration = new HostConfiguration();
     }
 
-//	protected HttpClient http = new HttpClient(
-//            new MultiThreadedHttpConnectionManager());
-
-	/* (non-Javadoc)
-	 * @see org.archive.wayback.webapp.ServletRequestContext#handleRequest(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
-	 */
-	@Override
 	public boolean handleRequest(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse) throws ServletException,
 			IOException {
@@ -81,7 +74,6 @@ public class ARCUnwrappingProxy extends ServletRequestContext {
 		if(query != null) {
 			sb.append("?").append(query);
 		}
-//		URL url = new URL(sb.toString());
         HttpMethod method = new GetMethod(sb.toString());
 //        method.addRequestHeader("User-Agent", userAgent);
         boolean got200 = false;

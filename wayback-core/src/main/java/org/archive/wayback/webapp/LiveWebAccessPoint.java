@@ -45,84 +45,34 @@ import org.archive.wayback.exception.WaybackException;
 import org.archive.wayback.liveweb.LiveWebCache;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.resourcestore.resourcefile.ArcResource;
-import org.springframework.beans.factory.BeanNameAware;
+import org.archive.wayback.util.webapp.AbstractRequestHandler;
 
 /**
  * @author brad
  *
- * AccessPoint subclass which allows no Queries, but makes all replay requests
- * through a LiveWebCache
+ * RequestHandler which satisfies all incoming requests through a LiveWebCache,
+ * using an internal AccessPoint to rewrite replayed documents.
  *
  */
-public class LiveWebAccessPoint extends ServletRequestContext implements BeanNameAware {
+public class LiveWebAccessPoint extends AbstractRequestHandler {
 	private AccessPoint inner = null;
 	private LiveWebCache cache = null;
 	private RobotExclusionFilterFactory robotFactory = null;
 	private long maxCacheMS = 86400000;
-	private String beanName = null;
-	private int contextPort = 0;
-	private String contextName = null;
-	
-	public void setBeanName(String beanName) {
-		this.beanName = beanName;
-		this.contextName = "";
-		int idx = beanName.indexOf(":");
-		if(idx > -1) {
-			contextPort = Integer.valueOf(beanName.substring(0,idx));
-			contextName = beanName.substring(idx + 1);
-		} else {
-			try {
-				this.contextPort = Integer.valueOf(beanName);
-			} catch(NumberFormatException e) {
-				e.printStackTrace();
-			}
-		}
-	}
-	/**
-	 * @param httpRequest HttpServletRequest which is being handled 
-	 * @return the prefix of paths received by this server that are handled by
-	 * this WaybackContext, including the trailing '/'
-	 */
-	public String getContextPath(HttpServletRequest httpRequest) {
-		String httpContextPath = httpRequest.getContextPath();
-		if(contextName.length() == 0) {
-			return httpContextPath + "/";
-		}
-		return httpContextPath + "/" + contextName + "/";
-	}
-
-	
-	protected String translateRequest(HttpServletRequest httpRequest, 
-			boolean includeQuery) {
-
-		String origRequestPath = httpRequest.getRequestURI();
-		if(includeQuery) {
-			String queryString = httpRequest.getQueryString();
-			if (queryString != null) {
-				origRequestPath += "?" + queryString;
-			}
-		}
-		String contextPath = getContextPath(httpRequest);
-		if (!origRequestPath.startsWith(contextPath)) {
-			if(contextPath.startsWith(origRequestPath)) {
-				// missing trailing '/', just omit:
-				return "";
-			}
-			return null;
-		}
-		return origRequestPath.substring(contextPath.length());
-	}
 	
 	public boolean handleRequest(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse) 
 	throws ServletException, IOException {
 		
-		String urlString = translateRequest(httpRequest,true);
+		String urlString = translateRequestPathQuery(httpRequest);
+
 		boolean handled = true;
 		WaybackRequest wbRequest = new WaybackRequest();
 		wbRequest.setAccessPoint(inner);
-		wbRequest.setContextPrefix(inner.getAbsoluteServerPrefix(httpRequest));
-		wbRequest.setServerPrefix(inner.getAbsoluteServerPrefix(httpRequest));
+
+		wbRequest.setContextPrefix(inner.getUrlRoot());
+		wbRequest.setServerPrefix(inner.getUrlRoot());
+		
 		wbRequest.setLiveWebRequest(true);
 		wbRequest.setRequestUrl(urlString);
 		URL url = null;

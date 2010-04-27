@@ -78,34 +78,6 @@ public abstract class BaseRequestParser implements RequestParser {
 			AccessPoint wbContext) throws BadQueryException, 
 			BetterRequestException;
 
-	protected static String getMapParam(Map<String,String[]> queryMap,
-			String field) {
-		String arr[] = queryMap.get(field);
-		if (arr == null || arr.length == 0) {
-			return null;
-		}
-		return arr[0];
-	}
-
-	protected static String getRequiredMapParam(Map<String,String[]> queryMap,
-			String field)
-	throws BadQueryException {
-		String value = getMapParam(queryMap,field);
-		if(value == null) {
-			throw new BadQueryException("missing field " + field);
-		}
-		if(value.length() == 0) {
-			throw new BadQueryException("empty field " + field);			
-		}
-		return value;
-	}
-
-	protected static String getMapParamOrEmpty(Map<String,String[]> map, 
-			String param) {
-		String val = getMapParam(map,param);
-		return (val == null) ? "" : val;
-	}
-
 	/**
 	 * @return the maxRecords to use with this RequestParser, when not specified
 	 * by the client request

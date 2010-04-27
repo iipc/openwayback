@@ -88,7 +88,7 @@ public class OpenSearchRequestParser extends WrappedRequestParser {
 		WaybackRequest wbRequest = null;
 		@SuppressWarnings("unchecked")
 		Map<String,String[]> queryMap = httpRequest.getParameterMap();
-		String query = getMapParam(queryMap, SEARCH_QUERY);
+		String query = AccessPoint.getMapParam(queryMap, SEARCH_QUERY);
 		if(query == null) {
 			return null;
 		}
@@ -107,8 +107,8 @@ public class OpenSearchRequestParser extends WrappedRequestParser {
 			return null;
 		}
 		
-		String numResults = getMapParam(queryMap, SEARCH_RESULTS);
-		String startPage = getMapParam(queryMap, START_PAGE);
+		String numResults = AccessPoint.getMapParam(queryMap, SEARCH_RESULTS);
+		String startPage = AccessPoint.getMapParam(queryMap, START_PAGE);
 
 		if (numResults != null) {
 			int nr = Integer.parseInt(numResults);

@@ -34,7 +34,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.archive.wayback.webapp.ServletRequestContext;
+import org.archive.wayback.exception.BadQueryException;
+import org.archive.wayback.util.webapp.AbstractRequestHandler;
 
 /**
  * ServletRequestContext enabling remote HTTP GET/POST access to a local 
@@ -44,7 +45,7 @@ import org.archive.wayback.webapp.ServletRequestContext;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class ResourceFileLocationDBServlet extends ServletRequestContext {
+public class ResourceFileLocationDBServlet extends AbstractRequestHandler {
 
 	protected static final String OPERATION_ARGUMENT = "operation";
 	protected static final String NAME_ARGUMENT = "name";
@@ -77,18 +78,22 @@ public class ResourceFileLocationDBServlet extends ServletRequestContext {
 			e.printStackTrace();
 			httpResponse.sendError(HttpServletResponse.SC_BAD_REQUEST,
 					e.getMessage());
+		} catch(BadQueryException e) {
+			e.printStackTrace();
+			httpResponse.sendError(HttpServletResponse.SC_BAD_REQUEST,
+					e.getMessage());
 		}
 		return true;
 	}
 
 	private String handleOperation(Map<String,String[]> queryMap)
-			throws ParseException {
+			throws ParseException, BadQueryException {
 
-		String operation = getRequiredMapParam(queryMap, OPERATION_ARGUMENT);
+		String operation = AbstractRequestHandler.getRequiredMapParam(queryMap, OPERATION_ARGUMENT);
 		String message;
 		try {
 			if (operation.equals(LOOKUP_OPERATION)) {
-				String name = getRequiredMapParam(queryMap, NAME_ARGUMENT);
+				String name = AbstractRequestHandler.getRequiredMapParam(queryMap, NAME_ARGUMENT);
 
 				message = NO_LOCATION_PREFIX + " " + name;
 				String arcUrls[] = locationDB.nameToUrls(name);
@@ -107,8 +112,8 @@ public class ResourceFileLocationDBServlet extends ServletRequestContext {
 
 			} else if (operation.equals(GETRANGE_OPERATION)) {
 
-				long start = Long.parseLong(getRequiredMapParam(queryMap, START_ARGUMENT));
-				long end = Long.parseLong(getRequiredMapParam(queryMap, END_ARGUMENT));
+				long start = Long.parseLong(AbstractRequestHandler.getRequiredMapParam(queryMap, START_ARGUMENT));
+				long end = Long.parseLong(AbstractRequestHandler.getRequiredMapParam(queryMap, END_ARGUMENT));
 				Iterator<String> itr = locationDB.getNamesBetweenMarks(start,end);
 				StringBuilder str = new StringBuilder();
 				str.append("OK ");
@@ -120,8 +125,8 @@ public class ResourceFileLocationDBServlet extends ServletRequestContext {
 				
 			} else {
 
-				String name = getRequiredMapParam(queryMap, NAME_ARGUMENT);
-				String url = getRequiredMapParam(queryMap, URL_ARGUMENT);
+				String name = AbstractRequestHandler.getRequiredMapParam(queryMap, NAME_ARGUMENT);
+				String url = AbstractRequestHandler.getRequiredMapParam(queryMap, URL_ARGUMENT);
 				if (operation.equals(ADD_OPERATION)) {
 
 					locationDB.addNameUrl(name, url);

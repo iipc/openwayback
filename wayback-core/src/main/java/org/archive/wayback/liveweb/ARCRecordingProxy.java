@@ -33,13 +33,13 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.httpclient.URIException;
 import org.apache.log4j.Logger;
-import org.archive.wayback.webapp.ServletRequestContext;
+import org.archive.wayback.util.webapp.AbstractRequestHandler;
 
 /**
  * @author brad
  *
  */
-public class ARCRecordingProxy extends ServletRequestContext {
+public class ARCRecordingProxy extends AbstractRequestHandler {
 
 	private final static String EXPIRES_HEADER = "Expires";
 	private long expiresMS = 60 * 60 * 1000;
@@ -52,10 +52,7 @@ public class ARCRecordingProxy extends ServletRequestContext {
 
 	private ARCCacheDirectory arcCacheDir = null;
 	private URLtoARCCacher cacher = null;
-	/* (non-Javadoc)
-	 * @see org.archive.wayback.webapp.ServletRequestContext#handleRequest(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
-	 */
-	@Override
+
 	public boolean handleRequest(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse) throws ServletException,
 			IOException {

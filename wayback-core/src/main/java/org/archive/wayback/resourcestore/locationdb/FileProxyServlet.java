@@ -45,7 +45,7 @@ import org.apache.log4j.Logger;
 import org.archive.util.anvl.ANVLRecord;
 import org.archive.wayback.util.http.HttpRequestMessage;
 import org.archive.wayback.util.http.HttpResponse;
-import org.archive.wayback.webapp.ServletRequestContext;
+import org.archive.wayback.util.webapp.AbstractRequestHandler;
 
 /**
  * ServletRequestContext interface which uses a ResourceFileLocationDB to 
@@ -56,7 +56,7 @@ import org.archive.wayback.webapp.ServletRequestContext;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class FileProxyServlet extends ServletRequestContext {
+public class FileProxyServlet extends AbstractRequestHandler {
 	private static final Logger LOGGER = Logger.getLogger(FileProxyServlet.class
 			.getName());
 

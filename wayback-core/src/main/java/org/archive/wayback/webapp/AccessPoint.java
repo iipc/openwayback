@@ -40,7 +40,6 @@ import org.archive.wayback.ReplayDispatcher;
 import org.archive.wayback.ReplayRenderer;
 import org.archive.wayback.RequestParser;
 import org.archive.wayback.ResultURIConverter;
-import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.accesscontrol.ExclusionFilterFactory;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
@@ -58,7 +57,8 @@ import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.exception.WaybackException;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.util.operator.BooleanOperator;
-import org.springframework.beans.factory.BeanNameAware;
+import org.archive.wayback.util.webapp.AbstractRequestHandler;
+import org.archive.wayback.util.webapp.ShutdownListener;
 
 /**
  * Retains all information about a particular Wayback configuration
@@ -77,35 +77,376 @@ import org.springframework.beans.factory.BeanNameAware;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class AccessPoint implements RequestContext, BeanNameAware {
+public class AccessPoint extends AbstractRequestHandler 
+implements ShutdownListener {
 
 	private static final Logger LOGGER = Logger.getLogger(
 			AccessPoint.class.getName());
 	
-	private String liveWebPrefix = null;
-	
-	private boolean useServerName = false;
-	private boolean useAnchorWindow = false;
-	private boolean exactSchemeMatch = true;
 	private boolean exactHostMatch = false;
+	private boolean exactSchemeMatch = true;
+	private boolean useAnchorWindow = false;
+	private boolean useServerName = false;
 
-	private int contextPort = 0;
-	private String contextName = null;
-	private String beanName = null;
-	private WaybackCollection collection = null;
-	private ReplayDispatcher replay = null;
-	private ExceptionRenderer exception = new BaseExceptionRenderer();
-	private QueryRenderer query = null;
-	private RequestParser parser = null;
-	private ResultURIConverter uriConverter = null;
-	private Properties configs = null;
-	private ExclusionFilterFactory exclusionFactory = null;
-	private BooleanOperator<WaybackRequest> authentication = null;
+	private String liveWebPrefix = null;
 	private String urlRoot = null;
+
 	private Locale locale = null;
+
+	private Properties configs = null;
+
 	private List<String> filePatterns = null;
 	private List<String> filePrefixes = null;
+
+	private WaybackCollection  collection   = null;
+	private ExceptionRenderer  exception    = new BaseExceptionRenderer();
+	private QueryRenderer      query        = null;
+	private RequestParser      parser       = null;
+	private ReplayDispatcher   replay       = null;
+	private ResultURIConverter uriConverter = null;
+
+	private ExclusionFilterFactory exclusionFactory = null;
+	private BooleanOperator<WaybackRequest> authentication = null;
 	
+
+	protected boolean dispatchLocal(HttpServletRequest httpRequest,
+			HttpServletResponse httpResponse) 
+	throws ServletException, IOException {
+		
+		String translated = "/" + translateRequestPathQuery(httpRequest);
+
+		WaybackRequest wbRequest = new WaybackRequest();
+		wbRequest.setContextPrefix(getUrlRoot());
+		wbRequest.setAccessPoint(this);
+		wbRequest.fixup(httpRequest);
+		UIResults uiResults = new UIResults(wbRequest,uriConverter);
+		try {
+			uiResults.forward(httpRequest, httpResponse, translated);
+			return true;
+		} catch(IOException e) {
+			// TODO: figure out if we got IO because of a missing dispatcher
+		}
+		return false;
+	}
+
+	/**
+	 * @param httpRequest HttpServletRequest which is being handled 
+	 * @param httpResponse HttpServletResponse which is being handled 
+	 * @return true if the request was actually handled
+	 * @throws ServletException per usual
+	 * @throws IOException per usual
+	 */
+	public boolean handleRequest(HttpServletRequest httpRequest,
+			HttpServletResponse httpResponse) 
+	throws ServletException, IOException {
+
+		WaybackRequest wbRequest = null;
+		boolean handled = false;
+
+		try {
+			wbRequest = getParser().parse(httpRequest, this);
+
+			if(wbRequest != null) {
+				handled = true;
+
+				// TODO: refactor this code into RequestParser implementations
+				wbRequest.setAccessPoint(this);
+//				wbRequest.setContextPrefix(getAbsoluteLocalPrefix(httpRequest));
+				wbRequest.setContextPrefix(getUrlRoot());
+				wbRequest.fixup(httpRequest);
+				// end of refactor
+
+				if(getAuthentication() != null) {
+					if(!getAuthentication().isTrue(wbRequest)) {
+						throw new AuthenticationControlException(
+								"Unauthorized");
+					}
+				}
+
+				if(getExclusionFactory() != null) {
+					ExclusionFilter exclusionFilter = 
+						getExclusionFactory().get();
+					if(exclusionFilter == null) {
+						throw new AdministrativeAccessControlException(
+								"AccessControl list unavailable");
+					}
+					wbRequest.setExclusionFilter(exclusionFilter);
+				}
+				// TODO: refactor this into RequestParser implementations, so a
+				// user could alter requests to change the behavior within a
+				// single AccessPoint. For now, this is a simple way to expose
+				// the feature to configuration.g
+				wbRequest.setExactScheme(isExactSchemeMatch());
+
+				if(wbRequest.isReplayRequest()) {
+
+					handleReplay(wbRequest,httpRequest,httpResponse);
+					
+				} else {
+
+					wbRequest.setExactHost(isExactHostMatch());
+					handleQuery(wbRequest,httpRequest,httpResponse);
+				}
+			} else {
+				handled = dispatchLocal(httpRequest,httpResponse);
+			}
+
+		} catch(BetterRequestException e) {
+			httpResponse.sendRedirect(e.getBetterURI());
+			handled = true;
+
+		} catch(WaybackException e) {
+			boolean drawError = true;
+			if(e instanceof ResourceNotInArchiveException) {
+				if(getLiveWebPrefix() != null) {
+					String liveUrl = 
+						getLiveWebPrefix() + wbRequest.getRequestUrl();
+					httpResponse.sendRedirect(liveUrl);
+					drawError = false;
+				}
+			}
+			if(drawError) {
+				logNotInArchive(e,wbRequest);
+				getException().renderException(httpRequest, httpResponse, 
+						wbRequest, e, getUriConverter());
+			}
+		}
+		return handled;
+	}
+	
+	private void logNotInArchive(WaybackException e, WaybackRequest r) {
+		// TODO: move this into ResourceNotInArchiveException constructor
+		if(e instanceof ResourceNotInArchiveException) {
+			String url = r.getRequestUrl();
+			StringBuilder sb = new StringBuilder(100);
+			sb.append("NotInArchive\t");
+			sb.append(getUrlRoot()).append("\t");
+			sb.append(url);
+			
+			LOGGER.info(sb.toString());
+		}
+	}
+
+	private void handleReplay(WaybackRequest wbRequest, 
+			HttpServletRequest httpRequest, HttpServletResponse httpResponse) 
+	throws IOException, ServletException, WaybackException {
+		Resource resource = null;
+		try {
+			PerformanceLogger p = new PerformanceLogger("replay");
+			SearchResults results = 
+				getCollection().getResourceIndex().query(wbRequest);
+			p.queried();
+			if(!(results instanceof CaptureSearchResults)) {
+				throw new ResourceNotAvailableException("Bad results...");
+			}
+			CaptureSearchResults captureResults = 
+				(CaptureSearchResults) results;
+	
+			// TODO: check which versions are actually accessible right now?
+			CaptureSearchResult closest = captureResults.getClosest(wbRequest, 
+					isUseAnchorWindow());
+			closest.setClosest(true);
+			resource = 
+				getCollection().getResourceStore().retrieveResource(closest);
+			p.retrieved();
+			ReplayRenderer renderer = 
+				getReplay().getRenderer(wbRequest, closest, resource);
+			
+			renderer.renderResource(httpRequest, httpResponse, wbRequest,
+					closest, resource, getUriConverter(), captureResults);
+			
+			p.rendered();
+			p.write(wbRequest.getReplayTimestamp() + " " +
+					wbRequest.getRequestUrl());
+		} finally {
+			if(resource != null) {
+				resource.close();
+			}
+		}
+	}
+
+	private void handleQuery(WaybackRequest wbRequest, 
+			HttpServletRequest httpRequest, HttpServletResponse httpResponse) 
+	throws ServletException, IOException, WaybackException {
+
+		PerformanceLogger p = new PerformanceLogger("query");
+		SearchResults results = 
+			getCollection().getResourceIndex().query(wbRequest);
+		p.queried();
+		if(results instanceof CaptureSearchResults) {
+			CaptureSearchResults cResults = (CaptureSearchResults) results;
+			cResults.markClosest(wbRequest);
+			getQuery().renderCaptureResults(httpRequest,httpResponse,wbRequest,
+					cResults,getUriConverter());
+
+		} else if(results instanceof UrlSearchResults) {
+			UrlSearchResults uResults = (UrlSearchResults) results;
+			getQuery().renderUrlResults(httpRequest,httpResponse,wbRequest,
+					uResults,getUriConverter());
+		} else {
+			throw new WaybackException("Unknown index format");
+		}
+		p.rendered();
+		p.write(wbRequest.getRequestUrl());
+	}
+	
+	
+	/**
+	 * Release any resources associated with this AccessPoint, including
+	 * stopping any background processing threads
+	 */
+	public void shutdown() {
+		if(collection != null) {
+			try {
+				collection.shutdown();
+			} catch (IOException e) {
+				LOGGER.error("FAILED collection shutdown", e);
+			}
+		}
+		if(exclusionFactory != null) {
+			exclusionFactory.shutdown();
+		}
+	}
+	
+	/*
+	 * *******************************************************************
+	 * *******************************************************************
+	 * 
+	 *    ALL GETTER/SETTER BELOW HERE 
+	 * 
+	 * *******************************************************************
+	 * *******************************************************************
+	 */
+	
+	/**
+	 * @return the exactHostMatch
+	 */
+	public boolean isExactHostMatch() {
+		return exactHostMatch;
+	}
+
+	/**
+	 * @param exactHostMatch if true, then only SearchResults exactly matching
+	 * 		the requested hostname will be returned from this AccessPoint. If
+	 * 		false, then hosts which canonicalize to the same host as requested
+	 * 		hostname will be returned (www.)
+	 */
+	public void setExactHostMatch(boolean exactHostMatch) {
+		this.exactHostMatch = exactHostMatch;
+	}
+
+	/**
+	 * @return the exactSchemeMatch
+	 */
+	public boolean isExactSchemeMatch() {
+		return exactSchemeMatch;
+	}
+
+	/**
+	 * @param exactSchemeMatch the exactSchemeMatch to set
+	 */
+	public void setExactSchemeMatch(boolean exactSchemeMatch) {
+		this.exactSchemeMatch = exactSchemeMatch;
+	}
+
+	/**
+	 * @return true if this AccessPoint is configured to useAnchorWindow, that
+	 * is, to replay documents only if they are within a certain proximity to
+	 * the users requested AnchorDate
+	 */
+	public boolean isUseAnchorWindow() {
+		return useAnchorWindow;
+	}
+
+	/**
+	 * @param useAnchorWindow , when set to true, causes this AccessPoint to
+	 * only replay documents if they are within a certain proximity to
+	 * the users requested AnchorDate
+	 */
+	public void setUseAnchorWindow(boolean useAnchorWindow) {
+		this.useAnchorWindow = useAnchorWindow;
+	}
+
+	/**
+	 * @return the useServerName
+	 * @deprecated no longer used, use urlPrefix
+	 */
+	public boolean isUseServerName() {
+		return useServerName;
+	}
+
+	/**
+	 * @param useServerName the useServerName to set
+	 * @deprecated no longer used, use urlPrefix
+	 */
+	public void setUseServerName(boolean useServerName) {
+		this.useServerName = useServerName;
+	}
+
+	/**
+	 * @return the liveWebPrefix String to use, or null, if this AccessPoint 
+	 * does not use the Live Web to fill in documents missing from the archive
+	 */
+	public String getLiveWebPrefix() {
+		return liveWebPrefix;
+	}
+
+	/**
+	 * @param liveWebPrefix the String URL prefix to use to attempt to retrieve
+	 * documents missing from the collection from the live web, on demand.
+	 */
+	public void setLiveWebPrefix(String liveWebPrefix) {
+		this.liveWebPrefix = liveWebPrefix;
+	}
+
+	/**
+	 * @return the String url prefix to use when generating self referencing 
+	 * 			URLs
+	 */
+	public String getUrlRoot() {
+		return urlRoot;
+	}
+
+	/**
+	 * @param urlRoot explicit URL prefix to use when creating self referencing
+	 * 		URLs
+	 */
+	public void setUrlRoot(String urlRoot) {
+		this.urlRoot = urlRoot;
+	}
+
+	/**
+	 * @return explicit Locale to use within this AccessPoint.
+	 */
+	public Locale getLocale() {
+		return locale;
+	}
+
+	/**
+	 * @param locale explicit Locale to use for requests within this 
+	 * 		AccessPoint. If not set, will attempt to use the one specified by
+	 * 		each requests User Agent via HTTP headers
+	 */
+	public void setLocale(Locale locale) {
+		this.locale = locale;
+	}
+
+	/**
+	 * @return the generic customization Properties used with this AccessPoint,
+	 * generally to tune the UI
+	 */
+	public Properties getConfigs() {
+		return configs;
+	}
+
+	/**
+	 * @param configs the generic customization Properties to use with this
+	 * AccessPoint, generally used to tune the UI
+	 */
+	public void setConfigs(Properties configs) {
+		this.configs = configs;
+	}
+
 	/**
 	 * @return List of file patterns that will be matched when querying the 
 	 * ResourceIndex
@@ -140,524 +481,8 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 		this.filePrefixes = filePrefixes;
 	}
 
-	/**
-	 * @return the contextName
-	 */
-	public String getContextName() {
-		return contextName;
-	}
 
-	/**
-	 * @return the replay
-	 */
-	public ReplayDispatcher getReplay() {
-		return replay;
-	}
-
-	/**
-	 * @return the query
-	 */
-	public QueryRenderer getQuery() {
-		return query;
-	}
-
-	/**
-	 * @return the parser
-	 */
-	public RequestParser getParser() {
-		return parser;
-	}
-
-	/**
-	 * @return the uriConverter
-	 */
-	public ResultURIConverter getUriConverter() {
-		return uriConverter;
-	}
-
-	/**
-	 * @return explicit Locale to use within this AccessPoint.
-	 */
-	public Locale getLocale() {
-		return locale;
-	}
-
-	/**
-	 * @param locale explicit Locale to use for requests within this 
-	 * 		AccessPoint. If not set, will attempt to use the one specified by
-	 * 		each requests User Agent via HTTP headers
-	 */
-	public void setLocale(Locale locale) {
-		this.locale = locale;
-	}
-
-	/**
-	 * 
-	 */
-	public AccessPoint() {
-		
-	}
 	
-	/* (non-Javadoc)
-	 * @see org.springframework.beans.factory.BeanNameAware#setBeanName(java.lang.String)
-	 */
-	public void setBeanName(String beanName) {
-		this.beanName = beanName;
-		this.contextName = "";
-		int idx = beanName.indexOf(":");
-		if(idx > -1) {
-			contextPort = Integer.valueOf(beanName.substring(0,idx));
-			contextName = beanName.substring(idx + 1);
-		} else {
-			try {
-				this.contextPort = Integer.valueOf(beanName);
-			} catch(NumberFormatException e) {
-				e.printStackTrace();
-			}
-		}
-	}
-	/**
-	 * @return the name of the bean in the Spring configuration which defined
-	 * 			this AccessPoint.
-	 */
-	public String getBeanName() {
-		return beanName;
-	}
-	/**
-	 * @param httpRequest HttpServletRequest which is being handled 
-	 * @return the prefix of paths received by this server that are handled by
-	 * this WaybackContext, including the trailing '/'
-	 */
-	public String getContextPath(HttpServletRequest httpRequest) {
-		String httpContextPath = httpRequest.getContextPath();
-		if(contextName.length() == 0) {
-			return httpContextPath + "/";
-		}
-		return httpContextPath + "/" + contextName + "/";
-	}
-
-	/**
-	 * Remove any leading ServletContext and AccessPoint name path elements
-	 * from the incoming request path, returning the result as a String
-	 * 
-	 * @param httpRequest HttpServletRequest which is being handled 
-	 * @param includeQuery if true, include any query arguments
-	 * @return the portion of the request following the path to this context
-	 * without leading '/'
-	 */
-	protected String translateRequest(HttpServletRequest httpRequest, 
-			boolean includeQuery) {
-
-		String origRequestPath = httpRequest.getRequestURI();
-		if(includeQuery) {
-			String queryString = httpRequest.getQueryString();
-			if (queryString != null) {
-				origRequestPath += "?" + queryString;
-			}
-		}
-		String contextPath = getContextPath(httpRequest);
-		if (!origRequestPath.startsWith(contextPath)) {
-			if(contextPath.startsWith(origRequestPath)) {
-				// missing trailing '/', just omit:
-				return "";
-			}
-			return null;
-		}
-		return origRequestPath.substring(contextPath.length());
-	}
-	
-	/**
-	 * Remove any leading ServletContext and AccessPoint name path elements
-	 * from the incoming request path, returning the result as a String
-
-	 * @param httpRequest HttpServletRequest which is being handled 
-	 * @return the portion of the request following the path to this context, 
-	 * including any query information,without leading '/'
-	 */
-	public String translateRequestPathQuery(HttpServletRequest httpRequest) {
-		return translateRequest(httpRequest,true);
-	}	
-
-	/**
-	 * @param httpRequest HttpServletRequest which is being handled 
-	 * @return the portion of the request following the path to this context, 
-	 * excluding any query information, without leading '/'
-	 */
-	public String translateRequestPath(HttpServletRequest httpRequest) {
-		return translateRequest(httpRequest,false);
-	}	
-	
-	/**
-	 * Construct an absolute URL that points to the root of the context that
-	 * received the request, including a trailing "/".
-	 * 
-	 * @return String absolute URL pointing to the Context root where the
-	 *         request was received.
-	 */
-	private String getAbsoluteContextPrefix(HttpServletRequest httpRequest, 
-			boolean useRequestServer) {
-		
-		StringBuilder prefix = new StringBuilder();
-		prefix.append(WaybackConstants.HTTP_URL_PREFIX);
-		String waybackPort = null;
-		if(useRequestServer) {
-			prefix.append(httpRequest.getLocalName());
-			waybackPort = String.valueOf(httpRequest.getLocalPort());
-		} else {
-			prefix.append(httpRequest.getServerName());
-			waybackPort = String.valueOf(httpRequest.getServerPort());
-		}
-		if (!waybackPort.equals(WaybackConstants.HTTP_DEFAULT_PORT)) {
-			prefix.append(":").append(waybackPort);
-		}
-		String contextPath = getContextPath(httpRequest);
-		prefix.append(contextPath);
-		return prefix.toString();
-	}
-	
-	/**
-	 * @param httpRequest HttpServletRequest which is being handled 
-	 * @return absolute URL pointing to the base of this WaybackContext, using
-	 * Server and port information from the HttpServletRequest argument.
-	 */
-	public String getAbsoluteServerPrefix(HttpServletRequest httpRequest) {
-		return getAbsoluteContextPrefix(httpRequest, true);
-	}
-
-	/**
-	 * @param httpRequest HttpServletRequest which is being handled 
-	 * @return absolute URL pointing to the base of this WaybackContext, using
-	 * Canonical server and port information.
-	 */
-	public String getAbsoluteLocalPrefix(HttpServletRequest httpRequest) {
-		if(urlRoot != null) {
-			return urlRoot;
-		}
-		return getAbsoluteContextPrefix(httpRequest, useServerName);
-	}
-
-	protected boolean dispatchLocal(HttpServletRequest httpRequest,
-			HttpServletResponse httpResponse) 
-	throws ServletException, IOException {
-		
-		String translated = "/" + translateRequestPathQuery(httpRequest);
-
-		WaybackRequest wbRequest = new WaybackRequest();
-		wbRequest.setContextPrefix(getAbsoluteLocalPrefix(httpRequest));
-		wbRequest.setAccessPoint(this);
-		wbRequest.fixup(httpRequest);
-		UIResults uiResults = new UIResults(wbRequest,uriConverter);
-		try {
-			uiResults.forward(httpRequest, httpResponse, translated);
-			return true;
-		} catch(IOException e) {
-			// TODO: figure out if we got IO because of a missing dispatcher
-		}
-		return false;
-	}
-	
-	/**
-	 * @param httpRequest HttpServletRequest which is being handled 
-	 * @param httpResponse HttpServletResponse which is being handled 
-	 * @return true if the request was actually handled
-	 * @throws ServletException per usual
-	 * @throws IOException per usual
-	 */
-	public boolean handleRequest(HttpServletRequest httpRequest,
-			HttpServletResponse httpResponse) 
-	throws ServletException, IOException {
-
-		WaybackRequest wbRequest = null;
-		boolean handled = false;
-
-		try {
-			wbRequest = parser.parse(httpRequest, this);
-
-			if(wbRequest != null) {
-				handled = true;
-
-				// TODO: refactor this code into RequestParser implementations
-				wbRequest.setAccessPoint(this);
-				wbRequest.setContextPrefix(getAbsoluteLocalPrefix(httpRequest));
-				wbRequest.fixup(httpRequest);
-				// end of refactor
-
-				if(authentication != null) {
-					if(!authentication.isTrue(wbRequest)) {
-						throw new AuthenticationControlException("Not authorized");
-					}
-				}
-
-				if(exclusionFactory != null) {
-					ExclusionFilter exclusionFilter = exclusionFactory.get();
-					if(exclusionFilter == null) {
-						throw new AdministrativeAccessControlException(
-								"AccessControl list unavailable");
-					}
-					wbRequest.setExclusionFilter(exclusionFilter);
-				}
-				// TODO: refactor this into RequestParser implementations, so a
-				// user could alter requests to change the behavior within a
-				// single AccessPoint. For now, this is a simple way to expose
-				// the feature to configuration.
-				wbRequest.setExactScheme(exactSchemeMatch);
-
-				if(wbRequest.isReplayRequest()) {
-
-					handleReplay(wbRequest,httpRequest,httpResponse);
-					
-				} else {
-
-					wbRequest.setExactHost(exactHostMatch);
-					handleQuery(wbRequest,httpRequest,httpResponse);
-				}
-			} else {
-				handled = dispatchLocal(httpRequest,httpResponse);
-			}
-
-		} catch(BetterRequestException e) {
-			httpResponse.sendRedirect(e.getBetterURI());
-			handled = true;
-
-		} catch(WaybackException e) {
-			boolean drawError = true;
-			if(e instanceof ResourceNotInArchiveException) {
-				if(liveWebPrefix != null) {
-					String liveUrl = liveWebPrefix + wbRequest.getRequestUrl();
-					httpResponse.sendRedirect(liveUrl);
-					drawError = false;
-				}
-			}
-			if(drawError) {
-				logNotInArchive(e,wbRequest);
-				exception.renderException(httpRequest, httpResponse, wbRequest, e, 
-						uriConverter);
-			}
-		}
-		return handled;
-	}
-
-	private void handleReplay(WaybackRequest wbRequest, 
-			HttpServletRequest httpRequest, HttpServletResponse httpResponse) 
-	throws IOException, ServletException, WaybackException {
-		Resource resource = null;
-		try {
-			PerformanceLogger p = new PerformanceLogger("replay");
-			SearchResults results = collection.getResourceIndex().query(wbRequest);
-			p.queried();
-			if(!(results instanceof CaptureSearchResults)) {
-				throw new ResourceNotAvailableException("Bad results...");
-			}
-			CaptureSearchResults captureResults = (CaptureSearchResults) results;
-	
-			// TODO: check which versions are actually accessible right now?
-			CaptureSearchResult closest = captureResults.getClosest(wbRequest, 
-					useAnchorWindow);
-			closest.setClosest(true);
-			resource = collection.getResourceStore().retrieveResource(closest);
-			p.retrieved();
-			ReplayRenderer renderer = replay.getRenderer(wbRequest, closest, resource);
-			renderer.renderResource(httpRequest, httpResponse, wbRequest,
-					closest, resource, uriConverter, captureResults);
-			p.rendered();
-			p.write(wbRequest.getReplayTimestamp() + " " + wbRequest.getRequestUrl());
-		} finally {
-			if(resource != null) {
-				resource.close();
-			}
-		}
-	}
-
-	private void handleQuery(WaybackRequest wbRequest, 
-			HttpServletRequest httpRequest, HttpServletResponse httpResponse) 
-	throws ServletException, IOException, WaybackException {
-
-		PerformanceLogger p = new PerformanceLogger("query");
-		SearchResults results = collection.getResourceIndex().query(wbRequest);
-		p.queried();
-		if(results instanceof CaptureSearchResults) {
-			CaptureSearchResults cResults = (CaptureSearchResults) results;
-			cResults.markClosest(wbRequest);
-			query.renderCaptureResults(httpRequest,httpResponse,wbRequest,
-					cResults,uriConverter);
-
-		} else if(results instanceof UrlSearchResults) {
-			UrlSearchResults uResults = (UrlSearchResults) results;
-			query.renderUrlResults(httpRequest,httpResponse,wbRequest,
-					uResults,uriConverter);
-		} else {
-			throw new WaybackException("Unknown index format");
-		}
-		p.rendered();
-		p.write(wbRequest.getRequestUrl());
-	}
-	
-	/**
-	 * Release any resources associated with this AccessPoint, including
-	 * stopping any background processing threads
-	 * 
-	 * @throws IOException per usual
-	 */
-	public void shutdown() throws IOException {
-		if(collection != null) {
-			collection.shutdown();
-		}
-		if(exclusionFactory != null) {
-			exclusionFactory.shutdown();
-		}
-	}
-	
-	private void logNotInArchive(WaybackException e, WaybackRequest r) {
-		// TODO: move this into ResourceNotInArchiveException constructor
-		if(e instanceof ResourceNotInArchiveException) {
-			String url = r.getRequestUrl();
-			StringBuilder sb = new StringBuilder(100);
-			sb.append("NotInArchive\t");
-			sb.append(contextName).append("\t");
-			sb.append(contextPort).append("\t");
-			sb.append(url);
-			
-			LOGGER.info(sb.toString());
-		}
-	}
-
-	/**
-	 * @param contextPort the contextPort to set
-	 */
-	public void setContextPort(int contextPort) {
-		this.contextPort = contextPort;
-	}
-
-	/**
-	 * @param contextName the contextName to set
-	 */
-	public void setContextName(String contextName) {
-		this.contextName = contextName;
-	}
-
-	/**
-	 * @param replay the replay to set
-	 */
-	public void setReplay(ReplayDispatcher replay) {
-		this.replay = replay;
-	}
-
-	/**
-	 * @param query the query to set
-	 */
-	public void setQuery(QueryRenderer query) {
-		this.query = query;
-	}
-
-	/**
-	 * @param parser the parser to set
-	 */
-	public void setParser(RequestParser parser) {
-		this.parser = parser;
-	}
-
-	/**
-	 * @param uriConverter the uriConverter to set
-	 */
-	public void setUriConverter(ResultURIConverter uriConverter) {
-		this.uriConverter = uriConverter;
-	}
-
-
-	/**
-	 * @return the contextPort
-	 */
-	public int getContextPort() {
-		return contextPort;
-	}
-
-	/**
-	 * @return the configs
-	 */
-	public Properties getConfigs() {
-		return configs;
-	}
-
-	/**
-	 * @param configs the configs to set
-	 */
-	public void setConfigs(Properties configs) {
-		this.configs = configs;
-	}
-
-	/**
-	 * @return the useServerName
-	 */
-	public boolean isUseServerName() {
-		return useServerName;
-	}
-
-	/**
-	 * @param useServerName the useServerName to set
-	 */
-	public void setUseServerName(boolean useServerName) {
-		this.useServerName = useServerName;
-	}
-
-	/**
-	 * @return the useAnchorWindow
-	 */
-	public boolean isUseAnchorWindow() {
-		return useAnchorWindow;
-	}
-
-	/**
-	 * @param useAnchorWindow the useAnchorWindow to set
-	 */
-	public void setUseAnchorWindow(boolean useAnchorWindow) {
-		this.useAnchorWindow = useAnchorWindow;
-	}
-	
-	/**
-	 * @return the exactSchemeMatch
-	 */
-	public boolean isExactSchemeMatch() {
-		return exactSchemeMatch;
-	}
-
-	/**
-	 * @param exactSchemeMatch the exactSchemeMatch to set
-	 */
-	public void setExactSchemeMatch(boolean exactSchemeMatch) {
-		this.exactSchemeMatch = exactSchemeMatch;
-	}
-
-	/**
-	 * @return the ExclusionFilterFactory in use with this AccessPoint
-	 */
-	public ExclusionFilterFactory getExclusionFactory() {
-		return exclusionFactory;
-	}
-
-	/**
-	 * @param exclusionFactory all requests to this AccessPoint will create an
-	 * 		exclusionFilter from this factory when handling requests
-	 */
-	public void setExclusionFactory(ExclusionFilterFactory exclusionFactory) {
-		this.exclusionFactory = exclusionFactory;
-	}
-
-	/**
-	 * @return the configured AuthenticationControl operator in use with this
-	 * 		AccessPoint.
-	 */
-	public BooleanOperator<WaybackRequest> getAuthentication() {
-		return authentication;
-	}
-
-	/**
-	 * @param authentication the BooleanOperator which determines if incoming
-	 * 		requests are allowed to connect to this AccessPoint.
-	 */
-	public void setAuthentication(BooleanOperator<WaybackRequest> authentication) {
-		this.authentication = authentication;
-	}
-
 	/**
 	 * @return the WaybackCollection used by this AccessPoint
 	 */
@@ -687,49 +512,97 @@ public class AccessPoint implements RequestContext, BeanNameAware {
 	}
 
 	/**
-	 * @return the String url prefix to use when generating self referencing 
-	 * 			URLs
+	 * @return the QueryRenderer to use with this AccessPoint
 	 */
-	public String getUrlRoot() {
-		return urlRoot;
+	public QueryRenderer getQuery() {
+		return query;
+	}
+	
+	/**
+	 * @param query the QueryRenderer responsible for returning query data to
+	 * clients.
+	 */
+	public void setQuery(QueryRenderer query) {
+		this.query = query;
 	}
 
 	/**
-	 * @param urlRoot explicit URL prefix to use when creating self referencing
-	 * 		URLs
+	 * @return the RequestParser used by this AccessPoint to attempt to 
+	 * translate incoming HttpServletRequest objects into WaybackRequest 
+	 * objects
 	 */
-	public void setUrlRoot(String urlRoot) {
-		this.urlRoot = urlRoot;
+	public RequestParser getParser() {
+		return parser;
+	}
+	
+	/**
+	 * @param parser the RequestParser to use with this AccessPoint
+	 */
+	public void setParser(RequestParser parser) {
+		this.parser = parser;
 	}
 
 	/**
-	 * @return the exactHostMatch
+	 * @return the ReplayDispatcher to use with this AccessPoint, responsible
+	 * for returning an appropriate ReplayRenderer given the user request and
+	 * the returned document type.
 	 */
-	public boolean isExactHostMatch() {
-		return exactHostMatch;
+	public ReplayDispatcher getReplay() {
+		return replay;
 	}
 
 	/**
-	 * @param exactHostMatch if true, then only SearchResults exactly matching
-	 * 		the requested hostname will be returned from this AccessPoint. If
-	 * 		false, then hosts which canonicalize to the same host as requested
-	 * 		hostname will be returned (www.)
+	 * @param replay the ReplayDispatcher to use with this AccessPoint.
 	 */
-	public void setExactHostMatch(boolean exactHostMatch) {
-		this.exactHostMatch = exactHostMatch;
+	public void setReplay(ReplayDispatcher replay) {
+		this.replay = replay;
 	}
 
 	/**
-	 * @return the liveWebPrefix
+	 * @return the ResultURIConverter used to construct Replay URLs within this
+	 * AccessPoint
 	 */
-	public String getLiveWebPrefix() {
-		return liveWebPrefix;
+	public ResultURIConverter getUriConverter() {
+		return uriConverter;
 	}
 
 	/**
-	 * @param liveWebPrefix the liveWebPrefix to set
+	 * @param uriConverter the ResultURIConverter to use with this AccessPoint
+	 * to construct Replay URLs
 	 */
-	public void setLiveWebPrefix(String liveWebPrefix) {
-		this.liveWebPrefix = liveWebPrefix;
+	public void setUriConverter(ResultURIConverter uriConverter) {
+		this.uriConverter = uriConverter;
+	}
+
+
+	/**
+	 * @return the ExclusionFilterFactory in use with this AccessPoint
+	 */
+	public ExclusionFilterFactory getExclusionFactory() {
+		return exclusionFactory;
+	}
+
+	/**
+	 * @param exclusionFactory all requests to this AccessPoint will create an
+	 * 		exclusionFilter from this factory when handling requests
+	 */
+	public void setExclusionFactory(ExclusionFilterFactory exclusionFactory) {
+		this.exclusionFactory = exclusionFactory;
+	}
+
+	/**
+	 * @return the configured AuthenticationControl BooleanOperator in use with 
+	 *      this AccessPoint.
+	 */
+	public BooleanOperator<WaybackRequest> getAuthentication() {
+		return authentication;
+	}
+
+	/**
+	 * @param auth the BooleanOperator which determines if incoming
+	 * 		requests are allowed to connect to this AccessPoint.
+	 */
+	public void setAuthentication(BooleanOperator<WaybackRequest> auth) {
+		this.authentication = auth;
 	}
 }
