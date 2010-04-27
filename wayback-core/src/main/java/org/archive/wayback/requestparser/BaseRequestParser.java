@@ -47,12 +47,26 @@ import org.archive.wayback.webapp.AccessPoint;
  */
 public abstract class BaseRequestParser implements RequestParser {
 
+	/**
+	 * String path matching a query request, by form or OpenSearch
+	 */
 	public final static String QUERY_BASE = "query";
 
+	/**
+	 * String path matching a query request, by form or OpenSearch, indicating
+	 * user requests XML data in response
+	 */
 	public final static String XQUERY_BASE = "xmlquery";
 
+	/**
+	 * String path matching a replay request, by form or OpenSearch
+	 */
 	public final static String REPLAY_BASE = "replay";
 	
+	/**
+	 * Default maximum number of records to assume, overridden by configuration,
+	 * when not specified in the client request
+	 */
 	public final static int DEFAULT_MAX_RECORDS = 10;
 
 	
@@ -60,9 +74,6 @@ public abstract class BaseRequestParser implements RequestParser {
 	private String earliestTimestamp = null;
 	private String latestTimestamp = null;
 
-	/* (non-Javadoc)
-	 * @see org.archive.wayback.RequestParser#parse(javax.servlet.http.HttpServletRequest)
-	 */
 	public abstract WaybackRequest parse(HttpServletRequest httpRequest, 
 			AccessPoint wbContext) throws BadQueryException, 
 			BetterRequestException;
@@ -96,42 +107,46 @@ public abstract class BaseRequestParser implements RequestParser {
 	}
 
 	/**
-	 * @return the maxRecords
+	 * @return the maxRecords to use with this RequestParser, when not specified
+	 * by the client request
 	 */
 	public int getMaxRecords() {
 		return maxRecords;
 	}
 
 	/**
-	 * @param maxRecords the maxRecords to set
+	 * @param maxRecords the maxRecords to use with this RequestParser, when not
+	 * specified by the client request
 	 */
 	public void setMaxRecords(int maxRecords) {
 		this.maxRecords = maxRecords;
 	}
 
 	/**
-	 * @param default earliest timestamp
+	 * @param timestamp the earliest timestamp to use with this RequestParser 
+	 * when none is supplied by the user request
 	 */
 	public void setEarliestTimestamp(String timestamp) {
 		earliestTimestamp = Timestamp.parseBefore(timestamp).getDateStr();
 	}
 
 	/**
-	 * @return the default earliest timestamp
+	 * @return the default earliest timestamp to use with this RequestParser
 	 */
 	public String getEarliestTimestamp() {
 		return earliestTimestamp;
 	}
 
 	/**
-	 * @param default latest timestamp
+	 * @return default latest timestamp for this RequestParser
 	 */
 	public String getLatestTimestamp() {
 		return latestTimestamp;
 	}
 
 	/**
-	 * @return the default latest timestamp
+	 * @param timestamp the default latest timestamp to use with this 
+	 * RequestParser
 	 */
 	public void setLatestTimestamp(String timestamp) {
 		this.latestTimestamp = Timestamp.parseAfter(timestamp).getDateStr();
