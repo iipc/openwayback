@@ -34,7 +34,10 @@ import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.webapp.AccessPoint;
 
 /**
- *
+ * RequestParser which attempts to extract data from an HTML form, that is, from
+ * HTTP GET request arguments containing a query, an optional count (results 
+ * per page), and an optional current page argument. All other reqeust fields
+ * are expected to be encoded within the query ("q") field.
  *
  * @author brad
  * @version $Date$, $Revision$
@@ -42,7 +45,7 @@ import org.archive.wayback.webapp.AccessPoint;
 public class OpenSearchRequestParser extends WrappedRequestParser {
 
 	/**
-	 * @param wrapped
+	 * @param wrapped the BaseRequestParser being wrapped
 	 */
 	public OpenSearchRequestParser(BaseRequestParser wrapped) {
 		super(wrapped);
