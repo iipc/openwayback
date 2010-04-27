@@ -35,14 +35,15 @@ import org.archive.wayback.util.Timestamp;
 import org.archive.wayback.webapp.AccessPoint;
 
 /**
- *
+ * RequestParser which attempts to extract data from an HTML form, that is, from
+ * HTTP GET request arguments
  *
  * @author brad
  * @version $Date$, $Revision$
  */
 public class FormRequestParser extends WrappedRequestParser {
 	/**
-	 * @param wrapped
+	 * @param wrapped the BaseRequestParser being wrapped
 	 */
 	public FormRequestParser(BaseRequestParser wrapped) {
 		super(wrapped);
