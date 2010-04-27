@@ -24,8 +24,6 @@
  */
 package org.archive.wayback.util.url;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -45,18 +43,44 @@ public class UrlOperations {
 	private static final Logger LOGGER = Logger.getLogger(
 			UrlOperations.class.getName());
 	
+	/**
+	 * ARC/WARC specific DNS resolution record.
+	 */
 	public final static String DNS_SCHEME = "dns:";
+	/**
+	 * HTTP
+	 */
 	public final static String HTTP_SCHEME = "http://";
+	/**
+	 * HTTPS
+	 */
 	public final static String HTTPS_SCHEME = "https://";
+	/**
+	 * FTP
+	 */
 	public final static String FTP_SCHEME = "ftp://";
+	/**
+	 * MMS
+	 */
 	public final static String MMS_SCHEME = "mms://";
+	/**
+	 * RTSP
+	 */
 	public final static String RTSP_SCHEME = "rtsp://";
 	
+	/**
+	 * Default scheme to assume if unspecified. No context implied...
+	 */
 	public final static String DEFAULT_SCHEME = HTTP_SCHEME;	
 	
-	// go brewster
+	/**
+	 * go brewster
+	 */
 	public final static String WAIS_SCHEME = "wais://";
 	
+	/**
+	 * array of static Strings for all "known" schemes
+	 */
 	public final static String ALL_SCHEMES[] = { 
 		HTTP_SCHEME,
 		HTTPS_SCHEME,
@@ -67,7 +91,14 @@ public class UrlOperations {
 	};
 	
 	
+	/**
+	 * character separating host from port within a URL authority
+	 */
 	public final static char PORT_SEPARATOR = ':';
+	/**
+	 * character which delimits the path from the authority in a... in some 
+	 * URLs.
+	 */
 	public final static char PATH_START = '/';
 	
 	
@@ -97,27 +128,35 @@ public class UrlOperations {
         Pattern.compile("(([0-9a-z_.-]+)\\.(" + ALL_TLD_PATTERN + "))|" +
         		"(" + IP_PATTERN + ")");
 
-    private static final Pattern AUTHORITY_REGEX_SIMPLE =
-        Pattern.compile("([0-9a-z_.-]++)");
+//    private static final Pattern AUTHORITY_REGEX_SIMPLE =
+//        Pattern.compile("([0-9a-z_.-]++)");
     private static final Pattern HOST_REGEX_SIMPLE =
         Pattern.compile("(?:[0-9a-z_.:-]+@)?([0-9a-z_.-]++)");
     private static final Pattern USERINFO_REGEX_SIMPLE =
         Pattern.compile("([0-9a-z_.:-]+)(?:@[0-9a-z_.-]++)");
 
     /**
-	 * @param urlPart
+     * Tests if the String argument looks like it could be a legitimate 
+     * authority fragment of a URL, that is, is it an IP address, or, are the
+     * characters legal in an authority, and does the string end with a legal
+     * TLD.
+     * 
+	 * @param authString String representation of a fragment of a URL 
 	 * @return boolean indicating whether urlPart might be an Authority.
 	 */
-	public static boolean isAuthority(String urlPart) {
-		Matcher m = AUTHORITY_REGEX.matcher(urlPart);
+	public static boolean isAuthority(String authString) {
+		Matcher m = AUTHORITY_REGEX.matcher(authString);
 		
 		return (m != null) && m.matches();
 	}
 	
 	/**
-	 * @param baseUrl
-	 * @param url
-	 * @return url resolved against baseUrl, unless it is absolute already
+	 * Resolve a possibly relative url argument against a base URL.
+	 * @param baseUrl the base URL against which the url should be resolved
+	 * @param url the URL, possibly relative, to make absolute.
+	 * @return url resolved against baseUrl, unless it is absolute already, and
+	 * further transformed by whatever escaping normally takes place with a 
+	 * UURI.
 	 */
 	public static String resolveUrl(String baseUrl, String url) {
 		for(final String scheme : ALL_SCHEMES) {
@@ -144,6 +183,11 @@ public class UrlOperations {
 		return resolvedURI.getEscapedURI();
 	}
 	
+	/**
+	 * Attempt to find the scheme (http://, https://, etc) from a given URL.
+	 * @param url URL String to parse for a scheme.
+	 * @return the scheme, including trailing "://" if known, null otherwise.
+	 */
 	public static String urlToScheme(final String url) {
 		for(final String scheme : ALL_SCHEMES) {
 			if(url.startsWith(scheme)) {
@@ -153,6 +197,11 @@ public class UrlOperations {
 		return null;
 	}
 	
+	/**
+	 * Return the default port for the scheme String argument, if known.
+	 * @param scheme String scheme, including '://', as in, "http://", "ftp://"
+	 * @return the default port for the scheme, or -1 if the scheme isn't known.
+	 */
 	public static int schemeToDefaultPort(final String scheme) {
 		if(scheme.equals(HTTP_SCHEME)) {
 			return 80;
@@ -172,6 +221,11 @@ public class UrlOperations {
 		return -1;
 	}
 
+	/**
+	 * Attempt to extract the path component of a url String argument.
+	 * @param url the URL which may contain a path, sans scheme.
+	 * @return the path component of the URL, or "" if it contains no path.
+	 */
 	public static String getURLPath(String url) {
 		int portIdx = url.indexOf(UrlOperations.PORT_SEPARATOR);
 		int pathIdx = url.indexOf(UrlOperations.PATH_START);
@@ -191,6 +245,12 @@ public class UrlOperations {
 		}
 	}
 
+	/**
+	 * Attempt to extract the hostname component of an absolute URL argument.
+	 * @param url the url String from which to extract the hostname
+	 * @return the hostname within the URL, or the url argument if the host 
+	 * cannot be found.
+	 */
 	public static String urlToHost(String url) {
 		String lcUrl = url.toLowerCase();
 		if(lcUrl.startsWith("dns:")) {
@@ -210,6 +270,13 @@ public class UrlOperations {
 		return url;
 	}
 
+	/**
+	 * Extract userinfo from the absolute URL argument, that is, "username@", or
+	 * "username:password@" if present.
+	 * @param url the URL from which to extract the userinfo
+	 * @return the userinfo found, not including the "@", or null if no userinfo
+	 * is found
+	 */
 	public static String urlToUserInfo(String url) {
 		String lcUrl = url.toLowerCase();
 		if(lcUrl.startsWith("dns:")) {
