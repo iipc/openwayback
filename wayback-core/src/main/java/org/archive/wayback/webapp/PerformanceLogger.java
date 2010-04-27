@@ -28,6 +28,9 @@ package org.archive.wayback.webapp;
 import org.apache.log4j.Logger;
 
 /**
+ * Brutally simple, barely functional class to allow simple recording of 
+ * millisecond level timing within a particular request, enabling rough logging
+ * of the time spent in various parts of the handling of a WaybackRequest
  * @author brad
  *
  */
@@ -42,19 +45,41 @@ public class PerformanceLogger {
 	private long query = 0;
 	private long retrieve = -1;
 	private long render = 0;
+	/**
+	 * Construct a Performance logger with the specified String "type"
+	 * @param type the String type to report with the logged output
+	 */
 	public PerformanceLogger(String type) {
 		this.type = type;
 		this.start = System.currentTimeMillis();
 	}
+	/**
+	 * record the time when the query associated with this request completed
+	 */
 	public void queried() {
 		this.query = System.currentTimeMillis();
 	}
+	/**
+	 * record the time when the retrieval of a Resource required for this 
+	 * request completed, implies a Replay request...
+	 */
 	public void retrieved() {
 		this.retrieve = System.currentTimeMillis();
 	}
+	/**
+	 * record the time when the replayed resource, or the query results were
+	 * returned to the client, implies the bulk of the request processing is 
+	 * complete.
+	 */
 	public void rendered() {
 		this.render = System.currentTimeMillis();
 	}
+	/**
+	 * Produce a debug message to this classes logger, computing the time
+	 * taken to query the index, retrieve the resource (if a replay request)
+	 * and render the results to the client. 
+	 * @param info String suffix to append to the log message 
+	 */
 	public void write(String info) {
 		StringBuilder sb = new StringBuilder(40);
 		sb.append(type).append(delim);

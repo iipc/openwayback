@@ -33,8 +33,8 @@ import org.archive.wayback.Shutdownable;
 import org.archive.wayback.exception.ConfigurationException;
 
 /**
- * Abstraction point for sharing document collection and index across multiple
- * AccessPoints.
+ * Composite class containing a ResourceStore, and a ResourceIndex, to simplify
+ * sharing them as a pair across multiple AccessPoints.
  *
  * @author brad
  * @version $Date$, $Revision$
@@ -45,6 +45,10 @@ public class WaybackCollection {
 	private List<Shutdownable> shutdownables = null;
 	private boolean shutdownDone = false;
 
+	/**
+	 * close/release any resources held by this WaybackCollection
+	 * @throws IOException when thrown by an internal class being shut down.
+	 */
 	public void shutdown() throws IOException {
 		if(shutdownDone) {
 			return;
@@ -63,29 +67,51 @@ public class WaybackCollection {
 		shutdownDone = true;
 	}
 
+	/**
+	 * @return the ResourceStore used with this WaybackCollection
+	 * @throws ConfigurationException if none is configured
+	 */
 	public ResourceStore getResourceStore() throws ConfigurationException {
 		if(resourceStore == null) {
 			throw new ConfigurationException("No resourceStore declared");
 		}
 		return resourceStore;
 	}
+	/**
+	 * @param resourceStore the ResourceStore to use with this WaybackCollection
+	 */
 	public void setResourceStore(ResourceStore resourceStore) {
 		this.resourceStore = resourceStore;
 	}
+	/**
+	 * @return the ResourceIndex used with this WaybackCollection
+	 * @throws ConfigurationException if none is configured
+	 */
 	public ResourceIndex getResourceIndex() throws ConfigurationException {
 		if(resourceIndex == null) {
 			throw new ConfigurationException("No resourceIndex declared");
 		}
 		return resourceIndex;
 	}
+	/**
+	 * @param resourceIndex the ResourceIndex to use with this WaybackCollection
+	 */
 	public void setResourceIndex(ResourceIndex resourceIndex) {
 		this.resourceIndex = resourceIndex;
 	}
 
+	/**
+	 * @return List of Shutdownable objects associated with this 
+	 * WaybackCollection, or null, if none are configured
+	 */
 	public List<Shutdownable> getShutdownables() {
 		return shutdownables;
 	}
 
+	/**
+	 * @param shutdownables set a List of Shutdownable objects associated with
+	 * this WaybackCollection
+	 */
 	public void setShutdownables(List<Shutdownable> shutdownables) {
 		this.shutdownables = shutdownables;
 	}
