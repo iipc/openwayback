@@ -50,6 +50,9 @@ import org.archive.wayback.replay.charset.StandardCharsetDetector;
  */
 public abstract class TextReplayRenderer implements ReplayRenderer {
 
+	private static String GUESSED_CHARSET_HEADER = "X-Archive-Guessed-Charset";
+	
+	private String guessedCharsetHeader = GUESSED_CHARSET_HEADER;
 	private List<String> jspInserts = null;
 	private HttpHeaderProcessor httpHeaderProcessor;
 	private CharsetDetector charsetDetector = new StandardCharsetDetector();
@@ -89,16 +92,20 @@ public abstract class TextReplayRenderer implements ReplayRenderer {
 
 		// set the corrected length:
 		int bytes = page.getBytes().length;
+
 		headers.put(HttpHeaderOperation.HTTP_LENGTH_HEADER, String.valueOf(bytes));
+		if(guessedCharsetHeader != null) {
+			headers.put(guessedCharsetHeader, page.getCharSet());
+		}
+
+		// send back the headers:
+		HttpHeaderOperation.sendHeaders(headers, httpResponse);
+
 		// Tomcat will always send a charset... It's trying to be smarter than
 		// we are. If the original page didn't include a "charset" as part of
 		// the "Content-Type" HTTP header, then Tomcat will use the default..
 		// who knows what that is, or what that will do to the page..
 		// let's try explicitly setting it to what we used:
-		headers.put("X-Wayback-Guessed-Charset", page.getCharSet());
-
-		// send back the headers:
-		HttpHeaderOperation.sendHeaders(headers, httpResponse);
 		httpResponse.setCharacterEncoding(page.getCharSet());
 
 		page.writeToOutputStream(httpResponse.getOutputStream());
@@ -130,5 +137,22 @@ public abstract class TextReplayRenderer implements ReplayRenderer {
 	 */
 	public void setCharsetDetector(CharsetDetector charsetDetector) {
 		this.charsetDetector = charsetDetector;
+	}
+
+	/**
+	 * @return the String HTTP Header used to indicate what Wayback determined
+	 * was the pages original charset 
+	 */
+	public String getGuessedCharsetHeader() {
+		return guessedCharsetHeader;
+	}
+
+	/**
+	 * @param guessedCharsetHeader the String HTTP Header value used to indicate
+	 * to clients what Wayback determined was the pages original charset. If set
+	 * to null, the header will be omitted.
+	 */
+	public void setGuessedCharsetHeader(String guessedCharsetHeader) {
+		this.guessedCharsetHeader = guessedCharsetHeader;
 	}
 }
