@@ -92,8 +92,8 @@ public class PartitionsToGraph {
 			double pct = iln / ln;
 			double num = pct * maxOutput;
 			int idx = (int) num;
-			System.out.format("%d - %f - %f - %f - %f : %d\n",
-					input,ln,iln,pct,num,idx);
+//			System.out.format("%d - %f - %f - %f - %f : %d\n",
+//					input,ln,iln,pct,num,idx);
 			if(input < idx) {
 				return input;
 			} else {
