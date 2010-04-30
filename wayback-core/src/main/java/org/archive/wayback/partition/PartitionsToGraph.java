@@ -62,23 +62,23 @@ public class PartitionsToGraph {
 
 	private static final TimeZone TZ_UTC = TimeZone.getTimeZone("UTC");
 
-	private static String joinInts(int[] a) {
-		StringBuilder sb = new StringBuilder();
-		boolean first = true;
-		for(int i : a) {
-			if(first) {
-				sb.append(i);
-				first = false;
-			} else {
-				sb.append(",").append(i);
-			}
-		}
-		return sb.toString();
-	}
-	private static void printAr(String name, int o[], int n[]) {
-		System.out.format("%s=========\nORIG(%s)\nNORM(%s)\n",
-				name,joinInts(o),joinInts(n));
-	}
+//	private static String joinInts(int[] a) {
+//		StringBuilder sb = new StringBuilder();
+//		boolean first = true;
+//		for(int i : a) {
+//			if(first) {
+//				sb.append(i);
+//				first = false;
+//			} else {
+//				sb.append(",").append(i);
+//			}
+//		}
+//		return sb.toString();
+//	}
+//	private static void printAr(String name, int o[], int n[]) {
+//		System.out.format("%s=========\nORIG(%s)\nNORM(%s)\n",
+//				name,joinInts(o),joinInts(n));
+//	}
 
 	private static int normalizeInt(int input, int localMax, int maxOutput) {
 		double ln = Math.log(localMax);
@@ -108,7 +108,7 @@ public class PartitionsToGraph {
 			if(input[i] > localMax) localMax = input[i];
 		}
 		if(localMax < max) {
-			printAr("No normalization",input,input);
+//			printAr("No normalization",input,input);
 			return input;
 		}
 		int normalized[] = new int[input.length];
@@ -123,8 +123,8 @@ public class PartitionsToGraph {
 				double pct = iln / ln;
 				double num = pct * max;
 				int idx = (int) num;
-				System.out.format("%d - %d - %f - %f - %f - %f : %d\n",
-						i,input[i],ln,iln,pct,num,idx);
+//				System.out.format("%d - %d - %f - %f - %f - %f : %d\n",
+//						i,input[i],ln,iln,pct,num,idx);
 				if(input[i] < idx) {
 					normalized[i] = input[i];
 				} else {
@@ -132,7 +132,7 @@ public class PartitionsToGraph {
 				}
 			}
 		}
-		printAr("NORMALIZED",input,normalized);
+//		printAr("NORMALIZED",input,normalized);
 		return normalized;
 	}
 
