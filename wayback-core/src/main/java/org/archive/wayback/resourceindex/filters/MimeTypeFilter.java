@@ -38,6 +38,7 @@ import org.archive.wayback.util.ObjectFilter;
  */
 public class MimeTypeFilter implements ObjectFilter<CaptureSearchResult> {
 	private HashMap<String,Integer> validMimes = null;
+	private boolean includeIfContains = true; 
 	
 	/**
 	 * @param mime String which is valid match for mime-type field
@@ -46,7 +47,7 @@ public class MimeTypeFilter implements ObjectFilter<CaptureSearchResult> {
 		if(validMimes == null) {
 			validMimes = new HashMap<String, Integer>();
 		}
-		validMimes.put(mime.toLowerCase(),new Integer(1));
+		validMimes.put(mime.toLowerCase(),null);
 	}
 
 	/* (non-Javadoc)
@@ -54,6 +55,21 @@ public class MimeTypeFilter implements ObjectFilter<CaptureSearchResult> {
 	 */
 	public int filterObject(CaptureSearchResult r) {
 		String mime = r.getMimeType().toLowerCase();
-		return validMimes.containsKey(mime) ? FILTER_INCLUDE : FILTER_EXCLUDE;
+		return validMimes.containsKey(mime) == includeIfContains ? 
+				FILTER_INCLUDE : FILTER_EXCLUDE;
+	}
+
+	/**
+	 * @return the includeIfContains
+	 */
+	public boolean isIncludeIfContains() {
+		return includeIfContains;
+	}
+
+	/**
+	 * @param includeIfContains the includeIfContains to set
+	 */
+	public void setIncludeIfContains(boolean includeIfContains) {
+		this.includeIfContains = includeIfContains;
 	}
 }
