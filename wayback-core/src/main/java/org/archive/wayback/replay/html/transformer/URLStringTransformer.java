@@ -27,12 +27,19 @@ package org.archive.wayback.replay.html.transformer;
 import org.archive.wayback.replay.html.ReplayParseContext;
 import org.archive.wayback.replay.html.StringTransformer;
 
+/**
+ * @author brad
+ *
+ */
 public class URLStringTransformer implements StringTransformer {
 	private static final String MAILTO_PREFIX = "mailto:";
 	private String flags;
-	public URLStringTransformer() {
-		
-	}
+	/** Default constructor */
+	public URLStringTransformer() {}
+	/** 
+	 * Flag-setting constructor 
+	 * @param flags flags to pass to ReplayParseContext.contextualizeUrl()
+	 */
 	public URLStringTransformer(String flags) {
 		this.flags = flags;
 	}
@@ -44,16 +51,12 @@ public class URLStringTransformer implements StringTransformer {
 		return context.contextualizeUrl(url, flags);
 	}
 
-	/**
-	 * @return the flags
-	 */
+	/** @return the flags */
 	public String getFlags() {
 		return flags;
 	}
 
-	/**
-	 * @param flags the flags to set
-	 */
+	/** @param flags the flags to set */
 	public void setFlags(String flags) {
 		this.flags = flags;
 	}
