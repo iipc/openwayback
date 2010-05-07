@@ -148,7 +148,7 @@ public class RequestMapper {
 		portMapper.addRequestHandler(host, path, requestHandler);
 	}
 
-	private RequestHandlerContext mapRequest(HttpServletRequest request) {
+	public RequestHandlerContext mapRequest(HttpServletRequest request) {
 		RequestHandlerContext handlerContext = null;
 		
 		int port = request.getLocalPort();
@@ -181,8 +181,12 @@ public class RequestMapper {
 			if(handlerContext != null) {
 				RequestHandler requestHandler = 
 					handlerContext.getRequestHandler();
-				request.setAttribute(REQUEST_CONTEXT_PREFIX, 
-						handlerContext.getPathPrefix() + "/");
+				// need to add trailing "/" iff prefix is not "/":
+				String pathPrefix = handlerContext.getPathPrefix();
+				if(!pathPrefix.equals("/")) {
+					pathPrefix += "/";
+				}
+				request.setAttribute(REQUEST_CONTEXT_PREFIX,pathPrefix); 
 				handled = requestHandler.handleRequest(request, response);
 			}
 		}
