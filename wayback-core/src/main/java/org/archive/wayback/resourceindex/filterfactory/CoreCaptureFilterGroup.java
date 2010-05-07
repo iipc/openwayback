@@ -32,6 +32,7 @@ import org.archive.wayback.resourceindex.LocalResourceIndex;
 import org.archive.wayback.resourceindex.filters.ConditionalGetAnnotationFilter;
 import org.archive.wayback.resourceindex.filters.DuplicateRecordFilter;
 import org.archive.wayback.resourceindex.filters.GuardRailFilter;
+import org.archive.wayback.resourceindex.filters.MimeTypeFilter;
 import org.archive.wayback.resourceindex.filters.UserInfoInAuthorityFilter;
 import org.archive.wayback.resourceindex.filters.WARCRevisitAnnotationFilter;
 import org.archive.wayback.util.ObjectFilter;
@@ -39,6 +40,8 @@ import org.archive.wayback.util.ObjectFilterChain;
 
 public class CoreCaptureFilterGroup implements CaptureFilterGroup {
 	private ObjectFilterChain<CaptureSearchResult> chain = null;
+	private MimeTypeFilter mimeExcludeFilter = new MimeTypeFilter();
+	private static String ALEXA_DAT_MIME = "alexa/dat";
 
 	public CoreCaptureFilterGroup(LocalResourceIndex index) {
 		chain = new ObjectFilterChain<CaptureSearchResult>();
@@ -48,7 +51,11 @@ public class CoreCaptureFilterGroup implements CaptureFilterGroup {
 			chain.addFilter(new WARCRevisitAnnotationFilter());
 			chain.addFilter(new ConditionalGetAnnotationFilter());
 		}
+		MimeTypeFilter mimeExcludeFilter = new MimeTypeFilter();
+		mimeExcludeFilter.addMime(ALEXA_DAT_MIME);
+		mimeExcludeFilter.setIncludeIfContains(false);
 		chain.addFilter(new UserInfoInAuthorityFilter());
+		chain.addFilter(mimeExcludeFilter);
 	}
 	public List<ObjectFilter<CaptureSearchResult>> getFilters() {
 		return chain.getFilters();
