@@ -101,31 +101,29 @@ public class UrlOperations {
 	 */
 	public final static char PATH_START = '/';
 	
-	
-	private static final String CC_TLDS = "ac|ad|ae|af|ag|ai|al|am|an|ao|aq" +
-			"|ar|as|at|au|aw|ax|az|ba|bb|bd|be|bf|bg|bh|bi|bj|bm|bn|bo|br|bs" +
-			"|bt|bv|bw|by|bz|ca|cc|cd|cf|cg|ch|ci|ck|cl|cm|cn|co|cr|cu|cv|cx" +
-			"|cy|cz|de|dj|dk|dm|do|dz|ec|ee|eg|eh|er|es|et|eu|fi|fj|fk|fm|fo" +
-			"|fr|ga|gb|gd|ge|gf|gg|gh|gi|gl|gm|gn|gp|gq|gr|gs|gt|gu|gw|gy|hk" +
-			"|hm|hn|hr|ht|hu|id|ie|il|im|in|io|iq|ir|is|it|je|jm|jo|jp|ke|kg" +
-			"|kh|ki|km|kn|kp|kr|kw|ky|kz|la|lb|lc|li|lk|lr|ls|lt|lu|lv|ly|ma" +
-			"|mc|md|me|mg|mh|mk|ml|mm|mn|mo|mp|mq|mr|ms|mt|mu|mv|mw|mx|my|mz" +
-			"|na|nc|ne|nf|ng|ni|nl|no|np|nr|nu|nz|om|pa|pe|pf|pg|ph|pk|pl|pm" +
-			"|pn|pr|ps|pt|pw|py|qa|re|ro|rs|ru|rw|sa|sb|sc|sd|se|sg|sh|si|sj" +
-			"|sk|sl|sm|sn|so|sr|st|su|sv|sy|sz|tc|td|tf|tg|th|tj|tk|tl|tm|tn" +
-			"|to|tp|tr|tt|tv|tw|tz|ua|ug|uk|um|us|uy|uz|va|vc|ve|vg|vi|vn|vu" +
-			"|wf|ws|ye|yt|yu|za|zm|zw";
-	
-	private static final String GEN_TLDS = "aero|biz|cat|com|coop|edu|gov" +
-			"|info|int|jobs|mil|mobi|museum|name|net|org|pro|travel";
-	
-	
-	private static final String ALL_TLD_PATTERN = CC_TLDS + "|" + GEN_TLDS;
+	private static final String ALL_TLDS = "ac|ad|ae|aero|af|ag|ai|al|am|an" +
+			"|ao|aq|ar|arpa|as|asia|at|au|aw|ax|az|ba|bb|bd|be|bf|bg|bh|bi" +
+			"|biz|bj|bm|bn|bo|br|bs|bt|bv|bw|by|bz|ca|cat|cc|cd|cf|cg|ch|ci" +
+			"|ck|cl|cm|cn|co|com|coop|cr|cu|cv|cx|cy|cz|de|dj|dk|dm|do|dz|ec" +
+			"|edu|ee|eg|er|es|et|eu|fi|fj|fk|fm|fo|fr|ga|gb|gd|ge|gf|gg|gh" +
+			"|gi|gl|gm|gn|gov|gp|gq|gr|gs|gt|gu|gw|gy|hk|hm|hn|hr|ht|hu|id" +
+			"|ie|il|im|in|info|int|io|iq|ir|is|it|je|jm|jo|jobs|jp|ke|kg|kh" +
+			"|ki|km|kn|kp|kr|kw|ky|kz|la|lb|lc|li|lk|lr|ls|lt|lu|lv|ly|ma|mc" +
+			"|md|me|mg|mh|mil|mk|ml|mm|mn|mo|mobi|mp|mq|mr|ms|mt|mu|museum" +
+			"|mv|mw|mx|my|mz|na|name|nc|ne|net|nf|ng|ni|nl|no|np|nr|nu|nz" +
+			"|om|org|pa|pe|pf|pg|ph|pk|pl|pm|pn|pr|pro|ps|pt|pw|py|qa|re|ro" +
+			"|rs|ru|rw|sa|sb|sc|sd|se|sg|sh|si|sj|sk|sl|sm|sn|so|sr|st|su|sv" +
+			"|sy|sz|tc|td|tel|tf|tg|th|tj|tk|tl|tm|tn|to|tp|tr|travel|tt|tv" +
+			"|tw|tz|ua|ug|uk|us|uy|uz|va|vc|ve|vg|vi|vn|vu|wf|ws|xn--0zwm56d" +
+			"|xn--11b5bs3a9aj6g|xn--80akhbyknj4f|xn--9t4b11yi5a|xn--deba0ad" +
+			"|xn--g6w251d|xn--hgbk6aj7f53bba|xn--hlcj6aya9esc7a|xn--jxalpdlp" +
+			"|xn--kgbechtv|xn--mgbaam7a8h|xn--mgberp4a5d4ar|xn--p1ai" +
+			"|xn--wgbh1c|xn--zckzah|ye|yt|za|zm|zw";
 
 	private static final String IP_PATTERN = "[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+";
 	
     private static final Pattern AUTHORITY_REGEX =
-        Pattern.compile("(([0-9a-z_.-]+)\\.(" + ALL_TLD_PATTERN + "))|" +
+        Pattern.compile("(([0-9a-z_.-]+)\\.(" + ALL_TLDS + "))|" +
         		"(" + IP_PATTERN + ")");
 
 //    private static final Pattern AUTHORITY_REGEX_SIMPLE =
@@ -243,6 +241,47 @@ public class UrlOperations {
 		} else {
 			return url.substring(pathIdx);
 		}
+	}
+	
+	/**
+	 * Attempt to strip default ports out of URL strings.
+	 * @param url the original URL possibly including a port
+	 * @return the URL sans port, if the scheme was recognized and the default
+	 * port was supplied, otherwise, the original URL.
+	 */
+	public static String stripDefaultPortFromUrl(String url) {
+		String scheme = urlToScheme(url);
+		if(scheme == null) {
+			return url;
+		}
+		int defaultPort = schemeToDefaultPort(scheme);
+		if(defaultPort == -1) {
+			return url;
+		}
+
+		String portStr = null;
+		// is there a slash after the scheme?
+		int slashIdx = url.indexOf('/', scheme.length());
+		if(slashIdx == -1) {
+			portStr = String.format(":%d", defaultPort);
+			if(url.endsWith(portStr)) {
+				return url.substring(0,url.length() - portStr.length());
+			}
+		}
+		portStr = String.format(":%d/", defaultPort);
+		int idx = url.indexOf(portStr);
+		if(idx == -1) {
+			return url;
+		}
+		// if that occurred before the first / (after the scheme) then strip it:
+		if(slashIdx < idx) {
+			return url;
+		}
+		// we want to strip out the portStr:
+		StringBuilder sb = new StringBuilder(url.length());
+		sb.append(url.substring(0,idx));
+		sb.append(url.substring(idx + (portStr.length()-1)));
+		return sb.toString();
 	}
 
 	/**

@@ -161,4 +161,35 @@ public class UrlOperationsTest extends TestCase {
 		
 		
 	}
+
+	public void testStripDefaultPort() {
+		assertSDP("http://foo.com/","http://foo.com/");
+		assertSDP("http://foo.com","http://foo.com");
+		assertSDP("http://foo.com","http://foo.com:80");
+		assertSDP("foo.com:80/","foo.com:80/");
+		assertSDP("http://foo.com:8080/","http://foo.com:8080/");
+		assertSDP("http://foo.com:8081/","http://foo.com:8081/");
+		assertSDP("https://foo.com:8081/","https://foo.com:8081/");
+		assertSDP("https://foo.com/","https://foo.com:443/");
+		assertSDP("https://foo.com","https://foo.com:443");
+		assertSDP("ftp://foo.com/","ftp://foo.com/");
+		assertSDP("ftp://foo.com","ftp://foo.com");
+		assertSDP("ftp://foo.com:1234","ftp://foo.com:1234");
+		assertSDP("ftp://foo.com","ftp://foo.com:21");
+		assertSDP("ftp://foo.com/","ftp://foo.com:21/");
+		assertSDP("ftp://foo.com/bla","ftp://foo.com:21/bla");
+		assertSDP("s3://foo.com/","s3://foo.com/");
+		assertSDP("s3://foo.com/bar","s3://foo.com/bar");
+		assertSDP("s3://foo.com:80/bar","s3://foo.com:80/bar");
+		assertSDP("http://b@foo.com/bar","http://b@foo.com:80/bar");
+		assertSDP("http://b@foo.com/bar","http://b@foo.com/bar");
+		assertSDP("http://b:80@foo.com/bar","http://b:80@foo.com/bar");
+		assertSDP("http://b:80@foo.com/bar","http://b:80@foo.com:80/bar");
+		assertSDP("http://b:80@foo.com:8080/ba","http://b:80@foo.com:8080/ba");
+	}
+	private void assertSDP(String want, String orig) {
+		String got = UrlOperations.stripDefaultPortFromUrl(orig);
+		assertEquals(want,got);
+	}
+	
 }
