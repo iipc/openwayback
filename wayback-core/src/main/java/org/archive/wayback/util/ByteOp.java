@@ -28,33 +28,99 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+/**
+ * Byte oriented static methods. Likely a lot of overlap with apache- commons
+ * stuff - eventually should be reconciled.
+ * 
+ * @author brad
+ *
+ */
 public class ByteOp {
+	/** Default buffer size for IO ops */
 	public final static int BUFFER_SIZE = 4096;
 	
+	/**
+	 * Create a new byte array with contents initialized to values from the
+	 * argument byte array.
+	 * @param src source byte array of initial values
+	 * @param offset start offset to copy bytes
+	 * @param length number of bytes to copy
+	 * @return a new byte array of size length, containing values from src 
+	 * starting from offset in the src array.
+	 */
 	public static byte[] copy(byte[] src, int offset, int length) {
 		byte[] copy = new byte[length];
 		System.arraycopy(src, offset, copy, 0, length);
 		return copy;
 	}
-	public static boolean cmp(byte[] input, byte[] want) {
-		if(input.length != want.length) {
+
+	/**
+	 * Compare two byte arrays
+	 * @param a byte array to compare
+	 * @param b byte array to compare
+	 * @return true if a and b have same length, and all the same values, false
+	 * otherwise
+	 */
+	public static boolean cmp(byte[] a, byte[] b) {
+		if(a.length != b.length) {
 			return false;
 		}
-		for(int i = 0; i < input.length; i++) {
-			if(input[i] != want[i]) {
+		for(int i = 0; i < a.length; i++) {
+			if(a[i] != b[i]) {
 				return false;
 			}
 		}
 		return true;
 	}
 	
+	/**
+	 * throw away all bytes from stream argument
+	 * @param is InputStream to read and discard
+	 * @throws IOException when is throws one
+	 */
 	public static void discardStream(InputStream is) throws IOException {
 		discardStream(is,BUFFER_SIZE);
 	}
+
+	/**
+	 * throw away all bytes from stream argument
+	 * @param is InputStream to read and discard
+	 * @param size number of bytes to read at once from the stream
+	 * @throws IOException when is throws one
+	 */
 	public static void discardStream(InputStream is,int size) throws IOException {
 		byte[] buffer = new byte[size];
 		while(is.read(buffer, 0, size) != -1) {
 		}
+	}
+
+	/**
+	 * throw away all bytes from stream argument, and count how many bytes were
+	 * discarded before reaching the end of the stream.
+	 * @param is InputStream to read and discard
+	 * @return the number of bytes discarded
+	 * @throws IOException when is throws one
+	 */
+	public static long discardStreamCount(InputStream is) throws IOException {
+		return discardStreamCount(is, BUFFER_SIZE);
+	}
+
+	/**
+	 * throw away all bytes from stream argument, and count how many bytes were
+	 * discarded before reaching the end of the stream.
+	 * @param is InputStream to read and discard
+	 * @param size number of bytes to read at once from the stream
+	 * @return the number of bytes discarded
+	 * @throws IOException when is throws one
+	 */
+	public static long discardStreamCount(InputStream is,int size) throws IOException {
+		long count = 0;
+		byte[] buffer = new byte[size];
+		int amt = 0;
+		while((amt = is.read(buffer, 0, size)) != -1) {
+			count += amt;
+		}
+		return count;
 	}
 	
 	/**
@@ -67,6 +133,7 @@ public class ByteOp {
 	throws IOException {
 		copyStream(is,os,BUFFER_SIZE);
 	}
+
 	/**
 	 * Write all bytes from is to os. Does not close either stream.
 	 * @param is to copy bytes from
