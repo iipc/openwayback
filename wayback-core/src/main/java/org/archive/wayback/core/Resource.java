@@ -115,7 +115,8 @@ public abstract class Resource extends InputStream {
 				// better be a hex character:
 				if(isHex(nextC)) {
 					hexFound++;
-				} else {
+				} else if(nextC != ' ') {
+					// allow whitespace before or after chunk...
 					// not a hex digit: not a chunked stream.
 					break;
 				}
