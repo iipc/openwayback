@@ -26,19 +26,24 @@
 package org.archive.wayback.liveweb;
 
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.log4j.Logger;
 import org.archive.io.arc.ARCRecord;
+import org.archive.wayback.core.Resource;
+import org.archive.wayback.exception.ResourceNotAvailableException;
+import org.archive.wayback.resourcestore.resourcefile.ResourceFactory;
 import org.archive.wayback.util.ByteOp;
 import org.archive.wayback.util.webapp.AbstractRequestHandler;
 
@@ -56,6 +61,8 @@ import org.archive.wayback.util.webapp.AbstractRequestHandler;
  */
 public class ARCUnwrappingProxy extends AbstractRequestHandler {
 	
+	private static final Logger LOGGER = 
+		Logger.getLogger(ARCUnwrappingProxy.class.getName());
     private MultiThreadedHttpConnectionManager connectionManager = null;
     private HostConfiguration hostConfiguration = null;
     /**
@@ -75,7 +82,6 @@ public class ARCUnwrappingProxy extends AbstractRequestHandler {
 			sb.append("?").append(query);
 		}
         HttpMethod method = new GetMethod(sb.toString());
-//        method.addRequestHeader("User-Agent", userAgent);
         boolean got200 = false;
         try {
         	HttpClient http = new HttpClient(connectionManager);
@@ -87,14 +93,28 @@ public class ARCUnwrappingProxy extends AbstractRequestHandler {
         			new ARCRecord(new GZIPInputStream(
         					method.getResponseBodyAsStream()),
         					"id",0L,false,false,true);
-        		r.skipHttpHeader();
-        		httpResponse.setStatus(r.getStatusCode());
-        		Header headers[] = r.getHttpHeaders();
-        		for(Header header : headers) {
-        			httpResponse.addHeader(header.getName(), header.getValue());
+        		Resource res = null;
+        		try {
+					res = ResourceFactory.ARCArchiveRecordToResource(r, null);
+				} catch (ResourceNotAvailableException e) {
+					LOGGER.error(e);
+					throw new IOException(e);
+				}
+        		httpResponse.setStatus(res.getStatusCode());
+
+        		Map<String,String> headers = res.getHttpHeaders();
+        		Iterator<String> keys = headers.keySet().iterator();
+        		while(keys.hasNext()) {
+        			String key = keys.next();
+        			if(!key.equalsIgnoreCase("Connection") 
+        					&& !key.equalsIgnoreCase("Content-Length")
+        					&& !key.equalsIgnoreCase("Transfer-Encoding")) {
+	        			String value = headers.get(key);
+	        			httpResponse.addHeader(key, value);
+        			}
         		}
 
-        		ByteOp.copyStream(r, httpResponse.getOutputStream());
+        		ByteOp.copyStream(res, httpResponse.getOutputStream());
         		got200 = true;
         	}
         } finally {
