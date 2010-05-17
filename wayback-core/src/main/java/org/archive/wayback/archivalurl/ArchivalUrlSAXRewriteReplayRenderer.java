@@ -44,11 +44,12 @@ import org.archive.wayback.exception.WaybackException;
 import org.archive.wayback.replay.HttpHeaderOperation;
 import org.archive.wayback.replay.HttpHeaderProcessor;
 import org.archive.wayback.replay.JSPExecutor;
+import org.archive.wayback.replay.TextReplayRenderer;
 import org.archive.wayback.replay.charset.CharsetDetector;
 import org.archive.wayback.replay.charset.StandardCharsetDetector;
-import org.archive.wayback.replay.html.ReplayParseEventDelegator;
 import org.archive.wayback.replay.html.ReplayParseContext;
 import org.archive.wayback.util.htmllex.ContextAwareLexer;
+import org.archive.wayback.util.htmllex.ParseEventHandler;
 import org.htmlparser.Node;
 import org.htmlparser.lexer.Lexer;
 import org.htmlparser.lexer.Page;
@@ -62,7 +63,7 @@ import org.htmlparser.util.ParserException;
  *
  */
 public class ArchivalUrlSAXRewriteReplayRenderer implements ReplayRenderer {
-	private ReplayParseEventDelegator delegator = null;
+	private ParseEventHandler delegator = null;
 	private HttpHeaderProcessor httpHeaderProcessor;
 	private CharsetDetector charsetDetector = new StandardCharsetDetector();
 	private final static String OUTPUT_CHARSET = "utf-8";
@@ -142,7 +143,7 @@ public class ArchivalUrlSAXRewriteReplayRenderer implements ReplayRenderer {
 		// set the corrected length:
 		headers.put(HttpHeaderOperation.HTTP_LENGTH_HEADER, 
 				String.valueOf(utf8Bytes.length));
-		headers.put("X-Wayback-Guessed-Charset", charSet);
+		headers.put(TextReplayRenderer.GUESSED_CHARSET_HEADER, charSet);
 
 		// send back the headers:
 		HttpHeaderOperation.sendHeaders(headers, httpResponse);
@@ -173,14 +174,14 @@ public class ArchivalUrlSAXRewriteReplayRenderer implements ReplayRenderer {
 	/**
 	 * @return the delegator
 	 */
-	public ReplayParseEventDelegator getDelegator() {
+	public ParseEventHandler getDelegator() {
 		return delegator;
 	}
 
 	/**
 	 * @param delegator the delegator to set
 	 */
-	public void setDelegator(ReplayParseEventDelegator delegator) {
+	public void setDelegator(ParseEventHandler delegator) {
 		this.delegator = delegator;
 	}
 }
