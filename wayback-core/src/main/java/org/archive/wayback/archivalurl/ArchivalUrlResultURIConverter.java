@@ -25,6 +25,7 @@
 package org.archive.wayback.archivalurl;
 
 import org.archive.wayback.ResultURIConverter;
+import org.archive.wayback.util.url.UrlOperations;
 
 /**
  *
@@ -42,15 +43,24 @@ public class ArchivalUrlResultURIConverter implements ResultURIConverter {
 	 * @see org.archive.wayback.ResultURIConverter#makeReplayURI(java.lang.String, java.lang.String)
 	 */
 	public String makeReplayURI(String datespec, String url) {
-		String suffix = datespec + "/" + url;
+		StringBuilder sb = null;
+
 		if(replayURIPrefix == null) {
-			return suffix;
-		} else {
-			if(url.startsWith(replayURIPrefix)) {
-				return url;
-			}
-			return replayURIPrefix + suffix;
+			sb = new StringBuilder(url.length() + datespec.length());
+			sb.append(datespec);
+			sb.append("/");
+			sb.append(UrlOperations.stripDefaultPortFromUrl(url));
+			return sb.toString();
 		}
+		if(url.startsWith(replayURIPrefix)) {
+			return url;
+		}
+		sb = new StringBuilder(url.length() + datespec.length());
+		sb.append(replayURIPrefix);
+		sb.append(datespec);
+		sb.append("/");
+		sb.append(UrlOperations.stripDefaultPortFromUrl(url));
+		return sb.toString();
 	}
 
 	/**
