@@ -32,6 +32,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.util.Timestamp;
+import org.archive.wayback.util.url.UrlOperations;
 import org.archive.wayback.webapp.AccessPoint;
 
 /**
@@ -89,6 +90,12 @@ public class FormRequestParser extends WrappedRequestParser {
 				}
 				// just jam everything else in:
 				String val = AccessPoint.getMapParam(queryMap,key);
+				if(key.equals(WaybackRequest.REQUEST_URL)) {
+					String scheme = UrlOperations.urlToScheme(val);
+					if(scheme == null) {
+						val = UrlOperations.HTTP_SCHEME + val;
+					}
+				}
 				wbRequest.put(key,val);
 			}
 			String partialTS = wbRequest.getReplayTimestamp();
