@@ -116,11 +116,14 @@ public class BeanNameRegistrar {
 		String name = handler.getBeanName();
 		if(name != null) {
 			if(name.equals(RequestMapper.GLOBAL_PRE_REQUEST_HANDLER)) {
-	
+				LOGGER.info("Registering Global-pre request handler:" +
+						handler);
 				mapper.addGlobalPreRequestHandler(handler);
 				
 			} else if(name.equals(RequestMapper.GLOBAL_POST_REQUEST_HANDLER)) {
 	
+				LOGGER.info("Registering Global-post request handler:" + 
+						handler);
 				mapper.addGlobalPostRequestHandler(handler);
 				
 			} else {
