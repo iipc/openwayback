@@ -63,9 +63,19 @@ public class ArchivalUrlDateRedirectReplayRenderer implements ReplayRenderer {
 		String betterURI = uriConverter.makeReplayURI(captureDate,url);
 		httpResponse.sendRedirect(betterURI);
 	}
-	private String makeFlagDateSpec(String dateSpec, WaybackRequest request) {
+
+	/**
+	 * Given a date, and a WaybackRequest object, create a new datespec + flags
+	 * which represent the same options as requested by the WaybackRequest
+	 * @param timestamp the 14-digit timestamp to use
+	 * @param request the WaybackRequest from which o get extra request option 
+	 * flags
+	 * @return a String representing the flags on the WaybackRequest for the
+	 * specified date
+	 */
+	public static String makeFlagDateSpec(String timestamp, WaybackRequest request) {
 		StringBuilder sb = new StringBuilder();
-		sb.append(dateSpec);
+		sb.append(timestamp);
 		if(request.isCSSContext()) {
 			sb.append(ArchivalUrlRequestParser.CSS_CONTEXT);
 			sb.append(ArchivalUrlRequestParser.FLAG_DELIM);
@@ -76,6 +86,10 @@ public class ArchivalUrlDateRedirectReplayRenderer implements ReplayRenderer {
 		}
 		if(request.isIMGContext()) {
 			sb.append(ArchivalUrlRequestParser.IMG_CONTEXT);
+			sb.append(ArchivalUrlRequestParser.FLAG_DELIM);
+		}
+		if(request.isIdentityContext()) {
+			sb.append(ArchivalUrlRequestParser.IDENTITY_CONTEXT);
 			sb.append(ArchivalUrlRequestParser.FLAG_DELIM);
 		}
 		return sb.toString();
