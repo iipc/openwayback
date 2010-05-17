@@ -115,7 +115,11 @@ public class UrlOperationsTest extends TestCase {
 				UrlOperations.resolveUrl(scheme + "a.org/3/","1/2"));
 
 			assertEquals(scheme + "a.org/1/2",
-				UrlOperations.resolveUrl(scheme + "a.org/3","1/2"));
+					UrlOperations.resolveUrl(scheme + "a.org/3","1/2"));
+			assertEquals(scheme + "a.org/3",
+					UrlOperations.resolveUrl(scheme + "a.org/3",""));
+			assertEquals(scheme + "a.org/3.html",
+					UrlOperations.resolveUrl(scheme + "a.org/3.html",""));
 		}
 	}
 	public void testUrlToScheme() {
