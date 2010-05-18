@@ -29,7 +29,11 @@ WaybackRequest wbRequest = uiResults.getWbRequest();
 StringFormatter fmt = wbRequest.getFormatter();
 CaptureSearchResults results = uiResults.getCaptureResults();
 Iterator<CaptureSearchResult> itr = results.iterator();
-String contextRoot = wbRequest.getContextPrefix();
+
+String staticPrefix = uiResults.getStaticPrefix();
+String queryPrefix = uiResults.getQueryPrefix();
+String replayPrefix = uiResults.getReplayPrefix();
+
 String searchString = wbRequest.getRequestUrl();
 long firstResult = results.getFirstReturned();
 long shownResultCount = results.getReturnedCount();
@@ -47,12 +51,12 @@ if(arr != null && arr.length > 1) {
       xmlns:atom="http://www.w3.org/2005/Atom">
    <channel>
      <title>Wayback OpenSearch Results</title>
-     <link><%= contextRoot %>></link>
+     <link><%= queryPrefix %>></link>
      <description><%= fmt.format("PathQueryClassic.searchedFor",searchString) %></description>
      <opensearch:totalResults><%= resultCount %></opensearch:totalResults>
      <opensearch:startIndex><%= firstResult %></opensearch:startIndex>
      <opensearch:itemsPerPage><%= shownResultCount %></opensearch:itemsPerPage>
-     <atom:link rel="search" type="application/opensearchdescription+xml" href="<%= contextRoot %>/opensearchdescription.xml"/>
+     <atom:link rel="search" type="application/opensearchdescription+xml" href="<%= staticPrefix %>/opensearchdescription.xml"/>
      <opensearch:Query role="request" searchTerms="<%= UIResults.encodeXMLContent(searchTerms) %>" startPage="<%= wbRequest.getPageNum() %>" />
 <%
   while(itr.hasNext()) {

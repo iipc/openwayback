@@ -164,8 +164,8 @@ if(closeMatches != null && !closeMatches.isEmpty()) {
 	<%
 	for(String closeMatch : closeMatches) {
 		tmp.setRequestUrl(closeMatch);
-		String link = tmp.getContextPrefix() + "query?" +
-			tmp.getQueryArguments();
+		String link = fmt.escapeHtml(tmp.getContextPrefix() + "query?" +
+				tmp.getQueryArguments());
 		%>
 		<a href="<%= link %>"><%= closeMatch %></a><br>
 		<%

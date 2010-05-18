@@ -25,6 +25,9 @@ StringFormatter fmt = wbRequest.getFormatter();
 String searchString = fmt.escapeHtml(wbRequest.getRequestUrl());
 List<String> closeMatches = cResults.getCloseMatches();
 
+String staticPrefix = results.getStaticPrefix();
+String queryPrefix = results.getQueryPrefix();
+String replayPrefix = results.getReplayPrefix();
 
 Date searchStartDate = wbRequest.getStartDate();
 Date searchEndDate = wbRequest.getEndDate();
@@ -174,8 +177,8 @@ if(closeMatches != null && !closeMatches.isEmpty()) {
 	<%
 	for(String closeMatch : closeMatches) {
 		tmp.setRequestUrl(closeMatch);
-		String link = fmt.escapeHtml(tmp.getContextPrefix() + "query?" +
-			tmp.getQueryArguments());
+		String link = fmt.escapeHtml(tmp.getAccessPoint().getQueryPrefix() + 
+				"query?" + tmp.getQueryArguments());
 		closeMatch = fmt.escapeHtml(closeMatch);
 		%>
 		<a href="<%= link %>"><%= closeMatch %></a><br>

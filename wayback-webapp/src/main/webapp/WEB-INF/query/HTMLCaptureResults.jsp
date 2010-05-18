@@ -33,11 +33,14 @@ Iterator<CaptureSearchResult> itr = cResults.iterator();
   <%
   boolean first = false;
   String lastMD5 = null;
+  String lastUrl = null;
   while(itr.hasNext()) {
 	  CaptureSearchResult result = (CaptureSearchResult) itr.next();
 
     String url = result.getUrlKey();
-
+	if(url != lastUrl) {
+		lastMD5 = null;		
+	}
     String prettyDate = result.getCaptureTimestamp();
     String origHost = result.getOriginalHost();
     String MD5 = result.getDigest();
