@@ -42,28 +42,31 @@
  page import="org.archive.wayback.util.partition.PartitionSize"
  %><%@
  page import="org.archive.wayback.util.StringFormatter"
+ %><%@
+ page import="org.archive.wayback.util.url.UrlOperations"
  %><%
 UIResults results = UIResults.extractReplay(request);
 WaybackRequest wbRequest = results.getWbRequest();
 ResultURIConverter uriConverter = results.getURIConverter();
-String contextRoot = wbRequest.getContextPrefix();
+
+String staticPrefix = results.getStaticPrefix();
+String queryPrefix = results.getQueryPrefix();
+String replayPrefix = results.getReplayPrefix();
+
 StringFormatter fmt = wbRequest.getFormatter();
-String staticPrefix = results.getContextConfig("static-prefix");
-if(staticPrefix == null) {
-	staticPrefix = contextRoot;
-}
 
 String graphJspPrefix = results.getContextConfig("graphJspPrefix");
 if(graphJspPrefix == null) {
-	graphJspPrefix = contextRoot;
+	graphJspPrefix = queryPrefix;
 }
 CaptureSearchResults cResults = results.getCaptureResults();
 
 String exactDateStr = results.getResult().getCaptureTimestamp();
 Date exactDate = results.getResult().getCaptureDate();
-String searchUrl = wbRequest.getRequestUrl();
-String searchUrlSafe = fmt.escapeHtml(wbRequest.getRequestUrl());
-String searchUrlJS = fmt.escapeJavaScript(wbRequest.getRequestUrl());
+String searchUrl = 
+	UrlOperations.stripDefaultPortFromUrl(wbRequest.getRequestUrl());
+String searchUrlSafe = fmt.escapeHtml(searchUrl);
+String searchUrlJS = fmt.escapeJavaScript(searchUrl);
 String resolution = wbRequest.getTimelineResolution();
 
 CaptureSearchResult first = null;
@@ -71,8 +74,8 @@ CaptureSearchResult prev = null;
 CaptureSearchResult next = null;
 CaptureSearchResult last = null;
 
-Date firstDate = cResults.getFirstResultDate();
-Date lastDate = cResults.getLastResultDate();
+Date firstDate = wbRequest.getStartDate();
+Date lastDate = wbRequest.getEndDate();
 
 long resultCount = cResults.getReturnedCount();
 int resultIndex = 1;
@@ -92,7 +95,7 @@ Partitioner<Partition<CaptureSearchResult>> yearPartitioner =
 List<Partition<Partition<CaptureSearchResult>>> yearPartitions = 
 	yearPartitioner.getRange(yearSize,firstDate,lastDate);
 
-int imgWidth = 800;
+int imgWidth = 500;
 int imgHeight = 35;
 Date firstYearDate = yearPartitions.get(0).getStart();
 Date lastYearDate = yearPartitions.get(yearPartitions.size()-1).getEnd();
@@ -110,7 +113,8 @@ String yearFormatKey = "PartitionSize.dateHeader.yearGraphLabel";
 Graph graph = PartitionsToGraph.partsOfPartsToGraph(yearPartitions,fmt,yearFormatKey,imgWidth,imgHeight);
 String encodedGraph = GraphEncoder.encode(graph);
 String imgUrl = graphJspPrefix + "jsp/graph.jsp?graphdata=" + encodedGraph;
-String starLink = fmt.escapeHtml(contextRoot + "*/" + searchUrl);
+// TODO: this is archivalUrl specific:
+String starLink = fmt.escapeHtml(queryPrefix + "*/" + searchUrl);
 %>
 <!-- BEGIN WAYBACK TIMELINE DISCLAIMER INSERT -->
 <style type="text/css">
@@ -162,18 +166,18 @@ padding:3px !important;
 text-align:center !important;
 }
 </style>
-<script type="text/javascript" src="<%= contextRoot %>js/graph-calc.js" ></script>
+<script type="text/javascript" src="<%= staticPrefix %>js/graph-calc.js" ></script>
 <script type="text/javascript">
 var firstDate = <%= firstYearDate.getTime() %>;
 var lastDate = <%= lastYearDate.getTime() %>;
-var wbPrefix = "<%= contextRoot %>";
+var wbPrefix = "<%= replayPrefix %>";
 var wbCurrentUrl = "<%= searchUrlJS %>";
 </script>
 <div id="wm-disclaim" dir="ltr" >
 	<table width="100%" border="0" cellpadding="0" cellspacing="3">
 		<tr>
 			<!-- WAYBACK LOGO -->
-			<td rowspan="2" valign="top" align="left"><a href="<%= contextRoot %>"><img style="padding-right:15px;" src="<%= staticPrefix %>images/wayback_logo_tr.gif" width="153" height="54" border="0"></a></td>
+			<td rowspan="2" valign="top" align="left"><a href="<%= queryPrefix %>"><img style="padding-right:15px;" src="<%= staticPrefix %>images/wayback_logo_tr.gif" width="153" height="54" border="0"></a></td>
 			<!-- /WAYBACK LOGO -->
 			<td width="99%">
 				<table width="100%" border="0" cellpadding="0" cellspacing="0">
@@ -188,7 +192,7 @@ var wbCurrentUrl = "<%= searchUrlJS %>";
 										<!-- URL FORM -->
 										<table border="0" cellpadding="0" cellspacing="0">
 											<tr>
-												<form action="<%= contextRoot %>query" method="get">
+												<form action="<%= queryPrefix %>query" method="get">
 													<td class="wm-disclaim-label"><%= fmt.format("GraphTimeline.searchLabel") %></td>
 													<td><input type="hidden" name="<%= WaybackRequest.REQUEST_TYPE %>" value="<%= WaybackRequest.REQUEST_CAPTURE_QUERY %>"><input type="text" name="<%= WaybackRequest.REQUEST_URL %>" value="http://" size="24" maxlength="256"></td>
 													<td><input type="submit" name="submit" value="<%= fmt.format("GraphTimeline.searchButtonText") %>"></td>
@@ -248,7 +252,7 @@ var wbCurrentUrl = "<%= searchUrlJS %>";
 		</tr>
 	</table>
 </div>
-<script type="text/javascript" src="<%= contextRoot %>js/disclaim-element.js" ></script>
+<script type="text/javascript" src="<%= staticPrefix %>js/disclaim-element.js" ></script>
 <script type="text/javascript">
   var wmDisclaimBanner = document.getElementById("wm-disclaim");
   if(wmDisclaimBanner != null) {
