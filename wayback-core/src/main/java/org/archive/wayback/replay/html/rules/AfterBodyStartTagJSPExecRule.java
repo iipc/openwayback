@@ -61,7 +61,8 @@ import org.htmlparser.nodes.TagNode;
 public class AfterBodyStartTagJSPExecRule extends JSPExecRule 
 implements ReplayParseEventDelegatorVisitor, OpenTagHandler {
 	private final String[] okHeadTags = {
-		"HTML","HEAD","BASE","LINK","META","TITLE","STYLE","SCRIPT","BODY"
+		"![CDATA[*", "!DOCTYPE","HTML","HEAD","BASE","LINK","META","TITLE",
+		"STYLE","SCRIPT"
 	};
 	private final static String FRAMESET_TAG = "FRAMESET";
 	private final static String FERRET_DONE_KEY = 

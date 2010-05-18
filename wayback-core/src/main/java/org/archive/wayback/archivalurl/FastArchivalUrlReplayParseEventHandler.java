@@ -64,8 +64,8 @@ public class FastArchivalUrlReplayParseEventHandler implements
 
 	private String jspInsertPath = "/WEB-INF/replay/DisclaimChooser.jsp";
 
-	private final String[] okHeadTags = { "!DOCTYPE", "HTML", "HEAD", "BASE",
-			"LINK", "META", "TITLE", "STYLE", "SCRIPT", "BODY" };
+	private final String[] okHeadTags = { "![CDATA[*", "!DOCTYPE", "HTML", "HEAD", "BASE",
+			"LINK", "META", "TITLE", "STYLE", "SCRIPT" };
 	private HashMap<String, Object> okHeadTagMap = null;
 	private final static String FRAMESET_TAG = "FRAMESET";
 	private final static String BODY_TAG = "BODY";
