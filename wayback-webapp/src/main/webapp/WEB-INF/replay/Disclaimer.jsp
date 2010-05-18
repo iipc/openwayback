@@ -30,10 +30,9 @@ String resultUrl = result.getOriginalUrl();
 
 String wmNotice = fmt.format("ReplayView.banner", resultUrl, resultDate);
 String wmHideNotice = fmt.format("ReplayView.bannerHideLink");
-String contextRoot = results.getWbRequest().getContextPrefix();
 %>
 <script type="text/javascript">
   var wmNotice = "<%= wmNotice %><%= dupeMsg %>";
   var wmHideNotice = "<%= wmHideNotice %>";
 </script>
-<script type="text/javascript" src="<%= contextRoot %>js/disclaim.js"></script>
+<script type="text/javascript" src="<%= results.getStaticPrefix() %>js/disclaim.js"></script>
