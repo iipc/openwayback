@@ -70,9 +70,6 @@ public class LiveWebAccessPoint extends AbstractRequestHandler {
 		WaybackRequest wbRequest = new WaybackRequest();
 		wbRequest.setAccessPoint(inner);
 
-		wbRequest.setContextPrefix(inner.getUrlRoot());
-		wbRequest.setServerPrefix(inner.getUrlRoot());
-		
 		wbRequest.setLiveWebRequest(true);
 		wbRequest.setRequestUrl(urlString);
 		URL url = null;
@@ -86,14 +83,14 @@ public class LiveWebAccessPoint extends AbstractRequestHandler {
 			CaptureSearchResult result = new CaptureSearchResult();
 			result.setOriginalUrl(urlString);
 			result.setUrlKey(urlString);
-			// should we check robots, first?
+			// check robots first, if configured
 			if(robotFactory != null) {
 				int ruling = robotFactory.get().filterObject(result);
 				if(ruling == ExclusionFilter.FILTER_EXCLUDE) {
 					throw new RobotAccessControlException(urlString + "is blocked by robots.txt");
 				}
 			}
-			// robots says GO:
+			// no robots check, or robots.txt says GO:
 			ArcResource r = (ArcResource) cache.getCachedResource(url, maxCacheMS , false);
 			ARCRecord ar = (ARCRecord) r.getArcRecord();
 			int status = ar.getStatusCode();
