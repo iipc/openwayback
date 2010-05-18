@@ -13,7 +13,7 @@ UIResults results = UIResults.extractReplay(request);
 CaptureSearchResult result = results.getResult();
 WaybackRequest wbr = results.getWbRequest();
 StringFormatter fmt = wbr.getFormatter();
-String contextRoot = wbr.getContextPrefix();
+String contextRoot = results.getStaticPrefix();
 
 String urlString = fmt.escapeHtml(wbr.getRequestUrl());
 String prettyDateTime = 
