@@ -4,18 +4,20 @@
 <%
 UIResults results = UIResults.getGeneric(request);
 StringFormatter fmt = results.getWbRequest().getFormatter();
-String contextRoot = results.getWbRequest().getContextPrefix();
-String serverRoot = results.getWbRequest().getServerPrefix();
+
+String staticPrefix = results.getStaticPrefix();
+String queryPrefix = results.getQueryPrefix();
+String replayPrefix = results.getReplayPrefix();
 %>
 <!-- FOOTER -->
 		<div align="center">
 			<hr noshade size="1" align="center">
 			
 			<p>
-				<a href="<%= contextRoot %>">
+				<a href="<%= staticPrefix %>">
 					<%= fmt.format("UIGlobal.homeLink") %>
 				</a> |
-				<a href="<%= contextRoot %>help.jsp">
+				<a href="<%= staticPrefix %>help.jsp">
 					<%= fmt.format("UIGlobal.helpLink") %>
 				</a>
 			</p>

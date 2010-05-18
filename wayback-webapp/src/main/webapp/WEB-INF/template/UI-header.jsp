@@ -8,8 +8,11 @@
 UIResults results = UIResults.getGeneric(request);
 WaybackRequest wbRequest = results.getWbRequest();
 StringFormatter fmt = wbRequest.getFormatter();
-String contextRoot = wbRequest.getContextPrefix();
-String serverRoot = wbRequest.getServerPrefix();
+
+String staticPrefix = results.getStaticPrefix();
+String queryPrefix = results.getQueryPrefix();
+String replayPrefix = results.getReplayPrefix();
+
 %>
 <!-- HEADER -->
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -18,8 +21,8 @@ String serverRoot = wbRequest.getServerPrefix();
 		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
 		      
 		<link rel="stylesheet" type="text/css" 
-			href="<%= contextRoot %>css/styles.css"
-			src="<%= contextRoot %>css/styles.css" />
+			href="<%= staticPrefix %>css/styles.css"
+			src="<%= staticPrefix %>css/styles.css" />
 		<title><%= fmt.format("UIGlobal.pageTitle") %></title>
 		<base target="_top" />
 	</head>
@@ -33,7 +36,7 @@ String serverRoot = wbRequest.getServerPrefix();
 
 				<!-- WAYBACK LOGO -->
 				
-				<td width="26%"><a href="<%= contextRoot %>"><img src="<%= contextRoot %>images/wayback_logo_sm.gif" width="153" height="54" border="0"></a></td>
+				<td width="26%"><a href="<%= staticPrefix %>"><img src="<%= staticPrefix %>images/wayback_logo_tr.gif" width="153" height="54" border="0"></a></td>
 
 				<!-- /WAYBACK LOGO -->
 			
@@ -56,11 +59,11 @@ String serverRoot = wbRequest.getServerPrefix();
 
 
 									<!-- URL FORM -->
-									<form action="<%= contextRoot %>query" method="get">
+									<form action="<%= queryPrefix %>query" method="get">
 
 
 										<tr>
-											<td nowrap align="center"><img src="<%= contextRoot %>images/shim.gif" width="1" height="20"> 
+											<td nowrap align="center"><img src="<%= staticPrefix %>images/shim.gif" width="1" height="20"> 
 
 												<b class="mainBodyW">
 													<font size="2" color="#FFFFFF" face="Arial, Helvetica, sans-serif">
@@ -89,7 +92,7 @@ String serverRoot = wbRequest.getServerPrefix();
 												&nbsp;
 												<input type="submit" name="Submit" value="<%= fmt.format("UIGlobal.urlSearchButton") %>" align="absMiddle">
 												&nbsp;
-												<a href="<%= contextRoot %>advanced_search.jsp" style="color:white;font-size:11px">
+												<a href="<%= staticPrefix %>advanced_search.jsp" style="color:white;font-size:11px">
 													<%= fmt.format("UIGlobal.advancedSearchLink") %>
 												</a>
 
