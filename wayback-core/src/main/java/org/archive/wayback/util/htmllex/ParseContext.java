@@ -31,6 +31,7 @@ import java.util.HashMap;
 import org.apache.commons.httpclient.URIException;
 import org.archive.net.UURI;
 import org.archive.net.UURIFactory;
+import org.htmlparser.util.Translate;
 
 /**
  * Class which tracks the context and state involved with parsing an HTML
@@ -93,6 +94,7 @@ public class ParseContext {
 	 * @throws URISyntaxException if the input URL is malformed
 	 */
 	public String resolve(String url) throws URISyntaxException {
+		url = Translate.decode(url);
 		int hashIdx = url.indexOf('#');
 		String frag = "";
 		if(hashIdx != -1) {
