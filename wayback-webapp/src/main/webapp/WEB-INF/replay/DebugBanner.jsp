@@ -27,7 +27,6 @@
 %><jsp:include page="/WEB-INF/template/CookieJS.jsp" flush="true" /><%
 UIResults results = UIResults.extractReplay(request);
 WaybackRequest wbr = results.getWbRequest();
-String contextRoot = wbr.getContextPrefix();
 Set<String> keys = wbr.keySet();
 Iterator<String> keysItr = keys.iterator();
 Map<String,String> headers = results.getResource().getHttpHeaders();
@@ -145,7 +144,7 @@ while(keysItr.hasNext()) {
   </form>
   </div>
 </div>
-<script type="text/javascript" src="<%= contextRoot %>js/disclaim-element.js" ></script>
+<script type="text/javascript" src="<%= results.getStaticPrefix() %>js/disclaim-element.js" ></script>
 <script type="text/javascript">
   var debugBanner = document.getElementById("wm-debug-banner");
   if(debugBanner != null) {
