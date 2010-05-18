@@ -16,7 +16,7 @@
 
 
 UIResults results = UIResults.extractReplay(request);
-String contextRoot = results.getWbRequest().getContextPrefix();
+String staticPrefix = results.getStaticPrefix();
 WaybackRequest wbRequest = results.getWbRequest();
 StringFormatter fmt = wbRequest.getFormatter();
 CaptureSearchResults cResults = results.getCaptureResults();
@@ -171,7 +171,7 @@ function handleDragClick() {
 						<table cellspacing="0" border="0" cellpadding="0"  width="100%">
 							<tr>
 								<td width="48%" nowrap><span><%= firstDate %></span></td>
-								<td align="center" valign="bottom" nowrap><img style="display: inline;" wmSpecial="1" src="<%= contextRoot %>/images/mark.jpg"></td>
+								<td align="center" valign="bottom" nowrap><img style="display: inline;" wmSpecial="1" src="<%= staticPrefix %>/images/mark.jpg"></td>
 								<td width="48%" nowrap align="right"><span><%= lastDate %></span></td>
 							</tr>
 						</table>
@@ -187,7 +187,7 @@ function handleDragClick() {
 									first.getCaptureDate()) + "\"";
 							%><a wmSpecial="1" onclick="SetAnchorDate('<%= first.getCaptureTimestamp() %>');" href="<%= results.resultToReplayUrl(first) %>"><%
 						}
-						%><img style="display: inline;" <%= titleString %> wmSpecial="1" border=0 width=19 height=20 src="<%= contextRoot %>/images/first.jpg"><%
+						%><img style="display: inline;" <%= titleString %> wmSpecial="1" border=0 width=19 height=20 src="<%= staticPrefix %>/images/first.jpg"><%
 						if(first != null) {
 							%></a><%
 						}
@@ -198,7 +198,7 @@ function handleDragClick() {
 									prev.getCaptureDate()) + "\"";
 							%><a wmSpecial="1" onclick="SetAnchorDate('<%= prev.getCaptureTimestamp() %>');" href="<%= results.resultToReplayUrl(prev) %>"><%
 						}
-						%><img style="display: inline;" <%= titleString %> wmSpecial="1" border=0 width=13 height=20 src="<%= contextRoot %>/images/prev.jpg"><%
+						%><img style="display: inline;" <%= titleString %> wmSpecial="1" border=0 width=13 height=20 src="<%= staticPrefix %>/images/prev.jpg"><%
 						if(first != null) {
 							%></a><%
 						}
@@ -209,19 +209,19 @@ function handleDragClick() {
 		ResultsPartition partition = (ResultsPartition) partitions.get(i);
 		ArrayList partitionResults = partition.getMatches();
 		int numResults = partitionResults.size();
-		String imageUrl = contextRoot + "/images/line.jpg";
+		String imageUrl = staticPrefix + "/images/line.jpg";
 		String replayUrl = null;
 		String prettyDateTime = null;
 		String ts = null;
 		if(numResults == 1) {
-			imageUrl = contextRoot + "/images/mark_one.jpg";
+			imageUrl = staticPrefix + "/images/mark_one.jpg";
 		  	CaptureSearchResult result = (CaptureSearchResult) partitionResults.get(0);
 			replayUrl = results.resultToReplayUrl(result);
 			prettyDateTime = fmt.format("TimelineView.markDateTitle",result.getCaptureDate());
 			ts = result.getCaptureTimestamp();
 			
 		} else if (numResults > 1) {
-			imageUrl = contextRoot + "/images/mark_several.jpg";
+			imageUrl = staticPrefix + "/images/mark_several.jpg";
 		  	CaptureSearchResult result = (CaptureSearchResult) partitionResults.get(numResults - 1);
 			replayUrl = results.resultToReplayUrl(result);
 			prettyDateTime = fmt.format("TimelineView.markDateTitle",result.getCaptureDate());
@@ -230,7 +230,7 @@ function handleDragClick() {
 		}
 		if((i > 0) && (i < numPartitions)) {
 
-%><img style="display: inline;" wmSpecial="1" border=0 width=1 height=16 src="<%= contextRoot %>/images/linemark.jpg"><%
+%><img style="display: inline;" wmSpecial="1" border=0 width=1 height=16 src="<%= staticPrefix %>/images/linemark.jpg"><%
 		
 		}
 
@@ -254,7 +254,7 @@ function handleDragClick() {
 									next.getCaptureDate()) + "\"";
 							%><a wmSpecial="1" onclick="SetAnchorDate('<%= next.getCaptureTimestamp() %>');" href="<%= results.resultToReplayUrl(next) %>"><%
 						}
-						%><img style="display: inline;" wmSpecial="1" <%= titleString %> border=0 width=13 height=20 src="<%= contextRoot %>/images/next.jpg"><%
+						%><img style="display: inline;" wmSpecial="1" <%= titleString %> border=0 width=13 height=20 src="<%= staticPrefix %>/images/next.jpg"><%
 						if(next != null) {
 							%></a><%
 						}
@@ -265,7 +265,7 @@ function handleDragClick() {
 									last.getCaptureDate()) + "\"";
 							%><a wmSpecial="1" onclick="SetAnchorDate('<%= last.getCaptureTimestamp() %>');" href="<%= results.resultToReplayUrl(last) %>"><%
 						}
-						%><img style="display: inline;" wmSpecial="1" <%= titleString %> border=0 width=19 height=20 src="<%= contextRoot %>/images/last.jpg"><%
+						%><img style="display: inline;" wmSpecial="1" <%= titleString %> border=0 width=19 height=20 src="<%= staticPrefix %>/images/last.jpg"><%
 						if(last != null) {
 							%></a><%
 						}
@@ -277,7 +277,7 @@ function handleDragClick() {
 			<!-- Resolution -->
 			<!--
 			 need to get cookie data passing set up before this can be re-enabled:
-			<form wmSpecial="1" name="timeline" method="GET" target="_top" action="<%= contextRoot + "/frameset" %>">
+			<form wmSpecial="1" name="timeline" method="GET" target="_top" action="<%= staticPrefix + "/frameset" %>">
 				<input type="hidden" name="url" value="<%= searchUrl %>">
 				<input type="hidden" name="exactdate" value="<%= exactDateStr %>">
 				<input type="hidden" name="type" value="urlclosestquery">
@@ -303,12 +303,12 @@ function handleDragClick() {
 				%> onClick="changeMeta()">&nbsp
 			</form>
       -->
-      <a wmSpecial="1" href="<%= contextRoot %>/help.jsp" target="_top"><%=
+      <a wmSpecial="1" href="<%= staticPrefix %>/help.jsp" target="_top"><%=
       fmt.format("UIGlobal.helpLink")
       %></a>
 		</td>
 		<td>
-			<img style="display: inline;" wmSpecial="1" alt='' height='1' src='<%= contextRoot %>/images/1px.gif' width='5'>
+			<img style="display: inline;" wmSpecial="1" alt='' height='1' src='<%= staticPrefix %>/images/1px.gif' width='5'>
 		</td>
 	</tr>
 </table>
