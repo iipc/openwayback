@@ -32,7 +32,6 @@ import org.archive.wayback.replay.html.StringTransformer;
  *
  */
 public class URLStringTransformer implements StringTransformer {
-	private static final String MAILTO_PREFIX = "mailto:";
 	private String flags;
 	/** Default constructor */
 	public URLStringTransformer() {}
@@ -45,9 +44,6 @@ public class URLStringTransformer implements StringTransformer {
 	}
 	
 	public String transform(ReplayParseContext context, String url) {
-		if(url.startsWith(MAILTO_PREFIX)) {
-			return url;
-		}
 		return context.contextualizeUrl(url, flags);
 	}
 

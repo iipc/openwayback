@@ -34,6 +34,8 @@ import org.archive.wayback.replay.JSPExecutor;
 import org.archive.wayback.util.htmllex.ParseContext;
 
 public class ReplayParseContext extends ParseContext {
+	private static final String MAILTO_PREFIX = "mailto:";
+	private static final String JAVASCRIPT_PREFIX = "javascript:";
 	private ContextResultURIConverterFactory uriConverterFactory = null;
 	private String datespec = null;
 	private JSPExecutor jspExec = null;
@@ -92,7 +94,11 @@ public class ReplayParseContext extends ParseContext {
 		return contextualizeUrl(url,"");
 	}
 	public String contextualizeUrl(String url, String flags) {
-	    if(url.startsWith("javascript:")) {
+		// if we get an empty string, just return it:
+		if(url.length() == 0) {
+			return url;
+		}
+	    if(url.startsWith(JAVASCRIPT_PREFIX) || url.startsWith(MAILTO_PREFIX)) {
 	    	return url;
 	    }
 	    url = super.contextualizeUrl(url);
