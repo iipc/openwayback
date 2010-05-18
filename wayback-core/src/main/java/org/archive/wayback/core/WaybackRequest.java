@@ -37,8 +37,6 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.archive.wayback.requestparser.OpenSearchRequestParser;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
-import org.archive.wayback.resourceindex.filters.HostMatchFilter;
-import org.archive.wayback.resourceindex.filters.SchemeMatchFilter;
 import org.archive.wayback.util.ObjectFilter;
 import org.archive.wayback.util.ObjectFilterChain;
 import org.archive.wayback.util.StringFormatter;
@@ -441,6 +439,8 @@ public class WaybackRequest {
 
 	/**
 	 * @param prefix
+	 * @deprecated use getAccessPoint.getStaticPrefix() or
+	 * getAccessPoint.getReplayPrefix()
 	 */
 	public void setContextPrefix(String prefix) {
 		contextPrefix = prefix;
@@ -452,16 +452,18 @@ public class WaybackRequest {
 	 * 
 	 * @return String absolute URL pointing to the Context root where the
 	 *         request was received.
+	 * @deprecated use AccessPoint.setReplayPrefix or setQueryPrefix
 	 */
 	public String getContextPrefix() {
-		if(contextPrefix == null) {
+		if(accessPoint == null) {
 			return "";
 		}
-		return contextPrefix;
+		return accessPoint.getQueryPrefix();
 	}
 
 	/**
 	 * @param prefix
+	 * @deprecated use AccessPoint.set*Prefix
 	 */
 	public void setServerPrefix(String prefix) {
 		serverPrefix = prefix;
@@ -471,13 +473,15 @@ public class WaybackRequest {
 	 * @param prefix
 	 * @return an absolute String URL that will point to the root of the
 	 * server that is handling the request. 
+	 * @deprecated use AccessPoint.get*Prefix
 	 */
 	public String getServerPrefix() {
-		if(serverPrefix == null) {
+		if(accessPoint == null) {
 			return "";
 		}
-		return serverPrefix;
+		return accessPoint.getQueryPrefix();
 	}
+
 	/**
 	 * @return the accessPoint
 	 */
@@ -498,25 +502,6 @@ public class WaybackRequest {
 
 	public void setExclusionFilter(ExclusionFilter exclusionFilter) {
 		this.exclusionFilter = exclusionFilter;
-	}
-
-	@Deprecated
-	public ObjectFilter<CaptureSearchResult> getResultFilters() {
-		ObjectFilterChain<CaptureSearchResult> tmpFilters = 
-			new ObjectFilterChain<CaptureSearchResult>();
-		if(isExactHost()) {
-			tmpFilters.addFilter(new HostMatchFilter(
-					UrlOperations.urlToHost(getRequestUrl())));
-		}
-
-		if(isExactScheme()) {
-			tmpFilters.addFilter(new SchemeMatchFilter(
-					UrlOperations.urlToScheme(getRequestUrl())));
-		}
-		if(resultFilters != null) {
-			tmpFilters.addFilters(resultFilters.getFilters());
-		}
-		return tmpFilters;
 	}
 
 	public void setResultFilters(ObjectFilterChain<CaptureSearchResult> resultFilters) {
@@ -1008,6 +993,7 @@ public class WaybackRequest {
 		wbRequest.serverPrefix = serverPrefix;
 
 		wbRequest.formatter = formatter;
+		wbRequest.accessPoint = accessPoint;
 
 		wbRequest.filters = new HashMap<String,String>();
 		Iterator<String> itr = filters.keySet().iterator();

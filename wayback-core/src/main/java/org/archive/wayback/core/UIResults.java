@@ -224,7 +224,7 @@ public class UIResults {
 	}
 
 	/**
-	 * @return the original URL as recieved by Wayback, before forwarding to
+	 * @return the original URL as received by Wayback, before forwarding to
 	 * a .jsp
 	 */
 	public String getOriginalRequestURL() {
@@ -246,7 +246,7 @@ public class UIResults {
 		
 		newWBR.setCaptureQueryRequest();
 		newWBR.setRequestUrl(url);
-		return newWBR.getContextPrefix() + "query?" +
+		return newWBR.getAccessPoint().getQueryPrefix() + "query?" +
 			newWBR.getQueryArguments(1);
 	}
 
@@ -291,8 +291,44 @@ public class UIResults {
 	 */
 	public String urlForPage(int pageNum) {
 		WaybackRequest wbRequest = getWbRequest();
-		return wbRequest.getContextPrefix() + "query?" +
+		return wbRequest.getAccessPoint().getQueryPrefix() + "query?" +
 			wbRequest.getQueryArguments(pageNum);
+	}
+
+	/**
+	 * @return the defined staticPrefix for the AccessPoint
+	 */
+	public String getStaticPrefix() {
+		if(wbRequest != null) {
+			if(wbRequest.getAccessPoint() != null) {
+				return wbRequest.getAccessPoint().getStaticPrefix();
+			}
+		}
+		return "/";
+	}
+
+	/**
+	 * @return the defined queryPrefix for the AccessPoint
+	 */
+	public String getQueryPrefix() {
+		if(wbRequest != null) {
+			if(wbRequest.getAccessPoint() != null) {
+				return wbRequest.getAccessPoint().getQueryPrefix();
+			}
+		}
+		return "/";
+	}
+
+	/**
+	 * @return the defined replayPrefix for the AccessPoint
+	 */
+	public String getReplayPrefix() {
+		if(wbRequest != null) {
+			if(wbRequest.getAccessPoint() != null) {
+				return wbRequest.getAccessPoint().getReplayPrefix();
+			}
+		}
+		return "/";
 	}
 
 	/*
@@ -474,7 +510,6 @@ public class UIResults {
 		return results;
 	}
 	
-
 
 	/*
 	 * STATIC CONVENIENCE METHODS

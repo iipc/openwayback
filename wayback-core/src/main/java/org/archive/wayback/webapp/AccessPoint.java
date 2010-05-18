@@ -24,7 +24,10 @@
  */
 package org.archive.wayback.webapp;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
@@ -79,17 +82,30 @@ import org.archive.wayback.util.webapp.ShutdownListener;
  */
 public class AccessPoint extends AbstractRequestHandler 
 implements ShutdownListener {
+	/** webapp relative location of Interstitial.jsp */
+	public final static String INTERSTITIAL_JSP = "jsp/Interstitial.jsp";
+	/** argument for Interstitial.jsp target URL */
+	public final static String INTERSTITIAL_TARGET = "target";
+	/** argument for Interstitial.jsp seconds to delay */
+	public final static String INTERSTITIAL_SECONDS = "seconds";
 
 	private static final Logger LOGGER = Logger.getLogger(
 			AccessPoint.class.getName());
-	
+
 	private boolean exactHostMatch = false;
 	private boolean exactSchemeMatch = true;
 	private boolean useAnchorWindow = false;
 	private boolean useServerName = false;
+	private boolean serveStatic = true;
+	private boolean bounceToReplayPrefix = false;
+	private boolean bounceToQueryPrefix = false;
 
 	private String liveWebPrefix = null;
-	private String urlRoot = null;
+	private String staticPrefix = null;
+	private String queryPrefix = null;
+	private String replayPrefix = null;
+
+	private String refererAuth = null;
 
 	private Locale locale = null;
 
@@ -112,19 +128,29 @@ implements ShutdownListener {
 	protected boolean dispatchLocal(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse) 
 	throws ServletException, IOException {
-		
-		String translated = "/" + translateRequestPathQuery(httpRequest);
-
-		WaybackRequest wbRequest = new WaybackRequest();
-		wbRequest.setContextPrefix(getUrlRoot());
-		wbRequest.setAccessPoint(this);
-		wbRequest.fixup(httpRequest);
-		UIResults uiResults = new UIResults(wbRequest,uriConverter);
-		try {
-			uiResults.forward(httpRequest, httpResponse, translated);
-			return true;
-		} catch(IOException e) {
-			// TODO: figure out if we got IO because of a missing dispatcher
+		if(!serveStatic) {
+			return false;
+		}
+//		String contextRelativePath = httpRequest.getServletPath();
+		String translated = "/" + translateRequestPath(httpRequest);
+//		String absPath = getServletContext().getRealPath(contextRelativePath);
+		String absPath = getServletContext().getRealPath(translated);
+		File test = new File(absPath);
+		if(test.exists()) {
+			
+			String translated2 = "/" + translateRequestPathQuery(httpRequest);
+	
+			WaybackRequest wbRequest = new WaybackRequest();
+//			wbRequest.setContextPrefix(getUrlRoot());
+			wbRequest.setAccessPoint(this);
+			wbRequest.fixup(httpRequest);
+			UIResults uiResults = new UIResults(wbRequest,uriConverter);
+			try {
+				uiResults.forward(httpRequest, httpResponse, translated2);
+				return true;
+			} catch(IOException e) {
+				// TODO: figure out if we got IO because of a missing dispatcher
+			}
 		}
 		return false;
 	}
@@ -152,7 +178,7 @@ implements ShutdownListener {
 				// TODO: refactor this code into RequestParser implementations
 				wbRequest.setAccessPoint(this);
 //				wbRequest.setContextPrefix(getAbsoluteLocalPrefix(httpRequest));
-				wbRequest.setContextPrefix(getUrlRoot());
+//				wbRequest.setContextPrefix(getUrlRoot());
 				wbRequest.fixup(httpRequest);
 				// end of refactor
 
@@ -179,11 +205,26 @@ implements ShutdownListener {
 				wbRequest.setExactScheme(isExactSchemeMatch());
 
 				if(wbRequest.isReplayRequest()) {
-
+					if(bounceToReplayPrefix) {
+						// we don't accept replay requests on this AccessPoint
+						// bounce the user to the right place:
+						String suffix = translateRequestPathQuery(httpRequest);
+						String replayUrl = replayPrefix + suffix;
+						httpResponse.sendRedirect(replayUrl);
+						return true;
+					}
 					handleReplay(wbRequest,httpRequest,httpResponse);
 					
 				} else {
 
+					if(bounceToQueryPrefix) {
+						// we don't accept replay requests on this AccessPoint
+						// bounce the user to the right place:
+						String suffix = translateRequestPathQuery(httpRequest);
+						String replayUrl = queryPrefix + suffix;
+						httpResponse.sendRedirect(replayUrl);
+						return true;
+					}
 					wbRequest.setExactHost(isExactHostMatch());
 					handleQuery(wbRequest,httpRequest,httpResponse);
 				}
@@ -198,7 +239,9 @@ implements ShutdownListener {
 		} catch(WaybackException e) {
 			boolean drawError = true;
 			if(e instanceof ResourceNotInArchiveException) {
-				if(getLiveWebPrefix() != null) {
+				if((getLiveWebPrefix() != null) 
+						&& (getLiveWebPrefix().length() > 0)) {
+
 					String liveUrl = 
 						getLiveWebPrefix() + wbRequest.getRequestUrl();
 					httpResponse.sendRedirect(liveUrl);
@@ -220,18 +263,48 @@ implements ShutdownListener {
 			String url = r.getRequestUrl();
 			StringBuilder sb = new StringBuilder(100);
 			sb.append("NotInArchive\t");
-			sb.append(getUrlRoot()).append("\t");
+			sb.append(getBeanName()).append("\t");
 			sb.append(url);
 			
 			LOGGER.info(sb.toString());
 		}
 	}
 
+	private void checkInterstitialRedirect(HttpServletRequest httpRequest) 
+	throws BetterRequestException {
+		if(refererAuth != null) {
+			String referer = httpRequest.getHeader("Referer");
+			if((referer == null) || (!referer.contains(refererAuth))) {
+				StringBuffer sb = httpRequest.getRequestURL();
+				if(httpRequest.getQueryString() != null) {
+					sb.append("?").append(httpRequest.getQueryString());
+				}
+				StringBuilder u = new StringBuilder();
+				u.append(getQueryPrefix());
+				u.append(INTERSTITIAL_JSP);
+				u.append("?");
+				u.append(INTERSTITIAL_SECONDS).append("=").append(5);
+				u.append("&");
+				u.append(INTERSTITIAL_TARGET).append("=");
+				try {
+					u.append(URLEncoder.encode(sb.toString(), "UTF-8"));
+				} catch (UnsupportedEncodingException e) {
+					// not gonna happen...
+					u.append(sb.toString());
+				}
+				throw new BetterRequestException(u.toString());
+			}
+		}
+	}
+	
 	private void handleReplay(WaybackRequest wbRequest, 
 			HttpServletRequest httpRequest, HttpServletResponse httpResponse) 
 	throws IOException, ServletException, WaybackException {
 		Resource resource = null;
 		try {
+			
+			checkInterstitialRedirect(httpRequest);
+			
 			PerformanceLogger p = new PerformanceLogger("replay");
 			SearchResults results = 
 				getCollection().getResourceIndex().query(wbRequest);
@@ -241,7 +314,7 @@ implements ShutdownListener {
 			}
 			CaptureSearchResults captureResults = 
 				(CaptureSearchResults) results;
-	
+
 			// TODO: check which versions are actually accessible right now?
 			CaptureSearchResult closest = captureResults.getClosest(wbRequest, 
 					isUseAnchorWindow());
@@ -308,6 +381,16 @@ implements ShutdownListener {
 		}
 	}
 	
+	private String getBestPrefix(String best, String next, String last) {
+		if(best != null) {
+			return best;
+		}
+		if(next != null) {
+			return next;
+		}
+		return last;
+	}
+	
 	/*
 	 * *******************************************************************
 	 * *******************************************************************
@@ -369,7 +452,7 @@ implements ShutdownListener {
 
 	/**
 	 * @return the useServerName
-	 * @deprecated no longer used, use urlPrefix
+	 * @deprecated no longer used, use {replay,query,static}Prefix
 	 */
 	public boolean isUseServerName() {
 		return useServerName;
@@ -377,10 +460,25 @@ implements ShutdownListener {
 
 	/**
 	 * @param useServerName the useServerName to set
-	 * @deprecated no longer used, use urlPrefix
+	 * @deprecated no longer used, use {replay,query,static}Prefix
 	 */
 	public void setUseServerName(boolean useServerName) {
 		this.useServerName = useServerName;
+	}
+
+	/**
+	 * @return true if this AccessPoint serves static content
+	 */
+	public boolean isServeStatic() {
+		return serveStatic;
+	}
+
+	/**
+	 * @param serveStatic if set to true, this AccessPoint will serve static 
+	 * content, and .jsp files
+	 */
+	public void setServeStatic(boolean serveStatic) {
+		this.serveStatic = serveStatic;
 	}
 
 	/**
@@ -401,18 +499,70 @@ implements ShutdownListener {
 
 	/**
 	 * @return the String url prefix to use when generating self referencing 
-	 * 			URLs
+	 * 			static URLs
 	 */
-	public String getUrlRoot() {
-		return urlRoot;
+	public String getStaticPrefix() {
+		return getBestPrefix(staticPrefix,queryPrefix,replayPrefix);
 	}
 
 	/**
-	 * @param urlRoot explicit URL prefix to use when creating self referencing
-	 * 		URLs
+	 * @param staticPrefix explicit URL prefix to use when creating self referencing
+	 * 		static URLs
+	 */
+	public void setStaticPrefix(String staticPrefix) {
+		this.staticPrefix = staticPrefix;
+	}
+
+	/**
+	 * @return the String url prefix to use when generating self referencing 
+	 * 			replay URLs
+	 */
+	public String getReplayPrefix() {
+		return getBestPrefix(replayPrefix,queryPrefix,staticPrefix);
+	}
+
+	/**
+	 * @param replayPrefix explicit URL prefix to use when creating self referencing
+	 * 		replay URLs
+	 */
+	public void setReplayPrefix(String replayPrefix) {
+		this.replayPrefix = replayPrefix;
+	}
+
+	/**
+	 * @param queryPrefix explicit URL prefix to use when creating self referencing
+	 * 		query URLs
+	 */
+	public void setQueryPrefix(String queryPrefix) {
+		this.queryPrefix = queryPrefix;
+	}
+
+	/**
+	 * @return the String url prefix to use when generating self referencing 
+	 * 			replay URLs
+	 */
+	public String getQueryPrefix() {
+		return getBestPrefix(queryPrefix,staticPrefix,replayPrefix);
+	}
+
+	/**
+	 * @param urlRoot explicit URL prefix to use when creating ANY self 
+	 * referencing URLs
+	 * @deprecated use setQueryPrefix, setReplayPrefix, setStaticPrefix
 	 */
 	public void setUrlRoot(String urlRoot) {
-		this.urlRoot = urlRoot;
+		this.queryPrefix = urlRoot;
+		this.replayPrefix = urlRoot;
+		this.staticPrefix = urlRoot;
+	}
+
+	/**
+	 * @return the String url prefix used when generating self referencing 
+	 * 			URLs
+	 * @deprecated use getQueryPrefix, getReplayPrefix, getStaticPrefix
+	 */
+	public String getUrlRoot() {
+		return getBestPrefix(queryPrefix,staticPrefix,replayPrefix);
 	}
 
 	/**
@@ -604,5 +754,46 @@ implements ShutdownListener {
 	 */
 	public void setAuthentication(BooleanOperator<WaybackRequest> auth) {
 		this.authentication = auth;
+	}
+
+	/**
+	 * @return the refererAuth
+	 */
+	public String getRefererAuth() {
+		return refererAuth;
+	}
+
+	/**
+	 * @param refererAuth the refererAuth to set
+	 */
+	public void setRefererAuth(String refererAuth) {
+		this.refererAuth = refererAuth;
+	}
+
+	/**
+	 * @return the bounceToReplayPrefix
+	 */
+	public boolean isBounceToReplayPrefix() {
+		return bounceToReplayPrefix;
+	}
+
+	/**
+	 * @param bounceToReplayPrefix the bounceToReplayPrefix to set
+	 */
+	public void setBounceToReplayPrefix(boolean bounceToReplayPrefix) {
+		this.bounceToReplayPrefix = bounceToReplayPrefix;
+	}
+	/**
+	 * @return the bounceToQueryPrefix
+	 */
+	public boolean isBounceToQueryPrefix() {
+		return bounceToQueryPrefix;
+	}
+
+	/**
+	 * @param bounceToQueryPrefix the bounceToQueryPrefix to set
+	 */
+	public void setBounceToQueryPrefix(boolean bounceToQueryPrefix) {
+		this.bounceToQueryPrefix = bounceToQueryPrefix;
 	}
 }
