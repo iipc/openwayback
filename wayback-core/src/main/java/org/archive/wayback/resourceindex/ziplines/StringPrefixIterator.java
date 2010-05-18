@@ -47,6 +47,9 @@ public class StringPrefixIterator implements CloseableIterator<String> {
 			truncated = ((ZiplinesChunkIterator)inner).isTruncated();
 		}
 	}
+	public long getTotalMatches() {
+		return 0 ;
+	}
 	public boolean isTruncated() {
 		return truncated;
 	}

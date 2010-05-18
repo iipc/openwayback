@@ -44,6 +44,7 @@ public class ZiplinedBlock {
 
 	String urlOrPath = null;
 	long offset = -1;
+	int count = 0;
 	public final static int BLOCK_SIZE = 128 * 1024;
 	private final static String RANGE_HEADER = "Range";
 	private final static String BYTES_HEADER = "bytes=";
@@ -53,8 +54,17 @@ public class ZiplinedBlock {
 	 * @param offset start of 128K block boundary.
 	 */
 	public ZiplinedBlock(String urlOrPath, long offset) {
+		this(urlOrPath,offset,0);
+	}
+	/**
+	 * @param urlOrPath URL where this file can be downloaded
+	 * @param offset start of 128K block boundary.
+	 * @param count number of records in this block
+	 */
+	public ZiplinedBlock(String urlOrPath, long offset, int count) {
 		this.urlOrPath = urlOrPath;
 		this.offset = offset;
+		this.count = count;
 	}
 	/**
 	 * @return a BufferedReader of the underlying compressed data in this block

@@ -39,6 +39,7 @@ import java.util.Iterator;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
 import org.archive.wayback.resourceindex.SearchResultSource;
+import org.archive.wayback.resourceindex.SequencedSearchResultSource;
 import org.archive.wayback.resourceindex.cdx.CDXFormatToSearchResultAdapter;
 import org.archive.wayback.resourceindex.cdx.format.CDXFormat;
 import org.archive.wayback.resourceindex.cdx.format.CDXFormatException;
@@ -132,10 +133,9 @@ public class ZiplinesSearchResultSource implements SearchResultSource {
 			throw new ResourceIndexNotAvailableException(e.getMessage());
 		}
 	}
-	
-	public Iterator<String> getStringPrefixIterator(String prefix) 
-		throws ResourceIndexNotAvailableException, IOException {
 
+	private ArrayList<ZiplinedBlock> getBlockListForPrefix(String prefix)
+	throws IOException, ResourceIndexNotAvailableException {
 		ArrayList<ZiplinedBlock> blocks = new ArrayList<ZiplinedBlock>();
 		boolean first = true;
 		int numBlocks = 0;
@@ -175,8 +175,15 @@ public class ZiplinesSearchResultSource implements SearchResultSource {
 				itr.close();
 			}
 		}
+		return blocks;
+	}
+
+	public Iterator<String> getStringPrefixIterator(String prefix) 
+		throws ResourceIndexNotAvailableException, IOException {
+
+		ArrayList<ZiplinedBlock> blocks = getBlockListForPrefix(prefix);
 		ZiplinesChunkIterator zci = new ZiplinesChunkIterator(blocks);
-		zci.setTruncated(truncated);
+		zci.setTruncated(false);
 		return new StringPrefixIterator(zci,prefix);
 	}
 
