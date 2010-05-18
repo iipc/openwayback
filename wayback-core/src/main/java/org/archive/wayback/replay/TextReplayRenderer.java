@@ -50,7 +50,7 @@ import org.archive.wayback.replay.charset.StandardCharsetDetector;
  */
 public abstract class TextReplayRenderer implements ReplayRenderer {
 
-	private static String GUESSED_CHARSET_HEADER = "X-Archive-Guessed-Charset";
+	public static String GUESSED_CHARSET_HEADER = "X-Archive-Guessed-Charset";
 	
 	private String guessedCharsetHeader = GUESSED_CHARSET_HEADER;
 	private List<String> jspInserts = null;
