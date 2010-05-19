@@ -1,14 +1,21 @@
 <%@ page language="java" pageEncoding="utf-8" contentType="text/html;charset=utf-8"%>
+<%@ page import="org.archive.wayback.core.WaybackRequest" %>
 <%@ page import="org.archive.wayback.core.UIResults" %>
 <%@ page import="org.archive.wayback.util.StringFormatter" %>
 <jsp:include page="/WEB-INF/template/UI-header.jsp" flush="true" />
 <%
 
 UIResults results = UIResults.getGeneric(request);
-StringFormatter fmt = results.getWbRequest().getFormatter();
+WaybackRequest wbRequest = results.getWbRequest();
+StringFormatter fmt = wbRequest.getFormatter();
+
+String staticPrefix = wbRequest.getAccessPoint().getStaticPrefix();
+String queryPrefix = wbRequest.getAccessPoint().getQueryPrefix();
+String replayPrefix = wbRequest.getAccessPoint().getReplayPrefix();
+
 
 %>
-<form action="query">
+<form action="<%= queryPrefix %>query">
 <%= fmt.format("AdvancedSearch.searchTypeLabel") %>
 <select name="type">
   <option value="urlquery"><%= fmt.format("AdvancedSearch.searchTypeExactOption") %></option>
