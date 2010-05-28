@@ -104,6 +104,8 @@ implements ShutdownListener {
 	private String staticPrefix = null;
 	private String queryPrefix = null;
 	private String replayPrefix = null;
+	
+	private String wrapperJsp = "/WEB-INF/template/UI-wrapper.jsp";
 
 	private String refererAuth = null;
 
@@ -123,7 +125,6 @@ implements ShutdownListener {
 
 	private ExclusionFilterFactory exclusionFactory = null;
 	private BooleanOperator<WaybackRequest> authentication = null;
-	
 
 	protected boolean dispatchLocal(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse) 
@@ -543,6 +544,21 @@ implements ShutdownListener {
 	 */
 	public String getQueryPrefix() {
 		return getBestPrefix(queryPrefix,staticPrefix,replayPrefix);
+	}
+	/**
+	 * @return the String url prefix to use when generating self referencing 
+	 * 			replay URLs
+	 */
+	public String getWrapperJsp() {
+		return wrapperJsp;
+	}
+
+	/**
+	 * @param wrapperJsp the .jsp file responsible for generating the HTML
+	 *      wrapper for content.
+	 */
+	public void setWrapperJsp(String wrapperJsp) {
+		this.wrapperJsp = wrapperJsp;
 	}
 
 	/**
