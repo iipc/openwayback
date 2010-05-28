@@ -73,11 +73,17 @@
   </bean>
 
 <!-- 
-	Custom rules for rewriting HTML content using a SAX parser, for fine-tuned
-	server-side rewriting.
+	ArchivalUrlSaxReplay.xml is a template for defining custom rules for
+	rewriting HTML content using a SAX parser, allowing fine-tuned and
+	flexible server-side rewriting. Defines a bean with id 
+	"archivalSAXDelegator", which can be substituted with the 
+	"fastArchivalSAXDelegator" below.
+   <import resource="ArchivalUrlSaxReplay.xml"/>
  -->
-  <import resource="ArchivalUrlSaxReplay.xml"/>
-
+ <bean id="fastArchivalSAXDelegator" class="org.archive.wayback.archivalurl.FastArchivalUrlReplayParseEventHandler" >
+   <property name="jspInsertPath" value="/WEB-INF/replay/DisclaimChooser.jsp"/>
+ </bean>
+ 
 <!-- 
 	The following bean is an example of the new SAX based rewriting renderer. It
 	also uses a pluggable character encoding detector, which could allow clients
@@ -88,7 +94,7 @@
     <property name="charsetDetector">
     	<bean class="org.archive.wayback.replay.charset.RotatingCharsetDetector"/>
     </property>
-    <property name="delegator" ref="archivalSAXDelegator"/>
+    <property name="delegator" ref="fastArchivalSAXDelegator"/>
   </bean>
 
 <!--
@@ -111,6 +117,7 @@
     </property>
   </bean>
 
+
 <!-- 
 	The main Archival URL replay dispatcher. It uses a list of Selectors to
 	determine which ReplayRenderer should be used for each document.
@@ -123,6 +130,16 @@
         <bean class="org.archive.wayback.replay.selector.DateMismatchSelector">
           <property name="renderer">
 		    <bean class="org.archive.wayback.archivalurl.ArchivalUrlDateRedirectReplayRenderer" />
+          </property>
+        </bean>
+
+        <!-- WARN CLIENT ABOUT PATH REDIRECTS -->
+        <bean class="org.archive.wayback.replay.selector.RedirectSelector">
+          <property name="renderer">
+            <bean class="org.archive.wayback.replay.JSPReplayRenderer">
+              <property name="targetJsp" value="/WEB-INF/replay/UrlRedirectNotice.jsp" />
+              <property name="wrap" value="true" />
+            </bean>
           </property>
         </bean>
 
@@ -169,6 +186,18 @@
             </list>
           </property>
           <property name="renderer" ref="archivalcssreplayrenderer"/>
+        </bean>
+
+        <!-- JS REPLAY -->
+        <bean class="org.archive.wayback.replay.selector.MimeTypeSelector">
+          <property name="mimeContains">
+            <list>
+              <value>text/javascript</value>
+              <value>application/javascript</value>
+              <value>application/x-javascript</value>
+            </list>
+          </property>
+          <property name="renderer" ref="archivaljsreplayrenderer"/>
         </bean>
 
         <!-- ASX-MIME REPLAY -->
