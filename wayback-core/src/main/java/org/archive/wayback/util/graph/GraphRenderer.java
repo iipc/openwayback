@@ -93,7 +93,8 @@ public class GraphRenderer {
 	public void render(OutputStream target, Graph graph) throws IOException {
 		
 		BufferedImage bi = 
-			new BufferedImage(graph.width, graph.height, BufferedImage.TYPE_INT_RGB);
+			new BufferedImage(graph.width, graph.height, 
+					GraphConfiguration.imageType);
 		Graphics2D g2d = bi.createGraphics();
 		graph.draw(g2d);
 	    ImageIO.write(bi, "png", target);

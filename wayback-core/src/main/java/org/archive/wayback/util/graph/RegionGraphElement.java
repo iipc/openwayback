@@ -52,7 +52,8 @@ public class RegionGraphElement extends RectangularGraphElement {
 //		System.err.format("Created region (%d,%d)-(%d,%d)\n",x,y,width,height);
 		this.data = data;
 		this.config = config;
-		int labelHeight = config.regionFontSize + (config.fontPadY * 2);
+//		int labelHeight = config.regionFontSize + (config.fontPadY * 2);
+		int labelHeight = 0;
 		int valuesHeight = height - labelHeight;
 		this.values = new ValueGraphElements(x+1, y+1, width - 1, valuesHeight,
 				data.getHighlightedValue(), data.getValues(), 
@@ -77,11 +78,11 @@ public class RegionGraphElement extends RectangularGraphElement {
 		g2d.setStroke(config.regionBorderStroke);
 		g2d.drawLine(x, y, x, y + height);
 
-		int fontY = (y + height) - config.fontPadY;
-		
-		g2d.setColor(config.regionLabelColor);
-		g2d.setFont(config.getRegionLabelFont());
-		g2d.drawString(data.getLabel(), x + config.fontPadX, fontY);
+//		int fontY = (y + height) - config.fontPadY;
+//		
+//		g2d.setColor(config.regionLabelColor);
+//		g2d.setFont(config.getRegionLabelFont());
+//		g2d.drawString(data.getLabel(), x + config.fontPadX, fontY);
 		values.draw(g2d);
 	}
 }

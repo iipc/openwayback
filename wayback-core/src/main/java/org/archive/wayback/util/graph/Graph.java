@@ -92,12 +92,12 @@ public class Graph extends RectangularGraphElement {
 		}
 
 		// draw line below values:
-		int labelHeight = config.regionFontSize + (config.fontPadY * 2);
-		int valuesHeight = (height - labelHeight) + 1;
-
-		g2d.setColor(config.regionBorderColor);
-		g2d.setStroke(config.regionBorderStroke);
-		g2d.drawLine(1, valuesHeight, width - 2, valuesHeight);
+//		int labelHeight = config.regionFontSize + (config.fontPadY * 2);
+//		int valuesHeight = (height - labelHeight) + 1;
+//
+//		g2d.setColor(config.regionBorderColor);
+//		g2d.setStroke(config.regionBorderStroke);
+//		g2d.drawLine(1, valuesHeight, width - 2, valuesHeight);
 	}
 
 	static int xlateX(int w, int c, int i) {

@@ -31,22 +31,28 @@ import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.Stroke;
+import java.awt.image.BufferedImage;
 
 /**
  * @author brad
  *
  */
 public class GraphConfiguration {
-	final static float dash1[] = {3.0f};
     final static BasicStroke dashed = new BasicStroke(1.0f, 
                                           BasicStroke.CAP_BUTT, 
                                           BasicStroke.JOIN_MITER, 
-                                          3.0f, dash1, 0.0f);
+                                          1.0f, new float[] {1.0f}, 0.0f);
 
+    /**
+     * type of BufferedImage to create, specifically the final constructor arg.
+     */
+    public static int imageType = BufferedImage.TRANSLUCENT;
+    
 	/**
 	 * Main background color for graphs
 	 */
-	public Color backgroundColor = Color.white;
+	public Color backgroundColor = new Color(255,255,255,90);
+//	public Color backgroundColor = Color.white;
 
 	/**
 	 * font size for Year/Month labels
@@ -85,16 +91,16 @@ public class GraphConfiguration {
 	/**
 	 * Background color for active/selected Year/Month
 	 */
-	public Color regionHighlightColor = Color.lightGray;
+	public Color regionHighlightColor = new Color(255,255,25,128);
 
 	/**
 	 * color for non-active/selected graph values
 	 */
-	public Color valueColor = Color.blue;
+	public Color valueColor = Color.black;
 	/**
 	 * color for active/selected graph values
 	 */
-	public Color valueHighlightColor = Color.green;
+	public Color valueHighlightColor = Color.red;
 
 	/**
 	 * Minimum pixel height for non-zero graph values
@@ -120,8 +126,10 @@ public class GraphConfiguration {
 	 * @param g2d The Graphics2D objects on which the hints should be set.
 	 */
 	public void setRenderingHints(Graphics2D g2d) {
+//		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+//				RenderingHints.VALUE_ANTIALIAS_ON);
 		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-				RenderingHints.VALUE_ANTIALIAS_ON);
+				RenderingHints.VALUE_ANTIALIAS_OFF);
 		g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
 				RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 	}
