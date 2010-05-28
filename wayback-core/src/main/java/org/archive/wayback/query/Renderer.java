@@ -57,12 +57,13 @@ public class Renderer implements QueryRenderer {
 			CaptureSearchResults results, ResultURIConverter uriConverter)
 			throws ServletException, IOException {
 
-		String jsp = captureJsp;
-		if(wbRequest.isXMLMode()) {
-			jsp = xmlCaptureJsp;
-		}
 		UIResults uiResults = new UIResults(wbRequest,uriConverter,results);
-		uiResults.forward(httpRequest, httpResponse, jsp);
+		if(wbRequest.isXMLMode()) {
+			uiResults.forward(httpRequest, httpResponse, xmlCaptureJsp);
+		} else {
+			uiResults.forwardWrapped(httpRequest, httpResponse, 
+					captureJsp, wbRequest.getAccessPoint().getWrapperJsp());
+		}
 	}
 
 	/* (non-Javadoc)
@@ -73,12 +74,13 @@ public class Renderer implements QueryRenderer {
 			UrlSearchResults results, ResultURIConverter uriConverter)
 			throws ServletException, IOException {
 
-		String jsp = urlJsp;
-		if(wbRequest.isXMLMode()) {
-			jsp = xmlUrlJsp;
-		}
 		UIResults uiResults = new UIResults(wbRequest,uriConverter,results);
-		uiResults.forward(httpRequest, httpResponse, jsp);
+		if(wbRequest.isXMLMode()) {
+			uiResults.forward(httpRequest, httpResponse, xmlUrlJsp);
+		} else {
+			uiResults.forwardWrapped(httpRequest, httpResponse, 
+					urlJsp,wbRequest.getAccessPoint().getWrapperJsp());
+		}
 	}
 
 	/**
