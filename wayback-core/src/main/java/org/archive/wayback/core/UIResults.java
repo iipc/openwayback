@@ -349,8 +349,37 @@ public class UIResults {
 
 	/**
 	 * Store this UIResults object in the given HttpServletRequest, then
-	 * forward the request to target, which should be a .jsp capable of drawing
-	 * the information stored in this object. 
+	 * forward the request to wrapper, which *should* subsequently forward the
+	 * request to target.
+	 *  
+	 * @param request the HttpServletRequest
+	 * @param response the HttpServletResponse
+	 * @param target the String path to the .jsp to handle drawing the data, 
+	 * relative to the contextRoot (ex. "/WEB-INF/query/foo.jsp")
+	 * @param wrapper the wrapper page which should generate the header,
+	 * forward control to 'target' and then generate the footer.
+	 * @throws ServletException for usual reasons...
+	 * @throws IOException for usual reasons...
+	 */
+	public void forwardWrapped(HttpServletRequest request,
+			HttpServletResponse response, final String target, String wrapper)
+			throws ServletException, IOException {
+
+		this.contentJsp = target;
+		this.originalRequestURL = request.getRequestURL().toString();
+		request.setAttribute(FERRET_NAME, this);
+		RequestDispatcher dispatcher = request.getRequestDispatcher(wrapper);
+		if(dispatcher == null) {
+			throw new IOException("No dispatcher for " + target);
+		}
+		dispatcher.forward(request, response);
+	}
+
+	/**
+	 * Store this UIResults object in the given HttpServletRequest, then
+	 * forward the request to target, in this case, an image, html file, .jsp,
+	 * any file which can return a complete document. Specifically, this means
+	 * that if target is a .jsp, it must render it's own header and footer.
 	 * @param request the HttpServletRequest
 	 * @param response the HttpServletResponse
 	 * @param target the String path to the .jsp to handle drawing the data, 
