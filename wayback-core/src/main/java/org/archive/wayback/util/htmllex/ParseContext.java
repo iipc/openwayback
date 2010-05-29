@@ -27,6 +27,7 @@ package org.archive.wayback.util.htmllex;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.commons.httpclient.URIException;
 import org.archive.net.UURI;
@@ -77,6 +78,9 @@ public class ParseContext {
 	public String getData(String key) {
 		return data.get(key);
 	}
+	public Map<String,String> getMap() {
+		return data;
+	}
 	/**
 	 * @param url against which relative URLs should be resolved for this parse
 	 */
@@ -102,7 +106,8 @@ public class ParseContext {
 			url = url.substring(0,hashIdx);
 		}
 		try {
-			return UURIFactory.getInstance(baseUrl, url).toString() + frag;
+			return baseUrl.resolve(url,false).toString() + frag;
+//			return UURIFactory.getInstance(baseUrl, url).toString() + frag;
 		} catch (URIException e) {
 			e.printStackTrace();
 		}

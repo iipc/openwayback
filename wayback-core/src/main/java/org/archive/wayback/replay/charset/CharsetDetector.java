@@ -25,6 +25,7 @@
 package org.archive.wayback.replay.charset;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.IllegalCharsetNameException;
 import java.util.Iterator;
@@ -117,7 +118,7 @@ public abstract class CharsetDetector {
 	 * @return String character set found from META tags in the HTML
 	 * @throws IOException
 	 */
-	protected String getCharsetFromMeta(Resource resource) throws IOException {
+	protected String getCharsetFromMeta(InputStream resource) throws IOException {
 		String charsetName = null;
 
 		byte[] bbuffer = new byte[MAX_CHARSET_READAHEAD];
@@ -143,7 +144,7 @@ public abstract class CharsetDetector {
 	 * @return String character encoding found, or null if nothing looked good.
 	 * @throws IOException
 	 */
-	protected String getCharsetFromBytes(Resource resource) throws IOException {
+	protected String getCharsetFromBytes(InputStream resource) throws IOException {
 		String charsetName = null;
 
 		byte[] bbuffer = new byte[MAX_CHARSET_READAHEAD];
