@@ -1,17 +1,11 @@
-<%@
-page import="org.archive.wayback.webapp.AccessPoint"
-%><%@
-page import="org.archive.wayback.util.StringFormatter"
+<%@   page import="org.archive.wayback.webapp.AccessPoint"
+%><%@ page import="org.archive.wayback.util.StringFormatter"
 %><%
 String toUrl = request.getParameter(AccessPoint.INTERSTITIAL_TARGET);
 if(toUrl == null) {
 	response.setStatus(400);
 %>
-<html>
-  <body>
     Bad request. require argument <%= AccessPoint.INTERSTITIAL_TARGET %>
-  </body>
-</html>
 <%
 } else {
 	String secsS = request.getParameter(AccessPoint.INTERSTITIAL_SECONDS);
@@ -28,7 +22,6 @@ if(toUrl == null) {
 	String safeTargetUrl = f.escapeHtml(toUrl);
 	String safeTargetUrlJS = f.escapeJavaScript(toUrl);
 	%>
-<jsp:include page="/WEB-INF/template/UI-header.jsp" flush="true" />
 	<script type="text/javascript">
 	function go() {
 		document.location.href = "<%= safeTargetUrlJS %>";
@@ -45,7 +38,6 @@ if(toUrl == null) {
 		  in <%= secs %> seconds.
 		  Click <a href="<%= safeTargetUrl %>">here</a> to go now.
 		</p>
-jsp:include page="/WEB-INF/template/UI-footer.jsp" flush="true" />
 <%	
 }
 %>
