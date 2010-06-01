@@ -102,16 +102,19 @@ public class BaseExceptionRenderer implements ExceptionRenderer {
 		return (requestUrl != null) && requestUrl.endsWith(".css");
 	}
 
-	public String getExceptionHandler(HttpServletRequest httpRequest,
+	public void renderException(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
-			WaybackException exception) {
-		// the "standard HTML" response handler:
-		String jspPath = errorJsp;
+			WaybackException exception, ResultURIConverter uriConverter)
+		throws ServletException, IOException {
 
+		httpRequest.setAttribute("exception", exception);
+		UIResults uiResults = new UIResults(wbRequest,uriConverter,exception);
+		boolean handled = false;
 		if(!wbRequest.isReplayRequest()) {
 
 			if(wbRequest.isXMLMode()) {
-				jspPath = xmlErrorJsp;
+				uiResults.forward(httpRequest, httpResponse, xmlErrorJsp);
+				handled = true;
 			}
 
 		} else if (requestIsEmbedded(httpRequest, wbRequest)) {
@@ -119,38 +122,29 @@ public class BaseExceptionRenderer implements ExceptionRenderer {
 			// try to not cause client errors by sending the HTML response if
 			// this request is ebedded, and is obviously one of the special 
 			// types:
-
+			handled = true;
 
 			if (requestIsJavascript(httpRequest, wbRequest)) {
 
-				jspPath = javascriptErrorJsp;
+				uiResults.forward(httpRequest, httpResponse,
+						javascriptErrorJsp);
 
 			} else if (requestIsCSS(httpRequest, wbRequest)) {
 
-				jspPath = cssErrorJsp;
+				uiResults.forward(httpRequest, httpResponse, cssErrorJsp);
 
 			} else if (requestIsImage(httpRequest, wbRequest)) {
 
-				jspPath = imageErrorJsp;
+				uiResults.forward(httpRequest, httpResponse, imageErrorJsp);
 
+			} else {
+				handled = false;
 			}
 		}
-		return jspPath;
-	}
-	/* (non-Javadoc)
-	 * @see org.archive.wayback.ExceptionRenderer#renderException(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.archive.wayback.core.WaybackRequest, org.archive.wayback.exception.WaybackException)
-	 */
-	public void renderException(HttpServletRequest httpRequest,
-			HttpServletResponse httpResponse, WaybackRequest wbRequest,
-			WaybackException exception, ResultURIConverter uriConverter)
-		throws ServletException, IOException {
-
-		String jspPath = getExceptionHandler(httpRequest, httpResponse, 
-				wbRequest, exception);
-
-		httpRequest.setAttribute("exception", exception);
-		UIResults uiResults = new UIResults(wbRequest,uriConverter,exception);
-		uiResults.forward(httpRequest, httpResponse, jspPath);
+		if(!handled) {
+			uiResults.forwardWrapped(httpRequest, httpResponse,
+					errorJsp, wbRequest.getAccessPoint().getWrapperJsp());
+		}
 	}
 
 	public String getErrorJsp() {
