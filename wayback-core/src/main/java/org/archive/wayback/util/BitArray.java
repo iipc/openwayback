@@ -25,6 +25,8 @@
 
 package org.archive.wayback.util;
 
+import java.nio.ByteBuffer;
+
 /**
  * @author brad
  *
@@ -50,7 +52,7 @@ public class BitArray {
 		~0x40,
 		~0x80
 	};
-	private byte array[] = null;
+	private ByteBuffer bb;
 	
 	/**
 	 * Construct a new BitArray holding at least n bits
@@ -62,32 +64,48 @@ public class BitArray {
 		if(bits > 0) {
 			bytes++;
 		}
-		this.array = new byte[bytes];
+		bb = ByteBuffer.allocate(bytes);
 	}
 	/**
 	 * Construct a new BitArray using argument as initial values.
 	 * @param array byte array of initial values
 	 */
 	public BitArray(byte array[]) {
-		this.array = array;
+		bb = ByteBuffer.wrap(array);
 	}
 	/**
-	 * @return the byte array backing this bit array.
+	 * Construct a new BitArray holding at least n bits
+	 * @param bb number of bits to hold
+	 */
+	public BitArray(ByteBuffer bb) {
+		this.bb = bb;
+	}
+
+	/**
+	 * @return the byte array backing the ByteBuffer backing this bit array.
 	 */
 	public byte[] getBytes() {
-		return array;
+		return bb.array();
 	}
+
+	/**
+	 * @return the ByteBuffer backing this bit array.
+	 */
+	public ByteBuffer getByteBuffer() {
+		return bb;
+	}
+
 	/**
 	 * @param i index of bit to test
 	 * @return true if the i'th bit is set, false otherwise
 	 */
 	public boolean get(int i) {
 		int idx = i / 8;
-		if(idx >= array.length) {
+		if(idx >= bb.limit()) {
 			throw new IndexOutOfBoundsException();
 		}
 		int bit = 7 - (i % 8);
-		return ((array[idx] & MASKS[bit]) == MASKS[bit]);
+		return ((bb.get(idx) & MASKS[bit]) == MASKS[bit]);
 	}
 	/**
 	 * set the i'th bit to 1 or 0
@@ -96,14 +114,14 @@ public class BitArray {
 	 */
 	public void set(int i, boolean value) {
 		int idx = i / 8;
-		if(idx >= array.length) {
+		if(idx >= bb.limit()) {
 			throw new IndexOutOfBoundsException();
 		}
 		int bit = 7 - (i % 8);
 		if(value) {
-			array[idx] = (byte) (array[idx] | MASKS[bit]);
+			bb.put(idx, (byte) (bb.get(idx) | MASKS[bit]));
 		} else {
-			array[idx] = (byte) (array[idx] & MASKSR[bit]);
+			bb.put(idx,(byte) (bb.get(idx) & MASKSR[bit]));
 		}
 	}
 }
