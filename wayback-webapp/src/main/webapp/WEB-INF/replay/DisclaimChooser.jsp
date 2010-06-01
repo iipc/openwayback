@@ -10,5 +10,5 @@ WaybackRequest wbr = results.getWbRequest();
 if(wbr.isLiveWebRequest()) {
 	%><jsp:include page="/WEB-INF/replay/LiveWebDisclaimer.jsp" flush="true" /><%
 } else {
-	%><jsp:include page="/WEB-INF/replay/GraphDisclaimer.jsp" flush="true" /><%
+	%><jsp:include page="/WEB-INF/replay/Toolbar.jsp" flush="true" /><%
 }%>
