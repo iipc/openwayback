@@ -139,7 +139,6 @@ public class URLtoARCCacher {
 			LOGGER.info("URL(" + url + ") HTTP:" + code);
 			ByteOp.discardStream(getMethod.getResponseBodyAsStream());
 			getMethod.releaseConnection();
-			recorder.closeRecorders();
 			gotUrl = true;
 
 		} catch (URIException e) {
@@ -157,6 +156,7 @@ public class URLtoARCCacher {
 //		} catch (IOException e) {
 //			e.printStackTrace();
 		} finally {
+			recorder.closeRecorders();
 			Recorder.setHttpRecorder(null);
 		}
 
