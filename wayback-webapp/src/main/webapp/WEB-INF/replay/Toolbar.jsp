@@ -1,54 +1,29 @@
-<%@
- page language="java" pageEncoding="utf-8" contentType="text/html;charset=utf-8"
- %><%@
- page import="java.util.Iterator"
- %><%@
- page import="java.util.ArrayList"
- %><%@
- page import="java.util.Date"
- %><%@
- page import="java.util.Calendar"
- %><%@
- page import="java.util.List"
- %><%@
- page import="java.text.ParseException"
- %><%@
- page import="org.archive.wayback.ResultURIConverter"
- %><%@
- page import="org.archive.wayback.WaybackConstants"
- %><%@
- page import="org.archive.wayback.core.CaptureSearchResult"
- %><%@
- page import="org.archive.wayback.core.CaptureSearchResults"
- %><%@
- page import="org.archive.wayback.core.UIResults"
- %><%@
- page import="org.archive.wayback.core.WaybackRequest"
- %><%@
- page import="org.archive.wayback.partition.CaptureSearchResultPartitionMap"
- %><%@
- page import="org.archive.wayback.partition.PartitionPartitionMap"
- %><%@
- page import="org.archive.wayback.partition.PartitionsToGraph"
- %><%@
- page import="org.archive.wayback.partition.ToolBarData"
- %><%@
- page import="org.archive.wayback.util.graph.Graph"
- %><%@
- page import="org.archive.wayback.util.graph.GraphEncoder"
- %><%@
- page import="org.archive.wayback.util.graph.GraphRenderer"
- %><%@
- page import="org.archive.wayback.util.partition.Partition"
- %><%@
- page import="org.archive.wayback.util.partition.Partitioner"
- %><%@
- page import="org.archive.wayback.util.partition.PartitionSize"
- %><%@
- page import="org.archive.wayback.util.StringFormatter"
- %><%@
- page import="org.archive.wayback.util.url.UrlOperations"
- %><%
+<%@   page language="java" pageEncoding="utf-8" contentType="text/html;charset=utf-8"
+%><%@ page import="java.util.Iterator"
+%><%@ page import="java.util.ArrayList"
+%><%@ page import="java.util.Date"
+%><%@ page import="java.util.Calendar"
+%><%@ page import="java.util.List"
+%><%@ page import="java.text.ParseException"
+%><%@ page import="org.archive.wayback.ResultURIConverter"
+%><%@ page import="org.archive.wayback.WaybackConstants"
+%><%@ page import="org.archive.wayback.core.CaptureSearchResult"
+%><%@ page import="org.archive.wayback.core.CaptureSearchResults"
+%><%@ page import="org.archive.wayback.core.UIResults"
+%><%@ page import="org.archive.wayback.core.WaybackRequest"
+%><%@ page import="org.archive.wayback.partition.CaptureSearchResultPartitionMap"
+%><%@ page import="org.archive.wayback.partition.PartitionPartitionMap"
+%><%@ page import="org.archive.wayback.partition.PartitionsToGraph"
+%><%@ page import="org.archive.wayback.partition.ToolBarData"
+%><%@ page import="org.archive.wayback.util.graph.Graph"
+%><%@ page import="org.archive.wayback.util.graph.GraphEncoder"
+%><%@ page import="org.archive.wayback.util.graph.GraphRenderer"
+%><%@ page import="org.archive.wayback.util.partition.Partition"
+%><%@ page import="org.archive.wayback.util.partition.Partitioner"
+%><%@ page import="org.archive.wayback.util.partition.PartitionSize"
+%><%@ page import="org.archive.wayback.util.StringFormatter"
+%><%@ page import="org.archive.wayback.util.url.UrlOperations"
+%><%
 UIResults results = UIResults.extractReplay(request);
 WaybackRequest wbRequest = results.getWbRequest();
 ResultURIConverter uriConverter = results.getURIConverter();
@@ -192,11 +167,11 @@ function trackMouseMove(event,element) {
                 <%
                 	if(data.prevResult == null) {
                         %>
-                        <img src="<%= staticPrefix %>images/toolbar/wm_tb_prv_on.png" alt="Previous capture" width="14" height="16" border="0"/>
+                        <img src="<%= staticPrefix %>images/toolbar/wm_tb_prv_on.png" alt="Previous capture" width="14" height="16" border="0" />
                         <%
                 	} else {
 		                %>
-		                <a href="<%= data.makeReplayURL(data.prevResult) %>" title="<%= fmt.format("ToolBar.prevTitle",data.prevResult.getCaptureDate()) %>"><img src="<%= staticPrefix %>images/toolbar/wm_tb_prv_on.png" alt="Previous capture" width="14" height="16" border="0"/></a>
+		                <a href="<%= data.makeReplayURL(data.prevResult) %>" title="<%= fmt.format("ToolBar.prevTitle",data.prevResult.getCaptureDate()) %>"><img src="<%= staticPrefix %>images/toolbar/wm_tb_prv_on.png" alt="Previous capture" width="14" height="16" border="0" /></a>
 		                <%
                 	}
                 %>
@@ -251,7 +226,7 @@ function trackMouseMove(event,element) {
                 <%
                 	if(data.yearPrevResult == null) {
                         %>
-                        <%= fmt.format("ToolBar.noPrevYearText",data.addYear(data.curResult.getCaptureDate(),-1)) %>
+                        <%= fmt.format("ToolBar.noPrevYearText",ToolBarData.addYear(data.curResult.getCaptureDate(),-1)) %>
                         <%
                 	} else {
 		                %>
@@ -265,7 +240,7 @@ function trackMouseMove(event,element) {
                 <%
                 	if(data.yearNextResult == null) {
                         %>
-                        <%= fmt.format("ToolBar.noNextYearText",data.addYear(data.curResult.getCaptureDate(),1)) %>
+                        <%= fmt.format("ToolBar.noNextYearText",ToolBarData.addYear(data.curResult.getCaptureDate(),1)) %>
                         <%
                 	} else {
 		                %>
