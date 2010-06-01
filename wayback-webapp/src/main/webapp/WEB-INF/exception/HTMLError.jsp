@@ -26,10 +26,6 @@ String staticPrefix = wbr.getAccessPoint().getStaticPrefix();
 String queryPrefix = wbr.getAccessPoint().getQueryPrefix();
 String replayPrefix = wbr.getAccessPoint().getReplayPrefix();
 String requestUrl = wbr.getRequestUrl();
-%>
-
-<jsp:include page="/WEB-INF/template/UI-header.jsp" flush="true" />
-<%
 
 StringFormatter fmt = results.getWbRequest().getFormatter();
 %>
@@ -108,4 +104,3 @@ if(e instanceof ResourceNotInArchiveException) {
 <%
 }
 %>
-<jsp:include page="/WEB-INF/template/UI-footer.jsp" flush="true" />
