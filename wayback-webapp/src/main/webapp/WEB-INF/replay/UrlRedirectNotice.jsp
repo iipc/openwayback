@@ -1,13 +1,13 @@
-<%@ page language="java" pageEncoding="utf-8" contentType="text/html;charset=utf-8"%>
-<%@ page import="java.util.Date" %>
-<%@ page import="java.lang.StringBuffer" %>
-<%@ page import="org.archive.wayback.archivalurl.ArchivalUrlDateRedirectReplayRenderer" %>
-<%@ page import="org.archive.wayback.ResultURIConverter" %>
-<%@ page import="org.archive.wayback.core.UIResults" %>
-<%@ page import="org.archive.wayback.core.WaybackRequest" %>
-<%@ page import="org.archive.wayback.core.CaptureSearchResult" %>
-<%@ page import="org.archive.wayback.util.StringFormatter" %>
-<%
+<%@ page language="java" pageEncoding="utf-8" contentType="text/html;charset=utf-8"
+%><%@ page import="java.util.Date"
+%><%@ page import="java.lang.StringBuffer"
+%><%@ page import="org.archive.wayback.archivalurl.ArchivalUrlDateRedirectReplayRenderer"
+%><%@ page import="org.archive.wayback.ResultURIConverter"
+%><%@ page import="org.archive.wayback.core.UIResults"
+%><%@ page import="org.archive.wayback.core.WaybackRequest"
+%><%@ page import="org.archive.wayback.core.CaptureSearchResult"
+%><%@ page import="org.archive.wayback.util.StringFormatter"
+%><%
 UIResults results = UIResults.extractReplay(request);
 
 WaybackRequest wbr = results.getWbRequest();
@@ -35,7 +35,6 @@ String prettyDate = fmt.format("MetaReplay.captureDateDisplay",captureDate);
 int secs = 5;
 
 %>
-<jsp:include page="/WEB-INF/template/UI-header.jsp" flush="true" />
 	<script type="text/javascript">
 	function go() {
 		document.location.href = "<%= safeTargetReplayUrlJS %>";
@@ -52,5 +51,4 @@ int secs = 5;
 		to that target in <%= secs %> seconds.
 		Click <a href="<%= safeTargetReplayUrl %>">here</a> to go now.
 		</p>
-<jsp:include page="/WEB-INF/template/UI-footer.jsp" flush="true" />
-		
+	

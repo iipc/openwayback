@@ -1,17 +1,15 @@
-<%@ page language="java" pageEncoding="utf-8" contentType="text/html;charset=utf-8"%>
-<%@ page import="java.util.Iterator" %>
-<%@ page import="java.util.ArrayList" %>
-<%@ page import="java.util.Date" %>
-<%@ page import="org.archive.wayback.ResultURIConverter" %>
-<%@ page import="org.archive.wayback.WaybackConstants" %>
-<%@ page import="org.archive.wayback.core.UIResults" %>
-<%@ page import="org.archive.wayback.core.UrlSearchResult" %>
-<%@ page import="org.archive.wayback.core.UrlSearchResults" %>
-<%@ page import="org.archive.wayback.core.WaybackRequest" %>
-<%@ page import="org.archive.wayback.util.StringFormatter" %>
-<jsp:include page="/WEB-INF/template/UI-header.jsp" flush="true" />
-<%
-
+<%@   page language="java" pageEncoding="utf-8" contentType="text/html;charset=utf-8"
+%><%@ page import="java.util.Iterator"
+%><%@ page import="java.util.ArrayList"
+%><%@ page import="java.util.Date"
+%><%@ page import="org.archive.wayback.ResultURIConverter"
+%><%@ page import="org.archive.wayback.WaybackConstants"
+%><%@ page import="org.archive.wayback.core.UIResults"
+%><%@ page import="org.archive.wayback.core.UrlSearchResult"
+%><%@ page import="org.archive.wayback.core.UrlSearchResults"
+%><%@ page import="org.archive.wayback.core.WaybackRequest"
+%><%@ page import="org.archive.wayback.util.StringFormatter"
+%><%
 UIResults results = UIResults.extractUrlQuery(request);
 WaybackRequest wbRequest = results.getWbRequest();
 UrlSearchResults uResults = results.getUrlResults();
@@ -112,5 +110,3 @@ if(curPage > uResults.getNumPages()) {
   }
 }
 %>
-
-<jsp:include page="/WEB-INF/template/UI-footer.jsp" flush="true" />
