@@ -57,8 +57,11 @@ String graphImgUrl = graphJspPrefix + "jsp/graph.jsp?graphdata=" + encodedGraph;
 // TODO: this is archivalUrl specific:
 String starLink = fmt.escapeHtml(queryPrefix + "*/" + searchUrl);
 %>
-<!-- BEGIN WAYBACK TIMELINE DISCLAIMER INSERT -->
+<!-- BEGIN WAYBACK TOOLBAR INSERT -->
+
+<script type="text/javascript" src="<%= staticPrefix %>js/disclaim-element.js" ></script>
 <script type="text/javascript" src="<%= staticPrefix %>js/graph-calc.js" ></script>
+<script type="text/javascript" src="<%= staticPrefix %>jflot/jquery.min.js" ></script>
 <script type="text/javascript">
 var firstDate = <%= firstYearDate.getTime() %>;
 var lastDate = <%= lastYearDate.getTime() %>;
@@ -98,13 +101,25 @@ function showTrackers(val) {
     document.getElementById("wbMouseTrackMonthImg").style.display = val;
     trackerVal = val;
 }
-
+function getElementX2(obj) {
+	var thing = jQuery(obj);
+	if((thing == undefined) 
+			|| (typeof thing == "undefined") 
+			|| (typeof thing.offset == "undefined")) {
+		return getElementX(obj);
+	}
+	return Math.round(thing.offset().left);
+}
 function trackMouseMove(event,element) {
 
     var eventX = getEventX(event);
-    var elementX = getElementX(element) + 6; // why 6?!?
+    var elementX = getElementX2(element);
     var xOff = eventX - elementX;
-
+	if(xOff < 0) {
+		xOff = 0;
+	} else if(xOff > imgWidth) {
+		xOff = imgWidth;
+	}
     var monthOff = xOff % yearImgWidth;
 
     var year = Math.floor(xOff / yearImgWidth);
@@ -128,27 +143,27 @@ function trackMouseMove(event,element) {
 	document.getElementById("displayYearEl").innerHTML = year + 1996;
 	document.getElementById("displayMonthEl").innerHTML = monthString;
 	// looks too jarring when it changes..
-	//document.getElementById("displayDayEl").innerHTML = day;
+	//document.getElementById("displayDayEl").innerHTML = zeroPad(day,2);
 
 	var url = wbPrefix + dateString + '/' +  wbCurrentUrl;
 	document.getElementById('wm-graph-anchor').href = url;
 
-    //document.getElementById("wmtbURL").value="xO("+xOff+") y("+year+") m("+month+") monthOff("+monthOff+") DS("+dateString+") Moy("+monthOfYear+") ms("+monthString+")";
+    //document.getElementById("wmtbURL").value="evX("+eventX+") elX("+elementX+") xO("+xOff+") y("+year+") m("+month+") monthOff("+monthOff+") DS("+dateString+") Moy("+monthOfYear+") ms("+monthString+")";
     if(curYear != year) {
-        document.getElementById("wbMouseTrackYearImg").style.left = year * yearImgWidth;
+        var yrOff = year * yearImgWidth;
+        document.getElementById("wbMouseTrackYearImg").style.left = yrOff + "px";
         curYear = year;
     }
     if(curMonth != month) {
-        document.getElementById("wbMouseTrackMonthImg").style.left = year + (month * monthImgWidth) + 1;
+        var mtOff = year + (month * monthImgWidth) + 1;
+        document.getElementById("wbMouseTrackMonthImg").style.left = mtOff + "px";
         curMonth = month;
     }
 }
-
 </script>
 
-
 <style type="text/css">body{margin-top:0!important;padding-top:0!important;min-width:800px!important;}#wm-ipp a:hover{text-decoration:underline!important;}</style>
-<div id="wm-ipp" style="display:none; position:relative;padding:0 5px;min-height:70px;min-width:800px;">
+<div id="wm-ipp" style="display:none; position:relative;padding:0 5px;min-height:70px;min-width:800px; z-index:9000;">
 <div id="wm-ipp-inside" style="position:fixed;padding:0!important;margin:0!important;width:97%;min-width:780px;border:5px solid #000;border-top:none;background-image:url(<%= staticPrefix %>images/toolbar/wm_tb_bk_trns.png);text-align:center;-moz-box-shadow:1px 1px 3px #333;-webkit-box-shadow:1px 1px 3px #333;box-shadow:1px 1px 3px #333;font-size:11px!important;font-family:'Lucida Grande','Arial',sans-serif!important;">
     <table style="border-collapse:collapse;margin:0;padding:0;width:100%;"><tbody><tr>
     <td style="padding:10px;vertical-align:top;min-width:140px;">
@@ -158,7 +173,7 @@ function trackMouseMove(event,element) {
 
         <table style="border-collapse:collapse;margin:0 auto;padding:0;width:570px;"><tbody><tr>
         <td style="padding:3px 0;" colspan="2">
-        <form method="get" action="<%= queryPrefix %>jsp/bounceToReplay.jsp" name="wmtb" id="wmtb" style="margin:0!important;padding:0!important;"><input type="text" name="wmtbURL" id="wmtbURL" value="<%= searchUrlSafe %>" style="width:400px;font-size:11px;font-family:'Lucida Grande','Arial',sans-serif;"/><input type="submit" value="Go" style="font-size:11px;font-family:'Lucida Grande','Arial',sans-serif;margin-left:5px;"/><span id="wm_tb_options" style="display:block;"></span></form>
+        <form method="get" action="<%= queryPrefix %>query" name="wmtb" id="wmtb" style="margin:0!important;padding:0!important;"><input type="text" name="<%= WaybackRequest.REQUEST_URL %>" id="wmtbURL" value="<%= searchUrlSafe %>" style="width:400px;font-size:11px;font-family:'Lucida Grande','Arial',sans-serif;"/><input type="hidden" name="<%= WaybackRequest.REQUEST_TYPE %>" value="<%= WaybackRequest.REQUEST_CAPTURE_QUERY %>"><input type="submit" value="Go" style="font-size:11px;font-family:'Lucida Grande','Arial',sans-serif;margin-left:5px;"/><span id="wm_tb_options" style="display:block;"></span></form>
         </td>
         <td style="vertical-align:bottom;padding:5px 0 0 0!important;" rowspan="2">
             <table style="border-collapse:collapse;width:110px;color:#99a;font-family:'Helvetica','Lucida Grande','Arial',sans-serif;"><tbody>
@@ -196,7 +211,7 @@ function trackMouseMove(event,element) {
                 <%
                 	if(data.monthPrevResult == null) {
                         %>
-                        <%= fmt.format("ToolBar.noPrevMonthText",data.addMonth(data.curResult.getCaptureDate(),-1)) %>
+                        <%= fmt.format("ToolBar.noPrevMonthText",ToolBarData.addMonth(data.curResult.getCaptureDate(),-1)) %>
                         <%
                 	} else {
 		                %>
@@ -210,7 +225,7 @@ function trackMouseMove(event,element) {
                 <%
                 	if(data.monthNextResult == null) {
                         %>
-                        <%= fmt.format("ToolBar.noNextMonthText",data.addMonth(data.curResult.getCaptureDate(),1)) %>
+                        <%= fmt.format("ToolBar.noNextMonthText",ToolBarData.addMonth(data.curResult.getCaptureDate(),1)) %>
                         <%
                 	} else {
 		                %>
@@ -262,7 +277,7 @@ function trackMouseMove(event,element) {
         <td style="padding:0!important;">
         <a style="position:relative; white-space:nowrap; width:<%= imgWidth %>px;height:<%= imgHeight %>px;" href="" id="wm-graph-anchor">
         <div id="wm-ipp-sparkline" style="position:relative; white-space:nowrap; width:<%= imgWidth %>px;height:<%= imgHeight %>px;background-color:#fff;cursor:pointer;" title="<%= fmt.format("ToolBar.sparklineTitle") %>">
-			<img style="position:absolute; z-index:12; top:0px; left:0px;"
+			<img id="sparklineImgId" style="position:absolute; z-index:9012; top:0px; left:0px;"
 				onmouseover="showTrackers('inline');" 
 				onmouseout="showTrackers('none');"
 				onmousemove="trackMouseMove(event,this)"
@@ -272,13 +287,13 @@ function trackMouseMove(event,element) {
 				border="0"
 				src="<%= graphImgUrl %>"></img>
 			<img id="wbMouseTrackYearImg" 
-				style="display:none; position:absolute; z-index:10;"
+				style="display:none; position:absolute; z-index:9010;"
 				width="<%= yearWidth %>" 
 				height="<%= imgHeight %>"
 				border="0"
 				src="<%= staticPrefix %>images/toolbar/transp-yellow-pixel.png"></img>
 			<img id="wbMouseTrackMonthImg"
-				style="display:none; position:absolute; z-index:11; " 
+				style="display:none; position:absolute; z-index:9011; " 
 				width="<%= monthWidth %>"
 				height="<%= imgHeight %>" 
 				border="0"
@@ -297,32 +312,11 @@ function trackMouseMove(event,element) {
 
 </div>
 </div>
-
-<script type="text/javascript" src="<%= staticPrefix %>js/disclaim-element.js" ></script>
 <script type="text/javascript">
   var wmDisclaimBanner = document.getElementById("wm-ipp");
   if(wmDisclaimBanner != null) {
     disclaimElement(wmDisclaimBanner);
   }
 </script>
-<!-- END WAYBACK TIMELINE DISCLAIMER INSERT -->
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+<!-- END WAYBACK TOOLBAR INSERT -->
 
