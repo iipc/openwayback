@@ -36,6 +36,13 @@ import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.replay.TagMagix;
 import org.mozilla.universalchardet.UniversalDetector;
 
+/**
+ * Abstract class containing common methods for determining the character 
+ * encoding of a text Resource, most of which should be refactored into a
+ * Util package.
+ * @author brad
+ *
+ */
 public abstract class CharsetDetector {
 	// hand off this many bytes to the chardet library
 	protected final static int MAX_CHARSET_READAHEAD = 65536;
@@ -43,6 +50,7 @@ public abstract class CharsetDetector {
 	protected final static String CHARSET_TOKEN = "charset=";
 	// ...and if the chardet library fails, use the Content-Type header
 	protected final static String HTTP_CONTENT_TYPE_HEADER = "Content-Type";
+	/** the default charset name to use when giving up */
 	public final static String DEFAULT_CHARSET = "UTF-8";
 	
 	protected boolean isCharsetSupported(String charsetName) {
@@ -57,7 +65,13 @@ public abstract class CharsetDetector {
 			return false;
 		}
 	}
-	
+	protected String mapCharset(String orig) {
+		String lc = orig.toLowerCase();
+		if(lc.contains("iso8859-1") || lc.contains("iso-8859-1")) {
+			return "cp1252";
+		}
+		return orig;
+	}
 	protected String contentTypeToCharset(final String contentType) {
 		int offset = 
 			contentType.toUpperCase().indexOf(CHARSET_TOKEN.toUpperCase());
@@ -65,7 +79,7 @@ public abstract class CharsetDetector {
 		if (offset != -1) {
 			String cs = contentType.substring(offset + CHARSET_TOKEN.length());
 			if(isCharsetSupported(cs)) {
-				return cs;
+				return mapCharset(cs);
 			}
 			// test for extra spaces... there's at least one page out there that
 			// indicates it's charset with:
@@ -74,7 +88,7 @@ public abstract class CharsetDetector {
 
 			// bad web page!
 			if(isCharsetSupported(cs.replace(" ", ""))) {
-				return cs.replace(" ", "");
+				return mapCharset(cs.replace(" ", ""));
 			}
 		}
 		return null;
@@ -168,6 +182,13 @@ public abstract class CharsetDetector {
 	    }
 	    return null;
 	}
+	/**
+	 * @param resource (presumably text) Resource to determine the charset
+	 * @param request WaybackRequest which may contain additional hints to
+	 *        processing
+	 * @return String charset name for the Resource
+	 * @throws IOException if there are problems reading the Resource
+	 */
 	public abstract String getCharset(Resource resource, WaybackRequest request)
 		throws IOException;
 }
