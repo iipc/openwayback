@@ -38,22 +38,23 @@ import org.archive.wayback.util.url.UrlOperations;
  *
  * @author brad
  * @version $Date$, $Revision$
+ * @deprecated
  */
 public class CustomNotInArchiveExceptionRenderer extends BaseExceptionRenderer  {
 	private HashMap<String,Object> hosts = null;
 	private String jspHandler = null;
 	
 	
-	public String getExceptionHandler(HttpServletRequest httpRequest,
-			HttpServletResponse httpResponse, WaybackRequest wbRequest,
-			WaybackException exception) {
-		String jspPath = getCustomHandler(exception,wbRequest);
-		if(jspPath == null) {
-			jspPath = super.getExceptionHandler(httpRequest, httpResponse,
-					wbRequest, exception);
-		}
-		return jspPath;
-	}
+//	public String getExceptionHandler(HttpServletRequest httpRequest,
+//			HttpServletResponse httpResponse, WaybackRequest wbRequest,
+//			WaybackException exception) {
+//		String jspPath = getCustomHandler(exception,wbRequest);
+//		if(jspPath == null) {
+//			jspPath = super.getExceptionHandler(httpRequest, httpResponse,
+//					wbRequest, exception);
+//		}
+//		return jspPath;
+//	}
 
 
 	/**

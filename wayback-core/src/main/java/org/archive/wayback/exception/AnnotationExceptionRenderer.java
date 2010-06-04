@@ -39,6 +39,7 @@ import org.archive.wayback.core.WaybackRequest;
  *
  * @author brad
  * @version $Date$, $Revision$
+ * @deprecated
  */
 public class AnnotationExceptionRenderer extends BaseExceptionRenderer {
 	private AccessControlClient client = null;
@@ -47,17 +48,17 @@ public class AnnotationExceptionRenderer extends BaseExceptionRenderer {
 	public void init() {
 		client = new AccessControlClient(oracleUrl);
 	}
-	public String getExceptionHandler(HttpServletRequest httpRequest,
-			HttpServletResponse httpResponse, WaybackRequest wbRequest,
-			WaybackException exception) {
-		// the "standard HTML" response handler:
-		String jspPath = getCustomHandler(exception,wbRequest);
-		if(jspPath == null) {
-			jspPath = super.getExceptionHandler(httpRequest, httpResponse,
-					wbRequest, exception);
-		}
-		return jspPath;
-	}
+//	public String getExceptionHandler(HttpServletRequest httpRequest,
+//			HttpServletResponse httpResponse, WaybackRequest wbRequest,
+//			WaybackException exception) {
+//		// the "standard HTML" response handler:
+//		String jspPath = getCustomHandler(exception,wbRequest);
+//		if(jspPath == null) {
+//			jspPath = super.getExceptionHandler(httpRequest, httpResponse,
+//					wbRequest, exception);
+//		}
+//		return jspPath;
+//	}
 
 	private String getCustomHandler(WaybackException e, WaybackRequest wbRequest) {
 		String jspPath = null;
@@ -84,6 +85,7 @@ public class AnnotationExceptionRenderer extends BaseExceptionRenderer {
 		}
 		return null;
 	}
+
 	/**
 	 * @return the client
 	 */
