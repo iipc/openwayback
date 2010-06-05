@@ -25,6 +25,7 @@
 package org.archive.wayback.archivalurl;
 
 import org.archive.wayback.RequestParser;
+import org.archive.wayback.archivalurl.requestparser.ArchivalUrlFormRequestParser;
 import org.archive.wayback.archivalurl.requestparser.DatelessReplayRequestParser;
 import org.archive.wayback.archivalurl.requestparser.PathDatePrefixQueryRequestParser;
 import org.archive.wayback.archivalurl.requestparser.PathDateRangeQueryRequestParser;
@@ -77,7 +78,7 @@ public class ArchivalUrlRequestParser extends CompositeRequestParser {
 				new PathPrefixDatePrefixQueryRequestParser(this),
 				new PathPrefixDateRangeQueryRequestParser(this),
 				new OpenSearchRequestParser(this),
-				new FormRequestParser(this),
+				new ArchivalUrlFormRequestParser(this),
 				new DatelessReplayRequestParser(this)
 				};
 		return theParsers;
