@@ -28,7 +28,6 @@ if(toUrl == null) {
 	}
 	window.setTimeout("go()",<%= secs * 1000 %>);
 	</script>
-		<h2>Redirecting...</h2>
 		<p>
 		  Thanks for visiting the Wayback Machine. We're about to redirect you
 		  to the page you requested:
@@ -41,4 +40,3 @@ if(toUrl == null) {
 <%	
 }
 %>
-<
