@@ -83,7 +83,7 @@ import org.archive.wayback.util.webapp.ShutdownListener;
 public class AccessPoint extends AbstractRequestHandler 
 implements ShutdownListener {
 	/** webapp relative location of Interstitial.jsp */
-	public final static String INTERSTITIAL_JSP = "jsp/Interstitial.jsp";
+	public final static String INTERSTITIAL_JSP = "jsp/Interstitial-wrap.jsp";
 	/** argument for Interstitial.jsp target URL */
 	public final static String INTERSTITIAL_TARGET = "target";
 	/** argument for Interstitial.jsp seconds to delay */
@@ -106,6 +106,7 @@ implements ShutdownListener {
 	private String replayPrefix = null;
 	
 	private String wrapperJsp = "/WEB-INF/template/UI-wrapper.jsp";
+	private String interstitialJsp = INTERSTITIAL_JSP;
 
 	private String refererAuth = null;
 
@@ -133,13 +134,13 @@ implements ShutdownListener {
 			return false;
 		}
 //		String contextRelativePath = httpRequest.getServletPath();
-		String translated = "/" + translateRequestPath(httpRequest);
+		String translatedNoQuery = "/" + translateRequestPath(httpRequest);
 //		String absPath = getServletContext().getRealPath(contextRelativePath);
-		String absPath = getServletContext().getRealPath(translated);
+		String absPath = getServletContext().getRealPath(translatedNoQuery);
 		File test = new File(absPath);
 		if(test.exists()) {
 			
-			String translated2 = "/" + translateRequestPathQuery(httpRequest);
+			String translatedQ = "/" + translateRequestPathQuery(httpRequest);
 	
 			WaybackRequest wbRequest = new WaybackRequest();
 //			wbRequest.setContextPrefix(getUrlRoot());
@@ -147,7 +148,12 @@ implements ShutdownListener {
 			wbRequest.fixup(httpRequest);
 			UIResults uiResults = new UIResults(wbRequest,uriConverter);
 			try {
-				uiResults.forward(httpRequest, httpResponse, translated2);
+				if(translatedNoQuery.endsWith("-wrap.jsp")) {
+					uiResults.forwardWrapped(httpRequest, httpResponse, 
+							translatedQ, wrapperJsp);
+				} else {
+					uiResults.forward(httpRequest, httpResponse, translatedQ);
+				}
 				return true;
 			} catch(IOException e) {
 				// TODO: figure out if we got IO because of a missing dispatcher
@@ -273,16 +279,16 @@ implements ShutdownListener {
 
 	private void checkInterstitialRedirect(HttpServletRequest httpRequest) 
 	throws BetterRequestException {
-		if(refererAuth != null) {
+		if((refererAuth != null) && (refererAuth.length() > 0)) {
 			String referer = httpRequest.getHeader("Referer");
-			if((referer == null) || (!referer.contains(refererAuth))) {
+			if((referer != null) && (referer.length() > 0) && (!referer.contains(refererAuth))) {
 				StringBuffer sb = httpRequest.getRequestURL();
 				if(httpRequest.getQueryString() != null) {
 					sb.append("?").append(httpRequest.getQueryString());
 				}
 				StringBuilder u = new StringBuilder();
 				u.append(getQueryPrefix());
-				u.append(INTERSTITIAL_JSP);
+				u.append(interstitialJsp);
 				u.append("?");
 				u.append(INTERSTITIAL_SECONDS).append("=").append(5);
 				u.append("&");
@@ -559,6 +565,20 @@ implements ShutdownListener {
 	 */
 	public void setWrapperJsp(String wrapperJsp) {
 		this.wrapperJsp = wrapperJsp;
+	}
+
+	/**
+	 * @param interstitialJsp the interstitialJsp to set
+	 */
+	public void setInterstitialJsp(String interstitialJsp) {
+		this.interstitialJsp = interstitialJsp;
+	}
+
+	/**
+	 * @return the interstitialJsp
+	 */
+	public String getInterstitialJsp() {
+		return interstitialJsp;
 	}
 
 	/**
