@@ -85,7 +85,8 @@ public class DatelessReplayRequestParser extends PathRequestParser {
 					// ok, we're going to assume this is good:
 					String nowTS = Timestamp.currentTimestamp().getDateStr();
 					String newUrl = 
-						accessPoint.getUriConverter().makeReplayURI(nowTS, requestPath);
+						accessPoint.getUriConverter().makeReplayURI(nowTS, 
+								requestPath);
 					throw new BetterRequestException(newUrl);
 				}
 			} catch(MalformedURLException e) {
