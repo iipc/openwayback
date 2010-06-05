@@ -31,6 +31,7 @@ import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 
 import org.archive.wayback.core.WaybackRequest;
+import org.archive.wayback.exception.BetterRequestException;
 import org.archive.wayback.util.Timestamp;
 import org.archive.wayback.util.url.UrlOperations;
 import org.archive.wayback.webapp.AccessPoint;
@@ -60,7 +61,7 @@ public class FormRequestParser extends WrappedRequestParser {
 	 * WaybackRequest object, except the Submit button argument.
 	 */
 	public WaybackRequest parse(HttpServletRequest httpRequest, 
-			AccessPoint accessPoint) {
+			AccessPoint accessPoint) throws BetterRequestException {
 
 		WaybackRequest wbRequest = null;
 		@SuppressWarnings("unchecked")
