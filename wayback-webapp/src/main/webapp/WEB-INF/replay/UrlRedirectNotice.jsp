@@ -41,7 +41,7 @@ int secs = 5;
 	}
 	window.setTimeout("go()",<%= secs * 1000 %>);
 	</script>
-		<h2>Redirecting...</h2>
+		<h2>Following redirect...</h2>
 		<p>The URL you requested:</p>
 		<p><%= safeSource %></p>
 		<p>redirected to the URL:</p>
@@ -51,4 +51,3 @@ int secs = 5;
 		to that target in <%= secs %> seconds.
 		Click <a href="<%= safeTargetReplayUrl %>">here</a> to go now.
 		</p>
-	
