@@ -63,9 +63,11 @@ public class FastArchivalUrlReplayParseEventHandler implements
 		FastArchivalUrlReplayParseEventHandler.class.toString();
 
 	private String jspInsertPath = "/WEB-INF/replay/DisclaimChooser.jsp";
+	private String commentJsp = "/WEB-INF/replay/ArchiveComment.jsp";
 
-	private final String[] okHeadTags = { "![CDATA[*", "!DOCTYPE", "HTML", "HEAD", "BASE",
-			"LINK", "META", "TITLE", "STYLE", "SCRIPT" };
+	private final String[] okHeadTags = { "![CDATA[*", "![CDATA[", "?", 
+			"!DOCTYPE", "HTML",	"HEAD", "BASE", "LINK", "META", "TITLE", 
+			"STYLE", "SCRIPT" };
 	private HashMap<String, Object> okHeadTagMap = null;
 	private final static String FRAMESET_TAG = "FRAMESET";
 	private final static String BODY_TAG = "BODY";
@@ -203,6 +205,8 @@ public class FastArchivalUrlReplayParseEventHandler implements
 			if(orig != null) {
 				try {
 					context.setBaseUrl(new URL(orig));
+					transformAttr(context, tagNode, "HREF", anchorUrlTrans);
+					
 				} catch (MalformedURLException e) {
 					e.printStackTrace();
 				}
@@ -326,8 +330,21 @@ public class FastArchivalUrlReplayParseEventHandler implements
 		}
 		return false;
 	}
-	public void handleParseComplete(ParseContext context) throws IOException {
-		// Nothing to do.
+	public void handleParseComplete(ParseContext pContext) throws IOException {
+		if(commentJsp != null) {
+			ReplayParseContext context = (ReplayParseContext) pContext;
+			OutputStream out = context.getOutputStream();
+			String tmp = null; 
+			try {
+				tmp = context.getJspExec().jspToString(commentJsp);
+			} catch (ServletException e) {
+				e.printStackTrace();
+			}
+			if(tmp != null) {
+				Charset charset = Charset.forName(context.getOutputCharset());
+				out.write(tmp.getBytes(charset));
+			}
+		}
 	}
 
 	/**
@@ -342,5 +359,19 @@ public class FastArchivalUrlReplayParseEventHandler implements
 	 */
 	public void setJspInsertPath(String jspInsertPath) {
 		this.jspInsertPath = jspInsertPath;
+	}
+
+	/**
+	 * @return the commentJsp
+	 */
+	public String getCommentJsp() {
+		return commentJsp;
+	}
+
+	/**
+	 * @param commentJsp the commentJsp to set
+	 */
+	public void setCommentJsp(String commentJsp) {
+		this.commentJsp = commentJsp;
 	}
 }
