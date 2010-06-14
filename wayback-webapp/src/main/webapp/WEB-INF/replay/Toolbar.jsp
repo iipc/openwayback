@@ -55,7 +55,8 @@ String yearFormatKey = "PartitionSize.dateHeader.yearGraphLabel";
 String encodedGraph = data.computeGraphString(yearFormatKey,imgWidth,imgHeight);
 String graphImgUrl = graphJspPrefix + "jsp/graph.jsp?graphdata=" + encodedGraph;
 // TODO: this is archivalUrl specific:
-String starLink = fmt.escapeHtml(queryPrefix + "*/" + searchUrl);
+String starLink = fmt.escapeHtml(queryPrefix + wbRequest.getReplayTimestamp() + 
+		"*/" + searchUrl);
 %>
 <!-- BEGIN WAYBACK TOOLBAR INSERT -->
 
@@ -173,7 +174,7 @@ function trackMouseMove(event,element) {
 
         <table style="border-collapse:collapse;margin:0 auto;padding:0;width:570px;"><tbody><tr>
         <td style="padding:3px 0;" colspan="2">
-        <form method="get" action="<%= queryPrefix %>query" name="wmtb" id="wmtb" style="margin:0!important;padding:0!important;"><input type="text" name="<%= WaybackRequest.REQUEST_URL %>" id="wmtbURL" value="<%= searchUrlSafe %>" style="width:400px;font-size:11px;font-family:'Lucida Grande','Arial',sans-serif;"/><input type="hidden" name="<%= WaybackRequest.REQUEST_TYPE %>" value="<%= WaybackRequest.REQUEST_CAPTURE_QUERY %>"><input type="submit" value="Go" style="font-size:11px;font-family:'Lucida Grande','Arial',sans-serif;margin-left:5px;"/><span id="wm_tb_options" style="display:block;"></span></form>
+        <form target="_top" method="get" action="<%= queryPrefix %>query" name="wmtb" id="wmtb" style="margin:0!important;padding:0!important;"><input type="text" name="<%= WaybackRequest.REQUEST_URL %>" id="wmtbURL" value="<%= searchUrlSafe %>" style="width:400px;font-size:11px;font-family:'Lucida Grande','Arial',sans-serif;"/><input type="hidden" name="<%= WaybackRequest.REQUEST_TYPE %>" value="<%= WaybackRequest.REQUEST_REPLAY_QUERY %>"><input type="submit" value="Go" style="font-size:11px;font-family:'Lucida Grande','Arial',sans-serif;margin-left:5px;"/><span id="wm_tb_options" style="display:block;"></span></form>
         </td>
         <td style="vertical-align:bottom;padding:5px 0 0 0!important;" rowspan="2">
             <table style="border-collapse:collapse;width:110px;color:#99a;font-family:'Helvetica','Lucida Grande','Arial',sans-serif;"><tbody>
