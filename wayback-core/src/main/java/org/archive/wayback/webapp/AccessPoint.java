@@ -105,7 +105,8 @@ implements ShutdownListener {
 	private String queryPrefix = null;
 	private String replayPrefix = null;
 	
-	private String wrapperJsp = "/WEB-INF/template/UI-wrapper.jsp";
+//	private String wrapperJsp = "/WEB-INF/template/UI-wrapper.jsp";
+	private String wrapperJsp = null;
 	private String interstitialJsp = INTERSTITIAL_JSP;
 
 	private String refererAuth = null;
@@ -148,7 +149,9 @@ implements ShutdownListener {
 			wbRequest.fixup(httpRequest);
 			UIResults uiResults = new UIResults(wbRequest,uriConverter);
 			try {
-				if(translatedNoQuery.endsWith("-wrap.jsp")) {
+				if(wrapperJsp != null && 
+						translatedNoQuery.endsWith("-wrap.jsp")) {
+
 					uiResults.forwardWrapped(httpRequest, httpResponse, 
 							translatedQ, wrapperJsp);
 				} else {
