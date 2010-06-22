@@ -178,6 +178,39 @@ function trackMouseMove(event,element) {
         </td>
         <td style="vertical-align:bottom;padding:5px 0 0 0!important;" rowspan="2">
             <table style="border-collapse:collapse;width:110px;color:#99a;font-family:'Helvetica','Lucida Grande','Arial',sans-serif;"><tbody>
+			
+            <!-- NEXT/PREV MONTH NAV AND MONTH INDICATOR -->
+            <tr style="width:110px;height:16px;font-size:10px!important;">
+            	<td style="padding-right:9px;font-size:11px!important;font-weight: bold;text-align:right;white-space:nowrap;overflow:visible;" nowrap="nowrap">
+                <%
+                	if(data.monthPrevResult == null) {
+                        %>
+                        <%= fmt.format("ToolBar.noPrevMonthText",ToolBarData.addMonth(data.curResult.getCaptureDate(),-1)) %>
+                        <%
+                	} else {
+		                %>
+		                <a href="<%= data.makeReplayURL(data.monthPrevResult) %>" style="text-decoration:none;color:#33f;" title="<%= fmt.format("ToolBar.prevMonthTitle",data.monthPrevResult.getCaptureDate()) %>"><%= fmt.format("ToolBar.prevMonthText",data.monthPrevResult.getCaptureDate()).toUpperCase() %></a>
+		                <%
+                	}
+                %>
+                </td>
+                <td id="displayMonthEl" style="background:#000;color:#ff0;font-size:11px!important;font-weight: bold;width:34px;height:15px;padding-top:1px;text-align:center;" title="<%= fmt.format("ToolBar.curMonthTitle",data.curResult.getCaptureDate()) %>"><%= fmt.format("ToolBar.curMonthText",data.curResult.getCaptureDate()).toUpperCase() %></td>
+				<td style="padding-left:9px;font-size:11px!important;font-weight: bold;white-space:nowrap;overflow:visible;" nowrap="nowrap">
+                <%
+                	if(data.monthNextResult == null) {
+                        %>
+                        <%= fmt.format("ToolBar.noNextMonthText",ToolBarData.addMonth(data.curResult.getCaptureDate(),1)) %>
+                        <%
+                	} else {
+		                %>
+		                <a href="<%= data.makeReplayURL(data.monthNextResult) %>" style="text-decoration:none;color:#33f;" title="<%= fmt.format("ToolBar.nextMonthTitle",data.monthNextResult.getCaptureDate()) %>"><%= fmt.format("ToolBar.nextMonthText",data.monthNextResult.getCaptureDate()).toUpperCase() %></a>
+		                <%
+                	}
+                %>
+                </td>
+            </tr>
+
+            <!-- NEXT/PREV CAPTURE NAV AND DAY OF MONTH INDICATOR -->
             <tr>
                 <td style="padding-right:9px;text-align:right;">
                 <%
@@ -192,7 +225,7 @@ function trackMouseMove(event,element) {
                 	}
                 %>
                 </td>
-                <td id="displayDayEl" style="background:#000;color:#ff0;width:34px;height:24px;padding:2px 0 0 0;text-align:center;font-size:22px;" title="<%= fmt.format("ToolBar.curDayTitle",data.curResult.getCaptureDate()) %>"><%= fmt.format("ToolBar.curDayText",data.curResult.getCaptureDate()) %></td>
+                <td id="displayDayEl" style="background:#000;color:#ff0;width:34px;height:24px;padding:2px 0 0 0;text-align:center;font-size:24px;font-weight: bold;" title="<%= fmt.format("ToolBar.curDayTitle",data.curResult.getCaptureDate()) %>"><%= fmt.format("ToolBar.curDayText",data.curResult.getCaptureDate()) %></td>
 				<td style="padding-left:9px;white-space:nowrap;overflow:visible;" nowrap="nowrap">
                 <%
                 	if(data.nextResult == null) {
@@ -205,40 +238,12 @@ function trackMouseMove(event,element) {
 		                <%
                 	}
                 %>
-			</td>
-            </tr>
-            <tr style="width:110px;height:16px;font-size:10px!important;">
-            	<td style="padding-right:9px;text-align:right;white-space:nowrap;overflow:visible;" nowrap="nowrap">
-                <%
-                	if(data.monthPrevResult == null) {
-                        %>
-                        <%= fmt.format("ToolBar.noPrevMonthText",ToolBarData.addMonth(data.curResult.getCaptureDate(),-1)) %>
-                        <%
-                	} else {
-		                %>
-		                <a href="<%= data.makeReplayURL(data.monthPrevResult) %>" style="text-decoration:none;color:#33f;" title="<%= fmt.format("ToolBar.prevMonthTitle",data.monthPrevResult.getCaptureDate()) %>"><%= fmt.format("ToolBar.prevMonthText",data.monthPrevResult.getCaptureDate()) %></a>
-		                <%
-                	}
-                %>
-                </td>
-                <td id="displayMonthEl" style="background:#000;color:#ff0;font-size:12px!important;width:34px;height:15px;padding-top:1px;text-align:center;" title="<%= fmt.format("ToolBar.curMonthTitle",data.curResult.getCaptureDate()) %>"><%= fmt.format("ToolBar.curMonthText",data.curResult.getCaptureDate()) %></td>
-				<td style="padding-left:9px;white-space:nowrap;overflow:visible;" nowrap="nowrap">
-                <%
-                	if(data.monthNextResult == null) {
-                        %>
-                        <%= fmt.format("ToolBar.noNextMonthText",ToolBarData.addMonth(data.curResult.getCaptureDate(),1)) %>
-                        <%
-                	} else {
-		                %>
-		                <a href="<%= data.makeReplayURL(data.monthNextResult) %>" style="text-decoration:none;color:#33f;" title="<%= fmt.format("ToolBar.nextMonthTitle",data.monthNextResult.getCaptureDate()) %>"><%= fmt.format("ToolBar.nextMonthText",data.monthNextResult.getCaptureDate()) %></a>
-		                <%
-                	}
-                %>
-                </td>
+			    </td>
             </tr>
 
+            <!-- NEXT/PREV YEAR NAV AND YEAR INDICATOR -->
             <tr style="width:110px;height:13px;font-size:9px!important;">
-				<td style="padding-right:9px;text-align:right;white-space:nowrap;overflow:visible;" nowrap="nowrap">
+				<td style="padding-right:9px;font-size:11px!important;font-weight: bold;text-align:right;white-space:nowrap;overflow:visible;" nowrap="nowrap">
                 <%
                 	if(data.yearPrevResult == null) {
                         %>
@@ -251,8 +256,8 @@ function trackMouseMove(event,element) {
                 	}
                 %>
                 </td>
-                <td id="displayYearEl" style="background:#000;color:#ff0;font-size:10px!important;padding-top:1px;width:34px;height:13px;text-align:center;" title="<%= fmt.format("ToolBar.curYearTitle",data.curResult.getCaptureDate()) %>"><%= fmt.format("ToolBar.curYearText",data.curResult.getCaptureDate()) %></td>
-				<td style="padding-left:9px;white-space:nowrap;overflow:visible;" nowrap="nowrap">
+                <td id="displayYearEl" style="background:#000;color:#ff0;font-size:11px!important;font-weight: bold;padding-top:1px;width:34px;height:13px;text-align:center;" title="<%= fmt.format("ToolBar.curYearTitle",data.curResult.getCaptureDate()) %>"><%= fmt.format("ToolBar.curYearText",data.curResult.getCaptureDate()) %></td>
+				<td style="padding-left:9px;font-size:11px!important;font-weight: bold;white-space:nowrap;overflow:visible;" nowrap="nowrap">
                 <%
                 	if(data.yearNextResult == null) {
                         %>
