@@ -324,6 +324,10 @@ public class WaybackRequest {
 	 * see HttpServletRequest.getRemoteUser()
 	 */
 	public static final String REQUEST_REMOTE_USER = "requestremoteuser";
+	/**
+	 * Exact value from HTTP request for header "Authorization"
+	 */
+	public static final String REQUEST_AUTHORIZATION = "Authorization";
 
 	/**
 	 * User Locale name: Best Guess at users requested locale.
@@ -866,6 +870,9 @@ public class WaybackRequest {
 		putUnlessNull(REQUEST_WAYBACK_HOSTNAME, httpRequest.getLocalName());
 		putUnlessNull(REQUEST_AUTH_TYPE, httpRequest.getAuthType());
 		putUnlessNull(REQUEST_REMOTE_USER, httpRequest.getRemoteUser());
+		
+		putUnlessNull(REQUEST_AUTHORIZATION,
+				httpRequest.getHeader(REQUEST_AUTHORIZATION));
 		putUnlessNull(REQUEST_WAYBACK_PORT, 
 				String.valueOf(httpRequest.getLocalPort()));
 		putUnlessNull(REQUEST_WAYBACK_CONTEXT, httpRequest.getContextPath());
