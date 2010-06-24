@@ -69,9 +69,15 @@ public class ArchivalUrl {
 	}
 
 	public String toString(String datespec, String url) {
+		int dateLen = 0;
+		if(datespec != null) {
+			dateLen = datespec.length();
+		}
 		StringBuilder sb = 
-			new StringBuilder(url.length() + datespec.length()+10);
-		sb.append(datespec);
+			new StringBuilder(url.length() + dateLen +10);
+		if(dateLen > 0) {
+			sb.append(datespec);
+		}
 		if(wbRequest.isCSSContext()) {
 			sb.append(ArchivalUrlRequestParser.CSS_CONTEXT);
 			sb.append(ArchivalUrlRequestParser.FLAG_DELIM);
@@ -88,7 +94,9 @@ public class ArchivalUrl {
 			sb.append(ArchivalUrlRequestParser.IDENTITY_CONTEXT);
 			sb.append(ArchivalUrlRequestParser.FLAG_DELIM);
 		}
-		sb.append("/");
+		if(dateLen > 0) {
+			sb.append("/");
+		}
 		sb.append(UrlOperations.stripDefaultPortFromUrl(url));
 		return sb.toString();
 	}
