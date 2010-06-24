@@ -25,6 +25,8 @@
 package org.archive.wayback.authenticationcontrol;
 
 import java.util.List;
+import java.io.UnsupportedEncodingException;
+import org.apache.commons.codec.binary.Base64;
 
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.util.operator.BooleanOperator;
@@ -41,12 +43,32 @@ public class HTTPAuthBooleanOperator implements BooleanOperator<WaybackRequest> 
 		if(allowedUsers == null) {
 			return false;
 		}
-		String currentUser = value.getRemoteUser();
+		String currentUser = getHTTPAuth(value);
 		if(currentUser == null) {
 			return false;
 		}
 		return allowedUsers.contains(currentUser);
 	}
+	private String decodeBasic(String authHeaderValue) {
+		if(authHeaderValue != null) {
+			if(authHeaderValue.startsWith("Basic ")) {
+				String b64 = authHeaderValue.substring(6);
+				byte[] decoded = Base64.decodeBase64(b64.getBytes());
+				try {
+					return new String(decoded,"utf-8");
+				} catch (UnsupportedEncodingException e) {
+					// really?...
+					return new String(decoded);
+				}
+			}
+		}
+		return null;
+
+	}
+	private String getHTTPAuth(WaybackRequest request) {
+		return decodeBasic(request.get("Authorization"));
+	}
+	
 	/**
 	 * @return the List of users that this operator matches against.
 	 */
@@ -55,6 +77,7 @@ public class HTTPAuthBooleanOperator implements BooleanOperator<WaybackRequest> 
 	}
 	/**
 	 * @param allowedUsers the List of users that this operator matches against.
+	 * format for values is "username:password"
 	 */
 	public void setAllowedUsers(List<String> allowedUsers) {
 		this.allowedUsers = allowedUsers;
