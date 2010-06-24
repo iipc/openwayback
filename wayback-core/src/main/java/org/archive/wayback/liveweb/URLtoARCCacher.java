@@ -116,8 +116,8 @@ public class URLtoARCCacher {
 
 		// to track if we got a response (any response) or an exception.
 		boolean gotUrl = false;
-
-		Recorder recorder = new Recorder(recorderCacheDir,backingFileBase,
+		String fName = backingFileBase + "-" + Thread.currentThread().getId();
+		Recorder recorder = new Recorder(recorderCacheDir,fName,
 				outBufferSize, inBufferSize);
 		
 		ExtendedGetMethod getMethod = null;
