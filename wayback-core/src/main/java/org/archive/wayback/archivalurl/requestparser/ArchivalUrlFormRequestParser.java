@@ -50,7 +50,7 @@ public class ArchivalUrlFormRequestParser extends FormRequestParser {
 		WaybackRequest wbRequest = super.parse(httpRequest, accessPoint);
 		if(wbRequest != null) {
 			String replayTimestamp = wbRequest.getReplayTimestamp();
-			if((replayTimestamp != null) && replayTimestamp.length() == 0) {
+			if((replayTimestamp == null) || replayTimestamp.length() == 0) {
 				// lets call it a star query:
 				// TODO: should we clone?
 				wbRequest.setStartTimestamp(null);
