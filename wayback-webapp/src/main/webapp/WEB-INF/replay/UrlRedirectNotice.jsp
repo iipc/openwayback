@@ -35,19 +35,30 @@ String prettyDate = fmt.format("MetaReplay.captureDateDisplay",captureDate);
 int secs = 5;
 
 %>
+    <jsp:include page="/WEB-INF/global-template/UI-header.jsp" flush="true" />
+
+        <div id="positionHome">
+            <section>
+            <div id="logoHome">
+                <h1><span>Internet Archive's Wayback Machine</span></h1>
+            </div>
+            </section>
+            <section>
+            <div id="error">
 	<script type="text/javascript">
 	function go() {
 		document.location.href = "<%= safeTargetReplayUrlJS %>";
 	}
 	window.setTimeout("go()",<%= secs * 1000 %>);
 	</script>
-		<h2>Following redirect...</h2>
-		<p>The URL you requested:</p>
-		<p><%= safeSource %></p>
-		<p>redirected to the URL:</p>
+		<p class="code">Loading...</p>
+		<p class="code shift"><%= safeSource %> | <%= prettyDate %></p>
+		<p class="code shift red">Got an HTTP 302 response at crawl time</p>
+		<p class="code">Redirecting to...</p>
 		<p><%= safeTarget %></p>
-		<p>
-		when it was crawled at <%= prettyDate %>. You will be redirected
-		to that target in <%= secs %> seconds.
-		Click <a href="<%= safeTargetReplayUrl %>">here</a> to go now.
-		</p>
+        <p class="impatient"><a href="<%= safeTargetReplayUrl %>">Impatient?</a></p>
+            </div>
+            </section>
+            <div id="errorBorder"></div>
+
+        <jsp:include page="/WEB-INF/global-template/UI-footer.jsp" flush="true" />
