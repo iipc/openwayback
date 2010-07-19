@@ -139,16 +139,16 @@ $().ready(function(){
         var actualsize = $(this).find(".hidden").text();
         var size = actualsize * 12;
         var offset = size / 2;
-        if (actualsize == 1) {size = 20, offset = 10;}
-        else if (actualsize == 2) {size = 30, offset = 15;}
-        else if (actualsize == 3) {size = 40, offset = 20;}
-        else if (actualsize == 4) {size = 50, offset = 25;}
-        else if (actualsize == 5) {size = 60, offset = 30;}
-        else if (actualsize == 6) {size = 70, offset = 35;}
-        else if (actualsize == 7) {size = 80, offset = 40;}
-        else if (actualsize == 8) {size = 90, offset = 45;}
-        else if (actualsize == 9) {size = 100, offset = 50;}
-        else if (actualsize >= 10) {size = 110, offset = 55;}
+        if (actualsize == 1) {size = 30, offset = 15;}
+        else if (actualsize == 2) {size = 40, offset = 20;}
+        else if (actualsize == 3) {size = 50, offset = 25;}
+        else if (actualsize == 4) {size = 60, offset = 30;}
+        else if (actualsize == 5) {size = 70, offset = 35;}
+        else if (actualsize == 6) {size = 80, offset = 40;}
+        else if (actualsize == 7) {size = 90, offset = 45;}
+        else if (actualsize == 8) {size = 100, offset = 50;}
+        else if (actualsize == 9) {size = 110, offset = 55;}
+        else if (actualsize >= 10) {size = 120, offset = 60;}
         $(this).find("img").attr("src","<%= staticPrefix %>images/blueblob-dk.png");
         $(this).find(".measure").css({'width':+size+'px','height':+size+'px','top':'-'+offset+'px','left':'-'+offset+'px'});
     });
@@ -163,22 +163,22 @@ $().ready(function(){
     $(".tooltip").bt({
         positions: ['top','right','left','bottom'],
         contentSelector: "$(this).find('.pop').html()",
-        padding: '0', 
-        width: '145px',
-        spikeGirth: 12, 
-        spikeLength: 12,
-        overlap: '2px',
+        padding: 0, 
+        width: '115px',
+        spikeGirth: 8, 
+        spikeLength: 8,
+        overlap: 0,
         cornerRadius: 5,
         fill: '#efefef',
         strokeWidth: 1,
         strokeStyle: '#efefef',
         shadow: true, 
         shadowColor: '#333',
-        shadowBlur: 6,
+        shadowBlur: 5,
         shadowOffsetX: 0,
         shadowOffsetY: 0, 
         noShadowOpts: {strokeStyle:'#ccc'},
-        hoverIntentOpts: {interval:0,timeout:4000}, 
+        hoverIntentOpts: {interval:60,timeout:3500}, 
         clickAnywhereToClose: true,
         closeWhenOthersOpen: true,
         windowMargin: 30,
@@ -190,9 +190,7 @@ $().ready(function(){
             color: '#333'
         }
     });
-});
 
-$().ready(function(){
     var yrCount = $(".wbChartThisContainer").size();
     var yrTotal = <%= yearWidth %> * yrCount;
     var yrPad = (930 - yrTotal) / 2;
@@ -218,8 +216,8 @@ $().ready(function(){
             </form>
     
             <div id="wbMeta">
-                <p class="wbThis"><a href="<%= data.searchUrlForHTML %>"><%= data.searchUrlForHTML %></a> has been crawled <strong><%= fmt.format("{0} times",data.numResults) %></strong> going all the way back to <a href="firstcapture"><%= fmt.format("{0,date,MMM dd yyyy}",data.firstResultDate) %></a>.</p>
-                <p class="wbNote">A crawl can be a duplicate of the last one. It happens about [num]% of the time across [NUM] websites. <a href="FAQ">FAQ</a></p>
+                <p class="wbThis"><a href="<%= data.searchUrlForHTML %>"><%= data.searchUrlForHTML %></a> has been crawled <strong><%= fmt.format("{0} times",data.numResults) %></strong> going all the way back to <a href="firstcapture"><%= fmt.format("{0,date,MMMM d, yyyy}",data.firstResultDate) %></a>.</p>
+                <p class="wbNote">A crawl can be a duplicate of the last one. It happens about [num]% of the time across [NUM] websites. <a href="https://webarchive.jira.com/wiki/display/WWMOS/FAQs">FAQ</a></p>
             </div>
         </div>
         
