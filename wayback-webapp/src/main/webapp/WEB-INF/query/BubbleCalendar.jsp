@@ -9,9 +9,11 @@
 <%@ page import="org.archive.wayback.core.CaptureSearchResult" %>
 <%@ page import="org.archive.wayback.core.CaptureSearchResults" %>
 <%@ page import="org.archive.wayback.core.UIResults" %>
+<%@ page import="org.archive.wayback.core.WaybackRequest" %>
 <%@ page import="org.archive.wayback.partition.BubbleCalendarData" %>
 <%@ page import="org.archive.wayback.util.partition.Partition" %>
 <%@ page import="org.archive.wayback.util.StringFormatter" %>
+<jsp:include page="/WEB-INF/global-template/UI-header.jsp" flush="true" />
 <jsp:include page="/WEB-INF/template/CookieJS.jsp" flush="true" />
 <%
 UIResults results = UIResults.extractCaptureQuery(request);
@@ -31,10 +33,10 @@ if(graphJspPrefix == null) {
 }
 
 // graph size "constants": These are currently baked-in to the JS logic...
-int imgWidth = 735;
+int imgWidth = 915;
 int imgHeight = 75;
-int yearWidth = 49;
-int monthWidth = 4;
+int yearWidth = 61;
+int monthWidth = 5;
 
 BubbleCalendarData data = new BubbleCalendarData(results);
 
@@ -45,8 +47,7 @@ String yearImgUrl = graphJspPrefix + "jsp/graph.jsp?graphdata=" + yearEncoded;
 Calendar cal = BubbleCalendarData.getUTCCalendar();
 
 %>
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js" type="text/javascript"></script>
-<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.1/jquery-ui.min.js" type="text/javascript"></script>
+<script type="text/javascript" src="<%= staticPrefix %>js/jquery-1.4.2.min.js"></script>
 <script type="text/javascript" src="<%= staticPrefix %>js/excanvas.compiled.js"></script>
 <script type="text/javascript" src="<%= staticPrefix %>js/jquery.bt.min.js" charset="utf-8"></script>
 <script type="text/javascript" src="<%= staticPrefix %>js/jquery.hoverintent.min.js" charset="utf-8"></script>
@@ -126,7 +127,7 @@ function trackMouseMove(event,element) {
 		zeroPad(monthOfYear+1,2) +
 		zeroPad(day,2) + "000000";
 
-	var url = wbPrefix + dateString + '*/' +  wbCurrentUrl;
+	var url = "<%= queryPrefix %>" + dateString + '*/' +  wbCurrentUrl;
 	document.getElementById('wm-graph-anchor').href = url;
 	setActiveYear(year);
 }
@@ -135,20 +136,29 @@ function trackMouseMove(event,element) {
 <script type="text/javascript">
 $().ready(function(){
     $(".date").each(function(i){
-        var size = $(this).find(".hidden").text();
+        var actualsize = $(this).find(".hidden").text();
+        var size = actualsize * 12;
         var offset = size / 2;
-        if (size >= 1 && size <= 20) {size = 20, offset = 10;}
+        if (actualsize == 1) {size = 20, offset = 10;}
+        else if (actualsize == 2) {size = 30, offset = 15;}
+        else if (actualsize == 3) {size = 40, offset = 20;}
+        else if (actualsize == 4) {size = 50, offset = 25;}
+        else if (actualsize == 5) {size = 60, offset = 30;}
+        else if (actualsize == 6) {size = 70, offset = 35;}
+        else if (actualsize == 7) {size = 80, offset = 40;}
+        else if (actualsize == 8) {size = 90, offset = 45;}
+        else if (actualsize == 9) {size = 100, offset = 50;}
+        else if (actualsize >= 10) {size = 110, offset = 55;}
         $(this).find("img").attr("src","<%= staticPrefix %>images/blueblob-dk.png");
         $(this).find(".measure").css({'width':+size+'px','height':+size+'px','top':'-'+offset+'px','left':'-'+offset+'px'});
     });
     $(".day a").each(function(i){
         var dateClass = $(this).attr("class");
         var dateId = "#"+dateClass;
-        $(this).hover(function(){
-            $(dateId).removeClass("opacity20");
-        },function(){
-            $(dateId).addClass("opacity20");    
-        });
+        $(this).hover(
+            function(){$(dateId).removeClass("opacity20");},
+            function(){$(dateId).addClass("opacity20");}
+        );
     });
     $(".tooltip").bt({
         positions: ['top','right','left','bottom'],
@@ -181,183 +191,7 @@ $().ready(function(){
         }
     });
 });
-</script>
-<style type="text/css">
-body,div,p,td,th,ul,ol,li {margin:0;padding:0;}
-body {background-color:#fff;font-family:"Arial","Helvetica Neue","Helvetica",sans-serif;font-size:100%;}
-img {border:none;}
-a {color:#069;}
-.clearfix{width:100%;clear:both;}
-.clearfix:after {content:".";display:block;height:0;clear:both;visibility:hidden;}
-#position {padding:0;margin:0 auto;width:990px;background-color:#fff;}
-#wbCalendar {position:relative;width:990px;margin-top:25px;}
-.calPosition {padding:15px 0 25px 25px;}
-#calUnder {overflow:hidden;}
-#calOver {position:absolute;top:0;left:0;}
-.hidden{display:none;}
-.opacity20 {
-    opacity:.2;
-	-ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=20)";
-	filter: alpha(opacity=20);
-}
-.month {
-    width: 240px;
-    height: 210px;
-    float: left;
-}
-.month table {
-    border-collapse: collapse;
-    font-family: "Arial", sans-serif;
-    border-spacing: 1px;
-}
-.month table th {
-    font-size: 0.75em;
-    font-weight: 700;
-    text-transform: uppercase;
-    padding: 6px;
-}
-.month table span.label {
-    display: block;
-    min-height: 20px;
-}
-.month table td {
-    padding: 0;
-    vertical-align: middle;
-    color: #666;
-}
-.month table td .day {
-    width: 30px;
-    height: 30px;
-    text-align: center;
-}
-.month table td .day a,
-.month table td .day span {
-    display: block;
-    font-size: 0.6875em;
-    width: 30px;
-    height: 22px;
-    padding-top: 8px;
-}
-.month table td .day a {
-    color: #000;
-    font-weight: 700;
-    text-decoration: none;
-}
-.month table td .day span {
-    padding-top: 9px;
-    height: 19px;
-}
-.month table td .day a:hover {
-    font-size: 0.9375em;
-    padding-top: 6px;
-    height: 22px;
-}
-.month table td .date {
-    width: 30px;
-    height: 30px;
-}
-.month table td .position {
-    position: relative;
-    top: 15px;
-    left: 15px;
-    width: 1px;
-    height: 1px;
-}
-.month table td .measure {
-    position: absolute;
-}
-.activeHighlight {
-    background-color: #000!important;
-    padding-top: 4px;
-    font-size: 1.375em!important;
-    color: #fff300!important;
-    font-weight: normal!important;
-    cursor: pointer;
-}
-.inactiveHighlight {
-    background-color: #fff!important;
-    padding-top: 4px;
-    font-size: .75em!important;
-    color: #000!important;
-    font-weight: normal!important;
-    cursor: pointer;
-}
 
-.bt-content {
-  text-align: left;
-}
-.pop {display:none;}
-.bt-content h3 {font-size: 1em;font-weight: 700;text-transform: uppercase;margin:0 0 5px;}
-.bt-content p {font-size: 0.875em;margin: 5px 0;color:#666;}
-.bt-content ul {line-height:1.5em;margin:0 0 0 1em;}
-.bt-content em {color:#999;}
-.bt-content a:hover {color:#036;}
-
-#wbSearch {float:left;padding:30px 30px 0;}
-#wbSearch #logo {float:left; width:223px;}
-#wbSearch #form {float:left;width:707px;}
-#wbSearch form {margin:0;padding:0;}
-#wbSearch input {font-family:"Arial","Helvetica Neue","Helvetica",sans-serif;font-size:1.125em;}
-#wbSearch input[type=text] {width:450px;font-weight:700;}
-#wbSearch input[type=submit] {vertical-align: middle;}
-#wbMeta {padding:15px 0;}
-#wbMeta p {margin:0 0 2px;padding:0;}
-#wbMeta p.wbThis {font-size:0.75em;}
-#wbMeta p.wbNote {color:#666;font-size: 0.6875em;}
-#wbMeta p.wbNote a {color:#666;}
-#wbChart {text-align:center;padding:0 30px;}
-#wbChartThis {position:relative;margin:0 auto;}
-.wbChartThisContainer,.wbChartHover {width:<%= yearWidth %>px;height:30px;float:left;overflow:visible;}
-.wbChartThisTop {
-    width: <%= yearWidth %>px;
-    height: 80px;
-    border: 1px solid #ccc;
-}
-.wbGradient {
-    background: #f3f3f3 -moz-linear-gradient(top,#ffffff,#f3f3f3);
-    background: #f3f3f3 -webkit-gradient(linear, left top, left bottom, from(#fff), to(#f3f3f3), color-stop(1.0, #f3f3f3));
-    background-color: #f3f3f3;
-    filter: progid:DXImageTransform.Microsoft.Gradient(enabled='true',startColorstr=#FFFFFFFF, endColorstr=#FFF3F3F3);
-}
-.wbSelected, #wbSelected {
-    background: #fff300!important;
-    border-bottom: 1px solid #000!important;
-    filter: progid:DXImageTransform.Microsoft.Gradient(enabled='false')!important;
-    cursor: pointer;
-}
-#wbSelected {
-    cursor: default!important;
-}
-.wbChartThisBtm {
-    text-align:center;
-}
-.wbChartSm {
-    padding-top: 4px;
-    font-size: 0.625em;
-    color: #999;
-    font-weight: 700;
-}
-.wbChartBig, #wbChartBig {
-    background-color: #000!important;
-    padding-top: 4px;
-    font-size: 1.375em!important;
-    color: #fff300!important;
-    font-weight: normal!important;
-    cursor: pointer;
-}
-#wbChartBig {
-    cursor: default!important;
-}
-#wbChartGraph,#wbChartOver {
-    position: absolute;
-    top: 1px;
-    left: 1px;
-    cursor: pointer;
-}
-
-</style>
-
-<script type="text/javascript">
 $().ready(function(){
     var yrCount = $(".wbChartThisContainer").size();
     var yrTotal = <%= yearWidth %> * yrCount;
@@ -366,14 +200,41 @@ $().ready(function(){
 });
 </script>
 
-<div id="wbChart">
+<div id="position">
+
+
+    <div id="wbSearch">
+    
+        <div id="logo">
+            <a href="/index.jsp"><img src="<%= staticPrefix %>images/logo_WM.png" alt="logo: Internet Archive's Wayback Machine" width="183" height="65" /></a>
+        </div>
+
+        <div id="form">
+        
+            <form name="form1" method="get" action="<%= queryPrefix %>query">
+			<input type="hidden" name="<%= WaybackRequest.REQUEST_TYPE %>" value="<%= WaybackRequest.REQUEST_CAPTURE_QUERY %>">
+			<input type="text" name="<%= WaybackRequest.REQUEST_URL %>" value="<%= data.searchUrlForHTML %>" size="40">
+            <input type="submit" name="Submit" value="Go Wayback!"/>
+            </form>
+    
+            <div id="wbMeta">
+                <p class="wbThis"><a href="<%= data.searchUrlForHTML %>"><%= data.searchUrlForHTML %></a> has been crawled <strong><%= fmt.format("{0} times",data.numResults) %></strong> going all the way back to <a href="firstcapture"><%= fmt.format("{0,date,MMM dd yyyy}",data.firstResultDate) %></a>.</p>
+                <p class="wbNote">A crawl can be a duplicate of the last one. It happens about [num]% of the time across [NUM] websites. <a href="FAQ">FAQ</a></p>
+            </div>
+        </div>
+        
+    </div>
+    
+    <div class="clearfix"></div>
+
+    <div id="wbChart" onmouseout="showTrackers('none'); setActiveYear(startYear);">
     
   <div id="wbChartThis">
         <a style="position:relative; white-space:nowrap; width:<%= imgWidth %>px;height:<%= imgHeight %>px;" href="" id="wm-graph-anchor">
         <div id="wm-ipp-sparkline" style="position:relative; white-space:nowrap; width:<%= imgWidth %>px;height:<%= imgHeight %>px;background: #f3f3f3 -moz-linear-gradient(top,#ffffff,#f3f3f3);background: #f3f3f3 -webkit-gradient(linear, left top, left bottom, from(#fff), to(#f3f3f3), color-stop(1.0, #f3f3f3));background-color: #f3f3f3;filter: progid:DXImageTransform.Microsoft.Gradient(enabled='true',startColorstr=#FFFFFFFF, endColorstr=#FFF3F3F3);cursor:pointer;border: 1px solid #ccc;border-left:none;" title="<%= fmt.format("ToolBar.sparklineTitle") %>">
 			<img id="sparklineImgId" style="position:absolute;z-index:9012;top:0;left:0;"
 				onmouseover="showTrackers('inline');" 
-				onmouseout="showTrackers('none');"
+				
 				onmousemove="trackMouseMove(event,this)"
 				alt="sparklines"
 				width="<%= imgWidth %>"
@@ -385,13 +246,13 @@ $().ready(function(){
 				width="<%= yearWidth %>" 
 				height="<%= imgHeight %>"
 				border="0"
-				src="<%= staticPrefix %>images/toolbar/transp-yellow-pixel.png"></img>
+				src="<%= staticPrefix %>images/toolbar/yellow-pixel.png"></img>
 			<img id="wbMouseTrackMonthImg"
 				style="display:none; position:absolute; z-index:9011; " 
 				width="<%= monthWidth %>"
 				height="<%= imgHeight %>" 
 				border="0"
-				src="<%= staticPrefix %>images/toolbar/transp-red-pixel.png"></img>
+				src="<%= staticPrefix %>images/toolbar/transp-black-pixel.png"></img>
         </div>
         </a>
         	<%
@@ -406,7 +267,6 @@ $().ready(function(){
 	                
 	                	<div id="highlight-<%= i - 1996 %>"
 						onmouseover="showTrackers('inline'); setActiveYear(<%= i - 1996 %>)" 
-						onmouseout="showTrackers('none');"
 	                	class="<%= curClass %>"><%= i %></div>
 	                </a>
 	            </div>
@@ -461,12 +321,13 @@ for(int moy = 0; moy < 12; moy++) {
 				String replayUrl = uriConverter.makeReplayURI(
 							firstCaptureInDay.getCaptureTimestamp(),
 							firstCaptureInDay.getOriginalUrl());
+				Date firstCaptureInDayDate = firstCaptureInDay.getCaptureDate();
 				String safeUrl = fmt.escapeHtml(replayUrl);		
 				%><td>
                     <div class="date">
                         <div class="position">
                            <div class="hidden"><%= count %></div>
-                           <div class="measure opacity20" id=""><img width="100%" height="100%"/></div>
+                           <div class="measure opacity20" id="<%= fmt.format("{0,date,MMM-d-yyyy}",firstCaptureInDayDate) %>"><img width="100%" height="100%"/></div>
                         </div>
                     </div>
 				</td><%
@@ -541,13 +402,12 @@ for(int moy = 0; moy < 12; moy++) {
 						firstCaptureInDay.getOriginalUrl());
 				Date firstCaptureInDayDate = firstCaptureInDay.getCaptureDate();
 				String safeUrl = fmt.escapeHtml(replayUrl);
-				int dupes = 999;
 
 				%><td>
                     <div class="date tooltip">
                         <div class="pop">
                             <h3><%= fmt.format("{0,date,MMMMM d, yyyy}",firstCaptureInDayDate) %></h3>
-                            <p><%= count %> snapshots, <em><%= dupes %> duplicates</em></p>
+                            <p><%= count %> snapshots</p>
                             <ul>
 							<%
 							Iterator<CaptureSearchResult> dayItr = 
@@ -566,7 +426,7 @@ for(int moy = 0; moy < 12; moy++) {
                         </div>
                         <div class="day">
 
-                            <a href="<%= safeUrl %>" title="<%= count %> snapshots (<%= dupes %> duplicates)" class="<%= fmt.format("{0,date,MMM-d-yyyy}",firstCaptureInDayDate) %>"><%= dom + 1 %></a>
+                            <a href="<%= safeUrl %>" title="<%= count %> snapshots" class="<%= fmt.format("{0,date,MMM-d-yyyy}",firstCaptureInDayDate) %>"><%= dom + 1 %></a>
                         </div>
                     </div>
 			      </td><%
@@ -601,4 +461,4 @@ for(int moy = 0; moy < 12; moy++) {
 }
 %>
     </div>
-  </div>
+<jsp:include page="/WEB-INF/global-template/UI-footer.jsp" flush="true" />
