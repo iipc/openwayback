@@ -266,7 +266,8 @@ public class FastArchivalUrlReplayParseEventHandler implements
 		
 		OutputStream out = context.getOutputStream();
 		if(out != null) {
-			Charset charset = Charset.forName(context.getOutputCharset());
+//			Charset charset = Charset.forName(context.getOutputCharset());
+			String charset = context.getOutputCharset();
 
 			if(pre != null) {
 
@@ -341,7 +342,8 @@ public class FastArchivalUrlReplayParseEventHandler implements
 				e.printStackTrace();
 			}
 			if(tmp != null) {
-				Charset charset = Charset.forName(context.getOutputCharset());
+//				Charset charset = Charset.forName(context.getOutputCharset());
+				String charset = context.getOutputCharset();
 				out.write(tmp.getBytes(charset));
 			}
 		}
