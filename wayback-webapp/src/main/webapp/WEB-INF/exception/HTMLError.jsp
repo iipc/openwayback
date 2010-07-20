@@ -36,7 +36,7 @@ StringFormatter fmt = results.getWbRequest().getFormatter();
         <div id="positionHome">
             <section>
             <div id="logoHome">
-                <h1><span>Internet Archive's Wayback Machine</span></h1>
+                <a href="/index.jsp"><h1><span>Internet Archive's Wayback Machine</span></h1></a>
             </div>
             </section>
             <section>
