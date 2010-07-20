@@ -56,10 +56,8 @@ public class AuthenticationControlException extends WaybackException {
 		super(message,"Authenication Problem",details);
 		id = ID;
 	}
-	/**
-	 * @return the HTTP status code appropriate to this exception class.
-	 */
-	public int getStatus() {
-		return HttpServletResponse.SC_UNAUTHORIZED;
+	public void setupResponse(HttpServletResponse response) {
+		response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+		response.addHeader("WWW-Authenticate","Basic realm=\"Secured-Wayback\"");
 	}
 }
