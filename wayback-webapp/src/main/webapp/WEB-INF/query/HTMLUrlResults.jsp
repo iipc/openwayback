@@ -32,12 +32,10 @@ long lastResult = uResults.getReturnedCount() + firstResult;
 long totalCaptures = uResults.getMatchingCount();
 
 %>
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js" type="text/javascript"></script>
-<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.1/jquery-ui.min.js" type="text/javascript"></script>
+<script type="text/javascript" src="<%= staticPrefix %>js/jquery-1.4.2.min.js"></script>
 <script type="text/javascript" src="<%= staticPrefix %>js/jquery.dataTables.min.js" charset="utf-8"></script>
 <script type="text/javascript">
 $().ready(function(){
-    $(".dataTables_processing").show();
     $('#resultsUrl th.url span').html('&nbsp;&uarr;');
     $('#resultsUrl th').mouseup(function(){
                 \$('#resultsUrl th span').html('');
@@ -81,14 +79,11 @@ $().ready(function(){
                 });
             }
         });
-$(window).load(function(){
-
-});
 </script>
         <div id="positionHome">
             <section>
             <div id="logoHome">
-                <h1><span>Internet Archive's Wayback Machine</span></h1>
+                <a href="/index.jsp"><h1><span>Internet Archive's Wayback Machine</span></h1></a>
             </div>
             </section>
             <section>
