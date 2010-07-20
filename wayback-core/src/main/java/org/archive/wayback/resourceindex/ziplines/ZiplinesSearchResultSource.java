@@ -25,21 +25,16 @@
 
 package org.archive.wayback.resourceindex.ziplines;
 
-import it.unimi.dsi.mg4j.util.FrontCodedStringList;
-
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import org.apache.log4j.Logger;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
 import org.archive.wayback.resourceindex.SearchResultSource;
-import org.archive.wayback.resourceindex.SequencedSearchResultSource;
 import org.archive.wayback.resourceindex.cdx.CDXFormatToSearchResultAdapter;
 import org.archive.wayback.resourceindex.cdx.format.CDXFormat;
 import org.archive.wayback.resourceindex.cdx.format.CDXFormatException;
@@ -73,6 +68,8 @@ import org.archive.wayback.util.flatfile.FlatFile;
  *
  */
 public class ZiplinesSearchResultSource implements SearchResultSource {
+	private static final Logger LOGGER = Logger.getLogger(
+			ZiplinesSearchResultSource.class.getName());
 
 	/**
 	 * Local path containing map of URL,TIMESTAMP,CHUNK,OFFSET for each 128K chunk
@@ -100,6 +97,8 @@ public class ZiplinesSearchResultSource implements SearchResultSource {
 			String line = lines.next();
 			String[] parts = line.split("\\s");
 			if(parts.length != 2) {
+				LOGGER.error("Bad line(" + line +") in (" + 
+						chunkMapPath + ")");
 				throw new IOException("Bad line(" + line +") in (" + 
 						chunkMapPath + ")");
 			}
@@ -152,6 +151,8 @@ public class ZiplinesSearchResultSource implements SearchResultSource {
 				numBlocks++;
 				String parts[] = blockDescriptor.split("\t");
 				if(parts.length != 3) {
+					LOGGER.error("Bad line(" + blockDescriptor +") in (" + 
+							chunkMapPath + ")");
 					throw new ResourceIndexNotAvailableException("Bad line(" + 
 							blockDescriptor + ")");
 				}
