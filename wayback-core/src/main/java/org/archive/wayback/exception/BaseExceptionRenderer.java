@@ -142,8 +142,13 @@ public class BaseExceptionRenderer implements ExceptionRenderer {
 			}
 		}
 		if(!handled) {
-			uiResults.forwardWrapped(httpRequest, httpResponse,
-					errorJsp, wbRequest.getAccessPoint().getWrapperJsp());
+			String wrapperJsp = wbRequest.getAccessPoint().getWrapperJsp();
+			if(wrapperJsp != null) {
+				uiResults.forwardWrapped(httpRequest, httpResponse,
+						errorJsp, wrapperJsp);
+			} else {
+				uiResults.forward(httpRequest, httpResponse, errorJsp);
+			}
 		}
 	}
 
