@@ -329,8 +329,13 @@ implements ShutdownListener {
 			CaptureSearchResult closest = captureResults.getClosest(wbRequest, 
 					isUseAnchorWindow());
 			closest.setClosest(true);
-			resource = 
-				getCollection().getResourceStore().retrieveResource(closest);
+			try {
+				resource = 
+					getCollection().getResourceStore().retrieveResource(closest);
+			} catch (ResourceNotAvailableException rnae) {
+				rnae.setCaptureSearchResults((CaptureSearchResults)results);
+				throw rnae;
+			}
 			p.retrieved();
 			ReplayRenderer renderer = 
 				getReplay().getRenderer(wbRequest, closest, resource);
