@@ -26,6 +26,9 @@ package org.archive.wayback.exception;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.archive.wayback.core.CaptureSearchResults;
+import org.archive.wayback.core.SearchResults;
+
 /**
  * Exception class for queries which matching resource is not presently
  * accessible
@@ -39,6 +42,7 @@ public class ResourceNotAvailableException extends WaybackException {
 	 */
 	private static final long serialVersionUID = 1L;
 	protected static final String ID = "resourceNotAvailable";
+	private CaptureSearchResults results;
 
 	/**
 	 * Constructor
@@ -64,5 +68,14 @@ public class ResourceNotAvailableException extends WaybackException {
 	 */
 	public int getStatus() {
 		return HttpServletResponse.SC_SERVICE_UNAVAILABLE;
+	}
+	/**
+	 * @param results
+	 */
+	public void setCaptureSearchResults(CaptureSearchResults results) {
+		this.results = results;
+	}
+	public CaptureSearchResults getCaptureSearchResults() {
+		return results;
 	}
 }
