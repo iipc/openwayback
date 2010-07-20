@@ -43,6 +43,7 @@ import org.archive.wayback.exception.AccessControlException;
 import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
+import org.archive.wayback.exception.RuntimeIOException;
 import org.archive.wayback.resourceindex.adapters.CaptureToUrlSearchResultIterator;
 import org.archive.wayback.resourceindex.filterfactory.AccessPointCaptureFilterGroupFactory;
 import org.archive.wayback.resourceindex.filterfactory.CaptureFilterGroup;
@@ -173,6 +174,9 @@ public class LocalResourceIndex implements ResourceIndex {
 		WindowFilterGroup<CaptureSearchResult> window = 
 			new WindowFilterGroup<CaptureSearchResult>(wbRequest,this);
 		List<CaptureFilterGroup> groups = getRequestFilterGroups(wbRequest); 
+		if(filter != null) {
+			filters.addFilter(filter);
+		}
 
 		for(CaptureFilterGroup cfg : groups) {
 			filters.addFilters(cfg.getFilters());
@@ -182,16 +186,17 @@ public class LocalResourceIndex implements ResourceIndex {
 		CloseableIterator<CaptureSearchResult> itr = 
 			new ObjectFilterIterator<CaptureSearchResult>(
 					source.getPrefixIterator(urlKey),filters);
-
-		while(itr.hasNext()) {
-			results.addSearchResult(itr.next());
+		try {
+			while(itr.hasNext()) {
+				results.addSearchResult(itr.next());
+			}
+		} catch(RuntimeIOException e) {
+			throw new ResourceIndexNotAvailableException(e.getLocalizedMessage());
 		}
-		
 		for(CaptureFilterGroup cfg : groups) {
 			cfg.annotateResults(results);
 		}
 		window.annotateResults(results);
-
 		cleanupIterator(itr);
 
 		return results;

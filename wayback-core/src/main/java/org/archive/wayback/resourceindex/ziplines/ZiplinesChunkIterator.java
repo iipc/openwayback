@@ -38,6 +38,8 @@ import java.util.RandomAccess;
 import java.util.zip.GZIPInputStream;
 
 import org.apache.log4j.Logger;
+import org.archive.wayback.exception.ResourceIndexNotAvailableException;
+import org.archive.wayback.exception.RuntimeIOException;
 import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.webapp.AccessPoint;
 
@@ -88,7 +90,7 @@ public class ZiplinesChunkIterator implements CloseableIterator<String> {
 					try {
 						br = blockItr.next().readBlock();
 					} catch (IOException e) {
-						e.printStackTrace();
+						throw new RuntimeIOException();
 					}
 				} else {
 					return false;
