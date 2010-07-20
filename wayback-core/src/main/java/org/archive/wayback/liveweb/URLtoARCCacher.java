@@ -88,7 +88,8 @@ public class URLtoARCCacher {
     		manager.getParams().setSoTimeout(socketTimeoutMS);
     		http.setHttpConnectionManager(manager);
     		HttpClientParams clientParams = new HttpClientParams();
-    		clientParams.setParameter("http.useragent", userAgent);
+//    		LOGGER.warn("Setting HTTP UserAgent to " + userAgent);
+//    		clientParams.setParameter("http.useragent", userAgent);
 			return http;
         }
     };
@@ -135,6 +136,7 @@ public class URLtoARCCacher {
 			HttpClient client = getHttpClient();
 			getMethod.getParams().setCookiePolicy(CookiePolicy.IGNORE_COOKIES);
 			getMethod.setFollowRedirects(false);
+			getMethod.setRequestHeader("User-Agent", userAgent);
 			int code = client.executeMethod(getMethod);
 			LOGGER.info("URL(" + url + ") HTTP:" + code);
 			ByteOp.discardStream(getMethod.getResponseBodyAsStream());
