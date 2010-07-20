@@ -88,9 +88,9 @@ public class CDXFormat {
 	 * *** future data
 	 */
 
-	private CDXField[] fields = null;
-	private char delimiter = ' ';
-	private String delimiterS = null;
+	protected CDXField[] fields = null;
+	protected char delimiter = ' ';
+	protected String delimiterS = null;
 	
 	public static String CDX_MAGIC = " CDX";
 	
