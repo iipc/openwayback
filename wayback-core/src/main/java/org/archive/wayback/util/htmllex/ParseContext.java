@@ -106,6 +106,11 @@ public class ParseContext {
 			url = url.substring(0,hashIdx);
 		}
 		try {
+			if(baseUrl == null) {
+				// TODO: log
+				System.err.println("No url to resolve!");
+				return url;
+			}
 			return baseUrl.resolve(url,false).toString() + frag;
 //			return UURIFactory.getInstance(baseUrl, url).toString() + frag;
 		} catch (URIException e) {
