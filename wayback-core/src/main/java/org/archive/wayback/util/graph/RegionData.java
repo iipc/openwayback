@@ -66,6 +66,12 @@ public class RegionData {
 		return highlightedValue;
 	}
 	/**
+	 * sets the highlighted value index, or removes highlight if -1 is used
+	 */
+	public void setHighlightedValue(int highlightedValue) {
+		this.highlightedValue = highlightedValue;
+	}
+	/**
 	 * @return the raw array of values for this region
 	 */
 	public int[] getValues() {
