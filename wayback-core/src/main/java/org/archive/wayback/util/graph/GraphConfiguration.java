@@ -38,10 +38,15 @@ import java.awt.image.BufferedImage;
  *
  */
 public class GraphConfiguration {
-    final static BasicStroke dashed = new BasicStroke(1.0f, 
-                                          BasicStroke.CAP_BUTT, 
-                                          BasicStroke.JOIN_MITER, 
-                                          1.0f, new float[] {1.0f}, 0.0f);
+    final static BasicStroke dashedStroke = new BasicStroke(1.0f, 
+            BasicStroke.CAP_BUTT, 
+            BasicStroke.JOIN_MITER, 
+            1.0f, new float[] {1.0f}, 0.0f);
+
+    final static BasicStroke solidStroke = new BasicStroke(1.0f, 
+            BasicStroke.CAP_BUTT, 
+            BasicStroke.JOIN_MITER, 
+            1.0f);
 
     /**
      * type of BufferedImage to create, specifically the final constructor arg.
@@ -82,25 +87,27 @@ public class GraphConfiguration {
 	/**
 	 * color for Year/Month border lines
 	 */
-	public Color regionBorderColor = Color.darkGray;
+	public Color regionBorderColor = new Color(204,204,204,255);
+//	public Color regionBorderColor = Color.darkGray;
+	
 	/**
 	 * Stroke for Year/Month border lines
 	 */
-	public Stroke regionBorderStroke = dashed;
+	public Stroke regionBorderStroke = solidStroke;
 
 	/**
 	 * Background color for active/selected Year/Month
 	 */
-	public Color regionHighlightColor = new Color(255,255,25,128);
+	public Color regionHighlightColor = new Color(255,255,0,90);
 
 	/**
 	 * color for non-active/selected graph values
 	 */
 	public Color valueColor = Color.black;
 	/**
-	 * color for active/selected graph values
+	 * color for active/selected graph values ( #ec008c )
 	 */
-	public Color valueHighlightColor = Color.red;
+	public Color valueHighlightColor = new Color(236,0,140,255);
 
 	/**
 	 * Minimum pixel height for non-zero graph values
