@@ -77,6 +77,19 @@ public class TextDocument {
 		this.uriConverter = uriConverter;
 	}
 
+	public void addBase() {
+
+		// TODO: get url from Resource instead of SearchResult?
+		String pageUrl = result.getOriginalUrl();
+		String captureDate = result.getCaptureTimestamp();
+
+		String existingBaseHref = TagMagix.getBaseHref(sb);
+		if (existingBaseHref == null) {
+			insertAtStartOfHead("<base href=\"" + pageUrl + "\" />");
+		} else {
+			pageUrl = existingBaseHref;
+		}
+   }
 
 	/**
 	 * Update URLs inside the page, so those URLs which must be correct at
