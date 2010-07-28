@@ -40,7 +40,7 @@ int secs = 5;
         <div id="positionHome">
             <section>
             <div id="logoHome">
-                <h1><span>Internet Archive's Wayback Machine</span></h1>
+                <a href="/index.jsp"><h1><span>Internet Archive's Wayback Machine</span></h1></a>
             </div>
             </section>
             <section>
@@ -52,10 +52,10 @@ int secs = 5;
 	window.setTimeout("go()",<%= secs * 1000 %>);
 	</script>
 		<p class="code">Loading...</p>
-		<p class="code shift"><%= safeSource %> | <%= prettyDate %></p>
+		<p class="code shift target"><%= safeSource %> | <%= prettyDate %></p>
 		<p class="code shift red">Got an HTTP 302 response at crawl time</p>
 		<p class="code">Redirecting to...</p>
-		<p><%= safeTarget %></p>
+		<p class="code shift target"><%= safeTarget %></p>
         <p class="impatient"><a href="<%= safeTargetReplayUrl %>">Impatient?</a></p>
             </div>
             </section>
