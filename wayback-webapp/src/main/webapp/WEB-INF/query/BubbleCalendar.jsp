@@ -164,7 +164,7 @@ $().ready(function(){
         positions: ['top','right','left','bottom'],
         contentSelector: "$(this).find('.pop').html()",
         padding: 0, 
-        width: '115px',
+        width: '130px',
         spikeGirth: 8, 
         spikeLength: 8,
         overlap: 0,
@@ -216,8 +216,8 @@ $().ready(function(){
             </form>
     
             <div id="wbMeta">
-                <p class="wbThis"><a href="<%= data.searchUrlForHTML %>"><%= data.searchUrlForHTML %></a> has been crawled <strong><%= fmt.format("{0} times",data.numResults) %></strong> going all the way back to <a href="firstcapture"><%= fmt.format("{0,date,MMMM d, yyyy}",data.firstResultDate) %></a>.</p>
-                <p class="wbNote">A crawl can be a duplicate of the last one. It happens about [num]% of the time across [NUM] websites. <a href="https://webarchive.jira.com/wiki/display/WWMOS/FAQs">FAQ</a></p>
+                <p class="wbThis"><a href="<%= data.searchUrlForHTML %>"><%= data.searchUrlForHTML %></a> has been crawled <strong><%= fmt.format("{0} times",data.numResults) %></strong> going all the way back to <a href="<%= data.firstResultReplayUrl %>"><%= fmt.format("{0,date,MMMM d, yyyy}",data.firstResultDate) %></a>.</p>
+                <p class="wbNote">A crawl can be a duplicate of the last one. It happens about 25% of the time across 420,000,000 websites. <a href="https://webarchive.jira.com/wiki/display/WWMOS/FAQs">FAQ</a></p>
             </div>
         </div>
         
@@ -459,4 +459,11 @@ for(int moy = 0; moy < 12; moy++) {
 }
 %>
     </div>
+  </div>
+  <div id="wbCalNote">
+    <h2>Note</h2>
+    <p>This calendar view maps the number of times <%= data.searchUrlForHTML %> was crawled by the Wayback Machine, <em>not</em> how many times the site was actually updated. More info in the <a href="https://webarchive.jira.com/wiki/display/WWMOS/FAQs">FAQ</a>.</p>
+  </div>
+</div>
+  
 <jsp:include page="/WEB-INF/global-template/UI-footer.jsp" flush="true" />
