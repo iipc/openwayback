@@ -22,21 +22,34 @@ if(toUrl == null) {
 	String safeTargetUrl = f.escapeHtml(toUrl);
 	String safeTargetUrlJS = f.escapeJavaScript(toUrl);
 	%>
+    <jsp:include page="/WEB-INF/global-template/UI-header.jsp" flush="true" />
+
+        <div id="positionHome">
+            <section>
+            <div id="logoHome">
+                <a href="/index.jsp"><h1><span>Internet Archive's Wayback Machine</span></h1></a>
+            </div>
+            </section>
+            <section>
+            <div id="error">
 	<script type="text/javascript">
 	function go() {
 		document.location.href = "<%= safeTargetUrlJS %>";
 	}
 	window.setTimeout("go()",<%= secs * 1000 %>);
 	</script>
-		<p>
-		  Thanks for visiting the Wayback Machine. We're about to redirect you
-		  to the page you requested:
-		</p>
-		<p><%= safeTargetUrl %></p>
-		<p>
-		  in <%= secs %> seconds.
-		  Click <a href="<%= safeTargetUrl %>">here</a> to go now.
-		</p>
+	    <h2 class="blue">Hello.</h2>
+		<p class="code">Loading...</p>
+		<p class="code shift">[Month 00, 0000]</p>
+		<p class="code">Loading...</p>
+		<p class="code shift"><%= safeTargetUrl %></p>
+		<p class="impatient"><a href="<%= safeTargetUrl %>">Impatient?</a></p>
 <%	
 }
 %>
+
+            </div>
+            </section>
+            <div id="errorBorder"></div>
+
+<jsp:include page="/WEB-INF/global-template/UI-footer.jsp" flush="true" />
