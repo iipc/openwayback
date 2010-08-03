@@ -83,7 +83,7 @@ import org.archive.wayback.util.webapp.ShutdownListener;
 public class AccessPoint extends AbstractRequestHandler 
 implements ShutdownListener {
 	/** webapp relative location of Interstitial.jsp */
-	public final static String INTERSTITIAL_JSP = "jsp/Interstitial-wrap.jsp";
+	public final static String INTERSTITIAL_JSP = "jsp/Interstitial.jsp";
 	/** argument for Interstitial.jsp target URL */
 	public final static String INTERSTITIAL_TARGET = "target";
 	/** argument for Interstitial.jsp seconds to delay */
