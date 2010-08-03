@@ -41,11 +41,11 @@
       <list>
         <bean class="org.archive.wayback.resourcestore.resourcefile.DirectoryResourceFileSource">
           <property name="name" value="files1" />
-          <property name="prefix" value="/tmp/wayback/files1/" />
+          <property name="prefix" value="${wayback.basedir}/files1/" />
         </bean>
         <bean class="org.archive.wayback.resourcestore.resourcefile.DirectoryResourceFileSource">
           <property name="name" value="files2" />
-          <property name="prefix" value="/tmp/wayback/files2/" />
+          <property name="prefix" value="${wayback.basedir}/files2/" />
         </bean>
       </list>
     </property>
