@@ -13,7 +13,7 @@
 <%@ page import="org.archive.wayback.partition.BubbleCalendarData" %>
 <%@ page import="org.archive.wayback.util.partition.Partition" %>
 <%@ page import="org.archive.wayback.util.StringFormatter" %>
-<jsp:include page="/WEB-INF/global-template/UI-header.jsp" flush="true" />
+<jsp:include page="/WEB-INF/template/UI-header.jsp" flush="true" />
 <jsp:include page="/WEB-INF/template/CookieJS.jsp" flush="true" />
 <%
 UIResults results = UIResults.extractCaptureQuery(request);
@@ -466,4 +466,4 @@ for(int moy = 0; moy < 12; moy++) {
   </div>
 </div>
   
-<jsp:include page="/WEB-INF/global-template/UI-footer.jsp" flush="true" />
+<jsp:include page="/WEB-INF/template/UI-footer.jsp" flush="true" />

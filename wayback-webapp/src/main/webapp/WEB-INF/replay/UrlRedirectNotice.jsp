@@ -35,7 +35,7 @@ String prettyDate = fmt.format("MetaReplay.captureDateDisplay",captureDate);
 int secs = 5;
 
 %>
-    <jsp:include page="/WEB-INF/global-template/UI-header.jsp" flush="true" />
+    <jsp:include page="/WEB-INF/template/UI-header.jsp" flush="true" />
 
         <div id="positionHome">
             <section>
@@ -61,4 +61,4 @@ int secs = 5;
             </section>
             <div id="errorBorder"></div>
 
-        <jsp:include page="/WEB-INF/global-template/UI-footer.jsp" flush="true" />
+        <jsp:include page="/WEB-INF/template/UI-footer.jsp" flush="true" />

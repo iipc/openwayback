@@ -31,7 +31,7 @@ String requestUrl = wbr.getRequestUrl();
 
 StringFormatter fmt = results.getWbRequest().getFormatter();
 %>
-<jsp:include page="/WEB-INF/global-template/UI-header.jsp" flush="true" />
+<jsp:include page="/WEB-INF/template/UI-header.jsp" flush="true" />
 
         <div id="positionHome">
             <section>
@@ -139,4 +139,4 @@ if(e instanceof ResourceNotInArchiveException) {
             </section>
             <div id="errorBorder"></div>
 
-<jsp:include page="/WEB-INF/global-template/UI-footer.jsp" flush="true" />
+<jsp:include page="/WEB-INF/template/UI-footer.jsp" flush="true" />
