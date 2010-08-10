@@ -28,6 +28,8 @@ package org.archive.wayback.util.htmllex;
 import java.net.URI;
 import java.net.URL;
 
+import org.htmlparser.util.Translate;
+
 import junit.framework.TestCase;
 
 /**
@@ -36,6 +38,19 @@ import junit.framework.TestCase;
  */
 public class ParseContextTest extends TestCase {
 
+	/**
+	 * 
+	 */
+	public void testTranslate() {
+		String orig = "http://foo.com/main?arg1=1&lang=2";
+		String xlated = Translate.decode(orig);
+		System.out.format("Orig(%s) xlated(%s)\n",orig,xlated);
+		String orig2 = "&#32;               gaz.cgi?foo=bar&lang=2";
+		String xlated2 = Translate.decode(orig2);
+		System.out.format("Orig2(%s) xlated2(%s)\n",orig2,xlated2);
+		
+	}
+	
 	/**
 	 * Test method for {@link org.archive.wayback.util.htmllex.ParseContext#contextualizeUrl(java.lang.String)}.
 	 */
