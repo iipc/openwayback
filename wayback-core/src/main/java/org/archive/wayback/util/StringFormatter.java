@@ -104,8 +104,8 @@ public class StringFormatter {
 		try {
 			return getFormat(getLocalized(key)).format(objects);
 		} catch (Exception e) {
-			e.printStackTrace();
-			
+			// TODO: log message
+			//e.printStackTrace();
 		}
 		return key;
 	}
