@@ -61,13 +61,7 @@ public class Renderer implements QueryRenderer {
 		if(wbRequest.isXMLMode()) {
 			uiResults.forward(httpRequest, httpResponse, xmlCaptureJsp);
 		} else {
-			String wrapperJsp = wbRequest.getAccessPoint().getWrapperJsp();
-			if(wrapperJsp != null) {
-				uiResults.forwardWrapped(httpRequest, httpResponse, 
-						captureJsp, wrapperJsp);
-			} else {
-				uiResults.forward(httpRequest, httpResponse, captureJsp);
-			}
+			uiResults.forward(httpRequest, httpResponse, captureJsp);
 		}
 	}
 
@@ -83,14 +77,7 @@ public class Renderer implements QueryRenderer {
 		if(wbRequest.isXMLMode()) {
 			uiResults.forward(httpRequest, httpResponse, xmlUrlJsp);
 		} else {
-			String wrapperJsp = wbRequest.getAccessPoint().getWrapperJsp();
-			if(wrapperJsp != null) {
-				
-				uiResults.forwardWrapped(httpRequest, httpResponse, 
-						urlJsp,wbRequest.getAccessPoint().getWrapperJsp());
-			} else {
-				uiResults.forward(httpRequest, httpResponse, urlJsp);
-			}
+			uiResults.forward(httpRequest, httpResponse, urlJsp);
 		}
 	}
 

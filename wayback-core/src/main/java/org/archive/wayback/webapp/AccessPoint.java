@@ -105,8 +105,6 @@ implements ShutdownListener {
 	private String queryPrefix = null;
 	private String replayPrefix = null;
 	
-//	private String wrapperJsp = "/WEB-INF/template/UI-wrapper.jsp";
-	private String wrapperJsp = null;
 	private String interstitialJsp = INTERSTITIAL_JSP;
 
 	private String refererAuth = null;
@@ -149,14 +147,7 @@ implements ShutdownListener {
 			wbRequest.fixup(httpRequest);
 			UIResults uiResults = new UIResults(wbRequest,uriConverter);
 			try {
-				if(wrapperJsp != null && 
-						translatedNoQuery.endsWith("-wrap.jsp")) {
-
-					uiResults.forwardWrapped(httpRequest, httpResponse, 
-							translatedQ, wrapperJsp);
-				} else {
-					uiResults.forward(httpRequest, httpResponse, translatedQ);
-				}
+				uiResults.forward(httpRequest, httpResponse, translatedQ);
 				return true;
 			} catch(IOException e) {
 				// TODO: figure out if we got IO because of a missing dispatcher
@@ -558,21 +549,6 @@ implements ShutdownListener {
 	 */
 	public String getQueryPrefix() {
 		return getBestPrefix(queryPrefix,staticPrefix,replayPrefix);
-	}
-	/**
-	 * @return the String url prefix to use when generating self referencing 
-	 * 			replay URLs
-	 */
-	public String getWrapperJsp() {
-		return wrapperJsp;
-	}
-
-	/**
-	 * @param wrapperJsp the .jsp file responsible for generating the HTML
-	 *      wrapper for content.
-	 */
-	public void setWrapperJsp(String wrapperJsp) {
-		this.wrapperJsp = wrapperJsp;
 	}
 
 	/**

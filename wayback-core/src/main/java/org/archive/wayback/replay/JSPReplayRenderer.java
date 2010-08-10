@@ -49,7 +49,6 @@ import org.archive.wayback.exception.WaybackException;
  */
 public class JSPReplayRenderer implements ReplayRenderer {
 	private String targetJsp = null;
-	private boolean wrap = true;
 
 	public void renderResource(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
@@ -58,13 +57,8 @@ public class JSPReplayRenderer implements ReplayRenderer {
 			throws ServletException, IOException, WaybackException {
 		UIResults uiResults =
 			new UIResults(wbRequest, uriConverter, results, result, resource);
-		if(wrap) {
-			uiResults.forwardWrapped(httpRequest, httpResponse, 
-					targetJsp, wbRequest.getAccessPoint().getWrapperJsp());
-		} else {
-			uiResults.forward(httpRequest, httpResponse, 
-					targetJsp);
-		}
+		uiResults.forward(httpRequest, httpResponse, 
+				targetJsp);
 	}
 	
 	/**
@@ -82,23 +76,4 @@ public class JSPReplayRenderer implements ReplayRenderer {
 	public void setTargetJsp(String targetJsp) {
 		this.targetJsp = targetJsp;
 	}
-
-	/**
-	 * @return true if the jsp should be wrapped in the stardard UI template
-	 * wrapper jsp for the AccessPoint.
-	 */
-	public boolean isWrap() {
-		return wrap;
-	}
-
-	/**
-	 * @param wrap if true then the jsp configured for this page will be 
-	 * wrapped in the standard template used for the current AccessPoint, if 
-	 * false then the jsp configured is responsible for rendering the entire
-	 * content.
-	 */
-	public void setWrap(boolean wrap) {
-		this.wrap = wrap;
-	}
-
 }
