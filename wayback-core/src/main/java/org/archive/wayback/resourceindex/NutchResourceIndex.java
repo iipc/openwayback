@@ -49,6 +49,7 @@ import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.util.Timestamp;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
@@ -215,7 +216,7 @@ public class NutchResourceIndex implements ResourceIndex {
 			results = new ArrayList<CaptureSearchResult>();
 		
 			for(int i = 0; i < numDates; i++) {
-				String captureDate = nodes.item(i).getTextContent();
+				String captureDate = getNodeTextValue(nodes.item(i));
 				CaptureSearchResult result = new CaptureSearchResult();
 				result.setFile(fileName);
 				result.setCaptureTimestamp(captureDate);
@@ -313,7 +314,7 @@ public class NutchResourceIndex implements ResourceIndex {
        NodeList nodes = e.getElementsByTagNameNS(NUTCH_NS, key);
        String result = null;
        if (nodes != null && nodes.getLength() > 0) {
-           result = nodes.item(0).getTextContent();
+           result = getNodeTextValue(nodes.item(0));
        }
        return (result == null || result.length() == 0)? null: result;
    }
@@ -323,10 +324,18 @@ public class NutchResourceIndex implements ResourceIndex {
        NodeList nodes = e.getElementsByTagName(key);
        String result = null;
        if (nodes != null && nodes.getLength() > 0) {
-           result = nodes.item(0).getTextContent();
+           result = getNodeTextValue(nodes.item(0));
        }
        return (result == null || result.length() == 0)? null: result;
    }
+	private String getNodeTextValue(Node n) {
+		if(n.hasChildNodes()) {
+			if(n.getFirstChild().getNodeName().equals("#text")) {
+				return n.getFirstChild().getNodeValue();
+			}
+		}
+		return "";
+	}
 
    // do an HTTP request, plus parse the result into an XML DOM
    protected synchronized Document getHttpDocument(String url) 

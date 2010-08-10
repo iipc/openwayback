@@ -190,10 +190,18 @@ public class RemoteResourceIndex implements ResourceIndex {
 		NodeList list = document.getElementsByTagName(
 				SearchResults.RESULTS_TYPE);
 		if(list.getLength() == 1) {
-			return list.item(0).getTextContent();
+			return getNodeTextValue(list.item(0));
 		} else {
 			return SearchResults.RESULTS_TYPE_CAPTURE;
 		}
+	}
+	private String getNodeTextValue(Node n) {
+		if(n.hasChildNodes()) {
+			if(n.getFirstChild().getNodeName().equals("#text")) {
+				return n.getFirstChild().getNodeValue();
+			}
+		}
+		return "";
 	}
 	
 	protected ObjectFilter<CaptureSearchResult> getSearchResultFilters(
@@ -224,7 +232,7 @@ public class RemoteResourceIndex implements ResourceIndex {
 		}
 		for(int i = 0; i < filters.getLength(); i++) {
 			String key = filters.item(i).getNodeName();
-			String value = filters.item(i).getTextContent();
+			String value = getNodeTextValue(filters.item(i));
 			if(!key.equals("#text")) {
 				results.putFilter(key,value);
 			}
@@ -288,7 +296,7 @@ public class RemoteResourceIndex implements ResourceIndex {
 		NodeList chitlens = e.getChildNodes();
 		for(int i = 0; i < chitlens.getLength(); i++) {
 			String key = chitlens.item(i).getNodeName();
-			String value = chitlens.item(i).getTextContent();
+			String value = getNodeTextValue(chitlens.item(i));
 			if(!key.equals("#text")) {
 				result.put(key,value);
 			}
@@ -330,7 +338,7 @@ public class RemoteResourceIndex implements ResourceIndex {
 		NodeList nodes = e.getElementsByTagName(key);
 		String result = null;
 		if (nodes != null && nodes.getLength() > 0) {
-			result = nodes.item(0).getTextContent();
+			result = getNodeTextValue(nodes.item(0));
 		}
 		return (result == null || result.length() == 0) ? null : result;
 	}
