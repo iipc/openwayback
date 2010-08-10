@@ -41,7 +41,7 @@ int monthWidth = 5;
 BubbleCalendarData data = new BubbleCalendarData(results);
 
 String yearEncoded = data.getYearsGraphString(imgWidth,imgHeight);
-String yearImgUrl = graphJspPrefix + "jsp/graph.jsp?graphdata=" + yearEncoded;
+String yearImgUrl = graphJspPrefix + "jsp/graph.jsp?nomonth=1&graphdata=" + yearEncoded;
 
 // a Calendar object for doing days-in-week, day-of-week,days-in-month math:
 Calendar cal = BubbleCalendarData.getUTCCalendar();
@@ -228,7 +228,7 @@ $().ready(function(){
     <div id="wbChart" onmouseout="showTrackers('none'); setActiveYear(startYear);">
     
   <div id="wbChartThis">
-        <a style="position:relative; white-space:nowrap; width:<%= imgWidth %>px;height:<%= imgHeight %>px;" href="" id="wm-graph-anchor">
+        <a style="position:relative; white-space:nowrap; width:<%= imgWidth %>px;height:<%= imgHeight %>px;" href="<%= queryPrefix %>" id="wm-graph-anchor">
         <div id="wm-ipp-sparkline" style="position:relative; white-space:nowrap; width:<%= imgWidth %>px;height:<%= imgHeight %>px;background: #f3f3f3 -moz-linear-gradient(top,#ffffff,#f3f3f3);background: #f3f3f3 -webkit-gradient(linear, left top, left bottom, from(#fff), to(#f3f3f3), color-stop(1.0, #f3f3f3));background-color: #f3f3f3;filter: progid:DXImageTransform.Microsoft.Gradient(enabled='true',startColorstr=#FFFFFFFF, endColorstr=#FFF3F3F3);cursor:pointer;border: 1px solid #ccc;border-left:none;" title="<%= fmt.format("ToolBar.sparklineTitle") %>">
 			<img id="sparklineImgId" style="position:absolute;z-index:9012;top:0;left:0;"
 				onmouseover="showTrackers('inline');" 
