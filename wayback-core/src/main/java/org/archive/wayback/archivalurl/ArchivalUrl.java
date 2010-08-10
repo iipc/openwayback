@@ -51,7 +51,7 @@ public class ArchivalUrl {
 		return toPrefixQueryString(wbRequest.getRequestUrl()); 			
 	}
 	public String toPrefixQueryString(String url) {
-		return toQueryString("url" + STAR);
+		return toQueryString(url) + STAR;
 	}
 	public String toQueryString(String url) {
 		String datespec = STAR;
