@@ -37,13 +37,18 @@ public class GraphEncoder {
 	 * convert a String-encoded graph into a usable Graph object, using 
 	 * default GraphConfiguration
 	 * @param encodedGraph String encoded graph, as returned by getEncoded()
+	 * @param noMonth if true, disable the month highlight color
 	 * @return a Graph, ready to use
 	 * @throws GraphEncodingException if there were problems with the encoded 
 	 * data
 	 */
-	public static Graph decode(String encodedGraph) 
+	public static Graph decode(String encodedGraph, boolean noMonth) 
 	throws GraphEncodingException {
-		return decode(encodedGraph, new GraphConfiguration());
+		GraphConfiguration config = new GraphConfiguration();
+		if(noMonth) {
+			config.valueHighlightColor = config.valueColor;
+		}
+		return decode(encodedGraph, config);
 	}
 	/**
 	 * convert a String-encoded graph into a usable Graph object, using 

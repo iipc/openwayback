@@ -67,6 +67,7 @@ public class RegionData {
 	}
 	/**
 	 * sets the highlighted value index, or removes highlight if -1 is used
+	 * @param highlightedValue the index of the bar to highlight.
 	 */
 	public void setHighlightedValue(int highlightedValue) {
 		this.highlightedValue = highlightedValue;
