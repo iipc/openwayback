@@ -138,7 +138,6 @@
           <property name="renderer">
             <bean class="org.archive.wayback.replay.JSPReplayRenderer">
               <property name="targetJsp" value="/WEB-INF/replay/UrlRedirectNotice.jsp" />
-              <property name="wrap" value="true" />
             </bean>
           </property>
         </bean>
