@@ -35,23 +35,6 @@ StringFormatter fmt = results.getWbRequest().getFormatter();
 
         <div id="positionHome">
             <section>
-            <div id="logoHome">
-                <a href="/index.jsp"><h1><span>Internet Archive's Wayback Machine</span></h1></a>
-            </div>
-            </section>
-            <section>
-            <div id="searchHome">
-                <form name="form1" method="get" action="<%= queryPrefix %>query">
-					<input type="hidden" name="<%= WaybackRequest.REQUEST_TYPE %>" value="<%= WaybackRequest.REQUEST_CAPTURE_QUERY %>">
-					<input type="text" name="<%= WaybackRequest.REQUEST_URL %>" value="http://" size="40">
-                    <button type="submit" name="Submit">Go Wayback!</button>
-                </form>
-                <div id="searchAdvHome">
-                    <a href="[ADVANCED SEARCH]">Advanced Search</a>
-                </div>
-            </div>
-            </section>
-            <section>
             <div id="error">
 
                 <h2><%= fmt.format(e.getTitleKey()) %></h2>
