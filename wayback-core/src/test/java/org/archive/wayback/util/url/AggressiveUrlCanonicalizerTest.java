@@ -181,6 +181,10 @@ public class AggressiveUrlCanonicalizerTest extends TestCase {
 				"http://legislature.mi.gov/(a(4hqa0555fwsecu455xqckv45)S(4hqa0555fwsecu455xqckv45)f(4hqa0555fwsecu455xqckv45))/mileg.aspx?page=sessionschedules",
 				"legislature.mi.gov/mileg.aspx?page=sessionschedules");
 
+		// '@' in path:
+		checkCanonicalization(
+				"http://www.flickr.com/photos/36050182@N05/",
+				"flickr.com/photos/36050182@n05/");
 
 
 

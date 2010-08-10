@@ -91,6 +91,8 @@ public class UrlOperationsTest extends TestCase {
 		assertEquals(null,UrlOperations.urlToUserInfo("http://foo.com:80/"));
 		assertEquals(null,UrlOperations.urlToUserInfo("http://foo.com:80"));
 		assertEquals(null,UrlOperations.urlToUserInfo("http://www.foo.com:80\\"));
+		assertEquals(null,UrlOperations.urlToUserInfo("http://www.flickr.com/photos/36050182@N05/"));
+		
 		
 		assertEquals("user",UrlOperations.urlToUserInfo("http://user@foo.com"));
 		assertEquals("user",UrlOperations.urlToUserInfo("http://user@www.foo.com"));
@@ -190,6 +192,8 @@ public class UrlOperationsTest extends TestCase {
 		assertSDP("http://b:80@foo.com/bar","http://b:80@foo.com/bar");
 		assertSDP("http://b:80@foo.com/bar","http://b:80@foo.com:80/bar");
 		assertSDP("http://b:80@foo.com:8080/ba","http://b:80@foo.com:8080/ba");
+		assertSDP("http://www.flickr.com/photos/36050182@N05/","http://www.flickr.com/photos/36050182@N05/");
+		
 	}
 	private void assertSDP(String want, String orig) {
 		String got = UrlOperations.stripDefaultPortFromUrl(orig);

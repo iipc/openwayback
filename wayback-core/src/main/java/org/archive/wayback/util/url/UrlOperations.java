@@ -131,7 +131,7 @@ public class UrlOperations {
     private static final Pattern HOST_REGEX_SIMPLE =
         Pattern.compile("(?:[0-9a-z_.:-]+@)?([0-9a-z_.-]++)");
     private static final Pattern USERINFO_REGEX_SIMPLE =
-        Pattern.compile("([0-9a-z_.:-]+)(?:@[0-9a-z_.-]++)");
+        Pattern.compile("^([0-9a-z_.:-]+)(?:@[0-9a-z_.-]++)");
 
     /**
      * Tests if the String argument looks like it could be a legitimate 
@@ -292,8 +292,8 @@ public class UrlOperations {
 	 */
 	public static String urlToHost(String url) {
 		String lcUrl = url.toLowerCase();
-		if(lcUrl.startsWith("dns:")) {
-			return lcUrl.substring(4);
+		if(lcUrl.startsWith(DNS_SCHEME)) {
+			return lcUrl.substring(DNS_SCHEME.length());
 		}
 		for(String scheme : ALL_SCHEMES) {
 			if(lcUrl.startsWith(scheme)) {
@@ -318,7 +318,7 @@ public class UrlOperations {
 	 */
 	public static String urlToUserInfo(String url) {
 		String lcUrl = url.toLowerCase();
-		if(lcUrl.startsWith("dns:")) {
+		if(lcUrl.startsWith(DNS_SCHEME)) {
 			return null;
 		}
 		for(String scheme : ALL_SCHEMES) {
