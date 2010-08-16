@@ -17,16 +17,16 @@ import org.archive.wayback.webapp.AccessPoint;
  * @author Lyudmila Balakireva
  *
  */
-public class TimeBundleParser extends WrappedRequestParser {
+public class TimeBundleRequestParser extends WrappedRequestParser {
 	private static final Logger LOGGER = 
-		Logger.getLogger(TimeBundleParser.class.getName());
+		Logger.getLogger(TimeBundleRequestParser.class.getName());
 
 	String MEMENTO_BASE = "timegate";
 
 	/**
 	 * @param wrapped BaseRequestParser holding config
 	 */
-	public TimeBundleParser(BaseRequestParser wrapped) {
+	public TimeBundleRequestParser(BaseRequestParser wrapped) {
 		super(wrapped);
 	}
 

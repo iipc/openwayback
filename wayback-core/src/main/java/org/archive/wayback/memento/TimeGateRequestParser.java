@@ -23,9 +23,9 @@ import org.archive.wayback.webapp.AccessPoint;
  * @author Lyudmila Balakireva
  * 
  */
-public class MementoParser extends WrappedRequestParser {
+public class TimeGateRequestParser extends WrappedRequestParser {
 	private static final Logger LOGGER = 
-		Logger.getLogger(MementoParser.class.getName());
+		Logger.getLogger(TimeGateRequestParser.class.getName());
 
 	String DTHEADER = "Accept-Datetime";
 
@@ -38,7 +38,7 @@ public class MementoParser extends WrappedRequestParser {
 	 * @param wrapped
 	 *            BaseRequestParser with configuration
 	 */
-	public MementoParser(BaseRequestParser wrapped) {
+	public TimeGateRequestParser(BaseRequestParser wrapped) {
 		super(wrapped);
 
 		dtsupportedformats
