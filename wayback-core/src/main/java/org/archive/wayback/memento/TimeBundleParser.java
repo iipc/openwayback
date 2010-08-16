@@ -1,4 +1,4 @@
-package org.archive.wayback.requestparser;
+package org.archive.wayback.memento;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -6,6 +6,8 @@ import org.apache.log4j.Logger;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.exception.BetterRequestException;
+import org.archive.wayback.requestparser.BaseRequestParser;
+import org.archive.wayback.requestparser.WrappedRequestParser;
 import org.archive.wayback.webapp.AccessPoint;
 
 /**
