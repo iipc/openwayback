@@ -17,8 +17,8 @@
   </bean>
 
 <!-- 
-	Renderer for both CSS and Javascript, causing a comment containing 
-	archive inforation to be inserted in the returned documents. 
+	Renderer for both CSS and JavaScript, causing a comment containing 
+	archive information to be inserted in the returned documents. 
  -->
   <bean id="archivalcssreplayrenderer" class="org.archive.wayback.archivalurl.ArchivalUrlCSSReplayRenderer">
     <constructor-arg><ref bean="archivalurlhttpheaderprocessor"/></constructor-arg>
@@ -45,47 +45,46 @@
 
 <!--
 	Renderer which returns documents as-is. Suitable for images, binary formats,
-	and anything else Wayback doesn't know how to handle yet. 
+	and anything else Wayback doesn't know how to handle yet. This still 
+	rewrites HTTP headers.
  -->
   <bean id="archivaltransparentreplayrenderer" class="org.archive.wayback.replay.TransparentReplayRenderer">
     <constructor-arg><ref bean="archivalurlhttpheaderprocessor"/></constructor-arg>
   </bean>
+  
+<!--
+	Renderer which returns documents as-is, including HTTP headers.
+ -->
   <bean id="identityreplayrenderer" class="org.archive.wayback.replay.TransparentReplayRenderer">
     <constructor-arg>
       <bean id="identityhttpheaderprocessor" class="org.archive.wayback.replay.IdentityHttpHeaderProcessor"/>
     </constructor-arg>
   </bean>
 
-<!-- 
-	The following bean is an example of the experimental Regex-Based 
-	server-side HTML rewriting Renderer
- -->
-  <bean id="archivalserversidehtmlreplayrenderer" class="org.archive.wayback.archivalurl.ServerSideHTMLReplayRenderer">
-    <constructor-arg><ref bean="archivalurlhttpheaderprocessor"/></constructor-arg>
-    <property name="jspInserts">
-      <list>
-        <value>/WEB-INF/replay/ArchiveComment.jsp</value>
-<!--
-        <value>/WEB-INF/replay/JSLessTimeline.jsp</value>
--->
-      </list>
-    </property>
-  </bean>
 
-<!-- 
-	ArchivalUrlSaxReplay.xml is a template for defining custom rules for
-	rewriting HTML content using a SAX parser, allowing fine-tuned and
-	flexible server-side rewriting. Defines a bean with id 
-	"archivalSAXDelegator", which can be substituted with the 
-	"fastArchivalSAXDelegator" below.
+<!--
+	Current production-standard HTML rewriting is performed entirely on the
+	server, improving rewrite accuracy over the old client-side JavaScript-based
+	rewriting. This also reduces live-web request leaks, which improves end-user
+	privacy.
+	
+	SAX events can be handled by the "best practices, mean and lean"
+	FastArchivalUrlReplayParseEventHandler, which covers the current known set
+	of rewrite instructions required.
+	
+	There is also a configurable SAX event handler. ArchivalUrlSaxReplay.xml
+	is a template for defining custom rules for	rewriting HTML content using
+	a SAX parser, allowing fine-tuned and flexible server-side rewriting.
+	ArchivalUrlSaxReplay.xml Defines a bean with id "archivalSAXDelegator", 
+	which can be substituted with the "fastArchivalSAXDelegator" below.
    <import resource="ArchivalUrlSaxReplay.xml"/>
  -->
  <bean id="fastArchivalSAXDelegator" class="org.archive.wayback.archivalurl.FastArchivalUrlReplayParseEventHandler" >
    <property name="jspInsertPath" value="/WEB-INF/replay/DisclaimChooser.jsp"/>
  </bean>
- 
+
 <!-- 
-	The following bean is an example of the new SAX based rewriting renderer. It
+	The following bean defines the SAX based rewriting renderer. It
 	also uses a pluggable character encoding detector, which could allow clients
 	to issue special requests to Wayback to alter the detection strategy.
  -->
@@ -97,30 +96,13 @@
     <property name="delegator" ref="fastArchivalSAXDelegator"/>
   </bean>
 
-<!--
-	The following bean is an example of the "classic" or most mature ArchivalUrl
-	Replay system - it uses a combination of server-side regex rewriting and
-	a client-side javascript insert to rewite links within an HTML page.
--->
-  <bean id="archivalclientsidehtmlreplayrenderer" class="org.archive.wayback.archivalurl.ClientSideHTMLReplayRenderer">
-    <constructor-arg><ref bean="archivalurlhttpheaderprocessor"/></constructor-arg>
-    <property name="jspInserts">
-      <list>
-        <value>/WEB-INF/replay/Timeline.jsp</value>
-<!-- 
-        <value>/WEB-INF/replay/ArchiveComment.jsp</value>
-        <value>/WEB-INF/replay/ClientSideJSInsert.jsp</value>
-        <value>/WEB-INF/replay/Disclaimer.jsp</value>
-        <value>/WEB-INF/replay/DebugBanner.jsp</value>
--->
-      </list>
-    </property>
-  </bean>
-
-
 <!-- 
 	The main Archival URL replay dispatcher. It uses a list of Selectors to
 	determine which ReplayRenderer should be used for each document.
+	
+	Each Selector specified is attempted in the order defined here. When a
+	Selector indicates it can handle the document, it's renderer is used to
+	return the document to the user. 
  -->
   <bean id="archivalurlreplay" class="org.archive.wayback.replay.SelectorReplayDispatcher">
     <property name="selectors">
@@ -171,9 +153,6 @@
             </list>
           </property>
           <property name="renderer" ref="archivalsaxreplayrenderer"/>
-<!-- 
-          <property name="renderer" ref="archivalclientsidehtmlreplayrenderer"/>
- -->        
         </bean>
         
 
@@ -227,4 +206,46 @@
       </list>
     </property>
   </bean>
+  
+<!-- 
+	BELOW ARE OUT-MODED 
+ -->
+  
+
+<!-- 
+	The following bean is an example of the experimental Regex-Based 
+	server-side HTML rewriting Renderer
+ -->
+  <bean id="archivalserversidehtmlreplayrenderer" class="org.archive.wayback.archivalurl.ServerSideHTMLReplayRenderer">
+    <constructor-arg><ref bean="archivalurlhttpheaderprocessor"/></constructor-arg>
+    <property name="jspInserts">
+      <list>
+        <value>/WEB-INF/replay/ArchiveComment.jsp</value>
+<!--
+        <value>/WEB-INF/replay/JSLessTimeline.jsp</value>
+-->
+      </list>
+    </property>
+  </bean>
+
+<!--
+	The following bean is an example of the "classic" or most mature ArchivalUrl
+	Replay system - it uses a combination of server-side regex rewriting and
+	a client-side javascript insert to rewite links within an HTML page.
+-->
+  <bean id="archivalclientsidehtmlreplayrenderer" class="org.archive.wayback.archivalurl.ClientSideHTMLReplayRenderer">
+    <constructor-arg><ref bean="archivalurlhttpheaderprocessor"/></constructor-arg>
+    <property name="jspInserts">
+      <list>
+        <value>/WEB-INF/replay/ArchiveComment.jsp</value>
+        <value>/WEB-INF/replay/ClientSideJSInsert.jsp</value>
+        <value>/WEB-INF/replay/Disclaimer.jsp</value>
+<!-- 
+        <value>/WEB-INF/replay/DebugBanner.jsp</value>
+-->
+      </list>
+    </property>
+  </bean>
+  
+  
 </beans>
