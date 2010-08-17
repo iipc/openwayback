@@ -68,6 +68,10 @@
           <groupId>commons-pool</groupId>
           <artifactId>commons-pool</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>org.archive.heritrix</groupId>
+          <artifactId>commons</artifactId>
+        </exclusion>
       </exclusions>       
     </dependency>
     <dependency>
