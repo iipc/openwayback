@@ -11,10 +11,11 @@
     <context-param>
         <param-name>config-path</param-name>
         <param-value>WEB-INF/wayback.xml</param-value>
+<!--        <param-value>WEB-INF/memento.xml</param-value> -->
     </context-param>
     <filter>
         <filter-name>RequestFilter</filter-name>
-        <filter-class>org.archive.wayback.webapp.RequestFilter</filter-class>
+        <filter-class>org.archive.wayback.util.webapp.RequestFilter</filter-class>
     </filter>
     <filter-mapping>
         <filter-name>RequestFilter</filter-name>
@@ -51,12 +52,12 @@
         <auth-method>BASIC</auth-method>
         <realm-name>Secured-Wayback</realm-name>
     </login-config>
--->
 
 
     <error-page>
         <exception-type>java.lang.Exception</exception-type>
         <location>/WEB-INF/exception/HTMLError.jsp</location>
     </error-page>
+-->
 
 </web-app>
