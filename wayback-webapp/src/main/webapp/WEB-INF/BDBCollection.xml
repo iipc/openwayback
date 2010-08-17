@@ -42,10 +42,12 @@
         <bean class="org.archive.wayback.resourcestore.resourcefile.DirectoryResourceFileSource">
           <property name="name" value="files1" />
           <property name="prefix" value="${wayback.basedir}/files1/" />
+          <property name="recurse" value="false" />
         </bean>
         <bean class="org.archive.wayback.resourcestore.resourcefile.DirectoryResourceFileSource">
           <property name="name" value="files2" />
           <property name="prefix" value="${wayback.basedir}/files2/" />
+          <property name="recurse" value="false" />
         </bean>
       </list>
     </property>
@@ -62,7 +64,7 @@
         <property name="bdbPath" value="${wayback.basedir}/index/" />
       </bean>
     </property>
-    <property name="maxRecords" value="10000" />
+    <property name="maxRecords" value="100000000" />
   </bean>
 
 <!--
