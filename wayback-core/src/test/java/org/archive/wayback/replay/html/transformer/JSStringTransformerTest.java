@@ -57,8 +57,15 @@ public class JSStringTransformerTest extends TestCase {
 		jst.transform(rc, input);
 		assertEquals(1,rc.got.size());
 		assertEquals("http://www.gavelgrab.org",rc.got.get(0));
+
+		input = "onloadRegister(function (){window.location.href=\"http:\\/\\/www.facebook.com\\/barrettforwisconsin?v=info\";});";
+		rc = new RecordingReplayParseContext(null, new URL("http://foo.com/"), null);
+		jst.transform(rc, input);
+		assertEquals(1,rc.got.size());
+		assertEquals("http:\\/\\/www.facebook.com",rc.got.get(0));
 		
 	}
+
 	public class RecordingReplayParseContext extends ReplayParseContext {
 		ArrayList<String> got = null;
 		/**
