@@ -24,6 +24,8 @@
  */
 package org.archive.wayback.exception;
 
+import javax.servlet.http.HttpServletResponse;
+
 /**
  * Exception class for queries which can be better expressed as another URL, or
  * should, for one reason or another, be requested at a different URL. Likely
@@ -42,7 +44,21 @@ public class BetterRequestException extends WaybackException {
 	private static final long serialVersionUID = 1L;
 	protected static final String ID = "betterRequest";
 	private String betterURI;
+	private int status = HttpServletResponse.SC_FOUND;
 
+
+	/**
+	 * Constructor
+	 * @param betterURI 
+	 * @param status
+	 * 
+	 */
+	public BetterRequestException(String betterURI, int status) {
+		super("Better URI for query");
+		this.betterURI = betterURI;
+		this.status = status;
+		id = ID;
+	}
 	/**
 	 * Constructor
 	 * @param betterURI 
@@ -60,4 +76,8 @@ public class BetterRequestException extends WaybackException {
 	public String getBetterURI() {
 		return betterURI;
 	}
+	public int getStatus() {
+		return status;
+	}
+	
 }
