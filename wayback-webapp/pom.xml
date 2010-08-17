@@ -60,6 +60,11 @@
     	<artifactId>standard</artifactId>
     	<version>1.1.2</version>
     </dependency>
+    <dependency>
+    	<groupId>org.dspace</groupId>
+    	<artifactId>foresite</artifactId>
+    	<version>SNAPSHOT</version>
+    </dependency>
   </dependencies>
 </project>
 
