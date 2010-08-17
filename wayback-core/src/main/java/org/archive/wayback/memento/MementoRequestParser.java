@@ -42,6 +42,8 @@ import org.archive.wayback.requestparser.OpenSearchRequestParser;
  */
 public class MementoRequestParser extends ArchivalUrlRequestParser {
 	protected RequestParser[] getRequestParsers() {
+		// all the usual ArchivalURL RequestParsers, plus the memento-specific 
+		// ones:
 		RequestParser[] theParsers = {
 				new ReplayRequestParser(this),
 				new TimeGateRequestParser(this),

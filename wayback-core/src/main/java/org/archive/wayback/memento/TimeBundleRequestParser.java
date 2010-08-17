@@ -3,6 +3,7 @@ package org.archive.wayback.memento;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
+import org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.exception.BetterRequestException;
@@ -51,11 +52,18 @@ public class TimeBundleRequestParser extends WrappedRequestParser {
 			wbRequest.setCaptureQueryRequest();
 			wbRequest.setRequestUrl(urlStr);
 
+			ArchivalUrlResultURIConverter conv = 
+				(ArchivalUrlResultURIConverter) accessPoint.getUriConverter();
+			
+			String uriPrefix = conv.getReplayURIPrefix();
+			String betterUrl = uriPrefix + "timemap/rdf/" + urlStr;
+	
+			throw new BetterRequestException(betterUrl, 303);
 			// TODO: is it critical to return a 303 code, or will a 302 do?
 			//       if so, this and ORE.jsp can be simplified by throwing a
 			//       BetterRequestException here.
-			wbRequest.put("redirect", "true");
-			return wbRequest;
+//			wbRequest.put("redirect", "true");
+//			return wbRequest;
 		}
 
 		if (requestPath.startsWith("timemap")) {

@@ -49,7 +49,7 @@ import org.archive.wayback.replay.HttpHeaderProcessor;
  */
 public class MementoHTMLReplayRenderer extends TextReplayRenderer {
 	/**
-	 * @param httpHeaderProcessor
+	 * @param httpHeaderProcessor to use
 	 */
 	public MementoHTMLReplayRenderer(HttpHeaderProcessor httpHeaderProcessor) {
 		super(httpHeaderProcessor);
