@@ -84,8 +84,28 @@ public class ArchivalUrlTest extends TestCase {
 		return new ArchivalUrl(parse(path));
 	}
 	
-	public void trt(String want, String src) throws BetterRequestException, BadQueryException {
-		assertEquals(want,parseAU(src).toString());
+	private void trt(String want, String src) {
+		try {
+			assertEquals(want,parseAU(src).toString());
+		} catch (BetterRequestException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		} catch (BadQueryException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	private void trtBetterExcept(String want, String src) {
+		try {
+			String foo = parseAU(src).toString();
+			fail("should have thrown BetterRequestException");
+		} catch (BetterRequestException e) {
+			assertEquals(want,e.getBetterURI());
+		} catch (BadQueryException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
 	}
 	
 	/**
@@ -115,6 +135,10 @@ public class ArchivalUrlTest extends TestCase {
 		trt(
 				"20010101000000im_/http://www.yahoo.com/",
 				"20010101000000im_/www.yahoo.com:80/");
+
+		trt(
+				"20010101235959im_/http://www.yahoo.com/",
+				"20010101im_/www.yahoo.com:80/");
 	}
 
 	/**
