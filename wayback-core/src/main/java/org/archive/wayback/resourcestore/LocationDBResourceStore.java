@@ -101,13 +101,19 @@ public class LocationDBResourceStore implements ResourceStore {
 	 * @see org.archive.wayback.ResourceStore#shutdown()
 	 */
 	public void shutdown() throws IOException {
-		// NOOP
+		db.shutdown();
 	}
 
+	/**
+	 * @return the ResourceFileLocationDB used by this ResourceStore
+	 */
 	public ResourceFileLocationDB getDb() {
 		return db;
 	}
 
+	/**
+	 * @param db the ResourceFileLocationDB to use with this ResourceStore
+	 */
 	public void setDb(ResourceFileLocationDB db) {
 		this.db = db;
 	}
