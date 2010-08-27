@@ -26,8 +26,8 @@ package org.archive.wayback.authenticationcontrol;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
-import org.apache.log4j.Logger;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.util.IPRange;
 import org.archive.wayback.util.operator.BooleanOperator;
@@ -62,7 +62,7 @@ public class IPMatchesBooleanOperator implements BooleanOperator<WaybackRequest>
 			if(range.setRange(ip)) {
 				this.allowedRanges.add(range);
 			} else {
-				LOGGER.error("Unable to parse range (" + ip + ")");
+				LOGGER.severe("Unable to parse range (" + ip + ")");
 			}
 		}
 	}

@@ -24,11 +24,11 @@
  */
 package org.archive.wayback.util.url;
 
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.httpclient.URIException;
-import org.apache.log4j.Logger;
 import org.archive.net.UURI;
 import org.archive.net.UURIFactory;
 
@@ -162,7 +162,7 @@ public class UrlOperations {
 				try {
 					return UURIFactory.getInstance(url).getEscapedURI();
 				} catch (URIException e) {
-					LOGGER.warn(e.getLocalizedMessage() + ": " + url);
+					LOGGER.warning(e.getLocalizedMessage() + ": " + url);
 					// can't let a space exist... send back close to whatever came
 					// in...
 					return url.replace(" ", "%20");
@@ -175,7 +175,7 @@ public class UrlOperations {
 			absBaseURI = UURIFactory.getInstance(baseUrl);
 			resolvedURI = UURIFactory.getInstance(absBaseURI, url);
 		} catch (URIException e) {
-			LOGGER.warn(e.getLocalizedMessage() + ": " + url);
+			LOGGER.warning(e.getLocalizedMessage() + ": " + url);
 			return url.replace(" ", "%20");
 		}
 		return resolvedURI.getEscapedURI();
@@ -359,7 +359,7 @@ public class UrlOperations {
 				}
 			}
 		} catch (URIException e) {
-			LOGGER.warn(e.getLocalizedMessage() + ": " + url);
+			LOGGER.warning(e.getLocalizedMessage() + ": " + url);
 		}
 		return null;
 	}

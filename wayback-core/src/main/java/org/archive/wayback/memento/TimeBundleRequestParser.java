@@ -1,8 +1,9 @@
 package org.archive.wayback.memento;
 
+import java.util.logging.Logger;
+
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.log4j.Logger;
 import org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadQueryException;
@@ -37,7 +38,7 @@ public class TimeBundleRequestParser extends WrappedRequestParser {
 			BetterRequestException {
 		
 		String requestPath = accessPoint.translateRequestPathQuery(httpRequest);
-		LOGGER.trace("requestpath:" + requestPath);
+		LOGGER.fine("requestpath:" + requestPath);
 
 		if (requestPath.startsWith("timebundle")) {
 
@@ -72,9 +73,9 @@ public class TimeBundleRequestParser extends WrappedRequestParser {
 					.substring(requestPath.indexOf("/") + 1);
 			String format = urlStrplus.substring(0, urlStrplus.indexOf("/"));
 
-			LOGGER.trace("format:" + format);
+			LOGGER.fine("format:" + format);
 			String urlStr = urlStrplus.substring(urlStrplus.indexOf("/") + 1);
-			LOGGER.trace("id:" + urlStr);
+			LOGGER.fine("id:" + urlStr);
 			WaybackRequest wbRequest = new WaybackRequest();
 			if (wbRequest.getStartTimestamp() == null) {
 				wbRequest.setStartTimestamp(getEarliestTimestamp());

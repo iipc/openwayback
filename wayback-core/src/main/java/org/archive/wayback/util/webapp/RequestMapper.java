@@ -30,13 +30,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.logging.Logger;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import org.apache.log4j.Logger;
 
 /**
  * This class maintains a mapping of RequestHandlers and ShutDownListeners, to
@@ -208,7 +207,7 @@ public class RequestMapper {
 			try {
 				shutdownListener.shutdown();
 			} catch(Exception e) {
-				LOGGER.error("failed shutdown", e);
+				LOGGER.severe("failed shutdown"+e.getMessage());
 			}
 		}
 	}

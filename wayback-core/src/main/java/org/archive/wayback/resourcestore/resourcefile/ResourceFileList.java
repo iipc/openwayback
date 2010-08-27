@@ -28,8 +28,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.logging.Logger;
 
-import org.apache.log4j.Logger;
 import org.archive.wayback.util.AdaptedIterator;
 import org.archive.wayback.util.Adapter;
 import org.archive.wayback.util.CloseableIterator;
@@ -80,7 +80,7 @@ public class ResourceFileList {
 			if(location != null) {
 				list.add(location);
 			} else {
-				LOGGER.warn("Bad parse of line(" + line + ") in (" + 
+				LOGGER.warning("Bad parse of line(" + line + ") in (" + 
 						source.getAbsolutePath() + ")");
 			}
 		}

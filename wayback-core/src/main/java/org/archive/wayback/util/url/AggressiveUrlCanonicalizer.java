@@ -389,6 +389,11 @@ public class AggressiveUrlCanonicalizer implements UrlCanonicalizer {
 								line + ") skipped (" + parts[column] + ")");
 						e.printStackTrace();
 						continue;
+					} catch (StringIndexOutOfBoundsException e) {
+						System.err.println("Invalid URL in line " + lineNumber + " (" +
+								line + ") skipped (" + parts[column] + ")");
+						e.printStackTrace();
+						continue;
 					}
 				}
 			}

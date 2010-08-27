@@ -5,10 +5,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.log4j.Logger;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.exception.BetterRequestException;
@@ -55,7 +55,7 @@ public class TimeGateRequestParser extends WrappedRequestParser {
 		String base = accessPoint.translateRequestPath(httpRequest);
 		String requestPath = accessPoint.translateRequestPathQuery(httpRequest);
 
-		LOGGER.trace("requestPath:" + requestPath);
+		LOGGER.fine("requestPath:" + requestPath);
 		if (base.startsWith(MEMENTO_BASE)) {
 
 			// strip leading "timegate/":

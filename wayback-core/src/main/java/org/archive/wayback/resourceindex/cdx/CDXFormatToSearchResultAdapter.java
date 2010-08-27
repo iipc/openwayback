@@ -25,7 +25,8 @@
 package org.archive.wayback.resourceindex.cdx;
 
 
-import org.apache.log4j.Logger;
+import java.util.logging.Logger;
+
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.resourceindex.cdx.format.CDXFormat;
 import org.archive.wayback.resourceindex.cdx.format.CDXFormatException;
@@ -44,7 +45,7 @@ public class CDXFormatToSearchResultAdapter implements Adapter<String,CaptureSea
 		try {
 			return cdx.parseResult(line);
 		} catch (CDXFormatException e) {
-			LOGGER.warn("CDXFormat(" + line + "):"+e.getLocalizedMessage());
+			LOGGER.warning("CDXFormat(" + line + "):"+e.getLocalizedMessage());
 		}
 		return null;
 	}

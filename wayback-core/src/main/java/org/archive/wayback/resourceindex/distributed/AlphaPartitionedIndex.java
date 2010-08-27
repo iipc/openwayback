@@ -31,9 +31,9 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.logging.Logger;
 
 import org.apache.commons.httpclient.URIException;
-import org.apache.log4j.Logger;
 import org.archive.wayback.ResourceIndex;
 import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.core.SearchResults;

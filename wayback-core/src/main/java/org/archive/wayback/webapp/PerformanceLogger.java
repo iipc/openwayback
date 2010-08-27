@@ -25,7 +25,7 @@
 
 package org.archive.wayback.webapp;
 
-import org.apache.log4j.Logger;
+import java.util.logging.Logger;
 
 /**
  * Brutally simple, barely functional class to allow simple recording of 
@@ -91,6 +91,6 @@ public class PerformanceLogger {
 			sb.append(render - retrieve).append(delim);
 		}
 		sb.append(info);
-		LOGGER.debug(sb.toString());
+		LOGGER.finer(sb.toString());
 	}
 }

@@ -28,8 +28,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Logger;
 
-import org.apache.log4j.Logger;
 import org.archive.io.ArchiveFileConstants;
 import org.archive.io.WriterPoolSettings;
 import org.archive.io.arc.ARCConstants;
@@ -55,9 +55,16 @@ public class ARCCacheDirectory {
 			ARCCacheDirectory.class.getName());
 
 	private int poolWriters = 5;
-	private int maxPoolWait = 60 * 1000;	
+	private int maxPoolWait = 5 * 1000;	
 	private long maxARCSize = ARCConstants.DEFAULT_MAX_ARC_FILE_SIZE;
 	private String arcPrefix = "wayback-live";
+	
+	/**
+	 * template string used to configure the ARC writer pool
+	 */
+	public static String LIVE_WAYBACK_TEMPLATE = 
+		"${prefix}-${timestamp17}-${serialno}";
+	
 	
 	private File arcDir = null;
 	private ARCWriterPool pool = null;
@@ -131,19 +138,11 @@ public class ARCCacheDirectory {
 	private WriterPoolSettings getSettings(final boolean isCompressed,
 			final String prefix, final File[] arcDirs) {
 		return new WriterPoolSettings() {
-			public long getMaxSize() {
-				return maxARCSize;
-			}
-
 			public List<File> getOutputDirs() {
 				return Arrays.asList(arcDirs);
 			}
 
-			public boolean isCompressed() {
-				return isCompressed;
-			}
-
-			@SuppressWarnings("unchecked")
+			@SuppressWarnings({ "unchecked", "rawtypes" })
 			public List getMetadata() {
 				return null;
 			}
@@ -152,8 +151,18 @@ public class ARCCacheDirectory {
 				return prefix;
 			}
 
-			public String getSuffix() {
-				return null;
+			public boolean getCompress() {
+				// TODO Auto-generated method stub
+				return isCompressed;
+			}
+
+			public long getMaxFileSizeBytes() {
+				// TODO Auto-generated method stub
+				return maxARCSize;
+			}
+
+			public String getTemplate() {
+				return LIVE_WAYBACK_TEMPLATE;
 			}
 		};
 	}

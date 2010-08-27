@@ -33,6 +33,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URL;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -41,7 +42,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.httpclient.ChunkedInputStream;
-import org.apache.log4j.Logger;
 import org.archive.util.anvl.ANVLRecord;
 import org.archive.wayback.util.http.HttpRequestMessage;
 import org.archive.wayback.util.http.HttpResponse;
@@ -96,7 +96,7 @@ public class FileProxyServlet extends AbstractRequestHandler {
 
 			if(urls == null || urls.length == 0) {
 				
-				LOGGER.warn("No locations for " + location.getName());
+				LOGGER.warning("No locations for " + location.getName());
 				httpResponse.sendError(HttpServletResponse.SC_NOT_FOUND,
 						"Unable to locate("+ location.getName() +")");
 			} else {
@@ -110,12 +110,12 @@ public class FileProxyServlet extends AbstractRequestHandler {
 							break;
 						}
 					} catch(IOException e) {
-						LOGGER.warn("failed proxy of " + urlString + " " +
+						LOGGER.warning("failed proxy of " + urlString + " " +
 								e.getLocalizedMessage());
 					}
 				}
 				if(ds == null) {
-					LOGGER.warn("No successful locations for " +
+					LOGGER.warning("No successful locations for " +
 							location.getName());
 					httpResponse.sendError(HttpServletResponse.SC_BAD_GATEWAY,
 							"failed proxy of ("+ location.getName() +")");

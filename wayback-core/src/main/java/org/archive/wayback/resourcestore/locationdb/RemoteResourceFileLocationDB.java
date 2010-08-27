@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.logging.Logger;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
@@ -38,8 +39,6 @@ import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.util.ParameterFormatter;
-import org.apache.log4j.Logger;
-import org.archive.wayback.resourcestore.locationdb.ResourceFileLocationDBServlet;
 import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.WrappedCloseableIterator;
 

@@ -29,8 +29,10 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.ConnectException;
 import java.net.UnknownHostException;
 import java.util.Date;
+import java.util.logging.Logger;
 
 import org.apache.commons.httpclient.ConnectTimeoutException;
 import org.apache.commons.httpclient.Header;
@@ -42,8 +44,6 @@ import org.apache.commons.httpclient.HttpState;
 import org.apache.commons.httpclient.SimpleHttpConnectionManager;
 import org.apache.commons.httpclient.URIException;
 import org.apache.commons.httpclient.cookie.CookiePolicy;
-import org.apache.commons.httpclient.params.HttpClientParams;
-import org.apache.log4j.Logger;
 import org.archive.httpclient.HttpRecorderGetMethod;
 import org.archive.io.RecordingInputStream;
 import org.archive.io.arc.ARCWriter;
@@ -78,6 +78,8 @@ public class URLtoARCCacher {
     private int socketTimeoutMS = 10000;
 	private int outBufferSize = 1024 * 100;
 	private int inBufferSize = 1024 * 100;
+//	private int outBufferSize = 10;
+//	private int inBufferSize = 100;
 	
 	private final ThreadLocal<HttpClient> tl = new ThreadLocal<HttpClient>() {
 
@@ -87,9 +89,6 @@ public class URLtoARCCacher {
     		manager.getParams().setConnectionTimeout(connectionTimeoutMS);
     		manager.getParams().setSoTimeout(socketTimeoutMS);
     		http.setHttpConnectionManager(manager);
-    		HttpClientParams clientParams = new HttpClientParams();
-//    		LOGGER.warn("Setting HTTP UserAgent to " + userAgent);
-//    		clientParams.setParameter("http.useragent", userAgent);
 			return http;
         }
     };
@@ -139,17 +138,21 @@ public class URLtoARCCacher {
 			getMethod.setRequestHeader("User-Agent", userAgent);
 			int code = client.executeMethod(getMethod);
 			LOGGER.info("URL(" + url + ") HTTP:" + code);
-			ByteOp.discardStream(getMethod.getResponseBodyAsStream());
+//			ByteOp.discardStream(getMethod.getResponseBodyAsStream());
+			ByteOp.copyStream(getMethod.getResponseBodyAsStream(), System.out);
 			getMethod.releaseConnection();
 			gotUrl = true;
 
 		} catch (URIException e) {
 			e.printStackTrace();
 		} catch (UnknownHostException e) {
-			LOGGER.warn("Unknown host for " + url);			
+			LOGGER.warning("Unknown host for " + url);			
 		} catch (ConnectTimeoutException e) {
 			// TODO: should we act like it's a full block?
-			LOGGER.warn("Timeout out connecting to " + url);
+			LOGGER.warning("Timeout out connecting to " + url);
+		} catch (ConnectException e) {
+			LOGGER.warning("ConnectionRefused to " + url);
+			
 		} catch (HttpException e) {
 			e.printStackTrace();
 			// we have to let IOExceptions out, problems caused by local disk

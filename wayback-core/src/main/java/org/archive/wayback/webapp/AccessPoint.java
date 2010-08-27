@@ -31,12 +31,12 @@ import java.net.URLEncoder;
 import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.Logger;
 import org.archive.wayback.ExceptionRenderer;
 import org.archive.wayback.QueryRenderer;
 import org.archive.wayback.ReplayDispatcher;
@@ -382,7 +382,7 @@ implements ShutdownListener {
 			try {
 				collection.shutdown();
 			} catch (IOException e) {
-				LOGGER.error("FAILED collection shutdown", e);
+				LOGGER.severe("FAILED collection shutdown"+e.getMessage());
 			}
 		}
 		if(exclusionFactory != null) {

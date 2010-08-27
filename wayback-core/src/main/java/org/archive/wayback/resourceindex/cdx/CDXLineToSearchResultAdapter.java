@@ -25,7 +25,8 @@
 package org.archive.wayback.resourceindex.cdx;
 
 
-import org.apache.log4j.Logger;
+import java.util.logging.Logger;
+
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.util.Adapter;
 import org.archive.wayback.util.url.UrlOperations;
@@ -109,7 +110,7 @@ public class CDXLineToSearchResultAdapter implements Adapter<String,CaptureSearc
 			try {
 				compressedOffset = Long.parseLong(tokens[nextToken]);
 			} catch (NumberFormatException e) {
-				LOGGER.warn("Bad compressed Offset field("+nextToken+") in (" +
+				LOGGER.warning("Bad compressed Offset field("+nextToken+") in (" +
 						line +")");
 				return null;
 			}

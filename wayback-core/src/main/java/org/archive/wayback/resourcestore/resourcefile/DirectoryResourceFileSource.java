@@ -29,8 +29,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.apache.log4j.Logger;
+import java.util.logging.Logger;
 
 
 /**
@@ -87,7 +86,7 @@ public class DirectoryResourceFileSource implements ResourceFileSource {
 				}
 			}
 		} else {
-			LOGGER.warn(root.getAbsolutePath() +	" is not a directory.");
+			LOGGER.warning(root.getAbsolutePath() +	" is not a directory.");
 			return;
 		}
 	}

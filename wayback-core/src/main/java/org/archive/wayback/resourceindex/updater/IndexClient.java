@@ -24,20 +24,20 @@
  */
 package org.archive.wayback.resourceindex.updater;
 
-import java.io.File;
 import java.io.BufferedOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Iterator;
+import java.util.logging.Logger;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
 import org.apache.commons.httpclient.methods.PutMethod;
-import org.apache.log4j.Logger;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.resourceindex.cdx.SearchResultToCDXLineAdapter;
 import org.archive.wayback.util.AdaptedIterator;
@@ -114,7 +114,7 @@ public class IndexClient {
 			}
 			File toBeMergedFile = new File(toBeMergedDir,base);
 			if(toBeMergedFile.exists()) {
-				LOGGER.warn("WARNING: "+toBeMergedFile.getAbsolutePath() +
+				LOGGER.warning("WARNING: "+toBeMergedFile.getAbsolutePath() +
 						"already exists!");
 			} else {
 				if(cdx.renameTo(toBeMergedFile)) {
@@ -122,7 +122,7 @@ public class IndexClient {
 							" for merging.");
 					added = true;
 				} else {
-					LOGGER.error("FAILED rename("+cdx.getAbsolutePath()+
+					LOGGER.severe("FAILED rename("+cdx.getAbsolutePath()+
 							") to ("+toBeMergedFile.getAbsolutePath()+")");
 				}
 			}

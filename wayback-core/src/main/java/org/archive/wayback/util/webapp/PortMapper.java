@@ -26,10 +26,9 @@
 package org.archive.wayback.util.webapp;
 
 import java.util.HashMap;
+import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
-
-import org.apache.log4j.Logger;
 
 /**
  * 
@@ -84,7 +83,7 @@ public class PortMapper {
 			RequestHandler requestHandler) {
 		String key = hostPathToKey(host,firstPath);
 		if(pathMap.containsKey(key)) {
-			LOGGER.warn("Duplicate port:path map for " + port +
+			LOGGER.warning("Duplicate port:path map for " + port +
 					":" + key);
 		} else {
 			LOGGER.info("Registered requestHandler(port/host/path) (" +

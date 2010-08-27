@@ -3,10 +3,9 @@
  */
 package org.archive.wayback.util.webapp;
 
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.apache.log4j.Logger;
 
 /**
  * Helper static methods to implement registration of a RequestHandler with a
@@ -136,10 +135,10 @@ public class BeanNameRegistrar {
 						registerHostPortPath(name, handler, mapper);
 	
 					if(!registered) {
-						LOGGER.error("Unable to register (" + name + ")");
+						LOGGER.severe("Unable to register (" + name + ")");
 					}
 				} catch(NumberFormatException e) {
-					LOGGER.error("FAILED parseInt(" + name + ")");
+					LOGGER.severe("FAILED parseInt(" + name + ")");
 				}
 			}
 		} else {

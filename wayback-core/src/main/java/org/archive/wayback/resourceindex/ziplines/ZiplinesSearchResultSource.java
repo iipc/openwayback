@@ -30,8 +30,8 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.logging.Logger;
 
-import org.apache.log4j.Logger;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
 import org.archive.wayback.resourceindex.SearchResultSource;
@@ -97,7 +97,7 @@ public class ZiplinesSearchResultSource implements SearchResultSource {
 			String line = lines.next();
 			String[] parts = line.split("\\s");
 			if(parts.length != 2) {
-				LOGGER.error("Bad line(" + line +") in (" + 
+				LOGGER.severe("Bad line(" + line +") in (" + 
 						chunkMapPath + ")");
 				throw new IOException("Bad line(" + line +") in (" + 
 						chunkMapPath + ")");
@@ -151,7 +151,7 @@ public class ZiplinesSearchResultSource implements SearchResultSource {
 				numBlocks++;
 				String parts[] = blockDescriptor.split("\t");
 				if(parts.length != 3) {
-					LOGGER.error("Bad line(" + blockDescriptor +") in (" + 
+					LOGGER.severe("Bad line(" + blockDescriptor +") in (" + 
 							chunkMapPath + ")");
 					throw new ResourceIndexNotAvailableException("Bad line(" + 
 							blockDescriptor + ")");

@@ -29,19 +29,15 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
 import java.util.Iterator;
 import java.util.List;
-import java.util.RandomAccess;
+import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
 
-import org.apache.log4j.Logger;
-import org.archive.wayback.exception.ResourceIndexNotAvailableException;
 import org.archive.wayback.exception.RuntimeIOException;
 import org.archive.wayback.util.CloseableIterator;
-import org.archive.wayback.webapp.AccessPoint;
 
 /**
  * @author brad

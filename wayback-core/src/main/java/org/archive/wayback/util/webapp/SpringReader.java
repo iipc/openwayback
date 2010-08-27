@@ -4,10 +4,10 @@
 package org.archive.wayback.util.webapp;
 import java.util.Collection;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import javax.servlet.ServletContext;
 
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.beans.factory.xml.XmlBeanFactory;
 import org.springframework.core.io.FileSystemResource;

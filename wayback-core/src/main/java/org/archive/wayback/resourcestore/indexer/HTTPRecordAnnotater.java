@@ -27,14 +27,14 @@ package org.archive.wayback.resourcestore.indexer;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.logging.Logger;
 
 import org.apache.commons.httpclient.Header;
-import org.apache.log4j.Logger;
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.util.htmllex.ContextAwareLexer;
-import org.archive.wayback.util.htmllex.ParseEventDelegator;
 import org.archive.wayback.util.htmllex.ParseContext;
+import org.archive.wayback.util.htmllex.ParseEventDelegator;
 import org.archive.wayback.util.url.UrlOperations;
 import org.htmlparser.Node;
 import org.htmlparser.lexer.Lexer;
@@ -156,13 +156,13 @@ public class HTTPRecordAnnotater {
 		} catch (ParserException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			LOGGER.warn(fileContext + " " + e.getLocalizedMessage());
+			LOGGER.warning(fileContext + " " + e.getLocalizedMessage());
 		} catch (UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			LOGGER.warn(fileContext + " " + e.getLocalizedMessage());
+			LOGGER.warning(fileContext + " " + e.getLocalizedMessage());
 		} catch (IOException e) {
-			LOGGER.warn(fileContext + " " + e.getLocalizedMessage());
+			LOGGER.warning(fileContext + " " + e.getLocalizedMessage());
 		}
 	}
 }

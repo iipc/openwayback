@@ -26,13 +26,13 @@ package org.archive.wayback.resourcestore.indexer;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.logging.Logger;
 
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpParser;
 import org.apache.commons.httpclient.StatusLine;
 import org.apache.commons.httpclient.URIException;
 import org.apache.commons.httpclient.util.EncodingUtil;
-import org.apache.log4j.Logger;
 import org.archive.io.ArchiveRecordHeader;
 import org.archive.io.RecoverableIOException;
 import org.archive.io.arc.ARCConstants;
@@ -166,7 +166,7 @@ implements Adapter<WARCRecord,CaptureSearchResult>{
 			String urlKey = canonicalizer.urlStringToKey(origUrl);
 			result.setUrlKey(urlKey);
 		} catch (URIException e) {
-			LOGGER.warn("FAILED canonicalize(" + origUrl + "):" + 
+			LOGGER.warning("FAILED canonicalize(" + origUrl + "):" + 
 					file + " " + offset);
 			result.setUrlKey(origUrl);
 		}

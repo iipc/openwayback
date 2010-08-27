@@ -26,12 +26,12 @@
 package org.archive.wayback.webapp;
 
 import java.io.IOException;
+import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.Logger;
 import org.archive.net.UURI;
 import org.archive.net.UURIFactory;
 import org.archive.util.ArchiveUtils;
@@ -102,13 +102,13 @@ public class ServerRelativeArchivalRedirect extends AbstractRequestHandler {
 		// hope that it's a server relative request, with a valid referrer:
 		String referer = httpRequest.getHeader("Referer");
 		if(referer != null) {
-			LOGGER.trace("referer:" + referer);
+			LOGGER.fine("referer:" + referer);
 			UURI uri = UURIFactory.getInstance(referer);
 			String path = uri.getPath();
 
 			String remainder = path.substring(1);
 			int thirdSlash = remainder.indexOf('/');
-			LOGGER.trace("referer:(" + referer + ") remain(" + remainder + ") 3rd("+thirdSlash+")");
+			LOGGER.fine("referer:(" + referer + ") remain(" + remainder + ") 3rd("+thirdSlash+")");
 			if(thirdSlash > -1) {
 				String datespec = remainder.substring(0,thirdSlash);
 				String url = ArchiveUtils.addImpliedHttpIfNecessary(
@@ -146,14 +146,14 @@ public class ServerRelativeArchivalRedirect extends AbstractRequestHandler {
 		if(matchHost != null) {
 			
 			if(!matchHost.equals(httpRequest.getServerName())) {
-				LOGGER.trace("Wrong host for ServerRelativeRed(" + 
+				LOGGER.fine("Wrong host for ServerRelativeRed(" + 
 						httpRequest.getServerName() +")");
 				return false;
 			}
 		}
 		if(matchPort != -1) {
 			if(matchPort != httpRequest.getLocalPort()) {
-				LOGGER.trace("Wrong port for ServerRealtiveRed(" + 
+				LOGGER.fine("Wrong port for ServerRealtiveRed(" + 
 						httpRequest.getServerName() + ")(" + 
 						httpRequest.getLocalPort() +") :" + 
 						httpRequest.getRequestURI());

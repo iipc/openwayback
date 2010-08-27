@@ -34,7 +34,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import java.util.logging.Logger;
 
 /**
  * Class which parses a robots.txt file, storing the rules contained therein,
@@ -112,7 +112,7 @@ public class RobotRules {
                         current = new ArrayList<String>();
                     }
                     rules.put(ua, current);
-                    LOGGER.trace("Found User-agent(" + ua + ") rules...");
+                    LOGGER.fine("Found User-agent(" + ua + ") rules...");
                     continue;
                 }
                 if (read.matches("(?i)Disallow:.*")) {
@@ -145,7 +145,7 @@ public class RobotRules {
 				return false;
 
 			} else {
-				LOGGER.trace("UA(" + curUA + ") has ("
+				LOGGER.fine("UA(" + curUA + ") has ("
 						+ disallowedPath + ") blocked...("
 						+ disallowedPath.length() + ")");
 				if (disallowedPath.equals("/") || path.startsWith(disallowedPath)) {

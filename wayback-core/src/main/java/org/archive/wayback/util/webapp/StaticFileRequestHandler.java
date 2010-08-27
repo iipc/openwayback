@@ -5,13 +5,12 @@ package org.archive.wayback.util.webapp;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.logging.Logger;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import org.apache.log4j.Logger;
 
 /**
  * RequestHandler implementation which allows serving of static files, and
@@ -33,7 +32,7 @@ public class StaticFileRequestHandler extends AbstractRequestHandler {
 		// TODO: check for index.jsp(or configurable equivalent),
 		//       if it's a directory?
 		if(test.isFile()) {
-			LOGGER.trace("static path:" + absPath);
+			LOGGER.fine("static path:" + absPath);
 			RequestDispatcher dispatcher = 
 				httpRequest.getRequestDispatcher(contextRelativePath);
 //			try {
@@ -42,7 +41,7 @@ public class StaticFileRequestHandler extends AbstractRequestHandler {
 //			} catch(Exception e) {
 //			}
 		} else {
-			LOGGER.trace("Not-static path:" + absPath);
+			LOGGER.fine("Not-static path:" + absPath);
 		}
 		return handled;
 	}

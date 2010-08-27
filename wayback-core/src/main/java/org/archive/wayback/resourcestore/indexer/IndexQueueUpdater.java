@@ -29,8 +29,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.logging.Logger;
 
-import org.apache.log4j.Logger;
 import org.archive.wayback.Shutdownable;
 import org.archive.wayback.resourcestore.locationdb.ResourceFileLocationDB;
 import org.archive.wayback.util.CloseableIterator;

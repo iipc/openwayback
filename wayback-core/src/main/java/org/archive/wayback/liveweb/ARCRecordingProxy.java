@@ -26,20 +26,22 @@
 package org.archive.wayback.liveweb;
 
 import java.io.IOException;
+import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.httpclient.URIException;
-import org.apache.log4j.Logger;
 import org.archive.wayback.util.webapp.AbstractRequestHandler;
+import org.archive.wayback.util.webapp.ShutdownListener;
 
 /**
  * @author brad
  *
  */
-public class ARCRecordingProxy extends AbstractRequestHandler {
+public class ARCRecordingProxy extends AbstractRequestHandler 
+implements ShutdownListener {
 
 	private final static String EXPIRES_HEADER = "Expires";
 	private long expiresMS = 60 * 60 * 1000;
@@ -141,5 +143,10 @@ public class ARCRecordingProxy extends AbstractRequestHandler {
 	 */
 	public void setFakeExpiresMS(long fakeExpiresMS) {
 		this.fakeExpiresMS = fakeExpiresMS;
+	}
+
+	public void shutdown() {
+		arcCacheDir.shutdown();
+		
 	}
 }

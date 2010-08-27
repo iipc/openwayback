@@ -32,8 +32,8 @@ import java.text.ParseException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Logger;
 
-import org.apache.log4j.Logger;
 import org.archive.io.arc.ARCConstants;
 import org.archive.io.arc.ARCWriter;
 import org.archive.util.ArchiveUtils;

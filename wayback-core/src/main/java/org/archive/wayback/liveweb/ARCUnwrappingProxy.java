@@ -28,6 +28,7 @@ package org.archive.wayback.liveweb;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
 
 import javax.servlet.ServletException;
@@ -39,7 +40,6 @@ import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.log4j.Logger;
 import org.archive.io.arc.ARCRecord;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.exception.ResourceNotAvailableException;
@@ -97,7 +97,7 @@ public class ARCUnwrappingProxy extends AbstractRequestHandler {
         		try {
 					res = ResourceFactory.ARCArchiveRecordToResource(r, null);
 				} catch (ResourceNotAvailableException e) {
-					LOGGER.error(e);
+					LOGGER.severe(e.getMessage());
 					throw new IOException(e);
 				}
         		httpResponse.setStatus(res.getStatusCode());

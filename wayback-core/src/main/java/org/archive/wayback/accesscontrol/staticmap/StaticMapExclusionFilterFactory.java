@@ -28,9 +28,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
-
-import org.apache.log4j.Logger;
 import org.archive.wayback.accesscontrol.ExclusionFilterFactory;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.surt.SURTTokenizer;
@@ -72,7 +71,7 @@ public class StaticMapExclusionFilterFactory implements ExclusionFilterFactory {
 		long currentMod = file.lastModified();
 		if(currentMod == lastUpdated) {
 			if(currentMod == 0) {
-				LOGGER.error("No exclude file at " + file.getAbsolutePath());
+				LOGGER.severe("No exclude file at " + file.getAbsolutePath());
 			}
 			return;
 		}
@@ -85,7 +84,7 @@ public class StaticMapExclusionFilterFactory implements ExclusionFilterFactory {
 			lastUpdated = -1;
 			currentMap = null;
 			e.printStackTrace();
-			LOGGER.error("Reload " + file.getAbsolutePath() + " FAILED:" + 
+			LOGGER.severe("Reload " + file.getAbsolutePath() + " FAILED:" + 
 					e.getLocalizedMessage());
 		}
 	}
@@ -101,7 +100,7 @@ public class StaticMapExclusionFilterFactory implements ExclusionFilterFactory {
 			}
 			String surt = line.startsWith("(") ? line : 
 				SURTTokenizer.prefixKey(line);
-			LOGGER.trace("EXCLUSION-MAP: adding " + surt);
+			LOGGER.fine("EXCLUSION-MAP: adding " + surt);
 			newMap.put(surt, null);
 		}
 		itr.close();

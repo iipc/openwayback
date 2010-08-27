@@ -7,8 +7,8 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.TimeZone;
+import java.util.logging.Logger;
 
-import org.apache.log4j.Logger;
 import org.archive.wayback.util.partition.size.DayPartitionSize;
 import org.archive.wayback.util.partition.size.HourPartitionSize;
 import org.archive.wayback.util.partition.size.MonthPartitionSize;
@@ -200,7 +200,7 @@ public class Partitioner<T> {
 		}
 		if(itr.hasNext()) {
 			// eew... Likely bad usage. is this an error?
-			LOGGER.warn("Not all elements fit in partitions!");
+			LOGGER.warning("Not all elements fit in partitions!");
 		}
 	}	
 

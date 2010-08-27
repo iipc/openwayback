@@ -30,9 +30,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
-
-import org.apache.log4j.Logger;
 
 /**
  * @author brad
@@ -74,7 +73,7 @@ public class ZiplinedBlock {
 		StringBuilder sb = new StringBuilder(16);
 		sb.append(BYTES_HEADER).append(offset).append(BYTES_MINUS);
 		sb.append((offset + BLOCK_SIZE)-1);
-		LOGGER.trace("Reading block:" + urlOrPath + "("+sb.toString()+")");
+		LOGGER.fine("Reading block:" + urlOrPath + "("+sb.toString()+")");
 		// TODO: timeouts
 		URL u = new URL(urlOrPath);
 		URLConnection uc = u.openConnection();

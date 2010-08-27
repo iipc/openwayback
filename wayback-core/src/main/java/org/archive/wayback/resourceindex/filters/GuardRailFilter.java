@@ -24,7 +24,8 @@
  */
 package org.archive.wayback.resourceindex.filters;
 
-import org.apache.log4j.Logger;
+import java.util.logging.Logger;
+
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.util.ObjectFilter;
 
@@ -55,7 +56,7 @@ public class GuardRailFilter implements ObjectFilter<CaptureSearchResult> {
 	public int filterObject(CaptureSearchResult r) {
 		recordsScanned++;
 		if(recordsScanned > maxRecordsToScan) {
-			LOGGER.warn("Hit max requests on " + r.getUrlKey() + " " 
+			LOGGER.warning("Hit max requests on " + r.getUrlKey() + " " 
 					+ r.getCaptureTimestamp());
 			return FILTER_ABORT;
 		}
