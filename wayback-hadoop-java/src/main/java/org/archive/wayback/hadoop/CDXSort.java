@@ -4,12 +4,19 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.zip.GZIPInputStream;
 
+import org.apache.commons.httpclient.URIException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
+import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
@@ -55,6 +62,7 @@ public class CDXSort extends Configured implements Tool {
 		boolean compressOutput = false;
 		boolean dereferenceInputs = false;
 		boolean canonicalize = false;
+		boolean funkyInput = false;
 
 		JobConf jobConf = new JobConf(getConf(), CDXSort.class);
 		jobConf.setJobName("cdxsort");
@@ -73,6 +81,8 @@ public class CDXSort extends Configured implements Tool {
 					jobConf.setNumMapTasks(Integer.parseInt(args[++i]));
 				} else if ("--compress-output".equals(args[i])) {
 					compressOutput = true;
+				} else if ("--funky-input".equals(args[i])) {
+					funkyInput = true;
 				} else if ("--dereference-inputs".equals(args[i])) {
 					dereferenceInputs = true;
 				} else if ("--canonicalize".equals(args[i])) {
@@ -107,31 +117,32 @@ public class CDXSort extends Configured implements Tool {
 		File localSplitFile = new File(splitPath);
 		FileReader is = new FileReader(localSplitFile);
 		BufferedReader bis = new BufferedReader(is);
-		try {
-			partitioner.loadBoundaries(bis);
-		} catch (IOException except) {
-			System.err.println("ERROR: Problem loading file " + splitPath);
-			return printUsage(); // exits
-		}
-		jobConf.setNumReduceTasks(partitioner.getNumPartitions());
-
-		// copy the split file into the FS, add to the DistributedCache:
-		AlphaPartitioner.setPartitionFile(jobConf, localSplitFile);
-		System.err.println("uploaded split file to FS and DistributedCache");
-
-		// Set job configs:
-		jobConf.setInputFormat(TextInputFormat.class);
-
-		jobConf.setOutputFormat(TextOutputFormat.class);
-		if (canonicalize) {
-			jobConf.setMapperClass(CDXCanonicalizerMapClass.class);
-		} else {
-			jobConf.setMapperClass(CDXMapClass.class);
-		}
-		jobConf.setOutputKeyClass(Text.class);
-		jobConf.setOutputValueClass(Text.class);
-		jobConf.set("mapred.textoutputformat.separator", " ");
-		jobConf.setPartitionerClass(AlphaPartitioner.class);
+//		try {
+//			partitioner.loadBoundaries(bis);
+//		} catch (IOException except) {
+//			System.err.println("ERROR: Problem loading file " + splitPath);
+//			return printUsage(); // exits
+//		}
+//		jobConf.setNumReduceTasks(partitioner.getNumPartitions());
+//
+//		// copy the split file into the FS, add to the DistributedCache:
+////		AlphaPartitioner.setPartitionFile(jobConf, localSplitFile);
+//		AlphaPartitioner.setSplitCache(jobConf, localSplitFile);
+//		System.err.println("uploaded split file to FS and DistributedCache");
+//
+//		// Set job configs:
+//		jobConf.setInputFormat(TextInputFormat.class);
+//
+//		jobConf.setOutputFormat(TextOutputFormat.class);
+//		if (canonicalize) {
+//			jobConf.setMapperClass(CDXCanonicalizerMapClass.class);
+//		} else {
+//			jobConf.setMapperClass(CDXMapClass.class);
+//		}
+//		jobConf.setOutputKeyClass(Text.class);
+//		jobConf.setOutputValueClass(Text.class);
+//		jobConf.set("mapred.textoutputformat.separator", " ");
+//		jobConf.setPartitionerClass(AlphaPartitioner.class);
 
 		int inputCount = 0;
 		// Set job input:
@@ -150,23 +161,35 @@ public class CDXSort extends Configured implements Tool {
 //				System.err.println("Added path(" + inputCount + "): " + line);
 //			}
 
-			FileReader is2 = new FileReader(new File(inputPath));
-			BufferedReader bis2 = new BufferedReader(is2);
-			ArrayList<String> list = new ArrayList<String>();
 			
-			while (true) {
-				String line = bis2.readLine();
-				if (line == null) {
-					break;
-				}
-				list.add(line);
-				inputCount++;
+			
+			// PASS 2:
+//			FileReader is2 = new FileReader(new File(inputPath));
+//			BufferedReader bis2 = new BufferedReader(is2);
+//			ArrayList<String> list = new ArrayList<String>();
+//			
+//			while (true) {
+//				String line = bis2.readLine();
+//				if (line == null) {
+//					break;
+//				}
+//				list.add(line);
+//				inputCount++;
+//			}
+//			Path arr[] = new Path[list.size()];
+//			for(int i=0; i < list.size(); i++) {
+//				arr[i] = new Path(list.get(i));
+//			}
+//			FileInputFormat.setInputPaths(jobConf, arr);
+
+			// PASS 3:
+			if(funkyInput) {
+				jobConf.setMapperClass(FunkyDeReffingCDXCanonicalizerMapClass.class);
+			} else {
+				jobConf.setMapperClass(DeReffingCDXCanonicalizerMapClass.class);
 			}
-			Path arr[] = new Path[list.size()];
-			for(int i=0; i < list.size(); i++) {
-				arr[i] = new Path(list.get(i));
-			}
-			FileInputFormat.setInputPaths(jobConf, arr);
+			FileInputFormat.setInputPaths(jobConf, new Path(inputPath));
+			inputCount = 1;
 
 			
 		} else {
@@ -182,10 +205,10 @@ public class CDXSort extends Configured implements Tool {
 			FileOutputFormat.setOutputCompressorClass(jobConf, GzipCodec.class);
 		}
 
-		System.out.println("Running on " + cluster.getTaskTrackers()
-				+ " nodes, processing " + inputCount + " files/directories"
-				+ " into " + outputPath + " with "
-				+ partitioner.getNumPartitions() + " reduces.");
+//		System.out.println("Running on " + cluster.getTaskTrackers()
+//				+ " nodes, processing " + inputCount + " files/directories"
+//				+ " into " + outputPath + " with "
+//				+ partitioner.getNumPartitions() + " reduces.");
 		Date startTime = new Date();
 		System.out.println("Job started: " + startTime);
 		jobResult = JobClient.runJob(jobConf);
@@ -228,7 +251,70 @@ public class CDXSort extends Configured implements Tool {
 			// reporter.setStatus("Running");
 		}
 	}
+	public static class FunkyDeReffingCDXCanonicalizerMapClass extends DeReffingCDXCanonicalizerMapClass {
+		protected Mapper<LongWritable, Text, Text, Text> getInner() {
+			return new FunkyCDXCanonicalizerMapClass();
+		}
+	}
+	public static class DeReffingCDXCanonicalizerMapClass extends MapReduceBase
+			implements Mapper<LongWritable, Text, Text, Text> {
 
+		protected Mapper<LongWritable, Text, Text, Text> getInner() {
+			return new CDXCanonicalizerMapClass();
+		}
+		/* (non-Javadoc)
+		 * @see org.apache.hadoop.mapred.Mapper#map(java.lang.Object, java.lang.Object, org.apache.hadoop.mapred.OutputCollector, org.apache.hadoop.mapred.Reporter)
+		 */
+		public void map(LongWritable lineNo, Text urlText,
+				OutputCollector<Text, Text> output, Reporter reporter)
+				throws IOException {
+			LongWritable lw = new LongWritable();
+			Text tmp = new Text();
+//			CDXCanonicalizerMapClass inner = new CDXCanonicalizerMapClass();
+			Mapper<LongWritable, Text, Text, Text> inner = getInner();
+			// arg 1 is a URL
+
+			String urlString = urlText.toString();
+			InputStream is = null;
+			FileSystem fs = null;
+			if(urlString.startsWith("http://")) {
+				URL u = new URL(urlString.toString());
+				System.err.println("Openning URL stream for:" + urlString);
+				is = u.openStream();
+			} else {
+				System.err.println("Creating default Filesystem for:" + urlString);
+
+				fs = FileSystem.get(new Configuration(true));
+				Path p = new Path(urlString);
+//				FSDataInputStream fsdis = fs.open(p);
+				is = fs.open(p);
+
+			}
+			if(urlString.endsWith(".gz")) {
+				is = new GZIPInputStream(is);
+			}
+			try {
+				BufferedReader br = new BufferedReader(
+						new InputStreamReader(is));
+				String tmpS = null;
+				long line = 0;
+				while((tmpS = br.readLine()) != null) {
+					lw.set(line++);
+					tmp.set(tmpS);
+					inner.map(lw, tmp, output, reporter);
+				}
+				is.close();
+				if(fs != null) {
+					fs.close();
+				}
+			} catch (IOException e) {
+				System.err.println("IOException with url:" + urlString);
+				e.printStackTrace();
+				throw e;
+			}
+		}
+		
+	}
 	/**
 	 * Mapper which reads an identity CDX line, outputting: key - canonicalized
 	 * original URL + timestamp val - everything else
@@ -263,23 +349,109 @@ public class CDXSort extends Configured implements Tool {
 					if(i3 > 0) {
 						i4 = s.lastIndexOf(' ');
 						if(i4 > i3) {
-							ksb.setLength(0);
-							ksb.append(canonicalizer.urlStringToKey(s.substring(i2 + 1, i3)));
-							ksb.append(s.substring(i1,i4));
-							outKey.set(ksb.toString());
-							outValue.set(s.substring(i4+1));
-							output.collect(outKey, outValue);
-							problems = false;
+							try {
+								ksb.setLength(0);
+								ksb.append(canonicalizer.urlStringToKey(s.substring(i2 + 1, i3)));
+								ksb.append(s.substring(i1,i4));
+								outKey.set(ksb.toString());
+								outValue.set(s.substring(i4+1));
+								output.collect(outKey, outValue);
+								problems = false;
+							} catch(URIException e) {
+								// just eat it.. problems will be true.
+							}
 						}
 					}
 				}
 			}
 			if(problems) {
-				System.err.println("Problem with line("+s+")");
+				System.err.println("CDX-Can: Problem with line("+s+")");
 			}
 		}
 	}
 
+	/**
+	 * Mapper which reads an identity Funky format CDX line, outputting: 
+	 *   key - canonicalized original URL + timestamp
+	 *   val - everything else
+	 * 
+	 * input lines are a hybrid format:
+	 * 
+	 *   ORIG_URL
+	 *   DATE
+	 *   '-' (literal)
+	 *   MIME
+	 *   HTTP_CODE
+	 *   SHA1
+	 *   REDIRECT
+	 *   START_OFFSET
+	 *   ARC_PREFIX (sans .arc.gz)
+	 *   ROBOT_FLAG (combo of AIF - no: Archive,Index,Follow, or '-' if none)
+	 *  
+	 *   Ex:
+	 *   http://www.myow.de:80/news_show.php? 20061126032815 - text/html 200 DVKFPTOJGCLT3G5GUVLCETHLFO3222JM - 91098929 foo A
+	 *   
+	 *	Need to:
+	 *	. replace col 3 with orig url
+	 *  . replace col 1 with canonicalized orig url
+	 *  . replace SHA1 with first 4 digits of SHA1
+	 *  . append .arc.gz to ARC_PREFIX
+	 *  . omit lines with ROBOT_FLAG containing 'A'
+	 *  . remove last column
+	 * 
+	 * @author brad
+	 * @version $Date$, $Revision$
+	 */
+	public static class FunkyCDXCanonicalizerMapClass extends MapReduceBase
+			implements Mapper<LongWritable, Text, Text, Text> {
+
+		private static int SHA1_DIGITS = 3;
+		private Text outKey = new Text();
+		private Text outValue = new Text();
+		AggressiveUrlCanonicalizer canonicalizer = new AggressiveUrlCanonicalizer();
+		private StringBuilder ksb = new StringBuilder();
+		private StringBuilder vsb = new StringBuilder();
+
+		private int i1 = 0;
+		private int i2 = 0;
+		private int i3 = 0;
+		private int i4 = 0;
+
+		public void map(LongWritable lineNumber, Text line,
+				OutputCollector<Text, Text> output, Reporter reporter)
+				throws IOException {
+			String s = line.toString();
+
+			String parts[] = s.split(" ");
+			boolean problems = true;
+			if(parts.length == 10) {
+				if(!parts[9].contains("A")) {
+					ksb.setLength(0);
+					vsb.setLength(0);
+					try {
+						ksb.append(canonicalizer.urlStringToKey(parts[0])).append(" ");
+						ksb.append(parts[1]); // date
+						vsb.append(parts[0]).append(" "); // orig_url
+						vsb.append(parts[3]).append(" "); // MIME
+						vsb.append(parts[4]).append(" "); // HTTP_CODE
+						vsb.append(parts[5].substring(0, SHA1_DIGITS)).append(" "); // SHA1
+						vsb.append(parts[6]).append(" "); // redirect
+						vsb.append(parts[7]).append(" "); // start_offset
+						vsb.append(parts[8]).append(".arc.gz"); // arc_prefix
+						outKey.set(ksb.toString());
+						outValue.set(vsb.toString());
+						output.collect(outKey, outValue);
+					} catch (URIException e) {
+						System.err.println("Failed Canonicalize:("+parts[0]+
+								") in ("+parts[8]+"):("+parts[7]+")");
+					}
+				}
+			} else {
+				System.err.println("Funky: Problem with line("+s+")");
+			}
+		}
+	}	
+	
 	public static void main(String[] args) throws Exception {
 		int res = ToolRunner.run(new Configuration(), new CDXSort(), args);
 		System.exit(res);

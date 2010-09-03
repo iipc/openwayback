@@ -11,8 +11,8 @@ public class SortDriver {
 	    int exitCode = -1;
 	    ProgramDriver pgd = new ProgramDriver();
 	    try {
-	      pgd.addClass("cdxsort", CDXSort.class, 
-	                   "A map/reduce program that counts the words in the input files.");
+		      pgd.addClass("cdxsort", CDXSortDriver.class, 
+              "A map/reduce program that canonicalizes and provides a total order sort into multiple CDX files");
 	      pgd.driver(args);
 	      // Success
 	      exitCode = 0;
