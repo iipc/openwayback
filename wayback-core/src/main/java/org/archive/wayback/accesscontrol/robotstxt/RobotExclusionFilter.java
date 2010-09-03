@@ -236,7 +236,9 @@ public class RobotExclusionFilter extends ExclusionFilter {
 			URL url;
 			try {
 				url = new URL(ArchiveUtils.addImpliedHttpIfNecessary(resultURL));
-				if(!rules.blocksPathForUA(url.getPath(), userAgent)) {
+				String path = url.getPath();
+				if(path.equals(ROBOT_SUFFIX) || 
+						!rules.blocksPathForUA(path, userAgent)) {
 					if(!notifiedPassed) {
 						if(filterGroup != null) {
 							filterGroup.setPassedRobots();
