@@ -102,11 +102,11 @@
     <!-- 
       Doh... I'm not sure what package is configuring org.apache.commons-logging
       to use log4j, but it's breaking some command line tools.
-    -->
     <dependency>
       <groupId>log4j</groupId>
       <artifactId>log4j</artifactId>
       <version>1.2.14</version>
     </dependency>
+    -->
   </dependencies>
 </project>

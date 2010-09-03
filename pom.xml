@@ -93,7 +93,7 @@
       </releases>
       <snapshots>
         <enabled>true</enabled>
-        <updatePolicy>never</updatePolicy>
+        <updatePolicy>daily</updatePolicy>
         <checksumPolicy>fail</checksumPolicy>
       </snapshots>
       <id>internetarchive</id>
@@ -101,6 +101,27 @@
       <url>http://builds.archive.org:8080/maven2</url>
       <layout>default</layout>
     </repository>
+
+<!--
+    <repository>
+      <releases>
+        <enabled>true</enabled>
+        <updatePolicy>daily</updatePolicy>
+        <checksumPolicy>warn</checksumPolicy>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+        <updatePolicy>daily</updatePolicy>
+        <checksumPolicy>fail</checksumPolicy>
+      </snapshots>
+      <id>dspace</id>
+      <name>DSpace Maven Repository</name>
+      <url>http://maven.dspace.org/</url>
+      <layout>default</layout>
+    </repository>
+    -->
+    
+    
   </repositories>
 
   <pluginRepositories>
@@ -181,7 +202,7 @@
       <id>website</id>
       <name>Website</name>
       <!--Pass as command-line system property to maven-->
-      <url>${website.url}/projects/${pom.artifactId}</url>
+      <url>${website.url}/projects/${project.artifactId}</url>
     </site>
   </distributionManagement>
 

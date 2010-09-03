@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?><project>
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
   <parent>
     <artifactId>wayback</artifactId>
     <groupId>org.archive</groupId>
@@ -19,11 +20,18 @@
       <version>3.8.1</version>
       <scope>test</scope>
     </dependency>
+    
     <dependency>
-      <groupId>org.apache.mahout.hadoop</groupId>
       <artifactId>hadoop-core</artifactId>
-      <scope>provided</scope>
-      <version>0.19.1</version>
+      <groupId>org.apache.hadoop</groupId>
+      <version>0.20.2</version>
+      <scope>compile</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>commons-httpclient</groupId>
+          <artifactId>commons-httpclient</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.archive.wayback</groupId>
