@@ -138,8 +138,7 @@ public class URLtoARCCacher {
 			getMethod.setRequestHeader("User-Agent", userAgent);
 			int code = client.executeMethod(getMethod);
 			LOGGER.info("URL(" + url + ") HTTP:" + code);
-//			ByteOp.discardStream(getMethod.getResponseBodyAsStream());
-			ByteOp.copyStream(getMethod.getResponseBodyAsStream(), System.out);
+			ByteOp.discardStream(getMethod.getResponseBodyAsStream());
 			getMethod.releaseConnection();
 			gotUrl = true;
 
