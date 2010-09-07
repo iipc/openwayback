@@ -55,7 +55,7 @@ public class ARCCacheDirectory {
 			ARCCacheDirectory.class.getName());
 
 	private int poolWriters = 5;
-	private int maxPoolWait = 5 * 1000;	
+	private int maxPoolWait = 300;	
 	private long maxARCSize = ARCConstants.DEFAULT_MAX_ARC_FILE_SIZE;
 	private String arcPrefix = "wayback-live";
 	
