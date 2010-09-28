@@ -24,12 +24,16 @@
 <%@ page import="org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter" %>
 <%@page import="org.dspace.foresite.Triple"%>
 <%@page import="org.dspace.foresite.jena.TripleJena"%>
-<%@page import="java.util.UUID"%>  
+<%@page import="java.util.UUID"%>
+<%@ page import="java.util.TimeZone" %>  
 <%@page import="java.util.Calendar"%>
 <%
 	UIResults results = UIResults.extractCaptureQuery(request);//nuzno potom perepisat'
 	SimpleDateFormat httpformatterl = new SimpleDateFormat(
 			"E, dd MMM yyyy HH:mm:ss z");
+	TimeZone tzo = TimeZone.getTimeZone("GMT");
+    httpformatterl.setTimeZone(tzo);
+    
 	WaybackRequest wbRequest = results.getWbRequest();
 	CaptureSearchResults cResults = results.getCaptureResults();
 	CaptureSearchResult res = cResults.getClosest(wbRequest, true);
@@ -77,7 +81,7 @@
 	Iterator<CaptureSearchResult> itr = cResults.iterator();
 	SimpleDateFormat formatterk = new SimpleDateFormat(
 			"yyyyMMddHHmmss");
-
+	formatterk.setTimeZone(tzo);
 	Date f = cResults.getFirstResultDate();
 	Date l = cResults.getLastResultDate();
 
