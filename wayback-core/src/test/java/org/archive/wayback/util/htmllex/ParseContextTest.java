@@ -84,7 +84,7 @@ public class ParseContextTest extends TestCase {
 					pc.contextualizeUrl("/../../image/1.html#REF FOO"));
 			assertEquals("http://base.com/image/foo?boo=baz",
 					pc.contextualizeUrl("/image/foo?boo=baz"));
-			assertEquals("http://base.com/image/foo?boo=baz%253A&gar=war",
+			assertEquals("http://base.com/image/foo?boo=baz%3A&gar=war",
 					pc.contextualizeUrl("/image/foo?boo=baz%3A&gar=war"));
 			// TODO: we need to escape again, right?
 //			assertEquals("http://base.com/image/foo?boo=baz%3A&gar=war",
