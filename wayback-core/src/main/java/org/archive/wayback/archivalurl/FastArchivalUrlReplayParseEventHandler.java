@@ -166,21 +166,23 @@ public class FastArchivalUrlReplayParseEventHandler implements
 				if(tagName.equals(FRAMESET_TAG)) {
 					// don't put the insert in framsets:
 				} else {
-					String tmp = null; 
-					try {
-						tmp = 
-							context.getJspExec().jspToString(jspInsertPath);
-					} catch (ServletException e) {
-						e.printStackTrace();
-					}
-					if (tagName.equals(BODY_TAG)) {
-						// insert it now, *after* the current Tag:
-						postEmit = tmp;
-					} else {
-						// hrm... we are seeing a node that should be in
-						// the body.. lets emit the jsp now, *before*
-						// the current Tag:
-						preEmit = tmp;
+					if(jspInsertPath != null) {
+						String tmp = null; 
+						try {
+							tmp = 
+								context.getJspExec().jspToString(jspInsertPath);
+						} catch (ServletException e) {
+							e.printStackTrace();
+						}
+						if (tagName.equals(BODY_TAG)) {
+							// insert it now, *after* the current Tag:
+							postEmit = tmp;
+						} else {
+							// hrm... we are seeing a node that should be in
+							// the body.. lets emit the jsp now, *before*
+							// the current Tag:
+							preEmit = tmp;
+						}
 					}
 				}
 				context.putData(FERRET_DONE_KEY,"");
