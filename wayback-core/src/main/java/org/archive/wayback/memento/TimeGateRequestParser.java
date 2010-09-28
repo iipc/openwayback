@@ -67,7 +67,7 @@ public class TimeGateRequestParser extends WrappedRequestParser {
 			if (httpdate != null) {
 				dtconnegdate = checkDateValidity(httpdate, dtsupportedformats);
 				if (dtconnegdate == null) {
-					return null;
+					httpdate="unparsable";
 				}
 			} else {
 				// TODO: should this return null her? no header..
