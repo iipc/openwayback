@@ -133,6 +133,11 @@
         <property name="earliestTimestamp" value="1996" />
       </bean>
     </property>
+    <property name="exception">
+      <bean class="org.archive.wayback.exception.BaseExceptionRenderer">
+        <property name="errorJsp" value="/WEB-INF/exception/TimegateError.jsp" />
+      </bean>
+    </property>
 
   </bean>
 
