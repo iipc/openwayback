@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.httpclient.URIException;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.archive.net.UURI;
 import org.archive.net.UURIFactory;
 import org.htmlparser.util.Translate;
@@ -98,7 +99,10 @@ public class ParseContext {
 	 * @throws URISyntaxException if the input URL is malformed
 	 */
 	public String resolve(String url) throws URISyntaxException {
-		url = Translate.decode(url);
+		// BUG in Translate.decode(): "foo?a=b&lang=en" acts as if it 
+		// was "&lang;"
+//		url = Translate.decode(url);
+		url = StringEscapeUtils.unescapeHtml(url);
 		int hashIdx = url.indexOf('#');
 		String frag = "";
 		if(hashIdx != -1) {
@@ -111,7 +115,8 @@ public class ParseContext {
 				System.err.println("No url to resolve!");
 				return url;
 			}
-			return baseUrl.resolve(url,false).toString() + frag;
+			return baseUrl.resolve(url,true).toString() + frag;
+//			return baseUrl.resolve(url,false).toString() + frag;
 //			return UURIFactory.getInstance(baseUrl, url).toString() + frag;
 		} catch (URIException e) {
 			e.printStackTrace();
