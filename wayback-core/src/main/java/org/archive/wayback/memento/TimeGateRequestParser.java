@@ -39,7 +39,7 @@ import org.archive.wayback.webapp.AccessPoint;
  * RequestParser subclass which matches ".../timegate/URL" requests, and parses 
  * the Accept-Datetime header
  * 
- * @author Lyudmila Balakireva
+ * @consultant Lyudmila Balakireva
  * 
  */
 public class TimeGateRequestParser extends WrappedRequestParser {

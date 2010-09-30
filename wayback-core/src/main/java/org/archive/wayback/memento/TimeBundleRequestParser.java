@@ -35,7 +35,7 @@ import org.archive.wayback.webapp.AccessPoint;
  * RequestParser subclass which parses "timebundle/URL" and 
  * "timemap/FORMAT/URL" requests
  * 
- * @author Lyudmila Balakireva
+ * @consultant Lyudmila Balakireva
  *
  */
 public class TimeBundleRequestParser extends WrappedRequestParser {
