@@ -19,7 +19,11 @@
  */
 package org.archive.wayback.util.webapp;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 import javax.servlet.Filter;
@@ -33,12 +37,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * Top-Level integration point between a series of RequestHandler mappings and
- * a generic ServletContext. This filter is assumed to be responsible for 
- * matching ALL requests received by the webapp ("*") and uses a RequestMapper
- * to delegate incoming HttpServletRequests to the appropriate RequestHandler, 
- * via the doFilter() method.
- *
+ * Top-Level integration point between a series of RequestHandler mappings and a
+ * generic ServletContext. This filter is assumed to be responsible for matching
+ * ALL requests received by the webapp ("*") and uses a RequestMapper to
+ * delegate incoming HttpServletRequests to the appropriate RequestHandler, via
+ * the doFilter() method.
+ * 
  * @author brad
  */
 public class RequestFilter implements Filter {
@@ -46,20 +50,48 @@ public class RequestFilter implements Filter {
 			.getName());
 	private RequestMapper mapper = null;
 	private final static String CONFIG_PATH = "config-path";
-	
+	private final static String LOGGING_CONFIG_PATH = "logging-config-path";
+
 	public void init(FilterConfig config) throws ServletException {
 		ServletContext servletContext = config.getServletContext();
 
+		String logConfigPath = servletContext
+				.getInitParameter(LOGGING_CONFIG_PATH);
+		if (logConfigPath != null) {
+			String resolvedLogPath = servletContext.getRealPath(logConfigPath);
+			File logConfigFile = new File(resolvedLogPath);
+			if (logConfigFile.exists()) {
+				FileInputStream finp = null;
+				try {
+					finp = new FileInputStream(logConfigFile);
+					LogManager.getLogManager().readConfiguration(finp);
+				} catch (FileNotFoundException e) {
+					e.printStackTrace();
+				} catch (SecurityException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+				} finally {
+					try {
+						if (finp != null) {
+							finp.close();
+						}
+					} catch (IOException e) {
+						throw new ServletException(e);
+					}
+				}
+			}
+		}
+
 		String configPath = servletContext.getInitParameter(CONFIG_PATH);
-		if(configPath == null) {
-			throw new ServletException("Missing " + CONFIG_PATH 
-					+ " parameter");
+		if (configPath == null) {
+			throw new ServletException("Missing " + CONFIG_PATH + " parameter");
 		}
 		String resolvedPath = servletContext.getRealPath(configPath);
 
-		LOGGER.info("Initializing Spring config at: " +  resolvedPath);
-		mapper = SpringReader.readSpringConfig(resolvedPath,servletContext);
-		LOGGER.info("Initialized Spring config at: " +  resolvedPath);
+		LOGGER.info("Initializing Spring config at: " + resolvedPath);
+		mapper = SpringReader.readSpringConfig(resolvedPath, servletContext);
+		LOGGER.info("Initialized Spring config at: " + resolvedPath);
 	}
 
 	public void destroy() {
@@ -68,18 +100,18 @@ public class RequestFilter implements Filter {
 		LOGGER.info("Shutdown complete.");
 	}
 
-	public void doFilter(ServletRequest request, ServletResponse response, 
+	public void doFilter(ServletRequest request, ServletResponse response,
 			FilterChain chain) throws IOException, ServletException {
 		boolean handled = false;
-		
-		if(request instanceof HttpServletRequest) {
-			if(response instanceof HttpServletResponse) {
+
+		if (request instanceof HttpServletRequest) {
+			if (response instanceof HttpServletResponse) {
 				handled = mapper.handleRequest((HttpServletRequest) request,
 						(HttpServletResponse) response);
 			}
 		}
-		if(!handled) {
-			chain.doFilter(request,response);
+		if (!handled) {
+			chain.doFilter(request, response);
 		}
 	}
 }

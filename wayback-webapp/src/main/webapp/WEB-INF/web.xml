@@ -6,12 +6,40 @@
             http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"
         version="2.4">
 
-    <!-- General Installation information
+    <!--
+    	Wayback runs as a single Servlet Filter, which intercepts all incoming
+    	requests.
+    	
+    	AccessPoints are defined in a Spring configuration file, and register
+    	themselves to handle incoming requests with this Filter. If no 
+    	AccessPoint matches an incoming request, the filter does nothing, 
+    	falling back to normal request processing, but this is an exceptional
+    	case: To enable "virtual" AccessPoints to share the common
+    	static content (and especially .jsp files) directly under the webapp
+    	directory, AccessPoints will generally strip leading path information,
+    	and forward() the requests internally to the top level of the webapp
+    	directory. To allow .jsp files to customize output based on the 
+    	particular AccessPoint which matched the request, references to the 
+    	AccessPoint, and other data structures are often stored in the 
+    	HttpServletRequest objects before forwarding these requests. In this 
+    	case, the AccessPoint will inform the common request Filter that 
+    	content has been returned, so "normal" request processing is skipped.
+    	
+    	In general, only 2 configurations are needed, which are both 
+    	webapp-relative paths to configuration.
+    	
+    	Specifically, this is a logging configuration .properties file, for
+    	java.util.logging (logging-config-path) and a Spring XML configuration
+    	file describing the set of AccessPoints objects (and their internal 
+    	objects) being served by this webapp (config-path).
      -->
+    <context-param>
+        <param-name>logging-config-path</param-name>
+        <param-value>WEB-INF/classes/logging.properties</param-value>
+    </context-param>
     <context-param>
         <param-name>config-path</param-name>
         <param-value>WEB-INF/wayback.xml</param-value>
-<!--        <param-value>WEB-INF/memento.xml</param-value> -->
     </context-param>
     <filter>
         <filter-name>RequestFilter</filter-name>
