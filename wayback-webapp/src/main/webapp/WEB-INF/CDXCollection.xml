@@ -43,13 +43,17 @@
         <property name="canonicalizer" ref="waybackCanonicalizer" />
         <property name="source">
 
+<!--
+	A single CDX SearchResultSource example.
+-->
           <bean class="org.archive.wayback.resourceindex.cdx.CDXIndex">
             <property name="path" value="${wayback.basedir}/cdx-index/index.cdx" />
           </bean>
 
 <!--
 	A CompositeSearchResultSource example, that allows searching through 
-	multiple sorted CDX files.
+	multiple sorted CDX files on each request, merging results into a single
+	logical index.
 -->
 <!--          
           <bean class="org.archive.wayback.resourceindex.CompositeSearchResultSource">
