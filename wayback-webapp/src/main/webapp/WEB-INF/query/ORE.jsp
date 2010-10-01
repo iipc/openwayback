@@ -1,39 +1,39 @@
-<%@ page import="java.util.Date" %>
-<%@ page import="org.archive.wayback.core.UIResults" %>
-<%@ page import="org.archive.wayback.util.StringFormatter" %>
-<%@ page import="org.archive.wayback.core.WaybackRequest" %>
-<%@ page import="org.archive.wayback.core.CaptureSearchResults" %>
-<%@ page import="org.archive.wayback.core.CaptureSearchResult"%>
-<%@ page import="org.archive.wayback.ResultURIConverter" %>
-<%@ page import="java.text.SimpleDateFormat" %>
-<%@ page import="org.archive.wayback.util.Timestamp" %>
-<%@ page import="java.util.Iterator" %>
-<%@ page import="java.util.List"  %>
-<%@ page import="java.util.ArrayList" %>
-<%@ page import="org.dspace.foresite.Aggregation" %>
-<%@ page import="org.dspace.foresite.ResourceMap" %>
-<%@ page import="org.dspace.foresite.Agent" %>
-<%@ page import="org.dspace.foresite.OREFactory" %>
-<%@ page import="org.dspace.foresite.AggregatedResource" %>
-<%@ page import="org.dspace.foresite.ORESerialiser" %>
-<%@ page import="org.dspace.foresite.ORESerialiserFactory" %>
-<%@ page import="org.dspace.foresite.ResourceMapDocument" %>
-<%@ page import="java.io.PrintWriter" %>
-<%@ page import="java.net.URI" %>
-<%@ page import="org.dspace.foresite.Predicate" %>
-<%@ page import="org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter" %>
-<%@page import="org.dspace.foresite.Triple"%>
-<%@page import="org.dspace.foresite.jena.TripleJena"%>
-<%@page import="java.util.UUID"%>
-<%@ page import="java.util.TimeZone" %>  
-<%@page import="java.util.Calendar"%>
-<%
+<%@ page import="java.util.Date"
+%><%@ page import="org.archive.wayback.core.UIResults"
+%><%@ page import="org.archive.wayback.util.StringFormatter"
+%><%@ page import="org.archive.wayback.core.WaybackRequest"
+%><%@ page import="org.archive.wayback.core.CaptureSearchResults"
+%><%@ page import="org.archive.wayback.core.CaptureSearchResult"
+%><%@ page import="org.archive.wayback.ResultURIConverter"
+%><%@ page import="java.text.SimpleDateFormat"
+%><%@ page import="org.archive.wayback.util.Timestamp"
+%><%@ page import="java.util.Iterator"
+%><%@ page import="java.util.List"
+%><%@ page import="java.util.ArrayList"
+%><%@ page import="org.dspace.foresite.Aggregation"
+%><%@ page import="org.dspace.foresite.ResourceMap"
+%><%@ page import="org.dspace.foresite.Agent"
+%><%@ page import="org.dspace.foresite.OREFactory"
+%><%@ page import="org.dspace.foresite.AggregatedResource"
+%><%@ page import="org.dspace.foresite.ORESerialiser"
+%><%@ page import="org.dspace.foresite.ORESerialiserFactory"
+%><%@ page import="org.dspace.foresite.ResourceMapDocument"
+%><%@ page import="java.io.PrintWriter"
+%><%@ page import="java.net.URI"
+%><%@ page import="org.dspace.foresite.Predicate"
+%><%@ page import="org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter"
+%><%@ page import="org.dspace.foresite.Triple"
+%><%@ page import="org.dspace.foresite.jena.TripleJena"
+%><%@ page import="java.util.UUID"
+%><%@ page import="java.util.TimeZone"
+%><%@ page import="java.util.Calendar"
+%><%
 	UIResults results = UIResults.extractCaptureQuery(request);//nuzno potom perepisat'
 	SimpleDateFormat httpformatterl = new SimpleDateFormat(
 			"E, dd MMM yyyy HH:mm:ss z");
 	TimeZone tzo = TimeZone.getTimeZone("GMT");
-    httpformatterl.setTimeZone(tzo);
-    
+	httpformatterl.setTimeZone(tzo);
+
 	WaybackRequest wbRequest = results.getWbRequest();
 	CaptureSearchResults cResults = results.getCaptureResults();
 	CaptureSearchResult res = cResults.getClosest(wbRequest, true);
@@ -41,21 +41,12 @@
 	ArchivalUrlResultURIConverter uriconverter = (ArchivalUrlResultURIConverter) results
 			.getURIConverter();
 	String uriPrefix = uriconverter.getReplayURIPrefix();
-	//String p_url = wbRequest.getContextPrefix();
 	String u = wbRequest.getRequestUrl();
 	String agguri = uriPrefix + "timebundle/" + u;
-	//String agguri = results.getContextConfig("Prefix") + "timebundle/" + u;
-	//String remuri = p_url +"timemap/" + u;
-	//System.out.println(agguri);
-	//System.out.println(remuri);
 	String format = wbRequest.get("format");
-	// System.out.println("here");
 	Aggregation agg = OREFactory.createAggregation(new URI(agguri));
-	//System.out.println("here");
 	ResourceMap rem = agg.createResourceMap(new URI(uriPrefix
 			+ "timemap/" + format + "/" + u));
-
-	//SimpleDateFormat  formatter_utc = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
 	Date now = new Date();
 
@@ -67,20 +58,14 @@
 	rem.setModified(now);
 	rem.createTriple(pr_type, new URI(
 			"http://www.mementoweb.org/terms/tb/TimeMap"));
-	//rem.addType(new URI("http://www.mementoweb.org/terms/tb/TimeMap"));
 	Agent creator = OREFactory.createAgent();
 	creator.addName("Foresite Toolkit (Java)");
-	//creator.addMbox(new URI("foresite@googlegroups.com"));
 
-	//rem.addAgent(new URI("http://foresite-toolkit.googlecode.com/#javaAgent"),creator);
 	rem.addCreator(creator);
 	agg.addTitle("Memento Time Bundle for " + u);
 
-	//CaptureSearchResults cResults = results.getCaptureResults();
-	//CaptureSearchResult res = cResults.getClosest(wbRequest,true);
 	Iterator<CaptureSearchResult> itr = cResults.iterator();
-	SimpleDateFormat formatterk = new SimpleDateFormat(
-			"yyyyMMddHHmmss");
+	SimpleDateFormat formatterk = new SimpleDateFormat("yyyyMMddHHmmss");
 	formatterk.setTimeZone(tzo);
 	Date f = cResults.getFirstResultDate();
 	Date l = cResults.getLastResultDate();
@@ -88,24 +73,18 @@
 	String ArchiveInterval = formatterk.format(f) + " - "
 			+ formatterk.format(l);
 
-	//agg.createTriple(new URI("http://www.mementoweb.org/ns/archiveInterval"),ArchiveInterval);
-	agg.addType(new URI(
-			"http://www.mementoweb.org/terms/tb/TimeBundle"));
-	//String mementourl =p_url.replace("ore","memento");
+	agg.addType(new URI("http://www.mementoweb.org/terms/tb/TimeBundle"));
 	//include original into aggregation
 
-	AggregatedResource ar_o = agg.createAggregatedResource(new URI(
-			u));
+	AggregatedResource ar_o = agg.createAggregatedResource(new URI(u));
 	ar_o.createTriple(pr_type, new URI(
 			"http://www.mementoweb.org/terms/tb/OriginalResource"));
 	//include timegate into aggregation
-	AggregatedResource ar_tg = agg
-			.createAggregatedResource(new URI(results
-					.getContextConfig("Prefix")
-					+ "timegate/" + u));
+	AggregatedResource ar_tg = agg.createAggregatedResource(new URI(
+			results.getContextConfig("Prefix") + "timegate/" + u));
+
 	Predicate pr_format = new Predicate();
-	pr_format.setURI(new URI(
-			"http://purl.org/dc/elements/1.1/format"));
+	pr_format.setURI(new URI("http://purl.org/dc/elements/1.1/format"));
 	ar_tg.createTriple(pr_format, new URI(u));
 	ar_tg.createTriple(pr_type, new URI(
 			"http://www.mementoweb.org/terms/tb/TimeGate"));
@@ -127,8 +106,13 @@
 
 	linkbf.append("<" + u + ">;rel=\"original\"\n");
 	linkbf.append(",<" + agguri + ">;rel=\"timebundle\"\n");
-	String firstmemento = null;
+	linkbf.append(",<" + results.getContextConfig("Prefix")
+			+ "timegate/" + u + ">;rel=\"timegate\"\n");
+	linkbf.append(",<" + uriPrefix + "timemap/" + format + "/" + u
+			+ ">;rel=\"timemap\"\n");
 
+	String firstmemento = null;
+	int count = 0;
 	while (itr.hasNext()) {
 		CaptureSearchResult cur = itr.next();
 		//I am not deduping urls (by digest) for the rdf serialization running out of time, extra efforts for me now ;)
@@ -152,9 +136,7 @@
 				"http://www.mementoweb.org/terms/tb/Memento"));
 
 		Date startdate = cur.getDuplicateDigestStoredDate();
-		//System.out.println("start:"+startdate);
 		enddate = cur.getCaptureDate();
-		//System.out.println("end:"+enddate);
 
 		// serialiase it in links format only for unique  digest
 
@@ -164,10 +146,12 @@
 						+ ">;rel=\"first-memento\";datetime=\""
 						+ httpformatterl.format(enddate) + "\"\n");
 				firstmemento = "firstmemento";
+
 			} else {
 				linkbf.append(",<" + resurl
 						+ ">;rel=\"memento\";datetime=\""
 						+ httpformatterl.format(enddate) + "\"\n");
+				count = count + 1;
 			}
 		}
 
@@ -178,9 +162,8 @@
 		UUID a = UUID.randomUUID();
 		String blanc = "urn:uuid:" + a.toString();
 
-		//System.out.println(blanc);
 		pred.setURI(new URI(
-				"http://www.mementoweb.org/terms/tb/validOver"));
+				"http://www.mementoweb.org/terms/tb/observedOver"));
 		triple.relate(pred, new URI(blanc));
 		Triple tr = new TripleJena();
 		tr.initialise(new URI(blanc));
@@ -193,7 +176,6 @@
 		String start = null;
 		Triple trd = new TripleJena();
 		trd.initialise(new URI(blanc));
-		//Calendar cal = Calendar.getInstance();
 
 		if (startdate != null) {
 
@@ -205,8 +187,6 @@
 			trd.relate(pr, cal);
 			start = httpformatterl.format(enddate);
 		}
-
-		//System.out.println("type" +trd.getLiteralType());
 
 		ar.addTriple(triple);
 		ar.addTriple(tr);
@@ -220,7 +200,6 @@
 				Triple tre = new TripleJena();
 				tre.initialise(new URI(blanc_));
 
-				//Calendar cal = Calendar.getInstance();
 				cal.setTime(enddate);
 				tre.relate(pre, cal);
 				ar.addTriple(tre);
@@ -246,13 +225,11 @@
 		ar.addTriple(tre);
 	}
 
-	// additional logic for link format
-	int m_index = linkbf.lastIndexOf("\"memento\"");
-	//System.out.println(m_index);
-	linkbf.insert(m_index + 1, "last-");
-	//System.out.println("here");
+	if (count > 0) {
+		int m_index = linkbf.lastIndexOf("\"memento\"");
+		linkbf.insert(m_index + 1, "last-");
+	}
 
-	//String format = wbRequest.get("format");
 	ORESerialiser serial = null;
 	if (format.equals("rdf")) {
 		serial = ORESerialiserFactory.getInstance("RDF/XML");
@@ -272,15 +249,12 @@
 	//}
 	else if (format.equals("link")) {
 		PrintWriter pw = response.getWriter();
-		//System.out.println(linkbf.toString());
-		
-		// TODO: are we sure this is right? We want to flush *before* 
-		//       setting content-type?
+
+		response.setContentType("text/csv");
 		pw.print(linkbf.toString());
 		pw.flush();
-		response.setContentType("text/csv");
+
 	} else {
-		// response.setStatus(404);
 		// TODO: this should be handled in TimeBundleParser to allow
 		//       usual Exception rendering to happen.
 		response.sendError(404, "Unknown TimeMap serialization");
@@ -306,5 +280,4 @@
 		pw.print(serialisation);
 		pw.flush();
 	}
-
 %>

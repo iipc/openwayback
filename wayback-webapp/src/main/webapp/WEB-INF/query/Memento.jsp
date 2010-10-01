@@ -1,25 +1,25 @@
-<%@ page import="java.util.Date" %>
-<%@ page import="org.archive.wayback.core.UIResults" %>
-<%@ page import="org.archive.wayback.util.StringFormatter" %>
-<%@ page import="org.archive.wayback.core.WaybackRequest" %>
-<%@ page import="org.archive.wayback.core.CaptureSearchResults" %>
-<%@ page import="org.archive.wayback.core.CaptureSearchResult"%>
-<%@ page import="org.archive.wayback.ResultURIConverter" %>
-<%@ page import="java.text.SimpleDateFormat" %>
-<%@ page import="org.archive.wayback.util.Timestamp" %>
-<%@ page import="java.util.Iterator" %>
-<%@ page import="java.util.List"  %>
-<%@ page import="java.util.ArrayList" %>
-<%@ page import="org.archive.wayback.ResultURIConverter" %>
-<%@ page import="java.util.TimeZone" %>
-<%@ page import="java.io.PrintWriter"%>
-<%@ page import="org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter" %>
-<%
-   //timegate implementation
-   String method = request.getMethod();
-   // may be there is better place to put this piece of code?
-	if( !(method.equals("GET")||method.equals("HEAD")) )  {
-		response.setStatus(405);	 
+<%@ page import="java.util.Date"
+%><%@ page import="org.archive.wayback.core.UIResults"
+%><%@ page import="org.archive.wayback.util.StringFormatter"
+%><%@ page import="org.archive.wayback.core.WaybackRequest"
+%><%@ page import="org.archive.wayback.core.CaptureSearchResults"
+%><%@ page import="org.archive.wayback.core.CaptureSearchResult"
+%><%@ page import="org.archive.wayback.ResultURIConverter"
+%><%@ page import="java.text.SimpleDateFormat"
+%><%@ page import="org.archive.wayback.util.Timestamp"
+%><%@ page import="java.util.Iterator"
+%><%@ page import="java.util.List"
+%><%@ page import="java.util.ArrayList"
+%><%@ page import="org.archive.wayback.ResultURIConverter"
+%><%@ page import="java.util.TimeZone"
+%><%@ page import="java.io.PrintWriter"
+%><%@ page import="org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter"
+%><%
+	//timegate implementation
+	String method = request.getMethod();
+	// may be there is better place to put this peace of code
+	if (!(method.equals("GET") || method.equals("HEAD"))) {
+		response.setStatus(405);
 		response.setHeader("Allow", "GET, HEAD");
 		return;
 	}
@@ -27,10 +27,10 @@
 	response.setHeader("Vary", "negotiate,accept-datetime");
 	SimpleDateFormat httpformatterl = new SimpleDateFormat(
 			"E, dd MMM yyyy HH:mm:ss z");
-			TimeZone tzo = TimeZone.getTimeZone("GMT");
-    httpformatterl.setTimeZone(tzo);
-    SimpleDateFormat formatterk = new SimpleDateFormat("yyyyMMddHHmmss");
-    formatterk.setTimeZone(tzo);
+	TimeZone tzo = TimeZone.getTimeZone("GMT");
+	httpformatterl.setTimeZone(tzo);
+	SimpleDateFormat formatterk = new SimpleDateFormat("yyyyMMddHHmmss");
+	formatterk.setTimeZone(tzo);
 	Date now = new Date();
 	UIResults results = UIResults.extractCaptureQuery(request);//nuzno potom perepisat'
 
@@ -58,105 +58,105 @@
 	String replayUrl = results.resultToReplayUrl(res);
 
 	StringBuffer sb = new StringBuffer();
-	
-    String memento = ",<" + replayUrl
-		+ ">;rel=\"memento\";datetime=\""
-		+ httpformatterl.format(closestDate) + "\"";
+
+	String memento = ",<" + replayUrl + ">;rel=\"memento\";datetime=\""
+			+ httpformatterl.format(closestDate) + "\"";
 	StringFormatter fmt = results.getWbRequest().getFormatter();
 	Date f = cResults.getFirstResultDate();
 	Date l = cResults.getLastResultDate();
 
-	
 	String mfl = null;
-	if ( (closestDate.equals(f)) && closestDate.equals(l)) {
-
-		mfl =	", <" + uriPrefix + formatterk.format(f) + "/" + u
-			+ ">;rel=\"first-memento memento last-memento\"; datetime=\""
-			+ httpformatterl.format(f) + "\"";
-
-	} else if (closestDate.equals(f)){
-
+	if ((closestDate.equals(f)) && closestDate.equals(l)) {
+		mfl = ", <"
+				+ uriPrefix
+				+ formatterk.format(f)
+				+ "/"
+				+ u
+				+ ">;rel=\"first-memento memento last-memento\"; datetime=\""
+				+ httpformatterl.format(f) + "\"";
+	} else if (closestDate.equals(f)) {
 		mfl = ", <" + uriPrefix + formatterk.format(f) + "/" + u
-			+ ">;rel=\"first-memento memento\"; datetime=\""
-			+ httpformatterl.format(f) + "\""
-			+ ", <" + uriPrefix + formatterk.format(l) + "/" + u
-			+ ">;rel=\"last-memento\"; datetime=\""
-			+ httpformatterl.format(l) + "\"";		
-	
+				+ ">;rel=\"first-memento memento\"; datetime=\""
+				+ httpformatterl.format(f) + "\"";
+		mfl = mfl + ", <" + uriPrefix + formatterk.format(l) + "/" + u
+				+ ">;rel=\"last-memento\"; datetime=\""
+				+ httpformatterl.format(l) + "\"";
+
 	} else if (closestDate.equals(l)) {
+		mfl = ", <" + uriPrefix + formatterk.format(l) + "/" + u
+				+ ">;rel=\"last-memento memento\"; datetime=\""
+				+ httpformatterl.format(l) + "\"";
+		mfl = mfl + ", <" + uriPrefix + formatterk.format(f) + "/" + u
+				+ ">;rel=\"first-memento\"; datetime=\""
+				+ httpformatterl.format(f) + "\"";
+	} else {
 
-		 mfl = ", <" + uriPrefix + formatterk.format(l) + "/" + u
-			+ ">;rel=\"last-memento memento\"; datetime=\""
-			+ httpformatterl.format(l) + "\""
-		 	+ ", <" + uriPrefix + formatterk.format(f) + "/" + u
-			+ ">;rel=\"first-memento\"; datetime=\""
-			+ httpformatterl.format(f) + "\"";
-
-	} else  {
-	
-		mfl = memento
-			+ ", <" + uriPrefix + formatterk.format(l) + "/" + u
-			+ ">;rel=\"last-memento\"; datetime=\""
-			+ httpformatterl.format(l) + "\""
-			+ ", <" + uriPrefix + formatterk.format(f) + "/" + u
-			+ ">;rel=\"first-memento\"; datetime=\""
-			+ httpformatterl.format(f) + "\"";
+		mfl = memento;
+		mfl = mfl + ", <" + uriPrefix + formatterk.format(l) + "/" + u
+				+ ">;rel=\"last-memento\"; datetime=\""
+				+ httpformatterl.format(l) + "\"";
+		mfl = mfl + ", <" + uriPrefix + formatterk.format(f) + "/" + u
+				+ ">;rel=\"first-memento\"; datetime=\""
+				+ httpformatterl.format(f) + "\"";
 	}
-	
+
 	sb = new StringBuffer(mfl);
-	
-	if (dtdate==null) dtdate="";
-	
-	
+
+	if (dtdate == null)
+		dtdate = "";
+
 	//special handling date unparsable case
 	if (dtdate.equals("unparsable")) {
-		String fl= null;
+		String fl = null;
 		if (f.equals(l)) {
-			 fl=", <" + uriPrefix + formatterk.format(f) + "/" + u
-						+ ">;rel=\"last-memento first-memento\"; datetime=\""
-						+ httpformatterl.format(f) + "\"";
-			
+			fl = ", <"
+					+ uriPrefix
+					+ formatterk.format(f)
+					+ "/"
+					+ u
+					+ ">;rel=\"last-memento first-memento\"; datetime=\""
+					+ httpformatterl.format(f) + "\"";
+
 		} else {
 			fl = ", <" + uriPrefix + formatterk.format(l) + "/" + u
-			+ ">;rel=\"last-memento\"; datetime=\""
-			+ httpformatterl.format(l) + "\"";
-			fl =fl +", <" + uriPrefix + formatterk.format(f) + "/" + u
-					+ ">;rel=\"first-memento\"; datetime=\""
+					+ ">;rel=\"last-memento\"; datetime=\""
+					+ httpformatterl.format(l) + "\"";
+			fl = fl + ", <" + uriPrefix + formatterk.format(f) + "/"
+					+ u + ">;rel=\"first-memento\"; datetime=\""
 					+ httpformatterl.format(f) + "\"";
 		}
 		response.setHeader("TCN", "list");
 		response.setStatus(400);
 		response.setHeader("Link", "<" + agguri
-				+ ">;rel=\"timebundle\"" + origlink + fl
-				+ timemap);
-	
-      
-	
+				+ ">;rel=\"timebundle\"" + origlink + fl + timemap);
+
 		StringBuffer sberr = new StringBuffer();
-		sberr.append("<html><head><title>400  Bad Request</title></head><body>" );
+		sberr.append("<html><head><title>400  Bad Request</title></head><body>");
 		sberr.append("<center><table width='800px'><tr><td><div style='background-color: #e0e0e0; padding: 10px;'><br/>");
-		sberr.append("<center><b>Error: 400</b><center>" );
-		sberr.append("<center><p>Bad Date Request.</p>" );
-		sberr.append("However, we found archived resources available in the following time-range: " );
-		sberr.append("<i><blockquote><ul> " );  
-		
-		sberr.append("<li>Very first available Memento  "+   "  at "+  uriPrefix + formatterk.format(f) + "/" + u +"</BR>\n" );
-		sberr.append("<li>Most recent available Memento "  + "  at " + uriPrefix + formatterk.format(f) + "/" + u +"</BR>\n" );
-			
-		
-		sberr.append("</ul> </blockquote></i>" );
+		sberr.append("<center><b>Error: 400</b><center>");
+		sberr.append("<center><p>Bad Date Request.</p>");
+		sberr.append("However, we found archived resources available in the following time-range: ");
+		sberr.append("<i><blockquote><ul> ");
+
+		sberr.append("<li>Very first available Memento  " + "  at "
+				+ uriPrefix + formatterk.format(f) + "/" + u
+				+ "</BR>\n");
+		sberr.append("<li>Most recent available Memento " + "  at "
+				+ uriPrefix + formatterk.format(f) + "/" + u
+				+ "</BR>\n");
+
+		sberr.append("</ul> </blockquote></i>");
 		sberr.append("<br/></div></td></tr>");
 		sberr.append("</table>");
 		sberr.append("</body></html>");
 		PrintWriter pw = response.getWriter();
- 		response.setContentType("text/html");
- 		pw.print(sberr.toString());
- 		pw.flush();
- 		pw.close();
-	    return;
-	} 
-	
-          
+		response.setContentType("text/html");
+		pw.print(sberr.toString());
+		pw.flush();
+		pw.close();
+		return;
+	}
+
 	// calculate closest values for alternates
 	CaptureSearchResult closestleft = null;
 	CaptureSearchResult closestright = null;
@@ -167,12 +167,12 @@
 
 	long maxWindow = -1;
 	long wantTime = closestDate.getTime();
-	
+
 	Iterator<CaptureSearchResult> itr = cResults.iterator();
 	while (itr.hasNext()) {
 		cur = itr.next();
 		cur.getCaptureDate();
-		long curDistance = cur.getCaptureDate().getTime()-wantTime;
+		long curDistance = cur.getCaptureDate().getTime() - wantTime;
 		// == 0 skip
 		if (curDistance > 0) {
 			if ((closestright == null)
@@ -194,38 +194,42 @@
 
 	}
 
-	
-	
 	if (closestleft != null) {
 		if (!(closestleft.getCaptureDate().equals(f))) {
-			sb.append(", <" + uriPrefix + formatterk.format(closestleft.getCaptureDate())
-				+ "/" + u
-				+ ">;rel=\"prev-memento\"; datetime=\""
-				+ httpformatterl.format(closestleft.getCaptureDate()) + "\"");
+			sb.append(", <"
+					+ uriPrefix
+					+ formatterk.format(closestleft.getCaptureDate())
+					+ "/"
+					+ u
+					+ ">;rel=\"prev-memento\"; datetime=\""
+					+ httpformatterl.format(closestleft
+							.getCaptureDate()) + "\"");
 		} else {
 			int m_index = sb.lastIndexOf("\"first-memento\"");
-  			sb.insert(m_index + 1, "prev-memento ");
+			sb.insert(m_index + 1, "prev-memento ");
 		}
 	}
 	if (closestright != null) {
 		if (!(closestright.getCaptureDate().equals(l))) {
-			sb.append(", <" + uriPrefix + formatterk.format(closestright.getCaptureDate())
-					+ "/" + u
+			sb.append(", <"
+					+ uriPrefix
+					+ formatterk.format(closestright.getCaptureDate())
+					+ "/"
+					+ u
 					+ ">;rel=\"next-memento\"; datetime=\""
-					+ httpformatterl.format(closestright.getCaptureDate()) + "\"");
+					+ httpformatterl.format(closestright
+							.getCaptureDate()) + "\"");
 		} else {
 			int m_index = sb.lastIndexOf("\"last-memento\"");
-  			sb.insert(m_index + 1, "next-memento ");
+			sb.insert(m_index + 1, "next-memento ");
 		}
+
 	}
-	
-	
-	response.setHeader("Link", "<" + agguri
-			+ ">;rel=\"timebundle\"" + origlink + sb.toString()
-			 + timemap); //added timemap
-	
+
+	response.setHeader("Link", "<" + agguri + ">;rel=\"timebundle\""
+			+ origlink + sb.toString() + timemap); //added timemap
+
 	response.setHeader("TCN", "choice");
 	response.setHeader("Location", replayUrl);
 	response.sendError(302, "Found");
-
 %>
