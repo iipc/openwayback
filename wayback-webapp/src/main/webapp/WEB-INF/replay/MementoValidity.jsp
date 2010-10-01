@@ -11,7 +11,7 @@
 	UIResults results = UIResults.extractCaptureQuery(request);
 	WaybackRequest wbRequest = results.getWbRequest();
 	CaptureSearchResults cResults = results.getCaptureResults();
-	CaptureSearchResult res = cResults.getClosest(wbRequest, true);
+	CaptureSearchResult res = cResults.getClosest();
 	String u = wbRequest.getRequestUrl();
 	SimpleDateFormat httpformatterl = new SimpleDateFormat(
 			"E, dd MMM yyyy HH:mm:ss z");

@@ -23,6 +23,9 @@
   </bean>
 
   <bean id="proxyreplay" class="org.archive.wayback.replay.SelectorReplayDispatcher">
+  	<property name="closestSelector">
+  	  <bean class="org.archive.wayback.replay.DefaultClosestResultSelector" />
+  	</property>
     <property name="selectors">
       <list>
 

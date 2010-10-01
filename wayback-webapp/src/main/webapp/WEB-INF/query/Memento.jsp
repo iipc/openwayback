@@ -41,7 +41,7 @@
 	String dtdate = wbRequest.get("dtconneg");
 
 	CaptureSearchResults cResults = results.getCaptureResults();
-	CaptureSearchResult res = cResults.getClosest(wbRequest, true);
+	CaptureSearchResult res = cResults.getClosest();
 
 	Date closestDate = res.getCaptureDate();
 

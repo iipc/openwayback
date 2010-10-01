@@ -27,9 +27,11 @@ import java.util.Map;
 import org.apache.commons.httpclient.URIException;
 import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.core.CaptureSearchResult;
+import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadQueryException;
+import org.archive.wayback.resourceindex.filters.ClosestResultTrackingFilter;
 import org.archive.wayback.resourceindex.filters.DateRangeFilter;
 import org.archive.wayback.resourceindex.filters.HostMatchFilter;
 import org.archive.wayback.resourceindex.filters.SchemeMatchFilter;
@@ -47,6 +49,7 @@ public class QueryCaptureFilterGroup implements CaptureFilterGroup {
 //	private ObjectFilter<CaptureSearchResult> selfRedirectFilter = null;
 //	private ObjectFilter<CaptureSearchResult> exactHost = null;
 //	private ObjectFilter<CaptureSearchResult> exactScheme = null;
+	private ClosestResultTrackingFilter closestTracker = null;
 	private ObjectFilterChain<CaptureSearchResult> chain = null;
 	private String requestType = null;
 	private String keyUrl = null;
@@ -81,9 +84,24 @@ public class QueryCaptureFilterGroup implements CaptureFilterGroup {
 			}
 			chain.addFilter(new UrlMatchFilter(keyUrl));
 			chain.addFilter(new SelfRedirectFilter(canonicalizer));
+			
+			long wantMS = request.getReplayDate().getTime();
+			if(request.getAccessPoint().isUseAnchorWindow()) {
+				// use AnchorTimestamp, if specified:
+				String anchorTS = request.getAnchorTimestamp();
+				if(anchorTS != null) {
+					wantMS = 
+						Timestamp.parseBefore(anchorTS).getDate().getTime();
+				}
+			}
+			
+			closestTracker = new ClosestResultTrackingFilter(
+					request.getReplayDate().getTime());
 
 		} else if(request.isCaptureQueryRequest()) {
 			chain.addFilter(new UrlMatchFilter(keyUrl));
+			closestTracker = new ClosestResultTrackingFilter(
+					request.getReplayDate().getTime());
 		} else if(request.isUrlQueryRequest()) {
 			chain.addFilter(new UrlPrefixMatchFilter(keyUrl));
 		}
@@ -112,6 +130,9 @@ public class QueryCaptureFilterGroup implements CaptureFilterGroup {
 			chain.addFilter(new SchemeMatchFilter(
 					UrlOperations.urlToScheme(request.getRequestUrl()),this));
 		}
+		if(closestTracker != null) {
+			chain.addFilter(closestTracker);
+		}
 	}
 
 	public List<ObjectFilter<CaptureSearchResult>> getFilters() {
@@ -130,6 +151,12 @@ public class QueryCaptureFilterGroup implements CaptureFilterGroup {
 		results.putFilter(WaybackRequest.REQUEST_TYPE, requestType);
 		if(!closeMatches.isEmpty()) {
 			results.setCloseMatches(new ArrayList<String>(closeMatches.values()));
+		}
+		if(closestTracker != null) {
+			if(results instanceof CaptureSearchResults) {
+				CaptureSearchResults cResults = (CaptureSearchResults) results;
+				cResults.setClosest(closestTracker.getClosest());
+			}
 		}
 	}
 

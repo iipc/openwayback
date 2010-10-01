@@ -24,17 +24,22 @@ import java.util.List;
 import org.archive.wayback.ReplayDispatcher;
 import org.archive.wayback.ReplayRenderer;
 import org.archive.wayback.core.CaptureSearchResult;
+import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.WaybackRequest;
+import org.archive.wayback.exception.BetterRequestException;
 
 /**
- *
+ * ReplayDispatcher instance which uses a configurable ClosestResultSelector
+ * to find the best result to show from a given set, and a list of 
+ * ReplayRendererSelector to determine how best to replay that result to a user.
  *
  * @author brad
  * @version $Date$, $Revision$
  */
 public class SelectorReplayDispatcher implements ReplayDispatcher {
 	private List<ReplayRendererSelector> selectors = null;
+	private ClosestResultSelector closestSelector = null;
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.ReplayDispatcher#getRenderer(org.archive.wayback.core.WaybackRequest, org.archive.wayback.core.CaptureSearchResult, org.archive.wayback.core.Resource)
 	 */
@@ -49,11 +54,34 @@ public class SelectorReplayDispatcher implements ReplayDispatcher {
 		}
 		return null;
 	}
+	
+	public CaptureSearchResult getClosest(WaybackRequest wbRequest,
+			CaptureSearchResults results) throws BetterRequestException {
+		return closestSelector.getClosest(wbRequest, results);
+	}
+	
+	/**
+	 * @return the List of ReplayRendererSelector objects configured
+	 */
 	public List<ReplayRendererSelector> getSelectors() {
 		return selectors;
 	}
+	/**
+	 * @param selectors the List of ReplayRendererSelector to use
+	 */
 	public void setSelectors(List<ReplayRendererSelector> selectors) {
 		this.selectors = selectors;
 	}
-
+	/**
+	 * @param closestSelector the closestSelector to set
+	 */
+	public void setClosestSelector(ClosestResultSelector closestSelector) {
+		this.closestSelector = closestSelector;
+	}
+	/**
+	 * @return the closestSelector
+	 */
+	public ClosestResultSelector getClosestSelector() {
+		return closestSelector;
+	}
 }

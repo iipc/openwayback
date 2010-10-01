@@ -47,6 +47,7 @@ import org.archive.wayback.core.UIResults;
 import org.archive.wayback.core.UrlSearchResults;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.AdministrativeAccessControlException;
+import org.archive.wayback.exception.AnchorWindowTooSmallException;
 import org.archive.wayback.exception.AuthenticationControlException;
 import org.archive.wayback.exception.BaseExceptionRenderer;
 import org.archive.wayback.exception.BetterRequestException;
@@ -315,9 +316,12 @@ implements ShutdownListener {
 				(CaptureSearchResults) results;
 
 			// TODO: check which versions are actually accessible right now?
-			CaptureSearchResult closest = captureResults.getClosest(wbRequest, 
-					isUseAnchorWindow());
+			CaptureSearchResult closest = 
+				getReplay().getClosest(wbRequest, captureResults);
+
 			closest.setClosest(true);
+			checkAnchorWindow(wbRequest,closest);
+
 			try {
 				resource = 
 					getCollection().getResourceStore().retrieveResource(closest);
@@ -342,6 +346,28 @@ implements ShutdownListener {
 		}
 	}
 
+	private void checkAnchorWindow(WaybackRequest wbRequest, 
+			CaptureSearchResult result) throws AnchorWindowTooSmallException {
+		if(isUseAnchorWindow()) {
+			String anchorDate = wbRequest.getAnchorTimestamp();
+			if(anchorDate != null) {
+				long wantTime = wbRequest.getReplayDate().getTime();
+				long maxWindow = wbRequest.getAnchorWindow() * 1000;
+				if(maxWindow > 0) {
+					long closestDistance = Math.abs(wantTime - 
+							result.getCaptureDate().getTime());
+
+					if(closestDistance > maxWindow) {
+						throw new AnchorWindowTooSmallException("Closest is " + 
+								closestDistance + " seconds away, Window is " + 
+								maxWindow);
+					}
+				}
+			}
+			
+		}
+	}
+	
 	private void handleQuery(WaybackRequest wbRequest, 
 			HttpServletRequest httpRequest, HttpServletResponse httpResponse) 
 	throws ServletException, IOException, WaybackException {
@@ -352,7 +378,15 @@ implements ShutdownListener {
 		p.queried();
 		if(results instanceof CaptureSearchResults) {
 			CaptureSearchResults cResults = (CaptureSearchResults) results;
-			cResults.markClosest(wbRequest);
+			
+			// The Firefox proxy plugin maks an XML request to populate the
+			// list of available captures, and needs the closest result to
+			// the one being replayed to be flagged as such:
+			CaptureSearchResult closest = cResults.getClosest();
+			if(closest != null) {
+				closest.setClosest(true);
+			}
+
 			getQuery().renderCaptureResults(httpRequest,httpResponse,wbRequest,
 					cResults,getUriConverter());
 

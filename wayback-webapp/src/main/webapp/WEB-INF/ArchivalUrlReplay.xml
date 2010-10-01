@@ -105,6 +105,9 @@
 	return the document to the user. 
  -->
   <bean id="archivalurlreplay" class="org.archive.wayback.replay.SelectorReplayDispatcher">
+  	<property name="closestSelector">
+  	  <bean class="org.archive.wayback.replay.DateRedirectingClosestResultSelector" />
+  	</property>
     <property name="selectors">
       <list>
 

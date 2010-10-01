@@ -24,7 +24,6 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-import org.archive.wayback.exception.AnchorWindowTooSmallException;
 import org.archive.wayback.util.Timestamp;
 
 /**
@@ -39,6 +38,9 @@ public class CaptureSearchResults extends SearchResults {
 	 */
 	private ArrayList<CaptureSearchResult> results = 
 		new ArrayList<CaptureSearchResult>();
+	
+	private CaptureSearchResult closest = null;
+	
 	/**
 	 * 14-digit timestamp of first capture date contained in the SearchResults
 	 */
@@ -75,70 +77,6 @@ public class CaptureSearchResults extends SearchResults {
 		return new Timestamp(lastResultTimestamp).getDate();
 	}
 
-	public void markClosest(WaybackRequest wbRequest) {
-		CaptureSearchResult closest = getClosest(wbRequest);
-		if(closest != null) {
-			closest.setClosest(true);
-		}
-	}
-	/**
-	 * @param wbRequest
-	 * @return The closest CaptureSearchResult to the request.
-	 */
-	public CaptureSearchResult getClosest(WaybackRequest wbRequest) {
-		try {
-			return getClosest(wbRequest,false);
-		} catch (AnchorWindowTooSmallException e) {
-			// cannot happen with 2nd arg false...
-			e.printStackTrace();
-		}
-		return null;
-	}
-	/**
-	 * @param wbRequest
-	 * @param useAnchor if true, then check Request Anchor Window and Date,
-	 * 		  throwing exception if no Result is within the Window.
-	 * @return The closest CaptureSearchResult to the request.
-	 */
-	public CaptureSearchResult getClosest(WaybackRequest wbRequest, 
-			boolean useAnchor) 
-		throws AnchorWindowTooSmallException {
-
-		CaptureSearchResult closest = null;
-		long closestDistance = 0;
-		CaptureSearchResult cur = null;
-		String anchorDate = null;
-		// TODO: check if HTTP request referrer is set before using? 
-		if(useAnchor) {
-			anchorDate = wbRequest.getAnchorTimestamp();
-		}
-		long maxWindow = -1;
-		long wantTime = wbRequest.getReplayDate().getTime();
-		if(anchorDate != null) {
-			wantTime = Timestamp.parseBefore(anchorDate).getDate().getTime();
-			maxWindow = wbRequest.getAnchorWindow() * 1000;
-		}
-
-		Iterator<CaptureSearchResult> itr = results.iterator();
-		while (itr.hasNext()) {
-			cur = itr.next();
-			long curDistance = Math.abs(wantTime - 
-					cur.getCaptureDate().getTime());
-
-			if ((closest == null) || (curDistance < closestDistance)) {
-				closest = cur;
-				closestDistance = curDistance;
-			}
-		}
-		if(useAnchor && (maxWindow > 0)) {
-			if(closestDistance > maxWindow) {
-				throw new AnchorWindowTooSmallException("Closest is " + 
-						closestDistance + " seconds away, Window is " + 
-						maxWindow);
-			}
-		}
-		return closest;
-	}
 	/**
 	 * append a result
 	 * @param result
@@ -185,5 +123,17 @@ public class CaptureSearchResults extends SearchResults {
 
 	public int size() {
 		return results.size();
+	}
+	/**
+	 * @param closest the closest to set
+	 */
+	public void setClosest(CaptureSearchResult closest) {
+		this.closest = closest;
+	}
+	/**
+	 * @return the closest
+	 */
+	public CaptureSearchResult getClosest() {
+		return closest;
 	}
 }

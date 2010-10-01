@@ -36,7 +36,7 @@
 
 	WaybackRequest wbRequest = results.getWbRequest();
 	CaptureSearchResults cResults = results.getCaptureResults();
-	CaptureSearchResult res = cResults.getClosest(wbRequest, true);
+	CaptureSearchResult res = cResults.getClosest();
 
 	ArchivalUrlResultURIConverter uriconverter = (ArchivalUrlResultURIConverter) results
 			.getURIConverter();

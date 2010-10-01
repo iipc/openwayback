@@ -19,9 +19,11 @@
  */
 package org.archive.wayback;
 
+import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.WaybackRequest;
+import org.archive.wayback.exception.BetterRequestException;
 
 /**
  * Locate and return a ReplayRenderer appropriate for the users request 
@@ -45,4 +47,14 @@ public interface ReplayDispatcher {
 	 */
 	public ReplayRenderer getRenderer(WaybackRequest wbRequest,
 			CaptureSearchResult result, Resource resource);
+	
+	/**
+	 * @param wbRequest the Request being handled
+	 * @param results the CaptureSearchResults from the ResourceIndex
+	 * @return the CaptureSearchResult to be rendered (best for the wbRequest)
+	 * @throws BetterRequestException if the user should be directed to a
+	 * 	different URL, with the exact timestamp, for example.
+	 */
+	public CaptureSearchResult getClosest(WaybackRequest wbRequest, 
+			CaptureSearchResults results) throws BetterRequestException;
 }
