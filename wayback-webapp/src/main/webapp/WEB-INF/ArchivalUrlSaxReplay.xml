@@ -6,6 +6,17 @@
 	default-init-method="init">
 
 
+	<!--
+		Beans defined in this class allow for customized rewriting of HTML
+		content. The functionality described in the original version of this
+		file is also implemented in 
+
+		org.archive.wayback.archivalurl.FastArchivalUrlReplayParseEventHandler
+
+		which trades off the flexibility of configuration available here for
+		higher performance.
+	-->
+
 	<bean id="anchorURLRewriter"
 		class="org.archive.wayback.replay.html.transformer.URLStringTransformer">
 	</bean>
