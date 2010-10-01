@@ -111,13 +111,6 @@
     <property name="selectors">
       <list>
 
-        <!-- REDIRECT IF NOT EXACT DATE -->
-        <bean class="org.archive.wayback.replay.selector.DateMismatchSelector">
-          <property name="renderer">
-		    <bean class="org.archive.wayback.archivalurl.ArchivalUrlDateRedirectReplayRenderer" />
-          </property>
-        </bean>
-
         <!-- WARN CLIENT ABOUT PATH REDIRECTS -->
         <bean class="org.archive.wayback.replay.selector.RedirectSelector">
           <property name="renderer">
