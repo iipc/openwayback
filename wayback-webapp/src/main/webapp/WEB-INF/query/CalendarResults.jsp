@@ -14,7 +14,8 @@
 %><%@ page import="org.archive.wayback.util.partition.Partitioner"
 %><%@ page import="org.archive.wayback.util.partition.PartitionSize"
 %><%@ page import="org.archive.wayback.util.StringFormatter"
-%><jsp:include page="/WEB-INF/template/CookieJS.jsp" flush="true" /><%
+%><jsp:include page="/WEB-INF/template/UI-header.jsp" flush="true" />
+<jsp:include page="/WEB-INF/template/CookieJS.jsp" flush="true" /><%
 
 UIResults results = UIResults.extractCaptureQuery(request);
 
@@ -202,4 +203,4 @@ if(cResults.getNumPages() > 1) {
     }
   }
 }
-%>
+%><jsp:include page="/WEB-INF/template/UI-footer.jsp" flush="true" />
