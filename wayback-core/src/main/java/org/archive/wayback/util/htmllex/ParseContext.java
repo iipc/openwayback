@@ -28,7 +28,6 @@ import org.apache.commons.httpclient.URIException;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.archive.net.UURI;
 import org.archive.net.UURIFactory;
-import org.htmlparser.util.Translate;
 
 /**
  * Class which tracks the context and state involved with parsing an HTML
@@ -74,6 +73,10 @@ public class ParseContext {
 	public String getData(String key) {
 		return data.get(key);
 	}
+
+	/**
+	 * @return the full Map of String to String for this parsing context.
+	 */
 	public Map<String,String> getMap() {
 		return data;
 	}
@@ -104,20 +107,21 @@ public class ParseContext {
 			frag = url.substring(hashIdx);
 			url = url.substring(0,hashIdx);
 		}
+		
+		if(baseUrl == null) {
+			// TODO: log ?
+			return url + frag;
+		}
+		
 		try {
-			if(baseUrl == null) {
-				// TODO: log
-				System.err.println("No url to resolve!");
-				return url;
-			}
-			return baseUrl.resolve(url,true).toString() + frag;
-//			return baseUrl.resolve(url,false).toString() + frag;
-//			return UURIFactory.getInstance(baseUrl, url).toString() + frag;
+
+			return UURIFactory.getInstance(baseUrl, url).toString() + frag;
 		} catch (URIException e) {
 			e.printStackTrace();
 		}
 		return url;
-	}	
+	}
+
 	/**
 	 * @param url which should be resolved.
 	 * @return absolute form of input url, or url itself if javascript:
