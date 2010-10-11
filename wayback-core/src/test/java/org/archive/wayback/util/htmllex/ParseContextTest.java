@@ -21,7 +21,9 @@ package org.archive.wayback.util.htmllex;
 
 import java.net.URI;
 import java.net.URL;
+import java.util.Date;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import org.htmlparser.util.Translate;
 
 import junit.framework.TestCase;
@@ -78,11 +80,12 @@ public class ParseContextTest extends TestCase {
 					pc.contextualizeUrl("/../../image/1.html#REF FOO"));
 			assertEquals("http://base.com/image/foo?boo=baz",
 					pc.contextualizeUrl("/image/foo?boo=baz"));
+
+			
 			assertEquals("http://base.com/image/foo?boo=baz%3A&gar=war",
 					pc.contextualizeUrl("/image/foo?boo=baz%3A&gar=war"));
-			// TODO: we need to escape again, right?
-//			assertEquals("http://base.com/image/foo?boo=baz%3A&gar=war",
-//					pc.contextualizeUrl("/image/foo?boo=baz%3A&gar=war"));
+
+			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -91,4 +94,54 @@ public class ParseContextTest extends TestCase {
 		
 	}
 
+	public void testResolve() {
+		
+		ParseContext pc = new ParseContext();
+		URL base = null;
+		try {
+			base = new URL("http://foo.com/dir/bar.html#REF");
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			fail(e.getLocalizedMessage());
+		}
+			
+		pc.setBaseUrl(base);
+		checkRes(pc,"http://foo.com/images.gif","/images.gif");
+		checkRes(pc,"http://foo.com/dir/images.gif","images.gif");
+		checkRes(pc,"http://foo.com/dir/images.gif","./images.gif");
+		checkRes(pc,"http://foo.com/images.gif","../images.gif");
+		checkRes(pc,"http://foo.com/dir/images.gif","../dir/images.gif");
+		checkRes(pc,"http://foo.com/dir2/images.gif","../dir2/images.gif");
+		checkRes(pc,"http://foo.com/dir/dir2/images.gif","dir2/images.gif");
+		checkRes(pc,"http://foo.com/im/images.gif","/im/images.gif");
+		checkRes(pc,"http://foo.com/im/images.gif","/im/images.gif   ");
+
+		checkRes(pc,"http://foo.com/dir/images.gif","    images.gif");
+		checkRes(pc,"http://foo.com/dir/images.gif","&#32;    images.gif");
+
+		checkRes(pc,"http://foo.com/dir/images.gif#NAME","&#32;    images.gif#NAME");
+
+		checkRes(pc,"http://foo.com/dir/images.gif#NAME","&#32;    images.gif  #NAME");
+
+		
+		checkRes(pc,"http://foo.com/%20im.gif","/ im.gif");
+		checkRes(pc,"http://foo.com/%20%20im.gif","/  im.gif");
+		checkRes(pc,"http://foo.com/%20%20im.gif","/  im.gif ");
+		
+		checkRes(pc,"http://foo.com/%20%20im.gif","/&#32; im.gif");
+
+	}
+	private void checkRes(ParseContext pc, String want, String rel) {
+		try {
+			
+			assertEquals(want,pc.resolve(rel));
+
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			fail(e.getLocalizedMessage());
+		}
+		
+	}
 }
