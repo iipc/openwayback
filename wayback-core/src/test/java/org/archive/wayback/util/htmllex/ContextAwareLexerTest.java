@@ -24,6 +24,8 @@ import java.net.URL;
 import java.util.ArrayList;
 
 import org.apache.commons.lang.StringEscapeUtils;
+import org.archive.net.UURI;
+import org.archive.net.UURIFactory;
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.archivalurl.FastArchivalUrlReplayParseEventHandler;
 import org.archive.wayback.replay.html.ContextResultURIConverterFactory;
@@ -71,7 +73,7 @@ public class ContextAwareLexerTest extends TestCase {
 		ca = accumulate(url,date,"<a href=\"&#32;    /boo?foo=bar&baz=snazz\">boo</a>");
 		assertEquals("wrong number of rewrites",1,ca.ops.size());
 		assertEquals("wrong URL","http://foo.com/boo?foo=bar&baz=snazz",ca.ops.get(0).url);
-		
+
 		// BUGBUG: org.htmlparer.util.Translate.decode() seems broken...
 		ca = accumulate(url,date,"<a href=\"&#32;    /boo?foo=bar&lang=gang\">boo</a>");
 		assertEquals("wrong number of rewrites",1,ca.ops.size());
@@ -80,6 +82,28 @@ public class ContextAwareLexerTest extends TestCase {
 		ca = accumulate(url,date,"<a href=\"&#32;    /p/s-w-%E2%80%9Ctext%E2%80%9D\">boo</a>");
 		assertEquals("wrong number of rewrites",1,ca.ops.size());
 		assertEquals("wrong URL","http://foo.com/p/s-w-%E2%80%9Ctext%E2%80%9D",ca.ops.get(0).url);
+
+		// path relative stays in same directory:
+		String url2 = "http://foo.com/bar/baz.html";
+		ca = accumulate(url2,date,"<a href=\"kay\">key</a>");
+		assertEquals("wrong number of rewrites",1,ca.ops.size());
+		assertEquals("wrong URL","http://foo.com/bar/kay",ca.ops.get(0).url);
+
+		// server relative jumps to root directory:
+		ca = accumulate(url2,date,"<a href=\"/kay\">key</a>");
+		assertEquals("wrong number of rewrites",1,ca.ops.size());
+		assertEquals("wrong URL","http://foo.com/kay",ca.ops.get(0).url);
+	
+		// real world example:
+//		    "http://www.tn.gov/comaging/"
+//			"documents/Tennessee State Plan 2009 - 2013 signed.pdf"
+
+		
+// this is the one to make work...		
+		String url3 = "http://foo.com/bar/";
+		ca = accumulate(url3,date,"<a href=\"doc/foo bar.pdf\">key</a>");
+		assertEquals("wrong number of rewrites",1,ca.ops.size());
+		assertEquals("wrong URL","http://foo.com/bar/doc/foo%20bar.pdf",ca.ops.get(0).url);
 		
 	}
 	
@@ -92,12 +116,6 @@ public class ContextAwareLexerTest extends TestCase {
 		System.out.format("apache:(%s)\n", apacheDecoded);
 	}
 	
-	public void testDecode() throws ParserException, IOException {
-		
-//		compareDecodes("/p/s-w-%E2%80%9Ctext%E2%80%9D");
-//		compareDecodes("&#32;    /boo?foo=bar&lang=gang");
-	
-	}	
 	
 	private ConvertAccumulator accumulate(String base, String datespec, String html) throws IOException, ParserException {
 		assertNull(null);
