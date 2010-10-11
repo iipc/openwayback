@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+
+
+  <bean name="8099" class="org.archive.wayback.liveweb.ARCRecordingProxy">
+    <property name="arcCacheDir">
+      <bean class="org.archive.wayback.liveweb.ARCCacheDirectory"
+        init-method="init">
+
+        <property name="arcDir" value="${wayback.basedir}/liveweb/arcs/" />
+        <property name="arcPrefix" value="live" />
+       </bean>
+    </property>
+    <property name="cacher">
+      <bean class="org.archive.wayback.liveweb.URLtoARCCacher">
+        <property name="recorderCacheDir" value="${wayback.basedir}/liveweb/tmp/" />
+        <property name="backingFileBase" value="recorder-tmp" />
+        <property name="userAgent" value="ia_archiver(OS-Wayback)" />
+        <property name="connectionTimeoutMS" value="10000" />
+        <property name="socketTimeoutMS" value="10000" />
+      </bean>
+    </property>
+  </bean>
+  <bean name="8098" class="org.archive.wayback.liveweb.ARCUnwrappingProxy">
+    <property name="proxyHostPort" value="desktop-brad.sf.archive.org:3128" />
+  </bean>
+
+
+  <bean id="proxylivewebcache"
+      class="org.archive.wayback.liveweb.RemoteLiveWebCache">
+    <property name="proxyHostPort" value="localhost:8099" />
+<!--
+	If you've set up a local squid to cache requests to the above 
+	ARCRecordingProxy, you should use the port for that, instead of 8099:
+    <property name="proxyHostPort" value="localhost:3128" />
+-->
+  </bean>
+
+</beans>
