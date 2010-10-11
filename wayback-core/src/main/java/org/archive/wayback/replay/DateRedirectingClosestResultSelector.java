@@ -53,15 +53,18 @@ implements ClosestResultSelector {
 			}
 		}
 		if(doRedirect) {
-			// redirect to the better version:
-			String url = closest.getOriginalUrl();
-			String captureDate = closest.getCaptureTimestamp();
-			ResultURIConverter uriConverter = 
-				wbRequest.getAccessPoint().getUriConverter();
-			String betterURI = uriConverter.makeReplayURI(captureDate,url);
-			throw new BetterRequestException(betterURI);
+			doRedirection(wbRequest,closest);
 		}
 		return closest;
 	}
-
+	protected void doRedirection(WaybackRequest wbRequest, 
+			CaptureSearchResult closest) throws BetterRequestException {
+		// redirect to the better version:
+		String url = closest.getOriginalUrl();
+		String captureDate = closest.getCaptureTimestamp();
+		ResultURIConverter uriConverter = 
+			wbRequest.getAccessPoint().getUriConverter();
+		String betterURI = uriConverter.makeReplayURI(captureDate,url);
+		throw new BetterRequestException(betterURI);
+	}
 }
