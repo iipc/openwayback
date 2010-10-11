@@ -106,7 +106,7 @@
  -->
   <bean id="archivalurlreplay" class="org.archive.wayback.replay.SelectorReplayDispatcher">
   	<property name="closestSelector">
-  	  <bean class="org.archive.wayback.replay.DateRedirectingClosestResultSelector" />
+  	  <bean class="org.archive.wayback.archivalurl.ArchivalUrlDateRedirectingClosestResultSelector" />
   	</property>
     <property name="selectors">
       <list>
