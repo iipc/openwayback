@@ -97,9 +97,11 @@ public class TimeGateRequestParser extends WrappedRequestParser {
 				wbRequest.setStartTimestamp(getEarliestTimestamp());
 			}
 			if (dtconnegdate != null) {
-				wbRequest.setAnchorDate(dtconnegdate);
+				wbRequest.setReplayDate(dtconnegdate);
+//				wbRequest.setAnchorDate(dtconnegdate);
 			} else {
 				wbRequest.setAnchorTimestamp(getLatestTimestamp());
+
 			}
 
 			wbRequest.put("dtconneg", httpdate);
