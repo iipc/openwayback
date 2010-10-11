@@ -24,7 +24,8 @@ Date now = new Date();
 long capMSSE = captureDate.getTime();
 long nowMSSE = now.getTime();
 long ageMS = nowMSSE - capMSSE;
-long ageMins = Math.round(ageMS / (60 * 1000));
+float mins = ageMS / (60000f);
+long ageMins = Math.round(mins);
 
 String prettyDateTime = 
 	fmt.format("MetaReplay.captureDateDisplay", result.getCaptureDate());
