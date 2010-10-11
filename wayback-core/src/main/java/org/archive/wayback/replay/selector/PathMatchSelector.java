@@ -28,7 +28,11 @@ import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.WaybackRequest;
 
 /**
- *
+ * Class which allows matching based on:
+ * 
+ * a) one of several strings, any of which being found in the path cause match
+ * b) one of several strings, any of which being found in the query cause match
+ * c) one of several strings, *ALL* of which being found in the url cause match
  *
  * @author brad
  * @version $Date$, $Revision$
@@ -37,6 +41,8 @@ public class PathMatchSelector extends BaseReplayRendererSelector {
 
 	private List<String> pathContains = null;
 	private List<String> queryContains = null;
+	private List<String> urlContainsAll = null;
+
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.replay.selector.BaseReplayRendererSelector#canHandle(org.archive.wayback.core.WaybackRequest, org.archive.wayback.core.CaptureSearchResult, org.archive.wayback.core.Resource)
 	 */
@@ -48,6 +54,15 @@ public class PathMatchSelector extends BaseReplayRendererSelector {
 		}
 		try {
 			URL url = new URL(result.getOriginalUrl());
+			if(urlContainsAll != null) {
+				String path = url.toString();
+				for(String test : urlContainsAll) {
+					if(path.indexOf(test) == -1) {
+						return false;
+					}
+				}
+				return true;
+			}
 			if(pathContains != null) {
 				String path = url.getPath();
 				for(String test : pathContains) {
@@ -71,15 +86,45 @@ public class PathMatchSelector extends BaseReplayRendererSelector {
 		}
 		return false;
 	}
+	/**
+	 * @return list of Strings, any of which being found in the path cause a
+	 * match
+	 */
 	public List<String> getPathContains() {
 		return pathContains;
 	}
+	/**
+	 * @param pathContains list of Strings, any of which being found in the 
+	 * path cause a match
+	 */
 	public void setPathContains(List<String> pathContains) {
 		this.pathContains = pathContains;
 	}
+	/**
+	 * @return list of Strings, *ALL* of which must be found somewhere in the
+	 * URL to cause a match
+	 */
+	public List<String> getUrlContainsAll() {
+		return urlContainsAll;
+	}
+	/**
+	 * @param urlContainsAll list of Strings, *ALL* of which must be found 
+	 * somewhere in the URL to cause a match
+	 */
+	public void setUrlContainsAll(List<String> urlContainsAll) {
+		this.urlContainsAll = urlContainsAll;
+	}
+	/**
+	 * @return list of Strings, any of which being found in the query cause a
+	 * match
+	 */
 	public List<String> getQueryContains() {
 		return queryContains;
 	}
+	/**
+	 * @param queryContains list of Strings, any of which being found in the 
+	 * query cause a match
+	 */
 	public void setQueryContains(List<String> queryContains) {
 		this.queryContains = queryContains;
 	}
