@@ -109,7 +109,7 @@
 	linkbf.append(",<" + results.getContextConfig("Prefix")
 			+ "timegate/" + u + ">;rel=\"timegate\"\n");
 	linkbf.append(",<" + uriPrefix + "timemap/" + format + "/" + u
-			+ ">;rel=\"timemap\"\n");
+			+ ">;rel=\"timemap\";type=\"text/csv\"\n");
 
 	String firstmemento = null;
 	int count = 0;
