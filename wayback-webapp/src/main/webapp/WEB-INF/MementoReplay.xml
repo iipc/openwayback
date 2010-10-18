@@ -17,7 +17,9 @@
       <list>
         <value>/WEB-INF/replay/ArchiveComment.jsp</value>
         <value>/WEB-INF/replay/Disclaimer.jsp</value>
+        <!--
         <value>/WEB-INF/replay/MementoValidity.jsp</value>
+        -->
       </list>
     </property>
   </bean>
@@ -29,13 +31,6 @@
     <property name="selectors">
       <list>
 
-        <!-- REDIRECT IF NOT EXACT DATE -->
-        <bean class="org.archive.wayback.replay.selector.DateMismatchSelector">
-          <property name="renderer">
-          	<bean class="org.archive.wayback.archivalurl.ArchivalUrlDateRedirectReplayRenderer" />
-          </property>
-        </bean>
-
         <!-- HTML REPLAY -->
         <bean class="org.archive.wayback.replay.selector.MimeTypeSelector">
           <property name="mimeContains">
@@ -44,7 +39,11 @@
               <value>application/xhtml</value>
             </list>
           </property>
-          <property name="renderer" ref="mementoclientsidehtmlreplayrenderer"/>
+          <property name="renderer">
+            <bean class="org.archive.wayback.memento.MementoReplayRendererDecorator">
+              <property name="decorated" ref="mementoclientsidehtmlreplayrenderer"/>
+            </bean>
+          </property>
         </bean>
 
         <!-- CSS REPLAY -->
@@ -54,32 +53,20 @@
               <value>text/css</value>
             </list>
           </property>
-          <property name="renderer" ref="archivalcssreplayrenderer"/>
-        </bean>
-
-        <!-- ASX-MIME REPLAY -->
-        <bean class="org.archive.wayback.replay.selector.MimeTypeSelector">
-          <property name="mimeContains">
-            <list>
-              <value>video/x-ms-asf</value>
-            </list>
+          <property name="renderer">
+            <bean class="org.archive.wayback.memento.MementoReplayRendererDecorator">
+              <property name="decorated" ref="archivalcssreplayrenderer"/>
+            </bean>
           </property>
-          <property name="renderer" ref="archivalasxreplayrenderer"/>
-        </bean>
-
-        <!-- ASX-PATH REPLAY -->
-        <bean class="org.archive.wayback.replay.selector.PathMatchSelector">
-          <property name="pathContains">
-            <list>
-              <value>.asx</value>
-            </list>
-          </property>
-          <property name="renderer" ref="archivalasxreplayrenderer"/>
         </bean>
 
         <!-- DEFAULT-TRANSPARENT REPLAY -->
         <bean class="org.archive.wayback.replay.selector.AlwaysMatchSelector">
-          <property name="renderer" ref="archivaltransparentreplayrenderer"/>
+          <property name="renderer">
+            <bean class="org.archive.wayback.memento.MementoReplayRendererDecorator">
+              <property name="decorated" ref="archivaltransparentreplayrenderer"/>
+            </bean>
+          </property>
         </bean>
 
       </list>
