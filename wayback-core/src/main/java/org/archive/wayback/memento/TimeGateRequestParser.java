@@ -51,7 +51,7 @@ public class TimeGateRequestParser extends WrappedRequestParser {
 	List<SimpleDateFormat> dtsupportedformats = 
 		new ArrayList<SimpleDateFormat>();
 
-	String MEMENTO_BASE = "timegate";
+	String MEMENTO_BASE = "timegate/";
 
 	/**
 	 * @param wrapped
@@ -78,7 +78,7 @@ public class TimeGateRequestParser extends WrappedRequestParser {
 		if (base.startsWith(MEMENTO_BASE)) {
 
 			// strip leading "timegate/":
-			String urlStr = base.substring(requestPath.indexOf("/") + 1);
+			String urlStr = base.substring(MEMENTO_BASE.length());
 
 			// get the "Accept-Datetime" header:
 			String httpdate = getHttpDate(httpRequest);
