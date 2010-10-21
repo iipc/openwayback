@@ -1,0 +1,82 @@
+#!/usr/bin/env sh
+##
+## This script allows querying and updating of a remote LocationDB from the
+## command line, including syncronizing the LocationDB with an entire directory 
+## of ARCs files
+##
+## Optional environment variables
+##
+## JAVA_HOME        Point at a JDK install to use.
+## 
+## WAYBACK_HOME     Pointer to your wayback install.  If not present, we 
+##                  make an educated guess based of position relative to this
+##                  script.
+##
+## JAVA_OPTS        Java runtime options.  Default setting is '-Xmx256m'.
+##
+
+# Resolve links - $0 may be a softlink
+PRG="$0"
+while [ -h "$PRG" ]; do
+  ls=`ls -ld "$PRG"`
+  link=`expr "$ls" : '.*-> \(.*\)$'`
+  if expr "$link" : '.*/.*' > /dev/null; then
+    PRG="$link"
+  else
+    PRG=`dirname "$PRG"`/"$link"
+  fi
+done
+PRGDIR=`dirname "$PRG"`
+
+# Set WAYBACK_HOME.
+if [ -z "$WAYBACK_HOME" ]
+then
+    WAYBACK_HOME=`cd "$PRGDIR/.." ; pwd`
+fi
+
+# Find JAVA_HOME.
+if [ -z "$JAVA_HOME" ]
+then
+  JAVA=`which java`
+  if [ -z "$JAVA" ] 
+  then
+    echo "Cannot find JAVA. Please set JAVA_HOME or your PATH."
+    exit 1
+  fi
+  JAVA_BINDIR=`dirname $JAVA`
+  JAVA_HOME=$JAVA_BINDIR/..
+fi
+
+if [ -z "$JAVACMD" ] 
+then 
+   # It may be defined in env - including flags!!
+   JAVACMD=$JAVA_HOME/bin/java
+fi
+
+# Ignore previous classpath.  Build one that contains heritrix jar and content
+# of the lib directory into the variable CP.
+for jar in `ls $WAYBACK_HOME/lib/*.jar $WAYBACK_HOME/*.jar 2> /dev/null`
+do
+    CP=${CP}:${jar}
+done
+
+# cygwin path translation
+if expr `uname` : 'CYGWIN*' > /dev/null; then
+    CP=`cygpath -p -w "$CP"`
+    WAYBACK_HOME=`cygpath -p -w "$WAYBACK_HOME"`
+fi
+
+# Make sure of java opts.
+if [ -z "$JAVA_OPTS" ]
+then
+  JAVA_OPTS=" -Xmx256m"
+fi
+
+# Main class.
+if [ -z "$CLASS_MAIN" ]
+then
+  CLASS_MAIN='org.archive.wayback.resourceindex.ziplines.ZiplinesChunkIterator'
+fi
+
+CLASSPATH=${CP} $JAVACMD ${JAVA_OPTS} $CLASS_MAIN "$@"
+

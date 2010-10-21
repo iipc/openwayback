@@ -1,0 +1,44 @@
+#!/usr/bin/env perl                                                                                                                                                       
+use strict;
+use warnings;
+
+my $v = 0;
+sub USAGE {
+    my($msg,$code) = @_;
+    $msg = "" unless (defined($msg) && length($msg));
+    print STDERR <<EOUSAGE;
+$msg USAGE: $0 PATH NUM
+Create a split file for use with Wayback hadoop indexing code on STDOUT.
+Finds approximate offsets at host boundaries for file at PATH, producing
+a split file with NUM parts, which indicates the number of reduce tasks.
+EOUSAGE
+    exit($code);
+}
+my $path = shift || &USAGE("Need path to CDX argument 1\n\n",2);
+if(($path eq "-h") or ($path eq "-help") or ($path eq "--help")) {
+    &USAGE(0);
+}
+my $num = shift || &USAGE("Need NUM chunk count argument 2\n\n",2);
+
+my $fh;
+open($fh,$path) or die "FAILED open($path) ($!)";
+my $size = (-s $fh);
+my $per = $size / $num;
+# print first for blank:                                                                                                                                                  
+print "\n";
+foreach my $i (1..$num-1) {
+    my $offset = $per * $i;
+    seek($fh,$offset,0) or die "failed seek($path,$offset,0) ($!)";
+    # consume first line to align on next complete line:                                                                                                                  
+    my $line = <$fh>;
+    while(1) {
+        my $line = <$fh>;
+        die "bad line($line) in ($path)" unless length($line);
+        if($line =~ /^([^:\/]+)[:\/]/) {
+            print "$1\n";
+            last;
+        }
+        print STDERR "Skipping wierd line($line)\n";
+    }
+}
+close($fh) or die "FAILED close($path) ($!)";
