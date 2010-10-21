@@ -102,6 +102,10 @@
             <li><b>canonicalizer</b> - an implementation of UrlCanonicalizer.
                 See the section labeled URL Canonicalization below for more
                 information.</li>
+            <li><b>filter</b> - an implementation of 
+            	ObjectFilter&lt;CaptureSearchResult&gt; which will remove
+            	records at query time from the index.</li>
+                
           </ul>
         </p>
         <p>
@@ -153,6 +157,7 @@
           </ul>
         </p>
       </subsection>
+      <!--
       <subsection name="NutchResourceIndex configuration options">
         <p>
           This implementation, similar to the RemoteResourceIndex, accesses
@@ -189,6 +194,7 @@
           </ul>
         </p>
       </subsection>
+      -->
     </section>
     <section name="URL Canonicalization">
       <subsection name="Introduction and Concepts">

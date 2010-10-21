@@ -14,6 +14,162 @@
         to release 1.2.0.
       </p>
     </section>
+    <section name="Release 1.6.0">
+      <subsection name="Major Features">
+        <ul>
+          <li>
+            <a href="http://www.mementoweb.org/guide/quick-intro/">Memento</a> integration.
+          </li>
+          <li>
+            Improved live-web fetching, enabling simpler external caching of
+            robots.txt documents, or other arbitrary content used to improve
+            function of a replay session.
+          </li>
+          <li>
+            Customizable logging, via a logging.properties configuration file.
+          </li>
+          <li>
+            Vastly improved Server-side HTML rewriting capabilities, including
+            customizable rewriting of specific tags and attributes, rewriting
+            of (some easily recognizable) URLs within JavaScript and CSS.
+          </li>
+          <li>
+            Snazzy embedded toolbar with "sparkline" indicating the distribution
+            of captures for a given HTML page, control elements enabling 
+            navigation between various versions of the current page, and a
+            search box to navigate to other URLs directly from a replay session.
+          </li>
+          <li>
+            Improved hadoop CDX generation capabilities for large scale indexes.
+          </li>
+          <li>
+            SWF (Flash) rewriting, to contextualize URLs embedded within flash
+            content.
+          </li>
+          <li>
+            ArchivalUrl mode now accepts identity ("id_") flag to indicate
+            transparent replaying of original content.
+          </li>
+          <li>
+            NotInArchive can now optionally trigger an attempt to fill in
+            content from the live web, on the fly.
+          </li>
+          <li>
+            Updated license to Apache 2.
+          </li>
+        </ul>
+      </subsection>
+      <subsection name="Major Bug Fixes">
+        <ul>
+          <li>
+            More robust handling of chunk encoded resources.
+          </li>
+          <li>
+            Fixed problem with improperly resolving path-relative URLs found
+            in HTML, CSS, Javascript, SWF content.
+          </li>
+          <li>
+            Fixed problem with improperly escaping URLs within HTML when
+            rewriting them.
+          </li>
+          <li>
+            Fixed problem where a misconfigured or missing administrative 
+            exclusion file was allowing results to be returned, instead of
+            returning and appropriate error.
+          </li>
+          <li>
+            No longer extracts resources from the ResourceStore before
+            redirecting to the closest version, which was a major inefficiency.
+          </li>
+        </ul>
+      </subsection>
+      <subsection name="Minor Features">
+        <ul>
+          <li>
+            Now provide closeMatches list of search results which were not
+            applicable given the users request, but that may be useful for
+            followup requests.
+          </li>
+          <li>
+            Archival Url mode now allows rotating through several character
+            encoding detection schemes.
+          </li>
+          <li>
+            Proxy Replay mode now accepts ArchivalURL format requests, allowing
+            dates to be explicitly requested via proxy mode.
+          </li>
+          <li>
+            AccessPoints can be now configured to optional require strict host
+            matching for queries and replay requests.
+          </li>
+          <li>
+            Now filters URLs which contain user-info (USER:PASSWORD@example.com)
+            from the ResourceIndex
+          </li>
+          <li>
+            ArchivalURL mode requests without a datespec are now interpreted as
+            a request for the most recent capture of the URL.
+          </li>
+          <li>
+            Improvements in mapping incoming requests to AccessPoints, to allow
+            virtual hosts to target specific AccessPoints.
+          </li>
+          <li>
+            ResourceNotAvailable exceptions now include other close search
+            results, allowing the UI to offer other versions which may be
+            available.
+          </li>
+          <li>
+            ArchivalURL mode now forwards request flags (cs_, js_, im_, etc) 
+            when redirecting to a closer date.
+          </li>
+          <li>
+            ResourceStore implementation now allows retrying when confronted
+            with possibly-transient HTTP 502 errors.
+          </li>
+        </ul>
+      </subsection>
+      <subsection name="Minor Bug Fixes">
+        <ul>
+          <li>
+            cdx-indexer (replacement for arc-indexer and warc-indexer) tool now
+            returns accurate error code on failure.
+          </li>
+          <li>
+            No longer sets JVM-wide default timezone to GMT - now it is set
+            appropriately on Calendars when needed.
+          </li>
+          <li>
+            Hostname comparison is now case-insensitive.
+          </li>
+          <li>
+            Server-relative archival url redirects now include query arguments
+            when redirecting.
+          </li>
+          <li>
+            Server-relative archival url redirects now include a Vary HTTP
+            header, to fix problems when a cache is used between clients and
+            the Wayback service.
+          </li>
+          <li>
+            Fixed problem with robots.txt caching within a single request,
+            which caused serious inefficiency.
+          </li>
+          <li>
+            Fixed problem with resources redirecting to alternate HTTP/HTTPS
+            version of themselves.
+          </li>
+          <li>
+            Fixed problem with accurately converting 14-digit Timestamps into
+            Date objects for later comparison.
+          </li>
+          <li>
+            Automatically remaps the oft-misused charset "iso-8859-1" to the
+            superset "cp1252".
+          </li>
+        </ul>
+      </subsection>
+    </section>
     <section name="Release 1.4.2">
       <subsection name="Features">
         <ul>

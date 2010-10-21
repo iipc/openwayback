@@ -10,16 +10,16 @@
 		<section name="Runtime Requirements">
 			<subsection name="JAVA">
 				<p>
-					Tested working with SUN v1.5.0_01.
+					Tested working with SUN v1.6. It is highly recommended you
+					use the latest version available for your operating system.
 				</p>
 			</subsection>
 			<subsection name="Tomcat">
 				<p>
-					Tested working with Apache Tomcat 5.5, which can be
-					<a href="http://tomcat.apache.org/download-55.cgi">
-						downloaded here
-					</a>
-					.
+					Tested working with Apache Tomcat 
+					<a href="http://tomcat.apache.org/download-55.cgi">5.5</a>,
+					and 
+					<a href="http://tomcat.apache.org/download-60.cgi">6.0</a>.
 				</p>
 
 			</subsection>
