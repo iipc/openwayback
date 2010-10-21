@@ -151,6 +151,22 @@
           <property name="renderer" ref="archivalsaxreplayrenderer"/>
         </bean>
         
+        <!-- SWF Rewriting, highly experimental -->
+        <!--
+        <bean class="org.archive.wayback.replay.selector.MimeTypeSelector">
+          <property name="mimeContains">
+            <list>
+              <value>application/x-shockwave-flash</value>
+              <value>application/xhtml</value>
+            </list>
+          </property>
+          <property name="renderer">
+            <bean class="org.archive.wayback.replay.swf.SWFReplayRenderer">
+ 	          <constructor-arg><ref bean="archivalurlhttpheaderprocessor"/></constructor-arg>
+            </bean>
+          </property>
+        </bean>
+        -->
 
         <!-- CSS REPLAY -->
         <bean class="org.archive.wayback.replay.selector.MimeTypeSelector">
