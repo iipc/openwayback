@@ -18,9 +18,11 @@
         <p>
 	        Primarily it is a few easily replaceable interfaces, and some core 
 	        classes that utilize those interfaces to provide the Wayback 
-	        service. Presently only trivial implementations of those interfaces
-	        have been developed, but we hope that these interfaces will allow a
-			high degree of flexibility and experimentation.
+	        service. Presently, a variety of implementations of these interfaces
+	        are available allowing a high degree of customization in the number
+	        and distribution of native resources, the location, size and 
+	        ability to easily update the index, and presentation of search 
+	        results and archived resources to end users. 
         </p>
       </answer>
     </faq>
