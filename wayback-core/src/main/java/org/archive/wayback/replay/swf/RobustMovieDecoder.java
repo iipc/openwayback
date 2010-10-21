@@ -45,10 +45,23 @@ public class RobustMovieDecoder implements SWFFactory<MovieTag> {
     /** Allow arbitrary trailing values in decoded tags - attempt anything. */
     public static final int DECODE_RULE_LAX = 2;
     
+    /**
+     * @param decodeRule the robustness level to use for re-aligning the
+     * decoder. MovieDecoder just chokes if a given tag has trailing data - does
+     * not need as many bytes as it declares it has. This decorator will attempt
+     * to realign by either:
+     * 1) LAX - chewing up *any* bytes to realign
+     * 2) NULLS - chewing up only trailing NULL bytes trailing the tag
+     * 3) STRICT - throw exception if an realignment is required. 
+     */
     public void setDecodeRule(int decodeRule) {
     	this.decodeRule = decodeRule;
     }
     
+    /**
+     * @param delegate the underlying/wrapped MovieDecoder which does the heavy
+     * lifting to parse out tags.
+     */
     public void setDelegate(SWFFactory<MovieTag> delegate) {
 		this.delegate = delegate;
 	}

@@ -21,7 +21,6 @@ package org.archive.wayback.replay.swf;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -59,11 +58,17 @@ import com.flagstone.transform.button.DefineButton2;
 import com.flagstone.transform.coder.DecoderRegistry;
 
 /**
+ * ReplayRenderer which passes embedded URLs inside flash (SWF) format content
+ * through a ResultURIConverter, allowing them to be rewritten. 
+ * 
  * @author brad
  *
  */
 public class SWFReplayRenderer implements ReplayRenderer {
 	private HttpHeaderProcessor httpHeaderProcessor;
+	/**
+	 * @param httpHeaderProcessor to use for rewriting original HTTP headers
+	 */
 	public SWFReplayRenderer(HttpHeaderProcessor httpHeaderProcessor) {
 		this.httpHeaderProcessor = httpHeaderProcessor;
 	}
@@ -128,7 +133,7 @@ public class SWFReplayRenderer implements ReplayRenderer {
 		baos.writeTo(httpResponse.getOutputStream());
 		
 	}
-	public Movie getRobustMovie(int decodeRule) {
+	private Movie getRobustMovie(int decodeRule) {
 		Movie movie = new Movie();
 
 		DecoderRegistry registry = DecoderRegistry.getDefault();
@@ -141,7 +146,7 @@ public class SWFReplayRenderer implements ReplayRenderer {
 		return movie;
 	}
 
-	public MovieTag rewriteTag(SWFUrlRewriter rw, MovieTag tag) {
+	private MovieTag rewriteTag(SWFUrlRewriter rw, MovieTag tag) {
 		if(tag instanceof DoAction) {
 			DoAction doAction = (DoAction) tag;
 			doAction.setActions(rewriteActions(rw, doAction.getActions()));
@@ -153,7 +158,8 @@ public class SWFReplayRenderer implements ReplayRenderer {
 		return tag;
 	}
 	
-	public List<EventHandler> rewriteEventHandlers(SWFUrlRewriter rw, List<EventHandler> handlers) {
+	private List<EventHandler> rewriteEventHandlers(SWFUrlRewriter rw,
+			List<EventHandler> handlers) {
 		ArrayList<EventHandler> newActions = new ArrayList<EventHandler>();
 		for(EventHandler handler : handlers) {
 			handler.setActions(rewriteActions(rw, handler.getActions()));
@@ -162,7 +168,7 @@ public class SWFReplayRenderer implements ReplayRenderer {
 		return newActions;
 	}
 	
-	public List<Action> rewriteActions(SWFUrlRewriter rw, List<Action> actions) {
+	private List<Action> rewriteActions(SWFUrlRewriter rw, List<Action> actions) {
 		ArrayList<Action> newActions = new ArrayList<Action>();
 		for(Action action : actions) {
 			if(action instanceof Table) {
@@ -175,12 +181,14 @@ public class SWFReplayRenderer implements ReplayRenderer {
 
 				Push push = (Push) action;
 				
-				newActions.add(new Push(rewriteObjectValues(rw, push.getValues())));
+				newActions.add(new Push(rewriteObjectValues(rw, 
+						push.getValues())));
 
 			} else if(action instanceof GetUrl) {
 
 				GetUrl getUrl = (GetUrl) action;
-				newActions.add(new GetUrl(rewriteString(rw, getUrl.getUrl()),getUrl.getTarget()));
+				newActions.add(new GetUrl(rewriteString(rw, getUrl.getUrl()),
+						getUrl.getTarget()));
 				
 			} else {
 				newActions.add(action);
@@ -189,7 +197,9 @@ public class SWFReplayRenderer implements ReplayRenderer {
 		return newActions;
 	}
 	
-	public List<Object> rewriteObjectValues(SWFUrlRewriter rw, List<Object> values) {
+	private List<Object> rewriteObjectValues(SWFUrlRewriter rw,
+			List<Object> values) {
+
 		ArrayList<Object> nvals = new ArrayList<Object>();
 		for(int i = 0; i < values.size(); i++) {
 			Object orig = values.get(i);
@@ -201,20 +211,25 @@ public class SWFReplayRenderer implements ReplayRenderer {
 		}
 		return nvals;
 	}
-	public List<String> rewriteStringValues(SWFUrlRewriter rw, List<String> values) {
+
+	private List<String> rewriteStringValues(SWFUrlRewriter rw,
+			List<String> values) {
+
 		ArrayList<String> nvals = new ArrayList<String>();
 		for(int i = 0; i < values.size(); i++) {
 			nvals.add(rewriteString(rw, values.get(i)));
 		}
 		return nvals;
 	}
-	public String rewriteString(SWFUrlRewriter rw, String original) {
+
+	private String rewriteString(SWFUrlRewriter rw, String original) {
 		if(original.startsWith("http://")) {
 //			System.err.format("Rewrite(%s)\n",original);
 			return rw.rewrite(original);
 		}
 		return original;
 	}
+
 	private class SWFUrlRewriter {
 		UURI baseUrl = null;
 		ResultURIConverter converter;
@@ -224,7 +239,8 @@ public class SWFReplayRenderer implements ReplayRenderer {
 			this.datespec = datespec;
 			this.converter = converter;
 			try {
-				this.baseUrl = UURIFactory.getInstance(baseUrl.toExternalForm());
+				this.baseUrl = 
+					UURIFactory.getInstance(baseUrl.toExternalForm());
 			} catch (URIException e) {
 				e.printStackTrace();
 			}
