@@ -80,10 +80,8 @@ public class MementoReplayRendererDecorator extends ReplayRendererDecorator {
 		SimpleDateFormat formatterk = new SimpleDateFormat("yyyyMMddHHmmss");
 		formatterk.setTimeZone(tzo);
 		Properties apProps = wbRequest.getAccessPoint().getConfigs();
-		ArchivalUrlResultURIConverter aUriConverter = 
-			(ArchivalUrlResultURIConverter) uriConverter;
 		Date closestDate = result.getCaptureDate();
-		String uriPrefix = aUriConverter.getReplayURIPrefix();
+		String uriPrefix = wbRequest.getAccessPoint().getReplayPrefix();
 		String agguri = apProps.getProperty("aggregationPrefix")
 				+ "timebundle/" + u;
 		String timemap = " , <"

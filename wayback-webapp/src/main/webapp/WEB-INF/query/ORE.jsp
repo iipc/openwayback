@@ -38,9 +38,7 @@
 	CaptureSearchResults cResults = results.getCaptureResults();
 	CaptureSearchResult res = cResults.getClosest();
 
-	ArchivalUrlResultURIConverter uriconverter = (ArchivalUrlResultURIConverter) results
-			.getURIConverter();
-	String uriPrefix = uriconverter.getReplayURIPrefix();
+	String uriPrefix = wbRequest.getAccessPoint().getReplayPrefix();
 	String u = wbRequest.getRequestUrl();
 	String agguri = uriPrefix + "timebundle/" + u;
 	String format = wbRequest.get("format");

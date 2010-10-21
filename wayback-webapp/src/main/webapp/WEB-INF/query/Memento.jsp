@@ -52,9 +52,7 @@
 			+ "timemap/link/" + u
 			+ ">;rel=\"timemap\"; type=\"text/csv\"";
 	String origlink = ", <" + u + ">;rel=\"original\"";
-	ArchivalUrlResultURIConverter uriconverter = (ArchivalUrlResultURIConverter) results
-			.getURIConverter();
-	String uriPrefix = uriconverter.getReplayURIPrefix();
+	String uriPrefix = wbRequest.getAccessPoint().getReplayPrefix();
 	String replayUrl = results.resultToReplayUrl(res);
 
 	StringBuffer sb = new StringBuffer();
