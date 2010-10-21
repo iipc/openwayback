@@ -43,7 +43,10 @@ public class SimpleResourceStore implements ResourceStore {
 
 	private final static Logger LOGGER = Logger.getLogger(
 			SimpleResourceStore.class.getName());
+	private static String HTTP_ERROR = "HTTP";
+	private static String HTTP_502 = "502";
 	private String prefix = null;
+	private int retries = 2;
 
 	public Resource retrieveResource(CaptureSearchResult result)
 		throws ResourceNotAvailableException {
@@ -65,8 +68,25 @@ public class SimpleResourceStore implements ResourceStore {
 		String fileUrl = prefix + fileName;
 		Resource r = null;
 		try {
-
-			r = ResourceFactory.getResource(fileUrl, offset);
+			int attempts = retries;
+	        while(attempts-- > 0) {
+	        	try {
+	        		r = ResourceFactory.getResource(fileUrl, offset);
+	        		break;
+	        	} catch (IOException e) {
+	        		String message = e.getMessage();
+	        		if(attempts > 0 
+	        				&& message.contains(HTTP_ERROR) 
+	        				&& message.contains(HTTP_502)) {
+	        			
+	        			LOGGER.warning(String.format(
+	        					"Failed attempt for (%s) retrying with" +
+	        					" (%d) attempts left",fileUrl,attempts));
+	        		} else {
+	        			throw e;
+	        		}
+	        	}
+	        }
 
 		} catch (IOException e) {
 			LOGGER.warning("Unable to retrieve:" + fileUrl + ":" + offset);
@@ -93,5 +113,21 @@ public class SimpleResourceStore implements ResourceStore {
 
 	public void shutdown() throws IOException {
 		// no-op
+	}
+
+	/**
+	 * @return the number of attempts to fetch resources with an HTTP 502 
+	 * failure.
+	 */
+	public int getRetries() {
+		return retries;
+	}
+
+	/**
+	 * @param retries the number of attempts to fetch resources with an HTTP 502 
+	 * failure.
+	 */
+	public void setRetries(int retries) {
+		this.retries = retries;
 	}
 }
