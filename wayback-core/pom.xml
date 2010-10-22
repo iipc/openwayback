@@ -17,7 +17,7 @@
   <parent>
 	  <groupId>org.archive</groupId>
 	  <artifactId>wayback</artifactId>
-	  <version>1.5.3-SNAPSHOT</version>
+	  <version>1.6.0</version>
   </parent>
   <groupId>org.archive.wayback</groupId>
   <artifactId>wayback-core</artifactId>
@@ -99,6 +99,12 @@
         <artifactId>htmlparser</artifactId>
         <version>1.6</version>
     </dependency>
+    <dependency>
+        <groupId>com.flagstone</groupId>
+        <artifactId>transform</artifactId>
+        <version>3.0.1-SNAPSHOT</version>
+    </dependency>
+    
     <!-- 
       Doh... I'm not sure what package is configuring org.apache.commons-logging
       to use log4j, but it's breaking some command line tools.
