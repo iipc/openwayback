@@ -74,6 +74,16 @@
         </p>
     </section>
     <section name="News">
+        <subsection name="New Release - 1.6.0, 10/21/2010">
+          <p>
+            The long awaited 1.6.0 release is now available, with improved
+            server-side rewriting of HTML, CSS, Javascript, and SWF content.
+            This version includes other new features and bug fixes, which are
+            detailed on the <a href="release_notes.html">release notes</a> page.
+            Upgrading to this version will require changes to Wayback Spring XML
+            configuration.
+          </p>
+        </subsection>
         <subsection name="Maintenance Release - 1.4.2, 7/17/2009">
           <p>
             Release 1.4.2 fixes several problems discovered in the 1.4.1 

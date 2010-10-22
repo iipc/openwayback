@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="utf-8"?>
+<document>
+  <properties>
+    <title>Access Point Naming</title>
+    <author email="brad at archive dot org">Brad Tofel</author>
+    <revision>$$Id$$</revision>
+  </properties>
+  
+  <body>
+
+
+
+    <section name="Overview">
+      <p>
+      Tomcat (or other servlet containers) are configured to listen on one or 
+      more ports, so each request received on one of those ports is targeted
+      to a particular webapp based on the name of the .war file deployed under
+      the <b>webapps/</b> directory. The targeted webapp is determined based on
+      the first directory in incoming requests.
+      </p>
+      <p>
+        If there are two webapps deployed under the <b>webapps/</b> directory,
+        called <b>webappA.war</b> and <b>webappB.war</b>, then an incoming
+        request <b>/webappA/file1</b> will be received by the webapp inside
+        <b>webappA.war</b> as the request <b>/file1</b>. An incoming request
+        for <b>webappB/images/foo.gif</b> will be received by the webapp inside
+        <b>webappB.war</b> as <b>/images/foo.gif</b>.
+      </p>
+      <p>
+        Tomcat (and other servlet containers) allow a special .war file to be
+        deployed under the <b>webapps/</b> directory called <b>ROOT.war</b>
+        which will receive requests not matching another webapp. If the above 
+        example also included a webapp deployed under the <b>webapps/</b> 
+        directory named <b>ROOT.war</b>, then requests starting with <b>webappA/</b>
+        will be received by <b>webappA.war</b>, requests starting with <b>webappB/</b>
+        will be received by <b>webappB.war</b>, and all other requests will be
+        receieved by the <b>ROOT.war</b> webapp.
+      </p>
+      <p>
+        If possible, deploying your webapp as <b>ROOT.war</b> will result in
+        somewhat cleaner public URLs, but this is not a requirement. The
+        examples below all include alternate URL configuration prefixes depending
+        on whether you deploy the Wayback .war file as either <b>ROOT.war</b> or
+        <b>wayback.war</b>.
+      </p>
+      <subsection name="AccessPoint Names">
+        <p>
+          Each AccessPoint Spring XML bean definition must include a <b>name</b>
+          property:
+          <br></br>
+          <code>
+
+&lt;bean name="8080:wayback" class="org.archive.wayback.webapp.AccessPoint"&gt;
+   ...
+&lt;/bean&gt;
+
+          </code> 
+          <br></br>
+          The <b>name</b> property indicates how requests <b>that are received
+          by the Wayback webapp</b> are routed to the appropriate AccessPoint.
+          Wayback allows targeting AccessPoints based on:
+          <ul>
+            <li>hostname</li>
+            <li>port</li>
+            <li>first path <b>after</b> the optional webapp deployment name
+            (which is empty if you deploy your Wayback webapp as
+            <b>ROOT.war</b>)</li>
+          </ul>
+          using the AccessPoint bean <b>name</b> field composed of <b>hostname</b>:<b>port</b>:<b>first_path</b>.
+        </p>
+        <p>
+          If you have configured DNS to resolve multiple hostnames to the same
+          computer, you can use the <b>hostname:</b> to control AccessPoint
+          resolving based on virtual hosts.
+        </p>
+        <p>
+          Port is the only required configuration component within the 
+          AccessPoint <b>name</b> configuration. If you have multiple Tomcat
+          <b>Connector</b>s you can alter this AccessPoint name configuration to
+          target specific AccessPoints, otherwise, all your AccessPoint names 
+          will have the same port, likely one of 8080, or 80.
+        </p>
+        <p>
+          A more commonly useful AccessPoint name resolving component is the 
+          <b>first-path</b>, which allows you to easily expose multiple
+          collections within a single Wayback webapp deployment, without varying
+          hostnames, or ports (which often require network or system 
+          administrator assistance).
+        </p>
+      </subsection>
+      <subsection name="Example AccessPoint names and URLs">
+        <p>
+          The following table shows how urls will map to particular AccessPoints
+          assuming you have deployed the Wayback webapp as <b>ROOT.war</b>, on
+          a host with the name "access.example.org", using port 8080.
+          <table>
+            <tr>
+              <th>Access Point bean name</th>
+              <th>Archival URL prefix</th>
+              <th>Archival URL query example for <b>http://archive.org</b></th>
+            </tr>
+            <tr>
+              <td>8080:collectionA</td>
+              <td>http://access.example.org:8080/collectionA/</td>
+              <td>http://access.example.org:8080/collectionA/*/http://archive.org/</td>
+            </tr>
+            <tr>
+              <td>8080:collectionB</td>
+              <td>http://access.example.org:8080/collectionB/</td>
+              <td>http://access.example.org:8080/collectionB/*/http://archive.org/</td>
+            </tr>
+          </table>        
+        </p>
+        <p>
+          If you deployed your Wayback webapp with the name <b>wayback.war</b>
+          the following table shows how urls will map to particular
+          AccessPoints, on a host with the name "access.example.org", using port
+          8080.
+          <table>
+            <tr>
+              <th>Access Point bean name</th>
+              <th>Archival URL prefix</th>
+              <th>Archival URL query example for <b>http://archive.org</b></th>
+            </tr>
+            <tr>
+              <td>8080:collectionA</td>
+              <td>http://access.example.org:8080/wayback/collectionA/</td>
+              <td>http://access.example.org:8080/wayback/collectionA/*/http://archive.org/</td>
+            </tr>
+            <tr>
+              <td>8080:collectionB</td>
+              <td>http://access.example.org:8080/wayback/collectionB/</td>
+              <td>http://access.example.org:8080/wayback/collectionB/*/http://archive.org/</td>
+            </tr>
+          </table>        
+        </p>
+        <p>
+          If you have configured multiple <b>Connector</b>s for your Tomcat
+          server, listening on both port <b>80</b>, and port <b>8080</b>, and
+          you deploy <b>ROOT.war</b> you can target different AccessPoints by
+          port, as shown below. These examples assume your servers hostname is
+          still "access.example.org".
+          <table>
+            <tr>
+              <th>Access Point bean name</th>
+              <th>Archival URL prefix</th>
+              <th>Archival URL query example for <b>http://archive.org</b></th>
+            </tr>
+            <tr>
+              <td>80:collectionA</td>
+              <td>http://access.example.org/collectionA/</td>
+              <td>http://access.example.org/collectionA/*/http://archive.org/</td>
+            </tr>
+            <tr>
+              <td>8080:collectionB</td>
+              <td>http://access.example.org:8080/collectionB/</td>
+              <td>http://access.example.org:8080/collectionB/*/http://archive.org/</td>
+            </tr>
+            <tr>
+              <td>80:collectionC</td>
+              <td>http://access.example.org/collectionC/</td>
+              <td>http://access.example.org/collectionC/*/http://archive.org/</td>
+            </tr>
+          </table>        
+        </p>
+        <p>
+          If you have a very limited number of AccessPoints to expose, you can
+          do away with the <b>first-path</b> component, to achieve potentially
+          very uncluttered Archival URLs. Assuming multiple <b>Connector</b>s
+          for your Tomcat server, listening on both port <b>80</b>, and port
+          <b>8080</b>, and you deploy <b>ROOT.war</b> you can target different
+          AccessPoints by port alone, as shown below. These examples still
+          assume your servers hostname is "access.example.org".
+          <table>
+            <tr>
+              <th>Access Point bean name</th>
+              <th>Archival URL prefix</th>
+              <th>Archival URL query example for <b>http://archive.org</b></th>
+            </tr>
+            <tr>
+              <td>80</td>
+              <td>http://access.example.org/</td>
+              <td>http://access.example.org/*/http://archive.org/</td>
+            </tr>
+            <tr>
+              <td>8080</td>
+              <td>http://access.example.org:8080/</td>
+              <td>http://access.example.org:8080/*/http://archive.org/</td>
+            </tr>
+          </table>        
+        </p>
+        <p>
+          Getting somewhat fancy, you can use virtual hosts, doing away with 
+          non-standard ports, and use hostnames alone to specify AccessPoints.
+          This means getting your Tomcat to listen on port <b>80</b>, and
+          deploying the webapp as <b>ROOT.war</b>. You'd have to configure your
+          DNS so both "collection1.example.org" and "collection2.example.org"
+          point to the host running Wayback:
+          <table>
+            <tr>
+              <th>Access Point bean name</th>
+              <th>Archival URL prefix</th>
+              <th>Archival URL query example for <b>http://archive.org</b></th>
+            </tr>
+            <tr>
+              <td>collection1.example.org:80</td>
+              <td>http://collection1.example.org/</td>
+              <td>http://collection1.example.org/*/http://archive.org/</td>
+            </tr>
+            <tr>
+              <td>collection2.example.org:80</td>
+              <td>http://collection2.example.org/</td>
+              <td>http://collection2.example.org/*/http://archive.org/</td>
+            </tr>
+          </table>        
+        </p>
+      </subsection>
+      <subsection name="Getting really fancy">
+
+        <p>
+          Assuming you've deployed your webapp as <b>ROOT.war</b> and have Tomcat
+          listening on both port 80 and 8080, with the hostnames 
+          "collection1.example.org" and "collection2.example.org" both
+          pointing to the host running wayback:
+          <table>
+            <tr>
+              <th>Access Point bean name</th>
+              <th>Archival URL prefix</th>
+              <th>Archival URL query example for <b>http://archive.org</b></th>
+            </tr>
+            <tr>
+              <td>collection1.example.org:80</td>
+              <td>http://collection1.example.org/</td>
+              <td>http://collection1.example.org/*/http://archive.org/</td>
+            </tr>
+            <tr>
+              <td>collection1.example.org:8080:subset1</td>
+              <td>http://collection1.example.org:8080/subset1/</td>
+              <td>http://collection1.example.org:8080/subset1/*/http://archive.org/</td>
+            </tr>
+            <tr>
+              <td>collection1.example.org:8080:subset2</td>
+              <td>http://collection1.example.org:8080/subset2/</td>
+              <td>http://collection1.example.org:8080/subset2/*/http://archive.org/</td>
+            </tr>
+            <tr>
+              <td>collection2.example.org:8080</td>
+              <td>http://collection1.example.org:8080/</td>
+              <td>http://collection1.example.org:8080/*/http://archive.org/</td>
+            </tr>
+            <tr>
+              <td>collection2.example.org:80:internal</td>
+              <td>http://collection2.example.org/internal/</td>
+              <td>http://collection2.example.org/internal/*/http://archive.org/</td>
+            </tr>
+            <tr>
+              <td>collection2.example.org:80:public</td>
+              <td>http://collection2.example.org/public/</td>
+              <td>http://collection2.example.org/public/*/http://archive.org/</td>
+            </tr>
+          </table>        
+        </p>
+      </subsection>
+<!--
+      <subsection name="ArchivalURL Server-Relative URL rewriting">
+        <p>
+          As hard as we've tried to make Server-side rewrite "do the right
+          thing" in ArchivalURL Replay mode, sometimes things don't work out 
+          right. For example, if a page, <b>http://example.net/news/a.html</b>
+          contains some Javascript, that generates the following HTML with a
+          <b>document.write()</b> call:
+          <br></br>
+          <code>
+          
+&lt;img src="/foo.gif"&gt;&lt;/img&gt;
+          </code>
+          <br></br>
+          And you were running an AccessPoint at <b>http://archive.org/web/</b>,
+          the then page would be expecting that URL to resolve as 
+          <b>http://example.net/foo.gif</b>, but in fact, the page being
+          displayed as 
+        </p>
+      <subsection>
+-->
+    </section>
+  </body>
+</document>

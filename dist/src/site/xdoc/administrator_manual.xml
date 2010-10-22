@@ -12,7 +12,6 @@
 
     <section name="Requirements">
 
-
       <subsection name="Third Party Packages">
         <p>
           Please see the
@@ -53,7 +52,7 @@
 	      <p>
 	        Once you have downloaded the .tar.gz file from 
 	        sourceforge, you will need to unpack the file to access the
-	        webapp file, <b>wayback-webapp-1.4.0.war</b>.
+	        webapp file, <b>wayback-webapp-1.6.0.war</b>.
 	      </p>
 		    <p>
 	        Installation and configuration of this software involves the
@@ -66,7 +65,7 @@
 	            Waiting for Tomcat to unpack the .war file.
 	          </li>
 	          <li>
-	            Customizing base wayback.xml file.
+	            Customizing base wayback.xml and possibly other XML configuration files.
 	          </li>
 	          <li>
 	            Restarting tomcat.
@@ -84,18 +83,19 @@
         documents. Query access allows users to locate particular documents
         within the collection by URL and date. Replay access allows users to
         view archived pages within their web browsers. Some Replay modes 
-        require altering the original pages so embedded content is also loaded
-        from the wayback service, and not from the live web.
+        require altering the original pages and resources, so embedded and 
+        referenced content is also loaded from the Wayback service, and not
+        from the live web.
       </p>
       <p>
         A WaybackCollection defines a set of archived documents and an index
-        which allows documents to be located within the collection. A
+        which allows documents to be quickly located within the collection. A
         WaybackCollection may be exposed to end users through one or more
         AccessPoints, which define:
         <ul>
           <li>the WaybackCollection itself</li>
           <li>the URL where users can access the collection</li>
-          <li>how users can query the collection (the Query UI)</li>
+          <li>how query results are presented to users (the Query UI)</li>
           <li>how documents are returned to users so they appear correctly in
             their web browsers (the Replay UI)</li>
           <li>the look and feel of the wayback user interface</li>
@@ -104,12 +104,12 @@
         </ul>
       </p>
       <p>
-        Wayback is configured using Spring IOC, to specify and configure
-        concrete implementations of several basic modules. For information
-        about using Spring, please see
-        <a href="http://www.springframework.org/docs/reference/beans.html">
-          this page
-        </a>.
+        Wayback is configured using 
+        <a href="http://static.springsource.org/spring/docs/2.5.x/reference/beans.html#beans-basics">Spring IOC</a>,
+        to specify and configure concrete implementations of several basic
+        modules. Please see the
+        <a href="http://static.springsource.org/spring/docs/2.5.x/reference/beans.html#beans-basics">Spring website</a> for more information on 
+        configuring beans using Spring XML.
       </p>
       <subsection name="AccessPoint configuration options">
         <p>
@@ -121,8 +121,8 @@
                 AccessPoint.
             </li>
             <li><a href="Query_UI"><b>query</b></a> responsible for generating
-                user visible content in response to user Queries, HTML, XML,
-                etc.</li>
+                user visible content(HTML, XML, etc) in response to user
+                Queries.</li>
             <li><a href="Replay_Modes"><b>replay</b></a> responsible for 
                 determining the appropriate ReplayRenderer implementation based
                 on the users request and the particular document to be 
@@ -135,7 +135,9 @@
           </ul>
         </p>
         <p>
-          An AccessPoint's configuration may optionally specify the following:
+          An AccessPoint's configuration may optionally specify the following, 
+          but must specify at least one of replayPrefix, queryPrefix, or 
+          staticPrefix:
           <ul>
             <li><a href="Exception_Rendering"><b>exception</b></a> - an
                 implementation responsible for generating error pages to users
@@ -158,12 +160,37 @@
               </a> - an implementation specifying who is allowed to connect to
               this AccessPoint
             </li>
-            <li><b>urlRoot</b> - a String URL prefix under which all UI
-                elements should be referenced.
+            <li>
+              <b>replayPrefix</b> - a String URL prefix indicating the host,
+              port, and path to the correct Replay AccessPoint. If unspecified,
+              defaults to queryPrefix, then staticPrefix.
+            </li>
+            <li>
+              <b>queryPrefix</b> - a String URL prefix indicating the host,
+              port, and path to the correct Query AccessPoint. If unspecified,
+              defaults to staticPrefix, then replayPrefix.
+            </li>
+            <li>
+              <b>staticPrefix</b> - a String URL prefix indicating the host,
+              port, and path to static content used within the UI. If
+              unspecified, defaults to queryPrefix, then replayPrefix.
+            </li>
+            <li>
+              <b>livewebPrefix</b> - a String URL prefix indicating the host,
+              port, and path to the correct Replay AccessPoint.
             </li>
             <li><b>locale</b> - A specific Locale to use for all requests
                 within this AccessPoint, overriding the users preferred Locale
                 as specified by their web browser.
+            </li>
+            <li>
+              <b>exactHostMatch</b> - true or false, if true, only returns 
+              results exactly matching a given request hostname (case insensitive). 
+              Default is false. 
+            </li>
+            <li>
+              <b>exactSchemeMatch</b> - true of false, if true, only returns 
+              results exactly matching a given request scheme. Default is true.
             </li>
           </ul>
         </p>
@@ -222,7 +249,9 @@
             <li><a href="https://archive-access.svn.sourceforge.net/svnroot/archive-access/trunk/archive-access/projects/wayback/wayback-webapp/src/main/webapp/WEB-INF/BDBCollection.xml">BDBCollection.xml</a></li>
             <li><a href="https://archive-access.svn.sourceforge.net/svnroot/archive-access/trunk/archive-access/projects/wayback/wayback-webapp/src/main/webapp/WEB-INF/CDXCollection.xml">CDXCollection.xml</a></li>
             <li><a href="https://archive-access.svn.sourceforge.net/svnroot/archive-access/trunk/archive-access/projects/wayback/wayback-webapp/src/main/webapp/WEB-INF/RemoteCollection.xml">RemoteCollection.xml</a></li>
+<!--
             <li><a href="https://archive-access.svn.sourceforge.net/svnroot/archive-access/trunk/archive-access/projects/wayback/wayback-webapp/src/main/webapp/WEB-INF/NutchCollection.xml">NutchCollection.xml</a></li>
+-->
           </ul>
         </p>
       </subsection>
@@ -257,13 +286,14 @@
               the Access Point. See below for example CONTEXT mappings.
             </li>
             <li>
-              <b>CONTEXT</b> is the context where the Wayback webapp has been
-              deployed, plus the name of the Access Point. See below for
-              example CONTEXT mappings.
+              <b>CONTEXT</b> is an optional context where the Wayback webapp
+              has been deployed, plus an optional name of the Access Point 
+              within the webapp. See below for example CONTEXT mappings.
             </li>
             <li>
               <b>TIMESTAMP</b> is 0 to 14 digits of a date, possibly
-              followed by an asterisk ('*'). The format of a 
+              followed by an asterisk ('*'), or one or more tags providing 
+              further specifics for the request. The format of a 
               TIMESTAMP is:
               <div>
                 <code>
@@ -304,6 +334,25 @@
                 Dec 31, 2004 23:01:00 (pm UTC) - 20041231230100
               </div>
               <br></br>
+              <p>
+                Following the date portion of a timestamp, the following flags
+                can be appended:
+                <ul>
+                  <li>
+                    <b>id_</b> Identity - perform no alterations of the original
+                    resource, return it as it was archived.
+                  </li>
+                  <li>
+                    <b>js_</b> Javascript - return document marked up as javascript. 
+                  </li>
+                  <li>
+                    <b>cs_</b> CSS - return document marked up as CSS.
+                  </li>
+                  <li>
+                    <b>im_</b> Image - return document as an image.
+                  </li>
+                </ul>
+              </p>
             </li>
             <li>
               <b>URL</b> represents the actual URL that should be 
@@ -312,17 +361,9 @@
           </ul>
           <br></br>
           <div>
-            Here is an example Archival URL, on an assumed host 
-            <b>wayback.somehost.org</b>, with a wayback webapp deployed as
-            <b>ROOT</b>, via the Access Point named <b>80:archive</b> for the 
-            page <b>http://www.yahoo.com/</b> on Dec 31, 1999 at 12:00:00 UTC.
-            <br></br>
-            <div>
-              <code>
-                http://wayback.somehost.org/archive/19991231120000/http://www.yahoo.com/
-              </code>
-            </div>
-            <br></br>
+            For some simple and more elaborate examples of how AccessPoint bean
+            names interact with Archival URLs, please refer to 
+            <a href="access_point_naming.html">Access Point Naming</a>.
           </div>
           <br></br>
           <div>
@@ -350,107 +391,15 @@
           </div>
           <br></br>
           <div>
-            There is a trade-off between these two approaches. The entirely
-            server-side rewriting requires more server resources, and is less 
-            tested than the JavaScript method. The JavaScript is also imperfect:
-            sometimes requests "leak" to the live web temporarily, before the 
-            Javascript has executed. With both methods, not all URLs are
-            rewritten correctly, especially URLs that are created by JavaScript
-            that was in the original page, and specialized file types containing
-            links like Flash and PDF documents.
+            Currently, we are recommending the entirely server-side rewriting
+            method, and are deprecating the original server-side plus Javascript
+            method, but this functionality is still available in Wayback. 
+            Neither method is perfect, not all URLs are rewritten correctly,
+            particularly URLs that are created by JavaScript in the original 
+            pages, and specialized file types containing links like Flash
+            and PDF documents.
           </div>
           <br></br>
-          <div>
-            The <b>name</b> of the Access Point bean in the Spring configuration
-            file determines the CONTEXT and PORT used in Archival URLs within
-            that Access Point. The Servlet context name where the Wayback 
-            application is deployed also factors into the CONTEXT used within
-            Archival URLs for each Access Point.
-          </div>
-          <br></br>
-          <div>
-            The following examples show the Archival URL prefix for the 
-            following two Access Points depending on the Wayback webapp being
-            deployed in two different contexts, "ROOT" and "wayback".
-          </div>
-          <br></br>
-          <div>
-            If the following Access Point definitions are present in the 
-            wayback.xml:
-            <pre>
-
-&lt;bean name=&quot;8080:wayback&quot; class=&quot;org.archive.wayback.webapp.AccessPoint&quot;&gt;
-  &lt;property name=&quot;collection&quot; ref=&quot;localcollection&quot; /&gt;
-  ...
-&lt;/bean&gt;
-
-&lt;bean name=&quot;8080:wayback2&quot; class=&quot;org.archive.wayback.webapp.AccessPoint&quot;&gt;
-  &lt;property name=&quot;collection&quot; ref=&quot;localcollection&quot; /&gt;
-  ...
-&lt;/bean&gt;
-
-            </pre>
-            then the following table shows the Archival URL prefixes to access
-            each collection on the host "wayback.somehost.org" assuming a
-            Tomcat Connector listening on port 8080:
-          </div>
-          <table>
-            <tr>
-              <th>
-                webapp deployed at
-              </th>
-              <th>
-                Access Point bean name
-              </th>
-              <th>
-                Archival URL prefix
-              </th>
-            </tr>
-            <tr>
-              <td>
-                ROOT
-              </td>
-              <td>
-                8080:wayback
-              </td>
-              <td>
-                http://wayback.somehost.org:8080/wayback/
-              </td>
-            </tr>
-            <tr>
-              <td>
-                ROOT
-              </td>
-              <td>
-                8080:wayback2
-              </td>
-              <td>
-                http://wayback.somehost.org:8080/wayback2/
-              </td>
-            </tr>
-            <tr>
-              <td>
-                wb-webapp
-              </td>
-              <td>
-                8080:wayback
-              </td>
-              <td>
-                http://wayback.somehost.org:8080/wb-webapp/wayback/
-              </td>
-            </tr>
-            <tr>
-              <td>
-                wb-webapp
-              </td>
-              <td>
-                8080:wayback2
-              </td>
-              <td>
-                http://wayback.somehost.org:8080/wb-webapp/wayback2/
-              </td>
-            </tr>
-          </table>
         </p>
         <p>
           The properties <b>parser</b> and <b>uriConverter</b>
@@ -468,7 +417,7 @@
 
     &lt;property name=&quot;uriConverter&quot;&gt;
       &lt;bean class=&quot;org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter&quot;&gt;
-        &lt;property name=&quot;replayURIPrefix&quot; value=&quot;http://wayback.somehost.org:8080/wb-webapp/wayback/&quot; /&gt;
+        &lt;property name=&quot;replayURIPrefix&quot; value=&quot;http://wayback.example.org:8080/collection/&quot; /&gt;
       &lt;/bean&gt;
     &lt;/property&gt;
 
@@ -519,7 +468,7 @@
             </td>
             <td>
               Points to the Archival URL prefix of the Access Point as
-              illustrated in the preceding table.
+              illustrated in <a href="access_point_naming.html">Access Point Naming</a> document.
             </td>
           </tr>
         </table>
@@ -533,11 +482,12 @@
       <subsection name="Proxy Replay Mode">
         <p>
           Wayback can be configured to act as an HTTP proxy server. To utilize
-          this mode, the wayback webapp must be deployed as the ROOT context,
-          and client browser must be configured to proxy all HTTP requests
-          through the Wayback Machine application. Instead of retrieving
-          documents from the live web, the Wayback Machine will retrieve
-          documents from the configured WaybackCollection.
+          this mode, the wayback webapp <b>must</b> be deployed as the ROOT
+          context, no other AccessPoints can use the port dedicated to the
+          Proxy AccessPoint, and client browsers must be configured to proxy
+          all HTTP requests through the Wayback Machine application. Instead of
+          retrieving documents from the live web, the Wayback Machine will 
+          retrieve documents from the configured WaybackCollection.
         </p>
         <p>
           Proxy Replay mode does not suffer from the shortcomings of
@@ -575,7 +525,7 @@
           <pre>
 
 &lt;bean name=&quot;8090&quot; parent=&quot;8080:wayback&quot;&gt;
-  &lt;property name=&quot;urlRoot&quot; value=&quot;http://wayback.somehost.org/&quot; /&gt;
+  &lt;property name=&quot;queryPrefix&quot; value=&quot;http://wayback.somehost.org/&quot; /&gt;
   &lt;property name=&quot;replay&quot;&gt; ref=&quot;proxyreplay&quot; /&gt;
   &lt;property name=&quot;uriconverter&quot;&gt;
     &lt;bean class=&quot;org.archive.wayback.proxy.RedirectResultURIConverter&quot;&gt;
@@ -767,6 +717,15 @@
               users to navigate directly between other captures of the current
               page they are viewing. This version uses Javascript to
               place the banner, attempting to only place the banner in the
+              largest frame within a frameset.
+            </li>
+            <li>
+              <a href="https://archive-access.svn.sourceforge.net/svnroot/archive-access/trunk/archive-access/projects/wayback/wayback-webapp/src/main/webapp/WEB-INF/replay/Toolbar.jsp">/WEB-INF/replay/Toolbar.jsp</a>
+              Inserts a fancier banner in the top of replayed documents which 
+              includes a graphic representaion of the number of captures over 
+              time and allows users to navigate directly between other captures
+              of the current page they are viewing. This version uses Javascript
+              to place the banner, attempting to only place the banner in the
               largest frame within a frameset.
             </li>
           </ul>
@@ -1092,7 +1051,7 @@ String logoString = results.getContextConfig("logo");
         </p>
       </subsection>
 
-      <subsection name="arc-indexer|warc-indexer">
+      <subsection name="cdx-indexer">
         <p>
           These tools create a CDX format index for the ARC/WARC file at
           PATH, either on STDOUT, or at the path specified by CDX_PATH. The
@@ -1100,8 +1059,7 @@ String logoString = results.getContextConfig("logo");
           files to generate CDX format ResourceIndex.
         </p>
           <pre>
-            bin/arc-indexer [-identity] PATH [CDX_PATH]
-            bin/warc-indexer [-identity] PATH [CDX_PATH]
+            bin/cdx-indexer [-identity] PATH [CDX_PATH]
           </pre>
         <p>
           Note that when manually constructing CDX files using these tools, you
@@ -1190,9 +1148,9 @@ String logoString = results.getContextConfig("logo");
           input URL.
         </p>
         <p>
-          This tool is required when using the <b>arc-indexer</b> or 
-          <b>warc-indexer</b> tools with the <b>-identity</b> option. Typical
-          usage involves generating an <i>identity</i> CDX index, then
+          This tool is required when using the <b>cdx-indexer</b> tool with the
+          <b>-identity</b> option. Typical usage involves generating an
+          <i>identity</i> CDX index, then
           passing the lines in that index through this tool to canonicalize the
           record URL key for queries. If the <i>identity</i> CDX files are
           kept, then canonicalization schemes can be swapped without

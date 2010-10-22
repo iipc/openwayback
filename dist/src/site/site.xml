@@ -28,9 +28,8 @@
     <menu name="Overview">
       <item name="Requirements" href="requirements.html"/>
       <item name="Downloads" href="downloads.html"/>
-      <item name="User Manual" href="user_manual.html"/>
       <item name="Administrator Manual" href="administrator_manual.html"/>
-      <item name="Developer Manual" href="developer_manual.html"/>
+      <item name="Hadoop CDX Generation" href="hadoop.html"/>
       <item name="Release Notes" href="release_notes.html"/>
       <item name="FAQ" href="/faq.html"/>
       <item name="API" href="./apidocs"/>
