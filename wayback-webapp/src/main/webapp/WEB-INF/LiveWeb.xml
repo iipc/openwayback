@@ -38,5 +38,10 @@
     <property name="proxyHostPort" value="localhost:3128" />
 -->
   </bean>
+  <bean id="excluder-factory-robot" class="org.archive.wayback.accesscontrol.robotstxt.RobotExclusionFilterFactory">
+    <property name="maxCacheMS" value="86400000" />
+    <property name="userAgent" value="ia_archiver" />
+    <property name="webCache" ref="proxylivewebcache" />
+  </bean>
 
 </beans>
