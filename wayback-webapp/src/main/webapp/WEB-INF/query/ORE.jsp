@@ -38,12 +38,13 @@
 	CaptureSearchResults cResults = results.getCaptureResults();
 	CaptureSearchResult res = cResults.getClosest();
 
-	String uriPrefix = wbRequest.getAccessPoint().getReplayPrefix();
+    String replayPrefix = wbRequest.getAccessPoint().getReplayPrefix();
+    String queryPrefix = wbRequest.getAccessPoint().getQueryPrefix();
 	String u = wbRequest.getRequestUrl();
-	String agguri = uriPrefix + "timebundle/" + u;
+	String agguri = replayPrefix + "timebundle/" + u;
 	String format = wbRequest.get("format");
 	Aggregation agg = OREFactory.createAggregation(new URI(agguri));
-	ResourceMap rem = agg.createResourceMap(new URI(uriPrefix
+	ResourceMap rem = agg.createResourceMap(new URI(queryPrefix
 			+ "timemap/" + format + "/" + u));
 
 	Date now = new Date();
@@ -79,7 +80,7 @@
 			"http://www.mementoweb.org/terms/tb/OriginalResource"));
 	//include timegate into aggregation
 	AggregatedResource ar_tg = agg.createAggregatedResource(new URI(
-			results.getContextConfig("Prefix") + "timegate/" + u));
+			replayPrefix + "timegate/" + u));
 
 	Predicate pr_format = new Predicate();
 	pr_format.setURI(new URI("http://purl.org/dc/elements/1.1/format"));
@@ -104,9 +105,9 @@
 
 	linkbf.append("<" + u + ">;rel=\"original\"\n");
 	linkbf.append(",<" + agguri + ">;rel=\"timebundle\"\n");
-	linkbf.append(",<" + results.getContextConfig("Prefix")
+	linkbf.append(",<" + replayPrefix
 			+ "timegate/" + u + ">;rel=\"timegate\"\n");
-	linkbf.append(",<" + uriPrefix + "timemap/" + format + "/" + u
+	linkbf.append(",<" + queryPrefix + "timemap/" + format + "/" + u
 			+ ">;rel=\"timemap\";type=\"text/csv\"\n");
 
 	String firstmemento = null;
@@ -115,7 +116,7 @@
 		CaptureSearchResult cur = itr.next();
 		//I am not deduping urls (by digest) for the rdf serialization running out of time, extra efforts for me now ;)
 
-		String resurl = results.getContextConfig("Prefix")
+		String resurl = replayPrefix
 				+ formatterk.format(cur.getCaptureDate()) + "/" + u;
 
 		String digest = cur.getDigest();
