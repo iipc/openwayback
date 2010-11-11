@@ -72,10 +72,8 @@ public class TimeBundleRequestParser extends WrappedRequestParser {
 			wbRequest.setCaptureQueryRequest();
 			wbRequest.setRequestUrl(urlStr);
 
-			ArchivalUrlResultURIConverter conv = 
-				(ArchivalUrlResultURIConverter) accessPoint.getUriConverter();
-			
-			String uriPrefix = conv.getReplayURIPrefix();
+			String uriPrefix = accessPoint.getConfigs().getProperty("Prefix");
+
 			String betterUrl = uriPrefix + "timemap/rdf/" + urlStr;
 	
 			throw new BetterRequestException(betterUrl, 303);
