@@ -227,6 +227,8 @@
 <!--
   <import resource="MementoReplay.xml"/>
   <bean name="8080:memento" parent="8080:wayback">
+    <property name="replayPrefix" value="http://localhost.archive.org:8080/memento/" />
+    <property name="queryPrefix" value="http://localhost.archive.org:8080/list/" />
 	<property name="configs">
       <props>
 	    <prop key="aggregationPrefix">http://localhost.archive.org:8080/list/</prop>
@@ -260,6 +262,8 @@
 
 
   <bean name="8080:list" parent="8080:memento">
+    <property name="replayPrefix" value="http://localhost.archive.org:8080/memento/" />
+    <property name="queryPrefix" value="http://localhost.archive.org:8080/list/" />
     <property name="staticPrefix" value="http://localhost.archive.org:8080/list/" />
 	<property name="configs">
 	  <props>
