@@ -87,7 +87,7 @@ public class MementoReplayRendererDecorator extends ReplayRendererDecorator {
 		String timemap = " , <"
 				+ apProps.getProperty("aggregationPrefix")
 				+ "timemap/link/" + u
-				+ ">;rel=\"timemap\"; type=\"text/csv\"";
+				+ ">;rel=\"timemap\"; type=\"application/link-format\"";
 
 		String timegate = ",<" + uriPrefix + "timegate/" + u
 				+ ">;rel=\"timegate\"";
@@ -101,7 +101,7 @@ public class MementoReplayRendererDecorator extends ReplayRendererDecorator {
 				httpformatterl.format(result.getCaptureDate()));
 
 		String memento = ",<" + uriPrefix + formatterk.format(closestDate)
-				+ "/" + u + ">;rel=\"memento\";datetime=\""
+				+ "/" + u + ">;rel=\"memento\"; datetime=\""
 				+ httpformatterl.format(closestDate) + "\"";
 		String mfl = null;
 		if ((closestDate.equals(f)) && closestDate.equals(l)) {
@@ -110,31 +110,31 @@ public class MementoReplayRendererDecorator extends ReplayRendererDecorator {
 					+ formatterk.format(f)
 					+ "/"
 					+ u
-					+ ">;rel=\"first-memento memento last-memento\"; datetime=\""
+					+ ">;rel=\"first last memento\"; datetime=\""
 					+ httpformatterl.format(f) + "\"";
 		} else if (closestDate.equals(f)) {
 			mfl = ", <" + uriPrefix + formatterk.format(f) + "/" + u
-					+ ">;rel=\"first-memento memento\"; datetime=\""
+					+ ">;rel=\"first memento\"; datetime=\""
 					+ httpformatterl.format(f) + "\"";
 			mfl = mfl + ", <" + uriPrefix + formatterk.format(l) + "/" + u
-					+ ">;rel=\"last-memento\"; datetime=\""
+					+ ">;rel=\"last memento\"; datetime=\""
 					+ httpformatterl.format(l) + "\"";
 
 		} else if (closestDate.equals(l)) {
 			mfl = ", <" + uriPrefix + formatterk.format(l) + "/" + u
-					+ ">;rel=\"last-memento memento\"; datetime=\""
+					+ ">;rel=\"last memento\"; datetime=\""
 					+ httpformatterl.format(l) + "\"";
 			mfl = mfl + ", <" + uriPrefix + formatterk.format(f) + "/" + u
-					+ ">;rel=\"first-memento\"; datetime=\""
+					+ ">;rel=\"first memento\"; datetime=\""
 					+ httpformatterl.format(f) + "\"";
 		} else {
 			mfl = memento;
 
 			mfl = mfl + ", <" + uriPrefix + formatterk.format(l) + "/" + u
-					+ ">;rel=\"last-memento\"; datetime=\""
+					+ ">;rel=\"last memento\"; datetime=\""
 					+ httpformatterl.format(l) + "\"";
 			mfl = mfl + ", <" + uriPrefix + formatterk.format(f) + "/" + u
-					+ ">;rel=\"first-memento\"; datetime=\""
+					+ ">;rel=\"first memento\"; datetime=\""
 					+ httpformatterl.format(f) + "\"";
 		}
 
@@ -184,12 +184,12 @@ public class MementoReplayRendererDecorator extends ReplayRendererDecorator {
 						+ formatterk.format(closestleft.getCaptureDate())
 						+ "/"
 						+ u
-						+ ">;rel=\"prev-memento\"; datetime=\""
+						+ ">;rel=\"prev memento\"; datetime=\""
 						+ httpformatterl.format(closestleft
 								.getCaptureDate()) + "\"");
 			} else {
-				int m_index = sb.lastIndexOf("\"first-memento\"");
-				sb.insert(m_index + 1, "prev-memento ");
+				int m_index = sb.lastIndexOf("\"first memento\"");
+				sb.insert(m_index + 1, "prev ");
 
 			}
 		}
@@ -200,12 +200,12 @@ public class MementoReplayRendererDecorator extends ReplayRendererDecorator {
 						+ formatterk.format(closestright.getCaptureDate())
 						+ "/"
 						+ u
-						+ ">;rel=\"next-memento\"; datetime=\""
+						+ ">;rel=\"next memento\"; datetime=\""
 						+ httpformatterl.format(closestright
 								.getCaptureDate()) + "\"");
 			} else {
-				int m_index = sb.lastIndexOf("\"last-memento\"");
-				sb.insert(m_index + 1, "next-memento ");
+				int m_index = sb.lastIndexOf("\"last memento\"");
+				sb.insert(m_index + 1, "next ");
 
 			}
 

@@ -108,7 +108,7 @@
 	linkbf.append(",<" + replayPrefix
 			+ "timegate/" + u + ">;rel=\"timegate\"\n");
 	linkbf.append(",<" + queryPrefix + "timemap/" + format + "/" + u
-			+ ">;rel=\"timemap\";type=\"text/csv\"\n");
+			+ ">;rel=\"timemap\";type=\"application/link-format\"\n");
 
 	String firstmemento = null;
 	int count = 0;
@@ -142,7 +142,7 @@
 		if (startdate == null) {
 			if (firstmemento == null) {
 				linkbf.append(",<" + resurl
-						+ ">;rel=\"first-memento\";datetime=\""
+						+ ">;rel=\"first memento\";datetime=\""
 						+ httpformatterl.format(enddate) + "\"\n");
 				firstmemento = "firstmemento";
 
@@ -226,7 +226,7 @@
 
 	if (count > 0) {
 		int m_index = linkbf.lastIndexOf("\"memento\"");
-		linkbf.insert(m_index + 1, "last-");
+		linkbf.insert(m_index + 1, "last ");
 	}
 
 	ORESerialiser serial = null;
@@ -249,7 +249,7 @@
 	else if (format.equals("link")) {
 		PrintWriter pw = response.getWriter();
 
-		response.setContentType("text/csv");
+		response.setContentType("application/link-format");
 		pw.print(linkbf.toString());
 		pw.flush();
 
