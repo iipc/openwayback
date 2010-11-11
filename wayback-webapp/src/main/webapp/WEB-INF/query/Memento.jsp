@@ -1,4 +1,5 @@
 <%@ page import="java.util.Date"
+%><%@ page import="org.archive.wayback.archivalurl.ArchivalUrl"
 %><%@ page import="org.archive.wayback.core.UIResults"
 %><%@ page import="org.archive.wayback.util.StringFormatter"
 %><%@ page import="org.archive.wayback.core.WaybackRequest"
@@ -53,7 +54,10 @@
 			+ ">;rel=\"timemap\"; type=\"text/csv\"";
 	String origlink = ", <" + u + ">;rel=\"original\"";
 	String uriPrefix = wbRequest.getAccessPoint().getReplayPrefix();
-	String replayUrl = results.resultToReplayUrl(res);
+	
+    ArchivalUrl aUrl = new ArchivalUrl(wbRequest);
+    String replayUrl = uriPrefix + aUrl.toString(res.getCaptureTimestamp(), 
+            res.getOriginalUrl());
 
 	StringBuffer sb = new StringBuffer();
 
