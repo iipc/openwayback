@@ -30,6 +30,6 @@ public class MIMETypeCDXField implements CDXField {
 
 	public String serialize(CaptureSearchResult result) {
 		String r = result.getMimeType();
-		return r == null ? DEFAULT_VALUE : r;
+		return (r == null) || (r.length() == 0) ? DEFAULT_VALUE : r;
 	}
 }
