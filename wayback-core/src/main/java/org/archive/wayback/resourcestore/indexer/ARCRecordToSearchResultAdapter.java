@@ -80,6 +80,7 @@ implements Adapter<ARCRecord,CaptureSearchResult>{
 		result.setHttpCode("-");
 		result.setRedirectUrl("-");
 		
+//		result.setDigest("sha1:"+rec.getDigestStr());
 		result.setDigest(rec.getDigestStr());
 		result.setCaptureTimestamp(meta.getDate());
 		String uriStr = meta.getUrl();
