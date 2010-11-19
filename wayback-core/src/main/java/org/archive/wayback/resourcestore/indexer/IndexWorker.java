@@ -160,6 +160,9 @@ public class IndexWorker implements Shutdownable {
 		boolean setFormat = false;
 		boolean isIdentity = false;
 		String path = null;
+		if(args.length == 0) {
+			USAGE();
+		}
 		for(int idx = 0; idx < args.length; idx++) {
 			if(args[idx].equals("-identity")) {
 				canonicalizer = new IdentityUrlCanonicalizer();
