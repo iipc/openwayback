@@ -86,7 +86,7 @@ public class CDXFormat {
 	protected CDXField[] fields = null;
 	protected char delimiter = ' ';
 	protected String delimiterS = null;
-	
+
 	public static String CDX_MAGIC = " CDX";
 	
 	public static char URL_KEY = 'A';
@@ -185,7 +185,12 @@ public class CDXFormat {
 	public String serializeResult(CaptureSearchResult result) {
 		StringBuilder sb = new StringBuilder(100);
 		for(int i = 0; i < fields.length; i++) {
-			sb.append(fields[i].serialize(result));
+			String value = fields[i].serialize(result);
+			if((value == null) || (value.length() == 0)) {
+				sb.append(CDXField.DEFAULT_VALUE);
+			} else {
+				sb.append(value);
+			}
 			if(i < fields.length - 1) {
 				sb.append(delimiter);
 			}
