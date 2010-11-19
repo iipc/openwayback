@@ -83,10 +83,10 @@ implements Adapter<WARCRecord,CaptureSearchResult>{
 		ArchiveRecordHeader header = rec.getHeader();
 
 		String type = header.getHeaderValue(WARCConstants.HEADER_KEY_TYPE).toString();
-		if(type.equals(WARCConstants.WARCINFO)) {
-			LOGGER.info("Skipping record type : " + type);
-			return null;
-		}
+//		if(type.equals(WARCConstants.WARCINFO)) {
+//			LOGGER.info("Skipping record type : " + type);
+//			return null;
+//		}
 
 		CaptureSearchResult result = genericResult(rec);
 
@@ -121,6 +121,10 @@ implements Adapter<WARCRecord,CaptureSearchResult>{
 			} else {
 				result = null;
 			}
+		} else if(type.equals(WARCConstants.WARCINFO)) {
+
+			result.setMimeType("warc/warcinfo");
+
 		} else {
 			LOGGER.info("Skipping record type : " + type);
 		}
@@ -156,14 +160,29 @@ implements Adapter<WARCRecord,CaptureSearchResult>{
 				WARCRecord.HEADER_KEY_PAYLOAD_DIGEST)));
 		
 		String origUrl = header.getUrl();
-		result.setOriginalUrl(origUrl);
-		try {
-			String urlKey = canonicalizer.urlStringToKey(origUrl);
-			result.setUrlKey(urlKey);
-		} catch (URIException e) {
-			LOGGER.warning("FAILED canonicalize(" + origUrl + "):" + 
-					file + " " + offset);
-			result.setUrlKey(origUrl);
+		if(origUrl == null) {
+			String type = header.getHeaderValue(WARCConstants.HEADER_KEY_TYPE).toString();
+			if(type.equals(WARCConstants.WARCINFO)) {
+				String filename = header.getHeaderValue(
+						WARCConstants.HEADER_KEY_FILENAME).toString();
+				result.setOriginalUrl("filedesc:"+filename);
+				result.setUrlKey("filedesc:"+filename);				
+			} else {
+				result.setOriginalUrl(DEFAULT_VALUE);
+				result.setUrlKey(DEFAULT_VALUE);
+			}
+
+			
+		} else {
+			result.setOriginalUrl(origUrl);
+			try {
+				String urlKey = canonicalizer.urlStringToKey(origUrl);
+				result.setUrlKey(urlKey);
+			} catch (URIException e) {
+				LOGGER.warning("FAILED canonicalize(" + origUrl + "):" + 
+						file + " " + offset);
+				result.setUrlKey(origUrl);
+			}
 		}
 		return result;
 	}
@@ -204,6 +223,7 @@ implements Adapter<WARCRecord,CaptureSearchResult>{
 			return orig.substring(5);
 		}
 		return orig;
+//		return (o == null) ? DEFAULT_VALUE : o.toString();
 	}
 
 	/*
