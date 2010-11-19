@@ -132,8 +132,9 @@ public class URLtoARCCacher {
 			getMethod.setRequestHeader("User-Agent", userAgent);
 			int code = client.executeMethod(getMethod);
 			LOGGER.info("URL(" + url + ") HTTP:" + code);
-			ByteOp.discardStream(getMethod.getResponseBodyAsStream());
-			getMethod.releaseConnection();
+			InputStream responseIS = getMethod.getResponseBodyAsStream(); 
+			ByteOp.discardStream(responseIS);
+			responseIS.close();
 			gotUrl = true;
 
 		} catch (URIException e) {
@@ -156,6 +157,9 @@ public class URLtoARCCacher {
 		} finally {
 			recorder.closeRecorders();
 			Recorder.setHttpRecorder(null);
+			if(getMethod != null) {
+				getMethod.releaseConnection();
+			}
 		}
 
 		// now write the content, or a fake record:
