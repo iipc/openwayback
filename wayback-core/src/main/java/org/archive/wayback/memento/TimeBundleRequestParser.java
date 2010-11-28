@@ -72,7 +72,12 @@ public class TimeBundleRequestParser extends WrappedRequestParser {
 			wbRequest.setCaptureQueryRequest();
 			wbRequest.setRequestUrl(urlStr);
 
-			String uriPrefix = accessPoint.getConfigs().getProperty("Prefix");
+			String uriPrefix = accessPoint.getConfigs().getProperty("aggregationPrefix");
+			if(uriPrefix == null) {
+				// TODO: this is a hack... need to clean up the whole prefix
+				// configuration setup...
+				uriPrefix = accessPoint.getConfigs().getProperty("Prefix");
+			}
 
 			String betterUrl = uriPrefix + "timemap/rdf/" + urlStr;
 	
