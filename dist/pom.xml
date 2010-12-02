@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <parent>
-	  <groupId>org.archive</groupId>
-	  <artifactId>wayback</artifactId>
+    <groupId>org.archive</groupId>
+    <artifactId>wayback</artifactId>
     <version>1.6.0</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
@@ -49,6 +49,7 @@
       <layout>default</layout>
     </repository>
   </repositories>
+
   <dependencies>
     <dependency>
       <groupId>org.archive.wayback</groupId>
@@ -56,6 +57,7 @@
       <version>1.6.0</version>
     </dependency>
   </dependencies>
+
   <build>
     <plugins>
 
@@ -78,18 +80,17 @@
               <goal>attached</goal>
             </goals>
           </execution>
-        </executions>        
+        </executions>
       </plugin>
 
-<plugin>
-  <artifactId>maven-site-plugin</artifactId>
-<!--  <version>2.0-SNAPSHOT</version> -->
-  <configuration>
-<!--    <locales>en</locales> -->
-    <inputencoding>utf-8</inputencoding>
-    <outputencoding>utf-8</outputencoding>
-  </configuration>
-</plugin>
+      <plugin>
+        <artifactId>maven-site-plugin</artifactId>
+        <version>2.1</version>
+        <configuration>
+          <inputencoding>utf-8</inputencoding>
+          <outputencoding>utf-8</outputencoding>
+        </configuration>
+      </plugin>
 
     </plugins>
   </build>
