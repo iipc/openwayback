@@ -11,6 +11,7 @@
   <version>1.6.0</version>
   <url>http://maven.apache.org</url>
   <packaging>pom</packaging>
+
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
@@ -25,6 +26,7 @@
       <scope>compile</scope>
     </dependency>
   </dependencies>
+
   <build>
     <plugins>
       <plugin>
@@ -36,7 +38,7 @@
           </descriptorRefs>
           <finalName>wayback-hadoop</finalName>
           <archive>
-          	<manifestFile>src/main/archive/MANIFEST.MF</manifestFile>
+            <manifestFile>src/main/archive/MANIFEST.MF</manifestFile>
           </archive>
         </configuration>
         <executions>
@@ -50,4 +52,5 @@
       </plugin>
     </plugins>
   </build>  
+
 </project>
