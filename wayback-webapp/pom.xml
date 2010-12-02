@@ -10,6 +10,7 @@
   <artifactId>wayback-webapp</artifactId>
   <packaging>war</packaging>
   <name>Wayback Web Application</name>
+
   <build>
     <finalName>wayback-${project.version}</finalName>
     <plugins>
@@ -29,19 +30,13 @@
       </plugin>
     </plugins>
   </build>
+
   <dependencies>
+
     <dependency>
       <groupId>org.archive.wayback</groupId>
       <artifactId>wayback-core</artifactId>
       <scope>compile</scope>
-      <!--
-      <exclusions>
-        <exclusion>
-		      <groupId>log4j</groupId>
-		      <artifactId>log4j</artifactId>
-        </exclusion>
-      </exclusions>
-      -->
     </dependency>
     <dependency>
       <groupId>tomcat</groupId>
@@ -50,21 +45,22 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-    	<groupId>javax.servlet</groupId>
-    	<artifactId>jstl</artifactId>
-    	<version>1.0</version>
-    	<scope>compile</scope>
+      <groupId>javax.servlet</groupId>
+      <artifactId>jstl</artifactId>
+      <version>1.0</version>
+      <scope>compile</scope>
     </dependency>
     <dependency>
-    	<groupId>taglibs</groupId>
-    	<artifactId>standard</artifactId>
-    	<version>1.1.2</version>
+      <groupId>taglibs</groupId>
+      <artifactId>standard</artifactId>
+      <version>1.1.2</version>
     </dependency>
     <dependency>
-    	<groupId>org.dspace</groupId>
-    	<artifactId>foresite</artifactId>
-    	<version>SNAPSHOT</version>
+      <groupId>org.dspace</groupId>
+      <artifactId>foresite</artifactId>
+      <version>SNAPSHOT</version>
     </dependency>
-  </dependencies>
-</project>
 
+  </dependencies>
+
+</project>
