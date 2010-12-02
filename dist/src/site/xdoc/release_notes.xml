@@ -43,8 +43,8 @@
             Improved hadoop CDX generation capabilities for large scale indexes.
           </li>
           <li>
-            SWF (Flash) rewriting, to contextualize URLs embedded within flash
-            content.
+            SWF (Flash) rewriting, to contextualize absolute URLs embedded
+            within flash content.
           </li>
           <li>
             ArchivalUrl mode now accepts identity ("id_") flag to indicate

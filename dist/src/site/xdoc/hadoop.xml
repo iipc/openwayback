@@ -10,7 +10,7 @@
   <body>
     <section name="Overview">
       <p>
-        Wayback is distributed with an .jar file that
+        Wayback is distributed with a .jar file that
         simplifies creation of large-scale CDX files using hadoop. This code is
         experimental, and will primarily be useful only if your CDX files are
         very large - more than a few hundred GB (or more, depending on your

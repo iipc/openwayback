@@ -177,7 +177,7 @@
             </li>
             <li>
               <b>livewebPrefix</b> - a String URL prefix indicating the host,
-              port, and path to the correct Replay AccessPoint.
+              port, and path to an AccessPoint configured with Live Web fetching.
             </li>
             <li><b>locale</b> - A specific Locale to use for all requests
                 within this AccessPoint, overriding the users preferred Locale

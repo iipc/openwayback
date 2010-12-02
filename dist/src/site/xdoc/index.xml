@@ -68,8 +68,8 @@
         In the local, standalone mode, this software includes the capability to
         scan for new archived content in a specified location, and to
         automatically index and serve the new content as it appears. Directing
-        the Wayback to look for ARC files in the directory where an instance of
-        the Heritrix web crawler is writing ARC output should provide the 
+        the Wayback to look for W/ARC files in the directory where an instance of
+        the Heritrix web crawler is writing W/ARC output should provide the 
         capability to browse content archived by Heritrix as it is crawled.
         </p>
     </section>
