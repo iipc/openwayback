@@ -33,7 +33,7 @@
       class="org.archive.wayback.liveweb.RemoteLiveWebCache">
     <property name="proxyHostPort" value="localhost:8099" />
 <!--
-	If you've set up a local squid to cache requests to the above 
+	If you've set up a local squid/varnish to cache requests to the above 
 	ARCRecordingProxy, you should use the port for that, instead of 8099:
     <property name="proxyHostPort" value="localhost:3128" />
 -->
