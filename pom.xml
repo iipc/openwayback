@@ -1,28 +1,27 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
-    POM reference: http://maven.apache.org/pom.html
-
-    List of the better articles on maven:
-
-    http://www.javaworld.com/javaworld/jw-05-2006/jw-0529-maven.html
-    http://www.javaworld.com/javaworld/jw-02-2006/jw-0227-maven_p.html
-
-    URLs on converting from 1.0 to 2.0 maven (not much good generally):
-
-    http://wiki.osafoundation.org/bin/view/Journal/Maven2Upgrade
-    http://maven.apache.org/guides/mini/guide-m1-m2.html
- -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>org.archive</groupId>
-  <artifactId>wayback</artifactId>
-  <properties>
-  	<globalVersion>1.6.0</globalVersion>
-	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
-  <version>1.6.0</version>
+
+  <groupId>org.archive.wayback</groupId>
+  <artifactId>parent</artifactId>
   <packaging>pom</packaging>
+  <version>1.6.0</version>
   <name>Wayback</name>
+
+  <modules>
+    <module>wayback-core</module>
+    <module>wayback-webapp</module>
+    <module>wayback-hadoop-java</module>
+    <module>wayback-hadoop</module>
+    <module>dist</module>
+  </modules>
+
+  <properties>
+    <website.url>http://archive-access.sourceforge.net/</website.url>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
 
   <description>
     The wayback project is an open source implementation of the
@@ -34,8 +33,8 @@
 
   <licenses>
     <license>
-      <name>GNU LESSER GENERAL PUBLIC LICENSE</name>
-      <url>http://www.gnu.org/licenses/lgpl.txt</url>
+      <name>Apache License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
       <distribution>repo</distribution>
     </license>
   </licenses>
@@ -86,24 +85,12 @@
 
   <repositories>
     <repository>
-      <releases>
-        <enabled>true</enabled>
-        <updatePolicy>daily</updatePolicy>
-        <checksumPolicy>warn</checksumPolicy>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-        <updatePolicy>daily</updatePolicy>
-        <checksumPolicy>fail</checksumPolicy>
-      </snapshots>
+
       <id>internetarchive</id>
       <name>Internet Archive Maven Repository</name>
       <url>http://builds.archive.org:8080/maven2</url>
       <layout>default</layout>
-    </repository>
 
-<!--
-    <repository>
       <releases>
         <enabled>true</enabled>
         <updatePolicy>daily</updatePolicy>
@@ -114,18 +101,17 @@
         <updatePolicy>daily</updatePolicy>
         <checksumPolicy>fail</checksumPolicy>
       </snapshots>
-      <id>dspace</id>
-      <name>DSpace Maven Repository</name>
-      <url>http://maven.dspace.org/</url>
-      <layout>default</layout>
     </repository>
-    -->
-    
-    
   </repositories>
 
   <pluginRepositories>
     <pluginRepository>
+
+      <id>archive</id>
+      <name>archive.org</name>
+      <url>http://builds.archive.org:8080/maven2</url>
+      <layout>default</layout>
+
       <releases>
         <enabled>true</enabled>
         <updatePolicy>daily</updatePolicy>
@@ -136,10 +122,6 @@
         <updatePolicy>never</updatePolicy>
         <checksumPolicy>fail</checksumPolicy>
       </snapshots>
-      <id>archive</id>
-      <name>archive.org</name>
-      <url>http://builds.archive.org:8080/maven2</url>
-      <layout>default</layout>
     </pluginRepository>
   </pluginRepositories>
 
@@ -149,47 +131,34 @@
     </connection>
     <tag>HEAD</tag>
     <url>
-      https://archive-access.svn.sourceforge.net/svnroot/archive-access/trunk/archive-access/projects/
+      http://archive-access.svn.sourceforge.net/viewvc/archive-access/trunk/archive-access/projects/
     </url>
   </scm>
 
   <prerequisites>
-    <maven>2.0.9</maven>
+    <maven>2.1</maven>
   </prerequisites>
 
-  <dependencyManagement>
-    <!--Dependeny management is not same as dependencies (ugh)-->
-    <dependencies>
-      <dependency>
-        <groupId>org.archive.wayback</groupId>
-        <artifactId>wayback-core</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.archive.wayback</groupId>
-        <artifactId>wayback-hadoop-java</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.archive.wayback</groupId>
-        <artifactId>wayback-hadoop</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.archive.wayback</groupId>
-        <artifactId>wayback-webapp</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
 
-  <modules>
-    <module>wayback-core</module>
-    <module>wayback-webapp</module>
-    <module>wayback-hadoop-java</module>
-    <module>wayback-hadoop</module>
-    <module>dist</module>
-  </modules>
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <configuration>
+            <source>1.5</source>
+            <target>1.5</target>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.mortbay.jetty</groupId>
+          <artifactId>maven-jetty-plugin</artifactId>
+          <version>6.1.22</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
 
   <distributionManagement>
     <repository>
@@ -223,12 +192,14 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
         <configuration>
-           <aggregate>true</aggregate>
+          <code>javadoc:aggregate</code>
+          <code>javadoc:test-aggregate</code>
         </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-project-info-reports-plugin</artifactId>
+        <version>2.1</version>
         <reportSets>
           <reportSet>
             <reports>
@@ -245,5 +216,93 @@
       </plugin>
     </plugins>
   </reporting>
+
+<!--
+  Finally, the dependencyManagement - all version coordinates for all
+  dependencies should be specified here, allowing child modules to specify
+  only groupId and artifactId coordinates.
+-->
+
+  <dependencyManagement>
+    <dependencies>
+    
+      <!--
+        Link all Wayback child module version dependencies to the parent POM
+        version.
+      -->
+      <dependency>
+        <groupId>${project.groupId}</groupId>
+        <artifactId>wayback-core</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>${project.groupId}</groupId>
+        <artifactId>wayback-hadoop-java</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>${project.groupId}</groupId>
+        <artifactId>wayback-hadoop</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>${project.groupId}</groupId>
+        <artifactId>wayback-webapp</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      
+      
+      
+      <dependency>
+        <groupId>org.apache.geronimo.specs</groupId>
+        <artifactId>geronimo-servlet_2.5_spec</artifactId>
+        <version>1.2</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.archive.heritrix</groupId>
+        <artifactId>heritrix-commons</artifactId>
+        <version>3.1.1-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>org.archive.access-control</groupId>
+        <artifactId>access-control</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>org.mozilla</groupId>
+        <artifactId>juniversalchardet</artifactId>
+        <version>1.0.3</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-core</artifactId>
+        <version>2.5.1</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-beans</artifactId>
+        <version>2.5.1</version>
+      </dependency>
+      <dependency>
+        <groupId>org.beanshell</groupId>
+        <artifactId>bsh</artifactId>
+        <version>2.0b4</version>
+      </dependency>
+      <dependency>
+        <groupId>org.htmlparser</groupId>
+        <artifactId>htmlparser</artifactId>
+        <version>1.6</version>
+      </dependency>
+      <dependency>
+        <groupId>com.flagstone</groupId>
+        <artifactId>transform</artifactId>
+        <version>3.0.1-SNAPSHOT</version>
+      </dependency>
+            
+    </dependencies>
+  </dependencyManagement>
+
+
 
 </project>

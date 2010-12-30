@@ -1,39 +1,23 @@
-<?xml version="1.0"?>
-<!--
-    POM reference: http://maven.apache.org/pom.html
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/maven-v4_0_0.xsd">
 
-    List of the better articles on maven:
-
-    http://www.javaworld.com/javaworld/jw-05-2006/jw-0529-maven.html
-    http://www.javaworld.com/javaworld/jw-02-2006/jw-0227-maven_p.html
-
-    URLs on converting from 1.0 to 2.0 maven (not much good generally):
-
-    http://wiki.osafoundation.org/bin/view/Journal/Maven2Upgrade
-    http://maven.apache.org/guides/mini/guide-m1-m2.html
- -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
+
   <parent>
-    <groupId>org.archive</groupId>
-    <artifactId>wayback</artifactId>
+    <artifactId>parent</artifactId>
+    <groupId>org.archive.wayback</groupId>
     <version>1.6.0</version>
   </parent>
-  <groupId>org.archive.wayback</groupId>
+
   <artifactId>wayback-core</artifactId>
-  <name>Wayback Core Classes</name>
+  <name>Wayback Core Java Classes</name>
   <packaging>jar</packaging>
 
+<!--
   <build>
     <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <configuration>
-          <source>1.5</source>
-          <target>1.5</target>
-        </configuration>
-      </plugin>
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
         <configuration>
@@ -47,13 +31,13 @@
       </plugin>
     </plugins>
   </build>
+-->
 
   <dependencies>
-
     <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>servlet-api</artifactId>
-      <version>2.4</version>
+      <groupId>org.apache.geronimo.specs</groupId>
+      <artifactId>geronimo-servlet_2.5_spec</artifactId>
+      <version>1.2</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
