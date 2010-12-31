@@ -1,29 +1,23 @@
-<?xml version="1.0" encoding="utf-8"?>
-<project name="wayback">
-
-<!--Have nothing showing on LHS-->
-<bannerLeft>
-  <name>Internet Archive</name>
-  <src>images/ia_logo.gif</src>
-  <href >http://archive-access.sf.net/projects/wayback/</href>
-</bannerLeft>
-
-<bannerRight>
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Wayback">
+  <bannerLeft>
     <name>Wayback</name>
-</bannerRight>
+    <src>images/ia_logo.gif</src>
+    <href>http://archive-access.sourceforge.net/projects/wayback/</href>
+  </bannerLeft>
+  <bannerRight>
+    <name>Wayback</name>
+  </bannerRight>
+  <body>
 
-<publishDate format="dd MMM yyyy" />
-
-<body>
-
-  <links>
-    <item name="Sourceforge" href="http://archive-access.sf.net"/>
-    <item name="Heritrix" href="http://crawler.archive.org"/>
-    <item name="NutchWAX" href="http://archive-access.sf.net/projects/nutchwax/"/>
-    <item name="Archive Access" href="http://archive-access.sf.net"/>
-    <item name="Internet Archive" href="http://www.archive.org"/>
+    <links>
+      <item name="Sourceforge" href="http://www.sourceforge.net"/>
+      <item name="Heritrix" href="http://crawler.archive.org"/>
+      <item name="NutchWAX" href="http://archive-access.sourceforge.net/projects/nutchwax/"/>
+      <item name="Archive Access" href="http://archive-access.sourceforge.net"/>
+      <item name="Internet Archive" href="http://www.archive.org"/>
       <item name="Home" href="index.html"/>
-  </links>
+    </links>
 
     <menu name="Overview">
       <item name="Requirements" href="requirements.html"/>
@@ -34,17 +28,10 @@
       <item name="FAQ" href="/faq.html"/>
       <item name="API" href="./apidocs"/>
       <item name="Browse/Submit a Bug" 
-        href="http://webteam.archive.org/jira/secure/IssueNavigator.jspa?component=10031"/>
+        href="https://webarchive.jira.com/browse/ACC/component/10031"/>
     </menu>
 
-    <!--Its not possible to change the labels used in reports, not yet anyways.
-    Current ones don't jibe well.  Reports are headed 'Project Documentation'
-    but its only a subset of all documentation.
-    -->
-    ${reports}
+    <menu ref="reports"/>
 
-    <!--I want to get the sourceforge image in here but not sure how.
-    -->
-
-</body>
+  </body>
 </project>
