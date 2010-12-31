@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.archive.wayback</groupId>
-  <artifactId>parent</artifactId>
+  <artifactId>wayback</artifactId>
   <packaging>pom</packaging>
   <version>1.6.0</version>
   <name>Wayback</name>
@@ -127,11 +127,11 @@
 
   <scm>
     <connection>
-      scm:svn:https://archive-access.svn.sourceforge.net/svnroot/archive-access/trunk/archive-access/projects/
+      scm:svn:https://archive-access.svn.sourceforge.net/svnroot/archive-access/trunk/archive-access/projects/wayback
     </connection>
     <tag>HEAD</tag>
     <url>
-      http://archive-access.svn.sourceforge.net/viewvc/archive-access/trunk/archive-access/projects/
+      http://archive-access.svn.sourceforge.net/viewvc/archive-access/trunk/archive-access/projects/wayback
     </url>
   </scm>
 
@@ -257,7 +257,7 @@
         <groupId>org.apache.geronimo.specs</groupId>
         <artifactId>geronimo-servlet_2.5_spec</artifactId>
         <version>1.2</version>
-
+        <scope>provided</scope>
       </dependency>
       <dependency>
         <groupId>org.archive.heritrix</groupId>
@@ -300,19 +300,18 @@
         <version>3.0.1-SNAPSHOT</version>
       </dependency>
       <dependency>
-        <groupId>junit</groupId>
-        <artifactId>junit</artifactId>
-        <version>3.8.1</version>
-<!--
-        <scope>test</scope>
--->
-      </dependency>
-      <dependency>
         <artifactId>hadoop-core</artifactId>
         <groupId>org.apache.hadoop</groupId>
         <version>0.20.2</version>
       </dependency>
 
+
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>3.8.1</version>
+        <scope>test</scope>
+      </dependency>
 
     <!--
          org.dspace-foresite doesn't seem to be in any pulic repository,

@@ -6,7 +6,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <artifactId>parent</artifactId>
+    <artifactId>wayback</artifactId>
     <groupId>org.archive.wayback</groupId>
     <version>1.6.0</version>
   </parent>
@@ -19,10 +19,6 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <scope>test</scope>
-<!--
-      <version>3.8.1</version>
--->
     </dependency>
     
     <dependency>
