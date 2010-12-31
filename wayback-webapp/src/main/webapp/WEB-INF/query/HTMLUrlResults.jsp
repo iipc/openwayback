@@ -9,7 +9,8 @@
 %><%@ page import="org.archive.wayback.core.UrlSearchResults"
 %><%@ page import="org.archive.wayback.core.WaybackRequest"
 %><%@ page import="org.archive.wayback.util.StringFormatter"
-%><%
+%><jsp:include page="/WEB-INF/template/UI-header.jsp" flush="true" />
+<%
 UIResults results = UIResults.extractUrlQuery(request);
 WaybackRequest wbRequest = results.getWbRequest();
 UrlSearchResults uResults = results.getUrlResults();
@@ -110,4 +111,4 @@ if(curPage > uResults.getNumPages()) {
     }
   }
 }
-%>
+%><jsp:include page="/WEB-INF/template/UI-footer.jsp" flush="true" />
