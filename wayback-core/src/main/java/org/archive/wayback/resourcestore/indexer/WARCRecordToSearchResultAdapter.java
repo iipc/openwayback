@@ -75,6 +75,9 @@ implements Adapter<WARCRecord,CaptureSearchResult>{
 		} catch (IOException e) {
 			e.printStackTrace();
 			return null;
+		} catch (OutOfMemoryError e) {
+			e.printStackTrace();
+			return null;
 		}
 	}
 
