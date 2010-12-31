@@ -171,7 +171,7 @@
       <id>website</id>
       <name>Website</name>
       <!--Pass as command-line system property to maven-->
-      <url>${website.url}/projects/${project.artifactId}</url>
+      <url>${website.url}/projects/wayback/</url>
     </site>
   </distributionManagement>
 
@@ -257,7 +257,7 @@
         <groupId>org.apache.geronimo.specs</groupId>
         <artifactId>geronimo-servlet_2.5_spec</artifactId>
         <version>1.2</version>
-        <scope>provided</scope>
+
       </dependency>
       <dependency>
         <groupId>org.archive.heritrix</groupId>
@@ -299,6 +299,34 @@
         <artifactId>transform</artifactId>
         <version>3.0.1-SNAPSHOT</version>
       </dependency>
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>3.8.1</version>
+<!--
+        <scope>test</scope>
+-->
+      </dependency>
+      <dependency>
+        <artifactId>hadoop-core</artifactId>
+        <groupId>org.apache.hadoop</groupId>
+        <version>0.20.2</version>
+      </dependency>
+
+
+    <!--
+         org.dspace-foresite doesn't seem to be in any pulic repository,
+         so a custom built version is on builds.archive.org, with SNAPSHOT
+         version..
+         TODO: fix this..
+    -->
+      <dependency>
+        <groupId>org.dspace</groupId>
+        <artifactId>foresite</artifactId>
+        <version>SNAPSHOT</version>
+      </dependency>
+
+
             
     </dependencies>
   </dependencyManagement>

@@ -15,40 +15,30 @@
   <name>Wayback Core Java Classes</name>
   <packaging>jar</packaging>
 
-<!--
-  <build>
-    <plugins>
-      <plugin>
-        <artifactId>maven-jar-plugin</artifactId>
-        <configuration>
-          <archive>
-            <manifest>
-              <mainClass>org.archive.wayback.Wayback</mainClass>
-              <addClasspath>true</addClasspath>
-            </manifest>
-          </archive>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
--->
 
   <dependencies>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+<!--
+      <version>3.8.1</version>
+-->
+      <scope>test</scope>
+    </dependency>
+
     <dependency>
       <groupId>org.apache.geronimo.specs</groupId>
       <artifactId>geronimo-servlet_2.5_spec</artifactId>
-      <version>1.2</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.archive.heritrix</groupId>
       <artifactId>heritrix-commons</artifactId>
-      <version>3.1.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.archive.access-control</groupId>
       <artifactId>access-control</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
       <exclusions>
         <exclusion>
           <groupId>commons-pool</groupId>
@@ -63,32 +53,26 @@
     <dependency>
       <groupId>org.mozilla</groupId>
       <artifactId>juniversalchardet</artifactId>
-      <version>1.0.3</version>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-core</artifactId>
-      <version>2.5.1</version>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-beans</artifactId>
-      <version>2.5.1</version>
     </dependency>
     <dependency>
       <groupId>org.beanshell</groupId>
       <artifactId>bsh</artifactId>
-      <version>2.0b4</version>
     </dependency>
     <dependency>
       <groupId>org.htmlparser</groupId>
       <artifactId>htmlparser</artifactId>
-      <version>1.6</version>
     </dependency>
     <dependency>
       <groupId>com.flagstone</groupId>
       <artifactId>transform</artifactId>
-      <version>3.0.1-SNAPSHOT</version>
     </dependency>
 
   </dependencies>

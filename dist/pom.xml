@@ -33,7 +33,7 @@
           <descriptors>
             <descriptor>src/main/assembly/distribution.xml</descriptor>
           </descriptors>
-          <finalName>${project.artifactId}</finalName>
+          <finalName>wayback-${project.version}</finalName>
         </configuration>
         <executions>
           <execution>

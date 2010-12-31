@@ -19,15 +19,20 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>3.8.1</version>
       <scope>test</scope>
+<!--
+      <version>3.8.1</version>
+-->
     </dependency>
     
     <dependency>
-      <artifactId>hadoop-core</artifactId>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>wayback-core</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>org.apache.hadoop</groupId>
-      <version>0.20.2</version>
-      <scope>compile</scope>
+      <artifactId>hadoop-core</artifactId>
       <exclusions>
         <exclusion>
           <groupId>commons-httpclient</groupId>
@@ -35,25 +40,5 @@
         </exclusion>
       </exclusions>
     </dependency>
-    <dependency>
-      <groupId>org.archive.wayback</groupId>
-      <artifactId>wayback-core</artifactId>
-      <scope>compile</scope>
-      <version>1.6.0</version>
-    </dependency>
   </dependencies>
-  <!--
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <configuration>
-          <source>1.5</source>
-          <target>1.5</target>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
-  -->
 </project>
