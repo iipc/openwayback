@@ -21,6 +21,7 @@ package org.archive.wayback.resourceindex.ziplines;
 
 import java.util.Iterator;
 
+
 import org.archive.wayback.resourceindex.cdx.format.CDXFormat;
 import org.archive.wayback.resourceindex.cdx.format.CDXFormatException;
 
@@ -32,27 +33,30 @@ import junit.framework.TestCase;
  */
 public class ZiplinesSearchResultSourceTest extends TestCase {
 
-	/**
-	 * Test method for {@link org.archive.wayback.resourceindex.ziplines.ZiplinesSearchResultSource#getPrefixIterator(java.lang.String)}.
-	 * @throws CDXFormatException 
-	 */
-	public void testGetPrefixIterator() throws Exception {
-		CDXFormat format = new CDXFormat(" CDX N b a m s k r M V g");
-		ZiplinesSearchResultSource zsrs = new ZiplinesSearchResultSource(format);
-//		zsrs.setChunkIndexPath("/home/brad/zipline-test/part-00005-frag.cdx.zlm");
-//		zsrs.setChunkMapPath("/home/brad/zipline-test/manifest.txt");
-		zsrs.setChunkIndexPath("/home/brad/ALL.summary");
-		zsrs.setChunkMapPath("/home/brad/ALL.loc");
-		zsrs.init();
-		Iterator<String> i = zsrs.getStringPrefixIterator("krunch.com/ ");
-		int max = 100;
-		int done = 0;
-		while(i.hasNext()) {
-			System.out.println(i.next());
-			if(done++ > max) {
-				break;
-			}
-		}
-	}
+//	/**
+//	 * Test method for {@link org.archive.wayback.resourceindex.ziplines.ZiplinesSearchResultSource#getPrefixIterator(java.lang.String)}.
+//	 * @throws CDXFormatException 
+//	 */
+//	public void testGetPrefixIterator() throws Exception {
+//		CDXFormat format = new CDXFormat(" CDX N b a m s k r M V g");
+//		ZiplinesSearchResultSource zsrs = new ZiplinesSearchResultSource(format);
+////		zsrs.setChunkIndexPath("/home/brad/zipline-test/part-00005-frag.cdx.zlm");
+////		zsrs.setChunkMapPath("/home/brad/zipline-test/manifest.txt");
+//		zsrs.setChunkIndexPath("/home/brad/ALL.summary");
+//		zsrs.setChunkMapPath("/home/brad/ALL.loc");
+//		zsrs.init();
+//		Iterator<String> i = zsrs.getStringPrefixIterator("krunch.com/ ");
+//		int max = 100;
+//		int done = 0;
+//		while(i.hasNext()) {
+//			System.out.println(i.next());
+//			if(done++ > max) {
+//				break;
+//			}
+//		}
+//	}
 
+	public void testEmpty() throws Exception {
+
+	}	
 }

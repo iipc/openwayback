@@ -36,37 +36,37 @@ public class ZiplinedBlockStringSequenceTest extends TestCase {
 	private String indexPath = "/home/brad/os-cdx/CDX-201002-clean/ALL.count.summary";
 	private String mapPath = "/home/brad/os-cdx/CDX-201002-clean/ALL.loc-workstation";
 
-	private ZiplinedBlockStringSequence getSequence() throws IOException {
-		HashMap<String, String> chunkMap = new HashMap<String, String>();
-		FlatFile ff = new FlatFile(mapPath);
-		CloseableIterator<String> lines = ff.getSequentialIterator();
-		while(lines.hasNext()) {
-			String line = lines.next();
-			String[] parts = line.split("\\s");
-			if(parts.length != 2) {
-				throw new IOException("Bad line(" + line +") in (" + 
-						mapPath + ")");
-			}
-			chunkMap.put(parts[0],parts[1]);
-		}
-		lines.close();
-		FlatFile chunkIndex = new FlatFile(indexPath);
-		return new ZiplinedBlockStringSequence(chunkIndex, chunkMap);
-	}
+//	private ZiplinedBlockStringSequence getSequence() throws IOException {
+//		HashMap<String, String> chunkMap = new HashMap<String, String>();
+//		FlatFile ff = new FlatFile(mapPath);
+//		CloseableIterator<String> lines = ff.getSequentialIterator();
+//		while(lines.hasNext()) {
+//			String line = lines.next();
+//			String[] parts = line.split("\\s");
+//			if(parts.length != 2) {
+//				throw new IOException("Bad line(" + line +") in (" + 
+//						mapPath + ")");
+//			}
+//			chunkMap.put(parts[0],parts[1]);
+//		}
+//		lines.close();
+//		FlatFile chunkIndex = new FlatFile(indexPath);
+//		return new ZiplinedBlockStringSequence(chunkIndex, chunkMap);
+//	}
 	/**
 	 * Test method for {@link org.archive.wayback.resourceindex.ziplines.ZiplinedBlockStringSequence#getIterator(java.lang.String, long)}.
 	 * @throws IOException 
 	 * @throws ResourceIndexNotAvailableException 
 	 */
 	public void testGetIteratorStringLong() throws IOException, ResourceIndexNotAvailableException {
-		ZiplinedBlockStringSequence seq = getSequence();
-		StringPrefixIterator itr = seq.getIterator("yahoo.com/", 1000000);
-		System.out.format("Total Matches %d\n",itr.getTotalMatches());
-		for(int i = 0; i < 10; i++) {
-			if(itr.hasNext()) {
-				System.out.format("Line(%d): %s\n",i,itr.next());
-			}
-		}
+//		ZiplinedBlockStringSequence seq = getSequence();
+//		StringPrefixIterator itr = seq.getIterator("yahoo.com/", 1000000);
+//		System.out.format("Total Matches %d\n",itr.getTotalMatches());
+//		for(int i = 0; i < 10; i++) {
+//			if(itr.hasNext()) {
+//				System.out.format("Line(%d): %s\n",i,itr.next());
+//			}
+//		}
 	}
 
 	/**
