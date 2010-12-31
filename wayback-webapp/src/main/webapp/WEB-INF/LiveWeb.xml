@@ -25,7 +25,7 @@
     </property>
   </bean>
   <bean name="8098" class="org.archive.wayback.liveweb.ARCUnwrappingProxy">
-    <property name="proxyHostPort" value="desktop-brad.sf.archive.org:3128" />
+    <property name="proxyHostPort" value="localhost:3128" />
   </bean>
 
 
