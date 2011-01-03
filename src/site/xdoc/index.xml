@@ -74,9 +74,9 @@
         </p>
     </section>
     <section name="News">
-        <subsection name="New Release - 1.6.0, 10/21/2010">
+        <subsection name="New Release - 1.6.0, 1/3/2011">
           <p>
-            The long awaited 1.6.0 release is now available, with improved
+            The 1.6.0 release is now available, with improved
             server-side rewriting of HTML, CSS, Javascript, and SWF content.
             This version includes other new features and bug fixes, which are
             detailed on the <a href="release_notes.html">release notes</a> page.
