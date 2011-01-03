@@ -352,15 +352,17 @@
     Note: using this AccessPoint requires adding a "Connector" on port 8090
          in your Tomcat's server.xml file.
  -->
- <!--
+<!--
   <import resource="ProxyReplay.xml"/>
-  <bean name="8090" parent="replay.wayback.localhost.archive.org:8080">
-    <property name="serveStatic" value="false" />
+  <bean name="8090" parent="8080:wayback">
+    <property name="serveStatic" value="true" />
     <property name="bounceToReplayPrefix" value="false" />
     <property name="bounceToQueryPrefix" value="false" />
     <property name="refererAuth" value="" />
 
-    <property name="queryRoot" value="http://localhost.archive.org:8090/" />
+    <property name="staticPrefix" value="http://localhost.archive.org:8090/" />
+    <property name="replayPrefix" value="http://localhost.archive.org:8090/" />
+    <property name="queryPrefix" value="http://localhost.archive.org:8090/" />
     <property name="replay" ref="proxyreplay" />
     <property name="uriConverter">
       <bean class="org.archive.wayback.proxy.RedirectResultURIConverter">
