@@ -43,6 +43,9 @@
 	String u = wbRequest.getRequestUrl();
 	String agguri = replayPrefix + "timebundle/" + u;
 	String format = wbRequest.get("format");
+	if(format == null) {
+		format = "rdf";
+	}
 	Aggregation agg = OREFactory.createAggregation(new URI(agguri));
 	ResourceMap rem = agg.createResourceMap(new URI(queryPrefix
 			+ "timemap/" + format + "/" + u));
