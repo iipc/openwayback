@@ -296,7 +296,7 @@
  -->
  <!--
   <bean name="8080:opensearch" parent="8080:wayback">
-    <property name="urlRoot" value="http://localhost.archive.org:8080/wayback/" />
+    <property name="queryPrefix" value="http://localhost.archive.org:8080/opensearch/" />
     <property name="query">
       <bean class="org.archive.wayback.query.Renderer">
         <property name="captureJsp" value="/WEB-INF/query/OpenSearchCaptureResults.jsp" />
@@ -327,7 +327,9 @@
 <!--
   <import resource="DomainPrefixReplay.xml"/>
   <bean name="8081" parent="8080:wayback">
-    <property name="queryRoot" value="http://localhost.archive.org:8081/" />
+    <property name="queryPrefix" value="http://localhost.archive.org:8081/" />
+    <property name="replayPrefix" value="http://localhost.archive.org:8081/" />
+    <property name="staticPrefix" value="http://localhost.archive.org:8081/" />
     <property name="replay" ref="domainprefixreplay" />
     <property name="uriConverter">
       <bean class="org.archive.wayback.domainprefix.DomainPrefixResultURIConverter">
@@ -342,7 +344,6 @@
     </property>
   </bean>
 -->
-
 <!--
     The following AccessPoint inherits all configuration from the 8080:wayback
     AccessPoint, but provides a Proxy Replay UI to the same collection. These
