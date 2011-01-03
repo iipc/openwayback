@@ -87,8 +87,9 @@ public class ProxyArchivalRequestParser  extends CompositeRequestParser {
 	    		if(replayTimestamp != null) {
 	    			BDBMap.addTimestampForId(httpRequest.getContextPath(),
 	    					id, replayTimestamp);
+	    			throw new BetterRequestException(wbRequest.getRequestUrl());
 	    		}
-    			throw new BetterRequestException(wbRequest.getRequestUrl());
+    			
 	    	}
 	    	
             // Then get the timestamp (or rather datestr) matching this id.
