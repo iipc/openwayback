@@ -1,0 +1,16 @@
+<projectDescription>
+  <name>wayback-hadoop-java</name>
+  <comment>The wayback project is an open source implementation of the
+    Internet Archive&apos;s Wayback Machine.</comment>
+  <projects>
+    <project>wayback-core</project>
+  </projects>
+  <buildSpec>
+    <buildCommand>
+      <name>org.eclipse.jdt.core.javabuilder</name>
+    </buildCommand>
+  </buildSpec>
+  <natures>
+    <nature>org.eclipse.jdt.core.javanature</nature>
+  </natures>
+</projectDescription>
