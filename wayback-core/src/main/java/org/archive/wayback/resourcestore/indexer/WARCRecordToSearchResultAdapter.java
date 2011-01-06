@@ -182,7 +182,11 @@ implements Adapter<WARCRecord,CaptureSearchResult>{
 				String urlKey = canonicalizer.urlStringToKey(origUrl);
 				result.setUrlKey(urlKey);
 			} catch (URIException e) {
-				LOGGER.warning("FAILED canonicalize(" + origUrl + "):" + 
+				String shortUrl = 
+					(origUrl.length() < 100) 
+					? origUrl
+					:origUrl.substring(0,100);
+				LOGGER.warning("FAILED canonicalize(" + shortUrl + "):" + 
 						file + " " + offset);
 				result.setUrlKey(origUrl);
 			}
