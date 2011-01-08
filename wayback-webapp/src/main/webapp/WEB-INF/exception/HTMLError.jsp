@@ -1,25 +1,23 @@
-<%@ page language="java" pageEncoding="utf-8" contentType="text/html;charset=utf-8"%>
-<%@ page import="java.util.List" %>
-<%@ page import="java.util.Date" %>
-<%@ page import="java.util.Iterator" %>
-<%@ page import="org.archive.wayback.exception.WaybackException" %>
-<%@ page import="org.archive.wayback.ResultURIConverter" %>
-<%@ page import="org.archive.wayback.exception.ResourceNotInArchiveException"%>
-<%@ page import="org.archive.wayback.exception.ResourceNotAvailableException"%>
-<%@ page import="org.archive.wayback.core.CaptureSearchResult" %>
-<%@ page import="org.archive.wayback.core.CaptureSearchResults" %>
-<%@ page import="org.archive.wayback.core.UIResults" %>
-<%@ page import="org.archive.wayback.core.WaybackRequest" %>
-<%@ page import="org.archive.wayback.util.StringFormatter" %>
-<%@ page import="org.archive.wayback.util.url.UrlOperations" %>
-<%@ page import="org.archive.wayback.partition.PartitionsToGraph" %>
-
-<%@ page import="org.archive.wayback.util.partition.Partitioner" %>
-<%@ page import="org.archive.wayback.util.partition.Partition" %>
-<%@ page import="org.archive.wayback.util.partition.PartitionSize" %>
-<%@ page import="org.archive.wayback.partition.PartitionPartitionMap" %>
-<%@page import="org.archive.wayback.exception.ResourceNotAvailableException"%>
-<%
+<%@ page language="java" pageEncoding="utf-8" contentType="text/html;charset=utf-8"
+%><%@ page import="java.util.List"
+%><%@ page import="java.util.Date"
+%><%@ page import="java.util.Iterator"
+%><%@ page import="org.archive.wayback.exception.WaybackException"
+%><%@ page import="org.archive.wayback.ResultURIConverter"
+%><%@ page import="org.archive.wayback.exception.ResourceNotInArchiveException"
+%><%@ page import="org.archive.wayback.core.CaptureSearchResult"
+%><%@ page import="org.archive.wayback.core.CaptureSearchResults"
+%><%@ page import="org.archive.wayback.core.UIResults"
+%><%@ page import="org.archive.wayback.core.WaybackRequest"
+%><%@ page import="org.archive.wayback.util.StringFormatter"
+%><%@ page import="org.archive.wayback.util.url.UrlOperations"
+%><%@ page import="org.archive.wayback.partition.PartitionsToGraph"
+%><%@ page import="org.archive.wayback.util.partition.Partitioner"
+%><%@ page import="org.archive.wayback.util.partition.Partition"
+%><%@ page import="org.archive.wayback.util.partition.PartitionSize"
+%><%@ page import="org.archive.wayback.partition.PartitionPartitionMap"
+%><%@page import="org.archive.wayback.exception.SpecificCaptureReplayException"
+%><%
 UIResults results = UIResults.extractException(request);
 WaybackException e = results.getException();
 WaybackRequest wbr = results.getWbRequest();
@@ -73,48 +71,37 @@ if(e instanceof ResourceNotInArchiveException) {
 			    <p>Try Searching all pages under <a href="<%= escapedLink %>"><%= escapedParentUrl %></a></p>
 		<%
 	}
-} else if(e instanceof ResourceNotAvailableException) {
-%>
-	<div class="wm-nav-link-div">
-	<%
-	ResourceNotAvailableException rnae = (ResourceNotAvailableException) e;
-	
-	CaptureSearchResults cResults = rnae.getCaptureSearchResults();
-	Iterator<CaptureSearchResult> itr = cResults.iterator();
-	CaptureSearchResult prev = null;
-	CaptureSearchResult next = null;
-	while(itr.hasNext()) {
-		CaptureSearchResult cur = itr.next();
-		if(cur.isClosest()) {
-			break;
-		}
-		prev = cur;
-	}
-	if(itr.hasNext()) {
-		next = itr.next();
-	}
-	if((prev != null) || (next != null)) {
-		String dateFormat = "{0,date,MMMM dd, yyyy HH:mm:ss}";
-		ResultURIConverter conv = wbr.getAccessPoint().getUriConverter();
-		%>
-		<div>Or try another close version:</div>
-		<%
-		if(prev != null) {
-			String safePrevReplay = fmt.escapeHtml(conv.makeReplayURI(prev.getCaptureTimestamp(),prev.getOriginalUrl()));
-			%>
-			<div>Previous:<a href="<%= safePrevReplay %>"><%= fmt.format(dateFormat,prev.getCaptureDate())%></a></div>
-			<%
-		}
-		if(next != null) {
-			String safeNextReplay = fmt.escapeHtml(conv.makeReplayURI(next.getCaptureTimestamp(),next.getOriginalUrl()));
-			%>
-			<div>Next:<a href="<%= safeNextReplay %>"><%= fmt.format(dateFormat,next.getCaptureDate())%></a></div>
-			<%
-		}
-	}
+} else if(e instanceof SpecificCaptureReplayException) {
 	%>
-	</div>
-<%
+	        <div class="wm-nav-link-div">
+	        <%
+	        SpecificCaptureReplayException scre = (SpecificCaptureReplayException) e;
+
+	        CaptureSearchResult prev = scre.getPreviousResult();
+	        CaptureSearchResult next = scre.getNextResult();
+	        String dateFormat = "{0,date,MMMM dd, yyyy HH:mm:ss}";
+	        ResultURIConverter conv = wbr.getAccessPoint().getUriConverter();
+	        if((prev != null) && (next != null)) {
+	                String safePrevReplay = fmt.escapeHtml(conv.makeReplayURI(prev.getCaptureTimestamp(),prev.getOriginalUrl()));
+	                String safeNextReplay = fmt.escapeHtml(conv.makeReplayURI(next.getCaptureTimestamp(),next.getOriginalUrl()));
+	                %>
+	                Would you like to try the <a href="<%= safePrevReplay %>">previous</a> or <a href="<%= safeNextReplay %>">next</a> date?
+	                <%
+	        } else if (prev != null) {
+	                String safePrevReplay = fmt.escapeHtml(conv.makeReplayURI(prev.getCaptureTimestamp(),prev.getOriginalUrl()));
+	                %>
+	                Would you like to try the <a href="<%= safePrevReplay %>">previous</a> date?
+	                <%
+
+	        } else if (next != null) {
+	                String safeNextReplay = fmt.escapeHtml(conv.makeReplayURI(next.getCaptureTimestamp(),next.getOriginalUrl()));
+	                %>
+	                Would you like to try the <a href="<%= safeNextReplay %>">next</a> date?
+	                <%
+	        }
+	        %>
+	        </div>
+	<%
 }
 %>
 

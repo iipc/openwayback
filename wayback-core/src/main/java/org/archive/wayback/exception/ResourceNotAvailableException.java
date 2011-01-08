@@ -31,7 +31,7 @@ import org.archive.wayback.core.SearchResults;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class ResourceNotAvailableException extends WaybackException {
+public class ResourceNotAvailableException extends SpecificCaptureReplayException {
 	/**
 	 * 
 	 */
@@ -64,13 +64,13 @@ public class ResourceNotAvailableException extends WaybackException {
 	public int getStatus() {
 		return HttpServletResponse.SC_SERVICE_UNAVAILABLE;
 	}
-	/**
-	 * @param results
-	 */
-	public void setCaptureSearchResults(CaptureSearchResults results) {
-		this.results = results;
-	}
-	public CaptureSearchResults getCaptureSearchResults() {
-		return results;
-	}
+//	/**
+//	 * @param results
+//	 */
+//	public void setCaptureSearchResults(CaptureSearchResults results) {
+//		this.results = results;
+//	}
+//	public CaptureSearchResults getCaptureSearchResults() {
+//		return results;
+//	}
 }

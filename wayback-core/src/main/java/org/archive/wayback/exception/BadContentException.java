@@ -27,7 +27,7 @@ import javax.servlet.http.HttpServletResponse;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class BadContentException extends WaybackException {
+public class BadContentException extends SpecificCaptureReplayException {
 	/**
 	 * 
 	 */

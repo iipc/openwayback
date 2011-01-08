@@ -53,6 +53,7 @@ import org.archive.wayback.exception.BaseExceptionRenderer;
 import org.archive.wayback.exception.BetterRequestException;
 import org.archive.wayback.exception.ResourceNotAvailableException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
+import org.archive.wayback.exception.SpecificCaptureReplayException;
 import org.archive.wayback.exception.WaybackException;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.util.operator.BooleanOperator;
@@ -325,16 +326,21 @@ implements ShutdownListener {
 			try {
 				resource = 
 					getCollection().getResourceStore().retrieveResource(closest);
-			} catch (ResourceNotAvailableException rnae) {
-				rnae.setCaptureSearchResults((CaptureSearchResults)results);
-				throw rnae;
+			} catch (SpecificCaptureReplayException scre) {
+				scre.setCaptureContext(captureResults, closest);
+				throw scre;
 			}
 			p.retrieved();
 			ReplayRenderer renderer = 
 				getReplay().getRenderer(wbRequest, closest, resource);
 			
-			renderer.renderResource(httpRequest, httpResponse, wbRequest,
-					closest, resource, getUriConverter(), captureResults);
+			try {
+				renderer.renderResource(httpRequest, httpResponse, wbRequest,
+						closest, resource, getUriConverter(), captureResults);
+			} catch (SpecificCaptureReplayException scre) {
+				scre.setCaptureContext(captureResults, closest);
+				throw scre;
+			}
 			
 			p.rendered();
 			p.write(wbRequest.getReplayTimestamp() + " " +
