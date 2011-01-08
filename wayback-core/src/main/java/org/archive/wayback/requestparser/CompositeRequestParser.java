@@ -38,12 +38,20 @@ import org.archive.wayback.webapp.AccessPoint;
  */
 public abstract class CompositeRequestParser extends BaseRequestParser {
 	private RequestParser[] parsers = null;
-	
+	 
 	/**
 	 * 
 	 */
 	public void init() {
 		parsers = getRequestParsers();
+		for(RequestParser r : parsers) {
+			if(r instanceof BaseRequestParser) {
+				BaseRequestParser br = (BaseRequestParser) r;
+				br.setMaxRecords(getMaxRecords());
+				br.setEarliestTimestamp(getEarliestTimestamp());
+				br.setLatestTimestamp(getLatestTimestamp());
+			}
+		}
 	}
 
 	
