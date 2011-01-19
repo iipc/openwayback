@@ -42,7 +42,8 @@ public class HTTPRecordAnnotater {
 	private RobotMetaFlags robotFlags;
 	private static final Logger LOGGER =
         Logger.getLogger(HTTPRecordAnnotater.class.getName());
-	
+	private static final String UPPER_LOCATION = 
+			WaybackConstants.LOCATION_HTTP_HEADER.toUpperCase();
 	private final static String[] mimes = {
 		"html"
 	};
@@ -86,8 +87,8 @@ public class HTTPRecordAnnotater {
 		if (headers != null) {
 	
 			for (Header httpHeader : headers) {
-				if (httpHeader.getName().equals(
-						WaybackConstants.LOCATION_HTTP_HEADER)) {
+				if (httpHeader.getName().toUpperCase().equals(
+						UPPER_LOCATION)) {
 	
 					String locationStr = httpHeader.getValue();
 					// TODO: "Location" is supposed to be absolute:
