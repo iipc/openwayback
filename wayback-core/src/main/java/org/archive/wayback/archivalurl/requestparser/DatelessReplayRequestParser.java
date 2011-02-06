@@ -69,6 +69,12 @@ public class DatelessReplayRequestParser extends PathRequestParser {
 		
 		String scheme = UrlOperations.urlToScheme(requestPath);
 		if(scheme == null) {
+			if(requestPath.startsWith("http:/")) {
+				requestPath = "http://" + requestPath.substring(6);
+				scheme = "http://";
+			}
+		}
+		if(scheme == null) {
 			try {
 				URL u = new URL(UrlOperations.HTTP_SCHEME + requestPath);
 				// does the authority look legit?
