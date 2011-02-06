@@ -74,8 +74,11 @@ public class FastArchivalUrlReplayParseEventHandler implements
 		new JSStringTransformer();
 	private static MetaRefreshUrlStringTransformer metaRefreshTrans = 
 		new MetaRefreshUrlStringTransformer();
-	private static URLStringTransformer anchorUrlTrans =
-		new URLStringTransformer();
+	private static URLStringTransformer anchorUrlTrans = null;
+	static {
+		anchorUrlTrans = new URLStringTransformer();
+		anchorUrlTrans.setJsTransformer(jsBlockTrans);
+	}
 	private static URLStringTransformer cssUrlTrans =
 		new URLStringTransformer("cs_");
 	private static URLStringTransformer jsUrlTrans =
