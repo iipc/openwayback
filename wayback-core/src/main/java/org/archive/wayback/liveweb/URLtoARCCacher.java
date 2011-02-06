@@ -38,8 +38,10 @@ import org.apache.commons.httpclient.HttpState;
 import org.apache.commons.httpclient.SimpleHttpConnectionManager;
 import org.apache.commons.httpclient.URIException;
 import org.apache.commons.httpclient.cookie.CookiePolicy;
+import org.apache.commons.io.IOUtils;
 import org.archive.httpclient.HttpRecorderGetMethod;
 import org.archive.io.RecordingInputStream;
+import org.archive.io.ReplayInputStream;
 import org.archive.io.arc.ARCWriter;
 import org.archive.net.LaxURI;
 import org.archive.util.Recorder;
@@ -140,10 +142,10 @@ public class URLtoARCCacher {
 		} catch (URIException e) {
 			e.printStackTrace();
 		} catch (UnknownHostException e) {
-			LOGGER.warning("Unknown host for " + url);			
-		} catch (ConnectTimeoutException e) {
-			// TODO: should we act like it's a full block?
-			LOGGER.warning("Timeout out connecting to " + url);
+			LOGGER.warning("Unknown host for " + url);
+//		} catch (ConnectTimeoutException e) {
+//			// TODO: should we act like it's a full block?
+//			LOGGER.warning("Timeout out connecting to " + url);
 		} catch (ConnectException e) {
 			LOGGER.warning("ConnectionRefused to " + url);
 			
@@ -164,21 +166,24 @@ public class URLtoARCCacher {
 
 		// now write the content, or a fake record:
 		ARCWriter writer = null;
+		ReplayInputStream replayIS = null;
 		try {
 			writer = cache.getWriter();
 			if(gotUrl) {
 
 				RecordingInputStream ris = recorder.getRecordedInput();
+				replayIS = ris.getReplayInputStream();
 				region = storeInputStreamARCRecord(writer, url, 
 						getMethod.getMime(), getMethod.getRemoteIP(),
 						getMethod.getCaptureDate(), 
-						ris.getReplayInputStream(), (int) ris.getSize());
+						replayIS, (int) ris.getSize());
 	
 			} else {
 				region = storeNotAvailable(writer, url);
 			}
 
 		} finally {
+			IOUtils.closeQuietly(replayIS);
 			if(writer != null) {
 				cache.returnWriter(writer);
 			}
