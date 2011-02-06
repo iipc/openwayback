@@ -117,9 +117,9 @@ public class LocalResourceIndex implements ResourceIndex {
 		canonicalizer = new AggressiveUrlCanonicalizer();
 		fgFactories = new ArrayList<FilterGroupFactory>();
 		fgFactories.add(new CoreCaptureFilterGroupFactory());
-		fgFactories.add(new QueryCaptureFilterGroupFactory());
-		fgFactories.add(new ExclusionCaptureFilterGroupFactory());
 		fgFactories.add(new AccessPointCaptureFilterGroupFactory());
+		fgFactories.add(new ExclusionCaptureFilterGroupFactory());
+		fgFactories.add(new QueryCaptureFilterGroupFactory());
 	}
 
 	private void cleanupIterator(CloseableIterator<? extends SearchResult> itr)
