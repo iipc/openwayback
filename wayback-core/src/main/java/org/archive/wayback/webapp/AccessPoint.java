@@ -86,6 +86,11 @@ implements ShutdownListener {
 	/** argument for Interstitial.jsp seconds to delay */
 	public final static String INTERSTITIAL_SECONDS = "seconds";
 
+	/** argument for Interstitial.jsp msse for replay date */
+	public final static String INTERSTITIAL_DATE = "date";
+	/** argument for Interstitial.jsp URL being loaded */
+	public final static String INTERSTITIAL_URL = "url";
+
 	private static final Logger LOGGER = Logger.getLogger(
 			AccessPoint.class.getName());
 
@@ -111,7 +116,8 @@ implements ShutdownListener {
 	private Properties configs = null;
 
 	private List<String> filePatterns = null;
-	private List<String> filePrefixes = null;
+	private List<String> fileIncludePrefixes = null;
+	private List<String> fileExcludePrefixes = null;
 
 	private WaybackCollection  collection   = null;
 	private ExceptionRenderer  exception    = new BaseExceptionRenderer();
@@ -122,6 +128,7 @@ implements ShutdownListener {
 
 	private ExclusionFilterFactory exclusionFactory = null;
 	private BooleanOperator<WaybackRequest> authentication = null;
+	private long embargoMS = 0;
 
 	protected boolean dispatchLocal(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse) 
@@ -271,7 +278,8 @@ implements ShutdownListener {
 		}
 	}
 
-	private void checkInterstitialRedirect(HttpServletRequest httpRequest) 
+	private void checkInterstitialRedirect(HttpServletRequest httpRequest,
+			WaybackRequest wbRequest) 
 	throws BetterRequestException {
 		if((refererAuth != null) && (refererAuth.length() > 0)) {
 			String referer = httpRequest.getHeader("Referer");
@@ -286,6 +294,16 @@ implements ShutdownListener {
 				u.append("?");
 				u.append(INTERSTITIAL_SECONDS).append("=").append(5);
 				u.append("&");
+				u.append(INTERSTITIAL_DATE).append("=").append(wbRequest.getReplayDate().getTime());
+				u.append("&");
+				u.append(INTERSTITIAL_URL).append("=");
+				try {
+					u.append(URLEncoder.encode(wbRequest.getRequestUrl(), "UTF-8"));
+				} catch (UnsupportedEncodingException e) {
+					// not gonna happen...
+					u.append(wbRequest.getRequestUrl());
+				}
+				u.append("&");
 				u.append(INTERSTITIAL_TARGET).append("=");
 				try {
 					u.append(URLEncoder.encode(sb.toString(), "UTF-8"));
@@ -293,6 +311,7 @@ implements ShutdownListener {
 					// not gonna happen...
 					u.append(sb.toString());
 				}
+
 				throw new BetterRequestException(u.toString());
 			}
 		}
@@ -304,7 +323,7 @@ implements ShutdownListener {
 		Resource resource = null;
 		try {
 			
-			checkInterstitialRedirect(httpRequest);
+			checkInterstitialRedirect(httpRequest,wbRequest);
 			
 			PerformanceLogger p = new PerformanceLogger("replay");
 			SearchResults results = 
@@ -676,8 +695,8 @@ implements ShutdownListener {
 	 * @return List of file String prefixes that will be matched when querying 
 	 * 		the ResourceIndex
 	 */
-	public List<String> getFilePrefixes() {
-		return filePrefixes;
+	public List<String> getFileIncludePrefixes() {
+		return fileIncludePrefixes;
 	}
 
 	/**
@@ -685,8 +704,25 @@ implements ShutdownListener {
 	 * 		when querying the ResourceIndex - only SearchResults from files 
 	 * 		with a prefix matching one of those in this List will be returned.
 	 */
-	public void setFilePrefixes(List<String> filePrefixes) {
-		this.filePrefixes = filePrefixes;
+	public void setFileIncludePrefixes(List<String> fileIncludePrefixes) {
+		this.fileIncludePrefixes = fileIncludePrefixes;
+	}
+
+	/**
+	 * @return List of file String prefixes that will be matched when querying 
+	 * 		the ResourceIndex
+	 */
+	public List<String> getFileExcludePrefixes() {
+		return fileExcludePrefixes;
+	}
+
+	/**
+	 * @param filePrefixes List of String file prefixes that will be matched
+	 * 		when querying the ResourceIndex - only SearchResults from files 
+	 * 		with a prefix matching one of those in this List will be returned.
+	 */
+	public void setFileExcludePrefixes(List<String> fileExcludePrefixes) {
+		this.fileExcludePrefixes = fileExcludePrefixes;
 	}
 
 
@@ -853,5 +889,12 @@ implements ShutdownListener {
 	 */
 	public void setBounceToQueryPrefix(boolean bounceToQueryPrefix) {
 		this.bounceToQueryPrefix = bounceToQueryPrefix;
+	}
+
+	public long getEmbargoMS() {
+		return embargoMS;
+	}
+	public void setEmbargoMS(long ms) {
+		this.embargoMS = ms;
 	}
 }
