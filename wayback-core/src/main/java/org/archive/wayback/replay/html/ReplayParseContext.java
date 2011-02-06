@@ -30,7 +30,10 @@ import org.archive.wayback.util.htmllex.ParseContext;
 
 public class ReplayParseContext extends ParseContext {
 	private static final String MAILTO_PREFIX = "mailto:";
-	private static final String JAVASCRIPT_PREFIX = "javascript:";
+	public static final String JAVASCRIPT_PREFIX = "javascript:";
+	public static final String DATA_PREFIX = "data:";
+
+
 	private ContextResultURIConverterFactory uriConverterFactory = null;
 	private String datespec = null;
 	private JSPExecutor jspExec = null;
@@ -94,6 +97,9 @@ public class ReplayParseContext extends ParseContext {
 			return url;
 		}
 	    if(url.startsWith(JAVASCRIPT_PREFIX) || url.startsWith(MAILTO_PREFIX)) {
+	    	return url;
+	    }
+	    if(url.startsWith(DATA_PREFIX) || url.startsWith(MAILTO_PREFIX)) {
 	    	return url;
 	    }
 	    url = super.contextualizeUrl(url);
