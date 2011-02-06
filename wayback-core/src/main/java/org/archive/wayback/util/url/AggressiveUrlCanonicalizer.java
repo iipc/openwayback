@@ -23,6 +23,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -40,6 +41,9 @@ import org.archive.wayback.UrlCanonicalizer;
  * @version $Date$, $Revision$
  */
 public class AggressiveUrlCanonicalizer implements UrlCanonicalizer {
+	
+	private static final Logger LOGGER = Logger.getLogger(
+			AggressiveUrlCanonicalizer.class.getName());
 	
 	private static final String CDX_PREFIX = " CDX ";
     /**
@@ -213,7 +217,16 @@ public class AggressiveUrlCanonicalizer implements UrlCanonicalizer {
 		// as building UURIs is *not* a cheap operation.
 		
 		// unescape anything that can be:
-		UURI tmpURI = UURIFactory.getInstance(searchUrl);
+		UURI tmpURI = null;
+		try {
+			tmpURI = UURIFactory.getInstance(searchUrl);
+		} catch (StringIndexOutOfBoundsException e) {
+			LOGGER.warning(e.getMessage() + ": " + searchUrl);
+			return searchUrl;
+//		} catch(URIException e) {
+//			LOGGER.warning(e.getMessage() + ": " + searchUrl);
+//			return searchUrl;			
+		}
 		tmpURI.setPath(tmpURI.getPath());
 		
 		// convert to UURI to perform required URI fixup:
