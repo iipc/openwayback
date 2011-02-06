@@ -279,6 +279,16 @@ public class UrlOperations {
 		return sb.toString();
 	}
 
+	public static String fixupHTTPUrlWithOneSlash(String orig) {
+		if(orig.startsWith("http:/") && ! orig.startsWith(HTTP_SCHEME)) {
+			// very likely the IE "you must have meant 1 slash, not 2 bug:
+			StringBuilder sb = new StringBuilder(orig.length()+1);
+			sb.append(HTTP_SCHEME);
+			return sb.append(orig.substring(6)).toString();
+		}
+		return orig;
+	}
+	
 	/**
 	 * Attempt to extract the hostname component of an absolute URL argument.
 	 * @param url the url String from which to extract the hostname

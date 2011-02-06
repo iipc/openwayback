@@ -19,6 +19,9 @@
  */
 package org.archive.wayback.util.url;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+
 import junit.framework.TestCase;
 
 /**
@@ -29,6 +32,22 @@ import junit.framework.TestCase;
  */
 public class UrlOperationsTest extends TestCase {
 
+	public void testOneSlashUrl() throws MalformedURLException {
+		assertEquals("http://one.com/",
+				UrlOperations.fixupHTTPUrlWithOneSlash("http://one.com/"));
+		assertEquals("http://one.com",
+				UrlOperations.fixupHTTPUrlWithOneSlash("http://one.com"));
+		assertEquals("http://http://one.com",
+				UrlOperations.fixupHTTPUrlWithOneSlash("http://http://one.com"));
+		assertEquals("http://one.com",
+				UrlOperations.fixupHTTPUrlWithOneSlash("http:/one.com"));
+		assertEquals("http://one.com/",
+				UrlOperations.fixupHTTPUrlWithOneSlash("http:/one.com/"));
+		assertEquals("http://one.com/foo.html",
+				UrlOperations.fixupHTTPUrlWithOneSlash("http:/one.com/foo.html"));
+
+	}
+	
 	public void testIsAuthority() {
 		checkAuthority("foo.com",true);
 		checkAuthority("foo.con",false);
