@@ -54,13 +54,22 @@ public class StringFormatter {
 	 * objects.
 	 * @param locale to use, where applicable with MessageFormat objects
 	 */
+	public StringFormatter(ResourceBundle bundle) {
+		this(null,Locale.getDefault());
+	}
+	/**
+	 * Construct a StringFormatter...
+	 * @param bundle ResourceBundle to lookup patterns for MessageFormat 
+	 * objects.
+	 * @param locale to use, where applicable with MessageFormat objects
+	 */
 	public StringFormatter(ResourceBundle bundle, Locale locale) {
 		this.bundle = bundle;
 		this.locale = locale;
 		formats = new HashMap<String,MessageFormat>();
 	}
 	
-	private MessageFormat getFormat(String pattern) {
+	public MessageFormat getFormat(String pattern) {
 		MessageFormat format = formats.get(pattern);
 		if(format == null) {
 			format = new MessageFormat(pattern,locale);
@@ -88,11 +97,18 @@ public class StringFormatter {
 	 * something goes wrong...
 	 */
 	public String getLocalized(String key) {
-		try {
-			return bundle.getString(key);
-		} catch (Exception e) {
-			return key;
+		if(bundle != null) {
+			try {
+				return bundle.getString(key);
+	//			String localized = bundle.getString(key);
+	//			if((localized != null) && (localized.length() > 0)) {
+	//				return localized;
+	//			}
+			} catch (Exception e) {
+			}
+
 		}
+		return key;
 	}
 
 	private String formatInner(String key, Object objects[]) {
