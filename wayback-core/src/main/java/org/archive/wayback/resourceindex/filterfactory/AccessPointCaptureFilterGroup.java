@@ -27,30 +27,46 @@ import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.AccessControlException;
 import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
+import org.archive.wayback.resourceindex.filters.DateEmbargoFilter;
 import org.archive.wayback.resourceindex.filters.FilePrefixFilter;
 import org.archive.wayback.resourceindex.filters.FileRegexFilter;
 import org.archive.wayback.util.ObjectFilter;
 import org.archive.wayback.util.ObjectFilterChain;
+import org.archive.wayback.webapp.AccessPoint;
 
 public class AccessPointCaptureFilterGroup implements CaptureFilterGroup {
 	private ObjectFilterChain<CaptureSearchResult> chain = null;
-	private final static String[] sA = null;
+	private final static String[] sA = new String[0];
 
 	public AccessPointCaptureFilterGroup(WaybackRequest request) {
 		chain = new ObjectFilterChain<CaptureSearchResult>();
+		AccessPoint accessPoint = request.getAccessPoint();
 		List<String> prefixes = null;
 		if(request.getAccessPoint() != null) {
-			prefixes = request.getAccessPoint().getFilePrefixes();
+			prefixes = accessPoint.getFileIncludePrefixes();
 			if(prefixes != null && prefixes.size() > 0) {
 				FilePrefixFilter f = new FilePrefixFilter();
 				f.setPrefixes(prefixes.toArray(sA));
 				chain.addFilter(f);
 			}
-			List<String> patterns = request.getAccessPoint().getFilePatterns();
+			prefixes = accessPoint.getFileExcludePrefixes();
+			if(prefixes != null && prefixes.size() > 0) {
+				FilePrefixFilter f = new FilePrefixFilter();
+				f.setIncludeMatches(false);
+				f.setPrefixes(prefixes.toArray(sA));
+				chain.addFilter(f);
+			}
+			
+			
+			List<String> patterns = accessPoint.getFilePatterns();
 			if(patterns != null && patterns.size() > 0) {
 				FileRegexFilter f = new FileRegexFilter();
 				f.setPatterns(patterns);
 				chain.addFilter(f);
+			}
+			long embargoMS = accessPoint.getEmbargoMS();
+			if(embargoMS > 0) {
+				chain.addFilter(new DateEmbargoFilter(embargoMS));
 			}
 		}
 	}
