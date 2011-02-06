@@ -22,6 +22,7 @@ package org.archive.wayback.resourceindex.ziplines;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.logging.Logger;
 
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
 import org.archive.wayback.util.CloseableIterator;
@@ -32,6 +33,9 @@ import org.archive.wayback.util.flatfile.FlatFile;
  *
  */
 public class ZiplinedBlockStringSequence {
+	private static final Logger LOGGER = Logger.getLogger(
+			ZiplinedBlockStringSequence.class.getName());
+
 	private FlatFile chunkIndex = null;
 	private HashMap<String,String> chunkMap = null;
 	private int maxBlocks = 10000;
@@ -60,6 +64,8 @@ public class ZiplinedBlockStringSequence {
 				numBlocks++;
 				String parts[] = blockDescriptor.split("\t");
 				if(parts.length != 4) {
+					LOGGER.severe("Bad Block descriptor Line(" + 
+							blockDescriptor + " in " + chunkIndex.getPath());
 					throw new ResourceIndexNotAvailableException("Bad line(" + 
 							blockDescriptor + ")");
 				}
