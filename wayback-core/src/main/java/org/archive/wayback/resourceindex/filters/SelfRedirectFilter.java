@@ -19,6 +19,8 @@
  */
 package org.archive.wayback.resourceindex.filters;
 
+import java.util.logging.Logger;
+
 import org.apache.commons.httpclient.URIException;
 import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.core.CaptureSearchResult;
@@ -34,6 +36,8 @@ import org.archive.wayback.util.url.UrlOperations;
  * @version $Date$, $Revision$
  */
 public class SelfRedirectFilter implements ObjectFilter<CaptureSearchResult> {
+	private static final Logger LOGGER = Logger.getLogger(SelfRedirectFilter
+			.class.getName());
 
 	private UrlCanonicalizer canonicalizer = null;
 	public SelfRedirectFilter() {
@@ -66,7 +70,9 @@ public class SelfRedirectFilter implements ObjectFilter<CaptureSearchResult> {
 					}
 				} catch (URIException e) {
 					// emit message (is that right?) and continue
-					e.printStackTrace();
+					LOGGER.info("Bad redirectURL:" + redirect + 
+							" urlKey:"+ urlKey +
+							" date:"+ r.getCaptureTimestamp());
 				}
 			}
 		}
