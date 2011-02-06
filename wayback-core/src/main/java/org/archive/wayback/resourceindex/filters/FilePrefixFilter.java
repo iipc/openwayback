@@ -25,6 +25,8 @@ import org.archive.wayback.util.ObjectFilter;
 public class FilePrefixFilter implements ObjectFilter<CaptureSearchResult> {
 
 	private String prefixes[] = null;
+	private boolean includeMatches = true;
+	
 	
 	public String[] getPrefixes() {
 		return prefixes;
@@ -37,9 +39,17 @@ public class FilePrefixFilter implements ObjectFilter<CaptureSearchResult> {
 		final String file = o.getFile();
 		for(String prefix : prefixes) {
 			if(file.startsWith(prefix)) {
-				return FILTER_INCLUDE;
+				return includeMatches ? FILTER_INCLUDE : FILTER_EXCLUDE;
 			}
 		}
-		return FILTER_EXCLUDE;
+		return includeMatches ? FILTER_EXCLUDE : FILTER_INCLUDE;
+	}
+
+	public boolean isIncludeMatches() {
+		return includeMatches;
+	}
+
+	public void setIncludeMatches(boolean includeMatches) {
+		this.includeMatches = includeMatches;
 	}
 }
