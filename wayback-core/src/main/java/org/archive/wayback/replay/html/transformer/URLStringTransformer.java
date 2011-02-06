@@ -28,6 +28,7 @@ import org.archive.wayback.replay.html.StringTransformer;
  */
 public class URLStringTransformer implements StringTransformer {
 	private String flags;
+	private JSStringTransformer jsTransformer = null;
 	/** Default constructor */
 	public URLStringTransformer() {}
 	/** 
@@ -39,6 +40,17 @@ public class URLStringTransformer implements StringTransformer {
 	}
 	
 	public String transform(ReplayParseContext context, String url) {
+		if(url.startsWith(ReplayParseContext.JAVASCRIPT_PREFIX)) {
+			if(jsTransformer == null) {
+				return url;
+			}
+			StringBuilder sb = new StringBuilder(url.length());
+			sb.append(ReplayParseContext.JAVASCRIPT_PREFIX);
+			String jsFragment = url.substring(
+					ReplayParseContext.JAVASCRIPT_PREFIX.length());
+			sb.append(jsTransformer.transform(context, jsFragment));
+			return sb.toString();
+		}
 		return context.contextualizeUrl(url, flags);
 	}
 
@@ -51,4 +63,12 @@ public class URLStringTransformer implements StringTransformer {
 	public void setFlags(String flags) {
 		this.flags = flags;
 	}
+
+	public JSStringTransformer getJsTransformer() {
+		return jsTransformer;
+	}
+	public void setJsTransformer(JSStringTransformer jsTransformer) {
+		this.jsTransformer = jsTransformer;
+	}
+
 }
