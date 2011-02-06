@@ -54,6 +54,10 @@ implements Adapter<WARCRecord,CaptureSearchResult>{
 	
 	private static final Logger LOGGER =
         Logger.getLogger(WARCRecordToSearchResultAdapter.class.getName());
+
+	private static final String VERSION = "0.1.0";
+	private static final String WARC_FILEDESC_VERSION = 
+		"warc/warcinfo" + VERSION;
 	
 	private final static String DEFAULT_VALUE = "-"; 
 	private UrlCanonicalizer canonicalizer = null;
@@ -126,7 +130,7 @@ implements Adapter<WARCRecord,CaptureSearchResult>{
 			}
 		} else if(type.equals(WARCConstants.WARCINFO)) {
 
-			result.setMimeType("warc/warcinfo");
+			result.setMimeType(WARC_FILEDESC_VERSION);
 
 		} else {
 			LOGGER.info("Skipping record type : " + type);

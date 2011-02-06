@@ -42,7 +42,8 @@ implements Adapter<ARCRecord,CaptureSearchResult>{
 
 //	private static final Logger LOGGER = Logger.getLogger(
 //			ARCRecordToSearchResultAdapter.class.getName());
-
+	private static final String VERSION = "0.1.0";
+	private static final String ARC_FILEDESC_VERSION = "arc/filedesc" + VERSION;
 	private HTTPRecordAnnotater annotater = null;
 	private UrlCanonicalizer canonicalizer = null;
 	
@@ -88,10 +89,8 @@ implements Adapter<ARCRecord,CaptureSearchResult>{
 		
 		
 		if (uriStr.startsWith(ARCRecord.ARC_MAGIC_NUMBER)) {
-			// skip filedesc record altogether...
-			return null;
-		}
-		if (uriStr.startsWith(WaybackConstants.DNS_URL_PREFIX)) {
+			result.setMimeType(ARC_FILEDESC_VERSION);
+		} else if (uriStr.startsWith(WaybackConstants.DNS_URL_PREFIX)) {
 			// skip URL + HTTP header processing for dns records...
 		
 			result.setUrlKey(uriStr);
