@@ -19,7 +19,10 @@
  */
 package org.archive.wayback.replay;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.core.CaptureSearchResult;
@@ -28,6 +31,13 @@ public class XArchiveHttpHeaderProcessor implements HttpHeaderProcessor {
 
 	private static String DEFAULT_PREFIX = "X-Wayback-Orig-";
 	private String prefix = DEFAULT_PREFIX; 
+	private Set<String> passThrough = null;
+	
+	public XArchiveHttpHeaderProcessor() {
+		passThrough = new HashSet<String>();
+		passThrough.add(HTTP_CONTENT_TYPE_HEADER_UP);
+		passThrough.add(HTTP_CONTENT_DISP_HEADER_UP);
+	}
 	
 	public String getPrefix() {
 		return prefix;
@@ -42,7 +52,8 @@ public class XArchiveHttpHeaderProcessor implements HttpHeaderProcessor {
 		String keyUp = key.toUpperCase();
 
 		output.put(prefix + key,value);
-		if (keyUp.startsWith(HTTP_CONTENT_TYPE_HEADER_UP)) {
+		if (passThrough.contains(keyUp)) {
+//			if (keyUp.startsWith(HTTP_CONTENT_TYPE_HEADER_UP)) {
 			// add this one as-is, too.
 			output.put(key, value);
 		}

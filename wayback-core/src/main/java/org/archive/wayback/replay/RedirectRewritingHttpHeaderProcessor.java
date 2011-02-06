@@ -19,7 +19,9 @@
  */
 package org.archive.wayback.replay;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.core.CaptureSearchResult;
@@ -36,6 +38,19 @@ public class RedirectRewritingHttpHeaderProcessor
 
 	private static String DEFAULT_PREFIX = null;
 	private String prefix = DEFAULT_PREFIX; 
+	private Set<String> passThroughHeaders = null;
+	private Set<String> rewriteHeaders = null;
+	
+	public RedirectRewritingHttpHeaderProcessor() {
+		passThroughHeaders = new HashSet<String>();
+		passThroughHeaders.add(HTTP_CONTENT_TYPE_HEADER_UP);
+		passThroughHeaders.add(HTTP_CONTENT_DISP_HEADER_UP);
+		
+		rewriteHeaders = new HashSet<String>();
+		rewriteHeaders.add(HTTP_LOCATION_HEADER_UP);
+		rewriteHeaders.add(HTTP_CONTENT_LOCATION_HEADER_UP);
+		rewriteHeaders.add(HTTP_CONTENT_BASE_HEADER_UP);
+	}
 
 	public String getPrefix() {
 		return prefix;
@@ -65,9 +80,10 @@ public class RedirectRewritingHttpHeaderProcessor
 		}
 
 		// rewrite Location header URLs
-		if (keyUp.startsWith(HTTP_LOCATION_HEADER_UP) ||
-			keyUp.startsWith(HTTP_CONTENT_LOCATION_HEADER_UP) ||
-			keyUp.startsWith(HTTP_CONTENT_BASE_HEADER_UP)) {
+		if(rewriteHeaders.contains(keyUp)) {
+//		if (keyUp.startsWith(HTTP_LOCATION_HEADER_UP) ||
+//			keyUp.startsWith(HTTP_CONTENT_LOCATION_HEADER_UP) ||
+//			keyUp.startsWith(HTTP_CONTENT_BASE_HEADER_UP)) {
 
 			String baseUrl = result.getOriginalUrl();
 			String cd = result.getCaptureTimestamp();
@@ -76,7 +92,8 @@ public class RedirectRewritingHttpHeaderProcessor
 
 			output.put(key, uriConverter.makeReplayURI(cd,u));
 
-		} else if(keyUp.startsWith(HTTP_CONTENT_TYPE_HEADER_UP)) {
+//		} else if(keyUp.startsWith(HTTP_CONTENT_TYPE_HEADER_UP)) {
+		} else if(passThroughHeaders.contains(keyUp)) {
 			// let's leave this one as-is:
 			output.put(key,value);
 		}
