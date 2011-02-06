@@ -25,11 +25,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.accesscontrol.ExclusionFilterFactory;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.surt.SURTTokenizer;
 import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.flatfile.FlatFile;
+import org.archive.wayback.util.url.AggressiveUrlCanonicalizer;
 
 /**
  *
@@ -45,6 +47,8 @@ public class StaticMapExclusionFilterFactory implements ExclusionFilterFactory {
 	private Map<String,Object> currentMap = null;
 	private File file = null;
 	long lastUpdated = 0;
+	UrlCanonicalizer canonicalizer = new AggressiveUrlCanonicalizer();
+
 	/**
 	 * Thread object of update thread -- also is flag indicating if the thread
 	 * has already been started -- static, and access to it is synchronized.
@@ -93,6 +97,7 @@ public class StaticMapExclusionFilterFactory implements ExclusionFilterFactory {
 			if(line.length() == 0) {
 				continue;
 			}
+			line = canonicalizer.urlStringToKey(line);
 			String surt = line.startsWith("(") ? line : 
 				SURTTokenizer.prefixKey(line);
 			LOGGER.fine("EXCLUSION-MAP: adding " + surt);
@@ -110,7 +115,7 @@ public class StaticMapExclusionFilterFactory implements ExclusionFilterFactory {
 		if(currentMap == null) {
 			return null;
 		}
-		return new StaticMapExclusionFilter(currentMap); 
+		return new StaticMapExclusionFilter(currentMap, canonicalizer); 
 	}
 	
 	private synchronized void startUpdateThread() {
