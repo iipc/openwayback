@@ -52,12 +52,12 @@ if(arr != null && arr.length > 1) {
    <channel>
      <title>Wayback OpenSearch Results</title>
      <link><%= queryPrefix %>></link>
-     <description><%= fmt.format("PathQueryClassic.searchedFor",searchString) %></description>
+     <description><%= fmt.format("PathQueryClassic.searchedFor",fmt.escapeHtml(searchString)) %></description>
      <opensearch:totalResults><%= resultCount %></opensearch:totalResults>
      <opensearch:startIndex><%= firstResult %></opensearch:startIndex>
      <opensearch:itemsPerPage><%= shownResultCount %></opensearch:itemsPerPage>
      <atom:link rel="search" type="application/opensearchdescription+xml" href="<%= staticPrefix %>/opensearchdescription.xml"/>
-     <opensearch:Query role="request" searchTerms="<%= UIResults.encodeXMLContent(searchTerms) %>" startPage="<%= wbRequest.getPageNum() %>" />
+     <opensearch:Query role="request" searchTerms="<%= fmt.escapeHtml(searchTerms) %>" startPage="<%= wbRequest.getPageNum() %>" />
 <%
   while(itr.hasNext()) {
     %>
@@ -65,14 +65,12 @@ if(arr != null && arr.length > 1) {
     <%
     CaptureSearchResult result = itr.next();
 
-    String replayUrl = UIResults.encodeXMLEntity(
-    		uiResults.resultToReplayUrl(result));
+    String replayUrl = fmt.escapeHtml(uiResults.resultToReplayUrl(result));
 
-    String prettyDate = UIResults.encodeXMLEntity(
+    String prettyDate = fmt.escapeHtml(
     		fmt.format("MetaReplay.captureDateDisplay",result.getCaptureDate()));
 
-    String requestUrl = UIResults.encodeXMLEntity(
-    		wbRequest.getRequestUrl());
+    String requestUrl = fmt.escapeHtml(wbRequest.getRequestUrl());
     %>
       <title><%= prettyDate %></title>
       <link><%= replayUrl %></link>
