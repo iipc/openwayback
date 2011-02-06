@@ -22,9 +22,12 @@ package org.archive.wayback.liveweb;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.ConnectException;
+import java.net.SocketTimeoutException;
 import java.net.URL;
+import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
 
+import org.apache.commons.httpclient.ConnectTimeoutException;
 import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethod;
@@ -43,10 +46,13 @@ import org.archive.wayback.resourcestore.resourcefile.ResourceFactory;
  *
  */
 public class RemoteLiveWebCache implements LiveWebCache {
+	private static final Logger LOGGER = Logger.getLogger(
+			RemoteLiveWebCache.class.getName());
 
     private MultiThreadedHttpConnectionManager connectionManager = null;
     private HostConfiguration hostConfiguration = null;
     private HttpClient http = null; 
+
     /**
      * 
      */
@@ -57,14 +63,21 @@ public class RemoteLiveWebCache implements LiveWebCache {
     	http.setHostConfiguration(hostConfiguration);
     }
 
-	/* (non-Javadoc)
+    /* (non-Javadoc)
 	 * @see org.archive.wayback.liveweb.LiveWebCache#getCachedResource(java.net.URL, long, boolean)
 	 */
 	public Resource getCachedResource(URL url, long maxCacheMS,
 			boolean bUseOlder) throws LiveDocumentNotAvailableException,
 			LiveWebCacheUnavailableException, IOException {
 		String urlString = url.toExternalForm();
-	    HttpMethod method = new GetMethod(urlString);
+		HttpMethod method = null;
+		try {
+			method = new GetMethod(urlString);
+		} catch(IllegalArgumentException e) {
+			LOGGER.warning("Bad URL for live web fetch:" + urlString);
+			throw new LiveDocumentNotAvailableException("Url:" + urlString +
+					"does not look like an URL?");
+		}
 	    try {
 	    	int status = http.executeMethod(method);
 	    	if(status == 200) {
@@ -84,9 +97,16 @@ public class RemoteLiveWebCache implements LiveWebCache {
 	    	}
 	    } catch (ResourceNotAvailableException e) {
     		throw new LiveDocumentNotAvailableException(urlString);
+
 	    } catch (ConnectException e) {
     		throw new LiveWebCacheUnavailableException(e.getLocalizedMessage() 
     				+ " : " + urlString);
+	    } catch (SocketTimeoutException e) {
+    		throw new LiveWebCacheUnavailableException(e.getLocalizedMessage() 
+    				+ " : " + urlString);
+	    } catch(ConnectTimeoutException e) {
+    		throw new LiveWebCacheUnavailableException(e.getLocalizedMessage() 
+    				+ " : " + urlString);	    	
 		} finally {
 	    	method.releaseConnection();
 	    }
@@ -127,4 +147,31 @@ public class RemoteLiveWebCache implements LiveWebCache {
     	connectionManager.getParams().
     		setMaxConnectionsPerHost(hostConfiguration, maxHostConnections);
     }
+	/**
+	 * @return the connectionTimeoutMS
+	 */
+	public int getConnectionTimeoutMS() {
+		return connectionManager.getParams().getConnectionTimeout();
+	}
+
+	/**
+	 * @param connectionTimeoutMS the connectionTimeoutMS to set
+	 */
+	public void setConnectionTimeoutMS(int connectionTimeoutMS) {
+    	connectionManager.getParams().setConnectionTimeout(connectionTimeoutMS);
+	}
+
+	/**
+	 * @return the socketTimeoutMS
+	 */
+	public int getSocketTimeoutMS() {
+		return connectionManager.getParams().getSoTimeout();
+	}
+
+	/**
+	 * @param socketTimeoutMS the socketTimeoutMS to set
+	 */
+	public void setSocketTimeoutMS(int socketTimeoutMS) {
+    	connectionManager.getParams().setSoTimeout(socketTimeoutMS);
+	}
 }
