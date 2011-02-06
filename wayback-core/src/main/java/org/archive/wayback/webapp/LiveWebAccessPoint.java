@@ -22,6 +22,7 @@ package org.archive.wayback.webapp;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -29,9 +30,11 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.archive.io.arc.ARCRecord;
 import org.archive.wayback.accesscontrol.robotstxt.RobotExclusionFilterFactory;
+import org.archive.wayback.accesscontrol.staticmap.StaticMapExclusionFilterFactory;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.WaybackRequest;
+import org.archive.wayback.exception.AdministrativeAccessControlException;
 import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.exception.RobotAccessControlException;
@@ -39,6 +42,7 @@ import org.archive.wayback.exception.WaybackException;
 import org.archive.wayback.liveweb.LiveWebCache;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.resourcestore.resourcefile.ArcResource;
+import org.archive.wayback.util.url.UrlOperations;
 import org.archive.wayback.util.webapp.AbstractRequestHandler;
 
 /**
@@ -49,9 +53,14 @@ import org.archive.wayback.util.webapp.AbstractRequestHandler;
  *
  */
 public class LiveWebAccessPoint extends AbstractRequestHandler {
+	private static final Logger LOGGER = Logger.getLogger(
+			LiveWebAccessPoint.class.getName());
+
 	private AccessPoint inner = null;
 	private LiveWebCache cache = null;
 	private RobotExclusionFilterFactory robotFactory = null;
+	private StaticMapExclusionFilterFactory adminFactory = null;
+	
 	private long maxCacheMS = 86400000;
 	
 	public boolean handleRequest(HttpServletRequest httpRequest,
@@ -59,7 +68,7 @@ public class LiveWebAccessPoint extends AbstractRequestHandler {
 	throws ServletException, IOException {
 		
 		String urlString = translateRequestPathQuery(httpRequest);
-
+		urlString = UrlOperations.fixupHTTPUrlWithOneSlash(urlString);
 		boolean handled = true;
 		WaybackRequest wbRequest = new WaybackRequest();
 		wbRequest.setAccessPoint(inner);
@@ -83,6 +92,17 @@ public class LiveWebAccessPoint extends AbstractRequestHandler {
 				if(ruling == ExclusionFilter.FILTER_EXCLUDE) {
 					throw new RobotAccessControlException(urlString + "is blocked by robots.txt");
 				}
+			}
+			if(adminFactory != null) {
+				ExclusionFilter f = adminFactory.get();
+				if(f == null) {
+					LOGGER.severe("Unable to get administrative exclusion filter!");
+					throw new AdministrativeAccessControlException(urlString + "is blocked.");
+				}
+				int ruling = f.filterObject(result);
+				if(ruling == ExclusionFilter.FILTER_EXCLUDE) {
+					throw new AdministrativeAccessControlException(urlString + "is blocked.");
+				}				
 			}
 			// no robots check, or robots.txt says GO:
 			ArcResource r = (ArcResource) cache.getCachedResource(url, maxCacheMS , false);
@@ -150,5 +170,13 @@ public class LiveWebAccessPoint extends AbstractRequestHandler {
 	 */
 	public void setInner(AccessPoint inner) {
 		this.inner = inner;
+	}
+
+	public StaticMapExclusionFilterFactory getAdminFactory() {
+		return adminFactory;
+	}
+
+	public void setAdminFactory(StaticMapExclusionFilterFactory adminFactory) {
+		this.adminFactory = adminFactory;
 	}
 }
