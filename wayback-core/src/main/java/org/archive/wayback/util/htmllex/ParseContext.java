@@ -23,12 +23,12 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import org.apache.commons.httpclient.URIException;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.archive.net.UURI;
 import org.archive.net.UURIFactory;
-
 /**
  * Class which tracks the context and state involved with parsing an HTML
  * document via SAX events.
@@ -44,6 +44,9 @@ import org.archive.net.UURIFactory;
  */
 
 public class ParseContext {
+	private static final Logger LOGGER = Logger.getLogger(
+			ParseContext.class.getName());
+
 	protected UURI baseUrl = null;
 
 	private boolean inCSS = false;
@@ -114,10 +117,10 @@ public class ParseContext {
 		}
 		
 		try {
-
 			return UURIFactory.getInstance(baseUrl, url).toString() + frag;
 		} catch (URIException e) {
-			e.printStackTrace();
+			LOGGER.warning("FAILED RESOLVE: base(" + baseUrl + ") frag(" + url +
+					") error(" + e.getMessage() + ")");
 		}
 		return url;
 	}
