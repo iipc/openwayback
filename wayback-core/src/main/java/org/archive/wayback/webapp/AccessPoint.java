@@ -245,18 +245,15 @@ implements ShutdownListener {
 			handled = true;
 
 		} catch(WaybackException e) {
-			boolean drawError = true;
-			if(e instanceof ResourceNotInArchiveException) {
-				if((getLiveWebPrefix() != null) 
-						&& (getLiveWebPrefix().length() > 0)) {
+			if((e instanceof ResourceNotInArchiveException) 
+				&& wbRequest.isReplayRequest() 
+				&& (getLiveWebPrefix() != null) 
+				&& (getLiveWebPrefix().length() > 0)) {
 
-					String liveUrl = 
-						getLiveWebPrefix() + wbRequest.getRequestUrl();
-					httpResponse.sendRedirect(liveUrl);
-					drawError = false;
-				}
-			}
-			if(drawError) {
+				String liveUrl = 
+					getLiveWebPrefix() + wbRequest.getRequestUrl();
+						httpResponse.sendRedirect(liveUrl);
+			} else {
 				logNotInArchive(e,wbRequest);
 				getException().renderException(httpRequest, httpResponse, 
 						wbRequest, e, getUriConverter());
