@@ -86,13 +86,7 @@ public class LiveWebAccessPoint extends AbstractRequestHandler {
 			CaptureSearchResult result = new CaptureSearchResult();
 			result.setOriginalUrl(urlString);
 			result.setUrlKey(urlString);
-			// check robots first, if configured
-			if(robotFactory != null) {
-				int ruling = robotFactory.get().filterObject(result);
-				if(ruling == ExclusionFilter.FILTER_EXCLUDE) {
-					throw new RobotAccessControlException(urlString + "is blocked by robots.txt");
-				}
-			}
+			// check admin excludes first, if configured:
 			if(adminFactory != null) {
 				ExclusionFilter f = adminFactory.get();
 				if(f == null) {
@@ -103,6 +97,13 @@ public class LiveWebAccessPoint extends AbstractRequestHandler {
 				if(ruling == ExclusionFilter.FILTER_EXCLUDE) {
 					throw new AdministrativeAccessControlException(urlString + "is blocked.");
 				}				
+			}
+			// check robots next, if configured
+			if(robotFactory != null) {
+				int ruling = robotFactory.get().filterObject(result);
+				if(ruling == ExclusionFilter.FILTER_EXCLUDE) {
+					throw new RobotAccessControlException(urlString + "is blocked by robots.txt");
+				}
 			}
 			// no robots check, or robots.txt says GO:
 			ArcResource r = (ArcResource) cache.getCachedResource(url, maxCacheMS , false);
