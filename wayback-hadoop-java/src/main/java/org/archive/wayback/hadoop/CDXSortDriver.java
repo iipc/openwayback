@@ -69,6 +69,10 @@ public class CDXSortDriver implements Tool {
 		System.out.println("cdxsort [OPTIONS] <split> <input> <output>");
 		System.out.println("\tOPTIONS can be:");
 		System.out.println("\t\t-m NUM - try to run with approximately NUM map tasks");
+		System.out.println("\t\t--compressed-input - assume input is compressed, even without .gz suffix");
+		System.out.println("\t\t--gzip-range - assume input lines are PATH START LENGTH such that a");
+		System.out.println("\t\t\t valid gzip record exists in PATH between START and START+LENGTH");
+		System.out.println("\t\t\t that contains the records to process");
 		System.out.println("\t\t--compress-output - compress output files with GZip");
 		System.out.println("\t\t--delimiter DELIM - assume DELIM delimter for input and output, instead of default <SPACE>");
 		System.out.println("\t\t--map-global - use the GLOBAL CDX map function, which implies:");
@@ -93,6 +97,8 @@ public class CDXSortDriver implements Tool {
 		
 		long desiredMaps = 10;
 		boolean compressOutput = false;
+		boolean compressedInput = false;
+		boolean gzipRange = false;
 		List<String> otherArgs = new ArrayList<String>();
 		int mapMode = CDXCanonicalizingMapper.MODE_FULL;
 		for (int i = 0; i < args.length; ++i) {
@@ -101,6 +107,10 @@ public class CDXSortDriver implements Tool {
 					desiredMaps = Integer.parseInt(args[++i]);
 				} else if ("--compress-output".equals(args[i])) {
 					compressOutput = true;
+				} else if ("--compressed-input".equals(args[i])) {
+					compressedInput = true;
+				} else if ("--gzip-range".equals(args[i])) {
+					gzipRange = true;
 				} else if ("--delimiter".equals(args[i])) {
 					delim = args[++i];
 				} else if ("--map-full".equals(args[i])) {
@@ -175,8 +185,14 @@ public class CDXSortDriver implements Tool {
 
 		FileInputFormat.addInputPath(job, inputPath);
 		FileInputFormat.setMaxInputSplitSize(job, bytesPerMap);
-		job.setInputFormatClass(LineDereferencingInputFormat.class);
-
+		if(gzipRange) { 
+			job.setInputFormatClass(GZIPRangeLineDereferencingInputFormat.class);			
+		} else {
+			job.setInputFormatClass(LineDereferencingInputFormat.class);
+			if(compressedInput) {
+				LineDereferencingRecordReader.forceCompressed(conf);
+			}
+		}
 		FileOutputFormat.setOutputPath(job, outputPath);
 
 		return (job.waitForCompletion(true) ? 0 : 1);

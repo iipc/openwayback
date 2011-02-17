@@ -32,6 +32,8 @@ public class SortDriver {
 	    try {
 		      pgd.addClass("cdxsort", CDXSortDriver.class, 
               "A map/reduce program that canonicalizes and provides a total order sort into multiple CDX files");
+		      pgd.addClass("http-import", HTTPImportJob.class, 
+              "A map/reduce program that imports a bunch of URLs into an HDFS directory");
 	      pgd.driver(args);
 	      // Success
 	      exitCode = 0;

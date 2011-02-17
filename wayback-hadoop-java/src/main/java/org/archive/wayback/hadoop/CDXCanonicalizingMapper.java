@@ -100,7 +100,9 @@ implements Configurable {
 	private void mapFull(Object y, Text value, Context context)
 	throws IOException, InterruptedException {
 		String s = value.toString();
-
+		if(s.startsWith(" CDX ")) {
+			return;
+		}
 		boolean problems = true;
 		i1 = s.indexOf(delim);
 		if(i1 > 0) {

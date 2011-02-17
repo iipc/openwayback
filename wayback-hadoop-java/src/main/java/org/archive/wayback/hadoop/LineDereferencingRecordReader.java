@@ -25,6 +25,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.zip.GZIPInputStream;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
@@ -45,6 +46,9 @@ import org.apache.hadoop.mapreduce.lib.input.LineRecordReader;
 public class LineDereferencingRecordReader extends RecordReader<Text, Text>{
 	LineRecordReader internal = new LineRecordReader();
 	
+	
+	protected static final String FORCE_COMPRESSED_FLAG = "line-reref.force-compressed";
+	
 	FileSystem fileSystem = null;
 	Text key = null;
 	Text value = null;
@@ -52,11 +56,18 @@ public class LineDereferencingRecordReader extends RecordReader<Text, Text>{
 	String curFile = null;
 	long curLine = 0;
 	float progress = 0.0f;
+	boolean forceCompressed = false;
+	public static void forceCompressed(Configuration conf) {
+		conf.setBoolean(FORCE_COMPRESSED_FLAG, true);
+	}
+	
 	@Override
 	public void initialize(InputSplit split, TaskAttemptContext context)
 			throws IOException, InterruptedException {
+		Configuration conf = context.getConfiguration();
+		forceCompressed = conf.getBoolean(FORCE_COMPRESSED_FLAG, false);
 		FileSplit fileSplit = (FileSplit) split;
-		fileSystem = fileSplit.getPath().getFileSystem(context.getConfiguration());
+		fileSystem = fileSplit.getPath().getFileSystem(conf);
 		internal.initialize(split, context);
 	}
 
@@ -77,8 +88,9 @@ public class LineDereferencingRecordReader extends RecordReader<Text, Text>{
 					Path path = new Path(curFile);
 					InputStream is = fileSystem.open(path);
 					// TODO: use the real Codec stuff..
-					if(curFile.endsWith(".gz")) {
-						is = new GZIPInputStream(is);
+					if(forceCompressed || curFile.endsWith(".gz")) {
+//						is = new GZIPInputStream(is);
+						is = new MultiMemberGZIPInputStream(is);
 					}
 					curReader = new BufferedReader(new InputStreamReader(is));
 					
