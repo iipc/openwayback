@@ -67,6 +67,7 @@
 -->      
         </property>
         <property name="maxRecords" value="10000" />
+        <property name="dedupeRecords" value="true" />    
       </bean>
     </property>
   </bean>
