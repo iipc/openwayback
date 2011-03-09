@@ -25,6 +25,7 @@ import java.net.URL;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.exception.LiveDocumentNotAvailableException;
 import org.archive.wayback.exception.LiveWebCacheUnavailableException;
+import org.archive.wayback.exception.LiveWebTimeoutException;
 
 
 /**
@@ -53,7 +54,7 @@ public interface LiveWebCache {
 	 */
 	public Resource getCachedResource(URL url, long maxCacheMS, 
 			boolean bUseOlder) throws LiveDocumentNotAvailableException,
-			LiveWebCacheUnavailableException, IOException;
+			LiveWebCacheUnavailableException, LiveWebTimeoutException, IOException;
 	/**
 	 * closes all resources
 	 */

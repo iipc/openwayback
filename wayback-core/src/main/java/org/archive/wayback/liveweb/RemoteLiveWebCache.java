@@ -33,10 +33,12 @@ import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.httpclient.params.HttpClientParams;
 import org.archive.io.arc.ARCRecord;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.exception.LiveDocumentNotAvailableException;
 import org.archive.wayback.exception.LiveWebCacheUnavailableException;
+import org.archive.wayback.exception.LiveWebTimeoutException;
 import org.archive.wayback.exception.ResourceNotAvailableException;
 import org.archive.wayback.resourcestore.resourcefile.ArcResource;
 import org.archive.wayback.resourcestore.resourcefile.ResourceFactory;
@@ -59,7 +61,9 @@ public class RemoteLiveWebCache implements LiveWebCache {
     public RemoteLiveWebCache() {
     	connectionManager = new MultiThreadedHttpConnectionManager();
     	hostConfiguration = new HostConfiguration();
-    	http = new HttpClient(connectionManager);
+		HttpClientParams params = new HttpClientParams();
+        params.setParameter(HttpClientParams.RETRY_HANDLER, new NoRetryHandler());
+    	http = new HttpClient(params,connectionManager);
     	http.setHostConfiguration(hostConfiguration);
     }
 
@@ -68,7 +72,7 @@ public class RemoteLiveWebCache implements LiveWebCache {
 	 */
 	public Resource getCachedResource(URL url, long maxCacheMS,
 			boolean bUseOlder) throws LiveDocumentNotAvailableException,
-			LiveWebCacheUnavailableException, IOException {
+			LiveWebCacheUnavailableException, LiveWebTimeoutException, IOException {
 		String urlString = url.toExternalForm();
 		HttpMethod method = null;
 		try {
@@ -102,7 +106,7 @@ public class RemoteLiveWebCache implements LiveWebCache {
     		throw new LiveWebCacheUnavailableException(e.getLocalizedMessage() 
     				+ " : " + urlString);
 	    } catch (SocketTimeoutException e) {
-    		throw new LiveWebCacheUnavailableException(e.getLocalizedMessage() 
+    		throw new LiveWebTimeoutException(e.getLocalizedMessage() 
     				+ " : " + urlString);
 	    } catch(ConnectTimeoutException e) {
     		throw new LiveWebCacheUnavailableException(e.getLocalizedMessage() 
