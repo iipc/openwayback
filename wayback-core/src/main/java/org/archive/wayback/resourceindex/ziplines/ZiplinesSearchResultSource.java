@@ -24,6 +24,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.archive.wayback.core.CaptureSearchResult;
@@ -163,6 +164,7 @@ public class ZiplinesSearchResultSource implements SearchResultSource {
 				// add this and keep lookin...
 				String url = chunkMap.get(parts[1]);
 				long offset = Long.parseLong(parts[2]);
+				LOGGER.info("Adding block source(" + parts[1] + "):" + offset);
 				blocks.add(new ZiplinedBlock(url, offset));
 			}
 		} finally {
@@ -298,6 +300,14 @@ public class ZiplinesSearchResultSource implements SearchResultSource {
 					System.exit(1);
 				}
 
+			} else if(args[idx].equals("-debug")) {
+				Logger.getLogger(
+						ZiplinesSearchResultSource.class.getName()).setLevel(Level.ALL);
+				Logger.getLogger(
+						ZiplinesChunkIterator.class.getName()).setLevel(Level.ALL);
+				Logger.getLogger(
+						ZiplinedBlock.class.getName()).setLevel(Level.ALL);
+				
 			} else {
 				break;
 			}
