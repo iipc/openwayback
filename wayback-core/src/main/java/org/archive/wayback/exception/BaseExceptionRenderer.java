@@ -69,6 +69,9 @@ public class BaseExceptionRenderer implements ExceptionRenderer {
 
 	protected boolean requestIsImage(HttpServletRequest httpRequest,
 			WaybackRequest wbRequest) {
+		if (wbRequest == null) {
+			return false;
+		}
 		if(wbRequest.isIMGContext()) {
 			return true;
 		}
@@ -81,6 +84,9 @@ public class BaseExceptionRenderer implements ExceptionRenderer {
 
 	protected boolean requestIsJavascript(HttpServletRequest httpRequest,
 			WaybackRequest wbRequest) {
+		if (wbRequest == null) {
+			return false;
+		}
 		if(wbRequest.isJSContext()) {
 			return true;
 		}
@@ -90,6 +96,9 @@ public class BaseExceptionRenderer implements ExceptionRenderer {
 
 	protected boolean requestIsCSS(HttpServletRequest httpRequest,
 			WaybackRequest wbRequest) {
+		if (wbRequest == null) {
+			return false;
+		}
 		if(wbRequest.isCSSContext()) {
 			return true;
 		}
@@ -105,7 +114,7 @@ public class BaseExceptionRenderer implements ExceptionRenderer {
 		httpRequest.setAttribute("exception", exception);
 		UIResults uiResults = new UIResults(wbRequest,uriConverter,exception);
 		boolean handled = false;
-		if(!wbRequest.isReplayRequest()) {
+		if((wbRequest != null) && !wbRequest.isReplayRequest()) {
 
 			if(wbRequest.isXMLMode()) {
 				uiResults.forward(httpRequest, httpResponse, xmlErrorJsp);
