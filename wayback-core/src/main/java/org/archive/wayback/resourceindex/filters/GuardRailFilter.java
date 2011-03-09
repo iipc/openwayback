@@ -51,7 +51,7 @@ public class GuardRailFilter implements ObjectFilter<CaptureSearchResult> {
 	public int filterObject(CaptureSearchResult r) {
 		recordsScanned++;
 		if(recordsScanned > maxRecordsToScan) {
-			LOGGER.warning("Hit max requests on " + r.getUrlKey() + " " 
+			LOGGER.warning("Hit max results on " + r.getUrlKey() + " " 
 					+ r.getCaptureTimestamp());
 			return FILTER_ABORT;
 		}
