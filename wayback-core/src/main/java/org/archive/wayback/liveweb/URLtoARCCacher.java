@@ -24,6 +24,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.ConnectException;
+import java.net.NoRouteToHostException;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Date;
 import java.util.logging.Logger;
@@ -34,10 +36,13 @@ import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpConnection;
 import org.apache.commons.httpclient.HttpException;
+import org.apache.commons.httpclient.HttpMethod;
+import org.apache.commons.httpclient.HttpMethodRetryHandler;
 import org.apache.commons.httpclient.HttpState;
 import org.apache.commons.httpclient.SimpleHttpConnectionManager;
 import org.apache.commons.httpclient.URIException;
 import org.apache.commons.httpclient.cookie.CookiePolicy;
+import org.apache.commons.httpclient.params.HttpClientParams;
 import org.apache.commons.io.IOUtils;
 import org.archive.httpclient.HttpRecorderGetMethod;
 import org.archive.io.RecordingInputStream;
@@ -76,16 +81,18 @@ public class URLtoARCCacher {
 	private int inBufferSize = 1024 * 100;
 //	private int outBufferSize = 10;
 //	private int inBufferSize = 100;
+	private final static HttpMethodRetryHandler noRetryHandler = 
+		new NoRetryHandler();
 	
 	private final ThreadLocal<HttpClient> tl = new ThreadLocal<HttpClient>() {
 
 		protected synchronized HttpClient initialValue() {
-    		HttpClient http = new HttpClient();
+			HttpClientParams params = new HttpClientParams();
+            params.setParameter(HttpClientParams.RETRY_HANDLER, noRetryHandler);
     		IPHttpConnectionManager manager = new IPHttpConnectionManager();
     		manager.getParams().setConnectionTimeout(connectionTimeoutMS);
     		manager.getParams().setSoTimeout(socketTimeoutMS);
-    		http.setHttpConnectionManager(manager);
-			return http;
+    		return new HttpClient(params, manager);
         }
     };
 
@@ -134,9 +141,11 @@ public class URLtoARCCacher {
 			getMethod.setRequestHeader("User-Agent", userAgent);
 			int code = client.executeMethod(getMethod);
 			LOGGER.info("URL(" + url + ") HTTP:" + code);
-			InputStream responseIS = getMethod.getResponseBodyAsStream(); 
-			ByteOp.discardStream(responseIS);
-			responseIS.close();
+			InputStream responseIS = getMethod.getResponseBodyAsStream();
+			if(responseIS != null) {
+				ByteOp.discardStream(responseIS);
+				responseIS.close();
+			}
 			gotUrl = true;
 
 		} catch (URIException e) {
@@ -148,7 +157,11 @@ public class URLtoARCCacher {
 //			LOGGER.warning("Timeout out connecting to " + url);
 		} catch (ConnectException e) {
 			LOGGER.warning("ConnectionRefused to " + url);
-			
+		} catch (NoRouteToHostException e) {
+			LOGGER.warning("NoRouteToHost for " + url);
+		} catch (SocketException e) {
+			// should only be things like "Connection Reset", etc..
+			LOGGER.warning("SocketException for " + url);			
 		} catch (HttpException e) {
 			e.printStackTrace();
 			// we have to let IOExceptions out, problems caused by local disk
