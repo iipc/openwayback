@@ -103,12 +103,16 @@ public class RequestFilter implements Filter {
 	public void doFilter(ServletRequest request, ServletResponse response,
 			FilterChain chain) throws IOException, ServletException {
 		boolean handled = false;
-
-		if (request instanceof HttpServletRequest) {
-			if (response instanceof HttpServletResponse) {
-				handled = mapper.handleRequest((HttpServletRequest) request,
-						(HttpServletResponse) response);
+		String origThreadName = Thread.currentThread().getName();
+		try {
+			if (request instanceof HttpServletRequest) {
+				if (response instanceof HttpServletResponse) {
+					handled = mapper.handleRequest((HttpServletRequest) request,
+							(HttpServletResponse) response);
+				}
 			}
+		} finally {
+			Thread.currentThread().setName(origThreadName);
 		}
 		if (!handled) {
 			chain.doFilter(request, response);
