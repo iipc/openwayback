@@ -175,6 +175,11 @@ implements ShutdownListener {
 		boolean handled = false;
 
 		try {
+			String inputPath = translateRequestPathQuery(httpRequest);
+			Thread.currentThread().setName("Thread " + 
+					Thread.currentThread().getId() + " " + getBeanName() + 
+					" handling: " + inputPath);
+
 			wbRequest = getParser().parse(httpRequest, this);
 
 			if(wbRequest != null) {

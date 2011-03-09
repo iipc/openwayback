@@ -77,6 +77,10 @@ public class LiveWebAccessPoint extends AbstractRequestHandler {
 		wbRequest.setRequestUrl(urlString);
 		URL url = null;
 		try {
+			Thread.currentThread().setName("Thread " + 
+					Thread.currentThread().getId() + " " + getBeanName() + 
+					" handling: " + urlString);
+
 			try {
 				url = new URL(urlString);
 			} catch(MalformedURLException e) {
