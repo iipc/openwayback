@@ -35,6 +35,7 @@ import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.exception.LiveDocumentNotAvailableException;
 import org.archive.wayback.exception.LiveWebCacheUnavailableException;
+import org.archive.wayback.exception.LiveWebTimeoutException;
 import org.archive.wayback.liveweb.LiveWebCache;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.util.ObjectFilter;
@@ -188,7 +189,7 @@ public class RobotExclusionFilter extends ExclusionFilter {
 					rulesCache.put(firstUrlString,tmpRules);
 					rules = tmpRules;
 					LOGGER.info("ROBOT: Downloaded("+urlString+")");
-					
+
 				} catch (LiveDocumentNotAvailableException e) {
 					LOGGER.info("ROBOT: LiveDocumentNotAvailableException("+urlString+")");
 
@@ -201,6 +202,11 @@ public class RobotExclusionFilter extends ExclusionFilter {
 					return null;
 				} catch (LiveWebCacheUnavailableException e) {
 					LOGGER.info("ROBOT: LiveWebCacheUnavailableException("+urlString+")");
+					filterGroup.setLiveWebGone();
+					return null;
+				} catch (LiveWebTimeoutException e) {
+					LOGGER.info("ROBOT: LiveDocumentTimedOutException("+urlString+")");
+					filterGroup.setRobotTimedOut();
 					return null;
 				}
 			}
@@ -226,7 +232,11 @@ public class RobotExclusionFilter extends ExclusionFilter {
 		}
 		int filterResult = ObjectFilter.FILTER_EXCLUDE; 
 		RobotRules rules = getRules(r);
-		if(rules != null) {
+		if(rules == null) {
+			if(filterGroup.getRobotTimedOut() || filterGroup.getLiveWebGone()) {
+				return ObjectFilter.FILTER_ABORT;
+			}
+		} else {
 			String resultURL = r.getOriginalUrl();
 			URL url;
 			try {

@@ -26,8 +26,11 @@ import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.AccessControlException;
 import org.archive.wayback.exception.AdministrativeAccessControlException;
+import org.archive.wayback.exception.LiveWebCacheUnavailableException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.exception.RobotAccessControlException;
+import org.archive.wayback.exception.RobotNotAvailableException;
+import org.archive.wayback.exception.RobotTimedOutAccessControlException;
 import org.archive.wayback.resourceindex.filters.CounterFilter;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.util.ObjectFilter;
@@ -41,6 +44,8 @@ public class ExclusionCaptureFilterGroup implements CaptureFilterGroup {
 	String requestUrl = null;
 	private boolean sawRobots = false;
 	private boolean passedRobots = false;
+	private boolean robotTimedOut = false;
+	private boolean liveWebGone = false;
 	private boolean sawAdministrative = false;
 	private boolean passedAdministrative = false;
 	
@@ -67,7 +72,16 @@ public class ExclusionCaptureFilterGroup implements CaptureFilterGroup {
 	}
 
 	public void annotateResults(SearchResults results)
-			throws AccessControlException, ResourceNotInArchiveException {
+			throws AccessControlException, ResourceNotInArchiveException,
+			RobotNotAvailableException {
+		if(robotTimedOut) {
+			throw new RobotTimedOutAccessControlException("Unable to check" +
+					" robots.txt for " + requestUrl);
+		}
+		if(liveWebGone) {
+			throw new RobotNotAvailableException("The URL " + requestUrl +
+			" is blocked by the sites robots.txt file");
+		}
 		if(sawRobots && !passedRobots) {
 			throw new RobotAccessControlException("The URL " + requestUrl +
 					" is blocked by the sites robots.txt file");
@@ -90,5 +104,19 @@ public class ExclusionCaptureFilterGroup implements CaptureFilterGroup {
 	}
 	public void setSawAdministrative() {
 		sawAdministrative = true;
+	}
+
+	public void setRobotTimedOut() {
+		robotTimedOut = true;
+	}
+	public boolean getRobotTimedOut() {
+		return robotTimedOut;
+	}
+
+	public void setLiveWebGone() {
+		liveWebGone = true;
+	}
+	public boolean getLiveWebGone() {
+		return liveWebGone;
 	}
 }
