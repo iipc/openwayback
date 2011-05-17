@@ -28,8 +28,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.httpclient.Header;
+import org.archive.io.ArchiveReader;
 import org.archive.io.ArchiveRecord;
-import org.archive.io.arc.ARCReader;
 import org.archive.io.arc.ARCRecord;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.replay.HttpHeaderOperation;
@@ -54,7 +54,7 @@ public class ArcResource extends Resource {
 	 * object for ARCReader -- need to hold on to this in order to call close()
 	 * to release filehandle after completing access to this record. optional
 	 */
-	ARCReader arcReader = null;
+	ArchiveReader arcReader = null;
 	/**
 	 * flag to indicate if the ARCRecord skipHTTPHeader() has been called
 	 */
@@ -71,7 +71,7 @@ public class ArcResource extends Resource {
 	 * @param rec
 	 * @param reader 
 	 */
-	public ArcResource(final ARCRecord rec,final ARCReader reader) {
+	public ArcResource(final ARCRecord rec,final ArchiveReader reader) {
 		super();
 		arcRecord = rec;
 		arcReader = reader;

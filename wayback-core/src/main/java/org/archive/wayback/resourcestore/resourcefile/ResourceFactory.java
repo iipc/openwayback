@@ -20,7 +20,10 @@
 package org.archive.wayback.resourcestore.resourcefile;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.RandomAccessFile;
 import java.net.URL;
 
 import org.archive.io.ArchiveReader;
@@ -62,15 +65,18 @@ public class ResourceFactory {
 			name = name.substring(0, name.length()
 					- ArcWarcFilenameFilter.OPEN_SUFFIX.length());
 		}
+		RandomAccessFile raf = new RandomAccessFile(file, "r");
+		raf.seek(offset);
+		InputStream is = new FileInputStream(raf.getFD());
+		String fPath = file.getAbsolutePath();
 		if (isArc(name)) {
-
-			ARCReader reader = ARCReaderFactory.get(file,offset);
-			r = ARCArchiveRecordToResource(reader.get(),reader);
+			ArchiveReader reader = ARCReaderFactory.get(fPath, is, false);
+			r = ARCArchiveRecordToResource(reader.get(), reader);
 
 		} else if (isWarc(name)) {
 
-			WARCReader reader = WARCReaderFactory.get(file,offset);
-			r = WARCArchiveRecordToResource(reader.get(),reader);
+			ArchiveReader reader = WARCReaderFactory.get(fPath, is, false);
+			r = WARCArchiveRecordToResource(reader.get(), reader);
 
 		} else {
 			throw new ResourceNotAvailableException("Unknown extension");
@@ -78,7 +84,6 @@ public class ResourceFactory {
 
 		return r;
 	}
-
 	public static Resource getResource(URL url, long offset)
 	throws IOException, ResourceNotAvailableException {
 		
@@ -114,7 +119,7 @@ public class ResourceFactory {
 	}
 	
 	public static Resource ARCArchiveRecordToResource(ArchiveRecord rec,
-			ARCReader reader) throws ResourceNotAvailableException, IOException {
+			ArchiveReader reader) throws ResourceNotAvailableException, IOException {
 
 		if (!(rec instanceof ARCRecord)) {
 			throw new ResourceNotAvailableException("Bad ARCRecord format");
@@ -125,7 +130,7 @@ public class ResourceFactory {
 	}
 
 	public static Resource WARCArchiveRecordToResource(ArchiveRecord rec,
-			WARCReader reader) throws ResourceNotAvailableException, IOException {
+			ArchiveReader reader) throws ResourceNotAvailableException, IOException {
 
 		if (!(rec instanceof WARCRecord)) {
 			throw new ResourceNotAvailableException("Bad WARCRecord format");

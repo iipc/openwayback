@@ -27,21 +27,21 @@ import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpParser;
 import org.apache.commons.httpclient.StatusLine;
 import org.apache.commons.httpclient.util.EncodingUtil;
+import org.archive.io.ArchiveReader;
 import org.archive.io.RecoverableIOException;
 import org.archive.io.arc.ARCConstants;
-import org.archive.io.warc.WARCReader;
 import org.archive.io.warc.WARCRecord;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.replay.HttpHeaderOperation;
 
 public class WarcResource extends Resource {
 	private WARCRecord rec = null;
-	private WARCReader reader = null;
+	private ArchiveReader reader = null;
 	private Map<String, String> headers = null;
 	private long length = 0;
 	private int status = 0;
 	private boolean parsedHeaders = false;
-	public WarcResource(WARCRecord rec, WARCReader reader) {
+	public WarcResource(WARCRecord rec, ArchiveReader reader) {
 		this.rec = rec;
 		this.reader = reader;
 	}
