@@ -31,6 +31,8 @@ import java.util.List;
 
 import java.util.logging.Logger;
 
+import org.archive.wayback.util.ByteOp;
+
 /**
  * Class which parses a robots.txt file, storing the rules contained therein,
  * and then allows for testing if path/userAgent tuples are blocked by those
@@ -80,7 +82,7 @@ public class RobotRules {
 	public void parse(InputStream is) throws IOException {
 		
 		BufferedReader br = new BufferedReader(new InputStreamReader(
-				(InputStream) is));
+				(InputStream) is,ByteOp.UTF8));
         String read;
         ArrayList<String> current = null;
         while (br != null) {

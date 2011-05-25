@@ -24,6 +24,8 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Iterator;
 
+import org.archive.wayback.util.ByteOp;
+
 
 import com.sleepycat.je.Cursor;
 import com.sleepycat.je.Database;
@@ -119,26 +121,14 @@ public class BDBRecordSet {
 	 * @return byte array representation of String s in UTF-8
 	 */
 	public static byte[] stringToBytes(String s) {
-		try {
-			return s.getBytes("UTF-8");
-		} catch (UnsupportedEncodingException e) {
-			// no UTF-8, huh?
-			e.printStackTrace();
-			return s.getBytes();
-		}
+		return s.getBytes(ByteOp.UTF8);
 	}
 	/**
 	 * @param ba
 	 * @return String of UTF-8 encoded bytes ba
 	 */
 	public static String bytesToString(byte[] ba) {
-		try {
-			return new String(ba,"UTF-8");
-		} catch (UnsupportedEncodingException e) {
-			// not likely..
-			e.printStackTrace();
-			return new String(ba);
-		}
+		return new String(ba,ByteOp.UTF8);
 	}
 
 	/**

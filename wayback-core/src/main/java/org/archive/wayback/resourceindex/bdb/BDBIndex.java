@@ -34,6 +34,7 @@ import org.archive.wayback.resourceindex.cdx.CDXLineToSearchResultAdapter;
 import org.archive.wayback.resourceindex.cdx.SearchResultToCDXLineAdapter;
 import org.archive.wayback.util.AdaptedIterator;
 import org.archive.wayback.util.Adapter;
+import org.archive.wayback.util.ByteOp;
 import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.bdb.BDBRecord;
 import org.archive.wayback.util.bdb.BDBRecordSet;
@@ -204,7 +205,7 @@ public class BDBIndex extends BDBRecordSet implements
 		} else if(op.compareTo("-w") == 0) {
 
 			BufferedReader br = new BufferedReader(
-					new InputStreamReader(System.in));
+					new InputStreamReader(System.in,ByteOp.UTF8));
 			
 			RecordIterator itrS = new RecordIterator(br);
 

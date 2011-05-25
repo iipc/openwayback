@@ -27,6 +27,8 @@ import java.net.URLConnection;
 import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
 
+import org.archive.wayback.util.ByteOp;
+
 /**
  * @author brad
  *
@@ -73,6 +75,6 @@ public class ZiplinedBlock {
 		URLConnection uc = u.openConnection();
 		uc.setRequestProperty(RANGE_HEADER, sb.toString());
 		return new BufferedReader(new InputStreamReader(
-				new GZIPInputStream(uc.getInputStream())));
+				new GZIPInputStream(uc.getInputStream()),ByteOp.UTF8));
 	}
 }

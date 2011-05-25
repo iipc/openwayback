@@ -21,13 +21,16 @@ package org.archive.wayback.resourcestore.indexer;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.logging.Logger;
 
 import org.archive.wayback.Shutdownable;
 import org.archive.wayback.resourcestore.locationdb.ResourceFileLocationDB;
+import org.archive.wayback.util.ByteOp;
 import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.DirMaker;
 
@@ -102,7 +105,9 @@ public class IndexQueueUpdater implements Shutdownable {
 		public long getLastMark() throws IOException {
 			long mark = 0;
 			if(file.isFile() && file.length() > 0) {
-				BufferedReader ir = new BufferedReader(new FileReader(file));
+				FileInputStream fis = new FileInputStream(file);
+				InputStreamReader isr = new InputStreamReader(fis,ByteOp.UTF8);
+				BufferedReader ir = new BufferedReader(isr);
 				String line = ir.readLine();
 				if(line != null) {
 					mark = Long.parseLong(line);

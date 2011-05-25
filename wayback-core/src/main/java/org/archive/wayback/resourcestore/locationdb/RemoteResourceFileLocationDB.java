@@ -34,6 +34,7 @@ import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.util.ParameterFormatter;
+import org.archive.wayback.util.ByteOp;
 import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.WrappedCloseableIterator;
 
@@ -265,7 +266,7 @@ public class RemoteResourceFileLocationDB implements ResourceFileLocationDB {
 		
 		if(operation.equalsIgnoreCase("add-stream")) {
 			BufferedReader r = new BufferedReader(
-					new InputStreamReader(System.in));
+					new InputStreamReader(System.in,ByteOp.UTF8));
 			String line;
 			try {
 				while((line = r.readLine()) != null) {

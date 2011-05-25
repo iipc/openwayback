@@ -31,6 +31,7 @@ import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
 
 import org.archive.wayback.exception.RuntimeIOException;
+import org.archive.wayback.util.ByteOp;
 import org.archive.wayback.util.CloseableIterator;
 
 /**
@@ -134,7 +135,7 @@ public class ZiplinesChunkIterator implements CloseableIterator<String> {
 				long offset = i * ZiplinedBlock.BLOCK_SIZE;
 				raf.seek(offset);
 				BufferedReader br = new BufferedReader(new InputStreamReader(
-						new GZIPInputStream(new FileInputStream(raf.getFD()))));
+						new GZIPInputStream(new FileInputStream(raf.getFD())),ByteOp.UTF8));
 				String line = br.readLine();
 				if(line == null) {
 					System.err.println("Bad block at " + offset + " in " + args[0]);

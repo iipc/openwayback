@@ -25,6 +25,7 @@ import java.io.InputStreamReader;
 
 import org.archive.wayback.resourcestore.locationdb.ResourceFileLocationDB;
 import org.archive.wayback.resourcestore.locationdb.ResourceFileLocationDBLog;
+import org.archive.wayback.util.ByteOp;
 import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.bdb.BDBRecordSet;
 
@@ -277,7 +278,7 @@ public class BDBResourceFileLocationDB implements ResourceFileLocationDB {
 		db.setBdbName(bdbName);
 		db.setLogPath(logPath);
 		BufferedReader r = new BufferedReader(
-				new InputStreamReader(System.in));
+				new InputStreamReader(System.in,ByteOp.UTF8));
 		String line;
 		int exitCode = 0;
 		try {

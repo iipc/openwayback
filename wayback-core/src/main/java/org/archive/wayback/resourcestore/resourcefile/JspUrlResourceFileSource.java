@@ -24,6 +24,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 
+import org.archive.wayback.util.ByteOp;
+
 /**
  *
  *
@@ -57,7 +59,7 @@ public class JspUrlResourceFileSource implements ResourceFileSource {
 		String url = "http://localhost:8080" + jsp + "?url=" + prefix;
 		URL u = new URL(url);
 		InputStream is = u.openStream();
-		InputStreamReader isr = new InputStreamReader(is);
+		InputStreamReader isr = new InputStreamReader(is,ByteOp.UTF8);
 		StringBuilder sb = new StringBuilder(2000);
 		int READ_SIZE = 2048;
 		char cbuf[] = new char[READ_SIZE];

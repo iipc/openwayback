@@ -21,11 +21,14 @@ package org.archive.wayback.resourcestore.locationdb;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
 
+import org.archive.wayback.util.ByteOp;
 import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.flatfile.RecordIterator;
 
@@ -87,7 +90,9 @@ public class ResourceFileLocationDBLog extends File {
 
 		RandomAccessFile raf = new RandomAccessFile(this, "r");
 		raf.seek(start);
-		BufferedReader is = new BufferedReader(new FileReader(raf.getFD()));
+		FileInputStream fis = new FileInputStream(raf.getFD());
+		InputStreamReader isr = new InputStreamReader(fis,ByteOp.UTF8);
+		BufferedReader is = new BufferedReader(isr);
 		return new BufferedRangeIterator(new RecordIterator(is),end - start);
 	}
 

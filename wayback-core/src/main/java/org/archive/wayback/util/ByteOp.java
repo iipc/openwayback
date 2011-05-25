@@ -22,6 +22,7 @@ package org.archive.wayback.util;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 
 /**
  * Byte oriented static methods. Likely a lot of overlap with apache- commons
@@ -33,6 +34,7 @@ import java.io.OutputStream;
 public class ByteOp {
 	/** Default buffer size for IO ops */
 	public final static int BUFFER_SIZE = 4096;
+	public final static Charset UTF8 = Charset.forName("utf-8");
 	
 	/**
 	 * Create a new byte array with contents initialized to values from the

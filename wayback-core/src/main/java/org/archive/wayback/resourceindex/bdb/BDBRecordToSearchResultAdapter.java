@@ -24,6 +24,7 @@ import java.io.UnsupportedEncodingException;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.resourceindex.cdx.CDXLineToSearchResultAdapter;
 import org.archive.wayback.util.Adapter;
+import org.archive.wayback.util.ByteOp;
 import org.archive.wayback.util.bdb.BDBRecord;
 
 /**
@@ -50,18 +51,13 @@ public class BDBRecordToSearchResultAdapter
 	 */
 	public CaptureSearchResult adapt(BDBRecord record) {
 		sb.setLength(0);
-		try {
-			String key = new String(record.getKey().getData(),"UTF-8");
-			int urlEnd = key.indexOf(' ');
-			int dateSpecEnd = key.indexOf(' ',urlEnd + 1);
-			sb.append(key.substring(0,dateSpecEnd));
-			sb.append(" ");
-			sb.append(new String(record.getValue().getData(),"UTF-8"));
-			sb.append(key.substring(dateSpecEnd));
-		} catch (UnsupportedEncodingException e) {
-			// should not happen with UTF-8 hard-coded..
-			e.printStackTrace();
-		}
+		String key = new String(record.getKey().getData(),ByteOp.UTF8);
+		int urlEnd = key.indexOf(' ');
+		int dateSpecEnd = key.indexOf(' ',urlEnd + 1);
+		sb.append(key.substring(0,dateSpecEnd));
+		sb.append(" ");
+		sb.append(new String(record.getValue().getData(),ByteOp.UTF8));
+		sb.append(key.substring(dateSpecEnd));
 		return CDXLineToSearchResultAdapter.doAdapt(sb.toString());
 	}
 }

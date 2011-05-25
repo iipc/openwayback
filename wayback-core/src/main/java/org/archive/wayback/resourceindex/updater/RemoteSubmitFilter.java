@@ -40,6 +40,8 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.archive.wayback.util.ByteOp;
+
 /**
  * Filter that accepts PUT HTTP requests to insert CDX files into the incoming
  * directory for a local BDBIndex.
@@ -152,7 +154,7 @@ public class RemoteSubmitFilter implements Filter  {
 		InputStream input;
 		input = request.getInputStream();
 		BufferedInputStream in = new BufferedInputStream(input);
-		BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+		BufferedReader reader = new BufferedReader(new InputStreamReader(in,ByteOp.UTF8));
 		FileWriter out = new FileWriter(tmpFile);
 
 		while ((i = reader.read()) != -1) {

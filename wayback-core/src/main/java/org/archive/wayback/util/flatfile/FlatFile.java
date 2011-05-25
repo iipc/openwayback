@@ -21,13 +21,16 @@ package org.archive.wayback.util.flatfile;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.util.Comparator;
 import java.util.Iterator;
 
+import org.archive.wayback.util.ByteOp;
 import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.CompositeSortedIterator;
 
@@ -180,7 +183,9 @@ public class FlatFile {
 		RandomAccessFile raf = new RandomAccessFile(file,"r");
 		long offset = findKeyOffset(raf,prefix);
 		lastMatchOffset = offset;
-		BufferedReader br = new BufferedReader(new FileReader(raf.getFD()));
+		FileInputStream is = new FileInputStream(raf.getFD());
+		InputStreamReader isr = new InputStreamReader(is, ByteOp.UTF8);
+		BufferedReader br = new BufferedReader(isr);
 		itr = new RecordIterator(br);
 		return itr;
 	}

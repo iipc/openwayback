@@ -27,6 +27,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.archive.wayback.util.ByteOp;
+
 
 /**
  *
@@ -61,7 +63,7 @@ public class UrlLinkExtractor {
 	public static List<String> extractLinks(final String url) throws IOException {
 		URL u = new URL(url);
 		InputStream is = u.openStream();
-		InputStreamReader isr = new InputStreamReader(is);
+		InputStreamReader isr = new InputStreamReader(is,ByteOp.UTF8);
 		StringBuilder sb = new StringBuilder(2000);
 		int READ_SIZE = 2048;
 		char cbuf[] = new char[READ_SIZE];

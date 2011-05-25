@@ -31,6 +31,7 @@ import org.apache.commons.httpclient.URIException;
 import org.archive.net.UURI;
 import org.archive.net.UURIFactory;
 import org.archive.wayback.UrlCanonicalizer;
+import org.archive.wayback.util.ByteOp;
 
 /**
  * Class that performs the standard Heritrix URL canonicalization. Eventually,
@@ -365,7 +366,7 @@ public class AggressiveUrlCanonicalizer implements UrlCanonicalizer {
 		for(int idx = 0; idx < columns.size(); idx++) {
 			cols[idx] = columns.get(idx).intValue() - 1;
 		}
-		BufferedReader r = new BufferedReader(new InputStreamReader(System.in));
+		BufferedReader r = new BufferedReader(new InputStreamReader(System.in,ByteOp.UTF8));
 		StringBuilder sb = new StringBuilder();
 		String line = null;
 		
