@@ -73,6 +73,9 @@ public class HTTPRecordAnnotater {
 	}
 	
 	public String transformHTTPMime(String input) {
+		if(input == null) {
+			return null;
+		}
 		int semiIdx = input.indexOf(";");
 		if(semiIdx > 0) {
 			return escapeSpaces(input.substring(0,semiIdx).trim());
@@ -120,6 +123,9 @@ public class HTTPRecordAnnotater {
 		if(mimeType == null) {
 			// nothing present in the HTTP headers.. Use the WARC field:
 			mimeType = transformHTTPMime(mimeGuess);
+		}
+		if(mimeType == null) {
+			mimeType = "unknown";
 		}
 		result.setMimeType(mimeType);
 		// Now the sticky part: If it looks like an HTML document, look for
