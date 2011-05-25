@@ -60,6 +60,14 @@ public class ArchivalUrlRequestParser extends CompositeRequestParser {
 	 */
 	public final static String IDENTITY_CONTEXT = "id";
 	/**
+	 * frame-wrapper context
+	 */
+	public final static String FRAME_WRAPPED_CONTEXT = "fw";
+	/**
+	 * iframe-wrapped context
+	 */
+	public final static String IFRAME_WRAPPED_CONTEXT = "if";
+	/**
 	 * Charset detection strategy context - should be followed by an integer
 	 * indicating which strategy to use 
 	 */

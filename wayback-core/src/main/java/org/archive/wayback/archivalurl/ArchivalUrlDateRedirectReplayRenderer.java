@@ -52,41 +52,9 @@ public class ArchivalUrlDateRedirectReplayRenderer implements ReplayRenderer {
 
 		// redirect to the better version:
 		String url = result.getOriginalUrl();
-		String captureDate = makeFlagDateSpec(
-				result.getCaptureTimestamp(),wbRequest);
-
-		String betterURI = uriConverter.makeReplayURI(captureDate,url);
+		ArchivalUrl aUrl = new ArchivalUrl(wbRequest);
+		String dateSpec = aUrl.getDateSpec(result.getCaptureTimestamp());
+		String betterURI = uriConverter.makeReplayURI(dateSpec,url);
 		httpResponse.sendRedirect(betterURI);
-	}
-
-	/**
-	 * Given a date, and a WaybackRequest object, create a new datespec + flags
-	 * which represent the same options as requested by the WaybackRequest
-	 * @param timestamp the 14-digit timestamp to use
-	 * @param request the WaybackRequest from which o get extra request option 
-	 * flags
-	 * @return a String representing the flags on the WaybackRequest for the
-	 * specified date
-	 */
-	public static String makeFlagDateSpec(String timestamp, WaybackRequest request) {
-		StringBuilder sb = new StringBuilder();
-		sb.append(timestamp);
-		if(request.isCSSContext()) {
-			sb.append(ArchivalUrlRequestParser.CSS_CONTEXT);
-			sb.append(ArchivalUrlRequestParser.FLAG_DELIM);
-		}
-		if(request.isJSContext()) {
-			sb.append(ArchivalUrlRequestParser.JS_CONTEXT);
-			sb.append(ArchivalUrlRequestParser.FLAG_DELIM);
-		}
-		if(request.isIMGContext()) {
-			sb.append(ArchivalUrlRequestParser.IMG_CONTEXT);
-			sb.append(ArchivalUrlRequestParser.FLAG_DELIM);
-		}
-		if(request.isIdentityContext()) {
-			sb.append(ArchivalUrlRequestParser.IDENTITY_CONTEXT);
-			sb.append(ArchivalUrlRequestParser.FLAG_DELIM);
-		}
-		return sb.toString();
 	}
 }

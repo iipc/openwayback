@@ -61,7 +61,61 @@ public class ArchivalUrl {
 	public String toReplayString(String url) {
 		return toString(wbRequest.getReplayTimestamp(),url);
 	}
+	public String getDateSpec() {
+		return getDateSpec(wbRequest.getReplayTimestamp());
+	}
 
+	/**
+	 * Given a date, create a new datespec + flags
+	 * which represent the same options as requested by the WaybackRequest
+	 * @param timestamp the 14-digit timestamp to use
+	 * @return a String representing the flags on the WaybackRequest for the
+	 * specified date
+	 */
+	public String getDateSpec(String datespec) {
+		int dateLen = 0;
+		if(datespec != null) {
+			dateLen = datespec.length();
+		}
+		StringBuilder sb = 
+			new StringBuilder(dateLen +10);
+		if(dateLen > 0) {
+			sb.append(datespec);
+		}
+
+		if(wbRequest.isCSSContext()) {
+			sb.append(ArchivalUrlRequestParser.CSS_CONTEXT);
+			sb.append(ArchivalUrlRequestParser.FLAG_DELIM);
+			dateLen++;
+		}
+		if(wbRequest.isJSContext()) {
+			sb.append(ArchivalUrlRequestParser.JS_CONTEXT);
+			sb.append(ArchivalUrlRequestParser.FLAG_DELIM);
+			dateLen++;
+		}
+		if(wbRequest.isIMGContext()) {
+			sb.append(ArchivalUrlRequestParser.IMG_CONTEXT);
+			sb.append(ArchivalUrlRequestParser.FLAG_DELIM);
+			dateLen++;
+		}
+		if(wbRequest.isIdentityContext()) {
+			sb.append(ArchivalUrlRequestParser.IDENTITY_CONTEXT);
+			sb.append(ArchivalUrlRequestParser.FLAG_DELIM);
+			dateLen++;
+		}
+		if(wbRequest.isIFrameWrapperContext()) {
+			sb.append(ArchivalUrlRequestParser.IFRAME_WRAPPED_CONTEXT);
+			sb.append(ArchivalUrlRequestParser.FLAG_DELIM);
+			dateLen++;
+		}
+		if(wbRequest.isFrameWrapperContext()) {
+			sb.append(ArchivalUrlRequestParser.FRAME_WRAPPED_CONTEXT);
+			sb.append(ArchivalUrlRequestParser.FLAG_DELIM);
+			dateLen++;
+		}
+		return sb.toString();
+	}
+	
 	public String toString(String datespec, String url) {
 		int dateLen = 0;
 		if(datespec != null) {
@@ -69,29 +123,44 @@ public class ArchivalUrl {
 		}
 		StringBuilder sb = 
 			new StringBuilder(url.length() + dateLen +10);
-		if(dateLen > 0) {
-			sb.append(datespec);
-		}
-		if(wbRequest.isCSSContext()) {
-			sb.append(ArchivalUrlRequestParser.CSS_CONTEXT);
-			sb.append(ArchivalUrlRequestParser.FLAG_DELIM);
-		}
-		if(wbRequest.isJSContext()) {
-			sb.append(ArchivalUrlRequestParser.JS_CONTEXT);
-			sb.append(ArchivalUrlRequestParser.FLAG_DELIM);
-		}
-		if(wbRequest.isIMGContext()) {
-			sb.append(ArchivalUrlRequestParser.IMG_CONTEXT);
-			sb.append(ArchivalUrlRequestParser.FLAG_DELIM);
-		}
-		if(wbRequest.isIdentityContext()) {
-			sb.append(ArchivalUrlRequestParser.IDENTITY_CONTEXT);
-			sb.append(ArchivalUrlRequestParser.FLAG_DELIM);
-		}
-		if(dateLen > 0) {
+		String dateSpec = getDateSpec(datespec);
+		sb.append(dateSpec);
+		if(dateSpec.length() > 0) {
 			sb.append("/");
 		}
 		sb.append(UrlOperations.stripDefaultPortFromUrl(url));
 		return sb.toString();
 	}
+
+	/**
+	 * @param wbRequest
+	 * @param flagsStr : "js_", "", "cs_", "cs_js_"
+	 */
+	public static void assignFlags(WaybackRequest wbRequest, String flagsStr) {
+		if(flagsStr != null) {
+			String[] flags = flagsStr.split(
+					ArchivalUrlRequestParser.FLAG_DELIM);
+			for(String flag: flags) {
+				if(flag.equals(ArchivalUrlRequestParser.CSS_CONTEXT)) {
+					wbRequest.setCSSContext(true);
+				} else if(flag.equals(ArchivalUrlRequestParser.JS_CONTEXT)) {
+					wbRequest.setJSContext(true);
+				} else if(flag.equals(ArchivalUrlRequestParser.IMG_CONTEXT)) {
+					wbRequest.setIMGContext(true);
+				} else if(flag.equals(ArchivalUrlRequestParser.IDENTITY_CONTEXT)) {
+					wbRequest.setIdentityContext(true);
+				} else if(flag.equals(ArchivalUrlRequestParser.FRAME_WRAPPED_CONTEXT)) {
+					wbRequest.setFrameWrapperContext(true);
+				} else if(flag.equals(ArchivalUrlRequestParser.IFRAME_WRAPPED_CONTEXT)) {
+					wbRequest.setIFrameWrapperContext(true);
+				} else if(flag.startsWith(ArchivalUrlRequestParser.CHARSET_MODE)) {
+					String modeString = flag.substring(
+							ArchivalUrlRequestParser.CHARSET_MODE.length());
+					int mode = Integer.parseInt(modeString);
+					wbRequest.setCharsetMode(mode);
+				}
+			}
+		}
+	}
+	
 }

@@ -22,6 +22,7 @@ package org.archive.wayback.archivalurl.requestparser;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.archive.wayback.archivalurl.ArchivalUrl;
 import org.archive.wayback.archivalurl.ArchivalUrlRequestParser;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BetterRequestException;
@@ -62,7 +63,7 @@ public class ReplayRequestParser extends PathRequestParser {
 			String dateStr = matcher.group(1);
 			urlStr = matcher.group(4);
 			String flags = matcher.group(2);
-			assignFlags(wbRequest,flags);
+			ArchivalUrl.assignFlags(wbRequest,flags);
 
 			// The logic of the classic WM wrt timestamp bounding:
 			// if 14-digits are specified, assume min-max range boundaries
@@ -134,30 +135,5 @@ public class ReplayRequestParser extends PathRequestParser {
 		return wbRequest;
 	}
 
-	/**
-	 * @param wbRequest
-	 * @param flagsStr : "js_", "", "cs_", "cs_js_"
-	 */
-	private void assignFlags(WaybackRequest wbRequest, String flagsStr) {
-		if(flagsStr != null) {
-			String[] flags = flagsStr.split(
-					ArchivalUrlRequestParser.FLAG_DELIM);
-			for(String flag: flags) {
-				if(flag.equals(ArchivalUrlRequestParser.CSS_CONTEXT)) {
-					wbRequest.setCSSContext(true);
-				} else if(flag.equals(ArchivalUrlRequestParser.JS_CONTEXT)) {
-					wbRequest.setJSContext(true);
-				} else if(flag.equals(ArchivalUrlRequestParser.IMG_CONTEXT)) {
-					wbRequest.setIMGContext(true);
-				} else if(flag.equals(ArchivalUrlRequestParser.IDENTITY_CONTEXT)) {
-					wbRequest.setIdentityContext(true);
-				} else if(flag.startsWith(ArchivalUrlRequestParser.CHARSET_MODE)) {
-					String modeString = flag.substring(
-							ArchivalUrlRequestParser.CHARSET_MODE.length());
-					int mode = Integer.parseInt(modeString);
-					wbRequest.setCharsetMode(mode);
-				}
-			}
-		}
-	}
+
 }
