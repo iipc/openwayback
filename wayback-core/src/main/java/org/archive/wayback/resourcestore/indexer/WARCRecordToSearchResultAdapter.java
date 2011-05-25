@@ -99,7 +99,7 @@ implements Adapter<WARCRecord,CaptureSearchResult>{
 
 		if(type.equals(WARCConstants.RESPONSE)) {
 			String mime = annotater.transformHTTPMime(header.getMimetype());
-			if(mime.equals("text/dns")) {
+			if(mime != null && mime.equals("text/dns")) {
 				// close to complete reading, then the digest is legit
 				// TODO: DO we want to use the WARC header digest for this?
 				rec.close();
@@ -272,7 +272,8 @@ implements Adapter<WARCRecord,CaptureSearchResult>{
         int eolCharCount = getEolCharsCount(statusBytes);
         if (eolCharCount <= 0) {
             throw new RecoverableIOException("Failed to read http status where one " +
-                " was expected: " + new String(statusBytes));
+                    " was expected: " + 
+                    ((statusBytes == null) ? "(null)" : new String(statusBytes)));
         }
         String statusLine = EncodingUtil.getString(statusBytes, 0,
             statusBytes.length - eolCharCount, ARCConstants.DEFAULT_ENCODING);
