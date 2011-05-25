@@ -17,7 +17,7 @@ if(names != null) {
 		}
 		for(String accessPoint : accessPoints) {
 			%>
-			 <a href="<%= accessPoint %>/"><%= accessPoint %></a><br></br>
+			 <a href="<%= request.getContextPath() + "/" + accessPoint %>/"><%= accessPoint %></a><br></br>
 			<%
 		}
 	}
