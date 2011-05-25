@@ -299,7 +299,7 @@ public class UIResults {
 				return wbRequest.getAccessPoint().getStaticPrefix();
 			}
 		}
-		return "/";
+		return "";
 	}
 
 	/**
@@ -311,7 +311,7 @@ public class UIResults {
 				return wbRequest.getAccessPoint().getQueryPrefix();
 			}
 		}
-		return "/";
+		return "";
 	}
 
 	/**
@@ -323,7 +323,7 @@ public class UIResults {
 				return wbRequest.getAccessPoint().getReplayPrefix();
 			}
 		}
-		return "/";
+		return "";
 	}
 
 	/*
