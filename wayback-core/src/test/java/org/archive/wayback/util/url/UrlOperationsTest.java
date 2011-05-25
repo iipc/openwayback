@@ -205,7 +205,29 @@ public class UrlOperationsTest extends TestCase {
 		
 		
 	}
+	public void testUrlPath() {
+		assertEquals("/",UrlOperations.getURLPath("http://foo.com"));
+		assertEquals("/",UrlOperations.getURLPath("http://foo.com/"));
+		assertEquals("/",UrlOperations.getURLPath("http://foo.com:80/"));
+		assertEquals("/blue",UrlOperations.getURLPath("http://foo.com:80/blue"));
+		assertEquals("/blue/red",UrlOperations.getURLPath("http://foo.com:80/blue/red"));
+		assertEquals("/blue/red:colon",UrlOperations.getURLPath("http://foo.com:80/blue/red:colon"));
 
+		assertEquals("/",UrlOperations.getURLPath("foo.com"));
+		assertEquals("/",UrlOperations.getURLPath("foo.com:80"));
+		assertEquals("/",UrlOperations.getURLPath("foo.com:8080"));
+		assertEquals("/",UrlOperations.getURLPath("foo.com/"));
+		assertEquals("/",UrlOperations.getURLPath("foo.com:80/"));
+		assertEquals("/",UrlOperations.getURLPath("foo.com:8080/"));
+		assertEquals("/bar",UrlOperations.getURLPath("foo.com/bar"));
+		assertEquals("/bar",UrlOperations.getURLPath("foo.com:80/bar"));
+		assertEquals("/bar",UrlOperations.getURLPath("foo.com:8080/bar"));
+
+		assertEquals("/bar/baz",UrlOperations.getURLPath("foo.com/bar/baz"));
+		assertEquals("/bar/baz",UrlOperations.getURLPath("foo.com:80/bar/baz"));
+		assertEquals("/bar/baz",UrlOperations.getURLPath("foo.com:8080/bar/baz"));
+
+	}
 	public void testStripDefaultPort() {
 		assertSDP("http://foo.com/","http://foo.com/");
 		assertSDP("http://foo.com","http://foo.com");

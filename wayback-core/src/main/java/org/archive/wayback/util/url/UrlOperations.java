@@ -220,24 +220,27 @@ public class UrlOperations {
 	 * @return the path component of the URL, or "" if it contains no path.
 	 */
 	public static String getURLPath(String url) {
-		int portIdx = url.indexOf(UrlOperations.PORT_SEPARATOR);
+		url = stripURLScheme(url);
 		int pathIdx = url.indexOf(UrlOperations.PATH_START);
-		if(portIdx == -1 && pathIdx == -1) {
-			return "";
-		}
-		if(portIdx == -1) {
-			return url.substring(pathIdx);
-		}
 		if(pathIdx == -1) {
-			return url.substring(portIdx);
+			return "/";
 		}
-		if(pathIdx > portIdx) {
-			return url.substring(portIdx);
-		} else {
-			return url.substring(pathIdx);
-		}
+		return url.substring(pathIdx);
 	}
-	
+	/**
+	 * Attempt to extract the path component of a url String argument.
+	 * @param url the URL which may contain a path, sans scheme.
+	 * @return the path component of the URL, or "" if it contains no path.
+	 */
+	public static String stripURLScheme(String url) {
+		String lcUrl = url.toLowerCase();
+		for(String scheme : ALL_SCHEMES) {
+			if(lcUrl.startsWith(scheme)) {
+				return url.substring(scheme.length());
+			}
+		}
+		return url;
+	}	
 	/**
 	 * Attempt to strip default ports out of URL strings.
 	 * @param url the original URL possibly including a port
@@ -279,6 +282,11 @@ public class UrlOperations {
 		return sb.toString();
 	}
 
+	/**
+	 * @param orig String containing a URL, possibly beginning with "http:/".
+	 * @return original string if orig begins with "http://", or a new String
+	 * with the extra slash, if orig only had one slash.
+	 */
 	public static String fixupHTTPUrlWithOneSlash(String orig) {
 		if(orig.startsWith("http:/") && ! orig.startsWith(HTTP_SCHEME)) {
 			// very likely the IE "you must have meant 1 slash, not 2 bug:
