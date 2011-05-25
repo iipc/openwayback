@@ -53,7 +53,7 @@ import org.htmlparser.nodes.TextNode;
 public class FastArchivalUrlReplayParseEventHandler implements
 		ParseEventHandler {
 
-	private final static String FERRET_DONE_KEY = 
+	public final static String FERRET_DONE_KEY = 
 		FastArchivalUrlReplayParseEventHandler.class.toString();
 
 	private String jspInsertPath = "/WEB-INF/replay/DisclaimChooser.jsp";
@@ -79,6 +79,8 @@ public class FastArchivalUrlReplayParseEventHandler implements
 		anchorUrlTrans = new URLStringTransformer();
 		anchorUrlTrans.setJsTransformer(jsBlockTrans);
 	}
+	private static URLStringTransformer framesetUrlTrans =
+		new URLStringTransformer("fw_");
 	private static URLStringTransformer cssUrlTrans =
 		new URLStringTransformer("cs_");
 	private static URLStringTransformer jsUrlTrans =
@@ -227,7 +229,7 @@ public class FastArchivalUrlReplayParseEventHandler implements
 			transformAttr(context, tagNode, "ACTION", anchorUrlTrans);
 
 		} else if(tagName.equals("FRAME")) {
-			transformAttr(context, tagNode, "SRC", anchorUrlTrans);
+			transformAttr(context, tagNode, "SRC", framesetUrlTrans);
 
 		} else if(tagName.equals("LINK")) {
 			if(transformAttrWhere(context, tagNode, "REL", "STYLESHEET", 
