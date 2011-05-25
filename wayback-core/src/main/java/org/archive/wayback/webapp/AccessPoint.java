@@ -702,7 +702,7 @@ implements ShutdownListener {
 	}
 
 	/**
-	 * @param filePrefixes List of String file prefixes that will be matched
+	 * @param fileIncludePrefixes List of String file prefixes that will be matched
 	 * 		when querying the ResourceIndex - only SearchResults from files 
 	 * 		with a prefix matching one of those in this List will be returned.
 	 */
@@ -719,7 +719,7 @@ implements ShutdownListener {
 	}
 
 	/**
-	 * @param filePrefixes List of String file prefixes that will be matched
+	 * @param fileExcludePrefixes List of String file prefixes that will be matched
 	 * 		when querying the ResourceIndex - only SearchResults from files 
 	 * 		with a prefix matching one of those in this List will be returned.
 	 */
@@ -893,9 +893,15 @@ implements ShutdownListener {
 		this.bounceToQueryPrefix = bounceToQueryPrefix;
 	}
 
+	/**
+	 * @return the configured number of MS for min age to return from the index
+	 */
 	public long getEmbargoMS() {
 		return embargoMS;
 	}
+	/**
+	 * @param ms minimum number of MS age for content to be served from the index
+	 */
 	public void setEmbargoMS(long ms) {
 		this.embargoMS = ms;
 	}
