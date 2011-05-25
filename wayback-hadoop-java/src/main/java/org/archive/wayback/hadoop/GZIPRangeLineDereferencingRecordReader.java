@@ -10,6 +10,7 @@ import java.util.zip.GZIPInputStream;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
+import org.archive.wayback.util.ByteOp;
 
 public class GZIPRangeLineDereferencingRecordReader extends LineDereferencingRecordReader{
 	String curInputLine = null;
@@ -61,7 +62,7 @@ public class GZIPRangeLineDereferencingRecordReader extends LineDereferencingRec
 					// the whole chunk is now in buffer:
 					InputStream is = 
 						new GZIPInputStream(new ByteArrayInputStream(buffer,0,length));
-					curReader = new BufferedReader(new InputStreamReader(is));
+					curReader = new BufferedReader(new InputStreamReader(is,ByteOp.UTF8));
 					curLine = 0;
 
 				} else {

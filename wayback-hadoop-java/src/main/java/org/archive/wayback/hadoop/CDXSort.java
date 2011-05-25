@@ -21,6 +21,7 @@ package org.archive.wayback.hadoop;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -58,6 +59,7 @@ import org.apache.hadoop.mapred.lib.IdentityReducer;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
+import org.archive.wayback.util.ByteOp;
 import org.archive.wayback.util.url.AggressiveUrlCanonicalizer;
 
 public class CDXSort extends Configured implements Tool {
@@ -134,8 +136,9 @@ public class CDXSort extends Configured implements Tool {
 		// load the split file, find and set the number of reduces
 		AlphaPartitioner partitioner = new AlphaPartitioner();
 		File localSplitFile = new File(splitPath);
-		FileReader is = new FileReader(localSplitFile);
-		BufferedReader bis = new BufferedReader(is);
+		FileInputStream fis = new FileInputStream(localSplitFile);
+		InputStreamReader isr = new InputStreamReader(fis,ByteOp.UTF8);
+		BufferedReader bis = new BufferedReader(isr);
 //		try {
 //			partitioner.loadBoundaries(bis);
 //		} catch (IOException except) {
@@ -314,7 +317,7 @@ public class CDXSort extends Configured implements Tool {
 			}
 			try {
 				BufferedReader br = new BufferedReader(
-						new InputStreamReader(is));
+						new InputStreamReader(is,ByteOp.UTF8));
 				String tmpS = null;
 				long line = 0;
 				while((tmpS = br.readLine()) != null) {

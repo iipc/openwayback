@@ -34,6 +34,7 @@ import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.mapreduce.lib.input.LineRecordReader;
+import org.archive.wayback.util.ByteOp;
 
 /**
  * RecordReader which reads pointers to actual files from an internal 
@@ -92,7 +93,7 @@ public class LineDereferencingRecordReader extends RecordReader<Text, Text>{
 //						is = new GZIPInputStream(is);
 						is = new MultiMemberGZIPInputStream(is);
 					}
-					curReader = new BufferedReader(new InputStreamReader(is));
+					curReader = new BufferedReader(new InputStreamReader(is,ByteOp.UTF8));
 					
 				} else {
 					// all done:

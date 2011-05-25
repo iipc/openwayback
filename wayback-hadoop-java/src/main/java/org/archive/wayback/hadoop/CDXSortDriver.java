@@ -37,6 +37,7 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
+import org.archive.wayback.util.ByteOp;
 
 /**
  * @author brad
@@ -54,8 +55,7 @@ public class CDXSortDriver implements Tool {
 	throws IOException {
 		FileSystem fs = path.getFileSystem(conf);
 		FSDataInputStream is = fs.open(path);
-		BufferedReader br = new BufferedReader(new InputStreamReader(is,
-				"utf-8"));
+		BufferedReader br = new BufferedReader(new InputStreamReader(is, ByteOp.UTF8));
 		int lineCount = 0;
 		while (br.readLine() != null) {
 			lineCount++;
