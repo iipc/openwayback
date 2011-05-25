@@ -266,6 +266,17 @@ public class WaybackRequest {
 	 */
 	public static final String REQUEST_IDENTITY_CONTEXT = "identitycontext";
 		
+	/**
+	 * Request: Content should be wrapped in a frame 
+	 */
+	public static final String REQUEST_FRAME_WRAPPER_CONTEXT = 
+		"framewrappercontext";
+		
+	/**
+	 * Request: Display context for embedded metadata in an IFrame
+	 */
+	public static final String REQUEST_IFRAME_WRAPPER_CONTEXT = 
+		"iframewrappercontext";
 	
 	/**
 	 * Request: Charset detection mode 
@@ -782,6 +793,20 @@ public class WaybackRequest {
 	}
 	public boolean isIdentityContext() {
 		return getBoolean(REQUEST_IDENTITY_CONTEXT);
+	}
+
+	public void setFrameWrapperContext(boolean isFrameWrapperContext) {
+		setBoolean(REQUEST_FRAME_WRAPPER_CONTEXT,isFrameWrapperContext);
+	}
+	public boolean isFrameWrapperContext() {
+		return getBoolean(REQUEST_FRAME_WRAPPER_CONTEXT);
+	}
+
+	public void setIFrameWrapperContext(boolean isIFrameWrapperContext) {
+		setBoolean(REQUEST_IFRAME_WRAPPER_CONTEXT,isIFrameWrapperContext);
+	}
+	public boolean isIFrameWrapperContext() {
+		return getBoolean(REQUEST_IFRAME_WRAPPER_CONTEXT);
 	}
 
 	public void setCharsetMode(int mode) {
