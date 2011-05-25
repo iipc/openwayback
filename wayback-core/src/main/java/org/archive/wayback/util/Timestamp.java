@@ -19,11 +19,14 @@
  */
 package org.archive.wayback.util;
 
+import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.SimpleTimeZone;
 import java.util.TimeZone;
+
+import org.archive.util.ArchiveUtils;
 
 
 /**
@@ -54,6 +57,32 @@ public class Timestamp {
 	private final static String[] months = { "Jan", "Feb", "Mar", "Apr", "May",
 			"Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
+	private final static String DAYS_IN_MONTH[][];
+	private final static int DIM_START_YEAR = 1972;
+	private final static int DIM_END_YEAR = 2032;
+	static {
+		Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+		cal.clear();
+		int years = DIM_END_YEAR - DIM_START_YEAR;
+		DAYS_IN_MONTH = new String[years][12];
+		for(int y = 0; y < years; y++) {
+			for(int m = 0; m < 12; m++) {
+				cal.set(Calendar.YEAR,DIM_START_YEAR + y);
+				cal.set(Calendar.MONTH,m);
+				cal.set(Calendar.DAY_OF_MONTH,1);
+				int calV = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
+				String maxDayOfMonth = String.valueOf(calV);
+				if(maxDayOfMonth.length() == 1) {
+					maxDayOfMonth = "0" + maxDayOfMonth;
+				}
+				DAYS_IN_MONTH[y][m] = maxDayOfMonth;
+			}
+		}
+	}
+	private static String getDaysInMonthBound(int year, int month) {
+		return DAYS_IN_MONTH[year - DIM_START_YEAR][month];
+	}
+	
 	private String dateStr = null;
 	private Date date = null;
 
@@ -61,50 +90,42 @@ public class Timestamp {
 	 * Constructor
 	 */
 	public Timestamp() {
-		super();
 	}
 	
 	/**
 	 * Construct and initialize structure from a 14-digit String timestamp. If
 	 * the argument is too short, or specifies an invalid timestamp, cleanup
 	 * will be attempted to create the earliest legal timestamp given the input.
-	 * @param dateStr
+	 * @param dateStr from which to set date
 	 */
 	public Timestamp(final String dateStr) {
-		super();
-
-		Calendar cal = dateStrToCalendar(dateStr);
-		setDate(cal.getTime());
+		setDate(dateStrToDate(dateStr));
 	}
 
 	/**
 	 * Construct and initialize structure from an integer number of seconds
 	 * since the epoch.
-	 * @param sse
+	 * @param sse SecondsSinceEpoch
 	 */
 	public Timestamp(final int sse) {
-		super();
 		setSse(sse);
 	}
 
 	/**
 	 * Construct and initialize structure from an Date
-	 * @param date
+	 * @param date from which date should be set
 	 */
 	public Timestamp(final Date date) {
-		super();
 		setDate(date);
 	}
 
 	/**
 	 * set internal structure using Date argument
-	 * @param date
+	 * @param date from which date should be set
 	 */
 	public void setDate(final Date date) {
 		this.date = (Date) date.clone();
-		Calendar cal = getCalendar();
-		cal.setTime(this.date);
-		dateStr = calendarToDateStr(cal);		
+		dateStr = ArchiveUtils.get14DigitDate(date);
 	}
 	
 	
@@ -117,7 +138,7 @@ public class Timestamp {
 
 	/**
 	 * set internal structure using seconds since the epoch integer argument
-	 * @param sse
+	 * @param sse SecondsSinceEpoch
 	 */
 	public void setSse(final int sse) {
 		setDate(new Date(((long)sse) * 1000));
@@ -128,11 +149,10 @@ public class Timestamp {
 	 * argument. Will clean up timestamp as needed to yield the ealiest
 	 * possible timestamp given the possible partial or wrong argument.
 	 * 
-	 * @param dateStr
+	 * @param dateStr containing the timestamp
 	 */
 	public void setDateStr(String dateStr) {
-		Calendar cal = dateStrToCalendar(dateStr);
-		setDate(cal.getTime());
+		setDate(dateStrToDate(dateStr));
 	}
 
 	/**
@@ -156,7 +176,7 @@ public class Timestamp {
 	 * timeStamp and the arguments timeStamp. result is the absolute number of
 	 * seconds difference.
 	 * 
-	 * @param otherTimeStamp
+	 * @param otherTimeStamp to compare
 	 * @return int absolute seconds between the argument and this records
 	 *         timestamp.
 	 */
@@ -170,7 +190,7 @@ public class Timestamp {
 	 * timeStamp is less than the argument, positive if it is greater, and 0 if
 	 * the same.
 	 * 
-	 * @param otherTimeStamp
+	 * @param otherTimeStamp to compare
 	 * @return int milliseconds
 	 */
 	public int distanceFromTimestamp(final Timestamp otherTimeStamp) {
@@ -238,18 +258,6 @@ public class Timestamp {
 	 * 
 	 */
 	
-	private static String frontZeroPad(final String input, final int digits) {
-		int missing = digits - input.length();
-		String padded = "";
-		for(int i = 0; i < missing; i++) {
-			padded += "0";
-		}
-		padded += input;
-		return padded;
-	}
-	private static String frontZeroPad(final int input, final int digits) {
-		return frontZeroPad(String.valueOf(input)	,digits);
-	}
 	
 	private static Calendar getCalendar() {
 		String[] ids = TimeZone.getAvailableIDs(0);
@@ -259,19 +267,15 @@ public class Timestamp {
 		TimeZone gmt = new SimpleTimeZone(0, ids[0]);
 		return new GregorianCalendar(gmt);		
 	}
-	
+
 	/**
-	 * cleanup the dateStr argument assuming earliest values, and return a
-	 * GMT calendar set to the time described by the dateStr.
-	 * 
-	 * @param dateStr
-	 * @return Calendar
+	 * @param dateStr up to 14 digit String representing date
+	 * @return a GMT Calendar object, set to the date represented
 	 */
 	public static Calendar dateStrToCalendar(final String dateStr) {
-		
+		Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
 		String paddedDateStr = padStartDateStr(dateStr);
 
-		Calendar cal = getCalendar();
 		int iYear = Integer.parseInt(paddedDateStr.substring(0,4));
 		int iMonth = Integer.parseInt(paddedDateStr.substring(4,6));
 		int iDay = Integer.parseInt(paddedDateStr.substring(6,8));
@@ -289,13 +293,24 @@ public class Timestamp {
 		
 		return cal;
 	}
-	private static String calendarToDateStr(Calendar cal) {
-		return frontZeroPad(cal.get(Calendar.YEAR),4) +
-			frontZeroPad(cal.get(Calendar.MONTH) + 1 ,2) +
-			frontZeroPad(cal.get(Calendar.DAY_OF_MONTH),2) +
-			frontZeroPad(cal.get(Calendar.HOUR_OF_DAY),2) +
-			frontZeroPad(cal.get(Calendar.MINUTE),2) +
-			frontZeroPad(cal.get(Calendar.SECOND),2);
+	/**
+	 * cleanup the dateStr argument assuming earliest values, and return a
+	 * GMT calendar set to the time described by the dateStr.
+	 * 
+	 * @param dateStr from which to create Calendar
+	 * @return Calendar
+	 */
+	public static Date dateStrToDate(final String dateStr) {
+		
+		String paddedDateStr = padStartDateStr(dateStr);
+		try {
+			return ArchiveUtils.parse14DigitDate(paddedDateStr);
+		} catch (ParseException e) {
+			e.printStackTrace();
+			// TODO: This is certainly not the right thing, but padStartDateStr
+			// should ensure we *never* get here..
+			return new Date(SSE_1996);
+		}
 	}
 	
 
@@ -333,18 +348,16 @@ public class Timestamp {
 		}
 		return test;
 	}
-	
+
 	// check each of YEAR, MONTH, DAY, HOUR, MINUTE, SECOND to make sure they
 	// are not too large or too small, factoring in the month, leap years, etc.
+	// BUGBUG: Leap second bug here.. How long till someone notices?
 	private static String boundTimestamp(String input) {
 		String boundTimestamp = "";
 		if(input == null) {
 			input = "";
 		}
 		// MAKE SURE THE YEAR IS WITHIN LEGAL BOUNDARIES:
-		Calendar tmpCal = getCalendar();
-		tmpCal.setTime(new Date());
-
 		boundTimestamp = boundDigits(input.substring(0,4),
 				YEAR_LOWER_LIMIT,YEAR_UPPER_LIMIT);
 
@@ -354,18 +367,10 @@ public class Timestamp {
 		
 		// NOW DEPENDING ON THE YEAR + MONTH, MAKE SURE THE DAY OF MONTH IS
 		// WITHIN LEGAL BOUNDARIES:
-		Calendar cal = getCalendar();
-		cal.clear();
 		int iYear = Integer.parseInt(boundTimestamp.substring(0,4));
 		int iMonth = Integer.parseInt(boundTimestamp.substring(4,6));
-		cal.set(Calendar.YEAR,iYear);
-		cal.set(Calendar.MONTH,iMonth - 1);
-		cal.set(Calendar.DAY_OF_MONTH,1);
+		String maxDayOfMonth = getDaysInMonthBound(iYear, iMonth-1);
 
-		String maxDayOfMonth = String.valueOf(cal.getActualMaximum(Calendar.DAY_OF_MONTH));
-		if(maxDayOfMonth.length() == 1) {
-			maxDayOfMonth = "0" + maxDayOfMonth;
-		}
 		boundTimestamp += boundDigits(input.substring(6,8),
 				DAY_LOWER_LIMIT,maxDayOfMonth);
 		
@@ -383,7 +388,7 @@ public class Timestamp {
 
 		return boundTimestamp;		
 	}
-	
+
 	/**
 	 * clean up timestamp argument assuming latest possible values for missing 
 	 * or bogus digits.
@@ -407,7 +412,7 @@ public class Timestamp {
 	}
 
 	/**
-	 * @param dateStr
+	 * @param dateStr containing timestamp
 	 * @return Timestamp object representing the earliest date represented by
 	 *         the (possibly) partial digit-string argument.
 	 */
@@ -416,7 +421,7 @@ public class Timestamp {
 	}
 
 	/**
-	 * @param dateStr
+	 * @param dateStr containing timestamp
 	 * @return Timestamp object representing the latest date represented by the
 	 *         (possibly) partial digit-string argument.
 	 */
@@ -425,7 +430,7 @@ public class Timestamp {
 	}
 
 	/**
-	 * @param sse
+	 * @param sse SecondsSinceEpoch
 	 * @return Timestamp object representing the seconds since epoch argument.
 	 */
 	public static Timestamp fromSse(final int sse) {
