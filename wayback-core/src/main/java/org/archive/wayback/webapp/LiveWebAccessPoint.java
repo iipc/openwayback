@@ -77,6 +77,9 @@ public class LiveWebAccessPoint extends AbstractRequestHandler {
 		wbRequest.setRequestUrl(urlString);
 		URL url = null;
 		try {
+			if(!urlString.startsWith(UrlOperations.HTTP_SCHEME)) {
+				throw new ResourceNotInArchiveException(urlString);
+			}
 			Thread.currentThread().setName("Thread " + 
 					Thread.currentThread().getId() + " " + getBeanName() + 
 					" handling: " + urlString);
