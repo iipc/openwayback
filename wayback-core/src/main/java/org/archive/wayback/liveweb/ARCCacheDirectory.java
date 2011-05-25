@@ -159,6 +159,14 @@ public class ARCCacheDirectory {
 			public String getTemplate() {
 				return LIVE_WAYBACK_TEMPLATE;
 			}
+
+			public boolean getFrequentFlushes() {
+				return true;
+			}
+
+			public int getWriteBufferSize() {
+				return 4096;
+			}
 		};
 	}
 

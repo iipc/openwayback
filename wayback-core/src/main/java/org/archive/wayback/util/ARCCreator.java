@@ -26,9 +26,11 @@ import java.io.RandomAccessFile;
 import java.text.ParseException;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
+import org.archive.io.WriterPoolSettings;
 import org.archive.io.arc.ARCConstants;
 import org.archive.io.arc.ARCWriter;
 import org.archive.util.ArchiveUtils;
@@ -98,9 +100,9 @@ public class ARCCreator {
 	throws IOException {
 		
 		File target[] = {tgtDir};
+
 		ARCWriter writer = new ARCWriter(new AtomicInteger(),
-				Arrays.asList(target),prefix,true,
-				ARCConstants.DEFAULT_MAX_ARC_FILE_SIZE);
+				getSettings(true,prefix,Arrays.asList(target)));
 		File sources[] = srcDir.listFiles();
 		LOGGER.info("Found " + sources.length + " files in " + srcDir);
 		for(int i = 0; i<sources.length; i++) {
@@ -120,6 +122,43 @@ public class ARCCreator {
 		writer.close();
 		LOGGER.info("Closed arc file named " + 
 				writer.getFile().getAbsolutePath());
+	}
+	private WriterPoolSettings getSettings(final boolean isCompressed,
+			final String prefix, final List<File> arcDirs) {
+		return new WriterPoolSettings() {
+			public List<File> getOutputDirs() {
+				return arcDirs;
+			}
+
+			@SuppressWarnings({ "unchecked", "rawtypes" })
+			public List getMetadata() {
+				return null;
+			}
+
+			public String getPrefix() {
+				return prefix;
+			}
+
+			public boolean getCompress() {
+				return isCompressed;
+			}
+
+			public long getMaxFileSizeBytes() {
+				return ARCConstants.DEFAULT_MAX_ARC_FILE_SIZE;
+			}
+
+			public String getTemplate() {
+				return "${prefix}-${timestamp17}-${serialno}";
+			}
+
+			public boolean getFrequentFlushes() {
+				return false;
+			}
+
+			public int getWriteBufferSize() {
+				return 4096;
+			}
+		};
 	}
 	
 	/**

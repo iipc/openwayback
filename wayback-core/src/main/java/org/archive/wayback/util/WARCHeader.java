@@ -26,8 +26,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import org.archive.io.WriterPoolSettings;
+import org.archive.io.arc.ARCConstants;
 import org.archive.io.warc.WARCWriter;
+import org.archive.io.warc.WARCWriterPoolSettings;
+import org.archive.uid.RecordIDGenerator;
+import org.archive.uid.UUIDGenerator;
 import org.archive.util.anvl.ANVLRecord;
 
 public class WARCHeader {
@@ -45,14 +51,54 @@ public class WARCHeader {
 		List<String> metadata = new ArrayList<String>(1);
 		metadata.add(ar.toString());
 
-		writer = new WARCWriter(null, bos, target, true, null,
-				metadata);
+		writer = new WARCWriter(new AtomicInteger(),bos,target,getSettings(true, null, null, metadata));
 		// Write a warcinfo record with description about how this WARC
 		// was made.
 		writer.writeWarcinfoRecord(target.getName(), "Made from "
 				+ id + " by "
 				+ this.getClass().getName());
 
+	}
+	private WARCWriterPoolSettings getSettings(final boolean isCompressed,
+			final String prefix, final List<File> arcDirs, final List metadata) {
+		return new WARCWriterPoolSettings() {
+			public List<File> getOutputDirs() {
+				return arcDirs;
+			}
+
+			@SuppressWarnings({ "unchecked", "rawtypes" })
+			public List getMetadata() {
+				return metadata;
+			}
+
+			public String getPrefix() {
+				return prefix;
+			}
+
+			public boolean getCompress() {
+				return isCompressed;
+			}
+
+			public long getMaxFileSizeBytes() {
+				return ARCConstants.DEFAULT_MAX_ARC_FILE_SIZE;
+			}
+
+			public String getTemplate() {
+				return "${prefix}-${timestamp17}-${serialno}";
+			}
+
+			public boolean getFrequentFlushes() {
+				return false;
+			}
+
+			public int getWriteBufferSize() {
+				return 4096;
+			}
+
+			public RecordIDGenerator getRecordIDGenerator() {
+				return new UUIDGenerator();
+			}
+		};
 	}
 
 	public static void main(String[] args) {
