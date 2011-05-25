@@ -19,10 +19,12 @@
  */
 package org.archive.wayback.archivalurl;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.Map;
 
 import javax.servlet.ServletException;
@@ -39,15 +41,19 @@ import org.archive.wayback.exception.WaybackException;
 import org.archive.wayback.replay.HttpHeaderOperation;
 import org.archive.wayback.replay.HttpHeaderProcessor;
 import org.archive.wayback.replay.JSPExecutor;
+import org.archive.wayback.replay.TagMagix;
 import org.archive.wayback.replay.TextReplayRenderer;
 import org.archive.wayback.replay.charset.CharsetDetector;
 import org.archive.wayback.replay.charset.StandardCharsetDetector;
 import org.archive.wayback.replay.html.ReplayParseContext;
+import org.archive.wayback.util.ByteOp;
 import org.archive.wayback.util.htmllex.ContextAwareLexer;
 import org.archive.wayback.util.htmllex.ParseEventHandler;
 import org.htmlparser.Node;
+import org.htmlparser.lexer.InputStreamSource;
 import org.htmlparser.lexer.Lexer;
 import org.htmlparser.lexer.Page;
+import org.htmlparser.lexer.Source;
 import org.htmlparser.util.ParserException;
 
 /**
@@ -62,6 +68,15 @@ public class ArchivalUrlSAXRewriteReplayRenderer implements ReplayRenderer {
 	private HttpHeaderProcessor httpHeaderProcessor;
 	private CharsetDetector charsetDetector = new StandardCharsetDetector();
 	private final static String OUTPUT_CHARSET = "utf-8";
+	private static int FRAMESET_SCAN_BUFFER_SIZE = 16 * 1024;
+	private static ReplayRenderer frameWrappingRenderer = null;
+	public static ReplayRenderer getFrameWrappingRenderer() {
+		return frameWrappingRenderer;
+	}
+
+	public static void setFrameWrappingRenderer(ReplayRenderer frameWrappingRenderer) {
+		ArchivalUrlSAXRewriteReplayRenderer.frameWrappingRenderer = frameWrappingRenderer;
+	}
 
 	/**
 	 * @param httpHeaderProcessor which should process HTTP headers
@@ -77,6 +92,51 @@ public class ArchivalUrlSAXRewriteReplayRenderer implements ReplayRenderer {
 			ResultURIConverter uriConverter, CaptureSearchResults results)
 			throws ServletException, IOException, WaybackException {
 
+		// The URL of the page, for resolving in-page relative URLs: 
+    	URL url = null;
+		try {
+			url = new URL(result.getOriginalUrl());
+		} catch (MalformedURLException e1) {
+			// TODO: this shouldn't happen...
+			e1.printStackTrace();
+			throw new IOException(e1.getMessage());
+		}
+		// determine the character set used to encode the document bytes:
+		String charSet = charsetDetector.getCharset(resource, wbRequest);
+
+		ArchivalUrlContextResultURIConverterFactory fact = 
+			new ArchivalUrlContextResultURIConverterFactory(
+					(ArchivalUrlResultURIConverter) uriConverter);
+		// set up the context:
+		ReplayParseContext context = 
+			new ReplayParseContext(fact,url,result.getCaptureTimestamp());
+
+		if(!wbRequest.isFrameWrapperContext()) {
+			// in case this is an HTML page with FRAMEs, peek ahead an look:
+			// TODO: make ThreadLocal:
+			byte buffer[] = new byte[FRAMESET_SCAN_BUFFER_SIZE];
+
+			resource.mark(FRAMESET_SCAN_BUFFER_SIZE);
+			int amtRead = resource.read(buffer);
+			resource.reset();
+			
+			if(amtRead > 0) {
+				StringBuilder foo = new StringBuilder(new String(buffer,charSet));
+				int frameIdx = TagMagix.getEndOfFirstTag(foo, "FRAMESET");
+				if(frameIdx != -1) {
+					// insert flag so we don't add FRAMESET:
+					context.putData(FastArchivalUrlReplayParseEventHandler.FERRET_DONE_KEY,"");
+
+//					// top-level Frameset: Draw the frame wrapper thingy:
+//					frameWrappingRenderer.renderResource(httpRequest, 
+//							httpResponse, wbRequest, result, resource, 
+//							uriConverter, results);
+//					return;
+				}
+			}
+		}
+		
+		
 		// copy the HTTP response code:
 		HttpHeaderOperation.copyHTTPMessageHeader(resource, httpResponse);
 
@@ -90,31 +150,14 @@ public class ArchivalUrlSAXRewriteReplayRenderer implements ReplayRenderer {
 		JSPExecutor jspExec = new JSPExecutor(uriConverter, httpRequest, 
 				httpResponse, wbRequest, results, result, resource);
 		
-		// The URL of the page, for resolving in-page relative URLs: 
-    	URL url = null;
-		try {
-			url = new URL(result.getOriginalUrl());
-		} catch (MalformedURLException e1) {
-			// TODO: this shouldn't happen...
-			e1.printStackTrace();
-			throw new IOException(e1.getMessage());
-		}
 
 		// To make sure we get the length, we have to buffer it all up...
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
-		ArchivalUrlContextResultURIConverterFactory fact = 
-			new ArchivalUrlContextResultURIConverterFactory(
-					(ArchivalUrlResultURIConverter) uriConverter);
-		// set up the context:
-		ReplayParseContext context = 
-			new ReplayParseContext(fact,url,result.getCaptureTimestamp());
 		context.setOutputCharset(OUTPUT_CHARSET);
 		context.setOutputStream(baos);
 		context.setJspExec(jspExec);
 
-		// determine the character set used to encode the document bytes:
-		String charSet = charsetDetector.getCharset(resource, wbRequest);
 		
 		// and finally, parse, using the special lexer that knows how to
 		// handle javascript blocks containing unescaped HTML entities:
