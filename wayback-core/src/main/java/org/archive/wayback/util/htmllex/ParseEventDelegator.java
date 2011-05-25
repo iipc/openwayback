@@ -31,6 +31,7 @@ import org.archive.wayback.util.htmllex.handlers.ContentTextHandler;
 import org.archive.wayback.util.htmllex.handlers.JSTextHandler;
 import org.archive.wayback.util.htmllex.handlers.OpenTagHandler;
 import org.archive.wayback.util.htmllex.handlers.ParseCompleteHandler;
+import org.archive.wayback.util.htmllex.handlers.ParseStartHandler;
 import org.archive.wayback.util.htmllex.handlers.RemarkTextHandler;
 import org.htmlparser.Node;
 import org.htmlparser.nodes.RemarkNode;
@@ -71,6 +72,7 @@ public class ParseEventDelegator implements ParseEventHandler {
 	private List<RemarkTextHandler> remarkTextHandler = null;
 	private List<ContentTextHandler> contentTextHandler = null;
 	private List<ParseCompleteHandler> parseCompleteHandlers = null;
+	private List<ParseStartHandler> parseStartHandlers = null;
 
 	private List<ParseEventDelegatorVisitor> parserVisitors = null;
 
@@ -230,6 +232,20 @@ public class ParseEventDelegator implements ParseEventHandler {
 		if(parseCompleteHandlers != null) {
 			for(ParseCompleteHandler v : parseCompleteHandlers) {
 				v.handleParseComplete(context);
+			}
+		}
+	}
+
+	public void addParseStartHandler(ParseStartHandler v) {
+		if(parseStartHandlers == null) {
+			parseStartHandlers = new ArrayList<ParseStartHandler>();
+		}
+		parseStartHandlers.add(v);
+	}
+	public void handleParseStart(ParseContext context) throws IOException {
+		if(parseStartHandlers != null) {
+			for(ParseStartHandler v : parseStartHandlers) {
+				v.handleParseStart(context);
 			}
 		}
 	}

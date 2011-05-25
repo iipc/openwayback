@@ -32,6 +32,8 @@ import org.htmlparser.Node;
  *
  */
 public interface ParseEventHandler {
+
+	public void handleParseStart(ParseContext context) throws IOException;
 	public void handleNode(ParseContext context, Node node) 
 	throws IOException;
 	public void handleParseComplete(ParseContext context) throws IOException;

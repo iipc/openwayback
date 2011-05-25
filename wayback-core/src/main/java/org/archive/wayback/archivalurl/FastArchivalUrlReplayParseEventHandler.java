@@ -57,7 +57,8 @@ public class FastArchivalUrlReplayParseEventHandler implements
 		FastArchivalUrlReplayParseEventHandler.class.toString();
 
 	private String jspInsertPath = "/WEB-INF/replay/DisclaimChooser.jsp";
-	private String commentJsp = "/WEB-INF/replay/ArchiveComment.jsp";
+	private String endJsp = "/WEB-INF/replay/ArchiveComment.jsp";
+	private String startJsp = null;
 
 	private final String[] okHeadTags = { "![CDATA[*", "![CDATA[", "?", 
 			"!DOCTYPE", "HTML",	"HEAD", "BASE", "LINK", "META", "TITLE", 
@@ -332,13 +333,32 @@ public class FastArchivalUrlReplayParseEventHandler implements
 		}
 		return false;
 	}
+
 	public void handleParseComplete(ParseContext pContext) throws IOException {
-		if(commentJsp != null) {
+		if(endJsp != null) {
 			ReplayParseContext context = (ReplayParseContext) pContext;
 			OutputStream out = context.getOutputStream();
 			String tmp = null; 
 			try {
-				tmp = context.getJspExec().jspToString(commentJsp);
+				tmp = context.getJspExec().jspToString(endJsp);
+			} catch (ServletException e) {
+				e.printStackTrace();
+			}
+			if(tmp != null) {
+//				Charset charset = Charset.forName(context.getOutputCharset());
+				String charset = context.getOutputCharset();
+				out.write(tmp.getBytes(charset));
+			}
+		}
+	}
+
+	public void handleParseStart(ParseContext pContext) throws IOException {
+		if(startJsp != null) {
+			ReplayParseContext context = (ReplayParseContext) pContext;
+			OutputStream out = context.getOutputStream();
+			String tmp = null; 
+			try {
+				tmp = context.getJspExec().jspToString(startJsp);
 			} catch (ServletException e) {
 				e.printStackTrace();
 			}
@@ -366,15 +386,47 @@ public class FastArchivalUrlReplayParseEventHandler implements
 
 	/**
 	 * @return the commentJsp
+	 * @deprecated use getEndJsp()
 	 */
 	public String getCommentJsp() {
-		return commentJsp;
+		return getEndJsp();
 	}
 
 	/**
 	 * @param commentJsp the commentJsp to set
+	 * @deprecated use setEndJsp()
 	 */
 	public void setCommentJsp(String commentJsp) {
-		this.commentJsp = commentJsp;
+		setEndJsp(commentJsp);
+	}
+	/**
+	 * @return the path to the JSP to execute and include at the start of the
+	 * document
+	 */
+	public String getStartsp() {
+		return startJsp;
+	}
+
+	/**
+	 * @param endJsp the path to the JSP to execute and include at the start
+	 * of the document
+	 */
+	public void setStartJsp(String startJsp) {
+		this.startJsp = startJsp;
+	}
+	/**
+	 * @return the path to the JSP to execute and include at the end of the
+	 * document
+	 */
+	public String getEndJsp() {
+		return endJsp;
+	}
+
+	/**
+	 * @param endJsp the path to the JSP to execute and include at the end
+	 * of the document
+	 */
+	public void setEndJsp(String endJsp) {
+		this.endJsp = endJsp;
 	}
 }

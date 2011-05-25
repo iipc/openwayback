@@ -167,6 +167,7 @@ public class ArchivalUrlSAXRewriteReplayRenderer implements ReplayRenderer {
     	ContextAwareLexer lex = new ContextAwareLexer(lexer, context);
     	Node node;
     	try {
+			delegator.handleParseStart(context);
 			while((node = lex.nextNode()) != null) {
 				delegator.handleNode(context, node);
 			}

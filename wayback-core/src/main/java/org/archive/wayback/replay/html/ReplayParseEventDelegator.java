@@ -84,6 +84,12 @@ public class ReplayParseEventDelegator implements ParseEventHandler {
 
 	}
 
+	public void handleParseStart(ParseContext context) throws IOException {
+		preModifyDelegator.handleParseStart(context);
+		modifyDelegator.handleParseStart(context);
+		postModifyDelegator.handleParseStart(context);
+	}
+
 	public void handleParseComplete(ParseContext context) throws IOException {
 		preModifyDelegator.handleParseComplete(context);
 		modifyDelegator.handleParseComplete(context);
