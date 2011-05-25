@@ -276,6 +276,7 @@ public class ZiplinesSearchResultSource implements SearchResultSource {
 		ZiplinesSearchResultSource zl = new ZiplinesSearchResultSource(format);
 		PrintWriter pw = new PrintWriter(System.out);
 		int idx;
+		boolean blockDump = false;
 		for(idx = 0; idx < args.length; idx++) {
 			if(args[idx].equals("-format")) {
 				idx++;
@@ -288,6 +289,8 @@ public class ZiplinesSearchResultSource implements SearchResultSource {
 					e1.printStackTrace();
 					System.exit(1);
 				}
+			} else if(args[idx].equals("-blockDump")) {
+				blockDump = true;
 			} else if(args[idx].equals("-max")) {
 				idx++;
 				if(idx >= args.length) {
@@ -322,14 +325,24 @@ public class ZiplinesSearchResultSource implements SearchResultSource {
 		
 		try {
 			zl.init();
-			Iterator<String> itr = zl.getStringPrefixIterator(key);
-			boolean truncated = ((StringPrefixIterator)itr).isTruncated();
-			while(itr.hasNext()) {
-				pw.println(itr.next());
-			}
-			pw.close();
-			if(truncated) {
-				System.err.println("Note that results are truncated...");
+			if(blockDump) {
+				
+				ArrayList<ZiplinedBlock> blocks = zl.getBlockListForPrefix(key);
+				for(ZiplinedBlock block : blocks) {
+					pw.format("%s\t%s\n", block.urlOrPath, block.offset);
+				}
+				pw.close();
+
+			} else {
+				Iterator<String> itr = zl.getStringPrefixIterator(key);
+				boolean truncated = ((StringPrefixIterator)itr).isTruncated();
+				while(itr.hasNext()) {
+					pw.println(itr.next());
+				}
+				pw.close();
+				if(truncated) {
+					System.err.println("Note that results are truncated...");
+				}
 			}
 		} catch (ResourceIndexNotAvailableException e) {
 			// TODO Auto-generated catch block
