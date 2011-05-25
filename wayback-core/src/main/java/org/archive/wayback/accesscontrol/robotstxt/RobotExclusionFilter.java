@@ -39,6 +39,7 @@ import org.archive.wayback.exception.LiveWebTimeoutException;
 import org.archive.wayback.liveweb.LiveWebCache;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.util.ObjectFilter;
+import org.archive.wayback.util.url.UrlOperations;
 
 /**
  * CaptureSearchResult Filter that uses a LiveWebCache to retrieve robots.txt
@@ -230,6 +231,17 @@ public class RobotExclusionFilter extends ExclusionFilter {
 			}
 			notifiedSeen = true;
 		}
+		String resultURL = r.getOriginalUrl();
+		String path = UrlOperations.getURLPath(resultURL);
+		if(path.equals(ROBOT_SUFFIX)) {
+			if(!notifiedPassed) {
+				if(filterGroup != null) {
+					filterGroup.setPassedRobots();
+				}
+				notifiedPassed = true;
+			}
+			return ObjectFilter.FILTER_INCLUDE;
+		}
 		int filterResult = ObjectFilter.FILTER_EXCLUDE; 
 		RobotRules rules = getRules(r);
 		if(rules == null) {
@@ -237,26 +249,17 @@ public class RobotExclusionFilter extends ExclusionFilter {
 				return ObjectFilter.FILTER_ABORT;
 			}
 		} else {
-			String resultURL = r.getOriginalUrl();
-			URL url;
-			try {
-				url = new URL(ArchiveUtils.addImpliedHttpIfNecessary(resultURL));
-				String path = url.getPath();
-				if(path.equals(ROBOT_SUFFIX) || 
-						!rules.blocksPathForUA(path, userAgent)) {
-					if(!notifiedPassed) {
-						if(filterGroup != null) {
-							filterGroup.setPassedRobots();
-						}
-						notifiedPassed = true;
+			if(!rules.blocksPathForUA(path, userAgent)) {
+				if(!notifiedPassed) {
+					if(filterGroup != null) {
+						filterGroup.setPassedRobots();
 					}
-					filterResult = ObjectFilter.FILTER_INCLUDE;
-					LOGGER.fine("ROBOT: ALLOWED("+resultURL+")");
-				} else {
-					LOGGER.info("ROBOT: BLOCKED("+resultURL+")");
+					notifiedPassed = true;
 				}
-			} catch (MalformedURLException e) {
-				e.printStackTrace();
+				filterResult = ObjectFilter.FILTER_INCLUDE;
+				LOGGER.fine("ROBOT: ALLOWED("+resultURL+")");
+			} else {
+				LOGGER.info("ROBOT: BLOCKED("+resultURL+")");
 			}
 		}
 		return filterResult;
