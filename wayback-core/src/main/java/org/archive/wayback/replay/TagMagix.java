@@ -333,7 +333,7 @@ public class TagMagix {
 	public static String getTagAttrWhere(StringBuilder page, final String tag,
 			final String findAttr, final String whereAttr, final String whereVal) {
 
-		Pattern tagPattern = TagMagix.getWholeTagPattern(tag);
+		Pattern tagPattern = getWholeTagPattern(tag);
 		Pattern findAttrPattern = getAttrPattern(findAttr);
 		Pattern whereAttrPattern = getAttrPattern(whereAttr);
 		Matcher tagMatcher = tagPattern.matcher(page);
