@@ -5,6 +5,7 @@
 %><%@ page import="java.lang.StringBuffer"
 %><%@ page import="org.archive.wayback.archivalurl.ArchivalUrlDateRedirectReplayRenderer"
 %><%@ page import="org.archive.wayback.ResultURIConverter"
+%><%@ page import="org.archive.wayback.archivalurl.ArchivalUrl"
 %><%@ page import="org.archive.wayback.core.UIResults"
 %><%@ page import="org.archive.wayback.core.WaybackRequest"
 %><%@ page import="org.archive.wayback.core.CaptureSearchResult"
@@ -37,8 +38,8 @@ if(targetUrl.equals("-")) {
 	}
 }
 // TODO: Handle replay if we still don't have a redirect..
-String dateSpec = 
-	ArchivalUrlDateRedirectReplayRenderer.makeFlagDateSpec(captureTS, wbr);
+ArchivalUrl aUrl = new ArchivalUrl(wbr);
+String dateSpec = aUrl.getDateSpec(captureTS);
 
 String targetReplayUrl = uric.makeReplayURI(dateSpec,targetUrl);
 
