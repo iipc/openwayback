@@ -19,6 +19,7 @@
  */
 package org.archive.wayback.util.webapp;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Logger;
 
@@ -130,9 +131,9 @@ public class PortMapper {
 		String host = requestToHost(request);
 		String contextPath = request.getContextPath();
 		StringBuilder pathPrefix = new StringBuilder(contextPath);
-		if(contextPath.length() == 0) {
+//		if(contextPath.length() == 0) {
 			pathPrefix.append("/");
-		}
+//		}
 		String firstPath = requestToFirstPath(request);
 		RequestHandler handler = pathMap.get(hostPathToKey(host,firstPath));
 		if(handler != null) {
@@ -151,6 +152,20 @@ public class PortMapper {
 		handler = pathMap.get(null);
 		if(handler != null) {
 			return new RequestHandlerContext(handler,contextPath);
+		}
+		// Nothing matching this port:host:path. Try to help get user back on
+		// track. Note this won't help with hostname mismatches at the moment:
+		ArrayList<String> paths = new ArrayList<String>();
+		for(String tmp : pathMap.keySet()) {
+			// slice off last chunk:
+			int idx = tmp.lastIndexOf('/');
+			if(idx != -1) {
+				String path = tmp.substring(idx+1);
+				paths.add(path);
+			}
+		}
+		if(paths.size() > 0) {
+			request.setAttribute("AccessPointNames", paths);
 		}
 		return null;
 	}
