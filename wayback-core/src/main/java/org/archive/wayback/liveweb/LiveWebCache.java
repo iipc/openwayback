@@ -50,6 +50,8 @@ public interface LiveWebCache {
 	 * @throws LiveWebCacheUnavailableException if there was a problem either
 	 * 		   accessing the live web, in proxying to the live web, or in
 	 * 		   maintaining the cache for the live web
+	 * @throws LiveWebTimeoutException if there is no response from the live
+	 * 		   web cache before a timeout occurred.
 	 * @throws IOException for the usual reasons
 	 */
 	public Resource getCachedResource(URL url, long maxCacheMS, 
