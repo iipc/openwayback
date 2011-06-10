@@ -64,7 +64,10 @@ public class AggressiveUrlCanonicalizerTest extends TestCase {
 		// strip leading 'www##.' with no protocol
 		checkCanonicalization("www12.foo.com/","foo.com/");
 		
-		
+		checkCanonicalization("http://www.example.com/","example.com/");
+		checkCanonicalization("http://www.example.com","example.com/");
+		checkCanonicalization("http://www.example.com/index.html","example.com/index.html");
+
 		// leave alone an url with no protocol but non-empty path
 		checkCanonicalization("foo.com/","foo.com/");
 		
