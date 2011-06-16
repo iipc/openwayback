@@ -46,6 +46,7 @@ public class IPRange {
 	// INSTANCE MEMBERS: 
 	private byte[] ip = null;
 	private byte[] mask = null;
+	private String original = null;
 	
 	// INSTANCE METHODS:
 	public byte[] getIp() {
@@ -72,11 +73,17 @@ public class IPRange {
 	public String getRangeString() {
 		return null;
 	}
+
 	public void setRangeString(String range) {
 		setRange(range);
 	}
 	
+	public String getOriginal() {
+		return original;
+	}
+	
 	public boolean setRange(String range) {
+		original = range;
 		Matcher m = IP_MASK_PATTERN.matcher(range);
 		if(m != null) {
 			if(m.matches()) {
