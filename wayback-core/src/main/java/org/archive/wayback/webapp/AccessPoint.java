@@ -26,6 +26,7 @@ import java.net.URLEncoder;
 import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
@@ -133,6 +134,9 @@ implements ShutdownListener {
 	protected boolean dispatchLocal(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse) 
 	throws ServletException, IOException {
+		if(LOGGER.isLoggable(Level.FINE)) {
+			LOGGER.fine("Local dispatch /" + translateRequestPath(httpRequest));
+		}
 		if(!serveStatic) {
 			return false;
 		}
@@ -179,7 +183,7 @@ implements ShutdownListener {
 			Thread.currentThread().setName("Thread " + 
 					Thread.currentThread().getId() + " " + getBeanName() + 
 					" handling: " + inputPath);
-
+			LOGGER.fine("Handling translated: " + inputPath);
 			wbRequest = getParser().parse(httpRequest, this);
 
 			if(wbRequest != null) {
