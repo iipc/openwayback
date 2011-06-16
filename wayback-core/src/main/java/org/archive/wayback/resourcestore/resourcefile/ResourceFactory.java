@@ -36,6 +36,7 @@ import org.archive.io.warc.WARCReaderFactory;
 import org.archive.io.warc.WARCRecord;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.exception.ResourceNotAvailableException;
+import org.archive.wayback.webapp.PerformanceLogger;
 
 /**
  * Static factory class for constructing ARC/WARC Resources from 
@@ -89,6 +90,7 @@ public class ResourceFactory {
 		
 		Resource r = null;
 		// TODO: allow configuration of timeouts -- now using defaults..
+		long start = System.currentTimeMillis();
 		TimeoutArchiveReaderFactory tarf = new TimeoutArchiveReaderFactory();
 		ArchiveReader reader = tarf.getArchiveReader(url,offset);
 		if(reader instanceof ARCReader) {
@@ -102,6 +104,8 @@ public class ResourceFactory {
 		} else {
 			throw new ResourceNotAvailableException("Unknown ArchiveReader");
 		}
+		long elapsed = System.currentTimeMillis() - start;
+		PerformanceLogger.noteElapsed("Http11Resource", elapsed, url.toExternalForm());
 		return r;
 	}
 	
