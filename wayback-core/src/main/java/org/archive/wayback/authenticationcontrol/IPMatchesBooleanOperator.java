@@ -21,6 +21,7 @@ package org.archive.wayback.authenticationcontrol;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.archive.wayback.core.WaybackRequest;
@@ -71,9 +72,22 @@ public class IPMatchesBooleanOperator implements BooleanOperator<WaybackRequest>
 			return false;
 		}
 		byte[] ip = IPRange.matchIP(ipString);
-		for(IPRange range : allowedRanges) {
-			if(range.contains(ip)) {
-				return true;
+		if(ip == null) {
+			LOGGER.severe("Unable to parse remote IP address("+ipString+")");
+		} else {
+			for(IPRange range : allowedRanges) {
+				if(range.contains(ip)) {
+					if(LOGGER.isLoggable(Level.FINE)){
+						LOGGER.fine(String.format("Range(%s) matched(%s)",
+								range.getOriginal(),ipString));
+					}
+					return true;
+				} else {
+					if(LOGGER.isLoggable(Level.FINE)){
+						LOGGER.fine(String.format("Range(%s) NO match(%s)",
+								range.getOriginal(),ipString));
+					}
+				}
 			}
 		}
 		return false;
