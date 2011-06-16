@@ -42,6 +42,7 @@ import org.archive.wayback.exception.RuntimeIOException;
 import org.archive.wayback.resourceindex.adapters.CaptureToUrlSearchResultIterator;
 import org.archive.wayback.resourceindex.filterfactory.AccessPointCaptureFilterGroupFactory;
 import org.archive.wayback.resourceindex.filterfactory.CaptureFilterGroup;
+import org.archive.wayback.resourceindex.filterfactory.ClosestTrackingCaptureFilterGroupFactory;
 import org.archive.wayback.resourceindex.filterfactory.CoreCaptureFilterGroupFactory;
 import org.archive.wayback.resourceindex.filterfactory.ExclusionCaptureFilterGroupFactory;
 import org.archive.wayback.resourceindex.filterfactory.FilterGroupFactory;
@@ -118,8 +119,9 @@ public class LocalResourceIndex implements ResourceIndex {
 		fgFactories = new ArrayList<FilterGroupFactory>();
 		fgFactories.add(new CoreCaptureFilterGroupFactory());
 		fgFactories.add(new AccessPointCaptureFilterGroupFactory());
-		fgFactories.add(new ExclusionCaptureFilterGroupFactory());
 		fgFactories.add(new QueryCaptureFilterGroupFactory());
+		fgFactories.add(new ExclusionCaptureFilterGroupFactory());
+		fgFactories.add(new ClosestTrackingCaptureFilterGroupFactory());
 	}
 
 	private void cleanupIterator(CloseableIterator<? extends SearchResult> itr)
