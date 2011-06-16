@@ -135,22 +135,36 @@ public class PortMapper {
 			pathPrefix.append("/");
 //		}
 		String firstPath = requestToFirstPath(request);
-		RequestHandler handler = pathMap.get(hostPathToKey(host,firstPath));
+		String key = hostPathToKey(host,firstPath);
+		RequestHandler handler = pathMap.get(key);
 		if(handler != null) {
+			LOGGER.fine("Mapped to RequestHandler with " + key);
 			return new RequestHandlerContext(handler,
 					pathPrefix.append(firstPath).toString());
+		} else {
+			LOGGER.finer("No mapping for " + key);			
 		}
-		handler = pathMap.get(hostPathToKey(host,null));
+		key = hostPathToKey(host,null);
+		handler = pathMap.get(key);
 		if(handler != null) {
+			LOGGER.fine("Mapped to RequestHandler with " + key);
 			return new RequestHandlerContext(handler,contextPath);
+		} else {
+			LOGGER.finer("No mapping for " + key);			
 		}
-		handler = pathMap.get(hostPathToKey(null,firstPath));
+		key = hostPathToKey(null,firstPath);
+		handler = pathMap.get(key);
 		if(handler != null) {
+			LOGGER.fine("Mapped to RequestHandler with " + key);
+
 			return new RequestHandlerContext(handler,
 					pathPrefix.append(firstPath).toString());
+		} else {
+			LOGGER.finer("No mapping for " + key);			
 		}
 		handler = pathMap.get(null);
 		if(handler != null) {
+			LOGGER.fine("Mapped to RequestHandler with null");
 			return new RequestHandlerContext(handler,contextPath);
 		}
 		// Nothing matching this port:host:path. Try to help get user back on
