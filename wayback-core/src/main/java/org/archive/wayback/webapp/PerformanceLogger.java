@@ -19,6 +19,7 @@
  */
 package org.archive.wayback.webapp;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -86,5 +87,19 @@ public class PerformanceLogger {
 		}
 		sb.append(info);
 		LOGGER.finer(sb.toString());
+	}
+	public static void noteElapsed(String message, long elapsed, String note) {
+		if(LOGGER.isLoggable(Level.INFO)) {
+			StringBuilder sb = new StringBuilder();
+			sb.append("WB-PERF\t").append(message).append("\t").append(elapsed);
+			if(note != null) {
+				sb.append("\t").append(note);
+			}
+			LOGGER.info(sb.toString());
+		}
+	}
+	
+	public static void noteElapsed(String message, long elapsed) {
+		noteElapsed(message,elapsed,null);
 	}
 }
