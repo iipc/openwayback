@@ -36,6 +36,7 @@ import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.AdministrativeAccessControlException;
 import org.archive.wayback.exception.BadQueryException;
+import org.archive.wayback.exception.LiveDocumentNotAvailableException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.exception.RobotAccessControlException;
 import org.archive.wayback.exception.WaybackException;
@@ -113,7 +114,10 @@ public class LiveWebAccessPoint extends AbstractRequestHandler {
 				}
 			}
 			// no robots check, or robots.txt says GO:
+			long start = System.currentTimeMillis();
 			ArcResource r = (ArcResource) cache.getCachedResource(url, maxCacheMS , false);
+			long elapsed = System.currentTimeMillis() - start;
+			PerformanceLogger.noteElapsed("LiveWebRequest",elapsed,urlString);
 			ARCRecord ar = (ARCRecord) r.getArcRecord();
 			int status = ar.getStatusCode();
 			if((status == 200) || ((status >= 300) && (status < 400))) {
@@ -128,7 +132,7 @@ public class LiveWebAccessPoint extends AbstractRequestHandler {
 						httpRequest, httpResponse, wbRequest, result, r, 
 						inner.getUriConverter(), results);
 			} else {
-				throw new ResourceNotInArchiveException("Not In Archive - Not on Live web");
+				throw new LiveDocumentNotAvailableException(urlString);
 			}
 
 		} catch(WaybackException e) {
