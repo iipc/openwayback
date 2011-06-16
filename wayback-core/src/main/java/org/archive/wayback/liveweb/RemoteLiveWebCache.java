@@ -22,6 +22,7 @@ package org.archive.wayback.liveweb;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.ConnectException;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.logging.Logger;
@@ -32,6 +33,7 @@ import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
+import org.apache.commons.httpclient.NoHttpResponseException;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.params.HttpClientParams;
 import org.archive.io.arc.ARCRecord;
@@ -99,17 +101,26 @@ public class RemoteLiveWebCache implements LiveWebCache {
 	    	} else {
 	    		throw new LiveWebCacheUnavailableException(urlString);
 	    	}
+
 	    } catch (ResourceNotAvailableException e) {
     		throw new LiveDocumentNotAvailableException(urlString);
 
+	    } catch (NoHttpResponseException e) {
+
+	    	throw new LiveWebCacheUnavailableException("No Http Response for "
+	    			+ urlString);
+
 	    } catch (ConnectException e) {
+    		throw new LiveWebCacheUnavailableException(e.getLocalizedMessage() 
+    				+ " : " + urlString);
+	    } catch (SocketException e) {
     		throw new LiveWebCacheUnavailableException(e.getLocalizedMessage() 
     				+ " : " + urlString);
 	    } catch (SocketTimeoutException e) {
     		throw new LiveWebTimeoutException(e.getLocalizedMessage() 
     				+ " : " + urlString);
 	    } catch(ConnectTimeoutException e) {
-    		throw new LiveWebCacheUnavailableException(e.getLocalizedMessage() 
+    		throw new LiveWebTimeoutException(e.getLocalizedMessage() 
     				+ " : " + urlString);	    	
 		} finally {
 	    	method.releaseConnection();
@@ -145,13 +156,29 @@ public class RemoteLiveWebCache implements LiveWebCache {
     		setMaxTotalConnections(maxTotalConnections);
     }
     /**
+     * @return the HttpConnectionManagerParams maxTotalConnections config
+     */
+    public int getMaxTotalConnections() {
+    	return connectionManager.getParams().getMaxTotalConnections();
+    }
+ 
+    /**
      * @param maxHostConnections the HttpConnectionManagerParams config 
      */
     public void setMaxHostConnections(int maxHostConnections) {
     	connectionManager.getParams().
     		setMaxConnectionsPerHost(hostConfiguration, maxHostConnections);
     }
-	/**
+
+    /**
+     * @return the HttpConnectionManagerParams maxHostConnections config 
+     */
+    public int getMaxHostConnections() {
+    	return connectionManager.getParams().
+    		getMaxConnectionsPerHost(hostConfiguration);
+    }
+
+    /**
 	 * @return the connectionTimeoutMS
 	 */
 	public int getConnectionTimeoutMS() {
