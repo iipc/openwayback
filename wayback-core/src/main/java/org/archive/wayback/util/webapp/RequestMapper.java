@@ -149,6 +149,8 @@ public class RequestMapper {
 		PortMapper portMapper = portMap.get(portInt);
 		if(portMapper != null) {
 			handlerContext = portMapper.getRequestHandlerContext(request);
+		} else {
+			LOGGER.warning("No PortMapper for port " + port);
 		}
 		return handlerContext;
 	}
