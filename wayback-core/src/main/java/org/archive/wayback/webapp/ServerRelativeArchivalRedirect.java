@@ -29,6 +29,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.archive.net.UURI;
 import org.archive.net.UURIFactory;
 import org.archive.util.ArchiveUtils;
+import org.archive.wayback.util.Timestamp;
 import org.archive.wayback.util.url.UrlOperations;
 import org.archive.wayback.util.webapp.AbstractRequestHandler;
 
@@ -42,6 +43,7 @@ public class ServerRelativeArchivalRedirect extends AbstractRequestHandler {
 	boolean useCollection = false;
 	private String matchHost = null;
 	private int matchPort = -1;
+	private String replayPrefix;
 	
 	private boolean handleRequestWithCollection(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse) throws ServletException,
@@ -154,9 +156,28 @@ public class ServerRelativeArchivalRedirect extends AbstractRequestHandler {
 				return false;
 			}
 		}
-		return useCollection ? 
+		boolean handled = useCollection ? 
 				handleRequestWithCollection(httpRequest, httpResponse):
 					handleRequestWithoutCollection(httpRequest, httpResponse);
+		if(!handled) {
+			if(replayPrefix != null) {
+				String thisPath = httpRequest.getRequestURI();
+				String queryString = httpRequest.getQueryString();
+				if (queryString != null) {
+					thisPath += "?" + queryString;
+				}
+				if(thisPath.startsWith("/http://")) {
+					// assume a replay request:
+					StringBuilder sb = new StringBuilder(thisPath.length() + replayPrefix.length() + 16);
+					sb.append(replayPrefix);
+					sb.append(Timestamp.currentTimestamp().getDateStr());
+					sb.append(thisPath);
+					httpResponse.sendRedirect(sb.toString());
+					handled = true;
+				}
+			}
+		}
+		return handled;
 	}
 
 	/**
@@ -194,5 +215,19 @@ public class ServerRelativeArchivalRedirect extends AbstractRequestHandler {
 	 */
 	public void setMatchPort(int matchPort) {
 		this.matchPort = matchPort;
+	}
+
+	/**
+	 * @return the replayPrefix
+	 */
+	public String getReplayPrefix() {
+		return replayPrefix;
+	}
+
+	/**
+	 * @param replayPrefix the replayPrefix to set
+	 */
+	public void setReplayPrefix(String replayPrefix) {
+		this.replayPrefix = replayPrefix;
 	}
 }
