@@ -21,6 +21,7 @@ package org.archive.wayback.resourceindex.ziplines;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -78,6 +79,7 @@ public class ZiplinesSearchResultSource implements SearchResultSource {
 	private HashMap<String,String> chunkMap = null;
 	private CDXFormat format = null;
 	private int maxBlocks = 1000;
+	private BlockLoader blockLoader = null;
 	
 	public ZiplinesSearchResultSource() {
 	}
@@ -165,7 +167,9 @@ public class ZiplinesSearchResultSource implements SearchResultSource {
 				String url = chunkMap.get(parts[1]);
 				long offset = Long.parseLong(parts[2]);
 				LOGGER.info("Adding block source(" + parts[1] + "):" + offset);
-				blocks.add(new ZiplinedBlock(url, offset));
+				ZiplinedBlock block = new ZiplinedBlock(url, offset);
+				block.setLoader(blockLoader);
+				blocks.add(block);
 			}
 		} finally {
 			if(itr != null) {
@@ -245,7 +249,21 @@ public class ZiplinesSearchResultSource implements SearchResultSource {
 	 */
 	public void setMaxBlocks(int maxBlocks) {
 		this.maxBlocks = maxBlocks;
-	}		
+	}
+
+	/**
+	 * @return the blockLoader
+	 */
+	public BlockLoader getBlockLoader() {
+		return blockLoader;
+	}
+
+	/**
+	 * @param blockLoader the blockLoader to set
+	 */
+	public void setBlockLoader(BlockLoader blockLoader) {
+		this.blockLoader = blockLoader;
+	}
 
 	private static void USAGE() {
 		System.err.println("USAGE:");
@@ -267,6 +285,7 @@ public class ZiplinesSearchResultSource implements SearchResultSource {
 //		String cdxSpec = CDXFormatIndex.CDX_HEADER_MAGIC;
 		String cdxSpec = " CDX N b a m s k r V g";
 		CDXFormat format = null;
+		BlockLoader blockLoader = new Http11BlockLoader();
 		try {
 			format = new CDXFormat(cdxSpec);
 		} catch (CDXFormatException e1) {
@@ -291,6 +310,23 @@ public class ZiplinesSearchResultSource implements SearchResultSource {
 				}
 			} else if(args[idx].equals("-blockDump")) {
 				blockDump = true;
+			} else if(args[idx].equals("-hdfs")) {
+				idx++;
+				if(idx >= args.length) {
+					USAGE();
+				}
+				blockLoader = new HDFSBlockLoader(args[idx]);
+				try {
+					((HDFSBlockLoader)blockLoader).init();
+				} catch (IOException e) {
+					e.printStackTrace();
+					USAGE();
+					System.exit(1);
+				} catch (URISyntaxException e) {
+					e.printStackTrace();
+					USAGE();
+					System.exit(1);
+				}
 			} else if(args[idx].equals("-max")) {
 				idx++;
 				if(idx >= args.length) {
@@ -319,6 +355,7 @@ public class ZiplinesSearchResultSource implements SearchResultSource {
 			USAGE();
 		}
 		// first is summary path, then location path, then search key:
+		zl.setBlockLoader(blockLoader);
 		zl.setChunkIndexPath(args[idx++]);
 		zl.setChunkMapPath(args[idx++]);
 		String key = args[idx++];

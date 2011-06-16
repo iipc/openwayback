@@ -20,6 +20,7 @@
 package org.archive.wayback.resourceindex.ziplines;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
@@ -37,13 +38,14 @@ public class ZiplinedBlock {
 	private static final Logger LOGGER = Logger.getLogger(
 			ZiplinedBlock.class.getName());
 
+	BlockLoader loader = null;
 	String urlOrPath = null;
 	long offset = -1;
 	int count = 0;
 	public final static int BLOCK_SIZE = 128 * 1024;
-	private final static String RANGE_HEADER = "Range";
-	private final static String BYTES_HEADER = "bytes=";
-	private final static String BYTES_MINUS = "-";
+	public final static String RANGE_HEADER = "Range";
+	public final static String BYTES_HEADER = "bytes=";
+	public final static String BYTES_MINUS = "-";
 	/**
 	 * @param urlOrPath URL where this file can be downloaded
 	 * @param offset start of 128K block boundary.
@@ -62,10 +64,29 @@ public class ZiplinedBlock {
 		this.count = count;
 	}
 	/**
+	 * @param loader the RemoteHttp11BlockLoader to use when fetching this block
+	 */
+	public void setLoader(BlockLoader loader) {
+		this.loader = loader;
+	}
+	/**
 	 * @return a BufferedReader of the underlying compressed data in this block
 	 * @throws IOException for usual reasons
 	 */
 	public BufferedReader readBlock() throws IOException {
+		if(loader != null) {
+			return readBlockEfficiently(loader);
+		}
+		return readBlockInefficiently();
+	}
+	private BufferedReader readBlockEfficiently(BlockLoader remote)
+	throws IOException {
+		byte bytes[] = remote.getBlock(urlOrPath, offset, BLOCK_SIZE);
+		return new BufferedReader(new InputStreamReader(
+				new GZIPInputStream(new ByteArrayInputStream(bytes)),
+				ByteOp.UTF8));
+	}
+	private BufferedReader readBlockInefficiently() throws IOException {
 		StringBuilder sb = new StringBuilder(16);
 		sb.append(BYTES_HEADER).append(offset).append(BYTES_MINUS);
 		sb.append((offset + BLOCK_SIZE)-1);
