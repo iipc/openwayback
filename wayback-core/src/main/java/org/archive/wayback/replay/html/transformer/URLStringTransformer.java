@@ -28,7 +28,7 @@ import org.archive.wayback.replay.html.StringTransformer;
  */
 public class URLStringTransformer implements StringTransformer {
 	private String flags;
-	private JSStringTransformer jsTransformer = null;
+	private StringTransformer jsTransformer = null;
 	/** Default constructor */
 	public URLStringTransformer() {}
 	/** 
@@ -64,10 +64,10 @@ public class URLStringTransformer implements StringTransformer {
 		this.flags = flags;
 	}
 
-	public JSStringTransformer getJsTransformer() {
+	public StringTransformer getJsTransformer() {
 		return jsTransformer;
 	}
-	public void setJsTransformer(JSStringTransformer jsTransformer) {
+	public void setJsTransformer(StringTransformer jsTransformer) {
 		this.jsTransformer = jsTransformer;
 	}
 
