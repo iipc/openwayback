@@ -58,14 +58,14 @@ public class SelfRedirectFilter implements ObjectFilter<CaptureSearchResult> {
 				String urlKey = r.getUrlKey();
 				try {
 					String redirectKey = canonicalizer.urlStringToKey(redirect);
-					if((redirectKey != null) &&
+					if((redirectKey != null) && (urlKey != null) &&
 							(redirectKey.compareTo(urlKey) == 0)) {
 						// only omit if same scheme:
 						String origScheme = 
 							UrlOperations.urlToScheme(r.getOriginalUrl());
 						String redirScheme = 
 							UrlOperations.urlToScheme(redirect);
-						if((origScheme != null) && 
+						if((origScheme != null) && (redirScheme != null) &&
 								(origScheme.compareTo(redirScheme) == 0)) {
 							return FILTER_EXCLUDE;
 						}
