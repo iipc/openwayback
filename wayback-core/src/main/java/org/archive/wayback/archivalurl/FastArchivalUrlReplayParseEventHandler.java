@@ -67,19 +67,19 @@ public class FastArchivalUrlReplayParseEventHandler implements
 	private final static String FRAMESET_TAG = "FRAMESET";
 	private final static String BODY_TAG = "BODY";
 
-	private static BlockCSSStringTransformer cssBlockTrans = 
+	private BlockCSSStringTransformer cssBlockTrans = 
 		new BlockCSSStringTransformer();
-	private static InlineCSSStringTransformer cssInlineTrans = 
+	private InlineCSSStringTransformer cssInlineTrans = 
 		new InlineCSSStringTransformer();
-	private static JSStringTransformer jsBlockTrans =
+	private StringTransformer jsBlockTrans =
 		new JSStringTransformer();
-	private static MetaRefreshUrlStringTransformer metaRefreshTrans = 
+	private MetaRefreshUrlStringTransformer metaRefreshTrans = 
 		new MetaRefreshUrlStringTransformer();
-	private static URLStringTransformer anchorUrlTrans = null;
-	static {
-		anchorUrlTrans = new URLStringTransformer();
-		anchorUrlTrans.setJsTransformer(jsBlockTrans);
-	}
+	private URLStringTransformer anchorUrlTrans = new URLStringTransformer();
+//	static {
+//		anchorUrlTrans = new URLStringTransformer();
+//		anchorUrlTrans.setJsTransformer(jsBlockTrans);
+//	}
 	private static URLStringTransformer framesetUrlTrans =
 		new URLStringTransformer("fw_");
 	private static URLStringTransformer cssUrlTrans =
@@ -95,6 +95,7 @@ public class FastArchivalUrlReplayParseEventHandler implements
 		for (String tag : okHeadTags) {
 			okHeadTagMap.put(tag, null);
 		}
+		anchorUrlTrans.setJsTransformer(jsBlockTrans);
 	}
 	
 	// TODO: This should all be refactored up into an abstract base class with
@@ -428,5 +429,21 @@ public class FastArchivalUrlReplayParseEventHandler implements
 	 */
 	public void setEndJsp(String endJsp) {
 		this.endJsp = endJsp;
+	}
+
+	/**
+	 * @return the jsBlockTrans
+	 */
+	public StringTransformer getJsBlockTrans() {
+		return jsBlockTrans;
+	}
+
+	/**
+	 * @param jsBlockTrans the jsBlockTrans to set
+	 */
+	public void setJsBlockTrans(StringTransformer jsBlockTrans) {
+		this.jsBlockTrans = jsBlockTrans;
+        anchorUrlTrans.setJsTransformer(jsBlockTrans);
+		
 	}
 }
