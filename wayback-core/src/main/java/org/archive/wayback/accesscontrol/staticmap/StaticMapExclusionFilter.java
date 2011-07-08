@@ -84,14 +84,7 @@ public class StaticMapExclusionFilter extends ExclusionFilter {
 			}
 			notifiedSeen = true;
 		}
-		String url;
-		try {
-			url = canonicalizer.urlStringToKey(r.getOriginalUrl());
-		} catch (URIException e) {
-			
-			//e.printStackTrace();
-			return FILTER_EXCLUDE;
-		}
+		String url = r.getUrlKey();
 		if(lastChecked != null) {
 			if(lastChecked.equals(url)) {
 				if(lastCheckedExcluded) { 
