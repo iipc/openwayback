@@ -24,6 +24,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Map;
 
+import org.apache.commons.httpclient.URIException;
 import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.util.ObjectFilter;
@@ -146,9 +147,10 @@ public class StaticMapExclusionFilterTest extends TestCase {
 		assertTrue("emptypath",isBlocked(filter,"http://www.peagreenboat.com/"));
 	}
 	
-	private boolean isBlocked(ObjectFilter<CaptureSearchResult> filter, String url) {
+	private boolean isBlocked(ObjectFilter<CaptureSearchResult> filter, String url) throws URIException {
 		CaptureSearchResult result = new CaptureSearchResult();
 		result.setOriginalUrl(url);
+		result.setUrlKey(canonicalizer.urlStringToKey(url));
 		int filterResult = filter.filterObject(result);
 		if(filterResult == ObjectFilter.FILTER_EXCLUDE) {
 			return true;
@@ -163,7 +165,7 @@ public class StaticMapExclusionFilterTest extends TestCase {
 		Map<String,Object> map = factory.loadFile(tmpFile.getAbsolutePath());
 		return new StaticMapExclusionFilter(map,canonicalizer);
 	}
-	
+
 	private void setTmpContents(String[] lines) throws IOException {
 		if(tmpFile != null && tmpFile.exists()) {
 			tmpFile.delete();
