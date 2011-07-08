@@ -40,6 +40,7 @@ import org.archive.wayback.liveweb.LiveWebCache;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.util.ObjectFilter;
 import org.archive.wayback.util.url.UrlOperations;
+import org.archive.wayback.webapp.PerformanceLogger;
 
 /**
  * CaptureSearchResult Filter that uses a LiveWebCache to retrieve robots.txt
@@ -172,16 +173,20 @@ public class RobotExclusionFilter extends ExclusionFilter {
 				LOGGER.fine("ROBOT: Cached("+urlString+")");
 				rules = rulesCache.get(urlString);
 				if(!urlString.equals(firstUrlString)) {
-					LOGGER.info("Adding extra url("+firstUrlString+") for prev cached rules("+urlString+")");
+					LOGGER.fine("Adding extra url("+firstUrlString+") for prev cached rules("+urlString+")");
 					rulesCache.put(firstUrlString, rules);
 				}
 			} else {
 				try {
-					LOGGER.info("ROBOT: NotCached - Downloading("+urlString+")");
+					LOGGER.fine("ROBOT: NotCached - Downloading("+urlString+")");
 				
 					tmpRules = new RobotRules();
+					long start = System.currentTimeMillis();
 					Resource resource = webCache.getCachedResource(new URL(urlString),
 							maxCacheMS,true);
+					long elapsed = System.currentTimeMillis() - start;
+					PerformanceLogger.noteElapsed("RobotRequest", elapsed, urlString);
+
 					if(resource.getStatusCode() != 200) {
 						LOGGER.info("ROBOT: NotAvailable("+urlString+")");
 						throw new LiveDocumentNotAvailableException(urlString);
@@ -189,24 +194,24 @@ public class RobotExclusionFilter extends ExclusionFilter {
 					tmpRules.parse(resource);
 					rulesCache.put(firstUrlString,tmpRules);
 					rules = tmpRules;
-					LOGGER.info("ROBOT: Downloaded("+urlString+")");
+					LOGGER.fine("ROBOT: Downloaded("+urlString+")");
 
 				} catch (LiveDocumentNotAvailableException e) {
 					LOGGER.info("ROBOT: LiveDocumentNotAvailableException("+urlString+")");
 
 				} catch (MalformedURLException e) {
 //					e.printStackTrace();
-					LOGGER.info("ROBOT: MalformedURLException("+urlString+")");
+					LOGGER.warning("ROBOT: MalformedURLException("+urlString+")");
 					return null;
 				} catch (IOException e) {
 					LOGGER.warning("ROBOT: IOException("+urlString+"):"+e.getLocalizedMessage());
 					return null;
 				} catch (LiveWebCacheUnavailableException e) {
-					LOGGER.info("ROBOT: LiveWebCacheUnavailableException("+urlString+")");
+					LOGGER.severe("ROBOT: LiveWebCacheUnavailableException("+urlString+")");
 					filterGroup.setLiveWebGone();
 					return null;
 				} catch (LiveWebTimeoutException e) {
-					LOGGER.info("ROBOT: LiveDocumentTimedOutException("+urlString+")");
+					LOGGER.severe("ROBOT: LiveDocumentTimedOutException("+urlString+")");
 					filterGroup.setRobotTimedOut();
 					return null;
 				}
@@ -216,7 +221,7 @@ public class RobotExclusionFilter extends ExclusionFilter {
 			// special-case, allow empty rules if no longer available.
 			rulesCache.put(firstUrlString,emptyRules);
 			rules = emptyRules;
-			LOGGER.info("No rules available, using emptyRules for:" + firstUrlString);
+			LOGGER.fine("No rules available, using emptyRules for:" + firstUrlString);
 		}
 		return rules;
 	}
@@ -257,9 +262,9 @@ public class RobotExclusionFilter extends ExclusionFilter {
 					notifiedPassed = true;
 				}
 				filterResult = ObjectFilter.FILTER_INCLUDE;
-				LOGGER.fine("ROBOT: ALLOWED("+resultURL+")");
+				LOGGER.finer("ROBOT: ALLOWED("+resultURL+")");
 			} else {
-				LOGGER.info("ROBOT: BLOCKED("+resultURL+")");
+				LOGGER.fine("ROBOT: BLOCKED("+resultURL+")");
 			}
 		}
 		return filterResult;
