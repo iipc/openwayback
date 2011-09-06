@@ -22,6 +22,7 @@ package org.archive.wayback.util;
 import java.text.DateFormat;
 import java.text.Format;
 import java.text.MessageFormat;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -224,4 +225,21 @@ public class StringFormatter {
 	public String spaceToNBSP(String input) {
 		return input.replaceAll(" ", "&nbsp;");
 	}
+	
+	public static String join(String delim, String...stuff) {
+		int max = stuff.length - 1;
+		int len = delim.length() * max;
+		for(String s : stuff) {
+			len += s.length();
+		}
+		StringBuilder sb = new StringBuilder(len);
+		for(int i = 0; i < stuff.length; i++) {
+			sb.append(stuff[i]);
+			if(i < max) {
+				sb.append(delim);
+			}
+		}
+		return sb.toString();
+	}
+
 }
