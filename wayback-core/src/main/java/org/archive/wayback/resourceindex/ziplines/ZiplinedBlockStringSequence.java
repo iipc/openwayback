@@ -37,11 +37,11 @@ public class ZiplinedBlockStringSequence {
 			ZiplinedBlockStringSequence.class.getName());
 
 	private FlatFile chunkIndex = null;
-	private HashMap<String,String> chunkMap = null;
+	private HashMap<String,BlockLocation> chunkMap = null;
 	private int maxBlocks = 10000;
 
 	public ZiplinedBlockStringSequence(FlatFile chunkIndex, 
-			HashMap<String,String> chunkMap) {
+			HashMap<String,BlockLocation> chunkMap) {
 		this.chunkIndex = chunkIndex;
 		this.chunkMap = chunkMap;
 	}
@@ -80,11 +80,11 @@ public class ZiplinedBlockStringSequence {
 					break;
 				}
 				// add this and keep lookin...
-				String url = chunkMap.get(parts[1]);
+				BlockLocation bl = chunkMap.get(parts[1]);
 				long offset = Long.parseLong(parts[2]);
 				int count = Integer.parseInt(parts[3]);
 				
-				blocks.add(new ZiplinedBlock(url, offset, count));
+				blocks.add(new ZiplinedBlock(bl.getLocations(), offset, count));
 			}
 		} finally {
 			if(itr != null) {
