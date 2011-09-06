@@ -33,6 +33,7 @@ import org.archive.wayback.resourceindex.filters.FileRegexFilter;
 import org.archive.wayback.util.ObjectFilter;
 import org.archive.wayback.util.ObjectFilterChain;
 import org.archive.wayback.webapp.AccessPoint;
+import org.archive.wayback.webapp.CustomResultFilterFactory;
 
 public class AccessPointCaptureFilterGroup implements CaptureFilterGroup {
 	private ObjectFilterChain<CaptureSearchResult> chain = null;
@@ -67,6 +68,14 @@ public class AccessPointCaptureFilterGroup implements CaptureFilterGroup {
 			long embargoMS = accessPoint.getEmbargoMS();
 			if(embargoMS > 0) {
 				chain.addFilter(new DateEmbargoFilter(embargoMS));
+			}
+			CustomResultFilterFactory factory = accessPoint.getFilterFactory();
+			if(factory != null) {
+				ObjectFilter<CaptureSearchResult> filter = 
+					factory.get(accessPoint);
+				if(filter != null) {
+					chain.addFilter(filter);
+				}
 			}
 		}
 	}
