@@ -35,7 +35,7 @@ public class ObjectFilterIterator<T> implements CloseableIterator<T> {
 	Iterator<T> itr = null;
 	boolean aborted = false;
 	T cachedNext = null;
-	public ObjectFilterIterator(CloseableIterator<T> itr, 
+	public ObjectFilterIterator(Iterator<T> itr, 
 			ObjectFilter<T> filter) {
 		this.itr = itr;
 		this.filter = filter;
