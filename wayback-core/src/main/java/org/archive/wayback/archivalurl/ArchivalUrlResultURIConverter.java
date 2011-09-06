@@ -21,6 +21,8 @@ package org.archive.wayback.archivalurl;
 
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.util.url.UrlOperations;
+import org.archive.wayback.webapp.AccessPoint;
+import org.archive.wayback.webapp.AccessPointAware;
 
 /**
  *
@@ -28,7 +30,8 @@ import org.archive.wayback.util.url.UrlOperations;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class ArchivalUrlResultURIConverter implements ResultURIConverter {
+public class ArchivalUrlResultURIConverter implements ResultURIConverter, 
+	AccessPointAware {
 	/**
 	 * configuration name for URL prefix of replay server
 	 */
@@ -70,5 +73,11 @@ public class ArchivalUrlResultURIConverter implements ResultURIConverter {
 	 */
 	public String getReplayURIPrefix() {
 		return replayURIPrefix;
+	}
+
+	public void setAccessPoint(AccessPoint accessPoint) {
+		if(replayURIPrefix == null) {
+			replayURIPrefix = accessPoint.getReplayPrefix();
+		}
 	}
 }
