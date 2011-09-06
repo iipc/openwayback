@@ -22,11 +22,14 @@ package org.archive.wayback.resourcestore.locationdb;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.logging.Logger;
 
 import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.flatfile.FlatFile;
 
 public class FlatFileResourceFileLocationDB implements ResourceFileLocationDB  {
+	private final static Logger LOGGER =
+		Logger.getLogger(FlatFileResourceFileLocationDB.class.getName());
 	private String path = null;
 	private FlatFile flatFile = null;
 	private String delimiter = "\t";
@@ -61,6 +64,9 @@ public class FlatFileResourceFileLocationDB implements ResourceFileLocationDB  {
 		if(itr instanceof CloseableIterator) {
 			CloseableIterator<String> citr = (CloseableIterator<String>) itr;
 			citr.close();
+		}
+		if(urls.size() == 0) {
+			LOGGER.warning("No locations for " + name + " in " + path);
 		}
 		String[] a = new String[urls.size()];
 		for(int i=0; i < urls.size(); i++) {
