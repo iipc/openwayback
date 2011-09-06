@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.net.URL;
+import java.util.logging.Logger;
 
 import org.archive.io.ArchiveReader;
 import org.archive.io.ArchiveRecord;
@@ -46,14 +47,25 @@ import org.archive.wayback.webapp.PerformanceLogger;
  * @version $Date$, $Revision$
  */
 public class ResourceFactory {
+	private static final Logger LOGGER = 
+		Logger.getLogger(ResourceFactory.class.getName());
 
 	public static Resource getResource(String urlOrPath, long offset)
 	throws IOException, ResourceNotAvailableException {
-		if(urlOrPath.startsWith("http://")) {
-			return getResource(new URL(urlOrPath), offset);
-		} else {
-			// assume local path:
-			return getResource(new File(urlOrPath), offset);
+		LOGGER.info("Fetching: " + urlOrPath + " : " + offset);
+		try {
+			if(urlOrPath.startsWith("http://")) {
+				return getResource(new URL(urlOrPath), offset);
+			} else {
+				// assume local path:
+				return getResource(new File(urlOrPath), offset);
+			}
+		} catch(ResourceNotAvailableException e) {
+			LOGGER.warning("ResourceNotAvailable for " + urlOrPath + " " + e.getMessage());
+			throw e;
+		} catch(IOException e) {
+			LOGGER.warning("ResourceNotAvailable for " + urlOrPath + " " + e.getMessage());
+			throw e;
 		}
 	}
 
