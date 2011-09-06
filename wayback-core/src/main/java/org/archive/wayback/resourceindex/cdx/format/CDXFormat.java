@@ -133,7 +133,7 @@ public class CDXFormat {
 		delimiterS = new String(""+delimiter);
 	}
 	
-	private CDXField getField(char fieldChar) throws CDXFormatException {
+	protected CDXField getField(char fieldChar) throws CDXFormatException {
 		CDXField field = null;
 		switch (fieldChar) {
 			case 'A':  field = new URLKeyCDXField(); break;
