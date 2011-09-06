@@ -54,12 +54,14 @@ public class ArchivalUrlFormRequestParser extends FormRequestParser {
 				accessPoint.translateRequestPathQuery(httpRequest);
 			ArchivalUrl aUrl = new ArchivalUrl(wbRequest);
 			String bestPath = aUrl.toString();
-			if(!bestPath.equals(requestPath)) {
-				String betterURI = (wbRequest.isReplayRequest() ? 
-						accessPoint.getReplayPrefix() : 
-							accessPoint.getQueryPrefix()) 
-						+ bestPath;
-				throw new BetterRequestException(betterURI);
+			if(accessPoint.isForceCleanQueries()) {
+				if(!bestPath.equals(requestPath)) {
+					String betterURI = (wbRequest.isReplayRequest() ? 
+							accessPoint.getReplayPrefix() : 
+								accessPoint.getQueryPrefix()) 
+							+ bestPath;
+					throw new BetterRequestException(betterURI);
+				}
 			}
 		}
 		return wbRequest;
