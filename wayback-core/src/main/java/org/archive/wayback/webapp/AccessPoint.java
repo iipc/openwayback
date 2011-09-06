@@ -102,6 +102,7 @@ implements ShutdownListener {
 	private boolean serveStatic = true;
 	private boolean bounceToReplayPrefix = false;
 	private boolean bounceToQueryPrefix = false;
+	private boolean forceCleanQueries = false;
 
 	private String liveWebPrefix = null;
 	private String staticPrefix = null;
@@ -130,7 +131,13 @@ implements ShutdownListener {
 	private ExclusionFilterFactory exclusionFactory = null;
 	private BooleanOperator<WaybackRequest> authentication = null;
 	private long embargoMS = 0;
+	private CustomResultFilterFactory filterFactory = null;
 
+	public void init() {
+		checkAccessPointAware(collection,exception,query,parser,replay,
+				uriConverter,exclusionFactory, authentication, filterFactory);
+	}
+	
 	protected boolean dispatchLocal(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse) 
 	throws ServletException, IOException {
@@ -284,6 +291,17 @@ implements ShutdownListener {
 		}
 	}
 
+	protected void checkAccessPointAware(Object...os) {
+		if(os != null) {
+			for(Object o : os) {
+				if(o instanceof AccessPointAware) {
+					AccessPointAware apa = (AccessPointAware) o;
+					apa.setAccessPoint(this);
+				}
+			}
+		}
+	}
+	
 	private void checkInterstitialRedirect(HttpServletRequest httpRequest,
 			WaybackRequest wbRequest) 
 	throws BetterRequestException {
@@ -323,7 +341,7 @@ implements ShutdownListener {
 		}
 	}
 	
-	private void handleReplay(WaybackRequest wbRequest, 
+	protected void handleReplay(WaybackRequest wbRequest, 
 			HttpServletRequest httpRequest, HttpServletResponse httpResponse) 
 	throws IOException, ServletException, WaybackException {
 		Resource resource = null;
@@ -399,7 +417,7 @@ implements ShutdownListener {
 		}
 	}
 	
-	private void handleQuery(WaybackRequest wbRequest, 
+	protected void handleQuery(WaybackRequest wbRequest, 
 			HttpServletRequest httpRequest, HttpServletResponse httpResponse) 
 	throws ServletException, IOException, WaybackException {
 
@@ -908,5 +926,33 @@ implements ShutdownListener {
 	 */
 	public void setEmbargoMS(long ms) {
 		this.embargoMS = ms;
+	}
+
+	/**
+	 * @return the forceCleanQueries
+	 */
+	public boolean isForceCleanQueries() {
+		return forceCleanQueries;
+	}
+
+	/**
+	 * @param forceCleanQueries the forceCleanQueries to set
+	 */
+	public void setForceCleanQueries(boolean forceCleanQueries) {
+		this.forceCleanQueries = forceCleanQueries;
+	}
+
+	/**
+	 * @param filterFactory the filterFactory to set
+	 */
+	public void setFilterFactory(CustomResultFilterFactory filterFactory) {
+		this.filterFactory = filterFactory;
+	}
+
+	/**
+	 * @return the filterFactory
+	 */
+	public CustomResultFilterFactory getFilterFactory() {
+		return filterFactory;
 	}
 }
