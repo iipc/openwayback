@@ -43,6 +43,14 @@ import org.archive.wayback.replay.charset.CharsetDetector;
 public abstract class ReplayRendererDecorator implements ReplayRenderer {
 
 	protected ReplayRenderer decorated = null;
+	public ReplayRendererDecorator() {
+	}
+	/**
+	 * @param httpHeaderProcessor
+	 */
+	public ReplayRendererDecorator(ReplayRenderer decorated) {
+		this.decorated = decorated;
+	}
 	/**
 	 * @return the decorated
 	 */
@@ -53,14 +61,6 @@ public abstract class ReplayRendererDecorator implements ReplayRenderer {
 	 * @param decorated the decorated to set
 	 */
 	public void setDecorated(ReplayRenderer decorated) {
-		this.decorated = decorated;
-	}
-	public ReplayRendererDecorator() {
-	}
-	/**
-	 * @param httpHeaderProcessor
-	 */
-	public ReplayRendererDecorator(ReplayRenderer decorated) {
 		this.decorated = decorated;
 	}
 
