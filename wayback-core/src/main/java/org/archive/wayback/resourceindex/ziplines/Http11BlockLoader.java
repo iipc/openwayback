@@ -61,7 +61,7 @@ public class Http11BlockLoader implements BlockLoader {
 		try {
 			method = new GetMethod(url);
 		} catch(IllegalArgumentException e) {
-			LOGGER.warning("Bad URL for live web fetch:" + url);
+			LOGGER.warning("Bad URL for block fetch:" + url);
 			throw new IOException("Url:" + url + " does not look like an URL?");
 		}
 		StringBuilder sb = new StringBuilder(16);
