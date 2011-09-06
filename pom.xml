@@ -99,7 +99,7 @@
       <snapshots>
         <enabled>true</enabled>
         <updatePolicy>daily</updatePolicy>
-        <checksumPolicy>fail</checksumPolicy>
+        <checksumPolicy>warn</checksumPolicy>
       </snapshots>
     </repository>
   </repositories>
@@ -120,7 +120,7 @@
       <snapshots>
         <enabled>true</enabled>
         <updatePolicy>never</updatePolicy>
-        <checksumPolicy>fail</checksumPolicy>
+        <checksumPolicy>warn</checksumPolicy>
       </snapshots>
     </pluginRepository>
   </pluginRepositories>
