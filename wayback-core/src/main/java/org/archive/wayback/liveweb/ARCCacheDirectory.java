@@ -133,7 +133,7 @@ public class ARCCacheDirectory {
 	private WriterPoolSettings getSettings(final boolean isCompressed,
 			final String prefix, final File[] arcDirs) {
 		return new WriterPoolSettings() {
-			public List<File> getOutputDirs() {
+			public List<File> calcOutputDirs() {
 				return Arrays.asList(arcDirs);
 			}
 
@@ -167,6 +167,11 @@ public class ARCCacheDirectory {
 			public int getWriteBufferSize() {
 				return 4096;
 			}
+
+//			public List<File> calcOutputDirs() {
+//				// TODO Auto-generated method stub
+//				return null;
+//			}
 		};
 	}
 

@@ -126,7 +126,7 @@ public class ARCCreator {
 	private WriterPoolSettings getSettings(final boolean isCompressed,
 			final String prefix, final List<File> arcDirs) {
 		return new WriterPoolSettings() {
-			public List<File> getOutputDirs() {
+			public List<File> calcOutputDirs() {
 				return arcDirs;
 			}
 

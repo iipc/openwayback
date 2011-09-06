@@ -62,7 +62,7 @@ public class WARCHeader {
 	private WARCWriterPoolSettings getSettings(final boolean isCompressed,
 			final String prefix, final List<File> arcDirs, final List metadata) {
 		return new WARCWriterPoolSettings() {
-			public List<File> getOutputDirs() {
+			public List<File> calcOutputDirs() {
 				return arcDirs;
 			}
 
