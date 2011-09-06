@@ -39,10 +39,10 @@ public class ZiplinedBlock {
 			ZiplinedBlock.class.getName());
 
 	BlockLoader loader = null;
-	String urlOrPath = null;
+	String urlOrPaths[] = null;
 	long offset = -1;
-	int count = 0;
 	public final static int BLOCK_SIZE = 128 * 1024;
+	int count = BLOCK_SIZE;
 	public final static String RANGE_HEADER = "Range";
 	public final static String BYTES_HEADER = "bytes=";
 	public final static String BYTES_MINUS = "-";
@@ -50,16 +50,16 @@ public class ZiplinedBlock {
 	 * @param urlOrPath URL where this file can be downloaded
 	 * @param offset start of 128K block boundary.
 	 */
-	public ZiplinedBlock(String urlOrPath, long offset) {
-		this(urlOrPath,offset,0);
+	public ZiplinedBlock(String urlOrPaths[], long offset) {
+		this(urlOrPaths,offset,BLOCK_SIZE);
 	}
 	/**
 	 * @param urlOrPath URL where this file can be downloaded
 	 * @param offset start of 128K block boundary.
 	 * @param count number of records in this block
 	 */
-	public ZiplinedBlock(String urlOrPath, long offset, int count) {
-		this.urlOrPath = urlOrPath;
+	public ZiplinedBlock(String urlOrPaths[], long offset, int count) {
+		this.urlOrPaths = urlOrPaths;
 		this.offset = offset;
 		this.count = count;
 	}
@@ -79,9 +79,24 @@ public class ZiplinedBlock {
 		}
 		return readBlockInefficiently();
 	}
+	private byte[] attemptBlockLoad(BlockLoader remote) {
+		for(String urlOrPath : urlOrPaths) {
+			try {
+				return remote.getBlock(urlOrPath, offset, count);
+			} catch (IOException e) {
+				LOGGER.warning(String.format("FAILED to load(%s) (%d:%d)",
+						urlOrPath,offset,count));
+			}
+		}
+		return null;
+	}
+	
 	private BufferedReader readBlockEfficiently(BlockLoader remote)
 	throws IOException {
-		byte bytes[] = remote.getBlock(urlOrPath, offset, BLOCK_SIZE);
+		byte bytes[] = attemptBlockLoad(remote);
+		if(bytes == null) {
+			throw new IOException("Unable to load block!");
+		}
 		return new BufferedReader(new InputStreamReader(
 				new GZIPInputStream(new ByteArrayInputStream(bytes)),
 				ByteOp.UTF8));
@@ -89,10 +104,10 @@ public class ZiplinedBlock {
 	private BufferedReader readBlockInefficiently() throws IOException {
 		StringBuilder sb = new StringBuilder(16);
 		sb.append(BYTES_HEADER).append(offset).append(BYTES_MINUS);
-		sb.append((offset + BLOCK_SIZE)-1);
-		LOGGER.fine("Reading block:" + urlOrPath + "("+sb.toString()+")");
+		sb.append((offset + count)-1);
+		LOGGER.fine("Reading block:" + urlOrPaths[0] + "("+sb.toString()+")");
 		// TODO: timeouts
-		URL u = new URL(urlOrPath);
+		URL u = new URL(urlOrPaths[0]);
 		URLConnection uc = u.openConnection();
 		uc.setRequestProperty(RANGE_HEADER, sb.toString());
 		return new BufferedReader(new InputStreamReader(
