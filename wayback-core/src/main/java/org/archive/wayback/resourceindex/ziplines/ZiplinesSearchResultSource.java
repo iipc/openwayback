@@ -32,6 +32,7 @@ import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
 import org.archive.wayback.resourceindex.SearchResultSource;
 import org.archive.wayback.resourceindex.cdx.CDXFormatToSearchResultAdapter;
+import org.archive.wayback.resourceindex.cdx.format.CDXFlexFormat;
 import org.archive.wayback.resourceindex.cdx.format.CDXFormat;
 import org.archive.wayback.resourceindex.cdx.format.CDXFormatException;
 import org.archive.wayback.util.AdaptedIterator;
@@ -76,7 +77,7 @@ public class ZiplinesSearchResultSource implements SearchResultSource {
 	 * Local path containing URL for each CHUNK
 	 */
 	private String chunkMapPath = null;
-	private HashMap<String,String> chunkMap = null;
+	private HashMap<String,BlockLocation> chunkMap = null;
 	private CDXFormat format = null;
 	private int maxBlocks = 1000;
 	private BlockLoader blockLoader = null;
@@ -87,19 +88,25 @@ public class ZiplinesSearchResultSource implements SearchResultSource {
 		this.format = format;
 	}
 	public void init() throws IOException {
-		chunkMap = new HashMap<String, String>();
+		chunkMap = new HashMap<String, BlockLocation>();
 		FlatFile ff = new FlatFile(chunkMapPath);
 		CloseableIterator<String> lines = ff.getSequentialIterator();
 		while(lines.hasNext()) {
 			String line = lines.next();
 			String[] parts = line.split("\\s");
-			if(parts.length != 2) {
+			if(parts.length < 2) {
 				LOGGER.severe("Bad line(" + line +") in (" + 
 						chunkMapPath + ")");
 				throw new IOException("Bad line(" + line +") in (" + 
 						chunkMapPath + ")");
 			}
-			chunkMap.put(parts[0],parts[1]);
+			
+			String locations[] = new String[parts.length - 1];
+			for(int i = 1; i < parts.length; i++) {
+				locations[i-1] = parts[i];
+			}
+			BlockLocation bl = new BlockLocation(parts[0], locations);
+			chunkMap.put(parts[0],bl);
 		}
 		lines.close();
 		chunkIndex = new FlatFile(chunkIndexPath);
@@ -141,13 +148,14 @@ public class ZiplinesSearchResultSource implements SearchResultSource {
 			itr = chunkIndex.getRecordIteratorLT(prefix);
 			while(itr.hasNext()) {
 				if(numBlocks >= maxBlocks) {
+					LOGGER.warning("Truncated by blocks for " + prefix);
 					truncated = true;
 					break;
 				}
 				String blockDescriptor = itr.next();
 				numBlocks++;
 				String parts[] = blockDescriptor.split("\t");
-				if(parts.length != 3) {
+				if((parts.length < 3) || (parts.length > 4)) {
 					LOGGER.severe("Bad line(" + blockDescriptor +") in (" + 
 							chunkMapPath + ")");
 					throw new ResourceIndexNotAvailableException("Bad line(" + 
@@ -164,10 +172,22 @@ public class ZiplinesSearchResultSource implements SearchResultSource {
 					break;
 				}
 				// add this and keep lookin...
-				String url = chunkMap.get(parts[1]);
+				BlockLocation bl = chunkMap.get(parts[1]);
+				if(bl == null) {
+					LOGGER.severe("No locations for block(" + parts[1] +")");
+					throw new ResourceIndexNotAvailableException(
+							"No locations for block(" + parts[1] + ")");
+				}
 				long offset = Long.parseLong(parts[2]);
-				LOGGER.info("Adding block source(" + parts[1] + "):" + offset);
-				ZiplinedBlock block = new ZiplinedBlock(url, offset);
+				ZiplinedBlock block;
+				if(parts.length == 3) {
+					LOGGER.info("Adding block source(" + parts[1] + "):" + offset);
+					block = new ZiplinedBlock(bl.getLocations(), offset);
+				} else {
+					int length = Integer.parseInt(parts[3]);
+					LOGGER.info("Adding block source(" + parts[1] + "):" + offset + " - " + length);
+					block = new ZiplinedBlock(bl.getLocations(), offset, length);
+				}
 				block.setLoader(blockLoader);
 				blocks.add(block);
 			}
@@ -308,6 +328,13 @@ public class ZiplinesSearchResultSource implements SearchResultSource {
 					e1.printStackTrace();
 					System.exit(1);
 				}
+			} else if(args[idx].equals("-flexFormat")) {
+				try {
+					zl.setFormat(new CDXFlexFormat(" CDX A"));
+				} catch (CDXFormatException e1) {
+					e1.printStackTrace();
+					System.exit(1);
+				}
 			} else if(args[idx].equals("-blockDump")) {
 				blockDump = true;
 			} else if(args[idx].equals("-hdfs")) {
@@ -366,7 +393,7 @@ public class ZiplinesSearchResultSource implements SearchResultSource {
 				
 				ArrayList<ZiplinedBlock> blocks = zl.getBlockListForPrefix(key);
 				for(ZiplinedBlock block : blocks) {
-					pw.format("%s\t%s\n", block.urlOrPath, block.offset);
+					pw.format("%s\t%s\n", block.urlOrPaths[0], block.offset);
 				}
 				pw.close();
 
