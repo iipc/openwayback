@@ -41,6 +41,7 @@ public class LocalFileBlockLoader implements BlockLoader {
 		}
 		byte b[] = new byte[length];
 		raf.readFully(b);
+		raf.close();
 		return b;
 	}
 
