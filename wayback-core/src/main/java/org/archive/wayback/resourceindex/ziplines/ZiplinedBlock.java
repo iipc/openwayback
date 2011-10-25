@@ -28,6 +28,7 @@ import java.net.URLConnection;
 import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
 
+import org.archive.util.zip.OpenJDK7GZIPInputStream;
 import org.archive.wayback.util.ByteOp;
 
 /**
@@ -98,8 +99,11 @@ public class ZiplinedBlock {
 			throw new IOException("Unable to load block!");
 		}
 		return new BufferedReader(new InputStreamReader(
-				new GZIPInputStream(new ByteArrayInputStream(bytes)),
+				new OpenJDK7GZIPInputStream(new ByteArrayInputStream(bytes)),
 				ByteOp.UTF8));
+//		return new BufferedReader(new InputStreamReader(
+//				new GZIPInputStream(new ByteArrayInputStream(bytes)),
+//				ByteOp.UTF8));
 	}
 	private BufferedReader readBlockInefficiently() throws IOException {
 		StringBuilder sb = new StringBuilder(16);
