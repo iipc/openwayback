@@ -53,7 +53,11 @@ public class HDFSBlockLoader implements BlockLoader {
 		Path path = new Path(url);
 		FSDataInputStream s = fs.open(path);
 		byte buffer[] = new byte[length];
-		s.readFully(offset, buffer);
+		try {
+			s.readFully(offset, buffer);
+		} finally {
+			s.close();
+		}
 		return buffer;
 	}
 
