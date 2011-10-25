@@ -51,16 +51,19 @@ public class FileRegion {
 		int BUFF_SIZE = 4096;
 		byte buf[] = new byte[BUFF_SIZE];
 		RandomAccessFile raf = new RandomAccessFile(file, "r");
-		raf.seek(start);
-		while(left > 0) {
-			int amtToRead = (int) Math.min(left, BUFF_SIZE);
-			int amtRead = raf.read(buf, 0, amtToRead);
-			if(amtRead < 0) {
-				throw new IOException("Not enough to read! EOF before expected region end");
+		try {
+			raf.seek(start);
+			while(left > 0) {
+				int amtToRead = (int) Math.min(left, BUFF_SIZE);
+				int amtRead = raf.read(buf, 0, amtToRead);
+				if(amtRead < 0) {
+					throw new IOException("Not enough to read! EOF before expected region end");
+				}
+				o.write(buf,0,amtRead);
+				left -= amtRead;
 			}
-			o.write(buf,0,amtRead);
-			left -= amtRead;
+		} finally {
+			raf.close();
 		}
-		raf.close();
 	}
 }
