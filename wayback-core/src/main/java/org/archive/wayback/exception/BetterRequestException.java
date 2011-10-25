@@ -19,6 +19,9 @@
  */
 package org.archive.wayback.exception;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.servlet.http.HttpServletResponse;
 
 /**
@@ -40,6 +43,7 @@ public class BetterRequestException extends WaybackException {
 	protected static final String ID = "betterRequest";
 	private String betterURI;
 	private int status = HttpServletResponse.SC_FOUND;
+	Map<String,String> extraHeaders;
 
 
 	/**
@@ -53,6 +57,7 @@ public class BetterRequestException extends WaybackException {
 		this.betterURI = betterURI;
 		this.status = status;
 		id = ID;
+		extraHeaders = new HashMap<String,String>();
 	}
 	/**
 	 * Constructor
@@ -63,8 +68,12 @@ public class BetterRequestException extends WaybackException {
 		super("Better URI for query");
 		this.betterURI = betterURI;
 		id = ID;
+		extraHeaders = new HashMap<String,String>();
 	}
 
+	public void addHeader(String name, String value) {
+		extraHeaders.put(name, value);
+	}
 	/**
 	 * @return Returns the betterURI.
 	 */
@@ -73,6 +82,16 @@ public class BetterRequestException extends WaybackException {
 	}
 	public int getStatus() {
 		return status;
+	}
+	
+	public void generateResponse(HttpServletResponse response) {
+		response.setStatus(status);
+		response.setHeader("Location", betterURI);
+		if(extraHeaders.size() > 0) {
+			for (Map.Entry<String,String> entry : extraHeaders.entrySet()) {
+				response.setHeader(entry.getKey(), entry.getValue());
+			}
+		}
 	}
 	
 }
