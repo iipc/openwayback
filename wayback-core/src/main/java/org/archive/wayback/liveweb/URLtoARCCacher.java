@@ -26,6 +26,7 @@ import java.io.InputStream;
 import java.net.ConnectException;
 import java.net.NoRouteToHostException;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.Date;
 import java.util.logging.Logger;
@@ -43,6 +44,7 @@ import org.apache.commons.httpclient.SimpleHttpConnectionManager;
 import org.apache.commons.httpclient.URIException;
 import org.apache.commons.httpclient.cookie.CookiePolicy;
 import org.apache.commons.httpclient.params.HttpClientParams;
+import org.apache.commons.httpclient.protocol.Protocol;
 import org.apache.commons.io.IOUtils;
 import org.archive.httpclient.HttpRecorderGetMethod;
 import org.archive.io.RecordingInputStream;
@@ -90,6 +92,9 @@ public class URLtoARCCacher {
 			HttpClientParams params = new HttpClientParams();
             params.setParameter(HttpClientParams.RETRY_HANDLER, noRetryHandler);
     		IPHttpConnectionManager manager = new IPHttpConnectionManager();
+    		Protocol dnsTimedProtocol = new Protocol("http",
+    				new DNSTimingProtocolSocketFactory(), 80);
+    		Protocol.registerProtocol("http", dnsTimedProtocol);
     		manager.getParams().setConnectionTimeout(connectionTimeoutMS);
     		manager.getParams().setSoTimeout(socketTimeoutMS);
     		return new HttpClient(params, manager);
@@ -102,8 +107,12 @@ public class URLtoARCCacher {
 	
 	
 	private static byte[] ERROR_BYTES = "HTTP 502 Bad Gateway\n\n".getBytes();
-	private static String ERROR_MIME  = "unk";
+	private static String ERROR_MIME  = "unk";	
 	private static String ERROR_IP    = "0.0.0.0";
+
+	private static byte[] TIMEOUT_BYTES = "HTTP 504 Gateway Timeout\n\n".getBytes();
+	private static String TIMEOUT_MIME  = "unk";
+	private static String TIMEOUT_IP    = "0.0.0.0";
 
 	/**
 	 * @param url to cache
@@ -119,6 +128,7 @@ public class URLtoARCCacher {
 
 		// to track if we got a response (any response) or an exception.
 		boolean gotUrl = false;
+		boolean isTimeout = false;
 		String fName = backingFileBase + "-" + Thread.currentThread().getId();
 		Recorder recorder = new Recorder(recorderCacheDir,fName,
 				outBufferSize, inBufferSize);
@@ -152,16 +162,21 @@ public class URLtoARCCacher {
 			e.printStackTrace();
 		} catch (UnknownHostException e) {
 			LOGGER.warning("Unknown host for " + url);
-//		} catch (ConnectTimeoutException e) {
-//			// TODO: should we act like it's a full block?
-//			LOGGER.warning("Timeout out connecting to " + url);
+
+		} catch (ConnectTimeoutException e) {
+			// TODO: should we act like it's a full block?
+			LOGGER.warning("Timeout out connecting to " + url);
+			isTimeout = true;
+		} catch(SocketTimeoutException e) {
+			LOGGER.warning("Timeout out socket for " + url);
+			isTimeout = true;
 		} catch (ConnectException e) {
 			LOGGER.warning("ConnectionRefused to " + url);
 		} catch (NoRouteToHostException e) {
 			LOGGER.warning("NoRouteToHost for " + url);
 		} catch (SocketException e) {
 			// should only be things like "Connection Reset", etc..
-			LOGGER.warning("SocketException for " + url);			
+			LOGGER.warning("SocketException for " + url);		
 		} catch (HttpException e) {
 			e.printStackTrace();
 			// we have to let IOExceptions out, problems caused by local disk
@@ -190,7 +205,8 @@ public class URLtoARCCacher {
 						getMethod.getMime(), getMethod.getRemoteIP(),
 						getMethod.getCaptureDate(), 
 						replayIS, (int) ris.getSize());
-	
+			} else if(isTimeout) {
+				region = storeTimeout(writer,url);
 			} else {
 				region = storeNotAvailable(writer, url);
 			}
@@ -240,6 +256,16 @@ public class URLtoARCCacher {
 		return fr;
 	}
 	
+	private FileRegion storeTimeout(ARCWriter writer, String url) 
+		throws IOException {
+	
+		ByteArrayInputStream bais = new ByteArrayInputStream(TIMEOUT_BYTES);
+		FileRegion fr = storeInputStreamARCRecord(writer, url,
+				TIMEOUT_MIME, TIMEOUT_IP, new Date(), bais, TIMEOUT_BYTES.length);
+		fr.isFake = true;
+		return fr;
+	}
+
 	/*
 	 * Get method which ferrets away the Content-Type header, the remote IP
 	 * and remembers when the HTTP Message header was received.
