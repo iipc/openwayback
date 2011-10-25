@@ -19,6 +19,8 @@
  */
 package org.archive.wayback.archivalurl;
 
+import java.util.logging.Logger;
+
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.util.url.UrlOperations;
 import org.archive.wayback.webapp.AccessPoint;
@@ -32,6 +34,9 @@ import org.archive.wayback.webapp.AccessPointAware;
  */
 public class ArchivalUrlResultURIConverter implements ResultURIConverter, 
 	AccessPointAware {
+	private static final Logger LOGGER =
+		Logger.getLogger(ArchivalUrlResultURIConverter.class.getName());
+	
 	/**
 	 * configuration name for URL prefix of replay server
 	 */
@@ -77,7 +82,12 @@ public class ArchivalUrlResultURIConverter implements ResultURIConverter,
 
 	public void setAccessPoint(AccessPoint accessPoint) {
 		if(replayURIPrefix == null) {
-			replayURIPrefix = accessPoint.getReplayPrefix();
+			String apReplayPrefix = accessPoint.getReplayPrefix(); 
+			LOGGER.warning("No replayURIPrefix configured - using accessPoint:"
+					+ apReplayPrefix);
+			replayURIPrefix = apReplayPrefix;
+		} else {
+			LOGGER.info("replayURIPrefix is configured: " + replayURIPrefix);
 		}
 	}
 }
