@@ -36,33 +36,50 @@ import org.archive.wayback.util.CloseableIterator;
 public class CDXFormatIndex extends CDXIndex {
 	public final static String CDX_HEADER_MAGIC = " CDX N b a m s k r M V g";
 
-	private CDXFormat cdx = null;
+	private CDXFormat format = null;
 	private long lastMod = -1;
 	
 	protected CloseableIterator<CaptureSearchResult> adaptIterator(Iterator<String> itr) 
 	throws IOException {
 		
 		long nowMod = file.lastModified();
-		if(nowMod > lastMod) {
-			try {
-				// BUGBUG: I don't think java will let us do much better than
-				// this... No way to stat() a filehandle, right?
-				FileInputStream fis = new FileInputStream(file);
-				InputStreamReader isr = new InputStreamReader(fis,ByteOp.UTF8);
-				BufferedReader fr = new BufferedReader(isr);
-				cdx = new CDXFormat(fr.readLine());
-				lastMod = nowMod;
-				fr.close();
-			} catch (CDXFormatException e) {
-				lastMod = -1;
+		CDXFormat cdx = format;
+		if(cdx == null) {
+			if(nowMod > lastMod) {
 				try {
-					cdx = new CDXFormat(CDX_HEADER_MAGIC);
-				} catch (CDXFormatException e1) {
-					throw new IOException(e1.getMessage());
+					// BUGBUG: I don't think java will let us do much better than
+					// this... No way to stat() a filehandle, right?
+					FileInputStream fis = new FileInputStream(file);
+					InputStreamReader isr = new InputStreamReader(fis,ByteOp.UTF8);
+					BufferedReader fr = new BufferedReader(isr);
+					cdx = new CDXFormat(fr.readLine());
+					lastMod = nowMod;
+					fr.close();
+				} catch (CDXFormatException e) {
+					lastMod = -1;
+					try {
+						cdx = new CDXFormat(CDX_HEADER_MAGIC);
+					} catch (CDXFormatException e1) {
+						throw new IOException(e1.getMessage());
+					}
 				}
 			}
 		}
 		return new AdaptedIterator<String,CaptureSearchResult>(itr,
 				new CDXFormatToSearchResultAdapter(cdx));
+	}
+
+	/**
+	 * @return the format
+	 */
+	public CDXFormat getFormat() {
+		return format;
+	}
+
+	/**
+	 * @param format the format to set
+	 */
+	public void setFormat(CDXFormat format) {
+		this.format = format;
 	}
 }
