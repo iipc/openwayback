@@ -87,6 +87,7 @@ public class RemoteLiveWebCache implements LiveWebCache {
 	    try {
 	    	int status = http.executeMethod(method);
 	    	if(status == 200) {
+
 	    		ByteArrayInputStream bais = new ByteArrayInputStream(method.getResponseBody());
 	    		ARCRecord r = new ARCRecord(
 	    				new GZIPInputStream(bais),
@@ -95,6 +96,8 @@ public class RemoteLiveWebCache implements LiveWebCache {
 	    			ResourceFactory.ARCArchiveRecordToResource(r, null);
 	    		if(ar.getStatusCode() == 502) {
 	    			throw new LiveDocumentNotAvailableException(urlString);
+	    		} else if(ar.getStatusCode() == 504) {
+	    			throw new LiveWebTimeoutException("Timeout:" + urlString);
 	    		}
 	    		return ar;
 	    		
