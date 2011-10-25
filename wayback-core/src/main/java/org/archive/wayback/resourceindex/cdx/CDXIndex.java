@@ -28,8 +28,8 @@ import org.archive.wayback.exception.ResourceIndexNotAvailableException;
 import org.archive.wayback.resourceindex.SearchResultSource;
 import org.archive.wayback.util.AdaptedIterator;
 import org.archive.wayback.util.CloseableIterator;
-import org.archive.wayback.util.CompositeSortedIterator;
 import org.archive.wayback.util.flatfile.FlatFile;
+import org.archive.wayback.util.iterator.SortedCompositeIterator;
 
 /**
  * 
@@ -96,10 +96,10 @@ public class CDXIndex extends FlatFile implements SearchResultSource {
 		Iterator<CaptureSearchResult> forwardItr = adaptIterator(getRecordIterator(prefix));
 		Iterator<CaptureSearchResult> reverseItr = adaptIterator(getReverseRecordIterator(prefix));
 		Comparator<CaptureSearchResult> comparator = new CaptureSRComparator(wantDate);
-		CompositeSortedIterator<CaptureSearchResult> itr = 
-			new CompositeSortedIterator<CaptureSearchResult>(comparator);
-		itr.addComponent(forwardItr);
-		itr.addComponent(reverseItr);
+		SortedCompositeIterator<CaptureSearchResult> itr = 
+			new SortedCompositeIterator<CaptureSearchResult>(comparator);
+		itr.addIterator(forwardItr);
+		itr.addIterator(reverseItr);
 		return itr;
 	}
 
