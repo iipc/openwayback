@@ -254,10 +254,7 @@ implements ShutdownListener {
 			}
 
 		} catch(BetterRequestException e) {
-
-			httpResponse.setStatus(e.getStatus());
-			httpResponse.setHeader("Location", e.getBetterURI());
-//			httpResponse.sendRedirect(e.getBetterURI());
+			e.generateResponse(httpResponse);
 			handled = true;
 
 		} catch(WaybackException e) {
