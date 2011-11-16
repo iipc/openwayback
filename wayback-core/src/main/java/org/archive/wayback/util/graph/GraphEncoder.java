@@ -132,7 +132,7 @@ public class GraphEncoder {
 		return sb.toString();
 	}
 
-	private static String encodeHex(int values[]) {
+	public static String encodeHex(int values[]) {
 		StringBuilder sb = new StringBuilder(values.length);
 		for(int value : values) {
 			if((value > 15) || (value < 0)){
