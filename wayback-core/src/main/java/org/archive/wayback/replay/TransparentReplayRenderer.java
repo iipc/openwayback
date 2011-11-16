@@ -76,8 +76,16 @@ public class TransparentReplayRenderer implements ReplayRenderer {
 		// and copy the raw byte-stream.
 		OutputStream os = httpResponse.getOutputStream();
 		byte[] buffer = new byte[BUFFER_SIZE];
+		long total = 0;
 		for (int r = -1; (r = resource.read(buffer, 0, BUFFER_SIZE)) != -1;) {
 			os.write(buffer, 0, r);
+			total += r;
+		}
+		if(total == 0) {
+			if(headers.size() == 0) {
+				// totally empty response
+				httpResponse.setContentLength(0);
+			}
 		}
 	}
 }
