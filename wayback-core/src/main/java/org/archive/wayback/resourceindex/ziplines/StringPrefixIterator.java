@@ -25,6 +25,11 @@ import java.util.Iterator;
 import org.archive.wayback.util.CloseableIterator;
 
 /**
+ * Iterator<String> decorator, which assumes the decorated is in SORTED order.
+ * This iterator will discard all elements in the iterator LESS than prefix 
+ * constructor argument, return all elements STARTING with prefix, and stop
+ * iterating when a record is GREATER than prefix.
+ * 
  * @author brad
  *
  */
