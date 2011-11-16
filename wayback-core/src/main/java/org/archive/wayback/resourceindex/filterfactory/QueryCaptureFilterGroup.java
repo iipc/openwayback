@@ -31,6 +31,7 @@ import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.resourceindex.filters.DateRangeFilter;
+import org.archive.wayback.resourceindex.filters.EndDateFilter;
 import org.archive.wayback.resourceindex.filters.HostMatchFilter;
 import org.archive.wayback.resourceindex.filters.SchemeMatchFilter;
 import org.archive.wayback.resourceindex.filters.SelfRedirectFilter;
@@ -70,6 +71,15 @@ public class QueryCaptureFilterGroup implements CaptureFilterGroup {
 			throw new BadQueryException("Bad request URL(" + 
 					request.getRequestUrl() +")");
 		}
+		// Date-Filters:
+		startDate = request.getStartTimestamp();
+		if(startDate == null) {
+				startDate = Timestamp.earliestTimestamp().getDateStr();
+		}
+		endDate = request.getEndTimestamp();
+		if(endDate == null) {
+				endDate = Timestamp.latestTimestamp().getDateStr();
+		}
 		if(request.isReplayRequest()) {
 			exactDate = request.getReplayTimestamp();
 			if(exactDate == null) {
@@ -90,20 +100,17 @@ public class QueryCaptureFilterGroup implements CaptureFilterGroup {
 
 		} else if(request.isCaptureQueryRequest()) {
 			chain.addFilter(new UrlMatchFilter(keyUrl));
+			// OPTIMIZ: EndDateFilter is a hard stop: ABORT
+			//          DateRangeFilter is an INCLUDE/EXCLUDE
+			//          one class which EXCLUDEs before startDate, and ABORTs
+			//              after endDate would save a compare..
+			chain.addFilter(new EndDateFilter(endDate));
+			chain.addFilter(new DateRangeFilter(startDate, endDate));
 		} else if(request.isUrlQueryRequest()) {
 			chain.addFilter(new UrlPrefixMatchFilter(keyUrl));
+			chain.addFilter(new DateRangeFilter(startDate, endDate));
 		}
 
-		// Date-Filters:
-		startDate = request.getStartTimestamp();
-		if(startDate == null) {
-				startDate = Timestamp.earliestTimestamp().getDateStr();
-		}
-		endDate = request.getEndTimestamp();
-		if(endDate == null) {
-				endDate = Timestamp.latestTimestamp().getDateStr();
-		}
-		chain.addFilter(new DateRangeFilter(startDate, endDate));
 		
 		// Other Filters:
 		if(request.isExactHost()) {
