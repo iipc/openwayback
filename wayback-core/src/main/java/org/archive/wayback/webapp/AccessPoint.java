@@ -151,23 +151,29 @@ implements ShutdownListener {
 		String translatedNoQuery = "/" + translateRequestPath(httpRequest);
 //		String absPath = getServletContext().getRealPath(contextRelativePath);
 		String absPath = getServletContext().getRealPath(translatedNoQuery);
-		File test = new File(absPath);
-		if(test.exists()) {
-			
-			String translatedQ = "/" + translateRequestPathQuery(httpRequest);
-	
-			WaybackRequest wbRequest = new WaybackRequest();
-//			wbRequest.setContextPrefix(getUrlRoot());
-			wbRequest.setAccessPoint(this);
-			wbRequest.fixup(httpRequest);
-			UIResults uiResults = new UIResults(wbRequest,uriConverter);
-			try {
-				uiResults.forward(httpRequest, httpResponse, translatedQ);
-				return true;
-			} catch(IOException e) {
-				// TODO: figure out if we got IO because of a missing dispatcher
+		
+		//IK: added null check for absPath, it may be null (ex. on jetty)
+		if (absPath != null) {
+			File test = new File(absPath);
+			if((test != null) && !test.exists()) {
+				return false;
 			}
 		}
+				
+		String translatedQ = "/" + translateRequestPathQuery(httpRequest);
+
+		WaybackRequest wbRequest = new WaybackRequest();
+//			wbRequest.setContextPrefix(getUrlRoot());
+		wbRequest.setAccessPoint(this);
+		wbRequest.fixup(httpRequest);
+		UIResults uiResults = new UIResults(wbRequest,uriConverter);
+		try {
+			uiResults.forward(httpRequest, httpResponse, translatedQ);
+			return true;
+		} catch(IOException e) {
+			// TODO: figure out if we got IO because of a missing dispatcher
+		}
+
 		return false;
 	}
 
