@@ -41,6 +41,7 @@ import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.exception.RuntimeIOException;
 import org.archive.wayback.resourceindex.adapters.CaptureToUrlSearchResultIterator;
 import org.archive.wayback.resourceindex.filterfactory.AccessPointCaptureFilterGroupFactory;
+import org.archive.wayback.resourceindex.filterfactory.AnnotatingCaptureFilterGroupFactory;
 import org.archive.wayback.resourceindex.filterfactory.CaptureFilterGroup;
 import org.archive.wayback.resourceindex.filterfactory.ClosestTrackingCaptureFilterGroupFactory;
 import org.archive.wayback.resourceindex.filterfactory.CoreCaptureFilterGroupFactory;
@@ -117,9 +118,10 @@ public class LocalResourceIndex implements ResourceIndex {
 	public LocalResourceIndex() {
 		canonicalizer = new AggressiveUrlCanonicalizer();
 		fgFactories = new ArrayList<FilterGroupFactory>();
+		fgFactories.add(new CoreCaptureFilterGroupFactory());		
 		fgFactories.add(new QueryCaptureFilterGroupFactory());		
 		fgFactories.add(new AccessPointCaptureFilterGroupFactory());
-		fgFactories.add(new CoreCaptureFilterGroupFactory());
+		fgFactories.add(new AnnotatingCaptureFilterGroupFactory());
 		fgFactories.add(new ExclusionCaptureFilterGroupFactory());
 		fgFactories.add(new ClosestTrackingCaptureFilterGroupFactory());
 	}

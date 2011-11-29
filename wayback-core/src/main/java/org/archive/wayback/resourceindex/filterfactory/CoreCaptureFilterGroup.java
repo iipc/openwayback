@@ -24,12 +24,10 @@ import java.util.List;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.resourceindex.LocalResourceIndex;
-import org.archive.wayback.resourceindex.filters.ConditionalGetAnnotationFilter;
 import org.archive.wayback.resourceindex.filters.DuplicateRecordFilter;
 import org.archive.wayback.resourceindex.filters.GuardRailFilter;
 import org.archive.wayback.resourceindex.filters.MimeTypeFilter;
 import org.archive.wayback.resourceindex.filters.UserInfoInAuthorityFilter;
-import org.archive.wayback.resourceindex.filters.WARCRevisitAnnotationFilter;
 import org.archive.wayback.util.ObjectFilter;
 import org.archive.wayback.util.ObjectFilterChain;
 
@@ -42,10 +40,7 @@ public class CoreCaptureFilterGroup implements CaptureFilterGroup {
 		chain = new ObjectFilterChain<CaptureSearchResult>();
 		chain.addFilter(new GuardRailFilter(index.getMaxRecords()));
 		chain.addFilter(new DuplicateRecordFilter());
-		if(index.isDedupeRecords()) {
-			chain.addFilter(new WARCRevisitAnnotationFilter());
-			chain.addFilter(new ConditionalGetAnnotationFilter());
-		}
+
 		MimeTypeFilter mimeExcludeFilter = new MimeTypeFilter();
 		mimeExcludeFilter.addMime(ALEXA_DAT_MIME);
 		mimeExcludeFilter.setIncludeIfContains(false);

@@ -20,6 +20,7 @@
 package org.archive.wayback.resourceindex.filters;
 
 import java.util.HashMap;
+import java.util.logging.Logger;
 
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.util.ObjectFilter;
@@ -46,6 +47,9 @@ implements ObjectFilter<CaptureSearchResult> {
 	
 	private final static String EMPTY_VALUE = "-";
 	private final static String REVISIT_VALUE = "warc/revisit";
+	
+	private static final Logger LOGGER = Logger.getLogger(
+			WARCRevisitAnnotationFilter.class.getName());	
 
 	private HashMap<String,CaptureSearchResult> memory = null;
 
@@ -57,7 +61,7 @@ implements ObjectFilter<CaptureSearchResult> {
 		String thisDigest = o.getDigest();
 		CaptureSearchResult last = memory.get(thisDigest);
 		if(last == null) {
-			// TODO: log missing record digest reference?
+			LOGGER.warning("Missing revisit base warc for digest: " + o.getDigest() + " url: " + o.getOriginalUrl());
 			return FILTER_EXCLUDE;
 		}
 		o.setFile(last.getFile());
