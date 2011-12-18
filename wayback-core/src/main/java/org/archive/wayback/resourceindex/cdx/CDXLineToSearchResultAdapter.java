@@ -70,9 +70,12 @@ public class CDXLineToSearchResultAdapter implements Adapter<String,CaptureSearc
 		CaptureSearchResult result = new CaptureSearchResult();
 		String[] tokens = line.split(" ");
 		boolean hasRobotFlags = false;
+		boolean hasLengthFlag = false;
 		if (tokens.length != 9) {
+			hasRobotFlags = true;
 			if(tokens.length == 10) {
-				hasRobotFlags = true;
+			} else if(tokens.length == 11) {
+				hasLengthFlag = true;
 			} else {
 				return null;
 			}
@@ -100,10 +103,19 @@ public class CDXLineToSearchResultAdapter implements Adapter<String,CaptureSearc
 			result.setRobotFlags(tokens[nextToken]);
 			nextToken++;
 		}
+		String length = "-";
+		if(hasLengthFlag) {
+			length = tokens[nextToken];
+			nextToken++;
+		}
 
 		if(!tokens[nextToken].equals("-")) {
 			try {
 				compressedOffset = Long.parseLong(tokens[nextToken]);
+				if(!length.equals("-")) {
+					// try to set the endOffset:
+					result.setCompressedLength(Long.parseLong(length));
+				}
 			} catch (NumberFormatException e) {
 				LOGGER.warning("Bad compressed Offset field("+nextToken+") in (" +
 						line +")");
