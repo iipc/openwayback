@@ -32,7 +32,7 @@ import org.archive.wayback.util.url.UrlOperations;
 public class CaptureSearchResult extends SearchResult {
 	
 	private long cachedOffset = -1;
-	private long cachedEndOffset = -1;
+	private long cachedCompressedLength = -1;
 	private long cachedDate = -1;
 	
 	public static final String CAPTURE_ORIGINAL_URL = "url";
@@ -63,7 +63,7 @@ public class CaptureSearchResult extends SearchResult {
 	 * Result: compressed byte offset within ARC/WARC file where this document's
 	 * gzip envelope Ends.
 	 */
-	public static final String CAPTURE_END_OFFSET = "compressedendoffset";
+	public static final String CAPTURE_COMPRESSED_LENGTH = "compressedendoffset";
 	
 	/**
 	 * Result: best-guess at mime-type of this document.
@@ -215,16 +215,16 @@ public class CaptureSearchResult extends SearchResult {
 		cachedOffset = offset;
 		put(CAPTURE_OFFSET,String.valueOf(offset));
 	}
-	public long getEndOffset() {
-		if(cachedEndOffset == -1) {
-			String tmp = get(CAPTURE_END_OFFSET);
-			cachedEndOffset = tmp == null ? -1 : Long.parseLong(tmp);
+	public long getCompressedLength() {
+		if(cachedCompressedLength == -1) {
+			String tmp = get(CAPTURE_COMPRESSED_LENGTH);
+			cachedCompressedLength = tmp == null ? -1 : Long.parseLong(tmp);
 		}
-		return cachedEndOffset;
+		return cachedCompressedLength;
 	}
-	public void setEndOffset(long offset) {
-		cachedEndOffset = offset;
-		put(CAPTURE_END_OFFSET,String.valueOf(offset));
+	public void setCompressedLength(long offset) {
+		cachedCompressedLength = offset;
+		put(CAPTURE_COMPRESSED_LENGTH,String.valueOf(offset));
 	}
 	public String getMimeType() {
 		return get(CAPTURE_MIME_TYPE);
