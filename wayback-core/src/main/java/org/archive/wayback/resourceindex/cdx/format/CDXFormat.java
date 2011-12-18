@@ -147,8 +147,8 @@ public class CDXFormat {
     		case 'r':  field = new RedirectURLCDXField(); break;
     		case 'M':  field = new RobotFlagsCDXField(); break;
     		case 'V':  field = new StartOffsetCDXField(); break;
-    		// NOT IMPLEMENTED in ARC/WARCReaders...
-//    		case 'n':  field = new EndOffsetCDXField(); break;
+    		// Experimental..
+    		case 'S':  field = new CompressedLengthCDXField(); break;
     		case 'g':  field = new FilenameCDXField(); break;
 		}
 		if(field == null) {

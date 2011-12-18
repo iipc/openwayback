@@ -21,19 +21,19 @@ package org.archive.wayback.resourceindex.cdx.format;
 
 import org.archive.wayback.core.CaptureSearchResult;
 
-public class EndOffsetCDXField implements CDXField {
+public class CompressedLengthCDXField implements CDXField {
 
 	public void apply(String field, CaptureSearchResult result)
 	throws CDXFormatException {
 		try {
-			result.setEndOffset(Long.parseLong(field));
+			result.setCompressedLength(Long.parseLong(field));
 		} catch(NumberFormatException e) {
 			throw new CDXFormatException(e.getLocalizedMessage());
 		}
 	}
 
 	public String serialize(CaptureSearchResult result) {
-		long r = result.getEndOffset();
+		long r = result.getCompressedLength();
 		if(r == -1) {
 			return DEFAULT_VALUE;
 		}

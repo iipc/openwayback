@@ -42,9 +42,12 @@ public class CDXFlexFormat extends CDXFormat {
 		CaptureSearchResult result = new CaptureSearchResult();
 		String[] tokens = line.split(" ");
 		boolean hasRobotFlags = false;
+		boolean hasCompressedLength = false;
 		if (tokens.length != 9) {
 			if(tokens.length == 10) {
 				hasRobotFlags = true;
+			} else if(tokens.length == 11) {
+				hasCompressedLength = true;
 			} else {
 				return null;
 			}
@@ -72,10 +75,18 @@ public class CDXFlexFormat extends CDXFormat {
 			result.setRobotFlags(tokens[nextToken]);
 			nextToken++;
 		}
+		String length = "-";
+		if(hasCompressedLength) {
+			length = tokens[nextToken];
+			nextToken++;
+		}
 
 		if(!tokens[nextToken].equals("-")) {
 			try {
 				compressedOffset = Long.parseLong(tokens[nextToken]);
+				if(!length.equals("-")) {
+					result.setCompressedLength(compressedOffset + Long.parseLong(length));
+				}
 			} catch (NumberFormatException e) {
 				LOGGER.warning("Bad compressed Offset field("+nextToken+") in (" +
 						line +")");
