@@ -33,6 +33,10 @@
       <artifactId>heritrix-commons</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.archive</groupId>
+      <artifactId>archive-commons</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.archive.access-control</groupId>
       <artifactId>access-control</artifactId>
       <exclusions>
