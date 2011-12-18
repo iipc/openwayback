@@ -95,7 +95,7 @@ implements Adapter<ARCRecord,CaptureSearchResult>{
 		
 			result.setUrlKey(uriStr);
 			result.setMimeType("text/dns");
-			result.setEndOffset(rec.compressedBytes);
+			result.setCompressedLength(rec.compressedBytes);
 
 		} else {
 		
