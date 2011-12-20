@@ -205,6 +205,13 @@ public class TextDocument {
 
 		// slurp the whole thing into RAM:
 		sb = new StringBuilder(recordLength);
+		
+		//Skip the UTF-8 BOM 0xFEFF
+		int firstChar = isr.read();
+		if ((firstChar != '\uFEFF') && (firstChar != -1)) {
+			sb.append(firstChar);
+		}
+		
 		for (int r = -1; (r = isr.read(cbuffer, 0, C_BUFFER_SIZE)) != -1;) {
 			sb.append(cbuffer, 0, r);
 		}
