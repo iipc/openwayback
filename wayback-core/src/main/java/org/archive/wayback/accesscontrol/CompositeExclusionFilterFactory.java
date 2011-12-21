@@ -21,7 +21,9 @@ package org.archive.wayback.accesscontrol;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.logging.Logger;
 
+import org.archive.wayback.accesscontrol.staticmap.StaticMapExclusionFilterFactory;
 import org.archive.wayback.resourceindex.filters.CompositeExclusionFilter;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 
@@ -35,6 +37,9 @@ import org.archive.wayback.resourceindex.filters.ExclusionFilter;
  */
 public class CompositeExclusionFilterFactory implements ExclusionFilterFactory {
 
+	private static final Logger LOGGER =
+        Logger.getLogger(CompositeExclusionFilterFactory.class.getName());
+	
 	private ArrayList<ExclusionFilterFactory> factories = 
 		new ArrayList<ExclusionFilterFactory>();
 	
@@ -52,7 +57,13 @@ public class CompositeExclusionFilterFactory implements ExclusionFilterFactory {
 		Iterator<ExclusionFilterFactory> itr = factories.iterator();
 		CompositeExclusionFilter filter = new CompositeExclusionFilter();
 		while(itr.hasNext()) {
-			filter.addComponent(itr.next().get());
+			ExclusionFilterFactory factory = itr.next();
+			ExclusionFilter filterEntry = factory.get();
+			if (filterEntry != null) {
+				filter.addComponent(filterEntry);
+			} else {
+				LOGGER.warning("Skipping null filter returned from factory: " + factory.getClass().toString());
+			}
 		}
 		return filter;
 	}
