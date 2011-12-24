@@ -75,7 +75,7 @@ public class TagMagix {
 	private static Pattern cssImportNoUrlPattern = 
 		Pattern.compile(cssImportNoUrlPatString);
 	
-	private static Pattern cssUrlPattern = Pattern.compile(cssUrlPatString);
+	private static Pattern cssUrlPattern = Pattern.compile(cssUrlPatString, Pattern.CASE_INSENSITIVE);
 
 	/**
 	 * get (and cache) a regex Pattern for locating an HTML attribute value
