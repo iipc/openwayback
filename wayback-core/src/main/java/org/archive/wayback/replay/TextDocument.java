@@ -209,7 +209,7 @@ public class TextDocument {
 		//Skip the UTF-8 BOM 0xFEFF
 		int firstChar = isr.read();
 		if ((firstChar != '\uFEFF') && (firstChar != -1)) {
-			sb.append(firstChar);
+			sb.append((char)firstChar);
 		}
 		
 		for (int r = -1; (r = isr.read(cbuffer, 0, C_BUFFER_SIZE)) != -1;) {
