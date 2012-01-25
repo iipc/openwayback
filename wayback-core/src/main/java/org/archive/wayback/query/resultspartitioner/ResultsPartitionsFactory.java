@@ -53,6 +53,11 @@ public class ResultsPartitionsFactory {
 	 */
 	public static ArrayList<ResultsPartition> get(CaptureSearchResults results,
 			WaybackRequest wbRequest) {
+		return get(results, wbRequest, null);
+	}
+
+	public static ArrayList<ResultsPartition> get(CaptureSearchResults results,
+				WaybackRequest wbRequest, ResultsPartitioner defaultPartitioner) {	
 		Timestamp startTS = Timestamp.parseBefore(results.getFilter(
 				WaybackRequest.REQUEST_START_DATE));
 		Timestamp endTS = Timestamp.parseAfter(results.getFilter(
@@ -67,14 +72,17 @@ public class ResultsPartitionsFactory {
 		long msSpanned = endDate.getTime() - startDate.getTime();
 		int secsSpanned = (int) Math.ceil(msSpanned / 1000);
 
-		ResultsPartitioner partitioner = null;
-		for(int i = 0; i < partitioners.length; i++) {
-			partitioner = partitioners[i];
-			if(partitioner.maxSecondsSpanned() >= secsSpanned) {
-				break;
+		ResultsPartitioner partitioner = defaultPartitioner;
+		
+		if (partitioner == null) {
+			for(int i = 0; i < partitioners.length; i++) {
+				partitioner = partitioners[i];
+				if(partitioner.maxSecondsSpanned() >= secsSpanned) {
+					break;
+				}
 			}
 		}
-
+		
 		// now use the partitioner to initialize and populate the 
 		// ResultPartition objects:
 		ArrayList<ResultsPartition> partitions = 
