@@ -68,5 +68,10 @@ public class JSPExecutor {
 		uiResults.forward(httpRequest, wrappedResponse, jspPath);
 		return wrappedResponse.getStringResponse();
 	}
+	
+	public UIResults getUiResults()
+	{
+		return uiResults;
+	}
 
 }

@@ -1,5 +1,4 @@
-/*
- *  This file is part of the Wayback archival access software
+/*  This file is part of the Wayback archival access software
  *   (http://archive-access.sourceforge.net/projects/wayback/).
  *
  *  Licensed to the Internet Archive (IA) by one or more individual 
@@ -33,8 +32,8 @@ import org.archive.wayback.resourceindex.filters.ExclusionFilter;
  *
  */
 public class OracleExclusionFilter extends ExclusionFilter {
-	AccessControlClient client = null;
-	private String accessGroup = null;
+	protected AccessControlClient client = null;
+	protected String accessGroup = null;
 	
 	private final static String POLICY_ALLOW = "allow";
 	private final static String POLICY_BLOCK = "block";
@@ -70,6 +69,56 @@ public class OracleExclusionFilter extends ExclusionFilter {
 		this.accessGroup = accessGroup;
 	}
 	
+	protected int handleAllow()
+	{
+		if(!notifiedAdminSeen) {
+			notifiedAdminSeen = true;
+			if(filterGroup != null) {
+				filterGroup.setSawAdministrative();
+			}
+		}
+		if(!notifiedAdminPassed) {
+			notifiedAdminPassed = true;
+			if(filterGroup != null) {
+				filterGroup.setPassedAdministrative();
+			}
+		}
+		return FILTER_INCLUDE;		
+	}
+	
+	protected int handleBlock()
+	{
+		if(!notifiedAdminSeen) {
+			notifiedAdminSeen = true;
+			if(filterGroup != null) {
+				filterGroup.setSawAdministrative();
+			}
+		}
+		return FILTER_EXCLUDE;	
+	}
+	
+	protected int handleRobots()
+	{
+		if(!notifiedRobotSeen) {
+			notifiedRobotSeen = true;
+			if(filterGroup != null) {
+				filterGroup.setSawRobots();
+			}
+		}
+		return FILTER_INCLUDE;
+//		if(robotFilter != null) {
+//			if(!notifiedRobotPassed) {
+//				notifiedRobotPassed = true;
+//				if(filterGroup != null) {
+//					filterGroup.setPassedRobot();
+//				}
+//			}
+//			return robotFilter.filterObject(o);
+//		} else {
+//			return FILTER_EXCLUDE;
+//		}		
+	}
+	
 	
 	public int filterObject(CaptureSearchResult o) {
 		String url = o.getOriginalUrl();
@@ -82,46 +131,11 @@ public class OracleExclusionFilter extends ExclusionFilter {
 					accessGroup);
 			if(policy != null) {
 				if(policy.equals(POLICY_ALLOW)) {
-					if(!notifiedAdminSeen) {
-						notifiedAdminSeen = true;
-						if(filterGroup != null) {
-							filterGroup.setSawAdministrative();
-						}
-					}
-					if(!notifiedAdminPassed) {
-						notifiedAdminPassed = true;
-						if(filterGroup != null) {
-							filterGroup.setPassedAdministrative();
-						}
-					}
-					return FILTER_INCLUDE;
+					return handleAllow();
 				} else if(policy.equals(POLICY_BLOCK)) {
-					if(!notifiedAdminSeen) {
-						notifiedAdminSeen = true;
-						if(filterGroup != null) {
-							filterGroup.setSawAdministrative();
-						}
-					}
-					return FILTER_EXCLUDE;
+					return handleBlock();
 				} else if(policy.equals(POLICY_ROBOT)) {
-					if(!notifiedRobotSeen) {
-						notifiedRobotSeen = true;
-						if(filterGroup != null) {
-							filterGroup.setSawRobots();
-						}
-					}
-					return FILTER_INCLUDE;
-//					if(robotFilter != null) {
-//						if(!notifiedRobotPassed) {
-//							notifiedRobotPassed = true;
-//							if(filterGroup != null) {
-//								filterGroup.setPassedRobot();
-//							}
-//						}
-//						return robotFilter.filterObject(o);
-//					} else {
-//						return FILTER_EXCLUDE;
-//					}
+					return handleRobots();
 				}
 			}
 		} catch (RobotsUnavailableException e) {
