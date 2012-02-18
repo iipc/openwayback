@@ -344,7 +344,7 @@ public class FastArchivalUrlReplayParseEventHandler implements
 		if (tagName.equals("NOSCRIPT")) {
 			String allPolicies = getOraclePolicies(context);
 			
-			if (allPolicies.contains("force-noscript")) {
+			if ((allPolicies != null) && allPolicies.contains("force-noscript")) {
 				return false;
 			}
 		}
