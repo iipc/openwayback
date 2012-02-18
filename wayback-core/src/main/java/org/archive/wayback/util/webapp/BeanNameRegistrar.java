@@ -134,7 +134,7 @@ public class BeanNameRegistrar {
 		String name = null;
 		
 		if (handler instanceof AccessPoint) {
-			name = ((AccessPoint)handler).getAccessPointName();
+			name = ((AccessPoint)handler).getAccessPointPath();
 		}
 		
 		if (name == null) {
