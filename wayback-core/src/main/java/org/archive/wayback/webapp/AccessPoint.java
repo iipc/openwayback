@@ -132,6 +132,8 @@ implements ShutdownListener {
 	private BooleanOperator<WaybackRequest> authentication = null;
 	private long embargoMS = 0;
 	private CustomResultFilterFactory filterFactory = null;
+	
+	private String accessPointPath = null;
 
 	public void init() {
 		checkAccessPointAware(collection,exception,query,parser,replay,
@@ -957,5 +959,13 @@ implements ShutdownListener {
 	 */
 	public CustomResultFilterFactory getFilterFactory() {
 		return filterFactory;
+	}
+
+	public String getAccessPointPath() {
+		return accessPointPath;
+	}
+
+	public void setAccessPointPath(String accessPointPath) {
+		this.accessPointPath = accessPointPath;
 	}
 }
