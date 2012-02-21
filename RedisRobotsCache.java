@@ -28,7 +28,7 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 
-public class RedisRobotsCache implements LiveWebCache {
+public class RedisRobotsCache {
 	
 	private final static Logger LOGGER = 
 		Logger.getLogger(RedisRobotsCache.class.getName());
@@ -116,9 +116,9 @@ public class RedisRobotsCache implements LiveWebCache {
 	protected JedisPool initPool()
 	{
         jedisConfig.setMaxActive(50);
-        jedisConfig.setTestOnBorrow(true);
-        jedisConfig.setTestWhileIdle(true);
-        jedisConfig.setTestOnReturn(true);
+        jedisConfig.setTestOnBorrow(false);
+        jedisConfig.setTestWhileIdle(false);
+        jedisConfig.setTestOnReturn(false);
 		LOGGER.fine("Initializing Jedis Pool: Host = " + redisHost + " Port: " + redisPort);
 		jedisPool = new JedisPool(jedisConfig, redisHost, redisPort);
 		
@@ -128,24 +128,56 @@ public class RedisRobotsCache implements LiveWebCache {
 		return jedisPool;
 	}
 	
-	public Resource getCachedResource(URL url, long maxCacheMS,
-			boolean bUseOlder) throws LiveDocumentNotAvailableException,
-			LiveWebCacheUnavailableException, LiveWebTimeoutException,
-			IOException {
+	class CacheInstance implements LiveWebCache
+	{
+		private Jedis jedis;
 		
+		CacheInstance()
+		{
+			jedis = getJedisInstance();
+		}
+		
+		public Resource getCachedResource(URL url, long maxCacheMS,
+				boolean bUseOlder) throws LiveDocumentNotAvailableException,
+				LiveWebCacheUnavailableException, LiveWebTimeoutException,
+				IOException {
+					
+			return getRobots(jedis, url.toExternalForm());
+		}
+
+		public void shutdown() {
+			returnJedisInstance(jedis);			
+		}
+	}
+	
+	public CacheInstance getCacheInstance()
+	{
+		return new CacheInstance();
+	}
+	
+	public Jedis getJedisInstance()
+	{
 		if (jedisPool == null) {
 			jedisPool = initPool();
 		}
 		
-		Jedis jedis = null;
-		
-		try {
-		
-			jedis = jedisPool.getResource();
-			jedis.select(redisDB);
-			
-			String urlKey = url.toExternalForm();
-			
+		Jedis jedis = jedisPool.getResource();
+		jedis.select(redisDB);
+		return jedis;
+	}
+	
+	public void returnJedisInstance(Jedis jedis)
+	{
+		if ((jedisPool != null) && (jedis != null)) {
+			jedisPool.returnResource(jedis);
+		}
+	}
+	
+	public Resource getRobots(Jedis jedis, String urlKey) throws LiveDocumentNotAvailableException,
+			LiveWebCacheUnavailableException, LiveWebTimeoutException,
+			IOException {
+				
+		try {	
 			String robotsFile = jedis.get(urlKey);
 			
 			if (robotsFile == null) {
@@ -185,12 +217,7 @@ public class RedisRobotsCache implements LiveWebCache {
 				jedis = null;
 			}
 			
-			throw new LiveWebCacheUnavailableException(url.toExternalForm());
-			
-		} finally {
-			if (jedis != null) {
-				jedisPool.returnResource(jedis);
-			}
+			throw new LiveWebCacheUnavailableException(urlKey);	
 		}
 	}
 	

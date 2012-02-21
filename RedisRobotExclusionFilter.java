@@ -26,18 +26,8 @@ import java.util.regex.Matcher;
 import org.archive.wayback.liveweb.LiveWebCache;
 
 /**
- * CaptureSearchResult Filter that uses a LiveWebCache to retrieve robots.txt
- * documents from the live web, and filters SearchResults based on the rules 
- * therein. 
- * 
- * This class caches parsed RobotRules that are retrieved, so using the same 
- * instance to filter multiple SearchResults from the same host will be more
- * efficient.
- * 
- * Instances are expected to be transient for each request: The internally
- * cached StringBuilder is not thread safe.
  *
- * @author brad
+ * @author ilya
  * @version $Date: 2011-07-07 21:47:51 -0700 (Thu, 07 Jul 2011) $, $Revision: 3485 $
  */
 public class RedisRobotExclusionFilter extends RobotExclusionFilter {
@@ -47,7 +37,7 @@ public class RedisRobotExclusionFilter extends RobotExclusionFilter {
 		super(webCache, userAgent, maxCacheMS);
 	}
 
-
+	@Override
 	protected String hostToRobotUrlString(String host) {
 		sb.setLength(0);
 		sb.append(HTTP_PREFIX);
@@ -61,7 +51,7 @@ public class RedisRobotExclusionFilter extends RobotExclusionFilter {
 		return robotUrl;
 	}
 	
-	
+	@Override
 	protected List<String> searchResultToRobotUrlStrings(String resultHost) {
 		ArrayList<String> list = new ArrayList<String>();
 		
@@ -83,5 +73,12 @@ public class RedisRobotExclusionFilter extends RobotExclusionFilter {
 			list.add(hostToRobotUrlString(resultHost));
 		}
 		return list;
+	}
+
+	@Override
+	public void shutdown() {
+		if (this.getWebCache() != null) {
+			this.getWebCache().shutdown();
+		}
 	}
 }
