@@ -117,9 +117,11 @@ public class RedisRobotsCache {
 	{
         jedisConfig.setMaxActive(50);
         jedisConfig.setTestOnBorrow(false);
-        jedisConfig.setTestWhileIdle(false);
+        jedisConfig.setTestWhileIdle(true);
         jedisConfig.setTestOnReturn(false);
+        
 		LOGGER.fine("Initializing Jedis Pool: Host = " + redisHost + " Port: " + redisPort);
+		
 		jedisPool = new JedisPool(jedisConfig, redisHost, redisPort);
 		
 		updaterThread = new RedisUpdater();
@@ -155,6 +157,8 @@ public class RedisRobotsCache {
 		return new CacheInstance();
 	}
 	
+	private int jedisCount = 0;
+	
 	public Jedis getJedisInstance()
 	{
 		if (jedisPool == null) {
@@ -164,7 +168,7 @@ public class RedisRobotsCache {
 		try {		
 			Jedis jedis = jedisPool.getResource();
 			jedis.select(redisDB);
-			LOGGER.fine("Getting Jedis Instance");
+			LOGGER.fine("Getting Jedis Instance: " + ++jedisCount);
 			return jedis;
 		} catch (JedisConnectionException jce) {
 			return null;
@@ -175,7 +179,7 @@ public class RedisRobotsCache {
 	{
 		if ((jedisPool != null) && (jedis != null)) {
 			jedisPool.returnResource(jedis);
-			LOGGER.fine("Returning Jedis Instance");
+			LOGGER.fine("Returning Jedis Instance: " + --jedisCount);
 		}
 	}
 	
@@ -271,8 +275,7 @@ public class RedisRobotsCache {
 			Jedis updaterJedis = null;
 			
 			try {
-				updaterJedis = jedisPool.getResource();
-				updaterJedis.select(redisDB);
+				updaterJedis = getJedisInstance();
 				
 				while (toRun) {
 					try {
@@ -285,13 +288,11 @@ public class RedisRobotsCache {
 					} catch (JedisConnectionException jedisExc) {
 						LOGGER.severe("Jedis Exception: " + jedisExc);
 					} catch (InterruptedException ignore) {
-						
+						//ignore
 					}
 				}			
 			} finally {
-				if ((jedisPool != null) && (updaterJedis != null)) {
-					jedisPool.returnResource(updaterJedis);
-				}
+				returnJedisInstance(updaterJedis);
 			}
 		}
 	}
