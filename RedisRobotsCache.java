@@ -161,23 +161,35 @@ public class RedisRobotsCache {
 			jedisPool = initPool();
 		}
 		
-		Jedis jedis = jedisPool.getResource();
-		jedis.select(redisDB);
-		return jedis;
+		try {		
+			Jedis jedis = jedisPool.getResource();
+			jedis.select(redisDB);
+			LOGGER.fine("Getting Jedis Instance");
+			return jedis;
+		} catch (JedisConnectionException jce) {
+			return null;
+		}
 	}
 	
 	public void returnJedisInstance(Jedis jedis)
 	{
 		if ((jedisPool != null) && (jedis != null)) {
 			jedisPool.returnResource(jedis);
+			LOGGER.fine("Returning Jedis Instance");
 		}
 	}
 	
 	public Resource getRobots(Jedis jedis, String urlKey) throws LiveDocumentNotAvailableException,
 			LiveWebCacheUnavailableException, LiveWebTimeoutException,
 			IOException {
-				
-		try {	
+		
+		if (jedis == null) {
+			String jedisUnavail = "Jedis Unavailable";
+			LOGGER.severe(jedisUnavail);
+			throw new LiveWebCacheUnavailableException(jedisUnavail);
+		}
+
+		try {
 			String robotsFile = jedis.get(urlKey);
 			
 			if (robotsFile == null) {
