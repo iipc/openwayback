@@ -3,6 +3,7 @@ package org.archive.wayback.accesscontrol.robotstxt;
 import java.io.IOException;
 import java.net.URL;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.http.HttpResponse;
@@ -98,7 +99,7 @@ public class RedisRobotsCache {
 	
 	protected void initLogger()
 	{
-		LOGGER.setLevel(java.util.logging.Level.FINER);
+		LOGGER.setLevel(Level.FINER);
 //		for (Handler handler : LOGGER.getHandlers()) {
 //			if (handler instanceof ConsoleHandler) {
 //				return;
@@ -159,12 +160,8 @@ public class RedisRobotsCache {
 				return getRobots(jedis, url.toExternalForm());
 			}  catch (JedisConnectionException jedisExc) {
 				LOGGER.severe("Jedis Exception: " + jedisExc);
-				
-				if (jedis != null) {
-					jedisPool.returnBrokenResource(jedis);
-					jedis = null;
-				}
-				
+				returnBrokenJedis(jedis);
+				jedis = null;
 				throw new LiveWebCacheUnavailableException(jedisExc.toString());	
 			}
 		}
@@ -181,7 +178,7 @@ public class RedisRobotsCache {
 	
 	private int jedisCount = 0;
 	
-	public Jedis getJedisInstance()
+	protected Jedis getJedisInstance()
 	{
 		if (jedisPool == null) {
 			synchronized(this) {
@@ -191,18 +188,31 @@ public class RedisRobotsCache {
 			}
 		}
 		
-		Jedis jedis = jedisPool.getResource();
-		jedis.select(redisDB);
-		LOGGER.fine("Getting Jedis Instance: " + ++jedisCount);
-		return jedis;
+		try {		
+			Jedis jedis = jedisPool.getResource();
+			jedis.select(redisDB);
+			LOGGER.fine("Getting Jedis Instance: " + ++jedisCount);
+			return jedis;
+		} catch (RuntimeException rte) {
+			LOGGER.severe(rte.toString());
+			return null;
+		}
 	}
 	
-	public void returnJedisInstance(Jedis jedis)
+	protected void returnJedisInstance(Jedis jedis)
 	{
 		if ((jedisPool != null) && (jedis != null)) {
 			jedisPool.returnResource(jedis);
 			LOGGER.fine("Returning Jedis Instance: " + --jedisCount);
 		}
+	}
+	
+	protected void returnBrokenJedis(Jedis jedis)
+	{
+		if ((jedisPool != null) && (jedis != null)) {
+			jedisPool.returnBrokenResource(jedis);
+			LOGGER.fine("Returning Broken Jedis Instance: " + --jedisCount);
+		}		
 	}
 	
 	public Resource getRobots(Jedis jedis, String urlKey) throws LiveDocumentNotAvailableException {
@@ -281,11 +291,16 @@ public class RedisRobotsCache {
 			Jedis updaterJedis = null;
 			
 			try {
-				updaterJedis = getJedisInstance();
+				String url = null;
 				
 				while (toRun) {
 					try {
-					  String url = queue.take();
+					  url = queue.take();
+					  
+					  if (updaterJedis == null) {
+						  updaterJedis = getJedisInstance();
+					  }
+					  
 					  updateCache(updaterJedis, url);
 					
 					} catch (LiveDocumentNotAvailableException e) {
@@ -293,6 +308,9 @@ public class RedisRobotsCache {
 						
 					} catch (JedisConnectionException jedisExc) {
 						LOGGER.severe("Jedis Exception: " + jedisExc);
+						returnBrokenJedis(updaterJedis);
+						addUrlLookup(url);
+						updaterJedis = null;
 					} catch (InterruptedException ignore) {
 						//ignore
 					}
@@ -361,6 +379,11 @@ public class RedisRobotsCache {
 			
 			}
 		}
-		jedisPool.destroy();
+		if (jedisPool != null) {
+			jedisPool.destroy();
+		}
+		if (connMan != null) {
+			connMan.shutdown();
+		}
 	}
 }
