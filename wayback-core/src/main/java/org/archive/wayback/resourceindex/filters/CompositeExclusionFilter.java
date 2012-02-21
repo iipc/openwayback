@@ -69,4 +69,12 @@ public class CompositeExclusionFilter extends ExclusionFilter {
 		}
 		return FILTER_INCLUDE;
 	}
+	
+	@Override
+	public void shutdown()
+	{
+		for (ExclusionFilter filter : filters) {
+			filter.shutdown();
+		}
+	}
 }

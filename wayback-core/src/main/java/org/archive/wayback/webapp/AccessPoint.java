@@ -192,6 +192,7 @@ implements ShutdownListener {
 
 		WaybackRequest wbRequest = null;
 		boolean handled = false;
+		ExclusionFilter exclusionFilter = null;
 
 		try {
 			String inputPath = translateRequestPathQuery(httpRequest);
@@ -219,7 +220,7 @@ implements ShutdownListener {
 				}
 
 				if(getExclusionFactory() != null) {
-					ExclusionFilter exclusionFilter = 
+					exclusionFilter = 
 						getExclusionFactory().get();
 					if(exclusionFilter == null) {
 						throw new AdministrativeAccessControlException(
@@ -279,7 +280,12 @@ implements ShutdownListener {
 				getException().renderException(httpRequest, httpResponse, 
 						wbRequest, e, getUriConverter());
 			}
+		} finally {
+			if (exclusionFilter != null) {
+				exclusionFilter.shutdown();
+			}
 		}
+		
 		return handled;
 	}
 	

@@ -30,9 +30,8 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.archive.util.ArchiveUtils;
-import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.CaptureSearchResult;
+import org.archive.wayback.core.Resource;
 import org.archive.wayback.exception.LiveDocumentNotAvailableException;
 import org.archive.wayback.exception.LiveWebCacheUnavailableException;
 import org.archive.wayback.exception.LiveWebTimeoutException;
@@ -97,7 +96,7 @@ public class RobotExclusionFilter extends ExclusionFilter {
 		sb = new StringBuilder(100);
 	}
 
-	private String hostToRobotUrlString(String host) {
+	protected String hostToRobotUrlString(String host) {
 		sb.setLength(0);
 		sb.append(HTTP_PREFIX).append(host).append(ROBOT_SUFFIX);
 		String robotUrl = sb.toString();
@@ -177,15 +176,15 @@ public class RobotExclusionFilter extends ExclusionFilter {
 					rulesCache.put(firstUrlString, rules);
 				}
 			} else {
+				long start = System.currentTimeMillis();;
 				try {
 					LOGGER.fine("ROBOT: NotCached - Downloading("+urlString+")");
 				
 					tmpRules = new RobotRules();
-					long start = System.currentTimeMillis();
 					Resource resource = webCache.getCachedResource(new URL(urlString),
 							maxCacheMS,true);
-					long elapsed = System.currentTimeMillis() - start;
-					PerformanceLogger.noteElapsed("RobotRequest", elapsed, urlString);
+					//long elapsed = System.currentTimeMillis() - start;
+					//PerformanceLogger.noteElapsed("RobotRequest", elapsed, urlString);
 
 					if(resource.getStatusCode() != 200) {
 						LOGGER.info("ROBOT: NotAvailable("+urlString+")");
@@ -214,6 +213,9 @@ public class RobotExclusionFilter extends ExclusionFilter {
 					LOGGER.severe("ROBOT: LiveDocumentTimedOutException("+urlString+")");
 					filterGroup.setRobotTimedOut();
 					return null;
+				} finally {
+					long elapsed = System.currentTimeMillis() - start;
+					PerformanceLogger.noteElapsed("RobotRequest", elapsed, urlString);
 				}
 			}
 		}
@@ -268,5 +270,9 @@ public class RobotExclusionFilter extends ExclusionFilter {
 			}
 		}
 		return filterResult;
+	}
+
+	public LiveWebCache getWebCache() {
+		return webCache;
 	}
 }
