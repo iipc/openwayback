@@ -92,13 +92,13 @@ public class RedisRobotsCache {
 
 	public RedisRobotsCache()
     {
-//		initLogger();
+	initLogger();
         initHttpClient();
     }
 	
-//	protected void initLogger()
-//	{
-//		LOGGER.setLevel(Level.FINER);
+	protected void initLogger()
+	{
+		LOGGER.setLevel(java.util.logging.Level.FINER);
 //		for (Handler handler : LOGGER.getHandlers()) {
 //			if (handler instanceof ConsoleHandler) {
 //				return;
@@ -107,7 +107,7 @@ public class RedisRobotsCache {
 //        ConsoleHandler handler = new ConsoleHandler();
 //        handler.setLevel(Level.FINER);
 //        LOGGER.addHandler(handler);
-//	}
+	}
 	
 	protected void initHttpClient()
 	{
