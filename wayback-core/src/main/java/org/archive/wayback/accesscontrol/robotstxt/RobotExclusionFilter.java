@@ -62,16 +62,16 @@ public class RobotExclusionFilter extends ExclusionFilter {
 	private final static Logger LOGGER = 
 		Logger.getLogger(RobotExclusionFilter.class.getName());
 
-	private final static String HTTP_PREFIX = "http://";
-	private final static String ROBOT_SUFFIX = "/robots.txt";
+	protected final static String HTTP_PREFIX = "http://";
+	protected final static String ROBOT_SUFFIX = "/robots.txt";
 
-	private static String WWWN_REGEX = "^www[0-9]+\\.";
-	private final static Pattern WWWN_PATTERN = Pattern.compile(WWWN_REGEX);
+	protected static String WWWN_REGEX = "^www[0-9]+\\.";
+	protected final static Pattern WWWN_PATTERN = Pattern.compile(WWWN_REGEX);
 	private LiveWebCache webCache = null;
 	private HashMap<String,RobotRules> rulesCache = null;
 	private long maxCacheMS = 0;
 	private String userAgent = null;
-	private StringBuilder sb = null;
+	protected StringBuilder sb = null;
 	private final static RobotRules emptyRules = new RobotRules();
 	private boolean notifiedSeen = false;
 	private boolean notifiedPassed = false;
