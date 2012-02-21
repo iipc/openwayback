@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -94,13 +95,22 @@ public class RedisRobotsCache {
 
 	public RedisRobotsCache()
     {
+		initLogger();
+        initHttpClient();
+    }
+	
+	protected void initLogger()
+	{
 		LOGGER.setLevel(Level.FINER);
+		for (Handler handler : LOGGER.getHandlers()) {
+			if (handler instanceof ConsoleHandler) {
+				return;
+			}
+		}
         ConsoleHandler handler = new ConsoleHandler();
         handler.setLevel(Level.FINER);
         LOGGER.addHandler(handler);
-        
-        initHttpClient();
-    }
+	}
 	
 	protected void initHttpClient()
 	{
