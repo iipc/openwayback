@@ -23,8 +23,6 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.archive.wayback.webapp.AccessPoint;
-
 /**
  * Helper static methods to implement registration of a RequestHandler with a
  * RequestMapper, based on the beanName() method.
@@ -133,8 +131,8 @@ public class BeanNameRegistrar {
 		
 		String name = null;
 		
-		if (handler instanceof AccessPoint) {
-			name = ((AccessPoint)handler).getAccessPointPath();
+		if (handler instanceof AbstractRequestHandler) {
+			name = ((AbstractRequestHandler)handler).getAccessPointPath();
 		}
 		
 		if (name == null) {

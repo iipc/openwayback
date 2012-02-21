@@ -37,6 +37,7 @@ import org.archive.wayback.exception.BadQueryException;
  */
 public abstract class AbstractRequestHandler implements RequestHandler {
 	private String beanName = null;
+	private String accessPointPath = null;
 	private ServletContext servletContext = null;
 
 	public void setBeanName(final String beanName) {
@@ -44,6 +45,14 @@ public abstract class AbstractRequestHandler implements RequestHandler {
 	}
 	public String getBeanName() {
 		return beanName;
+	}
+	
+	public String getAccessPointPath() {
+		return accessPointPath;
+	}
+
+	public void setAccessPointPath(String accessPointPath) {
+		this.accessPointPath = accessPointPath;
 	}
 
 	public void setServletContext(ServletContext servletContext) {
