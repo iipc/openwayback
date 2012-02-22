@@ -77,8 +77,6 @@ public class RedisRobotExclusionFilter extends RobotExclusionFilter {
 
 	@Override
 	public void shutdown() {
-		if (this.getWebCache() != null) {
-			this.getWebCache().shutdown();
-		}
+
 	}
 }
