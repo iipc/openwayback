@@ -55,7 +55,7 @@ public class RedisRobotsCache {
 	
 	private final String robotsNotAvailTxt = "0_Invalid_0";
 	
-	private JedisPoolConfig jedisConfig = new JedisPoolConfig();
+	private JedisPoolConfig jedisConfig = null;
 	private int jedisCount = 0;
 	
 	private RedisUpdater updaterThread;
@@ -91,12 +91,22 @@ public class RedisRobotsCache {
 	public void setJedisConfig(JedisPoolConfig jedisConfig) {
 		this.jedisConfig = jedisConfig;
 	}
-
-	public RedisRobotsCache()
+	
+	public RedisRobotsCache(String redisHost, int redisPort, int redisDB, JedisPoolConfig config)
     {
+		this.redisHost = redisHost;
+		this.redisPort = redisPort;
+		this.redisDB = redisDB;
+		
 		initLogger();
         initHttpClient();
-        initPool();
+        
+        initPool(config);
+    }
+
+	public RedisRobotsCache(String redisHost, int redisPort, int redisDB)
+    {
+		this(redisHost, redisPort, redisDB, null);
     }
 	
 	protected void initLogger()
@@ -115,12 +125,16 @@ public class RedisRobotsCache {
         httpClient = new DefaultHttpClient(connMan, params);
 	}
 	
-	protected void initPool()
+	protected void initPool(JedisPoolConfig config)
 	{
-        jedisConfig.setMaxActive(50);
-        jedisConfig.setTestOnBorrow(true);
-        jedisConfig.setTestWhileIdle(true);
-        jedisConfig.setTestOnReturn(true);
+		if (config == null) {
+			config = new JedisPoolConfig();
+	        config.setMaxActive(50);
+	        config.setTestOnBorrow(true);
+	        config.setTestWhileIdle(true);
+	        config.setTestOnReturn(true);
+	        jedisConfig = config;
+		}
         
 		LOGGER.fine("Initializing Jedis Pool: Host = " + redisHost + " Port: " + redisPort);
 		
