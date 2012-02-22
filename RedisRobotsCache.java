@@ -2,6 +2,7 @@ package org.archive.wayback.accesscontrol.robotstxt;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.LinkedList;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -144,6 +145,9 @@ public class RedisRobotsCache {
 		updaterThread.start();
 	}
 	
+	private LinkedList<Jedis> fastJedisPool = new LinkedList<Jedis>();
+	private int fastJedisCount = 0;
+	
 	class CacheInstance implements LiveWebCache
 	{
 		//private Jedis jedis = null;
@@ -156,9 +160,17 @@ public class RedisRobotsCache {
 			Jedis jedis = null;
 			
 			try {
-				//if (jedis == null) {
-				jedis = getJedisInstance();
-				//}
+				
+				synchronized(fastJedisPool) {
+					if (!fastJedisPool.isEmpty()) {
+						jedis = fastJedisPool.removeLast();
+						fastJedisCount--;
+					}
+				}
+				
+				if (jedis == null) {				
+					jedis = getJedisInstance();
+				}
 				
 				return getRobots(jedis, url.toExternalForm());
 			} catch (JedisConnectionException jedisExc) {
@@ -167,7 +179,14 @@ public class RedisRobotsCache {
 				jedis = null;
 				throw new LiveWebCacheUnavailableException(jedisExc.toString());	
 			} finally {
-				returnJedisInstance(jedis);
+				synchronized(fastJedisPool) {
+					fastJedisPool.addFirst(jedis);
+					fastJedisCount++;
+					while (fastJedisCount > 10) {
+						returnJedisInstance(fastJedisPool.removeLast());
+						fastJedisCount--;
+					}
+				}
 			}
 		}
 
