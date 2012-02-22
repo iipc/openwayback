@@ -100,14 +100,6 @@ public class RedisRobotsCache {
 	protected void initLogger()
 	{
 		LOGGER.setLevel(Level.FINER);
-//		for (Handler handler : LOGGER.getHandlers()) {
-//			if (handler instanceof ConsoleHandler) {
-//				return;
-//			}
-//		}
-//        ConsoleHandler handler = new ConsoleHandler();
-//        handler.setLevel(Level.FINER);
-//        LOGGER.addHandler(handler);
 	}
 	
 	protected void initHttpClient()
@@ -124,9 +116,9 @@ public class RedisRobotsCache {
 	protected JedisPool initPool()
 	{
         jedisConfig.setMaxActive(50);
-        jedisConfig.setTestOnBorrow(false);
+        jedisConfig.setTestOnBorrow(true);
         jedisConfig.setTestWhileIdle(true);
-        jedisConfig.setTestOnReturn(false);
+        jedisConfig.setTestOnReturn(true);
         
 		LOGGER.fine("Initializing Jedis Pool: Host = " + redisHost + " Port: " + redisPort);
 		
@@ -140,13 +132,8 @@ public class RedisRobotsCache {
 	
 	class CacheInstance implements LiveWebCache
 	{
-		private Jedis jedis;
-		
-		CacheInstance()
-		{
-			jedis = getJedisInstance();
-		}
-		
+		private Jedis jedis = null;
+				
 		public Resource getCachedResource(URL url, long maxCacheMS,
 				boolean bUseOlder) throws LiveDocumentNotAvailableException,
 				LiveWebCacheUnavailableException, LiveWebTimeoutException,
@@ -311,8 +298,8 @@ public class RedisRobotsCache {
 						returnBrokenJedis(updaterJedis);
 						addUrlLookup(url);
 						updaterJedis = null;
-					} catch (InterruptedException ignore) {
-						//ignore
+					} catch (InterruptedException interrupted) {
+						LOGGER.warning("Interrupted: " + interrupted);
 					}
 				}			
 			} finally {
