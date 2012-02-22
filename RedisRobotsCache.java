@@ -146,17 +146,19 @@ public class RedisRobotsCache {
 	
 	class CacheInstance implements LiveWebCache
 	{
-		private Jedis jedis = null;
+		//private Jedis jedis = null;
 				
 		public Resource getCachedResource(URL url, long maxCacheMS,
 				boolean bUseOlder) throws LiveDocumentNotAvailableException,
 				LiveWebCacheUnavailableException, LiveWebTimeoutException,
 				IOException {
 			
+			Jedis jedis = null;
+			
 			try {
-				if (jedis == null) {
-					jedis = getJedisInstance();
-				}
+				//if (jedis == null) {
+				jedis = getJedisInstance();
+				//}
 				
 				return getRobots(jedis, url.toExternalForm());
 			} catch (JedisConnectionException jedisExc) {
@@ -164,11 +166,13 @@ public class RedisRobotsCache {
 				returnBrokenJedis(jedis);
 				jedis = null;
 				throw new LiveWebCacheUnavailableException(jedisExc.toString());	
+			} finally {
+				returnJedisInstance(jedis);
 			}
 		}
 
 		public void shutdown() {
-			returnJedisInstance(jedis);
+			//returnJedisInstance(jedis);
 		}
 	}
 		
