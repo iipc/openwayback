@@ -116,13 +116,11 @@ public class RedisCacheBuilder {
 							urlDB.add(url);
 						}
 						
-						String contents = IOUtils.toString(response.getInner(), "UTF-8");
-						
-						String contentType = response.getHeaders().getValue("Content-Type");
+						String contents = IOUtils.toString(httpResp.getHttpResponse().getInner(), "UTF-8");
 						
 						int size = contents.length();
 						
-						System.out.println("=== " + status + ": " + url + " " + size + " " + contentType);
+						System.out.println("=== " + status + ": " + url + " " + size);
 						
 						totalSize += contents.length();
 						totalFiles++;

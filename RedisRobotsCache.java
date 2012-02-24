@@ -236,9 +236,13 @@ public class RedisRobotsCache implements LiveWebCache {
 		String contents;
 		int status;
 		
-		RobotResponse(String contents, int status)
+		RobotResponse(String contents)
 		{
 			this.contents = contents;
+		}
+		
+		RobotResponse(int status)
+		{
 			this.status = status;
 		}
 		
@@ -265,16 +269,24 @@ public class RedisRobotsCache implements LiveWebCache {
 
 			if (status == 200) {
 				contents = EntityUtils.toString(response.getEntity());
-				return new RobotResponse(contents, status);
 			} else {
-				return new RobotResponse(null, status);
+				return new RobotResponse(status);
 			}
+
+			return new RobotResponse(contents);
 
 		} catch (Exception exc) {
 			LOGGER.info("Exception: " + exc + " url: " + url + " status " + status);
-			return new RobotResponse(null, status);			
+			return new RobotResponse(status);			
 		}
 	}
+
+//	private LiveDocumentNotAvailableException throwNotAvail(String string,
+//			String url, int status) {
+//		String msg = string + " url: " + url + " status: " + status;
+//		LOGGER.info(msg);
+//		return new LiveDocumentNotAvailableException(msg);
+//	}
 
 	public void shutdown() {
 		if (updaterThread != null) {
