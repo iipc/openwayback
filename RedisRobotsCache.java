@@ -43,8 +43,12 @@ public class RedisRobotsCache implements LiveWebCache {
 
 	private int notAvailTotalTTL = ONE_DAY;
 	private int notAvailRefreshTTL = 60 * 60;
-
-	private final String robotsNotAvailTxt = "0_Invalid_0";
+	
+	final static String ROBOTS_TOKEN_EMPTY = "0_ROBOTS_EMPTY";
+	final static String ROBOTS_TOKEN_TOO_BIG = "0_ROBOTS_TOO_BIG";
+	final static String ROBOTS_TOKEN_ERROR = "0_ROBOTS_ERROR-";
+	
+	final static int MAX_ROBOTS_SIZE = 1000 * 1000 * 500;
 
 	private RedisConnectionManager redisConn;
 
@@ -99,11 +103,18 @@ public class RedisRobotsCache implements LiveWebCache {
 
 		robotsFile = jedis.get(urlKey);
 
-		if (robotsFile == null) {
+		if ((robotsFile == null) || robotsFile.equals(ROBOTS_TOKEN_TOO_BIG)) {
+			
 			LOGGER.info("UNCACHED Robots: " + urlKey);
 
 			robotsFile = updateCache(jedis, urlKey);
-		} else if (robotsFile.equals(robotsNotAvailTxt)) {
+			
+			if (robotsFile == null) {
+				throw new LiveDocumentNotAvailableException("Error Loading Live Robots");	
+			}
+			
+		} else if (robotsFile.startsWith(ROBOTS_TOKEN_ERROR)) {
+			
 			long ttl = jedis.ttl(urlKey);
 			LOGGER.info("Cached Robots NOT AVAIL " + urlKey + " TTL: " + ttl);
 
@@ -118,6 +129,7 @@ public class RedisRobotsCache implements LiveWebCache {
 
 		} else {
 			long ttl = jedis.ttl(urlKey);
+			
 			LOGGER.info("Cached Robots: " + urlKey + " TTL: " + ttl);
 
 			if ((totalTTL - ttl) >= refreshTTL) {
@@ -126,21 +138,42 @@ public class RedisRobotsCache implements LiveWebCache {
 				updaterThread.addUrlLookup(urlKey);
 				jedis = null;
 			}
+			
+			if (robotsFile.equals(ROBOTS_TOKEN_EMPTY)) {
+				robotsFile = "";
+			}
 		}
 
 		return new RobotsTxtResource(robotsFile);
 	}
-
-	private String updateCache(Jedis jedis, String url)
-			throws LiveDocumentNotAvailableException {
-		try {
-			String robotsFile = loadRobotsUrl(url);
-			jedis.setex(url, totalTTL, robotsFile);
-			return robotsFile;
-		} catch (LiveDocumentNotAvailableException notAvail) {
-			jedis.setex(url, notAvailTotalTTL, robotsNotAvailTxt);
-			throw notAvail;
+	
+	public String updateRedisCache(Jedis jedis, String url, RobotResponse robotResponse)
+	{
+		if (robotResponse.isValid()) {
+			String contents = robotResponse.contents;
+			
+			if (contents.isEmpty()) {
+				jedis.setex(url, totalTTL, ROBOTS_TOKEN_EMPTY);
+			} else if (contents.length() > MAX_ROBOTS_SIZE) {
+				jedis.setex(url, totalTTL, ROBOTS_TOKEN_TOO_BIG);
+			} else {
+				jedis.setex(url, totalTTL, contents);
+			}
+			
+			return contents;
+		} else {
+			jedis.setex(url, notAvailTotalTTL, ROBOTS_TOKEN_ERROR + robotResponse.status);
+			return null;
 		}
+	}
+
+	private String updateCache(Jedis jedis, String url) {
+		
+		RobotResponse robotResponse = loadRobotsUrl(url);
+		
+		String contents = updateRedisCache(jedis, url, robotResponse);
+		
+		return contents;
 	}
 
 	class RedisUpdater extends Thread {
@@ -177,11 +210,11 @@ public class RedisRobotsCache implements LiveWebCache {
 							updaterJedis = redisConn.getJedisInstance();
 						}
 
-						updateCache(updaterJedis, url);
-
-					} catch (LiveDocumentNotAvailableException e) {
-						LOGGER.warning("Unable to retrieve robots.txt: "
-								+ e.getMessage());
+						if (updateCache(updaterJedis, url) == null) {
+							LOGGER.warning("Unable to retrieve robots.txt");					
+						}
+						
+						connMan.closeExpiredConnections();
 
 					} catch (JedisConnectionException jedisExc) {
 						LOGGER.severe("Jedis Exception: " + jedisExc);
@@ -197,20 +230,34 @@ public class RedisRobotsCache implements LiveWebCache {
 			}
 		}
 	}
+	
+	class RobotResponse
+	{
+		String contents;
+		int status;
+		
+		RobotResponse(String contents)
+		{
+			this.contents = contents;
+		}
+		
+		RobotResponse(int status)
+		{
+			this.status = status;
+		}
+		
+		boolean isValid()
+		{
+			return (contents != null) && (status == 200);
+		}
+	}
 
-	private String loadRobotsUrl(String url)
-			throws LiveDocumentNotAvailableException {
+	private RobotResponse loadRobotsUrl(String url) {
 
 		int status = 200;
 
 		try {
 			HttpGet httpGet = new HttpGet(url);
-
-			HttpParams params = new BasicHttpParams();
-			params.setParameter(CoreConnectionPNames.SO_TIMEOUT,
-					socketTimeoutMS);
-			params.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,
-					connectionTimeoutMS);
 
 			HttpResponse response = httpClient.execute(httpGet);
 
@@ -222,34 +269,24 @@ public class RedisRobotsCache implements LiveWebCache {
 
 			if (status == 200) {
 				contents = EntityUtils.toString(response.getEntity());
-			} else if (status == 502) {
-				throw new LiveDocumentNotAvailableException(url);
-			} else if (status == 504) {
-				// throw new LiveWebTimeoutException("Timeout:" + url);
-				throw new LiveDocumentNotAvailableException("Timeout: " + url);
-			}
-
-			if (contents == null) {
-				throw throwNotAvail("Null or invalid robots.txt from ", url,
-						status);
 			} else {
-				LOGGER.info("Got Robots: " + status + " from " + url);
-				return contents;
+				return new RobotResponse(status);
 			}
 
-		} catch (IllegalArgumentException il) {
-			throw throwNotAvail("IllegalArgumentException: ", url, status);
-		} catch (IOException e) {
-			throw throwNotAvail("IOException: ", url, status);
+			return new RobotResponse(contents);
+
+		} catch (Exception exc) {
+			LOGGER.info("Exception: " + exc + " url: " + url + " status " + status);
+			return new RobotResponse(status);			
 		}
 	}
 
-	private LiveDocumentNotAvailableException throwNotAvail(String string,
-			String url, int status) {
-		String msg = string + " url: " + url + " status: " + status;
-		LOGGER.info(msg);
-		return new LiveDocumentNotAvailableException(msg);
-	}
+//	private LiveDocumentNotAvailableException throwNotAvail(String string,
+//			String url, int status) {
+//		String msg = string + " url: " + url + " status: " + status;
+//		LOGGER.info(msg);
+//		return new LiveDocumentNotAvailableException(msg);
+//	}
 
 	public void shutdown() {
 		if (updaterThread != null) {

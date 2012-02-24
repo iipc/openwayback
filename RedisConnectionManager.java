@@ -1,12 +1,10 @@
 package org.archive.wayback.accesscontrol.robotstxt;
 
 import java.util.LinkedList;
-import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
 public class RedisConnectionManager {
@@ -16,16 +14,15 @@ public class RedisConnectionManager {
 	private int redisDB;
 	
 	private LinkedList<Jedis> fastJedisPool = new LinkedList<Jedis>();
-	private int jedisCount = 0;
-	private int fastJedisPoolSize = 0;
-	
-	private JedisPool jedisPool;
+	private int activeJedisCount = 0;
+	private int pooledJedisCount = 0;
+		
+	private int maxJedisInitTries = 5;
+	private int maxJedisCount;
 	
 	private final static Logger LOGGER = 
 		Logger.getLogger(RedisConnectionManager.class.getName());
-	
-	boolean usePool = false;
-	
+		
 	public RedisConnectionManager(String redisHost, int redisPort, int redisDB)
     {
 		this(redisHost, redisPort, redisDB, null);
@@ -37,24 +34,7 @@ public class RedisConnectionManager {
 		
 		this.redisHost = redisHost;
 		this.redisPort = redisPort;
-		this.redisDB = redisDB;
-		
-		if (!usePool) {
-			return;
-		}
-	
-		if (config == null) {
-			config = new JedisPoolConfig();
-	        config.setMaxActive(50);
-	        config.setTestOnBorrow(true);
-	        config.setTestWhileIdle(true);
-	        config.setTestOnReturn(true);
-		}
-        
-		LOGGER.info("Initializing Jedis Pool: Host = " + redisHost + " Port: " + redisPort);
-		
-		this.jedisPool = new JedisPool(config, redisHost, redisPort);
-			
+		this.redisDB = redisDB;			
 	}
 	
 	public String getRedisHost() {
@@ -72,16 +52,14 @@ public class RedisConnectionManager {
 	protected Jedis getJedisInstance()
 	{
 		Jedis jedis = null;
-		
-		try {
-			if (usePool) {
-				jedis = jedisPool.getResource();
-			} else {
+					
+		for (int i = 0; i < maxJedisInitTries; i++) {		
+			try {
 				synchronized (fastJedisPool) {
 					if (!fastJedisPool.isEmpty()) {
 						jedis = fastJedisPool.removeLast();
+						LOGGER.info("Fast Pool Size: " + --pooledJedisCount);
 					}
-					LOGGER.info("Fast Pool Size: " + --fastJedisPoolSize);
 				}
 				
 				if (jedis != null) {
@@ -93,20 +71,20 @@ public class RedisConnectionManager {
 				if (jedis == null) {
 					jedis = new Jedis(redisHost, redisPort);
 					jedis.connect();
+					if (redisDB != 0) {
+						jedis.select(redisDB);
+					}
 				}
+				
+				LOGGER.info("GET Jedis Instance: " + (++activeJedisCount));
+				return jedis;
+			} catch (Exception exc) {
+				this.returnBrokenJedis(jedis);
+				LOGGER.severe(exc.toString());
 			}
-			
-			if (redisDB != 0) {
-				jedis.select(redisDB);
-			}
-			
-			LOGGER.info("GET Jedis Instance: " + (++jedisCount));
-			return jedis;
-		} catch (RuntimeException rte) {
-			this.returnBrokenJedis(jedis);
-			LOGGER.severe(rte.toString());
-			return null;
 		}
+		
+		return null;
 	}
 	
 	protected void returnJedisInstance(Jedis jedis)
@@ -115,18 +93,16 @@ public class RedisConnectionManager {
 			return;
 		}
 		
-		if (usePool) {
-			if ((jedisPool != null)) {
-				jedisPool.returnResource(jedis);
-			}	
-		} else {
+		if ((maxJedisCount > 0) && (pooledJedisCount >= maxJedisCount)) {
+			closeJedis(jedis);
+		} else {	
 			synchronized (fastJedisPool) {
 				fastJedisPool.addFirst(jedis);
-				LOGGER.info("Fast Pool Size: " + ++fastJedisPoolSize);
+				LOGGER.info("Fast Pool Size: " + ++pooledJedisCount);
 			}
 		}
 		
-		LOGGER.info("RET Jedis Instance: " + --jedisCount);
+		LOGGER.info("RET Jedis Instance: " + --activeJedisCount);
 	}
 	
 	protected void returnBrokenJedis(Jedis jedis)
@@ -135,15 +111,9 @@ public class RedisConnectionManager {
 			return;
 		}
 		
-		if (usePool) {
-			if ((jedisPool != null)) {
-				jedisPool.returnBrokenResource(jedis);
-			}	
-		} else {
-			closeJedis(jedis);
-		}
+		closeJedis(jedis);
 		
-		LOGGER.info("RET Broken Jedis: " + --jedisCount);
+		LOGGER.info("RET Broken Jedis: " + --activeJedisCount);
 	}
 	
 	protected void closeJedis(Jedis jedis)
@@ -153,7 +123,10 @@ public class RedisConnectionManager {
 				jedis.quit();
 				jedis.disconnect();
 			}
-		} catch (Exception exc){}		
+		} catch (Exception exc)
+		{
+			
+		}		
 	}
 
 	public void close() {
