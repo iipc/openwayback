@@ -8,16 +8,19 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.commons.httpclient.HttpHost;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.params.HttpParams;
+import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.exception.LiveDocumentNotAvailableException;
@@ -36,8 +39,11 @@ public class RedisRobotsCache implements LiveWebCache {
 	private int connectionTimeoutMS = 10000;
 	private int socketTimeoutMS = 5000;
 
-	private ClientConnectionManager connMan;
+	private ThreadSafeClientConnManager connMan;
 	private HttpClient httpClient;
+	
+	private String proxyHost;
+	private int proxyPort;
 
 	final static int ONE_DAY = 60 * 60 * 24;
 
@@ -70,10 +76,18 @@ public class RedisRobotsCache implements LiveWebCache {
 
 	protected void initHttpClient() {
 		connMan = new ThreadSafeClientConnManager();
+		connMan.setDefaultMaxPerRoute(10);
+		connMan.setMaxTotal(100);
 
 		HttpParams params = new BasicHttpParams();
 		params.setParameter(CoreConnectionPNames.SO_TIMEOUT, socketTimeoutMS);
 		params.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, connectionTimeoutMS);
+		
+		if ((proxyHost != null) && (proxyPort != 0)) {
+			HttpHost proxy = new HttpHost(proxyHost, proxyPort);
+			params.setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
+			LOGGER.info("=== HTTP Proxy through: " + proxyHost + ":" + proxyPort);
+		}
 
 		httpClient = new DefaultHttpClient(connMan, params);
 	}
@@ -277,6 +291,8 @@ public class RedisRobotsCache implements LiveWebCache {
 			baos.write(byteBuff, 0, numRead);
 		}
 		
+		input.close();
+		
 		return baos;
 	}
 
@@ -286,8 +302,9 @@ public class RedisRobotsCache implements LiveWebCache {
 
 		try {
 			HttpGet httpGet = new HttpGet(url);
+			HttpContext context = new BasicHttpContext();
 
-			HttpResponse response = httpClient.execute(httpGet);
+			HttpResponse response = httpClient.execute(httpGet, context);
 
 			String contents = null;
 
@@ -298,14 +315,8 @@ public class RedisRobotsCache implements LiveWebCache {
 			if (status == 200) {
 				HttpEntity entity = response.getEntity();
 				
-				int numToRead = (int)entity.getContentLength();
-				
-				if (numToRead < 0) {
-					numToRead = 4096;
-				} else if (numToRead > MAX_ROBOTS_SIZE) {
-					numToRead = MAX_ROBOTS_SIZE;
-				}
-				
+				int numToRead = Math.min((int)entity.getContentLength(), MAX_ROBOTS_SIZE);
+							
 				ByteArrayOutputStream baos = readMaxBytes(entity.getContent(), numToRead);
 								
 				String charset = EntityUtils.getContentCharSet(entity);
@@ -315,6 +326,8 @@ public class RedisRobotsCache implements LiveWebCache {
 				}
 				
 				contents = baos.toString(charset);
+				
+				EntityUtils.consume(entity);
 				
 				return new RobotResponse(contents, status);
 				
@@ -327,6 +340,14 @@ public class RedisRobotsCache implements LiveWebCache {
 			return new RobotResponse(null, status);			
 		}
 	}
+	
+    public void setProxyHostPort(String hostPort) {
+    	int colonIdx = hostPort.indexOf(':');
+    	if (colonIdx > 0) {
+    		proxyHost = hostPort.substring(0,colonIdx);
+    		proxyPort = Integer.valueOf(hostPort.substring(colonIdx+1));   		
+    	}
+    }
 
 	public void shutdown() {		
 		if (updaterThread != null) {
