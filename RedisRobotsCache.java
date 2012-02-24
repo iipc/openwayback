@@ -1,11 +1,14 @@
 package org.archive.wayback.accesscontrol.robotstxt;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -48,7 +51,7 @@ public class RedisRobotsCache implements LiveWebCache {
 	final static String ROBOTS_TOKEN_TOO_BIG = "0_ROBOTS_TOO_BIG";
 	final static String ROBOTS_TOKEN_ERROR = "0_ROBOTS_ERROR-";
 	
-	final static int MAX_ROBOTS_SIZE = 1000 * 1000 * 500;
+	final static int MAX_ROBOTS_SIZE = 500000;
 
 	private RedisConnectionManager redisConn;
 
@@ -247,6 +250,35 @@ public class RedisRobotsCache implements LiveWebCache {
 			return (contents != null) && (status == 200);
 		}
 	}
+	
+	private ByteArrayOutputStream readMaxBytes(InputStream input, int max) throws IOException
+	{
+		byte[] byteBuff = new byte[8192];
+		
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		
+		int totalRead = 0;
+			
+		while (true) {
+			int toRead = Math.min(byteBuff.length, max - totalRead);
+			
+			if (toRead <= 0) {
+				break;
+			}
+			
+			int numRead = input.read(byteBuff, 0, toRead);
+			
+			if (numRead < 0) {
+				break;
+			}
+			
+			totalRead += numRead;
+			
+			baos.write(byteBuff, 0, numRead);
+		}
+		
+		return baos;
+	}
 
 	private RobotResponse loadRobotsUrl(String url) {
 
@@ -264,8 +296,28 @@ public class RedisRobotsCache implements LiveWebCache {
 			}
 
 			if (status == 200) {
-				contents = EntityUtils.toString(response.getEntity());
+				HttpEntity entity = response.getEntity();
+				
+				int numToRead = (int)entity.getContentLength();
+				
+				if (numToRead < 0) {
+					numToRead = 4096;
+				} else if (numToRead > MAX_ROBOTS_SIZE) {
+					numToRead = MAX_ROBOTS_SIZE;
+				}
+				
+				ByteArrayOutputStream baos = readMaxBytes(entity.getContent(), numToRead);
+								
+				String charset = EntityUtils.getContentCharSet(entity);
+				
+				if (charset == null) {
+					charset = "UTF-8";
+				}
+				
+				contents = baos.toString(charset);
+				
 				return new RobotResponse(contents, status);
+				
 			} else {
 				return new RobotResponse(null, status);
 			}
@@ -276,19 +328,22 @@ public class RedisRobotsCache implements LiveWebCache {
 		}
 	}
 
-	public void shutdown() {
+	public void shutdown() {		
 		if (updaterThread != null) {
 			updaterThread.toRun = false;
 			updaterThread.interrupt();
+			
 			try {
-				updaterThread.join();
+				updaterThread.join(5000);
 			} catch (InterruptedException e) {
 
 			}
 		}
+		
 		if (redisConn != null) {
 			redisConn.close();
 		}
+		
 		if (connMan != null) {
 			connMan.shutdown();
 		}
