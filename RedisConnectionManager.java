@@ -5,7 +5,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPoolConfig;
 
 public class RedisConnectionManager {
 	
@@ -17,18 +16,13 @@ public class RedisConnectionManager {
 	private int activeJedisCount = 0;
 	private int pooledJedisCount = 0;
 		
-	private int maxJedisInitTries = 5;
-	private int maxJedisCount;
+	private int maxJedisInitTries = 15;
+	private int maxJedisCount = 0;
 	
 	private final static Logger LOGGER = 
 		Logger.getLogger(RedisConnectionManager.class.getName());
 		
 	public RedisConnectionManager(String redisHost, int redisPort, int redisDB)
-    {
-		this(redisHost, redisPort, redisDB, null);
-    }
-
-	public RedisConnectionManager(String redisHost, int redisPort, int redisDB, JedisPoolConfig config)
     {
 		LOGGER.setLevel(Level.FINER);
 		
