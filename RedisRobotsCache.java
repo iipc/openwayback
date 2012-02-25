@@ -37,7 +37,7 @@ public class RedisRobotsCache implements LiveWebCache {
 			.getLogger(RedisRobotsCache.class.getName());
 
 	private int connectionTimeoutMS = 10000;
-	private int socketTimeoutMS = 5000;
+	private int socketTimeoutMS = 10000;
 
 	private ThreadSafeClientConnManager connMan;
 	private HttpClient httpClient;
@@ -291,17 +291,16 @@ public class RedisRobotsCache implements LiveWebCache {
 			baos.write(byteBuff, 0, numRead);
 		}
 		
-		input.close();
-		
 		return baos;
 	}
 
 	private RobotResponse loadRobotsUrl(String url) {
 
-		int status = 200;
-
+		int status = 0;
+		HttpGet httpGet = null;
+		
 		try {
-			HttpGet httpGet = new HttpGet(url);
+			httpGet = new HttpGet(url);
 			HttpContext context = new BasicHttpContext();
 
 			HttpResponse response = httpClient.execute(httpGet, context);
@@ -316,7 +315,7 @@ public class RedisRobotsCache implements LiveWebCache {
 				HttpEntity entity = response.getEntity();
 				
 				int numToRead = Math.min((int)entity.getContentLength(), MAX_ROBOTS_SIZE);
-							
+
 				ByteArrayOutputStream baos = readMaxBytes(entity.getContent(), numToRead);
 								
 				String charset = EntityUtils.getContentCharSet(entity);
@@ -327,18 +326,23 @@ public class RedisRobotsCache implements LiveWebCache {
 				
 				contents = baos.toString(charset);
 				
-				EntityUtils.consume(entity);
+				if (contents.length() == MAX_ROBOTS_SIZE) {
+					httpGet.abort();
+				} else {
+					EntityUtils.consume(entity);
+				}
 				
 				return new RobotResponse(contents, status);
-				
-			} else {
-				return new RobotResponse(null, status);
 			}
 
 		} catch (Exception exc) {
-			LOGGER.info("Exception: " + exc + " url: " + url + " status " + status);
-			return new RobotResponse(null, status);			
+			if (!httpGet.isAborted()) {
+				httpGet.abort();
+			}
+			LOGGER.info("Exception: " + exc + " url: " + url + " status " + status);		
 		}
+		
+		return new RobotResponse(null, status);
 	}
 	
     public void setProxyHostPort(String hostPort) {
@@ -359,14 +363,17 @@ public class RedisRobotsCache implements LiveWebCache {
 			} catch (InterruptedException e) {
 
 			}
+			updaterThread = null;
 		}
 		
 		if (redisConn != null) {
 			redisConn.close();
+			redisConn = null;
 		}
 		
 		if (connMan != null) {
 			connMan.shutdown();
+			connMan = null;
 		}
 	}
 }
