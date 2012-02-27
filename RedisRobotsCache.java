@@ -100,8 +100,9 @@ public class RedisRobotsCache implements LiveWebCache {
 		Jedis jedis = null;
 		
 		try {
-			jedis = redisConn.getJedisInstance();			
-			return getRobots(jedis, url.toExternalForm());
+			jedis = redisConn.getJedisInstance();
+			String urlString = url.toExternalForm();
+			return getRobots(jedis, urlString);
 			
 		} catch (JedisConnectionException jedisExc) {
 			LOGGER.severe("Jedis Exception: " + jedisExc);
@@ -113,18 +114,18 @@ public class RedisRobotsCache implements LiveWebCache {
 		}
 	}
 
-	public Resource getRobots(Jedis jedis, String urlKey)
+	public Resource getRobots(Jedis jedis, String url)
 			throws LiveDocumentNotAvailableException {
 
 		String robotsFile = null;
 
-		robotsFile = jedis.get(urlKey);
+		robotsFile = jedis.get(url);
 
 		if ((robotsFile == null) || robotsFile.equals(ROBOTS_TOKEN_TOO_BIG)) {
 			
-			LOGGER.info("UNCACHED Robots: " + urlKey);
+			LOGGER.info("UNCACHED Robots: " + url);
 
-			robotsFile = updateCache(jedis, urlKey);
+			robotsFile = updateCache(jedis, url);
 			
 			if (robotsFile == null) {
 				throw new LiveDocumentNotAvailableException("Error Loading Live Robots");	
@@ -132,27 +133,27 @@ public class RedisRobotsCache implements LiveWebCache {
 			
 		} else if (robotsFile.startsWith(ROBOTS_TOKEN_ERROR)) {
 			
-			long ttl = jedis.ttl(urlKey);
-			LOGGER.info("Cached Robots NOT AVAIL " + urlKey + " TTL: " + ttl);
+			long ttl = jedis.ttl(url);
+			LOGGER.info("Cached Robots NOT AVAIL " + url + " TTL: " + ttl);
 
 			if ((notAvailTotalTTL - ttl) >= notAvailRefreshTTL) {
 				LOGGER.info("Refreshing NOT AVAIL robots: "
 						+ (notAvailTotalTTL - ttl) + ">=" + notAvailRefreshTTL);
-				updaterThread.addUrlLookup(urlKey);
+				updaterThread.addUrlLookup(url);
 				jedis = null;
 			}
 
-			throw new LiveDocumentNotAvailableException(urlKey);
+			throw new LiveDocumentNotAvailableException(url);
 
 		} else {
-			long ttl = jedis.ttl(urlKey);
+			long ttl = jedis.ttl(url);
 			
-			LOGGER.info("Cached Robots: " + urlKey + " TTL: " + ttl);
+			LOGGER.info("Cached Robots: " + url + " TTL: " + ttl);
 
 			if ((totalTTL - ttl) >= refreshTTL) {
 				LOGGER.info("Refreshing robots: " + (totalTTL - ttl) + ">="
 						+ refreshTTL);
-				updaterThread.addUrlLookup(urlKey);
+				updaterThread.addUrlLookup(url);
 				jedis = null;
 			}
 			
@@ -297,6 +298,7 @@ public class RedisRobotsCache implements LiveWebCache {
 	private RobotResponse loadRobotsUrl(String url) {
 
 		int status = 0;
+		String contents = null;
 		HttpGet httpGet = null;
 		
 		try {
@@ -304,8 +306,6 @@ public class RedisRobotsCache implements LiveWebCache {
 			HttpContext context = new BasicHttpContext();
 
 			HttpResponse response = httpClient.execute(httpGet, context);
-
-			String contents = null;
 
 			if (response != null) {
 				status = response.getStatusLine().getStatusCode();
@@ -321,28 +321,20 @@ public class RedisRobotsCache implements LiveWebCache {
 				String charset = EntityUtils.getContentCharSet(entity);
 				
 				if (charset == null) {
-					charset = "UTF-8";
+					charset = "utf-8";
 				}
 				
 				contents = baos.toString(charset);
-				
-				if (contents.length() == MAX_ROBOTS_SIZE) {
-					httpGet.abort();
-				} else {
-					EntityUtils.consume(entity);
-				}
-				
-				return new RobotResponse(contents, status);
 			}
 
 		} catch (Exception exc) {
-			if (!httpGet.isAborted()) {
-				httpGet.abort();
-			}
 			LOGGER.info("Exception: " + exc + " url: " + url + " status " + status);		
+		
+		} finally {
+			httpGet.abort();
 		}
 		
-		return new RobotResponse(null, status);
+		return new RobotResponse(contents, status);
 	}
 	
     public void setProxyHostPort(String hostPort) {

@@ -21,6 +21,11 @@ public class RedisConnectionManager {
 	
 	private final static Logger LOGGER = 
 		Logger.getLogger(RedisConnectionManager.class.getName());
+	
+	public RedisConnectionManager(String redisHost, int redisPort)
+    {
+		this(redisHost, redisPort, 0);
+	}
 		
 	public RedisConnectionManager(String redisHost, int redisPort, int redisDB)
     {
