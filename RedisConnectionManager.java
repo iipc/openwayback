@@ -17,7 +17,7 @@ public class RedisConnectionManager {
 	private int pooledJedisCount = 0;
 		
 	private int maxJedisInitTries = 15;
-	private int maxJedisCount = 0;
+	private int maxJedisCount = 100;
 	
 	private final static Logger LOGGER = 
 		Logger.getLogger(RedisConnectionManager.class.getName());
