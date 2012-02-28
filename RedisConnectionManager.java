@@ -13,11 +13,11 @@ public class RedisConnectionManager {
 	private int redisDB;
 	
 	private LinkedList<Jedis> fastJedisPool = new LinkedList<Jedis>();
-	private int activeJedisCount = 0;
-	private int pooledJedisCount = 0;
+//	volatile private int activeJedisCount = 0;
+//	volatile private int pooledJedisCount = 0;
 		
 	private int maxJedisInitTries = 15;
-	private int maxJedisCount = 100;
+	private int maxJedisCount = 1000;
 	
 	private final static Logger LOGGER = 
 		Logger.getLogger(RedisConnectionManager.class.getName());
@@ -51,31 +51,29 @@ public class RedisConnectionManager {
 	protected Jedis getJedisInstance()
 	{
 		Jedis jedis = null;
+		int poolSize = 0;
 					
 		for (int i = 0; i < maxJedisInitTries; i++) {		
 			try {
 				synchronized (fastJedisPool) {
 					if (!fastJedisPool.isEmpty()) {
 						jedis = fastJedisPool.removeLast();
-						LOGGER.info("Fast Pool Size: " + --pooledJedisCount);
+						poolSize = fastJedisPool.size();
 					}
 				}
 				
-				if (jedis != null) {
-					if (!jedis.isConnected()) {
-						jedis = null;
-					}
+				if ((jedis != null) && jedis.isConnected()) {
+					LOGGER.info("Jedis Pool Size: " + poolSize);
+					return jedis;
 				}
 				
-				if (jedis == null) {
-					jedis = new Jedis(redisHost, redisPort);
-					jedis.connect();
-					if (redisDB != 0) {
-						jedis.select(redisDB);
-					}
+				jedis = new Jedis(redisHost, redisPort);
+				jedis.connect();
+				if (redisDB != 0) {
+					jedis.select(redisDB);
 				}
 				
-				LOGGER.info("GET Jedis Instance: " + (++activeJedisCount));
+//				LOGGER.info("GET Jedis Instance: " + (++activeJedisCount));
 				return jedis;
 			} catch (Exception exc) {
 				this.returnBrokenJedis(jedis);
@@ -92,16 +90,27 @@ public class RedisConnectionManager {
 			return;
 		}
 		
-		if ((maxJedisCount > 0) && (pooledJedisCount >= maxJedisCount)) {
-			closeJedis(jedis);
-		} else {	
-			synchronized (fastJedisPool) {
+		int poolSize = 0;
+		
+		synchronized (fastJedisPool) {
+			poolSize = fastJedisPool.size();
+			if ((maxJedisCount <= 0) || (poolSize < maxJedisCount)) {
 				fastJedisPool.addFirst(jedis);
-				LOGGER.info("Fast Pool Size: " + ++pooledJedisCount);
+				jedis = null;
 			}
 		}
 		
-		LOGGER.info("RET Jedis Instance: " + --activeJedisCount);
+		// If not null, then still needs closing
+		// If null, then put into pool
+		// Doing outside of synchronized for max speed
+		
+		if (jedis != null) {
+			closeJedis(jedis);
+		} else {
+			LOGGER.info("Jedis Pool Size: " + poolSize);
+		}
+		
+//		LOGGER.info("RET Jedis Instance: " + --activeJedisCount);
 	}
 	
 	protected void returnBrokenJedis(Jedis jedis)
@@ -112,7 +121,7 @@ public class RedisConnectionManager {
 		
 		closeJedis(jedis);
 		
-		LOGGER.info("RET Broken Jedis: " + --activeJedisCount);
+//		LOGGER.info("RET Broken Jedis: " + --activeJedisCount);
 	}
 	
 	protected void closeJedis(Jedis jedis)
@@ -124,7 +133,7 @@ public class RedisConnectionManager {
 			}
 		} catch (Exception exc)
 		{
-			
+			LOGGER.warning("Jedis Close Exception: " + exc);
 		}		
 	}
 
