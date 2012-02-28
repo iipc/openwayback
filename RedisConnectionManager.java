@@ -4,6 +4,8 @@ import java.util.LinkedList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.archive.wayback.webapp.PerformanceLogger;
+
 import redis.clients.jedis.Jedis;
 
 public class RedisConnectionManager {
@@ -55,6 +57,7 @@ public class RedisConnectionManager {
 					
 		for (int i = 0; i < maxJedisInitTries; i++) {		
 			try {
+				long startTime = System.currentTimeMillis();
 				synchronized (fastJedisPool) {
 					if (!fastJedisPool.isEmpty()) {
 						jedis = fastJedisPool.removeLast();
@@ -63,15 +66,19 @@ public class RedisConnectionManager {
 				}
 				
 				if ((jedis != null) && jedis.isConnected()) {
-					LOGGER.info("Jedis Pool Size: " + poolSize);
+					PerformanceLogger.noteElapsed("JedisGetPool", System.currentTimeMillis() - startTime, "Size: " + poolSize);
+					//LOGGER.info("Jedis Pool Size: " + poolSize);
 					return jedis;
 				}
+				
+				startTime = System.currentTimeMillis();
 				
 				jedis = new Jedis(redisHost, redisPort);
 				jedis.connect();
 				if (redisDB != 0) {
 					jedis.select(redisDB);
 				}
+				PerformanceLogger.noteElapsed("JedisGetNew", System.currentTimeMillis() - startTime, "NEW JEDIS");
 				
 //				LOGGER.info("GET Jedis Instance: " + (++activeJedisCount));
 				return jedis;
@@ -92,6 +99,8 @@ public class RedisConnectionManager {
 		
 		int poolSize = 0;
 		
+		long startTime = System.currentTimeMillis();
+		
 		synchronized (fastJedisPool) {
 			poolSize = fastJedisPool.size();
 			if ((maxJedisCount <= 0) || (poolSize < maxJedisCount)) {
@@ -106,8 +115,10 @@ public class RedisConnectionManager {
 		
 		if (jedis != null) {
 			closeJedis(jedis);
+			PerformanceLogger.noteElapsed("JedisCloseExtra", System.currentTimeMillis() - startTime, "Size: " + poolSize);
 		} else {
-			LOGGER.info("Jedis Pool Size: " + poolSize);
+			PerformanceLogger.noteElapsed("JedisReturnPool", System.currentTimeMillis() - startTime, "Size: " + poolSize);
+			//LOGGER.info("Jedis Pool Size: " + poolSize);
 		}
 		
 //		LOGGER.info("RET Jedis Instance: " + --activeJedisCount);

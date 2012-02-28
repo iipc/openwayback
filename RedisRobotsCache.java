@@ -102,20 +102,20 @@ public class RedisRobotsCache implements LiveWebCache {
 		Jedis jedis = null;
 		String url = urlURL.toExternalForm();
 		
-		long startTime = System.currentTimeMillis();
-		
 		try {
 		
 			jedis = redisConn.getJedisInstance();
 	
+			long startTime = System.currentTimeMillis();
 			robotsFile = jedis.get(url);
+
 	
 			if ((robotsFile == null)/* || robotsFile.equals(ROBOTS_TOKEN_TOO_BIG)*/) {
+				PerformanceLogger.noteElapsed("RedisLookup", System.currentTimeMillis() - startTime, "UNCACHED: " + url);
+
 				redisConn.returnJedisInstance(jedis);
 				jedis = null;
-				
-				PerformanceLogger.noteElapsed("RedisLookup", System.currentTimeMillis() - startTime, "UNCACHED: " + url);
-	
+					
 				robotsFile = updateCache(url);
 				
 				if (robotsFile == null) {
@@ -123,13 +123,13 @@ public class RedisRobotsCache implements LiveWebCache {
 				}
 				
 			} else if (robotsFile.startsWith(ROBOTS_TOKEN_ERROR)) {
-				
 				long ttl = jedis.ttl(url);
+				
+				PerformanceLogger.noteElapsed("RedisLookup", System.currentTimeMillis() - startTime, "NOTAVAIL: " + url);
+				
 				redisConn.returnJedisInstance(jedis);
 				jedis = null;
 				
-				PerformanceLogger.noteElapsed("RedisLookup", System.currentTimeMillis() - startTime, "NOTAVAIL: " + url);
-
 				//LOGGER.info("Cached Robots NOT AVAIL " + url + " TTL: " + ttl);
 	
 				if ((notAvailTotalTTL - ttl) >= notAvailRefreshTTL) {
@@ -143,11 +143,12 @@ public class RedisRobotsCache implements LiveWebCache {
 	
 			} else {
 				long ttl = jedis.ttl(url);
-				redisConn.returnJedisInstance(jedis);
-				jedis = null;
 				
 				PerformanceLogger.noteElapsed("RedisLookup", System.currentTimeMillis() - startTime, "ISCACHED: " + url);
 
+				redisConn.returnJedisInstance(jedis);
+				jedis = null;
+				
 				//LOGGER.info("Cached Robots: " + url + " TTL: " + ttl);
 	
 				if ((totalTTL - ttl) >= refreshTTL) {
