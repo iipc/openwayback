@@ -74,9 +74,4 @@ public class RedisRobotExclusionFilter extends RobotExclusionFilter {
 		}
 		return list;
 	}
-
-	@Override
-	public void shutdown() {
-
-	}
 }
