@@ -314,7 +314,11 @@ public class RedisRobotsCache implements LiveWebCache {
 			if (status == 200) {
 				HttpEntity entity = response.getEntity();
 				
-				int numToRead = Math.min((int)entity.getContentLength(), MAX_ROBOTS_SIZE);
+				int numToRead = (int)entity.getContentLength();
+				
+				if ((numToRead <= 0) || (numToRead > MAX_ROBOTS_SIZE)) {
+					numToRead = MAX_ROBOTS_SIZE;
+				}
 
 				ByteArrayOutputStream baos = readMaxBytes(entity.getContent(), numToRead);
 								
