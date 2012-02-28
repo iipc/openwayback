@@ -19,12 +19,10 @@
  */
 package org.archive.wayback.archivalurl;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.util.Map;
 
 import javax.servlet.ServletException;
@@ -46,14 +44,11 @@ import org.archive.wayback.replay.TextReplayRenderer;
 import org.archive.wayback.replay.charset.CharsetDetector;
 import org.archive.wayback.replay.charset.StandardCharsetDetector;
 import org.archive.wayback.replay.html.ReplayParseContext;
-import org.archive.wayback.util.ByteOp;
 import org.archive.wayback.util.htmllex.ContextAwareLexer;
 import org.archive.wayback.util.htmllex.ParseEventHandler;
 import org.htmlparser.Node;
-import org.htmlparser.lexer.InputStreamSource;
 import org.htmlparser.lexer.Lexer;
 import org.htmlparser.lexer.Page;
-import org.htmlparser.lexer.Source;
 import org.htmlparser.util.ParserException;
 
 /**
@@ -91,6 +86,8 @@ public class ArchivalUrlSAXRewriteReplayRenderer implements ReplayRenderer {
 			CaptureSearchResult result, Resource resource,
 			ResultURIConverter uriConverter, CaptureSearchResults results)
 			throws ServletException, IOException, WaybackException {
+		
+		resource = TextReplayRenderer.decodeResource(resource);
 
 		// The URL of the page, for resolving in-page relative URLs: 
     	URL url = null;

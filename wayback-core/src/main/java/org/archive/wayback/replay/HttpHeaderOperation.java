@@ -44,6 +44,7 @@ public class HttpHeaderOperation {
 		"Transfer-Encoding".toUpperCase();
 	public final static String HTTP_CHUNKED_ENCODING_HEADER = 
 		"chunked".toUpperCase();
+	public final static String HTTP_CONTENT_ENCODING = "Content-Encoding";
 
 	
 	/**

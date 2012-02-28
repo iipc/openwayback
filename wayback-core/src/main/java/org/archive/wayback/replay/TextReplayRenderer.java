@@ -76,6 +76,9 @@ public abstract class TextReplayRenderer implements ReplayRenderer {
 
 		Map<String,String> headers = HttpHeaderOperation.processHeaders(
 				resource, result, uriConverter, httpHeaderProcessor);
+		
+		// Decode resource (such as if gzip encoded)
+		resource = decodeResource(resource);
 	
 		String charSet = charsetDetector.getCharset(resource, wbRequest);
 		// Load content into an HTML page, and resolve load-time URLs:
@@ -149,5 +152,23 @@ public abstract class TextReplayRenderer implements ReplayRenderer {
 	 */
 	public void setGuessedCharsetHeader(String guessedCharsetHeader) {
 		this.guessedCharsetHeader = guessedCharsetHeader;
+	}
+	
+	public static Resource decodeResource(Resource resource) throws IOException
+	{
+		Map<String, String> headers = resource.getHttpHeaders();
+		
+		if (headers != null) {
+			String encoding =  headers.get(HttpHeaderOperation.HTTP_CONTENT_ENCODING);
+			if (encoding != null) {
+				if (encoding.toLowerCase().equals(GzipDecodingResource.GZIP)) {
+					return new GzipDecodingResource(resource);
+				}
+				
+				//TODO: check for other encodings?
+			}
+		}
+		
+		return resource;
 	}
 }
