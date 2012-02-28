@@ -32,9 +32,4 @@ public abstract class ExclusionFilter implements ObjectFilter<CaptureSearchResul
 	public void setFilterGroup(ExclusionCaptureFilterGroup filterGroup) {
 		this.filterGroup = filterGroup;
 	}
-	
-	public void shutdown()
-	{
-		
-	}
 }
