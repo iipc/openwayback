@@ -27,6 +27,7 @@ import org.archive.wayback.exception.LiveDocumentNotAvailableException;
 import org.archive.wayback.exception.LiveWebCacheUnavailableException;
 import org.archive.wayback.exception.LiveWebTimeoutException;
 import org.archive.wayback.liveweb.LiveWebCache;
+import org.archive.wayback.webapp.PerformanceLogger;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.exceptions.JedisConnectionException;
@@ -101,6 +102,8 @@ public class RedisRobotsCache implements LiveWebCache {
 		Jedis jedis = null;
 		String url = urlURL.toExternalForm();
 		
+		long startTime = System.currentTimeMillis();
+		
 		try {
 		
 			jedis = redisConn.getJedisInstance();
@@ -111,7 +114,7 @@ public class RedisRobotsCache implements LiveWebCache {
 				redisConn.returnJedisInstance(jedis);
 				jedis = null;
 				
-				LOGGER.info("UNCACHED Robots: " + url);
+				PerformanceLogger.noteElapsed("RedisLookup", System.currentTimeMillis() - startTime, "UNCACHED: " + url);
 	
 				robotsFile = updateCache(url);
 				
@@ -125,7 +128,9 @@ public class RedisRobotsCache implements LiveWebCache {
 				redisConn.returnJedisInstance(jedis);
 				jedis = null;
 				
-				LOGGER.info("Cached Robots NOT AVAIL " + url + " TTL: " + ttl);
+				PerformanceLogger.noteElapsed("RedisLookup", System.currentTimeMillis() - startTime, "NOTAVAIL: " + url);
+
+				//LOGGER.info("Cached Robots NOT AVAIL " + url + " TTL: " + ttl);
 	
 				if ((notAvailTotalTTL - ttl) >= notAvailRefreshTTL) {
 					LOGGER.info("Refreshing NOT AVAIL robots: "
@@ -141,7 +146,9 @@ public class RedisRobotsCache implements LiveWebCache {
 				redisConn.returnJedisInstance(jedis);
 				jedis = null;
 				
-				LOGGER.info("Cached Robots: " + url + " TTL: " + ttl);
+				PerformanceLogger.noteElapsed("RedisLookup", System.currentTimeMillis() - startTime, "ISCACHED: " + url);
+
+				//LOGGER.info("Cached Robots: " + url + " TTL: " + ttl);
 	
 				if ((totalTTL - ttl) >= refreshTTL) {
 					LOGGER.info("Refreshing robots: " + (totalTTL - ttl) + ">="
@@ -191,6 +198,8 @@ public class RedisRobotsCache implements LiveWebCache {
 		String contents = null;
 		Jedis jedis = null;
 		
+		long startTime = System.currentTimeMillis();
+		
 		try {		
 			jedis = redisConn.getJedisInstance();
 			contents = updateRedisCache(jedis, url, robotResponse);
@@ -201,6 +210,8 @@ public class RedisRobotsCache implements LiveWebCache {
 		} finally {
 			redisConn.returnJedisInstance(jedis);
 		}
+		
+		PerformanceLogger.noteElapsed("AsyncRedisLookup", System.currentTimeMillis() - startTime, url);
 		
 		return contents;
 	}
