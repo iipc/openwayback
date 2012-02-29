@@ -58,8 +58,13 @@ public class RedisRobotsCache implements LiveWebCache {
 	final static String ROBOTS_TOKEN_EMPTY = "0_ROBOTS_EMPTY";
 	
 	final static String ROBOTS_TOKEN_ERROR = "0_ROBOTS_ERROR-";
-	final static String ROBOTS_TOKEN_ERROR_UNKNOWN = "0_ROBOTS_ERROR-0";	
-	final static String ROBOTS_TOKEN_ERROR_504 = "0_ROBOTS_ERROR-504";
+	final static String ROBOTS_TOKEN_ERROR_UNKNOWN = "0_ROBOTS_ERROR-0";
+	
+	final static int TIMEOUT_ERR = 900;
+	final static int HOST_ERR = 910;
+	
+	final static String ROBOTS_ERROR_TIMEOUT = "0_ROBOTS_ERROR_900";
+	final static String ROBOTS_ERROR_HOST_UNKNOWN = "0_ROBOTS_ERROR_910";
 	
 	final static int MAX_ROBOTS_SIZE = 500000;
 
@@ -180,9 +185,11 @@ public class RedisRobotsCache implements LiveWebCache {
 		Jedis jedis = null;
 		
 		String newRedisValue = null;
+		int newTTL = 0;
 		
 		if (robotResponse.isValid()) {
 			contents = robotResponse.contents;
+			newTTL = totalTTL;
 			
 			if (contents.isEmpty()) {
 				newRedisValue = ROBOTS_TOKEN_EMPTY;
@@ -193,6 +200,7 @@ public class RedisRobotsCache implements LiveWebCache {
 			}
 			
 		} else {
+			newTTL = notAvailTotalTTL;
 			newRedisValue = ROBOTS_TOKEN_ERROR + robotResponse.status;
 		}
 		
@@ -202,15 +210,17 @@ public class RedisRobotsCache implements LiveWebCache {
 				return false;
 			}
 			
-			// Don't override a valid robots with an error?			
-//			if (newRedisValue.startsWith(ROBOTS_TOKEN_ERROR) && !currentValue.startsWith(ROBOTS_TOKEN_ERROR)) {
-//				return false;
-//			}		
+			// Don't override a valid robots with a timeout error
+			if ((robotResponse.status == TIMEOUT_ERR) && !currentValue.startsWith(ROBOTS_TOKEN_ERROR)) {
+				newRedisValue = currentValue;
+				newTTL = notAvailTotalTTL;
+				LOGGER.info("REFRESH TIMEOUT: Keeping same robots for " + url + ", refresh timed out");
+			}
 		}
 				
 		try {
 			jedis = redisConn.getJedisInstance();
-			jedis.setex(url, (robotResponse.isValid() ? totalTTL : notAvailTotalTTL), newRedisValue);
+			jedis.setex(url, newTTL, newRedisValue);
 			
 		} catch (JedisConnectionException jce) {
 			LOGGER.severe("Jedis Exception: " + jce);
@@ -330,9 +340,9 @@ public class RedisRobotsCache implements LiveWebCache {
 		} catch (Exception exc) {
 			
 			if (exc instanceof InterruptedIOException) {
-				status = 504; //Timeout (gateway timeout)
+				status = TIMEOUT_ERR; //Timeout (gateway timeout)
 			} else if (exc instanceof UnknownHostException) {
-				status = 502; //Unknown Host (bad gateway)
+				status = HOST_ERR;
 			}
 			
 			LOGGER.info("Exception: " + exc + " url: " + url + " status " + status);		
