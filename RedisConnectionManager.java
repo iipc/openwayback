@@ -63,7 +63,7 @@ public class RedisConnectionManager {
 					}
 				}
 				
-				if ((jedis != null) && jedis.isConnected()) {
+				if ((jedis != null) && jedis.isConnected() && jedis.ping().equals("PONG")) {
 					PerformanceLogger.noteElapsed("JedisGetPool", System.currentTimeMillis() - startTime, "Size: " + poolSize);
 					return jedis;
 				}
@@ -83,7 +83,7 @@ public class RedisConnectionManager {
 			}
 		}
 		
-		return null;
+		return jedis;
 	}
 	
 	protected void returnJedisInstance(Jedis jedis)
