@@ -60,11 +60,11 @@ public class RedisRobotsCache implements LiveWebCache {
 	final static String ROBOTS_TOKEN_ERROR = "0_ROBOTS_ERROR-";
 	final static String ROBOTS_TOKEN_ERROR_UNKNOWN = "0_ROBOTS_ERROR-0";
 	
-	final static int TIMEOUT_ERR = 900;
-	final static int HOST_ERR = 910;
+	final static int LIVE_TIMEOUT_ERROR = 900;
+	final static int LIVE_HOST_ERROR = 910;
 	
-	final static String ROBOTS_ERROR_TIMEOUT = "0_ROBOTS_ERROR_900";
-	final static String ROBOTS_ERROR_HOST_UNKNOWN = "0_ROBOTS_ERROR_910";
+//	final static String ROBOTS_ERROR_LIVE_TIMEOUT = ROBOTS_TOKEN_ERROR + LIVE_TIMEOUT_ERROR;
+//	final static String ROBOTS_ERROR_LIVE_HOST_UNKNOWN = ROBOTS_TOKEN_ERROR + LIVE_HOST_ERROR;
 	
 	final static int MAX_ROBOTS_SIZE = 500000;
 
@@ -211,7 +211,7 @@ public class RedisRobotsCache implements LiveWebCache {
 			}
 			
 			// Don't override a valid robots with a timeout error
-			if ((robotResponse.status == TIMEOUT_ERR) && !currentValue.startsWith(ROBOTS_TOKEN_ERROR)) {
+			if ((robotResponse.status == LIVE_TIMEOUT_ERROR) && !currentValue.startsWith(ROBOTS_TOKEN_ERROR)) {
 				newRedisValue = currentValue;
 				newTTL = notAvailTotalTTL;
 				LOGGER.info("REFRESH TIMEOUT: Keeping same robots for " + url + ", refresh timed out");
@@ -340,9 +340,9 @@ public class RedisRobotsCache implements LiveWebCache {
 		} catch (Exception exc) {
 			
 			if (exc instanceof InterruptedIOException) {
-				status = TIMEOUT_ERR; //Timeout (gateway timeout)
+				status = LIVE_TIMEOUT_ERROR; //Timeout (gateway timeout)
 			} else if (exc instanceof UnknownHostException) {
-				status = HOST_ERR;
+				status = LIVE_HOST_ERROR;
 			}
 			
 			LOGGER.info("Exception: " + exc + " url: " + url + " status " + status);		
