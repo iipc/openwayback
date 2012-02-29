@@ -15,11 +15,9 @@ public class RedisConnectionManager {
 	private int redisDB;
 	
 	private LinkedList<Jedis> fastJedisPool = new LinkedList<Jedis>();
-//	volatile private int activeJedisCount = 0;
-//	volatile private int pooledJedisCount = 0;
 		
 	private int maxJedisInitTries = 15;
-	private int maxJedisCount = 1000;
+	private int maxJedisCount = 500;
 	
 	private final static Logger LOGGER = 
 		Logger.getLogger(RedisConnectionManager.class.getName());
@@ -60,14 +58,13 @@ public class RedisConnectionManager {
 				long startTime = System.currentTimeMillis();
 				synchronized (fastJedisPool) {
 					if (!fastJedisPool.isEmpty()) {
-						jedis = fastJedisPool.removeLast();
+						jedis = fastJedisPool.pop();
 						poolSize = fastJedisPool.size();
 					}
 				}
 				
 				if ((jedis != null) && jedis.isConnected()) {
 					PerformanceLogger.noteElapsed("JedisGetPool", System.currentTimeMillis() - startTime, "Size: " + poolSize);
-					//LOGGER.info("Jedis Pool Size: " + poolSize);
 					return jedis;
 				}
 				
@@ -79,12 +76,10 @@ public class RedisConnectionManager {
 					jedis.select(redisDB);
 				}
 				PerformanceLogger.noteElapsed("JedisGetNew", System.currentTimeMillis() - startTime, "NEW JEDIS");
-				
-//				LOGGER.info("GET Jedis Instance: " + (++activeJedisCount));
 				return jedis;
 			} catch (Exception exc) {
 				this.returnBrokenJedis(jedis);
-				LOGGER.severe(exc.toString());
+				LOGGER.severe("Retrying Jedis Init: " + exc.toString());
 			}
 		}
 		
@@ -104,7 +99,7 @@ public class RedisConnectionManager {
 		synchronized (fastJedisPool) {
 			poolSize = fastJedisPool.size();
 			if ((maxJedisCount <= 0) || (poolSize < maxJedisCount)) {
-				fastJedisPool.addFirst(jedis);
+				fastJedisPool.push(jedis);
 				jedis = null;
 			}
 		}
@@ -118,10 +113,7 @@ public class RedisConnectionManager {
 			PerformanceLogger.noteElapsed("JedisCloseExtra", System.currentTimeMillis() - startTime, "Size: " + poolSize);
 		} else {
 			PerformanceLogger.noteElapsed("JedisReturnPool", System.currentTimeMillis() - startTime, "Size: " + poolSize);
-			//LOGGER.info("Jedis Pool Size: " + poolSize);
 		}
-		
-//		LOGGER.info("RET Jedis Instance: " + --activeJedisCount);
 	}
 	
 	protected void returnBrokenJedis(Jedis jedis)
@@ -131,8 +123,6 @@ public class RedisConnectionManager {
 		}
 		
 		closeJedis(jedis);
-		
-//		LOGGER.info("RET Broken Jedis: " + --activeJedisCount);
 	}
 	
 	protected void closeJedis(Jedis jedis)
