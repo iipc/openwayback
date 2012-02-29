@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.net.URL;
 import java.net.UnknownHostException;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -39,8 +38,8 @@ public class RedisRobotsCache implements LiveWebCache {
 	private final static Logger LOGGER = Logger
 			.getLogger(RedisRobotsCache.class.getName());
 
-	private int connectionTimeoutMS = 10000;
-	private int socketTimeoutMS = 10000;
+	private int connectionTimeoutMS = 5000;
+	private int socketTimeoutMS = 5000;
 
 	private ThreadSafeClientConnManager connMan;
 	private HttpClient httpClient;
@@ -53,12 +52,11 @@ public class RedisRobotsCache implements LiveWebCache {
 	private int totalTTL = ONE_DAY * 4;
 	private int refreshTTL = ONE_DAY;
 
-	private int notAvailTotalTTL = ONE_DAY;
-	private int notAvailRefreshTTL = 60 * 60;
+	private int notAvailTotalTTL = ONE_DAY * 2;
+	private int notAvailRefreshTTL = ONE_DAY / 2;
 	
 	final static String ROBOTS_TOKEN_EMPTY = "0_ROBOTS_EMPTY";
-	final static String ROBOTS_TOKEN_TOO_BIG = "0_ROBOTS_TOO_BIG";
-
+	
 	final static String ROBOTS_TOKEN_ERROR = "0_ROBOTS_ERROR-";
 	final static String ROBOTS_TOKEN_ERROR_UNKNOWN = "0_ROBOTS_ERROR-0";	
 	final static String ROBOTS_TOKEN_ERROR_504 = "0_ROBOTS_ERROR-504";
@@ -108,25 +106,28 @@ public class RedisRobotsCache implements LiveWebCache {
 		String url = urlURL.toExternalForm();
 		
 		try {
-		
 			jedis = redisConn.getJedisInstance();
 	
 			long startTime = System.currentTimeMillis();
 			robotsFile = jedis.get(url);
-			PerformanceLogger.noteElapsed("RedisGet", System.currentTimeMillis() - startTime, (robotsFile == null) ? "REDIS MISS: " : " REDIS HIT: " + url);
+			PerformanceLogger.noteElapsed("RedisGet", System.currentTimeMillis() - startTime, ((robotsFile == null) ? "REDIS MISS: " : " REDIS HIT: ") + url);
 
 	
-			if ((robotsFile == null)/* || robotsFile.equals(ROBOTS_TOKEN_TOO_BIG)*/) {
+			if (robotsFile == null) {
 				//PerformanceLogger.noteElapsed("RedisTTL", System.currentTimeMillis() - startTime, "UNCACHED: " + url);
 
 				redisConn.returnJedisInstance(jedis);
 				jedis = null;
-					
-				robotsFile = updateCache(url);
 				
-				if (robotsFile == null) {
+				RobotResponse robotResponse = loadRobotsUrl(url);
+					
+				updateCache(robotResponse, url, null);
+				
+				if (!robotResponse.isValid()) {
 					throw new LiveWebTimeoutException("Error Loading Live Robots");	
 				}
+				
+				robotsFile = robotResponse.contents;
 				
 			} else if (robotsFile.startsWith(ROBOTS_TOKEN_ERROR)) {
 				startTime = System.currentTimeMillis();
@@ -142,10 +143,14 @@ public class RedisRobotsCache implements LiveWebCache {
 					LOGGER.info("Refreshing NOT AVAIL robots: "
 							+ (notAvailTotalTTL - ttl) + ">=" + notAvailRefreshTTL);
 					//updaterThread.addUrlLookup(url);
-					new RedisInstaUpdater(url).start();
+					new RedisInstaUpdater(url, robotsFile).start();
 				}
-	
-				throw new LiveWebTimeoutException(url);
+				
+				if (robotsFile.equals(ROBOTS_TOKEN_ERROR_504)) {
+					throw new LiveWebTimeoutException(url);
+				} else {
+					throw new LiveDocumentNotAvailableException(url);
+				}
 	
 			} else {
 				startTime = System.currentTimeMillis();
@@ -160,7 +165,7 @@ public class RedisRobotsCache implements LiveWebCache {
 				if ((totalTTL - ttl) >= refreshTTL) {
 					LOGGER.info("Refreshing robots: " + (totalTTL - ttl) + ">="
 							+ refreshTTL);
-					new RedisInstaUpdater(url).start();
+					new RedisInstaUpdater(url, robotsFile).start();
 				}
 				
 				if (robotsFile.equals(ROBOTS_TOKEN_EMPTY)) {
@@ -179,123 +184,123 @@ public class RedisRobotsCache implements LiveWebCache {
 		return new RobotsTxtResource(robotsFile);
 	}
 	
-	public String updateRedisCache(Jedis jedis, String url, RobotResponse robotResponse)
-	{
-		if (robotResponse.isValid()) {
-			String contents = robotResponse.contents;
-			
-			if (contents.isEmpty()) {
-				jedis.setex(url, totalTTL, ROBOTS_TOKEN_EMPTY);
-			} else if (contents.length() > MAX_ROBOTS_SIZE) {
-				jedis.setex(url, totalTTL, ROBOTS_TOKEN_TOO_BIG);
-			} else {
-				jedis.setex(url, totalTTL, contents);
-			}
-			
-			return contents;
-		} else {
-			jedis.setex(url, notAvailTotalTTL, ROBOTS_TOKEN_ERROR + robotResponse.status);
-			return null;
-		}
-	}
-
-	private String updateCache(String url) {
-		
-		RobotResponse robotResponse = loadRobotsUrl(url);
+	private boolean updateCache(RobotResponse robotResponse, String url, String current) {		
 		String contents = null;
 		Jedis jedis = null;
 		
+		String redisValue = null;
+		
+		if (robotResponse.isValid()) {
+			contents = robotResponse.contents;
+			
+			if (contents.isEmpty()) {
+				redisValue = ROBOTS_TOKEN_EMPTY;
+			} else if (contents.length() > MAX_ROBOTS_SIZE) {
+				redisValue = contents.substring(0, MAX_ROBOTS_SIZE);
+			} else {
+				redisValue = contents;
+			}
+			
+		} else {
+			redisValue = ROBOTS_TOKEN_ERROR + robotResponse.status;
+		}
+		
+		
+		if ((current != null) && (current.equals(redisValue))) {
+			return false;
+		}
+				
 		try {
 			jedis = redisConn.getJedisInstance();
-			contents = updateRedisCache(jedis, url, robotResponse);
+			jedis.setex(url, (robotResponse.isValid() ? totalTTL : notAvailTotalTTL), redisValue);
+			
 		} catch (JedisConnectionException jce) {
 			LOGGER.severe("Jedis Exception: " + jce);
 			redisConn.returnBrokenJedis(jedis);
 			jedis = null;
+			return false;
+			
 		} finally {
 			redisConn.returnJedisInstance(jedis);
 		}
-				
-		return contents;
-	}
-	
-	private String updateCache(Jedis jedis, String url) {
-		RobotResponse robotResponse = loadRobotsUrl(url);
-		String contents = updateRedisCache(jedis, url, robotResponse);	
-		return contents;
+		
+		return true;
 	}
 	
 	class RedisInstaUpdater extends Thread
 	{
 		String url;
+		String current;
 		
-		RedisInstaUpdater(String url)
+		RedisInstaUpdater(String url, String current)
 		{
 			this.url = url;
+			this.current = current;
 		}
 		
 		public void run()
 		{
 			long startTime = System.currentTimeMillis();
-			updateCache(url);
-			PerformanceLogger.noteElapsed("AsyncRedisLookup", System.currentTimeMillis() - startTime, url);
+			RobotResponse robotResponse = loadRobotsUrl(url);
+			updateCache(robotResponse, url, current);
+			PerformanceLogger.noteElapsed("AsyncRedisUpdate", System.currentTimeMillis() - startTime, url);
 		}
 	}
 
-	class RedisUpdater extends Thread {
-		private LinkedBlockingQueue<String> queue;
-		private boolean toRun;
-
-		private RedisUpdater() {
-			this.toRun = true;
-			this.queue = new LinkedBlockingQueue<String>();
-		}
-
-		public void addUrlLookup(String url) {
-			try {
-				if (!queue.contains(url)) {
-					queue.put(url);
-				}
-			} catch (InterruptedException ignore) {
-				// ignore?
-			}
-		}
-
-		@Override
-		public void run() {
-			Jedis updaterJedis = null;
-
-			try {
-				String url = null;
-
-				while (toRun) {
-					try {
-						url = queue.take();
-
-						if (updaterJedis == null) {
-							updaterJedis = redisConn.getJedisInstance();
-						}
-
-						if (updateCache(updaterJedis, url) == null) {
-							LOGGER.warning("Unable to retrieve robots.txt");					
-						}
-						
-						connMan.closeExpiredConnections();
-
-					} catch (JedisConnectionException jedisExc) {
-						LOGGER.severe("Jedis Exception: " + jedisExc);
-						redisConn.returnBrokenJedis(updaterJedis);
-						addUrlLookup(url);
-						updaterJedis = null;
-					} catch (InterruptedException interrupted) {
-						LOGGER.warning("Interrupted: " + interrupted);
-					}
-				}
-			} finally {
-				redisConn.returnJedisInstance(updaterJedis);
-			}
-		}
-	}
+//	class RedisUpdater extends Thread {
+//		private LinkedBlockingQueue<String> queue;
+//		private boolean toRun;
+//
+//		private RedisUpdater() {
+//			this.toRun = true;
+//			this.queue = new LinkedBlockingQueue<String>();
+//		}
+//
+//		public void addUrlLookup(String url) {
+//			try {
+//				if (!queue.contains(url)) {
+//					queue.put(url);
+//				}
+//			} catch (InterruptedException ignore) {
+//				// ignore?
+//			}
+//		}
+//
+//		@Override
+//		public void run() {
+//			Jedis updaterJedis = null;
+//
+//			try {
+//				String url = null;
+//
+//				while (toRun) {
+//					try {
+//						url = queue.take();
+//
+//						if (updaterJedis == null) {
+//							updaterJedis = redisConn.getJedisInstance();
+//						}
+//
+//						if (updateCache(updaterJedis, url) == null) {
+//							LOGGER.warning("Unable to retrieve robots.txt");					
+//						}
+//						
+//						connMan.closeExpiredConnections();
+//
+//					} catch (JedisConnectionException jedisExc) {
+//						LOGGER.severe("Jedis Exception: " + jedisExc);
+//						redisConn.returnBrokenJedis(updaterJedis);
+//						addUrlLookup(url);
+//						updaterJedis = null;
+//					} catch (InterruptedException interrupted) {
+//						LOGGER.warning("Interrupted: " + interrupted);
+//					}
+//				}
+//			} finally {
+//				redisConn.returnJedisInstance(updaterJedis);
+//			}
+//		}
+//	}
 	
 	class RobotResponse
 	{
@@ -382,9 +387,9 @@ public class RedisRobotsCache implements LiveWebCache {
 		} catch (Exception exc) {
 			
 			if (exc instanceof InterruptedIOException) {
-				status = 504; //Timeout
+				status = 504; //Timeout (gateway timeout)
 			} else if (exc instanceof UnknownHostException) {
-				status = 404; //Not Found
+				status = 502; //Unknown Host (bad gateway)
 			}
 			
 			LOGGER.info("Exception: " + exc + " url: " + url + " status " + status);		
@@ -404,7 +409,7 @@ public class RedisRobotsCache implements LiveWebCache {
     	}
     }
 
-	public void shutdown() {		
+	public void shutdown() {
 //		if (updaterThread != null) {
 //			updaterThread.toRun = false;
 //			updaterThread.interrupt();
