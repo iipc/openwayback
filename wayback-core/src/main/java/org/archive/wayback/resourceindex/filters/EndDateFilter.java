@@ -48,8 +48,10 @@ public class EndDateFilter implements ObjectFilter<CaptureSearchResult> {
 	 */
 	public int filterObject(CaptureSearchResult r) {
 		String captureDate = r.getCaptureTimestamp();
+		
+		int captureDateLength = Math.min(captureDate.length(), endDate.length());
 
-		return (endDate.substring(0,captureDate.length()).compareTo(
+		return (endDate.substring(0, captureDateLength).compareTo(
 				captureDate) < 0) ? 
 				FILTER_ABORT : FILTER_INCLUDE; 
 	}
