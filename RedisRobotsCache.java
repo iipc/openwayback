@@ -3,7 +3,9 @@ package org.archive.wayback.accesscontrol.robotstxt;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InterruptedIOException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -56,7 +58,10 @@ public class RedisRobotsCache implements LiveWebCache {
 	
 	final static String ROBOTS_TOKEN_EMPTY = "0_ROBOTS_EMPTY";
 	final static String ROBOTS_TOKEN_TOO_BIG = "0_ROBOTS_TOO_BIG";
+
 	final static String ROBOTS_TOKEN_ERROR = "0_ROBOTS_ERROR-";
+	final static String ROBOTS_TOKEN_ERROR_UNKNOWN = "0_ROBOTS_ERROR-0";	
+	final static String ROBOTS_TOKEN_ERROR_504 = "0_ROBOTS_ERROR-504";
 	
 	final static int MAX_ROBOTS_SIZE = 500000;
 
@@ -108,10 +113,11 @@ public class RedisRobotsCache implements LiveWebCache {
 	
 			long startTime = System.currentTimeMillis();
 			robotsFile = jedis.get(url);
+			PerformanceLogger.noteElapsed("RedisGet", System.currentTimeMillis() - startTime, (robotsFile == null) ? "REDIS MISS: " : " REDIS HIT: " + url);
 
 	
 			if ((robotsFile == null)/* || robotsFile.equals(ROBOTS_TOKEN_TOO_BIG)*/) {
-				PerformanceLogger.noteElapsed("RedisLookup", System.currentTimeMillis() - startTime, "UNCACHED: " + url);
+				//PerformanceLogger.noteElapsed("RedisTTL", System.currentTimeMillis() - startTime, "UNCACHED: " + url);
 
 				redisConn.returnJedisInstance(jedis);
 				jedis = null;
@@ -119,13 +125,13 @@ public class RedisRobotsCache implements LiveWebCache {
 				robotsFile = updateCache(url);
 				
 				if (robotsFile == null) {
-					throw new LiveDocumentNotAvailableException("Error Loading Live Robots");	
+					throw new LiveWebTimeoutException("Error Loading Live Robots");	
 				}
 				
 			} else if (robotsFile.startsWith(ROBOTS_TOKEN_ERROR)) {
+				startTime = System.currentTimeMillis();
 				long ttl = jedis.ttl(url);
-				
-				PerformanceLogger.noteElapsed("RedisLookup", System.currentTimeMillis() - startTime, "NOTAVAIL: " + url);
+				PerformanceLogger.noteElapsed("RedisTTL", System.currentTimeMillis() - startTime, "NOTAVAIL: " + url);
 				
 				redisConn.returnJedisInstance(jedis);
 				jedis = null;
@@ -139,12 +145,12 @@ public class RedisRobotsCache implements LiveWebCache {
 					new RedisInstaUpdater(url).start();
 				}
 	
-				throw new LiveDocumentNotAvailableException(url);
+				throw new LiveWebTimeoutException(url);
 	
 			} else {
+				startTime = System.currentTimeMillis();
 				long ttl = jedis.ttl(url);
-				
-				PerformanceLogger.noteElapsed("RedisLookup", System.currentTimeMillis() - startTime, "ISCACHED: " + url);
+				PerformanceLogger.noteElapsed("RedisTTL", System.currentTimeMillis() - startTime, "ISCACHED: " + url + " " + robotsFile.length());
 
 				redisConn.returnJedisInstance(jedis);
 				jedis = null;
@@ -199,9 +205,7 @@ public class RedisRobotsCache implements LiveWebCache {
 		String contents = null;
 		Jedis jedis = null;
 		
-		long startTime = System.currentTimeMillis();
-		
-		try {		
+		try {
 			jedis = redisConn.getJedisInstance();
 			contents = updateRedisCache(jedis, url, robotResponse);
 		} catch (JedisConnectionException jce) {
@@ -211,9 +215,7 @@ public class RedisRobotsCache implements LiveWebCache {
 		} finally {
 			redisConn.returnJedisInstance(jedis);
 		}
-		
-		PerformanceLogger.noteElapsed("AsyncRedisLookup", System.currentTimeMillis() - startTime, url);
-		
+				
 		return contents;
 	}
 	
@@ -234,7 +236,9 @@ public class RedisRobotsCache implements LiveWebCache {
 		
 		public void run()
 		{
-			updateCache(url);			
+			long startTime = System.currentTimeMillis();
+			updateCache(url);
+			PerformanceLogger.noteElapsed("AsyncRedisLookup", System.currentTimeMillis() - startTime, url);
 		}
 	}
 
@@ -376,6 +380,13 @@ public class RedisRobotsCache implements LiveWebCache {
 			}
 
 		} catch (Exception exc) {
+			
+			if (exc instanceof InterruptedIOException) {
+				status = 504; //Timeout
+			} else if (exc instanceof UnknownHostException) {
+				status = 404; //Not Found
+			}
+			
 			LOGGER.info("Exception: " + exc + " url: " + url + " status " + status);		
 		
 		} finally {
