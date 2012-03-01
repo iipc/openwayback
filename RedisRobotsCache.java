@@ -114,8 +114,6 @@ public class RedisRobotsCache implements LiveWebCache {
 
 	
 			if (robotsFile == null) {
-				//PerformanceLogger.noteElapsed("RedisTTL", System.currentTimeMillis() - startTime, "UNCACHED: " + url);
-
 				redisConn.returnJedisInstance(jedis);
 				jedis = null;
 				
@@ -124,7 +122,7 @@ public class RedisRobotsCache implements LiveWebCache {
 				updateCache(robotResponse, url, null);
 				
 				if (!robotResponse.isValid()) {
-					throw new LiveWebTimeoutException("Error Loading Live Robots");	
+					throw new LiveDocumentNotAvailableException("Error Loading Live Robots");	
 				}
 				
 				robotsFile = robotResponse.contents;
