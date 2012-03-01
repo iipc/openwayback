@@ -207,11 +207,15 @@ public class RobotExclusionFilter extends ExclusionFilter {
 					return null;
 				} catch (LiveWebCacheUnavailableException e) {
 					LOGGER.severe("ROBOT: LiveWebCacheUnavailableException("+urlString+")");
-					filterGroup.setLiveWebGone();
+					if (filterGroup != null) {
+						filterGroup.setLiveWebGone();
+					}
 					return null;
 				} catch (LiveWebTimeoutException e) {
 					LOGGER.severe("ROBOT: LiveDocumentTimedOutException("+urlString+")");
-					filterGroup.setRobotTimedOut();
+					if (filterGroup != null) {
+						filterGroup.setRobotTimedOut();
+					}
 					return null;
 				} finally {
 					long elapsed = System.currentTimeMillis() - start;
@@ -252,7 +256,7 @@ public class RobotExclusionFilter extends ExclusionFilter {
 		int filterResult = ObjectFilter.FILTER_EXCLUDE; 
 		RobotRules rules = getRules(r);
 		if(rules == null) {
-			if(filterGroup.getRobotTimedOut() || filterGroup.getLiveWebGone()) {
+			if((filterGroup == null) || (filterGroup.getRobotTimedOut() || filterGroup.getLiveWebGone())) {
 				return ObjectFilter.FILTER_ABORT;
 			}
 		} else {
