@@ -113,7 +113,7 @@ public class LocalResourceIndex implements ResourceIndex {
 	private ObjectFilter<CaptureSearchResult> filter = null;
 
 	
-	List<FilterGroupFactory> fgFactories = null;
+	protected List<FilterGroupFactory> fgFactories = null;
 	
 	public LocalResourceIndex() {
 		canonicalizer = new AggressiveUrlCanonicalizer();
@@ -137,7 +137,7 @@ public class LocalResourceIndex implements ResourceIndex {
 		}
 	}
 	
-	private List<CaptureFilterGroup> getRequestFilterGroups(WaybackRequest r) 
+	protected List<CaptureFilterGroup> getRequestFilterGroups(WaybackRequest r) 
 	throws BadQueryException {
 		
 		ArrayList<CaptureFilterGroup> groups = 
