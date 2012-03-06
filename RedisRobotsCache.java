@@ -46,7 +46,7 @@ public class RedisRobotsCache implements LiveWebCache {
 	
 	private int proxyTimeout = 2000;
 	
-	private int maxNumUpdateThreads = 100;
+	private int maxNumUpdateThreads = 250;
 
 	private ThreadSafeClientConnManager connMan;
 	private HttpClient directHttpClient;
