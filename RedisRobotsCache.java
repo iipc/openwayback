@@ -10,7 +10,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.zip.GZIPInputStream;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -27,14 +26,11 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
-import org.archive.io.arc.ARCRecord;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.exception.LiveDocumentNotAvailableException;
 import org.archive.wayback.exception.LiveWebCacheUnavailableException;
 import org.archive.wayback.exception.LiveWebTimeoutException;
 import org.archive.wayback.liveweb.LiveWebCache;
-import org.archive.wayback.resourcestore.resourcefile.ArcResource;
-import org.archive.wayback.resourcestore.resourcefile.ResourceFactory;
 import org.archive.wayback.webapp.PerformanceLogger;
 
 import redis.clients.jedis.Jedis;
@@ -50,7 +46,7 @@ public class RedisRobotsCache implements LiveWebCache {
 	
 	private int proxyTimeout = 2000;
 	
-	private int maxNumUpdateThreads = 250;
+	private int maxNumUpdateThreads = 4000;
 
 	private ThreadSafeClientConnManager connMan;
 	private HttpClient directHttpClient;
@@ -61,7 +57,7 @@ public class RedisRobotsCache implements LiveWebCache {
 
 	final static int ONE_DAY = 60 * 60 * 24;
 
-	private int totalTTL = ONE_DAY * 4;
+	private int totalTTL = ONE_DAY * 10;
 	private int refreshTTL = ONE_DAY;
 
 	private int notAvailTotalTTL = ONE_DAY * 2;
@@ -372,7 +368,7 @@ public class RedisRobotsCache implements LiveWebCache {
 			PerformanceLogger.noteElapsed("PingProxyRobots", System.currentTimeMillis() - startTime, url + " " + response.getStatusLine());
 			
 		} catch (Exception exc) {
-			exc.printStackTrace();
+			//exc.printStackTrace();
 			PerformanceLogger.noteElapsed("PingProxyFailure", System.currentTimeMillis() - startTime, url + " " + exc);
 		} finally {
 			httpHead.abort();
