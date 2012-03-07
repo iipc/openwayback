@@ -474,15 +474,17 @@ public class RedisRobotsCache implements LiveWebCache {
 			
 			entity.getContent().close();
 								
-			return new RobotResponse(baos.toString(), ar.getStatusCode());
+			RobotResponse robotResponse = new RobotResponse(baos.toString(), ar.getStatusCode());
+			
+			PerformanceLogger.noteElapsed("LoadProxyRobots", System.currentTimeMillis() - startTime, url + " Size: " + robotResponse.contents.length());
+			
+			return robotResponse;
 			
 		} catch (Exception exc) {
 			//exc.printStackTrace();
 			httpGet.abort();
 			PerformanceLogger.noteElapsed("LoadProxyFailure", System.currentTimeMillis() - startTime, url + " " + exc);
 			return new RobotResponse(500);
-		} finally {
-			PerformanceLogger.noteElapsed("LoadProxyRobots", System.currentTimeMillis() - startTime, url + " " + status);
 		}
 	}
 
@@ -530,8 +532,11 @@ public class RedisRobotsCache implements LiveWebCache {
 			} else if (exc instanceof UnknownHostException) {
 				status = LIVE_HOST_ERROR;
 			}
-			
-			LOGGER.info("Exception: " + exc + " url: " + url + " status " + status);		
+
+			PerformanceLogger.noteElapsed("HttpLoadFail", System.currentTimeMillis() - startTime, 
+					"Exception: " + exc + " url: " + url + " status " + status);
+
+			//LOGGER.info("Exception: " + exc + " url: " + url + " status " + status);		
 		
 		} finally {
 			httpGet.abort();
@@ -561,6 +566,8 @@ public class RedisRobotsCache implements LiveWebCache {
 //			}
 //			updaterThread = null;
 //		}
+		
+		updateService.shutdown();
 		
 		if (redisConn != null) {
 			redisConn.close();
