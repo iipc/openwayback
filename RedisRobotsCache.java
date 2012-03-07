@@ -51,9 +51,7 @@ public class RedisRobotsCache implements LiveWebCache {
 
 	private int connectionTimeoutMS = 5000;
 	private int socketTimeoutMS = 5000;
-	
-	private int proxyTimeout = 2000;
-	
+		
 	private int maxNumUpdateThreads = 4000;
 
 	private ThreadSafeClientConnManager connMan;
@@ -95,7 +93,14 @@ public class RedisRobotsCache implements LiveWebCache {
 		
 		this.updateService = Executors.newFixedThreadPool(maxNumUpdateThreads);
 
-		initHttpClient();
+		connMan = new ThreadSafeClientConnManager();
+		connMan.setDefaultMaxPerRoute(10);
+		connMan.setMaxTotal(1000);
+
+		BasicHttpParams params = new BasicHttpParams();
+		params.setParameter(CoreConnectionPNames.SO_TIMEOUT, socketTimeoutMS);
+		params.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, connectionTimeoutMS);
+		directHttpClient = new DefaultHttpClient(connMan, params);
 	}
 	
 	public RedisRobotsCache(RedisConnectionManager redisConn, String proxyHostPort) {
@@ -105,24 +110,13 @@ public class RedisRobotsCache implements LiveWebCache {
 		
 		if ((proxyHost != null) && (proxyPort != 0)) {
 			HttpParams proxyParams  = new BasicHttpParams();
-			proxyParams.setParameter(CoreConnectionPNames.SO_TIMEOUT, proxyTimeout);
-			proxyParams.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, proxyTimeout);			
+			proxyParams.setParameter(CoreConnectionPNames.SO_TIMEOUT, socketTimeoutMS);
+			proxyParams.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, connectionTimeoutMS);			
 			HttpHost proxy = new HttpHost(proxyHost, proxyPort);
 			proxyParams.setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
 			LOGGER.info("=== HTTP Proxy through: " + proxyHost + ":" + proxyPort);
 			proxyHttpClient = new DefaultHttpClient(connMan, proxyParams);
 		}
-	}
-
-	protected void initHttpClient() {
-		connMan = new ThreadSafeClientConnManager();
-		connMan.setDefaultMaxPerRoute(10);
-		connMan.setMaxTotal(1000);
-
-		BasicHttpParams params = new BasicHttpParams();
-		params.setParameter(CoreConnectionPNames.SO_TIMEOUT, socketTimeoutMS);
-		params.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, connectionTimeoutMS);
-		directHttpClient = new DefaultHttpClient(connMan, params);
 	}
 
 	public Resource getCachedResource(URL urlURL, long maxCacheMS,
