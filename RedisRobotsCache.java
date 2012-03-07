@@ -83,6 +83,8 @@ public class RedisRobotsCache implements LiveWebCache {
 	final static int MAX_ROBOTS_SIZE = 500000;
 	
 	private ExecutorService updateService;
+	
+	//private LinkedBlockingQueue<String> urlsToUpdate;
 
 	private RedisConnectionManager redisConn;
 
@@ -95,7 +97,7 @@ public class RedisRobotsCache implements LiveWebCache {
 
 		connMan = new ThreadSafeClientConnManager();
 		connMan.setDefaultMaxPerRoute(10);
-		connMan.setMaxTotal(1000);
+		connMan.setMaxTotal(maxNumUpdateThreads / 2);
 
 		BasicHttpParams params = new BasicHttpParams();
 		params.setParameter(CoreConnectionPNames.SO_TIMEOUT, socketTimeoutMS);
@@ -477,6 +479,8 @@ public class RedisRobotsCache implements LiveWebCache {
 		} catch (Exception exc) {
 			//exc.printStackTrace();
 			httpGet.abort();
+			LOGGER.info("HTTP CONNECTIONS: " + connMan.getConnectionsInPool());
+			this.connMan.closeIdleConnections(60, TimeUnit.SECONDS);
 			PerformanceLogger.noteElapsed("LoadProxyFailure", System.currentTimeMillis() - startTime, url + " " + exc);
 			return new RobotResponse(500);
 		}
@@ -526,7 +530,10 @@ public class RedisRobotsCache implements LiveWebCache {
 			} else if (exc instanceof UnknownHostException) {
 				status = LIVE_HOST_ERROR;
 			}
-
+			
+			LOGGER.info("HTTP CONNECTIONS: " + connMan.getConnectionsInPool());
+			this.connMan.closeIdleConnections(60, TimeUnit.SECONDS);
+			
 			PerformanceLogger.noteElapsed("HttpLoadFail", System.currentTimeMillis() - startTime, 
 					"Exception: " + exc + " url: " + url + " status " + status);
 
