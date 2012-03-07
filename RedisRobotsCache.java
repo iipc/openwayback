@@ -144,12 +144,12 @@ public class RedisRobotsCache implements LiveWebCache {
 				redisConn.returnJedisInstance(jedis);
 				jedis = null;
 				
+				updateService.execute(new LiveProxyPing(url));
+				
 				RobotResponse robotResponse = loadRobotsUrl(url);
 				
 				updateCache(robotResponse, url, null);
-				
-				updateService.execute(new LiveProxyPing(url));
-				
+								
 				if (!robotResponse.isValid()) {
 					throw new LiveDocumentNotAvailableException("Error Loading Live Robots");	
 				}
@@ -434,6 +434,7 @@ public class RedisRobotsCache implements LiveWebCache {
 		int status = 0;
 		String contents = null;
 		HttpGet httpGet = null;
+		long startTime = System.currentTimeMillis();
 		
 		try {
 			httpGet = new HttpGet(url);
@@ -477,6 +478,7 @@ public class RedisRobotsCache implements LiveWebCache {
 		
 		} finally {
 			httpGet.abort();
+			PerformanceLogger.noteElapsed("HttpLoadRobots", System.currentTimeMillis() - startTime, url + " " + ((contents != null) ? contents.length() : "NULL"));
 		}
 		
 		return new RobotResponse(contents, status);

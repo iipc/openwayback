@@ -17,7 +17,7 @@ public class RedisConnectionManager {
 	private LinkedList<Jedis> fastJedisPool = new LinkedList<Jedis>();
 		
 	private int maxJedisInitTries = 15;
-	private int maxJedisCount = 500;
+	private int maxJedisCount = 300;
 	
 	private final static Logger LOGGER = 
 		Logger.getLogger(RedisConnectionManager.class.getName());
@@ -58,12 +58,12 @@ public class RedisConnectionManager {
 				long startTime = System.currentTimeMillis();
 				synchronized (fastJedisPool) {
 					if (!fastJedisPool.isEmpty()) {
-						jedis = fastJedisPool.pop();
+						jedis = fastJedisPool.removeLast();
 						poolSize = fastJedisPool.size();
 					}
 				}
 				
-				if ((jedis != null) && jedis.isConnected() && jedis.ping().equals("PONG")) {
+				if ((jedis != null) && jedis.isConnected()) {
 					PerformanceLogger.noteElapsed("JedisGetPool", System.currentTimeMillis() - startTime, "Size: " + poolSize);
 					return jedis;
 				}
