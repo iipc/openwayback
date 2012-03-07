@@ -6,10 +6,15 @@ import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.util.LinkedList;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.zip.GZIPInputStream;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -26,11 +31,14 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
+import org.archive.io.arc.ARCRecord;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.exception.LiveDocumentNotAvailableException;
 import org.archive.wayback.exception.LiveWebCacheUnavailableException;
 import org.archive.wayback.exception.LiveWebTimeoutException;
 import org.archive.wayback.liveweb.LiveWebCache;
+import org.archive.wayback.resourcestore.resourcefile.ArcResource;
+import org.archive.wayback.resourcestore.resourcefile.ResourceFactory;
 import org.archive.wayback.webapp.PerformanceLogger;
 
 import redis.clients.jedis.Jedis;
@@ -143,13 +151,9 @@ public class RedisRobotsCache implements LiveWebCache {
 			if (robotsFile == null) {
 				redisConn.returnJedisInstance(jedis);
 				jedis = null;
-				
-				updateService.execute(new LiveProxyPing(url));
-				
-				RobotResponse robotResponse = loadRobotsUrl(url);
-				
-				updateCache(robotResponse, url, null);
-								
+
+				RobotResponse robotResponse = doUpdate(url, null);
+												
 				if (!robotResponse.isValid()) {
 					throw new LiveDocumentNotAvailableException("Error Loading Live Robots");	
 				}
@@ -203,6 +207,27 @@ public class RedisRobotsCache implements LiveWebCache {
 		}
 
 		return new RobotsTxtResource(robotsFile);
+	}
+	
+	private RobotResponse doUpdate(String url, String current)
+	{
+		LinkedList<Callable<RobotResponse>> tasks = new LinkedList<Callable<RobotResponse>>();
+		tasks.add(new LoadRobotsDirectTask(url));
+		tasks.add(new LoadRobotsProxyTask(url));
+		
+		RobotResponse robotResponse;
+		
+		try {
+			robotResponse = updateService.invokeAny(tasks, connectionTimeoutMS + socketTimeoutMS, TimeUnit.MILLISECONDS);
+		} catch (TimeoutException te) {
+			robotResponse = new RobotResponse(LIVE_TIMEOUT_ERROR);
+		} catch (Exception exc) {
+			robotResponse = new RobotResponse(LIVE_HOST_ERROR);
+		}
+		
+		updateCache(robotResponse, url, current);
+		
+		return robotResponse;
 	}
 	
 	private boolean updateCache(RobotResponse robotResponse, String url, String currentValue) {		
@@ -260,23 +285,52 @@ public class RedisRobotsCache implements LiveWebCache {
 		return true;
 	}
 	
-	class LiveProxyPing implements Runnable
+//	class LiveProxyPing implements Runnable
+//	{
+//		String url;
+//		
+//		LiveProxyPing(String url)
+//		{
+//			this.url = url;
+//		}
+//		
+//		public void run()
+//		{
+//			long startTime = System.currentTimeMillis();			
+//			pingProxyLive(url);
+//			PerformanceLogger.noteElapsed("AsyncLiveProxyPing", System.currentTimeMillis() - startTime, url);
+//		}
+//	}
+	
+	class LoadRobotsProxyTask implements Callable<RobotResponse>
 	{
 		String url;
 		
-		LiveProxyPing(String url)
+		LoadRobotsProxyTask(String url)
 		{
-			this.url = url;
+			this.url = url;			
 		}
-		
-		public void run()
-		{
-			long startTime = System.currentTimeMillis();			
-			pingProxyLive(url);
-			PerformanceLogger.noteElapsed("AsyncLiveProxyPing", System.currentTimeMillis() - startTime, url);
+
+		@Override
+		public RobotResponse call() throws Exception {
+			return loadProxyLive(url);
 		}
 	}
 	
+	class LoadRobotsDirectTask implements Callable<RobotResponse>
+	{
+		String url;
+		
+		LoadRobotsDirectTask(String url)
+		{
+			this.url = url;			
+		}
+
+		@Override
+		public RobotResponse call() throws Exception {
+			return loadRobotsUrl(url);
+		}
+	}
 	
 	class CacheUpdateTask implements Runnable
 	{
@@ -293,11 +347,13 @@ public class RedisRobotsCache implements LiveWebCache {
 		{
 			long startTime = System.currentTimeMillis();
 			
-			pingProxyLive(url);
+			doUpdate(this.url, this.current);
 			
-			// Update redis as well as live proxy
-			RobotResponse robotResponse = loadRobotsUrl(url);
-			updateCache(robotResponse, url, current);
+//			pingProxyLive(url);
+//			
+//			// Update redis as well as live proxy
+//			RobotResponse robotResponse = loadRobotsUrl(url);
+//			updateCache(robotResponse, url, current);
 			
 			PerformanceLogger.noteElapsed("AsyncRedisUpdate", System.currentTimeMillis() - startTime, url);
 		}
@@ -329,7 +385,7 @@ public class RedisRobotsCache implements LiveWebCache {
 	{
 		byte[] byteBuff = new byte[8192];
 		
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		ByteArrayOutputStream baos = new ByteArrayOutputStream(max);
 		
 		int totalRead = 0;
 			
@@ -369,65 +425,66 @@ public class RedisRobotsCache implements LiveWebCache {
 			
 		} catch (Exception exc) {
 			//exc.printStackTrace();
-			PerformanceLogger.noteElapsed("PingProxyFailure", System.currentTimeMillis() - startTime, url + " " + exc);
-		} finally {
 			httpHead.abort();
+			PerformanceLogger.noteElapsed("PingProxyFailure", System.currentTimeMillis() - startTime, url + " " + exc);
 		}
 	}
 	
-//	private RobotResponse loadProxyLive(String url) {
-//		if (proxyHttpClient == null) {
-//			return new RobotResponse(0);
-//		}
-//		
-//		HttpGet httpGet = null;
-//		long startTime = System.currentTimeMillis();
-//		int status = 200;
-//
-//		try {
-//			httpGet = new HttpGet(url);
-//			HttpResponse response = proxyHttpClient.execute(httpGet, new BasicHttpContext());
-//			
-//			if (response != null) {
-//				status = response.getStatusLine().getStatusCode();
-//			}
-//
-//			if (status != 200) {
-//				return new RobotResponse(status);
-//			}
-//			
-//			HttpEntity entity = response.getEntity();
-//			
-//    		ARCRecord r = new ARCRecord(
-//    				new GZIPInputStream(entity.getContent()),
-//    				"id",0L,false,false,true);
-//    		ArcResource ar = (ArcResource) 
-//    			ResourceFactory.ARCArchiveRecordToResource(r, null);
-//    		if (ar.getStatusCode() == 502) {
-//    			return new RobotResponse(502);
-//    		} else if(ar.getStatusCode() == 504) {
-//    			return new RobotResponse(504);
-//    		}
-//    		
-//			int numToRead = (int)ar.getRecordLength();
-//			
-//			if ((numToRead <= 0) || (numToRead > MAX_ROBOTS_SIZE)) {
-//				numToRead = MAX_ROBOTS_SIZE;
-//			}
-//    		
-//			ByteArrayOutputStream baos = readMaxBytes(ar, numToRead);
-//								
-//			return new RobotResponse(baos.toString(), 200);
-//			
-//		} catch (Exception exc) {
-//			exc.printStackTrace();
-//			PerformanceLogger.noteElapsed("LoadProxyFailure", System.currentTimeMillis() - startTime, url + " " + exc);
-//			return new RobotResponse(500);
-//		} finally {
-//			PerformanceLogger.noteElapsed("LoadProxyRobots", System.currentTimeMillis() - startTime, url + " " + status);
-//			httpGet.abort();
-//		}
-//	}
+	private RobotResponse loadProxyLive(String url) {
+		if (proxyHttpClient == null) {
+			return new RobotResponse(0);
+		}
+		
+		HttpGet httpGet = null;
+		long startTime = System.currentTimeMillis();
+		int status = 200;
+
+		try {
+			httpGet = new HttpGet(url);
+			HttpResponse response = proxyHttpClient.execute(httpGet, new BasicHttpContext());
+			
+			if (response != null) {
+				status = response.getStatusLine().getStatusCode();
+			}
+
+			if (status != 200) {
+				return new RobotResponse(status);
+			}
+			
+			HttpEntity entity = response.getEntity();
+			
+    		ARCRecord r = new ARCRecord(
+    				new GZIPInputStream(entity.getContent()),
+    				"id",0L,false,false,true);
+    		ArcResource ar = (ArcResource) 
+    			ResourceFactory.ARCArchiveRecordToResource(r, null);
+    		if (ar.getStatusCode() == 502) {
+    			return new RobotResponse(502);
+    		} else if(ar.getStatusCode() == 504) {
+    			return new RobotResponse(504);
+    		}
+    		
+			int numToRead = (int)ar.getRecordLength();
+			
+			if ((numToRead <= 0) || (numToRead > MAX_ROBOTS_SIZE)) {
+				numToRead = MAX_ROBOTS_SIZE;
+			}
+    		
+			ByteArrayOutputStream baos = readMaxBytes(ar, numToRead);
+			
+			entity.getContent().close();
+								
+			return new RobotResponse(baos.toString(), ar.getStatusCode());
+			
+		} catch (Exception exc) {
+			//exc.printStackTrace();
+			httpGet.abort();
+			PerformanceLogger.noteElapsed("LoadProxyFailure", System.currentTimeMillis() - startTime, url + " " + exc);
+			return new RobotResponse(500);
+		} finally {
+			PerformanceLogger.noteElapsed("LoadProxyRobots", System.currentTimeMillis() - startTime, url + " " + status);
+		}
+	}
 
 	private RobotResponse loadRobotsUrl(String url) {
 
