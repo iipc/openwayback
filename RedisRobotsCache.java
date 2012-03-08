@@ -52,7 +52,7 @@ public class RedisRobotsCache implements LiveWebCache {
 	private int connectionTimeoutMS = 5000;
 	private int socketTimeoutMS = 5000;
 		
-	private int maxNumUpdateThreads = 4000;
+	private int maxNumUpdateThreads = 1000;
 
 	private ThreadSafeClientConnManager connMan;
 	private HttpClient directHttpClient;
@@ -103,6 +103,26 @@ public class RedisRobotsCache implements LiveWebCache {
 		params.setParameter(CoreConnectionPNames.SO_TIMEOUT, socketTimeoutMS);
 		params.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, connectionTimeoutMS);
 		directHttpClient = new DefaultHttpClient(connMan, params);
+	}
+	
+	public void setMaxTotalConnections(int max)
+	{
+		connMan.setMaxTotal(max);
+	}
+	
+	public int getMaxTotalConnections()
+	{
+		return connMan.getMaxTotal();
+	}
+	
+	public void setMaxPerRoute(int max)
+	{
+		connMan.setDefaultMaxPerRoute(max);
+	}
+	
+	public int getMaxPerRoute()
+	{
+		return connMan.getDefaultMaxPerRoute();
 	}
 	
 	public RedisRobotsCache(RedisConnectionManager redisConn, String proxyHostPort) {
