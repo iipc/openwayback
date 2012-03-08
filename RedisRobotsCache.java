@@ -148,13 +148,13 @@ public class RedisRobotsCache implements LiveWebCache {
 				redisConn.returnJedisInstance(jedis);
 				jedis = null;
 
-				RobotResponse robotResponse = doUpdate(url, null);
+				//RobotResponse robotResponse = doUpdate(url, null);
 												
-				if (!robotResponse.isValid()) {
+				//if (!robotResponse.isValid()) {
 					throw new LiveDocumentNotAvailableException("Error Loading Live Robots");	
-				}
+				//}
 				
-				robotsFile = robotResponse.contents;
+				//robotsFile = robotResponse.contents;
 				
 			} else if (robotsFile.startsWith(ROBOTS_TOKEN_ERROR)) {
 				startTime = System.currentTimeMillis();
@@ -473,16 +473,18 @@ public class RedisRobotsCache implements LiveWebCache {
 			RobotResponse robotResponse = new RobotResponse(baos.toString(), ar.getStatusCode());
 			
 			PerformanceLogger.noteElapsed("LoadProxyRobots", System.currentTimeMillis() - startTime, url + " Size: " + robotResponse.contents.length());
+			LOGGER.info("HTTP CONNECTIONS: " + connMan.getConnectionsInPool());
 			
 			return robotResponse;
 			
 		} catch (Exception exc) {
 			//exc.printStackTrace();
-			httpGet.abort();
 			LOGGER.info("HTTP CONNECTIONS: " + connMan.getConnectionsInPool());
 			this.connMan.closeIdleConnections(60, TimeUnit.SECONDS);
 			PerformanceLogger.noteElapsed("LoadProxyFailure", System.currentTimeMillis() - startTime, url + " " + exc);
 			return new RobotResponse(500);
+		} finally {
+			httpGet.abort();
 		}
 	}
 
@@ -522,7 +524,8 @@ public class RedisRobotsCache implements LiveWebCache {
 				
 				contents = baos.toString(charset);
 			}
-
+			LOGGER.info("HTTP CONNECTIONS: " + connMan.getConnectionsInPool());
+			
 		} catch (Exception exc) {
 			
 			if (exc instanceof InterruptedIOException) {
