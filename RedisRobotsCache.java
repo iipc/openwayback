@@ -168,13 +168,13 @@ public class RedisRobotsCache implements LiveWebCache {
 				redisConn.returnJedisInstance(jedis);
 				jedis = null;
 
-				//RobotResponse robotResponse = doUpdate(url, null);
+				RobotResponse robotResponse = doUpdate(url, null);
 												
-				//if (!robotResponse.isValid()) {
+				if (!robotResponse.isValid()) {
 					throw new LiveDocumentNotAvailableException("Error Loading Live Robots");	
-				//}
+				}
 				
-				//robotsFile = robotResponse.contents;
+				robotsFile = robotResponse.contents;
 				
 			} else if (robotsFile.startsWith(ROBOTS_TOKEN_ERROR)) {
 				startTime = System.currentTimeMillis();
