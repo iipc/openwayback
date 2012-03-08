@@ -188,7 +188,7 @@ public class RedisRobotsCache implements LiveWebCache {
 			} else if (robotsFile.startsWith(ROBOTS_TOKEN_ERROR)) {
 				startTime = System.currentTimeMillis();
 				long ttl = jedis.ttl(url);
-				PerformanceLogger.noteElapsed("RedisTTL", System.currentTimeMillis() - startTime, "NOT AVAIL: " + robotsFile);
+				PerformanceLogger.noteElapsed("RedisTTL", System.currentTimeMillis() - startTime, url + " NOT AVAIL: " + robotsFile);
 				
 				redisConn.returnJedisInstance(jedis);
 				jedis = null;
@@ -199,7 +199,7 @@ public class RedisRobotsCache implements LiveWebCache {
 			} else {
 				startTime = System.currentTimeMillis();
 				long ttl = jedis.ttl(url);
-				PerformanceLogger.noteElapsed("RedisTTL", System.currentTimeMillis() - startTime, "Size " + robotsFile.length());
+				PerformanceLogger.noteElapsed("RedisTTL", System.currentTimeMillis() - startTime, url + " Size " + robotsFile.length());
 				
 				redisConn.returnJedisInstance(jedis);
 				jedis = null;
