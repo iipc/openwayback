@@ -54,7 +54,7 @@ public class RedisRobotsCache implements LiveWebCache {
 	private int socketTimeoutMS = 5000;
 		
 	private int maxNumUpdateThreads = 1000;
-	private int maxConnections = 1200;
+	private int maxConnections = 1500;
 	private int maxPerRoute = 25;
 
 	private ThreadSafeClientConnManager connMan;
@@ -186,10 +186,25 @@ public class RedisRobotsCache implements LiveWebCache {
 				robotsFile = robotResponse.contents;
 				
 			} else if (robotsFile.startsWith(ROBOTS_TOKEN_ERROR)) {
-				asyncUpdateCheck(jedis, url, robotsFile, notAvailRefreshTTL, notAvailTotalTTL);
-				throw new LiveDocumentNotAvailableException("Robots Error: " + robotsFile);			
+				startTime = System.currentTimeMillis();
+				long ttl = jedis.ttl(url);
+				PerformanceLogger.noteElapsed("RedisTTL", System.currentTimeMillis() - startTime, "NOT AVAIL: " + robotsFile);
+				
+				redisConn.returnJedisInstance(jedis);
+				jedis = null;
+				
+				asyncUpdateCheck(ttl, url, robotsFile, notAvailRefreshTTL, notAvailTotalTTL);
+				
+				throw new LiveDocumentNotAvailableException("Robots Error: " + robotsFile);
 			} else {
-				asyncUpdateCheck(jedis, url, robotsFile, refreshTTL, totalTTL);
+				startTime = System.currentTimeMillis();
+				long ttl = jedis.ttl(url);
+				PerformanceLogger.noteElapsed("RedisTTL", System.currentTimeMillis() - startTime, "Size " + robotsFile.length());
+				
+				redisConn.returnJedisInstance(jedis);
+				jedis = null;
+				
+				asyncUpdateCheck(ttl, url, robotsFile, refreshTTL, totalTTL);
 				
 				if (robotsFile.equals(ROBOTS_TOKEN_EMPTY)) {
 					robotsFile = "";
@@ -210,15 +225,8 @@ public class RedisRobotsCache implements LiveWebCache {
 		return new RobotsTxtResource(robotsFile);
 	}
 	
-	private void asyncUpdateCheck(Jedis jedis, String url, String current, int refreshTime, int maxTime)
-	{
-		long startTime = System.currentTimeMillis();
-		long ttl = jedis.ttl(url);
-		PerformanceLogger.noteElapsed("RedisTTL", System.currentTimeMillis() - startTime, ((maxTime == totalTTL) ? "Size " + current.length() : current));
-		
-		redisConn.returnJedisInstance(jedis);
-		jedis = null;
-			
+	private void asyncUpdateCheck(long ttl, String url, String current, int refreshTime, int maxTime)
+	{		
 		if ((maxTime - ttl) >= refreshTime) {
 			LOGGER.info("Refreshing robots: "
 					+ (maxTime - ttl) + ">=" + refreshTime);
