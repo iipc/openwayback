@@ -59,7 +59,9 @@ public class RedisRobotsCache implements LiveWebCache {
 	private int threadKeepAliveTime = 5000;
 	
 	private int maxConnections = 1500;
-	private int maxPerRoute = 4;
+	private int maxPerRoute = 2;
+	
+	private int maxWorkQueueSize = 2000;
 
 	private ThreadSafeClientConnManager connMan;
 	private HttpClient directHttpClient;
@@ -116,7 +118,7 @@ public class RedisRobotsCache implements LiveWebCache {
 		params.setParameter(CoreConnectionPNames.SO_TIMEOUT, socketTimeoutMS);
 		params.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, connectionTimeoutMS);
 		params.setParameter(CoreConnectionPNames.SO_LINGER, 0);
-		params.setParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK, false);
+		params.setParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK, true);
 		directHttpClient = new DefaultHttpClient(connMan, params);
 	}
 	
@@ -150,7 +152,7 @@ public class RedisRobotsCache implements LiveWebCache {
 			proxyParams.setParameter(CoreConnectionPNames.SO_TIMEOUT, socketTimeoutMS);
 			proxyParams.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, connectionTimeoutMS);
 			proxyParams.setParameter(CoreConnectionPNames.SO_LINGER, 0);
-			proxyParams.setParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK, false);
+			proxyParams.setParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK, true);
 			HttpHost proxy = new HttpHost(proxyHost, proxyPort);
 			proxyParams.setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
 			LOGGER.info("=== HTTP Proxy through: " + proxyHost + ":" + proxyPort);
@@ -234,7 +236,12 @@ public class RedisRobotsCache implements LiveWebCache {
 	}
 	
 	private void asyncUpdateCheck(long ttl, String url, String current, int refreshTime, int maxTime)
-	{		
+	{
+		if (workQueue.size() > maxWorkQueueSize) {
+			LOGGER.info("Skipping Update, work queue max reached. Urls: " + urlsToUpdate.size());
+			return;
+		}
+		
 		if ((maxTime - ttl) >= refreshTime) {
 			LOGGER.info("Refreshing robots: "
 					+ (maxTime - ttl) + ">=" + refreshTime);
@@ -388,7 +395,7 @@ public class RedisRobotsCache implements LiveWebCache {
 		public void run()
 		{
 			long startTime = System.currentTimeMillis();
-						
+									
 			doUpdate(this.url, this.current);
 			
 			synchronized(urlsToUpdate) {
