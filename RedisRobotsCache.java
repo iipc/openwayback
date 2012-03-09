@@ -6,9 +6,12 @@ import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -50,26 +53,9 @@ public class RedisRobotsCache implements LiveWebCache {
 
 	private final static Logger LOGGER = Logger
 			.getLogger(RedisRobotsCache.class.getName());
-
-	private int connectionTimeoutMS = 5000;
-	private int socketTimeoutMS = 5000;
-		
-	private int maxNumUpdateThreads = 1000;
-	private int maxCoreUpdateThreads = 100;
-	private int threadKeepAliveTime = 5000;
 	
-	private int maxConnections = 1500;
-	private int maxPerRoute = 2;
+	/* ROBOTS TTL PARAMS */
 	
-	private int maxWorkQueueSize = 2000;
-
-	private ThreadSafeClientConnManager connMan;
-	private HttpClient directHttpClient;
-	private HttpClient proxyHttpClient;
-	
-	private String proxyHost;
-	private int proxyPort;
-
 	final static int ONE_DAY = 60 * 60 * 24;
 
 	private int totalTTL = ONE_DAY * 10;
@@ -86,29 +72,47 @@ public class RedisRobotsCache implements LiveWebCache {
 	final static int LIVE_TIMEOUT_ERROR = 900;
 	final static int LIVE_HOST_ERROR = 910;
 	
-//	final static String ROBOTS_ERROR_LIVE_TIMEOUT = ROBOTS_TOKEN_ERROR + LIVE_TIMEOUT_ERROR;
-//	final static String ROBOTS_ERROR_LIVE_HOST_UNKNOWN = ROBOTS_TOKEN_ERROR + LIVE_HOST_ERROR;
 	
 	final static int MAX_ROBOTS_SIZE = 500000;
 	
-	private ExecutorService updateService;
-	
-	private LinkedBlockingQueue<Runnable> workQueue;
-	
-	private HashSet<String> urlsToUpdate;
+	/* SOCKET SETTINGS / PARAMS */
 
+	private int connectionTimeoutMS = 5000;
+	private int socketTimeoutMS = 5000;
+	
+	private int maxConnections = 1500;
+	private int maxPerRoute = 20;
+	
+	private String proxyHost;
+	private int proxyPort;
+	
+	private ThreadSafeClientConnManager connMan;
+
+	private HttpClient directHttpClient;
+	private HttpClient proxyHttpClient;
+	
+	/* THREAD WORKER SETTINGS */
+	
+	private int maxNumUpdateThreads = 500;
+	private int maxCoreUpdateThreads = 50;
+	
+	private int threadKeepAliveTime = 5000;
+	
+	private int maxWorkQueueSize = 100;
+	
+	private ThreadPoolExecutor refreshService;
+	private HashSet<String> urlsToRefresh;
+	
+	private ThreadPoolExecutor loadService;
+	private Map<String, UrlLoader> urlsToLoad;
+	
+	/* REDIS */
 	private RedisConnectionManager redisConn;
 
 	public RedisRobotsCache(RedisConnectionManager redisConn) {
 		LOGGER.setLevel(Level.FINER);
 
 		this.redisConn = redisConn;
-		
-		this.workQueue = new LinkedBlockingQueue<Runnable>();
-		
-		this.updateService = new ThreadPoolExecutor(maxCoreUpdateThreads, maxNumUpdateThreads, threadKeepAliveTime, TimeUnit.MILLISECONDS, workQueue);
-		
-		urlsToUpdate = new HashSet<String>();
 
 		connMan = new ThreadSafeClientConnManager();
 		connMan.setDefaultMaxPerRoute(maxPerRoute);
@@ -120,6 +124,12 @@ public class RedisRobotsCache implements LiveWebCache {
 		params.setParameter(CoreConnectionPNames.SO_LINGER, 0);
 		params.setParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK, true);
 		directHttpClient = new DefaultHttpClient(connMan, params);
+		
+		refreshService = new ThreadPoolExecutor(maxCoreUpdateThreads, maxNumUpdateThreads, threadKeepAliveTime, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());		
+		urlsToRefresh = new HashSet<String>();
+		
+		loadService = new ThreadPoolExecutor(maxCoreUpdateThreads, maxNumUpdateThreads, threadKeepAliveTime, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());		
+		urlsToLoad = new HashMap<String, UrlLoader>();
 	}
 	
 	public void setMaxTotalConnections(int max)
@@ -187,7 +197,7 @@ public class RedisRobotsCache implements LiveWebCache {
 				redisConn.returnJedisInstance(jedis);
 				jedis = null;
 
-				RobotResponse robotResponse = doUpdate(url, null);
+				RobotResponse robotResponse = doSyncUpdate(url);
 												
 				if (!robotResponse.isValid()) {
 					throw new LiveDocumentNotAvailableException("Error Loading Live Robots");	
@@ -237,8 +247,8 @@ public class RedisRobotsCache implements LiveWebCache {
 	
 	private void asyncUpdateCheck(long ttl, String url, String current, int refreshTime, int maxTime)
 	{
-		if (workQueue.size() > maxWorkQueueSize) {
-			LOGGER.info("Skipping Update, work queue max reached. Urls: " + urlsToUpdate.size());
+		if (refreshService.getQueue().size() > maxWorkQueueSize) {
+			LOGGER.info("Skipping Update, work queue max reached. Urls: " + urlsToRefresh.size());
 			return;
 		}
 		
@@ -246,20 +256,66 @@ public class RedisRobotsCache implements LiveWebCache {
 			LOGGER.info("Refreshing robots: "
 					+ (maxTime - ttl) + ">=" + refreshTime);
 						
-			synchronized(urlsToUpdate) {
-				if (urlsToUpdate.contains(url)) {
+			synchronized(urlsToRefresh) {
+				if (urlsToRefresh.contains(url)) {
 					return;
 				}
-				urlsToUpdate.add(url);
+				urlsToRefresh.add(url);
 			}
 			
-			updateService.submit(new CacheUpdateTask(url, current));
+			refreshService.submit(new CacheUpdateTask(url, current));
 		}
 	}
 	
-	private RobotResponse doUpdate(String url, String current)
+	
+	class UrlLoader
 	{
-		LOGGER.info("WORKER QUEUE: " + workQueue.size());
+		CountDownLatch latch = new CountDownLatch(1);
+		RobotResponse response;
+	}
+	
+	
+	private RobotResponse doSyncUpdate(String url)
+	{
+		UrlLoader updater = null;
+		boolean toLoad = false;
+		
+		synchronized(urlsToLoad) {
+			updater = urlsToLoad.get(url);
+			if (updater == null) {
+				updater = new UrlLoader();
+				urlsToLoad.put(url, updater);
+				toLoad = true;
+			}
+		}
+				
+		if (toLoad) {
+			updater.response = doUpdate(loadService, url, null);
+			
+			updater.latch.countDown();
+		
+			synchronized(urlsToLoad) {
+				urlsToLoad.remove(url);
+			}
+		} else {
+			
+			try {
+				LOGGER.info("WAITING FOR " + url);
+				updater.latch.await(connectionTimeoutMS, TimeUnit.MILLISECONDS);
+			} catch (InterruptedException e) {
+				LOGGER.info("INTERRUPT FOR " + url);				
+			}
+			
+			if (updater.response == null) {
+				return new RobotResponse(0);
+			}	
+		}
+		
+		return updater.response;
+	}
+	
+	private RobotResponse doUpdate(ExecutorService executor, String url, String current)
+	{		
 		LinkedList<Callable<RobotResponse>> tasks = new LinkedList<Callable<RobotResponse>>();
 		tasks.add(new LoadRobotsDirectTask(url));
 		tasks.add(new LoadRobotsProxyTask(url));
@@ -267,7 +323,7 @@ public class RedisRobotsCache implements LiveWebCache {
 		RobotResponse robotResponse;
 		
 		try {
-			robotResponse = updateService.invokeAny(tasks, connectionTimeoutMS + socketTimeoutMS, TimeUnit.MILLISECONDS);
+			robotResponse = executor.invokeAny(tasks, connectionTimeoutMS + socketTimeoutMS, TimeUnit.MILLISECONDS);
 		} catch (TimeoutException te) {
 			robotResponse = new RobotResponse(LIVE_TIMEOUT_ERROR);
 		} catch (Exception exc) {
@@ -396,10 +452,10 @@ public class RedisRobotsCache implements LiveWebCache {
 		{
 			long startTime = System.currentTimeMillis();
 									
-			doUpdate(this.url, this.current);
+			doUpdate(refreshService, this.url, this.current);
 			
-			synchronized(urlsToUpdate) {
-				urlsToUpdate.remove(url);
+			synchronized(urlsToRefresh) {
+				urlsToRefresh.remove(url);
 			}
 			
 //			pingProxyLive(url);
@@ -627,7 +683,7 @@ public class RedisRobotsCache implements LiveWebCache {
 //			updaterThread = null;
 //		}
 		
-		updateService.shutdown();
+		refreshService.shutdown();
 		
 		if (redisConn != null) {
 			redisConn.close();
