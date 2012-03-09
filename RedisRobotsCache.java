@@ -98,7 +98,7 @@ public class RedisRobotsCache implements LiveWebCache {
 	
 	private int threadKeepAliveTime = 5000;
 	
-	private int maxWorkQueueSize = 100;
+	private int maxWorkQueueSize = 500;
 	
 	private ThreadPoolExecutor refreshService;
 	private HashSet<String> urlsToRefresh;
@@ -290,6 +290,7 @@ public class RedisRobotsCache implements LiveWebCache {
 		}
 				
 		if (toLoad) {
+			LOGGER.info("LOAD workers " + loadService.getQueue().size());
 			updater.response = doUpdate(loadService, url, null);
 			
 			updater.latch.countDown();
@@ -451,6 +452,8 @@ public class RedisRobotsCache implements LiveWebCache {
 		public void run()
 		{
 			long startTime = System.currentTimeMillis();
+			
+			LOGGER.info("ASYNC workers " + refreshService.getQueue().size());
 									
 			doUpdate(refreshService, this.url, this.current);
 			
