@@ -10,7 +10,8 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
@@ -54,8 +55,11 @@ public class RedisRobotsCache implements LiveWebCache {
 	private int socketTimeoutMS = 5000;
 		
 	private int maxNumUpdateThreads = 1000;
+	private int maxCoreUpdateThreads = 100;
+	private int threadKeepAliveTime = 5000;
+	
 	private int maxConnections = 1500;
-	private int maxPerRoute = 25;
+	private int maxPerRoute = 4;
 
 	private ThreadSafeClientConnManager connMan;
 	private HttpClient directHttpClient;
@@ -87,6 +91,8 @@ public class RedisRobotsCache implements LiveWebCache {
 	
 	private ExecutorService updateService;
 	
+	private LinkedBlockingQueue<Runnable> workQueue;
+	
 	private HashSet<String> urlsToUpdate;
 
 	private RedisConnectionManager redisConn;
@@ -96,7 +102,9 @@ public class RedisRobotsCache implements LiveWebCache {
 
 		this.redisConn = redisConn;
 		
-		this.updateService = Executors.newFixedThreadPool(maxNumUpdateThreads);
+		this.workQueue = new LinkedBlockingQueue<Runnable>();
+		
+		this.updateService = new ThreadPoolExecutor(maxCoreUpdateThreads, maxNumUpdateThreads, threadKeepAliveTime, TimeUnit.MILLISECONDS, workQueue);
 		
 		urlsToUpdate = new HashSet<String>();
 
@@ -243,7 +251,8 @@ public class RedisRobotsCache implements LiveWebCache {
 	}
 	
 	private RobotResponse doUpdate(String url, String current)
-	{		
+	{
+		LOGGER.info("WORKER QUEUE: " + workQueue.size());
 		LinkedList<Callable<RobotResponse>> tasks = new LinkedList<Callable<RobotResponse>>();
 		tasks.add(new LoadRobotsDirectTask(url));
 		tasks.add(new LoadRobotsProxyTask(url));
