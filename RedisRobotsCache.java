@@ -331,9 +331,13 @@ public class RedisRobotsCache implements LiveWebCache {
 				String current = jedis.get(url);
 				
 				refreshService.submit(new CacheUpdateTask(url, current));
+				
+				Thread.sleep(10);
 			} catch (JedisConnectionException jce) {
 				redisConn.returnBrokenJedis(jedis);
 				jedis = null;
+			} catch (InterruptedException e) {
+				
 			}
 		}
 	}
@@ -829,7 +833,14 @@ public class RedisRobotsCache implements LiveWebCache {
 		LOGGER.info("Redis Updater: " + redisHost + ":" + redisPort);
 		
 		RedisConnectionManager manager = new RedisConnectionManager(redisHost, redisPort);
-		RedisRobotsCache cache = new RedisRobotsCache(manager);
+		RedisRobotsCache cache = null;
+		
+		if (args.length >= 3) {
+			cache = new RedisRobotsCache(manager, args[2]);
+		} else {
+			cache = new RedisRobotsCache(manager);
+		}
+		
 		cache.processRedisUpdateQueue();
 	}
 }
