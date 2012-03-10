@@ -319,7 +319,7 @@ public class RedisRobotsCache implements LiveWebCache {
 				}
 				
 				List<String> urls = jedis.blpop(0, UPDATE_QUEUE_KEY);
-				String url = urls.get(0);
+				String url = urls.get(1);
 				
 				synchronized(urlsToRefresh) {
 					if (urlsToRefresh.contains(url)) {
@@ -454,6 +454,7 @@ public class RedisRobotsCache implements LiveWebCache {
 		
 		String newRedisValue = null;
 		int newTTL = 0;
+		boolean ttlOnly = false;
 		
 		if (robotResponse.isValid()) {
 			contents = robotResponse.contents;
@@ -475,7 +476,7 @@ public class RedisRobotsCache implements LiveWebCache {
 		
 		if (currentValue != null) {
 			if (currentValue.equals(newRedisValue)) {
-				return false;
+				ttlOnly = true;
 			}
 			
 			// Don't override a valid robots with a timeout error
@@ -488,7 +489,12 @@ public class RedisRobotsCache implements LiveWebCache {
 				
 		try {
 			jedis = redisConn.getJedisInstance();
-			jedis.setex(url, newTTL, newRedisValue);
+			
+			if (ttlOnly) {
+				jedis.expire(url, newTTL);
+			} else {
+				jedis.setex(url, newTTL, newRedisValue);
+			}
 			
 		} catch (JedisConnectionException jce) {
 			LOGGER.severe("Jedis Exception: " + jce);
