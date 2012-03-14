@@ -333,13 +333,17 @@ public class RedisRobotsCache implements LiveWebCache {
 				
 				String current = jedis.get(url);
 				
-				if (!isExpired(jedis, url, current)) {
+				if (current == null) {
+					LOGGER.info("NULL VALUE FOR: " + url);
+				}
+				
+				if ((current != null) && !isExpired(jedis, url, current)) {
 					continue;
 				}
 				
 				refreshService.submit(new CacheUpdateTask(url, current));
 				
-				Thread.sleep(100);
+				Thread.sleep(10);
 			} catch (JedisConnectionException jce) {
 				redisConn.returnBrokenJedis(jedis);
 				jedis = null;
