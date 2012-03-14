@@ -4,6 +4,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
+import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
+import java.net.MalformedURLException;
+import java.net.Proxy;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.HashMap;
@@ -23,20 +27,11 @@ import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
 
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
-import org.apache.http.conn.params.ConnRoutePNames;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.CoreConnectionPNames;
-import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.util.EntityUtils;
 import org.archive.io.arc.ARCRecord;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.exception.LiveDocumentNotAvailableException;
@@ -91,8 +86,9 @@ public class RedisRobotsCache implements LiveWebCache {
 	
 	private ThreadSafeClientConnManager connMan;
 
-	private HttpClient directHttpClient;
-	private HttpClient proxyHttpClient;
+//	private HttpClient directHttpClient;
+//	private HttpClient proxyHttpClient;
+	Proxy proxy;
 	
 	/* THREAD WORKER SETTINGS */
 	
@@ -117,16 +113,16 @@ public class RedisRobotsCache implements LiveWebCache {
 
 		this.redisConn = redisConn;
 
-		connMan = new ThreadSafeClientConnManager();
-		connMan.setDefaultMaxPerRoute(maxPerRoute);
-		connMan.setMaxTotal(maxConnections);
-
-		BasicHttpParams params = new BasicHttpParams();
-		params.setParameter(CoreConnectionPNames.SO_TIMEOUT, socketTimeoutMS);
-		params.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, connectionTimeoutMS);
-		params.setParameter(CoreConnectionPNames.SO_LINGER, 0);
-		params.setParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK, true);
-		directHttpClient = new DefaultHttpClient(connMan, params);
+//		connMan = new ThreadSafeClientConnManager();
+//		connMan.setDefaultMaxPerRoute(maxPerRoute);
+//		connMan.setMaxTotal(maxConnections);
+//
+//		BasicHttpParams params = new BasicHttpParams();
+//		params.setParameter(CoreConnectionPNames.SO_TIMEOUT, socketTimeoutMS);
+//		params.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, connectionTimeoutMS);
+//		params.setParameter(CoreConnectionPNames.SO_LINGER, 0);
+//		params.setParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK, true);
+//		directHttpClient = new DefaultHttpClient(connMan, params);
 		
 		refreshService = new ThreadPoolExecutor(maxCoreUpdateThreads, maxNumUpdateThreads, threadKeepAliveTime, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());		
 		urlsToRefresh = new HashSet<String>();
@@ -161,15 +157,16 @@ public class RedisRobotsCache implements LiveWebCache {
 		this.setProxyHostPort(proxyHostPort);
 		
 		if ((proxyHost != null) && (proxyPort != 0)) {
-			HttpParams proxyParams  = new BasicHttpParams();
-			proxyParams.setParameter(CoreConnectionPNames.SO_TIMEOUT, socketTimeoutMS);
-			proxyParams.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, connectionTimeoutMS);
-			proxyParams.setParameter(CoreConnectionPNames.SO_LINGER, 0);
-			proxyParams.setParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK, true);
-			HttpHost proxy = new HttpHost(proxyHost, proxyPort);
-			proxyParams.setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
+//			HttpParams proxyParams  = new BasicHttpParams();
+//			proxyParams.setParameter(CoreConnectionPNames.SO_TIMEOUT, socketTimeoutMS);
+//			proxyParams.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, connectionTimeoutMS);
+//			proxyParams.setParameter(CoreConnectionPNames.SO_LINGER, 0);
+//			proxyParams.setParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK, true);
+//			HttpHost proxy = new HttpHost(proxyHost, proxyPort);
+//			proxyParams.setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
 			LOGGER.info("=== HTTP Proxy through: " + proxyHost + ":" + proxyPort);
-			proxyHttpClient = new DefaultHttpClient(connMan, proxyParams);
+			proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyHost, proxyPort));
+//			proxyHttpClient = new DefaultHttpClient(connMan, proxyParams);
 		}
 	}
 
@@ -237,9 +234,7 @@ public class RedisRobotsCache implements LiveWebCache {
 	}
 	
 	protected Resource processSingleRobots(Jedis jedis, String url, String robotsFile) throws LiveWebCacheUnavailableException, LiveDocumentNotAvailableException
-	{
-		long startTime = 0;
-		
+	{		
 		try {			
 			if (robotsFile == null) {
 				redisConn.returnJedisInstance(jedis);
@@ -253,35 +248,30 @@ public class RedisRobotsCache implements LiveWebCache {
 				
 				robotsFile = robotResponse.contents;
 				
-			} else if (robotsFile.startsWith(ROBOTS_TOKEN_ERROR)) {
-				startTime = System.currentTimeMillis();
-				long ttl = jedis.ttl(url);
-				PerformanceLogger.noteElapsed("RedisTTL", System.currentTimeMillis() - startTime, url + " NOT AVAIL: " + robotsFile);
-				
-				pushRedisUpdateQueue(jedis, url, ttl, notAvailRefreshTTL, notAvailTotalTTL);
-				
-				redisConn.returnJedisInstance(jedis);
-				jedis = null;
-				
-				//asyncUpdateCheck(ttl, url, robotsFile, notAvailRefreshTTL, notAvailTotalTTL);
-				
-				throw new LiveDocumentNotAvailableException("Robots Error: " + robotsFile);
 			} else {
-				startTime = System.currentTimeMillis();
-				long ttl = jedis.ttl(url);
-				PerformanceLogger.noteElapsed("RedisTTL", System.currentTimeMillis() - startTime, url + " Size " + robotsFile.length());
 				
-				pushRedisUpdateQueue(jedis, url, ttl, refreshTTL, totalTTL);
+				if (isExpired(jedis, url, robotsFile)) {
+					jedis.rpush(UPDATE_QUEUE_KEY, url);
+//					synchronized(urlsToRefresh) {
+//						if (urlsToRefresh.contains(url)) {
+//							return;
+//						}
+//						urlsToRefresh.add(url);
+//					}
+//					
+//					refreshService.submit(new CacheUpdateTask(url, current));
+				}
 				
 				redisConn.returnJedisInstance(jedis);
 				jedis = null;
 				
-				//asyncUpdateCheck(ttl, url, robotsFile, refreshTTL, totalTTL);
-				
-				if (robotsFile.equals(ROBOTS_TOKEN_EMPTY)) {
+				if (robotsFile.startsWith(ROBOTS_TOKEN_ERROR)) {
+					throw new LiveDocumentNotAvailableException("Robots Error: " + robotsFile);	
+				} else if (robotsFile.equals(ROBOTS_TOKEN_EMPTY)) {
 					robotsFile = "";
 				}
-			}
+			}				
+			
 		} catch (JedisConnectionException jce) {
 			LOGGER.severe("Jedis Exception: " + jce);
 			redisConn.returnBrokenJedis(jedis);
@@ -296,16 +286,29 @@ public class RedisRobotsCache implements LiveWebCache {
 
 		return new RobotsTxtResource(robotsFile);
 	}
+			
+	public boolean isExpired(Jedis jedis, String url, String contents) {
 		
-	private void pushRedisUpdateQueue(Jedis jedis, String url, long ttl,
-			int refreshTime, int maxTime) {
+		long ttl = jedis.ttl(url);
+		
+		int maxTime, refreshTime;
+		
+		if (contents.startsWith(ROBOTS_TOKEN_ERROR)) {
+			maxTime = notAvailTotalTTL;
+			refreshTime = notAvailRefreshTTL;
+		} else {
+			maxTime = totalTTL;
+			refreshTime = refreshTTL;
+		}
 		
 		if ((maxTime - ttl) >= refreshTime) {
 			LOGGER.info("Queuing robot refresh: "
 					+ (maxTime - ttl) + ">=" + refreshTime + " " + url);
 			
-			jedis.rpush(UPDATE_QUEUE_KEY, url);
+			return true;
 		}
+		
+		return false;
 	}
 	
 	protected void processRedisUpdateQueue()
@@ -330,9 +333,13 @@ public class RedisRobotsCache implements LiveWebCache {
 				
 				String current = jedis.get(url);
 				
+				if (!isExpired(jedis, url, current)) {
+					continue;
+				}
+				
 				refreshService.submit(new CacheUpdateTask(url, current));
 				
-				Thread.sleep(10);
+				Thread.sleep(100);
 			} catch (JedisConnectionException jce) {
 				redisConn.returnBrokenJedis(jedis);
 				jedis = null;
@@ -341,29 +348,6 @@ public class RedisRobotsCache implements LiveWebCache {
 			}
 		}
 	}
-
-	private void asyncUpdateCheck(long ttl, String url, String current, int refreshTime, int maxTime)
-	{
-		if (refreshService.getQueue().size() > maxWorkQueueSize) {
-			LOGGER.info("Skipping Update, work queue max reached. Urls: " + urlsToRefresh.size());
-			return;
-		}
-		
-		if ((maxTime - ttl) >= refreshTime) {
-			LOGGER.info("Refreshing robots: "
-					+ (maxTime - ttl) + ">=" + refreshTime + " " + url);
-						
-			synchronized(urlsToRefresh) {
-				if (urlsToRefresh.contains(url)) {
-					return;
-				}
-				urlsToRefresh.add(url);
-			}
-			
-			refreshService.submit(new CacheUpdateTask(url, current));
-		}
-	}
-	
 	
 	class UrlLoader
 	{
@@ -421,7 +405,8 @@ public class RedisRobotsCache implements LiveWebCache {
 		RobotResponse robotResponse;
 		
 		try {
-			robotResponse = this.loadRobotsUrl(url);
+			//robotResponse = this.loadRobotsUrl(url);
+			robotResponse = this.loadRobotsHttpConn(url);
 		} catch (Exception exc) {
 			robotResponse = new RobotResponse(LIVE_HOST_ERROR);
 		}
@@ -484,7 +469,7 @@ public class RedisRobotsCache implements LiveWebCache {
 			}
 			
 			// Don't override a valid robots with a timeout error
-			if ((robotResponse.status == LIVE_TIMEOUT_ERROR) && !currentValue.startsWith(ROBOTS_TOKEN_ERROR)) {
+			if (newRedisValue.startsWith(ROBOTS_TOKEN_ERROR) && !currentValue.startsWith(ROBOTS_TOKEN_ERROR)) {
 				newRedisValue = currentValue;
 				newTTL = notAvailTotalTTL;
 				LOGGER.info("REFRESH TIMEOUT: Keeping same robots for " + url + ", refresh timed out");
@@ -525,7 +510,7 @@ public class RedisRobotsCache implements LiveWebCache {
 		public void run()
 		{
 			long startTime = System.currentTimeMillis();			
-			pingProxyLive(url);
+			pingProxyLiveHttpConn(url);
 			PerformanceLogger.noteElapsed("AsyncLiveProxyPing", System.currentTimeMillis() - startTime, url);
 		}
 	}
@@ -541,7 +526,8 @@ public class RedisRobotsCache implements LiveWebCache {
 
 		@Override
 		public RobotResponse call() throws Exception {
-			return loadProxyLive(url);
+			return null;
+			//return loadProxyLive(url);
 		}
 	}
 	
@@ -556,7 +542,7 @@ public class RedisRobotsCache implements LiveWebCache {
 
 		@Override
 		public RobotResponse call() throws Exception {
-			return loadRobotsUrl(url);
+			return loadRobotsHttpConn(url);
 		}
 	}
 	
@@ -578,7 +564,7 @@ public class RedisRobotsCache implements LiveWebCache {
 			LOGGER.info("ASYNC workers " + refreshService.getQueue().size());
 									
 			//doUpdate(refreshService, this.url, this.current);
-			pingProxyLive(url);
+			pingProxyLiveHttpConn(url);
 			doUpdateDirect(url, current);
 			
 			synchronized(urlsToRefresh) {
@@ -640,116 +626,154 @@ public class RedisRobotsCache implements LiveWebCache {
 		return baos;
 	}
 	
-	private void pingProxyLive(String url) {
-		if (proxyHttpClient == null) {
+	private void pingProxyLiveHttpConn(String url) {
+		if (proxy == null) {
 			return;
 		}
 		
-		HttpHead httpHead = null;
+		HttpURLConnection connection = null;
+		URL theURL;
 		long startTime = System.currentTimeMillis();
-
+		
+		synchronized(httpConnectionCount) {
+			httpConnectionCount++;
+		}
+		
 		try {
-			httpHead = new HttpHead(url);
-			HttpResponse response = proxyHttpClient.execute(httpHead, new BasicHttpContext());
-			PerformanceLogger.noteElapsed("PingProxyRobots", System.currentTimeMillis() - startTime, url + " " + response.getStatusLine());
-			
+			theURL = new URL(url);
+			connection = (HttpURLConnection)theURL.openConnection(proxy);
+			connection.setConnectTimeout(connectionTimeoutMS);
+			connection.setReadTimeout(socketTimeoutMS);
+			connection.setRequestMethod("HEAD");
+			connection.connect();
+			connection.disconnect();
+			PerformanceLogger.noteElapsed("PingProxyRobots", System.currentTimeMillis() - startTime, url + " " + connection.getResponseMessage());
 		} catch (Exception exc) {
 			PerformanceLogger.noteElapsed("PingProxyFailure", System.currentTimeMillis() - startTime, url + " " + exc);
 		} finally {
-			httpHead.abort();
+			if (connection != null) {
+				connection.disconnect();
+			}
+			synchronized(httpConnectionCount) {
+				LOGGER.info("HTTP CONNECTIONS: " + httpConnectionCount--);
+			}
 		}
 	}
 	
-	private RobotResponse loadProxyLive(String url) {
-		if (proxyHttpClient == null) {
-			return new RobotResponse(0);
-		}
-		
-		HttpGet httpGet = null;
-		long startTime = System.currentTimeMillis();
-		int status = 200;
-		InputStream input = null;
-
-		try {
-			httpGet = new HttpGet(url);
-			HttpResponse response = proxyHttpClient.execute(httpGet, new BasicHttpContext());
-			
-			if (response != null) {
-				status = response.getStatusLine().getStatusCode();
-			}
-
-			if (status != 200) {
-				return new RobotResponse(status);
-			}
-			
-			HttpEntity entity = response.getEntity();
-			input = entity.getContent();
-			
-    		ARCRecord r = new ARCRecord(
-    				new GZIPInputStream(input),
-    				"id",0L,false,false,true);
-    		ArcResource ar = (ArcResource) 
-    			ResourceFactory.ARCArchiveRecordToResource(r, null);
-    		
-    		if ((ar.getStatusCode() == 502) || (ar.getStatusCode() == 504)) {
-    			return new RobotResponse(ar.getStatusCode());
-    		}
-    		
-			int numToRead = (int)ar.getRecordLength();
-			
-			if ((numToRead <= 0) || (numToRead > MAX_ROBOTS_SIZE)) {
-				numToRead = MAX_ROBOTS_SIZE;
-			}
-    		
-			ByteArrayOutputStream baos = readMaxBytes(ar, numToRead);
-								
-			RobotResponse robotResponse = new RobotResponse(baos.toString(), ar.getStatusCode());
-			
-			PerformanceLogger.noteElapsed("LoadProxyRobots", System.currentTimeMillis() - startTime, url + " Size: " + robotResponse.contents.length());
-			LOGGER.info("HTTP CONNECTIONS: " + connMan.getConnectionsInPool());
-			
-			return robotResponse;
-			
-		} catch (Exception exc) {
-			//exc.printStackTrace();
-			LOGGER.info("HTTP CONNECTIONS: " + connMan.getConnectionsInPool());
-			this.connMan.closeIdleConnections(10, TimeUnit.SECONDS);
-			PerformanceLogger.noteElapsed("LoadProxyFailure", System.currentTimeMillis() - startTime, url + " " + exc);
-			return new RobotResponse(500);
-		} finally {
-			httpGet.abort();
-		}
-	}
-
-	private RobotResponse loadRobotsUrl(String url) {
+//	private void pingProxyLive(String url) {
+//		if (proxyHttpClient == null) {
+//			return;
+//		}
+//		
+//		HttpHead httpHead = null;
+//		long startTime = System.currentTimeMillis();
+//
+//		try {
+//			httpHead = new HttpHead(url);
+//			HttpResponse response = proxyHttpClient.execute(httpHead, new BasicHttpContext());
+//			PerformanceLogger.noteElapsed("PingProxyRobots", System.currentTimeMillis() - startTime, url + " " + response.getStatusLine());
+//			
+//		} catch (Exception exc) {
+//			PerformanceLogger.noteElapsed("PingProxyFailure", System.currentTimeMillis() - startTime, url + " " + exc);
+//		} finally {
+//			httpHead.abort();
+//		}
+//	}
+	
+//	private RobotResponse loadProxyLive(String url) {
+//		if (proxyHttpClient == null) {
+//			return new RobotResponse(0);
+//		}
+//		
+//		HttpGet httpGet = null;
+//		long startTime = System.currentTimeMillis();
+//		int status = 200;
+//		InputStream input = null;
+//
+//		try {
+//			httpGet = new HttpGet(url);
+//			HttpResponse response = proxyHttpClient.execute(httpGet, new BasicHttpContext());
+//			
+//			if (response != null) {
+//				status = response.getStatusLine().getStatusCode();
+//			}
+//
+//			if (status != 200) {
+//				return new RobotResponse(status);
+//			}
+//			
+//			HttpEntity entity = response.getEntity();
+//			input = entity.getContent();
+//			
+//    		ARCRecord r = new ARCRecord(
+//    				new GZIPInputStream(input),
+//    				"id",0L,false,false,true);
+//    		ArcResource ar = (ArcResource) 
+//    			ResourceFactory.ARCArchiveRecordToResource(r, null);
+//    		
+//    		if ((ar.getStatusCode() == 502) || (ar.getStatusCode() == 504)) {
+//    			return new RobotResponse(ar.getStatusCode());
+//    		}
+//    		
+//			int numToRead = (int)ar.getRecordLength();
+//			
+//			if ((numToRead <= 0) || (numToRead > MAX_ROBOTS_SIZE)) {
+//				numToRead = MAX_ROBOTS_SIZE;
+//			}
+//    		
+//			ByteArrayOutputStream baos = readMaxBytes(ar, numToRead);
+//								
+//			RobotResponse robotResponse = new RobotResponse(baos.toString(), ar.getStatusCode());
+//			
+//			PerformanceLogger.noteElapsed("LoadProxyRobots", System.currentTimeMillis() - startTime, url + " Size: " + robotResponse.contents.length());
+//			LOGGER.info("HTTP CONNECTIONS: " + connMan.getConnectionsInPool());
+//			
+//			return robotResponse;
+//			
+//		} catch (Exception exc) {
+//			//exc.printStackTrace();
+//			LOGGER.info("HTTP CONNECTIONS: " + connMan.getConnectionsInPool());
+//			this.connMan.closeIdleConnections(10, TimeUnit.SECONDS);
+//			PerformanceLogger.noteElapsed("LoadProxyFailure", System.currentTimeMillis() - startTime, url + " " + exc);
+//			return new RobotResponse(500);
+//		} finally {
+//			httpGet.abort();
+//		}
+//	}
+	
+	private Integer httpConnectionCount = 0;
+	
+	private RobotResponse loadRobotsHttpConn(String url) {
 
 		int status = 0;
 		String contents = null;
-		HttpGet httpGet = null;
+		HttpURLConnection connection = null;
+		URL theURL;
 		long startTime = System.currentTimeMillis();
 		
+		synchronized(httpConnectionCount) {
+			httpConnectionCount++;
+		}
+		
 		try {
-			httpGet = new HttpGet(url);
-			HttpContext context = new BasicHttpContext();
+			theURL = new URL(url);
+			connection = (HttpURLConnection)theURL.openConnection();
+			connection.setConnectTimeout(connectionTimeoutMS);
+			connection.setReadTimeout(socketTimeoutMS);
+			connection.connect();
 
-			HttpResponse response = directHttpClient.execute(httpGet, context);
+			status = connection.getResponseCode();
 
-			if (response != null) {
-				status = response.getStatusLine().getStatusCode();
-			}
-
-			if (status == 200) {
-				HttpEntity entity = response.getEntity();
-				
-				int numToRead = (int)entity.getContentLength();
+			if (status == 200) {				
+				int numToRead = connection.getContentLength();
 				
 				if ((numToRead <= 0) || (numToRead > MAX_ROBOTS_SIZE)) {
 					numToRead = MAX_ROBOTS_SIZE;
 				}
 
-				ByteArrayOutputStream baos = readMaxBytes(entity.getContent(), numToRead);
+				ByteArrayOutputStream baos = readMaxBytes(connection.getInputStream(), numToRead);
 								
-				String charset = EntityUtils.getContentCharSet(entity);
+				String charset = connection.getContentEncoding();
 				
 				if (charset == null) {
 					charset = "utf-8";
@@ -757,7 +781,7 @@ public class RedisRobotsCache implements LiveWebCache {
 				
 				contents = baos.toString(charset);
 			}
-			LOGGER.info("HTTP CONNECTIONS: " + connMan.getConnectionsInPool());
+			PerformanceLogger.noteElapsed("HttpLoadSuccess", System.currentTimeMillis() - startTime, url + " " + status + ((contents != null) ? " Size: " + contents.length() : " NULL"));
 			
 		} catch (Exception exc) {
 			
@@ -767,8 +791,7 @@ public class RedisRobotsCache implements LiveWebCache {
 				status = LIVE_HOST_ERROR;
 			}
 			
-			LOGGER.info("HTTP CONNECTIONS: " + connMan.getConnectionsInPool());
-			this.connMan.closeIdleConnections(10, TimeUnit.SECONDS);
+			//this.connMan.closeIdleConnections(10, TimeUnit.SECONDS);
 			
 			PerformanceLogger.noteElapsed("HttpLoadFail", System.currentTimeMillis() - startTime, 
 					"Exception: " + exc + " url: " + url + " status " + status);
@@ -776,12 +799,78 @@ public class RedisRobotsCache implements LiveWebCache {
 			//LOGGER.info("Exception: " + exc + " url: " + url + " status " + status);		
 		
 		} finally {
-			httpGet.abort();
-			PerformanceLogger.noteElapsed("HttpLoadRobots", System.currentTimeMillis() - startTime, url + " " + ((contents != null) ? contents.length() : "NULL"));
+			if (connection != null) {
+				connection.disconnect();
+			}
+			synchronized(httpConnectionCount) {
+				LOGGER.info("HTTP CONNECTIONS: " + httpConnectionCount--);
+			}
 		}
 		
 		return new RobotResponse(contents, status);
 	}
+
+//	private RobotResponse loadRobotsUrl(String url) {
+//
+//		int status = 0;
+//		String contents = null;
+//		HttpGet httpGet = null;
+//		long startTime = System.currentTimeMillis();
+//		
+//		try {
+//			httpGet = new HttpGet(url);
+//			HttpContext context = new BasicHttpContext();
+//
+//			HttpResponse response = directHttpClient.execute(httpGet, context);
+//
+//			if (response != null) {
+//				status = response.getStatusLine().getStatusCode();
+//			}
+//
+//			if (status == 200) {
+//				HttpEntity entity = response.getEntity();
+//				
+//				int numToRead = (int)entity.getContentLength();
+//				
+//				if ((numToRead <= 0) || (numToRead > MAX_ROBOTS_SIZE)) {
+//					numToRead = MAX_ROBOTS_SIZE;
+//				}
+//
+//				ByteArrayOutputStream baos = readMaxBytes(entity.getContent(), numToRead);
+//								
+//				String charset = EntityUtils.getContentCharSet(entity);
+//				
+//				if (charset == null) {
+//					charset = "utf-8";
+//				}
+//				
+//				contents = baos.toString(charset);
+//			}
+//			LOGGER.info("HTTP CONNECTIONS: " + connMan.getConnectionsInPool());
+//			
+//		} catch (Exception exc) {
+//			
+//			if (exc instanceof InterruptedIOException) {
+//				status = LIVE_TIMEOUT_ERROR; //Timeout (gateway timeout)
+//			} else if (exc instanceof UnknownHostException) {
+//				status = LIVE_HOST_ERROR;
+//			}
+//			
+//			LOGGER.info("HTTP CONNECTIONS: " + connMan.getConnectionsInPool());
+//			this.connMan.closeIdleConnections(10, TimeUnit.SECONDS);
+//			
+//			PerformanceLogger.noteElapsed("HttpLoadFail", System.currentTimeMillis() - startTime, 
+//					"Exception: " + exc + " url: " + url + " status " + status);
+//
+//			//LOGGER.info("Exception: " + exc + " url: " + url + " status " + status);		
+//		
+//		} finally {
+//			httpGet.abort();
+//			PerformanceLogger.noteElapsed("HttpLoadRobots", System.currentTimeMillis() - startTime, url + " " + status + ((contents != null) ? " Size: " + contents.length() : " NULL"));
+//		}
+//		
+//		return new RobotResponse(contents, status);
+//	}
 	
     public void setProxyHostPort(String hostPort) {
     	int colonIdx = hostPort.indexOf(':');
