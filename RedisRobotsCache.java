@@ -762,7 +762,7 @@ public class RedisRobotsCache implements LiveWebCache {
 			
 			String contentType = connection.getContentType();
 			
-			boolean isText = (contentType == null) || (contentType.equals("text/plain"));
+			boolean isText = (contentType == null) || (contentType.indexOf("text/plain") >= 0);
 
 			if ((status == LIVE_OK) && isText) {			
 				int numToRead = connection.getContentLength();
