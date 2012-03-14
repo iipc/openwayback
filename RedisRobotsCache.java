@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
-import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.URL;
 import java.net.UnknownHostException;
@@ -24,22 +23,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.zip.GZIPInputStream;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpHead;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
-import org.apache.http.protocol.BasicHttpContext;
-import org.archive.io.arc.ARCRecord;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.exception.LiveDocumentNotAvailableException;
 import org.archive.wayback.exception.LiveWebCacheUnavailableException;
 import org.archive.wayback.exception.LiveWebTimeoutException;
 import org.archive.wayback.liveweb.LiveWebCache;
-import org.archive.wayback.resourcestore.resourcefile.ArcResource;
-import org.archive.wayback.resourcestore.resourcefile.ResourceFactory;
 import org.archive.wayback.webapp.PerformanceLogger;
 
 import redis.clients.jedis.Jedis;
@@ -66,9 +56,11 @@ public class RedisRobotsCache implements LiveWebCache {
 	final static String ROBOTS_TOKEN_ERROR_UNKNOWN = "0_ROBOTS_ERROR-0";
 	
 	final static String UPDATE_QUEUE_KEY = "robots_update_queue";
-	
+
+	final static int LIVE_OK = 200;
 	final static int LIVE_TIMEOUT_ERROR = 900;
 	final static int LIVE_HOST_ERROR = 910;
+	final static int LIVE_INVALID_TYPE_ERROR = 920;
 	
 	
 	final static int MAX_ROBOTS_SIZE = 500000;
@@ -343,7 +335,7 @@ public class RedisRobotsCache implements LiveWebCache {
 				
 				refreshService.submit(new CacheUpdateTask(url, current));
 				
-				Thread.sleep(10);
+				Thread.sleep(1);
 			} catch (JedisConnectionException jce) {
 				redisConn.returnBrokenJedis(jedis);
 				jedis = null;
@@ -597,7 +589,7 @@ public class RedisRobotsCache implements LiveWebCache {
 		
 		boolean isValid()
 		{
-			return (contents != null) && (status == 200);
+			return (contents != null) && (status == LIVE_OK);
 		}
 	}
 	
@@ -650,7 +642,6 @@ public class RedisRobotsCache implements LiveWebCache {
 			connection.setReadTimeout(socketTimeoutMS);
 			connection.setRequestMethod("HEAD");
 			connection.connect();
-			connection.disconnect();
 			PerformanceLogger.noteElapsed("PingProxyRobots", System.currentTimeMillis() - startTime, url + " " + connection.getResponseMessage());
 		} catch (Exception exc) {
 			PerformanceLogger.noteElapsed("PingProxyFailure", System.currentTimeMillis() - startTime, url + " " + exc);
@@ -764,11 +755,16 @@ public class RedisRobotsCache implements LiveWebCache {
 			connection = (HttpURLConnection)theURL.openConnection();
 			connection.setConnectTimeout(connectionTimeoutMS);
 			connection.setReadTimeout(socketTimeoutMS);
+			connection.setRequestProperty("Connection", "close");
 			connection.connect();
 
 			status = connection.getResponseCode();
+			
+			String contentType = connection.getContentType();
+			
+			boolean isText = (contentType == null) || (contentType.equals("text/plain"));
 
-			if (status == 200) {				
+			if ((status == LIVE_OK) && isText) {			
 				int numToRead = connection.getContentLength();
 				
 				if ((numToRead <= 0) || (numToRead > MAX_ROBOTS_SIZE)) {
@@ -784,7 +780,14 @@ public class RedisRobotsCache implements LiveWebCache {
 				}
 				
 				contents = baos.toString(charset);
+				
+				connection.getInputStream().close();
+				
+			} else if (status == LIVE_OK) {
+				LOGGER.info("Invalid content type: " + contentType + " for: " + url);
+				status = LIVE_INVALID_TYPE_ERROR;
 			}
+			
 			PerformanceLogger.noteElapsed("HttpLoadSuccess", System.currentTimeMillis() - startTime, url + " " + status + ((contents != null) ? " Size: " + contents.length() : " NULL"));
 			
 		} catch (Exception exc) {
