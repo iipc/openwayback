@@ -793,12 +793,14 @@ public class RedisRobotsCache implements LiveWebCache {
 			connection.connect();
 
 			status = connection.getResponseCode();
-			
-			String contentType = connection.getContentType();
-			
-			boolean isText = (contentType == null) || (contentType.indexOf("text/plain") >= 0);
-
-			if ((status == LIVE_OK) && isText) {			
+						
+			if ((status == LIVE_OK)) {
+				// Content Type check
+				String contentType = connection.getContentType();
+				if ((contentType == null) || (contentType.indexOf("text/plain") < 0)) {
+					LOGGER.info("Questionable Content-Type: " + contentType + " for: " + url);
+				}
+				
 				int numToRead = connection.getContentLength();
 				
 				if ((numToRead <= 0) || (numToRead > MAX_ROBOTS_SIZE)) {
@@ -817,10 +819,11 @@ public class RedisRobotsCache implements LiveWebCache {
 				
 				connection.getInputStream().close();
 				
-			} else if (status == LIVE_OK) {
-				LOGGER.info("Invalid content type: " + contentType + " for: " + url);
-				status = LIVE_INVALID_TYPE_ERROR;
 			}
+//			else if (status == LIVE_OK) {
+//				LOGGER.info("Invalid content type: " + contentType + " for: " + url);
+//				status = LIVE_INVALID_TYPE_ERROR;
+//			}
 			
 			PerformanceLogger.noteElapsed("HttpLoadSuccess", System.currentTimeMillis() - startTime, url + " " + status + ((contents != null) ? " Size: " + contents.length() : " NULL"));
 			
