@@ -10,9 +10,42 @@ import redis.clients.jedis.Jedis;
 
 public class RedisConnectionManager {
 	
-	private String redisHost;
-	private int redisPort;
-	private int redisDB;
+	public String getHost() {
+		return host;
+	}
+
+	public void setHost(String host) {
+		this.host = host;
+	}
+
+	public int getPort() {
+		return port;
+	}
+
+	public void setPort(int port) {
+		this.port = port;
+	}
+
+	public int getDb() {
+		return db;
+	}
+
+	public void setDb(int db) {
+		this.db = db;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	private String host = "localhost";
+	private int port = 6379;
+	private int db = 0;
+	private String password = null;
 	
 	private LinkedList<Jedis> fastJedisPool = new LinkedList<Jedis>();
 		
@@ -21,33 +54,12 @@ public class RedisConnectionManager {
 	
 	private final static Logger LOGGER = 
 		Logger.getLogger(RedisConnectionManager.class.getName());
-	
-	public RedisConnectionManager(String redisHost, int redisPort)
+			
+	public RedisConnectionManager()
     {
-		this(redisHost, redisPort, 0);
-	}
-		
-	public RedisConnectionManager(String redisHost, int redisPort, int redisDB)
-    {
-		LOGGER.setLevel(Level.FINER);
-		
-		this.redisHost = redisHost;
-		this.redisPort = redisPort;
-		this.redisDB = redisDB;			
+		LOGGER.setLevel(Level.FINER);	
 	}
 	
-	public String getRedisHost() {
-		return redisHost;
-	}
-
-	public int getRedisPort() {
-		return redisPort;
-	}
-
-	public int getRedisDB() {
-		return redisDB;
-	}
-
 	protected Jedis getJedisInstance()
 	{
 		Jedis jedis = null;
@@ -70,10 +82,16 @@ public class RedisConnectionManager {
 				
 				startTime = System.currentTimeMillis();
 				
-				jedis = new Jedis(redisHost, redisPort);
+				jedis = new Jedis(host, port);
+				
 				jedis.connect();
-				if (redisDB != 0) {
-					jedis.select(redisDB);
+				
+				if (password != null) {
+					jedis.auth(password);
+				}
+				
+				if (db != 0) {
+					jedis.select(db);
 				}
 				PerformanceLogger.noteElapsed("JedisGetNew", System.currentTimeMillis() - startTime, "NEW JEDIS");
 				return jedis;

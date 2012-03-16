@@ -78,7 +78,9 @@ public class RedisRobotsCache implements LiveWebCache {
 	private String proxyHost;
 	private int proxyPort;
 	
-	private ThreadSafeClientConnManager connMan;
+	private String userAgent;
+	
+	//private ThreadSafeClientConnManager connMan;
 
 //	private HttpClient directHttpClient;
 //	private HttpClient proxyHttpClient;
@@ -123,27 +125,29 @@ public class RedisRobotsCache implements LiveWebCache {
 		
 		//loadService = new ThreadPoolExecutor(maxCoreUpdateThreads, maxNumUpdateThreads, threadKeepAliveTime, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());		
 		urlsToLoad = new HashMap<String, UrlLoader>();
+		
+		HttpURLConnection.setFollowRedirects(true);
 	}
 	
-	public void setMaxTotalConnections(int max)
-	{
-		connMan.setMaxTotal(max);
-	}
-	
-	public int getMaxTotalConnections()
-	{
-		return connMan.getMaxTotal();
-	}
-	
-	public void setMaxPerRoute(int max)
-	{
-		connMan.setDefaultMaxPerRoute(max);
-	}
-	
-	public int getMaxPerRoute()
-	{
-		return connMan.getDefaultMaxPerRoute();
-	}
+//	public void setMaxTotalConnections(int max)
+//	{
+//		connMan.setMaxTotal(max);
+//	}
+//	
+//	public int getMaxTotalConnections()
+//	{
+//		return connMan.getMaxTotal();
+//	}
+//	
+//	public void setMaxPerRoute(int max)
+//	{
+//		connMan.setDefaultMaxPerRoute(max);
+//	}
+//	
+//	public int getMaxPerRoute()
+//	{
+//		return connMan.getDefaultMaxPerRoute();
+//	}
 	
 	public RedisRobotsCache(RedisConnectionManager redisConn, String proxyHostPort) {
 
@@ -377,6 +381,8 @@ public class RedisRobotsCache implements LiveWebCache {
 		UrlLoader updater = null;
 		boolean toLoad = false;
 		
+		int numUrls = 0;
+		
 		synchronized(urlsToLoad) {
 			updater = urlsToLoad.get(url);
 			if (updater == null) {
@@ -384,15 +390,13 @@ public class RedisRobotsCache implements LiveWebCache {
 				urlsToLoad.put(url, updater);
 				toLoad = true;
 			}
+			numUrls = urlsToLoad.size();
 		}
 				
 		if (toLoad) {
 			//refreshService.submit(new LiveProxyPing(url));
 			//updater.response = doUpdateDirect(url, null);
 		
-			//synchronized(urlsToLoad) {
-			//	urlsToLoad.remove(url);
-			//}
 			Future<RobotResponse> futureResponse = refreshService.submit(new CacheUpdateTask(url, null));
 			
 			try {
@@ -400,16 +404,22 @@ public class RedisRobotsCache implements LiveWebCache {
 			} catch (Exception e) {
 				LOGGER.info("INTERRUPTED: " + e);
 			} finally {
-				updater.latch.countDown();	
+				updater.latch.countDown();
+				
+				synchronized(urlsToLoad) {
+					urlsToLoad.remove(url);
+				}
 			}
 			
 		} else {
 			
 			try {
-				LOGGER.info("WAITING FOR " + url);
+				LOGGER.info("WAITING FOR " + url + " -- # URLS: " + numUrls);
+				
 				if (!updater.latch.await(connectionTimeoutMS, TimeUnit.MILLISECONDS)) {
 					LOGGER.info("WAIT FOR " + url + " timed out!");
 				}
+				
 			} catch (InterruptedException e) {
 				LOGGER.info("INTERRUPT FOR " + url);
 			}
@@ -489,7 +499,7 @@ public class RedisRobotsCache implements LiveWebCache {
 			// Don't override a valid robots with a timeout error
 			if (newRedisValue.startsWith(ROBOTS_TOKEN_ERROR) && !currentValue.startsWith(ROBOTS_TOKEN_ERROR)) {
 				newRedisValue = currentValue;
-				newTTL = notAvailTotalTTL;
+				newTTL = totalTTL;
 				LOGGER.info("REFRESH TIMEOUT: Keeping same robots for " + url + ", refresh timed out");
 			}
 		}
@@ -777,6 +787,9 @@ public class RedisRobotsCache implements LiveWebCache {
 			connection.setConnectTimeout(connectionTimeoutMS);
 			connection.setReadTimeout(socketTimeoutMS);
 			connection.setRequestProperty("Connection", "close");
+			if (userAgent != null) {
+				connection.setRequestProperty("User-Agent", userAgent);
+			}
 			connection.connect();
 
 			status = connection.getResponseCode();
@@ -908,6 +921,14 @@ public class RedisRobotsCache implements LiveWebCache {
     	}
     }
 
+	public String getUserAgent() {
+		return userAgent;
+	}
+
+	public void setUserAgent(String userAgent) {
+		this.userAgent = userAgent;
+	}
+
 	public void shutdown() {
 //		if (updaterThread != null) {
 //			updaterThread.toRun = false;
@@ -928,10 +949,10 @@ public class RedisRobotsCache implements LiveWebCache {
 			redisConn = null;
 		}
 		
-		if (connMan != null) {
-			connMan.shutdown();
-			connMan = null;
-		}
+//		if (connMan != null) {
+//			connMan.shutdown();
+//			connMan = null;
+//		}
 	}
 	
 	public static void main(String args[])
@@ -949,7 +970,9 @@ public class RedisRobotsCache implements LiveWebCache {
 		
 		LOGGER.info("Redis Updater: " + redisHost + ":" + redisPort);
 		
-		RedisConnectionManager manager = new RedisConnectionManager(redisHost, redisPort);
+		RedisConnectionManager manager = new RedisConnectionManager();
+		manager.setHost(redisHost);
+		manager.setPort(redisPort);
 		RedisRobotsCache cache = null;
 		
 		if (args.length >= 3) {
