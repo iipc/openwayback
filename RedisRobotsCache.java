@@ -12,10 +12,7 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -25,15 +22,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.archive.wayback.accesscontrol.robotstxt.RedisRobotsLogic.RedisValue;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.exception.LiveDocumentNotAvailableException;
 import org.archive.wayback.exception.LiveWebCacheUnavailableException;
 import org.archive.wayback.exception.LiveWebTimeoutException;
 import org.archive.wayback.liveweb.LiveWebCache;
 import org.archive.wayback.webapp.PerformanceLogger;
-
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.exceptions.JedisConnectionException;
 
 public class RedisRobotsCache implements LiveWebCache {
 
@@ -68,10 +63,12 @@ public class RedisRobotsCache implements LiveWebCache {
 	/* SOCKET SETTINGS / PARAMS */
 
 	private int connectionTimeoutMS = 5000;
-	private int socketTimeoutMS = 5000;
+	private int readTimeoutMS = 5000;
+	private int responseTimeoutMS = 10000;
+	private int pingConnectTimeoutMS = 100;
 	
-	private int maxConnections = 1500;
-	private int maxPerRoute = 20;
+//	private int maxConnections = 1500;
+//	private int maxPerRoute = 20;
 	
 	private String proxyHost;
 	private int proxyPort;
@@ -97,15 +94,15 @@ public class RedisRobotsCache implements LiveWebCache {
 //	private HashSet<String> urlsToRefresh;
 	
 	//private ThreadPoolExecutor loadService;
-	private Map<String, UrlLoader> urlsToLoad;
+	private Map<String, RobotsContext> activeContexts;
 	
 	/* REDIS */
-	private RedisConnectionManager redisConn;
+	private RedisRobotsLogic redisCmds;
 
 	public RedisRobotsCache(RedisConnectionManager redisConn) {
 		LOGGER.setLevel(Level.FINER);
 
-		this.redisConn = redisConn;
+		this.redisCmds = new RedisRobotsLogic(redisConn);
 
 //		connMan = new ThreadSafeClientConnManager();
 //		connMan.setDefaultMaxPerRoute(maxPerRoute);
@@ -122,7 +119,7 @@ public class RedisRobotsCache implements LiveWebCache {
 //		urlsToRefresh = new HashSet<String>();
 		
 		//loadService = new ThreadPoolExecutor(maxCoreUpdateThreads, maxNumUpdateThreads, threadKeepAliveTime, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());		
-		urlsToLoad = new HashMap<String, UrlLoader>();
+		activeContexts = new HashMap<String, RobotsContext>();
 		
 		HttpURLConnection.setFollowRedirects(true);
 	}
@@ -170,134 +167,90 @@ public class RedisRobotsCache implements LiveWebCache {
 				boolean bUseOlder) throws LiveDocumentNotAvailableException,
 				LiveWebCacheUnavailableException, LiveWebTimeoutException,
 				IOException {
-		return getCachedResource(urlURL.toExternalForm());
-	}
-	
-	public Resource getCachedResource(String url) throws LiveDocumentNotAvailableException, LiveWebCacheUnavailableException {
+		
+		String url = urlURL.toExternalForm();
+		
+		RedisValue value = redisCmds.getValue(url);
+		
+		if (value == null) {
+			throw new LiveWebCacheUnavailableException("Jedis Error");
+		}		
 				
-		String robotsFile = null;
-		Jedis jedis = null;
-		long startTime = 0;
-		
-		try {
-			jedis = redisConn.getJedisInstance();
-	
-			startTime = System.currentTimeMillis();
-			robotsFile = jedis.get(url);
-			PerformanceLogger.noteElapsed("RedisGet", System.currentTimeMillis() - startTime, ((robotsFile == null) ? "REDIS MISS: " : "REDIS HIT: ") + url);
-		} catch (JedisConnectionException jce) {
-			LOGGER.severe("Jedis Exception: " + jce);
-			redisConn.returnBrokenJedis(jedis);
-			jedis = null;
-		}
-		
-		return processSingleRobots(jedis, url, robotsFile);
+		return processSingleRobots(value, url);
 	}
 	
 	
-	public Resource getCachedResource(String[] urls) throws LiveDocumentNotAvailableException,
-			LiveWebCacheUnavailableException, LiveWebTimeoutException,
-			IOException {
-				
-		List<String> robotsFiles = null;
-		Jedis jedis = null;
-		long startTime = 0;
-		
-		try {
-			jedis = redisConn.getJedisInstance();
+//	public Resource getCachedResource(String[] urls) throws LiveDocumentNotAvailableException,
+//			LiveWebCacheUnavailableException, LiveWebTimeoutException,
+//			IOException {
+//				
+//		List<String> robotsFiles = null;
+//		Jedis jedis = null;
+//		long startTime = 0;
+//		
+//		try {
+//			jedis = redisConn.getJedisInstance();
+//	
+//			startTime = System.currentTimeMillis();
+//			robotsFiles = jedis.mget(urls);
+//			PerformanceLogger.noteElapsed("RedisGet", System.currentTimeMillis() - startTime, "# URLS" + urls.length);
+//		} catch (JedisConnectionException jce) {
+//			LOGGER.severe("Jedis Exception: " + jce);
+//			redisConn.returnBrokenJedis(jedis);
+//			jedis = null;
+//		}
+//		
+//		int count = 0;
+//		String theUrl = null;
+//		String theRobots = null;
+//		
+//		for (String robots : robotsFiles) {
+//			if (theRobots == null) {
+//				theRobots = robots;
+//				theUrl = urls[count];
+//			} else if (theRobots.startsWith(ROBOTS_TOKEN_ERROR) && !robots.startsWith(ROBOTS_TOKEN_ERROR)) {
+//				theRobots = robots;
+//				theUrl = urls[count];			
+//			}
+//			count++;
+//		}
+//		
+//		return processSingleRobots(jedis, theUrl, theRobots);
+//	}
 	
-			startTime = System.currentTimeMillis();
-			robotsFiles = jedis.mget(urls);
-			PerformanceLogger.noteElapsed("RedisGet", System.currentTimeMillis() - startTime, "# URLS" + urls.length);
-		} catch (JedisConnectionException jce) {
-			LOGGER.severe("Jedis Exception: " + jce);
-			redisConn.returnBrokenJedis(jedis);
-			jedis = null;
-		}
-		
-		int count = 0;
-		String theUrl = null;
-		String theRobots = null;
-		
-		for (String robots : robotsFiles) {
-			if (theRobots == null) {
-				theRobots = robots;
-				theUrl = urls[count];
-			} else if (theRobots.startsWith(ROBOTS_TOKEN_ERROR) && !robots.startsWith(ROBOTS_TOKEN_ERROR)) {
-				theRobots = robots;
-				theUrl = urls[count];			
+	protected Resource processSingleRobots(RedisValue value, String url) throws LiveDocumentNotAvailableException
+	{				
+		if (value.value == null) {
+			RobotsContext context = doSyncUpdate(url, null, true);
+											
+			if ((context == null) || !context.isValid()) {
+				throw new LiveDocumentNotAvailableException("Error Loading Live Robots");	
 			}
-			count++;
-		}
-		
-		return processSingleRobots(jedis, theUrl, theRobots);
-	}
-	
-	protected Resource processSingleRobots(Jedis jedis, String url, String robotsFile) throws LiveWebCacheUnavailableException, LiveDocumentNotAvailableException
-	{		
-		try {			
-			if (robotsFile == null) {
-				redisConn.returnJedisInstance(jedis);
-				jedis = null;
-
-				RobotResponse robotResponse = doSyncUpdate(url);
-												
-				if ((robotResponse == null) || !robotResponse.isValid()) {
-					throw new LiveDocumentNotAvailableException("Error Loading Live Robots");	
-				}
-				
-				robotsFile = robotResponse.contents;
-				
-			} else {
-				
-				if (isExpired(jedis, url, robotsFile)) {
-					
-//					boolean pushKey = false;
-//					synchronized(urlsToRefresh) {
-//						if (!urlsToRefresh.contains(url)) {
-//							urlsToRefresh.add(url);
-//							pushKey = true;
-//						}
-//					}
-					
-//					if (pushKey) {
-						jedis.rpush(UPDATE_QUEUE_KEY, url);
-//					}
-//					refreshService.submit(new CacheUpdateTask(url, current));
-				}
-				
-				redisConn.returnJedisInstance(jedis);
-				jedis = null;
-				
-				if (robotsFile.startsWith(ROBOTS_TOKEN_ERROR)) {
-					throw new LiveDocumentNotAvailableException("Robots Error: " + robotsFile);	
-				} else if (robotsFile.equals(ROBOTS_TOKEN_EMPTY)) {
-					robotsFile = "";
-				}
-			}				
 			
-		} catch (JedisConnectionException jce) {
-			LOGGER.severe("Jedis Exception: " + jce);
-			redisConn.returnBrokenJedis(jedis);
-			jedis = null;
-			if (robotsFile != null) {
-				return new RobotsTxtResource(robotsFile);
+			value.value = context.getNewRobots();
+			
+		} else {
+			
+			if (isExpired(value, url)) {	
+				redisCmds.pushKey(UPDATE_QUEUE_KEY, url);
 			}
-			throw new LiveWebCacheUnavailableException(jce.toString());
-		} finally {
-			redisConn.returnJedisInstance(jedis);
-		}
-
-		return new RobotsTxtResource(robotsFile);
+			
+			
+			if (value.value.startsWith(ROBOTS_TOKEN_ERROR)) {
+				throw new LiveDocumentNotAvailableException("Robots Error: " + value.value);	
+			} else if (value.value.equals(ROBOTS_TOKEN_EMPTY)) {
+				value.value = "";
+			}
+		}				
+			
+		return new RobotsTxtResource(value.value);
 	}
 			
-	public boolean isExpired(Jedis jedis, String url, String contents) {
-		
-		long ttl = jedis.ttl(url);
-		
+	public boolean isExpired(RedisValue value, String url) {
+				
 		int maxTime, refreshTime;
 		
-		if (contents.startsWith(ROBOTS_TOKEN_ERROR)) {
+		if (value.value.startsWith(ROBOTS_TOKEN_ERROR)) {
 			maxTime = notAvailTotalTTL;
 			refreshTime = notAvailRefreshTTL;
 		} else {
@@ -305,9 +258,9 @@ public class RedisRobotsCache implements LiveWebCache {
 			refreshTime = refreshTTL;
 		}
 		
-		if ((maxTime - ttl) >= refreshTime) {
+		if ((maxTime - value.ttl) >= refreshTime) {
 			LOGGER.info("Queuing robot refresh: "
-					+ (maxTime - ttl) + ">=" + refreshTime + " " + url);
+					+ (maxTime - value.ttl) + ">=" + refreshTime + " " + url);
 			
 			return true;
 		}
@@ -317,92 +270,75 @@ public class RedisRobotsCache implements LiveWebCache {
 	
 	protected void processRedisUpdateQueue()
 	{
-		Jedis jedis = null;
 		ExecutorService mainLoopService = null;
 		
 		try {			
 			mainLoopService = Executors.newFixedThreadPool(maxCoreUpdateThreads);
-			
+						
 			while (true) {
-				try {
-					if (jedis == null) {
-						jedis = redisConn.getJedisInstance();
+				String url = redisCmds.popKey(UPDATE_QUEUE_KEY);
+				
+				synchronized(activeContexts) {
+					if (activeContexts.containsKey(url)) {
+						continue;
 					}
-					
-					List<String> urls = jedis.blpop(0, UPDATE_QUEUE_KEY);
-					String url = urls.get(1);
-					
-					synchronized(urlsToLoad) {
-						if (urlsToLoad.containsKey(url)) {
-							continue;
-						}
-					}
-					
-					mainLoopService.execute(new URLRequestTask(url));
-					
-					Thread.sleep(1);
-					
-				} catch (JedisConnectionException jce) {
-					redisConn.returnBrokenJedis(jedis);
-					jedis = null;
-				} catch (InterruptedException e) {
-					
 				}
+				
+				mainLoopService.execute(new URLRequestTask(url));
+				
+				Thread.sleep(1);
 			}
+		} catch (InterruptedException e) {
+			//DO NOTHING
 		} finally {
-			redisConn.returnJedisInstance(jedis);
 			mainLoopService.shutdown();
 		}
 	}
 	
-	class UrlLoader
+	private RobotsContext doSyncUpdate(String url, String current, boolean canceleable)
 	{
-		CountDownLatch latch = new CountDownLatch(1);
-		RobotResponse response;
-	}
-	
-	
-	private RobotResponse doSyncUpdate(String url)
-	{
-		UrlLoader updater = null;
+		RobotsContext context = null;
 		boolean toLoad = false;
 		
 		int numUrls = 0;
 		
-		synchronized(urlsToLoad) {
-			updater = urlsToLoad.get(url);
-			if (updater == null) {
-				updater = new UrlLoader();
-				urlsToLoad.put(url, updater);
+		synchronized(activeContexts) {
+			context = activeContexts.get(url);
+			if (context == null) {
+				context = new RobotsContext(url, current);
+				activeContexts.put(url, context);
 				toLoad = true;
 			}
-			numUrls = urlsToLoad.size();
+			numUrls = activeContexts.size();
 		}
 				
-		if (toLoad) {
-			//refreshService.submit(new LiveProxyPing(url));
-			//updater.response = doUpdateDirect(url, null);
-		
-			Future<RobotResponse> futureResponse = refreshService.submit(new CacheUpdateTask(url, null));
+		if (toLoad) {		
+			Future<RobotsContext> futureResponse = 
+				refreshService.submit(new AsyncLoadAndUpdate(context), context);
 			
 			try {
-				updater.response = futureResponse.get(connectionTimeoutMS + socketTimeoutMS, TimeUnit.MILLISECONDS);
-			} catch (Exception e) {
-				LOGGER.info("INTERRUPTED: " + e);
-				futureResponse.cancel(true);
-			} finally {
-				updater.latch.countDown();
+				context = futureResponse.get(responseTimeoutMS, TimeUnit.MILLISECONDS);
 				
-				synchronized(urlsToLoad) {
-					urlsToLoad.remove(url);
+			} catch (Exception e) {
+				LOGGER.info("INTERRUPTED: " + url + " " + e);
+				
+				if (canceleable)	{	
+					futureResponse.cancel(true);
+				}
+			
+			} finally {				
+				context.latch.countDown();
+				
+				synchronized(activeContexts) {
+					activeContexts.remove(url);
 				}
 			}
 		} else {
 			
 			try {
-				LOGGER.info("WAITING FOR " + url + " -- # URLS: " + numUrls);
+				LOGGER.info("WAITING FOR: " + url + " -- # URLS: " + numUrls);
 				
-				if (!updater.latch.await(connectionTimeoutMS, TimeUnit.MILLISECONDS)) {
+				if (!context.latch.await(responseTimeoutMS, TimeUnit.MILLISECONDS)) {
 					LOGGER.info("WAIT FOR " + url + " timed out!");
 				}
 				
@@ -411,23 +347,7 @@ public class RedisRobotsCache implements LiveWebCache {
 			}
 		}
 		
-		return updater.response;
-	}
-	
-	private RobotResponse doUpdateDirect(String url, String current)
-	{		
-		RobotResponse robotResponse;
-		
-		try {
-			//robotResponse = this.loadRobotsUrl(url);
-			robotResponse = this.loadRobotsHttpConn(url);
-		} catch (Exception exc) {
-			robotResponse = new RobotResponse(LIVE_HOST_ERROR);
-		}
-		
-		updateCache(robotResponse, url, current);
-		
-		return robotResponse;
+		return context;
 	}
 	
 //	private RobotResponse doUpdate(ExecutorService executor, String url, String current)
@@ -451,16 +371,15 @@ public class RedisRobotsCache implements LiveWebCache {
 //		return robotResponse;
 //	}
 	
-	private boolean updateCache(RobotResponse robotResponse, String url, String currentValue) {		
+	private void updateCache(final RobotsContext context) {		
 		String contents = null;
-		Jedis jedis = null;
 		
 		String newRedisValue = null;
 		int newTTL = 0;
 		boolean ttlOnly = false;
 		
-		if (robotResponse.isValid()) {
-			contents = robotResponse.contents;
+		if ((context != null) && context.isValid()) {
+			contents = context.getNewRobots();
 			newTTL = totalTTL;
 			
 			if (contents.isEmpty()) {
@@ -473,9 +392,10 @@ public class RedisRobotsCache implements LiveWebCache {
 			
 		} else {
 			newTTL = notAvailTotalTTL;
-			newRedisValue = ROBOTS_TOKEN_ERROR + robotResponse.status;
+			newRedisValue = ROBOTS_TOKEN_ERROR + context.getStatus();
 		}
 		
+		String currentValue = context.current;		
 		
 		if (currentValue != null) {
 			if (currentValue.equals(newRedisValue)) {
@@ -486,58 +406,33 @@ public class RedisRobotsCache implements LiveWebCache {
 			if (newRedisValue.startsWith(ROBOTS_TOKEN_ERROR) && !currentValue.startsWith(ROBOTS_TOKEN_ERROR)) {
 				newRedisValue = currentValue;
 				newTTL = totalTTL;
-				LOGGER.info("REFRESH TIMEOUT: Keeping same robots for " + url + ", refresh timed out");
+				LOGGER.info("REFRESH TIMEOUT: Keeping same robots for " + context.url + ", refresh timed out");
 			}
-		}
-				
-		try {
-			jedis = redisConn.getJedisInstance();
-			
-			if (ttlOnly) {
-				jedis.expire(url, newTTL);
-			} else {
-				jedis.setex(url, newTTL, newRedisValue);
-			}
-			
-		} catch (JedisConnectionException jce) {
-			LOGGER.severe("Jedis Exception: " + jce);
-			redisConn.returnBrokenJedis(jedis);
-			jedis = null;
-			return false;
-			
-		} finally {
-			redisConn.returnJedisInstance(jedis);
 		}
 		
-		return true;
+		final RedisValue value = new RedisValue((ttlOnly ? newRedisValue : null), newTTL);
+		redisCmds.updateValue(context.url, value);
 	}
 	
-	public void processAsyncUpdate(String url)
+	public void processAsyncUpdate(final String url)
 	{
-		Jedis jedis = null;
+		RedisValue value = redisCmds.getValue(url);
 		
-		try {
-			jedis = redisConn.getJedisInstance();
-			String current = jedis.get(url);
-			
-			if (current == null) {
-				LOGGER.info("NULL VALUE FOR: " + url);
-			}
-			
-			if ((current != null) && !isExpired(jedis, url, current)) {
-				return;
-			}
-			
-			doSyncUpdate(url);
-			
-		} catch (JedisConnectionException jce) {
-			LOGGER.severe("Jedis Exception: " + jce);
-			redisConn.returnBrokenJedis(jedis);		
-		} finally {
-			redisConn.returnJedisInstance(jedis);
+		if (value == null) {
+			return;
 		}
+		
+		if (value.value == null) {
+			LOGGER.info("NULL VALUE FOR: " + url);
+		}
+					
+		if ((value.value != null) && !isExpired(value, url)) {
+			return;
+		}
+			
+		doSyncUpdate(url, value.value, false);
 	}
-	
+		
 	class URLRequestTask implements Runnable
 	{
 		private String url;
@@ -554,59 +449,36 @@ public class RedisRobotsCache implements LiveWebCache {
 		}
 	}
 	
-	class CacheUpdateTask implements Callable<RobotResponse>
+	class AsyncLoadAndUpdate implements Runnable
 	{
-		String url;
-		String current;
+		RobotsContext context;
 		
-		CacheUpdateTask(String url, String current)
+		AsyncLoadAndUpdate(RobotsContext context)
 		{
-			this.url = url;
-			this.current = current;
+			this.context = context;
 		}
 		
 		@Override
-		public RobotResponse call()
+		public void run()
 		{
 			long startTime = System.currentTimeMillis();
 			
 			LOGGER.info("REFRESH workers " + refreshService.getQueue().size());
 									
-			//doUpdate(refreshService, this.url, this.current);
-			RobotResponse response = doUpdateDirect(url, current);
-			pingProxyLiveHttpConn(url);
+			try {
+				loadRobotsHttpConn(context);
+			} catch (Exception exc) {
+				context.setStatus(LIVE_HOST_ERROR);
+			}
+				
+			pingProxyLiveHttpConn(context.url);
 			
-//			synchronized(urlsToRefresh) {
-//				urlsToRefresh.remove(url);
-//			}
+			updateCache(context);
 			
-			PerformanceLogger.noteElapsed("AsyncLoadAndUpdate", System.currentTimeMillis() - startTime, url);
-			
-			return response;
+			PerformanceLogger.noteElapsed("AsyncLoadAndUpdate", System.currentTimeMillis() - startTime, context.url);
 		}
 	}
 
-	class RobotResponse
-	{
-		String contents;
-		int status;
-		
-		RobotResponse(int status)
-		{
-			this.status = status;
-		}
-		
-		RobotResponse(String contents, int status)
-		{
-			this.contents = contents;
-			this.status = status;
-		}
-		
-		boolean isValid()
-		{
-			return (contents != null) && (status == LIVE_OK);
-		}
-	}
 	
 	private ByteArrayOutputStream readMaxBytes(InputStream input, int max) throws IOException, InterruptedException
 	{
@@ -655,12 +527,11 @@ public class RedisRobotsCache implements LiveWebCache {
 		try {
 			theURL = new URL(url);
 			connection = (HttpURLConnection)theURL.openConnection(proxy);
-			connection.setConnectTimeout(1000);
-			connection.setReadTimeout(100);
+			connection.setConnectTimeout(pingConnectTimeoutMS);
 			connection.setRequestProperty("Connection", "close");
 			connection.setRequestMethod("HEAD");
 			connection.connect();
-			PerformanceLogger.noteElapsed("PingProxyRobots", System.currentTimeMillis() - startTime, url + " " + connection.getResponseMessage());
+			PerformanceLogger.noteElapsed("PingProxySuccess", System.currentTimeMillis() - startTime, url + " " + connection.getResponseMessage());
 		} catch (Exception exc) {
 			PerformanceLogger.noteElapsed("PingProxyFailure", System.currentTimeMillis() - startTime, url + " " + exc);
 		} finally {
@@ -756,12 +627,16 @@ public class RedisRobotsCache implements LiveWebCache {
 	
 	private Integer httpConnectionCount = 0;
 	
-	private RobotResponse loadRobotsHttpConn(String url) {
-
-		int status = 0;
+	private void loadRobotsHttpConn(RobotsContext context)
+	{
 		String contents = null;
+		int status = 0;
 		HttpURLConnection connection = null;
+		InputStream input = null;
 		URL theURL;
+		
+		String url = context.url;
+		
 		long startTime = System.currentTimeMillis();
 		
 		synchronized(httpConnectionCount) {
@@ -772,7 +647,7 @@ public class RedisRobotsCache implements LiveWebCache {
 			theURL = new URL(url);
 			connection = (HttpURLConnection)theURL.openConnection();
 			connection.setConnectTimeout(connectionTimeoutMS);
-			connection.setReadTimeout(socketTimeoutMS);
+			connection.setReadTimeout(readTimeoutMS);
 			connection.setRequestProperty("Connection", "close");
 			if (userAgent != null) {
 				connection.setRequestProperty("User-Agent", userAgent);
@@ -780,10 +655,13 @@ public class RedisRobotsCache implements LiveWebCache {
 			connection.connect();
 
 			status = connection.getResponseCode();
+			
+			context.setStatus(status);
 						
-			if ((status == LIVE_OK)) {
+			if (status == LIVE_OK) {
 				// Content Type check
 				String contentType = connection.getContentType();
+				
 				if ((contentType == null) || (contentType.indexOf("text/plain") < 0)) {
 					LOGGER.info("Questionable Content-Type: " + contentType + " for: " + url);
 				}
@@ -794,7 +672,8 @@ public class RedisRobotsCache implements LiveWebCache {
 					numToRead = MAX_ROBOTS_SIZE;
 				}
 
-				ByteArrayOutputStream baos = readMaxBytes(connection.getInputStream(), numToRead);
+				input = connection.getInputStream();
+				ByteArrayOutputStream baos = readMaxBytes(input, numToRead);
 								
 				String charset = connection.getContentEncoding();
 				
@@ -802,15 +681,12 @@ public class RedisRobotsCache implements LiveWebCache {
 					charset = "utf-8";
 				}
 				
+				baos.flush();
 				contents = baos.toString(charset);
+				baos.close();
 				
-				connection.getInputStream().close();
-				
+				context.setNewRobots(contents);				
 			}
-//			else if (status == LIVE_OK) {
-//				LOGGER.info("Invalid content type: " + contentType + " for: " + url);
-//				status = LIVE_INVALID_TYPE_ERROR;
-//			}
 			
 			PerformanceLogger.noteElapsed("HttpLoadSuccess", System.currentTimeMillis() - startTime, url + " " + status + ((contents != null) ? " Size: " + contents.length() : " NULL"));
 			
@@ -818,27 +694,33 @@ public class RedisRobotsCache implements LiveWebCache {
 			
 			if (exc instanceof InterruptedIOException) {
 				status = LIVE_TIMEOUT_ERROR; //Timeout (gateway timeout)
+			} else if (exc instanceof InterruptedException) {
+				status = LIVE_TIMEOUT_ERROR;
 			} else if (exc instanceof UnknownHostException) {
 				status = LIVE_HOST_ERROR;
 			}
 			
-			//this.connMan.closeIdleConnections(10, TimeUnit.SECONDS);
+			context.setStatus(status);
 			
 			PerformanceLogger.noteElapsed("HttpLoadFail", System.currentTimeMillis() - startTime, 
 					"Exception: " + exc + " url: " + url + " status " + status);
-
-			//LOGGER.info("Exception: " + exc + " url: " + url + " status " + status);		
-		
+			
 		} finally {
+			if (input != null) {
+				try {
+					input.close();
+				} catch (IOException e) {
+				}
+			}
+			
 			if (connection != null) {
 				connection.disconnect();
 			}
+			
 			synchronized(httpConnectionCount) {
 				LOGGER.info("HTTP CONNECTIONS: " + httpConnectionCount--);
 			}
 		}
-		
-		return new RobotResponse(contents, status);
 	}
 
 //	private RobotResponse loadRobotsUrl(String url) {
@@ -934,9 +816,9 @@ public class RedisRobotsCache implements LiveWebCache {
 		
 		refreshService.shutdown();
 		
-		if (redisConn != null) {
-			redisConn.close();
-			redisConn = null;
+		if (redisCmds != null) {
+			redisCmds.close();
+			redisCmds = null;
 		}
 		
 //		if (connMan != null) {

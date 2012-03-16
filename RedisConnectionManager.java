@@ -63,7 +63,7 @@ public class RedisConnectionManager {
 	protected Jedis getJedisInstance()
 	{
 		Jedis jedis = null;
-		int poolSize = 0;
+//		int poolSize = 0;
 					
 		for (int i = 0; i < maxJedisInitTries; i++) {		
 			try {
@@ -71,12 +71,12 @@ public class RedisConnectionManager {
 				synchronized (fastJedisPool) {
 					if (!fastJedisPool.isEmpty()) {
 						jedis = fastJedisPool.removeLast();
-						poolSize = fastJedisPool.size();
+	//					poolSize = fastJedisPool.size();
 					}
 				}
 				
 				if ((jedis != null) && jedis.isConnected()) {
-					PerformanceLogger.noteElapsed("JedisGetPool", System.currentTimeMillis() - startTime, "Size: " + poolSize);
+					//PerformanceLogger.noteElapsed("JedisGetPool", System.currentTimeMillis() - startTime, "Size: " + poolSize);
 					return jedis;
 				}
 				
@@ -130,7 +130,7 @@ public class RedisConnectionManager {
 			closeJedis(jedis);
 			PerformanceLogger.noteElapsed("JedisCloseExtra", System.currentTimeMillis() - startTime, "Size: " + poolSize);
 		} else {
-			PerformanceLogger.noteElapsed("JedisReturnPool", System.currentTimeMillis() - startTime, "Size: " + poolSize);
+			//PerformanceLogger.noteElapsed("JedisReturnPool", System.currentTimeMillis() - startTime, "Size: " + poolSize);
 		}
 	}
 	
