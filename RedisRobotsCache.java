@@ -961,6 +961,7 @@ public class RedisRobotsCache implements LiveWebCache {
 	public static void main(String args[])
 	{
 		String redisHost = "localhost";
+		String redisPassword = null;
 		int redisPort = 6379;
 		
 		if (args.length >= 1) {
@@ -971,15 +972,21 @@ public class RedisRobotsCache implements LiveWebCache {
 			redisPort = Integer.parseInt(args[1]);
 		}
 		
+		if (args.length >= 3) {
+			redisPassword = args[2];
+		}
+		
 		LOGGER.info("Redis Updater: " + redisHost + ":" + redisPort);
 		
 		RedisConnectionManager manager = new RedisConnectionManager();
 		manager.setHost(redisHost);
 		manager.setPort(redisPort);
+		manager.setPassword(redisPassword);
+		
 		RedisRobotsCache cache = null;
 		
-		if (args.length >= 3) {
-			cache = new RedisRobotsCache(manager, args[2]);
+		if (args.length >= 4) {
+			cache = new RedisRobotsCache(manager, args[3]);
 		} else {
 			cache = new RedisRobotsCache(manager);
 		}
