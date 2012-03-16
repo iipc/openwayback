@@ -378,7 +378,7 @@ public class RedisRobotsCache implements LiveWebCache {
 		int newTTL = 0;
 		boolean ttlOnly = false;
 		
-		if ((context != null) && context.isValid()) {
+		if (context.isValid()) {
 			contents = context.getNewRobots();
 			newTTL = totalTTL;
 			
@@ -410,7 +410,7 @@ public class RedisRobotsCache implements LiveWebCache {
 			}
 		}
 		
-		final RedisValue value = new RedisValue((ttlOnly ? newRedisValue : null), newTTL);
+		final RedisValue value = new RedisValue((ttlOnly ? null : newRedisValue), newTTL);
 		redisCmds.updateValue(context.url, value);
 	}
 	
