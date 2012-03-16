@@ -9,9 +9,9 @@ import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -22,11 +22,9 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.exception.LiveDocumentNotAvailableException;
 import org.archive.wayback.exception.LiveWebCacheUnavailableException;
@@ -542,7 +540,8 @@ public class RedisRobotsCache implements LiveWebCache {
 				return;
 			}
 			
-			refreshService.submit(new CacheUpdateTask(url, current));
+			doSyncUpdate(url);
+			
 		} catch (JedisConnectionException jce) {
 			LOGGER.severe("Jedis Exception: " + jce);
 			redisConn.returnBrokenJedis(jedis);		
@@ -962,35 +961,48 @@ public class RedisRobotsCache implements LiveWebCache {
 	{
 		String redisHost = "localhost";
 		String redisPassword = null;
+		String recProxy = null;
+		String userAgent = null;
 		int redisPort = 6379;
 		
-		if (args.length >= 1) {
-			redisHost = args[0];
-		}
+		Iterator<String> paramsIter = Arrays.asList(args).iterator();
 		
-		if (args.length >= 2) {
-			redisPort = Integer.parseInt(args[1]);
+		while (paramsIter.hasNext()) {
+			String flag = paramsIter.next();
+			
+			if (!paramsIter.hasNext()) {
+				break;
+			}
+			
+			if (flag.equals("-h")) {
+				redisHost = paramsIter.next();
+			} else if (flag.equals("-p")) {
+				redisPort = Integer.parseInt(paramsIter.next());			
+			} else if (flag.equals("-a")) {
+				redisPassword = paramsIter.next();
+			} else if (flag.equals("-r")) {
+				recProxy = paramsIter.next();
+			} else if (flag.equals("-u")) {
+				userAgent = paramsIter.next();
+			}
 		}
-		
-		if (args.length >= 3) {
-			redisPassword = args[2];
-		}
-		
-		LOGGER.info("Redis Updater: " + redisHost + ":" + redisPort);
 		
 		RedisConnectionManager manager = new RedisConnectionManager();
 		manager.setHost(redisHost);
 		manager.setPort(redisPort);
 		manager.setPassword(redisPassword);
 		
+		LOGGER.info("Redis Updater: " + redisHost + ":" + redisPort);
+		
 		RedisRobotsCache cache = null;
 		
-		if (args.length >= 4) {
-			cache = new RedisRobotsCache(manager, args[3]);
+		if (recProxy != null) {
+			cache = new RedisRobotsCache(manager, recProxy);
 		} else {
 			cache = new RedisRobotsCache(manager);
 		}
 		
+		cache.setUserAgent(userAgent);
 		cache.processRedisUpdateQueue();
 	}
 }
