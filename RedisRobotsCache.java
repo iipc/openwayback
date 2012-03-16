@@ -332,28 +332,16 @@ public class RedisRobotsCache implements LiveWebCache {
 					List<String> urls = jedis.blpop(0, UPDATE_QUEUE_KEY);
 					String url = urls.get(1);
 					
-//					synchronized(urlsToRefresh) {
-//						if (urlsToRefresh.contains(url)) {
-//							continue;
-//						}
-//						urlsToRefresh.add(url);
-//					}
+					synchronized(urlsToLoad) {
+						if (urlsToLoad.containsKey(url)) {
+							continue;
+						}
+					}
 					
 					mainLoopService.execute(new URLRequestTask(url));
 					
-	//				String current = jedis.get(url);
-	//				
-	//				if (current == null) {
-	//					LOGGER.info("NULL VALUE FOR: " + url);
-	//				}
-	//				
-	//				if ((current != null) && !isExpired(jedis, url, current)) {
-	//					continue;
-	//				}
-	//				
-	//				refreshService.submit(new CacheUpdateTask(url, current));
-					
 					Thread.sleep(1);
+					
 				} catch (JedisConnectionException jce) {
 					redisConn.returnBrokenJedis(jedis);
 					jedis = null;
@@ -401,6 +389,7 @@ public class RedisRobotsCache implements LiveWebCache {
 				updater.response = futureResponse.get(connectionTimeoutMS + socketTimeoutMS, TimeUnit.MILLISECONDS);
 			} catch (Exception e) {
 				LOGGER.info("INTERRUPTED: " + e);
+				futureResponse.cancel(true);
 			} finally {
 				updater.latch.countDown();
 				
@@ -408,7 +397,6 @@ public class RedisRobotsCache implements LiveWebCache {
 					urlsToLoad.remove(url);
 				}
 			}
-			
 		} else {
 			
 			try {
@@ -585,8 +573,8 @@ public class RedisRobotsCache implements LiveWebCache {
 			LOGGER.info("REFRESH workers " + refreshService.getQueue().size());
 									
 			//doUpdate(refreshService, this.url, this.current);
-			pingProxyLiveHttpConn(url);
 			RobotResponse response = doUpdateDirect(url, current);
+			pingProxyLiveHttpConn(url);
 			
 //			synchronized(urlsToRefresh) {
 //				urlsToRefresh.remove(url);
@@ -667,8 +655,8 @@ public class RedisRobotsCache implements LiveWebCache {
 		try {
 			theURL = new URL(url);
 			connection = (HttpURLConnection)theURL.openConnection(proxy);
-			connection.setConnectTimeout(connectionTimeoutMS);
-			connection.setReadTimeout(socketTimeoutMS);
+			connection.setConnectTimeout(1000);
+			connection.setReadTimeout(100);
 			connection.setRequestProperty("Connection", "close");
 			connection.setRequestMethod("HEAD");
 			connection.connect();
