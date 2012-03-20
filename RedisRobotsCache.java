@@ -437,7 +437,6 @@ public class RedisRobotsCache implements LiveWebCache {
 	class RobotsLoadCallback implements BaseHttpConnMan.ConnectionCallback
 	{
 		RobotsContext context;
-		int status;
 		long startTime;
 		
 		RobotsLoadCallback(RobotsContext context)
@@ -448,7 +447,7 @@ public class RedisRobotsCache implements LiveWebCache {
 
 		@Override
 		public boolean supportStatus(int status) {
-			this.status = status;
+			context.setStatus(status);
 			return (status == LIVE_OK);
 		}
 
@@ -473,7 +472,7 @@ public class RedisRobotsCache implements LiveWebCache {
 			baos.close();
 			
 			context.setNewRobots(contents);
-			PerformanceLogger.noteElapsed("HttpLoadSuccess", System.currentTimeMillis() - startTime, context.url + " " + status + ((contents != null) ? " Size: " + contents.length() : " NULL"));
+			PerformanceLogger.noteElapsed("HttpLoadSuccess", System.currentTimeMillis() - startTime, context.url + " " + context.getStatus() + ((contents != null) ? " Size: " + contents.length() : " NULL"));
 		}
 
 		@Override
