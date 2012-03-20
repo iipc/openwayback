@@ -10,12 +10,14 @@ class RobotsContext
 	
 	private int status;
 	private String newRobots;
+	private long created;
 	
 	RobotsContext(String url, String current)
 	{
 		this.latch = new CountDownLatch(1);
 		this.url = url;
 		this.current = current;
+		this.created = System.currentTimeMillis();
 	}
 	
 	boolean isValid()
@@ -41,5 +43,10 @@ class RobotsContext
 	void setStatus(int status)
 	{
 		this.status = status;
+	}
+	
+	long getCreated()
+	{
+		return created;
 	}
 }

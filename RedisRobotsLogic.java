@@ -38,6 +38,22 @@ public class RedisRobotsLogic {
 		return null;
 	}
 	
+	public void runJedisCmd(JedisRunnerVoid runner)
+	{
+		Jedis jedis = null;
+		
+		try {
+			jedis = redisConn.getJedisInstance();
+			runner.run(jedis);
+		} catch (JedisConnectionException jce) {
+			LOGGER.severe("Jedis Exception: " + jce);
+			redisConn.returnBrokenJedis(jedis);
+			jedis = null;
+		} finally {
+			redisConn.returnJedisInstance(jedis);
+		}
+	}
+	
 	static class RedisValue
 	{
 		String value;
@@ -68,29 +84,39 @@ public class RedisRobotsLogic {
 	
 	public void updateValue(final String url, final RedisValue value)
 	{
-		this.runJedisCmd(new JedisRunner<Object>()
+		this.runJedisCmd(new JedisRunnerVoid()
 		{
-			public Object run(Jedis jedis)
+			public void run(Jedis jedis)
 			{
 				if (value.value == null) {
 					jedis.expire(url, (int)value.ttl);
 				} else {
 					jedis.setex(url, (int)value.ttl, value.value);
 				}
-				
-				return null;
 			}
 		});
 	}
 	
 	public void pushKey(final String list, final String key)
 	{
-		this.runJedisCmd(new JedisRunner<Object>()
+		this.runJedisCmd(new JedisRunnerVoid()
 		{
-			public Object run(Jedis jedis)
+			public void run(Jedis jedis)
 			{
-				jedis.rpush(list, key);
-				return null;				
+				jedis.rpush(list, key);				
+			}
+		});
+	}
+	
+	public void pushKey(final String list, final String key, final int maxSize)
+	{
+		this.runJedisCmd(new JedisRunnerVoid()
+		{
+			public void run(Jedis jedis)
+			{
+				if (jedis.llen(key) <= maxSize) {
+					jedis.rpush(list, key);
+				}
 			}
 		});
 	}
@@ -115,5 +141,10 @@ public class RedisRobotsLogic {
 	interface JedisRunner<T>
 	{
 		public T run(Jedis jedis);
+	}
+	
+	interface JedisRunnerVoid
+	{
+		public void run(Jedis jedis);
 	}
 }
