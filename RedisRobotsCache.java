@@ -349,21 +349,18 @@ public class RedisRobotsCache implements LiveWebCache {
 										
 				connMan.loadRobots(new RobotsLoadCallback(context), context.url, userAgent);				
 						
-				if (!Thread.currentThread().isInterrupted()) {
-					updateCache(context);
+				updateCache(context);
+				
+				String pingStatus;
+				long startTimePingProxy = System.currentTimeMillis();
+				
+				if (connMan.pingProxyLive(context.url)) {
+					pingStatus = "PingProxySuccess";
+				} else {
+					pingStatus = "PingProxyFailure";
 				}
 				
-				if (!Thread.currentThread().isInterrupted()) {
-					String pingStatus;
-					
-					if (connMan.pingProxyLive(context.url)) {
-						pingStatus = "PingProxySuccess";
-					} else {
-						pingStatus = "PingProxyFailure";
-					}
-					
-					PerformanceLogger.noteElapsed(pingStatus, System.currentTimeMillis() - startTime, context.url + " ");				
-				}
+				PerformanceLogger.noteElapsed(pingStatus, System.currentTimeMillis() - startTimePingProxy, context.url + " ");
 				
 			} finally {
 				PerformanceLogger.noteElapsed("AsyncLoadAndUpdate", System.currentTimeMillis() - startTime, context.url);	
