@@ -4,6 +4,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.Arrays;
@@ -62,10 +64,7 @@ public class RedisRobotsCache implements LiveWebCache {
 	
 	BaseHttpConnMan connMan = null;
 
-	private int connectionTimeoutMS = 5000;
-	private int readTimeoutMS = 5000;
 	private int responseTimeoutMS = 10000;
-	private int pingConnectTimeoutMS = 100;
 	
 	private String userAgent;
 	
@@ -82,9 +81,15 @@ public class RedisRobotsCache implements LiveWebCache {
 	
 	/* REDIS */
 	private RedisRobotsLogic redisCmds;
+	
+	/* CLEANUP */
+	private IdleCleanerThread idleCleaner;
+	private int idleCleanupTimeoutMS = 60000;
 
 	public RedisRobotsCache(RedisConnectionManager redisConn, BaseHttpConnMan connMan) {
 		LOGGER.setLevel(Level.FINER);
+		
+		this.connMan = connMan;
 
 		redisCmds = new RedisRobotsLogic(redisConn);
 		
@@ -92,10 +97,9 @@ public class RedisRobotsCache implements LiveWebCache {
 		
 		activeContexts = new HashMap<String, RobotsContext>();
 		
-		this.connMan = connMan;
-		this.connMan.setSocketReadTimeoutMS(readTimeoutMS);
-		this.connMan.setConnectionTimeout(connectionTimeoutMS);
-		this.connMan.setPingConnectTimeout(pingConnectTimeoutMS);
+		idleCleaner = new IdleCleanerThread(idleCleanupTimeoutMS);
+		idleCleaner.setDaemon(true);
+		idleCleaner.start();
 	}
 		
 	public Resource getCachedResource(URL urlURL, long maxCacheMS,
@@ -106,19 +110,15 @@ public class RedisRobotsCache implements LiveWebCache {
 		String url = urlURL.toExternalForm();
 		
 		RedisValue value = redisCmds.getValue(url);
-		
-		if (value == null) {
-			throw new LiveWebCacheUnavailableException("Jedis Error Getting: " + url);
-		}		
 			
-		if (value.value == null) {
+		if (value == null) {
 			RobotsContext context = doSyncUpdate(url, null, cacheFails, true);
 											
 			if ((context == null) || !context.isValid()) {
 				throw new LiveDocumentNotAvailableException("Error Loading Live Robots");	
 			}
 			
-			value.value = context.getNewRobots();
+			return new RobotsTxtResource(context.getNewRobots());
 			
 		} else {
 			
@@ -131,9 +131,9 @@ public class RedisRobotsCache implements LiveWebCache {
 			} else if (value.value.equals(ROBOTS_TOKEN_EMPTY)) {
 				value.value = "";
 			}
-		}				
 			
-		return new RobotsTxtResource(value.value);
+			return new RobotsTxtResource(value.value);
+		}
 	}
 			
 	public boolean isExpired(RedisValue value, String url) {
@@ -149,7 +149,7 @@ public class RedisRobotsCache implements LiveWebCache {
 		}
 		
 		if ((maxTime - value.ttl) >= refreshTime) {
-			LOGGER.info("Queuing robot refresh: "
+			LOGGER.info("Queue for robot refresh: "
 					+ (maxTime - value.ttl) + ">=" + refreshTime + " " + url);
 			
 			return true;
@@ -166,7 +166,13 @@ public class RedisRobotsCache implements LiveWebCache {
 			mainLoopService = Executors.newFixedThreadPool(maxCoreUpdateThreads);
 						
 			while (true) {
+				Thread.sleep(1);
+				
 				String url = redisCmds.popKey(UPDATE_QUEUE_KEY);
+				
+				if (url == null) {
+					continue;
+				}
 				
 				synchronized(activeContexts) {
 					if (activeContexts.containsKey(url)) {
@@ -175,8 +181,6 @@ public class RedisRobotsCache implements LiveWebCache {
 				}
 				
 				mainLoopService.execute(new URLRequestTask(url));
-				
-				Thread.sleep(1);
 			}
 		} catch (InterruptedException e) {
 			//DO NOTHING
@@ -344,9 +348,7 @@ public class RedisRobotsCache implements LiveWebCache {
 		{
 			long startTime = System.currentTimeMillis();
 			
-			try {	
-				//LOGGER.info("REFRESH workers " + refreshService.getQueue().size());
-										
+			try {									
 				connMan.loadRobots(new RobotsLoadCallback(context), context.url, userAgent);				
 						
 				updateCache(context);
@@ -481,6 +483,43 @@ public class RedisRobotsCache implements LiveWebCache {
 			connMan.close();
 			connMan = null;
 		}
+		
+		if (idleCleaner != null) {
+			idleCleaner.shutdown();
+		}
+	}
+	
+	private class IdleCleanerThread extends Thread {
+	    
+	    private int timeout;
+	    
+	    public IdleCleanerThread(int timeout) {
+	        this.timeout = timeout;
+	    }
+
+	    @Override
+	    public void run() {
+	        try {
+                while (true) {
+                    connMan.idleCleanup();
+                    StringWriter buff = new StringWriter();
+                    PrintWriter info = new PrintWriter(buff);
+                    info.println("  Active: " + refreshService.getActiveCount());
+                    info.println("  Pool: " + refreshService.getPoolSize() + " Largest: " + refreshService.getLargestPoolSize());
+                    info.println("  Task Count: " + refreshService.getTaskCount());
+                    info.println("  Active URLS: " + activeContexts.size());
+                    connMan.appendLogInfo(info);
+                    LOGGER.info(buff.getBuffer().toString());
+                    sleep(timeout);
+                 }
+	        } catch (InterruptedException ex) {
+	            // terminate
+	        }
+	    }
+	    
+	    public void shutdown() {
+	    	this.interrupt();
+	    }   
 	}
 	
 	public static void main(String args[])

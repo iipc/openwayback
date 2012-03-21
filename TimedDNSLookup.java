@@ -11,26 +11,28 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 
-import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.impl.conn.DefaultClientConnectionOperator;
-
-class TimedDNSConnectionOperator extends DefaultClientConnectionOperator
+class TimedDNSLookup
 {
 	private final static Logger LOGGER = 
-		Logger.getLogger(TimedDNSConnectionOperator.class.getName());
+		Logger.getLogger(TimedDNSLookup.class.getName());
 	
 	private ExecutorService executor;
 	private int dnsTimeoutMS;
+	
+	public ExecutorService getExecutor() {
+		return executor;
+	}
 
-	public TimedDNSConnectionOperator(SchemeRegistry schemes, int poolSize, int dnsTimeoutMS) {
-		super(schemes);
-		
+	public int getDnsTimeoutMS() {
+		return dnsTimeoutMS;
+	}
+
+	public TimedDNSLookup(int poolSize, int dnsTimeoutMS) {		
 		executor = Executors.newFixedThreadPool(poolSize);
 		this.dnsTimeoutMS = dnsTimeoutMS;
 	}
 
-	@Override
-	protected InetAddress[] resolveHostname(String host)
+	public InetAddress[] resolveHostname(String host)
 			throws UnknownHostException {
 		
 		Future<InetAddress[]> future = executor.submit(new InetLookup(host));

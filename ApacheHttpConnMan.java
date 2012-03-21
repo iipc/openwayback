@@ -1,6 +1,10 @@
 package org.archive.wayback.accesscontrol.robotstxt;
 
 import java.io.InputStream;
+import java.io.PrintWriter;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.http.HttpEntity;
@@ -18,6 +22,7 @@ import org.apache.http.impl.DefaultConnectionReuseStrategy;
 import org.apache.http.impl.NoConnectionReuseStrategy;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
+import org.apache.http.impl.conn.DefaultClientConnectionOperator;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.CoreConnectionPNames;
@@ -31,23 +36,36 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 	
 	private int maxPerRoute = 2;
 	private int maxConnections = 100;
-	
-	private int dnsTimeoutMS = 5000;
-	
+		
 	private DefaultHttpClient directHttpClient;
 	private DefaultHttpClient proxyHttpClient;
+		
+	private TimedDNSLookup dnsLookup;
 	
-	private IdleConnectionCleaner idleCleaner;
-	private int idleCleanupTimeoutMS = 60000;
+	class TimedDNSConnectionOperator extends DefaultClientConnectionOperator
+	{
+		public TimedDNSConnectionOperator(SchemeRegistry schemes) {
+			super(schemes);
+		}
+		
+		@Override
+		protected InetAddress[] resolveHostname(String host)
+				throws UnknownHostException {
+			return dnsLookup.resolveHostname(host);
+		}
+	}
 	
 	@Override
 	public void init() {
+		
+		dnsLookup = new TimedDNSLookup(maxConnections, dnsTimeoutMS);
+		
 		connMan = new ThreadSafeClientConnManager()
 		{
 			@Override
 			protected ClientConnectionOperator createConnectionOperator(
 					SchemeRegistry schreg) {
-				return new TimedDNSConnectionOperator(schreg, maxConnections, dnsTimeoutMS);
+				return new TimedDNSConnectionOperator(schreg);
 			}
 		};		
 		
@@ -60,6 +78,7 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 		params.setParameter(CoreConnectionPNames.SO_TIMEOUT, readTimeoutMS);
 		params.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, connectionTimeoutMS);
 		params.setParameter(CoreConnectionPNames.SO_LINGER, 0);
+		params.setParameter(CoreConnectionPNames.SO_REUSEADDR, true);
 		params.setParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK, false);
 		params.setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.IGNORE_COOKIES);
 		
@@ -74,6 +93,7 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 		BasicHttpParams proxyParams  = new BasicHttpParams();
 		proxyParams.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, pingConnectTimeoutMS);
 		proxyParams.setParameter(CoreConnectionPNames.SO_LINGER, 0);
+		proxyParams.setParameter(CoreConnectionPNames.SO_REUSEADDR, true);
 		proxyParams.setParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK, false);
 		proxyParams.setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.IGNORE_COOKIES);
 		
@@ -83,10 +103,6 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 		proxyHttpClient = new DefaultHttpClient(connMan, proxyParams);
 		proxyHttpClient.setHttpRequestRetryHandler(retryHandler);
 		proxyHttpClient.setReuseStrategy(new DefaultConnectionReuseStrategy());
-		
-		idleCleaner = new IdleConnectionCleaner(idleCleanupTimeoutMS);
-		idleCleaner.setDaemon(true);
-		idleCleaner.start();
 	}
 	
 	@Override
@@ -94,10 +110,6 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 	{
 		if (connMan != null) {
 			connMan.shutdown();
-		}
-		
-		if (idleCleaner != null) {
-			idleCleaner.shutdown();
 		}
 	}
 
@@ -111,6 +123,7 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 			httpGet = new HttpGet(url);
 			HttpContext context = new BasicHttpContext();
 			httpGet.setHeader("User-Agent", userAgent);
+			httpGet.setHeader("Connection", "close");
 
 			HttpResponse response = directHttpClient.execute(httpGet, context);
 
@@ -127,23 +140,14 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 				callback.doRead(numToRead, contentType, input, charset);
 				input.close();
 			}
-			//LOGGER.info("HTTP CONNECTIONS: " + connMan.getConnectionsInPool());
+
 		} catch (InterruptedException ie) {
 			callback.handleException(ie);
 			Thread.currentThread().interrupt();
 		} catch (Exception exc) {
-			callback.handleException(exc);
-							
-			//LOGGER.info("HTTP CONNECTIONS: " + connMan.getConnectionsInPool());			
-//			PerformanceLogger.noteElapsed("HttpLoadFail", System.currentTimeMillis() - startTime, 
-//					"Exception: " + exc + " url: " + url + " status " + status);
-
-			//LOGGER.info("Exception: " + exc + " url: " + url + " status " + status);		
-		
+			callback.handleException(exc);		
 		} finally {
 			httpGet.abort();
-//			this.connMan.closeIdleConnections(connectionTimeoutMS / 2, TimeUnit.MILLISECONDS);
-//			PerformanceLogger.noteElapsed("HttpLoadRobots", System.currentTimeMillis() - startTime, url + " " + status + ((contents != null) ? " Size: " + contents.length() : " NULL"));
 		}
 	}
 
@@ -154,47 +158,27 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 		}
 		
 		HttpHead httpHead = null;
-		//long startTime = System.currentTimeMillis();
 	
 		try {
 			httpHead = new HttpHead(url);
 			proxyHttpClient.execute(httpHead, new BasicHttpContext());
-//			PerformanceLogger.noteElapsed("PingProxyRobots", System.currentTimeMillis() - startTime, url + " " + response.getStatusLine());
 			return true;
 		} catch (Exception exc) {
 			httpHead.abort();
-//			PerformanceLogger.noteElapsed("PingProxyFailure", System.currentTimeMillis() - startTime, url + " " + exc);
 			return false;
-		} finally {
-			//httpHead.abort();
 		}
 	}
 	
-	private class IdleConnectionCleaner extends Thread {
-	    
-	    private int timeout;
-	    
-	    public IdleConnectionCleaner(int timeout) {
-	        this.timeout = timeout;
-	    }
-
-	    @Override
-	    public void run() {
-	        try {
-                while (true) {
-                    sleep(timeout);
-                    // Close expired connections
-                    //connMan.closeExpiredConnections();
-                    // Optionally, close connections
-                    connMan.closeIdleConnections(2 *(readTimeoutMS + connectionTimeoutMS), TimeUnit.MILLISECONDS);
-                }
-	        } catch (InterruptedException ex) {
-	            // terminate
-	        }
-	    }
-	    
-	    public void shutdown() {
-	    	this.interrupt();
-	    }   
+	@Override
+	public void idleCleanup()
+	{
+        connMan.closeIdleConnections(2 * (readTimeoutMS + connectionTimeoutMS), TimeUnit.MILLISECONDS);
+ 	}
+	
+	@Override
+	public void appendLogInfo(PrintWriter info)
+	{
+	   info.println("Connections: " + connMan.getConnectionsInPool());
+	   info.println("DNS Active: " + ((ThreadPoolExecutor)dnsLookup.getExecutor()).getActiveCount());
 	}
 }

@@ -2,12 +2,14 @@ package org.archive.wayback.accesscontrol.robotstxt;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
 
 abstract public class BaseHttpConnMan {
 	
-	protected int connectionTimeoutMS;
-	protected int readTimeoutMS;
-	protected int pingConnectTimeoutMS;
+	protected int connectionTimeoutMS = 5000;
+	protected int readTimeoutMS = 5000;
+	protected int pingConnectTimeoutMS = 100;
+	protected int dnsTimeoutMS = 5000;
 	
 	protected String proxyHost;
 	protected int proxyPort;
@@ -46,6 +48,11 @@ abstract public class BaseHttpConnMan {
 		this.readTimeoutMS = readTimeoutMS;
 	}
 	
+	public void setDNSTimeoutMS(int dnsTimeoutMS)
+	{
+		this.dnsTimeoutMS = dnsTimeoutMS;
+	}
+	
 	abstract public void init();
 	
 	abstract public void loadRobots(ConnectionCallback callback, String url, String userAgent);
@@ -61,6 +68,14 @@ abstract public class BaseHttpConnMan {
     }
 
 	public void close() {
+		
+	}
+
+	public void idleCleanup() {
+		
+	}
+
+	public void appendLogInfo(PrintWriter info) {
 		
 	}
 }

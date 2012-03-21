@@ -43,14 +43,20 @@ public class RedisConnectionManager {
 		this.password = password;
 	}
 
+	public int getTimeout() {
+		return timeout;
+	}
+
+	public void setTimeout(int timeout) {
+		this.timeout = timeout;
+	}
+
 	private String host = "localhost";
 	private int port = 6379;
 	private int db = 0;
 	private String password = null;
+	private int timeout = 0;
 	
-	//private LinkedList<Jedis> fastJedisPool = new LinkedList<Jedis>();
-		
-	//private int maxJedisInitTries = 15;
 	private int maxJedisCount = 300;
 	
 	private final static Logger LOGGER = 
@@ -73,10 +79,10 @@ public class RedisConnectionManager {
 		config.testOnReturn = false;
 		config.testWhileIdle = false;
 		
-		pool = new JedisPool(config, host, port, 0, password);
+		pool = new JedisPool(config, host, port, timeout, password);
 	}
 	
-	protected Jedis getJedisInstance()
+	public Jedis getJedisInstance()
 	{
 		long startTime = System.currentTimeMillis();
 
@@ -88,109 +94,29 @@ public class RedisConnectionManager {
 		
 		PerformanceLogger.noteElapsed("JedisGetResource", System.currentTimeMillis() - startTime);		
 		return jedis;
-		
-//		int poolSize = 0;
-					
-//		for (int i = 0; i < maxJedisInitTries; i++) {		
-//			try {
-//				long startTime = System.currentTimeMillis();
-//				synchronized (fastJedisPool) {
-//					if (!fastJedisPool.isEmpty()) {
-//						jedis = fastJedisPool.removeLast();
-//	//					poolSize = fastJedisPool.size();
-//					}
-//				}
-//				
-//				if ((jedis != null) && jedis.isConnected()) {
-//					//PerformanceLogger.noteElapsed("JedisGetPool", System.currentTimeMillis() - startTime, "Size: " + poolSize);
-//					return jedis;
-//				}
-//				
-//				startTime = System.currentTimeMillis();
-//				
-//				jedis = new Jedis(host, port);
-//				
-//				jedis.connect();
-//				
-//				if (password != null) {
-//					jedis.auth(password);
-//				}
-//				
-//				if (db != 0) {
-//					jedis.select(db);
-//				}
-//				PerformanceLogger.noteElapsed("JedisGetNew", System.currentTimeMillis() - startTime, "NEW JEDIS");
-//				return jedis;
-//			} catch (Exception exc) {
-//				this.returnBrokenJedis(jedis);
-//				LOGGER.severe("Retrying Jedis Init: " + exc.toString());
-//			}
-//		}
-		
-//		return jedis;
 	}
 	
-	protected void returnJedisInstance(Jedis jedis)
+	public void returnJedisInstance(Jedis jedis)
 	{
 		if (jedis == null) {
 			return;
 		}
 					
 		pool.returnResource(jedis);
-				
-//		synchronized (fastJedisPool) {
-//			poolSize = fastJedisPool.size();
-//			if ((maxJedisCount <= 0) || (poolSize < maxJedisCount)) {
-//				fastJedisPool.push(jedis);
-//				jedis = null;
-//			}
-//		}
-//		
-//		// If not null, then still needs closing
-//		// If null, then put into pool
-//		// Doing outside of synchronized for max speed
-//		
-//		if (jedis != null) {
-//			closeJedis(jedis);
-//			PerformanceLogger.noteElapsed("JedisCloseExtra", System.currentTimeMillis() - startTime, "Size: " + poolSize);
-//		} else {
-//			//PerformanceLogger.noteElapsed("JedisReturnPool", System.currentTimeMillis() - startTime, "Size: " + poolSize);
-//		}
 	}
 	
-	protected void returnBrokenJedis(Jedis jedis)
+	public void returnBrokenJedis(Jedis jedis)
 	{
 		if (jedis == null) {
 			return;
 		}
 		
 		pool.returnBrokenResource(jedis);
-		
-//		closeJedis(jedis);
 	}
 	
-//	protected void closeJedis(Jedis jedis)
-//	{
-//		try {
-//			if (jedis.isConnected()) {
-//				jedis.quit();
-//				jedis.disconnect();
-//			}
-//		} catch (Exception exc)
-//		{
-//			LOGGER.warning("Jedis Close Exception: " + exc);
-//		}		
-//	}
-//
 	public void close() {
 		if (pool != null) {
 			pool.destroy();
 		}
-//		synchronized(fastJedisPool) {
-//			for (Jedis jedis : fastJedisPool) {
-//				closeJedis(jedis);
-//			}
-//			fastJedisPool.clear();
-//		}
 	}
 }

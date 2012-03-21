@@ -74,11 +74,14 @@ public class RedisRobotsLogic {
 			public RedisValue run(Jedis jedis)
 			{
 				String value = jedis.get(key);
-				long ttl = (value != null) ? jedis.ttl(key) : -1;
+				if (value == null) {
+					return null;
+				}
+				long ttl = jedis.ttl(key);
 				return new RedisValue(value, ttl);
 			}
 		});
-		PerformanceLogger.noteElapsed("RedisGetTTL", System.currentTimeMillis() - startTime, ((value.value == null) ? "REDIS MISS: " : "REDIS HIT: ") + key);
+		PerformanceLogger.noteElapsed("RedisGetTTL", System.currentTimeMillis() - startTime, ((value == null) ? "REDIS MISS: " : "REDIS HIT: ") + key);
 		return value;
 	}
 	
