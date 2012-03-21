@@ -9,17 +9,16 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
+import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.params.CookiePolicy;
 import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.cookie.CookieSpecRegistry;
 import org.apache.http.impl.DefaultConnectionReuseStrategy;
 import org.apache.http.impl.NoConnectionReuseStrategy;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
-import org.apache.http.impl.cookie.IgnoreSpecFactory;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.protocol.BasicHttpContext;
@@ -38,6 +37,9 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 	private DefaultHttpClient directHttpClient;
 	private DefaultHttpClient proxyHttpClient;
 	
+	private IdleConnectionCleaner idleCleaner;
+	private int idleCleanupTimeoutMS = 60000;
+	
 	@Override
 	public void init() {
 		connMan = new ThreadSafeClientConnManager()
@@ -54,24 +56,26 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 		
 		HttpRequestRetryHandler retryHandler = new DefaultHttpRequestRetryHandler(0, false);
 		
-		CookieSpecRegistry cookieSpecRegistry = new CookieSpecRegistry();
-		cookieSpecRegistry.register(CookiePolicy.IGNORE_COOKIES, new IgnoreSpecFactory());
-
 		BasicHttpParams params = new BasicHttpParams();
 		params.setParameter(CoreConnectionPNames.SO_TIMEOUT, readTimeoutMS);
 		params.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, connectionTimeoutMS);
 		params.setParameter(CoreConnectionPNames.SO_LINGER, 0);
-		params.setParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK, true);
+		params.setParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK, false);
+		params.setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.IGNORE_COOKIES);
 		
 		directHttpClient = new DefaultHttpClient(connMan, params);
 		directHttpClient.setHttpRequestRetryHandler(retryHandler);
 		directHttpClient.setReuseStrategy(new NoConnectionReuseStrategy());
-		directHttpClient.setCookieSpecs(cookieSpecRegistry);
+		
+		if ((proxyHost == null) || (proxyPort == 0)) {
+			return;
+		}
 		
 		BasicHttpParams proxyParams  = new BasicHttpParams();
 		proxyParams.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, pingConnectTimeoutMS);
 		proxyParams.setParameter(CoreConnectionPNames.SO_LINGER, 0);
-		proxyParams.setParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK, true);
+		proxyParams.setParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK, false);
+		proxyParams.setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.IGNORE_COOKIES);
 		
 		HttpHost proxy = new HttpHost(proxyHost, proxyPort);
 		proxyParams.setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
@@ -79,7 +83,10 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 		proxyHttpClient = new DefaultHttpClient(connMan, proxyParams);
 		proxyHttpClient.setHttpRequestRetryHandler(retryHandler);
 		proxyHttpClient.setReuseStrategy(new DefaultConnectionReuseStrategy());
-		proxyHttpClient.setCookieSpecs(cookieSpecRegistry);
+		
+		idleCleaner = new IdleConnectionCleaner(idleCleanupTimeoutMS);
+		idleCleaner.setDaemon(true);
+		idleCleaner.start();
 	}
 	
 	@Override
@@ -87,6 +94,10 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 	{
 		if (connMan != null) {
 			connMan.shutdown();
+		}
+		
+		if (idleCleaner != null) {
+			idleCleaner.shutdown();
 		}
 	}
 
@@ -131,7 +142,7 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 		
 		} finally {
 			httpGet.abort();
-			this.connMan.closeIdleConnections(connectionTimeoutMS / 2, TimeUnit.MILLISECONDS);
+//			this.connMan.closeIdleConnections(connectionTimeoutMS / 2, TimeUnit.MILLISECONDS);
 //			PerformanceLogger.noteElapsed("HttpLoadRobots", System.currentTimeMillis() - startTime, url + " " + status + ((contents != null) ? " Size: " + contents.length() : " NULL"));
 		}
 	}
@@ -158,5 +169,32 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 			//httpHead.abort();
 		}
 	}
+	
+	private class IdleConnectionCleaner extends Thread {
+	    
+	    private int timeout;
+	    
+	    public IdleConnectionCleaner(int timeout) {
+	        this.timeout = timeout;
+	    }
 
+	    @Override
+	    public void run() {
+	        try {
+                while (true) {
+                    sleep(timeout);
+                    // Close expired connections
+                    //connMan.closeExpiredConnections();
+                    // Optionally, close connections
+                    connMan.closeIdleConnections(2 *(readTimeoutMS + connectionTimeoutMS), TimeUnit.MILLISECONDS);
+                }
+	        } catch (InterruptedException ex) {
+	            // terminate
+	        }
+	    }
+	    
+	    public void shutdown() {
+	    	this.interrupt();
+	    }   
+	}
 }
