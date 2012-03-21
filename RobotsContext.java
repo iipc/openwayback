@@ -7,17 +7,19 @@ class RobotsContext
 	final CountDownLatch latch;
 	final String url;
 	final String current;
+	final boolean cacheFails;
+	final long created;
 	
 	private int status;
 	private String newRobots;
-	private long created;
-	
-	RobotsContext(String url, String current)
+
+	RobotsContext(String url, String current, boolean cacheFails)
 	{
 		this.latch = new CountDownLatch(1);
 		this.url = url;
 		this.current = current;
 		this.created = System.currentTimeMillis();
+		this.cacheFails = cacheFails;
 	}
 	
 	boolean isValid()

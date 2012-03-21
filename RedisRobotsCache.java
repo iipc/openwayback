@@ -99,7 +99,7 @@ public class RedisRobotsCache implements LiveWebCache {
 	}
 		
 	public Resource getCachedResource(URL urlURL, long maxCacheMS,
-				boolean bUseOlder) throws LiveDocumentNotAvailableException,
+				boolean cacheFails) throws LiveDocumentNotAvailableException,
 				LiveWebCacheUnavailableException, LiveWebTimeoutException,
 				IOException {
 		
@@ -108,55 +108,11 @@ public class RedisRobotsCache implements LiveWebCache {
 		RedisValue value = redisCmds.getValue(url);
 		
 		if (value == null) {
-			throw new LiveWebCacheUnavailableException("Jedis Error");
+			throw new LiveWebCacheUnavailableException("Jedis Error Getting: " + url);
 		}		
-				
-		return processSingleRobots(value, url);
-	}
-	
-	
-//	public Resource getCachedResource(String[] urls) throws LiveDocumentNotAvailableException,
-//			LiveWebCacheUnavailableException, LiveWebTimeoutException,
-//			IOException {
-//				
-//		List<String> robotsFiles = null;
-//		Jedis jedis = null;
-//		long startTime = 0;
-//		
-//		try {
-//			jedis = redisConn.getJedisInstance();
-//	
-//			startTime = System.currentTimeMillis();
-//			robotsFiles = jedis.mget(urls);
-//			PerformanceLogger.noteElapsed("RedisGet", System.currentTimeMillis() - startTime, "# URLS" + urls.length);
-//		} catch (JedisConnectionException jce) {
-//			LOGGER.severe("Jedis Exception: " + jce);
-//			redisConn.returnBrokenJedis(jedis);
-//			jedis = null;
-//		}
-//		
-//		int count = 0;
-//		String theUrl = null;
-//		String theRobots = null;
-//		
-//		for (String robots : robotsFiles) {
-//			if (theRobots == null) {
-//				theRobots = robots;
-//				theUrl = urls[count];
-//			} else if (theRobots.startsWith(ROBOTS_TOKEN_ERROR) && !robots.startsWith(ROBOTS_TOKEN_ERROR)) {
-//				theRobots = robots;
-//				theUrl = urls[count];			
-//			}
-//			count++;
-//		}
-//		
-//		return processSingleRobots(jedis, theUrl, theRobots);
-//	}
-	
-	protected Resource processSingleRobots(RedisValue value, String url) throws LiveDocumentNotAvailableException
-	{				
+			
 		if (value.value == null) {
-			RobotsContext context = doSyncUpdate(url, null, true);
+			RobotsContext context = doSyncUpdate(url, null, cacheFails, true);
 											
 			if ((context == null) || !context.isValid()) {
 				throw new LiveDocumentNotAvailableException("Error Loading Live Robots");	
@@ -168,8 +124,7 @@ public class RedisRobotsCache implements LiveWebCache {
 			
 			if (isExpired(value, url)) {	
 				redisCmds.pushKey(UPDATE_QUEUE_KEY, url, MAX_UPDATE_QUEUE_SIZE);
-			}
-			
+			}			
 			
 			if (value.value.startsWith(ROBOTS_TOKEN_ERROR)) {
 				throw new LiveDocumentNotAvailableException("Robots Error: " + value.value);	
@@ -230,7 +185,7 @@ public class RedisRobotsCache implements LiveWebCache {
 		}
 	}
 	
-	private RobotsContext doSyncUpdate(String url, String current, boolean canceleable)
+	private RobotsContext doSyncUpdate(String url, String current, boolean cacheFails, boolean canceleable)
 	{
 		RobotsContext context = null;
 		boolean toLoad = false;
@@ -240,7 +195,7 @@ public class RedisRobotsCache implements LiveWebCache {
 		synchronized(activeContexts) {
 			context = activeContexts.get(url);
 			if (context == null) {
-				context = new RobotsContext(url, current);
+				context = new RobotsContext(url, current, cacheFails);
 				activeContexts.put(url, context);
 				toLoad = true;
 			}
@@ -306,8 +261,21 @@ public class RedisRobotsCache implements LiveWebCache {
 			}
 			
 		} else {
-			newTTL = notAvailTotalTTL;
+			// Only Cacheing successful lookups
+			if (!context.cacheFails) {
+				return;
+			}
+			
 			newRedisValue = ROBOTS_TOKEN_ERROR + context.getStatus();
+			
+			switch (context.getStatus()) {
+			case LIVE_HOST_ERROR:
+				newTTL = totalTTL;
+				break;
+				
+			default:
+				newTTL = notAvailTotalTTL;
+			}
 		}
 		
 		String currentValue = context.current;		
@@ -321,7 +289,7 @@ public class RedisRobotsCache implements LiveWebCache {
 			if (newRedisValue.startsWith(ROBOTS_TOKEN_ERROR) && !currentValue.startsWith(ROBOTS_TOKEN_ERROR)) {
 				newRedisValue = currentValue;
 				newTTL = totalTTL;
-				LOGGER.info("REFRESH TIMEOUT: Keeping same robots for " + context.url + ", refresh timed out");
+				LOGGER.info("REFRESH ERROR: Keeping same robots for " + context.url + ", refresh timed out");
 			}
 		}
 		
@@ -343,7 +311,7 @@ public class RedisRobotsCache implements LiveWebCache {
 			return;
 		}
 			
-		doSyncUpdate(url, value.value, true);
+		doSyncUpdate(url, value.value, true, true);
 	}
 		
 	class URLRequestTask implements Runnable
@@ -376,29 +344,30 @@ public class RedisRobotsCache implements LiveWebCache {
 		{
 			long startTime = System.currentTimeMillis();
 			
-			LOGGER.info("REFRESH workers " + refreshService.getQueue().size());
-									
-			try {
-				connMan.loadRobots(new RobotsLoadCallback(context), context.url, userAgent);
-			} catch (Exception exc) {
-				context.setStatus(LIVE_HOST_ERROR);
-			}
-			
-			if (!Thread.interrupted()) {
-				String pingStatus;
-				
-				if (connMan.pingProxyLive(context.url)) {
-					pingStatus = "PingProxySuccess";
-				} else {
-					pingStatus = "PingProxyFailure";
+			try {	
+				//LOGGER.info("REFRESH workers " + refreshService.getQueue().size());
+										
+				connMan.loadRobots(new RobotsLoadCallback(context), context.url, userAgent);				
+						
+				if (!Thread.currentThread().isInterrupted()) {
+					updateCache(context);
 				}
 				
-				PerformanceLogger.noteElapsed(pingStatus, System.currentTimeMillis() - startTime, context.url + " ");
+				if (!Thread.currentThread().isInterrupted()) {
+					String pingStatus;
+					
+					if (connMan.pingProxyLive(context.url)) {
+						pingStatus = "PingProxySuccess";
+					} else {
+						pingStatus = "PingProxyFailure";
+					}
+					
+					PerformanceLogger.noteElapsed(pingStatus, System.currentTimeMillis() - startTime, context.url + " ");				
+				}
 				
-				updateCache(context);
+			} finally {
+				PerformanceLogger.noteElapsed("AsyncLoadAndUpdate", System.currentTimeMillis() - startTime, context.url);	
 			}
-
-			PerformanceLogger.noteElapsed("AsyncLoadAndUpdate", System.currentTimeMillis() - startTime, context.url);
 		}
 	}
 
