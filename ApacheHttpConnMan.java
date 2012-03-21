@@ -9,14 +9,17 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
+import org.apache.http.client.params.CookiePolicy;
 import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.cookie.CookieSpecRegistry;
 import org.apache.http.impl.DefaultConnectionReuseStrategy;
 import org.apache.http.impl.NoConnectionReuseStrategy;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.apache.http.impl.cookie.IgnoreSpecFactory;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.protocol.BasicHttpContext;
@@ -50,6 +53,9 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 		connMan.setMaxTotal(maxConnections);
 		
 		HttpRequestRetryHandler retryHandler = new DefaultHttpRequestRetryHandler(0, false);
+		
+		CookieSpecRegistry cookieSpecRegistry = new CookieSpecRegistry();
+		cookieSpecRegistry.register(CookiePolicy.IGNORE_COOKIES, new IgnoreSpecFactory());
 
 		BasicHttpParams params = new BasicHttpParams();
 		params.setParameter(CoreConnectionPNames.SO_TIMEOUT, readTimeoutMS);
@@ -60,6 +66,7 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 		directHttpClient = new DefaultHttpClient(connMan, params);
 		directHttpClient.setHttpRequestRetryHandler(retryHandler);
 		directHttpClient.setReuseStrategy(new NoConnectionReuseStrategy());
+		directHttpClient.setCookieSpecs(cookieSpecRegistry);
 		
 		BasicHttpParams proxyParams  = new BasicHttpParams();
 		proxyParams.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, pingConnectTimeoutMS);
@@ -72,6 +79,7 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 		proxyHttpClient = new DefaultHttpClient(connMan, proxyParams);
 		proxyHttpClient.setHttpRequestRetryHandler(retryHandler);
 		proxyHttpClient.setReuseStrategy(new DefaultConnectionReuseStrategy());
+		proxyHttpClient.setCookieSpecs(cookieSpecRegistry);
 	}
 	
 	@Override
