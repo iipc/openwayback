@@ -8,6 +8,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 
 import org.apache.http.conn.scheme.SchemeRegistry;
@@ -36,13 +37,16 @@ class TimedDNSConnectionOperator extends DefaultClientConnectionOperator
 		
 		try {
 			return future.get(dnsTimeoutMS, TimeUnit.MILLISECONDS);
+			
 		} catch (ExecutionException e) {
+			throw (UnknownHostException)e.getCause();
+		} catch (InterruptedException e) {
+			future.cancel(true);
+			LOGGER.warning("DNS INTERRUPTED: " + host);
+			throw new UnknownHostException(host);
+		} catch (TimeoutException e) {
 			future.cancel(true);
 			LOGGER.warning("DNS TIMEOUT: " + host);
-			throw (UnknownHostException)e.getCause();
-		} catch (Exception e) {
-			future.cancel(true);
-			LOGGER.warning("DNS TIMEOUT OTHER EXCEPTION: " + host + " " + e);
 			throw new UnknownHostException(host);
 		}
 	}
