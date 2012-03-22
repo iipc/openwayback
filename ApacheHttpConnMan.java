@@ -8,6 +8,7 @@ import java.net.UnknownHostException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
@@ -131,8 +132,12 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 
 			if (callback.supportStatus(status)) {
 				HttpEntity entity = response.getEntity();
-				int numToRead = (int)entity.getContentLength();		
-				String contentType = entity.getContentType().getValue();
+				int numToRead = (int)entity.getContentLength();
+				String contentType = null;
+				Header header = entity.getContentType();
+				if (header != null) {
+					contentType = header.getValue();
+				}
 				String charset = EntityUtils.getContentCharSet(entity);
 				InputStream input = entity.getContent();
 				callback.doRead(numToRead, contentType, input, charset);
