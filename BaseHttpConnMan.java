@@ -12,7 +12,7 @@ abstract public class BaseHttpConnMan {
 	protected int dnsTimeoutMS = 5000;
 	
 	protected int maxPerRouteConnections = 4;
-	protected int maxConnections = 1000;
+	protected int maxConnections = 500;
 	
 	protected String proxyHost;
 	protected int proxyPort;

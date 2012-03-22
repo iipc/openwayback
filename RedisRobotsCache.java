@@ -532,7 +532,7 @@ public class RedisRobotsCache implements LiveWebCache {
                     info.println("  Active: " + refreshService.getActiveCount());
                     info.println("  Pool: " + refreshService.getPoolSize());
                     info.println("  Largest: " + refreshService.getLargestPoolSize());
-                    info.println("  Task Count: " + refreshService.getTaskCount());
+                    info.println("  Task Count: " + (refreshService.getTaskCount() - refreshService.getCompletedTaskCount()));
                     info.println("  Active URLS: " + activeContexts.size());
                     connMan.appendLogInfo(info);
                     LOGGER.info(buff.getBuffer().toString());

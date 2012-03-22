@@ -1,5 +1,6 @@
 package org.archive.wayback.accesscontrol.robotstxt;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.InetAddress;
@@ -75,7 +76,7 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 		params.setParameter(CoreConnectionPNames.SO_TIMEOUT, readTimeoutMS);
 		params.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, connectionTimeoutMS);
 		params.setParameter(CoreConnectionPNames.SO_LINGER, 0);
-		params.setParameter(CoreConnectionPNames.SO_REUSEADDR, true);
+//		params.setParameter(CoreConnectionPNames.SO_REUSEADDR, true);
 		params.setParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK, false);
 		params.setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.IGNORE_COOKIES);
 		
@@ -90,7 +91,7 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 		BasicHttpParams proxyParams  = new BasicHttpParams();
 		proxyParams.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, pingConnectTimeoutMS);
 		proxyParams.setParameter(CoreConnectionPNames.SO_LINGER, 0);
-		proxyParams.setParameter(CoreConnectionPNames.SO_REUSEADDR, true);
+//		proxyParams.setParameter(CoreConnectionPNames.SO_REUSEADDR, true);
 		proxyParams.setParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK, false);
 		proxyParams.setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.IGNORE_COOKIES);
 		
@@ -141,8 +142,11 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 		} catch (InterruptedException ie) {
 			callback.handleException(ie);
 			Thread.currentThread().interrupt();
-		} catch (Exception exc) {
-			callback.handleException(exc);		
+		} catch (IOException e) {
+			callback.handleException(e);
+		} catch (Exception other) {
+			callback.handleException(other);
+			other.printStackTrace();
 		} finally {
 			httpGet.abort();
 		}
