@@ -68,6 +68,9 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 		
 		String url = urlURL.toExternalForm();
 		
+		// HACK: until the boolean can be specified in spring
+		cacheFails = (cacheFails || (maxCacheMS == 0));
+		
 		RedisValue value = redisCmds.getValue(url);
 			
 		if (value == null) {

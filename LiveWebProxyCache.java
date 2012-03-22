@@ -46,7 +46,7 @@ public class LiveWebProxyCache implements LiveWebCache {
 	
 	/* CLEANUP */
 	private IdleCleanerThread idleCleaner;
-	private int idleCleanupTimeoutMS = 60000;
+	private int idleCleanupTimeoutMS = 300000;
 	
 	public BaseHttpConnMan getConnMan() {
 		return connMan;
