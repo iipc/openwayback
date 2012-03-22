@@ -11,7 +11,9 @@ import java.util.concurrent.TimeUnit;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
+import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
+import org.apache.http.ProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.methods.HttpGet;
@@ -25,6 +27,7 @@ import org.apache.http.impl.DefaultConnectionReuseStrategy;
 import org.apache.http.impl.NoConnectionReuseStrategy;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
+import org.apache.http.impl.client.DefaultRedirectStrategy;
 import org.apache.http.impl.conn.DefaultClientConnectionOperator;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.params.BasicHttpParams;
@@ -85,6 +88,32 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 		directHttpClient = new DefaultHttpClient(connMan, params);
 		directHttpClient.setHttpRequestRetryHandler(retryHandler);
 		directHttpClient.setReuseStrategy(new NoConnectionReuseStrategy());
+		
+		// Only follow redirects that look like they are still robots.txt
+		directHttpClient.setRedirectStrategy(new DefaultRedirectStrategy()
+		{
+
+			@Override
+			public boolean isRedirected(HttpRequest request,
+					HttpResponse response, HttpContext context)
+					throws ProtocolException {
+				
+				boolean redirect = super.isRedirected(request, response, context);
+				
+				if (redirect) {
+					Header locationHeader = response.getFirstHeader("location");
+					if (locationHeader != null) {
+						String value = locationHeader.getValue();
+						if (value.endsWith("robots.txt")) {
+							return true;
+						}
+					}
+				}
+				
+				return false;
+			}
+			
+		});
 		
 		if ((proxyHost == null) || (proxyPort == 0)) {
 			return;
@@ -152,10 +181,10 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 				callback.doRead(numToRead, contentType, input, charset);
 			}
 
-		} catch (InterruptedException ie) {
-			callback.handleException(ie);
-			Thread.currentThread().interrupt();
-			keepAlive = false;
+//		} catch (InterruptedException ie) {
+//			callback.handleException(ie);
+//			Thread.currentThread().interrupt();
+//			keepAlive = false;
 		} catch (IOException e) {
 			callback.handleException(e);
 			keepAlive = false;

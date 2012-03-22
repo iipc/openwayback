@@ -66,10 +66,6 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 				LiveWebCacheUnavailableException, LiveWebTimeoutException,
 				IOException {
 		
-		if (!urlURL.getFile().endsWith("robots.txt")) {
-			return super.getCachedResource(urlURL, maxCacheMS, cacheFails);
-		}
-		
 		String url = urlURL.toExternalForm();
 		
 		// HACK: until the boolean can be specified in spring

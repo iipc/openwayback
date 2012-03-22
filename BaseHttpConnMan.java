@@ -21,7 +21,7 @@ abstract public class BaseHttpConnMan {
 	{
 		boolean supportStatus(int status);
 
-		void doRead(int length, String contentType, InputStream input, String charset) throws IOException, InterruptedException;
+		void doRead(int length, String contentType, InputStream input, String charset) throws IOException;
 
 		void handleException(Exception exc);
 	}

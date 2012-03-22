@@ -149,7 +149,7 @@ public class LiveWebProxyCache implements LiveWebCache {
 
 		@Override
 		public void doRead(int length, String contentType, InputStream input,
-				String charset) throws IOException, InterruptedException {
+				String charset) throws IOException {
 			
     		ARCRecord r = new ARCRecord(
     				new GZIPInputStream(input),

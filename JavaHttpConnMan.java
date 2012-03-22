@@ -62,13 +62,12 @@ public class JavaHttpConnMan extends BaseHttpConnMan {
 			}
 			
 			//PerformanceLogger.noteElapsed("HttpLoadSuccess", System.currentTimeMillis() - startTime, url + " " + status + ((contents != null) ? " Size: " + contents.length() : " NULL"));
-		} catch (InterruptedException ie) {
-			Thread.currentThread().interrupt();
-			callback.handleException(ie);			
+//		} catch (InterruptedException ie) {
+//			Thread.currentThread().interrupt();
+//			callback.handleException(ie);	
 		} catch (Exception exc) {
 			
-//			PerformanceLogger.noteElapsed("HttpLoadFail", System.currentTimeMillis() - startTime, 
-//					"Exception: " + exc + " url: " + url + " status " + status);			
+			callback.handleException(exc);			
 		} finally {
 			synchronized(httpConnectionCount) {
 				httpConnectionCount--;
