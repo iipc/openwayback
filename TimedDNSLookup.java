@@ -57,14 +57,14 @@ class TimedDNSLookup
 	{
 		String host;
 		
-		InetLookup(String host)
+		private InetLookup(String host)
 		{
 			this.host = host;
 		}
 		
 		@Override
 		public InetAddress[] call() throws Exception {
-			return new InetAddress[]{InetAddress.getByName(host)};
-		}	
+			return InetAddress.getAllByName(host);
+		}
 	}
 }

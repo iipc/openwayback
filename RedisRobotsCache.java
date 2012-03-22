@@ -1,13 +1,8 @@
 package org.archive.wayback.accesscontrol.robotstxt;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InterruptedIOException;
 import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.net.URL;
-import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -15,10 +10,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.archive.wayback.accesscontrol.robotstxt.RedisRobotsLogic.RedisValue;
@@ -26,10 +18,9 @@ import org.archive.wayback.core.Resource;
 import org.archive.wayback.exception.LiveDocumentNotAvailableException;
 import org.archive.wayback.exception.LiveWebCacheUnavailableException;
 import org.archive.wayback.exception.LiveWebTimeoutException;
-import org.archive.wayback.liveweb.LiveWebCache;
 import org.archive.wayback.webapp.PerformanceLogger;
 
-public class RedisRobotsCache implements LiveWebCache {
+public class RedisRobotsCache extends LiveWebProxyCache {
 
 	private final static Logger LOGGER = Logger
 			.getLogger(RedisRobotsCache.class.getName());
@@ -51,81 +42,25 @@ public class RedisRobotsCache implements LiveWebCache {
 	
 	final static String UPDATE_QUEUE_KEY = "robots_update_queue";
 	final static int MAX_UPDATE_QUEUE_SIZE = 50000;
-
-	final static int LIVE_OK = 200;
-	final static int LIVE_TIMEOUT_ERROR = 900;
-	final static int LIVE_HOST_ERROR = 910;
-	final static int LIVE_INVALID_TYPE_ERROR = 920;
-	
-	
-	final static int MAX_ROBOTS_SIZE = 500000;
-	
-	/* SOCKET SETTINGS / PARAMS */
-	
-	BaseHttpConnMan connMan = null;
-
-	private int responseTimeoutMS = 10000;
-	
-	private String userAgent;
 	
 	/* THREAD WORKER SETTINGS */
-	
-	private int maxNumUpdateThreads = 1000;
-	private int maxCoreUpdateThreads = 100;
-	
-	private int threadKeepAliveTime = 5000;
-	
-	private ThreadPoolExecutor refreshService;
 
 	private Map<String, RobotsContext> activeContexts;
 	
 	/* REDIS */
 	private RedisRobotsLogic redisCmds;
-	
-	/* CLEANUP */
-	private IdleCleanerThread idleCleaner;
-	private int idleCleanupTimeoutMS = 60000;
-	
-	public BaseHttpConnMan getConnMan() {
-		return connMan;
-	}
-
-	public void setHttpConnMan(BaseHttpConnMan connMan) {
-		this.connMan = connMan;
-	}
-	
+		
 	public void setRedisConnMan(RedisConnectionManager redisConn) {
 		this.redisCmds = new RedisRobotsLogic(redisConn);
 	}
 
-	public int getMaxNumUpdateThreads() {
-		return maxNumUpdateThreads;
-	}
-
-	public void setMaxNumUpdateThreads(int maxNumUpdateThreads) {
-		this.maxNumUpdateThreads = maxNumUpdateThreads;
-	}
-
-	public int getMaxCoreUpdateThreads() {
-		return maxCoreUpdateThreads;
-	}
-
-	public void setMaxCoreUpdateThreads(int maxCoreUpdateThreads) {
-		this.maxCoreUpdateThreads = maxCoreUpdateThreads;
-	}
-
+	@Override
 	public void init() {
-		LOGGER.setLevel(Level.FINER);
-		
-		refreshService = new ThreadPoolExecutor(maxCoreUpdateThreads, maxNumUpdateThreads, threadKeepAliveTime, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());		
-		
+		super.init();
 		activeContexts = new HashMap<String, RobotsContext>();
-		
-		idleCleaner = new IdleCleanerThread(idleCleanupTimeoutMS);
-		idleCleaner.setDaemon(true);
-		idleCleaner.start();
 	}
-		
+	
+	@Override
 	public Resource getCachedResource(URL urlURL, long maxCacheMS,
 				boolean cacheFails) throws LiveDocumentNotAvailableException,
 				LiveWebCacheUnavailableException, LiveWebTimeoutException,
@@ -268,7 +203,107 @@ public class RedisRobotsCache implements LiveWebCache {
 		return context;
 	}
 	
-
+//	private RobotsContextTask getRobotsContextTask(String url, String current, boolean cacheFails)
+//	{
+//		RobotsContext context;
+//		boolean toLoad = true;
+//		
+//		synchronized(activeContexts) {
+//			context = activeContexts.get(url);
+//			if (context == null) {
+//				context = new RobotsContext(url, current, cacheFails);
+//				activeContexts.put(url, context);
+//				toLoad = true;
+//			}
+//		}
+//		
+//		return new RobotsContextTask(toLoad, context);		
+//	}
+//	
+//	class RobotsContextTask implements Callable<RobotsContext>
+//	{
+//		final boolean finalToLoad;
+//		final RobotsContext finalContext;
+//		
+//		RobotsContextTask(boolean toLoad, RobotsContext context)
+//		{
+//			finalToLoad = toLoad;
+//			finalContext = context;
+//		}
+//		
+//		@Override
+//		public RobotsContext call() throws Exception {
+//			
+//			if (finalToLoad) {	
+//				try {
+//					processAsyncUpdate(finalContext);
+//				} finally {
+//					finalContext.latch.countDown();
+//					
+//					synchronized(activeContexts) {
+//						activeContexts.remove(finalContext.url);
+//					}
+//				}
+//			} else {
+//				try {
+//					LOGGER.info("WAITING FOR: " + finalContext.url);
+//					
+//					if (!finalContext.latch.await(responseTimeoutMS, TimeUnit.MILLISECONDS)) {
+//						LOGGER.info("WAIT FOR " + finalContext.url + " timed out!");
+//					}
+//					
+//				} catch (InterruptedException e) {
+//					LOGGER.info("INTERRUPT FOR " + finalContext.url);
+//				}
+//			}
+//			return finalContext;
+//		}
+//	}
+//	
+//
+//	private RobotsContext doSyncUpdate(List<String> urls, boolean cacheFails, boolean canceleable)
+//	{		
+//		LinkedList<RobotsContextTask> tasks = new LinkedList<RobotsContextTask>();
+//		
+//		for (String url : urls) {
+//			tasks.add(getRobotsContextTask(url, null, cacheFails));
+//		}
+//		
+//		ExecutorCompletionService<RobotsContext> completer = new ExecutorCompletionService<RobotsContext>(refreshService);
+//		
+//		for (Callable<RobotsContext> task : tasks) {
+//			completer.submit(task);
+//		}
+//		
+//		try {
+//			Future<RobotsContext> future = completer.poll(this.responseTimeoutMS, TimeUnit.MILLISECONDS);
+//			if (future == null) {
+//				return tasks.getFirst().finalContext;
+//			}
+//			
+//			RobotsContext firstInvalid = null;
+//						
+//			while (future != null) {
+//				RobotsContext context = future.get();
+//				
+//				if (context.isValid()) {
+//					return context;
+//				} else if (firstInvalid == null) {
+//					firstInvalid = context;
+//				}
+//				
+//				future = completer.poll();
+//			}
+//			
+//			return firstInvalid;
+//			
+//		} catch (InterruptedException e) {
+//			return tasks.getFirst().finalContext;
+//		} catch (ExecutionException e) {
+//			return tasks.getFirst().finalContext;
+//		}
+//	}
+	
 	private void updateCache(final RobotsContext context) {		
 		String contents = null;
 		
@@ -282,8 +317,8 @@ public class RedisRobotsCache implements LiveWebCache {
 			
 			if (contents.isEmpty()) {
 				newRedisValue = ROBOTS_TOKEN_EMPTY;
-			} else if (contents.length() > MAX_ROBOTS_SIZE) {
-				newRedisValue = contents.substring(0, MAX_ROBOTS_SIZE);
+			} else if (contents.length() > RobotsContext.MAX_ROBOTS_SIZE) {
+				newRedisValue = contents.substring(0, RobotsContext.MAX_ROBOTS_SIZE);
 			} else {
 				newRedisValue = contents;
 			}
@@ -297,7 +332,7 @@ public class RedisRobotsCache implements LiveWebCache {
 			newRedisValue = ROBOTS_TOKEN_ERROR + context.getStatus();
 			
 			switch (context.getStatus()) {
-			case LIVE_HOST_ERROR:
+			case RobotsContext.LIVE_HOST_ERROR:
 				newTTL = totalTTL;
 				break;
 				
@@ -341,7 +376,32 @@ public class RedisRobotsCache implements LiveWebCache {
 			
 		doSyncUpdate(url, value.value, true, true);
 	}
+	
+	public void processAsyncUpdate(final RobotsContext context)
+	{
+		context.startTime = System.currentTimeMillis();
 		
+		try {									
+			connMan.loadRobots(context, context.url, userAgent);				
+					
+			updateCache(context);
+			
+			String pingStatus;
+			long startTimePingProxy = System.currentTimeMillis();
+			
+			if (connMan.pingProxyLive(context.url)) {
+				pingStatus = "PingProxySuccess";
+			} else {
+				pingStatus = "PingProxyFailure";
+			}
+			
+			PerformanceLogger.noteElapsed(pingStatus, System.currentTimeMillis() - startTimePingProxy, context.url + " ");
+			
+		} finally {
+			PerformanceLogger.noteElapsed("AsyncLoadAndUpdate", System.currentTimeMillis() - context.startTime, context.url);	
+		}		
+	}
+
 	class URLRequestTask implements Runnable
 	{
 		private String url;
@@ -370,133 +430,13 @@ public class RedisRobotsCache implements LiveWebCache {
 		@Override
 		public void run()
 		{
-			long startTime = System.currentTimeMillis();
-			
-			try {									
-				connMan.loadRobots(new RobotsLoadCallback(context), context.url, userAgent);				
-						
-				updateCache(context);
-				
-				String pingStatus;
-				long startTimePingProxy = System.currentTimeMillis();
-				
-				if (connMan.pingProxyLive(context.url)) {
-					pingStatus = "PingProxySuccess";
-				} else {
-					pingStatus = "PingProxyFailure";
-				}
-				
-				PerformanceLogger.noteElapsed(pingStatus, System.currentTimeMillis() - startTimePingProxy, context.url + " ");
-				
-			} finally {
-				PerformanceLogger.noteElapsed("AsyncLoadAndUpdate", System.currentTimeMillis() - startTime, context.url);	
-			}
+			processAsyncUpdate(context);
 		}
 	}
 
-	
-	private ByteArrayOutputStream readMaxBytes(InputStream input, int max) throws IOException, InterruptedException
-	{
-		byte[] byteBuff = new byte[8192];
-		
-		ByteArrayOutputStream baos = new ByteArrayOutputStream(max);
-		
-		int totalRead = 0;
-			
-		while (true) {
-			Thread.sleep(1);
-			
-			int toRead = Math.min(byteBuff.length, max - totalRead);
-			
-			if (toRead <= 0) {
-				break;
-			}
-			
-			int numRead = input.read(byteBuff, 0, toRead);
-			
-			if (numRead < 0) {
-				break;
-			}
-			
-			totalRead += numRead;
-			
-			baos.write(byteBuff, 0, numRead);
-		}
-		
-		return baos;
-	}
-	
-	class RobotsLoadCallback implements BaseHttpConnMan.ConnectionCallback
-	{
-		RobotsContext context;
-		long startTime;
-		
-		RobotsLoadCallback(RobotsContext context)
-		{
-			this.context = context;
-			this.startTime = System.currentTimeMillis();
-		}
-
-		@Override
-		public boolean supportStatus(int status) {
-			context.setStatus(status);
-			return (status == LIVE_OK);
-		}
-
-		@Override
-		public void doRead(int numToRead, String contentType, InputStream input, String charset) throws IOException, InterruptedException {
-			if ((contentType == null) || (contentType.indexOf("text/plain") < 0)) {
-				LOGGER.info("Questionable Content-Type: " + contentType + " for: " + context.url);
-			}
-					
-			if ((numToRead <= 0) || (numToRead > MAX_ROBOTS_SIZE)) {
-				numToRead = MAX_ROBOTS_SIZE;
-			}
-
-			ByteArrayOutputStream baos = readMaxBytes(input, numToRead);
-										
-			if (charset == null) {
-				charset = "utf-8";
-			}
-			
-			baos.flush();
-			String contents = baos.toString(charset);
-			baos.close();
-			
-			context.setNewRobots(contents);
-			PerformanceLogger.noteElapsed("HttpLoadSuccess", System.currentTimeMillis() - startTime, context.url + " " + context.getStatus() + ((contents != null) ? " Size: " + contents.length() : " NULL"));
-		}
-
-		@Override
-		public void handleException(Exception exc) {
-			int status = 0;
-			
-			if (exc instanceof InterruptedIOException) {
-				status = LIVE_TIMEOUT_ERROR; //Timeout (gateway timeout)
-			} else if (exc instanceof InterruptedException) {
-				status = LIVE_TIMEOUT_ERROR;
-			} else if (exc instanceof UnknownHostException) {
-				status = LIVE_HOST_ERROR;
-			}
-			
-			context.setStatus(status);
-			
-			PerformanceLogger.noteElapsed("HttpLoadFail", System.currentTimeMillis() - startTime, 
-					"Exception: " + exc + " url: " + context.url + " status " + status);				
-		}
-		
-	}
-		
-	public String getUserAgent() {
-		return userAgent;
-	}
-
-	public void setUserAgent(String userAgent) {
-		this.userAgent = userAgent;
-	}
-
+	@Override
 	public void shutdown() {		
-		refreshService.shutdown();
+		super.shutdown();
 		
 		if (redisCmds != null) {
 			redisCmds.close();
@@ -507,47 +447,15 @@ public class RedisRobotsCache implements LiveWebCache {
 			connMan.close();
 			connMan = null;
 		}
+	}
+	
+	@Override
+	protected void appendLogInfo(PrintWriter info)
+	{
+		super.appendLogInfo(info);
+        info.println("  Active URLS: " + activeContexts.size());
+	}
 		
-		if (idleCleaner != null) {
-			idleCleaner.shutdown();
-		}
-	}
-	
-	private class IdleCleanerThread extends Thread {
-	    
-	    private int timeout;
-	    
-	    public IdleCleanerThread(int timeout) {
-	        this.timeout = timeout;
-	    }
-
-	    @Override
-	    public void run() {
-	        try {
-                while (true) {
-                    connMan.idleCleanup();
-                    StringWriter buff = new StringWriter();
-                    PrintWriter info = new PrintWriter(buff);
-                    info.println("=== Idle Cleanup Stats ===");
-                    info.println("  Active: " + refreshService.getActiveCount());
-                    info.println("  Pool: " + refreshService.getPoolSize());
-                    info.println("  Largest: " + refreshService.getLargestPoolSize());
-                    info.println("  Task Count: " + (refreshService.getTaskCount() - refreshService.getCompletedTaskCount()));
-                    info.println("  Active URLS: " + activeContexts.size());
-                    connMan.appendLogInfo(info);
-                    LOGGER.info(buff.getBuffer().toString());
-                    sleep(timeout);
-                 }
-	        } catch (InterruptedException ex) {
-	            // terminate
-	        }
-	    }
-	    
-	    public void shutdown() {
-	    	this.interrupt();
-	    }   
-	}
-	
 	public static void main(String args[])
 	{
 		String redisHost = "localhost";

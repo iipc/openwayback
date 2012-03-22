@@ -67,6 +67,8 @@ abstract public class BaseHttpConnMan {
 	abstract public void init();
 	
 	abstract public void loadRobots(ConnectionCallback callback, String url, String userAgent);
+	
+	public void loadProxyLive(ConnectionCallback callback, String url, String userAgent) {}
 
 	abstract public boolean pingProxyLive(String url);
 	

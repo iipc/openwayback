@@ -12,6 +12,7 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
@@ -66,7 +67,7 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 					SchemeRegistry schreg) {
 				return new TimedDNSConnectionOperator(schreg);
 			}
-		};		
+		};
 		
 		connMan.setDefaultMaxPerRoute(maxPerRouteConnections);
 		connMan.setMaxTotal(maxConnections);
@@ -77,7 +78,7 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 		params.setParameter(CoreConnectionPNames.SO_TIMEOUT, readTimeoutMS);
 		params.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, connectionTimeoutMS);
 		params.setParameter(CoreConnectionPNames.SO_LINGER, 0);
-//		params.setParameter(CoreConnectionPNames.SO_REUSEADDR, true);
+		params.setParameter(CoreConnectionPNames.SO_REUSEADDR, true);
 		params.setParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK, false);
 		params.setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.IGNORE_COOKIES);
 		
@@ -92,7 +93,7 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 		BasicHttpParams proxyParams  = new BasicHttpParams();
 		proxyParams.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, pingConnectTimeoutMS);
 		proxyParams.setParameter(CoreConnectionPNames.SO_LINGER, 0);
-//		proxyParams.setParameter(CoreConnectionPNames.SO_REUSEADDR, true);
+		proxyParams.setParameter(CoreConnectionPNames.SO_REUSEADDR, true);
 		proxyParams.setParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK, false);
 		proxyParams.setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.IGNORE_COOKIES);
 		
@@ -114,7 +115,11 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 
 	@Override
 	public void loadRobots(ConnectionCallback callback, String url, String userAgent) {
+		load(directHttpClient, callback, url, userAgent, false);
+	}
 	
+	protected void load(HttpClient client, ConnectionCallback callback, String url, String userAgent, boolean keepAlive)
+	{
 		int status = 0;
 		HttpGet httpGet = null;
 		
@@ -122,9 +127,12 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 			httpGet = new HttpGet(url);
 			HttpContext context = new BasicHttpContext();
 			httpGet.setHeader("User-Agent", userAgent);
-			httpGet.setHeader("Connection", "close");
+			
+			if (!keepAlive) {
+				httpGet.setHeader("Connection", "close");
+			}
 
-			HttpResponse response = directHttpClient.execute(httpGet, context);
+			HttpResponse response = client.execute(httpGet, context);
 
 			if (response != null) {
 				status = response.getStatusLine().getStatusCode();
@@ -141,20 +149,33 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 				String charset = EntityUtils.getContentCharSet(entity);
 				InputStream input = entity.getContent();
 				callback.doRead(numToRead, contentType, input, charset);
-				input.close();
 			}
 
 		} catch (InterruptedException ie) {
 			callback.handleException(ie);
 			Thread.currentThread().interrupt();
+			keepAlive = false;
 		} catch (IOException e) {
 			callback.handleException(e);
+			keepAlive = false;
 		} catch (Exception other) {
 			callback.handleException(other);
 			other.printStackTrace();
+			keepAlive = false;
 		} finally {
-			httpGet.abort();
+			if (!keepAlive) {
+				httpGet.abort();
+			}
 		}
+	}
+	
+	@Override
+	public void loadProxyLive(ConnectionCallback callback, String url, String userAgent) {
+		if (proxyHttpClient == null) {
+			return;
+		}
+		
+		load(proxyHttpClient, callback, url, userAgent, true);
 	}
 
 	@Override

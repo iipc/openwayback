@@ -117,7 +117,7 @@ public class RedisRobotsLogic {
 		{
 			public void run(Jedis jedis)
 			{
-				if (jedis.llen(key) <= maxSize) {
+				if (jedis.llen(list) <= maxSize) {
 					jedis.rpush(list, key);
 				}
 			}
