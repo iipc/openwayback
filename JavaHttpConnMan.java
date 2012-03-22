@@ -1,6 +1,7 @@
 package org.archive.wayback.accesscontrol.robotstxt;
 
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
@@ -70,7 +71,7 @@ public class JavaHttpConnMan extends BaseHttpConnMan {
 //					"Exception: " + exc + " url: " + url + " status " + status);			
 		} finally {
 			synchronized(httpConnectionCount) {
-				LOGGER.info("HTTP CONNECTIONS: " + httpConnectionCount--);
+				httpConnectionCount--;
 			}
 			
 			if (input != null) {
@@ -112,7 +113,7 @@ public class JavaHttpConnMan extends BaseHttpConnMan {
 //			PerformanceLogger.noteElapsed("PingProxyFailure", System.currentTimeMillis() - startTime, url + " " + exc);
 		} finally {
 			synchronized(httpConnectionCount) {
-				LOGGER.info("HTTP CONNECTIONS: " + httpConnectionCount--);
+				httpConnectionCount--;
 			}
 			
 			if (connection != null) {
@@ -121,5 +122,13 @@ public class JavaHttpConnMan extends BaseHttpConnMan {
 		}
 		
 		return true;
+	}
+	
+	@Override
+	public void appendLogInfo(PrintWriter info)
+	{
+		synchronized(httpConnectionCount) {
+			LOGGER.info("HTTP CONNECTIONS: " + httpConnectionCount);
+		}
 	}
 }

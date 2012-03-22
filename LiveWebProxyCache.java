@@ -38,7 +38,7 @@ public class LiveWebProxyCache implements LiveWebCache {
 	/* THREAD WORKER SETTINGS */
 	
 	protected int maxNumUpdateThreads = 1000;
-	protected int maxCoreUpdateThreads = 100;
+	protected int maxCoreUpdateThreads = 75;
 	
 	protected int threadKeepAliveTime = 5000;
 	
@@ -160,14 +160,14 @@ public class LiveWebProxyCache implements LiveWebCache {
 				PerformanceLogger.noteElapsed("LiveProxySuccess", System.currentTimeMillis() - startTime, url);	
 			} catch (ResourceNotAvailableException e) {
 				this.resource = null;
-				PerformanceLogger.noteElapsed("LiveProxyFail", System.currentTimeMillis() - startTime, url);	
+				PerformanceLogger.noteElapsed("LiveProxyFail", System.currentTimeMillis() - startTime, url + " " + e);	
 			}
 		}
 
 		@Override
 		public void handleException(Exception exc) {
 			this.resource = null;
-			PerformanceLogger.noteElapsed("LiveProxyFail", System.currentTimeMillis() - startTime, url);	
+			PerformanceLogger.noteElapsed("LiveProxyFail", System.currentTimeMillis() - startTime, url + " " + exc);	
 		}
 
 		@Override

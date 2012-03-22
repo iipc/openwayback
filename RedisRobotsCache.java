@@ -7,8 +7,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
@@ -126,10 +124,10 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 	
 	protected void processRedisUpdateQueue()
 	{
-		ExecutorService mainLoopService = null;
+		//ExecutorService mainLoopService = null;
 		
 		try {			
-			mainLoopService = Executors.newFixedThreadPool(maxCoreUpdateThreads);
+			//mainLoopService = Executors.newFixedThreadPool(maxCoreUpdateThreads);
 						
 			while (true) {
 				Thread.sleep(1);
@@ -146,12 +144,12 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 					}
 				}
 				
-				mainLoopService.execute(new URLRequestTask(url));
+				refreshService.execute(new URLRequestTask(url));
 			}
 		} catch (InterruptedException e) {
 			//DO NOTHING
 		} finally {
-			mainLoopService.shutdown();
+			shutdown();
 		}
 	}
 	
@@ -494,11 +492,11 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 				recProxy = paramsIter.next();
 			} else if (flag.equals("-u")) {
 				userAgent = paramsIter.next();
-			} else if (flag.equals("max_conn")) {
+			} else if (flag.equals("-max_conn")) {
 				maxConnections = Integer.parseInt(paramsIter.next());
-			} else if (flag.equals("max_route_conn")) {
+			} else if (flag.equals("-max_route_conn")) {
 				maxPerRouteConnections = Integer.parseInt(paramsIter.next());
-			} else if (flag.equals("max_thread")) {
+			} else if (flag.equals("-max_thread")) {
 				maxCoreUpdateThreads = Integer.parseInt(paramsIter.next());
 			}
 		}
