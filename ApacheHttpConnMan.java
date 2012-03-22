@@ -91,7 +91,7 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 		}
 		
 		BasicHttpParams proxyParams  = new BasicHttpParams();
-		proxyParams.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, pingConnectTimeoutMS);
+		proxyParams.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, connectionTimeoutMS);
 		proxyParams.setParameter(CoreConnectionPNames.SO_LINGER, 0);
 		proxyParams.setParameter(CoreConnectionPNames.SO_REUSEADDR, true);
 		proxyParams.setParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK, false);
@@ -187,8 +187,10 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 		HttpHead httpHead = null;
 	
 		try {
+			HttpContext context = new BasicHttpContext();
 			httpHead = new HttpHead(url);
-			proxyHttpClient.execute(httpHead, new BasicHttpContext());
+			httpHead.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, pingConnectTimeoutMS);
+			proxyHttpClient.execute(httpHead, context);
 			return true;
 		} catch (Exception exc) {
 			httpHead.abort();
