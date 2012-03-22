@@ -75,7 +75,12 @@ class RobotsContext implements BaseHttpConnMan.ConnectionCallback
 	@Override
 	public boolean supportStatus(int status) {
 		setStatus(status);
-		return (status == LIVE_OK);
+		if (status != LIVE_OK) {
+			PerformanceLogger.noteElapsed("HttpLoadSuccess", System.currentTimeMillis() - startTime, url + " " + getStatus());
+			return false;
+		} else {
+			return true;
+		}
 	}
 
 	@Override

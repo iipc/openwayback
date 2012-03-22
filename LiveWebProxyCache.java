@@ -144,7 +144,12 @@ public class LiveWebProxyCache implements LiveWebCache {
 		@Override
 		public boolean supportStatus(int status) {
 			this.status = status;
-			return (status == 200);
+			if (status != 200) {
+				PerformanceLogger.noteElapsed("LiveProxySuccess", System.currentTimeMillis() - startTime, url + " " + status);
+				return false;
+			} else {
+				return true;
+			}
 		}
 
 		@Override
@@ -157,7 +162,7 @@ public class LiveWebProxyCache implements LiveWebCache {
     		try {
 				this.resource = (ArcResource) 
 					ResourceFactory.ARCArchiveRecordToResource(r, null);
-				PerformanceLogger.noteElapsed("LiveProxySuccess", System.currentTimeMillis() - startTime, url);	
+				PerformanceLogger.noteElapsed("LiveProxySuccess", System.currentTimeMillis() - startTime, url);
 			} catch (ResourceNotAvailableException e) {
 				this.resource = null;
 				PerformanceLogger.noteElapsed("LiveProxyFail", System.currentTimeMillis() - startTime, url + " " + e);	
