@@ -91,6 +91,7 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 		}
 		
 		BasicHttpParams proxyParams  = new BasicHttpParams();
+		proxyParams.setParameter(CoreConnectionPNames.SO_TIMEOUT, readTimeoutMS);
 		proxyParams.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, connectionTimeoutMS);
 		proxyParams.setParameter(CoreConnectionPNames.SO_LINGER, 0);
 		proxyParams.setParameter(CoreConnectionPNames.SO_REUSEADDR, true);
