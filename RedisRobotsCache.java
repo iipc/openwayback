@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
@@ -124,10 +126,10 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 	
 	protected void processRedisUpdateQueue()
 	{
-		//ExecutorService mainLoopService = null;
+		ThreadPoolExecutor mainLoopService = null;
 		
 		try {			
-			//mainLoopService = Executors.newFixedThreadPool(maxCoreUpdateThreads);
+			mainLoopService = new ThreadPoolExecutor(maxCoreUpdateThreads, maxNumUpdateThreads, threadKeepAliveTime, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
 						
 			while (true) {
 				Thread.sleep(1);
@@ -144,7 +146,7 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 					}
 				}
 				
-				refreshService.execute(new URLRequestTask(url));
+				mainLoopService.execute(new URLRequestTask(url));
 			}
 		} catch (InterruptedException e) {
 			//DO NOTHING
