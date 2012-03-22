@@ -71,7 +71,7 @@ public class RedisRobotsCache implements LiveWebCache {
 	/* THREAD WORKER SETTINGS */
 	
 	private int maxNumUpdateThreads = 1000;
-	private int maxCoreUpdateThreads = 75;
+	private int maxCoreUpdateThreads = 100;
 	
 	private int threadKeepAliveTime = 5000;
 	
@@ -85,13 +85,37 @@ public class RedisRobotsCache implements LiveWebCache {
 	/* CLEANUP */
 	private IdleCleanerThread idleCleaner;
 	private int idleCleanupTimeoutMS = 60000;
+	
+	public BaseHttpConnMan getConnMan() {
+		return connMan;
+	}
 
-	public RedisRobotsCache(RedisConnectionManager redisConn, BaseHttpConnMan connMan) {
-		LOGGER.setLevel(Level.FINER);
-		
+	public void setHttpConnMan(BaseHttpConnMan connMan) {
 		this.connMan = connMan;
+	}
+	
+	public void setRedisConnMan(RedisConnectionManager redisConn) {
+		this.redisCmds = new RedisRobotsLogic(redisConn);
+	}
 
-		redisCmds = new RedisRobotsLogic(redisConn);
+	public int getMaxNumUpdateThreads() {
+		return maxNumUpdateThreads;
+	}
+
+	public void setMaxNumUpdateThreads(int maxNumUpdateThreads) {
+		this.maxNumUpdateThreads = maxNumUpdateThreads;
+	}
+
+	public int getMaxCoreUpdateThreads() {
+		return maxCoreUpdateThreads;
+	}
+
+	public void setMaxCoreUpdateThreads(int maxCoreUpdateThreads) {
+		this.maxCoreUpdateThreads = maxCoreUpdateThreads;
+	}
+
+	public void init() {
+		LOGGER.setLevel(Level.FINER);
 		
 		refreshService = new ThreadPoolExecutor(maxCoreUpdateThreads, maxNumUpdateThreads, threadKeepAliveTime, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());		
 		
@@ -504,8 +528,10 @@ public class RedisRobotsCache implements LiveWebCache {
                     connMan.idleCleanup();
                     StringWriter buff = new StringWriter();
                     PrintWriter info = new PrintWriter(buff);
+                    info.println("=== Idle Cleanup Stats ===");
                     info.println("  Active: " + refreshService.getActiveCount());
-                    info.println("  Pool: " + refreshService.getPoolSize() + " Largest: " + refreshService.getLargestPoolSize());
+                    info.println("  Pool: " + refreshService.getPoolSize());
+                    info.println("  Largest: " + refreshService.getLargestPoolSize());
                     info.println("  Task Count: " + refreshService.getTaskCount());
                     info.println("  Active URLS: " + activeContexts.size());
                     connMan.appendLogInfo(info);
@@ -530,6 +556,10 @@ public class RedisRobotsCache implements LiveWebCache {
 		String userAgent = null;
 		int redisPort = 6379;
 		
+		int maxPerRouteConnections = 0;
+		int maxConnections = 0;
+		int maxCoreUpdateThreads = 0;
+		
 		Iterator<String> paramsIter = Arrays.asList(args).iterator();
 		
 		while (paramsIter.hasNext()) {
@@ -542,13 +572,19 @@ public class RedisRobotsCache implements LiveWebCache {
 			if (flag.equals("-h")) {
 				redisHost = paramsIter.next();
 			} else if (flag.equals("-p")) {
-				redisPort = Integer.parseInt(paramsIter.next());			
+				redisPort = Integer.parseInt(paramsIter.next());		
 			} else if (flag.equals("-a")) {
 				redisPassword = paramsIter.next();
 			} else if (flag.equals("-r")) {
 				recProxy = paramsIter.next();
 			} else if (flag.equals("-u")) {
 				userAgent = paramsIter.next();
+			} else if (flag.equals("max_conn")) {
+				maxConnections = Integer.parseInt(paramsIter.next());
+			} else if (flag.equals("max_route_conn")) {
+				maxPerRouteConnections = Integer.parseInt(paramsIter.next());
+			} else if (flag.equals("max_thread")) {
+				maxCoreUpdateThreads = Integer.parseInt(paramsIter.next());
 			}
 		}
 		
@@ -566,10 +602,26 @@ public class RedisRobotsCache implements LiveWebCache {
 			httpManager.setProxyHostPort(recProxy);	
 		}
 		
+		if (maxConnections != 0) {		
+			httpManager.setMaxConnections(maxConnections);
+		}
+		
+		if (maxPerRouteConnections != 0) {
+			httpManager.setMaxPerRouteConnections(maxPerRouteConnections);
+		}
+		
 		httpManager.init();
 		
-		RedisRobotsCache cache = new RedisRobotsCache(redisMan, httpManager);
+		RedisRobotsCache cache = new RedisRobotsCache();
+		cache.setHttpConnMan(httpManager);
+		cache.setRedisConnMan(redisMan);
 		cache.setUserAgent(userAgent);
+		
+		if (maxCoreUpdateThreads != 0) {
+			cache.setMaxCoreUpdateThreads(maxCoreUpdateThreads);
+		}
+		
+		cache.init();
 		cache.processRedisUpdateQueue();
 	}
 }

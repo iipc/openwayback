@@ -11,6 +11,9 @@ abstract public class BaseHttpConnMan {
 	protected int pingConnectTimeoutMS = 100;
 	protected int dnsTimeoutMS = 5000;
 	
+	protected int maxPerRouteConnections = 4;
+	protected int maxConnections = 1000;
+	
 	protected String proxyHost;
 	protected int proxyPort;
 
@@ -53,6 +56,14 @@ abstract public class BaseHttpConnMan {
 		this.dnsTimeoutMS = dnsTimeoutMS;
 	}
 	
+	public void setMaxPerRouteConnections(int maxPerRouteConnections) {
+		this.maxPerRouteConnections = maxPerRouteConnections;
+	}
+
+	public void setMaxConnections(int maxConnections) {
+		this.maxConnections = maxConnections;
+	}
+
 	abstract public void init();
 	
 	abstract public void loadRobots(ConnectionCallback callback, String url, String userAgent);

@@ -33,10 +33,7 @@ import org.apache.http.util.EntityUtils;
 public class ApacheHttpConnMan extends BaseHttpConnMan {
 
 	private ThreadSafeClientConnManager connMan;
-	
-	private int maxPerRoute = 2;
-	private int maxConnections = 100;
-		
+			
 	private DefaultHttpClient directHttpClient;
 	private DefaultHttpClient proxyHttpClient;
 		
@@ -69,7 +66,7 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 			}
 		};		
 		
-		connMan.setDefaultMaxPerRoute(maxPerRoute);
+		connMan.setDefaultMaxPerRoute(maxPerRouteConnections);
 		connMan.setMaxTotal(maxConnections);
 		
 		HttpRequestRetryHandler retryHandler = new DefaultHttpRequestRetryHandler(0, false);
