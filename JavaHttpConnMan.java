@@ -29,7 +29,7 @@ public class JavaHttpConnMan extends BaseHttpConnMan {
 	private Integer httpConnectionCount = 0;
 	
 	@Override
-	public void loadRobots(ConnectionCallback callback, String url, String userAgent)
+	public void loadRobots(ConnectionCallback callback, String url, String userAgent) throws InterruptedException
 	{
 		int status = 0;
 		HttpURLConnection connection = null;
@@ -62,9 +62,9 @@ public class JavaHttpConnMan extends BaseHttpConnMan {
 			}
 			
 			//PerformanceLogger.noteElapsed("HttpLoadSuccess", System.currentTimeMillis() - startTime, url + " " + status + ((contents != null) ? " Size: " + contents.length() : " NULL"));
-//		} catch (InterruptedException ie) {
-//			Thread.currentThread().interrupt();
-//			callback.handleException(ie);	
+		} catch (InterruptedException ie) {
+			callback.handleException(ie);
+			throw ie;			
 		} catch (Exception exc) {
 			
 			callback.handleException(exc);			

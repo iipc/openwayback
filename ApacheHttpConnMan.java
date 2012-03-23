@@ -152,11 +152,11 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 	}
 
 	@Override
-	public void loadRobots(ConnectionCallback callback, String url, String userAgent) {
+	public void loadRobots(ConnectionCallback callback, String url, String userAgent) throws InterruptedException {
 		load(directHttpClient, callback, url, userAgent, false);
 	}
 	
-	protected void load(HttpClient client, ConnectionCallback callback, String url, String userAgent, boolean keepAlive)
+	protected void load(HttpClient client, ConnectionCallback callback, String url, String userAgent, boolean keepAlive) throws InterruptedException
 	{
 		int status = 0;
 		HttpGet httpGet = null;
@@ -189,10 +189,10 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 				callback.doRead(numToRead, contentType, input, charset);
 			}
 
-//		} catch (InterruptedException ie) {
-//			callback.handleException(ie);
-//			Thread.currentThread().interrupt();
-//			keepAlive = false;
+		} catch (InterruptedException ie) {
+			callback.handleException(ie);
+			keepAlive = false;
+			throw ie;
 		} catch (IOException e) {
 			callback.handleException(e);
 			keepAlive = false;
@@ -208,7 +208,7 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 	}
 	
 	@Override
-	public void loadProxyLive(ConnectionCallback callback, String url, String userAgent) {
+	public void loadProxyLive(ConnectionCallback callback, String url, String userAgent) throws InterruptedException {
 		if (proxyHttpClient == null) {
 			return;
 		}

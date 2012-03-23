@@ -84,7 +84,7 @@ class RobotsContext implements BaseHttpConnMan.ConnectionCallback
 	}
 
 	@Override
-	public void doRead(int numToRead, String contentType, InputStream input, String charset) throws IOException {
+	public void doRead(int numToRead, String contentType, InputStream input, String charset) throws IOException, InterruptedException {
 		if ((contentType == null) || (contentType.indexOf("text/plain") < 0)) {
 			LOGGER.info("Questionable Content-Type: " + contentType + " for: " + url);
 		}
@@ -125,7 +125,7 @@ class RobotsContext implements BaseHttpConnMan.ConnectionCallback
 				"Exception: " + exc + " url: " + url + " status " + status);				
 	}
 	
-	private ByteArrayOutputStream readMaxBytes(InputStream input, int max) throws IOException
+	private ByteArrayOutputStream readMaxBytes(InputStream input, int max) throws IOException, InterruptedException
 	{
 		byte[] byteBuff = new byte[8192];
 		
@@ -134,8 +134,7 @@ class RobotsContext implements BaseHttpConnMan.ConnectionCallback
 		int totalRead = 0;
 			
 		while (true) {
-			//Don't actually interrupt here, let read finish
-			//Thread.sleep(1);
+			Thread.sleep(0);
 			
 			int toRead = Math.min(byteBuff.length, max - totalRead);
 			

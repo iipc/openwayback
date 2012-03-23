@@ -21,7 +21,7 @@ abstract public class BaseHttpConnMan {
 	{
 		boolean supportStatus(int status);
 
-		void doRead(int length, String contentType, InputStream input, String charset) throws IOException;
+		void doRead(int length, String contentType, InputStream input, String charset) throws IOException, InterruptedException;
 
 		void handleException(Exception exc);
 	}
@@ -66,9 +66,9 @@ abstract public class BaseHttpConnMan {
 
 	abstract public void init();
 	
-	abstract public void loadRobots(ConnectionCallback callback, String url, String userAgent);
+	abstract public void loadRobots(ConnectionCallback callback, String url, String userAgent) throws InterruptedException;
 	
-	public void loadProxyLive(ConnectionCallback callback, String url, String userAgent) {}
+	public void loadProxyLive(ConnectionCallback callback, String url, String userAgent) throws InterruptedException {}
 
 	abstract public boolean pingProxyLive(String url);
 	

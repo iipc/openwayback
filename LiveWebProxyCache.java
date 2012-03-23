@@ -185,7 +185,11 @@ public class LiveWebProxyCache implements LiveWebCache {
 
 		@Override
 		public void run() {
-			connMan.loadProxyLive(this, this.url, userAgent);
+			try {
+				connMan.loadProxyLive(this, this.url, userAgent);
+			} catch (InterruptedException e) {
+
+			}
 		}
 	}	
 

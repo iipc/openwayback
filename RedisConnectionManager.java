@@ -55,7 +55,7 @@ public class RedisConnectionManager {
 	private int port = 6379;
 	private int db = 0;
 	private String password = null;
-	private int timeout = 0;
+	private int timeout = 200;
 	
 	private int maxJedisCount = 300;
 	

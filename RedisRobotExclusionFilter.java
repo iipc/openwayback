@@ -29,6 +29,7 @@ import java.util.regex.Pattern;
 
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.Resource;
+import org.archive.wayback.exception.LiveWebCacheUnavailableException;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.util.ObjectFilter;
 import org.archive.wayback.util.url.UrlOperations;
@@ -137,7 +138,14 @@ public class RedisRobotExclusionFilter extends ExclusionFilter {
 		
 		long startTime = System.currentTimeMillis();
 		
-		Resource robots = redisCache.getCachedRobots(urlStrings, cacheFails, true);
+		Resource robots = null;
+		
+		try {
+			robots = redisCache.getCachedRobots(urlStrings, cacheFails, false);
+		} catch (LiveWebCacheUnavailableException e1) {
+			LOGGER.severe("Live Web Cache Unavail: " + urlStrings.toString());
+			return null;
+		}
 		
 		if (robots != null) { 
 			rules = new RobotRules();

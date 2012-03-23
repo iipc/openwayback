@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
 
+import org.archive.wayback.exception.LiveWebCacheUnavailableException;
 import org.archive.wayback.webapp.PerformanceLogger;
 
 import redis.clients.jedis.Jedis;
@@ -22,7 +23,7 @@ public class RedisRobotsLogic {
 		this.redisConn = redisConn;		
 	}
 
-	public <T> T runJedisCmd(JedisRunner<T> runner)
+	public <T> T runJedisCmd(JedisRunner<T> runner) throws LiveWebCacheUnavailableException
 	{
 		Jedis jedis = null;
 		
@@ -33,11 +34,10 @@ public class RedisRobotsLogic {
 			LOGGER.severe("Jedis Exception: " + jce);
 			redisConn.returnBrokenJedis(jedis);
 			jedis = null;
+			throw new LiveWebCacheUnavailableException("No Jedis");
 		} finally {
 			redisConn.returnJedisInstance(jedis);
 		}
-		
-		return null;
 	}
 	
 	public void runJedisCmd(JedisRunnerVoid runner)
@@ -68,49 +68,61 @@ public class RedisRobotsLogic {
 		}
 	}
 	
-	public RedisValue getValue(final String key)
+	public RedisValue getValue(final String key) throws LiveWebCacheUnavailableException
 	{
 		long startTime = System.currentTimeMillis();
-		RedisValue value = this.runJedisCmd(new JedisRunner<RedisValue>()
-		{
-			public RedisValue run(Jedis jedis)
+		RedisValue value = null;
+		
+		try {
+			value = this.runJedisCmd(new JedisRunner<RedisValue>()
 			{
-				String value = jedis.get(key);
-				if (value == null) {
-					return null;
+				public RedisValue run(Jedis jedis)
+				{
+					String value = jedis.get(key);
+					if (value == null) {
+						return null;
+					}
+					long ttl = jedis.ttl(key);
+					return new RedisValue(value, ttl);
 				}
-				long ttl = jedis.ttl(key);
-				return new RedisValue(value, ttl);
-			}
-		});
-		PerformanceLogger.noteElapsed("RedisGetTTL", System.currentTimeMillis() - startTime, ((value == null) ? "REDIS MISS: " : "REDIS HIT: ") + key);
-		return value;
+			});
+			return value;
+			
+		} finally {
+			PerformanceLogger.noteElapsed("RedisGetTTL", System.currentTimeMillis() - startTime, ((value == null) ? "REDIS MISS: " : "REDIS HIT: ") + key);
+		}
 	}
 	
-	public List<RedisValue> getValue(final String[] keys)
+	public List<RedisValue> getValue(final String[] keys) throws LiveWebCacheUnavailableException
 	{
 		long startTime = System.currentTimeMillis();
-		List<RedisValue> values = this.runJedisCmd(new JedisRunner<List<RedisValue>>()
-		{
-			public List<RedisValue> run(Jedis jedis)
-			{
-				List<String> values = jedis.mget(keys);
-				List<RedisValue> redisValues = new LinkedList<RedisValue>();
-				int index = 0;
-				for (String value : values) {
-					if (value == null) {
-						redisValues.add(null);
-					} else {
-						long ttl = jedis.ttl(keys[index]);
-						redisValues.add(new RedisValue(value, ttl));
-					}
-					index++;
-				}
-				return redisValues;
-			}
-		});
+
+		List<RedisValue> values = null;
 		
-		PerformanceLogger.noteElapsed("RedisMultiGetTTL", System.currentTimeMillis() - startTime, Arrays.toString(keys));
+		try {
+			values = this.runJedisCmd(new JedisRunner<List<RedisValue>>()
+			{
+				public List<RedisValue> run(Jedis jedis)
+				{
+					List<String> values = jedis.mget(keys);
+					List<RedisValue> redisValues = new LinkedList<RedisValue>();
+					int index = 0;
+					for (String value : values) {
+						if (value == null) {
+							redisValues.add(null);
+						} else {
+							long ttl = jedis.ttl(keys[index]);
+							redisValues.add(new RedisValue(value, ttl));
+						}
+						index++;
+					}
+					return redisValues;
+				}
+			});
+		} finally {		
+			PerformanceLogger.noteElapsed("RedisMultiGetTTL", System.currentTimeMillis() - startTime, Arrays.toString(keys));
+		}
+		
 		return values;
 	}
 	
@@ -153,7 +165,7 @@ public class RedisRobotsLogic {
 		});
 	}
 	
-	public String popKey(final String list)
+	public String popKey(final String list) throws LiveWebCacheUnavailableException
 	{
 		return this.runJedisCmd(new JedisRunner<String>()
 		{
