@@ -8,7 +8,7 @@ abstract public class BaseHttpConnMan {
 	
 	protected int connectionTimeoutMS = 5000;
 	protected int readTimeoutMS = 5000;
-	protected int pingConnectTimeoutMS = 100;
+	protected int pingConnectTimeoutMS = 500;
 	protected int dnsTimeoutMS = 5000;
 	
 	protected int maxPerRouteConnections = 4;

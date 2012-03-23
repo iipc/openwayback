@@ -31,7 +31,7 @@ public class LiveWebProxyCache implements LiveWebCache {
 	/* SOCKET SETTINGS / PARAMS */
 	protected BaseHttpConnMan connMan = null;
 
-	protected int responseTimeoutMS = 10000;
+	protected int responseTimeoutMS = 6000;
 	
 	protected String userAgent;
 	
@@ -54,6 +54,14 @@ public class LiveWebProxyCache implements LiveWebCache {
 
 	public void setHttpConnMan(BaseHttpConnMan connMan) {
 		this.connMan = connMan;
+	}
+
+	public int getResponseTimeoutMS() {
+		return responseTimeoutMS;
+	}
+
+	public void setResponseTimeoutMS(int responseTimeoutMS) {
+		this.responseTimeoutMS = responseTimeoutMS;
 	}
 
 	public int getMaxNumUpdateThreads() {

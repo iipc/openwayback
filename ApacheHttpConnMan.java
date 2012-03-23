@@ -7,6 +7,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -38,6 +39,9 @@ import org.apache.http.util.EntityUtils;
 
 public class ApacheHttpConnMan extends BaseHttpConnMan {
 
+	private final static Logger LOGGER = Logger
+	.getLogger(ApacheHttpConnMan.class.getName());
+	
 	private ThreadSafeClientConnManager connMan;
 			
 	private DefaultHttpClient directHttpClient;
@@ -104,8 +108,11 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 					Header locationHeader = response.getFirstHeader("location");
 					if (locationHeader != null) {
 						String value = locationHeader.getValue();
-						if (value.endsWith("robots.txt")) {
+						if (value.endsWith("/robots.txt")) {
+							LOGGER.info("REDIRECT FOLLOW: " + request.getRequestLine().getUri() + " => " + value);
 							return true;
+						} else {
+							LOGGER.info("REDIRECT IGNORE: " + request.getRequestLine().getUri() + " => " + value);
 						}
 					}
 				}
@@ -120,8 +127,8 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 		}
 		
 		BasicHttpParams proxyParams  = new BasicHttpParams();
-		proxyParams.setParameter(CoreConnectionPNames.SO_TIMEOUT, readTimeoutMS);
-		proxyParams.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, connectionTimeoutMS);
+		proxyParams.setParameter(CoreConnectionPNames.SO_TIMEOUT, pingConnectTimeoutMS);
+		proxyParams.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, pingConnectTimeoutMS);
 		proxyParams.setParameter(CoreConnectionPNames.SO_LINGER, 0);
 		proxyParams.setParameter(CoreConnectionPNames.SO_REUSEADDR, true);
 		proxyParams.setParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK, false);
@@ -219,7 +226,8 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 		try {
 			HttpContext context = new BasicHttpContext();
 			httpHead = new HttpHead(url);
-			httpHead.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, pingConnectTimeoutMS);
+//			httpHead.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT, pingConnectTimeoutMS);
+//			httpHead.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, pingConnectTimeoutMS);
 			proxyHttpClient.execute(httpHead, context);
 			return true;
 		} catch (Exception exc) {
@@ -237,7 +245,7 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 	@Override
 	public void appendLogInfo(PrintWriter info)
 	{
-	   info.println("Connections: " + connMan.getConnectionsInPool());
-	   info.println("DNS Active: " + ((ThreadPoolExecutor)dnsLookup.getExecutor()).getActiveCount());
+	   info.println("  Connections: " + connMan.getConnectionsInPool());
+	   info.println("  DNS Active: " + ((ThreadPoolExecutor)dnsLookup.getExecutor()).getActiveCount());
 	}
 }

@@ -10,6 +10,11 @@ public class RobotsTxtResource extends Resource {
 	
 	public RobotsTxtResource(String string)
 	{
+		// Skip BOM
+		if (!string.isEmpty() && (string.charAt(0) == ('\uFEFF'))) {
+			string = string.substring(1);
+		}
+		
 		this.setInputStream(new ByteArrayInputStream(string.getBytes()));
 	}
 
