@@ -88,6 +88,7 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 		params.setParameter(CoreConnectionPNames.SO_REUSEADDR, true);
 		params.setParameter(CoreConnectionPNames.STALE_CONNECTION_CHECK, false);
 		params.setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.IGNORE_COOKIES);
+		params.setParameter(ClientPNames.HANDLE_REDIRECTS, true);
 		
 		directHttpClient = new DefaultHttpClient(connMan, params);
 		directHttpClient.setHttpRequestRetryHandler(retryHandler);
@@ -108,7 +109,7 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 					Header locationHeader = response.getFirstHeader("location");
 					if (locationHeader != null) {
 						String value = locationHeader.getValue();
-						if (value.endsWith("/robots.txt")) {
+						if (value.endsWith("robots.txt")) {
 							LOGGER.info("REDIRECT FOLLOW: " + request.getRequestLine().getUri() + " => " + value);
 							return true;
 						} else {

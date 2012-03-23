@@ -1,5 +1,7 @@
 package org.archive.wayback.accesscontrol.robotstxt;
 
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -83,6 +85,33 @@ public class RedisRobotsLogic {
 		});
 		PerformanceLogger.noteElapsed("RedisGetTTL", System.currentTimeMillis() - startTime, ((value == null) ? "REDIS MISS: " : "REDIS HIT: ") + key);
 		return value;
+	}
+	
+	public List<RedisValue> getValue(final String[] keys)
+	{
+		long startTime = System.currentTimeMillis();
+		List<RedisValue> values = this.runJedisCmd(new JedisRunner<List<RedisValue>>()
+		{
+			public List<RedisValue> run(Jedis jedis)
+			{
+				List<String> values = jedis.mget(keys);
+				List<RedisValue> redisValues = new LinkedList<RedisValue>();
+				int index = 0;
+				for (String value : values) {
+					if (value == null) {
+						redisValues.add(null);
+					} else {
+						long ttl = jedis.ttl(keys[index]);
+						redisValues.add(new RedisValue(value, ttl));
+					}
+					index++;
+				}
+				return redisValues;
+			}
+		});
+		
+		PerformanceLogger.noteElapsed("RedisMultiGetTTL", System.currentTimeMillis() - startTime, Arrays.toString(keys));
+		return values;
 	}
 	
 	public void updateValue(final String url, final RedisValue value)

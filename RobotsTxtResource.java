@@ -8,16 +8,16 @@ import org.archive.wayback.core.Resource;
 
 public class RobotsTxtResource extends Resource {
 	
-	public RobotsTxtResource(String string)
+	public RobotsTxtResource(String contents)
 	{
 		// Skip BOM
-		if (!string.isEmpty() && (string.charAt(0) == ('\uFEFF'))) {
-			string = string.substring(1);
+		if (!contents.isEmpty() && (contents.charAt(0) == ('\uFEFF'))) {
+			contents = contents.substring(1);
 		}
 		
-		this.setInputStream(new ByteArrayInputStream(string.getBytes()));
+		this.setInputStream(new ByteArrayInputStream(contents.getBytes()));
 	}
-
+	
 	@Override
 	public void close() throws IOException {
 		// TODO Auto-generated method stub

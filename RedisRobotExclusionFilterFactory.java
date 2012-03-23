@@ -1,11 +1,13 @@
 package org.archive.wayback.accesscontrol.robotstxt;
 
+import org.archive.wayback.accesscontrol.ExclusionFilterFactory;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 
-public class RedisRobotExclusionFilterFactory extends
-		RobotExclusionFilterFactory {
+public class RedisRobotExclusionFilterFactory implements ExclusionFilterFactory {
 	
 	private RedisRobotsCache cache;
+	private String userAgent;
+	private boolean cacheFails;
 
 	public RedisRobotsCache getCache() {
 		return cache;
@@ -15,8 +17,21 @@ public class RedisRobotExclusionFilterFactory extends
 		this.cache = cache;
 	}
 
+	public String getUserAgent() {
+		return userAgent;
+	}
+
+	public void setUserAgent(String userAgent) {
+		this.userAgent = userAgent;
+	}
+
 	@Override
 	public ExclusionFilter get() {
-		return new RedisRobotExclusionFilter(super.getWebCache(), super.getUserAgent(), super.getMaxCacheMS());
+		return new RedisRobotExclusionFilter(cache, userAgent, cacheFails);
+	}
+
+	@Override
+	public void shutdown() {
+		this.cache.shutdown();	
 	}
 }

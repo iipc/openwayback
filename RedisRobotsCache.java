@@ -3,10 +3,15 @@ package org.archive.wayback.accesscontrol.robotstxt;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -86,15 +91,88 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 			
 			if (isExpired(value, url)) {	
 				redisCmds.pushKey(UPDATE_QUEUE_KEY, url, MAX_UPDATE_QUEUE_SIZE);
-			}			
-			
-			if (value.value.startsWith(ROBOTS_TOKEN_ERROR)) {
-				throw new LiveDocumentNotAvailableException("Robots Error: " + value.value);	
-			} else if (value.value.equals(ROBOTS_TOKEN_EMPTY)) {
-				value.value = "";
 			}
 			
-			return new RobotsTxtResource(value.value);
+			String currentRobots = value.value;
+			
+			if (currentRobots.startsWith(ROBOTS_TOKEN_ERROR)) {
+				throw new LiveDocumentNotAvailableException("Robots Error: " + currentRobots);	
+			} else if (value.equals(ROBOTS_TOKEN_EMPTY)) {
+				currentRobots = "";
+			}
+			
+			return new RobotsTxtResource(currentRobots);	
+		}
+	}
+	
+	protected boolean isValidRobots(String value) {
+		return !value.startsWith(ROBOTS_TOKEN_ERROR) && !value.equals(ROBOTS_TOKEN_EMPTY);
+	}
+	
+	public RobotsTxtResource getCachedRobots(ArrayList<String> urls, boolean cacheFails, boolean sequential)
+	{
+		String[] urlsArray = new String[urls.size()];
+		List<RedisValue> values = redisCmds.getValue(urls.toArray(urlsArray));
+		
+		int index = 0;
+		
+		RedisValue bestMatch = null;
+		String bestMatchUrl = null;
+		
+		for (RedisValue value : values) {
+			String url = urlsArray[index];
+			
+			if (value != null) {
+				if (isExpired(value, url)) {
+					redisCmds.pushKey(UPDATE_QUEUE_KEY, url, MAX_UPDATE_QUEUE_SIZE);
+				}
+				
+				if (bestMatch == null) {
+					bestMatchUrl = url;
+					bestMatch = value;
+				} else if (!isValidRobots(bestMatch.value) && isValidRobots(value.value)) {
+					bestMatchUrl = url;
+					bestMatch = value;
+				}
+			}
+			index++;
+		}
+		
+		if (bestMatch != null) {
+			LOGGER.info("BEST MATCH: " + bestMatchUrl);
+			String currentRobots = bestMatch.value;
+			
+			if (currentRobots.startsWith(ROBOTS_TOKEN_ERROR)) {
+				return null;
+			} else if (currentRobots.equals(ROBOTS_TOKEN_EMPTY)) {
+				currentRobots = "";
+			}
+			
+			return new RobotsTxtResource(currentRobots);
+
+		} else if (sequential) {
+			
+			for (String url : urls) {
+				RobotsContext context = doSyncUpdate(url, null, cacheFails, true);
+				if ((context != null) && context.isValid()) {
+					LOGGER.info("BEST MATCH: " + context.url);
+					return new RobotsTxtResource(context.getNewRobots());
+				}
+			}
+			
+			LOGGER.info("BEST MATCH: NULL");
+			return null;
+			
+		} else {
+			RobotsContext context = doSyncUpdate(urls, cacheFails, true);
+			
+			if ((context != null) && context.isValid()) {
+				LOGGER.info("BEST MATCH: " + context.url);
+				return new RobotsTxtResource(context.getNewRobots());
+			} else {
+				LOGGER.info("BEST MATCH: NULL");
+				return null;
+			}
 		}
 	}
 			
@@ -206,106 +284,66 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 		return context;
 	}
 	
-//	private RobotsContextTask getRobotsContextTask(String url, String current, boolean cacheFails)
-//	{
-//		RobotsContext context;
-//		boolean toLoad = true;
-//		
-//		synchronized(activeContexts) {
-//			context = activeContexts.get(url);
-//			if (context == null) {
-//				context = new RobotsContext(url, current, cacheFails);
-//				activeContexts.put(url, context);
-//				toLoad = true;
-//			}
-//		}
-//		
-//		return new RobotsContextTask(toLoad, context);		
-//	}
-//	
-//	class RobotsContextTask implements Callable<RobotsContext>
-//	{
-//		final boolean finalToLoad;
-//		final RobotsContext finalContext;
-//		
-//		RobotsContextTask(boolean toLoad, RobotsContext context)
-//		{
-//			finalToLoad = toLoad;
-//			finalContext = context;
-//		}
-//		
-//		@Override
-//		public RobotsContext call() throws Exception {
-//			
-//			if (finalToLoad) {	
-//				try {
-//					processAsyncUpdate(finalContext);
-//				} finally {
-//					finalContext.latch.countDown();
-//					
-//					synchronized(activeContexts) {
-//						activeContexts.remove(finalContext.url);
-//					}
-//				}
-//			} else {
-//				try {
-//					LOGGER.info("WAITING FOR: " + finalContext.url);
-//					
-//					if (!finalContext.latch.await(responseTimeoutMS, TimeUnit.MILLISECONDS)) {
-//						LOGGER.info("WAIT FOR " + finalContext.url + " timed out!");
-//					}
-//					
-//				} catch (InterruptedException e) {
-//					LOGGER.info("INTERRUPT FOR " + finalContext.url);
-//				}
-//			}
-//			return finalContext;
-//		}
-//	}
-//	
-//
-//	private RobotsContext doSyncUpdate(List<String> urls, boolean cacheFails, boolean canceleable)
-//	{		
-//		LinkedList<RobotsContextTask> tasks = new LinkedList<RobotsContextTask>();
-//		
-//		for (String url : urls) {
-//			tasks.add(getRobotsContextTask(url, null, cacheFails));
-//		}
-//		
-//		ExecutorCompletionService<RobotsContext> completer = new ExecutorCompletionService<RobotsContext>(refreshService);
-//		
-//		for (Callable<RobotsContext> task : tasks) {
-//			completer.submit(task);
-//		}
-//		
-//		try {
-//			Future<RobotsContext> future = completer.poll(this.responseTimeoutMS, TimeUnit.MILLISECONDS);
-//			if (future == null) {
-//				return tasks.getFirst().finalContext;
-//			}
-//			
-//			RobotsContext firstInvalid = null;
-//						
-//			while (future != null) {
-//				RobotsContext context = future.get();
-//				
-//				if (context.isValid()) {
-//					return context;
-//				} else if (firstInvalid == null) {
-//					firstInvalid = context;
-//				}
-//				
-//				future = completer.poll();
-//			}
-//			
-//			return firstInvalid;
-//			
-//		} catch (InterruptedException e) {
-//			return tasks.getFirst().finalContext;
-//		} catch (ExecutionException e) {
-//			return tasks.getFirst().finalContext;
-//		}
-//	}
+	private RobotsContext doSyncUpdate(List<String> urls, boolean cacheFails, boolean canceleable)
+	{				
+		ExecutorCompletionService<RobotsContext> completer = new ExecutorCompletionService<RobotsContext>(refreshService);
+		
+		LinkedList<Future<RobotsContext>> futures = new LinkedList<Future<RobotsContext>>();
+		
+		RobotsContext first = null;
+		
+		for (String url : urls) {
+			RobotsContext context = new RobotsContext(url, null, cacheFails);
+			if (first == null) {
+				first = context;
+			}
+			AsyncLoadAndUpdate task = new AsyncLoadAndUpdate(context);
+			futures.add(completer.submit(task, task.context));
+		}
+		
+		int count = 0;
+		
+		try {
+			long endTime = System.currentTimeMillis() + this.responseTimeoutMS;
+			Future<RobotsContext> future = completer.poll(this.responseTimeoutMS, TimeUnit.MILLISECONDS);
+			
+			// If none finished, return first one as error
+			if (future == null) {
+				return first;
+			}
+			
+			RobotsContext firstInvalid = null;
+						
+			while ((future != null) && (count++ < futures.size())) {
+				RobotsContext context = future.get();
+				
+				if (context.isValid()) {
+					return context;
+				} else if (firstInvalid == null) {
+					firstInvalid = context;
+				}
+				
+				long remainingTime = Math.max(0, endTime - System.currentTimeMillis());
+				future = completer.poll(remainingTime, TimeUnit.MILLISECONDS);
+				LOGGER.info("POLLED REMAINDER " + remainingTime + " " + future);
+			}
+			
+			return firstInvalid;
+			
+		} catch (InterruptedException e) {
+			return first;
+		} catch (ExecutionException e) {
+			return first;
+		} finally {
+			if (count < futures.size()) {
+				for (Future<RobotsContext> future : futures) {
+					if (!future.isDone()) {
+						future.cancel(canceleable);
+					}
+				}
+			}
+		}
+	}
 	
 	private void updateCache(final RobotsContext context) {		
 		String contents = null;
@@ -352,7 +390,7 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 			}
 			
 			// Don't override a valid robots with a timeout error
-			if (newRedisValue.startsWith(ROBOTS_TOKEN_ERROR) && !currentValue.startsWith(ROBOTS_TOKEN_ERROR)) {
+			if (!isValidRobots(newRedisValue) && isValidRobots(currentValue)) {
 				newRedisValue = currentValue;
 				newTTL = totalTTL;
 				LOGGER.info("REFRESH ERROR: Keeping same robots for " + context.url + ", refresh timed out");
