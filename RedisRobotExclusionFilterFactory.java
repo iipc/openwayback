@@ -25,6 +25,14 @@ public class RedisRobotExclusionFilterFactory implements ExclusionFilterFactory 
 		this.userAgent = userAgent;
 	}
 
+	public boolean isCacheFails() {
+		return cacheFails;
+	}
+
+	public void setCacheFails(boolean cacheFails) {
+		this.cacheFails = cacheFails;
+	}
+
 	@Override
 	public ExclusionFilter get() {
 		return new RedisRobotExclusionFilter(cache, userAgent, cacheFails);
