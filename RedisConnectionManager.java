@@ -57,8 +57,16 @@ public class RedisConnectionManager {
 	private String password = null;
 	private int timeout = 200;
 	
-	private int maxJedisCount = 300;
+	private int connections = 300;
 	
+	public int getConnections() {
+		return connections;
+	}
+
+	public void setConnections(int connections) {
+		this.connections = connections;
+	}
+
 	private final static Logger LOGGER = 
 		Logger.getLogger(RedisConnectionManager.class.getName());
 	
@@ -73,7 +81,7 @@ public class RedisConnectionManager {
 	{
 		GenericObjectPool.Config config = new GenericObjectPool.Config();
 		config.lifo = false;
-		config.maxActive = maxJedisCount;
+		config.maxActive = connections;
 		config.maxIdle = 100;
 		config.testOnBorrow = true;
 		config.testOnReturn = false;

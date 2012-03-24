@@ -17,7 +17,7 @@ public class RedisRobotExclusionFilterFactory extends RobotExclusionFilterFactor
 
 	@Override
 	public ExclusionFilter get() {
-		return new RedisRobotExclusionFilter((RedisRobotsCache)super.getWebCache(), super.getUserAgent(), cacheFails);
+		return new RedisRobotExclusionFilter(super.getWebCache(), super.getUserAgent(), cacheFails);
 	}
 
 	@Override
