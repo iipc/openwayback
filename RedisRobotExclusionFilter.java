@@ -20,8 +20,11 @@
 package org.archive.wayback.accesscontrol.robotstxt;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -29,7 +32,9 @@ import java.util.regex.Pattern;
 
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.Resource;
+import org.archive.wayback.exception.LiveDocumentNotAvailableException;
 import org.archive.wayback.exception.LiveWebCacheUnavailableException;
+import org.archive.wayback.exception.LiveWebTimeoutException;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.util.ObjectFilter;
 import org.archive.wayback.util.url.UrlOperations;
@@ -69,6 +74,8 @@ public class RedisRobotExclusionFilter extends ExclusionFilter {
 	
 	private boolean notifiedSeen = false;
 	private boolean notifiedPassed = false;
+
+	private boolean useOrigRules = true;
 
 	protected String hostToRobotUrlString(String host) {
 		sb.setLength(0);
@@ -166,6 +173,94 @@ public class RedisRobotExclusionFilter extends ExclusionFilter {
 		
 		return rules;
 	}
+	
+	private RobotRules getRulesOrig(CaptureSearchResult result) {
+		RobotRules rules = null;
+		RobotRules tmpRules = null;
+		String host;
+		try {
+			host = result.getOriginalHost();
+		} catch(Exception e) {
+			LOGGER.warning("ROBOT: Failed to get host from("+result.getOriginalUrl()+")");			
+			return null;
+		}
+		List<String> urlStrings = searchResultToRobotUrlStrings(host);
+		Iterator<String> itr = urlStrings.iterator();
+		String firstUrlString = null;
+
+		// loop through them all. As soon as we get a response, store that
+		// in the cache for the FIRST url we tried and return it..
+		// If we get no responses for any of the robot URLs, use "empty" rules,
+		// and record that in the cache, too.
+		
+		while(rules == null && itr.hasNext()) {
+			String urlString = (String) itr.next();
+			if(firstUrlString == null) {
+				firstUrlString = urlString;
+			}
+			if(rulesCache.containsKey(urlString)) {
+				LOGGER.fine("ROBOT: Cached("+urlString+")");
+				rules = rulesCache.get(urlString);
+				if(!urlString.equals(firstUrlString)) {
+					LOGGER.fine("Adding extra url("+firstUrlString+") for prev cached rules("+urlString+")");
+					rulesCache.put(firstUrlString, rules);
+				}
+			} else {
+				long start = System.currentTimeMillis();;
+				try {
+					LOGGER.fine("ROBOT: NotCached - Downloading("+urlString+")");
+				
+					tmpRules = new RobotRules();
+					Resource resource = redisCache.getCachedResource(new URL(urlString),
+							cacheFails ? 1 : 0, true);
+					//long elapsed = System.currentTimeMillis() - start;
+					//PerformanceLogger.noteElapsed("RobotRequest", elapsed, urlString);
+
+					if(resource.getStatusCode() != 200) {
+						LOGGER.info("ROBOT: NotAvailable("+urlString+")");
+						throw new LiveDocumentNotAvailableException(urlString);
+					}
+					tmpRules.parse(resource);
+					rulesCache.put(firstUrlString,tmpRules);
+					rules = tmpRules;
+					LOGGER.fine("ROBOT: Downloaded("+urlString+")");
+
+				} catch (LiveDocumentNotAvailableException e) {
+					LOGGER.info("ROBOT: LiveDocumentNotAvailableException("+urlString+")");
+
+				} catch (MalformedURLException e) {
+//					e.printStackTrace();
+					LOGGER.warning("ROBOT: MalformedURLException("+urlString+")");
+					return null;
+				} catch (IOException e) {
+					LOGGER.warning("ROBOT: IOException("+urlString+"):"+e.getLocalizedMessage());
+					return null;
+				} catch (LiveWebCacheUnavailableException e) {
+					LOGGER.severe("ROBOT: LiveWebCacheUnavailableException("+urlString+")");
+					if (filterGroup != null) {
+						filterGroup.setLiveWebGone();
+					}
+					return null;
+				} catch (LiveWebTimeoutException e) {
+					LOGGER.severe("ROBOT: LiveDocumentTimedOutException("+urlString+")");
+					if (filterGroup != null) {
+						filterGroup.setRobotTimedOut();
+					}
+					return null;
+				} finally {
+					long elapsed = System.currentTimeMillis() - start;
+					PerformanceLogger.noteElapsed("RobotRequest", elapsed, urlString);
+				}
+			}
+		}
+		if(rules == null) {
+			// special-case, allow empty rules if no longer available.
+			rulesCache.put(firstUrlString,emptyRules);
+			rules = emptyRules;
+			LOGGER.fine("No rules available, using emptyRules for:" + firstUrlString);
+		}
+		return rules;
+	}
 
 	@Override
 	public int filterObject(CaptureSearchResult r) {
@@ -187,7 +282,7 @@ public class RedisRobotExclusionFilter extends ExclusionFilter {
 			return ObjectFilter.FILTER_INCLUDE;
 		}
 		int filterResult = ObjectFilter.FILTER_EXCLUDE; 
-		RobotRules rules = getRules(r);
+		RobotRules rules = (useOrigRules ? getRulesOrig(r) : getRules(r));
 		if(rules == null) {
 			if((filterGroup == null) || (filterGroup.getRobotTimedOut() || filterGroup.getLiveWebGone())) {
 				return ObjectFilter.FILTER_ABORT;
