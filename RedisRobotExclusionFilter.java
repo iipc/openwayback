@@ -150,6 +150,9 @@ public class RedisRobotExclusionFilter extends ExclusionFilter {
 		try {
 			robots = redisCache.getCachedRobots(urlStrings, cacheFails, false);
 		} catch (LiveWebCacheUnavailableException e1) {
+			if (filterGroup != null) {
+				filterGroup.setLiveWebGone();
+			}
 			LOGGER.severe("Live Web Cache Unavail: " + urlStrings.toString());
 			return null;
 		}

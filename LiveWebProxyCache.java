@@ -9,7 +9,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
 
@@ -88,9 +87,7 @@ public class LiveWebProxyCache implements LiveWebCache {
 		this.userAgent = userAgent;
 	}
 
-	public void init() {
-		LOGGER.setLevel(Level.FINER);
-		
+	public void init() {		
 		refreshService = new ThreadPoolExecutor(maxCoreUpdateThreads, maxNumUpdateThreads, threadKeepAliveTime, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
 		
 		idleCleaner = new IdleCleanerThread(idleCleanupTimeoutMS);
