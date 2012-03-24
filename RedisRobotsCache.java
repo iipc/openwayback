@@ -76,7 +76,13 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 		// HACK: until the boolean can be specified in spring
 		cacheFails = (maxCacheMS != 0);
 		
-		RedisValue value = redisCmds.getValue(url);
+		RedisValue value = null;
+		
+		try {
+			value = redisCmds.getValue(url);
+		} catch (LiveWebCacheUnavailableException lw) {
+			value = null;
+		}
 			
 		if (value == null) {
 			RobotsContext context = doSyncUpdate(url, null, cacheFails, true);

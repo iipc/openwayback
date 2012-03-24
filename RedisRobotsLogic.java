@@ -3,6 +3,7 @@ package org.archive.wayback.accesscontrol.robotstxt;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.archive.wayback.exception.LiveWebCacheUnavailableException;
@@ -31,7 +32,7 @@ public class RedisRobotsLogic {
 			jedis = redisConn.getJedisInstance();
 			return runner.run(jedis);
 		} catch (JedisConnectionException jce) {
-			LOGGER.severe("Jedis Exception: " + jce);
+			LOGGER.log(Level.SEVERE, "Jedis Exception", jce);
 			redisConn.returnBrokenJedis(jedis);
 			jedis = null;
 			throw new LiveWebCacheUnavailableException("No Jedis");
