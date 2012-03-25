@@ -1,13 +1,10 @@
 package org.archive.wayback.accesscontrol.robotstxt;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import org.apache.commons.pool.impl.GenericObjectPool;
 import org.archive.wayback.webapp.PerformanceLogger;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisPoolConfig;
 
 public class RedisConnectionManager {
 	
@@ -57,8 +54,18 @@ public class RedisConnectionManager {
 	private String password = null;
 	private int timeout = 200;
 	
-	private int connections = 300;
+	private int connections = 50;
 	
+	private JedisPoolConfig config = null;
+	
+	public JedisPoolConfig getConfig() {
+		return config;
+	}
+
+	public void setConfig(JedisPoolConfig config) {
+		this.config = config;
+	}
+
 	public int getConnections() {
 		return connections;
 	}
@@ -66,26 +73,24 @@ public class RedisConnectionManager {
 	public void setConnections(int connections) {
 		this.connections = connections;
 	}
-
-	private final static Logger LOGGER = 
-		Logger.getLogger(RedisConnectionManager.class.getName());
 	
 	private JedisPool pool;
 			
 	public RedisConnectionManager()
     {
-		LOGGER.setLevel(Level.FINER);
 	}
 	
 	public void init()
 	{
-		GenericObjectPool.Config config = new GenericObjectPool.Config();
-		config.lifo = false;
-		config.maxActive = connections;
-		config.maxIdle = 100;
-		config.testOnBorrow = true;
-		config.testOnReturn = false;
-		config.testWhileIdle = false;
+		if (config == null) {
+			config = new JedisPoolConfig();
+			config.lifo = true;
+			config.maxActive = connections;
+			config.maxIdle = connections;
+			config.testOnBorrow = true;
+			config.testOnReturn = false;
+			config.testWhileIdle = true;
+		}
 		
 		pool = new JedisPool(config, host, port, timeout, password);
 	}

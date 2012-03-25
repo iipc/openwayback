@@ -36,10 +36,10 @@ public class LiveWebProxyCache implements LiveWebCache {
 	
 	/* THREAD WORKER SETTINGS */
 	
-	protected int maxNumUpdateThreads = 1000;
-	protected int maxCoreUpdateThreads = 75;
+	protected int maxNumUpdateThreads = 200;
+	protected int maxCoreUpdateThreads = 50;
 	
-	protected int threadKeepAliveTime = 5000;
+	protected int threadKeepAliveTime = 60000;
 	
 	protected ThreadPoolExecutor refreshService;
 	
@@ -232,5 +232,4 @@ public class LiveWebProxyCache implements LiveWebCache {
 			idleCleaner.shutdown();
 		}
 	}
-
 }
