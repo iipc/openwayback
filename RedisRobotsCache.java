@@ -207,19 +207,29 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 	protected void processRedisUpdateQueue()
 	{
 		ThreadPoolExecutor mainLoopService = null;
+		int errorCounter = 0;
+		
+		int maxErrorThresh = 10;
+		int errorSleepTime = 10000;
 		
 		try {			
 			mainLoopService = new ThreadPoolExecutor(maxCoreUpdateThreads, maxNumUpdateThreads, threadKeepAliveTime, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
 						
 			while (true) {
-				Thread.sleep(0);
+				if (errorCounter >= maxErrorThresh) {
+					LOGGER.warning(errorCounter + " Redis ERRORS! Sleeping for " + errorSleepTime);
+					Thread.sleep(errorSleepTime);
+				} else {
+					Thread.sleep(0);
+				}
 				
 				String url = null;
 				
 				try {
 					url = redisCmds.popKey(UPDATE_QUEUE_KEY);
+					errorCounter = 0;
 				} catch (LiveWebCacheUnavailableException e) {
-
+					errorCounter++;
 				}
 				
 				if (url == null) {
@@ -231,7 +241,7 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 						continue;
 					}
 				}
-				
+							
 				mainLoopService.execute(new URLRequestTask(url));
 			}
 		} catch (InterruptedException e) {
@@ -269,7 +279,7 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 				LOGGER.info("INTERRUPTED: " + url + " " + e);
 				
 				if (canceleable)	{	
-					futureResponse.cancel(false);
+					futureResponse.cancel(true);
 				}
 			
 			} finally {				
@@ -355,7 +365,7 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 		}
 	}
 	
-	private void updateCache(final RobotsContext context) throws InterruptedException {		
+	private void updateCache(final RobotsContext context) {		
 		String contents = null;
 		
 		String newRedisValue = null;
@@ -406,9 +416,7 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 				LOGGER.info("REFRESH ERROR: Keeping same robots for " + context.url + ", refresh timed out");
 			}
 		}
-		
-		Thread.sleep(0);
-		
+				
 		final RedisValue value = new RedisValue((ttlOnly ? null : newRedisValue), newTTL);
 		redisCmds.updateValue(context.url, value);
 	}
