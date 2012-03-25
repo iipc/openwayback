@@ -85,6 +85,7 @@ public class RedisConnectionManager {
 		if (config == null) {
 			config = new JedisPoolConfig();
 			config.lifo = true;
+			config.timeBetweenEvictionRunsMillis = -1;
 			config.maxActive = connections;
 			config.maxIdle = connections;
 			config.testOnBorrow = true;
