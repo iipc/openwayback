@@ -47,6 +47,26 @@ class RobotsContext implements BaseHttpConnMan.ConnectionCallback
 		return (newRobots != null) && (status == LIVE_OK);
 	}
 	
+	static boolean isErrExpiry(int status)
+	{
+		return (status == 0) || ((status >= 500) && (status != LIVE_HOST_ERROR));
+	}
+	
+	boolean isErrExpiry()
+	{
+		return isErrExpiry(status);
+	}
+	
+	static boolean isErrExpiry(String code)
+	{
+		try {
+			int status = Integer.parseInt(code);
+			return isErrExpiry(status);
+		} catch (NumberFormatException n) {
+			return true;
+		}
+	}
+		
 	String getNewRobots()
 	{
 		return newRobots;

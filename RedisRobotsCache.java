@@ -186,7 +186,14 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 				
 		int maxTime, refreshTime;
 		
-		if (value.value.startsWith(ROBOTS_TOKEN_ERROR)) {
+		boolean isErrExpire = value.value.startsWith(ROBOTS_TOKEN_ERROR);
+		
+		if (isErrExpire) {
+			String code = value.value.substring(ROBOTS_TOKEN_ERROR.length());
+			isErrExpire = RobotsContext.isErrExpiry(code);
+		}
+		
+		if (isErrExpire) {
 			maxTime = notAvailTotalTTL;
 			refreshTime = notAvailRefreshTTL;
 		} else {
@@ -390,15 +397,15 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 				return;
 			}
 			
-			newRedisValue = ROBOTS_TOKEN_ERROR + context.getStatus();
+			int status = context.getStatus();
 			
-			switch (context.getStatus()) {
-			case RobotsContext.LIVE_HOST_ERROR:
-				newTTL = totalTTL;
-				break;
-				
-			default:
+			newRedisValue = ROBOTS_TOKEN_ERROR + status;
+			
+			
+			if (context.isErrExpiry()) {
 				newTTL = notAvailTotalTTL;
+			} else {
+				newTTL = totalTTL;
 			}
 		}
 		
