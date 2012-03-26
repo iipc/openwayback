@@ -1,12 +1,21 @@
 package org.archive.wayback.accesscontrol.robotstxt;
 
+import java.io.PrintWriter;
+import java.util.logging.Logger;
+
+import org.apache.commons.pool.BasePoolableObjectFactory;
+import org.apache.commons.pool.impl.GenericObjectPool;
 import org.archive.wayback.webapp.PerformanceLogger;
 
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
+import redis.clients.jedis.exceptions.JedisConnectionException;
+import redis.clients.jedis.exceptions.JedisException;
 
 public class RedisConnectionManager {
+	
+	private final static Logger LOGGER = Logger
+	.getLogger(RedisConnectionManager.class.getName());
 	
 	public String getHost() {
 		return host;
@@ -74,7 +83,51 @@ public class RedisConnectionManager {
 		this.connections = connections;
 	}
 	
-	private JedisPool pool;
+	//private JedisPool pool;
+	private GenericObjectPool goPool;
+	
+    private class JedisFactory extends BasePoolableObjectFactory {
+
+        public Object makeObject() throws Exception {
+            final Jedis jedis;
+            jedis = new Jedis(host, port, timeout);
+            jedis.getClient().setPassword(password);
+            jedis.connect();
+            return jedis;
+        }
+
+        public void destroyObject(final Object obj) throws Exception {
+            if (obj instanceof Jedis) {
+                final Jedis jedis = (Jedis) obj;
+                if (jedis.isConnected()) {
+                    try {
+                        try {
+                            jedis.quit();
+                        } catch (Exception e) {
+                        	LOGGER.warning("REDISCONN: QUIT: " + e);
+                        }
+                        jedis.disconnect();
+                    } catch (Exception e) {
+                    	LOGGER.warning("REDISCONN: DISCONNECT: " + e);
+                    }
+                }
+            }
+        }
+
+        public boolean validateObject(final Object obj) {
+            if (obj instanceof Jedis) {
+                final Jedis jedis = (Jedis) obj;
+                try {
+                    return jedis.isConnected();// && jedis.ping().equals("PONG");
+                } catch (final Exception e) {
+                	LOGGER.warning("REDISCONN: VALIDATE: " + e);
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        }
+    }
 			
 	public RedisConnectionManager()
     {
@@ -93,14 +146,22 @@ public class RedisConnectionManager {
 			config.testWhileIdle = true;
 		}
 		
-		pool = new JedisPool(config, host, port, timeout, password);
+		goPool = new GenericObjectPool(new JedisFactory(), config);
+		//pool = new JedisPool(config, host, port, timeout, password);
 	}
 	
 	public Jedis getJedisInstance()
 	{
 		long startTime = System.currentTimeMillis();
 
-		Jedis jedis = pool.getResource();
+		//Jedis jedis = pool.getResource();
+		Jedis jedis;
+		
+		try {
+			jedis = (Jedis)goPool.borrowObject();
+		} catch (Exception e) {
+			throw new JedisConnectionException("Connection");
+		}
 		
 		if (db != 0) {
 			jedis.select(db);
@@ -116,7 +177,12 @@ public class RedisConnectionManager {
 			return;
 		}
 					
-		pool.returnResource(jedis);
+		//pool.returnResource(jedis);
+		try {
+			goPool.returnObject(jedis);
+		} catch (Exception e) {
+        	LOGGER.warning("REDISCONN: RETURN: " + e);
+		}
 	}
 	
 	public void returnBrokenJedis(Jedis jedis)
@@ -125,12 +191,27 @@ public class RedisConnectionManager {
 			return;
 		}
 		
-		pool.returnBrokenResource(jedis);
+		try {
+			goPool.invalidateObject(jedis);
+		} catch (Exception e) {
+        	LOGGER.warning("REDISCONN: BROKEN: " + e);
+		}
+		//pool.returnBrokenResource(jedis);
 	}
 	
 	public void close() {
-		if (pool != null) {
-			pool.destroy();
+		if (goPool != null) {
+			try {
+				goPool.close();
+			} catch (Exception e) {
+				throw new JedisException("Close");
+			}
 		}
+	}
+	
+	public void appendLogInfo(PrintWriter info)
+	{
+		info.write("Jedis Active: " + goPool.getNumActive());
+		info.write("Jedis Idle: " + goPool.getNumIdle());
 	}
 }
