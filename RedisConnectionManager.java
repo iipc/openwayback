@@ -60,7 +60,7 @@ public class RedisConnectionManager {
 	private int port = 6379;
 	private int db = 0;
 	private String password = null;
-	private int timeout = 200;
+	private int timeout = 2000;
 	
 	private int connections = 50;
 	
@@ -170,7 +170,10 @@ public class RedisConnectionManager {
 		try {
 			jedis = (Jedis)goPool.borrowObject();
 		} catch (Exception e) {
-			throw new JedisConnectionException("Connection", e);
+			if (e instanceof JedisConnectionException) {
+				throw (JedisConnectionException)e;
+			}
+			throw new JedisConnectionException("Connection: ", e);
 		}
 		
 		if (db != 0) {
