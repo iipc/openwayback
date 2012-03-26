@@ -97,7 +97,7 @@ public class LiveWebProxyCache implements LiveWebCache {
 	
 	protected void appendLogInfo(PrintWriter info)
 	{
-        info.println("=== Idle Cleanup Stats ===");
+        info.println("=== Live Web Cache Idle Cleanup Stats ===");
         info.println("  Active: " + refreshService.getActiveCount());
         info.println("  Pool: " + refreshService.getPoolSize());
         info.println("  Largest: " + refreshService.getLargestPoolSize());

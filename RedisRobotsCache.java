@@ -526,10 +526,10 @@ public class RedisRobotsCache extends LiveWebProxyCache {
         synchronized(activeContexts) {
             info.println("  Active URLS: " + activeContexts.size());
             
-        	for (RobotsContext context : activeContexts.values()) {
-        		long age = System.currentTimeMillis() - context.created;
-        		info.println("   " + context.url + " " + age + " " + context.latch.getCount());
-        	}
+//        	for (RobotsContext context : activeContexts.values()) {
+//        		long age = System.currentTimeMillis() - context.created;
+//        		info.println("   " + context.url + " " + age);
+//        	}
         }
         
         redisCmds.appendLogInfo(info);

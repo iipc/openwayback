@@ -10,7 +10,6 @@ import org.archive.wayback.webapp.PerformanceLogger;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.exceptions.JedisConnectionException;
-import redis.clients.jedis.exceptions.JedisException;
 
 public class RedisConnectionManager {
 	
@@ -104,7 +103,6 @@ public class RedisConnectionManager {
                         try {
                             jedis.quit();
                         } catch (Exception e) {
-                        	LOGGER.warning("REDISCONN: QUIT: " + e);
                         }
                         jedis.disconnect();
                     } catch (Exception e) {
@@ -160,7 +158,7 @@ public class RedisConnectionManager {
 		try {
 			jedis = (Jedis)goPool.borrowObject();
 		} catch (Exception e) {
-			throw new JedisConnectionException("Connection");
+			throw new JedisConnectionException("Connection", e);
 		}
 		
 		if (db != 0) {
@@ -204,7 +202,7 @@ public class RedisConnectionManager {
 			try {
 				goPool.close();
 			} catch (Exception e) {
-				throw new JedisException("Close");
+	        	LOGGER.warning("REDISCONN: CLOSE: " + e);
 			}
 		}
 	}
