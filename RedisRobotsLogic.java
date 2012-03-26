@@ -1,5 +1,6 @@
 package org.archive.wayback.accesscontrol.robotstxt;
 
+import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -191,5 +192,9 @@ public class RedisRobotsLogic {
 	interface JedisRunnerVoid
 	{
 		public void run(Jedis jedis);
+	}
+
+	public void appendLogInfo(PrintWriter info) {
+		redisConn.appendLogInfo(info);		
 	}
 }

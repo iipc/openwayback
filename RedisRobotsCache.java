@@ -531,6 +531,8 @@ public class RedisRobotsCache extends LiveWebProxyCache {
         		info.println("   " + context.url + " " + age + " " + context.latch.getCount());
         	}
         }
+        
+        redisCmds.appendLogInfo(info);
 	}
 		
 	public static void main(String args[])

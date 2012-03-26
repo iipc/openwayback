@@ -211,7 +211,7 @@ public class RedisConnectionManager {
 	
 	public void appendLogInfo(PrintWriter info)
 	{
-		info.write("Jedis Active: " + goPool.getNumActive());
-		info.write("Jedis Idle: " + goPool.getNumIdle());
+		info.println("  Jedis Active: " + goPool.getNumActive());
+		info.println("  Jedis Idle: " + goPool.getNumIdle());
 	}
 }
