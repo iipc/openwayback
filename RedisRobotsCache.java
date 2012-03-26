@@ -522,7 +522,15 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 	protected void appendLogInfo(PrintWriter info)
 	{
 		super.appendLogInfo(info);
-        info.println("  Active URLS: " + activeContexts.size());
+                
+        synchronized(activeContexts) {
+            info.println("  Active URLS: " + activeContexts.size());
+            
+        	for (RobotsContext context : activeContexts.values()) {
+        		long age = System.currentTimeMillis() - context.created;
+        		info.println("   " + context.url + " " + age + " " + context.latch.getCount());
+        	}
+        }
 	}
 		
 	public static void main(String args[])
