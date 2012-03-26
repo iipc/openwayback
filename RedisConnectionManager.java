@@ -85,25 +85,36 @@ public class RedisConnectionManager {
 	//private JedisPool pool;
 	private GenericObjectPool goPool;
 	
+	private class JedisValid extends Jedis
+	{
+		boolean valid = true;
+		
+		public JedisValid(String host, int port, int timeout) {
+			super(host, port, timeout);
+		}
+	}
+	
     private class JedisFactory extends BasePoolableObjectFactory {
 
         public Object makeObject() throws Exception {
             final Jedis jedis;
-            jedis = new Jedis(host, port, timeout);
+            jedis = new JedisValid(host, port, timeout);
             jedis.getClient().setPassword(password);
             jedis.connect();
             return jedis;
         }
 
         public void destroyObject(final Object obj) throws Exception {
-            if (obj instanceof Jedis) {
-                final Jedis jedis = (Jedis) obj;
+            if (obj instanceof JedisValid) {
+                final JedisValid jedis = (JedisValid) obj;
                 if (jedis.isConnected()) {
                     try {
-                        try {
-                            jedis.quit();
-                        } catch (Exception e) {
-                        }
+                    	if (jedis.valid) {
+	                        try {
+	                            jedis.quit();
+	                        } catch (Exception e) {
+	                        }
+                    	}
                         jedis.disconnect();
                     } catch (Exception e) {
                     	LOGGER.warning("REDISCONN: DISCONNECT: " + e);
@@ -113,11 +124,12 @@ public class RedisConnectionManager {
         }
 
         public boolean validateObject(final Object obj) {
-            if (obj instanceof Jedis) {
-                final Jedis jedis = (Jedis) obj;
+            if (obj instanceof JedisValid) {
+                final JedisValid jedis = (JedisValid) obj;
                 try {
                     return jedis.isConnected();// && jedis.ping().equals("PONG");
                 } catch (final Exception e) {
+                	jedis.valid = false;
                 	LOGGER.warning("REDISCONN: VALIDATE: " + e);
                     return false;
                 }
@@ -188,6 +200,8 @@ public class RedisConnectionManager {
 		if (jedis == null) {
 			return;
 		}
+		
+		((JedisValid)jedis).valid = false;
 		
 		try {
 			goPool.invalidateObject(jedis);
