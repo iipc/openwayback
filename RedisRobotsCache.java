@@ -391,22 +391,18 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 				newRedisValue = contents;
 			}
 			
-		} else {
-			// Only Cacheing successful lookups
-			if (!context.cacheFails) {
-				return;
-			}
-			
-			int status = context.getStatus();
-			
-			newRedisValue = ROBOTS_TOKEN_ERROR + status;
-			
-			
+		} else {			
 			if (context.isErrExpiry()) {
 				newTTL = notAvailTotalTTL;
+				// Only Cacheing successful lookups
+				if (!context.cacheFails) {
+					return;
+				}
 			} else {
 				newTTL = totalTTL;
 			}
+			
+			newRedisValue = ROBOTS_TOKEN_ERROR + context.getStatus();
 		}
 		
 		String currentValue = context.current;		
@@ -420,7 +416,7 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 			if (!isValidRobots(newRedisValue) && isValidRobots(currentValue)) {
 				newRedisValue = currentValue;
 				newTTL = totalTTL;
-				LOGGER.info("REFRESH ERROR: Keeping same robots for " + context.url + ", refresh timed out");
+				LOGGER.info("REFRESH ERROR: " + context.getStatus() + " - Keeping same robots for " + context.url);
 			}
 		}
 				

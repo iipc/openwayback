@@ -1,7 +1,6 @@
 package org.archive.wayback.accesscontrol.robotstxt;
 
 import java.io.PrintWriter;
-import java.net.SocketTimeoutException;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -34,13 +33,9 @@ public class RedisRobotsLogic {
 			jedis = redisConn.getJedisInstance();
 			return runner.run(jedis);
 		} catch (JedisConnectionException jce) {
-			if (!(jce.getCause() instanceof SocketTimeoutException)) {
-				redisConn.returnJedisInstance(jedis);
-				LOGGER.log(Level.SEVERE, "Jedis Exception", jce);
-				jedis = null;
-			} else {
-				LOGGER.warning("REDIS TIMEOUT: Skipping Redis");
-			}
+			redisConn.returnJedisInstance(jedis);
+			LOGGER.log(Level.SEVERE, "Jedis Exception", jce);
+			jedis = null;
 			throw new LiveWebCacheUnavailableException("No Jedis");
 		} finally {
 			redisConn.returnJedisInstance(jedis);
@@ -55,14 +50,9 @@ public class RedisRobotsLogic {
 			jedis = redisConn.getJedisInstance();
 			runner.run(jedis);
 		} catch (JedisConnectionException jce) {
-			if (!(jce.getCause() instanceof SocketTimeoutException)) {
-				redisConn.returnJedisInstance(jedis);
-				LOGGER.severe("Jedis Exception: " + jce);
-				jedis = null;
-				
-			} else {
-				LOGGER.warning("REDIS TIMEOUT: Skipping Redis");
-			}
+			redisConn.returnJedisInstance(jedis);
+			LOGGER.log(Level.SEVERE, "Jedis Exception", jce);
+			jedis = null;
 		} finally {
 			redisConn.returnJedisInstance(jedis);
 		}
