@@ -217,10 +217,12 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 			//mainLoopService = new ThreadPoolExecutor(maxCoreUpdateThreads, maxNumUpdateThreads, threadKeepAliveTime, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
 			//Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
 			
-			while (!Thread.interrupted()) {
+			while (true) {
 				if (errorCounter >= maxErrorThresh) {
 					LOGGER.warning(errorCounter + " Redis ERRORS! Sleeping for " + errorSleepTime);
 					Thread.sleep(errorSleepTime);
+				} else {
+					Thread.sleep(0);
 				}
 				
 				KeyRedisValue value = null;
@@ -419,8 +421,9 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 			
 			// Don't override a valid robots with a timeout error
 			if (!isValidRobots(newRedisValue) && isValidRobots(currentValue)) {
-				newRedisValue = currentValue;
-				newTTL = totalTTL;
+				//newRedisValue = currentValue;
+				//newTTL = totalTTL;
+				ttlOnly = true;
 				LOGGER.info("REFRESH ERROR: " + context.getStatus() + " - Keeping same robots for " + context.url);
 			}
 		}
@@ -523,6 +526,7 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 		int maxPerRouteConnections = 0;
 		int maxConnections = 0;
 		int maxCoreUpdateThreads = 0;
+		int maxRedisConn = 0;
 		
 		Iterator<String> paramsIter = Arrays.asList(args).iterator();
 		
@@ -549,6 +553,8 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 				maxPerRouteConnections = Integer.parseInt(paramsIter.next());
 			} else if (flag.equals("-max_thread")) {
 				maxCoreUpdateThreads = Integer.parseInt(paramsIter.next());
+			} else if (flag.equals("-max_redis")) {
+				maxRedisConn = Integer.parseInt(paramsIter.next());
 			}
 		}
 		
@@ -556,6 +562,9 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 		redisMan.setHost(redisHost);
 		redisMan.setPort(redisPort);
 		redisMan.setPassword(redisPassword);
+		if (maxRedisConn != 0) {
+			redisMan.setConnections(maxRedisConn);
+		}
 		redisMan.init();
 				
 		LOGGER.info("Redis Updater: " + redisHost + ":" + redisPort);

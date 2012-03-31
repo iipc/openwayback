@@ -108,12 +108,14 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 				if (redirect) {
 					Header locationHeader = response.getFirstHeader("location");
 					if (locationHeader != null) {
-						String value = locationHeader.getValue();
-						if (value.endsWith("robots.txt")) {
-							LOGGER.info("REDIRECT FOLLOW: " + request.getRequestLine().getUri() + " => " + value);
+						String newLoc = locationHeader.getValue();
+						String oldLoc = request.getRequestLine().getUri();
+						//context.setAttribute(HAS_REDIRECTED, Boolean.TRUE);
+						if (newLoc.endsWith("robots.txt")) {
+							LOGGER.info("REDIRECT FOLLOW: " + oldLoc + " => " + newLoc);
 							return true;
 						} else {
-							LOGGER.info("REDIRECT IGNORE: " + request.getRequestLine().getUri() + " => " + value);
+							LOGGER.info("REDIRECT IGNORE: " + oldLoc + " => " + newLoc);
 						}
 					}
 				}
