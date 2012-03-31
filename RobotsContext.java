@@ -33,9 +33,9 @@ class RobotsContext implements BaseHttpConnMan.ConnectionCallback
 	
 	long startTime;
 
-	RobotsContext(String url, String current, boolean cacheFails)
+	RobotsContext(String url, String current, boolean cacheFails, boolean singleWait)
 	{
-		this.latch = new CountDownLatch(1);
+		this.latch = (!singleWait ? new CountDownLatch(1) : null);
 		this.url = url;
 		this.current = current;
 		this.created = System.currentTimeMillis();
@@ -45,6 +45,11 @@ class RobotsContext implements BaseHttpConnMan.ConnectionCallback
 	boolean isValid()
 	{
 		return (newRobots != null) && (status == LIVE_OK);
+	}
+	
+	boolean isSingleWait()
+	{
+		return (this.latch == null);
 	}
 	
 	static boolean isErrExpiry(int status)

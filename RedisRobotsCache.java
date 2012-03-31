@@ -3,21 +3,15 @@ package org.archive.wayback.accesscontrol.robotstxt;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
+import org.archive.wayback.accesscontrol.robotstxt.RedisRobotsLogic.KeyRedisValue;
 import org.archive.wayback.accesscontrol.robotstxt.RedisRobotsLogic.RedisValue;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.exception.LiveDocumentNotAvailableException;
@@ -115,72 +109,72 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 		return !value.startsWith(ROBOTS_TOKEN_ERROR) && !value.equals(ROBOTS_TOKEN_EMPTY);
 	}
 	
-	public RobotsTxtResource getCachedRobots(ArrayList<String> urls, boolean cacheFails, boolean sequential) throws LiveWebCacheUnavailableException
-	{
-		String[] urlsArray = new String[urls.size()];
-		List<RedisValue> values = redisCmds.getValue(urls.toArray(urlsArray));
-		
-		int index = 0;
-		
-		RedisValue bestMatch = null;
-		String bestMatchUrl = null;
-		
-		for (RedisValue value : values) {
-			String url = urlsArray[index];
-			
-			if (value != null) {
-				if (isExpired(value, url)) {
-					redisCmds.pushKey(UPDATE_QUEUE_KEY, url, MAX_UPDATE_QUEUE_SIZE);
-				}
-				
-				if (bestMatch == null) {
-					bestMatchUrl = url;
-					bestMatch = value;
-				} else if (!isValidRobots(bestMatch.value) && isValidRobots(value.value)) {
-					bestMatchUrl = url;
-					bestMatch = value;
-				}
-			}
-			index++;
-		}
-		
-		if (bestMatch != null) {
-			LOGGER.info("BEST MATCH: " + bestMatchUrl);
-			String currentRobots = bestMatch.value;
-			
-			if (currentRobots.startsWith(ROBOTS_TOKEN_ERROR)) {
-				return null;
-			} else if (currentRobots.equals(ROBOTS_TOKEN_EMPTY)) {
-				currentRobots = "";
-			}
-			
-			return new RobotsTxtResource(currentRobots);
-
-		} else if (sequential) {
-			
-			for (String url : urls) {
-				RobotsContext context = doSyncUpdate(url, null, cacheFails, true);
-				if ((context != null) && context.isValid()) {
-					LOGGER.info("BEST MATCH: " + context.url);
-					return new RobotsTxtResource(context.getNewRobots());
-				}
-			}
-			
-			LOGGER.info("BEST MATCH: NULL");
-			return null;
-			
-		} else {
-			RobotsContext context = doSyncUpdate(urls, cacheFails);
-			
-			if ((context != null) && context.isValid()) {
-				LOGGER.info("BEST MATCH: " + context.url);
-				return new RobotsTxtResource(context.getNewRobots());
-			} else {
-				LOGGER.info("BEST MATCH: NULL");
-				return null;
-			}
-		}
-	}
+//	public RobotsTxtResource getCachedRobots(ArrayList<String> urls, boolean cacheFails, boolean sequential) throws LiveWebCacheUnavailableException
+//	{
+//		String[] urlsArray = new String[urls.size()];
+//		List<RedisValue> values = redisCmds.getValue(urls.toArray(urlsArray));
+//		
+//		int index = 0;
+//		
+//		RedisValue bestMatch = null;
+//		String bestMatchUrl = null;
+//		
+//		for (RedisValue value : values) {
+//			String url = urlsArray[index];
+//			
+//			if (value != null) {
+//				if (isExpired(value, url)) {
+//					redisCmds.pushKey(UPDATE_QUEUE_KEY, url, MAX_UPDATE_QUEUE_SIZE);
+//				}
+//				
+//				if (bestMatch == null) {
+//					bestMatchUrl = url;
+//					bestMatch = value;
+//				} else if (!isValidRobots(bestMatch.value) && isValidRobots(value.value)) {
+//					bestMatchUrl = url;
+//					bestMatch = value;
+//				}
+//			}
+//			index++;
+//		}
+//		
+//		if (bestMatch != null) {
+//			LOGGER.info("BEST MATCH: " + bestMatchUrl);
+//			String currentRobots = bestMatch.value;
+//			
+//			if (currentRobots.startsWith(ROBOTS_TOKEN_ERROR)) {
+//				return null;
+//			} else if (currentRobots.equals(ROBOTS_TOKEN_EMPTY)) {
+//				currentRobots = "";
+//			}
+//			
+//			return new RobotsTxtResource(currentRobots);
+//
+//		} else if (sequential) {
+//			
+//			for (String url : urls) {
+//				RobotsContext context = doSyncUpdate(url, null, cacheFails, true);
+//				if ((context != null) && context.isValid()) {
+//					LOGGER.info("BEST MATCH: " + context.url);
+//					return new RobotsTxtResource(context.getNewRobots());
+//				}
+//			}
+//			
+//			LOGGER.info("BEST MATCH: NULL");
+//			return null;
+//			
+//		} else {
+//			RobotsContext context = doSyncUpdate(urls, cacheFails);
+//			
+//			if ((context != null) && context.isValid()) {
+//				LOGGER.info("BEST MATCH: " + context.url);
+//				return new RobotsTxtResource(context.getNewRobots());
+//			} else {
+//				LOGGER.info("BEST MATCH: NULL");
+//				return null;
+//			}
+//		}
+//	}
 			
 	public boolean isExpired(RedisValue value, String url) {
 				
@@ -213,35 +207,40 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 	
 	protected void processRedisUpdateQueue()
 	{
-		ThreadPoolExecutor mainLoopService = null;
+	//	ThreadPoolExecutor mainLoopService = null;
 		int errorCounter = 0;
 		
 		int maxErrorThresh = 10;
 		int errorSleepTime = 10000;
 		
 		try {			
-			mainLoopService = new ThreadPoolExecutor(maxCoreUpdateThreads, maxNumUpdateThreads, threadKeepAliveTime, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
-						
-			while (true) {
+			//mainLoopService = new ThreadPoolExecutor(maxCoreUpdateThreads, maxNumUpdateThreads, threadKeepAliveTime, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
+			//Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
+			
+			while (!Thread.interrupted()) {
 				if (errorCounter >= maxErrorThresh) {
 					LOGGER.warning(errorCounter + " Redis ERRORS! Sleeping for " + errorSleepTime);
 					Thread.sleep(errorSleepTime);
-				} else {
-					Thread.sleep(0);
 				}
 				
-				String url = null;
+				KeyRedisValue value = null;
 				
+				long startTime = System.currentTimeMillis();
+								
 				try {
-					url = redisCmds.popKey(UPDATE_QUEUE_KEY);
+					value = redisCmds.popKeyAndGet(UPDATE_QUEUE_KEY);
 					errorCounter = 0;
 				} catch (LiveWebCacheUnavailableException e) {
 					errorCounter++;
+				} finally {
+					PerformanceLogger.noteElapsed("PopKeyAndGet", System.currentTimeMillis() - startTime);
 				}
 				
-				if (url == null) {
+				if (value == null) {
 					continue;
 				}
+				
+				String url = value.key;
 				
 				synchronized(activeContexts) {
 					if (activeContexts.containsKey(url)) {
@@ -249,7 +248,13 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 					}
 				}
 							
-				mainLoopService.execute(new URLRequestTask(url));
+				if (!isExpired(value, url)) {
+					continue;
+				}
+				
+				RobotsContext context = new RobotsContext(url, value.value, true, true);				
+				refreshService.execute(new AsyncLoadAndUpdate(context));
+
 			}
 		} catch (InterruptedException e) {
 			//DO NOTHING
@@ -268,7 +273,7 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 		synchronized(activeContexts) {
 			context = activeContexts.get(url);
 			if (context == null) {
-				context = new RobotsContext(url, current, cacheFails);
+				context = new RobotsContext(url, current, cacheFails, false);
 				activeContexts.put(url, context);
 				toLoad = true;
 			}
@@ -313,64 +318,64 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 		return context;
 	}
 	
-	private RobotsContext doSyncUpdate(List<String> urls, boolean cacheFails)
-	{				
-		ExecutorCompletionService<RobotsContext> completer = new ExecutorCompletionService<RobotsContext>(refreshService);
-		
-		LinkedList<Future<RobotsContext>> futures = new LinkedList<Future<RobotsContext>>();
-		
-		RobotsContext first = null;
-		
-		for (String url : urls) {
-			RobotsContext context = new RobotsContext(url, null, cacheFails);
-			if (first == null) {
-				first = context;
-			}
-			AsyncLoadAndUpdate task = new AsyncLoadAndUpdate(context);
-			futures.add(completer.submit(task, task.context));
-		}
-		
-		int count = 0;
-		
-		try {
-			long endTime = System.currentTimeMillis() + this.responseTimeoutMS;
-			Future<RobotsContext> future = completer.poll(this.responseTimeoutMS, TimeUnit.MILLISECONDS);
-			
-			// If none finished, return first one as error
-			if (future == null) {
-				return first;
-			}
-			
-			RobotsContext firstInvalid = null;
-						
-			while ((future != null) && (count++ < futures.size())) {
-				RobotsContext context = future.get();
-				
-				if (context.isValid()) {
-					return context;
-				} else if (firstInvalid == null) {
-					firstInvalid = context;
-				}
-				
-				long remainingTime = Math.max(0, endTime - System.currentTimeMillis());
-				future = completer.poll(remainingTime, TimeUnit.MILLISECONDS);
-				LOGGER.info("POLLED REMAINDER " + remainingTime + " " + future);
-			}
-			
-			return firstInvalid;
-			
-		} catch (InterruptedException e) {
-			return first;
-		} catch (ExecutionException e) {
-			return first;
-		} finally {
-			if (count < futures.size()) {
-				for (Future<RobotsContext> future : futures) {
-					future.cancel(true);
-				}
-			}
-		}
-	}
+//	private RobotsContext doSyncUpdate(List<String> urls, boolean cacheFails)
+//	{				
+//		ExecutorCompletionService<RobotsContext> completer = new ExecutorCompletionService<RobotsContext>(refreshService);
+//		
+//		LinkedList<Future<RobotsContext>> futures = new LinkedList<Future<RobotsContext>>();
+//		
+//		RobotsContext first = null;
+//		
+//		for (String url : urls) {
+//			RobotsContext context = new RobotsContext(url, null, cacheFails);
+//			if (first == null) {
+//				first = context;
+//			}
+//			AsyncLoadAndUpdate task = new AsyncLoadAndUpdate(context);
+//			futures.add(completer.submit(task, task.context));
+//		}
+//		
+//		int count = 0;
+//		
+//		try {
+//			long endTime = System.currentTimeMillis() + this.responseTimeoutMS;
+//			Future<RobotsContext> future = completer.poll(this.responseTimeoutMS, TimeUnit.MILLISECONDS);
+//			
+//			// If none finished, return first one as error
+//			if (future == null) {
+//				return first;
+//			}
+//			
+//			RobotsContext firstInvalid = null;
+//						
+//			while ((future != null) && (count++ < futures.size())) {
+//				RobotsContext context = future.get();
+//				
+//				if (context.isValid()) {
+//					return context;
+//				} else if (firstInvalid == null) {
+//					firstInvalid = context;
+//				}
+//				
+//				long remainingTime = Math.max(0, endTime - System.currentTimeMillis());
+//				future = completer.poll(remainingTime, TimeUnit.MILLISECONDS);
+//				LOGGER.info("POLLED REMAINDER " + remainingTime + " " + future);
+//			}
+//			
+//			return firstInvalid;
+//			
+//		} catch (InterruptedException e) {
+//			return first;
+//		} catch (ExecutionException e) {
+//			return first;
+//		} finally {
+//			if (count < futures.size()) {
+//				for (Future<RobotsContext> future : futures) {
+//					future.cancel(true);
+//				}
+//			}
+//		}
+//	}
 	
 	private void updateCache(final RobotsContext context) {		
 		String contents = null;
@@ -423,30 +428,7 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 		final RedisValue value = new RedisValue((ttlOnly ? null : newRedisValue), newTTL);
 		redisCmds.updateValue(context.url, value);
 	}
-	
-	public void processAsyncUpdate(final String url)
-	{
-		RedisValue value = null;
 		
-		try {
-			value = redisCmds.getValue(url);
-		} catch (LiveWebCacheUnavailableException e) {
-			return;			
-		}
-		
-		if (value == null) {
-			return;
-		}
-		
-		if (value.value == null) {
-			LOGGER.info("NULL VALUE FOR: " + url);
-		} else if(!isExpired(value, url)) {
-			return;
-		}
-			
-		doSyncUpdate(url, value.value, true, true);
-	}
-	
 	public void processAsyncUpdate(final RobotsContext context)
 	{
 		context.startTime = System.currentTimeMillis();
@@ -470,24 +452,14 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 		} catch (InterruptedException e) {
 			// Interrupt Update
 		} finally {
-			PerformanceLogger.noteElapsed("AsyncLoadAndUpdate", System.currentTimeMillis() - context.startTime, context.url);	
+			if (context.isSingleWait()) {
+				synchronized(activeContexts) {
+					activeContexts.remove(context.url);
+				}
+			}
+			
+			PerformanceLogger.noteElapsed("AsyncLoadAndUpdate", System.currentTimeMillis() - context.startTime, context.url);
 		}		
-	}
-
-	class URLRequestTask implements Runnable
-	{
-		private String url;
-
-		URLRequestTask(String url)
-		{
-			this.url = url;
-		}
-		
-		@Override
-		public void run()
-		{
-			processAsyncUpdate(url);
-		}
 	}
 	
 	class AsyncLoadAndUpdate implements Runnable
@@ -507,7 +479,7 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 	}
 
 	@Override
-	public void shutdown() {		
+	public void shutdown() {
 		super.shutdown();
 		
 		if (redisCmds != null) {
@@ -525,6 +497,8 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 	protected void appendLogInfo(PrintWriter info)
 	{
 		super.appendLogInfo(info);
+		
+		info.println("  Num Threads: " + Thread.activeCount());
                 
         synchronized(activeContexts) {
             info.println("  Active URLS: " + activeContexts.size());

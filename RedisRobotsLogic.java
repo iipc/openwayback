@@ -70,6 +70,17 @@ public class RedisRobotsLogic {
 		}
 	}
 	
+	static class KeyRedisValue extends RedisValue
+	{
+		String key;
+		
+		KeyRedisValue(String key, String value, long ttl)
+		{
+			super(value, ttl);
+			this.key = key;
+		}
+	}
+	
 	public RedisValue getValue(final String key) throws LiveWebCacheUnavailableException
 	{
 		long startTime = System.currentTimeMillis();
@@ -167,14 +178,20 @@ public class RedisRobotsLogic {
 		});
 	}
 	
-	public String popKey(final String list) throws LiveWebCacheUnavailableException
+	public KeyRedisValue popKeyAndGet(final String list) throws LiveWebCacheUnavailableException
 	{
-		return this.runJedisCmd(new JedisRunner<String>()
+		return this.runJedisCmd(new JedisRunner<KeyRedisValue>()
 		{
-			public String run(Jedis jedis)
+			public KeyRedisValue run(Jedis jedis)
 			{
 				List<String> values = jedis.blpop(0, list);
-				return values.get(1);
+				String key = values.get(1);
+				String value = jedis.get(key);
+				if (value == null) {
+					return null;
+				}
+				long ttl = jedis.ttl(key);
+				return new KeyRedisValue(key, value, ttl);
 			}
 		});
 	}
