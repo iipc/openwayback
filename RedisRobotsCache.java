@@ -244,17 +244,20 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 				
 				String url = value.key;
 				
-				synchronized(activeContexts) {
-					if (activeContexts.containsKey(url)) {
-						continue;
-					}
-				}
-							
 				if (!isExpired(value, url)) {
 					continue;
 				}
 				
-				RobotsContext context = new RobotsContext(url, value.value, true, true);				
+				RobotsContext context = null;
+				
+				synchronized(activeContexts) {
+					if (activeContexts.containsKey(url)) {
+						continue;
+					}
+					context = new RobotsContext(url, value.value, true, true);
+					activeContexts.put(url, context);
+				}
+							
 				refreshService.execute(new AsyncLoadAndUpdate(context));
 
 			}
