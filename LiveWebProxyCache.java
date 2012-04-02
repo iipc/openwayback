@@ -39,7 +39,7 @@ public class LiveWebProxyCache implements LiveWebCache {
 	protected int maxNumUpdateThreads = 200;
 	protected int maxCoreUpdateThreads = 50;
 	
-	protected int threadKeepAliveTime = 0;
+	protected int threadKeepAliveTime = 60000;
 	
 	protected ThreadPoolExecutor refreshService;
 	

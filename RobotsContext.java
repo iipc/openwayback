@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
+import java.io.UnsupportedEncodingException;
 import java.net.UnknownHostException;
 import java.util.concurrent.CountDownLatch;
 import java.util.logging.Logger;
@@ -125,7 +126,14 @@ class RobotsContext implements BaseHttpConnMan.ConnectionCallback
 		}
 		
 		baos.flush();
-		String contents = baos.toString(charset);
+		String contents = null;
+		
+		try {
+			contents = baos.toString(charset);
+		} catch (UnsupportedEncodingException uex) {
+			contents = baos.toString();
+		}
+		
 		baos.close();
 		
 		setNewRobots(contents);
