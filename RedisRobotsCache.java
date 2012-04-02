@@ -228,12 +228,11 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 					currQSize = activeContexts.size();
 				}
 					
+				Thread.sleep(0);
+				
 				if (currQSize >= maxQueued) {
-					LOGGER.warning(" Too many URLs queued. Sleeping for " + errorSleepTime);
-					Thread.sleep(errorSleepTime);
+					LOGGER.warning(" Too many URLs queued. Waiting for queue to empty " + errorSleepTime);
 					continue;
-				} else {
-					Thread.sleep(0);
 				}
 				
 				KeyRedisValue value = null;
