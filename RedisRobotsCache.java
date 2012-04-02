@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.archive.wayback.accesscontrol.robotstxt.RedisRobotsLogic.KeyRedisValue;
@@ -207,20 +208,30 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 	
 	protected void processRedisUpdateQueue()
 	{
-	//	ThreadPoolExecutor mainLoopService = null;
 		int errorCounter = 0;
 		
 		int maxErrorThresh = 10;
 		int errorSleepTime = 10000;
 		
+		int maxQueued = 200;
+		int currQSize = 0;
+		
 		try {			
-			//mainLoopService = new ThreadPoolExecutor(maxCoreUpdateThreads, maxNumUpdateThreads, threadKeepAliveTime, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
-			//Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
 			
 			while (true) {
 				if (errorCounter >= maxErrorThresh) {
 					LOGGER.warning(errorCounter + " Redis ERRORS! Sleeping for " + errorSleepTime);
 					Thread.sleep(errorSleepTime);
+				}
+				
+				synchronized(activeContexts) {
+					currQSize = activeContexts.size();
+				}
+					
+				if (currQSize >= maxQueued) {
+					LOGGER.warning(" Too many URLs queued. Sleeping for " + errorSleepTime);
+					Thread.sleep(errorSleepTime);
+					continue;
 				} else {
 					Thread.sleep(0);
 				}
@@ -234,6 +245,9 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 					errorCounter = 0;
 				} catch (LiveWebCacheUnavailableException e) {
 					errorCounter++;
+				} catch (Exception exc) {
+					errorCounter = maxErrorThresh;
+					LOGGER.log(Level.SEVERE, "REDIS SEVERE", exc);
 				} finally {
 					PerformanceLogger.noteElapsed("PopKeyAndGet", System.currentTimeMillis() - startTime);
 				}
@@ -261,8 +275,8 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 				refreshService.execute(new AsyncLoadAndUpdate(context));
 
 			}
-		} catch (InterruptedException e) {
-			//DO NOTHING
+		} catch (Exception e) {
+			LOGGER.log(Level.SEVERE, "UPDATER SEVERE", e);
 		} finally {
 			shutdown();
 		}
@@ -487,6 +501,12 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 	@Override
 	public void shutdown() {
 		super.shutdown();
+		
+		try {
+			refreshService.awaitTermination(10000, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+
+		}
 		
 		if (redisCmds != null) {
 			redisCmds.close();
