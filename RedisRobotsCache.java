@@ -227,11 +227,12 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 				synchronized(activeContexts) {
 					currQSize = activeContexts.size();
 				}
-					
-				Thread.sleep(0);
-				
+									
 				if (currQSize >= maxQueued) {
+					Thread.sleep(100);
 					continue;
+				} else {
+					Thread.sleep(0);
 				}
 				
 				KeyRedisValue value = null;
