@@ -213,7 +213,7 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 		int maxErrorThresh = 10;
 		int errorSleepTime = 10000;
 		
-		int maxQueued = 200;
+		int maxQueued = 500;
 		int currQSize = 0;
 		
 		try {			
@@ -231,7 +231,6 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 				Thread.sleep(0);
 				
 				if (currQSize >= maxQueued) {
-					LOGGER.warning(" Too many URLs queued. Waiting for queue to empty " + errorSleepTime);
 					continue;
 				}
 				
