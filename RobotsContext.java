@@ -53,21 +53,21 @@ class RobotsContext implements BaseHttpConnMan.ConnectionCallback
 		return (this.latch == null);
 	}
 	
-	static boolean isErrExpiry(int status)
+	static boolean isFailedError(int status)
 	{
-		return (status == 0) || ((status >= 500) && (status != LIVE_HOST_ERROR));
+		return (status == 0) || ((status >= 500));
 	}
 	
 	boolean isErrExpiry()
 	{
-		return isErrExpiry(status);
+		return isFailedError(status);
 	}
 	
-	static boolean isErrExpiry(String code)
+	static boolean isFailedError(String code)
 	{
 		try {
 			int status = Integer.parseInt(code);
-			return isErrExpiry(status);
+			return isFailedError(status);
 		} catch (NumberFormatException n) {
 			return true;
 		}

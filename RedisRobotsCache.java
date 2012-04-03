@@ -106,6 +106,22 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 		}
 	}
 	
+	public RobotsContext forceUpdate(String url)
+	{
+		String current = null;
+		
+		try {
+			RedisValue value = redisCmds.getValue(url);
+			current = (value != null ? value.value : null);
+		} catch (LiveWebCacheUnavailableException lw) {
+			current = lw.toString();
+		}
+		
+		RobotsContext context = doSyncUpdate(url, current, false, true);
+		LOGGER.info("Force updated: " + url);
+		return context;
+	}
+	
 	protected boolean isValidRobots(String value) {
 		return !value.startsWith(ROBOTS_TOKEN_ERROR) && !value.equals(ROBOTS_TOKEN_EMPTY);
 	}
@@ -181,14 +197,14 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 				
 		int maxTime, refreshTime;
 		
-		boolean isErrExpire = value.value.startsWith(ROBOTS_TOKEN_ERROR);
+		boolean isFailedError = value.value.startsWith(ROBOTS_TOKEN_ERROR);
 		
-		if (isErrExpire) {
+		if (isFailedError) {
 			String code = value.value.substring(ROBOTS_TOKEN_ERROR.length());
-			isErrExpire = RobotsContext.isErrExpiry(code);
+			isFailedError = RobotsContext.isFailedError(code);
 		}
 		
-		if (isErrExpire) {
+		if (isFailedError) {
 			maxTime = notAvailTotalTTL;
 			refreshTime = notAvailRefreshTTL;
 		} else {
