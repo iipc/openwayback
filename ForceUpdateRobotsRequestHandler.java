@@ -38,7 +38,7 @@ public class ForceUpdateRobotsRequestHandler extends AbstractRequestHandler {
 		writer.println("<html><body><h2>Wayback Robots Updater</h2>");
 		
 		if (!url.endsWith(ROBOT_SUFFIX)) {
-			writer.println("<p>URL to update (<code>" + url + "</code>) must end in robots.txt</p>");
+			writer.println("<p>URL to update (<code>" + url + "</code>) must end in /robots.txt</p>");
 		} else if (robotsCache == null) {
 			writer.println("No Robots Cache Set");
 		} else {
@@ -52,9 +52,17 @@ public class ForceUpdateRobotsRequestHandler extends AbstractRequestHandler {
 				writer.println("<p>Error Updating Robots (see logs)</p>");
 			}
 			
-			writer.println("<p>Updated robots:<br/><i>Old Robots:</i></p>");
-			writer.println("<pre>" + context.current + "</pre>");
-			writer.println("<p><i>New Robots:</i></p>");
+			boolean sameRobots = (context.current != null) && (context.getNewRobots() != null) && (context.current.equals(context.getNewRobots()));
+						
+			if (!sameRobots) {
+				writer.println("<b>UPDATED Robots</b>");
+				writer.println("<p><i>Old Robots:</i></p>");
+				writer.println("<pre>" + context.current + "</pre>");
+			} else {
+				writer.println("<b>Robots Unchanged</b>");
+			}
+			
+			writer.println("<p><i>New/Current Robots:</i></p>");
 			writer.print("<pre>");
 			
 			if (context.getNewRobots() == null) {
