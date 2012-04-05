@@ -266,6 +266,9 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 	public void appendLogInfo(PrintWriter info)
 	{
 	   info.println("  Connections: " + connMan.getConnectionsInPool());
-	   info.println("  DNS Active: " + ((ThreadPoolExecutor)dnsLookup.getExecutor()).getActiveCount());
+	   
+	   if (dnsLookup != null) {
+		   info.println("  DNS Active: " + ((ThreadPoolExecutor)dnsLookup.getExecutor()).getActiveCount());
+	   }
 	}
 }
