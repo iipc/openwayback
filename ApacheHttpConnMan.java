@@ -42,7 +42,7 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 	private final static Logger LOGGER = Logger
 	.getLogger(ApacheHttpConnMan.class.getName());
 	
-	private ThreadSafeClientConnManager connMan;
+	private ConnManager connMan;
 			
 	private DefaultHttpClient directHttpClient;
 	private DefaultHttpClient proxyHttpClient;
@@ -62,19 +62,34 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 		}
 	}
 	
+	class ConnManager extends ThreadSafeClientConnManager
+	{
+		@Override
+		protected ClientConnectionOperator createConnectionOperator(
+				SchemeRegistry schreg) {
+			if (dnsTimeoutMS > 0) {
+				return new TimedDNSConnectionOperator(schreg);
+			} else {
+				return super.createConnectionOperator(schreg);
+			}
+		}
+		
+		public void deleteClosedConnections()
+		{
+			if (pool != null) {
+				pool.deleteClosedConnections();
+			}
+		}
+	};
+	
 	@Override
 	public void init() {
 		
-		dnsLookup = new TimedDNSLookup(maxConnections, dnsTimeoutMS);
+		if (dnsTimeoutMS > 0) {
+			dnsLookup = new TimedDNSLookup(maxConnections, dnsTimeoutMS);
+		}
 		
-		connMan = new ThreadSafeClientConnManager()
-		{
-			@Override
-			protected ClientConnectionOperator createConnectionOperator(
-					SchemeRegistry schreg) {
-				return new TimedDNSConnectionOperator(schreg);
-			}
-		};
+		connMan = new ConnManager();
 		
 		connMan.setDefaultMaxPerRoute(maxPerRouteConnections);
 		connMan.setMaxTotal(maxConnections);
@@ -243,6 +258,8 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 	public void idleCleanup()
 	{
         connMan.closeIdleConnections(2 * (readTimeoutMS + connectionTimeoutMS), TimeUnit.MILLISECONDS);
+        connMan.closeExpiredConnections();
+        connMan.deleteClosedConnections();
  	}
 	
 	@Override
