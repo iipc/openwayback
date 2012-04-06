@@ -431,7 +431,7 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 			}
 			
 		} else {			
-			if (context.isErrExpiry()) {
+			if (context.isFailedError()) {
 				newTTL = notAvailTotalTTL;
 				// Only Cacheing successful lookups
 				if (!context.cacheFails) {
@@ -453,8 +453,7 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 			
 			// Don't override a valid robots with a timeout error
 			if (!isValidRobots(newRedisValue) && isValidRobots(currentValue)) {
-				//newRedisValue = currentValue;
-				//newTTL = totalTTL;
+				newTTL = totalTTL;
 				ttlOnly = true;
 				LOGGER.info("REFRESH ERROR: " + context.getStatus() + " - Keeping same robots for " + context.url);
 			}

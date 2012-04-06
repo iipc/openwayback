@@ -58,7 +58,7 @@ class RobotsContext implements BaseHttpConnMan.ConnectionCallback
 		return (status == 0) || ((status >= 500));
 	}
 	
-	boolean isErrExpiry()
+	boolean isFailedError()
 	{
 		return isFailedError(status);
 	}
