@@ -53,6 +53,10 @@ class RobotsContext implements BaseHttpConnMan.ConnectionCallback
 		return (this.latch == null);
 	}
 	
+	boolean isRedirectStatus() {
+		return (status == 301) || (status == 302);
+	}
+	
 	static boolean isFailedError(int status)
 	{
 		return (status == 0) || ((status >= 500));

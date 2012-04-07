@@ -452,7 +452,7 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 			}
 			
 			// Don't override a valid robots with a timeout error
-			if (!isValidRobots(newRedisValue) && isValidRobots(currentValue)) {
+			if (!context.isRedirectStatus() && !isValidRobots(newRedisValue) && isValidRobots(currentValue)) {
 				newTTL = totalTTL;
 				ttlOnly = true;
 				LOGGER.info("REFRESH ERROR: " + context.getStatus() + " - Keeping same robots for " + context.url);
