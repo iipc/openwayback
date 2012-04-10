@@ -140,6 +140,10 @@ class RobotsContext implements BaseHttpConnMan.ConnectionCallback
 		
 		baos.close();
 		
+		if (contents == null) {
+			contents = "";
+		}
+		
 		setNewRobots(contents);
 		PerformanceLogger.noteElapsed("HttpLoadSuccess", System.currentTimeMillis() - startTime, url + " " + getStatus() + ((contents != null) ? " Size: " + contents.length() : " NULL"));
 	}

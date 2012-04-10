@@ -33,7 +33,7 @@ public class RedisRobotsLogic {
 			jedis = redisConn.getJedisInstance();
 			return runner.run(jedis);
 		} catch (JedisConnectionException jce) {
-			redisConn.returnJedisInstance(jedis);
+			redisConn.returnBrokenJedis(jedis);
 			LOGGER.log(Level.SEVERE, "Jedis Exception", jce);
 			jedis = null;
 			throw new LiveWebCacheUnavailableException("No Jedis");
@@ -50,7 +50,7 @@ public class RedisRobotsLogic {
 			jedis = redisConn.getJedisInstance();
 			runner.run(jedis);
 		} catch (JedisConnectionException jce) {
-			redisConn.returnJedisInstance(jedis);
+			redisConn.returnBrokenJedis(jedis);
 			LOGGER.log(Level.SEVERE, "Jedis Exception", jce);
 			jedis = null;
 		} finally {
@@ -171,7 +171,7 @@ public class RedisRobotsLogic {
 		{
 			public void run(Jedis jedis)
 			{
-				if (jedis.llen(list) <= maxSize) {
+				if (jedis.llen(list) < maxSize) {
 					jedis.rpush(list, key);
 				}
 			}
@@ -185,6 +185,9 @@ public class RedisRobotsLogic {
 			public KeyRedisValue run(Jedis jedis)
 			{
 				List<String> values = jedis.blpop(0, list);
+				if (values == null) {
+					return null;
+				}
 				String key = values.get(1);
 				String value = jedis.get(key);
 				if (value == null) {
