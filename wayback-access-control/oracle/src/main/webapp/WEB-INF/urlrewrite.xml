@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE urlrewrite
+        PUBLIC "-//tuckey.org//DTD UrlRewrite 3.0//EN"
+        "http://tuckey.org/res/dtds/urlrewrite3.0.dtd">
+
+<urlrewrite>
+	<rule>
+		<name>Format rule</name>
+		<note>
+			We strip any file-extension and pass it in as the "format"
+			attribute. This allows AutoFormatView to render the
+			appropriate type of output.
+		</note>
+		<from>^/(rules.*)\.(\w+)$</from>
+		<set name="format">$2</set>
+		<to last="false">/$1</to>
+	</rule>
+
+	<rule>
+		<from>^/rules/tree/(.*)$</from>
+		<set name="tree">$1</set>
+		<to>/rules</to>
+	</rule>
+
+	<rule>
+		<from>^/rules/(.*)$</from>
+		<set name="id">$1</set>
+		<to>/rules</to>
+	</rule>
+	
+	<rule>
+		<from>^/admin/(.*)$</from>
+		<set name="id">$1</set>
+		<to>/admin</to>
+	</rule>
+	
+</urlrewrite>

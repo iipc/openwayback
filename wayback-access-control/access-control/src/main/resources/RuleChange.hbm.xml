@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd" >
+<hibernate-mapping>
+	<class name="org.archive.accesscontrol.model.RuleChange" table="rule_changes" polymorphism="explicit">
+		<id name="id" column="id" type="java.lang.Long">
+			<generator class="sequence">
+				<param name="sequence">rule_change_id_seq</param>
+			</generator>
+		</id>
+
+		<property name="ruleId" column="rule_id" type="java.lang.Long" />
+		
+		<property name="changeDate" column="change_date"
+			type="java.util.Date" />
+		<property name="changeUser" column="change_user"
+			type="java.lang.String" />
+		<property name="changeComment" column="change_comment"
+			type="text" />
+		<property name="changeType" column="change_type"
+			type="java.lang.String" />
+
+		<property name="policy" column="policy" type="java.lang.String" />
+		<property name="surt" column="surt" type="text" />
+		<property name="captureStart" column="capture_start"
+			type="java.util.Date" />
+		<property name="captureEnd" column="capture_end"
+			type="java.util.Date" />
+		<property name="retrievalStart" column="retrieval_start"
+			type="java.util.Date" />
+		<property name="retrievalEnd" column="retrieval_end"
+			type="java.util.Date" />
+		<property name="secondsSinceCapture"
+			column="seconds_since_capture" type="java.lang.Long" />
+		<property name="who" column="who" type="java.lang.String" />
+		<property name="privateComment" column="private_comment" type="text" />
+		<property name="publicComment" column="public_comment" type="text" />
+		<property name="enabled" column="enabled" type="java.lang.Boolean" />	
+	</class>
+</hibernate-mapping>

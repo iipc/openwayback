@@ -1,0 +1,104 @@
+<document>
+  <properties>
+    <title>Stayback Administrator Manual</title>
+    <author email="aosborne nla gov au">Alex Osborne</author>
+  </properties>
+  <body>
+
+    <section name="Requirements">
+      <ul>
+        <li>Java 1.5 or later</li>
+        <li>A servlet container such
+        as <a href="http://tomcat.apache.org/">Tomcat</a></li>
+        <li>A database that
+        supported by <a href="http://hibernate.org">Hibernate</a> (all the
+        usual suspects do).</li>
+      </ul>
+    </section>
+
+    <section name="Download">
+      <p>A first release of the project has not yet been made, however
+        in the meantime you should be able to get a recent snapshot
+        from the Internet
+        Archive's <a href="http://builds.archive.org:8081/">build
+        server</a>.  Select "Show projects", "Access control: Oracle
+        Webapp", "Working copy" and
+        download <tt>target/oracle-0.0.1-SNAPSHOT.war</tt>.
+        Alternatively you can build the project from source, see the
+        <a href="developer_manual.html">Developer Manual</a> for
+        instructions.</p>
+    </section>
+
+    <section name="Installation">
+      <subsection name="General">
+        <ul>
+          <li>Create a user and database to store the access control rules.</li>
+          <li>Deploy the oracle webapp to your application server (eg Apache Tomcat).</li>
+          <li>Download the appropriate JDBC connector for your database and drop it
+            in WEB-INF/lib.</li>
+          <li>Configure the database in the dataSource and sessionFactory beans in
+            WEB-INF/applicationContext.xml.</li>
+        </ul>
+      </subsection>
+      <subsection name="MySQL">
+
+        <p>Create a user and database to store the access control rules:</p>
+
+        <pre>
+          CREATE USER 'stayback'@ 'localhost' IDENTIFIED BY 'password';
+          GRANT USAGE ON * . * TO 'stayback'@ 'localhost' IDENTIFIED BY 'password';
+          CREATE DATABASE `stayback`;
+          GRANT ALL PRIVILEGES ON `stayback` . * TO 'stayback'@ 'localhost';
+        </pre>
+
+        <p>Deploy the oracle webapp to tomcat</p>
+
+        <p>Download <a href="http://www.mysql.com/products/connector-j">MySQL Connector/J</a> and copy
+          <tt>mysql-connector-java-*-bin.jar</tt> to <tt>WEB-INF/lib</tt>.</p>
+
+
+        <p>Configure the database in <tt>WEB-INF/applicationContext.xml</tt></p>:
+
+
+        <pre>
+    &lt;bean id="dataSource"
+          class="org.apache.commons.dbcp.BasicDataSource"
+          destroy-method="close"&gt;
+      &lt;property name="driverClassName" value="com.mysql.jdbc.Driver" /&gt;
+      &lt;property name="url" value="jdbc:mysql://localhost/stayback" /&gt;
+      &lt;property name="username" value="stayback" /&gt;
+      &lt;property name="password" value="password" /&gt;
+    &lt;/bean&gt;
+
+
+    &lt;bean id="sessionFactory" [...] &gt;
+      [...]
+      &lt;property name="hibernateProperties"&gt;
+        &lt;value&gt;
+          hibernate.dialect=org.hibernate.dialect.MySQLDialect
+          hibernate.hbm2ddl.auto=create
+        &lt;/value&gt;
+      &lt;/property&gt;
+    &lt;/bean&gt;
+        </pre>
+
+        <p>The <tt>hibernate.hbm2ddl.auto=create</tt> option will cause Hibernate to
+          automatically create the tables in the database.</p>
+      </subsection>
+    </section>
+
+    <section name="Configuring clients">
+      <subsection name="Wayback">
+        TODO: Write this.  For now see the oracle section in the example wayback.xml.
+      </subsection>
+      <subsection name="NutchWAX">
+        Stayback client has not yet been integrated into NutchWAX.
+      </subsection>
+      <subsection name="Others">
+        <p>See the <a href="developer_manual.html">developer
+        manual</a> for information about integrating Stayback into
+        other software.
+      </subsection>
+    </section>
+  </body>
+</document>

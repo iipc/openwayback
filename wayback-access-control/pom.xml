@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?><project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.archive</groupId>
+  <artifactId>access-control</artifactId>
+  <packaging>pom</packaging>
+  <name>Access-Control</name>
+  <version>0.0.1-SNAPSHOT</version>
+  <ciManagement>
+    <system>continuum</system>
+    <url>http://builds.archive.org:8081/continuum/</url>
+  </ciManagement>
+  <modules>
+    <module>access-control</module>
+    <module>oracle</module>
+  </modules>
+  <distributionManagement>
+    <repository>
+      <id>repository</id>
+      <name>Repository</name>
+      <url>${repository.url}</url>
+    </repository>
+    <site>
+      <id>website</id>
+      <name>Website</name>
+      <url>${website.url}/projects/${pom.artifactId}</url>
+    </site>
+  </distributionManagement>
+</project>

@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	- Middle tier application context definition for the image database.
+-->
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+                                http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd
+                                http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd">
+
+	<!-- Configurer that replaces ${...} placeholders with values from a properties file -->
+	<!-- (in this case, JDBC-related settings for the dataSource definition below) -->
+	<!--   <context:property-placeholder location="WEB-INF/jdbc.properties,WEB-INF/mail.properties"/> -->
+
+	<!-- Local C3P0 DataSource that works in any environment -->
+	<!-- See JPetStore for an example of using Apache Commons DBCP as alternative -->
+	<!-- (Both DataSource implementations have a "close" method to be called on shutdown) -->
+	<!-- 
+		<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">
+		<property name="driverClass" value="${jdbc.driverClassName}"/>
+		<property name="jdbcUrl" value="${jdbc.url}"/>
+		<property name="user" value="${jdbc.username}"/>
+		<property name="password" value="${jdbc.password}"/>
+		</bean>
+	-->
+	<bean id="dataSource"
+		class="org.apache.commons.dbcp.BasicDataSource"
+		destroy-method="close">
+		<property name="driverClassName" value="org.hsqldb.jdbcDriver" />
+		<property name="url"
+			value="jdbc:hsqldb:file:db/oracle.db" />
+		<property name="username" value="sa" />
+		<!-- <property name="password" value="" />  -->
+	</bean>
+
+	<bean id="sessionFactory"
+		class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<property name="mappingResources">
+			<list>
+				<value>Rule.hbm.xml</value>
+				<value>RuleChange.hbm.xml</value>
+			</list>
+		</property>
+		<property name="hibernateProperties">
+			<value>
+				hibernate.dialect=org.hibernate.dialect.HSQLDialect
+				hibernate.hbm2ddl.auto=create
+			</value>
+		</property>
+	</bean>
+
+
+	<bean id="ruleDao"
+		class="org.archive.accesscontrol.model.HibernateRuleDao">
+		<property name="sessionFactory">
+			<ref local="sessionFactory" />
+		</property>
+	</bean>
+
+	<bean id="autoFormatView"
+		class="org.archive.accesscontrol.oracle.AutoFormatView">
+		<property name="defaultFormat">
+			<value>xml</value>
+		</property>
+		<property name="views">
+			<map>
+				<entry>
+					<key>
+						<value>xml</value>
+					</key>
+					<bean
+						class="org.archive.accesscontrol.oracle.XStreamView">
+						<constructor-arg>
+							<value>xml</value>
+						</constructor-arg>
+					</bean>
+				</entry>
+				<entry>
+					<key>
+						<value>json</value>
+					</key>
+					<bean
+						class="org.archive.accesscontrol.oracle.XStreamView">
+						<constructor-arg>
+							<value>json</value>
+						</constructor-arg>
+					</bean>
+				</entry>
+			</map>
+		</property>
+	</bean>
+
+</beans>

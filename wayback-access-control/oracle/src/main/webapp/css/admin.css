@@ -1,0 +1,73 @@
+.inherited {
+	color: #999;
+}
+
+td {
+  background: #eee;
+  padding: 4px;
+}
+
+span.date {
+  color: #006;
+  font-weight: bold;
+}
+
+th {
+  text-align: left;
+}
+
+td.newrule {
+  text-align: right;
+}
+
+h1 {
+  padding-left: 40px;
+  background-image: url(../images/greylock.gif);
+  background-repeat: no-repeat;
+}
+
+ul#breadcrumbs {
+	margin: 1px;
+	padding: 0;
+	font-family: Monaco, Courier, monospace;
+	white-space: nowrap;
+}
+
+div#breadcrumbsContainer {
+  border-bottom: solid 1px #999;
+  margin-bottom: 2em;
+  padding-top: 2em;
+  padding-left: 1em;
+  
+}
+
+ul#breadcrumbs li {
+  display: inline;
+  list-style-type: none;  
+}
+
+ul#breadcrumbs a {
+	background: #eef;
+	text-decoration: none;
+  padding: 2px 2px;
+  border-left: 1px solid #999;
+  border-right: 1px solid #999;
+  border-top: 1px solid #999;
+  border-bottom: 1px solid #eef;
+  
+}
+
+ul#breadcrumbs a:hover {
+  background: #ccf;
+}
+table {
+	clear: both;
+}
+
+.altButtons {
+  float: left;
+}
+
+.priButtons {
+	float: right;
+}

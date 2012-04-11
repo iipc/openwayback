@@ -11,6 +11,7 @@
   <name>Wayback</name>
 
   <modules>
+    <module>wayback-access-control</module>
     <module>wayback-core</module>
     <module>wayback-webapp</module>
     <module>wayback-hadoop-java</module>
@@ -127,11 +128,11 @@
 
   <scm>
     <connection>
-      scm:svn:https://archive-access.svn.sourceforge.net/svnroot/archive-access/trunk/archive-access/projects/wayback
+      scm:git:git://github.com/internetarchive/wayback-machine.git
     </connection>
     <tag>HEAD</tag>
     <url>
-      http://archive-access.svn.sourceforge.net/viewvc/archive-access/trunk/archive-access/projects/wayback
+      http://github.com/internetarchive/wayback-machine
     </url>
   </scm>
 

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd" >
+<hibernate-mapping>
+	<class name="org.archive.accesscontrol.model.Rule" table="rules" polymorphism="explicit">
+		<id name="id" column="id" type="java.lang.Long">
+			<generator class="sequence">
+				<param name="sequence">rule_id_seq</param>
+			</generator>
+
+		</id>
+
+		<property name="policy" column="policy" type="java.lang.String" />
+		<property name="surt" column="surt" type="text" />
+		<property name="captureStart" column="capture_start"
+			type="java.util.Date" />
+		<property name="captureEnd" column="capture_end"
+			type="java.util.Date" />
+		<property name="retrievalStart" column="retrieval_start"
+			type="java.util.Date" />
+		<property name="retrievalEnd" column="retrieval_end"
+			type="java.util.Date" />
+		<property name="secondsSinceCapture"
+			column="seconds_since_capture" type="java.lang.Integer" />
+		<property name="who" column="who" type="java.lang.String" />
+		<property name="privateComment" column="private_comment" type="text" />
+		<property name="publicComment" column="public_comment" type="text" />
+		<property name="enabled" column="enabled" type="java.lang.Boolean" />
+    <property name="exactMatch" column="exactMatch" type="java.lang.Boolean" />
+ 	</class>
+</hibernate-mapping>
