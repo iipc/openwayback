@@ -40,7 +40,7 @@ import org.archive.wayback.util.ObjectFilter;
  * additional annotation field is added.
  * 
  * @author brad
- * @version $Date$, $Revision$
+ * @version $Date: 2011-11-28 22:03:59 -0800 (Mon, 28 Nov 2011) $, $Revision: 3574 $
  */
 public class WARCRevisitAnnotationFilter 
 implements ObjectFilter<CaptureSearchResult> {
@@ -64,11 +64,16 @@ implements ObjectFilter<CaptureSearchResult> {
 			LOGGER.warning("Missing revisit base warc for digest: " + o.getDigest() + " url: " + o.getOriginalUrl());
 			return FILTER_EXCLUDE;
 		}
-		o.setFile(last.getFile());
-		o.setOffset(last.getOffset());
-		o.setHttpCode(last.getHttpCode());
+		String code = last.getHttpCode();
+		
+		if ((code == null) || (!code.equals("301") && !code.equals("302"))) {
+			o.setFile(last.getFile());
+			o.setOffset(last.getOffset());			
+			o.setRedirectUrl(last.getRedirectUrl());
+		}
+		
+		o.setHttpCode(code);
 		o.setMimeType(last.getMimeType());
-		o.setRedirectUrl(last.getRedirectUrl());
 		o.flagDuplicateDigest(last.getCaptureTimestamp());
 		return FILTER_INCLUDE;
 	}
