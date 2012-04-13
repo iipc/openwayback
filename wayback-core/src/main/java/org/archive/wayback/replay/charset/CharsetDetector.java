@@ -65,6 +65,9 @@ public abstract class CharsetDetector {
 		if(lc.contains("iso8859-1") || lc.contains("iso-8859-1")) {
 			return "cp1252";
 		}
+		if(lc.contains("unicode")) {
+			return DEFAULT_CHARSET;
+		}
 		return orig;
 	}
 	protected String contentTypeToCharset(final String contentType) {
