@@ -64,15 +64,15 @@ implements ObjectFilter<CaptureSearchResult> {
 			LOGGER.warning("Missing revisit base warc for digest: " + o.getDigest() + " url: " + o.getOriginalUrl());
 			return FILTER_EXCLUDE;
 		}
-		String code = last.getHttpCode();
+		String httpCode = last.getHttpCode();
 		
-		if ((code == null) || (!code.equals("301") && !code.equals("302"))) {
+		if ((httpCode == null) || !httpCode.startsWith("3")) {
 			o.setFile(last.getFile());
-			o.setOffset(last.getOffset());			
+			o.setOffset(last.getOffset());
 			o.setRedirectUrl(last.getRedirectUrl());
 		}
 		
-		o.setHttpCode(code);
+		o.setHttpCode(httpCode);
 		o.setMimeType(last.getMimeType());
 		o.flagDuplicateDigest(last.getCaptureTimestamp());
 		return FILTER_INCLUDE;
