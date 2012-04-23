@@ -74,7 +74,7 @@ public class ProxyAccessPoint extends CompositeAccessPoint {
 			HttpServletResponse response) throws ServletException,
 			IOException {
 		
-		boolean isProxyReq = (request.getHeader("Proxy-Connection") != null);
+		boolean isProxyReq = ((nonProxyAccessPoint == null) || request.getHeader("Proxy-Connection") != null);
 		
 		if (!isProxyReq) {
 			return handleNonProxy(request, response);
