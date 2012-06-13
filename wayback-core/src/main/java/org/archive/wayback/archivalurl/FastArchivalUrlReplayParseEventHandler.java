@@ -168,7 +168,13 @@ public class FastArchivalUrlReplayParseEventHandler implements
 	 * @throws IOException 
 	 */
 	private void handleJSTextNode(ReplayParseContext context, TextNode textNode) throws IOException {
-		textNode.setText(jsBlockTrans.transform(context, textNode.getText()));
+		
+		boolean alreadyInsertedHead = (context.getData(FERRET_HEAD_INSERTED) != null);
+		
+		if (alreadyInsertedHead) {
+			textNode.setText(jsBlockTrans.transform(context, textNode.getText()));
+		}
+		
 		emit(context,null,textNode,null);
 	}
 	
