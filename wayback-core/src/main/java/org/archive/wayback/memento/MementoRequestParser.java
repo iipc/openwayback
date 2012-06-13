@@ -41,6 +41,7 @@ public class MementoRequestParser extends ArchivalUrlRequestParser {
 		RequestParser[] theParsers = {
 				new ReplayRequestParser(this),
 				new TimeGateRequestParser(this),
+				new TimeMapRequestParser(this),
 				new TimeBundleRequestParser(this),
 				new PathDatePrefixQueryRequestParser(this),
 				new PathDateRangeQueryRequestParser(this),
