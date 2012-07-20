@@ -33,7 +33,7 @@ import org.archive.wayback.replay.html.StringTransformer;
  */
 public class JSStringTransformer implements StringTransformer {
 	private final static Pattern httpPattern = Pattern
-	.compile("(http:\\\\?/\\\\?/[A-Za-z0-9:_@.-]+)");
+	.compile("(https?:\\\\?/\\\\?/[A-Za-z0-9:_@.-]+)");
 
 	public String transform(ReplayParseContext context, String input) {
 
