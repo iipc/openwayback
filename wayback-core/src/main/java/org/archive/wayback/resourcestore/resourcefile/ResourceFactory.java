@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.net.URL;
+import java.net.URI;
 import java.util.logging.Logger;
 
 import org.archive.io.ArchiveReader;
@@ -38,6 +39,11 @@ import org.archive.io.warc.WARCRecord;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.exception.ResourceNotAvailableException;
 import org.archive.wayback.webapp.PerformanceLogger;
+
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.conf.Configuration;
 
 /**
  * Static factory class for constructing ARC/WARC Resources from 
@@ -56,6 +62,14 @@ public class ResourceFactory {
 		try {
 			if(urlOrPath.startsWith("http://")) {
 				return getResource(new URL(urlOrPath), offset);
+                        } else if(urlOrPath.startsWith("hdfs://")) {
+                                try {
+                                  return getResource(new URI(urlOrPath), offset);
+                                } catch ( java.net.URISyntaxException use ) {
+                                  // Stupid Java, the URISyntaxException is not a sub-type of IOException,
+                                  // unlike MalformedURLException.
+                                  throw new IOException( use );
+                                }
 			} else {
 				// assume local path:
 				return getResource(new File(urlOrPath), offset);
@@ -68,6 +82,43 @@ public class ResourceFactory {
 			throw e;
 		}
 	}
+
+  public static Resource getResource( URI uri, long offset)
+    throws IOException, ResourceNotAvailableException {
+    
+    Resource r = null;
+    
+    // FIXME: Put this into static initialization?  or require
+    //        explicit init during startup?  Or just create it each
+    //        time?
+    Configuration conf = new Configuration();
+
+    // Assume that the URL is a fully-qualified HDFS url, like:
+    //   hdfs://namenode:6100/collections/foo/some.arc.gz
+    FileSystem fs = FileSystem.get( uri, conf );
+    
+    Path path = new Path( uri.getPath() );
+
+    FSDataInputStream is = fs.open( path );
+    is.seek( offset );
+
+    if (isArc(path.getName()))
+      {
+        ArchiveReader reader = ARCReaderFactory.get(path.getName(), is, false);
+        r = ARCArchiveRecordToResource(reader.get(), reader);
+      }
+    else if (isWarc(path.getName()))
+      {
+        ArchiveReader reader = WARCReaderFactory.get(path.getName(), is, false);
+        r = WARCArchiveRecordToResource(reader.get(), reader);
+      } 
+    else 
+      {
+        throw new ResourceNotAvailableException("Unknown extension");
+      }
+    
+    return r;
+  }
 
 	public static Resource getResource(File file, long offset)
 			throws IOException, ResourceNotAvailableException {
