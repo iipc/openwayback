@@ -42,6 +42,14 @@
   </bean>
 -->
 <!--
+	The following bean looks for archival files in the specified URL path.
+-->
+<!--
+  <bean id="resourcefilelocationdb" class="org.archive.wayback.resourcestore.locationdb.PrefixResourceFileLocationDB">
+    <property name="prefix" value="hfds://namenode.example.org:50060/project/archives/" />
+  </bean>
+-->
+<!--
     To enable manual management of, or remote access to the above locationDB,
     uncomment the following bean.
 -->
