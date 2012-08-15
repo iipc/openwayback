@@ -62,8 +62,7 @@ public class StringFormatterTest extends TestCase {
 		assertEquals("1",fmt.format("f1","1"));
 		assertEquals("2 1",fmt.format("f2","1","2"));
 		assertEquals("3 2 1",fmt.format("f3","1","2",3));
-		assertEquals("d1",fmt.format("d1",new Date(0L)));
-		assertEquals("1970",fmt.format("d2",new Date(0L)));
+                assertEquals("1970",fmt.format("d2",new Date(0L)));
 	}
 
 	/**
