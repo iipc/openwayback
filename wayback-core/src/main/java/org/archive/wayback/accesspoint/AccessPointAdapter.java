@@ -129,6 +129,12 @@ public class AccessPointAdapter extends AccessPoint {
 		// TODO Auto-generated method stub
 		return config.getConfigs();
 	}
+	
+	@Override
+	public String getAccessPointPath()
+	{
+		return config.getBeanName();
+	}
 
 	@Override
 	public ExclusionFilterFactory getExclusionFactory() {
