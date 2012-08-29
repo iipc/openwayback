@@ -46,6 +46,8 @@ public class SimpleResourceStore implements ResourceStore {
 	private static String HTTP_ERROR = "HTTP";
 	private static String HTTP_502 = "502";
 	private String prefix = null;
+  private String regex;
+  private String replace;
 	private int retries = 2;
 
 	public Resource retrieveResource(CaptureSearchResult result)
@@ -65,7 +67,16 @@ public class SimpleResourceStore implements ResourceStore {
 			fileName = fileName + ArcWarcFilenameFilter.ARC_GZ_SUFFIX;
 		}
 				
-		String fileUrl = prefix + fileName;
+                String fileUrl;
+                if ( regex != null && replace != null )
+                  {
+                    fileUrl = fileName.replaceAll( regex, replace );
+                  }
+                else
+                  {
+                    fileUrl = prefix + fileName;
+                  }
+
 		Resource r = null;
 		try {
 			int attempts = retries;
@@ -110,6 +121,22 @@ public class SimpleResourceStore implements ResourceStore {
 	public void setPrefix(String prefix) {
 		this.prefix = prefix;
 	}
+
+	public String getRegex() {
+		return regex;
+	}
+
+	public void setRegex(String regex) {
+		this.regex = regex;
+        }
+
+	public String getReplace() {
+		return replace;
+	}
+
+	public void setReplace(String replace) {
+		this.replace = replace;
+        }
 
 	public void shutdown() throws IOException {
 		// no-op
