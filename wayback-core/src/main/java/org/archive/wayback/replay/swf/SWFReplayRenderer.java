@@ -37,14 +37,17 @@ import org.archive.net.UURI;
 import org.archive.net.UURIFactory;
 import org.archive.wayback.ReplayRenderer;
 import org.archive.wayback.ResultURIConverter;
+import org.archive.wayback.archivalurl.ArchivalUrl;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadContentException;
+import org.archive.wayback.exception.BetterRequestException;
 import org.archive.wayback.exception.WaybackException;
 import org.archive.wayback.replay.HttpHeaderOperation;
 import org.archive.wayback.replay.HttpHeaderProcessor;
+import org.archive.wayback.webapp.AccessPoint;
 
 import com.flagstone.transform.DoAction;
 import com.flagstone.transform.EventHandler;
@@ -59,15 +62,17 @@ import com.flagstone.transform.coder.DecoderRegistry;
 
 /**
  * ReplayRenderer which passes embedded URLs inside flash (SWF) format content
- * through a ResultURIConverter, allowing them to be rewritten. 
+ * through a ResultURIConverter, allowing them to be rewritten.
  * 
  * @author brad
- *
+ * 
  */
 public class SWFReplayRenderer implements ReplayRenderer {
 	private HttpHeaderProcessor httpHeaderProcessor;
+
 	/**
-	 * @param httpHeaderProcessor to use for rewriting original HTTP headers
+	 * @param httpHeaderProcessor
+	 *            to use for rewriting original HTTP headers
 	 */
 	public SWFReplayRenderer(HttpHeaderProcessor httpHeaderProcessor) {
 		this.httpHeaderProcessor = httpHeaderProcessor;
@@ -78,61 +83,73 @@ public class SWFReplayRenderer implements ReplayRenderer {
 			CaptureSearchResult result, Resource resource,
 			ResultURIConverter uriConverter, CaptureSearchResults results)
 			throws ServletException, IOException, WaybackException {
-		
-		// copy HTTP response code:
-		HttpHeaderOperation.copyHTTPMessageHeader(resource, httpResponse);
 
-		// load and process original headers:
-		Map<String,String> headers = HttpHeaderOperation.processHeaders(
-				resource, result, uriConverter, httpHeaderProcessor);
-		
-		// The URL of the resource, for resolving embedded relative URLs: 
-    	URL url = null;
 		try {
-			url = new URL(result.getOriginalUrl());
-		} catch (MalformedURLException e1) {
-			e1.printStackTrace();
-			throw new IOException(e1.getMessage());
-		}
-		// the date to associate with the embedded, rewritten URLs:
-		String datespec = result.getCaptureTimestamp();
-		SWFUrlRewriter rw = new SWFUrlRewriter(uriConverter, url, datespec);
-		
-		
-		// OK, try to read the input movie:
-		Movie movie = getRobustMovie(RobustMovieDecoder.DECODE_RULE_NULLS);
-		
-		try {
-			movie.decodeFromStream(resource);
-		} catch (DataFormatException e1) {
-			throw new BadContentException(e1.getLocalizedMessage());
-		}
-		Movie outMovie = new Movie(movie);
 
-		List<MovieTag> inTags = movie.getObjects();
-		ArrayList<MovieTag> outTags = new ArrayList<MovieTag>();
-		for(MovieTag tag : inTags) {
-			outTags.add(rewriteTag(rw,tag));
-		}
-		outMovie.setObjects(outTags);
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		try {
-			outMovie.encodeToStream(baos);
-		} catch (DataFormatException e) {
-			throw new BadContentException(e.getLocalizedMessage());
-		}
-		
-		// put the new corrected length:
-		headers.put(HttpHeaderOperation.HTTP_LENGTH_HEADER, 
-				String.valueOf(baos.size()));
+			// copy HTTP response code:
+			HttpHeaderOperation.copyHTTPMessageHeader(resource, httpResponse);
 
-		// send the new headers:
-		HttpHeaderOperation.sendHeaders(headers, httpResponse);
+			// load and process original headers:
+			Map<String, String> headers = HttpHeaderOperation.processHeaders(
+					resource, result, uriConverter, httpHeaderProcessor);
 
-		// and copy the stored up byte-stream:
-		baos.writeTo(httpResponse.getOutputStream());
-		
+			// The URL of the resource, for resolving embedded relative URLs:
+			URL url = null;
+			try {
+				url = new URL(result.getOriginalUrl());
+			} catch (MalformedURLException e1) {
+				e1.printStackTrace();
+				throw new IOException(e1.getMessage());
+			}
+			// the date to associate with the embedded, rewritten URLs:
+			String datespec = result.getCaptureTimestamp();
+			SWFUrlRewriter rw = new SWFUrlRewriter(uriConverter, url, datespec);
+
+			// OK, try to read the input movie:
+			Movie movie = getRobustMovie(RobustMovieDecoder.DECODE_RULE_NULLS);
+
+			try {
+				movie.decodeFromStream(resource);
+			} catch (DataFormatException e1) {
+				throw new BadContentException(e1.getLocalizedMessage());
+			}
+			Movie outMovie = new Movie(movie);
+
+			List<MovieTag> inTags = movie.getObjects();
+			ArrayList<MovieTag> outTags = new ArrayList<MovieTag>();
+			for (MovieTag tag : inTags) {
+				outTags.add(rewriteTag(rw, tag));
+			}
+			outMovie.setObjects(outTags);
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			try {
+				outMovie.encodeToStream(baos);
+			} catch (DataFormatException e) {
+				throw new BadContentException(e.getLocalizedMessage());
+			}
+
+			// put the new corrected length:
+			headers.put(HttpHeaderOperation.HTTP_LENGTH_HEADER,
+					String.valueOf(baos.size()));
+
+			// send the new headers:
+			HttpHeaderOperation.sendHeaders(headers, httpResponse);
+
+			// and copy the stored up byte-stream:
+			baos.writeTo(httpResponse.getOutputStream());
+		} catch (Exception e) {
+
+			// Redirect to identity if there are any issues
+			AccessPoint accessPoint = wbRequest.getAccessPoint();
+			wbRequest.setIdentityContext(true);
+			
+			ArchivalUrl aUrl = new ArchivalUrl(wbRequest);
+			String bestPath = aUrl.toString();
+			String betterURI = accessPoint.getReplayPrefix() + bestPath;
+			throw new BetterRequestException(betterURI);
+		}
 	}
+
 	private Movie getRobustMovie(int decodeRule) {
 		Movie movie = new Movie();
 
@@ -142,69 +159,70 @@ public class SWFReplayRenderer implements ReplayRenderer {
 		decoder.setDecodeRule(decodeRule);
 		registry.setMovieDecoder(decoder);
 		movie.setRegistry(registry);
-		
+
 		return movie;
 	}
 
 	private MovieTag rewriteTag(SWFUrlRewriter rw, MovieTag tag) {
-		if(tag instanceof DoAction) {
+		if (tag instanceof DoAction) {
 			DoAction doAction = (DoAction) tag;
 			doAction.setActions(rewriteActions(rw, doAction.getActions()));
-		} else if(tag instanceof DefineButton2) {
+		} else if (tag instanceof DefineButton2) {
 
 			DefineButton2 defButton2 = (DefineButton2) tag;
-			defButton2.setEvents(rewriteEventHandlers(rw, defButton2.getEvents()));
+			defButton2.setEvents(rewriteEventHandlers(rw,
+					defButton2.getEvents()));
 		}
 		return tag;
 	}
-	
+
 	private List<EventHandler> rewriteEventHandlers(SWFUrlRewriter rw,
 			List<EventHandler> handlers) {
 		ArrayList<EventHandler> newActions = new ArrayList<EventHandler>();
-		for(EventHandler handler : handlers) {
+		for (EventHandler handler : handlers) {
 			handler.setActions(rewriteActions(rw, handler.getActions()));
 			newActions.add(handler);
 		}
 		return newActions;
 	}
-	
+
 	private List<Action> rewriteActions(SWFUrlRewriter rw, List<Action> actions) {
 		ArrayList<Action> newActions = new ArrayList<Action>();
-		for(Action action : actions) {
-			if(action instanceof Table) {
+		for (Action action : actions) {
+			if (action instanceof Table) {
 
 				Table table = (Table) action;
 				table.setValues(rewriteStringValues(rw, table.getValues()));
 				newActions.add(table);
 
-			} else if(action instanceof Push) {
+			} else if (action instanceof Push) {
 
 				Push push = (Push) action;
-				
-				newActions.add(new Push(rewriteObjectValues(rw, 
+
+				newActions.add(new Push(rewriteObjectValues(rw,
 						push.getValues())));
 
-			} else if(action instanceof GetUrl) {
+			} else if (action instanceof GetUrl) {
 
 				GetUrl getUrl = (GetUrl) action;
 				newActions.add(new GetUrl(rewriteString(rw, getUrl.getUrl()),
 						getUrl.getTarget()));
-				
+
 			} else {
 				newActions.add(action);
 			}
 		}
 		return newActions;
 	}
-	
+
 	private List<Object> rewriteObjectValues(SWFUrlRewriter rw,
 			List<Object> values) {
 
 		ArrayList<Object> nvals = new ArrayList<Object>();
-		for(int i = 0; i < values.size(); i++) {
+		for (int i = 0; i < values.size(); i++) {
 			Object orig = values.get(i);
-			if(orig instanceof String) {
-				nvals.add(rewriteString(rw, (String)orig));
+			if (orig instanceof String) {
+				nvals.add(rewriteString(rw, (String) orig));
 			} else {
 				nvals.add(orig);
 			}
@@ -216,15 +234,15 @@ public class SWFReplayRenderer implements ReplayRenderer {
 			List<String> values) {
 
 		ArrayList<String> nvals = new ArrayList<String>();
-		for(int i = 0; i < values.size(); i++) {
+		for (int i = 0; i < values.size(); i++) {
 			nvals.add(rewriteString(rw, values.get(i)));
 		}
 		return nvals;
 	}
 
 	private String rewriteString(SWFUrlRewriter rw, String original) {
-		if(original.startsWith("http://")) {
-//			System.err.format("Rewrite(%s)\n",original);
+		if (original.startsWith("http://")) {
+			// System.err.format("Rewrite(%s)\n",original);
 			return rw.rewrite(original);
 		}
 		return original;
@@ -234,23 +252,24 @@ public class SWFReplayRenderer implements ReplayRenderer {
 		UURI baseUrl = null;
 		ResultURIConverter converter;
 		String datespec;
-		public SWFUrlRewriter(ResultURIConverter converter, URL baseUrl, 
+
+		public SWFUrlRewriter(ResultURIConverter converter, URL baseUrl,
 				String datespec) {
 			this.datespec = datespec;
 			this.converter = converter;
 			try {
-				this.baseUrl = 
-					UURIFactory.getInstance(baseUrl.toExternalForm());
+				this.baseUrl = UURIFactory
+						.getInstance(baseUrl.toExternalForm());
 			} catch (URIException e) {
 				e.printStackTrace();
 			}
 
-			
 		}
+
 		public String rewrite(String url) {
 			try {
 				String resolved = url;
-				if(baseUrl != null) {
+				if (baseUrl != null) {
 					resolved = UURIFactory.getInstance(baseUrl, url).toString();
 				}
 				return converter.makeReplayURI(datespec, resolved);

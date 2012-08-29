@@ -58,7 +58,7 @@ public class ArchivalUrlJSReplayRenderer extends TextReplayRenderer {
 	}
 
 	private final static Pattern httpPattern = Pattern
-			.compile("(http://[A-Za-z0-9:_@.-]+)");
+			.compile("(https?://[A-Za-z0-9:_@.-]+)");
 
 	protected void updatePage(TextDocument page,
 			HttpServletRequest httpRequest, HttpServletResponse httpResponse,
