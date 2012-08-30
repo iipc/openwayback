@@ -26,6 +26,9 @@ import java.util.regex.Pattern;
 import org.apache.commons.httpclient.URIException;
 import org.archive.net.UURI;
 import org.archive.net.UURIFactory;
+import org.archive.wayback.archivalurl.ArchivalUrl;
+import org.archive.wayback.core.WaybackRequest;
+import org.archive.wayback.webapp.AccessPoint;
 
 /**
  * Class containing common static URL methods. Primarily resolveUrl() and 
@@ -375,5 +378,22 @@ public class UrlOperations {
 			LOGGER.warning(e.getLocalizedMessage() + ": " + url);
 		}
 		return null;
+	}
+	
+	public static String computeIdentityUrl(WaybackRequest wbRequest)
+	{
+		AccessPoint accessPoint = wbRequest.getAccessPoint();
+
+		boolean origIdentity = wbRequest.isIdentityContext();
+		wbRequest.setIdentityContext(true);
+		
+		ArchivalUrl aUrl = new ArchivalUrl(wbRequest);
+		String bestPath = aUrl.toString();
+		String betterURI = accessPoint.getReplayPrefix() + bestPath;
+
+		//reset the isIdentity flag just in case
+		wbRequest.setIdentityContext(origIdentity);
+		
+		return betterURI;
 	}
 }

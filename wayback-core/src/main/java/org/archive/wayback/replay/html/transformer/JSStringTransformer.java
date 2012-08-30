@@ -32,13 +32,25 @@ import org.archive.wayback.replay.html.StringTransformer;
  *
  */
 public class JSStringTransformer implements StringTransformer {
-	private final static Pattern httpPattern = Pattern
+	private final static Pattern defaultHttpPattern = Pattern
 	.compile("(https?:\\\\?/\\\\?/[A-Za-z0-9:_@.-]+)");
+	
+	private Pattern pattern = defaultHttpPattern;
+	
+	public void setRegex(String regex)
+	{
+		pattern = Pattern.compile(regex);
+	}
+	
+	public String getRegex()
+	{
+		return pattern.pattern();
+	}
 
 	public String transform(ReplayParseContext context, String input) {
 
 		StringBuffer replaced = new StringBuffer(input.length());
-		Matcher m = httpPattern.matcher(input);
+		Matcher m = pattern.matcher(input);
 		while (m.find()) {
 			String host = m.group(1);
 			m.appendReplacement(replaced, context.contextualizeUrl(host));
