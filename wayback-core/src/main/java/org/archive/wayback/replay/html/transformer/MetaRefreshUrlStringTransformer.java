@@ -33,7 +33,7 @@ public class MetaRefreshUrlStringTransformer extends URLStringTransformer
 implements StringTransformer {
 
 	private final static Pattern refreshURLPattern = 
-		Pattern.compile("^\\d+\\s*;\\s*url\\s*=\\s*(.+?)\\s*$",
+		Pattern.compile("^[\\d.]+\\s*;\\s*url\\s*=\\s*(.+?)\\s*$",
 				Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
 
 	/* (non-Javadoc)
