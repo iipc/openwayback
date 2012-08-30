@@ -47,6 +47,7 @@ import org.archive.wayback.exception.BetterRequestException;
 import org.archive.wayback.exception.WaybackException;
 import org.archive.wayback.replay.HttpHeaderOperation;
 import org.archive.wayback.replay.HttpHeaderProcessor;
+import org.archive.wayback.util.url.UrlOperations;
 import org.archive.wayback.webapp.AccessPoint;
 
 import com.flagstone.transform.DoAction;
@@ -140,13 +141,7 @@ public class SWFReplayRenderer implements ReplayRenderer {
 		} catch (Exception e) {
 
 			// Redirect to identity if there are any issues
-			AccessPoint accessPoint = wbRequest.getAccessPoint();
-			wbRequest.setIdentityContext(true);
-			
-			ArchivalUrl aUrl = new ArchivalUrl(wbRequest);
-			String bestPath = aUrl.toString();
-			String betterURI = accessPoint.getReplayPrefix() + bestPath;
-			throw new BetterRequestException(betterURI);
+			throw new BetterRequestException(UrlOperations.computeIdentityUrl(wbRequest));
 		}
 	}
 

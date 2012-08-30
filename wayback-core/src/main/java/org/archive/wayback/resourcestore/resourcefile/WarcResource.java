@@ -108,7 +108,9 @@ public class WarcResource extends Resource {
 
 	@Override
 	public long getRecordLength() {
-		// TODO Auto-generated method stub
+		if ((length == 0) && (rec.getHeader() != null)) {
+			length = rec.getHeader().getLength();
+		}
 		return length;
 	}
 
