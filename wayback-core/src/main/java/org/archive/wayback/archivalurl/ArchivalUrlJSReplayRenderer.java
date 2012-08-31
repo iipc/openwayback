@@ -57,8 +57,20 @@ public class ArchivalUrlJSReplayRenderer extends TextReplayRenderer {
 		super(httpHeaderProcessor);
 	}
 
-	private final static Pattern httpPattern = Pattern
+	private final static Pattern defaultHttpPattern = Pattern
 			.compile("(https?://[A-Za-z0-9:_@.-]+)");
+	
+	private Pattern pattern = defaultHttpPattern;
+	
+	public void setRegex(String regex)
+	{
+		pattern = Pattern.compile(regex);
+	}
+	
+	public String getRegex()
+	{
+		return pattern.pattern();
+	}
 
 	protected void updatePage(TextDocument page,
 			HttpServletRequest httpRequest, HttpServletResponse httpResponse,
@@ -70,7 +82,7 @@ public class ArchivalUrlJSReplayRenderer extends TextReplayRenderer {
 
 		StringBuilder sb = page.sb;
 		StringBuffer replaced = new StringBuffer(sb.length());
-		Matcher m = httpPattern.matcher(sb);
+		Matcher m = pattern.matcher(sb);
 		while (m.find()) {
 			String host = m.group(1);
 			String replacement = uriConverter.makeReplayURI(captureTS, host);
