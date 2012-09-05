@@ -92,9 +92,8 @@ public class HTTPRecordAnnotater {
 			for (Header httpHeader : headers) {
 				if (httpHeader.getName().toUpperCase().equals(
 						UPPER_LOCATION)) {
-	
-					String locationStr = httpHeader.getValue();
-					// TODO: "Location" is supposed to be absolute:
+					
+					// Old Comment: "Location" is supposed to be absolute:
 					// (http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html)
 					// (section 14.30) but Content-Location can be
 					// relative.
@@ -104,9 +103,16 @@ public class HTTPRecordAnnotater {
 					// headers...
 					// should we prefer one over the other?
 					// right now, we're ignoring "Content-Location"
-					result.setRedirectUrl(
-							UrlOperations.resolveUrl(result.getOriginalUrl(),
-									locationStr));
+					//
+					
+					// NOTE: FILLING THE REDIRECT FIELD IN CDX IS DISABLED!
+					// If we want to support redirect in cdx as long as the url is valid
+					// comment out the following lines:
+					
+					// String locationStr = httpHeader.getValue();
+					// result.setRedirectUrl(
+					//		UrlOperations.resolveUrl(result.getOriginalUrl(),
+					//				locationStr, "-"));
 
 				} else if(httpHeader.getName().toLowerCase().equals("content-type")) {
 					mimeType = transformHTTPMime(httpHeader.getValue());
