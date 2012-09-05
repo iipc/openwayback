@@ -369,6 +369,17 @@ implements ShutdownListener {
 
 			closest.setClosest(true);
 			checkAnchorWindow(wbRequest,closest);
+			
+			// Support for redirect from the CDX redirectUrl field
+			// This was the intended use of the redirect field, but has not actually be tested
+			// To enable this functionality, uncomment the lines below
+			// This is an optimization that allows for redirects to be handled without loading the original content
+			//
+			//String redir = closest.getRedirectUrl();
+			//if ((redir != null) && !redir.equals("-")) {
+			//  String fullRedirect = getUriConverter().makeReplayURI(closest.getCaptureTimestamp(), redir);
+			//  throw new BetterRequestException(fullRedirect, Integer.valueOf(closest.getHttpCode()));
+			//}
 
 			try {
 				resource = 
