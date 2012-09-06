@@ -21,6 +21,8 @@ package org.archive.wayback.requestparser;
 
 import java.util.Map;
 import java.util.regex.Pattern;
+import java.net.URLDecoder;
+import java.io.UnsupportedEncodingException;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -78,7 +80,7 @@ public class OpenSearchRequestParser extends WrappedRequestParser {
 	 * info from the httpRequest object.
 	 */
 	public WaybackRequest parse(HttpServletRequest httpRequest, 
-			AccessPoint wbContext) throws BadQueryException {
+		AccessPoint wbContext) throws BadQueryException {
 		
 		WaybackRequest wbRequest = null;
 		@SuppressWarnings("unchecked")
@@ -139,11 +141,15 @@ public class OpenSearchRequestParser extends WrappedRequestParser {
 			if (colonIndex == -1) {
 				throw new BadQueryException("Bad search token(" + token + ")");
 			}
-			String key = token.substring(0, colonIndex);
-			String value = token.substring(colonIndex + 1);
-			// TODO: make sure key is in singleTokens?
-			// let's just let em all thru for now:
-			wbRequest.put(key, value);
+                        try {
+				String key   = URLDecoder.decode(token.substring(0, colonIndex) ,"UTF-8");
+                        	String value = URLDecoder.decode(token.substring(colonIndex + 1),"UTF-8");
+				// TODO: make sure key is in singleTokens?
+				// let's just let em all thru for now:
+				wbRequest.put(key, value);
+                        } catch ( UnsupportedEncodingException e ) {
+				throw new BadQueryException("Unsupported encoding: UTF-8");
+                        }
 		}
 		if(wbRequest.getStartTimestamp() == null) {
 			wbRequest.setStartTimestamp(getEarliestTimestamp());
