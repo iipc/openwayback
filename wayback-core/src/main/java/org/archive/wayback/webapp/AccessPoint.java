@@ -25,6 +25,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -52,11 +53,14 @@ import org.archive.wayback.exception.AnchorWindowTooSmallException;
 import org.archive.wayback.exception.AuthenticationControlException;
 import org.archive.wayback.exception.BaseExceptionRenderer;
 import org.archive.wayback.exception.BetterRequestException;
+import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.exception.ResourceNotAvailableException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.exception.SpecificCaptureReplayException;
 import org.archive.wayback.exception.WaybackException;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
+import org.archive.wayback.resourceindex.filters.WARCRevisitAnnotationFilter;
+import org.archive.wayback.resourcestore.resourcefile.WarcResource;
 import org.archive.wayback.util.operator.BooleanOperator;
 import org.archive.wayback.util.webapp.AbstractRequestHandler;
 import org.archive.wayback.util.webapp.ShutdownListener;
@@ -348,7 +352,8 @@ implements ShutdownListener {
 	protected void handleReplay(WaybackRequest wbRequest, 
 			HttpServletRequest httpRequest, HttpServletResponse httpResponse) 
 	throws IOException, ServletException, WaybackException {
-		Resource resource = null;
+		Resource httpHeadersResource = null;
+		Resource payloadResource = null;
 		try {
 			
 			checkInterstitialRedirect(httpRequest,wbRequest);
@@ -382,8 +387,15 @@ implements ShutdownListener {
 			//}
 
 			try {
-				resource = 
+				httpHeadersResource = 
 					getCollection().getResourceStore().retrieveResource(closest);
+
+				if ("warc/revisit".equals(closest.getMimeType())) {
+					payloadResource = retrievePayloadResource(
+							httpHeadersResource, captureResults, closest);
+				} else {
+					payloadResource = httpHeadersResource;
+				}
 			} catch (SpecificCaptureReplayException scre) {
 				scre.setCaptureContext(captureResults, closest);
 				throw scre;
@@ -398,12 +410,13 @@ implements ShutdownListener {
 				}
 			}
 			
+			// XXX should consider both headers and payload resources when selecting renderer
 			ReplayRenderer renderer = 
-				getReplay().getRenderer(wbRequest, closest, resource);
+				getReplay().getRenderer(wbRequest, closest, httpHeadersResource);
 			
 			try {
 				renderer.renderResource(httpRequest, httpResponse, wbRequest,
-						closest, resource, getUriConverter(), captureResults);
+						closest, httpHeadersResource, payloadResource, getUriConverter(), captureResults);
 			} catch (SpecificCaptureReplayException scre) {
 				scre.setCaptureContext(captureResults, closest);
 				throw scre;
@@ -413,10 +426,45 @@ implements ShutdownListener {
 			p.write(wbRequest.getReplayTimestamp() + " " +
 					wbRequest.getRequestUrl());
 		} finally {
-			if(resource != null) {
-				resource.close();
+			if(httpHeadersResource != null) {
+				httpHeadersResource.close();
 			}
 		}
+	}
+
+	/**
+	 * Retrieves the payload resource for the given revisit record by looking in
+	 * the index for the most recent non-deduped earlier capture of the same
+	 * url.
+	 * 
+	 * @param revisitRecord
+	 * @param captureResults
+	 * @param closest
+	 * @return the payload resource
+	 * @throws ResourceNotAvailableException
+	 * @throws ConfigurationException
+	 * @see WARCRevisitAnnotationFilter
+	 */
+	protected Resource retrievePayloadResource(Resource revisitRecord,
+			CaptureSearchResults captureResults, CaptureSearchResult closest)
+					throws ResourceNotAvailableException, ConfigurationException {
+		CaptureSearchResult payloadLocation = null;
+		for (CaptureSearchResult o: captureResults) {
+			if (o == closest) {
+				break;
+			} else if (!o.getFile().equals("-")
+					&& !o.getMimeType().equals("warc/revisit")) {
+				payloadLocation = o;
+			}
+		}
+
+		if (payloadLocation == null) {
+			throw new ResourceNotAvailableException(
+					"unable to find payload for revisit record "
+							+ closest.toCanonicalStringMap());
+		}
+
+		return getCollection().getResourceStore().retrieveResource(payloadLocation);
 	}
 
 	private void checkAnchorWindow(WaybackRequest wbRequest, 

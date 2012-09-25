@@ -46,7 +46,7 @@ import org.archive.wayback.replay.charset.StandardCharsetDetector;
 public abstract class TextReplayRenderer implements ReplayRenderer {
 
 	public static String GUESSED_CHARSET_HEADER = "X-Archive-Guessed-Charset";
-	
+
 	private String guessedCharsetHeader = GUESSED_CHARSET_HEADER;
 	private List<String> jspInserts = null;
 	private HttpHeaderProcessor httpHeaderProcessor;
@@ -55,37 +55,46 @@ public abstract class TextReplayRenderer implements ReplayRenderer {
 	public TextReplayRenderer(HttpHeaderProcessor httpHeaderProcessor) {
 		this.httpHeaderProcessor = httpHeaderProcessor;
 	}
-	
+
 	protected abstract void updatePage(TextDocument page, 
 			HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
 			CaptureSearchResult result, Resource resource,
 			ResultURIConverter uriConverter, CaptureSearchResults results)
-		throws ServletException, IOException;
+					throws ServletException, IOException;
 
-	/* (non-Javadoc)
-	 * @see org.archive.wayback.ReplayRenderer#renderResource(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.archive.wayback.core.WaybackRequest, org.archive.wayback.core.SearchResult, org.archive.wayback.core.Resource, org.archive.wayback.ResultURIConverter, org.archive.wayback.core.SearchResults)
-	 */
+	@Override
 	public void renderResource(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
 			CaptureSearchResult result, Resource resource,
 			ResultURIConverter uriConverter, CaptureSearchResults results)
-			throws ServletException, IOException, BadContentException {
+					throws ServletException, IOException, BadContentException {
+		renderResource(httpRequest, httpResponse, wbRequest, result, resource, resource, uriConverter, results);
+	}
 
-		HttpHeaderOperation.copyHTTPMessageHeader(resource, httpResponse);
+	@Override
+	public void renderResource(HttpServletRequest httpRequest,
+			HttpServletResponse httpResponse, WaybackRequest wbRequest,
+			CaptureSearchResult result, Resource httpHeadersResource,
+			Resource payloadResource, ResultURIConverter uriConverter,
+			CaptureSearchResults results) throws ServletException,
+			IOException, BadContentException {
+
+		HttpHeaderOperation.copyHTTPMessageHeader(httpHeadersResource, httpResponse);
 
 		Map<String,String> headers = HttpHeaderOperation.processHeaders(
-				resource, result, uriConverter, httpHeaderProcessor);
-		
+				httpHeadersResource, result, uriConverter, httpHeaderProcessor);
+
 		// Decode resource (such as if gzip encoded)
-		resource = decodeResource(resource);
-	
-		String charSet = charsetDetector.getCharset(resource, wbRequest);
+		Resource decodedResource = decodeResource(payloadResource);
+
+		String charSet = charsetDetector.getCharset(httpHeadersResource,
+				decodedResource, wbRequest);
 		// Load content into an HTML page, and resolve load-time URLs:
-		TextDocument page = new TextDocument(resource,result,uriConverter);
+		TextDocument page = new TextDocument(decodedResource,result,uriConverter);
 		page.readFully(charSet);
-		
-		updatePage(page,httpRequest,httpResponse,wbRequest,result,resource,
+
+		updatePage(page,httpRequest,httpResponse,wbRequest,result,decodedResource,
 				uriConverter,results);
 
 		// set the corrected length:
@@ -153,22 +162,22 @@ public abstract class TextReplayRenderer implements ReplayRenderer {
 	public void setGuessedCharsetHeader(String guessedCharsetHeader) {
 		this.guessedCharsetHeader = guessedCharsetHeader;
 	}
-	
+
 	public static Resource decodeResource(Resource resource) throws IOException
 	{
 		Map<String, String> headers = resource.getHttpHeaders();
-		
+
 		if (headers != null) {
 			String encoding =  headers.get(HttpHeaderOperation.HTTP_CONTENT_ENCODING);
 			if (encoding != null) {
 				if (encoding.toLowerCase().equals(GzipDecodingResource.GZIP)) {
 					return new GzipDecodingResource(resource);
 				}
-				
+
 				//TODO: check for other encodings?
 			}
 		}
-		
+
 		return resource;
 	}
 }
