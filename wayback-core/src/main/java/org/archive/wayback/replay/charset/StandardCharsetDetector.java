@@ -27,13 +27,13 @@ import org.archive.wayback.core.WaybackRequest;
 public class StandardCharsetDetector extends CharsetDetector {
 
 	@Override
-	public String getCharset(Resource resource, WaybackRequest request)
-	throws IOException {
-		String charSet = getCharsetFromHeaders(resource);
+	public String getCharset(Resource httpHeadersResource,
+			Resource payloadResource, WaybackRequest wbRequest) throws IOException {
+		String charSet = getCharsetFromHeaders(httpHeadersResource);
 		if(charSet == null) {
-			charSet = getCharsetFromMeta(resource);
+			charSet = getCharsetFromMeta(payloadResource);
 			if(charSet == null) {
-				charSet = getCharsetFromBytes(resource);
+				charSet = getCharsetFromBytes(payloadResource);
 				if(charSet == null) {
 					charSet = DEFAULT_CHARSET;
 				}
