@@ -37,11 +37,10 @@ public abstract class BaseReplayRendererSelector implements ReplayRendererSelect
 	protected long maxSize = MAX_HTML_MARKUP_LENGTH;
 	private ReplayRenderer renderer;
 	
-	/* (non-Javadoc)
-	 * @see org.archive.wayback.replay.ReplayRendererSelector#canHandle(org.archive.wayback.core.WaybackRequest, org.archive.wayback.core.CaptureSearchResult, org.archive.wayback.core.Resource)
-	 */
-	public abstract boolean canHandle(WaybackRequest wbRequest,
-			CaptureSearchResult result, Resource resource);
+	public boolean canHandle(WaybackRequest wbRequest,
+			CaptureSearchResult result, Resource resource) {
+		return canHandle(wbRequest, result, resource, resource);
+	}
 
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.replay.ReplayRendererSelector#getRenderer()

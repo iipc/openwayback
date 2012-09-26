@@ -416,7 +416,7 @@ implements ShutdownListener {
 			
 			// XXX should consider both headers and payload resources when selecting renderer
 			ReplayRenderer renderer = 
-				getReplay().getRenderer(wbRequest, closest, httpHeadersResource);
+				getReplay().getRenderer(wbRequest, closest, httpHeadersResource, payloadResource);
 			
 			try {
 				renderer.renderResource(httpRequest, httpResponse, wbRequest,

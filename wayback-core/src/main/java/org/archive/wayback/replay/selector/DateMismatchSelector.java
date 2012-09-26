@@ -31,20 +31,18 @@ import org.archive.wayback.core.WaybackRequest;
  */
 public class DateMismatchSelector extends BaseReplayRendererSelector {
 
-	/* (non-Javadoc)
-	 * @see org.archive.wayback.replay.selector.BaseReplayRendererSelector#canHandle(org.archive.wayback.core.WaybackRequest, org.archive.wayback.core.CaptureSearchResult, org.archive.wayback.core.Resource)
-	 */
 	@Override
 	public boolean canHandle(WaybackRequest wbRequest,
-			CaptureSearchResult result, Resource resource) {
-		
+			CaptureSearchResult result, Resource httpHeadersResource,
+			Resource payloadResource) {
+
 		String reqDateStr = wbRequest.getReplayTimestamp();
 		String resDateStr = result.getCaptureTimestamp();
 		// if the request date is shorter than the result date, always redirect:
 		if(reqDateStr.length() < resDateStr.length()) {
 			return true;
 		}
-		
+
 		// if the result is not for the exact date requested, redirect to the
 		// exact date. some capture dates are not 14 digits, only compare as 
 		// many digits as are in the result date:
