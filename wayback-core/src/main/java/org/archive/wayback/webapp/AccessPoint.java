@@ -414,7 +414,6 @@ implements ShutdownListener {
 				}
 			}
 			
-			// XXX should consider both headers and payload resources when selecting renderer
 			ReplayRenderer renderer = 
 				getReplay().getRenderer(wbRequest, closest, httpHeadersResource, payloadResource);
 			
@@ -464,17 +463,32 @@ implements ShutdownListener {
 			CaptureSearchResults captureResults, CaptureSearchResult closest)
 					throws ResourceNotAvailableException, ConfigurationException {
 		
-		boolean is304 = isWarcRevisitNotModified(revisitRecord);
-		
 		CaptureSearchResult payloadLocation = null;
-		for (CaptureSearchResult o: captureResults) {
-			if (o == closest) {
-				break;
-			} else {
-				if (!o.getFile().equals("-")
-						&& !o.getMimeType().equals("warc/revisit")
-						&& (is304 || o.getDigest().equals(closest.getDigest()))) {
-					payloadLocation = o;
+
+		// see if the warc revisit record points us to the payload
+		WarcResource wr = (WarcResource) revisitRecord;
+		Map<String,Object> warcHeaders = wr.getWarcHeaders().getHeaderFields();
+
+		String payloadWarcFile = (String) warcHeaders.get("WARC-Refers-To-Filename");
+		String offsetStr = (String) warcHeaders.get("WARC-Refers-To-File-Offset");
+
+		if (payloadWarcFile != null && offsetStr != null) {
+			payloadLocation = new CaptureSearchResult();
+			payloadLocation.setFile(payloadWarcFile);
+			payloadLocation.setOffset(Long.parseLong(offsetStr));
+		}
+
+		if (payloadLocation == null) {
+			boolean is304 = isWarcRevisitNotModified(revisitRecord);
+			for (CaptureSearchResult o: captureResults) {
+				if (o == closest) {
+					break;
+				} else {
+					if (!o.getFile().equals("-")
+							&& !o.getMimeType().equals("warc/revisit")
+							&& (is304 || o.getDigest().equals(closest.getDigest()))) {
+						payloadLocation = o;
+					}
 				}
 			}
 		}
