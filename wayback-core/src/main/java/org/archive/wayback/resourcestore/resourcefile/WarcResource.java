@@ -67,7 +67,10 @@ public class WarcResource extends Resource {
 		if(parsedHeaders) {
 			return;
 		}
-
+		if (getRecordLength() <= 0) {
+			return;
+		}
+		
 		byte [] statusBytes = HttpParser.readRawLine(rec);
 		int eolCharCount = getEolCharsCount(statusBytes);
 		if (eolCharCount <= 0) {

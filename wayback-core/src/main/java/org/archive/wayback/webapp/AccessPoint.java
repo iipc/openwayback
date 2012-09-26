@@ -391,8 +391,12 @@ implements ShutdownListener {
 					getCollection().getResourceStore().retrieveResource(closest);
 
 				if ("warc/revisit".equals(closest.getMimeType())) {
-					payloadResource = retrievePayloadResource(
+					payloadResource = retrievePayloadResourceForRevisit(
 							httpHeadersResource, captureResults, closest);
+					
+					if (isWarcRevisitNotModified(httpHeadersResource)) {
+						httpHeadersResource = payloadResource;
+					}
 				} else {
 					payloadResource = httpHeadersResource;
 				}
@@ -432,6 +436,17 @@ implements ShutdownListener {
 		}
 	}
 
+	protected boolean isWarcRevisitNotModified(Resource warcRevisitResource) {
+		if (!(warcRevisitResource instanceof WarcResource)) {
+			return false;
+		}
+		WarcResource wr = (WarcResource) warcRevisitResource;
+		Map<String,Object> warcHeaders = wr.getWarcHeaders().getHeaderFields();
+		String warcProfile = (String) warcHeaders.get("WARC-Profile");
+		return warcProfile != null
+				&& warcProfile.equals("http://netpreserve.org/warc/1.0/revisit/server-not-modified");
+	}
+
 	/**
 	 * Retrieves the payload resource for the given revisit record by looking in
 	 * the index for the most recent non-deduped earlier capture of the same
@@ -445,16 +460,22 @@ implements ShutdownListener {
 	 * @throws ConfigurationException
 	 * @see WARCRevisitAnnotationFilter
 	 */
-	protected Resource retrievePayloadResource(Resource revisitRecord,
+	protected Resource retrievePayloadResourceForRevisit(Resource revisitRecord,
 			CaptureSearchResults captureResults, CaptureSearchResult closest)
 					throws ResourceNotAvailableException, ConfigurationException {
+		
+		boolean is304 = isWarcRevisitNotModified(revisitRecord);
+		
 		CaptureSearchResult payloadLocation = null;
 		for (CaptureSearchResult o: captureResults) {
 			if (o == closest) {
 				break;
-			} else if (!o.getFile().equals("-")
-					&& !o.getMimeType().equals("warc/revisit")) {
-				payloadLocation = o;
+			} else {
+				if (!o.getFile().equals("-")
+						&& !o.getMimeType().equals("warc/revisit")
+						&& (is304 || o.getDigest().equals(closest.getDigest()))) {
+					payloadLocation = o;
+				}
 			}
 		}
 
