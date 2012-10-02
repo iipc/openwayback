@@ -44,17 +44,18 @@ import org.archive.wayback.exception.WaybackException;
 public class JSPReplayRenderer implements ReplayRenderer {
 	private String targetJsp = null;
 
+	@Override
 	public void renderResource(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
 			CaptureSearchResult result, Resource resource,
 			ResultURIConverter uriConverter, CaptureSearchResults results)
-			throws ServletException, IOException, WaybackException {
+					throws ServletException, IOException, WaybackException {
 		UIResults uiResults =
-			new UIResults(wbRequest, uriConverter, results, result, resource);
+				new UIResults(wbRequest, uriConverter, results, result, resource);
 		uiResults.forward(httpRequest, httpResponse, 
 				targetJsp);
 	}
-	
+
 	/**
 	 * @return the context-relative path to the .jsp responsible for rendering
 	 * the resource
@@ -69,5 +70,16 @@ public class JSPReplayRenderer implements ReplayRenderer {
 	 */
 	public void setTargetJsp(String targetJsp) {
 		this.targetJsp = targetJsp;
+	}
+
+	@Override
+	public void renderResource(HttpServletRequest httpRequest,
+			HttpServletResponse httpResponse, WaybackRequest wbRequest,
+			CaptureSearchResult result, Resource httpHeadersResource,
+			Resource payloadResource, ResultURIConverter uriConverter,
+			CaptureSearchResults results) throws ServletException, IOException,
+			WaybackException {
+		renderResource(httpRequest, httpResponse, wbRequest, result,
+				payloadResource, uriConverter, results);
 	}
 }

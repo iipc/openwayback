@@ -32,6 +32,9 @@ import org.archive.wayback.core.WaybackRequest;
  */
 public interface ReplayRendererSelector {
 	public boolean canHandle(WaybackRequest wbRequest,
+			CaptureSearchResult result, Resource httpHeadersResource,
+			Resource payloadResource);
+	public boolean canHandle(WaybackRequest wbRequest,
 			CaptureSearchResult result, Resource resource);
 	public ReplayRenderer getRenderer();
 }

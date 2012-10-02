@@ -37,7 +37,6 @@ import org.archive.net.UURI;
 import org.archive.net.UURIFactory;
 import org.archive.wayback.ReplayRenderer;
 import org.archive.wayback.ResultURIConverter;
-import org.archive.wayback.archivalurl.ArchivalUrl;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.Resource;
@@ -48,7 +47,6 @@ import org.archive.wayback.exception.WaybackException;
 import org.archive.wayback.replay.HttpHeaderOperation;
 import org.archive.wayback.replay.HttpHeaderProcessor;
 import org.archive.wayback.util.url.UrlOperations;
-import org.archive.wayback.webapp.AccessPoint;
 
 import com.flagstone.transform.DoAction;
 import com.flagstone.transform.EventHandler;
@@ -83,16 +81,27 @@ public class SWFReplayRenderer implements ReplayRenderer {
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
 			CaptureSearchResult result, Resource resource,
 			ResultURIConverter uriConverter, CaptureSearchResults results)
-			throws ServletException, IOException, WaybackException {
+					throws ServletException, IOException, WaybackException {
+		renderResource(httpRequest, httpResponse, wbRequest, result, resource,
+				resource, uriConverter, results);
+	}
+
+	@Override
+	public void renderResource(HttpServletRequest httpRequest,
+			HttpServletResponse httpResponse, WaybackRequest wbRequest,
+			CaptureSearchResult result, Resource httpHeadersResource,
+			Resource payloadResource, ResultURIConverter uriConverter,
+			CaptureSearchResults results) throws ServletException, IOException,
+			WaybackException {
 
 		try {
 
 			// copy HTTP response code:
-			HttpHeaderOperation.copyHTTPMessageHeader(resource, httpResponse);
+			HttpHeaderOperation.copyHTTPMessageHeader(httpHeadersResource, httpResponse);
 
 			// load and process original headers:
 			Map<String, String> headers = HttpHeaderOperation.processHeaders(
-					resource, result, uriConverter, httpHeaderProcessor);
+					httpHeadersResource, result, uriConverter, httpHeaderProcessor);
 
 			// The URL of the resource, for resolving embedded relative URLs:
 			URL url = null;
@@ -110,7 +119,7 @@ public class SWFReplayRenderer implements ReplayRenderer {
 			Movie movie = getRobustMovie(RobustMovieDecoder.DECODE_RULE_NULLS);
 
 			try {
-				movie.decodeFromStream(resource);
+				movie.decodeFromStream(payloadResource);
 			} catch (DataFormatException e1) {
 				throw new BadContentException(e1.getLocalizedMessage());
 			}

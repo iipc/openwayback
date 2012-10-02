@@ -35,6 +35,7 @@ import org.archive.io.warc.WARCConstants;
 import org.archive.io.warc.WARCRecord;
 import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.core.CaptureSearchResult;
+import org.archive.wayback.resourceindex.filters.WARCRevisitAnnotationFilter;
 import org.archive.wayback.util.Adapter;
 import org.archive.wayback.util.url.IdentityUrlCanonicalizer;
 
@@ -44,10 +45,9 @@ import org.archive.wayback.util.url.IdentityUrlCanonicalizer;
  * records contain lots of "placeholder" fields, which are expected to be
  * understood by later processes traversing a stream of SearchResult objects.
  * 
- * See org.archive.wayback.resourceindex.DeduplicateSearchResultAnnotationAdapter.
- *
  * @author brad
  * @version $Date$, $Revision$
+ * @see WARCRevisitAnnotationFilter
  */
 public class WARCRecordToSearchResultAdapter
 implements Adapter<WARCRecord,CaptureSearchResult>{

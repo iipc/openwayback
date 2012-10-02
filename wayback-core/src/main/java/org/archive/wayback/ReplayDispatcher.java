@@ -48,6 +48,24 @@ public interface ReplayDispatcher {
 	public ReplayRenderer getRenderer(WaybackRequest wbRequest,
 			CaptureSearchResult result, Resource resource);
 	
+
+	/**
+	 * Return a ReplayRenderer appropriate for the replaying the http headers
+	 * from {@code httpHeadersResource} and the payload from
+	 * {@code payloadResource}.
+	 * 
+	 * @param wbRequest WaybackRequest being handled.
+	 * @param result CapturSearchResult from the ResourceIndex which is
+	 * 				 being returned.
+	 * @param httpHeadersResource
+	 * @param payloadResource
+	 * @return an appropriate ReplayRenderer, given the request
+	 *         context
+	 */
+	public ReplayRenderer getRenderer(WaybackRequest wbRequest,
+			CaptureSearchResult result, Resource httpHeadersResource,
+			Resource payloadResource);
+
 	/**
 	 * @param wbRequest the Request being handled
 	 * @param results the CaptureSearchResults from the ResourceIndex

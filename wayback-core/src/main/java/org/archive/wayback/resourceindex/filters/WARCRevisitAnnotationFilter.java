@@ -24,6 +24,7 @@ import java.util.logging.Logger;
 
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.util.ObjectFilter;
+import org.archive.wayback.webapp.AccessPoint;
 
 /**
  * Filter class that observes a stream of SearchResults tracking for each
@@ -41,6 +42,7 @@ import org.archive.wayback.util.ObjectFilter;
  * 
  * @author brad
  * @version $Date: 2011-11-28 22:03:59 -0800 (Mon, 28 Nov 2011) $, $Revision: 3574 $
+ * @deprecated revisit records are handled in {@link AccessPoint}
  */
 public class WARCRevisitAnnotationFilter 
 implements ObjectFilter<CaptureSearchResult> {

@@ -29,14 +29,11 @@ import org.archive.wayback.core.WaybackRequest;
  */
 public class IdentityRequestSelector extends BaseReplayRendererSelector {
 
-	/* (non-Javadoc)
-	 * @see org.archive.wayback.replay.selector.BaseReplayRendererSelector#canHandle(org.archive.wayback.core.WaybackRequest, org.archive.wayback.core.CaptureSearchResult, org.archive.wayback.core.Resource)
-	 */
 	@Override
 	public boolean canHandle(WaybackRequest wbRequest,
-			CaptureSearchResult result, Resource resource) {
+			CaptureSearchResult result, Resource httpHeadersResource,
+			Resource payloadResource) {
 		return wbRequest.isIdentityContext();
 	}
-
 
 }
