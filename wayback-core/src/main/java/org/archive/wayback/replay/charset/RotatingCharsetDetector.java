@@ -47,23 +47,36 @@ public class RotatingCharsetDetector extends CharsetDetector {
 		}
 		return curMode + 1;
 	}
+
 	public String getCharsetType(Resource resource, int type) throws IOException {
+		return getCharsetType(resource, resource, type);
+	}
+
+	public String getCharsetType(Resource httpHeadersResource,
+			Resource payloadResource, int type) throws IOException {
 		if(type == 0) {
-			return getCharsetFromHeaders(resource);
+			return getCharsetFromHeaders(httpHeadersResource);
 		} else if(type == 1) {
-			return getCharsetFromMeta(resource);
+			return getCharsetFromMeta(payloadResource);
 		} else if(type == 2) {
-			return getCharsetFromBytes(resource);
+			return getCharsetFromBytes(payloadResource);
 		}
 		return null;
 	}
+
 	public String getCharset(Resource resource, int mode) throws IOException {
+		return getCharset(resource, resource, mode);
+	}
+
+	public String getCharset(Resource httpHeadersResource,
+			Resource payloadResource, int mode) throws IOException {
 		String charset = null;
 		if(mode >= MODE_COUNT) {
 			mode = 0;
 		}
 		for(int type = 0; type < GUESS_TYPES; type++) {
-			charset = getCharsetType(resource,MODES[mode][type]);
+			charset = getCharsetType(httpHeadersResource, payloadResource,
+					MODES[mode][type]);
 			if(charset != null) {
 				break;
 			}
@@ -73,10 +86,12 @@ public class RotatingCharsetDetector extends CharsetDetector {
 		}
 		return charset;
 	}
+
 	@Override
-	public String getCharset(Resource resource, WaybackRequest request) 
-	throws IOException {
+	public String getCharset(Resource httpHeadersResource,
+			Resource payloadResource, WaybackRequest request)
+					throws IOException {
 		int mode = request.getCharsetMode();
-		return getCharset(resource,mode);
+		return getCharset(httpHeadersResource, payloadResource, mode);
 	}
 }

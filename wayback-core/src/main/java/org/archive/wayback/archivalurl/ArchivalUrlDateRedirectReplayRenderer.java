@@ -48,7 +48,7 @@ public class ArchivalUrlDateRedirectReplayRenderer implements ReplayRenderer {
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
 			CaptureSearchResult result, Resource resource,
 			ResultURIConverter uriConverter, CaptureSearchResults results)
-			throws ServletException, IOException {
+					throws ServletException, IOException {
 
 		// redirect to the better version:
 		String url = result.getOriginalUrl();
@@ -56,5 +56,15 @@ public class ArchivalUrlDateRedirectReplayRenderer implements ReplayRenderer {
 		String dateSpec = aUrl.getDateSpec(result.getCaptureTimestamp());
 		String betterURI = uriConverter.makeReplayURI(dateSpec,url);
 		httpResponse.sendRedirect(betterURI);
+	}
+
+	@Override
+	public void renderResource(HttpServletRequest httpRequest,
+			HttpServletResponse httpResponse, WaybackRequest wbRequest,
+			CaptureSearchResult closest, Resource httpHeadersResource,
+			Resource payloadResource, ResultURIConverter uriConverter,
+			CaptureSearchResults captureResults) throws ServletException, IOException {
+		renderResource(httpRequest, httpResponse, wbRequest, closest,
+				httpHeadersResource, uriConverter, captureResults);
 	}
 }

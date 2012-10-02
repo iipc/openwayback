@@ -81,7 +81,7 @@ public class LocationDBResourceStore implements ResourceStore {
 				//      which means we've already read some
 				
 			} catch (IOException e) {
-				LOGGER.warning("Unable to retrieve resource from " + url);
+				LOGGER.warning("Unable to retrieve resource from " + url + " - " + e);
 			}
 			if(r != null) {
 				break;

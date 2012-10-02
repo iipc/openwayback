@@ -976,38 +976,41 @@ public class WaybackRequest {
 	public String getQueryArguments(int pageNum) {
 		int numPerPage = resultsPerPage;
 
-		StringBuffer queryString = new StringBuffer("");
-		Iterator<String> itr = filters.keySet().iterator();
-		while(itr.hasNext()) {
-			String key = itr.next();
-			boolean isStandard = false;
-			for(int i=0; i<standardHeaders.length; i++) {
-				if(standardHeaders[i].equals(key)) {
-					isStandard = true;
-					break;
-				}
-			}
-			if(isStandard) continue;
-			String val = filters.get(key);
-			if(val == null) continue;
-			if (queryString.length() > 0) {
-				queryString.append(" ");
-			}
-			queryString.append(key + ":" + val);
-		}
-		String escapedQuery = queryString.toString();
-
 		try {
+			StringBuffer queryString = new StringBuffer("");
+			Iterator<String> itr = filters.keySet().iterator();
+			while(itr.hasNext()) {
+				String key = itr.next();
+				boolean isStandard = false;
+				for(int i=0; i<standardHeaders.length; i++) {
+					if(standardHeaders[i].equals(key)) {
+						isStandard = true;
+						break;
+					}
+				}
+				if(isStandard) continue;
+				String val = filters.get(key);
+				if(val == null) continue;
+				if (queryString.length() > 0) {
+					queryString.append(" ");
+				}
+                                key = URLEncoder.encode(key,"UTF-8");
+                                val = URLEncoder.encode(val,"UTF-8");
+				queryString.append(key + ":" + val);
+			}
+			String escapedQuery = queryString.toString();
 
 			escapedQuery = URLEncoder.encode(escapedQuery, "UTF-8");
+
+			return OpenSearchRequestParser.SEARCH_QUERY + "=" + escapedQuery + "&"
+				+ OpenSearchRequestParser.SEARCH_RESULTS + "=" + numPerPage + "&"
+				+ OpenSearchRequestParser.START_PAGE + "=" + pageNum;
 
 		} catch (UnsupportedEncodingException e) {
 			// oops.. what to do?
 			e.printStackTrace();
+                        throw new RuntimeException(e);
 		}
-		return OpenSearchRequestParser.SEARCH_QUERY + "=" + escapedQuery + "&"
-				+ OpenSearchRequestParser.SEARCH_RESULTS + "=" + numPerPage + "&"
-				+ OpenSearchRequestParser.START_PAGE + "=" + pageNum;
 	}
 
 	public WaybackRequest clone() {

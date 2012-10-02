@@ -29,9 +29,9 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.archive.wayback.ReplayRenderer;
 import org.archive.wayback.ResultURIConverter;
-import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
+import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadContentException;
 
@@ -49,20 +49,30 @@ public class TransparentReplayRenderer implements ReplayRenderer {
 	public TransparentReplayRenderer(HttpHeaderProcessor httpHeaderProcessor) {
 		this.httpHeaderProcessor = httpHeaderProcessor;
 	}
-	/* (non-Javadoc)
-	 * @see org.archive.wayback.ReplayRenderer#renderResource(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.archive.wayback.core.WaybackRequest, org.archive.wayback.core.SearchResult, org.archive.wayback.core.Resource, org.archive.wayback.ResultURIConverter, org.archive.wayback.core.SearchResults)
-	 */
+
+	@Override
 	public void renderResource(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
 			CaptureSearchResult result, Resource resource,
 			ResultURIConverter uriConverter, CaptureSearchResults results)
-			throws ServletException, IOException, BadContentException {
+					throws ServletException, IOException, BadContentException {
+		renderResource(httpRequest, httpResponse, wbRequest, result, resource,
+				resource, uriConverter, results);
+	}
 
-		HttpHeaderOperation.copyHTTPMessageHeader(resource, httpResponse);
-		
+	@Override
+	public void renderResource(HttpServletRequest httpRequest,
+			HttpServletResponse httpResponse, WaybackRequest wbRequest,
+			CaptureSearchResult result, Resource httpHeadersResource,
+			Resource payloadResource, ResultURIConverter uriConverter,
+			CaptureSearchResults results) throws ServletException, IOException,
+			BadContentException {
+
+		HttpHeaderOperation.copyHTTPMessageHeader(httpHeadersResource, httpResponse);
+
 		Map<String,String> headers = HttpHeaderOperation.processHeaders(
-				resource, result, uriConverter, httpHeaderProcessor);
-		
+				httpHeadersResource, result, uriConverter, httpHeaderProcessor);
+
 		// HACKHACK: getContentLength() may not find the original content length
 		// if a HttpHeaderProcessor has mangled it too badly. Should this
 		// happen in the HttpHeaderProcessor itself?
@@ -77,7 +87,7 @@ public class TransparentReplayRenderer implements ReplayRenderer {
 		OutputStream os = httpResponse.getOutputStream();
 		byte[] buffer = new byte[BUFFER_SIZE];
 		long total = 0;
-		for (int r = -1; (r = resource.read(buffer, 0, BUFFER_SIZE)) != -1;) {
+		for (int r = -1; (r = payloadResource.read(buffer, 0, BUFFER_SIZE)) != -1;) {
 			os.write(buffer, 0, r);
 			total += r;
 		}

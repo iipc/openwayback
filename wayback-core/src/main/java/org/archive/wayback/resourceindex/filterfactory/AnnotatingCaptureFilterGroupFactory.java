@@ -23,7 +23,11 @@ import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.resourceindex.LocalResourceIndex;
+import org.archive.wayback.webapp.AccessPoint;
 
+/**
+ * @deprecated revisit records are handled in {@link AccessPoint}
+ */
 public class AnnotatingCaptureFilterGroupFactory implements FilterGroupFactory {
 
 	public CaptureFilterGroup getGroup(WaybackRequest request,

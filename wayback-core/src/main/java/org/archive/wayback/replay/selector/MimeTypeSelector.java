@@ -28,51 +28,54 @@ import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.WaybackRequest;
 
 /**
- *
- *
+ * 
+ * 
  * @author brad
  * @version $Date$, $Revision$
  */
 public class MimeTypeSelector extends BaseReplayRendererSelector {
-	private Map<String,Object> mimeMatches = null;
+	private Map<String, Object> mimeMatches = null;
 	private List<String> mimeContains = null;
-	
-	/* (non-Javadoc)
-	 * @see org.archive.wayback.replay.selector.BaseReplayRendererSelector#canHandle(org.archive.wayback.core.WaybackRequest, org.archive.wayback.core.CaptureSearchResult, org.archive.wayback.core.Resource)
-	 */
+
 	@Override
 	public boolean canHandle(WaybackRequest wbRequest,
-			CaptureSearchResult result, Resource resource) {
-		if(isResourceTooBig(resource)) {
+			CaptureSearchResult result, Resource httpHeadersResource,
+			Resource payloadResource) {
+
+		if (isResourceTooBig(payloadResource)) {
 			return false;
 		}
 		String mime = result.getMimeType();
-		if(mimeMatches != null) {
-			if(mimeMatches.containsKey(mime)) {
+		if (mimeMatches != null) {
+			if (mimeMatches.containsKey(mime)) {
 				return true;
 			}
 		}
-		if(mimeContains != null) {
-			for(String contains : mimeContains) {
-				if(mime.indexOf(contains) != -1) {
+		if (mimeContains != null) {
+			for (String contains : mimeContains) {
+				if (mime.indexOf(contains) != -1) {
 					return true;
 				}
 			}
 		}
 		return false;
 	}
+
 	public void setMimeMatches(List<String> mimes) {
-		mimeMatches = new HashMap<String,Object>();
-		for(String mime : mimes) {
-			mimeMatches.put(mime,null);
+		mimeMatches = new HashMap<String, Object>();
+		for (String mime : mimes) {
+			mimeMatches.put(mime, null);
 		}
 	}
+
 	public List<String> getMimeMatches() {
 		return null;
 	}
+
 	public void setMimeContains(List<String> mimes) {
 		mimeContains = mimes;
 	}
+
 	public List<String> getMimeContains() {
 		return mimeContains;
 	}

@@ -25,9 +25,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
+import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.WaybackException;
 
@@ -61,5 +61,31 @@ public interface ReplayRenderer {
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
 			CaptureSearchResult result, Resource resource, 
 			ResultURIConverter uriConverter, CaptureSearchResults results)
-	throws ServletException, IOException, WaybackException;
+					throws ServletException, IOException, WaybackException;
+
+	/**
+	 * return a resource to the user.
+	 * 
+	 * @param httpRequest the HttpServletRequest
+	 * @param httpResponse the HttpServletResponse
+	 * @param wbRequest the WaybackRequest that returned the results
+	 * @param result actual CaptureSearchResult that maps to resource to replay
+	 * @param httpHeadersResource resource with http headers to replay
+	 * @param payloadResource resource with payload to replay
+	 * @param uriConverter the URI converter to use to translate matching
+	 *                      results into replayable URLs
+	 * @param results all CaptureSearchResults that were returned from the 
+	 *                      ResourceIndex, probably including other capture
+	 *                      dates of the same URL.
+	 * @throws ServletException per usual
+	 * @throws IOException per usual
+	 * @throws WaybackException if Wayback data specific, anticipated exceptions
+	 *                          occur
+	 */
+	public void renderResource(HttpServletRequest httpRequest,
+			HttpServletResponse httpResponse, WaybackRequest wbRequest,
+			CaptureSearchResult result, Resource httpHeadersResource,
+			Resource payloadResource, ResultURIConverter uriConverter,
+			CaptureSearchResults results) throws ServletException,
+			IOException, WaybackException;
 }

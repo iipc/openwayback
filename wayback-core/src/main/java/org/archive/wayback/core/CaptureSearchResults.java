@@ -32,7 +32,7 @@ import org.archive.wayback.util.Timestamp;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class CaptureSearchResults extends SearchResults {
+public class CaptureSearchResults extends SearchResults implements Iterable<CaptureSearchResult> {
 	/**
 	 * List of UrlSearchResult objects for index records matching a query
 	 */

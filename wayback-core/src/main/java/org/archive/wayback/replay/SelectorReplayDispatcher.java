@@ -40,14 +40,21 @@ import org.archive.wayback.exception.BetterRequestException;
 public class SelectorReplayDispatcher implements ReplayDispatcher {
 	private List<ReplayRendererSelector> selectors = null;
 	private ClosestResultSelector closestSelector = null;
-	/* (non-Javadoc)
-	 * @see org.archive.wayback.ReplayDispatcher#getRenderer(org.archive.wayback.core.WaybackRequest, org.archive.wayback.core.CaptureSearchResult, org.archive.wayback.core.Resource)
-	 */
+	
+	@Override
 	public ReplayRenderer getRenderer(WaybackRequest wbRequest,
 			CaptureSearchResult result, Resource resource) {
-		if(selectors != null) {
-			for(ReplayRendererSelector selector : selectors) {
-				if(selector.canHandle(wbRequest, result, resource)) {
+		return getRenderer(wbRequest, result, resource, resource);
+	}
+	
+	@Override
+	public ReplayRenderer getRenderer(WaybackRequest wbRequest,
+			CaptureSearchResult result, Resource httpHeadersResource,
+			Resource payloadResource) {
+		if (selectors != null) {
+			for (ReplayRendererSelector selector : selectors) {
+				if (selector.canHandle(wbRequest, result, httpHeadersResource,
+						payloadResource)) {
 					return selector.getRenderer();
 				}
 			}

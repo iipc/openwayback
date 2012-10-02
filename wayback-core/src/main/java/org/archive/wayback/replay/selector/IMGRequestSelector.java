@@ -24,20 +24,25 @@ import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.WaybackRequest;
 
 /**
- *
- *
+ * 
+ * 
  * @author brad
  * @version $Date$, $Revision$
  */
 
 public class IMGRequestSelector extends BaseReplayRendererSelector {
 
-	/* (non-Javadoc)
-	 * @see org.archive.wayback.replay.selector.BaseReplayRendererSelector#canHandle(org.archive.wayback.core.WaybackRequest, org.archive.wayback.core.CaptureSearchResult, org.archive.wayback.core.Resource)
-	 */
 	@Override
 	public boolean canHandle(WaybackRequest wbRequest,
 			CaptureSearchResult result, Resource resource) {
+		return canHandle(wbRequest, result, resource, resource);
+	}
+
+	@Override
+	public boolean canHandle(WaybackRequest wbRequest,
+			CaptureSearchResult result, Resource httpHeadersResource,
+			Resource payloadResource) {
 		return wbRequest.isIMGContext();
+
 	}
 }

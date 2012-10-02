@@ -47,7 +47,7 @@ public abstract class CharsetDetector {
 	protected final static String HTTP_CONTENT_TYPE_HEADER = "Content-Type";
 	/** the default charset name to use when giving up */
 	public final static String DEFAULT_CHARSET = "UTF-8";
-	
+
 	protected boolean isCharsetSupported(String charsetName) {
 		// can you believe that this throws a runtime? Just asking if it's
 		// supported!!?! They coulda just said "no"...
@@ -72,8 +72,8 @@ public abstract class CharsetDetector {
 	}
 	protected String contentTypeToCharset(final String contentType) {
 		int offset = 
-			contentType.toUpperCase().indexOf(CHARSET_TOKEN.toUpperCase());
-		
+				contentType.toUpperCase().indexOf(CHARSET_TOKEN.toUpperCase());
+
 		if (offset != -1) {
 			String cs = contentType.substring(offset + CHARSET_TOKEN.length());
 			if(isCharsetSupported(cs)) {
@@ -82,7 +82,7 @@ public abstract class CharsetDetector {
 			// test for extra spaces... there's at least one page out there that
 			// indicates it's charset with:
 
-//  <meta http-equiv="Content-type" content="text/html; charset=i so-8859-1">
+			//  <meta http-equiv="Content-type" content="text/html; charset=i so-8859-1">
 
 			// bad web page!
 			if(isCharsetSupported(cs.replace(" ", ""))) {
@@ -91,7 +91,7 @@ public abstract class CharsetDetector {
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Attempt to divine the character encoding of the document from the 
 	 * Content-Type HTTP header (with a "charset=")
@@ -101,8 +101,8 @@ public abstract class CharsetDetector {
 	 * @throws IOException 
 	 */
 	protected String getCharsetFromHeaders(Resource resource) 
-	throws IOException {
-		
+			throws IOException {
+
 		String charsetName = null;
 
 		Map<String,String> httpHeaders = resource.getHttpHeaders();
@@ -147,7 +147,7 @@ public abstract class CharsetDetector {
 		}
 		return charsetName;
 	}
-	
+
 	/**
 	 * Attempts to figure out the character set of the document using
 	 * the excellent juniversalchardet library.
@@ -160,33 +160,41 @@ public abstract class CharsetDetector {
 		String charsetName = null;
 
 		byte[] bbuffer = new byte[MAX_CHARSET_READAHEAD];
-		   // (1)
-	    UniversalDetector detector = new UniversalDetector(null);
+		// (1)
+		UniversalDetector detector = new UniversalDetector(null);
 
-	    // (2)
+		// (2)
 		resource.mark(MAX_CHARSET_READAHEAD);
 		int len = resource.read(bbuffer, 0, MAX_CHARSET_READAHEAD);
 		resource.reset();
 		detector.handleData(bbuffer, 0, len);
 		// (3)
 		detector.dataEnd();
-	    // (4)
-	    charsetName = detector.getDetectedCharset();
+		// (4)
+		charsetName = detector.getDetectedCharset();
 
-	    // (5)
-	    detector.reset();
-	    if(isCharsetSupported(charsetName)) {
-	    	return charsetName;
-	    }
-	    return null;
+		// (5)
+		detector.reset();
+		if(isCharsetSupported(charsetName)) {
+			return charsetName;
+		}
+		return null;
 	}
+
+	public String getCharset(Resource resource, WaybackRequest request)
+			throws IOException {
+		return getCharset(resource, resource, request);
+	}
+
 	/**
-	 * @param resource (presumably text) Resource to determine the charset
+	 * @param httpHeadersResource resource with http headers to consider 
+	 * @param payloadResource resource with payload to consider (presumably text)
 	 * @param request WaybackRequest which may contain additional hints to
 	 *        processing
 	 * @return String charset name for the Resource
 	 * @throws IOException if there are problems reading the Resource
 	 */
-	public abstract String getCharset(Resource resource, WaybackRequest request)
-		throws IOException;
+	public abstract String getCharset(Resource httpHeadersResource,
+			Resource payloadResource, WaybackRequest wbRequest)
+					throws IOException;
 }

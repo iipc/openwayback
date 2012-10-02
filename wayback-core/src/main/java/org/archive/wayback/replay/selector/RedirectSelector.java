@@ -25,14 +25,16 @@ import org.archive.wayback.core.WaybackRequest;
 
 /**
  * @author brad
- *
+ * 
  */
 public class RedirectSelector extends BaseReplayRendererSelector {
+	@Override
 	public boolean canHandle(WaybackRequest wbRequest,
-			CaptureSearchResult result, Resource resource) {
-		if(!wbRequest.isLiveWebRequest()) {
+			CaptureSearchResult result, Resource httpHeadersResource,
+			Resource payloadResource) {
+		if (!wbRequest.isLiveWebRequest()) {
 			String code = result.getHttpCode();
-			if((code != null) && code.startsWith("3")) {
+			if ((code != null) && code.startsWith("3")) {
 				return true;
 			}
 		}

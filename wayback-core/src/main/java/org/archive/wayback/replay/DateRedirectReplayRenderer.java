@@ -31,6 +31,7 @@ import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.WaybackRequest;
+import org.archive.wayback.exception.WaybackException;
 
 /**
  *
@@ -40,19 +41,28 @@ import org.archive.wayback.core.WaybackRequest;
  */
 public class DateRedirectReplayRenderer implements ReplayRenderer {
 
-	/* (non-Javadoc)
-	 * @see org.archive.wayback.ReplayRenderer#renderResource(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.archive.wayback.core.WaybackRequest, org.archive.wayback.core.SearchResult, org.archive.wayback.core.Resource, org.archive.wayback.ResultURIConverter, org.archive.wayback.core.SearchResults)
-	 */
+	@Override
 	public void renderResource(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
 			CaptureSearchResult result, Resource resource,
 			ResultURIConverter uriConverter, CaptureSearchResults results)
-			throws ServletException, IOException {
+					throws ServletException, IOException {
 
 		// redirect to the better version:
 		String url = result.getOriginalUrl();
 		String captureDate = result.getCaptureTimestamp();
 		String betterURI = uriConverter.makeReplayURI(captureDate,url);
 		httpResponse.sendRedirect(betterURI);
+	}
+
+	@Override
+	public void renderResource(HttpServletRequest httpRequest,
+			HttpServletResponse httpResponse, WaybackRequest wbRequest,
+			CaptureSearchResult result, Resource httpHeadersResource,
+			Resource payloadResource, ResultURIConverter uriConverter,
+			CaptureSearchResults results) throws ServletException, IOException,
+			WaybackException {
+		renderResource(httpRequest, httpResponse, wbRequest, result,
+				httpHeadersResource, uriConverter, results);
 	}
 }
