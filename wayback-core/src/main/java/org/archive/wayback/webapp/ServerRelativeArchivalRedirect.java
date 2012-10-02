@@ -53,6 +53,15 @@ public class ServerRelativeArchivalRedirect extends AbstractRequestHandler {
 		String referer = httpRequest.getHeader("Referer");
 		if(referer != null) {
 			UURI uri = UURIFactory.getInstance(referer);
+			
+			// Check that the Referer is our current wayback path
+			// before attempting to use referer as base archival url
+			
+			if(!matchHost.equals(uri.getHost()) || ((uri.getPort() != -1) && (matchPort != uri.getPort()))) {
+				LOGGER.info("Server-Relative-Redirect: Skipping, Referer " + uri.getHost() + ":" + uri.getPort() + " not from matching wayback host:port\t");
+				return false;
+			}	
+			
 			String path = uri.getPath();
 			int secondSlash = path.indexOf('/',1);
 			if(secondSlash > -1) {
