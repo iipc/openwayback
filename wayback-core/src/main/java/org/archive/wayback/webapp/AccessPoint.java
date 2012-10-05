@@ -48,12 +48,15 @@ import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.UIResults;
 import org.archive.wayback.core.UrlSearchResults;
 import org.archive.wayback.core.WaybackRequest;
+import org.archive.wayback.exception.AccessControlException;
 import org.archive.wayback.exception.AdministrativeAccessControlException;
 import org.archive.wayback.exception.AnchorWindowTooSmallException;
 import org.archive.wayback.exception.AuthenticationControlException;
+import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.exception.BaseExceptionRenderer;
 import org.archive.wayback.exception.BetterRequestException;
 import org.archive.wayback.exception.ConfigurationException;
+import org.archive.wayback.exception.ResourceIndexNotAvailableException;
 import org.archive.wayback.exception.ResourceNotAvailableException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.exception.SpecificCaptureReplayException;
@@ -390,13 +393,10 @@ implements ShutdownListener {
 				httpHeadersResource = 
 					getCollection().getResourceStore().retrieveResource(closest);
 
-				if ("warc/revisit".equals(closest.getMimeType())) {
-					payloadResource = retrievePayloadResourceForRevisit(
+				if ("warc/revisit".equals(closest.getMimeType())
+						&& closest.isDuplicateDigest()) {
+					payloadResource = retrievePayloadForIdenticalContentRevisit(
 							httpHeadersResource, captureResults, closest);
-					
-					if (isWarcRevisitNotModified(httpHeadersResource)) {
-						httpHeadersResource = payloadResource;
-					}
 				} else {
 					payloadResource = httpHeadersResource;
 				}
@@ -447,50 +447,81 @@ implements ShutdownListener {
 	}
 
 	/**
-	 * Retrieves the payload resource for the given revisit record by looking in
-	 * the index for the most recent non-deduped earlier capture of the same
-	 * url.
-	 * 
+	 * If closest 
 	 * @param revisitRecord
 	 * @param captureResults
 	 * @param closest
 	 * @return the payload resource
 	 * @throws ResourceNotAvailableException
 	 * @throws ConfigurationException
+	 * @throws AccessControlException 
+	 * @throws BadQueryException 
+	 * @throws ResourceNotInArchiveException 
+	 * @throws ResourceIndexNotAvailableException 
+	 * @throws BetterRequestException 
 	 * @see WARCRevisitAnnotationFilter
 	 */
-	protected Resource retrievePayloadResourceForRevisit(Resource revisitRecord,
+	protected Resource retrievePayloadForIdenticalContentRevisit(Resource revisitRecord,
 			CaptureSearchResults captureResults, CaptureSearchResult closest)
-					throws ResourceNotAvailableException, ConfigurationException {
+					throws ResourceNotAvailableException, ConfigurationException, ResourceIndexNotAvailableException, ResourceNotInArchiveException, BadQueryException, AccessControlException, BetterRequestException {
+		if (!closest.isDuplicateDigest()) {
+			LOGGER.warning("record is not a revisit by identical content digest " + closest.getCaptureTimestamp() + " " + closest.getOriginalUrl());
+			return null;
+		}
 		
 		CaptureSearchResult payloadLocation = null;
-
-		// see if the warc revisit record points us to the payload
-		WarcResource wr = (WarcResource) revisitRecord;
-		Map<String,Object> warcHeaders = wr.getWarcHeaders().getHeaderFields();
-
-		String payloadWarcFile = (String) warcHeaders.get("WARC-Refers-To-Filename");
-		String offsetStr = (String) warcHeaders.get("WARC-Refers-To-File-Offset");
-
-		if (payloadWarcFile != null && offsetStr != null) {
+		
+		// maybe WARCRevisitAnnotationFilter already found the payload 
+		if (closest.getDuplicatePayloadFile() != null && closest.getDuplicatePayloadOffset() != null) {
 			payloadLocation = new CaptureSearchResult();
-			payloadLocation.setFile(payloadWarcFile);
-			payloadLocation.setOffset(Long.parseLong(offsetStr));
+			payloadLocation.setFile(closest.getDuplicatePayloadFile());
+			payloadLocation.setOffset(closest.getDuplicatePayloadOffset());
 		}
 
+		Map<String, Object> warcHeaders = null;
+		
 		if (payloadLocation == null) {
-			boolean is304 = isWarcRevisitNotModified(revisitRecord);
-			for (CaptureSearchResult o: captureResults) {
-				if (o == closest) {
-					break;
-				} else {
-					if (!o.getFile().equals("-")
-							&& !o.getMimeType().equals("warc/revisit")
-							&& (is304 || o.getDigest().equals(closest.getDigest()))) {
-						payloadLocation = o;
-					}
-				}
+			// expect the warc revisit record points us to the payload
+			WarcResource wr = (WarcResource) revisitRecord;
+			warcHeaders = wr.getWarcHeaders().getHeaderFields();
+			String payloadWarcFile = (String) warcHeaders.get("WARC-Refers-To-Filename");
+			String offsetStr = (String) warcHeaders.get("WARC-Refers-To-File-Offset");
+			if (payloadWarcFile != null && offsetStr != null) {
+				payloadLocation = new CaptureSearchResult();
+				payloadLocation.setFile(payloadWarcFile);
+				payloadLocation.setOffset(Long.parseLong(offsetStr));
 			}
+		}
+
+		if (payloadLocation != null) {
+			try {
+				return getCollection().getResourceStore().retrieveResource(payloadLocation);
+			} catch (ResourceNotAvailableException e) {
+				// one last effort to follow
+				payloadLocation = null;
+			}
+		}
+
+		/*
+		 * One last thing to try. This could happen if the revisit record is
+		 * url-agnostic and points to a record that was reorganized into a
+		 * different warc.
+		 */
+		// XXX needs testing
+		String payloadUri = (String) warcHeaders.get("WARC-Refers-To-Target-URI");
+		String payloadTimestamp = (String) warcHeaders.get("WARC-Refers-To-Date");
+		
+		if (payloadUri != null && payloadTimestamp != null) {
+			WaybackRequest wbr = new WaybackRequest();
+			wbr.setReplayTimestamp(payloadTimestamp);
+			wbr.setRequestUrl(payloadUri);
+
+			SearchResults results = getCollection().getResourceIndex().query(wbr);
+			if(!(results instanceof CaptureSearchResults)) {
+				throw new ResourceNotAvailableException("Bad results looking up " + payloadTimestamp + " " + payloadUri);
+			}
+			CaptureSearchResults payloadCaptureResults = (CaptureSearchResults) results;
+			payloadLocation = getReplay().getClosest(wbr, payloadCaptureResults);
 		}
 
 		if (payloadLocation == null) {

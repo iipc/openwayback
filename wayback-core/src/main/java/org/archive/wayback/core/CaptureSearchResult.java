@@ -132,11 +132,25 @@ public class CaptureSearchResult extends SearchResult {
 	public static final String CAPTURE_DUPLICATE_DIGEST = "digest";
 
 	/**
+	 * For identical content digest revisit records, the file where the payload
+	 * can be found, if known.
+	 */
+	public static final String CAPTURE_DUPLICATE_PAYLOAD_FILE = "payload-" + CAPTURE_FILE;
+
+	/**
+	 * For identical content digest revisit records, the offset in
+	 * CAPTURE_DUPLICATE_PAYLOAD_FILE where the payload record can be found, if
+	 * known.
+	 */
+	public static final String CAPTURE_DUPLICATE_PAYLOAD_OFFSET = "payload-" + CAPTURE_OFFSET;
+
+	/**
 	 * flag indicates that this document was NOT downloaded, but that the
 	 * origin server indicated that the document had not changed, based on
 	 * If-Modified HTTP request headers.
 	 */
 	public static final String CAPTURE_DUPLICATE_HTTP = "http";
+
 	/**
 	 * @return the original URL which resulted in the capture. If it is not 
 	 * available, the urlKey and original Host will be used to reconstruct 
@@ -257,20 +271,54 @@ public class CaptureSearchResult extends SearchResult {
 		putBoolean(CAPTURE_CLOSEST_INDICATOR,value);
 	}
 
-	public void flagDuplicateDigest(Date storedDate) {
+	/*
+	 * Identical content digest revisits have a duplicateDigestStoredDate if the
+	 * payload is found by WARCRevisitAnnotationFilter in an earlier capture of
+	 * the same url. If isDuplicateDigest() and
+	 * getDuplicateDigestStoredTimestamp()==null then it must be a url-agnostic
+	 * HER-2022 revisit.
+	 */
+	
+	public void flagDuplicateDigest() {
 		put(CAPTURE_DUPLICATE_ANNOTATION,CAPTURE_DUPLICATE_DIGEST);
+	}
+	
+	public void flagDuplicateDigest(CaptureSearchResult payload) {
+		flagDuplicateDigest();
+		put(CAPTURE_DUPLICATE_STORED_TS, payload.getCaptureTimestamp());
+		put(CAPTURE_DUPLICATE_PAYLOAD_FILE, payload.getFile());
+		put(CAPTURE_DUPLICATE_PAYLOAD_OFFSET, String.valueOf(payload.getOffset()));
+	}
+	
+	public String getDuplicatePayloadFile() {
+		return get(CAPTURE_DUPLICATE_PAYLOAD_FILE);
+	}
+	
+	public Long getDuplicatePayloadOffset() {
+		if (get(CAPTURE_DUPLICATE_PAYLOAD_OFFSET) != null) {
+			return Long.valueOf(get(CAPTURE_DUPLICATE_PAYLOAD_OFFSET));
+		} else {
+			return null;
+		}
+	}
+	
+	/** @deprecated */
+	public void flagDuplicateDigest(Date storedDate) {
+		flagDuplicateDigest();
 		put(CAPTURE_DUPLICATE_STORED_TS,dateToTS(storedDate));
 	}
+	/** @deprecated */
 	public void flagDuplicateDigest(String storedTS) {
-		put(CAPTURE_DUPLICATE_ANNOTATION,CAPTURE_DUPLICATE_DIGEST);
+		flagDuplicateDigest();
 		put(CAPTURE_DUPLICATE_STORED_TS,storedTS);
 	}
+	
 	public boolean isDuplicateDigest() {
 		String dupeType = get(CAPTURE_DUPLICATE_ANNOTATION);
 		return (dupeType != null && dupeType.equals(CAPTURE_DUPLICATE_DIGEST));
 	}
 	public Date getDuplicateDigestStoredDate() {
-		if(isDuplicateDigest()) {
+		if(isDuplicateDigest() && get(CAPTURE_DUPLICATE_STORED_TS) != null) {
 			return tsToDate(get(CAPTURE_DUPLICATE_STORED_TS));
 		}
 		return null;

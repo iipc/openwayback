@@ -50,7 +50,6 @@ import org.archive.wayback.webapp.AccessPoint;
  *
  * @author brad
  * @version $Date$, $Revision$
- * @deprecated revisit records are handled in {@link AccessPoint}
  */
 public class ConditionalGetAnnotationFilter 
 implements ObjectFilter<CaptureSearchResult> {

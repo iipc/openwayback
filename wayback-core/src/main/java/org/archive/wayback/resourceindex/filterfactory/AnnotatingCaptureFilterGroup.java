@@ -31,11 +31,7 @@ import org.archive.wayback.resourceindex.filters.ConditionalGetAnnotationFilter;
 import org.archive.wayback.resourceindex.filters.WARCRevisitAnnotationFilter;
 import org.archive.wayback.util.ObjectFilter;
 import org.archive.wayback.util.ObjectFilterChain;
-import org.archive.wayback.webapp.AccessPoint;
 
-/**
- * @deprecated revisit records are handled in {@link AccessPoint}
- */
 public class AnnotatingCaptureFilterGroup implements CaptureFilterGroup {
 
 	private ObjectFilterChain<CaptureSearchResult> chain;
