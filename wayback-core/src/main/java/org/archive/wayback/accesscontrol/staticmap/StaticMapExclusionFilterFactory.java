@@ -46,8 +46,18 @@ public class StaticMapExclusionFilterFactory implements ExclusionFilterFactory {
 	private int checkInterval = 0;
 	private Map<String,Object> currentMap = null;
 	private File file = null;
+	
 	long lastUpdated = 0;
-	UrlCanonicalizer canonicalizer = new AggressiveUrlCanonicalizer();
+		
+	private UrlCanonicalizer canonicalizer = new AggressiveUrlCanonicalizer();
+
+	public UrlCanonicalizer getCanonicalizer() {
+		return canonicalizer;
+	}
+
+	public void setCanonicalizer(UrlCanonicalizer canonicalizer) {
+		this.canonicalizer = canonicalizer;
+	}
 
 	/**
 	 * Thread object of update thread -- also is flag indicating if the thread
@@ -98,8 +108,15 @@ public class StaticMapExclusionFilterFactory implements ExclusionFilterFactory {
 				continue;
 			}
 			line = canonicalizer.urlStringToKey(line);
-			String surt = line.startsWith("(") ? line : 
+			String surt;
+			
+			if (canonicalizer.isSurtForm()) {
+				surt = line;
+			} else {
+				surt = line.startsWith("(") ? line : 
 				SURTTokenizer.prefixKey(line);
+			}
+
 			LOGGER.fine("EXCLUSION-MAP: adding " + surt);
 			newMap.put(surt, null);
 		}

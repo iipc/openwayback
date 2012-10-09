@@ -416,4 +416,8 @@ public class AggressiveUrlCanonicalizer implements UrlCanonicalizer {
 			System.out.println(sb.toString());
 		}
 	}
+
+	public boolean isSurtForm() {
+		return false;
+	}
 }
