@@ -212,7 +212,7 @@ public class SURTTokenizerTest extends TestCase {
 	private SURTTokenizer toSurtT(final String u) {
 		SURTTokenizer tok = null;
 		try {
-			tok = new SURTTokenizer(u);
+			tok = new SURTTokenizer(u, false);
 		} catch (URIException e) {
 			e.printStackTrace();
 			assertFalse("URL Exception " + e.getLocalizedMessage(),true);

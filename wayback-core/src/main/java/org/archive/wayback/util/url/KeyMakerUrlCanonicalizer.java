@@ -33,12 +33,20 @@ import org.archive.wayback.UrlCanonicalizer;
  */
 public class KeyMakerUrlCanonicalizer implements UrlCanonicalizer {
 	URLKeyMaker keyMaker;
+	private boolean surtForm;
 	/**
 	 * 
 	 */
 	public KeyMakerUrlCanonicalizer() {
-		keyMaker = new WaybackURLKeyMaker();
+		this.surtForm = true;
+		keyMaker = new WaybackURLKeyMaker(true);
 	}
+
+	public KeyMakerUrlCanonicalizer(boolean surtForm) {
+		this.surtForm = surtForm;
+		keyMaker = new WaybackURLKeyMaker(surtForm);
+	}
+	
 	public String urlStringToKey(String url) throws URIException {
 		return keyMaker.makeKey(url);
 	}
@@ -54,5 +62,8 @@ public class KeyMakerUrlCanonicalizer implements UrlCanonicalizer {
 	public void setKeyMaker(URLKeyMaker keyMaker) {
 		this.keyMaker = keyMaker;
 	}
-
+	
+	public boolean isSurtForm() {
+		return surtForm;
+	}
 }
