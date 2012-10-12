@@ -109,6 +109,14 @@ public class CaptureSearchResults extends SearchResults implements Iterable<Capt
 		}
 	}	
 
+	public boolean removeSearchResult(CaptureSearchResult toRemove) {
+		boolean success = results.remove(toRemove);
+		if (toRemove.equals(closest)) {
+			closest = null;
+		}
+		return success;
+	}
+	
 	public boolean isEmpty() {
 		return results.isEmpty();
 	}
