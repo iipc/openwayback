@@ -98,8 +98,7 @@ public class QueryCaptureFilterGroup implements CaptureFilterGroup {
 			}
 
 		} else if(request.isCaptureQueryRequest()) {
-			chain.addFilter(new UrlMatchFilter(keyUrl));
-/			
+			chain.addFilter(new UrlMatchFilter(keyUrl));			
 			// OPTIMIZ: EndDateFilter is a hard stop: ABORT
 			//          DateRangeFilter is an INCLUDE/EXCLUDE
 			//          one class which EXCLUDEs before startDate, and ABORTs
