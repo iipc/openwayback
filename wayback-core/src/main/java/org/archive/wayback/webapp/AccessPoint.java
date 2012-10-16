@@ -400,21 +400,6 @@ implements ShutdownListener {
 				} else {
 					payloadResource = httpHeadersResource;
 				}
-				
-				if (payloadResource == null) {
-					captureResults.removeSearchResult(closest);
-
-					// with former "closest" removed, we expect this to throw
-					// BetterRequestException to the new closest result
-					getReplay().getClosest(wbRequest, captureResults);
-
-					// if BetterRequestException wasn't thrown then we have
-					// nothing to replay
-					throw new ResourceNotAvailableException(
-							"unable to find payload for "
-									+ closest.toCanonicalStringMap());
-				}
-				
 			} catch (SpecificCaptureReplayException scre) {
 				scre.setCaptureContext(captureResults, closest);
 				throw scre;
@@ -540,9 +525,9 @@ implements ShutdownListener {
 		}
 
 		if (payloadLocation == null) {
-			LOGGER.info("returning null, unable to find payload for revisit record "
-					+ closest.toCanonicalStringMap());
-			return null;
+			throw new ResourceNotAvailableException(
+					"unable to find payload for revisit record "
+							+ closest.toCanonicalStringMap());
 		}
 
 		return getCollection().getResourceStore().retrieveResource(payloadLocation);
