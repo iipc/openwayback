@@ -41,7 +41,7 @@ public class AnnotatingCaptureFilterGroup implements CaptureFilterGroup {
 		if(index.isDedupeRecords()) {
 			chain.addFilter(new WARCRevisitAnnotationFilter());
 			chain.addFilter(new ConditionalGetAnnotationFilter());
-		}		
+		}
 	}
 	
 	public void annotateResults(SearchResults results)

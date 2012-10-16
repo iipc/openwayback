@@ -37,4 +37,10 @@ public interface UrlCanonicalizer {
 	 * @throws URIException if the input url String is not a valid URL.
 	 */
 	public String urlStringToKey(String url) throws URIException;
+	
+	/** 
+	 * Returns true if this Canonicalizer returns SURTs, false is URLs
+	 * @return
+	 */
+	public boolean isSurtForm();
 }

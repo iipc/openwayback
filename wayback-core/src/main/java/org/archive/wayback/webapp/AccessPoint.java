@@ -25,6 +25,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -47,16 +48,22 @@ import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.UIResults;
 import org.archive.wayback.core.UrlSearchResults;
 import org.archive.wayback.core.WaybackRequest;
+import org.archive.wayback.exception.AccessControlException;
 import org.archive.wayback.exception.AdministrativeAccessControlException;
 import org.archive.wayback.exception.AnchorWindowTooSmallException;
 import org.archive.wayback.exception.AuthenticationControlException;
+import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.exception.BaseExceptionRenderer;
 import org.archive.wayback.exception.BetterRequestException;
+import org.archive.wayback.exception.ConfigurationException;
+import org.archive.wayback.exception.ResourceIndexNotAvailableException;
 import org.archive.wayback.exception.ResourceNotAvailableException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.exception.SpecificCaptureReplayException;
 import org.archive.wayback.exception.WaybackException;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
+import org.archive.wayback.resourceindex.filters.WARCRevisitAnnotationFilter;
+import org.archive.wayback.resourcestore.resourcefile.WarcResource;
 import org.archive.wayback.util.operator.BooleanOperator;
 import org.archive.wayback.util.webapp.AbstractRequestHandler;
 import org.archive.wayback.util.webapp.ShutdownListener;
@@ -348,7 +355,8 @@ implements ShutdownListener {
 	protected void handleReplay(WaybackRequest wbRequest, 
 			HttpServletRequest httpRequest, HttpServletResponse httpResponse) 
 	throws IOException, ServletException, WaybackException {
-		Resource resource = null;
+		Resource httpHeadersResource = null;
+		Resource payloadResource = null;
 		try {
 			
 			checkInterstitialRedirect(httpRequest,wbRequest);
@@ -369,10 +377,44 @@ implements ShutdownListener {
 
 			closest.setClosest(true);
 			checkAnchorWindow(wbRequest,closest);
+			
+			// Support for redirect from the CDX redirectUrl field
+			// This was the intended use of the redirect field, but has not actually be tested
+			// To enable this functionality, uncomment the lines below
+			// This is an optimization that allows for redirects to be handled without loading the original content
+			//
+			//String redir = closest.getRedirectUrl();
+			//if ((redir != null) && !redir.equals("-")) {
+			//  String fullRedirect = getUriConverter().makeReplayURI(closest.getCaptureTimestamp(), redir);
+			//  throw new BetterRequestException(fullRedirect, Integer.valueOf(closest.getHttpCode()));
+			//}
 
 			try {
-				resource = 
+				httpHeadersResource = 
 					getCollection().getResourceStore().retrieveResource(closest);
+
+				if ("warc/revisit".equals(closest.getMimeType())
+						&& closest.isDuplicateDigest()) {
+					payloadResource = retrievePayloadForIdenticalContentRevisit(
+							httpHeadersResource, captureResults, closest);
+				} else {
+					payloadResource = httpHeadersResource;
+				}
+				
+				if (payloadResource == null) {
+					captureResults.removeSearchResult(closest);
+
+					// with former "closest" removed, we expect this to throw
+					// BetterRequestException to the new closest result
+					getReplay().getClosest(wbRequest, captureResults);
+
+					// if BetterRequestException wasn't thrown then we have
+					// nothing to replay
+					throw new ResourceNotAvailableException(
+							"unable to find payload for "
+									+ closest.toCanonicalStringMap());
+				}
+				
 			} catch (SpecificCaptureReplayException scre) {
 				scre.setCaptureContext(captureResults, closest);
 				throw scre;
@@ -388,11 +430,11 @@ implements ShutdownListener {
 			}
 			
 			ReplayRenderer renderer = 
-				getReplay().getRenderer(wbRequest, closest, resource);
+				getReplay().getRenderer(wbRequest, closest, httpHeadersResource, payloadResource);
 			
 			try {
 				renderer.renderResource(httpRequest, httpResponse, wbRequest,
-						closest, resource, getUriConverter(), captureResults);
+						closest, httpHeadersResource, payloadResource, getUriConverter(), captureResults);
 			} catch (SpecificCaptureReplayException scre) {
 				scre.setCaptureContext(captureResults, closest);
 				throw scre;
@@ -402,10 +444,108 @@ implements ShutdownListener {
 			p.write(wbRequest.getReplayTimestamp() + " " +
 					wbRequest.getRequestUrl());
 		} finally {
-			if(resource != null) {
-				resource.close();
+			if(httpHeadersResource != null) {
+				httpHeadersResource.close();
 			}
 		}
+	}
+
+	protected boolean isWarcRevisitNotModified(Resource warcRevisitResource) {
+		if (!(warcRevisitResource instanceof WarcResource)) {
+			return false;
+		}
+		WarcResource wr = (WarcResource) warcRevisitResource;
+		Map<String,Object> warcHeaders = wr.getWarcHeaders().getHeaderFields();
+		String warcProfile = (String) warcHeaders.get("WARC-Profile");
+		return warcProfile != null
+				&& warcProfile.equals("http://netpreserve.org/warc/1.0/revisit/server-not-modified");
+	}
+
+	/**
+	 * If closest 
+	 * @param revisitRecord
+	 * @param captureResults
+	 * @param closest
+	 * @return the payload resource
+	 * @throws ResourceNotAvailableException
+	 * @throws ConfigurationException
+	 * @throws AccessControlException 
+	 * @throws BadQueryException 
+	 * @throws ResourceNotInArchiveException 
+	 * @throws ResourceIndexNotAvailableException 
+	 * @throws BetterRequestException 
+	 * @see WARCRevisitAnnotationFilter
+	 */
+	protected Resource retrievePayloadForIdenticalContentRevisit(Resource revisitRecord,
+			CaptureSearchResults captureResults, CaptureSearchResult closest)
+					throws ResourceNotAvailableException, ConfigurationException, ResourceIndexNotAvailableException, ResourceNotInArchiveException, BadQueryException, AccessControlException, BetterRequestException {
+		if (!closest.isDuplicateDigest()) {
+			LOGGER.warning("record is not a revisit by identical content digest " + closest.getCaptureTimestamp() + " " + closest.getOriginalUrl());
+			return null;
+		}
+		
+		CaptureSearchResult payloadLocation = null;
+		
+		// maybe WARCRevisitAnnotationFilter already found the payload 
+		if (closest.getDuplicatePayloadFile() != null && closest.getDuplicatePayloadOffset() != null) {
+			payloadLocation = new CaptureSearchResult();
+			payloadLocation.setFile(closest.getDuplicatePayloadFile());
+			payloadLocation.setOffset(closest.getDuplicatePayloadOffset());
+		}
+
+		Map<String, Object> warcHeaders = null;
+		
+		if (payloadLocation == null) {
+			// expect the warc revisit record points us to the payload
+			WarcResource wr = (WarcResource) revisitRecord;
+			warcHeaders = wr.getWarcHeaders().getHeaderFields();
+			String payloadWarcFile = (String) warcHeaders.get("WARC-Refers-To-Filename");
+			String offsetStr = (String) warcHeaders.get("WARC-Refers-To-File-Offset");
+			if (payloadWarcFile != null && offsetStr != null) {
+				payloadLocation = new CaptureSearchResult();
+				payloadLocation.setFile(payloadWarcFile);
+				payloadLocation.setOffset(Long.parseLong(offsetStr));
+			}
+		}
+
+		if (payloadLocation != null) {
+			try {
+				return getCollection().getResourceStore().retrieveResource(payloadLocation);
+			} catch (ResourceNotAvailableException e) {
+				// one last effort to follow
+				payloadLocation = null;
+			}
+		}
+
+		/*
+		 * One last thing to try. This could happen if the revisit record is
+		 * url-agnostic and points to a record that was reorganized into a
+		 * different warc.
+		 */
+		// XXX needs testing
+		String payloadUri = (String) warcHeaders.get("WARC-Refers-To-Target-URI");
+		String payloadTimestamp = (String) warcHeaders.get("WARC-Refers-To-Date");
+		
+		if (payloadUri != null && payloadTimestamp != null) {
+			WaybackRequest wbr = new WaybackRequest();
+			wbr.setReplayTimestamp(payloadTimestamp);
+			wbr.setRequestUrl(payloadUri);
+
+			SearchResults results = getCollection().getResourceIndex().query(wbr);
+			if(!(results instanceof CaptureSearchResults)) {
+				throw new ResourceNotAvailableException("Bad results looking up " + payloadTimestamp + " " + payloadUri);
+			}
+			CaptureSearchResults payloadCaptureResults = (CaptureSearchResults) results;
+			payloadLocation = getReplay().getClosest(wbr, payloadCaptureResults);
+		}
+
+		if (payloadLocation == null) {
+			LOGGER.info("returning null, unable to find payload for revisit record "
+					+ closest.toCanonicalStringMap());
+			return null;
+		}
+
+		return getCollection().getResourceStore().retrieveResource(payloadLocation);
 	}
 
 	private void checkAnchorWindow(WaybackRequest wbRequest, 

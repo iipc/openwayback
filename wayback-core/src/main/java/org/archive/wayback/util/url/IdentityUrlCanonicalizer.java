@@ -36,4 +36,8 @@ public class IdentityUrlCanonicalizer implements UrlCanonicalizer {
 	public String urlStringToKey(String url) throws URIException {
 		return url;
 	}
+	
+	public boolean isSurtForm() {
+		return false;
+	}
 }

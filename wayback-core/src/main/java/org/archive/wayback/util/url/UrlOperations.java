@@ -26,6 +26,9 @@ import java.util.regex.Pattern;
 import org.apache.commons.httpclient.URIException;
 import org.archive.net.UURI;
 import org.archive.net.UURIFactory;
+import org.archive.wayback.archivalurl.ArchivalUrl;
+import org.archive.wayback.core.WaybackRequest;
+import org.archive.wayback.webapp.AccessPoint;
 
 /**
  * Class containing common static URL methods. Primarily resolveUrl() and 
@@ -127,7 +130,7 @@ public class UrlOperations {
         Pattern.compile("(?:[0-9a-z_.:-]+@)?([0-9a-z_.-]++)");
     private static final Pattern USERINFO_REGEX_SIMPLE =
         Pattern.compile("^([0-9a-z_.:-]+)(?:@[0-9a-z_.-]++)");
-
+    
     /**
      * Tests if the String argument looks like it could be a legitimate 
      * authority fragment of a URL, that is, is it an IP address, or, are the
@@ -143,6 +146,22 @@ public class UrlOperations {
 		return (m != null) && m.matches();
 	}
 	
+	/** Resolve URL, but return a minimally escaped version in case of
+	 *  error
+	 * @param baseUrl
+	 * @param url
+	 * @return
+	 */
+	
+	public static String resolveUrl(String baseUrl, String url) {
+		String resolvedUrl = resolveUrl(baseUrl, url, null);
+		if (resolvedUrl == null) {
+			resolvedUrl = url.replace(" ", "%20");
+			resolvedUrl = resolvedUrl.replace("\r", "%0D");
+		}
+		return resolvedUrl;
+	}
+	
 	/**
 	 * Resolve a possibly relative url argument against a base URL.
 	 * @param baseUrl the base URL against which the url should be resolved
@@ -150,8 +169,10 @@ public class UrlOperations {
 	 * @return url resolved against baseUrl, unless it is absolute already, and
 	 * further transformed by whatever escaping normally takes place with a 
 	 * UURI.
+	 * In case of error, return the defaultValue
 	 */
-	public static String resolveUrl(String baseUrl, String url) {
+	public static String resolveUrl(String baseUrl, String url, String defaultValue) {
+				
 		for(final String scheme : ALL_SCHEMES) {
 			if(url.startsWith(scheme)) {
 				try {
@@ -160,7 +181,7 @@ public class UrlOperations {
 					LOGGER.warning(e.getLocalizedMessage() + ": " + url);
 					// can't let a space exist... send back close to whatever came
 					// in...
-					return url.replace(" ", "%20");
+					return defaultValue;
 				}
 			}
 		}
@@ -171,8 +192,9 @@ public class UrlOperations {
 			resolvedURI = UURIFactory.getInstance(absBaseURI, url);
 		} catch (URIException e) {
 			LOGGER.warning(e.getLocalizedMessage() + ": " + url);
-			return url.replace(" ", "%20");
+			return defaultValue;
 		}
+		
 		return resolvedURI.getEscapedURI();
 	}
 	
@@ -375,5 +397,22 @@ public class UrlOperations {
 			LOGGER.warning(e.getLocalizedMessage() + ": " + url);
 		}
 		return null;
+	}
+	
+	public static String computeIdentityUrl(WaybackRequest wbRequest)
+	{
+		AccessPoint accessPoint = wbRequest.getAccessPoint();
+
+		boolean origIdentity = wbRequest.isIdentityContext();
+		wbRequest.setIdentityContext(true);
+		
+		ArchivalUrl aUrl = new ArchivalUrl(wbRequest);
+		String bestPath = aUrl.toString();
+		String betterURI = accessPoint.getReplayPrefix() + bestPath;
+
+		//reset the isIdentity flag just in case
+		wbRequest.setIdentityContext(origIdentity);
+		
+		return betterURI;
 	}
 }

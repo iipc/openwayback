@@ -85,12 +85,23 @@ public class ArchivalUrlSAXRewriteReplayRenderer implements ReplayRenderer {
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
 			CaptureSearchResult result, Resource resource,
 			ResultURIConverter uriConverter, CaptureSearchResults results)
-			throws ServletException, IOException, WaybackException {
-		
-		resource = TextReplayRenderer.decodeResource(resource);
+					throws ServletException, IOException, WaybackException {
+		renderResource(httpRequest, httpResponse, wbRequest, result, resource,
+				resource, uriConverter, results);
+	}
+
+	@Override
+	public void renderResource(HttpServletRequest httpRequest,
+			HttpServletResponse httpResponse, WaybackRequest wbRequest,
+			CaptureSearchResult result, Resource httpHeadersResource,
+			Resource payloadResource, ResultURIConverter uriConverter,
+			CaptureSearchResults results) throws ServletException, IOException,
+			WaybackException {
+
+		Resource decodedResource = TextReplayRenderer.decodeResource(payloadResource);
 
 		// The URL of the page, for resolving in-page relative URLs: 
-    	URL url = null;
+		URL url = null;
 		try {
 			url = new URL(result.getOriginalUrl());
 		} catch (MalformedURLException e1) {
@@ -99,24 +110,24 @@ public class ArchivalUrlSAXRewriteReplayRenderer implements ReplayRenderer {
 			throw new IOException(e1.getMessage());
 		}
 		// determine the character set used to encode the document bytes:
-		String charSet = charsetDetector.getCharset(resource, wbRequest);
+		String charSet = charsetDetector.getCharset(httpHeadersResource, decodedResource, wbRequest);
 
 		ArchivalUrlContextResultURIConverterFactory fact = 
-			new ArchivalUrlContextResultURIConverterFactory(
-					(ArchivalUrlResultURIConverter) uriConverter);
+				new ArchivalUrlContextResultURIConverterFactory(
+						(ArchivalUrlResultURIConverter) uriConverter);
 		// set up the context:
 		ReplayParseContext context = 
-			new ReplayParseContext(fact,url,result.getCaptureTimestamp());
+				new ReplayParseContext(fact,url,result.getCaptureTimestamp());
 
 		if(!wbRequest.isFrameWrapperContext()) {
 			// in case this is an HTML page with FRAMEs, peek ahead an look:
 			// TODO: make ThreadLocal:
 			byte buffer[] = new byte[FRAMESET_SCAN_BUFFER_SIZE];
 
-			resource.mark(FRAMESET_SCAN_BUFFER_SIZE);
-			int amtRead = resource.read(buffer);
-			resource.reset();
-			
+			decodedResource.mark(FRAMESET_SCAN_BUFFER_SIZE);
+			int amtRead = decodedResource.read(buffer);
+			decodedResource.reset();
+
 			if(amtRead > 0) {
 				StringBuilder foo = new StringBuilder(new String(buffer,charSet));
 				int frameIdx = TagMagix.getEndOfFirstTag(foo, "FRAMESET");
@@ -132,21 +143,21 @@ public class ArchivalUrlSAXRewriteReplayRenderer implements ReplayRenderer {
 				}
 			}
 		}
-		
-		
+
+
 		// copy the HTTP response code:
-		HttpHeaderOperation.copyHTTPMessageHeader(resource, httpResponse);
+		HttpHeaderOperation.copyHTTPMessageHeader(httpHeadersResource, httpResponse);
 
 		// transform the original headers according to our headerProcessor:
 		Map<String,String> headers = HttpHeaderOperation.processHeaders(
-				resource, result, uriConverter, httpHeaderProcessor);
+				httpHeadersResource, result, uriConverter, httpHeaderProcessor);
 
 		// prepare several objects for the parse:
-		
+
 		// a JSPExecutor:
 		JSPExecutor jspExec = new JSPExecutor(uriConverter, httpRequest, 
-				httpResponse, wbRequest, results, result, resource);
-		
+				httpResponse, wbRequest, results, result, decodedResource);
+
 
 		// To make sure we get the length, we have to buffer it all up...
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -155,15 +166,15 @@ public class ArchivalUrlSAXRewriteReplayRenderer implements ReplayRenderer {
 		context.setOutputStream(baos);
 		context.setJspExec(jspExec);
 
-		
+
 		// and finally, parse, using the special lexer that knows how to
 		// handle javascript blocks containing unescaped HTML entities:
-		Page lexPage = new Page(resource,charSet);
+		Page lexPage = new Page(decodedResource,charSet);
 		Lexer lexer = new Lexer(lexPage);
 		Lexer.STRICT_REMARKS = false;
-    	ContextAwareLexer lex = new ContextAwareLexer(lexer, context);
-    	Node node;
-    	try {
+		ContextAwareLexer lex = new ContextAwareLexer(lexer, context);
+		Node node;
+		try {
 			delegator.handleParseStart(context);
 			while((node = lex.nextNode()) != null) {
 				delegator.handleNode(context, node);

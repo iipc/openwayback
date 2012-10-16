@@ -28,6 +28,7 @@ import org.apache.commons.httpclient.HttpParser;
 import org.apache.commons.httpclient.StatusLine;
 import org.apache.commons.httpclient.util.EncodingUtil;
 import org.archive.io.ArchiveReader;
+import org.archive.io.ArchiveRecordHeader;
 import org.archive.io.RecoverableIOException;
 import org.archive.io.arc.ARCConstants;
 import org.archive.io.warc.WARCRecord;
@@ -45,50 +46,53 @@ public class WarcResource extends Resource {
 		this.rec = rec;
 		this.reader = reader;
 	}
-	
-    /**
-     * @param bytes Array of bytes to examine for an EOL.
-     * @return Count of end-of-line characters or zero if none.
-     */
-    private int getEolCharsCount(byte [] bytes) {
-        int count = 0;
-        if (bytes != null && bytes.length >=1 &&
-                bytes[bytes.length - 1] == '\n') {
-            count++;
-            if (bytes.length >=2 && bytes[bytes.length -2] == '\r') {
-                count++;
-            }
-        }
-        return count;
-    }
+
+	/**
+	 * @param bytes Array of bytes to examine for an EOL.
+	 * @return Count of end-of-line characters or zero if none.
+	 */
+	private int getEolCharsCount(byte [] bytes) {
+		int count = 0;
+		if (bytes != null && bytes.length >=1 &&
+				bytes[bytes.length - 1] == '\n') {
+			count++;
+			if (bytes.length >=2 && bytes[bytes.length -2] == '\r') {
+				count++;
+			}
+		}
+		return count;
+	}
 
 	public void parseHeaders() throws IOException {
 		if(parsedHeaders) {
 			return;
 		}
+		if (getRecordLength() <= 0) {
+			return;
+		}
 		
-        byte [] statusBytes = HttpParser.readRawLine(rec);
-        int eolCharCount = getEolCharsCount(statusBytes);
-        if (eolCharCount <= 0) {
-            throw new RecoverableIOException("Failed to read http status where one " +
-                " was expected: " + new String(statusBytes));
-        }
-        String statusLineStr = EncodingUtil.getString(statusBytes, 0,
-            statusBytes.length - eolCharCount, ARCConstants.DEFAULT_ENCODING);
-        if ((statusLineStr == null) ||
-                !StatusLine.startsWithHTTP(statusLineStr)) {
-           throw new RecoverableIOException("Failed parse of http status line.");
-        }
-        StatusLine statusLine = new StatusLine(statusLineStr);
+		byte [] statusBytes = HttpParser.readRawLine(rec);
+		int eolCharCount = getEolCharsCount(statusBytes);
+		if (eolCharCount <= 0) {
+			throw new RecoverableIOException("Failed to read http status where one " +
+					" was expected: " + new String(statusBytes));
+		}
+		String statusLineStr = EncodingUtil.getString(statusBytes, 0,
+				statusBytes.length - eolCharCount, ARCConstants.DEFAULT_ENCODING);
+		if ((statusLineStr == null) ||
+				!StatusLine.startsWithHTTP(statusLineStr)) {
+			throw new RecoverableIOException("Failed parse of http status line.");
+		}
+		StatusLine statusLine = new StatusLine(statusLineStr);
 
-        this.status = statusLine.getStatusCode();
+		this.status = statusLine.getStatusCode();
 
-        Header[] tmpHeaders = HttpParser.parseHeaders(rec,
-                ARCConstants.DEFAULT_ENCODING);
-        headers = new Hashtable<String,String>();
+		Header[] tmpHeaders = HttpParser.parseHeaders(rec,
+				ARCConstants.DEFAULT_ENCODING);
+		headers = new Hashtable<String,String>();
 		this.setInputStream(rec);
-        for(Header header: tmpHeaders) {
-        	headers.put(header.getName(), header.getValue());
+		for(Header header: tmpHeaders) {
+			headers.put(header.getName(), header.getValue());
 			if(header.getName().toUpperCase().contains(
 					HttpHeaderOperation.HTTP_TRANSFER_ENC_HEADER)) {
 				if(header.getValue().toUpperCase().contains(
@@ -96,19 +100,25 @@ public class WarcResource extends Resource {
 					setChunkedEncoding();
 				}
 			}
-        }
+		}
 		parsedHeaders = true;
 	}
-	
-	
+
+
 	@Override
 	public Map<String, String> getHttpHeaders() {
 		return headers;
 	}
 
+	public ArchiveRecordHeader getWarcHeaders() {
+		return rec.getHeader();
+	}
+
 	@Override
 	public long getRecordLength() {
-		// TODO Auto-generated method stub
+		if ((length == 0) && (rec.getHeader() != null)) {
+			length = rec.getHeader().getLength();
+		}
 		return length;
 	}
 

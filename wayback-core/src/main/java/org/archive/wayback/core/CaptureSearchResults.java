@@ -32,7 +32,7 @@ import org.archive.wayback.util.Timestamp;
  * @author brad
  * @version $Date$, $Revision$
  */
-public class CaptureSearchResults extends SearchResults {
+public class CaptureSearchResults extends SearchResults implements Iterable<CaptureSearchResult> {
 	/**
 	 * List of UrlSearchResult objects for index records matching a query
 	 */
@@ -109,6 +109,14 @@ public class CaptureSearchResults extends SearchResults {
 		}
 	}	
 
+	public boolean removeSearchResult(CaptureSearchResult toRemove) {
+		boolean success = results.remove(toRemove);
+		if (toRemove.equals(closest)) {
+			closest = null;
+		}
+		return success;
+	}
+	
 	public boolean isEmpty() {
 		return results.isEmpty();
 	}

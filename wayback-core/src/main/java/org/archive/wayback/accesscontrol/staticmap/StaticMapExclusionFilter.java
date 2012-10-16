@@ -56,7 +56,7 @@ public class StaticMapExclusionFilter extends ExclusionFilter {
 	
 	protected boolean isExcluded(String url) {
 		try {
-			SURTTokenizer st = new SURTTokenizer(url);
+			SURTTokenizer st = new SURTTokenizer(url, canonicalizer.isSurtForm());
 			while(true) {
 				String nextSearch = st.nextSearch();
 				if(nextSearch == null) {

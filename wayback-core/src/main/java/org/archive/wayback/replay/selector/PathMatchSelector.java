@@ -43,13 +43,12 @@ public class PathMatchSelector extends BaseReplayRendererSelector {
 	private List<String> queryContains = null;
 	private List<String> urlContainsAll = null;
 
-	/* (non-Javadoc)
-	 * @see org.archive.wayback.replay.selector.BaseReplayRendererSelector#canHandle(org.archive.wayback.core.WaybackRequest, org.archive.wayback.core.CaptureSearchResult, org.archive.wayback.core.Resource)
-	 */
 	@Override
 	public boolean canHandle(WaybackRequest wbRequest,
-			CaptureSearchResult result, Resource resource) {
-		if(isResourceTooBig(resource)) {
+			CaptureSearchResult result, Resource httpHeadersResource,
+			Resource payloadResource) {
+
+		if (isResourceTooBig(payloadResource)) {
 			return false;
 		}
 		try {

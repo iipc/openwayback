@@ -21,6 +21,7 @@ package org.archive.wayback.resourceindex.filters;
 
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.util.ObjectFilter;
+import org.archive.wayback.webapp.AccessPoint;
 
 /**
  * WARC file allows 2 forms of deduplication. The first actually downloads

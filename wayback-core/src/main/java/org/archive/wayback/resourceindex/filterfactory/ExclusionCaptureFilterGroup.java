@@ -74,19 +74,19 @@ public class ExclusionCaptureFilterGroup implements CaptureFilterGroup {
 	public void annotateResults(SearchResults results)
 			throws AccessControlException, ResourceNotInArchiveException,
 			RobotNotAvailableException {
-		if(robotTimedOut) {
+		if(getRobotTimedOut()) {
 			throw new RobotTimedOutAccessControlException("Unable to check" +
 					" robots.txt for " + requestUrl);
 		}
-		if(liveWebGone) {
+		if(getLiveWebGone()) {
 			throw new RobotNotAvailableException("The URL " + requestUrl +
 			" is blocked by the sites robots.txt file");
 		}
-		if(sawRobots && !passedRobots) {
+		if(isSawRobots() && !isPassedRobots()) {
 			throw new RobotAccessControlException("The URL " + requestUrl +
 					" is blocked by the sites robots.txt file");
 		}
-		if(sawAdministrative && !passedAdministrative) {
+		if(isSawAdministrative() && !isPassedAdministrative()) {
 			throw new AdministrativeAccessControlException(requestUrl +
 					"  is not available in the Wayback Machine.");
 		}
@@ -118,5 +118,21 @@ public class ExclusionCaptureFilterGroup implements CaptureFilterGroup {
 	}
 	public boolean getLiveWebGone() {
 		return liveWebGone;
+	}
+
+	public boolean isSawRobots() {
+		return sawRobots;
+	}
+
+	public boolean isPassedRobots() {
+		return passedRobots;
+	}
+
+	public boolean isSawAdministrative() {
+		return sawAdministrative;
+	}
+
+	public boolean isPassedAdministrative() {
+		return passedAdministrative;
 	}
 }

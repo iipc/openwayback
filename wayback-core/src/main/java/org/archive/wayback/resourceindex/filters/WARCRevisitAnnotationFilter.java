@@ -20,6 +20,7 @@
 package org.archive.wayback.resourceindex.filters;
 
 import java.util.HashMap;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.archive.wayback.core.CaptureSearchResult;
@@ -58,23 +59,20 @@ implements ObjectFilter<CaptureSearchResult> {
 	}
 
 	private int annotate(CaptureSearchResult o) {
+		o.flagDuplicateDigest();
+		
 		String thisDigest = o.getDigest();
 		CaptureSearchResult last = memory.get(thisDigest);
-		if(last == null) {
-			LOGGER.warning("Missing revisit base warc for digest: " + o.getDigest() + " url: " + o.getOriginalUrl());
-			return FILTER_EXCLUDE;
-		}
-		String httpCode = last.getHttpCode();
-		
-		if ((httpCode == null) || !httpCode.startsWith("3")) {
-			o.setFile(last.getFile());
-			o.setOffset(last.getOffset());
-			o.setRedirectUrl(last.getRedirectUrl());
+		if (last == null) {
+			if (LOGGER.isLoggable(Level.FINER)) {
+				LOGGER.finer("did not find matching digest in previous fetch of url, hopefully it's a new-style revisit - "
+						+ o.getCaptureTimestamp() + " " + o.getOriginalUrl());
+			}
+			return FILTER_INCLUDE;
 		}
 		
-		o.setHttpCode(httpCode);
-		o.setMimeType(last.getMimeType());
-		o.flagDuplicateDigest(last.getCaptureTimestamp());
+		o.flagDuplicateDigest(last);
+		
 		return FILTER_INCLUDE;
 	}
 

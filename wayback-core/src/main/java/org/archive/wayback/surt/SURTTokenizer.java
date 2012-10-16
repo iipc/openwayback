@@ -57,8 +57,8 @@ public class SURTTokenizer {
 	 * @param url String URL
 	 * @throws URIException 
 	 */
-	public SURTTokenizer(final String url) throws URIException {
-		if(url.startsWith("(")) {
+	public SURTTokenizer(final String url, boolean isSurt) throws URIException {
+		if(url.startsWith("(") || isSurt) {
 			remainder = url;
 		} else {
 			remainder = getKey(url,false);
