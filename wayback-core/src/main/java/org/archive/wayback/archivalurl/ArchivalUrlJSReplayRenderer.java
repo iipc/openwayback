@@ -83,11 +83,24 @@ public class ArchivalUrlJSReplayRenderer extends TextReplayRenderer {
 		StringBuilder sb = page.sb;
 		StringBuffer replaced = new StringBuffer(sb.length());
 		Matcher m = pattern.matcher(sb);
-		while (m.find()) {
-			String host = m.group(1);
-			String replacement = uriConverter.makeReplayURI(captureTS, host);
-			m.appendReplacement(replaced, replacement);
+		
+		// If at least 2 groups, prepend before 2nd group and include 1st group. Allows for more sophisticated matching.
+		// Otherwise, insert before 1st group
+		if (m.groupCount() > 1) {
+			while (m.find()) {
+				String beforeHost = m.group(1);
+				String host = m.group(2);
+				String replacement = uriConverter.makeReplayURI(captureTS, host);
+				m.appendReplacement(replaced, beforeHost + replacement);
+			}	
+		} else {
+			while (m.find()) {
+				String host = m.group(1);
+				String replacement = uriConverter.makeReplayURI(captureTS, host);
+				m.appendReplacement(replaced, replacement);
+			}			
 		}
+		
 		m.appendTail(replaced);
 		// blasted StringBuilder/StringBuffer... gotta convert again...
 		page.sb.setLength(0);
