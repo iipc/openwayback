@@ -37,11 +37,13 @@ public class ClosestResultURLAndDateTrackingFilter extends
 				if (closest.getOriginalUrl().equals(origUrl)) {
 					found = true;
 				} else {
+					o.setPrevResult(closest);
 					closest = o;
 					closestDiffMS = diffMS;					
 				}				
 			} else {
 				// this is closer than anything we've seen:
+				o.setPrevResult(closest);			
 				closest = o;
 				closestDiffMS = diffMS;
 			}

@@ -365,45 +365,74 @@ implements ShutdownListener {
 			SearchResults results = 
 				getCollection().getResourceIndex().query(wbRequest);
 			p.queried();
+			
 			if(!(results instanceof CaptureSearchResults)) {
 				throw new ResourceNotAvailableException("Bad results...");
 			}
 			CaptureSearchResults captureResults = 
 				(CaptureSearchResults) results;
-
-			// TODO: check which versions are actually accessible right now?
-			CaptureSearchResult closest = 
-				getReplay().getClosest(wbRequest, captureResults);
-
-			closest.setClosest(true);
-			checkAnchorWindow(wbRequest,closest);
 			
-			// Support for redirect from the CDX redirectUrl field
-			// This was the intended use of the redirect field, but has not actually be tested
-			// To enable this functionality, uncomment the lines below
-			// This is an optimization that allows for redirects to be handled without loading the original content
-			//
-			//String redir = closest.getRedirectUrl();
-			//if ((redir != null) && !redir.equals("-")) {
-			//  String fullRedirect = getUriConverter().makeReplayURI(closest.getCaptureTimestamp(), redir);
-			//  throw new BetterRequestException(fullRedirect, Integer.valueOf(closest.getHttpCode()));
-			//}
-
-			try {
-				httpHeadersResource = 
-					getCollection().getResourceStore().retrieveResource(closest);
-
-				if ("warc/revisit".equals(closest.getMimeType())
-						&& closest.isDuplicateDigest()) {
-					payloadResource = retrievePayloadForIdenticalContentRevisit(
-							httpHeadersResource, captureResults, closest);
-				} else {
-					payloadResource = httpHeadersResource;
+			CaptureSearchResult closest = null;		
+			
+			// TODO: check which versions are actually accessible right now?
+			closest = 
+				getReplay().getClosest(wbRequest, captureResults);
+			
+			while (true) {
+				closest.setClosest(true);
+				checkAnchorWindow(wbRequest,closest);
+				
+				// Support for redirect from the CDX redirectUrl field
+				// This was the intended use of the redirect field, but has not actually be tested
+				// To enable this functionality, uncomment the lines below
+				// This is an optimization that allows for redirects to be handled without loading the original content
+				//
+				//String redir = closest.getRedirectUrl();
+				//if ((redir != null) && !redir.equals("-")) {
+				//  String fullRedirect = getUriConverter().makeReplayURI(closest.getCaptureTimestamp(), redir);
+				//  throw new BetterRequestException(fullRedirect, Integer.valueOf(closest.getHttpCode()));
+				//}
+	
+				try {
+					httpHeadersResource = 
+						getCollection().getResourceStore().retrieveResource(closest);
+	
+					if ("warc/revisit".equals(closest.getMimeType())
+							&& closest.isDuplicateDigest()) {
+						payloadResource = retrievePayloadForIdenticalContentRevisit(
+								httpHeadersResource, captureResults, closest);
+					} else {
+						payloadResource = httpHeadersResource;
+					}
+					
+					// Ensure that we are not self-redirecting!
+					// If the status is a redirect, check that the location or url date's are different from the current request
+					// Otherwise, replay the previous matched capture.
+					// This chain is unlikely to go past one previous capture, but is possible 
+					int status = payloadResource.getStatusCode();
+					
+					if ((status >= 300) && (status < 400)) {
+						String location = payloadResource.getHttpHeaders().get("Location");
+						if ((location != null) && location.equals(wbRequest.getRequestUrl()) && (closest.getCaptureTimestamp().equals(wbRequest.getReplayTimestamp()))) {
+							closest = closest.getPrevResult();
+							if (closest == null) {
+								// This should never happen logically, but just in case.
+								throw new ResourceNotInArchiveException(
+										"After following redirects, the URL " + wbRequest.getRefererUrl() + 
+										"captured on or before " + wbRequest.getReplayDate() + "could not be found in the archive");
+							}
+							continue;
+						}
+					}
+					
+					break;
+					
+				} catch (SpecificCaptureReplayException scre) {
+					scre.setCaptureContext(captureResults, closest);
+					throw scre;
 				}
-			} catch (SpecificCaptureReplayException scre) {
-				scre.setCaptureContext(captureResults, closest);
-				throw scre;
 			}
+			
 			p.retrieved();
 			
 			// Check for AJAX
