@@ -57,7 +57,8 @@ public class ServerRelativeArchivalRedirect extends AbstractRequestHandler {
 			// Check that the Referer is our current wayback path
 			// before attempting to use referer as base archival url
 			
-			if(!matchHost.equals(uri.getHost()) || ((uri.getPort() != -1) && (matchPort != uri.getPort()))) {
+			if (((matchHost != null) && !matchHost.equals(uri.getHost())) ||
+				((matchPort != -1) && (uri.getPort() != -1) && (matchPort != uri.getPort()))) {
 				LOGGER.info("Server-Relative-Redirect: Skipping, Referer " + uri.getHost() + ":" + uri.getPort() + " not from matching wayback host:port\t");
 				return false;
 			}	

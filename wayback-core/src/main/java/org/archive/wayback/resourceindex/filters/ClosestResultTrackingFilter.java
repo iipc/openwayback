@@ -33,10 +33,10 @@ import org.archive.wayback.util.ObjectFilter;
  */
 public class ClosestResultTrackingFilter implements ObjectFilter<CaptureSearchResult> {
 
-	private boolean found = false;
-	private long wantMS = 0;
-	private long closestDiffMS = 0;
-	private CaptureSearchResult closest = null;
+	protected boolean found = false;
+	protected long wantMS = 0;
+	protected long closestDiffMS = 0;
+	protected CaptureSearchResult closest = null;
 	
 	/**
 	 * @return the closest

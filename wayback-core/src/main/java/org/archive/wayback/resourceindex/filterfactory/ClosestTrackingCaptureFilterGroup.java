@@ -11,6 +11,7 @@ import org.archive.wayback.exception.AccessControlException;
 import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.resourceindex.filters.ClosestResultTrackingFilter;
+import org.archive.wayback.resourceindex.filters.ClosestResultURLAndDateTrackingFilter;
 import org.archive.wayback.util.ObjectFilter;
 import org.archive.wayback.util.ObjectFilterChain;
 
@@ -23,7 +24,7 @@ public class ClosestTrackingCaptureFilterGroup implements CaptureFilterGroup {
 		if(request.isCaptureQueryRequest() ||
 				request.isReplayRequest()) {
 			closestTracker = 
-				new ClosestResultTrackingFilter(request.getReplayDate().getTime());
+				new ClosestResultURLAndDateTrackingFilter(request.getReplayDate().getTime(), request.getRequestUrl());
 			chain.addFilter(closestTracker);
 		}
 	}
