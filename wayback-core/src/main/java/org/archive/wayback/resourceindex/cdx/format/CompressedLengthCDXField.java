@@ -25,6 +25,10 @@ public class CompressedLengthCDXField implements CDXField {
 
 	public void apply(String field, CaptureSearchResult result)
 	throws CDXFormatException {
+		if (field.equals("-")) {
+			return;
+		}
+		
 		try {
 			result.setCompressedLength(Long.parseLong(field));
 		} catch(NumberFormatException e) {
