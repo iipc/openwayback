@@ -23,6 +23,7 @@ import java.io.UnsupportedEncodingException;
 
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.resourceindex.cdx.CDXLineToSearchResultAdapter;
+import org.archive.wayback.resourceindex.cdx.format.CDXFlexFormat;
 import org.archive.wayback.util.Adapter;
 import org.archive.wayback.util.ByteOp;
 import org.archive.wayback.util.bdb.BDBRecord;
@@ -58,6 +59,6 @@ public class BDBRecordToSearchResultAdapter
 		sb.append(" ");
 		sb.append(new String(record.getValue().getData(),ByteOp.UTF8));
 		sb.append(key.substring(dateSpecEnd));
-		return CDXLineToSearchResultAdapter.doAdapt(sb.toString());
+		return CDXFlexFormat.parseCDXLineFlex(sb.toString());
 	}
 }
