@@ -32,22 +32,18 @@ public class CDXFlexFormat extends CDXFormat {
 			return pathIdx;
 		}
 	}
-
-	/* (non-Javadoc)
-	 * @see org.archive.wayback.resourceindex.cdx.format.CDXFormat#parseResult(java.lang.String)
-	 */
-	@Override
-	public CaptureSearchResult parseResult(String line)
-			throws CDXFormatException {
+	
+	// Single place to do the flex cdx-line parsing logic
+	public static CaptureSearchResult parseCDXLineFlex(String line) {
 		CaptureSearchResult result = new CaptureSearchResult();
 		String[] tokens = line.split(" ");
 		boolean hasRobotFlags = false;
-		boolean hasCompressedLength = false;
+		boolean hasLengthFlag = false;
 		if (tokens.length != 9) {
+			hasRobotFlags = true;
 			if(tokens.length == 10) {
-				hasRobotFlags = true;
 			} else if(tokens.length == 11) {
-				hasCompressedLength = true;
+				hasLengthFlag = true;
 			} else {
 				return null;
 			}
@@ -76,7 +72,7 @@ public class CDXFlexFormat extends CDXFormat {
 			nextToken++;
 		}
 		String length = "-";
-		if(hasCompressedLength) {
+		if(hasLengthFlag) {
 			length = tokens[nextToken];
 			nextToken++;
 		}
@@ -85,7 +81,8 @@ public class CDXFlexFormat extends CDXFormat {
 			try {
 				compressedOffset = Long.parseLong(tokens[nextToken]);
 				if(!length.equals("-")) {
-					result.setCompressedLength(compressedOffset + Long.parseLong(length));
+					// try to set the endOffset:
+					result.setCompressedLength(Long.parseLong(length));
 				}
 			} catch (NumberFormatException e) {
 				LOGGER.warning("Bad compressed Offset field("+nextToken+") in (" +
@@ -106,6 +103,15 @@ public class CDXFlexFormat extends CDXFormat {
 		result.setFile(fileName);
 
 		return result;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.archive.wayback.resourceindex.cdx.format.CDXFormat#parseResult(java.lang.String)
+	 */
+	@Override
+	public CaptureSearchResult parseResult(String line)
+			throws CDXFormatException {
+		return CDXFlexFormat.parseCDXLineFlex(line);
 	}
 
 }
