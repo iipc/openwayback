@@ -25,6 +25,7 @@ import java.util.logging.Logger;
 import org.apache.commons.httpclient.URIException;
 import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.core.CaptureSearchResult;
+import org.archive.wayback.resourceindex.filterfactory.ExclusionCaptureFilterGroup;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.surt.SURTTokenizer;
 import org.archive.wayback.util.ObjectFilter;
@@ -45,13 +46,23 @@ public class StaticMapExclusionFilter extends ExclusionFilter {
 	private boolean notifiedSeen = false;
 	private boolean notifiedPassed = false;
 	Map<String,Object> exclusionMap = null;
-	UrlCanonicalizer canonicalizer = new AggressiveUrlCanonicalizer();
+	UrlCanonicalizer canonicalizer = null;
 	/**
 	 * @param map where each String key is a SURT that is blocked.
 	 */
 	public StaticMapExclusionFilter(Map<String,Object> map, UrlCanonicalizer canonicalizer) {
 		exclusionMap = map;
 		this.canonicalizer = canonicalizer;
+	}
+	
+	
+	// Set the canonicalizer from the filter, as it may be different from the default
+	@Override
+	public void setFilterGroup(ExclusionCaptureFilterGroup filterGroup) {
+		super.setFilterGroup(filterGroup);
+		if ((filterGroup != null) && (filterGroup.getCaptureFilterGroupCanonicalizer() != null)) {
+			this.canonicalizer = filterGroup.getCaptureFilterGroupCanonicalizer();
+		}
 	}
 	
 	protected boolean isExcluded(String url) {
