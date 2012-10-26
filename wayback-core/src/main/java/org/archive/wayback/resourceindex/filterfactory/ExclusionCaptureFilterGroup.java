@@ -21,12 +21,12 @@ package org.archive.wayback.resourceindex.filterfactory;
 
 import java.util.List;
 
+import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.AccessControlException;
 import org.archive.wayback.exception.AdministrativeAccessControlException;
-import org.archive.wayback.exception.LiveWebCacheUnavailableException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.exception.RobotAccessControlException;
 import org.archive.wayback.exception.RobotNotAvailableException;
@@ -48,8 +48,11 @@ public class ExclusionCaptureFilterGroup implements CaptureFilterGroup {
 	private boolean liveWebGone = false;
 	private boolean sawAdministrative = false;
 	private boolean passedAdministrative = false;
+	private UrlCanonicalizer canonicalizer = null;
 	
-	public ExclusionCaptureFilterGroup(WaybackRequest request) {
+	public ExclusionCaptureFilterGroup(WaybackRequest request, UrlCanonicalizer canonicalizer) {
+		
+		this.canonicalizer = canonicalizer;
 		
 		// checks an exclusion service for every matching record
 		ExclusionFilter exclusion = request.getExclusionFilter();
@@ -65,6 +68,11 @@ public class ExclusionCaptureFilterGroup implements CaptureFilterGroup {
 		}
 //		postCounter = new CounterFilter();
 //		chain.addFilter(postCounter);
+	}
+	
+	public UrlCanonicalizer getCaptureFilterGroupCanonicalizer()
+	{
+		return canonicalizer;
 	}
 	
 	public List<ObjectFilter<CaptureSearchResult>> getFilters() {
