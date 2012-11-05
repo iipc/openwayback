@@ -29,6 +29,6 @@ public class ExclusionCaptureFilterGroupFactory implements FilterGroupFactory {
 	public CaptureFilterGroup getGroup(WaybackRequest request,
 			UrlCanonicalizer canonicalizer, LocalResourceIndex index)
 			throws BadQueryException {
-		return new ExclusionCaptureFilterGroup(request);
+		return new ExclusionCaptureFilterGroup(request, canonicalizer);
 	}
 }
