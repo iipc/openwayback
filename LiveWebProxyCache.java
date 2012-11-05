@@ -13,6 +13,7 @@ import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
 
 import org.archive.io.arc.ARCRecord;
+import org.archive.wayback.accesscontrol.robotstxt.ApacheHttpConnMan.ConnectionCallback;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.exception.LiveDocumentNotAvailableException;
 import org.archive.wayback.exception.LiveWebCacheUnavailableException;
@@ -28,7 +29,7 @@ public class LiveWebProxyCache implements LiveWebCache {
 			.getLogger(LiveWebProxyCache.class.getName());
 	
 	/* SOCKET SETTINGS / PARAMS */
-	protected BaseHttpConnMan connMan = null;
+	protected ApacheHttpConnMan connMan = null;
 
 	protected int responseTimeoutMS = 6000;
 	
@@ -47,11 +48,11 @@ public class LiveWebProxyCache implements LiveWebCache {
 	private IdleCleanerThread idleCleaner;
 	private int idleCleanupTimeoutMS = 300000;
 	
-	public BaseHttpConnMan getConnMan() {
+	public ApacheHttpConnMan getConnMan() {
 		return connMan;
 	}
 
-	public void setHttpConnMan(BaseHttpConnMan connMan) {
+	public void setHttpConnMan(ApacheHttpConnMan connMan) {
 		this.connMan = connMan;
 	}
 
@@ -133,7 +134,7 @@ public class LiveWebProxyCache implements LiveWebCache {
 	    }   
 	}
 	
-	protected class LoadArcCallback implements BaseHttpConnMan.ConnectionCallback, Runnable
+	protected class LoadArcCallback implements ConnectionCallback, Runnable
 	{
 		long startTime;
 		int status = 0;

@@ -9,9 +9,10 @@ import java.net.UnknownHostException;
 import java.util.concurrent.CountDownLatch;
 import java.util.logging.Logger;
 
+import org.archive.wayback.accesscontrol.robotstxt.ApacheHttpConnMan.ConnectionCallback;
 import org.archive.wayback.webapp.PerformanceLogger;
 
-class RobotsContext implements BaseHttpConnMan.ConnectionCallback
+class RobotsContext implements ConnectionCallback
 {
 	private final static Logger LOGGER = Logger
 	.getLogger(RobotsContext.class.getName());

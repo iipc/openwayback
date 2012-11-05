@@ -37,7 +37,7 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 
-public class ApacheHttpConnMan extends BaseHttpConnMan {
+public class ApacheHttpConnMan {
 
 	private final static Logger LOGGER = Logger
 	.getLogger(ApacheHttpConnMan.class.getName());
@@ -82,7 +82,54 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 		}
 	};
 	
-	@Override
+	protected int connectionTimeoutMS = 5000;
+	protected int readTimeoutMS = 5000;
+	protected int pingConnectTimeoutMS = 500;
+	protected int dnsTimeoutMS = 0;
+	
+	protected int maxPerRouteConnections = 4;
+	protected int maxConnections = 500;
+		
+	protected String proxyHost;
+	protected int proxyPort;
+
+	interface ConnectionCallback
+	{
+		boolean supportStatus(int status);
+
+		void doRead(int length, String contentType, InputStream input, String charset) throws IOException, InterruptedException;
+
+		void handleException(Exception exc);
+	}
+
+	public void setConnectionTimeout(int connectionTimeoutMS)
+	{
+		this.connectionTimeoutMS = connectionTimeoutMS;
+	}
+	
+	public void setPingConnectTimeout(int pingConnectTimeoutMS)
+	{
+		this.pingConnectTimeoutMS = pingConnectTimeoutMS;
+	}
+	
+	public void setSocketReadTimeoutMS(int readTimeoutMS)
+	{
+		this.readTimeoutMS = readTimeoutMS;
+	}
+	
+	public void setDNSTimeoutMS(int dnsTimeoutMS)
+	{
+		this.dnsTimeoutMS = dnsTimeoutMS;
+	}
+	
+	public void setMaxPerRouteConnections(int maxPerRouteConnections) {
+		this.maxPerRouteConnections = maxPerRouteConnections;
+	}
+
+	public void setMaxConnections(int maxConnections) {
+		this.maxConnections = maxConnections;
+	}
+	
 	public void init() {
 		
 		if (dnsTimeoutMS > 0) {
@@ -160,7 +207,6 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 		proxyHttpClient.setReuseStrategy(new DefaultConnectionReuseStrategy());
 	}
 	
-	@Override
 	public void close()
 	{
 		if (connMan != null) {
@@ -168,7 +214,6 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 		}
 	}
 
-	@Override
 	public void loadRobots(ConnectionCallback callback, String url, String userAgent) throws InterruptedException {
 		load(directHttpClient, callback, url, userAgent, false);
 	}
@@ -224,7 +269,14 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 		}
 	}
 	
-	@Override
+    public void setProxyHostPort(String hostPort) {
+    	int colonIdx = hostPort.indexOf(':');
+    	if (colonIdx > 0) {
+    		proxyHost = hostPort.substring(0,colonIdx);
+    		proxyPort = Integer.valueOf(hostPort.substring(colonIdx+1));   		
+    	}
+    }
+	
 	public void loadProxyLive(ConnectionCallback callback, String url, String userAgent) throws InterruptedException {
 		if (proxyHttpClient == null) {
 			return;
@@ -233,7 +285,6 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 		load(proxyHttpClient, callback, url, userAgent, true);
 	}
 
-	@Override
 	public boolean pingProxyLive(String url) {
 		if (proxyHttpClient == null) {
 			return false;
@@ -254,7 +305,6 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
 		}
 	}
 	
-	@Override
 	public void idleCleanup()
 	{
         connMan.closeIdleConnections(2 * (readTimeoutMS + connectionTimeoutMS), TimeUnit.MILLISECONDS);
@@ -262,7 +312,6 @@ public class ApacheHttpConnMan extends BaseHttpConnMan {
         connMan.deleteClosedConnections();
  	}
 	
-	@Override
 	public void appendLogInfo(PrintWriter info)
 	{
 	   info.println("  Connections: " + connMan.getConnectionsInPool());
