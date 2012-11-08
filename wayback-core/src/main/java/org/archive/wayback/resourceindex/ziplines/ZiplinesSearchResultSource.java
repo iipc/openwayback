@@ -305,7 +305,7 @@ public class ZiplinesSearchResultSource implements SearchResultSource {
 //		String cdxSpec = CDXFormatIndex.CDX_HEADER_MAGIC;
 		String cdxSpec = " CDX N b a m s k r V g";
 		CDXFormat format = null;
-		BlockLoader blockLoader = new Http11BlockLoader();
+		BlockLoader blockLoader = new GenericBlockLoader();
 		try {
 			format = new CDXFormat(cdxSpec);
 		} catch (CDXFormatException e1) {

@@ -98,6 +98,8 @@ implements ShutdownListener {
 	public final static String INTERSTITIAL_DATE = "date";
 	/** argument for Interstitial.jsp URL being loaded */
 	public final static String INTERSTITIAL_URL = "url";
+	
+	public final static String REVISIT_STR = "warc/revisit";
 
 	private static final Logger LOGGER = Logger.getLogger(
 			AccessPoint.class.getName());
@@ -397,7 +399,7 @@ implements ShutdownListener {
 					httpHeadersResource = 
 						getCollection().getResourceStore().retrieveResource(closest);
 	
-					if ("warc/revisit".equals(closest.getMimeType())
+					if (REVISIT_STR.equals(closest.getMimeType())
 							&& closest.isDuplicateDigest()) {
 						payloadResource = retrievePayloadForIdenticalContentRevisit(
 								httpHeadersResource, captureResults, closest);
@@ -537,6 +539,12 @@ implements ShutdownListener {
 		 * different warc.
 		 */
 		// XXX needs testing
+		
+		if (warcHeaders == null) {
+			WarcResource wr = (WarcResource) revisitRecord;
+			warcHeaders = wr.getWarcHeaders().getHeaderFields();
+		}
+		
 		String payloadUri = (String) warcHeaders.get("WARC-Refers-To-Target-URI");
 		String payloadTimestamp = (String) warcHeaders.get("WARC-Refers-To-Date");
 		
