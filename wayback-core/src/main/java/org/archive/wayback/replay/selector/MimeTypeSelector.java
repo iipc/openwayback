@@ -26,6 +26,7 @@ import java.util.Map;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.WaybackRequest;
+import org.archive.wayback.webapp.AccessPoint;
 
 /**
  * 
@@ -46,6 +47,11 @@ public class MimeTypeSelector extends BaseReplayRendererSelector {
 			return false;
 		}
 		String mime = result.getMimeType();
+		
+		if ((mime == null) || mime.equals(AccessPoint.REVISIT_STR)) {
+			mime = payloadResource.getHttpHeaders().get("Content-Type");
+		}
+		
 		if (mimeMatches != null) {
 			if (mimeMatches.containsKey(mime)) {
 				return true;
