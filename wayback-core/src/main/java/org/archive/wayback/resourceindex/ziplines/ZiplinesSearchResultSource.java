@@ -198,14 +198,23 @@ public class ZiplinesSearchResultSource implements SearchResultSource {
 		}
 		return blocks;
 	}
-
-	public Iterator<String> getStringPrefixIterator(String prefix) 
-		throws ResourceIndexNotAvailableException, IOException {
-
+	
+	public Iterator<String> getZiplinesChunkIterator(String prefix) throws ResourceIndexNotAvailableException, IOException
+	{
 		ArrayList<ZiplinedBlock> blocks = getBlockListForPrefix(prefix);
 		ZiplinesChunkIterator zci = new ZiplinesChunkIterator(blocks);
 		zci.setTruncated(false);
-		return new StringPrefixIterator(zci,prefix);
+		return zci;
+	}
+	
+	public Iterator<String> getStringBoundedRangeIterator(String start, String end, boolean endInclusivePrefix) 
+	throws ResourceIndexNotAvailableException, IOException {
+		return new StringBoundedRangeIterator(getZiplinesChunkIterator(start), start, end, endInclusivePrefix);
+	}
+
+	public Iterator<String> getStringPrefixIterator(String prefix) 
+		throws ResourceIndexNotAvailableException, IOException {
+		return new StringPrefixIterator(getZiplinesChunkIterator(prefix), prefix);
 	}
 
 	/* (non-Javadoc)

@@ -34,11 +34,12 @@ import org.archive.wayback.util.CloseableIterator;
  *
  */
 public class StringPrefixIterator implements CloseableIterator<String> {
-	private String prefix = null;
-	Iterator<String> inner = null;
-	private String cachedNext = null;
-	private boolean done = false;
-	private boolean truncated = false;
+	protected String prefix = null;
+	protected Iterator<String> inner = null;
+	protected String cachedNext = null;
+	protected boolean done = false;
+	protected boolean truncated = false;
+	
 	public StringPrefixIterator(Iterator<String> inner, String prefix) {
 		this.prefix = prefix;
 		this.inner = inner;
