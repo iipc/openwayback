@@ -85,4 +85,17 @@ public class HDFSBlockLoader implements BlockLoader {
 			e.printStackTrace();
 		}
 	}
+	
+	@Override
+	public void finalize()
+	{
+		if (fs != null) {
+			try {
+				fs.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
 }
