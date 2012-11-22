@@ -138,7 +138,7 @@ public class BeanNameRegistrar {
 			String host = m.group(1);
 			String portString = m.group(2);
 			
-			if (portString.startsWith(":")) {
+			if ((portString != null) && portString.startsWith(":")) {
 				port = Integer.parseInt(portString.substring(1));
 			}
 			
