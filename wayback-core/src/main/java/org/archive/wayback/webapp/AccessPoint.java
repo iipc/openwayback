@@ -98,6 +98,8 @@ implements ShutdownListener {
 	public final static String INTERSTITIAL_DATE = "date";
 	/** argument for Interstitial.jsp URL being loaded */
 	public final static String INTERSTITIAL_URL = "url";
+	
+	public final static String REVISIT_STR = "warc/revisit";
 
 	private static final Logger LOGGER = Logger.getLogger(
 			AccessPoint.class.getName());
@@ -392,12 +394,16 @@ implements ShutdownListener {
 				//  String fullRedirect = getUriConverter().makeReplayURI(closest.getCaptureTimestamp(), redir);
 				//  throw new BetterRequestException(fullRedirect, Integer.valueOf(closest.getHttpCode()));
 				//}
-	
+				
+				closeResources(payloadResource, httpHeadersResource);
+				payloadResource = null;
+				httpHeadersResource = null;
+				
 				try {
 					httpHeadersResource = 
 						getCollection().getResourceStore().retrieveResource(closest);
 	
-					if ("warc/revisit".equals(closest.getMimeType())
+					if (REVISIT_STR.equals(closest.getMimeType())
 							&& closest.isDuplicateDigest()) {
 						payloadResource = retrievePayloadForIdenticalContentRevisit(
 								httpHeadersResource, captureResults, closest);
@@ -458,9 +464,7 @@ implements ShutdownListener {
 			p.write(wbRequest.getReplayTimestamp() + " " +
 					wbRequest.getRequestUrl());
 		} finally {
-			if(httpHeadersResource != null) {
-				httpHeadersResource.close();
-			}
+			closeResources(payloadResource, httpHeadersResource);
 		}
 	}
 
@@ -537,8 +541,19 @@ implements ShutdownListener {
 		 * different warc.
 		 */
 		// XXX needs testing
-		String payloadUri = (String) warcHeaders.get("WARC-Refers-To-Target-URI");
-		String payloadTimestamp = (String) warcHeaders.get("WARC-Refers-To-Date");
+		
+		String payloadUri = null; 
+		String payloadTimestamp = null;
+		
+		if (warcHeaders == null) {
+			WarcResource wr = (WarcResource) revisitRecord;
+			warcHeaders = wr.getWarcHeaders().getHeaderFields();
+		}
+		
+		if (warcHeaders != null) {
+			payloadUri = (String) warcHeaders.get("WARC-Refers-To-Target-URI");
+			payloadTimestamp = (String) warcHeaders.get("WARC-Refers-To-Date");	
+		}
 		
 		if (payloadUri != null && payloadTimestamp != null) {
 			WaybackRequest wbr = new WaybackRequest();
@@ -632,6 +647,16 @@ implements ShutdownListener {
 		}
 		if(exclusionFactory != null) {
 			exclusionFactory.shutdown();
+		}
+	}
+	
+	protected void closeResources(Resource payloadResource, Resource httpHeadersResource) throws IOException
+	{
+		if((payloadResource != null) && payloadResource != httpHeadersResource) {
+			payloadResource.close();
+		}
+		if(httpHeadersResource != null) {
+			httpHeadersResource.close();
 		}
 	}
 	

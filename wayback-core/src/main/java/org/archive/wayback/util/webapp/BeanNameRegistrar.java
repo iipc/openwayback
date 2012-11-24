@@ -44,6 +44,9 @@ public class BeanNameRegistrar {
 	private static final String HOST_PORT_PATH_PATTERN_STRING = 
 		"([0-9a-z_.-]+):([0-9]+):([0-9a-zA-Z_.-]+)";
 	
+	private static final String URI_PATTERN_STRING = 
+		"https?://([0-9a-z_.-]+)(:[0-9]+)?/([0-9a-zA-Z_.-]+)(/.*)";
+	
 	private static final Pattern PORT_PATTERN = 
 		Pattern.compile(PORT_PATTERN_STRING);
 	private static final Pattern PORT_PATH_PATTERN = 
@@ -52,6 +55,8 @@ public class BeanNameRegistrar {
 		Pattern.compile(HOST_PORT_PATTERN_STRING);
 	private static final Pattern HOST_PORT_PATH_PATTERN = 
 		Pattern.compile(HOST_PORT_PATH_PATTERN_STRING);
+	private static final Pattern URI_PATTERN =
+		Pattern.compile(URI_PATTERN_STRING);
 	
 	/*
 	 * matches:
@@ -118,6 +123,33 @@ public class BeanNameRegistrar {
 		return false;
 	}
 	
+	/*
+	 * matches:
+	 *   http://localhost.archive.org:8080/two
+	 *   the port is optional, and need not be part of the URI
+	 *   if not included, using the internalPort setting
+	 */
+	private static boolean registerURIPatternPath(String name, int port,
+			RequestHandler handler,	RequestMapper mapper) {
+		Matcher m = null;
+		m = URI_PATTERN.matcher(name);
+		
+		if (m.matches()) {
+			String host = m.group(1);
+			String portString = m.group(2);
+			
+			if ((portString != null) && portString.startsWith(":")) {
+				port = Integer.parseInt(portString.substring(1));
+			}
+			
+			String path = m.group(3);
+			
+			mapper.addRequestHandler(port, host, path, handler);
+			return true;
+		}
+		return false;
+	}
+	
 	/**
 	 * Extract the RequestHandler objects beanName, parse it, and register the
 	 * RequestHandler with the RequestMapper according to the beanNames 
@@ -130,9 +162,11 @@ public class BeanNameRegistrar {
 			RequestMapper mapper) {
 		
 		String name = null;
+		int internalPort = 8080;
 		
 		if (handler instanceof AbstractRequestHandler) {
 			name = ((AbstractRequestHandler)handler).getAccessPointPath();
+			internalPort = ((AbstractRequestHandler)handler).getInternalPort();
 		}
 		
 		if (name == null) {
@@ -158,7 +192,8 @@ public class BeanNameRegistrar {
 						registerPort(name, handler, mapper) ||
 						registerPortPath(name, handler, mapper) ||
 						registerHostPort(name, handler, mapper) ||
-						registerHostPortPath(name, handler, mapper);
+						registerHostPortPath(name, handler, mapper) || 
+						registerURIPatternPath(name, internalPort, handler, mapper);
 	
 					if(!registered) {
 						LOGGER.severe("Unable to register (" + name + ")");

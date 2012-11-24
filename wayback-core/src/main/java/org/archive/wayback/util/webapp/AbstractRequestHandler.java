@@ -39,12 +39,23 @@ public abstract class AbstractRequestHandler implements RequestHandler {
 	private String beanName = null;
 	private String accessPointPath = null;
 	private ServletContext servletContext = null;
+	private int internalPort = 0;
 
 	public void setBeanName(final String beanName) {
 		this.beanName = beanName; 
 	}
 	public String getBeanName() {
 		return beanName;
+	}
+	
+	public int getInternalPort()
+	{
+		return internalPort;
+	}
+	
+	public void setInternalPort(int internalPort)
+	{
+		this.internalPort = internalPort;
 	}
 	
 	public String getAccessPointPath() {
