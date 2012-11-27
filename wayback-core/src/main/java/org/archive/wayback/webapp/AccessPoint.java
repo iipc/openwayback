@@ -354,6 +354,17 @@ implements ShutdownListener {
 		}
 	}
 	
+	//TODO: Use the canonicalizer instead?
+	//Quick check to see if two locations are equal
+	protected boolean redirectEquals(String archived, String request)
+	{		
+		if (request.endsWith("/") && !archived.endsWith("/")) {
+			archived += "/";
+		}
+		
+		return archived.equals(request);
+	}
+	
 	protected void handleReplay(WaybackRequest wbRequest, 
 			HttpServletRequest httpRequest, HttpServletResponse httpResponse) 
 	throws IOException, ServletException, WaybackException {
@@ -419,7 +430,7 @@ implements ShutdownListener {
 					
 					if ((status >= 300) && (status < 400)) {
 						String location = payloadResource.getHttpHeaders().get("Location");
-						if ((location != null) && location.equals(wbRequest.getRequestUrl()) && (closest.getCaptureTimestamp().equals(wbRequest.getReplayTimestamp()))) {
+						if ((location != null) && (closest.getCaptureTimestamp().equals(wbRequest.getReplayTimestamp())) && redirectEquals(location, wbRequest.getRequestUrl())) {
 							closest = closest.getPrevResult();
 							if (closest == null) {
 								// This should never happen logically, but just in case.
@@ -434,8 +445,12 @@ implements ShutdownListener {
 					break;
 					
 				} catch (SpecificCaptureReplayException scre) {
-					scre.setCaptureContext(captureResults, closest);
-					throw scre;
+					if (closest.getPrevResult() != null) {
+						closest = closest.getPrevResult();
+					} else {
+						scre.setCaptureContext(captureResults, closest);
+						throw scre;
+					}
 				}
 			}
 			

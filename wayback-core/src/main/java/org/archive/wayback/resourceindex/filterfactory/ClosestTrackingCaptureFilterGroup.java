@@ -24,7 +24,7 @@ public class ClosestTrackingCaptureFilterGroup implements CaptureFilterGroup {
 		if(request.isCaptureQueryRequest() ||
 				request.isReplayRequest()) {
 			closestTracker = 
-				new ClosestResultURLAndDateTrackingFilter(request.getReplayDate().getTime(), request.getRequestUrl());
+				new ClosestResultTrackingFilter(request.getReplayDate().getTime());
 			chain.addFilter(closestTracker);
 		}
 	}

@@ -28,6 +28,7 @@ public abstract class SpecificCaptureReplayException extends WaybackException {
         Iterator<CaptureSearchResult> itr = results.iterator();
         previous = null;
         next = null;
+        this.result = result;
         while(itr.hasNext()) {
                 CaptureSearchResult cur = itr.next();
                 if(cur.isClosest()) {
