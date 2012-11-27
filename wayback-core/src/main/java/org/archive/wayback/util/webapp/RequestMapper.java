@@ -191,6 +191,7 @@ public class RequestMapper {
 					globalPostRequestHandler.handleRequest(request, response);
 			}
 		}
+			
 		return handled;
 	}
 
@@ -259,6 +260,10 @@ public class RequestMapper {
 		}
 		if(requestUrl.startsWith(prefix)) {
 			return requestUrl.substring(prefix.length());
+		} 
+		// Fix for access point with missing end slash
+		else if (prefix.endsWith("/") && (requestUrl + "/").equals(prefix)) {
+			return "";
 		}
 		return requestUrl;
 	}

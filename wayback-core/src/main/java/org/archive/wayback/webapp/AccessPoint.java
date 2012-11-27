@@ -358,9 +358,9 @@ implements ShutdownListener {
 		}
 	}
 		
-	protected boolean isSelfRedirect(Resource payloadResource, CaptureSearchResult closest, WaybackRequest wbRequest, String canonRequestURL)
+	protected boolean isSelfRedirect(Resource resource, CaptureSearchResult closest, WaybackRequest wbRequest, String canonRequestURL)
 	{
-		int status = payloadResource.getStatusCode();
+		int status = resource.getStatusCode();
 		
 		// Only applies to redirects
 		if ((status < 300) || (status >= 400)) {
@@ -368,7 +368,7 @@ implements ShutdownListener {
 		}
 		
 		
-		String location = payloadResource.getHttpHeaders().get("Location");
+		String location = resource.getHttpHeaders().get("Location");
 		
 		if (location == null) {
 			return false;
@@ -467,7 +467,7 @@ implements ShutdownListener {
 					// If the status is a redirect, check that the location or url date's are different from the current request
 					// Otherwise, replay the previous matched capture.
 					// This chain is unlikely to go past one previous capture, but is possible 
-					if (isSelfRedirect(payloadResource, closest, wbRequest, requestURL)) {
+					if (isSelfRedirect(httpHeadersResource, closest, wbRequest, requestURL)) {
 						closest = closest.getPrevResult();
 						if (closest == null) {
 							// This should never happen logically, but just in case.
