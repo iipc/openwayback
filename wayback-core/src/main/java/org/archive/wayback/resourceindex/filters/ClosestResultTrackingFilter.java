@@ -74,9 +74,9 @@ public class ClosestResultTrackingFilter implements ObjectFilter<CaptureSearchRe
 				found = true;
 			} else {
 				// this is closer than anything we've seen:
+				o.setPrevResult(closest);				
 				closest = o;
 				closestDiffMS = diffMS;
-				o.setPrevResult(closest);
 			}
 		}
 		return FILTER_INCLUDE;
