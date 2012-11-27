@@ -34,12 +34,14 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.httpclient.URIException;
 import org.archive.wayback.ExceptionRenderer;
 import org.archive.wayback.QueryRenderer;
 import org.archive.wayback.ReplayDispatcher;
 import org.archive.wayback.ReplayRenderer;
 import org.archive.wayback.RequestParser;
 import org.archive.wayback.ResultURIConverter;
+import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.accesscontrol.ExclusionFilterFactory;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
@@ -141,6 +143,8 @@ implements ShutdownListener {
 	private BooleanOperator<WaybackRequest> authentication = null;
 	private long embargoMS = 0;
 	private CustomResultFilterFactory filterFactory = null;
+	
+	private UrlCanonicalizer selfRedirectCanonicalizer = null;
 
 	public void init() {
 		checkAccessPointAware(collection,exception,query,parser,replay,
@@ -353,16 +357,41 @@ implements ShutdownListener {
 			}
 		}
 	}
-	
-	//TODO: Use the canonicalizer instead?
-	//Quick check to see if two locations are equal
-	protected boolean redirectEquals(String archived, String request)
-	{		
-		if (request.endsWith("/") && !archived.endsWith("/")) {
-			archived += "/";
+		
+	protected boolean isSelfRedirect(Resource payloadResource, CaptureSearchResult closest, WaybackRequest wbRequest, String canonRequestURL)
+	{
+		int status = payloadResource.getStatusCode();
+		
+		// Only applies to redirects
+		if ((status < 300) || (status >= 400)) {
+			return false;
 		}
 		
-		return archived.equals(request);
+		
+		String location = payloadResource.getHttpHeaders().get("Location");
+		
+		if (location == null) {
+			return false;
+		}
+					
+//		if (!closest.getCaptureTimestamp().equals(wbRequest.getReplayTimestamp())) {
+//			return false;			
+//		}
+		
+		if (selfRedirectCanonicalizer != null) {
+			try {
+				location = selfRedirectCanonicalizer.urlStringToKey(location);
+			} catch (URIException e) {
+				return false;
+			}
+		} else {
+			// Check basic case of missing slash if not using canonicalizer
+			if (canonRequestURL.endsWith("/") && !location.endsWith("/")) {
+				location += "/";
+			}
+		}
+		
+		return location.equals(canonRequestURL);
 	}
 	
 	protected void handleReplay(WaybackRequest wbRequest, 
@@ -385,11 +414,23 @@ implements ShutdownListener {
 			CaptureSearchResults captureResults = 
 				(CaptureSearchResults) results;
 			
+			String requestURL = wbRequest.getRequestUrl();
+			
+			if (selfRedirectCanonicalizer != null) {
+				try {
+					requestURL = selfRedirectCanonicalizer.urlStringToKey(requestURL);
+				} catch (URIException urie) {
+					
+				}
+			}
+			
 			CaptureSearchResult closest = null;		
 			
 			// TODO: check which versions are actually accessible right now?
 			closest = 
 				getReplay().getClosest(wbRequest, captureResults);
+			
+			CaptureSearchResult originalClosest = closest;
 			
 			while (true) {
 				closest.setClosest(true);
@@ -426,20 +467,15 @@ implements ShutdownListener {
 					// If the status is a redirect, check that the location or url date's are different from the current request
 					// Otherwise, replay the previous matched capture.
 					// This chain is unlikely to go past one previous capture, but is possible 
-					int status = payloadResource.getStatusCode();
-					
-					if ((status >= 300) && (status < 400)) {
-						String location = payloadResource.getHttpHeaders().get("Location");
-						if ((location != null) && (closest.getCaptureTimestamp().equals(wbRequest.getReplayTimestamp())) && redirectEquals(location, wbRequest.getRequestUrl())) {
-							closest = closest.getPrevResult();
-							if (closest == null) {
-								// This should never happen logically, but just in case.
-								throw new ResourceNotInArchiveException(
-										"After following redirects, the URL " + wbRequest.getRefererUrl() + 
-										"captured on or before " + wbRequest.getReplayDate() + "could not be found in the archive");
-							}
-							continue;
+					if (isSelfRedirect(payloadResource, closest, wbRequest, requestURL)) {
+						closest = closest.getPrevResult();
+						if (closest == null) {
+							// This should never happen logically, but just in case.
+							throw new ResourceNotInArchiveException(
+									"After following redirects, the URL " + wbRequest.getRefererUrl() + 
+									"captured on or before " + wbRequest.getReplayDate() + "could not be found in the archive");
 						}
+						continue;
 					}
 					
 					break;
@@ -452,6 +488,12 @@ implements ShutdownListener {
 						throw scre;
 					}
 				}
+			}
+			
+			// Redirect to url for the actual closest capture
+			if ((closest != originalClosest) && !closest.getCaptureTimestamp().equals(originalClosest.getCaptureTimestamp())) {
+				String betterURI = getUriConverter().makeReplayURI(closest.getCaptureTimestamp(), closest.getOriginalUrl());
+				throw new BetterRequestException(betterURI);
 			}
 			
 			p.retrieved();
@@ -1161,5 +1203,23 @@ implements ShutdownListener {
 	 */
 	public CustomResultFilterFactory getFilterFactory() {
 		return filterFactory;
+	}
+	
+	/**
+	 * Optional
+	 * @param selfRedirectCanonicalizer
+	 */
+	public void setSelfRedirectCanonicalizer(UrlCanonicalizer selfRedirectCanonicalizer)
+	{
+		this.selfRedirectCanonicalizer = selfRedirectCanonicalizer;
+	}
+	
+	/**
+	 * 
+	 * @return
+	 */
+	public UrlCanonicalizer getSelfRedirectCanonicalizer()
+	{
+		return this.selfRedirectCanonicalizer;
 	}
 }

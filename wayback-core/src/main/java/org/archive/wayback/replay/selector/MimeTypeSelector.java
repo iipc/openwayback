@@ -52,6 +52,10 @@ public class MimeTypeSelector extends BaseReplayRendererSelector {
 			mime = payloadResource.getHttpHeaders().get("Content-Type");
 		}
 		
+		if (mime == null) {
+			mime = "unk";
+		}
+		
 		if (mimeMatches != null) {
 			if (mimeMatches.containsKey(mime)) {
 				return true;
