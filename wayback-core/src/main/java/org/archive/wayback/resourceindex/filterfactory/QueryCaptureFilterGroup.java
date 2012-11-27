@@ -34,6 +34,7 @@ import org.archive.wayback.resourceindex.filters.DateRangeFilter;
 import org.archive.wayback.resourceindex.filters.EndDateFilter;
 import org.archive.wayback.resourceindex.filters.HostMatchFilter;
 import org.archive.wayback.resourceindex.filters.SchemeMatchFilter;
+import org.archive.wayback.resourceindex.filters.SelfRedirectFilter;
 import org.archive.wayback.resourceindex.filters.UrlMatchFilter;
 import org.archive.wayback.resourceindex.filters.UrlPrefixMatchFilter;
 import org.archive.wayback.util.ObjectFilter;
@@ -85,7 +86,7 @@ public class QueryCaptureFilterGroup implements CaptureFilterGroup {
 				exactDate = Timestamp.latestTimestamp().getDateStr();
 			}
 			chain.addFilter(new UrlMatchFilter(keyUrl));
-//			chain.addFilter(new SelfRedirectFilter(canonicalizer));
+			chain.addFilter(new SelfRedirectFilter(canonicalizer));
 			
 			long wantMS = request.getReplayDate().getTime();
 			if(request.getAccessPoint().isUseAnchorWindow()) {
@@ -98,7 +99,8 @@ public class QueryCaptureFilterGroup implements CaptureFilterGroup {
 			}
 
 		} else if(request.isCaptureQueryRequest()) {
-			chain.addFilter(new UrlMatchFilter(keyUrl));			
+			chain.addFilter(new UrlMatchFilter(keyUrl));
+			chain.addFilter(new SelfRedirectFilter(canonicalizer));
 			// OPTIMIZ: EndDateFilter is a hard stop: ABORT
 			//          DateRangeFilter is an INCLUDE/EXCLUDE
 			//          one class which EXCLUDEs before startDate, and ABORTs
