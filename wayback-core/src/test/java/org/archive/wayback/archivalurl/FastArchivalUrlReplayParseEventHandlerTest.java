@@ -25,7 +25,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 	public void testRewrite() throws Exception {
 		assertEquals("<html><a href=\"http://replay.archive.org/2001/http://www.example.com/foo.html\">foo</a></html>",doEndToEnd("<html><a href=\"/foo.html\">foo</a></html>"));
 		assertEquals("<html><a href=\"http://replay.archive.org/2001/http://www.example.com/foo.html\">foo</a></html>",doEndToEnd("<html><a href=\"foo.html\">foo</a></html>"));
-		assertEquals("<html><a href=\"javascript:doWin('http://replay.archive.org/2001/http://www.symphony.org/')\">American Symphony Orchestra League</a></html>",doEndToEnd("<html><a href=\"javascript:doWin('http://www.symphony.org')\">American Symphony Orchestra League</a></html>"));
+		assertEquals("<html><a href=\"javascript:doWin('http://replay.archive.org/2001/http://www.symphony.org')\">American Symphony Orchestra League</a></html>",doEndToEnd("<html><a href=\"javascript:doWin('http://www.symphony.org')\">American Symphony Orchestra League</a></html>"));
 	}
 	
 	public String doEndToEnd(String input) throws Exception {
