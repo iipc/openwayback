@@ -1,4 +1,4 @@
-package org.archive.wayback.accesscontrol.robotstxt;
+package org.archive.wayback.accesscontrol.robotstxt.redis;
 
 import java.io.IOException;
 import java.io.InputStream;

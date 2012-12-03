@@ -1,5 +1,6 @@
-package org.archive.wayback.accesscontrol.robotstxt;
+package org.archive.wayback.accesscontrol.robotstxt.redis;
 
+import org.archive.wayback.accesscontrol.robotstxt.RobotExclusionFilterFactory;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 
 public class RedisRobotExclusionFilterFactory extends RobotExclusionFilterFactory {

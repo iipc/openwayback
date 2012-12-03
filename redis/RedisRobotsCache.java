@@ -1,4 +1,4 @@
-package org.archive.wayback.accesscontrol.robotstxt;
+package org.archive.wayback.accesscontrol.robotstxt.redis;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -12,8 +12,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.archive.wayback.accesscontrol.robotstxt.RedisRobotsLogic.KeyRedisValue;
-import org.archive.wayback.accesscontrol.robotstxt.RedisRobotsLogic.RedisValue;
+import org.archive.wayback.accesscontrol.robotstxt.redis.RedisRobotsLogic.KeyRedisValue;
+import org.archive.wayback.accesscontrol.robotstxt.redis.RedisRobotsLogic.RedisValue;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.exception.LiveDocumentNotAvailableException;
 import org.archive.wayback.exception.LiveWebCacheUnavailableException;
@@ -87,7 +87,7 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 			
 		} else {
 			
-			if (isExpired(value, url)) {	
+			if (isExpired(value, url, 0)) {	
 				redisCmds.pushKey(UPDATE_QUEUE_KEY, url, MAX_UPDATE_QUEUE_SIZE);
 			}
 			
@@ -103,12 +103,18 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 		}
 	}
 	
-	public RobotsContext forceUpdate(String url)
+	public RobotsContext forceUpdate(String url, int minUpdateTime)
 	{
 		String current = null;
 		
 		try {
 			RedisValue value = redisCmds.getValue(url);
+			
+			// Just in case, avoid too many updates
+			if ((minUpdateTime > 0) && !isExpired(value, url, minUpdateTime)) {
+				return null;
+			}
+			
 			current = (value != null ? value.value : null);
 		} catch (LiveWebCacheUnavailableException lw) {
 			current = lw.toString();
@@ -123,7 +129,7 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 		return !value.startsWith(ROBOTS_TOKEN_ERROR) && !value.equals(ROBOTS_TOKEN_EMPTY);
 	}
 			
-	public boolean isExpired(RedisValue value, String url) {
+	public boolean isExpired(RedisValue value, String url, int customRefreshTime) {
 				
 		int maxTime, refreshTime;
 		
@@ -140,6 +146,10 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 		} else {
 			maxTime = totalTTL;
 			refreshTime = refreshTTL;
+		}
+		
+		if (customRefreshTime > 0) {
+			refreshTime = customRefreshTime;
 		}
 		
 		if ((maxTime - value.ttl) >= refreshTime) {
@@ -203,7 +213,7 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 				
 				String url = value.key;
 				
-				if (!isExpired(value, url)) {
+				if (!isExpired(value, url, 0)) {
 					continue;
 				}
 				

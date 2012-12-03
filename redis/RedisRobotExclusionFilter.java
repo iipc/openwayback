@@ -17,12 +17,13 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package org.archive.wayback.accesscontrol.robotstxt;
+package org.archive.wayback.accesscontrol.robotstxt.redis;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 
+import org.archive.wayback.accesscontrol.robotstxt.RobotExclusionFilter;
 import org.archive.wayback.liveweb.LiveWebCache;
 
 /**

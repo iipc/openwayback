@@ -1,4 +1,4 @@
-package org.archive.wayback.accesscontrol.robotstxt;
+package org.archive.wayback.accesscontrol.robotstxt.redis;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;

@@ -1,4 +1,4 @@
-package org.archive.wayback.accesscontrol.robotstxt;
+package org.archive.wayback.accesscontrol.robotstxt.redis;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Date;
@@ -9,13 +9,27 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.archive.wayback.util.webapp.AbstractRequestHandler;
 
+//TODO: Add a proper jsp/view for this
+//This is a simple prototype of the update-robots mechanism
 
-public class ForceUpdateRobotsRequestHandler extends AbstractRequestHandler {
+public class UpdateRobotsRequestHandler extends AbstractRequestHandler {
 	
 	protected final static String HTTP_PREFIX = "http://";
 	protected final static String ROBOT_SUFFIX = "/robots.txt";
 	
 	private RedisRobotsCache robotsCache;
+	
+	// Minimum time (secs) between subsequent forced updates
+	// Default: Limit to twice per minute
+	private int minUpdateTime = 30;
+
+	public int getMinUpdateTime() {
+		return minUpdateTime;
+	}
+
+	public void setMinUpdateTime(int minUpdateTime) {
+		this.minUpdateTime = minUpdateTime;
+	}
 
 	public RedisRobotsCache getRobotsCache() {
 		return robotsCache;
@@ -46,7 +60,7 @@ public class ForceUpdateRobotsRequestHandler extends AbstractRequestHandler {
 				url = HTTP_PREFIX + url;
 			}
 			
-			RobotsContext context = robotsCache.forceUpdate(url);
+			RobotsContext context = robotsCache.forceUpdate(url, minUpdateTime);
 			
 			if (context == null) {
 				writer.println("<p>Error Updating Robots (see logs)</p>");

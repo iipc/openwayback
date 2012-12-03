@@ -1,4 +1,4 @@
-package org.archive.wayback.accesscontrol.robotstxt;
+package org.archive.wayback.accesscontrol.robotstxt.redis;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,7 +13,7 @@ import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
 
 import org.archive.io.arc.ARCRecord;
-import org.archive.wayback.accesscontrol.robotstxt.ApacheHttpConnMan.ConnectionCallback;
+import org.archive.wayback.accesscontrol.robotstxt.redis.ApacheHttpConnMan.ConnectionCallback;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.exception.LiveDocumentNotAvailableException;
 import org.archive.wayback.exception.LiveWebCacheUnavailableException;
