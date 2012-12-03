@@ -64,6 +64,7 @@ public class UpdateRobotsRequestHandler extends AbstractRequestHandler {
 			
 			if (context == null) {
 				writer.println("<p>Error Updating Robots (see logs)</p>");
+				return true;
 			}
 			
 			boolean sameRobots = (context.current != null) && (context.getNewRobots() != null) && (context.current.equals(context.getNewRobots()));
