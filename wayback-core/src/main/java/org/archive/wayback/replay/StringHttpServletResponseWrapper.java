@@ -56,7 +56,22 @@ public class StringHttpServletResponseWrapper extends HttpServletResponseWrapper
 		return FAKE_OUT; 
 	}
 
+	@Override
+	public void reset()
+	{
+		//do nothing
+	}
 	
+	@Override
+	public void flushBuffer() throws IOException {
+		//do nothing
+	}
+
+	@Override
+	public void resetBuffer() {
+		//do nothing
+	}
+
 	public PrintWriter getWriter() {
 		return new PrintWriter(sw);
 	}
