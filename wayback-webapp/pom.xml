@@ -45,14 +45,11 @@
       <artifactId>wayback-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.apache.geronimo.specs</groupId>
-      <artifactId>geronimo-servlet_2.5_spec</artifactId>
+      <groupId>javax.servlet</groupId>
+      <artifactId>servlet-api</artifactId>
+      <version>2.5</version>
+      <scope>provided</scope>
     </dependency>
-    <dependency>
-      <groupId>org.dspace</groupId>
-      <artifactId>foresite</artifactId>
-    </dependency>
-
   </dependencies>
 
 </project>
