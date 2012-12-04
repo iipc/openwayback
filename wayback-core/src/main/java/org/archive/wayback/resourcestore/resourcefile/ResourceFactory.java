@@ -105,8 +105,8 @@ public class ResourceFactory {
         //   hdfs://namenode:6100/collections/foo/some.arc.gz
         // create fs with just the default URL
         
-        URI defaultURI = new URI(uri.getScheme() + "://" + uri.getHost() + ": "+ uri.getPort());
-        hdfsSys = FileSystem.get(defaultURI, conf);    	
+        URI defaultURI = new URI(uri.getScheme() + "://" + uri.getHost() + ":"+ uri.getPort() + "/");
+        hdfsSys = FileSystem.get(defaultURI, conf);
     }
         
     Path path = new Path( uri.getPath() );
