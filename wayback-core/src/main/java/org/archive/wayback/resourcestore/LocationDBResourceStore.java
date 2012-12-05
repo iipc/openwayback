@@ -63,7 +63,7 @@ public class LocationDBResourceStore implements ResourceStore {
 			throw new ResourceNotAvailableException(e1.getLocalizedMessage(), HttpServletResponse.SC_NOT_FOUND);
 		}
 		if(urls == null || urls.length == 0) {
-			LOGGER.warning("Unable to locate(" + fileName + ")");
+			LOGGER.info("Unable to locate(" + fileName + ")");
 			throw new ResourceNotAvailableException("Unable to locate(" +
 					fileName + ")", HttpServletResponse.SC_NOT_FOUND);
 		}

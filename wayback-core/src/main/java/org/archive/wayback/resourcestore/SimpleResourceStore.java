@@ -101,7 +101,8 @@ public class SimpleResourceStore implements ResourceStore {
 
 		} catch (IOException e) {
 			LOGGER.warning("Unable to retrieve:" + fileUrl + ":" + offset);
-			e.printStackTrace();
+			LOGGER.warning(e.toString());
+			
 			throw new ResourceNotAvailableException("Unable to retrieve",
 					e.getLocalizedMessage());
 		}
