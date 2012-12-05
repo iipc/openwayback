@@ -22,7 +22,6 @@ package org.archive.wayback.exception;
 import javax.servlet.http.HttpServletResponse;
 
 import org.archive.wayback.core.CaptureSearchResults;
-import org.archive.wayback.core.SearchResults;
 
 /**
  * Exception class for queries which matching resource is not presently
@@ -37,7 +36,8 @@ public class ResourceNotAvailableException extends SpecificCaptureReplayExceptio
 	 */
 	private static final long serialVersionUID = 1L;
 	protected static final String ID = "resourceNotAvailable";
-	private CaptureSearchResults results;
+	protected int status = HttpServletResponse.SC_SERVICE_UNAVAILABLE;
+	//private CaptureSearchResults results;
 
 	/**
 	 * Constructor
@@ -49,6 +49,16 @@ public class ResourceNotAvailableException extends SpecificCaptureReplayExceptio
 		id = ID;
 	}
 	/**
+	 * Constructor with message and status
+	 * 
+	 * @param message
+	 */
+	public ResourceNotAvailableException(String message, int status) {
+		super(message,"Resource not available");
+		id = ID;
+		this.status = status;
+	}	
+	/**
 	 * Constructor with message and details
 	 * 
 	 * @param message
@@ -59,10 +69,21 @@ public class ResourceNotAvailableException extends SpecificCaptureReplayExceptio
 		id = ID;
 	}
 	/**
+	 * Constructor with message and details and custom error code
+	 * 
+	 * @param message
+	 * @param details
+	 */
+	public ResourceNotAvailableException(String message,String details, int status) {
+		super(message,"Resource not available",details);
+		id = ID;
+		this.status = status;
+	}
+	/**
 	 * @return the HTTP status code appropriate to this exception class.
 	 */
 	public int getStatus() {
-		return HttpServletResponse.SC_SERVICE_UNAVAILABLE;
+		return status;
 	}
 //	/**
 //	 * @param results
