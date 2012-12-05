@@ -73,8 +73,7 @@ public class ClosestResultTrackingFilter implements ObjectFilter<CaptureSearchRe
 				// dates now increasing, start short-circuiting the rest
 				found = true;
 			} else {
-				// this is closer than anything we've seen:
-				o.setPrevResult(closest);				
+				// this is closer than anything we've seen:		
 				closest = o;
 				closestDiffMS = diffMS;
 			}

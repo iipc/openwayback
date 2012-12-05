@@ -19,9 +19,9 @@
  */
 package org.archive.wayback.core;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.archive.wayback.util.Timestamp;
@@ -36,8 +36,8 @@ public class CaptureSearchResults extends SearchResults implements Iterable<Capt
 	/**
 	 * List of UrlSearchResult objects for index records matching a query
 	 */
-	private ArrayList<CaptureSearchResult> results = 
-		new ArrayList<CaptureSearchResult>();
+	private LinkedList<CaptureSearchResult> results = 
+		new LinkedList<CaptureSearchResult>();
 	
 	private CaptureSearchResult closest = null;
 	
@@ -103,8 +103,19 @@ public class CaptureSearchResults extends SearchResults implements Iterable<Capt
 		}
 
 		if(append) {
+			
+			if (!results.isEmpty()) {
+				results.getLast().setNextResult(result);
+				result.setPrevResult(results.getLast());
+			}
+			
 			results.add(result);
 		} else {
+			if (!results.isEmpty()) {
+				results.getFirst().setPrevResult(result);
+				result.setNextResult(results.getFirst());
+			}
+			
 			results.add(0,result);
 		}
 	}	

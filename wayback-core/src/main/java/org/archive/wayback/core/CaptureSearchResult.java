@@ -35,9 +35,10 @@ public class CaptureSearchResult extends SearchResult {
 	private long cachedCompressedLength = -1;
 	private long cachedDate = -1;
 	
-	// Keep track of the previously matched result so that we can walk
+	// Keep track of the z matched result so that we can walk
 	// back if the current result is a self-redirect/otherwise unavailable
 	private CaptureSearchResult prevResult = null;
+	private CaptureSearchResult nextResult = null;
 	
 	public static final String CAPTURE_ORIGINAL_URL = "url";
 	public static final String CAPTURE_ORIGINAL_HOST = "host";
@@ -409,6 +410,30 @@ public class CaptureSearchResult extends SearchResult {
 	public CaptureSearchResult getPrevResult()
 	{
 		return this.prevResult;
+	}
+	
+	public void setNextResult(CaptureSearchResult result)
+	{
+		this.nextResult = result;
+	}
+	
+	public CaptureSearchResult getNextResult()
+	{
+		return this.nextResult;
+	}
+	
+	public void removeFromList()
+	{
+		if (nextResult != null) {
+			nextResult.setPrevResult(prevResult);
+		}
+		
+		if (prevResult != null) {
+			prevResult.setNextResult(nextResult);
+		}
+		
+		prevResult = null;
+		nextResult = null;
 	}
 	
 	public String toString()
