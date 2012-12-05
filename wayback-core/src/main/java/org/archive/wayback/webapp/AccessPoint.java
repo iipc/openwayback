@@ -66,6 +66,7 @@ import org.archive.wayback.exception.WaybackException;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.resourceindex.filters.WARCRevisitAnnotationFilter;
 import org.archive.wayback.resourcestore.resourcefile.WarcResource;
+import org.archive.wayback.util.Timestamp;
 import org.archive.wayback.util.operator.BooleanOperator;
 import org.archive.wayback.util.webapp.AbstractRequestHandler;
 import org.archive.wayback.util.webapp.ShutdownListener;
@@ -424,9 +425,10 @@ implements ShutdownListener {
 				}
 			}
 			
+			long requestMS = Timestamp.parseBefore(wbRequest.getReplayTimestamp()).getDate().getTime();
+			
 			CaptureSearchResult closest = null;		
 			
-			// TODO: check which versions are actually accessible right now?
 			closest = 
 				getReplay().getClosest(wbRequest, captureResults);
 			
@@ -468,7 +470,7 @@ implements ShutdownListener {
 					// Otherwise, replay the previous matched capture.
 					// This chain is unlikely to go past one previous capture, but is possible 
 					if (isSelfRedirect(httpHeadersResource, closest, wbRequest, requestURL)) {
-						closest = closest.getPrevResult();
+						closest = findNextClosest(closest, captureResults, requestMS);
 						if (closest == null) {
 							// This should never happen logically, but just in case.
 							throw new ResourceNotInArchiveException(
@@ -481,8 +483,9 @@ implements ShutdownListener {
 					break;
 					
 				} catch (SpecificCaptureReplayException scre) {
-					if (closest.getPrevResult() != null) {
-						closest = closest.getPrevResult();
+					CaptureSearchResult nextClosest = findNextClosest(closest, captureResults, requestMS);
+					if (nextClosest != null) {
+						closest = nextClosest;
 					} else {
 						scre.setCaptureContext(captureResults, closest);
 						throw scre;
@@ -522,6 +525,31 @@ implements ShutdownListener {
 					wbRequest.getRequestUrl());
 		} finally {
 			closeResources(payloadResource, httpHeadersResource);
+		}
+	}
+	
+	protected CaptureSearchResult findNextClosest(CaptureSearchResult currentClosest, CaptureSearchResults results, long requestMS)
+	{
+		CaptureSearchResult prev = currentClosest.getPrevResult();
+		CaptureSearchResult next = currentClosest.getNextResult();
+		
+		currentClosest.removeFromList();
+		
+		if (prev == null) {
+			return next;
+		} else if (next == null) {
+			return prev;
+		}
+		
+		long prevMS = prev.getCaptureDate().getTime();
+		long nextMS = next.getCaptureDate().getTime();
+		long prevDiff = Math.abs(prevMS - requestMS);
+		long nextDiff = Math.abs(requestMS - nextMS);
+		
+		if (prevDiff < nextDiff) {
+			return prev;
+		} else {
+			return next;
 		}
 	}
 

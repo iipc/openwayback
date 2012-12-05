@@ -11,7 +11,6 @@ import org.archive.wayback.exception.AccessControlException;
 import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.resourceindex.filters.ClosestResultTrackingFilter;
-import org.archive.wayback.resourceindex.filters.ClosestResultURLAndDateTrackingFilter;
 import org.archive.wayback.util.ObjectFilter;
 import org.archive.wayback.util.ObjectFilterChain;
 
