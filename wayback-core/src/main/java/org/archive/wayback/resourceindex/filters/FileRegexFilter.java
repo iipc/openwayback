@@ -28,7 +28,7 @@ import org.archive.wayback.util.ObjectFilter;
 
 public class FileRegexFilter implements ObjectFilter<CaptureSearchResult> {
 
-	private Pattern patterns[] = null;
+	protected Pattern patterns[] = null;
 	
 	public List<String> getPatterns() {
 		ArrayList<String> s = new ArrayList<String>();
