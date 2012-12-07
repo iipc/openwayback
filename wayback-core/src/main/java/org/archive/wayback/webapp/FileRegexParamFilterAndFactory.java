@@ -78,7 +78,7 @@ public class FileRegexParamFilterAndFactory extends FileRegexFilter implements C
 			if (matcher.find()) {
 				String param = matcher.group(paramIndex);
 				if (paramSet.contains(param)) {
-					LOGGER.info("Excluding (w)arc: " + file);
+					LOGGER.fine("Excluding (w)arc: " + file);
 					matched = true;
 					break;
 				}
