@@ -379,16 +379,11 @@ implements ShutdownListener {
 //			return false;			
 //		}
 		
-		if (selfRedirectCanonicalizer != null) {
+		if (getSelfRedirectCanonicalizer() != null) {
 			try {
-				location = selfRedirectCanonicalizer.urlStringToKey(location);
+				location = getSelfRedirectCanonicalizer().urlStringToKey(location);
 			} catch (URIException e) {
 				return false;
-			}
-		} else {
-			// Check basic case of missing slash if not using canonicalizer
-			if (canonRequestURL.endsWith("/") && !location.endsWith("/")) {
-				location += "/";
 			}
 		}
 		
@@ -417,9 +412,9 @@ implements ShutdownListener {
 			
 			String requestURL = wbRequest.getRequestUrl();
 			
-			if (selfRedirectCanonicalizer != null) {
+			if (getSelfRedirectCanonicalizer() != null) {
 				try {
-					requestURL = selfRedirectCanonicalizer.urlStringToKey(requestURL);
+					requestURL = getSelfRedirectCanonicalizer().urlStringToKey(requestURL);
 				} catch (URIException urie) {
 					
 				}
@@ -539,6 +534,16 @@ implements ShutdownListener {
 			return next;
 		} else if (next == null) {
 			return prev;
+		}
+		
+		String prevStatus = prev.getHttpCode();
+		String nextStatus = next.getHttpCode();
+		boolean prev200 = (prevStatus != null) && prevStatus.equals("200");
+		boolean next200 = (nextStatus != null) && nextStatus.equals("200");
+		
+		// If only one is a 200, prefer the entry with the 200
+		if (prev200 != next200) {
+			return (prev200 ? prev : next);
 		}
 		
 		long prevMS = prev.getCaptureDate().getTime();

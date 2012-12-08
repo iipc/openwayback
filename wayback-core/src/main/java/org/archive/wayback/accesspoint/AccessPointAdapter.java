@@ -33,6 +33,7 @@ import org.archive.wayback.QueryRenderer;
 import org.archive.wayback.ReplayDispatcher;
 import org.archive.wayback.RequestParser;
 import org.archive.wayback.ResultURIConverter;
+import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.accesscontrol.CompositeExclusionFilterFactory;
 import org.archive.wayback.accesscontrol.ExclusionFilterFactory;
 import org.archive.wayback.accesscontrol.oracleclient.CustomPolicyOracleFilter;
@@ -327,5 +328,11 @@ public class AccessPointAdapter extends AccessPoint {
 	public CustomResultFilterFactory getFilterFactory() {
 		// TODO Auto-generated method stub
 		return baseAccessPoint.getFilterFactory();
+	}
+	
+	@Override
+	public UrlCanonicalizer getSelfRedirectCanonicalizer()
+	{
+		return baseAccessPoint.getSelfRedirectCanonicalizer();
 	}
 }
