@@ -380,7 +380,12 @@ implements ShutdownListener {
 //			return false;			
 //		}
 		
-		String origLocation = location;
+		String redirScheme = UrlOperations.urlToScheme(location);
+		
+		if (redirScheme == null) {
+			location = UrlOperations.resolveUrl(closest.getOriginalUrl(), location);
+			redirScheme = UrlOperations.urlToScheme(location);
+		}
 		
 		if (getSelfRedirectCanonicalizer() != null) {
 			try {
@@ -393,10 +398,7 @@ implements ShutdownListener {
 		if (location.equals(canonRequestURL)) {
 			String origScheme = 
 				UrlOperations.urlToScheme(wbRequest.getRequestUrl());
-			
-			String redirScheme = 
-				UrlOperations.urlToScheme(origLocation);
-			
+						
 			if((origScheme != null) && (redirScheme != null) &&
 					(origScheme.compareTo(redirScheme) == 0)) {
 				return true;

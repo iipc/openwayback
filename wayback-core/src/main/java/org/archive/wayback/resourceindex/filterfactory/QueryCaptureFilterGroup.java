@@ -86,7 +86,7 @@ public class QueryCaptureFilterGroup implements CaptureFilterGroup {
 				exactDate = Timestamp.latestTimestamp().getDateStr();
 			}
 			chain.addFilter(new UrlMatchFilter(keyUrl));
-			chain.addFilter(new SelfRedirectFilter(canonicalizer));
+			//chain.addFilter(new SelfRedirectFilter(canonicalizer));
 			
 			long wantMS = request.getReplayDate().getTime();
 			if(request.getAccessPoint().isUseAnchorWindow()) {
