@@ -144,7 +144,7 @@ public class BeanNameRegistrar {
 			
 			String path = m.group(3);
 			
-			mapper.addRequestHandler(port, host, path, handler);
+			mapper.addRequestHandler(port, null, path, handler);
 			return true;
 		}
 		return false;
