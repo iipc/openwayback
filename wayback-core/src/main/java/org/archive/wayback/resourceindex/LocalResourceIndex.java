@@ -227,6 +227,9 @@ public class LocalResourceIndex implements ResourceIndex {
 		for(CaptureFilterGroup cfg : groups) {
 			cFilters.addFilters(cfg.getFilters());
 		}
+		if (filter != null) {
+			cFilters.addFilter(filter);
+		}
 		
 		CloseableIterator<CaptureSearchResult> itrC = 
 			new ObjectFilterIterator<CaptureSearchResult>(
