@@ -68,6 +68,7 @@ import org.archive.wayback.resourceindex.filters.WARCRevisitAnnotationFilter;
 import org.archive.wayback.resourcestore.resourcefile.WarcResource;
 import org.archive.wayback.util.Timestamp;
 import org.archive.wayback.util.operator.BooleanOperator;
+import org.archive.wayback.util.url.UrlOperations;
 import org.archive.wayback.util.webapp.AbstractRequestHandler;
 import org.archive.wayback.util.webapp.ShutdownListener;
 
@@ -379,6 +380,8 @@ implements ShutdownListener {
 //			return false;			
 //		}
 		
+		String origLocation = location;
+		
 		if (getSelfRedirectCanonicalizer() != null) {
 			try {
 				location = getSelfRedirectCanonicalizer().urlStringToKey(location);
@@ -387,7 +390,20 @@ implements ShutdownListener {
 			}
 		}
 		
-		return location.equals(canonRequestURL);
+		if (location.equals(canonRequestURL)) {
+			String origScheme = 
+				UrlOperations.urlToScheme(wbRequest.getRequestUrl());
+			
+			String redirScheme = 
+				UrlOperations.urlToScheme(origLocation);
+			
+			if((origScheme != null) && (redirScheme != null) &&
+					(origScheme.compareTo(redirScheme) == 0)) {
+				return true;
+			}
+		}
+		
+		return false;
 	}
 	
 	protected void handleReplay(WaybackRequest wbRequest, 
