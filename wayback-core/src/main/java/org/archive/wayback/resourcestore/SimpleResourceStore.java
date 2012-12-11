@@ -22,6 +22,8 @@ package org.archive.wayback.resourcestore;
 import java.io.IOException;
 import java.util.logging.Logger;
 
+import javax.servlet.http.HttpServletResponse;
+
 import org.archive.wayback.ResourceStore;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.CaptureSearchResult;
@@ -46,8 +48,10 @@ public class SimpleResourceStore implements ResourceStore {
 	private static String HTTP_ERROR = "HTTP";
 	private static String HTTP_502 = "502";
 	private String prefix = null;
-  private String regex;
-  private String replace;
+	private String regex;
+	private String replace;
+	private String includeFilter;
+  
 	private int retries = 2;
 
 	public Resource retrieveResource(CaptureSearchResult result)
@@ -67,15 +71,22 @@ public class SimpleResourceStore implements ResourceStore {
 			fileName = fileName + ArcWarcFilenameFilter.ARC_GZ_SUFFIX;
 		}
 				
-                String fileUrl;
-                if ( regex != null && replace != null )
-                  {
-                    fileUrl = fileName.replaceAll( regex, replace );
-                  }
-                else
-                  {
-                    fileUrl = prefix + fileName;
-                  }
+        String fileUrl;
+        if ( regex != null && replace != null )
+          {
+            fileUrl = fileName.replaceAll( regex, replace );
+          }
+        else
+          {
+            fileUrl = prefix + fileName;
+          }
+        
+        // If includeFilter is provided, filter out paths that don't contain the include filter
+        if (includeFilter != null) {
+        	if (!fileUrl.contains(includeFilter)) {
+        		throw new ResourceNotAvailableException("Resource Filename not found in this store", HttpServletResponse.SC_NOT_FOUND);
+        	}
+        }
 
 		Resource r = null;
 		try {
@@ -157,5 +168,14 @@ public class SimpleResourceStore implements ResourceStore {
 	 */
 	public void setRetries(int retries) {
 		this.retries = retries;
+	}
+
+	
+	public String getIncludeFilter() {
+		return includeFilter;
+	}
+
+	public void setIncludeFilter(String includeFilter) {
+		this.includeFilter = includeFilter;
 	}
 }
