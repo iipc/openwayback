@@ -100,7 +100,7 @@ public class CDXFlexFormat extends CDXFormat {
 		result.setDigest(digest);
 		result.setRedirectUrl(redirectUrl);
 		result.setOffset(compressedOffset);
-		result.setFile(fileName);
+		result.setFile(fileName.trim());
 
 		return result;
 	}
