@@ -62,6 +62,13 @@ public class SimpleResourceStore implements ResourceStore {
 		if(fileName == null || fileName.length() < 1) {
 			throw new ResourceNotAvailableException("No ARC/WARC name in search result...");
 		}
+		
+        // If includeFilter is provided, filter out paths that don't contain the include filter
+        if (includeFilter != null) {
+        	if (!fileName.contains(includeFilter)) {
+        		throw new ResourceNotAvailableException("Resource Filename not found in this store", HttpServletResponse.SC_NOT_FOUND);
+        	}
+        }		
 
 		final long offset = result.getOffset();
 		if(!fileName.endsWith(ArcWarcFilenameFilter.ARC_SUFFIX)
@@ -81,13 +88,6 @@ public class SimpleResourceStore implements ResourceStore {
             fileUrl = prefix + fileName;
           }
         
-        // If includeFilter is provided, filter out paths that don't contain the include filter
-        if (includeFilter != null) {
-        	if (!fileUrl.contains(includeFilter)) {
-        		throw new ResourceNotAvailableException("Resource Filename not found in this store", HttpServletResponse.SC_NOT_FOUND);
-        	}
-        }
-
 		Resource r = null;
 		try {
 			int attempts = retries;
