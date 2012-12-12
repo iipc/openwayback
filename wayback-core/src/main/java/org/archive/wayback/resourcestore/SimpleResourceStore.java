@@ -66,7 +66,7 @@ public class SimpleResourceStore implements ResourceStore {
         // If includeFilter is provided, filter out paths that don't contain the include filter
         if (includeFilter != null) {
         	if (!fileName.contains(includeFilter)) {
-        		throw new ResourceNotAvailableException("Resource Filename not found in this store", HttpServletResponse.SC_NOT_FOUND);
+        		throw new ResourceNotAvailableException("Resource " + fileName + " not found in this store", HttpServletResponse.SC_NOT_FOUND);
         	}
         }		
 
@@ -101,7 +101,7 @@ public class SimpleResourceStore implements ResourceStore {
 	        				&& message.contains(HTTP_ERROR) 
 	        				&& message.contains(HTTP_502)) {
 	        			
-	        			LOGGER.warning(String.format(
+	        			LOGGER.info(String.format(
 	        					"Failed attempt for (%s) retrying with" +
 	        					" (%d) attempts left",fileUrl,attempts));
 	        		} else {
@@ -111,11 +111,10 @@ public class SimpleResourceStore implements ResourceStore {
 	        }
 
 		} catch (IOException e) {
-			LOGGER.warning("Unable to retrieve:" + fileUrl + ":" + offset);
-			LOGGER.warning(e.toString());
+			String msg = fileUrl + " - " + e;
+			LOGGER.info("Unable to retrieve:" + msg);
 			
-			throw new ResourceNotAvailableException("Unable to retrieve",
-					e.getLocalizedMessage());
+			throw new ResourceNotAvailableException(msg, e.getLocalizedMessage());
 		}
 		return r;
 	}
