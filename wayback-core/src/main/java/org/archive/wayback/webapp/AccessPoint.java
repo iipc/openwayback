@@ -446,7 +446,10 @@ implements ShutdownListener {
 		
 		CaptureSearchResult originalClosest = closest;
 		
+		int counter = 0;
+		
 		while (true) {
+			counter++;
 			closest.setClosest(true);
 			checkAnchorWindow(wbRequest,closest);
 			
@@ -519,10 +522,10 @@ implements ShutdownListener {
 				String msg = scre.getMessage() + " - " + closest.getOriginalUrl() + " - " + closest.getCaptureTimestamp();
 				
 				if (nextClosest != null) {
-					LOGGER.warning("LOADFAIL->: " + msg + " -> " + nextClosest.getCaptureTimestamp());
+					LOGGER.warning("LOADFAIL(" + counter + ")->: " + msg + " -> " + nextClosest.getCaptureTimestamp());
 					closest = nextClosest;
 				} else {
-					LOGGER.warning("LOADFAIL: " + msg);
+					LOGGER.warning("LOADFAIL(" + counter + ": " + msg);
 					scre.setCaptureContext(captureResults, closest);
 					throw scre;
 				}
@@ -624,6 +627,8 @@ implements ShutdownListener {
 				payloadLocation.setOffset(Long.parseLong(offsetStr));
 			}
 		}
+		
+		ResourceNotAvailableException lastExc = null;
 
 		if (payloadLocation != null) {
 			try {
@@ -631,6 +636,7 @@ implements ShutdownListener {
 			} catch (ResourceNotAvailableException e) {
 				// one last effort to follow
 				payloadLocation = null;
+				lastExc = e;
 			}
 		}
 
@@ -665,6 +671,10 @@ implements ShutdownListener {
 			}
 			CaptureSearchResults payloadCaptureResults = (CaptureSearchResults) results;
 			payloadLocation = getReplay().getClosest(wbr, payloadCaptureResults);
+		}
+		
+		if (lastExc != null) {
+			throw lastExc;
 		}
 
 		if (payloadLocation == null) {
