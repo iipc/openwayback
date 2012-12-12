@@ -413,131 +413,122 @@ implements ShutdownListener {
 	throws IOException, ServletException, WaybackException {
 		Resource httpHeadersResource = null;
 		Resource payloadResource = null;
-		try {
 			
-			checkInterstitialRedirect(httpRequest,wbRequest);
-			
-			PerformanceLogger p = new PerformanceLogger("replay");
-			SearchResults results = 
-				getCollection().getResourceIndex().query(wbRequest);
-			p.queried();
-			
-			if(!(results instanceof CaptureSearchResults)) {
-				throw new ResourceNotAvailableException("Bad results...");
-			}
-			CaptureSearchResults captureResults = 
-				(CaptureSearchResults) results;
-			
-			String requestURL = wbRequest.getRequestUrl();
-			
-			if (getSelfRedirectCanonicalizer() != null) {
-				try {
-					requestURL = getSelfRedirectCanonicalizer().urlStringToKey(requestURL);
-				} catch (URIException urie) {
-					
-				}
-			}
-			
-			long requestMS = Timestamp.parseBefore(wbRequest.getReplayTimestamp()).getDate().getTime();
-			
-			CaptureSearchResult closest = null;		
-			
-			closest = 
-				getReplay().getClosest(wbRequest, captureResults);
-			
-			CaptureSearchResult originalClosest = closest;
-			
-			while (true) {
-				closest.setClosest(true);
-				checkAnchorWindow(wbRequest,closest);
+		checkInterstitialRedirect(httpRequest,wbRequest);
+		
+		PerformanceLogger p = new PerformanceLogger("replay");
+		SearchResults results = 
+			getCollection().getResourceIndex().query(wbRequest);
+		p.queried();
+		
+		if(!(results instanceof CaptureSearchResults)) {
+			throw new ResourceNotAvailableException("Bad results...");
+		}
+		CaptureSearchResults captureResults = 
+			(CaptureSearchResults) results;
+		
+		String requestURL = wbRequest.getRequestUrl();
+		
+		if (getSelfRedirectCanonicalizer() != null) {
+			try {
+				requestURL = getSelfRedirectCanonicalizer().urlStringToKey(requestURL);
+			} catch (URIException urie) {
 				
-				// Support for redirect from the CDX redirectUrl field
-				// This was the intended use of the redirect field, but has not actually be tested
-				// To enable this functionality, uncomment the lines below
-				// This is an optimization that allows for redirects to be handled without loading the original content
-				//
-				//String redir = closest.getRedirectUrl();
-				//if ((redir != null) && !redir.equals("-")) {
-				//  String fullRedirect = getUriConverter().makeReplayURI(closest.getCaptureTimestamp(), redir);
-				//  throw new BetterRequestException(fullRedirect, Integer.valueOf(closest.getHttpCode()));
-				//}
-				
-				closeResources(payloadResource, httpHeadersResource);
-				payloadResource = null;
-				httpHeadersResource = null;
-				
-				try {
-					httpHeadersResource = 
-						getCollection().getResourceStore().retrieveResource(closest);
-	
-					if (REVISIT_STR.equals(closest.getMimeType())
-							&& closest.isDuplicateDigest()) {
-						payloadResource = retrievePayloadForIdenticalContentRevisit(
-								httpHeadersResource, captureResults, closest);
-					} else {
-						payloadResource = httpHeadersResource;
-					}
-					
-					// Ensure that we are not self-redirecting!
-					// If the status is a redirect, check that the location or url date's are different from the current request
-					// Otherwise, replay the previous matched capture.
-					// This chain is unlikely to go past one previous capture, but is possible 
-					if (isSelfRedirect(httpHeadersResource, closest, wbRequest, requestURL)) {
-						closest = findNextClosest(closest, captureResults, requestMS);
-						if (closest == null) {
-							// This should never happen logically, but just in case.
-							throw new ResourceNotInArchiveException(
-									"After following redirects, the URL " + wbRequest.getRefererUrl() + 
-									"captured on or before " + wbRequest.getReplayDate() + "could not be found in the archive");
-						}
-						continue;
-					}
-					
-					break;
-					
-				} catch (SpecificCaptureReplayException scre) {
-					CaptureSearchResult nextClosest = findNextClosest(closest, captureResults, requestMS);
-					if (nextClosest != null) {
-						closest = nextClosest;
-					} else {
-						scre.setCaptureContext(captureResults, closest);
-						throw scre;
-					}
-				}
 			}
+		}
+		
+		long requestMS = Timestamp.parseBefore(wbRequest.getReplayTimestamp()).getDate().getTime();
+		
+		CaptureSearchResult closest = null;		
+		
+		closest = 
+			getReplay().getClosest(wbRequest, captureResults);
+		
+		CaptureSearchResult originalClosest = closest;
+		
+		while (true) {
+			closest.setClosest(true);
+			checkAnchorWindow(wbRequest,closest);
 			
-			// Redirect to url for the actual closest capture
-			if ((closest != originalClosest) && !closest.getCaptureTimestamp().equals(originalClosest.getCaptureTimestamp())) {
-				String betterURI = getUriConverter().makeReplayURI(closest.getCaptureTimestamp(), closest.getOriginalUrl());
-				throw new BetterRequestException(betterURI);
-			}
+			// Support for redirect from the CDX redirectUrl field
+			// This was the intended use of the redirect field, but has not actually be tested
+			// To enable this functionality, uncomment the lines below
+			// This is an optimization that allows for redirects to be handled without loading the original content
+			//
+			//String redir = closest.getRedirectUrl();
+			//if ((redir != null) && !redir.equals("-")) {
+			//  String fullRedirect = getUriConverter().makeReplayURI(closest.getCaptureTimestamp(), redir);
+			//  throw new BetterRequestException(fullRedirect, Integer.valueOf(closest.getHttpCode()));
+			//}
 			
-			p.retrieved();
-			
-			// Check for AJAX
-			String x_req_with = httpRequest.getHeader("X-Requested-With");
-			if ((x_req_with != null)) {
-				if (x_req_with.equals("XMLHttpRequest")) {
-					wbRequest.setIdentityContext(true);
-				}
-			}
-			
-			ReplayRenderer renderer = 
-				getReplay().getRenderer(wbRequest, closest, httpHeadersResource, payloadResource);
+			payloadResource = null;
+			httpHeadersResource = null;
 			
 			try {
+				httpHeadersResource = 
+					getCollection().getResourceStore().retrieveResource(closest);
+
+				if (REVISIT_STR.equals(closest.getMimeType())
+						&& closest.isDuplicateDigest()) {
+					payloadResource = retrievePayloadForIdenticalContentRevisit(
+							httpHeadersResource, captureResults, closest);
+				} else {
+					payloadResource = httpHeadersResource;
+				}
+				
+				// Ensure that we are not self-redirecting!
+				// If the status is a redirect, check that the location or url date's are different from the current request
+				// Otherwise, replay the previous matched capture.
+				// This chain is unlikely to go past one previous capture, but is possible 
+				if (isSelfRedirect(httpHeadersResource, closest, wbRequest, requestURL)) {
+					throw new ResourceNotInArchiveException("Self Redirect");	
+				}
+				
+				// Redirect to url for the actual closest capture
+				if ((closest != originalClosest) && !closest.getCaptureTimestamp().equals(originalClosest.getCaptureTimestamp())) {
+					String betterURI = getUriConverter().makeReplayURI(closest.getCaptureTimestamp(), closest.getOriginalUrl());
+					throw new BetterRequestException(betterURI);
+				}
+		
+				p.retrieved();
+		
+				// Check for AJAX
+				String x_req_with = httpRequest.getHeader("X-Requested-With");
+				if ((x_req_with != null)) {
+					if (x_req_with.equals("XMLHttpRequest")) {
+						wbRequest.setIdentityContext(true);
+					}
+				}
+		
+				ReplayRenderer renderer = 
+					getReplay().getRenderer(wbRequest, closest, httpHeadersResource, payloadResource);
+		
 				renderer.renderResource(httpRequest, httpResponse, wbRequest,
 						closest, httpHeadersResource, payloadResource, getUriConverter(), captureResults);
-			} catch (SpecificCaptureReplayException scre) {
-				scre.setCaptureContext(captureResults, closest);
-				throw scre;
-			}
 			
-			p.rendered();
-			p.write(wbRequest.getReplayTimestamp() + " " +
-					wbRequest.getRequestUrl());
-		} finally {
-			closeResources(payloadResource, httpHeadersResource);
+				p.rendered();
+				p.write(wbRequest.getReplayTimestamp() + " " +
+						wbRequest.getRequestUrl());
+			
+				break;
+				
+			} catch (SpecificCaptureReplayException scre) {
+				
+				CaptureSearchResult nextClosest = findNextClosest(closest, captureResults, requestMS);
+
+				String msg = scre.getMessage() + " - " + closest.getOriginalUrl() + " - " + closest.getCaptureTimestamp();
+				
+				if (nextClosest != null) {
+					LOGGER.warning("LOADFAIL->: " + msg + " -> " + nextClosest.getCaptureTimestamp());
+					closest = nextClosest;
+				} else {
+					LOGGER.warning("LOADFAIL: " + msg);
+					scre.setCaptureContext(captureResults, closest);
+					throw scre;
+				}
+			} finally {
+				closeResources(payloadResource, httpHeadersResource);		
+			}
 		}
 	}
 	

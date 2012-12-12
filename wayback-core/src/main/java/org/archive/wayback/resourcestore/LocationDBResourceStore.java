@@ -63,13 +63,15 @@ public class LocationDBResourceStore implements ResourceStore {
 			throw new ResourceNotAvailableException(e1.getLocalizedMessage(), HttpServletResponse.SC_NOT_FOUND);
 		}
 		if(urls == null || urls.length == 0) {
-			LOGGER.info("Unable to locate(" + fileName + ")");
-			throw new ResourceNotAvailableException("Unable to locate(" +
-					fileName + ")", HttpServletResponse.SC_NOT_FOUND);
+			String msg = "Unable to locate(" + fileName + ")";
+			LOGGER.info(msg);
+			throw new ResourceNotAvailableException(msg, HttpServletResponse.SC_NOT_FOUND);
 		}
 		
 		final long offset = result.getOffset();
 
+		String errMsg = "Unable to retrieve";
+		
 		Resource r = null;
 		// TODO: attempt multiple threads?
 		for(String url : urls) {
@@ -83,14 +85,15 @@ public class LocationDBResourceStore implements ResourceStore {
 				//      which means we've already read some
 				
 			} catch (IOException e) {
-				LOGGER.warning("Unable to retrieve resource from " + url + " - " + e);
+				errMsg = url + " - " + e;
+				LOGGER.info("Unable to retrieve " + errMsg);
 			}
 			if(r != null) {
 				break;
 			}
 		}
 		if(r == null) {
-			throw new ResourceNotAvailableException("Unable to retrieve");
+			throw new ResourceNotAvailableException(errMsg);
 		}
 		return r;
 	}
