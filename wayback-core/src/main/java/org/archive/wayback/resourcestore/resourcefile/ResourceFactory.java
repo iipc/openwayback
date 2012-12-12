@@ -55,7 +55,30 @@ import org.archive.wayback.webapp.PerformanceLogger;
 public class ResourceFactory {
 	private static final Logger LOGGER = 
 		Logger.getLogger(ResourceFactory.class.getName());
+	
+	//TODO: better way to set default settings?
+	private static TimeoutArchiveReaderFactory defaultTimeoutReader = new TimeoutArchiveReaderFactory();
 
+	static public class DefaultTimeoutArchiveReaderFactory extends TimeoutArchiveReaderFactory
+	{
+		public DefaultTimeoutArchiveReaderFactory()
+		{
+			super();
+			defaultTimeoutReader = this;
+		}
+		
+		public DefaultTimeoutArchiveReaderFactory(int connectTimeout, int readTimeout) {
+			super(connectTimeout, readTimeout);
+			defaultTimeoutReader = this;			
+		}
+		
+		public DefaultTimeoutArchiveReaderFactory(int connectTimeout) {
+			super(connectTimeout);
+			defaultTimeoutReader = this;
+		}
+	}
+	
+	
 	public static Resource getResource(String urlOrPath, long offset)
 	throws IOException, ResourceNotAvailableException {
 		LOGGER.info("Fetching: " + urlOrPath + " : " + offset);
@@ -165,9 +188,8 @@ public class ResourceFactory {
 	throws IOException, ResourceNotAvailableException {
 		
 		Resource r = null;
-		// TODO: allow configuration of timeouts -- now using defaults..
 		long start = System.currentTimeMillis();
-		TimeoutArchiveReaderFactory tarf = new TimeoutArchiveReaderFactory();
+		TimeoutArchiveReaderFactory tarf = defaultTimeoutReader;
 		ArchiveReader reader = tarf.getArchiveReader(url,offset);
 		if(reader instanceof ARCReader) {
 			ARCReader areader = (ARCReader) reader;
