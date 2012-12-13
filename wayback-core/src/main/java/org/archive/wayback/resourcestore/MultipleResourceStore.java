@@ -59,7 +59,7 @@ public class MultipleResourceStore implements ResourceStore {
     
 		String fileName = result.getFile();
 		if(fileName == null || fileName.length() < 1) {
-			throw new ResourceNotAvailableException("No ARC/WARC name in search result...");
+			throw new ResourceNotAvailableException("No ARC/WARC name in search result...", fileName);
 		}
 
 		final long offset = result.getOffset();
@@ -94,7 +94,7 @@ public class MultipleResourceStore implements ResourceStore {
 			}
 		}
 
-		throw new ResourceNotAvailableException(errMsg.isEmpty() ? "Unable to retrieve: "+fileName : errMsg);
+		throw new ResourceNotAvailableException(errMsg.isEmpty() ? "Unable to retrieve: "+fileName : errMsg, fileName);
 	}
 
 	public void setStores(List<ResourceStore> stores) {

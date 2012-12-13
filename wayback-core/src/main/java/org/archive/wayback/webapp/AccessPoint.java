@@ -23,10 +23,12 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -408,6 +410,15 @@ implements ShutdownListener {
 		return false;
 	}
 	
+	protected Resource getResource(CaptureSearchResult closest, Set<String> skipFiles) throws ResourceNotAvailableException, ConfigurationException
+	{
+		if ((skipFiles != null) && skipFiles.contains(closest.getFile())) {
+			throw new ResourceNotAvailableException("SKIPPING already failed " + closest.getFile(), null);
+		}
+		
+		return getCollection().getResourceStore().retrieveResource(closest);		
+	}
+	
 	protected void handleReplay(WaybackRequest wbRequest, 
 			HttpServletRequest httpRequest, HttpServletResponse httpResponse) 
 	throws IOException, ServletException, WaybackException {
@@ -448,6 +459,9 @@ implements ShutdownListener {
 		
 		int counter = 0;
 		
+		Set<String> skipFiles = null;
+		boolean isRevisit = false;
+		
 		while (true) {
 			counter++;
 			closest.setClosest(true);
@@ -468,13 +482,21 @@ implements ShutdownListener {
 			httpHeadersResource = null;
 			
 			try {
-				httpHeadersResource = 
-					getCollection().getResourceStore().retrieveResource(closest);
+				
+				isRevisit = REVISIT_STR.equals(closest.getMimeType()) && closest.isDuplicateDigest();
+				
+				// If the payload record is known and it failed before with this payload, don't try
+				// loading the header resource even.. outcome will likely be same
+				if (isRevisit && (closest.getDuplicatePayloadFile() != null) &&
+						(skipFiles != null) && skipFiles.contains(closest.getDuplicatePayloadFile())) {
+					throw new ResourceNotAvailableException("SKIPPING already failed " + closest.getDuplicatePayloadFile(), null);					
+				}
+				
+				httpHeadersResource = getResource(closest, skipFiles);
 
-				if (REVISIT_STR.equals(closest.getMimeType())
-						&& closest.isDuplicateDigest()) {
+				if (isRevisit) {
 					payloadResource = retrievePayloadForIdenticalContentRevisit(
-							httpHeadersResource, captureResults, closest);
+							httpHeadersResource, captureResults, closest, skipFiles);
 				} else {
 					payloadResource = httpHeadersResource;
 				}
@@ -518,14 +540,31 @@ implements ShutdownListener {
 			} catch (SpecificCaptureReplayException scre) {
 				
 				CaptureSearchResult nextClosest = findNextClosest(closest, captureResults, requestMS);
-
+				
 				String msg = scre.getMessage() + " - " + closest.getOriginalUrl() + " - " + closest.getCaptureTimestamp();
 				
 				if (nextClosest != null) {
-					LOGGER.warning("LOADFAIL(" + counter + ")->: " + msg + " -> " + nextClosest.getCaptureTimestamp());
+				
+					// Store failed filename for revisits, as they may be repeated
+					if (isRevisit) {
+						if (scre.getDetails() != null) {
+							if (skipFiles == null) {
+								skipFiles = new HashSet<String>();
+							}
+							// Details should contain the failed filename from the ResourceStore
+							skipFiles.add(scre.getDetails());	
+						}						
+					}
+					
+					if (msg.startsWith("SKIPPING")) {					
+						LOGGER.info("(" + counter + ")LOADFAIL-> " + msg + " -> " + nextClosest.getCaptureTimestamp());
+					} else {
+						LOGGER.warning("(" + counter + ")LOADFAIL-> " + msg + " -> " + nextClosest.getCaptureTimestamp());
+					}
+					
 					closest = nextClosest;
 				} else {
-					LOGGER.warning("LOADFAIL(" + counter + ": " + msg);
+					LOGGER.warning("(" + counter + ")LOADFAIL: " + msg);
 					scre.setCaptureContext(captureResults, closest);
 					throw scre;
 				}
@@ -597,7 +636,7 @@ implements ShutdownListener {
 	 * @see WARCRevisitAnnotationFilter
 	 */
 	protected Resource retrievePayloadForIdenticalContentRevisit(Resource revisitRecord,
-			CaptureSearchResults captureResults, CaptureSearchResult closest)
+			CaptureSearchResults captureResults, CaptureSearchResult closest, Set<String> skipFiles)
 					throws ResourceNotAvailableException, ConfigurationException, ResourceIndexNotAvailableException, ResourceNotInArchiveException, BadQueryException, AccessControlException, BetterRequestException {
 		if (!closest.isDuplicateDigest()) {
 			LOGGER.warning("record is not a revisit by identical content digest " + closest.getCaptureTimestamp() + " " + closest.getOriginalUrl());
@@ -632,7 +671,7 @@ implements ShutdownListener {
 
 		if (payloadLocation != null) {
 			try {
-				return getCollection().getResourceStore().retrieveResource(payloadLocation);
+				return getResource(payloadLocation, skipFiles);
 			} catch (ResourceNotAvailableException e) {
 				// one last effort to follow
 				payloadLocation = null;
@@ -673,17 +712,17 @@ implements ShutdownListener {
 			payloadLocation = getReplay().getClosest(wbr, payloadCaptureResults);
 		}
 		
-		if (lastExc != null) {
-			throw lastExc;
-		}
-
 		if (payloadLocation == null) {
+			if (lastExc != null) {
+				throw lastExc;
+			}
+			
 			throw new ResourceNotAvailableException(
 					"unable to find payload for revisit record "
 							+ closest.toCanonicalStringMap());
 		}
 
-		return getCollection().getResourceStore().retrieveResource(payloadLocation);
+		return getResource(payloadLocation, skipFiles);
 	}
 
 	private void checkAnchorWindow(WaybackRequest wbRequest, 

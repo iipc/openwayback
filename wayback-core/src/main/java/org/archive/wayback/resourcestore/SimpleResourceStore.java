@@ -60,13 +60,13 @@ public class SimpleResourceStore implements ResourceStore {
 		// extract ARC filename
 		String fileName = result.getFile();
 		if(fileName == null || fileName.length() < 1) {
-			throw new ResourceNotAvailableException("No ARC/WARC name in search result...");
+			throw new ResourceNotAvailableException("No ARC/WARC name in search result...", fileName);
 		}
 		
         // If includeFilter is provided, filter out paths that don't contain the include filter
         if (includeFilter != null) {
         	if (!fileName.contains(includeFilter)) {
-        		throw new ResourceNotAvailableException("Resource " + fileName + " not found in this store", HttpServletResponse.SC_NOT_FOUND);
+        		throw new ResourceNotAvailableException("Resource " + fileName + " not found in this store", fileName, HttpServletResponse.SC_NOT_FOUND);
         	}
         }		
 
@@ -114,7 +114,7 @@ public class SimpleResourceStore implements ResourceStore {
 			String msg = fileUrl + " - " + e;
 			LOGGER.info("Unable to retrieve:" + msg);
 			
-			throw new ResourceNotAvailableException(msg, e.getLocalizedMessage());
+			throw new ResourceNotAvailableException(msg, fileUrl);
 		}
 		return r;
 	}
