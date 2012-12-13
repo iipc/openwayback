@@ -52,20 +52,20 @@ public class LocationDBResourceStore implements ResourceStore {
 		// extract ARC filename
 		String fileName = result.getFile();
 		if(fileName == null || fileName.length() < 1) {
-			throw new ResourceNotAvailableException("No ARC/WARC name in search result...");
+			throw new ResourceNotAvailableException("No ARC/WARC name in search result...", fileName);
 		}
 
 		String urls[];
 		try {
 			urls = db.nameToUrls(fileName);
 		} catch (IOException e1) {
-			e1.printStackTrace();
-			throw new ResourceNotAvailableException(e1.getLocalizedMessage(), HttpServletResponse.SC_NOT_FOUND);
+			//e1.printStackTrace();
+			throw new ResourceNotAvailableException(e1.getLocalizedMessage(), fileName, HttpServletResponse.SC_NOT_FOUND);
 		}
 		if(urls == null || urls.length == 0) {
 			String msg = "Unable to locate(" + fileName + ")";
 			LOGGER.info(msg);
-			throw new ResourceNotAvailableException(msg, HttpServletResponse.SC_NOT_FOUND);
+			throw new ResourceNotAvailableException(msg, fileName, HttpServletResponse.SC_NOT_FOUND);
 		}
 		
 		final long offset = result.getOffset();
@@ -93,7 +93,7 @@ public class LocationDBResourceStore implements ResourceStore {
 			}
 		}
 		if(r == null) {
-			throw new ResourceNotAvailableException(errMsg);
+			throw new ResourceNotAvailableException(errMsg, fileName);
 		}
 		return r;
 	}
