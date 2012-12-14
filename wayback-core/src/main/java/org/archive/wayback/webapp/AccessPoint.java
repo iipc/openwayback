@@ -106,6 +106,7 @@ implements ShutdownListener {
 	public final static String INTERSTITIAL_URL = "url";
 	
 	public final static String REVISIT_STR = "warc/revisit";
+	public final static String EMPTY_VALUE = "-";
 
 	private static final Logger LOGGER = Logger.getLogger(
 			AccessPoint.class.getName());
@@ -421,10 +422,7 @@ implements ShutdownListener {
 	
 	protected void handleReplay(WaybackRequest wbRequest, 
 			HttpServletRequest httpRequest, HttpServletResponse httpResponse) 
-	throws IOException, ServletException, WaybackException {
-		Resource httpHeadersResource = null;
-		Resource payloadResource = null;
-			
+	throws IOException, ServletException, WaybackException {			
 		checkInterstitialRedirect(httpRequest,wbRequest);
 		
 		PerformanceLogger p = new PerformanceLogger("replay");
@@ -478,12 +476,13 @@ implements ShutdownListener {
 			//  throw new BetterRequestException(fullRedirect, Integer.valueOf(closest.getHttpCode()));
 			//}
 			
-			payloadResource = null;
-			httpHeadersResource = null;
+			Resource httpHeadersResource = null;
+			Resource payloadResource = null;
 			
 			try {
 				
-				isRevisit = REVISIT_STR.equals(closest.getMimeType()) && closest.isDuplicateDigest();
+				isRevisit = closest.isDuplicateDigest() && 
+					(REVISIT_STR.equals(closest.getMimeType()) || EMPTY_VALUE.equals(closest.getFile()));
 				
 				// If the payload record is known and it failed before with this payload, don't try
 				// loading the header resource even.. outcome will likely be same
@@ -541,7 +540,7 @@ implements ShutdownListener {
 				
 				CaptureSearchResult nextClosest = findNextClosest(closest, captureResults, requestMS);
 				
-				String msg = scre.getMessage() + " - " + closest.getOriginalUrl() + " - " + closest.getCaptureTimestamp();
+				String msg = scre.getMessage() + " /" + closest.getCaptureTimestamp() + "/" + closest.getOriginalUrl();
 				
 				if (nextClosest != null) {
 				
@@ -552,7 +551,7 @@ implements ShutdownListener {
 								skipFiles = new HashSet<String>();
 							}
 							// Details should contain the failed filename from the ResourceStore
-							skipFiles.add(scre.getDetails());	
+							skipFiles.add(scre.getDetails());
 						}						
 					}
 					
