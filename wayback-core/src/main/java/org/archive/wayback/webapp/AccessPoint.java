@@ -540,6 +540,11 @@ implements ShutdownListener {
 				
 				CaptureSearchResult nextClosest = findNextClosest(closest, captureResults, requestMS);
 				
+				// Skip any nextClosest that has the same exact filename!
+				while ((nextClosest != null) && closest.getFile().equals(nextClosest.getFile())) {
+					nextClosest = findNextClosest(nextClosest, captureResults, requestMS);
+				}
+				
 				String msg = scre.getMessage() + " /" + closest.getCaptureTimestamp() + "/" + closest.getOriginalUrl();
 				
 				if (nextClosest != null) {
