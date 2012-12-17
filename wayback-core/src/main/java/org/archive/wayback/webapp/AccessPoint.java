@@ -495,8 +495,16 @@ implements ShutdownListener {
 					// headersResource = payloadResource
 					if (EMPTY_VALUE.equals(closest.getFile())) {
 						closest.setFile(closest.getDuplicatePayloadFile());
-						closest.setOffset(closest.getDuplicatePayloadOffset());				
+						closest.setOffset(closest.getDuplicatePayloadOffset());
+						
+						// See that this is successful
 						httpHeadersResource = getResource(closest, skipFiles);
+						
+						// Then, if both headers and payload are from a different timestamp, redirect to that timestamp
+						if (!closest.getCaptureTimestamp().equals(closest.getDuplicateDigestStoredTimestamp())) {
+							String betterURI = getUriConverter().makeReplayURI(closest.getDuplicateDigestStoredTimestamp(), closest.getOriginalUrl());
+							throw new BetterRequestException(betterURI);
+						}
 						
 						payloadResource = httpHeadersResource;
 						
