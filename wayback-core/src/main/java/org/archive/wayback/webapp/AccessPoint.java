@@ -481,22 +481,31 @@ implements ShutdownListener {
 			
 			try {
 				
-				isRevisit = closest.isDuplicateDigest() && 
-					(REVISIT_STR.equals(closest.getMimeType()) || EMPTY_VALUE.equals(closest.getFile()));
-				
-				// If the payload record is known and it failed before with this payload, don't try
-				// loading the header resource even.. outcome will likely be same
-				if (isRevisit && (closest.getDuplicatePayloadFile() != null) &&
+				// If revisit, may load two resources separately
+				if (closest.isDuplicateDigest()) {
+					
+					// If the payload record is known and it failed before with this payload, don't try
+					// loading the header resource even.. outcome will likely be same
+					if ((closest.getDuplicatePayloadFile() != null) &&
 						(skipFiles != null) && skipFiles.contains(closest.getDuplicatePayloadFile())) {
-					throw new ResourceNotAvailableException("SKIPPING already failed " + closest.getDuplicatePayloadFile(), null);					
-				}
-				
-				httpHeadersResource = getResource(closest, skipFiles);
-
-				if (isRevisit) {
-					payloadResource = retrievePayloadForIdenticalContentRevisit(
-							httpHeadersResource, captureResults, closest, skipFiles);
+						throw new ResourceNotAvailableException("SKIPPING already failed " + closest.getDuplicatePayloadFile(), null);
+					}
+					
+					// If old-style arc revisit (no mimetype, filename is '-'), then don't load
+					// headersResource = payloadResource
+					if (EMPTY_VALUE.equals(closest.getFile())) {
+						closest.setFile(closest.getDuplicatePayloadFile());
+						closest.setOffset(closest.getDuplicatePayloadOffset());				
+						httpHeadersResource = getResource(closest, skipFiles);
+						
+						payloadResource = httpHeadersResource;
+						
+					} else {
+						httpHeadersResource = getResource(closest, skipFiles);
+						payloadResource = retrievePayloadForIdenticalContentRevisit(httpHeadersResource, captureResults, closest, skipFiles);
+					}					
 				} else {
+					httpHeadersResource = getResource(closest, skipFiles);
 					payloadResource = httpHeadersResource;
 				}
 				
