@@ -522,7 +522,7 @@ implements ShutdownListener {
 				// Otherwise, replay the previous matched capture.
 				// This chain is unlikely to go past one previous capture, but is possible 
 				if (isSelfRedirect(httpHeadersResource, closest, wbRequest, requestURL)) {
-					throw new ResourceNotInArchiveException("Self Redirect");	
+					throw new ResourceNotAvailableException("Skipping Self Redirect", closest.getFile());	
 				}
 				
 				// Redirect to url for the actual closest capture
