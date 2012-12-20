@@ -80,7 +80,7 @@ public class ZiplinedBlock {
 		}
 		return readBlockInefficiently();
 	}
-	private byte[] attemptBlockLoad(BlockLoader remote) {
+	protected byte[] attemptBlockLoad(BlockLoader remote) {
 		for(String urlOrPath : urlOrPaths) {
 			try {
 				return remote.getBlock(urlOrPath, offset, count);
@@ -92,7 +92,7 @@ public class ZiplinedBlock {
 		return null;
 	}
 	
-	private BufferedReader readBlockEfficiently(BlockLoader remote)
+	protected BufferedReader readBlockEfficiently(BlockLoader remote)
 	throws IOException {
 		byte bytes[] = attemptBlockLoad(remote);
 		if(bytes == null) {
@@ -105,7 +105,7 @@ public class ZiplinedBlock {
 //				new GZIPInputStream(new ByteArrayInputStream(bytes)),
 //				ByteOp.UTF8));
 	}
-	private BufferedReader readBlockInefficiently() throws IOException {
+	protected BufferedReader readBlockInefficiently() throws IOException {
 		StringBuilder sb = new StringBuilder(16);
 		sb.append(BYTES_HEADER).append(offset).append(BYTES_MINUS);
 		sb.append((offset + count)-1);

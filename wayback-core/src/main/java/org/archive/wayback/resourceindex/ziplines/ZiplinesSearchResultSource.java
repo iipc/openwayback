@@ -199,9 +199,96 @@ public class ZiplinesSearchResultSource implements SearchResultSource {
 		return blocks;
 	}
 	
+	private ArrayList<ZiplinedBlock> getMergedBlockListForPrefix(String prefix)
+	throws IOException, ResourceIndexNotAvailableException {
+		ArrayList<ZiplinedBlock> blocks = new ArrayList<ZiplinedBlock>();
+		
+		boolean first = true;
+		int numBlocks = 0;
+		
+		CloseableIterator<String> itr = null;
+		try {
+			itr = chunkIndex.getRecordIteratorLT(prefix);
+			
+			ZiplinedMultiBlock currBlock = null;
+			
+			while(itr.hasNext()) {
+				if(numBlocks >= maxBlocks) {
+					LOGGER.warning("Truncated by blocks for " + prefix);
+					break;
+				}
+				String blockDescriptor = itr.next();
+				numBlocks++;
+				String parts[] = blockDescriptor.split("\t");
+				if((parts.length < 3) || (parts.length > 4)) {
+					LOGGER.severe("Bad line(" + blockDescriptor +") in (" + 
+							chunkMapPath + ")");
+					throw new ResourceIndexNotAvailableException("Bad line(" + 
+							blockDescriptor + ")");
+				}
+				// only compare the correct length:
+				String prefCmp = prefix;
+				String blockCmp = parts[0];
+				if(first) {
+					// always add first:
+					first = false;
+				} else if (!blockCmp.equals(prefCmp)) {
+					break;
+				}
+							
+				// add this and keep lookin...
+				BlockLocation bl = chunkMap.get(parts[1]);
+				if(bl == null) {
+					LOGGER.severe("No locations for block(" + parts[1] +")");
+					throw new ResourceIndexNotAvailableException(
+							"No locations for block(" + parts[1] + ")");
+				}
+				
+				if(parts.length < 3) {
+					throw new ResourceIndexNotAvailableException(
+							"No size for multi-block load at offset(" + parts[2] + ")");
+				}
+				
+				long offset = Long.parseLong(parts[2]);
+				int length = Integer.parseInt(parts[3]);
+				
+				if (currBlock == null) {
+					currBlock = new ZiplinedMultiBlock(offset, blockLoader, parts[1], bl.getLocations());
+				
+				} else if (!currBlock.isSameBlock(offset, parts[1])) {
+					LOGGER.info("Added " + currBlock.toString());
+					blocks.add(currBlock);
+				
+					currBlock = new ZiplinedMultiBlock(offset, blockLoader, parts[1], bl.getLocations());
+				}
+				currBlock.addOffset(length);				
+			}
+			
+			if (currBlock != null) {
+				blocks.add(currBlock);
+				LOGGER.info("Added " + currBlock.toString());
+			}
+			
+		} finally {
+						
+			if(itr != null) {
+				itr.close();
+			}
+		}
+		return blocks;
+	}
+	
 	public Iterator<String> getZiplinesChunkIterator(String prefix) throws ResourceIndexNotAvailableException, IOException
 	{
 		ArrayList<ZiplinedBlock> blocks = getBlockListForPrefix(prefix);
+		ZiplinesChunkIterator zci = new ZiplinesChunkIterator(blocks);
+		zci.setTruncated(false);
+		return zci;
+	}
+	
+	public Iterator<String> getMergedZiplinesChunkIterator(String prefix) throws ResourceIndexNotAvailableException, IOException
+	{
+		ArrayList<ZiplinedBlock> blocks = getMergedBlockListForPrefix(prefix);
 		ZiplinesChunkIterator zci = new ZiplinesChunkIterator(blocks);
 		zci.setTruncated(false);
 		return zci;
