@@ -522,7 +522,9 @@ implements ShutdownListener {
 				// Otherwise, replay the previous matched capture.
 				// This chain is unlikely to go past one previous capture, but is possible 
 				if (isSelfRedirect(httpHeadersResource, closest, wbRequest, requestURL)) {
-					throw new ResourceNotAvailableException("Skipping Self Redirect", closest.getFile());	
+					LOGGER.info("Skipping Self Redirect: " + closest.getCaptureTimestamp() + "/" + closest.getOriginalUrl());
+					closest = findNextClosest(closest, captureResults, requestMS);
+					continue;
 				}
 				
 				// Redirect to url for the actual closest capture
@@ -557,10 +559,11 @@ implements ShutdownListener {
 				
 				CaptureSearchResult nextClosest = findNextClosest(closest, captureResults, requestMS);
 				
-				// Skip any nextClosest that has the same exact filename!
-				while ((nextClosest != null) && closest.getFile().equals(nextClosest.getFile())) {
-					nextClosest = findNextClosest(nextClosest, captureResults, requestMS);
-				}
+				// Skip any nextClosest that has the same exact filename?
+				// Removing in case skip something that works..
+				// while ((nextClosest != null) && closest.getFile().equals(nextClosest.getFile())) {
+				//	nextClosest = findNextClosest(nextClosest, captureResults, requestMS);
+				//}
 				
 				String msg = scre.getMessage() + " /" + closest.getCaptureTimestamp() + "/" + closest.getOriginalUrl();
 				
