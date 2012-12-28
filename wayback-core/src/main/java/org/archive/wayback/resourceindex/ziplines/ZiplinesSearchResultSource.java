@@ -62,8 +62,14 @@ import org.archive.wayback.util.flatfile.FlatFile;
  * 
  * 
  * @author brad
- *
+ * 
+ * 
+ * @deprecated Note, this implementation is now superceded by the one in archive-commons
+ * @see org.archive.format.gzip.zipnum.ZipNumCluster
+ * That implementation provides support for stream loading of blocks, as well as summary files
+ * from http and hdfs as well as local filesystem
  */
+@Deprecated
 public class ZiplinesSearchResultSource implements SearchResultSource {
 	private static final Logger LOGGER = Logger.getLogger(
 			ZiplinesSearchResultSource.class.getName());
@@ -513,5 +519,11 @@ public class ZiplinesSearchResultSource implements SearchResultSource {
 			e.printStackTrace();
 			System.exit(1);
 		}
+	}
+	@Override
+	public CloseableIterator<CaptureSearchResult> getExactIterator(String key)
+			throws ResourceIndexNotAvailableException {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }
