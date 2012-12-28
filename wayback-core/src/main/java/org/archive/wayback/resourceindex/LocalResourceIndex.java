@@ -184,7 +184,7 @@ public class LocalResourceIndex implements ResourceIndex {
 		
 		CloseableIterator<CaptureSearchResult> itr = 
 			new ObjectFilterIterator<CaptureSearchResult>(
-					source.getPrefixIterator(urlKey),filters);
+					source.getExactIterator(urlKey),filters);
 		try {
 			while(itr.hasNext()) {
 				results.addSearchResult(itr.next());

@@ -139,4 +139,10 @@ public class CDXIndex extends FlatFile implements SearchResultSource {
 	public void shutdown() throws IOException {
 		// no-op
 	}
+
+	@Override
+	public CloseableIterator<CaptureSearchResult> getExactIterator(String key)
+			throws ResourceIndexNotAvailableException {
+		return getPrefixIterator(key);
+	}
 }
