@@ -41,6 +41,17 @@ public interface SearchResultSource {
 	 */
 	public CloseableIterator<CaptureSearchResult> getPrefixIterator(final String prefix)
 			throws ResourceIndexNotAvailableException;
+	
+	
+	/**
+	 * 
+	 * @param key
+	 * @return CloseableIterator that will return results EXACTLY matching the key argument,
+	 * may simply call the prefix iterator
+	 * @throws ResourceIndexNotAvailableException
+	 */
+	public CloseableIterator<CaptureSearchResult> getExactIterator(final String key)
+			throws ResourceIndexNotAvailableException;
 
 	/**
 	 * @param prefix

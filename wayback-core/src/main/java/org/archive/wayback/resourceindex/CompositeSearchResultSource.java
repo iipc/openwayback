@@ -73,6 +73,18 @@ public class CompositeSearchResultSource implements SearchResultSource {
 		}
 		return itr;
 	}
+	
+	@Override
+	public CloseableIterator<CaptureSearchResult> getExactIterator(String key)
+			throws ResourceIndexNotAvailableException {
+		Comparator<CaptureSearchResult> comparator = new SearchResultComparator();
+		CompositeSortedIterator<CaptureSearchResult> itr = 
+			new CompositeSortedIterator<CaptureSearchResult>(comparator);
+		for (int i = 0; i < sources.size(); i++) {
+			itr.addComponent(sources.get(i).getExactIterator(key));
+		}
+		return itr;
+	}
 
 	/*
 	 * (non-Javadoc)

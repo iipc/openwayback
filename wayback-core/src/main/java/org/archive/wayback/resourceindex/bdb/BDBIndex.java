@@ -261,4 +261,10 @@ public class BDBIndex extends BDBRecordSet implements
 			throw new IOException(e.getMessage());
 		}
 	}
+
+	@Override
+	public CloseableIterator<CaptureSearchResult> getExactIterator(String key)
+			throws ResourceIndexNotAvailableException {
+		return getPrefixIterator(key);
+	}
 }
