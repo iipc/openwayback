@@ -19,6 +19,8 @@ public class DuplicateHashFilter implements ObjectFilter<CaptureSearchResult> {
 				if (count >= maxDupeHashes) {
 					result = FILTER_EXCLUDE;
 				}
+			} else {
+				count = 0;
 			}
 		}
 		lastHash = thisHash;
