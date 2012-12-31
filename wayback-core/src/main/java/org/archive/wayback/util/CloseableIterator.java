@@ -28,7 +28,10 @@ import java.util.Iterator;
  *
  * @author brad
  * @version $Date$, $Revision$
- * @param <E> 
+ * @param <E>
+ * @deprecated Use org.archive.util.iterator.CloseableIterator in archive-commons 
  */
-public interface CloseableIterator<E> extends Iterator<E>, Closeable {
+
+@Deprecated
+public interface CloseableIterator<E> extends org.archive.util.iterator.CloseableIterator<E> {
 }
