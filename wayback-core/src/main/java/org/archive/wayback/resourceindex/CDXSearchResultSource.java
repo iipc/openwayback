@@ -3,7 +3,6 @@ package org.archive.wayback.resourceindex;
 import java.io.IOException;
 
 import org.archive.format.cdx.CDXInputSource;
-import org.archive.format.cdx.CDXSearchResult;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
 import org.archive.wayback.resourceindex.cdx.CDXLineToSearchResultAdapter;
@@ -43,11 +42,9 @@ public class CDXSearchResultSource implements SearchResultSource {
 	protected CloseableIterator<CaptureSearchResult> getCaptureSearchResultIter(
 			String key, boolean exact) throws ResourceIndexNotAvailableException {
 		try {
-			CDXSearchResult result = input.getLineIterator(key, exact);
 			
 			return new AdaptedIterator<String,CaptureSearchResult>
-				(result.iterator(),	new CDXLineToSearchResultAdapter());
-			
+				(input.getLineIterator(key, exact),	new CDXLineToSearchResultAdapter());
 			
 		} catch (IOException e) {
 			throw new ResourceIndexNotAvailableException(e.toString());

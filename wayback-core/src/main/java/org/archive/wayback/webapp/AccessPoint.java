@@ -611,6 +611,16 @@ implements ShutdownListener {
 			return prev;
 		}
 		
+		String currHash = currentClosest.getDigest();
+		String prevHash = prev.getDigest();
+		String nextHash = next.getDigest();
+		boolean prevSameHash = (prevHash.equals(currHash));
+		boolean nextSameHash = (nextHash.equals(currHash));
+		
+		if (prevSameHash != nextSameHash) {
+			return prevSameHash ? prev : next;
+		}
+		
 		String prevStatus = prev.getHttpCode();
 		String nextStatus = next.getHttpCode();
 		boolean prev200 = (prevStatus != null) && prevStatus.equals("200");
