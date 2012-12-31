@@ -25,6 +25,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.httpclient.URIException;
+import org.archive.util.iterator.CloseableIterator;
 import org.archive.wayback.ResourceIndex;
 import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.core.CaptureSearchResult;
@@ -49,7 +50,6 @@ import org.archive.wayback.resourceindex.filterfactory.ExclusionCaptureFilterGro
 import org.archive.wayback.resourceindex.filterfactory.FilterGroupFactory;
 import org.archive.wayback.resourceindex.filterfactory.QueryCaptureFilterGroupFactory;
 import org.archive.wayback.resourceindex.filterfactory.WindowFilterGroup;
-import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.ObjectFilter;
 import org.archive.wayback.util.ObjectFilterChain;
 import org.archive.wayback.util.ObjectFilterIterator;
@@ -184,7 +184,7 @@ public class LocalResourceIndex implements ResourceIndex {
 		
 		CloseableIterator<CaptureSearchResult> itr = 
 			new ObjectFilterIterator<CaptureSearchResult>(
-					source.getExactIterator(urlKey),filters);
+					source.getPrefixIterator(urlKey),filters);
 		try {
 			while(itr.hasNext()) {
 				results.addSearchResult(itr.next());

@@ -24,10 +24,10 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+import org.archive.util.iterator.CloseableIterator;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
 import org.archive.wayback.resourceindex.cdx.CDXIndex;
-import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.CompositeSortedIterator;
 
 /**
@@ -70,18 +70,6 @@ public class CompositeSearchResultSource implements SearchResultSource {
 			new CompositeSortedIterator<CaptureSearchResult>(comparator);
 		for (int i = 0; i < sources.size(); i++) {
 			itr.addComponent(sources.get(i).getPrefixIterator(prefix));
-		}
-		return itr;
-	}
-	
-	@Override
-	public CloseableIterator<CaptureSearchResult> getExactIterator(String key)
-			throws ResourceIndexNotAvailableException {
-		Comparator<CaptureSearchResult> comparator = new SearchResultComparator();
-		CompositeSortedIterator<CaptureSearchResult> itr = 
-			new CompositeSortedIterator<CaptureSearchResult>(comparator);
-		for (int i = 0; i < sources.size(); i++) {
-			itr.addComponent(sources.get(i).getExactIterator(key));
 		}
 		return itr;
 	}
