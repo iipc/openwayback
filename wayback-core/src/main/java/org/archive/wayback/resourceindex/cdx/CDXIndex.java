@@ -23,11 +23,12 @@ import java.io.IOException;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
+
+import org.archive.util.iterator.CloseableIterator;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
 import org.archive.wayback.resourceindex.SearchResultSource;
 import org.archive.wayback.util.AdaptedIterator;
-import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.flatfile.FlatFile;
 import org.archive.wayback.util.iterator.SortedCompositeIterator;
 
@@ -138,11 +139,5 @@ public class CDXIndex extends FlatFile implements SearchResultSource {
 
 	public void shutdown() throws IOException {
 		// no-op
-	}
-
-	@Override
-	public CloseableIterator<CaptureSearchResult> getExactIterator(String key)
-			throws ResourceIndexNotAvailableException {
-		return getPrefixIterator(key);
 	}
 }

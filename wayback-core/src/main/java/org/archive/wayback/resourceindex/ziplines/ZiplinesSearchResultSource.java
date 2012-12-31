@@ -28,6 +28,7 @@ import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.archive.util.iterator.CloseableIterator;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
 import org.archive.wayback.resourceindex.SearchResultSource;
@@ -36,7 +37,6 @@ import org.archive.wayback.resourceindex.cdx.format.CDXFlexFormat;
 import org.archive.wayback.resourceindex.cdx.format.CDXFormat;
 import org.archive.wayback.resourceindex.cdx.format.CDXFormatException;
 import org.archive.wayback.util.AdaptedIterator;
-import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.flatfile.FlatFile;
 
 /**
@@ -519,11 +519,5 @@ public class ZiplinesSearchResultSource implements SearchResultSource {
 			e.printStackTrace();
 			System.exit(1);
 		}
-	}
-	@Override
-	public CloseableIterator<CaptureSearchResult> getExactIterator(String key)
-			throws ResourceIndexNotAvailableException {
-		// TODO Auto-generated method stub
-		return null;
 	}
 }
