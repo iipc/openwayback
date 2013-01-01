@@ -20,6 +20,7 @@
 package org.archive.wayback.util;
 
 import java.util.Calendar;
+import java.util.TimeZone;
 
 import junit.framework.TestCase;
 
@@ -37,7 +38,7 @@ public class TimestampTest extends TestCase {
 	 */
 	public void testPadDateStr() {
 
-		String curYear = String.valueOf(Calendar.getInstance().get(Calendar.YEAR));
+		String curYear = String.valueOf(Calendar.getInstance(TimeZone.getTimeZone("GMT")).get(Calendar.YEAR));
 		
 		assertEquals("padStart '1'","19960101000000",Timestamp.padStartDateStr("1"));
 		assertEquals("padEnd '1'","19991231235959",Timestamp.padEndDateStr("1"));
