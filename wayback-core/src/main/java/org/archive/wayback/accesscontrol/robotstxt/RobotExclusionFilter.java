@@ -75,6 +75,8 @@ public class RobotExclusionFilter extends ExclusionFilter {
 	private boolean notifiedSeen = false;
 	private boolean notifiedPassed = false;
 	
+	protected HashMap<String, Integer> pathsCache = null;
+	
 	/**
 	 * Construct a new RobotExclusionFilter that uses webCache to pull 
 	 * robots.txt documents. filtering is based on userAgent, and cached 
@@ -244,6 +246,7 @@ public class RobotExclusionFilter extends ExclusionFilter {
 		}
 		String resultURL = r.getOriginalUrl();
 		String path = UrlOperations.getURLPath(resultURL);
+		
 		if(path.equals(ROBOT_SUFFIX)) {
 			if(!notifiedPassed) {
 				if(filterGroup != null) {
@@ -253,11 +256,21 @@ public class RobotExclusionFilter extends ExclusionFilter {
 			}
 			return ObjectFilter.FILTER_INCLUDE;
 		}
+		
+		if (pathsCache == null) {
+			pathsCache = new HashMap<String,Integer>();
+		} else {
+			Integer result = pathsCache.get(r.getUrlKey());
+			if (result != null) {
+				return result;
+			}
+		}
+		
 		int filterResult = ObjectFilter.FILTER_EXCLUDE; 
 		RobotRules rules = getRules(r);
 		if(rules == null) {
 			if((filterGroup == null) || (filterGroup.getRobotTimedOut() || filterGroup.getLiveWebGone())) {
-				return ObjectFilter.FILTER_ABORT;
+				filterResult = ObjectFilter.FILTER_ABORT;
 			}
 		} else {
 			if(!rules.blocksPathForUA(path, userAgent)) {
@@ -273,6 +286,7 @@ public class RobotExclusionFilter extends ExclusionFilter {
 				LOGGER.fine("ROBOT: BLOCKED("+resultURL+")");
 			}
 		}
+		pathsCache.put(r.getUrlKey(), filterResult);
 		return filterResult;
 	}
 

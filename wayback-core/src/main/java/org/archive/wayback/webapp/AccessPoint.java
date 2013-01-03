@@ -557,7 +557,16 @@ implements ShutdownListener {
 				
 			} catch (SpecificCaptureReplayException scre) {
 				
-				CaptureSearchResult nextClosest = findNextClosest(closest, captureResults, requestMS);
+				final String SOCKET_TIMEOUT_MSG = "java.net.SocketTimeoutException: Read timed out";
+				
+				CaptureSearchResult nextClosest = null;
+				
+				// over 2 failures and socket timeout, don't try to find anymore
+				if ((counter > 2) && scre.getMessage().endsWith(SOCKET_TIMEOUT_MSG)) {
+					LOGGER.info("LOADFAIL: Skipping nextclosest due to socket timeouts");
+				} else {
+					nextClosest = findNextClosest(closest, captureResults, requestMS);
+				}
 				
 				// Skip any nextClosest that has the same exact filename?
 				// Removing in case skip something that works..
