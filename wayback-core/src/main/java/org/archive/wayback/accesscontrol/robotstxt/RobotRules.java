@@ -28,7 +28,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.archive.wayback.util.ByteOp;
@@ -137,17 +137,22 @@ public class RobotRules {
 			String disallowedPath = disItr.next();
 			if (disallowedPath.length() == 0) {
 
-				LOGGER.info("UA(" + curUA
-						+ ") has empty disallow: Go for it!");
+				if (LOGGER.isLoggable(Level.INFO)) {
+					LOGGER.info("UA(" + curUA
+							+ ") has empty disallow: Go for it!");
+				}
 				return false;
 
 			} else {
-				LOGGER.fine("UA(" + curUA + ") has ("
-						+ disallowedPath + ") blocked...("
-						+ disallowedPath.length() + ")");
+				if (LOGGER.isLoggable(Level.FINE)) {
+					LOGGER.fine("UA(" + curUA + ") has (" + disallowedPath
+							+ ") blocked...(" + disallowedPath.length() + ")");
+				}
 				if (disallowedPath.equals("/") || path.startsWith(disallowedPath)) {
-					LOGGER.info("Rule(" + disallowedPath + ") applies to (" +
-							path + ")");
+					if (LOGGER.isLoggable(Level.INFO)) {
+						LOGGER.info("Rule(" + disallowedPath + ") applies to (" +
+								path + ")");
+					}
 					return true;
 				}
 			}
