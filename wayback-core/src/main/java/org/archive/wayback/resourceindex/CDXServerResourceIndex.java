@@ -30,7 +30,6 @@ import org.archive.wayback.resourceindex.filterfactory.ExclusionCaptureFilterGro
 import org.archive.wayback.resourceindex.filters.ClosestResultTrackingFilter;
 import org.archive.wayback.resourceindex.filters.WARCRevisitAnnotationFilter;
 import org.archive.wayback.util.ObjectFilter;
-import org.archive.wayback.util.Timestamp;
 import org.archive.wayback.webapp.CustomResultFilterFactory;
 
 public class CDXServerResourceIndex implements ResourceIndex {
@@ -44,15 +43,11 @@ public class CDXServerResourceIndex implements ResourceIndex {
 	protected String replayQuery = "";
 	protected String lastQuery = "";
 	
-	public void init()
-	{
-		
-	}
-	
-	protected String getQueryString(WaybackRequest request) throws UnsupportedEncodingException
+	protected String getRequestString(WaybackRequest request) throws UnsupportedEncodingException
 	{
 		StringBuilder builder = new StringBuilder();
-		builder.append("url=");
+		builder.append(cdxServerPath);
+		builder.append("?url=");
 		builder.append(URLEncoder.encode(request.getRequestUrl(), "UTF-8"));
 		builder.append("&");
 		builder.append(allQueryParams);
@@ -60,21 +55,13 @@ public class CDXServerResourceIndex implements ResourceIndex {
 		if (request.isUrlQueryRequest()) {
 			builder.append(urlQuery);
 		} else if (useReplayQuery(request)) {
+			builder.append(captureQuery);
+			
 			String timestamp = request.getReplayTimestamp();
 			
-			if (timestamp == null || timestamp.isEmpty()) {
-				builder.append(lastQuery);
-				
-				timestamp = Timestamp.currentTimestamp().getDateStr();
-				request.setReplayTimestamp(timestamp);
-				request.setStartTimestamp(timestamp);
-				request.setEndTimestamp(timestamp);
-				
-			} else {	
-				builder.append("startDate=");
+			if (timestamp != null && !timestamp.isEmpty()) {
+				builder.append("endDate=");
 				builder.append(timestamp);
-				builder.append("&");
-				builder.append(replayQuery);
 			}
 		} else {
 			builder.append(captureQuery);
@@ -125,7 +112,7 @@ public class CDXServerResourceIndex implements ResourceIndex {
 		BufferedReader reader = null;
 		
 		try {
-			String url = cdxServerPath + "?" + getQueryString(request);
+			String url = getRequestString(request);
 			
 			URLConnection connection = new URL(url).openConnection();
 			
