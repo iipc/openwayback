@@ -9,6 +9,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
+import java.util.Iterator;
+import java.util.List;
 
 import org.archive.util.zip.OpenJDK7GZIPInputStream;
 import org.archive.wayback.ResourceIndex;
@@ -23,17 +25,24 @@ import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.resourceindex.cdx.format.CDXFlexFormat;
+import org.archive.wayback.resourceindex.filterfactory.AccessPointCaptureFilterGroup;
 import org.archive.wayback.resourceindex.filterfactory.ExclusionCaptureFilterGroup;
 import org.archive.wayback.resourceindex.filters.ClosestResultTrackingFilter;
 import org.archive.wayback.resourceindex.filters.WARCRevisitAnnotationFilter;
 import org.archive.wayback.util.ObjectFilter;
+import org.archive.wayback.util.Timestamp;
 import org.archive.wayback.webapp.CustomResultFilterFactory;
 
 public class CDXServerResourceIndex implements ResourceIndex {
 	
 	protected String cdxServerPath;
+	
+	protected String allQueryParams = "";
+	
 	protected String captureQuery = "";
 	protected String urlQuery = "";
+	protected String replayQuery = "";
+	protected String lastQuery = "";
 	
 	public void init()
 	{
@@ -46,14 +55,46 @@ public class CDXServerResourceIndex implements ResourceIndex {
 		builder.append("url=");
 		builder.append(URLEncoder.encode(request.getRequestUrl(), "UTF-8"));
 		builder.append("&");
+		builder.append(allQueryParams);
 		
 		if (request.isUrlQueryRequest()) {
 			builder.append(urlQuery);
+		} else if (useReplayQuery(request)) {
+			String timestamp = request.getReplayTimestamp();
+			
+			if (timestamp == null || timestamp.isEmpty()) {
+				builder.append(lastQuery);
+				
+				timestamp = Timestamp.currentTimestamp().getDateStr();
+				request.setReplayTimestamp(timestamp);
+				request.setStartTimestamp(timestamp);
+				request.setEndTimestamp(timestamp);
+				
+			} else {	
+				builder.append("startDate=");
+				builder.append(timestamp);
+				builder.append("&");
+				builder.append(replayQuery);
+			}
 		} else {
 			builder.append(captureQuery);
 		}
 		
 		return builder.toString();
+	}
+	
+	protected boolean useReplayQuery(WaybackRequest request)
+	{
+		if (!request.isReplayRequest()) {
+			return false;
+		}
+		
+		if (request.isCSSContext() || request.isIMGContext() || request.isJSContext() 
+				|| request.isIdentityContext() || request.isIFrameWrapperContext()) {
+			return true;
+		}
+		
+		return false;
 	}
 
 	@Override
@@ -85,22 +126,25 @@ public class CDXServerResourceIndex implements ResourceIndex {
 		
 		try {
 			String url = cdxServerPath + "?" + getQueryString(request);
+			
 			URLConnection connection = new URL(url).openConnection();
 			
 			InputStream input = new OpenJDK7GZIPInputStream(connection.getInputStream());
 			reader = new BufferedReader(new InputStreamReader(input));
 			
-			
 			// Closest Tracking Filter
 			ClosestResultTrackingFilter closestTracker = new ClosestResultTrackingFilter(request.getReplayDate().getTime());
+						
+			// Access Point Filters
+			AccessPointCaptureFilterGroup accessPointFilters = new AccessPointCaptureFilterGroup(request);
 			
+			List<ObjectFilter<CaptureSearchResult>> filters = accessPointFilters.getFilters();
+			
+			// Exclusion
 			ExclusionCaptureFilterGroup exclusionGroup = new ExclusionCaptureFilterGroup(request, request.getAccessPoint().getSelfRedirectCanonicalizer());
-			
-			// Exclusions
-			ObjectFilter<CaptureSearchResult> exclusionFilter = null;
-					
+
 			if (!exclusionGroup.getFilters().isEmpty()) {
-				exclusionFilter = exclusionGroup.getFilters().get(0);
+				filters.add(exclusionGroup.getFilters().get(0));
 			}
 			
 			// WARC revisit
@@ -108,9 +152,9 @@ public class CDXServerResourceIndex implements ResourceIndex {
 			
 			// Custom Filter Factory
 			CustomResultFilterFactory customFilterFactory = request.getAccessPoint().getFilterFactory();
-			ObjectFilter<CaptureSearchResult> customFilter = null;
+			
 			if (customFilterFactory != null) {
-				customFilter = customFilterFactory.get(request.getAccessPoint());
+				filters.add(customFilterFactory.get(request.getAccessPoint()));
 			}
 			
 			String line;
@@ -129,19 +173,31 @@ public class CDXServerResourceIndex implements ResourceIndex {
 					summaryLine = reader.readLine();
 				}
 				
-				if ((exclusionFilter != null) && (exclusionFilter.filterObject(result) != ObjectFilter.FILTER_INCLUDE)) {
+				if (result.getHttpCode().startsWith("5")) {
 					continue;
 				}
 				
-				if ((customFilter != null) && (customFilter.filterObject(result) != ObjectFilter.FILTER_INCLUDE)) {
-					continue;
+				Iterator<ObjectFilter<CaptureSearchResult>> filterIter = filters.iterator();
+				ObjectFilter<CaptureSearchResult> failFilter = null;
+				
+				while (filterIter.hasNext()) {
+					failFilter = filterIter.next();
+					if (failFilter.filterObject(result) != ObjectFilter.FILTER_INCLUDE) {
+						break;
+					}
+					failFilter = null;
 				}
 				
+				if (failFilter != null) {
+					// Failed on this filter
+					continue;
+				}
+								
 				++numPassed;
 				
 				revisiter.filterObject(result);
 				
-				if (request.isUrlQueryRequest()) {			
+				if (request.isUrlQueryRequest()) {
 					UrlSearchResult urlResult = new UrlSearchResult();
 					urlResult.setUrlKey(result.getUrlKey());
 					urlResult.setOriginalUrl(result.getOriginalUrl());
@@ -228,6 +284,30 @@ public class CDXServerResourceIndex implements ResourceIndex {
 
 	public void setUrlQuery(String urlQuery) {
 		this.urlQuery = urlQuery;
+	}
+
+	public String getReplayQuery() {
+		return replayQuery;
+	}
+
+	public void setReplayQuery(String replayQuery) {
+		this.replayQuery = replayQuery;
+	}
+
+	public String getLastQuery() {
+		return lastQuery;
+	}
+
+	public void setLastQuery(String lastQuery) {
+		this.lastQuery = lastQuery;
+	}
+
+	public String getAllQueryParams() {
+		return allQueryParams;
+	}
+
+	public void setAllQueryParams(String allQueryParams) {
+		this.allQueryParams = allQueryParams;
 	}
 
 }
