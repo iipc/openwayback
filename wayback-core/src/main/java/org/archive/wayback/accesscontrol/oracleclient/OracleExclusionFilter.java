@@ -94,7 +94,13 @@ public class OracleExclusionFilter extends ExclusionFilter {
 				filterGroup.setSawAdministrative();
 			}
 		}
-		return FILTER_EXCLUDE;	
+		if(!notifiedAdminPassed) {
+			notifiedAdminPassed = true;
+			if(filterGroup != null) {
+				filterGroup.setPassedAdministrative(false);
+			}
+		}
+		return FILTER_EXCLUDE;
 	}
 	
 	protected int handleRobots()
