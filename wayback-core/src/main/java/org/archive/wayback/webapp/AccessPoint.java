@@ -460,11 +460,7 @@ implements ShutdownListener {
 		Set<String> skipFiles = null;
 		//boolean isRevisit = false;
 		
-		while (true) {
-			counter++;
-			closest.setClosest(true);
-			checkAnchorWindow(wbRequest,closest);
-			
+		while (true) {		
 			// Support for redirect from the CDX redirectUrl field
 			// This was the intended use of the redirect field, but has not actually be tested
 			// To enable this functionality, uncomment the lines below
@@ -478,11 +474,21 @@ implements ShutdownListener {
 			
 			Resource httpHeadersResource = null;
 			Resource payloadResource = null;
+			boolean isRevisit = false;
 			
 			try {
+				counter++;
+				
+				if (closest == null) {
+					throw new ResourceNotAvailableException("No Closest Match Found!");
+				}
+				
+				closest.setClosest(true);
+				checkAnchorWindow(wbRequest,closest);
 				
 				// If revisit, may load two resources separately
 				if (closest.isDuplicateDigest()) {
+					isRevisit = true;
 					
 					// If the payload record is known and it failed before with this payload, don't try
 					// loading the header resource even.. outcome will likely be same
@@ -564,9 +570,9 @@ implements ShutdownListener {
 				// over 2 failures and socket timeout, don't try to find anymore
 				if ((counter > 2) && scre.getMessage().endsWith(SOCKET_TIMEOUT_MSG)) {
 					LOGGER.info("LOADFAIL: Skipping nextclosest due to socket timeouts");
-				} else if ((counter > 2) && closest.isDuplicateDigest()) {
+				} else if ((counter > 2) && isRevisit) {
 					LOGGER.info("LOADFAIL: Skipping nextclosest due to missing revisit");
-				} else {
+				} else if (closest != null) {
 					nextClosest = findNextClosest(closest, captureResults, requestMS);
 				}
 				
@@ -576,12 +582,18 @@ implements ShutdownListener {
 				//	nextClosest = findNextClosest(nextClosest, captureResults, requestMS);
 				//}
 				
-				String msg = scre.getMessage() + " /" + closest.getCaptureTimestamp() + "/" + closest.getOriginalUrl();
+				String msg = null;
+				
+				if (closest != null) {
+					msg = scre.getMessage() + " /" + closest.getCaptureTimestamp() + "/" + closest.getOriginalUrl();
+				} else {
+					msg = scre.getMessage() + " /" + wbRequest.getReplayTimestamp() + "/" + wbRequest.getRequestUrl();
+				}
 				
 				if (nextClosest != null) {
 				
 					// Store failed filename for revisits, as they may be repeated
-					if (closest.isDuplicateDigest()) {
+					if (isRevisit) {
 						if (scre.getDetails() != null) {
 							if (skipFiles == null) {
 								skipFiles = new HashSet<String>();
