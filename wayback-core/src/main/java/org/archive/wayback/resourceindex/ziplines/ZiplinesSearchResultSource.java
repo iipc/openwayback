@@ -88,13 +88,13 @@ public class ZiplinesSearchResultSource implements SearchResultSource {
 	private int maxBlocks = 1000;
 	private BlockLoader blockLoader = null;
 	
-	protected int timestampLength = 0;
+	protected int timestampDedupLength = 0;
 	
-	public int getTimestampLength() {
-		return timestampLength;
+	public int getTimestampDedupLength() {
+		return timestampDedupLength;
 	}
-	public void setTimestampLength(int timestampLength) {
-		this.timestampLength = timestampLength;
+	public void setTimestampDedupLength(int timestampDedupLength) {
+		this.timestampDedupLength = timestampDedupLength;
 	}
 	
 	public ZiplinesSearchResultSource() {
@@ -154,13 +154,13 @@ public class ZiplinesSearchResultSource implements SearchResultSource {
 	
 	private String getTimestamp(String line)
 	{
-		if (timestampLength <= 0) {
+		if (timestampDedupLength <= 0) {
 			return null;
 		}
 		
 		int space = line.indexOf(' ');
 		if (space >= 0) {
-			return line.substring(0, space + 1 + timestampLength);
+			return line.substring(0, space + 1 + timestampDedupLength);
 		} else {
 			return null;
 		}
