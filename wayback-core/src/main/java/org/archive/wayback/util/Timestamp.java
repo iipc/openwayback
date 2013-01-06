@@ -319,10 +319,11 @@ public class Timestamp {
 		if(input == null) {
 			input = "";
 		}
-		String finalDigits = "";
+		StringBuilder finalDigits = new StringBuilder();
+		//String finalDigits = "";
 		for(int i = 0; i < missing.length(); i++) {
 			if(input.length() <= i) {
-				finalDigits = finalDigits +	missing.charAt(i);
+				finalDigits.append(missing.charAt(i));
 			} else {
 				char inc = input.charAt(i);
 				char maxc = max.charAt(i);
@@ -332,11 +333,11 @@ public class Timestamp {
 				} else if (inc < minc) {
 					inc = minc;
 				}
-				finalDigits = finalDigits + inc;
+				finalDigits.append(inc);
 			}
 		}
 		
-		return finalDigits;
+		return finalDigits.toString();
 	}
 	
 	private static String boundDigits(final String test, final String min, 

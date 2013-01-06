@@ -108,6 +108,8 @@ public class LocalResourceIndex implements ResourceIndex {
 	
 	private boolean dedupeRecords = false;
 	
+	private boolean timestampSearch = false;
+	
 	private ObjectFilter<CaptureSearchResult> annotater = null;
 	
 	private ObjectFilter<CaptureSearchResult> filter = null;
@@ -160,6 +162,22 @@ public class LocalResourceIndex implements ResourceIndex {
 		} catch (URIException e) {
 			throw new BadQueryException("Bad URL(" + 
 					wbRequest.getRequestUrl() + ")");
+		}
+		
+		// Special handling for index where the key is url<space>timestamp
+		// for faster binary search lookup
+		if (timestampSearch) {
+			String replayTimestamp = wbRequest.getReplayTimestamp();
+			
+			if (replayTimestamp != null) {
+				boolean noTimeline = 
+					wbRequest.isCSSContext() || wbRequest.isIMGContext() || wbRequest.isJSContext() ||
+					wbRequest.isFrameWrapperContext() || wbRequest.isIFrameWrapperContext() || wbRequest.isIdentityContext();
+				
+				if (noTimeline) {
+					urlKey += " " + replayTimestamp;
+				}
+			}
 		}
 
 		// the CaptureSearchResults we are about to return:
@@ -373,5 +391,13 @@ public class LocalResourceIndex implements ResourceIndex {
 
 	public void setFilter(ObjectFilter<CaptureSearchResult> filter) {
 		this.filter = filter;
+	}
+
+	public boolean isTimestampSearch() {
+		return timestampSearch;
+	}
+
+	public void setTimestampSearch(boolean timestampSearch) {
+		this.timestampSearch = timestampSearch;
 	}
 }

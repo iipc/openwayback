@@ -458,7 +458,7 @@ implements ShutdownListener {
 		int counter = 0;
 		
 		Set<String> skipFiles = null;
-		boolean isRevisit = false;
+		//boolean isRevisit = false;
 		
 		while (true) {
 			counter++;
@@ -511,7 +511,7 @@ implements ShutdownListener {
 					} else {
 						httpHeadersResource = getResource(closest, skipFiles);
 						payloadResource = retrievePayloadForIdenticalContentRevisit(httpHeadersResource, captureResults, closest, skipFiles);
-					}					
+					}
 				} else {
 					httpHeadersResource = getResource(closest, skipFiles);
 					payloadResource = httpHeadersResource;
@@ -564,6 +564,8 @@ implements ShutdownListener {
 				// over 2 failures and socket timeout, don't try to find anymore
 				if ((counter > 2) && scre.getMessage().endsWith(SOCKET_TIMEOUT_MSG)) {
 					LOGGER.info("LOADFAIL: Skipping nextclosest due to socket timeouts");
+				} else if ((counter > 2) && closest.isDuplicateDigest()) {
+					LOGGER.info("LOADFAIL: Skipping nextclosest due to missing revisit");
 				} else {
 					nextClosest = findNextClosest(closest, captureResults, requestMS);
 				}
@@ -579,7 +581,7 @@ implements ShutdownListener {
 				if (nextClosest != null) {
 				
 					// Store failed filename for revisits, as they may be repeated
-					if (isRevisit) {
+					if (closest.isDuplicateDigest()) {
 						if (scre.getDetails() != null) {
 							if (skipFiles == null) {
 								skipFiles = new HashSet<String>();
