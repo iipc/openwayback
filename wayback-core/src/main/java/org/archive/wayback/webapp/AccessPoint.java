@@ -376,6 +376,10 @@ implements ShutdownListener {
 		String location = resource.getHttpHeaders().get("Location");
 		
 		if (location == null) {
+			location = resource.getHttpHeaders().get("location");
+		}
+		
+		if (location == null) {
 			return false;
 		}
 					
