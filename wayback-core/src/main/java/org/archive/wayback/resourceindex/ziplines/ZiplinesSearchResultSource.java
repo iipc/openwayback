@@ -64,12 +64,12 @@ import org.archive.wayback.util.flatfile.FlatFile;
  * @author brad
  * 
  * 
- * @deprecated Note, this implementation is now superceded by the one in archive-commons
+ * @ deprecated Note, this implementation is now superceded by the one in archive-commons
  * @see org.archive.format.gzip.zipnum.ZipNumCluster
  * That implementation provides support for stream loading of blocks, as well as summary files
  * from http and hdfs as well as local filesystem
  */
-@Deprecated
+
 public class ZiplinesSearchResultSource implements SearchResultSource {
 	private static final Logger LOGGER = Logger.getLogger(
 			ZiplinesSearchResultSource.class.getName());
@@ -87,6 +87,15 @@ public class ZiplinesSearchResultSource implements SearchResultSource {
 	private CDXFormat format = null;
 	private int maxBlocks = 1000;
 	private BlockLoader blockLoader = null;
+	
+	protected int timestampLength = 0;
+	
+	public int getTimestampLength() {
+		return timestampLength;
+	}
+	public void setTimestampLength(int timestampLength) {
+		this.timestampLength = timestampLength;
+	}
 	
 	public ZiplinesSearchResultSource() {
 	}
@@ -142,24 +151,70 @@ public class ZiplinesSearchResultSource implements SearchResultSource {
 			throw new ResourceIndexNotAvailableException(e.getMessage());
 		}
 	}
+	
+	private String getTimestamp(String line)
+	{
+		if (timestampLength <= 0) {
+			return null;
+		}
+		
+		int space = line.indexOf(' ');
+		if (space >= 0) {
+			return line.substring(0, space + 1 + timestampLength);
+		} else {
+			return null;
+		}
+	}
 
-	private ArrayList<ZiplinedBlock> getBlockListForPrefix(String prefix)
+	private ArrayList<ZiplinedBlock> getBlockListForPrefix(String prefix, String urlkey)
 	throws IOException, ResourceIndexNotAvailableException {
 		ArrayList<ZiplinedBlock> blocks = new ArrayList<ZiplinedBlock>();
 		boolean first = true;
 		int numBlocks = 0;
 		boolean truncated = false;
 		CloseableIterator<String> itr = null;
+		
+		
 		try {
 			itr = chunkIndex.getRecordIteratorLT(prefix);
-			while(itr.hasNext()) {
-				if(numBlocks >= maxBlocks) {
-					LOGGER.warning("Truncated by blocks for " + prefix);
+			
+			String currLine = null;
+			String nextLine = null;
+			
+			if (itr.hasNext()) {
+				nextLine = itr.next();
+			}
+			String timestamp = getTimestamp(nextLine);
+			String lastTimestamp = null;
+			
+			while(nextLine != null) {
+				
+				currLine = nextLine;
+				
+				if (itr.hasNext()) {
+					nextLine = itr.next();
+				} else {
+					nextLine = null;
+				}
+								
+				if (nextLine != null && timestamp != null) {
+					lastTimestamp = timestamp;
+					timestamp = getTimestamp(nextLine);
+					if ((timestamp != null) && timestamp.equals(lastTimestamp)) {
+						continue;
+					}
+				}
+				
+				if(numBlocks >= maxBlocks || (!prefix.equals(urlkey) && numBlocks >= 1)) {
+					if (LOGGER.isLoggable(Level.WARNING)) {
+						LOGGER.warning("Truncated by blocks for " + prefix);
+					}
 					truncated = true;
 					break;
 				}
-				String blockDescriptor = itr.next();
+				
 				numBlocks++;
+				String blockDescriptor = currLine;
 				String parts[] = blockDescriptor.split("\t");
 				if((parts.length < 3) || (parts.length > 4)) {
 					LOGGER.severe("Bad line(" + blockDescriptor +") in (" + 
@@ -168,7 +223,7 @@ public class ZiplinesSearchResultSource implements SearchResultSource {
 							blockDescriptor + ")");
 				}
 				// only compare the correct length:
-				String prefCmp = prefix;
+				String prefCmp = urlkey;
 				String blockCmp = parts[0];
 				if(first) {
 					// always add first:
@@ -187,11 +242,15 @@ public class ZiplinesSearchResultSource implements SearchResultSource {
 				long offset = Long.parseLong(parts[2]);
 				ZiplinedBlock block;
 				if(parts.length == 3) {
-					LOGGER.info("Adding block source(" + parts[1] + "):" + offset);
+					if (LOGGER.isLoggable(Level.INFO)) {
+						LOGGER.info("Adding block source(" + parts[1] + "):" + offset);
+					}
 					block = new ZiplinedBlock(bl.getLocations(), offset);
 				} else {
 					int length = Integer.parseInt(parts[3]);
-					LOGGER.info("Adding block source(" + parts[1] + "):" + offset + " - " + length);
+					if (LOGGER.isLoggable(Level.INFO)) {
+						LOGGER.info("Adding block source(" + parts[1] + "):" + offset + " - " + length);
+					}
 					block = new ZiplinedBlock(bl.getLocations(), offset, length);
 				}
 				block.setLoader(blockLoader);
@@ -205,109 +264,37 @@ public class ZiplinesSearchResultSource implements SearchResultSource {
 		return blocks;
 	}
 	
-	private ArrayList<ZiplinedBlock> getMergedBlockListForPrefix(String prefix)
-	throws IOException, ResourceIndexNotAvailableException {
-		ArrayList<ZiplinedBlock> blocks = new ArrayList<ZiplinedBlock>();
-		
-		boolean first = true;
-		int numBlocks = 0;
-		
-		CloseableIterator<String> itr = null;
-		try {
-			itr = chunkIndex.getRecordIteratorLT(prefix);
-			
-			ZiplinedMultiBlock currBlock = null;
-			
-			while(itr.hasNext()) {
-				if(numBlocks >= maxBlocks) {
-					LOGGER.warning("Truncated by blocks for " + prefix);
-					break;
-				}
-				String blockDescriptor = itr.next();
-				numBlocks++;
-				String parts[] = blockDescriptor.split("\t");
-				if((parts.length < 3) || (parts.length > 4)) {
-					LOGGER.severe("Bad line(" + blockDescriptor +") in (" + 
-							chunkMapPath + ")");
-					throw new ResourceIndexNotAvailableException("Bad line(" + 
-							blockDescriptor + ")");
-				}
-				// only compare the correct length:
-				String prefCmp = prefix;
-				String blockCmp = parts[0];
-				if(first) {
-					// always add first:
-					first = false;
-				} else if (!blockCmp.equals(prefCmp)) {
-					break;
-				}
-							
-				// add this and keep lookin...
-				BlockLocation bl = chunkMap.get(parts[1]);
-				if(bl == null) {
-					LOGGER.severe("No locations for block(" + parts[1] +")");
-					throw new ResourceIndexNotAvailableException(
-							"No locations for block(" + parts[1] + ")");
-				}
-				
-				if(parts.length < 3) {
-					throw new ResourceIndexNotAvailableException(
-							"No size for multi-block load at offset(" + parts[2] + ")");
-				}
-				
-				long offset = Long.parseLong(parts[2]);
-				int length = Integer.parseInt(parts[3]);
-				
-				if (currBlock == null) {
-					currBlock = new ZiplinedMultiBlock(offset, blockLoader, parts[1], bl.getLocations());
-				
-				} else if (!currBlock.isSameBlock(offset, parts[1])) {
-					LOGGER.info("Added " + currBlock.toString());
-					blocks.add(currBlock);
-				
-					currBlock = new ZiplinedMultiBlock(offset, blockLoader, parts[1], bl.getLocations());
-				}
-				currBlock.addOffset(length);				
-			}
-			
-			if (currBlock != null) {
-				blocks.add(currBlock);
-				LOGGER.info("Added " + currBlock.toString());
-			}
-			
-		} finally {
-						
-			if(itr != null) {
-				itr.close();
-			}
-		}
-		return blocks;
-	}
-	
-	public Iterator<String> getZiplinesChunkIterator(String prefix) throws ResourceIndexNotAvailableException, IOException
+	public Iterator<String> getZiplinesChunkIterator(String prefix, String urlkey) throws ResourceIndexNotAvailableException, IOException
 	{
-		ArrayList<ZiplinedBlock> blocks = getBlockListForPrefix(prefix);
+		ArrayList<ZiplinedBlock> blocks = getBlockListForPrefix(prefix, urlkey);
 		ZiplinesChunkIterator zci = new ZiplinesChunkIterator(blocks);
 		zci.setTruncated(false);
 		return zci;
 	}
 	
-	public Iterator<String> getMergedZiplinesChunkIterator(String prefix) throws ResourceIndexNotAvailableException, IOException
-	{
-		ArrayList<ZiplinedBlock> blocks = getMergedBlockListForPrefix(prefix);
-		ZiplinesChunkIterator zci = new ZiplinesChunkIterator(blocks);
-		zci.setTruncated(false);
-		return zci;
-	}
-	
-	public Iterator<String> getStringBoundedRangeIterator(String start, String end, boolean endInclusivePrefix) 
-	throws ResourceIndexNotAvailableException, IOException {
-		return new StringBoundedRangeIterator(getZiplinesChunkIterator(start), start, end, endInclusivePrefix);
-	}
+//	public Iterator<String> getMergedZiplinesChunkIterator(String prefix) throws ResourceIndexNotAvailableException, IOException
+//	{
+//		ArrayList<ZiplinedBlock> blocks = getMergedBlockListForPrefix(prefix);
+//		ZiplinesChunkIterator zci = new ZiplinesChunkIterator(blocks);
+//		zci.setTruncated(false);
+//		return zci;
+//	}
+//	
+//	public Iterator<String> getStringBoundedRangeIterator(String start, String end, boolean endInclusivePrefix) 
+//	throws ResourceIndexNotAvailableException, IOException {
+//		return new StringBoundedRangeIterator(getZiplinesChunkIterator(start), start, end, endInclusivePrefix);
+//	}
 
 	public Iterator<String> getStringPrefixIterator(String prefix) 
 		throws ResourceIndexNotAvailableException, IOException {
-		return new StringPrefixIterator(getZiplinesChunkIterator(prefix), prefix);
+		
+		String urlkey = prefix;
+		int space = prefix.indexOf(' ');
+		if (space >= 0) {
+			urlkey = prefix.substring(0, space);
+		}
+		
+		return new StringPrefixIterator(getZiplinesChunkIterator(prefix, urlkey), urlkey);
 	}
 
 	/* (non-Javadoc)
@@ -493,7 +480,7 @@ public class ZiplinesSearchResultSource implements SearchResultSource {
 			zl.init();
 			if(blockDump) {
 				
-				ArrayList<ZiplinedBlock> blocks = zl.getBlockListForPrefix(key);
+				ArrayList<ZiplinedBlock> blocks = zl.getBlockListForPrefix(key, key);
 				for(ZiplinedBlock block : blocks) {
 					pw.format("%s\t%s\n", block.urlOrPaths[0], block.offset);
 				}
