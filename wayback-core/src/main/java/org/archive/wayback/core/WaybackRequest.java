@@ -808,6 +808,12 @@ public class WaybackRequest {
 	public boolean isIFrameWrapperContext() {
 		return getBoolean(REQUEST_IFRAME_WRAPPER_CONTEXT);
 	}
+	
+	public boolean isAnyEmbeddedContext()
+	{
+		return this.isCSSContext() || this.isIMGContext() || this.isJSContext() ||
+			this.isFrameWrapperContext() || this.isIFrameWrapperContext();
+	}
 
 	public void setCharsetMode(int mode) {
 		setInt(REQUEST_CHARSET_MODE,mode);

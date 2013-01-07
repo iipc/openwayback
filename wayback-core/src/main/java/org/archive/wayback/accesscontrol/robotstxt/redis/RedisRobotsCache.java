@@ -111,8 +111,8 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 			RedisValue value = redisCmds.getValue(url);
 			
 			// Just in case, avoid too many updates
-			if ((minUpdateTime > 0) && !isExpired(value, url, minUpdateTime)) {
-				return null;
+			if ((minUpdateTime > 0) && (value != null) && !isExpired(value, url, minUpdateTime)) {
+				return new RobotsContext(url, current, false, true);
 			}
 			
 			current = (value != null ? value.value : null);

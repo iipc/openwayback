@@ -170,9 +170,7 @@ public class LocalResourceIndex implements ResourceIndex {
 			String replayTimestamp = wbRequest.getReplayTimestamp();
 			
 			if (replayTimestamp != null) {
-				boolean noTimeline = 
-					wbRequest.isCSSContext() || wbRequest.isIMGContext() || wbRequest.isJSContext() ||
-					wbRequest.isFrameWrapperContext() || wbRequest.isIFrameWrapperContext() || wbRequest.isIdentityContext();
+				boolean noTimeline = wbRequest.isAnyEmbeddedContext() || wbRequest.isIdentityContext();
 				
 				if (noTimeline) {
 					urlKey += " " + replayTimestamp;
