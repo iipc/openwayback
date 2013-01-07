@@ -15,6 +15,8 @@ import org.archive.wayback.util.webapp.AbstractRequestHandler;
 public class UpdateRobotsRequestHandler extends AbstractRequestHandler {
 	
 	protected final static String HTTP_PREFIX = "http://";
+	protected final static String WWW_PREFIX = "www.";
+	protected final static String HTTP_WWW_PREFIX = HTTP_PREFIX + WWW_PREFIX;
 	protected final static String ROBOT_SUFFIX = "/robots.txt";
 	
 	private RedisRobotsCache robotsCache;
@@ -56,8 +58,14 @@ public class UpdateRobotsRequestHandler extends AbstractRequestHandler {
 		} else if (robotsCache == null) {
 			writer.println("No Robots Cache Set");
 		} else {
-			if (!url.startsWith(HTTP_PREFIX)) {
+			if (url.startsWith(HTTP_WWW_PREFIX)) {
+				//
+			} else if (url.startsWith(WWW_PREFIX)) {
 				url = HTTP_PREFIX + url;
+			} else if (url.startsWith(HTTP_PREFIX)) {
+				url = HTTP_WWW_PREFIX + url.substring(7);
+			} else {
+				url = HTTP_WWW_PREFIX + url;
 			}
 			
 			RobotsContext context = robotsCache.forceUpdate(url, minUpdateTime);
@@ -73,11 +81,12 @@ public class UpdateRobotsRequestHandler extends AbstractRequestHandler {
 				writer.println("<b>UPDATED Robots</b>");
 				writer.println("<p><i>Old Robots:</i></p>");
 				writer.println("<pre>" + context.current + "</pre>");
+				writer.println("<p><i>NEW Updated Robots:</i></p>");
 			} else {
 				writer.println("<b>Robots Unchanged</b>");
+				writer.println("<p><i>Current Robots:</i></p>");
 			}
 			
-			writer.println("<p><i>New/Current Robots:</i></p>");
 			writer.print("<pre>");
 			
 			if (context.getNewRobots() == null) {
