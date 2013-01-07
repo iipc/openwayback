@@ -45,6 +45,7 @@ import org.archive.wayback.RequestParser;
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.accesscontrol.ExclusionFilterFactory;
+import org.archive.wayback.archivalurl.ArchivalUrl;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.Resource;
@@ -424,6 +425,13 @@ implements ShutdownListener {
 		return getCollection().getResourceStore().retrieveResource(closest);		
 	}
 	
+	protected String getRedirectUrl(WaybackRequest wbRequest, String timestamp, String url)
+	{
+		String datespec = ArchivalUrl.getDateSpec(wbRequest, timestamp);
+		String betterURI = getUriConverter().makeReplayURI(datespec, url);
+		return betterURI;
+	}
+	
 	protected void handleReplay(WaybackRequest wbRequest, 
 			HttpServletRequest httpRequest, HttpServletResponse httpResponse) 
 	throws IOException, ServletException, WaybackException {			
@@ -512,8 +520,8 @@ implements ShutdownListener {
 						
 						// Then, if both headers and payload are from a different timestamp, redirect to that timestamp
 						if (!closest.getCaptureTimestamp().equals(closest.getDuplicateDigestStoredTimestamp())) {
-							String betterURI = getUriConverter().makeReplayURI(closest.getDuplicateDigestStoredTimestamp(), closest.getOriginalUrl());
-							throw new BetterRequestException(betterURI);
+							throw new BetterRequestException(
+									getRedirectUrl(wbRequest, closest.getDuplicateDigestStoredTimestamp(), closest.getOriginalUrl()));
 						}
 						
 						payloadResource = httpHeadersResource;
@@ -537,10 +545,19 @@ implements ShutdownListener {
 					continue;
 				}
 				
+				// Attempt to resolve any not-found embedded content with closest
+				if (wbRequest.isAnyEmbeddedContext() && closest.getHttpCode().startsWith("4")) {
+					CaptureSearchResult nextClosest = findNextClosest(closest, captureResults, requestMS);
+					if ((nextClosest != null) && !nextClosest.getHttpCode().startsWith("4")) {
+						closest = nextClosest;
+						continue;
+					}
+				}
+				
 				// Redirect to url for the actual closest capture
 				if ((closest != originalClosest) && !closest.getCaptureTimestamp().equals(originalClosest.getCaptureTimestamp())) {
-					String betterURI = getUriConverter().makeReplayURI(closest.getCaptureTimestamp(), closest.getOriginalUrl());
-					throw new BetterRequestException(betterURI);
+					throw new BetterRequestException(
+							getRedirectUrl(wbRequest, closest.getCaptureTimestamp(), closest.getOriginalUrl()));
 				}
 		
 				p.retrieved();
