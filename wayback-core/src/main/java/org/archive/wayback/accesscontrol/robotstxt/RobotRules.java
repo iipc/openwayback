@@ -30,6 +30,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 import org.archive.wayback.util.ByteOp;
 
@@ -50,7 +51,11 @@ public class RobotRules {
 	 * Special name for User-agent which matches all values
 	 */
 	public static final String GLOBAL_USER_AGENT = "*";
-
+	
+	protected static final Pattern USER_AGENT_PATTERN = Pattern.compile("(?i)^User-agent:.*");
+	protected static final Pattern DISALLOW_PATTERN = Pattern.compile("(?i)Disallow:.*");
+	protected static final Pattern ALLOW_PATTERN = Pattern.compile("(?i)Allow:.*");
+	
 	private boolean bSyntaxErrors = false;
 	private HashMap<String, ArrayList<String>> rules = 
 		new HashMap<String, ArrayList<String>>();
@@ -84,6 +89,7 @@ public class RobotRules {
 		BufferedReader br = new BufferedReader(new InputStreamReader(
 				(InputStream) is,ByteOp.UTF8));
         String read;
+        boolean allowRuleFound = false;
         ArrayList<String> current = null;
         while (br != null) {
             do {
@@ -101,19 +107,19 @@ public class RobotRules {
                     read = read.substring(0, commentIndex);
                 }
                 read = read.trim();
-                if (read.matches("(?i)^User-agent:.*")) {
+                if (USER_AGENT_PATTERN.matcher(read).matches()) {
                     String ua = read.substring(11).trim().toLowerCase();
-                    if (current == null || current.size() != 0) {
+                    if (current == null || current.size() != 0 || allowRuleFound) {
                         // only create new rules-list if necessary
                         // otherwise share with previous user-agent
                         current = new ArrayList<String>();
                     }
                     rules.put(ua, current);
+                    allowRuleFound = false;
                     LOGGER.fine("Found User-agent(" + ua + ") rules...");
                     continue;
-                }
-                if (read.matches("(?i)Disallow:.*")) {
-                    if (current == null) {
+                } else if (DISALLOW_PATTERN.matcher(read).matches()) {
+                	if (current == null) {
                         // buggy robots.txt
                     	bSyntaxErrors = true;
                         continue;
@@ -121,6 +127,9 @@ public class RobotRules {
                     String path = read.substring(9).trim();
                     current.add(path);
                     continue;
+                } else if (ALLOW_PATTERN.matcher(read).matches()) {
+                	// Mark that there was an allow rule to clear the current list for next user-agent
+                	allowRuleFound = true;
                 }
                 // unknown line; do nothing for now
                 

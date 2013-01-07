@@ -20,8 +20,8 @@ public class UpdateRobotsRequestHandler extends AbstractRequestHandler {
 	private RedisRobotsCache robotsCache;
 	
 	// Minimum time (secs) between subsequent forced updates
-	// Default: Limit to twice per minute
-	private int minUpdateTime = 30;
+	// Default: off for now
+	private int minUpdateTime = 0;
 
 	public int getMinUpdateTime() {
 		return minUpdateTime;
@@ -104,5 +104,5 @@ public class UpdateRobotsRequestHandler extends AbstractRequestHandler {
 		writer.println("<p><i>Current Time: " + new Date().toString() + "</p></body></html>");
 		return true;
 	}
-
+	
 }
