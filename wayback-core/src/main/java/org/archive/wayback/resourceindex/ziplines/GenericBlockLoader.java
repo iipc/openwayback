@@ -34,6 +34,10 @@ public class GenericBlockLoader implements BlockLoader {
 	HDFSBlockLoader hdfs = null;
 	LocalFileBlockLoader local = null;
 	private String defaultFSURI;
+	
+	int maxTotalConnections = -1;
+	int maxHostConnections = -1;
+	
 	public GenericBlockLoader() {
 		http = new Http11BlockLoader();
 //		hdfs = new HDFSBlockLoader(null);
@@ -61,6 +65,12 @@ public class GenericBlockLoader implements BlockLoader {
 				e.printStackTrace();
 			}
 		}
+		if (maxTotalConnections > 0) {
+			http.setMaxTotalConnections(maxTotalConnections);
+		}
+		if (maxHostConnections > 0) {
+			http.setMaxHostConnections(maxHostConnections);
+		}
 	}
 	public byte[] getBlock(String url, long offset, int length)
 			throws IOException {
@@ -74,5 +84,17 @@ public class GenericBlockLoader implements BlockLoader {
 	public void setDefaultFSURI(String uri) {
 		defaultFSURI = uri;
 //		hdfs.setDefaultFSURI(uri);
+	}
+	public int getMaxTotalConnections() {
+		return maxTotalConnections;
+	}
+	public void setMaxTotalConnections(int maxTotalConnections) {
+		this.maxTotalConnections = maxTotalConnections;
+	}
+	public int getMaxHostConnections() {
+		return maxHostConnections;
+	}
+	public void setMaxHostConnections(int maxHostConnections) {
+		this.maxHostConnections = maxHostConnections;
 	}
 }
