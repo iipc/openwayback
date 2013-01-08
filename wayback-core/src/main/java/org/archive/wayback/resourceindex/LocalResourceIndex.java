@@ -166,15 +166,11 @@ public class LocalResourceIndex implements ResourceIndex {
 		
 		// Special handling for index where the key is url<space>timestamp
 		// for faster binary search lookup
-		if (timestampSearch) {
+		if (timestampSearch && wbRequest.isTimestampSearchKey()) {
 			String replayTimestamp = wbRequest.getReplayTimestamp();
 			
-			if (replayTimestamp != null) {
-				boolean noTimeline = wbRequest.isAnyEmbeddedContext() || wbRequest.isIdentityContext();
-				
-				if (noTimeline) {
-					urlKey += " " + replayTimestamp;
-				}
+			if (replayTimestamp != null) {	
+				urlKey += " " + replayTimestamp;
 			}
 		}
 
