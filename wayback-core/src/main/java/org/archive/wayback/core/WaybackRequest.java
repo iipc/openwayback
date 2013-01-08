@@ -283,6 +283,12 @@ public class WaybackRequest {
 	 */
 	public static final String REQUEST_CHARSET_MODE = "charsetmode";
 	
+	
+	/**
+	 * Request: Use timestamp as part of the search key
+	 */
+	public static final String REQUEST_TIMESTAMP_SEARCH_KEY = "timestampsearchkey";
+	
 	/*
 	 * *******************************
 	 * /OUTPUT TYPE CONSTANTS 
@@ -873,6 +879,18 @@ public class WaybackRequest {
 	}
 	public void setTimelineHourResolution() {
 		put(REQUEST_RESOLUTION,REQUEST_RESOLUTION_HOURS);
+	}
+	
+	/**
+	 * Add timestamp as well as url key to optimize loading for only a certain time range
+	 * However, may not find all revisit records
+	 */
+	public void setTimestampSearchKey(boolean timestampSearchKey) {
+		setBoolean(REQUEST_TIMESTAMP_SEARCH_KEY, timestampSearchKey);
+	}
+	
+	public boolean isTimestampSearchKey() {
+		return getBoolean(REQUEST_TIMESTAMP_SEARCH_KEY);
 	}
 	
 	/**

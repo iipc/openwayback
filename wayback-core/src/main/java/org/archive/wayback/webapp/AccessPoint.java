@@ -121,6 +121,8 @@ implements ShutdownListener {
 	private boolean bounceToQueryPrefix = false;
 	private boolean forceCleanQueries = false;
 
+	private boolean timestampSearch = false;
+	
 	private String liveWebPrefix = null;
 	private String staticPrefix = null;
 	private String queryPrefix = null;
@@ -435,19 +437,9 @@ implements ShutdownListener {
 	protected void handleReplay(WaybackRequest wbRequest, 
 			HttpServletRequest httpRequest, HttpServletResponse httpResponse) 
 	throws IOException, ServletException, WaybackException {			
+		
 		checkInterstitialRedirect(httpRequest,wbRequest);
-		
-		PerformanceLogger p = new PerformanceLogger("replay");
-		SearchResults results = 
-			getCollection().getResourceIndex().query(wbRequest);
-		p.queried();
-		
-		if(!(results instanceof CaptureSearchResults)) {
-			throw new ResourceNotAvailableException("Bad results...");
-		}
-		CaptureSearchResults captureResults = 
-			(CaptureSearchResults) results;
-		
+				
 		String requestURL = wbRequest.getRequestUrl();
 		
 		if (getSelfRedirectCanonicalizer() != null) {
@@ -460,7 +452,28 @@ implements ShutdownListener {
 		
 		long requestMS = Timestamp.parseBefore(wbRequest.getReplayTimestamp()).getDate().getTime();
 		
-		CaptureSearchResult closest = null;		
+		
+		PerformanceLogger p = new PerformanceLogger("replay");
+		
+		// If optimized url+timestamp search is supported, mark the request
+		if (this.isTimestampSearch()) {		
+			if (wbRequest.isAnyEmbeddedContext() || wbRequest.isIdentityContext()) {
+				wbRequest.setTimestampSearchKey(true);
+			}
+		}
+		
+		SearchResults results = 
+			getCollection().getResourceIndex().query(wbRequest);
+		p.queried();
+		
+		if(!(results instanceof CaptureSearchResults)) {
+			throw new ResourceNotAvailableException("Bad results...");
+		}
+		CaptureSearchResults captureResults = 
+			(CaptureSearchResults) results;
+
+		
+		CaptureSearchResult closest = null;
 		
 		closest = 
 			getReplay().getClosest(wbRequest, captureResults);
@@ -468,6 +481,9 @@ implements ShutdownListener {
 		CaptureSearchResult originalClosest = closest;
 		
 		int counter = 0;
+		//TODO: parameterize
+		int maxTimeouts = 2;
+		int maxMissingRevisits = 2;
 		
 		Set<String> skipFiles = null;
 		//boolean isRevisit = false;
@@ -507,6 +523,23 @@ implements ShutdownListener {
 					if ((closest.getDuplicatePayloadFile() != null) &&
 						(skipFiles != null) && skipFiles.contains(closest.getDuplicatePayloadFile())) {
 						throw new ResourceNotAvailableException("SKIPPING already failed " + closest.getDuplicatePayloadFile(), null);
+					
+					} else if ((closest.getDuplicatePayloadFile() == null) && wbRequest.isTimestampSearchKey()) {
+						// If a missing revisit and loaded optimized, try loading the entire timeline again
+						
+						wbRequest.setTimestampSearchKey(false);
+						
+						results = 
+							getCollection().getResourceIndex().query(wbRequest);
+						
+						captureResults = (CaptureSearchResults)results;
+						
+						closest = getReplay().getClosest(wbRequest, captureResults);
+						originalClosest = closest;
+						maxTimeouts *= 2;
+						maxMissingRevisits *= 2;
+						
+						continue;
 					}
 					
 					// If old-style arc revisit (no mimetype, filename is '-'), then don't load
@@ -589,9 +622,9 @@ implements ShutdownListener {
 				CaptureSearchResult nextClosest = null;
 				
 				// over 2 failures and socket timeout, don't try to find anymore
-				if ((counter > 2) && scre.getMessage().endsWith(SOCKET_TIMEOUT_MSG)) {
+				if ((counter > maxTimeouts) && scre.getMessage().endsWith(SOCKET_TIMEOUT_MSG)) {
 					LOGGER.info("LOADFAIL: Skipping nextclosest due to socket timeouts");
-				} else if ((counter > 2) && isRevisit) {
+				} else if ((counter > maxMissingRevisits) && isRevisit) {
 					LOGGER.info("LOADFAIL: Skipping nextclosest due to missing revisit");
 				} else if (closest != null) {
 					nextClosest = findNextClosest(closest, captureResults, requestMS);
@@ -631,6 +664,20 @@ implements ShutdownListener {
 					}
 					
 					closest = nextClosest;
+				} else if (wbRequest.isTimestampSearchKey()) {
+					wbRequest.setTimestampSearchKey(false);
+					
+					results = getCollection().getResourceIndex().query(wbRequest);
+					
+					captureResults = (CaptureSearchResults)results;
+					
+					closest = getReplay().getClosest(wbRequest, captureResults);
+					originalClosest = closest;
+					
+					maxTimeouts *= 2;
+					maxMissingRevisits *= 2;
+					
+					continue;
 				} else {
 					LOGGER.warning("(" + counter + ")LOADFAIL: " + msg);
 					scre.setCaptureContext(captureResults, closest);
@@ -1390,5 +1437,13 @@ implements ShutdownListener {
 	public UrlCanonicalizer getSelfRedirectCanonicalizer()
 	{
 		return this.selfRedirectCanonicalizer;
+	}
+
+	public boolean isTimestampSearch() {
+		return timestampSearch;
+	}
+
+	public void setTimestampSearch(boolean timestampSearch) {
+		this.timestampSearch = timestampSearch;
 	}
 }
