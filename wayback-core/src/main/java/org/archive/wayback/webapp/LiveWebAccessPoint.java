@@ -28,6 +28,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.httpclient.URIException;
 import org.archive.io.arc.ARCRecord;
 import org.archive.wayback.accesscontrol.robotstxt.RobotExclusionFilterFactory;
 import org.archive.wayback.accesscontrol.staticmap.StaticMapExclusionFilterFactory;
@@ -93,7 +94,19 @@ public class LiveWebAccessPoint extends AbstractRequestHandler {
 
 			CaptureSearchResult result = new CaptureSearchResult();
 			result.setOriginalUrl(urlString);
-			result.setUrlKey(urlString);
+			
+			String canonUrl = urlString;
+			
+			if (inner.getSelfRedirectCanonicalizer() != null) {
+				try {
+					canonUrl = inner.getSelfRedirectCanonicalizer().urlStringToKey(urlString);
+				} catch (URIException uiex) {
+					throw new BadQueryException("Bad URL(" + urlString + ")");
+				}
+			}
+			
+			result.setUrlKey(canonUrl);
+			
 			// check admin excludes first, if configured:
 			if(adminFactory != null) {
 				ExclusionFilter f = adminFactory.get();
