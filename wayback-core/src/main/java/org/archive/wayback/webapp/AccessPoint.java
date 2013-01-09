@@ -285,8 +285,7 @@ implements ShutdownListener {
 			handled = true;
 
 		} catch(WaybackException e) {
-			if((e instanceof ResourceNotInArchiveException) 
-				&& wbRequest.isReplayRequest() 
+			if(wbRequest.isReplayRequest() 
 				&& (getLiveWebPrefix() != null) 
 				&& (getLiveWebPrefix().length() > 0)) {
 
