@@ -28,7 +28,6 @@ import org.archive.wayback.archivalurl.requestparser.PathPrefixDatePrefixQueryRe
 import org.archive.wayback.archivalurl.requestparser.PathPrefixDateRangeQueryRequestParser;
 import org.archive.wayback.archivalurl.requestparser.ReplayRequestParser;
 import org.archive.wayback.requestparser.CompositeRequestParser;
-import org.archive.wayback.requestparser.FormRequestParser;
 import org.archive.wayback.requestparser.OpenSearchRequestParser;
 
 /**
@@ -67,6 +66,10 @@ public class ArchivalUrlRequestParser extends CompositeRequestParser {
 	 * iframe-wrapped context
 	 */
 	public final static String IFRAME_WRAPPED_CONTEXT = "if";
+	/**
+	 * object/embed wrapped context
+	 */
+	public final static String OBJECT_EMBED_WRAPPED_CONTEXT = "oe";	
 	/**
 	 * Charset detection strategy context - should be followed by an integer
 	 * indicating which strategy to use 

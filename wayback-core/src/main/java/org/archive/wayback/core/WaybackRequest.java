@@ -260,6 +260,10 @@ public class WaybackRequest {
 	 * Request: IMG context requested 
 	 */
 	public static final String REQUEST_IMAGE_CONTEXT = "imagecontext";
+	/**
+	 * Request: OBJECT or EMBED context requested 
+	 */
+	public static final String REQUEST_OBJECT_EMBED_CONTEXT = "objectembedcontext";
 
 	/**
 	 * Request: Identity context requested (totally transparent) 
@@ -794,6 +798,13 @@ public class WaybackRequest {
 		return getBoolean(REQUEST_IMAGE_CONTEXT);
 	}
 
+	public void setObjectEmbedContext(boolean isObjectEmbedContext) {
+		setBoolean(REQUEST_OBJECT_EMBED_CONTEXT,isObjectEmbedContext);
+	}
+	public boolean isObjectEmbedContext() {
+		return getBoolean(REQUEST_OBJECT_EMBED_CONTEXT);
+	}
+	
 	public void setIdentityContext(boolean isIdentityContext) {
 		setBoolean(REQUEST_IDENTITY_CONTEXT,isIdentityContext);
 	}
@@ -818,7 +829,7 @@ public class WaybackRequest {
 	public boolean isAnyEmbeddedContext()
 	{
 		return this.isCSSContext() || this.isIMGContext() || this.isJSContext() ||
-			this.isFrameWrapperContext() || this.isIFrameWrapperContext();
+			this.isFrameWrapperContext() || this.isIFrameWrapperContext() || this.isObjectEmbedContext();
 	}
 
 	public void setCharsetMode(int mode) {

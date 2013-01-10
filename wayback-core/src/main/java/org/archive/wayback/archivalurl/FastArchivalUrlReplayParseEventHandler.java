@@ -96,6 +96,8 @@ public class FastArchivalUrlReplayParseEventHandler implements
 		new URLStringTransformer("js_");
 	private static URLStringTransformer imageUrlTrans =
 		new URLStringTransformer("im_");
+	private static URLStringTransformer objectEmbedUrlTrans =
+		new URLStringTransformer("oe_");
 	
 	/** Constructor... */
 	public FastArchivalUrlReplayParseEventHandler() {
@@ -270,8 +272,8 @@ public class FastArchivalUrlReplayParseEventHandler implements
 			transformAttr(context, tagNode, "HREF", anchorUrlTrans);
 
 		} else if(tagName.equals("APPLET")) {
-			transformAttr(context, tagNode, "CODEBASE", anchorUrlTrans);
-			transformAttr(context, tagNode, "ARCHIVE", anchorUrlTrans);
+			transformAttr(context, tagNode, "CODEBASE", objectEmbedUrlTrans);
+			transformAttr(context, tagNode, "ARCHIVE", objectEmbedUrlTrans);
 
 		} else if(tagName.equals("AREA")) {
 			transformAttr(context, tagNode, "HREF", anchorUrlTrans);
@@ -289,7 +291,7 @@ public class FastArchivalUrlReplayParseEventHandler implements
 			}
 
 		} else if(tagName.equals("EMBED")) {
-			transformAttr(context, tagNode, "SRC", anchorUrlTrans);
+			transformAttr(context, tagNode, "SRC", objectEmbedUrlTrans);
 
 		} else if(tagName.equals("IFRAME")) {
 			transformAttr(context, tagNode, "SRC", anchorUrlTrans);
@@ -323,8 +325,8 @@ public class FastArchivalUrlReplayParseEventHandler implements
 			transformAttr(context, tagNode, "URL", anchorUrlTrans);
 
 		} else if(tagName.equals("OBJECT")) {
-			transformAttr(context, tagNode, "CODEBASE", anchorUrlTrans);
-			transformAttr(context, tagNode, "CDATA", anchorUrlTrans);
+			transformAttr(context, tagNode, "CODEBASE", objectEmbedUrlTrans);
+			transformAttr(context, tagNode, "CDATA", objectEmbedUrlTrans);
 
 		} else if(tagName.equals("SCRIPT")) {
 			transformAttr(context, tagNode, "SRC", jsUrlTrans);
