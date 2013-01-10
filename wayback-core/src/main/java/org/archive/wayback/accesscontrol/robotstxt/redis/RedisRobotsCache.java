@@ -18,6 +18,8 @@ import org.archive.wayback.core.Resource;
 import org.archive.wayback.exception.LiveDocumentNotAvailableException;
 import org.archive.wayback.exception.LiveWebCacheUnavailableException;
 import org.archive.wayback.exception.LiveWebTimeoutException;
+import org.archive.wayback.exception.WaybackException;
+import org.archive.wayback.liveweb.LiveWebCache;
 import org.archive.wayback.webapp.PerformanceLogger;
 
 public class RedisRobotsCache extends LiveWebProxyCache {
@@ -49,6 +51,10 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 	
 	/* REDIS */
 	private RedisRobotsLogic redisCmds;
+	
+	/* OTHER EXTERNAL CACHE */
+	private LiveWebCache cache = null;
+	
 		
 	public void setRedisConnMan(RedisConnectionManager redisConn) {
 		this.redisCmds = new RedisRobotsLogic(redisConn);
@@ -75,8 +81,17 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 		} catch (LiveWebCacheUnavailableException lw) {
 			value = null;
 		}
-			
-		if (value == null) {
+		
+		// Use the old liveweb cache, if provided
+		if ((value == null) && (cache != null)) {
+			try {
+				return cache.getCachedResource(urlURL, maxCacheMS, bUseOlder);
+			} catch (LiveDocumentNotAvailableException ldNA) {
+				throw ldNA;
+			} catch (WaybackException we) {
+				throw new LiveDocumentNotAvailableException(urlURL, 502, we.toString());
+			}
+		} else if (value == null) {
 			RobotsContext context = doSyncUpdate(url, null, true, true);
 											
 			if ((context == null) || !context.isValid()) {
@@ -514,5 +529,13 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 		
 		cache.init();
 		cache.processRedisUpdateQueue();
+	}
+
+	public LiveWebCache getCache() {
+		return cache;
+	}
+
+	public void setCache(LiveWebCache cache) {
+		this.cache = cache;
 	}
 }
