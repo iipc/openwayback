@@ -102,6 +102,11 @@ public class ArchivalUrl {
 			sb.append(ArchivalUrlRequestParser.FLAG_DELIM);
 			dateLen++;
 		}
+		if(wbRequest.isObjectEmbedContext()) {
+			sb.append(ArchivalUrlRequestParser.OBJECT_EMBED_WRAPPED_CONTEXT);
+			sb.append(ArchivalUrlRequestParser.FLAG_DELIM);
+			dateLen++;
+		}
 		if(wbRequest.isIdentityContext()) {
 			sb.append(ArchivalUrlRequestParser.IDENTITY_CONTEXT);
 			sb.append(ArchivalUrlRequestParser.FLAG_DELIM);
@@ -151,6 +156,8 @@ public class ArchivalUrl {
 					wbRequest.setJSContext(true);
 				} else if(flag.equals(ArchivalUrlRequestParser.IMG_CONTEXT)) {
 					wbRequest.setIMGContext(true);
+				} else if(flag.equals(ArchivalUrlRequestParser.OBJECT_EMBED_WRAPPED_CONTEXT)) {
+					wbRequest.setObjectEmbedContext(true);
 				} else if(flag.equals(ArchivalUrlRequestParser.IDENTITY_CONTEXT)) {
 					wbRequest.setIdentityContext(true);
 				} else if(flag.equals(ArchivalUrlRequestParser.FRAME_WRAPPED_CONTEXT)) {
