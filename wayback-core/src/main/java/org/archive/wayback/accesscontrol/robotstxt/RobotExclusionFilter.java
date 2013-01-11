@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -179,11 +180,14 @@ public class RobotExclusionFilter extends ExclusionFilter {
 				}
 			} else {
 				long start = System.currentTimeMillis();;
+				Resource resource = null;
 				try {
-					LOGGER.fine("ROBOT: NotCached - Downloading("+urlString+")");
+					if (LOGGER.isLoggable(Level.FINE)) {
+						LOGGER.fine("ROBOT: NotCached - Downloading("+urlString+")");
+					}
 				
 					tmpRules = new RobotRules();
-					Resource resource = webCache.getCachedResource(new URL(urlString),
+					resource = webCache.getCachedResource(new URL(urlString),
 							maxCacheMS,true);
 					//long elapsed = System.currentTimeMillis() - start;
 					//PerformanceLogger.noteElapsed("RobotRequest", elapsed, urlString);
@@ -192,10 +196,13 @@ public class RobotExclusionFilter extends ExclusionFilter {
 						LOGGER.info("ROBOT: NotAvailable("+urlString+")");
 						throw new LiveDocumentNotAvailableException(urlString);
 					}
-					tmpRules.parse(resource);
+					tmpRules.parse(resource);					
 					rulesCache.put(firstUrlString,tmpRules);
 					rules = tmpRules;
-					LOGGER.fine("ROBOT: Downloaded("+urlString+")");
+					
+					if (LOGGER.isLoggable(Level.FINE)) {
+						LOGGER.fine("ROBOT: Downloaded("+urlString+")");
+					}
 
 				} catch (LiveDocumentNotAvailableException e) {
 					LOGGER.info("ROBOT: LiveDocumentNotAvailableException("+urlString+")");
@@ -220,6 +227,14 @@ public class RobotExclusionFilter extends ExclusionFilter {
 					}
 					return null;
 				} finally {
+					if (resource != null) {
+						try {
+							resource.close();
+						} catch (IOException e) {
+							
+						}
+						resource = null;
+					}
 					long elapsed = System.currentTimeMillis() - start;
 					PerformanceLogger.noteElapsed("RobotRequest", elapsed, urlString);
 				}

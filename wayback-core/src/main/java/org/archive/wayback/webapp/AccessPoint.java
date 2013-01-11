@@ -399,7 +399,7 @@ implements ShutdownListener {
 		if (getSelfRedirectCanonicalizer() != null) {
 			try {
 				location = getSelfRedirectCanonicalizer().urlStringToKey(location);
-			} catch (URIException e) {
+			} catch (IOException e) {
 				return false;
 			}
 		}
@@ -444,7 +444,7 @@ implements ShutdownListener {
 		if (getSelfRedirectCanonicalizer() != null) {
 			try {
 				requestURL = getSelfRedirectCanonicalizer().urlStringToKey(requestURL);
-			} catch (URIException urie) {
+			} catch (IOException io) {
 				
 			}
 		}

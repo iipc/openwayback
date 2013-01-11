@@ -159,6 +159,8 @@ class RobotsContext implements ConnectionCallback
 			status = LIVE_TIMEOUT_ERROR;
 		} else if (exc instanceof UnknownHostException) {
 			status = LIVE_HOST_ERROR;
+		} else {
+			status = 502;
 		}
 		
 		setStatus(status);
