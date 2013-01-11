@@ -159,7 +159,7 @@ public class LocalResourceIndex implements ResourceIndex {
 		String urlKey;
 		try {
 			urlKey = canonicalizer.urlStringToKey(wbRequest.getRequestUrl());
-		} catch (URIException e) {
+		} catch (IOException e) {
 			throw new BadQueryException("Bad URL(" + 
 					wbRequest.getRequestUrl() + ")");
 		}

@@ -19,12 +19,12 @@
  */
 package org.archive.wayback.resourceindex.filterfactory;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.httpclient.URIException;
 import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.SearchResults;
@@ -67,7 +67,7 @@ public class QueryCaptureFilterGroup implements CaptureFilterGroup {
 		chain = new ObjectFilterChain<CaptureSearchResult>();
 		try {
 			keyUrl = canonicalizer.urlStringToKey(request.getRequestUrl());
-		} catch (URIException e) {
+		} catch (IOException e) {
 			throw new BadQueryException("Bad request URL(" + 
 					request.getRequestUrl() +")");
 		}

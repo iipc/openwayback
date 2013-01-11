@@ -2,6 +2,7 @@ package org.archive.wayback.accesscontrol.robotstxt.redis;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -20,6 +21,7 @@ import org.archive.wayback.exception.LiveWebCacheUnavailableException;
 import org.archive.wayback.exception.LiveWebTimeoutException;
 import org.archive.wayback.exception.WaybackException;
 import org.archive.wayback.liveweb.LiveWebCache;
+import org.archive.wayback.resourcestore.resourcefile.ArcResource;
 import org.archive.wayback.webapp.PerformanceLogger;
 
 public class RedisRobotsCache extends LiveWebProxyCache {
@@ -66,6 +68,44 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 		activeContexts = new HashMap<String, RobotsContext>();
 	}
 	
+	protected RobotsContext getFromCache(String url, URL urlURL, String current, long maxCacheMS, boolean bUseOlder)
+	{
+		RobotsContext context = new RobotsContext(url, current, true, true);
+		
+		ArcResource origResource = null;
+		
+		try {
+			origResource = (ArcResource)cache.getCachedResource(urlURL, maxCacheMS, bUseOlder);
+			
+			if (context.supportStatus(origResource.getStatusCode())) {		
+				String contentType = origResource.getArcRecord().getHeader().getMimetype();
+				int numToRead = (int)origResource.getArcRecord().getHeader().getLength();
+				
+				context.doRead(numToRead, contentType, origResource, "UTF-8");
+			}
+			
+		} catch (WaybackException we) {
+			context.handleException(we);			
+		} catch (IOException e) {
+			context.handleException(e);
+		} catch (InterruptedException e) {
+			context.handleException(e);
+		} finally {
+			if (origResource != null) {
+				try {
+					origResource.close();
+				} catch (IOException e) {
+					context.handleException(e);
+				}
+			}
+			if (context != null) {
+				updateCache(context);
+			}
+		}
+		
+		return context;
+	}
+	
 	@Override
 	public Resource getCachedResource(URL urlURL, long maxCacheMS,
 				boolean bUseOlder) throws LiveDocumentNotAvailableException,
@@ -83,16 +123,14 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 		}
 		
 		// Use the old liveweb cache, if provided
-		if ((value == null) && (cache != null)) {
-			try {
-				return cache.getCachedResource(urlURL, maxCacheMS, bUseOlder);
-			} catch (LiveDocumentNotAvailableException ldNA) {
-				throw ldNA;
-			} catch (WaybackException we) {
-				throw new LiveDocumentNotAvailableException(urlURL, 502, we.toString());
+		if (value == null) {
+			RobotsContext context = null;
+			
+			if (cache != null) {
+				context = getFromCache(url, urlURL, null, maxCacheMS, bUseOlder);
+			} else {
+				context = doSyncUpdate(url, null, true, true);
 			}
-		} else if (value == null) {
-			RobotsContext context = doSyncUpdate(url, null, true, true);
 											
 			if ((context == null) || !context.isValid()) {
 				throw new LiveDocumentNotAvailableException("Error Loading Live Robots");	
@@ -135,7 +173,18 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 			current = lw.toString();
 		}
 		
-		RobotsContext context = doSyncUpdate(url, current, false, true);
+		RobotsContext context = null;
+		
+		if (cache != null) {
+			try {
+				context = getFromCache(url, new URL(url), current, 0, false);
+			} catch (MalformedURLException e) {
+				return null;
+			}
+		} else {
+			context = doSyncUpdate(url, current, false, true);
+		}
+		
 		LOGGER.info("Force updated: " + url);
 		return context;
 	}
@@ -351,7 +400,9 @@ public class RedisRobotsCache extends LiveWebProxyCache {
 			if (!context.isRedirectStatus() && !isValidRobots(newRedisValue) && isValidRobots(currentValue)) {
 				newTTL = totalTTL;
 				ttlOnly = true;
-				LOGGER.info("REFRESH ERROR: " + context.getStatus() + " - Keeping same robots for " + context.url);
+				if (LOGGER.isLoggable(Level.INFO)) {
+					LOGGER.info("REFRESH ERROR: " + context.getStatus() + " - Keeping same robots for " + context.url);
+				}
 			}
 		}
 				

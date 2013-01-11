@@ -28,7 +28,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.httpclient.URIException;
 import org.archive.io.arc.ARCRecord;
 import org.archive.wayback.accesscontrol.robotstxt.RobotExclusionFilterFactory;
 import org.archive.wayback.accesscontrol.staticmap.StaticMapExclusionFilterFactory;
@@ -79,7 +78,8 @@ public class LiveWebAccessPoint extends AbstractRequestHandler {
 		wbRequest.setRequestUrl(urlString);
 		URL url = null;
 		try {
-			if(!urlString.startsWith(UrlOperations.HTTP_SCHEME)) {
+			if(!urlString.startsWith(UrlOperations.HTTP_SCHEME) &&
+				!urlString.startsWith(UrlOperations.HTTPS_SCHEME)) {
 				throw new ResourceNotInArchiveException(urlString);
 			}
 			Thread.currentThread().setName("Thread " + 
@@ -100,7 +100,7 @@ public class LiveWebAccessPoint extends AbstractRequestHandler {
 			if (inner.getSelfRedirectCanonicalizer() != null) {
 				try {
 					canonUrl = inner.getSelfRedirectCanonicalizer().urlStringToKey(urlString);
-				} catch (URIException uiex) {
+				} catch (IOException io) {
 					throw new BadQueryException("Bad URL(" + urlString + ")");
 				}
 			}
