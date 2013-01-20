@@ -32,7 +32,7 @@ public class CDXSearchResultSource implements SearchResultSource {
 		try {
 			
 			return new AdaptedIterator<String,CaptureSearchResult>
-				(input.getCDXLineIterator(prefix), new CDXLineToSearchResultAdapter());
+				(input.getCDXLineIterator(prefix, prefix), new CDXLineToSearchResultAdapter());
 			
 		} catch (IOException e) {
 			throw new ResourceIndexNotAvailableException(e.toString());
