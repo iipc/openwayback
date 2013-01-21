@@ -139,13 +139,26 @@ public class SimpleRedisRobotsCache implements LiveWebCache {
 	
 	class RobotsResult
 	{
+		String oldRobots;
 		String robots;
 		int status;
+		
+		RobotsResult(String oldRobots)
+		{
+			status = 0;
+			this.oldRobots = oldRobots;
+			robots = null;
+		}
 		
 		RobotsResult(String robots, int status)
 		{
 			this.robots = robots;
 			this.status = status;
+		}
+		
+		boolean isSameRobots()
+		{
+			return (robots == null) || (oldRobots == null) || robots.equals(oldRobots);			
 		}
 	}
 	
@@ -247,7 +260,7 @@ public class SimpleRedisRobotsCache implements LiveWebCache {
 		return !value.startsWith(ROBOTS_TOKEN_ERROR) && !value.equals(ROBOTS_TOKEN_EMPTY);
 	}
 	
-	public String[] forceUpdate(String url, int minUpdateTime, boolean cacheFails)
+	public RobotsResult forceUpdate(String url, int minUpdateTime, boolean cacheFails)
 	{
 		String current = null;
 		
@@ -256,7 +269,7 @@ public class SimpleRedisRobotsCache implements LiveWebCache {
 			
 			// Just in case, avoid too many updates
 			if ((minUpdateTime > 0) && (value != null) && !isExpired(value, url, minUpdateTime)) {
-				return new String[]{value.value};
+				return new RobotsResult(value.value);
 			}
 			
 			current = (value != null ? value.value : null);
@@ -269,7 +282,7 @@ public class SimpleRedisRobotsCache implements LiveWebCache {
 		try {
 			result = loadExternal(new URL(url), 0, false);
 		} catch (MalformedURLException e) {
-			return new String[]{current};
+			return new RobotsResult(current);
 		}
 		
 		if ((result.status == STATUS_OK) || cacheFails) {
@@ -278,11 +291,10 @@ public class SimpleRedisRobotsCache implements LiveWebCache {
 			if (LOGGER.isLoggable(Level.INFO)) {
 				LOGGER.info("Force updated: " + url);
 			}
-			
-			return new String[]{current, result.robots};
-		} else {
-			return new String[]{current};
 		}
+		
+		result.oldRobots = current;
+		return result;
 	}
 
 //	public RedisRobotsLogic getRedisConnMan() {

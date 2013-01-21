@@ -13,7 +13,6 @@ import java.util.logging.Logger;
 import org.archive.wayback.accesscontrol.robotstxt.redis.RedisRobotsLogic.KeyRedisValue;
 import org.archive.wayback.exception.LiveWebCacheUnavailableException;
 import org.archive.wayback.liveweb.RemoteLiveWebCache;
-import org.archive.wayback.webapp.PerformanceLogger;
 
 public class RedisRefresher extends SimpleRedisRobotsCache {
 	
@@ -105,7 +104,7 @@ public class RedisRefresher extends SimpleRedisRobotsCache {
 				
 				KeyRedisValue value = null;
 				
-				long startTime = System.currentTimeMillis();
+				//long startTime = System.currentTimeMillis();
 								
 				try {
 					value = redisCmds.popKeyAndGet(UPDATE_QUEUE_KEY);
@@ -157,10 +156,10 @@ public class RedisRefresher extends SimpleRedisRobotsCache {
 		@Override
 		public void run()
 		{
-			String[] results = forceUpdate(url, 0, true);
+			RobotsResult result = forceUpdate(url, 0, true);
 			
 			if (LOGGER.isLoggable(Level.INFO)) {
-				LOGGER.info(((results.length == 2) ? "UPDATE " : "NOCHANGE ") + url); 
+				LOGGER.info((!result.isSameRobots() ? "UPDATE " : "NOCHANGE ") + url); 
 			}
 			
 			if (activeUrls != null) {

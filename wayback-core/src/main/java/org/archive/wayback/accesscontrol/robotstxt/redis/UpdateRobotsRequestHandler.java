@@ -7,6 +7,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.archive.wayback.accesscontrol.robotstxt.redis.SimpleRedisRobotsCache.RobotsResult;
 import org.archive.wayback.util.webapp.AbstractRequestHandler;
 
 //TODO: Add a proper jsp/view for this
@@ -69,19 +70,17 @@ public class UpdateRobotsRequestHandler extends AbstractRequestHandler {
 			}
 			
 			//RobotsContext context = robotsCache.forceUpdate(url, minUpdateTime);
-			String[] results = robotsCache.forceUpdate(url, minUpdateTime, false);
+			RobotsResult result = robotsCache.forceUpdate(url, minUpdateTime, false);
 			
-			if (results == null) {
+			if (result == null) {
 				writer.println("<p>Error Updating Robots (see logs)</p>");
 				return true;
 			}
-			
-			boolean sameRobots = results.length < 2 || results[0].equals(results[1]);
 						
-			if (!sameRobots) {
+			if (!result.isSameRobots()) {
 				writer.println("<b>UPDATED Robots</b>");
 				writer.println("<p><i>Old Robots:</i></p>");
-				writer.println("<pre>" + results[0] + "</pre>");
+				writer.println("<pre>" + result.oldRobots + "</pre>");
 				writer.println("<p><i>NEW Updated Robots:</i></p>");
 			} else {
 				writer.println("<b>Robots Unchanged</b>");
@@ -90,24 +89,12 @@ public class UpdateRobotsRequestHandler extends AbstractRequestHandler {
 			
 			writer.print("<pre>");
 			
-//			if (context.getNewRobots() == null) {
-//				switch (context.getStatus()) {
-//				case RobotsContext.LIVE_HOST_ERROR:
-//					writer.print("Unknown Host Error");
-//					break;
-//					
-//				case RobotsContext.LIVE_TIMEOUT_ERROR:
-//					writer.print("Connection Timed Out Error");
-//					break;					
-//					
-//				default:
-//					writer.print("Error: " + context.getStatus());
-//				}
-//
-//				writer.print(" (" + RedisRobotsCache.ROBOTS_TOKEN_ERROR + context.getStatus() + ")");
-//			} else {
-//				writer.print(context.getNewRobots());
-//			}
+			if (result.robots != null && result.status == 200) {
+				writer.print(result.robots);
+			} else {
+				writer.print("No Valid Robots Found: Status " + result.status);
+			}
+			
 			writer.println("</pre>");
 		}
 		
