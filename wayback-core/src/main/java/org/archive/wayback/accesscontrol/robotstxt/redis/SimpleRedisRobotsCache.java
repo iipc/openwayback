@@ -28,6 +28,8 @@ public class SimpleRedisRobotsCache implements LiveWebCache {
 	/* EXTERNAL CACHE */
 	protected LiveWebCache liveweb = null;
 	
+	protected boolean gzipRobots = false;
+	
 	final static int STATUS_OK = 200;
 	final static int STATUS_ERROR = 502;
 	
@@ -128,8 +130,8 @@ public class SimpleRedisRobotsCache implements LiveWebCache {
 		}
 		
 		if ((maxTime - value.ttl) >= refreshTime) {
-			LOGGER.info("Queue for robot refresh: "
-					+ (maxTime - value.ttl) + ">=" + refreshTime + " " + url);
+//			LOGGER.info("Queue for robot refresh: "
+//					+ (maxTime - value.ttl) + ">=" + refreshTime + " " + url);
 			
 			return true;
 		}
@@ -253,7 +255,7 @@ public class SimpleRedisRobotsCache implements LiveWebCache {
 				
 		final RedisValue value = new RedisValue((ttlOnly ? null : newRedisValue), newTTL);
 		
-		redisCmds.updateValue(url, value);
+		redisCmds.updateValue(url, value, gzipRobots);
 	}
 	
 	protected boolean isValidRobots(String value) {
@@ -288,9 +290,9 @@ public class SimpleRedisRobotsCache implements LiveWebCache {
 		if ((result.status == STATUS_OK) || cacheFails) {
 			this.updateCache(result.robots, url, current, result.status, cacheFails);
 			
-			if (LOGGER.isLoggable(Level.INFO)) {
-				LOGGER.info("Force updated: " + url);
-			}
+//			if (LOGGER.isLoggable(Level.INFO)) {
+//				LOGGER.info("Force updated: " + url);
+//			}
 		}
 		
 		result.oldRobots = current;
@@ -311,5 +313,13 @@ public class SimpleRedisRobotsCache implements LiveWebCache {
 
 	public void setLiveweb(LiveWebCache liveweb) {
 		this.liveweb = liveweb;
+	}
+
+	public boolean isGzipRobots() {
+		return gzipRobots;
+	}
+
+	public void setGzipRobots(boolean gzipRobots) {
+		this.gzipRobots = gzipRobots;
 	}	
 }
