@@ -157,7 +157,7 @@ public class RedisRefresher extends SimpleRedisRobotsCache {
 		@Override
 		public void run()
 		{
-			String[] results = forceUpdate(url, 600, true);
+			String[] results = forceUpdate(url, 0, true);
 			
 			if (LOGGER.isLoggable(Level.INFO)) {
 				LOGGER.info(((results.length == 2) ? "UPDATE " : "NOCHANGE ") + url); 
