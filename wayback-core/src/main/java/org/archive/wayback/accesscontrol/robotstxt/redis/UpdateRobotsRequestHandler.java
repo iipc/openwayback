@@ -19,7 +19,7 @@ public class UpdateRobotsRequestHandler extends AbstractRequestHandler {
 	protected final static String HTTP_WWW_PREFIX = HTTP_PREFIX + WWW_PREFIX;
 	protected final static String ROBOT_SUFFIX = "/robots.txt";
 	
-	private RedisRobotsCache robotsCache;
+	private SimpleRedisRobotsCache robotsCache;
 	
 	// Minimum time (secs) between subsequent forced updates
 	// Default: off for now
@@ -33,11 +33,11 @@ public class UpdateRobotsRequestHandler extends AbstractRequestHandler {
 		this.minUpdateTime = minUpdateTime;
 	}
 
-	public RedisRobotsCache getRobotsCache() {
+	public SimpleRedisRobotsCache getRobotsCache() {
 		return robotsCache;
 	}
 
-	public void setRobotsCache(RedisRobotsCache robotsCache) {
+	public void setRobotsCache(SimpleRedisRobotsCache robotsCache) {
 		this.robotsCache = robotsCache;
 	}
 
@@ -68,19 +68,20 @@ public class UpdateRobotsRequestHandler extends AbstractRequestHandler {
 				url = HTTP_WWW_PREFIX + url;
 			}
 			
-			RobotsContext context = robotsCache.forceUpdate(url, minUpdateTime);
+			//RobotsContext context = robotsCache.forceUpdate(url, minUpdateTime);
+			String[] results = robotsCache.forceUpdate(url, minUpdateTime);
 			
-			if (context == null) {
+			if (results == null) {
 				writer.println("<p>Error Updating Robots (see logs)</p>");
 				return true;
 			}
 			
-			boolean sameRobots = (context.current != null) && (context.getNewRobots() != null) && (context.current.equals(context.getNewRobots()));
+			boolean sameRobots = results.length < 2 || results[0].equals(results[1]);
 						
 			if (!sameRobots) {
 				writer.println("<b>UPDATED Robots</b>");
 				writer.println("<p><i>Old Robots:</i></p>");
-				writer.println("<pre>" + context.current + "</pre>");
+				writer.println("<pre>" + results[0] + "</pre>");
 				writer.println("<p><i>NEW Updated Robots:</i></p>");
 			} else {
 				writer.println("<b>Robots Unchanged</b>");
@@ -89,24 +90,24 @@ public class UpdateRobotsRequestHandler extends AbstractRequestHandler {
 			
 			writer.print("<pre>");
 			
-			if (context.getNewRobots() == null) {
-				switch (context.getStatus()) {
-				case RobotsContext.LIVE_HOST_ERROR:
-					writer.print("Unknown Host Error");
-					break;
-					
-				case RobotsContext.LIVE_TIMEOUT_ERROR:
-					writer.print("Connection Timed Out Error");
-					break;					
-					
-				default:
-					writer.print("Error: " + context.getStatus());
-				}
-
-				writer.print(" (" + RedisRobotsCache.ROBOTS_TOKEN_ERROR + context.getStatus() + ")");
-			} else {
-				writer.print(context.getNewRobots());
-			}
+//			if (context.getNewRobots() == null) {
+//				switch (context.getStatus()) {
+//				case RobotsContext.LIVE_HOST_ERROR:
+//					writer.print("Unknown Host Error");
+//					break;
+//					
+//				case RobotsContext.LIVE_TIMEOUT_ERROR:
+//					writer.print("Connection Timed Out Error");
+//					break;					
+//					
+//				default:
+//					writer.print("Error: " + context.getStatus());
+//				}
+//
+//				writer.print(" (" + RedisRobotsCache.ROBOTS_TOKEN_ERROR + context.getStatus() + ")");
+//			} else {
+//				writer.print(context.getNewRobots());
+//			}
 			writer.println("</pre>");
 		}
 		
