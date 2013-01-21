@@ -69,7 +69,7 @@ public class UpdateRobotsRequestHandler extends AbstractRequestHandler {
 			}
 			
 			//RobotsContext context = robotsCache.forceUpdate(url, minUpdateTime);
-			String[] results = robotsCache.forceUpdate(url, minUpdateTime);
+			String[] results = robotsCache.forceUpdate(url, minUpdateTime, false);
 			
 			if (results == null) {
 				writer.println("<p>Error Updating Robots (see logs)</p>");

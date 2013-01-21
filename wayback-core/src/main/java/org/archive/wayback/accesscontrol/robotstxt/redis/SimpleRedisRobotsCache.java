@@ -246,7 +246,7 @@ public class SimpleRedisRobotsCache implements LiveWebCache {
 		return !value.startsWith(ROBOTS_TOKEN_ERROR) && !value.equals(ROBOTS_TOKEN_EMPTY);
 	}
 	
-	public String[] forceUpdate(String url, int minUpdateTime)
+	public String[] forceUpdate(String url, int minUpdateTime, boolean cacheFails)
 	{
 		String current = null;
 		
@@ -271,8 +271,8 @@ public class SimpleRedisRobotsCache implements LiveWebCache {
 			return new String[]{current};
 		}
 		
-		if (result.status == STATUS_OK) {
-			this.updateCache(result.robots, url, current, result.status, false);
+		if ((result.status == STATUS_OK) || cacheFails) {
+			this.updateCache(result.robots, url, current, result.status, cacheFails);
 			
 			if (LOGGER.isLoggable(Level.INFO)) {
 				LOGGER.info("Force updated: " + url);

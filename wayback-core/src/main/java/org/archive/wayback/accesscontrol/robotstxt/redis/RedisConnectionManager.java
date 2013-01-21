@@ -5,7 +5,6 @@ import java.util.logging.Logger;
 
 import org.apache.commons.pool.BasePoolableObjectFactory;
 import org.apache.commons.pool.impl.GenericObjectPool;
-import org.archive.wayback.webapp.PerformanceLogger;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPoolConfig;
@@ -181,7 +180,7 @@ public class RedisConnectionManager {
 			jedis.select(db);
 		}
 		
-		PerformanceLogger.noteElapsed("JedisGetResource", System.currentTimeMillis() - startTime);		
+		//PerformanceLogger.noteElapsed("JedisGetResource", System.currentTimeMillis() - startTime);		
 		return jedis;
 	}
 	

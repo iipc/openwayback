@@ -6,17 +6,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.zip.Deflater;
 import java.util.zip.GZIPOutputStream;
 
 import org.apache.commons.io.IOUtils;
 import org.archive.util.zip.OpenJDK7GZIPInputStream;
 import org.archive.wayback.exception.LiveWebCacheUnavailableException;
-import org.archive.wayback.webapp.PerformanceLogger;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.exceptions.JedisConnectionException;
@@ -142,7 +141,7 @@ public class RedisRobotsLogic {
 			return value;
 			
 		} finally {
-			PerformanceLogger.noteElapsed("RedisGetTTL", System.currentTimeMillis() - startTime, ((value == null) ? "REDIS MISS: " : "REDIS HIT: ") + key);
+			//PerformanceLogger.noteElapsed("RedisGetTTL", System.currentTimeMillis() - startTime, ((value == null) ? "REDIS MISS: " : "REDIS HIT: ") + key);
 		}
 	}
 	
@@ -173,7 +172,7 @@ public class RedisRobotsLogic {
 				}
 			});
 		} finally {		
-			PerformanceLogger.noteElapsed("RedisMultiGetTTL", System.currentTimeMillis() - startTime, Arrays.toString(keys));
+			//PerformanceLogger.noteElapsed("RedisMultiGetTTL", System.currentTimeMillis() - startTime, Arrays.toString(keys));
 		}
 		
 		return values;
@@ -198,7 +197,12 @@ public class RedisRobotsLogic {
 					try {
 						byte[] array = value.value.getBytes(UTF8);
 						ByteArrayOutputStream buff = new ByteArrayOutputStream(array.length + 8);
-						GZIPOutputStream stream = new GZIPOutputStream(buff);
+						GZIPOutputStream stream = new GZIPOutputStream(buff) {
+						  {
+							        def.setLevel(Deflater.BEST_COMPRESSION);
+						  }
+						};
+						
 						stream.write(array);
 						stream.finish();
 						
