@@ -159,8 +159,9 @@ public class SimpleRedisRobotsCache implements LiveWebCache {
 		
 		try {
 			origResource = (ArcResource)liveweb.getCachedResource(urlURL, maxCacheMS, bUseOlder);
+			status = origResource.getStatusCode();
 			
-			if (origResource.getStatusCode() == STATUS_OK) {		
+			if (status == STATUS_OK) {		
 				//String contentType = origResource.getArcRecord().getHeader().getMimetype();
 				
 				int numToRead = (int)origResource.getArcRecord().getHeader().getLength();
