@@ -1,12 +1,20 @@
 package org.archive.wayback.accesscontrol.robotstxt.redis;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.zip.GZIPOutputStream;
 
+import org.apache.commons.io.IOUtils;
+import org.archive.util.zip.OpenJDK7GZIPInputStream;
 import org.archive.wayback.exception.LiveWebCacheUnavailableException;
 import org.archive.wayback.webapp.PerformanceLogger;
 
@@ -17,6 +25,8 @@ public class RedisRobotsLogic {
 	
 	private final static Logger LOGGER = 
 		Logger.getLogger(RedisRobotsLogic.class.getName());
+	
+	final static String UTF8 = "UTF-8";
 	
 	private RedisConnectionManager redisConn;
 	
@@ -91,12 +101,42 @@ public class RedisRobotsLogic {
 			{
 				public RedisValue run(Jedis jedis)
 				{
-					String value = jedis.get(key);
-					if (value == null) {
+					//String value = jedis.get(key);
+					byte[] binValue = null;
+					
+					try {
+						binValue = jedis.get(key.getBytes(UTF8));
+					} catch (UnsupportedEncodingException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+					
+					if (binValue == null) {
 						return null;
 					}
+					
+					String stringValue = null;
+					
+					try {
+						if (isGzipStream(binValue)) {
+							InputStream stream = new OpenJDK7GZIPInputStream(new ByteArrayInputStream(binValue));
+							stringValue = IOUtils.toString(stream, UTF8);
+						}
+					} catch (IOException e) {
+
+					}
+					
+					if (stringValue == null) {					
+						try {
+							stringValue = new String(binValue, UTF8);
+						} catch (UnsupportedEncodingException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+					
 					long ttl = jedis.ttl(key);
-					return new RedisValue(value, ttl);
+					return new RedisValue(stringValue, ttl);
 				}
 			});
 			return value;
@@ -141,14 +181,32 @@ public class RedisRobotsLogic {
 	
 	public void updateValue(final String url, final RedisValue value)
 	{
+		updateValue(url, value, false);
+	}
+	
+	public void updateValue(final String url, final RedisValue value, final boolean gzip)
+	{
 		this.runJedisCmd(new JedisRunnerVoid()
 		{
 			public void run(Jedis jedis)
 			{
 				if (value.value == null) {
 					jedis.expire(url, (int)value.ttl);
-				} else {
+				} else if (!gzip) {
 					jedis.setex(url, (int)value.ttl, value.value);
+				} else {
+					try {
+						byte[] array = value.value.getBytes(UTF8);
+						ByteArrayOutputStream buff = new ByteArrayOutputStream(array.length + 8);
+						GZIPOutputStream stream = new GZIPOutputStream(buff);
+						stream.write(array);
+						stream.finish();
+						
+						jedis.setex(url.getBytes(UTF8), (int)value.ttl, buff.toByteArray());
+						
+					} catch (IOException io) {
+						io.printStackTrace();
+					}
 				}
 			}
 		});
@@ -216,5 +274,10 @@ public class RedisRobotsLogic {
 
 	public void appendLogInfo(PrintWriter info) {
 		redisConn.appendLogInfo(info);		
+	}
+	
+	public static boolean isGzipStream(byte[] bytes) {
+	      int head = ((int) bytes[0] & 0xff) | ((bytes[1] << 8) & 0xff00);
+	      return (OpenJDK7GZIPInputStream.GZIP_MAGIC == head);
 	}
 }
