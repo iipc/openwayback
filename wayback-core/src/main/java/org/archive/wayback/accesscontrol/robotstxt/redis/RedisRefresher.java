@@ -68,6 +68,7 @@ public class RedisRefresher extends SimpleRedisRobotsCache {
 		refresher.setLiveweb(liveweb);
 		refresher.setRedisConnMan(redisConnMan);
 		refresher.setRefreshService(refreshService);
+		refresher.setGzipRobots(Boolean.parseBoolean(props.getProperty("redis.gzipRobots", "false")));
 		
 		refresher.processRedisUpdateQueue();
 	}
