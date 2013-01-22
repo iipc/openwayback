@@ -260,6 +260,11 @@ public class TagMagix {
 				quote = "\\\"";
 				url = url.substring(2, origUrlLength - 2);
 			}
+			// Additional border case, probably embedded string not actual url
+			if ((url.charAt(0) == '\'' || url.charAt(0) == '"') && url.length() <= MIN_ATTR_LENGTH) {
+				idx = attrEnd;
+				continue;
+			}
 			String finalUrl = UrlOperations.resolveUrl(baseUrl,url);
 			String replayUrl = quote
 					+ uriConverter.makeReplayURI(captureDate, finalUrl) + quote;
