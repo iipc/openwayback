@@ -44,6 +44,8 @@ public class ProxyAccessPoint extends CompositeAccessPoint {
 	private AccessPoint nonProxyAccessPoint;
 	
 	private ProxyConfigSelector configSelector;
+	
+	private String proxyHostPort;
 
 	public ProxyConfigSelector getConfigSelector() {
 		return configSelector;
@@ -67,6 +69,14 @@ public class ProxyAccessPoint extends CompositeAccessPoint {
 
 	public void setNonProxyAccessPoint(AccessPoint nonProxyAccessPoint) {
 		this.nonProxyAccessPoint = nonProxyAccessPoint;
+	}
+
+	public String getProxyHostPort() {
+		return proxyHostPort;
+	}
+
+	public void setProxyHostPort(String proxyHostPort) {
+		this.proxyHostPort = proxyHostPort;
 	}
 
 	@Override
@@ -171,8 +181,13 @@ public class ProxyAccessPoint extends CompositeAccessPoint {
 		
 		configSelector.handleProxyPac(httpRequest, httpResponse);
 		
-		String hostName = httpRequest.getServerName();
-		int port = httpRequest.getServerPort();
+		String proxyPath = getProxyHostPort();
+		
+		if (proxyPath == null) {
+			String hostName = httpRequest.getServerName();
+			int port = httpRequest.getServerPort();
+			proxyPath = hostName + ":" + port;
+		}
 			
 		httpResponse.setContentType("application/x-ns-proxy-autoconfig");
 		
@@ -185,6 +200,6 @@ public class ProxyAccessPoint extends CompositeAccessPoint {
 			writer.println("  if (shExpMatch(host, \"" + host + "\")) { return \"DIRECT\"; }");
 		}
 		
-		writer.println("  return \"PROXY " + hostName + ":" + port + "\";\n}");
+		writer.println("  return \"PROXY " + proxyPath + "\";\n}");
 	}
 }
