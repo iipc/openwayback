@@ -25,6 +25,8 @@ public class RedisRobotsLogic {
 	private final static Logger LOGGER = 
 		Logger.getLogger(RedisRobotsLogic.class.getName());
 	
+	private final static int MIN_GZIP_SIZE = 20;
+	
 	final static String UTF8 = "UTF-8";
 	
 	private RedisConnectionManager redisConn;
@@ -191,7 +193,7 @@ public class RedisRobotsLogic {
 			{
 				if (value.value == null) {
 					jedis.expire(url, (int)value.ttl);
-				} else if (!gzip) {
+				} else if (!gzip || (value.value.length() < MIN_GZIP_SIZE)) {
 					jedis.setex(url, (int)value.ttl, value.value);
 				} else {
 					try {
@@ -204,7 +206,7 @@ public class RedisRobotsLogic {
 						};
 						
 						stream.write(array);
-						stream.finish();
+						stream.flush();
 						
 						jedis.setex(url.getBytes(UTF8), (int)value.ttl, buff.toByteArray());
 						
@@ -281,7 +283,11 @@ public class RedisRobotsLogic {
 	}
 	
 	public static boolean isGzipStream(byte[] bytes) {
-	      int head = ((int) bytes[0] & 0xff) | ((bytes[1] << 8) & 0xff00);
-	      return (OpenJDK7GZIPInputStream.GZIP_MAGIC == head);
+		if (bytes.length < 2) {
+			return false;
+		}
+		
+		int head = ((int) bytes[0] & 0xff) | ((bytes[1] << 8) & 0xff00);
+		return (OpenJDK7GZIPInputStream.GZIP_MAGIC == head);
 	}
 }

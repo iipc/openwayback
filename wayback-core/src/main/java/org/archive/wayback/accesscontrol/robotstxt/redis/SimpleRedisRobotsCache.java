@@ -106,6 +106,26 @@ public class SimpleRedisRobotsCache implements LiveWebCache {
 		}
 	}
 	
+	static boolean isFailedError(int status)
+	{
+		return (status == 0) || ((status >= 500));
+	}
+	
+	static boolean isRedirect(int status)
+	{
+		return (status == 301) || (status == 302);
+	}
+	
+	static boolean isFailedError(String code)
+	{
+		try {
+			int status = Integer.parseInt(code);
+			return isFailedError(status);
+		} catch (NumberFormatException n) {
+			return true;
+		}
+	}
+	
 	public boolean isExpired(RedisValue value, String url, int customRefreshTime) {
 		
 		int maxTime, refreshTime;
@@ -114,7 +134,7 @@ public class SimpleRedisRobotsCache implements LiveWebCache {
 		
 		if (isFailedError) {
 			String code = value.value.substring(ROBOTS_TOKEN_ERROR.length());
-			isFailedError = RobotsContext.isFailedError(code);
+			isFailedError = isFailedError(code);
 		}
 		
 		if (isFailedError) {
@@ -222,7 +242,7 @@ public class SimpleRedisRobotsCache implements LiveWebCache {
 			}
 			
 		} else {			
-			if ((status == 0) || ((status >= 500))) {
+			if (isFailedError(status)) {
 				newTTL = notAvailTotalTTL;
 				
 				// Only Cacheing successful lookups
@@ -244,7 +264,7 @@ public class SimpleRedisRobotsCache implements LiveWebCache {
 			}
 			
 			// Don't override a valid robots with a timeout error
-			if (!((status == 301) || (status == 302)) && !isValidRobots(newRedisValue) && isValidRobots(currentValue)) {
+			if (!isRedirect(status) && !isValidRobots(newRedisValue) && isValidRobots(currentValue)) {
 				newTTL = totalTTL;
 				ttlOnly = true;
 				if (LOGGER.isLoggable(Level.INFO)) {
