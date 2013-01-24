@@ -5,7 +5,6 @@ import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 
 public class RedisRobotExclusionFilterFactory extends RobotExclusionFilterFactory {
 	
-	private RedisRobotsCache cache;
 	private boolean cacheFails;
 
 	public boolean isCacheFails() {
@@ -23,6 +22,6 @@ public class RedisRobotExclusionFilterFactory extends RobotExclusionFilterFactor
 
 	@Override
 	public void shutdown() {
-		this.cache.shutdown();	
+		super.shutdown();
 	}
 }
