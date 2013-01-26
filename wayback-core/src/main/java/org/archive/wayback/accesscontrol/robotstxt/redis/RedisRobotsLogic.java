@@ -206,7 +206,7 @@ public class RedisRobotsLogic {
 						};
 						
 						stream.write(array);
-						stream.flush();
+						stream.finish();
 						
 						jedis.setex(url.getBytes(UTF8), (int)value.ttl, buff.toByteArray());
 						
