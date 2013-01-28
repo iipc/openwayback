@@ -25,6 +25,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.httpclient.URIException;
+import org.archive.util.iterator.CloseableIterator;
 import org.archive.wayback.ResourceIndex;
 import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.core.CaptureSearchResult;
@@ -49,7 +50,6 @@ import org.archive.wayback.resourceindex.filterfactory.ExclusionCaptureFilterGro
 import org.archive.wayback.resourceindex.filterfactory.FilterGroupFactory;
 import org.archive.wayback.resourceindex.filterfactory.QueryCaptureFilterGroupFactory;
 import org.archive.wayback.resourceindex.filterfactory.WindowFilterGroup;
-import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.ObjectFilter;
 import org.archive.wayback.util.ObjectFilterChain;
 import org.archive.wayback.util.ObjectFilterIterator;
@@ -108,6 +108,8 @@ public class LocalResourceIndex implements ResourceIndex {
 	
 	private boolean dedupeRecords = false;
 	
+	private boolean timestampSearch = false;
+	
 	private ObjectFilter<CaptureSearchResult> annotater = null;
 	
 	private ObjectFilter<CaptureSearchResult> filter = null;
@@ -157,9 +159,19 @@ public class LocalResourceIndex implements ResourceIndex {
 		String urlKey;
 		try {
 			urlKey = canonicalizer.urlStringToKey(wbRequest.getRequestUrl());
-		} catch (URIException e) {
+		} catch (IOException e) {
 			throw new BadQueryException("Bad URL(" + 
 					wbRequest.getRequestUrl() + ")");
+		}
+		
+		// Special handling for index where the key is url<space>timestamp
+		// for faster binary search lookup
+		if (timestampSearch && wbRequest.isTimestampSearchKey()) {
+			String replayTimestamp = wbRequest.getReplayTimestamp();
+			
+			if (replayTimestamp != null) {	
+				urlKey += " " + replayTimestamp;
+			}
 		}
 
 		// the CaptureSearchResults we are about to return:
@@ -226,6 +238,9 @@ public class LocalResourceIndex implements ResourceIndex {
 		List<CaptureFilterGroup> groups = getRequestFilterGroups(wbRequest); 
 		for(CaptureFilterGroup cfg : groups) {
 			cFilters.addFilters(cfg.getFilters());
+		}
+		if (filter != null) {
+			cFilters.addFilter(filter);
 		}
 		
 		CloseableIterator<CaptureSearchResult> itrC = 
@@ -370,5 +385,13 @@ public class LocalResourceIndex implements ResourceIndex {
 
 	public void setFilter(ObjectFilter<CaptureSearchResult> filter) {
 		this.filter = filter;
+	}
+
+	public boolean isTimestampSearch() {
+		return timestampSearch;
+	}
+
+	public void setTimestampSearch(boolean timestampSearch) {
+		this.timestampSearch = timestampSearch;
 	}
 }

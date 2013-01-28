@@ -45,7 +45,8 @@ public class BeanNameRegistrar {
 		"([0-9a-z_.-]+):([0-9]+):([0-9a-zA-Z_.-]+)";
 	
 	private static final String URI_PATTERN_STRING = 
-		"https?://([0-9a-z_.-]+)(:[0-9]+)?/([0-9a-zA-Z_.-]+)(/.*)";
+		"(https?://([0-9a-z_.-]+))?(:[0-9]+)?/([0-9a-zA-Z_.-]+)(/.*)";
+	
 	
 	private static final Pattern PORT_PATTERN = 
 		Pattern.compile(PORT_PATTERN_STRING);
@@ -135,16 +136,16 @@ public class BeanNameRegistrar {
 		m = URI_PATTERN.matcher(name);
 		
 		if (m.matches()) {
-			String host = m.group(1);
-			String portString = m.group(2);
+			String host = m.group(2);
+			String portString = m.group(3);
 			
 			if ((portString != null) && portString.startsWith(":")) {
 				port = Integer.parseInt(portString.substring(1));
 			}
 			
-			String path = m.group(3);
+			String path = m.group(4);
 			
-			mapper.addRequestHandler(port, host, path, handler);
+			mapper.addRequestHandler(port, null, path, handler);
 			return true;
 		}
 		return false;

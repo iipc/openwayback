@@ -28,6 +28,7 @@ import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.resourceindex.LocalResourceIndex;
 import org.archive.wayback.resourceindex.filters.ConditionalGetAnnotationFilter;
+import org.archive.wayback.resourceindex.filters.DuplicateHashFilter;
 import org.archive.wayback.resourceindex.filters.WARCRevisitAnnotationFilter;
 import org.archive.wayback.util.ObjectFilter;
 import org.archive.wayback.util.ObjectFilterChain;
@@ -41,6 +42,7 @@ public class AnnotatingCaptureFilterGroup implements CaptureFilterGroup {
 		if(index.isDedupeRecords()) {
 			chain.addFilter(new WARCRevisitAnnotationFilter());
 			chain.addFilter(new ConditionalGetAnnotationFilter());
+			//chain.addFilter(new DuplicateHashFilter());
 		}
 	}
 	

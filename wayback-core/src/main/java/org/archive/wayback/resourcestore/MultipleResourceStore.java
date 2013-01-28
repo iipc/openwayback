@@ -20,13 +20,14 @@
 package org.archive.wayback.resourcestore;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
+import javax.servlet.http.HttpServletResponse;
+
 import org.archive.wayback.ResourceStore;
-import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.CaptureSearchResult;
+import org.archive.wayback.core.Resource;
 import org.archive.wayback.exception.ResourceNotAvailableException;
 import org.archive.wayback.resourcestore.resourcefile.ArcWarcFilenameFilter;
 
@@ -41,13 +42,24 @@ public class MultipleResourceStore implements ResourceStore {
 	private final static Logger LOGGER = Logger.getLogger(MultipleResourceStore.class.getName());
 
 	private List<ResourceStore> stores;
+	
+	// If true, subsequent resource stores are skipped if the first
+	private boolean failOnFirstUnavailable = false;
+
+	public boolean isFailOnFirstUnavailable() {
+		return failOnFirstUnavailable;
+	}
+
+	public void setFailOnFirstUnavailable(boolean failOnFirstUnavailable) {
+		this.failOnFirstUnavailable = failOnFirstUnavailable;
+	}
 
 	public Resource retrieveResource(CaptureSearchResult result)
 		throws ResourceNotAvailableException {
     
 		String fileName = result.getFile();
 		if(fileName == null || fileName.length() < 1) {
-			throw new ResourceNotAvailableException("No ARC/WARC name in search result...");
+			throw new ResourceNotAvailableException("No ARC/WARC name in search result...", fileName);
 		}
 
 		final long offset = result.getOffset();
@@ -57,26 +69,40 @@ public class MultipleResourceStore implements ResourceStore {
 				&& !fileName.endsWith(ArcWarcFilenameFilter.WARC_GZ_SUFFIX)) {
 			fileName = fileName + ArcWarcFilenameFilter.ARC_GZ_SUFFIX;
 		}
+		
+		String errMsg = "";
 
 		for ( ResourceStore store : stores ) {
 			try {
 				Resource r = store.retrieveResource(result);
 
-				if ( r != null ) return r;
-			} catch (ResourceNotAvailableException e) {
-				LOGGER.warning(e.toString());
+				if ( r != null ) {
+					return r;
+				}
+				
+			} catch (ResourceNotAvailableException e) {				
+				LOGGER.info(e.toString());
+				if (!errMsg.isEmpty()) {
+					errMsg += " ";
+				}
+				errMsg += e.getMessage();
+				
+				// if skipOnUnavailable, then don't try any more resource stores if the current one is unavailable
+				if (failOnFirstUnavailable && (e.getStatus() == HttpServletResponse.SC_SERVICE_UNAVAILABLE)) {
+					break;
+				}
 			}
 		}
 
-		throw new ResourceNotAvailableException("Unable to retrieve: "+fileName);
+		throw new ResourceNotAvailableException(errMsg.isEmpty() ? "Unable to retrieve: "+fileName : errMsg, fileName);
 	}
 
 	public void setStores(List<ResourceStore> stores) {
-		this.stores = new ArrayList<ResourceStore>(stores);
+		this.stores = stores;
 	}
   
 	public List<ResourceStore> getStores( ) {
-		return new ArrayList<ResourceStore>(this.stores);
+		return this.stores;
 	}
 
 	public void shutdown() throws IOException {

@@ -106,6 +106,10 @@ public class ExclusionCaptureFilterGroup implements CaptureFilterGroup {
 	public void setSawRobots() {
 		sawRobots = true;
 	}
+	
+	public void setPassedAdministrative(boolean passed) {
+		passedAdministrative = passed;
+	}
 
 	public void setPassedAdministrative() {
 		passedAdministrative = true;

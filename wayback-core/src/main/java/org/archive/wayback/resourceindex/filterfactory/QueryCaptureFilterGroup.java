@@ -19,12 +19,12 @@
  */
 package org.archive.wayback.resourceindex.filterfactory;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.httpclient.URIException;
 import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.SearchResults;
@@ -34,6 +34,7 @@ import org.archive.wayback.resourceindex.filters.DateRangeFilter;
 import org.archive.wayback.resourceindex.filters.EndDateFilter;
 import org.archive.wayback.resourceindex.filters.HostMatchFilter;
 import org.archive.wayback.resourceindex.filters.SchemeMatchFilter;
+import org.archive.wayback.resourceindex.filters.SelfRedirectFilter;
 import org.archive.wayback.resourceindex.filters.UrlMatchFilter;
 import org.archive.wayback.resourceindex.filters.UrlPrefixMatchFilter;
 import org.archive.wayback.util.ObjectFilter;
@@ -66,7 +67,7 @@ public class QueryCaptureFilterGroup implements CaptureFilterGroup {
 		chain = new ObjectFilterChain<CaptureSearchResult>();
 		try {
 			keyUrl = canonicalizer.urlStringToKey(request.getRequestUrl());
-		} catch (URIException e) {
+		} catch (IOException e) {
 			throw new BadQueryException("Bad request URL(" + 
 					request.getRequestUrl() +")");
 		}
@@ -85,7 +86,7 @@ public class QueryCaptureFilterGroup implements CaptureFilterGroup {
 				exactDate = Timestamp.latestTimestamp().getDateStr();
 			}
 			chain.addFilter(new UrlMatchFilter(keyUrl));
-//			chain.addFilter(new SelfRedirectFilter(canonicalizer));
+			chain.addFilter(new SelfRedirectFilter(canonicalizer));
 			
 			long wantMS = request.getReplayDate().getTime();
 			if(request.getAccessPoint().isUseAnchorWindow()) {
@@ -98,7 +99,8 @@ public class QueryCaptureFilterGroup implements CaptureFilterGroup {
 			}
 
 		} else if(request.isCaptureQueryRequest()) {
-			chain.addFilter(new UrlMatchFilter(keyUrl));			
+			chain.addFilter(new UrlMatchFilter(keyUrl));
+			chain.addFilter(new SelfRedirectFilter(canonicalizer));
 			// OPTIMIZ: EndDateFilter is a hard stop: ABORT
 			//          DateRangeFilter is an INCLUDE/EXCLUDE
 			//          one class which EXCLUDEs before startDate, and ABORTs

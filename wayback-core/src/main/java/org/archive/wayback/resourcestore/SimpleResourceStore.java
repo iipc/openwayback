@@ -22,6 +22,8 @@ package org.archive.wayback.resourcestore;
 import java.io.IOException;
 import java.util.logging.Logger;
 
+import javax.servlet.http.HttpServletResponse;
+
 import org.archive.wayback.ResourceStore;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.CaptureSearchResult;
@@ -46,8 +48,10 @@ public class SimpleResourceStore implements ResourceStore {
 	private static String HTTP_ERROR = "HTTP";
 	private static String HTTP_502 = "502";
 	private String prefix = null;
-  private String regex;
-  private String replace;
+	private String regex;
+	private String replace;
+	private String includeFilter;
+  
 	private int retries = 2;
 
 	public Resource retrieveResource(CaptureSearchResult result)
@@ -56,8 +60,15 @@ public class SimpleResourceStore implements ResourceStore {
 		// extract ARC filename
 		String fileName = result.getFile();
 		if(fileName == null || fileName.length() < 1) {
-			throw new ResourceNotAvailableException("No ARC/WARC name in search result...");
+			throw new ResourceNotAvailableException("No ARC/WARC name in search result...", fileName);
 		}
+		
+        // If includeFilter is provided, filter out paths that don't contain the include filter
+        if (includeFilter != null) {
+        	if (!fileName.contains(includeFilter)) {
+        		throw new ResourceNotAvailableException("Resource " + fileName + " not found in this store", fileName, HttpServletResponse.SC_NOT_FOUND);
+        	}
+        }		
 
 		final long offset = result.getOffset();
 		if(!fileName.endsWith(ArcWarcFilenameFilter.ARC_SUFFIX)
@@ -67,16 +78,16 @@ public class SimpleResourceStore implements ResourceStore {
 			fileName = fileName + ArcWarcFilenameFilter.ARC_GZ_SUFFIX;
 		}
 				
-                String fileUrl;
-                if ( regex != null && replace != null )
-                  {
-                    fileUrl = fileName.replaceAll( regex, replace );
-                  }
-                else
-                  {
-                    fileUrl = prefix + fileName;
-                  }
-
+        String fileUrl;
+        if ( regex != null && replace != null )
+          {
+            fileUrl = fileName.replaceAll( regex, replace );
+          }
+        else
+          {
+            fileUrl = prefix + fileName;
+          }
+        
 		Resource r = null;
 		try {
 			int attempts = retries;
@@ -90,7 +101,7 @@ public class SimpleResourceStore implements ResourceStore {
 	        				&& message.contains(HTTP_ERROR) 
 	        				&& message.contains(HTTP_502)) {
 	        			
-	        			LOGGER.warning(String.format(
+	        			LOGGER.info(String.format(
 	        					"Failed attempt for (%s) retrying with" +
 	        					" (%d) attempts left",fileUrl,attempts));
 	        		} else {
@@ -100,10 +111,10 @@ public class SimpleResourceStore implements ResourceStore {
 	        }
 
 		} catch (IOException e) {
-			LOGGER.warning("Unable to retrieve:" + fileUrl + ":" + offset);
-			e.printStackTrace();
-			throw new ResourceNotAvailableException("Unable to retrieve",
-					e.getLocalizedMessage());
+			String msg = fileUrl + " - " + e;
+			LOGGER.info("Unable to retrieve:" + msg);
+			
+			throw new ResourceNotAvailableException(msg, fileUrl);
 		}
 		return r;
 	}
@@ -156,5 +167,14 @@ public class SimpleResourceStore implements ResourceStore {
 	 */
 	public void setRetries(int retries) {
 		this.retries = retries;
+	}
+
+	
+	public String getIncludeFilter() {
+		return includeFilter;
+	}
+
+	public void setIncludeFilter(String includeFilter) {
+		this.includeFilter = includeFilter;
 	}
 }

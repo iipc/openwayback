@@ -67,7 +67,7 @@ public class TagMagix {
 			+ RAW_ATTR_VALUE;
 	
 	private static String cssUrlPatString = 
-		"url\\s*\\(\\s*([\\\\\"']*.+?[\\\\\"']*)\\s*\\)";
+		"(?<!@namespace [\\w\\s]{0,16})url\\s*\\(\\s*([\\\\\"']*.*?[\\\\\"']*)\\s*\\)";
 
 	private static String cssImportNoUrlPatString =
 		"@import\\s+([\"'].+?[\"'])";
@@ -259,6 +259,11 @@ public class TagMagix {
 			} else if (url.charAt(0) == '\\') {
 				quote = "\\\"";
 				url = url.substring(2, origUrlLength - 2);
+			}
+			// Additional border case, probably embedded string not actual url
+			if ((url.charAt(0) == '\'' || url.charAt(0) == '"') && url.length() <= MIN_ATTR_LENGTH) {
+				idx = attrEnd;
+				continue;
 			}
 			String finalUrl = UrlOperations.resolveUrl(baseUrl,url);
 			String replayUrl = quote

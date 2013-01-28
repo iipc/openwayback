@@ -95,7 +95,8 @@
     <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>servlet-api</artifactId>
-      <version>2.4</version>
+      <version>2.5</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.archive.access-control</groupId>
@@ -125,7 +126,7 @@
     <dependency>
       <groupId>org.tuckey</groupId>
       <artifactId>urlrewritefilter</artifactId>
-      <version>3.0.4</version>
+      <version>4.0.3</version>
     </dependency>
     <dependency>
       <groupId>postgresql</groupId>

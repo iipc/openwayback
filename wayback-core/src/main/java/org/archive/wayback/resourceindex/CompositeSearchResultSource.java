@@ -24,10 +24,10 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+import org.archive.util.iterator.CloseableIterator;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
 import org.archive.wayback.resourceindex.cdx.CDXIndex;
-import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.CompositeSortedIterator;
 
 /**

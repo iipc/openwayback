@@ -78,7 +78,8 @@ public class LiveWebAccessPoint extends AbstractRequestHandler {
 		wbRequest.setRequestUrl(urlString);
 		URL url = null;
 		try {
-			if(!urlString.startsWith(UrlOperations.HTTP_SCHEME)) {
+			if(!urlString.startsWith(UrlOperations.HTTP_SCHEME) &&
+				!urlString.startsWith(UrlOperations.HTTPS_SCHEME)) {
 				throw new ResourceNotInArchiveException(urlString);
 			}
 			Thread.currentThread().setName("Thread " + 
@@ -93,7 +94,19 @@ public class LiveWebAccessPoint extends AbstractRequestHandler {
 
 			CaptureSearchResult result = new CaptureSearchResult();
 			result.setOriginalUrl(urlString);
-			result.setUrlKey(urlString);
+			
+			String canonUrl = urlString;
+			
+			if (inner.getSelfRedirectCanonicalizer() != null) {
+				try {
+					canonUrl = inner.getSelfRedirectCanonicalizer().urlStringToKey(urlString);
+				} catch (IOException io) {
+					throw new BadQueryException("Bad URL(" + urlString + ")");
+				}
+			}
+			
+			result.setUrlKey(canonUrl);
+			
 			// check admin excludes first, if configured:
 			if(adminFactory != null) {
 				ExclusionFilter f = adminFactory.get();

@@ -22,6 +22,8 @@ package org.archive.wayback.resourcestore;
 import java.io.IOException;
 import java.util.logging.Logger;
 
+import javax.servlet.http.HttpServletResponse;
+
 import org.archive.wayback.ResourceStore;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.Resource;
@@ -50,24 +52,26 @@ public class LocationDBResourceStore implements ResourceStore {
 		// extract ARC filename
 		String fileName = result.getFile();
 		if(fileName == null || fileName.length() < 1) {
-			throw new ResourceNotAvailableException("No ARC/WARC name in search result...");
+			throw new ResourceNotAvailableException("No ARC/WARC name in search result...", fileName);
 		}
 
 		String urls[];
 		try {
 			urls = db.nameToUrls(fileName);
 		} catch (IOException e1) {
-			e1.printStackTrace();
-			throw new ResourceNotAvailableException(e1.getLocalizedMessage());
+			//e1.printStackTrace();
+			throw new ResourceNotAvailableException(e1.getLocalizedMessage(), fileName, HttpServletResponse.SC_NOT_FOUND);
 		}
 		if(urls == null || urls.length == 0) {
-			LOGGER.warning("Unable to locate(" + fileName + ")");
-			throw new ResourceNotAvailableException("Unable to locate(" +
-					fileName + ")");
+			String msg = "Unable to locate(" + fileName + ")";
+			LOGGER.info(msg);
+			throw new ResourceNotAvailableException(msg, fileName, HttpServletResponse.SC_NOT_FOUND);
 		}
 		
 		final long offset = result.getOffset();
 
+		String errMsg = "Unable to retrieve";
+		
 		Resource r = null;
 		// TODO: attempt multiple threads?
 		for(String url : urls) {
@@ -81,14 +85,15 @@ public class LocationDBResourceStore implements ResourceStore {
 				//      which means we've already read some
 				
 			} catch (IOException e) {
-				LOGGER.warning("Unable to retrieve resource from " + url + " - " + e);
+				errMsg = url + " - " + e;
+				LOGGER.info("Unable to retrieve " + errMsg);
 			}
 			if(r != null) {
 				break;
 			}
 		}
 		if(r == null) {
-			throw new ResourceNotAvailableException("Unable to retrieve");
+			throw new ResourceNotAvailableException(errMsg, fileName);
 		}
 		return r;
 	}

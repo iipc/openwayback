@@ -66,7 +66,7 @@ public class FlatFileResourceFileLocationDB implements ResourceFileLocationDB  {
 			citr.close();
 		}
 		if(urls.size() == 0) {
-			LOGGER.warning("No locations for " + name + " in " + path);
+			LOGGER.info("No locations for " + name + " in " + path);
 		}
 		String[] a = new String[urls.size()];
 		for(int i=0; i < urls.size(); i++) {

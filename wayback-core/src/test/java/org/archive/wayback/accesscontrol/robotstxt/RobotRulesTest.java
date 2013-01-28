@@ -49,5 +49,20 @@ public class RobotRulesTest extends TestCase {
 			fail(e.getMessage());
 		}
 	}
-
+	
+	public void testNonBlocksPathForUA() {
+		String testString = "User-agent: *\nAllow: /\nUser-agent: Google-bot\nDisallow: /\n";
+		RobotRules rr = new RobotRules();
+		try {
+			rr.parse(new ByteArrayInputStream(testString.getBytes()));
+			assertFalse(rr.hasSyntaxErrors());
+			assertFalse(rr.blocksPathForUA("/", "ia_archiver"));
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		} catch (IOException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
 }

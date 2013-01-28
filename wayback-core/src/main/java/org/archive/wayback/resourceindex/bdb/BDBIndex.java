@@ -25,6 +25,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.Iterator;
 
+import org.archive.util.iterator.CloseableIterator;
 import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.exception.ConfigurationException;
@@ -35,7 +36,6 @@ import org.archive.wayback.resourceindex.cdx.SearchResultToCDXLineAdapter;
 import org.archive.wayback.util.AdaptedIterator;
 import org.archive.wayback.util.Adapter;
 import org.archive.wayback.util.ByteOp;
-import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.bdb.BDBRecord;
 import org.archive.wayback.util.bdb.BDBRecordSet;
 import org.archive.wayback.util.flatfile.RecordIterator;

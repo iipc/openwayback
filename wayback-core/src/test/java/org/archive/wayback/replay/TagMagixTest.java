@@ -321,7 +321,7 @@ public class TagMagixTest extends TestCase {
 		checkCSSMarkup("@import url(\r\n\"http://foo.com/f.css\"\n\r);",
 				"@import url(\r\n\"http://web.archive.org/wayback/2004/http://foo.com/f.css\"\n\r);",
 				"http://web.archive.org/wayback/","2004","http://foo.com/");
-
+		
 		checkCSSMarkup("@import \"http://foo.com/f.css\";",
 				"@import \"http://web.archive.org/wayback/2004/http://foo.com/f.css\";",
 				"http://web.archive.org/wayback/","2004","http://foo.com/");
@@ -348,6 +348,16 @@ public class TagMagixTest extends TestCase {
 		checkCSSMarkup("background: #9caad1 url('/~alabama/images/bg.jpg') 0 0 repeat-y;",
 				"background: #9caad1 url('http://web.archive.org/wayback/2004/http://foo.com/~alabama/images/bg.jpg') 0 0 repeat-y;",
 				"http://web.archive.org/wayback/","2004","http://foo.com/b/");
+		
+		
+		// don't convert @namespace urls
+		checkCSSMarkup("@namespace url(\r\n\"http://www.w3.org/1999/xhtml\"\n\r);",
+				"@namespace url(\r\n\"http://www.w3.org/1999/xhtml\"\n\r);",
+				"http://web.archive.org/wayback/","2004","http://foo.com/");
+		
+		checkCSSMarkup("@namespace xyz url(\r\n\"http://www.w3.org/1999/xhtml\"\n\r);",
+				"@namespace xyz url(\r\n\"http://www.w3.org/1999/xhtml\"\n\r);",
+				"http://web.archive.org/wayback/","2004","http://foo.com/");		
 		
 	}
 	

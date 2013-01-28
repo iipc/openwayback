@@ -76,7 +76,7 @@ public class CustomPolicyOracleFilter extends OracleExclusionFilter {
 				return handleBlock();
 			}
 			
-			if (Policy.ROBOTS.matches("policy")) {
+			if (Policy.ROBOTS.matches(policy)) {
 				return handleRobots();
 			}
 

@@ -64,6 +64,10 @@ public class ArchivalUrl {
 	public String getDateSpec() {
 		return getDateSpec(wbRequest.getReplayTimestamp());
 	}
+	
+	public String getDateSpec(String datespec) {
+		return getDateSpec(wbRequest, datespec);
+	}
 
 	/**
 	 * Given a date, create a new datespec + flags
@@ -72,7 +76,7 @@ public class ArchivalUrl {
 	 * @return a String representing the flags on the WaybackRequest for the
 	 * specified date
 	 */
-	public String getDateSpec(String datespec) {
+	public static String getDateSpec(WaybackRequest wbRequest, String datespec) {
 		int dateLen = 0;
 		if(datespec != null) {
 			dateLen = datespec.length();
@@ -95,6 +99,11 @@ public class ArchivalUrl {
 		}
 		if(wbRequest.isIMGContext()) {
 			sb.append(ArchivalUrlRequestParser.IMG_CONTEXT);
+			sb.append(ArchivalUrlRequestParser.FLAG_DELIM);
+			dateLen++;
+		}
+		if(wbRequest.isObjectEmbedContext()) {
+			sb.append(ArchivalUrlRequestParser.OBJECT_EMBED_WRAPPED_CONTEXT);
 			sb.append(ArchivalUrlRequestParser.FLAG_DELIM);
 			dateLen++;
 		}
@@ -147,6 +156,8 @@ public class ArchivalUrl {
 					wbRequest.setJSContext(true);
 				} else if(flag.equals(ArchivalUrlRequestParser.IMG_CONTEXT)) {
 					wbRequest.setIMGContext(true);
+				} else if(flag.equals(ArchivalUrlRequestParser.OBJECT_EMBED_WRAPPED_CONTEXT)) {
+					wbRequest.setObjectEmbedContext(true);
 				} else if(flag.equals(ArchivalUrlRequestParser.IDENTITY_CONTEXT)) {
 					wbRequest.setIdentityContext(true);
 				} else if(flag.equals(ArchivalUrlRequestParser.FRAME_WRAPPED_CONTEXT)) {

@@ -23,7 +23,7 @@ import java.io.IOException;
 
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
-import org.archive.wayback.util.CloseableIterator;
+import org.archive.util.iterator.CloseableIterator;
 
 /**
  * 
@@ -41,7 +41,7 @@ public interface SearchResultSource {
 	 */
 	public CloseableIterator<CaptureSearchResult> getPrefixIterator(final String prefix)
 			throws ResourceIndexNotAvailableException;
-
+	
 	/**
 	 * @param prefix
 	 * @return CleanableIterator that will return SearchResults starting *before* prefix

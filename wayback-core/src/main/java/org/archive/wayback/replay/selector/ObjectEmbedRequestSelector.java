@@ -17,21 +17,32 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package org.archive.wayback.util;
+package org.archive.wayback.replay.selector;
 
-import java.io.Closeable;
-import java.util.Iterator;
+import org.archive.wayback.core.CaptureSearchResult;
+import org.archive.wayback.core.Resource;
+import org.archive.wayback.core.WaybackRequest;
 
 /**
- * Iterator with a close method that frees up any resources associated with 
- * the Iterator.
- *
+ * 
+ * 
  * @author brad
  * @version $Date$, $Revision$
- * @param <E>
- * @deprecated Use org.archive.util.iterator.CloseableIterator in archive-commons 
  */
 
-@Deprecated
-public interface CloseableIterator<E> extends org.archive.util.iterator.CloseableIterator<E> {
+public class ObjectEmbedRequestSelector extends BaseReplayRendererSelector {
+
+	@Override
+	public boolean canHandle(WaybackRequest wbRequest,
+			CaptureSearchResult result, Resource resource) {
+		return canHandle(wbRequest, result, resource, resource);
+	}
+
+	@Override
+	public boolean canHandle(WaybackRequest wbRequest,
+			CaptureSearchResult result, Resource httpHeadersResource,
+			Resource payloadResource) {
+		return wbRequest.isObjectEmbedContext();
+
+	}
 }

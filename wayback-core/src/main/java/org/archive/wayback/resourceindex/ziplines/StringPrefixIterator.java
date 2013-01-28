@@ -22,7 +22,9 @@ package org.archive.wayback.resourceindex.ziplines;
 import java.io.IOException;
 import java.util.Iterator;
 
-import org.archive.wayback.util.CloseableIterator;
+import org.archive.util.iterator.CloseableIterator;
+
+
 
 /**
  * Iterator<String> decorator, which assumes the decorated is in SORTED order.

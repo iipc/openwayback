@@ -260,6 +260,10 @@ public class WaybackRequest {
 	 * Request: IMG context requested 
 	 */
 	public static final String REQUEST_IMAGE_CONTEXT = "imagecontext";
+	/**
+	 * Request: OBJECT or EMBED context requested 
+	 */
+	public static final String REQUEST_OBJECT_EMBED_CONTEXT = "objectembedcontext";
 
 	/**
 	 * Request: Identity context requested (totally transparent) 
@@ -282,6 +286,12 @@ public class WaybackRequest {
 	 * Request: Charset detection mode 
 	 */
 	public static final String REQUEST_CHARSET_MODE = "charsetmode";
+	
+	
+	/**
+	 * Request: Use timestamp as part of the search key
+	 */
+	public static final String REQUEST_TIMESTAMP_SEARCH_KEY = "timestampsearchkey";
 	
 	/*
 	 * *******************************
@@ -788,6 +798,13 @@ public class WaybackRequest {
 		return getBoolean(REQUEST_IMAGE_CONTEXT);
 	}
 
+	public void setObjectEmbedContext(boolean isObjectEmbedContext) {
+		setBoolean(REQUEST_OBJECT_EMBED_CONTEXT,isObjectEmbedContext);
+	}
+	public boolean isObjectEmbedContext() {
+		return getBoolean(REQUEST_OBJECT_EMBED_CONTEXT);
+	}
+	
 	public void setIdentityContext(boolean isIdentityContext) {
 		setBoolean(REQUEST_IDENTITY_CONTEXT,isIdentityContext);
 	}
@@ -807,6 +824,12 @@ public class WaybackRequest {
 	}
 	public boolean isIFrameWrapperContext() {
 		return getBoolean(REQUEST_IFRAME_WRAPPER_CONTEXT);
+	}
+	
+	public boolean isAnyEmbeddedContext()
+	{
+		return this.isCSSContext() || this.isIMGContext() || this.isJSContext() ||
+			this.isFrameWrapperContext() || this.isIFrameWrapperContext() || this.isObjectEmbedContext();
 	}
 
 	public void setCharsetMode(int mode) {
@@ -867,6 +890,18 @@ public class WaybackRequest {
 	}
 	public void setTimelineHourResolution() {
 		put(REQUEST_RESOLUTION,REQUEST_RESOLUTION_HOURS);
+	}
+	
+	/**
+	 * Add timestamp as well as url key to optimize loading for only a certain time range
+	 * However, may not find all revisit records
+	 */
+	public void setTimestampSearchKey(boolean timestampSearchKey) {
+		setBoolean(REQUEST_TIMESTAMP_SEARCH_KEY, timestampSearchKey);
+	}
+	
+	public boolean isTimestampSearchKey() {
+		return getBoolean(REQUEST_TIMESTAMP_SEARCH_KEY);
 	}
 	
 	/**
