@@ -354,17 +354,18 @@ public class Timestamp {
 	// are not too large or too small, factoring in the month, leap years, etc.
 	// BUGBUG: Leap second bug here.. How long till someone notices?
 	private static String boundTimestamp(String input) {
-		String boundTimestamp = "";
-		if(input == null) {
+		StringBuilder boundTimestamp = new StringBuilder();
+		
+		if (input == null) {
 			input = "";
 		}
 		// MAKE SURE THE YEAR IS WITHIN LEGAL BOUNDARIES:
-		boundTimestamp = boundDigits(input.substring(0,4),
-				YEAR_LOWER_LIMIT,YEAR_UPPER_LIMIT);
+		boundTimestamp.append(boundDigits(input.substring(0,4),
+				YEAR_LOWER_LIMIT,YEAR_UPPER_LIMIT));
 
 		// MAKE SURE THE MONTH IS WITHIN LEGAL BOUNDARIES:
-		boundTimestamp += boundDigits(input.substring(4,6),
-				MONTH_LOWER_LIMIT,MONTH_UPPER_LIMIT);
+		boundTimestamp.append(boundDigits(input.substring(4,6),
+				MONTH_LOWER_LIMIT,MONTH_UPPER_LIMIT));
 		
 		// NOW DEPENDING ON THE YEAR + MONTH, MAKE SURE THE DAY OF MONTH IS
 		// WITHIN LEGAL BOUNDARIES:
@@ -372,22 +373,22 @@ public class Timestamp {
 		int iMonth = Integer.parseInt(boundTimestamp.substring(4,6));
 		String maxDayOfMonth = getDaysInMonthBound(iYear, iMonth-1);
 
-		boundTimestamp += boundDigits(input.substring(6,8),
-				DAY_LOWER_LIMIT,maxDayOfMonth);
+		boundTimestamp.append(boundDigits(input.substring(6,8),
+				DAY_LOWER_LIMIT,maxDayOfMonth));
 		
 		// MAKE SURE THE HOUR IS WITHIN LEGAL BOUNDARIES:
-		boundTimestamp += boundDigits(input.substring(8,10),
-				HOUR_LOWER_LIMIT,HOUR_UPPER_LIMIT);
+		boundTimestamp.append(boundDigits(input.substring(8,10),
+				HOUR_LOWER_LIMIT,HOUR_UPPER_LIMIT));
 		
 		// MAKE SURE THE MINUTE IS WITHIN LEGAL BOUNDARIES:
-		boundTimestamp += boundDigits(input.substring(10,12),
-				MINUTE_LOWER_LIMIT,MINUTE_UPPER_LIMIT);
+		boundTimestamp.append(boundDigits(input.substring(10,12),
+				MINUTE_LOWER_LIMIT,MINUTE_UPPER_LIMIT));
 		
 		// MAKE SURE THE SECOND IS WITHIN LEGAL BOUNDARIES:
-		boundTimestamp += boundDigits(input.substring(12,14),
-				SECOND_LOWER_LIMIT,SECOND_UPPER_LIMIT);
+		boundTimestamp.append(boundDigits(input.substring(12,14),
+				SECOND_LOWER_LIMIT,SECOND_UPPER_LIMIT));
 
-		return boundTimestamp;		
+		return boundTimestamp.toString();		
 	}
 
 	/**
