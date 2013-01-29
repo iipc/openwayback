@@ -110,6 +110,8 @@ public class LocalResourceIndex implements ResourceIndex {
 	
 	private boolean timestampSearch = false;
 	
+	private boolean markPrefixQueries = false;
+	
 	private ObjectFilter<CaptureSearchResult> annotater = null;
 	
 	private ObjectFilter<CaptureSearchResult> filter = null;
@@ -224,6 +226,10 @@ public class LocalResourceIndex implements ResourceIndex {
 		} catch (URIException e) {
 			throw new BadQueryException("Bad URL(" + 
 					wbRequest.getRequestUrl() + ")");
+		}
+		
+		if (markPrefixQueries) {
+			urlKey += "*\t";
 		}
 
 		UrlSearchResults results = new UrlSearchResults();
@@ -393,5 +399,13 @@ public class LocalResourceIndex implements ResourceIndex {
 
 	public void setTimestampSearch(boolean timestampSearch) {
 		this.timestampSearch = timestampSearch;
+	}
+
+	public boolean isMarkPrefixQueries() {
+		return markPrefixQueries;
+	}
+
+	public void setMarkPrefixQueries(boolean markPrefixQueries) {
+		this.markPrefixQueries = markPrefixQueries;
 	}
 }
