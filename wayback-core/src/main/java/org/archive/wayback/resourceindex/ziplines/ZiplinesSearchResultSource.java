@@ -216,7 +216,7 @@ public class ZiplinesSearchResultSource implements SearchResultSource {
 				numBlocks++;
 				String blockDescriptor = currLine;
 				String parts[] = blockDescriptor.split("\t");
-				if((parts.length < 3) || (parts.length > 4)) {
+				if((parts.length < 3)) {
 					LOGGER.severe("Bad line(" + blockDescriptor +") in (" + 
 							chunkMapPath + ")");
 					throw new ResourceIndexNotAvailableException("Bad line(" + 
