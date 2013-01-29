@@ -28,27 +28,44 @@ public class ZipNumClusterSearchResultSource implements SearchResultSource {
 	
 	protected ZipNumCluster cluster;
 	protected ZipNumParams params = null;
+	
+	protected ZipNumParams oneBlockParams;
 		
 	public void init() throws IOException
 	{
 		this.cluster = new ZipNumCluster(clusterUri, summaryFile, blockLoader);
+		
+		oneBlockParams = new ZipNumParams();
+		oneBlockParams.setMaxBlocks(1);
 	}
 	
 	@Override
 	public CloseableIterator<CaptureSearchResult> getPrefixIterator(
-			String prefix) throws ResourceIndexNotAvailableException {
+			String urlkey) throws ResourceIndexNotAvailableException {
 		
 		try {
 			
-			String urlkey = prefix;
+			CloseableIterator<String> cdxIter = null;
+			
+			String prefix = urlkey;
 			
 			int space = prefix.indexOf(' ');
+			
+			// One-block query
 			if (space >= 0) {
-				urlkey = prefix.substring(0, space);
+				prefix = prefix.substring(0, space);
+				
+				cdxIter = cluster.getCDXIterator(urlkey, prefix, true, oneBlockParams);
+			// Exact Match
+			} else if (!prefix.endsWith("*\t")) {
+				cdxIter = cluster.getCDXIterator(urlkey, prefix, true, params);
+			// Prefix Match
+			} else {
+				cdxIter = cluster.getCDXIterator(urlkey, prefix.substring(0, prefix.length() - 2), false, params);
 			}
 			
-			return new AdaptedIterator<String,CaptureSearchResult>
-				(cluster.getCDXLineIterator(urlkey, prefix, params), new CDXLineToSearchResultAdapter());
+			return new AdaptedIterator<String,CaptureSearchResult>(cdxIter, new CDXLineToSearchResultAdapter());
+			 
 			
 		} catch (IOException e) {
 			throw new ResourceIndexNotAvailableException(e.toString());
