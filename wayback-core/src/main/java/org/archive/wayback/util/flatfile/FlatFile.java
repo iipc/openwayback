@@ -30,8 +30,8 @@ import java.io.RandomAccessFile;
 import java.util.Comparator;
 import java.util.Iterator;
 
+import org.archive.util.iterator.CloseableIterator;
 import org.archive.wayback.util.ByteOp;
-import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.CompositeSortedIterator;
 
 /**

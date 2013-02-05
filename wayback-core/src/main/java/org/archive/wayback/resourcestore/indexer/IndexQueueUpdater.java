@@ -22,16 +22,15 @@ package org.archive.wayback.resourcestore.indexer;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.logging.Logger;
 
+import org.archive.util.iterator.CloseableIterator;
 import org.archive.wayback.Shutdownable;
 import org.archive.wayback.resourcestore.locationdb.ResourceFileLocationDB;
 import org.archive.wayback.util.ByteOp;
-import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.DirMaker;
 
 /**

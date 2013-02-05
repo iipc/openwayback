@@ -28,12 +28,11 @@ import java.io.RandomAccessFile;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
-import java.util.zip.GZIPInputStream;
 
+import org.archive.util.iterator.CloseableIterator;
 import org.archive.util.zip.OpenJDK7GZIPInputStream;
 import org.archive.wayback.exception.RuntimeIOException;
 import org.archive.wayback.util.ByteOp;
-import org.archive.wayback.util.CloseableIterator;
 
 /**
  * @author brad

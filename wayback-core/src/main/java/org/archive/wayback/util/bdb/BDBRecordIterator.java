@@ -21,7 +21,7 @@ package org.archive.wayback.util.bdb;
 
 import java.util.NoSuchElementException;
 
-import org.archive.wayback.util.CloseableIterator;
+import org.archive.util.iterator.CloseableIterator;
 
 import com.sleepycat.je.Cursor;
 import com.sleepycat.je.DatabaseEntry;

@@ -34,8 +34,8 @@ import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.util.ParameterFormatter;
+import org.archive.util.iterator.CloseableIterator;
 import org.archive.wayback.util.ByteOp;
-import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.WrappedCloseableIterator;
 
 /**

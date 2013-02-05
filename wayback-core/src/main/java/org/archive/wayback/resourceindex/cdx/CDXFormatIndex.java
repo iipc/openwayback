@@ -21,17 +21,16 @@ package org.archive.wayback.resourceindex.cdx;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Iterator;
 
+import org.archive.util.iterator.CloseableIterator;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.resourceindex.cdx.format.CDXFormat;
 import org.archive.wayback.resourceindex.cdx.format.CDXFormatException;
 import org.archive.wayback.util.AdaptedIterator;
 import org.archive.wayback.util.ByteOp;
-import org.archive.wayback.util.CloseableIterator;
 
 public class CDXFormatIndex extends CDXIndex {
 	public final static String CDX_HEADER_MAGIC = " CDX N b a m s k r M V g";

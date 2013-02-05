@@ -22,14 +22,13 @@ package org.archive.wayback.resourcestore.locationdb;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
 
+import org.archive.util.iterator.CloseableIterator;
 import org.archive.wayback.util.ByteOp;
-import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.flatfile.RecordIterator;
 
 /**

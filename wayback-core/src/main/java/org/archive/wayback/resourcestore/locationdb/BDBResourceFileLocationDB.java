@@ -23,10 +23,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-import org.archive.wayback.resourcestore.locationdb.ResourceFileLocationDB;
-import org.archive.wayback.resourcestore.locationdb.ResourceFileLocationDBLog;
+import org.archive.util.iterator.CloseableIterator;
 import org.archive.wayback.util.ByteOp;
-import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.bdb.BDBRecordSet;
 
 import com.sleepycat.je.DatabaseException;

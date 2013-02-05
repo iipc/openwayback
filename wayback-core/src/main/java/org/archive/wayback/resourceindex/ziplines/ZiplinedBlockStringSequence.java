@@ -24,8 +24,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Logger;
 
+import org.archive.util.iterator.CloseableIterator;
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
-import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.flatfile.FlatFile;
 
 /**
