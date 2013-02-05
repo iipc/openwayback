@@ -22,7 +22,7 @@ package org.archive.wayback.util.flatfile;
 import java.io.IOException;
 import java.util.NoSuchElementException;
 
-import org.archive.wayback.util.CloseableIterator;
+import org.archive.util.iterator.CloseableIterator;
 
 /**
 * Iterator that returns lines from a file reverse sequentially.

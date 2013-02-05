@@ -25,9 +25,9 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.logging.Logger;
 
+import org.archive.util.iterator.CloseableIterator;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.UrlSearchResult;
-import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.PeekableIterator;
 
 /**

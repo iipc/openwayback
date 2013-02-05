@@ -24,7 +24,7 @@ import java.util.Iterator;
 
 import org.archive.io.ArchiveReader;
 import org.archive.io.ArchiveRecord;
-import org.archive.wayback.util.CloseableIterator;
+import org.archive.util.iterator.CloseableIterator;
 
 public class ArchiveReaderCloseableIterator implements CloseableIterator<ArchiveRecord> {
 	private ArchiveReader reader = null;

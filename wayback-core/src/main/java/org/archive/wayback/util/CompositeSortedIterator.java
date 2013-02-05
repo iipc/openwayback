@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import org.archive.util.iterator.CloseableIterator;
 
 
 /**
