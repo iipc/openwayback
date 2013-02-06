@@ -19,9 +19,9 @@
  */
 package org.archive.wayback.resourceindex;
 
+import org.archive.util.iterator.CloseableIterator;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
-import org.archive.wayback.util.CloseableIterator;
 
 /**
  * @author brad

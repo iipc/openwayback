@@ -2,17 +2,14 @@ package org.archive.wayback.accesscontrol.staticmap;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.TreeSet;
 import java.util.logging.Logger;
 
 import org.archive.util.SURT;
+import org.archive.util.iterator.CloseableIterator;
 import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.accesscontrol.ExclusionFilterFactory;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
-import org.archive.wayback.surt.SURTTokenizer;
-import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.flatfile.FlatFile;
 import org.archive.wayback.util.url.AggressiveUrlCanonicalizer;
 

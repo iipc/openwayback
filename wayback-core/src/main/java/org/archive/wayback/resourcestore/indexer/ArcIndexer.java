@@ -26,11 +26,11 @@ import org.archive.io.ArchiveRecord;
 import org.archive.io.arc.ARCReader;
 import org.archive.io.arc.ARCReaderFactory;
 import org.archive.io.arc.ARCRecord;
+import org.archive.util.iterator.CloseableIterator;
 import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.util.AdaptedIterator;
 import org.archive.wayback.util.Adapter;
-import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.url.AggressiveUrlCanonicalizer;
 
 /**

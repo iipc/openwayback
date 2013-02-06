@@ -25,6 +25,7 @@ import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.logging.Logger;
 
+import org.archive.util.iterator.CloseableIterator;
 import org.archive.wayback.Shutdownable;
 import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.core.CaptureSearchResult;
@@ -34,7 +35,6 @@ import org.archive.wayback.resourceindex.cdx.format.CDXFormat;
 import org.archive.wayback.resourceindex.cdx.format.CDXFormatException;
 import org.archive.wayback.resourceindex.updater.IndexClient;
 import org.archive.wayback.resourcestore.locationdb.ResourceFileLocationDB;
-import org.archive.wayback.util.CloseableIterator;
 import org.archive.wayback.util.url.AggressiveUrlCanonicalizer;
 import org.archive.wayback.util.url.IdentityUrlCanonicalizer;
 

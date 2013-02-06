@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+import org.archive.util.iterator.CloseableIterator;
 import org.archive.util.iterator.CloseableIteratorUtil;
 
 /**

@@ -21,7 +21,9 @@ package org.archive.wayback.resourcestore.locationdb;
 
 import java.io.IOException;
 
-import org.archive.wayback.util.CloseableIterator;
+import org.archive.util.iterator.CloseableIterator;
+
+
 
 /**
  * Interface to a database that maps file key Strings to zero or more value 

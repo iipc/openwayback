@@ -27,6 +27,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 
+import org.archive.util.iterator.CloseableIterator;
 import org.archive.wayback.util.flatfile.FlatFile;
 
 /**

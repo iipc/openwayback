@@ -22,6 +22,8 @@ package org.archive.wayback.util;
 import java.io.IOException;
 import java.util.Iterator;
 
+import org.archive.util.iterator.CloseableIterator;
+
 /**
  * Simple wrapper around a normal Iterator which allows use of the close().
  *

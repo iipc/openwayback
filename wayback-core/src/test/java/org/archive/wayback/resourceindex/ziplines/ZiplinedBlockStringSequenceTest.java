@@ -20,13 +20,10 @@
 package org.archive.wayback.resourceindex.ziplines;
 
 import java.io.IOException;
-import java.util.HashMap;
-
-import org.archive.wayback.exception.ResourceIndexNotAvailableException;
-import org.archive.wayback.util.CloseableIterator;
-import org.archive.wayback.util.flatfile.FlatFile;
 
 import junit.framework.TestCase;
+
+import org.archive.wayback.exception.ResourceIndexNotAvailableException;
 
 /**
  * @author brad

@@ -63,7 +63,9 @@ public class SimpleRedisRobotsCache implements LiveWebCache {
 		RedisValue value = null;
 		
 		try {
-			value = redisCmds.getValue(url);
+			if (redisCmds != null) {
+				value = redisCmds.getValue(url);
+			}
 		} catch (LiveWebCacheUnavailableException lw) {
 			value = null;
 		}
