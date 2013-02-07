@@ -8,7 +8,9 @@ import org.archive.util.iterator.CloseableIterator;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
 import org.archive.wayback.resourceindex.cdx.CDXLineToSearchResultAdapter;
+import org.archive.wayback.resourceindex.cdx.format.CDXFlexFormat;
 import org.archive.wayback.util.AdaptedIterator;
+import org.archive.wayback.util.Adapter;
 
 /**
  * SearchResultSource wrapper for new implementation of CDX input source, including ZipNumCluster and CDX File
@@ -17,13 +19,7 @@ import org.archive.wayback.util.AdaptedIterator;
  *
  */
 
-public class ZipNumClusterSearchResultSource implements SearchResultSource {
-
-	//protected String clusterUri;
-	
-	//protected String summaryFile;
-	
-	//protected BlockLoader blockLoader;
+public class ZipNumClusterSearchResultSource implements SearchResultSource, Adapter<String,CaptureSearchResult> {
 	
 	protected ZipNumCluster cluster;
 	protected ZipNumParams params = null;
@@ -91,30 +87,6 @@ public class ZipNumClusterSearchResultSource implements SearchResultSource {
 
 	}
 
-//	public String getClusterUri() {
-//		return clusterUri;
-//	}
-//
-//	public void setClusterUri(String clusterUri) {
-//		this.clusterUri = clusterUri;
-//	}
-//
-//	public String getSummaryFile() {
-//		return summaryFile;
-//	}
-//
-//	public void setSummaryFile(String summaryFile) {
-//		this.summaryFile = summaryFile;
-//	}
-//
-//	public BlockLoader getBlockLoader() {
-//		return blockLoader;
-//	}
-//
-//	public void setBlockLoader(BlockLoader blockLoader) {
-//		this.blockLoader = blockLoader;
-//	}
-
 	public ZipNumCluster getCluster() {
 		return cluster;
 	}
@@ -130,4 +102,8 @@ public class ZipNumClusterSearchResultSource implements SearchResultSource {
 	public void setParams(ZipNumParams params) {
 		this.params = params;
 	}
+	
+	public CaptureSearchResult adapt(String line) {
+		return CDXFlexFormat.parseCDXLineFlex(line);
+	}	
 }
