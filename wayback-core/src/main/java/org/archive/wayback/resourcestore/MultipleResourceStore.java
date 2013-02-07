@@ -71,6 +71,7 @@ public class MultipleResourceStore implements ResourceStore {
 		}
 		
 		String errMsg = "";
+		Exception origException = null;
 
 		for ( ResourceStore store : stores ) {
 			try {
@@ -85,6 +86,7 @@ public class MultipleResourceStore implements ResourceStore {
 				if (!errMsg.isEmpty()) {
 					errMsg += " ";
 				}
+				origException = e;
 				errMsg += e.getMessage();
 				
 				// if skipOnUnavailable, then don't try any more resource stores if the current one is unavailable
@@ -94,7 +96,7 @@ public class MultipleResourceStore implements ResourceStore {
 			}
 		}
 
-		throw new ResourceNotAvailableException(errMsg.isEmpty() ? "Unable to retrieve: "+fileName : errMsg, fileName);
+		throw new ResourceNotAvailableException(errMsg.isEmpty() ? "Unable to retrieve: "+fileName : errMsg, fileName, origException);
 	}
 
 	public void setStores(List<ResourceStore> stores) {

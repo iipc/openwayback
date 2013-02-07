@@ -11,6 +11,8 @@ public abstract class SpecificCaptureReplayException extends WaybackException {
 	protected CaptureSearchResult previous = null;
 	protected CaptureSearchResult next = null;
 	
+	protected Exception origException;
+	
 	public SpecificCaptureReplayException(String message) {
 		super(message);
 	}
@@ -52,5 +54,9 @@ public abstract class SpecificCaptureReplayException extends WaybackException {
 	}
 	public CaptureSearchResult getPreviousResult() {
 		return previous;
+	}
+	public Exception getOrigException()
+	{
+		return origException;
 	}
 }

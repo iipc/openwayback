@@ -79,6 +79,13 @@ public class ResourceNotAvailableException extends SpecificCaptureReplayExceptio
 		id = ID;
 		this.status = status;
 	}
+	
+	public ResourceNotAvailableException(String message, String details, Exception origException) {
+		super(message,"Resource not available",details);
+		id = ID;
+		this.origException = origException;
+	}
+	
 	/**
 	 * @return the HTTP status code appropriate to this exception class.
 	 */
