@@ -71,6 +71,7 @@ public class LocationDBResourceStore implements ResourceStore {
 		final long offset = result.getOffset();
 
 		String errMsg = "Unable to retrieve";
+		Exception origException = null;
 		
 		Resource r = null;
 		// TODO: attempt multiple threads?
@@ -86,6 +87,7 @@ public class LocationDBResourceStore implements ResourceStore {
 				
 			} catch (IOException e) {
 				errMsg = url + " - " + e;
+				origException = e;
 				LOGGER.info("Unable to retrieve " + errMsg);
 			}
 			if(r != null) {
@@ -93,7 +95,7 @@ public class LocationDBResourceStore implements ResourceStore {
 			}
 		}
 		if(r == null) {
-			throw new ResourceNotAvailableException(errMsg, fileName);
+			throw new ResourceNotAvailableException(errMsg, fileName, origException);
 		}
 		return r;
 	}

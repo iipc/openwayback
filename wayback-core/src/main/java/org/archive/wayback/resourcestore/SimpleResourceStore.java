@@ -114,7 +114,7 @@ public class SimpleResourceStore implements ResourceStore {
 			String msg = fileUrl + " - " + e;
 			LOGGER.info("Unable to retrieve:" + msg);
 			
-			throw new ResourceNotAvailableException(msg, fileUrl);
+			throw new ResourceNotAvailableException(msg, fileUrl, e);
 		}
 		return r;
 	}

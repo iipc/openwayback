@@ -288,12 +288,15 @@ implements ShutdownListener {
 			if(wbRequest.isReplayRequest() 
 				&& (getLiveWebPrefix() != null) 
 				&& (getLiveWebPrefix().length() > 0)) {
+				
+				httpResponse.setHeader("X-Archive-Wayback-Runtime-Error", e.getMessage() + e.getDetails());
 
 				String liveUrl = 
 					getLiveWebPrefix() + wbRequest.getRequestUrl();
 						httpResponse.sendRedirect(liveUrl);
 			} else {
 				logNotInArchive(e,wbRequest);
+				httpResponse.setHeader("X-Archive-Wayback-Not-Found", e.getMessage());				
 				getException().renderException(httpRequest, httpResponse, 
 						wbRequest, e, getUriConverter());
 			}
