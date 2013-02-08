@@ -289,20 +289,30 @@ implements ShutdownListener {
 				&& (getLiveWebPrefix() != null) 
 				&& (getLiveWebPrefix().length() > 0)) {
 				
-				httpResponse.setHeader("X-Archive-Wayback-Runtime-Error", e.getMessage() + e.getDetails());
+				writeErrorHeader(httpResponse, "X-Archive-Wayback-Runtime-Error", e.getMessage());
 
 				String liveUrl = 
 					getLiveWebPrefix() + wbRequest.getRequestUrl();
 						httpResponse.sendRedirect(liveUrl);
 			} else {
 				logNotInArchive(e,wbRequest);
-				httpResponse.setHeader("X-Archive-Wayback-Not-Found", e.getMessage());				
+				writeErrorHeader(httpResponse, "X-Archive-Wayback-Not-Found", e.getMessage());				
 				getException().renderException(httpRequest, httpResponse, 
 						wbRequest, e, getUriConverter());
 			}
 		}
 		
 		return handled;
+	}
+	
+	public void writeErrorHeader(HttpServletResponse httpResponse, String header, String message)
+	{
+		if (message.length() > 200) {
+			message = message.substring(0, 200);
+		}
+		
+		httpResponse.setHeader(header, message);
+		
 	}
 	
 	private void logNotInArchive(WaybackException e, WaybackRequest r) {
@@ -423,7 +433,7 @@ implements ShutdownListener {
 	protected Resource getResource(CaptureSearchResult closest, Set<String> skipFiles) throws ResourceNotAvailableException, ConfigurationException
 	{
 		if ((skipFiles != null) && skipFiles.contains(closest.getFile())) {
-			throw new ResourceNotAvailableException("SKIPPING already failed " + closest.getFile(), null);
+			throw new ResourceNotAvailableException("SKIPPING already failed " + closest.getFile());
 		}
 		
 		return getCollection().getResourceStore().retrieveResource(closest);		
@@ -510,7 +520,7 @@ implements ShutdownListener {
 				counter++;
 				
 				if (closest == null) {
-					throw new ResourceNotAvailableException("No Closest Match Found!");
+					throw new ResourceNotAvailableException("No Closest Match Found, Probably Self-Redirect");
 				}
 				
 				closest.setClosest(true);
