@@ -149,7 +149,7 @@ public class LiveWebAccessPoint extends AbstractRequestHandler {
 			}
 
 		} catch(WaybackException e) {
-			httpResponse.setHeader("X-Archive-Wayback-Runtime-Liveweb-Error", e.getMessage());
+			inner.writeErrorHeader(httpResponse, "X-Archive-Wayback-Runtime-Liveweb-Error", e.getMessage());
 			inner.getException().renderException(httpRequest, httpResponse, wbRequest,
 					e, inner.getUriConverter());
 		}
