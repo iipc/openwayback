@@ -287,7 +287,9 @@ implements ShutdownListener {
 			handled = true;			
 
 		} catch(WaybackException e) {
-			if(wbRequest.isReplayRequest() 
+			if (wbRequest == null) {
+				writeErrorHeader(httpResponse, RUNTIME_ERROR_HEADER, e);				
+			} else if(wbRequest.isReplayRequest() 
 				&& (getLiveWebPrefix() != null) 
 				&& (getLiveWebPrefix().length() > 0)) {
 				
@@ -441,7 +443,7 @@ implements ShutdownListener {
 	protected Resource getResource(CaptureSearchResult closest, Set<String> skipFiles) throws ResourceNotAvailableException, ConfigurationException
 	{
 		if ((skipFiles != null) && skipFiles.contains(closest.getFile())) {
-			throw new ResourceNotAvailableException("SKIPPING already failed " + closest.getFile());
+			throw new ResourceNotAvailableException("Revisit: Skipping already failed " + closest.getFile());
 		}
 		
 		return getCollection().getResourceStore().retrieveResource(closest);		
@@ -528,7 +530,7 @@ implements ShutdownListener {
 				counter++;
 				
 				if (closest == null) {
-					throw new ResourceNotAvailableException("No Closest Match Found, Probably Self-Redirect");
+					throw new ResourceNotAvailableException("Self-Redirect: No Closest Match Found");
 				}
 				
 				closest.setClosest(true);
@@ -542,7 +544,7 @@ implements ShutdownListener {
 					// loading the header resource even.. outcome will likely be same
 					if ((closest.getDuplicatePayloadFile() != null) &&
 						(skipFiles != null) && skipFiles.contains(closest.getDuplicatePayloadFile())) {
-						throw new ResourceNotAvailableException("SKIPPING already failed " + closest.getDuplicatePayloadFile(), null);
+						throw new ResourceNotAvailableException("Revisit: Skipping already failed " + closest.getDuplicatePayloadFile());
 					
 					} else if ((closest.getDuplicatePayloadFile() == null) && wbRequest.isTimestampSearchKey()) {
 						// If a missing revisit and loaded optimized, try loading the entire timeline again
@@ -593,7 +595,7 @@ implements ShutdownListener {
 				// Otherwise, replay the previous matched capture.
 				// This chain is unlikely to go past one previous capture, but is possible 
 				if (isSelfRedirect(httpHeadersResource, closest, wbRequest, requestURL)) {
-					LOGGER.info("Skipping Self Redirect: " + closest.getCaptureTimestamp() + "/" + closest.getOriginalUrl());
+					LOGGER.info("Self-Redirect: Skipping " + closest.getCaptureTimestamp() + "/" + closest.getOriginalUrl());
 					closest = findNextClosest(closest, captureResults, requestMS);
 					continue;
 				}
@@ -637,15 +639,15 @@ implements ShutdownListener {
 				
 			} catch (SpecificCaptureReplayException scre) {
 				
-				final String SOCKET_TIMEOUT_MSG = "java.net.SocketTimeoutException: Read timed out";
+				//final String SOCKET_TIMEOUT_MSG = "java.net.SocketTimeoutException: Read timed out";
 				
 				CaptureSearchResult nextClosest = null;
 				
 				// over 2 failures and socket timeout, don't try to find anymore
-				if ((counter > maxTimeouts) && scre.getMessage().endsWith(SOCKET_TIMEOUT_MSG)) {
-					LOGGER.info("LOADFAIL: Skipping nextclosest due to socket timeouts");
+				if ((counter > maxTimeouts) && (scre.getOrigException() instanceof java.net.SocketTimeoutException)) {
+					LOGGER.info("LOADFAIL: Timeout: Skipping nextclosest due to socket timeouts");
 				} else if ((counter > maxMissingRevisits) && isRevisit) {
-					LOGGER.info("LOADFAIL: Skipping nextclosest due to missing revisit");
+					LOGGER.info("LOADFAIL: Revisit: Skipping nextclosest due to missing revisit");
 				} else if (closest != null) {
 					nextClosest = findNextClosest(closest, captureResults, requestMS);
 				}
@@ -677,7 +679,7 @@ implements ShutdownListener {
 						}						
 					}
 					
-					if (msg.startsWith("SKIPPING")) {					
+					if (msg.startsWith("Self-Redirect")) {					
 						LOGGER.info("(" + counter + ")LOADFAIL-> " + msg + " -> " + nextClosest.getCaptureTimestamp());
 					} else {
 						LOGGER.warning("(" + counter + ")LOADFAIL-> " + msg + " -> " + nextClosest.getCaptureTimestamp());
@@ -784,7 +786,7 @@ implements ShutdownListener {
 			CaptureSearchResults captureResults, CaptureSearchResult closest, Set<String> skipFiles)
 					throws ResourceNotAvailableException, ConfigurationException, ResourceIndexNotAvailableException, ResourceNotInArchiveException, BadQueryException, AccessControlException, BetterRequestException {
 		if (!closest.isDuplicateDigest()) {
-			LOGGER.warning("record is not a revisit by identical content digest " + closest.getCaptureTimestamp() + " " + closest.getOriginalUrl());
+			LOGGER.warning("Revisit: record is not a revisit by identical content digest " + closest.getCaptureTimestamp() + " " + closest.getOriginalUrl());
 			return null;
 		}
 		
@@ -862,9 +864,7 @@ implements ShutdownListener {
 				throw lastExc;
 			}
 			
-			throw new ResourceNotAvailableException(
-					"unable to find payload for revisit record "
-							+ closest.toCanonicalStringMap());
+			throw new ResourceNotAvailableException("Revisit: Missing original for revisit record " + closest.toCanonicalStringMap());
 		}
 
 		return getResource(payloadLocation, skipFiles);
