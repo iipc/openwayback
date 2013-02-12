@@ -3,6 +3,7 @@ package org.archive.wayback.webapp;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -22,6 +23,8 @@ public class FileRegexParamFilterAndFactory extends FileRegexFilter implements C
 	protected int paramIndex = 1;
 	protected boolean isExclusion = true;
 	protected char delim = '\t';
+	
+	protected String prefixMatch;
 	
 	protected Set<String> paramSet = null;
 	
@@ -73,12 +76,20 @@ public class FileRegexParamFilterAndFactory extends FileRegexFilter implements C
 		final String file = o.getFile();
 		boolean matched = false;
 		
+		if (prefixMatch != null) {
+			if (!file.startsWith(prefixMatch)) {
+				return (isExclusion ? FILTER_INCLUDE : FILTER_EXCLUDE);
+			}
+		}
+		
 		for (Pattern pattern : patterns) {
 			Matcher matcher = pattern.matcher(file);
 			if (matcher.find()) {
 				String param = matcher.group(paramIndex);
 				if (paramSet.contains(param)) {
-					LOGGER.fine("Excluding (w)arc: " + file);
+					if (LOGGER.isLoggable(Level.FINE)) {
+						LOGGER.fine("Excluding (w)arc: " + file);
+					}
 					matched = true;
 					break;
 				}
@@ -124,5 +135,13 @@ public class FileRegexParamFilterAndFactory extends FileRegexFilter implements C
 
 	public void setDelim(char delim) {
 		this.delim = delim;
+	}
+
+	public String getPrefixMatch() {
+		return prefixMatch;
+	}
+
+	public void setPrefixMatch(String prefixMatch) {
+		this.prefixMatch = prefixMatch;
 	}
 }
