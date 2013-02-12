@@ -28,6 +28,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.httpclient.URIException;
 import org.archive.io.arc.ARCRecord;
 import org.archive.wayback.accesscontrol.robotstxt.RobotExclusionFilterFactory;
 import org.archive.wayback.accesscontrol.staticmap.StaticMapExclusionFilterFactory;
@@ -61,6 +62,8 @@ public class LiveWebAccessPoint extends AbstractRequestHandler {
 	private LiveWebCache cache = null;
 	private RobotExclusionFilterFactory robotFactory = null;
 	private StaticMapExclusionFilterFactory adminFactory = null;
+	
+	public final static String LIVEWEB_RUNTIME_ERROR_HEADER = "X-Archive-Wayback-Runtime-Liveweb-Error";
 	
 	private long maxCacheMS = 86400000;
 	
@@ -149,10 +152,14 @@ public class LiveWebAccessPoint extends AbstractRequestHandler {
 			}
 
 		} catch(WaybackException e) {
-			inner.writeErrorHeader(httpResponse, "X-Archive-Wayback-Runtime-Liveweb-Error", e.getMessage());
+			inner.writeErrorHeader(httpResponse, LIVEWEB_RUNTIME_ERROR_HEADER, e);
 			inner.getException().renderException(httpRequest, httpResponse, wbRequest,
 					e, inner.getUriConverter());
+		
+		} catch(Exception e) {
+			inner.writeErrorHeader(httpResponse, LIVEWEB_RUNTIME_ERROR_HEADER, e);
 		}
+		
 		return handled;
 	}
 

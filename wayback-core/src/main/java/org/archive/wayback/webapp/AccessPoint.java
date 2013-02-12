@@ -36,7 +36,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.httpclient.URIException;
 import org.archive.wayback.ExceptionRenderer;
 import org.archive.wayback.QueryRenderer;
 import org.archive.wayback.ReplayDispatcher;
@@ -108,6 +107,9 @@ implements ShutdownListener {
 	
 	public final static String REVISIT_STR = "warc/revisit";
 	public final static String EMPTY_VALUE = "-";
+	
+	public final static String RUNTIME_ERROR_HEADER = "X-Archive-Wayback-Runtime-Error";
+	public final static String NOTFOUND_ERROR_HEADER = "X-Archive-Wayback-Not-Found";
 
 	private static final Logger LOGGER = Logger.getLogger(
 			AccessPoint.class.getName());
@@ -282,32 +284,38 @@ implements ShutdownListener {
 
 		} catch(BetterRequestException e) {
 			e.generateResponse(httpResponse);
-			handled = true;
+			handled = true;			
 
 		} catch(WaybackException e) {
 			if(wbRequest.isReplayRequest() 
 				&& (getLiveWebPrefix() != null) 
 				&& (getLiveWebPrefix().length() > 0)) {
 				
-				writeErrorHeader(httpResponse, "X-Archive-Wayback-Runtime-Error", e.getMessage());
+				writeErrorHeader(httpResponse, RUNTIME_ERROR_HEADER, e);
 
 				String liveUrl = 
 					getLiveWebPrefix() + wbRequest.getRequestUrl();
 						httpResponse.sendRedirect(liveUrl);
 			} else {
 				logNotInArchive(e,wbRequest);
-				writeErrorHeader(httpResponse, "X-Archive-Wayback-Not-Found", e.getMessage());				
+				writeErrorHeader(httpResponse, NOTFOUND_ERROR_HEADER, e);				
 				getException().renderException(httpRequest, httpResponse, 
 						wbRequest, e, getUriConverter());
 			}
+		} catch (Exception other) {
+			writeErrorHeader(httpResponse, RUNTIME_ERROR_HEADER, other);
 		}
 		
 		return handled;
 	}
 	
-	public void writeErrorHeader(HttpServletResponse httpResponse, String header, String message)
+	public void writeErrorHeader(HttpServletResponse httpResponse, String header, Exception e)
 	{
-		if (message.length() > 200) {
+		String message = (e != null ? e.toString() : "");
+		
+		if (message == null) {
+			message = "";
+		} else if (message.length() > 200) {
 			message = message.substring(0, 200);
 		}
 		
@@ -404,18 +412,18 @@ implements ShutdownListener {
 		
 		String redirScheme = UrlOperations.urlToScheme(location);
 		
-		if (redirScheme == null) {
-			location = UrlOperations.resolveUrl(closest.getOriginalUrl(), location);
-			redirScheme = UrlOperations.urlToScheme(location);
-		}
-		
-		if (getSelfRedirectCanonicalizer() != null) {
-			try {
-				location = getSelfRedirectCanonicalizer().urlStringToKey(location);
-			} catch (IOException e) {
-				return false;
+		try {	
+			if (redirScheme == null) {
+				location = UrlOperations.resolveUrl(closest.getOriginalUrl(), location);
+				redirScheme = UrlOperations.urlToScheme(location);
 			}
-		}
+			
+			if (getSelfRedirectCanonicalizer() != null) {
+				location = getSelfRedirectCanonicalizer().urlStringToKey(location);
+			}
+		} catch (IOException e) {
+			return false;
+		}			
 		
 		if (location.equals(canonRequestURL)) {
 			String origScheme = 
