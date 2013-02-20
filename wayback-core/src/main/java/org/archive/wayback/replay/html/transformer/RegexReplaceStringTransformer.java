@@ -22,6 +22,7 @@ package org.archive.wayback.replay.html.transformer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.archive.wayback.accesscontrol.oracleclient.CustomPolicyOracleFilter;
 import org.archive.wayback.replay.html.ReplayParseContext;
 import org.archive.wayback.replay.html.StringTransformer;
 
@@ -29,9 +30,19 @@ public class RegexReplaceStringTransformer implements StringTransformer {
 	private String regex = "";
 	private String replacement = "";
 	private Pattern pattern = null;
+	private String ruleId;
 
 	public String transform(ReplayParseContext context, String input) {
-		if(pattern == null) {
+		
+		if (ruleId != null) {
+			String policy = context.getData(CustomPolicyOracleFilter.CAPTURE_ORACLE_POLICY);
+			
+			if (policy != null && policy.contains("disable-rewrite-" + ruleId)) {
+				return input;
+			}
+		}
+		
+		if (pattern == null) {
 			return input;
 		}
 		Matcher m = pattern.matcher(input);
@@ -65,5 +76,13 @@ public class RegexReplaceStringTransformer implements StringTransformer {
 	 */
 	public void setReplacement(String replacement) {
 		this.replacement = replacement;
+	}
+
+	public String getRuleId() {
+		return ruleId;
+	}
+
+	public void setRuleId(String ruleId) {
+		this.ruleId = ruleId;
 	}
 }
