@@ -61,7 +61,10 @@ public abstract class Resource extends InputStream {
 	 */
 	public abstract Map<String,String> getHttpHeaders();
 	
-	public abstract void parseHeaders() throws IOException;
+	public void parseHeaders() throws IOException
+	{
+		//Implemented in warc/arc reader
+	}
 
 	private void validate() throws IOException {
 		if(is == null) {
