@@ -196,21 +196,27 @@ public class LocalResourceIndex implements ResourceIndex {
 		}
 		filters.addFilters(window.getFilters());
 		
-		CloseableIterator<CaptureSearchResult> itr = 
-			new ObjectFilterIterator<CaptureSearchResult>(
-					source.getPrefixIterator(urlKey),filters);
+		CloseableIterator<CaptureSearchResult> itr = null;
+		
 		try {
+			itr = new ObjectFilterIterator<CaptureSearchResult>(source.getPrefixIterator(urlKey),filters);
+			
 			while(itr.hasNext()) {
 				results.addSearchResult(itr.next());
 			}
 		} catch(RuntimeIOException e) {
 			throw new ResourceIndexNotAvailableException(e.getLocalizedMessage());
+		} finally {
+			if (itr != null) {
+				cleanupIterator(itr);
+			}
 		}
+		
 		for(CaptureFilterGroup cfg : groups) {
 			cfg.annotateResults(results);
 		}
+		
 		window.annotateResults(results);
-		cleanupIterator(itr);
 
 		return results;
 	}
@@ -249,9 +255,6 @@ public class LocalResourceIndex implements ResourceIndex {
 			cFilters.addFilter(filter);
 		}
 		
-		CloseableIterator<CaptureSearchResult> itrC = 
-			new ObjectFilterIterator<CaptureSearchResult>(
-					source.getPrefixIterator(urlKey),cFilters);
 
 		// we've filtered the appropriate CaptureResult objects within the 
 		// iterator, now we're going to convert whatever records make it past
@@ -265,21 +268,31 @@ public class LocalResourceIndex implements ResourceIndex {
 		WindowFilterGroup<UrlSearchResult> window = 
 			new WindowFilterGroup<UrlSearchResult>(wbRequest,this);
 		uFilters.addFilters(window.getFilters());
-		CloseableIterator<UrlSearchResult> itrU = 
-			new ObjectFilterIterator<UrlSearchResult>(
-					new CaptureToUrlSearchResultIterator(itrC),
-					uFilters);
+
+		CloseableIterator<CaptureSearchResult> itrC = null;
+		CloseableIterator<UrlSearchResult> itrU = null;
 		
-		while(itrU.hasNext()) {
-			results.addSearchResult(itrU.next());
+		try {
+			itrC = new ObjectFilterIterator<CaptureSearchResult>(
+					source.getPrefixIterator(urlKey),cFilters);	
+		
+			itrU = new ObjectFilterIterator<UrlSearchResult>(
+						new CaptureToUrlSearchResultIterator(itrC),
+						uFilters);
+		
+			while(itrU.hasNext()) {
+				results.addSearchResult(itrU.next());
+			}
+		} finally {
+			if (itrU != null) {
+				cleanupIterator(itrU);
+			}
 		}
 		
 		for(CaptureFilterGroup cfg : groups) {
 			cfg.annotateResults(results);
 		}
 		window.annotateResults(results);
-
-		cleanupIterator(itrU);
 
 		return results;
 	}

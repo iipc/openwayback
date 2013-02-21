@@ -6,6 +6,7 @@ import org.archive.wayback.util.ObjectFilter;
 public class DuplicateTimestampFilter implements ObjectFilter<CaptureSearchResult> {
 
 	protected String lastTimestamp;
+	protected String lastHttpCode;
 	protected int timestampDedupLength;
 	
 	public DuplicateTimestampFilter(int timestampDedupLength)
@@ -23,9 +24,19 @@ public class DuplicateTimestampFilter implements ObjectFilter<CaptureSearchResul
 		String timestamp = o.getCaptureTimestamp();
 		timestamp = timestamp.substring(0, timestampDedupLength);
 		
-		boolean sameTimestamp = (lastTimestamp != null) && timestamp.equals(lastTimestamp);
+		boolean isDupe = false;
+		
+		if ((lastTimestamp != null) && timestamp.equals(lastTimestamp)) {
+			if ((lastHttpCode == null) || !lastHttpCode.equals(o.getHttpCode())) {
+				isDupe = true;
+			}
+			lastHttpCode = o.getHttpCode();
+		} else {
+			lastHttpCode = null;
+		}
 		
 		lastTimestamp = timestamp;
-		return sameTimestamp ? FILTER_EXCLUDE : FILTER_INCLUDE;
+		
+		return isDupe ? FILTER_EXCLUDE : FILTER_INCLUDE;
 	}
 }
