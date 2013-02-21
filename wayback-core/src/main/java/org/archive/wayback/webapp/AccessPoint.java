@@ -943,13 +943,22 @@ implements ShutdownListener {
 		}
 	}
 	
-	protected void closeResources(Resource payloadResource, Resource httpHeadersResource) throws IOException
+	protected void closeResources(Resource payloadResource, Resource httpHeadersResource)
 	{
-		if((payloadResource != null) && payloadResource != httpHeadersResource) {
-			payloadResource.close();
+		if ((payloadResource != null) && (payloadResource != httpHeadersResource)) {
+			try {
+				payloadResource.close();
+			} catch (IOException e) {
+				LOGGER.warning(e.toString());
+			}
 		}
-		if(httpHeadersResource != null) {
-			httpHeadersResource.close();
+		
+		if (httpHeadersResource != null) {
+			try {
+				httpHeadersResource.close();
+			} catch (IOException e) {
+				LOGGER.warning(e.toString());
+			}
 		}
 	}
 	

@@ -60,6 +60,8 @@ public abstract class Resource extends InputStream {
 	 * @return key-value Map of HTTP headers 
 	 */
 	public abstract Map<String,String> getHttpHeaders();
+	
+	public abstract void parseHeaders() throws IOException;
 
 	private void validate() throws IOException {
 		if(is == null) {
