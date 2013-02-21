@@ -148,7 +148,7 @@ public class FlexResourceStore implements ResourceStore {
 		
 		Resource resource = null;
 		
-		//List<IOException> exceptions = null;
+		String excMsg = null;
 		IOException lastExc = null;
 				
 		for (SourceResolver resolver : sources) {
@@ -167,41 +167,58 @@ public class FlexResourceStore implements ResourceStore {
 					}
 				}
 			} catch (IOException e) {
+				if (excMsg != null) {
+					excMsg += " ";
+					excMsg += e.toString();
+				} else {
+					excMsg = e.toString();
+				}
+				
 				lastExc = e;
-//				if (exceptions == null) {
-//					exceptions = new ArrayList<IOException>();
-//					exceptions.add(e);
-//				}
 			}
 		}
-		
-		ResourceNotAvailableException rnae = new ResourceNotAvailableException("(w)arc load failed", result.getFile(), lastExc);
+
+		ResourceNotAvailableException rnae = new ResourceNotAvailableException(excMsg, result.getFile(), lastExc);
 		throw rnae;
 	}
 	
 	public Resource getResource(String path, long offset, int length) throws IOException
 	{
 		long start = System.currentTimeMillis();
-		
-		SeekableLineReader slr = blockLoader.createBlockReader(path);
-		InputStream is = slr.seekWithMaxRead(offset, false, length);
-		
-		if (LOGGER.isLoggable(Level.INFO)) {
-			LOGGER.info("Loading " + path + " - " + offset + ":" + length);
-		}
-				
-		ArchiveReader archiveReader = ArchiveReaderFactory.get(path, is, (offset == 0));
 		Resource r = null;
 		
-		if (archiveReader instanceof ARCReader) {
-			r = new ArcResource((ARCRecord)archiveReader.get(), archiveReader);
-		} else if (archiveReader instanceof WARCReader) {
-			r = new WarcResource((WARCRecord)archiveReader.get(), archiveReader);			
-		} else {
-			throw new IOException("Unknown ArchiveReader");
-		}
+		SeekableLineReader slr = null;
 		
-		r.parseHeaders();
+		try {
+			slr = blockLoader.createBlockReader(path);
+			
+			InputStream is = slr.seekWithMaxRead(offset, false, length);
+			
+			if (LOGGER.isLoggable(Level.INFO)) {
+				LOGGER.info("Loading " + path + " - " + offset + ":" + length);
+			}
+					
+			ArchiveReader archiveReader = ArchiveReaderFactory.get(path, is, (offset == 0));
+			
+			if (archiveReader instanceof ARCReader) {
+				r = new ArcResource((ARCRecord)archiveReader.get(), archiveReader);
+			} else if (archiveReader instanceof WARCReader) {
+				r = new WarcResource((WARCRecord)archiveReader.get(), archiveReader);	
+			} else {
+				throw new IOException("Unknown ArchiveReader");
+			}
+			
+			r.parseHeaders();
+			
+		} finally {
+			if ((slr != null) && (r == null)) {
+				try {
+					slr.close();
+				} catch (IOException io) {
+					
+				}
+			}
+		}
 		
 		long elapsed = System.currentTimeMillis() - start;
 		PerformanceLogger.noteElapsed("{W}arcBlockLoader", elapsed, path);
