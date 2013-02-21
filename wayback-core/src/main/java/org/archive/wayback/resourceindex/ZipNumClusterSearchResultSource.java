@@ -7,7 +7,6 @@ import org.archive.format.gzip.zipnum.ZipNumParams;
 import org.archive.util.iterator.CloseableIterator;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
-import org.archive.wayback.resourceindex.cdx.CDXLineToSearchResultAdapter;
 import org.archive.wayback.resourceindex.cdx.format.CDXFlexFormat;
 import org.archive.wayback.util.AdaptedIterator;
 import org.archive.wayback.util.Adapter;
@@ -59,7 +58,7 @@ public class ZipNumClusterSearchResultSource implements SearchResultSource, Adap
 				cdxIter = cluster.getCDXIterator(urlkey, prefix.substring(0, prefix.length() - 2), false, params);
 			}
 			
-			return new AdaptedIterator<String,CaptureSearchResult>(cdxIter, new CDXLineToSearchResultAdapter());
+			return new AdaptedIterator<String,CaptureSearchResult>(cdxIter, this);
 			 
 			
 		} catch (IOException e) {
@@ -77,8 +76,7 @@ public class ZipNumClusterSearchResultSource implements SearchResultSource, Adap
 	@Override
 	public void cleanup(CloseableIterator<CaptureSearchResult> c)
 			throws IOException {
-		// TODO Auto-generated method stub
-
+		c.close();
 	}
 
 	@Override

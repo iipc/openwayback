@@ -24,6 +24,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.logging.Logger;
+
 import org.archive.util.iterator.CloseableIterator;
 
 
@@ -37,6 +39,8 @@ import org.archive.util.iterator.CloseableIterator;
  */
 public class CompositeSortedIterator<E> implements CloseableIterator<E> {
 
+	private final static Logger LOGGER = Logger.getLogger(CompositeSortedIterator.class.getName());
+	
 	private ArrayList<PeekableIterator<E>> components;
 	private E next;
 	private Comparator<E> comparator;
@@ -102,8 +106,14 @@ public class CompositeSortedIterator<E> implements CloseableIterator<E> {
 	 */
 	public void close() throws IOException {
 		for(int i = 0; i < components.size(); i++) {
-			PeekableIterator<E> pi = (PeekableIterator<E>) components.get(i);
-			pi.close();
+			PeekableIterator<E> pi = components.get(i);
+			
+			// Catch exception so that we can still close others
+			try {
+				pi.close();
+			} catch (IOException io) {
+				LOGGER.warning(io.toString());
+			}
 		}
 	}
 }
