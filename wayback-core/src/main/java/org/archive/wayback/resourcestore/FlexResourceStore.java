@@ -111,7 +111,7 @@ public class FlexResourceStore implements ResourceStore {
 					try {
 						iter.close();
 					} catch (IOException e) {
-						//e.printStackTrace();
+						LOGGER.warning(e.toString());
 					}
 				}
 			}
