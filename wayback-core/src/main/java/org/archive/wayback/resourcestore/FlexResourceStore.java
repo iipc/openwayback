@@ -257,7 +257,9 @@ public class FlexResourceStore implements ResourceStore {
 				HTTPSeekableLineReader httpSlr = (HTTPSeekableLineReader)slr;
 				String value = httpSlr.getHeaderValue(customHeader);
 				
-				result.put(CaptureSearchResult.CUSTOM_HEADER_PREFIX + customHeader, value);
+				if (value != null) {				
+					result.put(CaptureSearchResult.CUSTOM_HEADER_PREFIX + customHeader, value);
+				}
 			}
 			
 		} catch (IOException io) {
