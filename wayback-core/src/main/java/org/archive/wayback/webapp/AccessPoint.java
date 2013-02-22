@@ -396,8 +396,12 @@ implements ShutdownListener {
 		for (Entry<String, String> entry : resultData.entrySet()) {
 			String key = entry.getKey();
 			
-			if (key != null && key.startsWith(CaptureSearchResult.CUSTOM_HEADER_PREFIX)) {
-				httpResponse.addHeader(key.substring(CaptureSearchResult.CUSTOM_HEADER_PREFIX.length()), entry.getValue());
+			if ((key != null) && key.startsWith(CaptureSearchResult.CUSTOM_HEADER_PREFIX)) {
+				key = key.substring(CaptureSearchResult.CUSTOM_HEADER_PREFIX.length());
+				String value = entry.getValue();
+				if (!key.isEmpty() && (value != null)) {
+					httpResponse.addHeader(key, value);
+				}
 			}
 		}
 	}
