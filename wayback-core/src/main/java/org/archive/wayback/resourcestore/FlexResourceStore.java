@@ -251,14 +251,13 @@ public class FlexResourceStore implements ResourceStore {
 				result.put(CaptureSearchResult.CUSTOM_HEADER_PREFIX + customHeader, value);
 			}
 			
-		} finally {
-			if ((slr != null) && (r == null)) {
-				try {
-					slr.close();
-				} catch (IOException io) {
-					
-				}
+		} catch (IOException io) {
+			if (slr != null) {
+				slr.close();
 			}
+			r = null;
+			slr = null;
+			throw io;	
 		}
 		
 		long elapsed = System.currentTimeMillis() - start;
@@ -271,5 +270,4 @@ public class FlexResourceStore implements ResourceStore {
 	public void shutdown() throws IOException {
 		blockLoader.close();
 	}
-	
 }
