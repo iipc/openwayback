@@ -27,6 +27,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Level;
@@ -387,6 +388,19 @@ implements ShutdownListener {
 			}
 		}
 	}
+	
+	protected void addCustomHeaders(HttpServletResponse httpResponse, CaptureSearchResult closest)
+	{
+		Map<String, String> resultData = closest.toCanonicalStringMap();
+		
+		for (Entry<String, String> entry : resultData.entrySet()) {
+			String key = entry.getKey();
+			
+			if (key != null && key.startsWith(CaptureSearchResult.CUSTOM_HEADER_PREFIX)) {
+				httpResponse.addHeader(key.substring(CaptureSearchResult.CUSTOM_HEADER_PREFIX.length()), entry.getValue());
+			}
+		}
+	}
 		
 	protected boolean isSelfRedirect(Resource resource, CaptureSearchResult closest, WaybackRequest wbRequest, String canonRequestURL)
 	{
@@ -627,6 +641,8 @@ implements ShutdownListener {
 		
 				ReplayRenderer renderer = 
 					getReplay().getRenderer(wbRequest, closest, httpHeadersResource, payloadResource);
+				
+				addCustomHeaders(httpResponse, closest);
 		
 				renderer.renderResource(httpRequest, httpResponse, wbRequest,
 						closest, httpHeadersResource, payloadResource, getUriConverter(), captureResults);
