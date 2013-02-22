@@ -78,14 +78,23 @@ public class FlexResourceStore implements ResourceStore {
 		String[] lookupPath(String filename) throws IOException;
 	}
 	
-	public static class PathIndex extends SortedTextFile implements SourceResolver
+	public static class PathIndex implements SourceResolver
 	{
 		final static String DELIMITER = "\t";
 		
-		public PathIndex(String path) throws IOException
+		protected SortedTextFile pathIndex;
+		protected String path;
+		
+		public void setPathIndex(String path) throws IOException
 		{
-			super(path);
-		}		
+			this.path = path;
+			this.pathIndex = new SortedTextFile(path, false);
+		}
+		
+		public String getPathIndex()
+		{
+			return path;
+		}
 		
 		@Override
 		public String[] lookupPath(String filename) throws IOException {
@@ -95,7 +104,7 @@ public class FlexResourceStore implements ResourceStore {
 			try {
 				String prefix = filename + DELIMITER;
 				
-				iter = super.getRecordIterator(prefix);
+				iter = pathIndex.getRecordIterator(prefix);
 				
 				while (iter.hasNext()) {
 					String line = iter.next();
