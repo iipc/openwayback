@@ -1,5 +1,6 @@
 package org.archive.wayback.resourcestore;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -16,6 +17,7 @@ import org.archive.io.warc.WARCReader;
 import org.archive.io.warc.WARCRecord;
 import org.archive.util.binsearch.SeekableLineReader;
 import org.archive.util.binsearch.SortedTextFile;
+import org.archive.util.binsearch.impl.HTTPSeekableLineReader;
 import org.archive.util.iterator.CloseableIterator;
 import org.archive.wayback.ResourceStore;
 import org.archive.wayback.core.CaptureSearchResult;
@@ -33,7 +35,11 @@ public class FlexResourceStore implements ResourceStore {
 	
 	protected ZipNumBlockLoader blockLoader;
 	
+	protected String customHeader;
+	
 	protected List<SourceResolver> sources;
+	
+	protected boolean failOnFirstUnavailable = false;
 	
 	public ZipNumBlockLoader getBlockLoader() {
 		return blockLoader;
@@ -43,12 +49,28 @@ public class FlexResourceStore implements ResourceStore {
 		this.blockLoader = blockLoader;
 	}
 
+	public String getCustomHeader() {
+		return customHeader;
+	}
+
+	public void setCustomHeader(String customHeader) {
+		this.customHeader = customHeader;
+	}
+
 	public List<SourceResolver> getSources() {
 		return sources;
 	}
 
 	public void setSources(List<SourceResolver> sources) {
 		this.sources = sources;
+	}
+
+	public boolean isFailOnFirstUnavailable() {
+		return failOnFirstUnavailable;
+	}
+
+	public void setFailOnFirstUnavailable(boolean failOnFirstUnavailable) {
+		this.failOnFirstUnavailable = failOnFirstUnavailable;
 	}
 
 	interface SourceResolver
@@ -153,14 +175,14 @@ public class FlexResourceStore implements ResourceStore {
 				
 		for (SourceResolver resolver : sources) {
 			try {
-				String[] paths = resolver.lookupPath(result.getFile());
+				String[] paths = resolver.lookupPath(filename);
 				
 				if (paths.length == 0) {
 					continue;
 				}
 				
 				for (String path : paths) {
-					resource = getResource(path, result.getOffset(), (int)result.getCompressedLength());
+					resource = getResource(path, result);
 					
 					if (resource != null) {
 						return resource;
@@ -175,17 +197,29 @@ public class FlexResourceStore implements ResourceStore {
 				}
 				
 				lastExc = e;
+				
+				if (failOnFirstUnavailable) {
+					break;
+				}
 			}
 		}
+		
+		if (lastExc == null) {
+			lastExc = new FileNotFoundException(filename);
+			excMsg = "File not Found: " + filename;
+		}
 
-		ResourceNotAvailableException rnae = new ResourceNotAvailableException(excMsg, result.getFile(), lastExc);
+		ResourceNotAvailableException rnae = new ResourceNotAvailableException(excMsg, filename, lastExc);
 		throw rnae;
 	}
 	
-	public Resource getResource(String path, long offset, int length) throws IOException
+	public Resource getResource(String path, CaptureSearchResult result) throws IOException
 	{
 		long start = System.currentTimeMillis();
 		Resource r = null;
+		
+		long offset = result.getOffset();
+		int length = (int)result.getCompressedLength();
 		
 		SeekableLineReader slr = null;
 		
@@ -209,6 +243,13 @@ public class FlexResourceStore implements ResourceStore {
 			}
 			
 			r.parseHeaders();
+			
+			if ((customHeader != null) && (slr instanceof HTTPSeekableLineReader)) {
+				HTTPSeekableLineReader httpSlr = (HTTPSeekableLineReader)slr;
+				String value = httpSlr.getHeaderValue(customHeader);
+				
+				result.put(CaptureSearchResult.CUSTOM_HEADER_PREFIX + customHeader, value);
+			}
 			
 		} finally {
 			if ((slr != null) && (r == null)) {

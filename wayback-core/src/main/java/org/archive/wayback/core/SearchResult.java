@@ -34,6 +34,8 @@ import org.archive.wayback.util.Timestamp;
 public class SearchResult {
 
 	public static final String RESULT_TRUE_VALUE = "true";
+	
+	public static final String CUSTOM_HEADER_PREFIX = "custom.http.header.";
 
 	/**
 	 * Expandable Data bag for String to String tuples -- who knows what data
