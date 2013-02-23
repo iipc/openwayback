@@ -235,7 +235,9 @@ public class FlexResourceStore implements ResourceStore {
 		try {
 			slr = blockLoader.createBlockReader(path);
 			
-			InputStream is = slr.seekWithMaxRead(offset, false, length);
+			slr.seekWithMaxRead(offset, false, length);
+			
+			InputStream is = slr.getInputStream();
 			
 			if (LOGGER.isLoggable(Level.INFO)) {
 				LOGGER.info("Loading " + path + " - " + offset + ":" + length);
