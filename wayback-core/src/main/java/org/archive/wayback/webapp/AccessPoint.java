@@ -610,6 +610,7 @@ implements ShutdownListener {
 					// loading the header resource even.. outcome will likely be same
 					if ((closest.getDuplicatePayloadFile() != null) &&
 						(skipFiles != null) && skipFiles.contains(closest.getDuplicatePayloadFile())) {
+						counter--; //don't really count this as we're not even checking the file anymore
 						throw new ResourceNotAvailableException("Revisit: Skipping already failed " + closest.getDuplicatePayloadFile());
 					
 					} else if ((closest.getDuplicatePayloadFile() == null) && wbRequest.isTimestampSearchKey()) {
@@ -718,7 +719,7 @@ implements ShutdownListener {
 				// if exceed maxRedirectAttempts, stop
 				if (counter > maxRedirectAttempts) {
 					LOGGER.info("LOADFAIL: Timeout: Too many retries, limited to " + maxRedirectAttempts);
-				} else if (closest != null) {
+				} else if ((closest != null) && !wbRequest.isIdentityContext()) {
 					nextClosest = findNextClosest(closest, captureResults, requestMS);
 				}
 				
@@ -867,6 +868,7 @@ implements ShutdownListener {
 			payloadLocation = new CaptureSearchResult();
 			payloadLocation.setFile(closest.getDuplicatePayloadFile());
 			payloadLocation.setOffset(closest.getDuplicatePayloadOffset());
+			payloadLocation.setCompressedLength(closest.getDuplicatePayloadCompressedLength());
 		}
 
 		Map<String, Object> warcHeaders = null;

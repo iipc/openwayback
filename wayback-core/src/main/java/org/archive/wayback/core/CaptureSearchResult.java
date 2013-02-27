@@ -148,6 +148,14 @@ public class CaptureSearchResult extends SearchResult {
 	 * known.
 	 */
 	public static final String CAPTURE_DUPLICATE_PAYLOAD_OFFSET = "payload-" + CAPTURE_OFFSET;
+	
+	
+	/**
+	 * For identical content digest revisit records, the compressed length in
+	 * CAPTURE_DUPLICATE_PAYLOAD_LENGTH where the payload record can be found, if
+	 * known.
+	 */
+	public static final String CAPTURE_DUPLICATE_PAYLOAD_COMPRESSED_LENGTH = "payload-" + CAPTURE_COMPRESSED_LENGTH;
 
 	/**
 	 * flag indicates that this document was NOT downloaded, but that the
@@ -293,6 +301,9 @@ public class CaptureSearchResult extends SearchResult {
 		put(CAPTURE_DUPLICATE_STORED_TS, payload.getCaptureTimestamp());
 		put(CAPTURE_DUPLICATE_PAYLOAD_FILE, payload.getFile());
 		put(CAPTURE_DUPLICATE_PAYLOAD_OFFSET, String.valueOf(payload.getOffset()));
+		if (payload.getCompressedLength() > 0) {
+			put(CAPTURE_DUPLICATE_PAYLOAD_COMPRESSED_LENGTH, String.valueOf(payload.getCompressedLength()));
+		}
 	}
 	
 	public String getDuplicatePayloadFile() {
@@ -304,6 +315,14 @@ public class CaptureSearchResult extends SearchResult {
 			return Long.valueOf(get(CAPTURE_DUPLICATE_PAYLOAD_OFFSET));
 		} else {
 			return null;
+		}
+	}
+	
+	public long getDuplicatePayloadCompressedLength() {
+		if (get(CAPTURE_DUPLICATE_PAYLOAD_COMPRESSED_LENGTH) != null) {
+			return Long.valueOf(get(CAPTURE_DUPLICATE_PAYLOAD_COMPRESSED_LENGTH));
+		} else {
+			return -1;
 		}
 	}
 	
