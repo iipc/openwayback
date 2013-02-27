@@ -28,7 +28,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.httpclient.URIException;
 import org.archive.io.arc.ARCRecord;
 import org.archive.wayback.accesscontrol.robotstxt.RobotExclusionFilterFactory;
 import org.archive.wayback.accesscontrol.staticmap.StaticMapExclusionFilterFactory;
@@ -57,11 +56,18 @@ import org.archive.wayback.util.webapp.AbstractRequestHandler;
 public class LiveWebAccessPoint extends AbstractRequestHandler {
 	private static final Logger LOGGER = Logger.getLogger(
 			LiveWebAccessPoint.class.getName());
+	
+	enum PerfStat
+	{
+		LiveWeb;
+	}
 
 	private AccessPoint inner = null;
 	private LiveWebCache cache = null;
 	private RobotExclusionFilterFactory robotFactory = null;
 	private StaticMapExclusionFilterFactory adminFactory = null;
+	
+	private String perfStatsHeader = null;
 	
 	public final static String LIVEWEB_RUNTIME_ERROR_HEADER = "X-Archive-Wayback-Runtime-Liveweb-Error";
 	
@@ -80,7 +86,16 @@ public class LiveWebAccessPoint extends AbstractRequestHandler {
 		wbRequest.setLiveWebRequest(true);
 		wbRequest.setRequestUrl(urlString);
 		URL url = null;
+		ArcResource r = null;
+		
 		try {
+			PerfStats.clearAll();
+			
+			if (inner.getPerfStatsHeader() != null) {
+				PerfStats.timeStart(AccessPoint.PerfStat.Total);
+				httpResponse = new PerfWritingHttpServletResponse(httpResponse, AccessPoint.PerfStat.Total, inner.getPerfStatsHeader());
+			}
+			
 			if(!urlString.startsWith(UrlOperations.HTTP_SCHEME) &&
 				!urlString.startsWith(UrlOperations.HTTPS_SCHEME)) {
 				throw new ResourceNotInArchiveException(urlString);
@@ -130,10 +145,17 @@ public class LiveWebAccessPoint extends AbstractRequestHandler {
 				}
 			}
 			// no robots check, or robots.txt says GO:
-			long start = System.currentTimeMillis();
-			ArcResource r = (ArcResource) cache.getCachedResource(url, maxCacheMS , false);
-			long elapsed = System.currentTimeMillis() - start;
-			PerformanceLogger.noteElapsed("LiveWebRequest",elapsed,urlString);
+			//long start = System.currentTimeMillis();
+			
+			try {
+				PerfStats.timeStart(PerfStat.LiveWeb);
+				r = (ArcResource) cache.getCachedResource(url, maxCacheMS , false);
+			} finally {
+				PerfStats.timeEnd(PerfStat.LiveWeb);
+			}
+			//long elapsed = System.currentTimeMillis() - start;
+			
+			//PerformanceLogger.noteElapsed("LiveWebRequest",elapsed,urlString);
 			ARCRecord ar = (ARCRecord) r.getArcRecord();
 			int status = ar.getStatusCode();
 			if((status == 200) || ((status >= 300) && (status < 400))) {
@@ -147,6 +169,7 @@ public class LiveWebAccessPoint extends AbstractRequestHandler {
 				inner.getReplay().getRenderer(wbRequest, result, r).renderResource(
 						httpRequest, httpResponse, wbRequest, result, r, 
 						inner.getUriConverter(), results);
+				
 			} else {
 				throw new LiveDocumentNotAvailableException(urlString);
 			}
@@ -158,6 +181,10 @@ public class LiveWebAccessPoint extends AbstractRequestHandler {
 		
 		} catch(Exception e) {
 			inner.writeErrorHeader(httpResponse, LIVEWEB_RUNTIME_ERROR_HEADER, e);
+		} finally {
+			if (r != null) {
+				r.close();
+			}
 		}
 		
 		return handled;
@@ -211,5 +238,13 @@ public class LiveWebAccessPoint extends AbstractRequestHandler {
 
 	public void setAdminFactory(StaticMapExclusionFilterFactory adminFactory) {
 		this.adminFactory = adminFactory;
+	}
+
+	public String getPerfStatsHeader() {
+		return perfStatsHeader;
+	}
+
+	public void setPerfStatsHeader(String perfStatsHeader) {
+		this.perfStatsHeader = perfStatsHeader;
 	}
 }

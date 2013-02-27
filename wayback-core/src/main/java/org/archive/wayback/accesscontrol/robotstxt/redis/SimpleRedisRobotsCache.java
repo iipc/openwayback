@@ -14,6 +14,7 @@ import org.archive.wayback.exception.LiveWebCacheUnavailableException;
 import org.archive.wayback.exception.LiveWebTimeoutException;
 import org.archive.wayback.liveweb.LiveWebCache;
 import org.archive.wayback.resourcestore.resourcefile.ArcResource;
+import org.archive.wayback.webapp.PerfStats;
 
 import com.google.common.io.LimitInputStream;
 
@@ -21,6 +22,12 @@ public class SimpleRedisRobotsCache implements LiveWebCache {
 	
 	private final static Logger LOGGER = Logger
 	.getLogger(SimpleRedisRobotsCache.class.getName());
+	
+	enum PerfStat
+	{
+		RobotsRedis,
+		RobotsLive,
+	};
 	
 	/* REDIS */
 	protected RedisRobotsLogic redisCmds;
@@ -63,19 +70,25 @@ public class SimpleRedisRobotsCache implements LiveWebCache {
 		RedisValue value = null;
 		
 		try {
+			PerfStats.timeStart(PerfStat.RobotsRedis);
+			
 			if (redisCmds != null) {
 				value = redisCmds.getValue(url);
 			}
 		} catch (LiveWebCacheUnavailableException lw) {
 			value = null;
+		} finally {
+			PerfStats.timeEnd(PerfStat.RobotsRedis);
 		}
 		
 		// Use the old liveweb cache, if provided
 		if (value == null) {
 			RobotsResult result = loadExternal(urlURL, maxCacheMS, bUseOlder);
 			
+			PerfStats.timeStart(PerfStat.RobotsRedis);
 			this.updateCache(result.robots, url, null, result.status, true);
-											
+			PerfStats.timeEnd(PerfStat.RobotsRedis);
+			
 			if (result == null || result.status != STATUS_OK) {
 				throw new LiveDocumentNotAvailableException("Error Loading Live Robots");	
 			}
@@ -84,8 +97,10 @@ public class SimpleRedisRobotsCache implements LiveWebCache {
 			
 		} else {
 			
-			if (isExpired(value, url, 0)) {	
+			if (isExpired(value, url, 0)) {
+				PerfStats.timeStart(PerfStat.RobotsRedis);				
 				redisCmds.pushKey(UPDATE_QUEUE_KEY, url, MAX_UPDATE_QUEUE_SIZE);
+				PerfStats.timeEnd(PerfStat.RobotsRedis);
 			}
 			
 			String currentRobots = value.value;
@@ -195,6 +210,8 @@ public class SimpleRedisRobotsCache implements LiveWebCache {
 		String contents = null;
 		
 		try {
+			PerfStats.timeStart(PerfStat.RobotsLive);
+			
 			origResource = (ArcResource)liveweb.getCachedResource(urlURL, maxCacheMS, bUseOlder);
 			status = origResource.getStatusCode();
 			
@@ -220,6 +237,7 @@ public class SimpleRedisRobotsCache implements LiveWebCache {
 					
 				}
 			}
+			PerfStats.timeEnd(PerfStat.RobotsLive);
 		}
 		
 		return new RobotsResult(contents, status);
@@ -289,7 +307,14 @@ public class SimpleRedisRobotsCache implements LiveWebCache {
 		String current = null;
 		
 		try {
-			RedisValue value = redisCmds.getValue(url);
+			RedisValue value = null;
+			
+			try {
+				PerfStats.timeStart(PerfStat.RobotsRedis);
+				value = redisCmds.getValue(url);
+			} finally {
+				PerfStats.timeEnd(PerfStat.RobotsRedis);
+			}
 			
 			// Just in case, avoid too many updates
 			if ((minUpdateTime > 0) && (value != null) && !isExpired(value, url, minUpdateTime)) {

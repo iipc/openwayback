@@ -27,7 +27,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Level;
@@ -127,6 +126,16 @@ implements ShutdownListener {
 
 	private boolean timestampSearch = false;
 	
+	public static enum PerfStat
+	{
+		IndexQueryTotal,
+		WArcResource,
+		Total,
+	}
+	
+	private String perfStatsHeader = null;
+	private String warcFileHeader = "x-archive-src";
+		
 	private String liveWebPrefix = null;
 	private String staticPrefix = null;
 	private String queryPrefix = null;
@@ -157,6 +166,8 @@ implements ShutdownListener {
 	private CustomResultFilterFactory filterFactory = null;
 	
 	private UrlCanonicalizer selfRedirectCanonicalizer = null;
+	
+	private int maxRedirectAttempts = 0;
 
 	public void init() {
 		checkAccessPointAware(collection,exception,query,parser,replay,
@@ -217,6 +228,13 @@ implements ShutdownListener {
 		boolean handled = false;
 
 		try {
+			PerfStats.clearAll();
+			
+			if (perfStatsHeader != null) {
+				PerfStats.timeStart(PerfStat.Total);
+				httpResponse = new PerfWritingHttpServletResponse(httpResponse, PerfStat.Total, perfStatsHeader);
+			}
+			
 			String inputPath = translateRequestPathQuery(httpRequest);
 			Thread.currentThread().setName("Thread " + 
 					Thread.currentThread().getId() + " " + getBeanName() + 
@@ -283,10 +301,10 @@ implements ShutdownListener {
 			} else {
 				handled = dispatchLocal(httpRequest,httpResponse);
 			}
-
+			
 		} catch(BetterRequestException e) {
 			e.generateResponse(httpResponse);
-			handled = true;			
+			handled = true;
 
 		} catch(WaybackException e) {
 			if (wbRequest == null) {
@@ -308,7 +326,7 @@ implements ShutdownListener {
 			}
 		} catch (Exception other) {
 			writeErrorHeader(httpResponse, RUNTIME_ERROR_HEADER, other);
-		} finally {
+		} finally {			
 			//Slightly hacky, but ensures that all block loaders are closed
 			ZipNumBlockLoader.closeAllReaders();
 		}
@@ -322,12 +340,22 @@ implements ShutdownListener {
 		
 		if (message == null) {
 			message = "";
-		} else if (message.length() > 200) {
-			message = message.substring(0, 200);
+		} else {
+			// Get substring from exception name
+			int index = message.indexOf(':');
+			if (index > 0) {
+				index = message.lastIndexOf('.', index);
+				if (index > 0) {
+					message = message.substring(index + 1);
+				}
+			}
+			
+			if (message.length() > 200) {			
+				message = message.substring(0, 200);
+			}
 		}
 		
 		httpResponse.setHeader(header, message);
-		
 	}
 	
 	private void logNotInArchive(WaybackException e, WaybackRequest r) {
@@ -393,22 +421,22 @@ implements ShutdownListener {
 		}
 	}
 	
-	protected void addCustomHeaders(HttpServletResponse httpResponse, CaptureSearchResult closest)
-	{
-		Map<String, String> resultData = closest.toCanonicalStringMap();
-		
-		for (Entry<String, String> entry : resultData.entrySet()) {
-			String key = entry.getKey();
-			
-			if ((key != null) && key.startsWith(CaptureSearchResult.CUSTOM_HEADER_PREFIX)) {
-				key = key.substring(CaptureSearchResult.CUSTOM_HEADER_PREFIX.length());
-				String value = entry.getValue();
-				if (!key.isEmpty() && (value != null)) {
-					httpResponse.addHeader(key, value);
-				}
-			}
-		}
-	}
+//	protected void addCustomHeaders(HttpServletResponse httpResponse, CaptureSearchResult closest)
+//	{
+//		Map<String, String> resultData = closest.toCanonicalStringMap();
+//		
+//		for (Entry<String, String> entry : resultData.entrySet()) {
+//			String key = entry.getKey();
+//			
+//			if ((key != null) && key.startsWith(CaptureSearchResult.CUSTOM_HEADER_PREFIX)) {
+//				key = key.substring(CaptureSearchResult.CUSTOM_HEADER_PREFIX.length());
+//				String value = entry.getValue();
+//				if (!key.isEmpty() && (value != null)) {
+//					httpResponse.addHeader(key, value);
+//				}
+//			}
+//		}
+//	}
 		
 	protected boolean isSelfRedirect(Resource resource, CaptureSearchResult closest, WaybackRequest wbRequest, String canonRequestURL)
 	{
@@ -462,13 +490,29 @@ implements ShutdownListener {
 		return false;
 	}
 	
-	protected Resource getResource(CaptureSearchResult closest, Set<String> skipFiles) throws ResourceNotAvailableException, ConfigurationException
+	protected SearchResults queryIndex(WaybackRequest wbRequest) throws ResourceIndexNotAvailableException, ResourceNotInArchiveException, BadQueryException, AccessControlException, ConfigurationException
 	{
-		if ((skipFiles != null) && skipFiles.contains(closest.getFile())) {
-			throw new ResourceNotAvailableException("Revisit: Skipping already failed " + closest.getFile());
+		try {
+			PerfStats.timeStart(PerfStat.IndexQueryTotal);
+			return getCollection().getResourceIndex().query(wbRequest);
+		} finally {
+			PerfStats.timeEnd(PerfStat.IndexQueryTotal);			
 		}
-		
-		return getCollection().getResourceStore().retrieveResource(closest);		
+	}
+	
+	protected Resource getResource(CaptureSearchResult closest, Set<String> skipFiles) throws ResourceNotAvailableException, ConfigurationException
+	{		
+		try {
+			PerfStats.timeStart(PerfStat.WArcResource);
+			
+			if ((skipFiles != null) && skipFiles.contains(closest.getFile())) {
+				throw new ResourceNotAvailableException("Revisit: Skipping already failed " + closest.getFile());
+			}
+			
+			return getCollection().getResourceStore().retrieveResource(closest);
+		} finally {
+			PerfStats.timeEnd(PerfStat.WArcResource);
+		}
 	}
 	
 	protected String getRedirectUrl(WaybackRequest wbRequest, String timestamp, String url)
@@ -506,8 +550,7 @@ implements ShutdownListener {
 			}
 		}
 		
-		SearchResults results = 
-			getCollection().getResourceIndex().query(wbRequest);
+		SearchResults results = queryIndex(wbRequest);
 		p.queried();
 		
 		if(!(results instanceof CaptureSearchResults)) {
@@ -525,9 +568,10 @@ implements ShutdownListener {
 		CaptureSearchResult originalClosest = closest;
 		
 		int counter = 0;
+		
 		//TODO: parameterize
-		int maxTimeouts = 2;
-		int maxMissingRevisits = 2;
+		//int maxTimeouts = 2;
+		//int maxMissingRevisits = 2;
 		
 		Set<String> skipFiles = null;
 		//boolean isRevisit = false;
@@ -573,15 +617,14 @@ implements ShutdownListener {
 						
 						wbRequest.setTimestampSearchKey(false);
 						
-						results = 
-							getCollection().getResourceIndex().query(wbRequest);
+						results = queryIndex(wbRequest);
 						
 						captureResults = (CaptureSearchResults)results;
 						
 						closest = getReplay().getClosest(wbRequest, captureResults);
 						originalClosest = closest;
-						maxTimeouts *= 2;
-						maxMissingRevisits *= 2;
+						//maxTimeouts *= 2;
+						//maxMissingRevisits *= 2;
 						
 						continue;
 					}
@@ -650,7 +693,12 @@ implements ShutdownListener {
 				ReplayRenderer renderer = 
 					getReplay().getRenderer(wbRequest, closest, httpHeadersResource, payloadResource);
 				
-				addCustomHeaders(httpResponse, closest);
+				if (warcFileHeader != null) {
+					httpResponse.addHeader(warcFileHeader, closest.getFile());
+					if (isRevisit && (closest.getDuplicatePayloadFile() != null)) {
+						httpResponse.addHeader(warcFileHeader + "-revisit", closest.getDuplicatePayloadFile());
+					}
+				}
 		
 				renderer.renderResource(httpRequest, httpResponse, wbRequest,
 						closest, httpHeadersResource, payloadResource, getUriConverter(), captureResults);
@@ -667,11 +715,9 @@ implements ShutdownListener {
 				
 				CaptureSearchResult nextClosest = null;
 				
-				// over 2 failures and socket timeout, don't try to find anymore
-				if ((counter > maxTimeouts) && (scre.getOrigException() instanceof java.net.SocketTimeoutException)) {
-					LOGGER.info("LOADFAIL: Timeout: Skipping nextclosest due to socket timeouts");
-				} else if ((counter > maxMissingRevisits) && isRevisit) {
-					LOGGER.info("LOADFAIL: Revisit: Skipping nextclosest due to missing revisit");
+				// if exceed maxRedirectAttempts, stop
+				if (counter > maxRedirectAttempts) {
+					LOGGER.info("LOADFAIL: Timeout: Too many retries, limited to " + maxRedirectAttempts);
 				} else if (closest != null) {
 					nextClosest = findNextClosest(closest, captureResults, requestMS);
 				}
@@ -713,15 +759,15 @@ implements ShutdownListener {
 				} else if (wbRequest.isTimestampSearchKey()) {
 					wbRequest.setTimestampSearchKey(false);
 					
-					results = getCollection().getResourceIndex().query(wbRequest);
+					results = queryIndex(wbRequest);
 					
 					captureResults = (CaptureSearchResults)results;
 					
 					closest = getReplay().getClosest(wbRequest, captureResults);
 					originalClosest = closest;
 					
-					maxTimeouts *= 2;
-					maxMissingRevisits *= 2;
+					//maxTimeouts *= 2;
+					//maxMissingRevisits *= 2;
 					
 					continue;
 				} else {
@@ -875,7 +921,8 @@ implements ShutdownListener {
 			wbr.setReplayTimestamp(payloadTimestamp);
 			wbr.setRequestUrl(payloadUri);
 
-			SearchResults results = getCollection().getResourceIndex().query(wbr);
+			SearchResults results = queryIndex(wbr);
+			
 			if(!(results instanceof CaptureSearchResults)) {
 				throw new ResourceNotAvailableException("Bad results looking up " + payloadTimestamp + " " + payloadUri);
 			}
@@ -921,9 +968,10 @@ implements ShutdownListener {
 	throws ServletException, IOException, WaybackException {
 
 		PerformanceLogger p = new PerformanceLogger("query");
-		SearchResults results = 
-			getCollection().getResourceIndex().query(wbRequest);
+		SearchResults results = queryIndex(wbRequest);
+		
 		p.queried();
+		
 		if(results instanceof CaptureSearchResults) {
 			CaptureSearchResults cResults = (CaptureSearchResults) results;
 			
@@ -1492,11 +1540,35 @@ implements ShutdownListener {
 		return this.selfRedirectCanonicalizer;
 	}
 
+	public int getMaxRedirectAttempts() {
+		return maxRedirectAttempts;
+	}
+
+	public void setMaxRedirectAttempts(int maxRedirectAttempts) {
+		this.maxRedirectAttempts = maxRedirectAttempts;
+	}
+
 	public boolean isTimestampSearch() {
 		return timestampSearch;
 	}
 
 	public void setTimestampSearch(boolean timestampSearch) {
 		this.timestampSearch = timestampSearch;
+	}
+
+	public String getPerfStatsHeader() {
+		return perfStatsHeader;
+	}
+
+	public void setPerfStatsHeader(String perfStatsHeader) {
+		this.perfStatsHeader = perfStatsHeader;
+	}
+
+	public String getWarcFileHeader() {
+		return warcFileHeader;
+	}
+
+	public void setWarcFileHeader(String warcFileHeader) {
+		this.warcFileHeader = warcFileHeader;
 	}
 }

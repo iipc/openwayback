@@ -40,7 +40,7 @@ import org.archive.wayback.liveweb.LiveWebCache;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.util.ObjectFilter;
 import org.archive.wayback.util.url.UrlOperations;
-import org.archive.wayback.webapp.PerformanceLogger;
+import org.archive.wayback.webapp.PerfStats;
 
 /**
  * CaptureSearchResult Filter that uses a LiveWebCache to retrieve robots.txt
@@ -75,6 +75,12 @@ public class RobotExclusionFilter extends ExclusionFilter {
 	private final static RobotRules emptyRules = new RobotRules();
 	private boolean notifiedSeen = false;
 	private boolean notifiedPassed = false;
+	
+	enum PerfStat
+	{
+		RobotsFetchTotal,
+		RobotsTotal;
+	}
 	
 	protected HashMap<String, Integer> pathsCache = null;
 	
@@ -179,9 +185,11 @@ public class RobotExclusionFilter extends ExclusionFilter {
 					rulesCache.put(firstUrlString, rules);
 				}
 			} else {
-				long start = System.currentTimeMillis();;
+				//long start = System.currentTimeMillis();;
 				Resource resource = null;
 				try {
+					PerfStats.timeStart(PerfStat.RobotsFetchTotal);
+					
 					if (LOGGER.isLoggable(Level.FINE)) {
 						LOGGER.fine("ROBOT: NotCached - Downloading("+urlString+")");
 					}
@@ -235,8 +243,9 @@ public class RobotExclusionFilter extends ExclusionFilter {
 						}
 						resource = null;
 					}
-					long elapsed = System.currentTimeMillis() - start;
-					PerformanceLogger.noteElapsed("RobotRequest", elapsed, urlString);
+					//long elapsed = System.currentTimeMillis() - start;
+					//PerformanceLogger.noteElapsed("RobotRequest", elapsed, urlString);
+					PerfStats.timeEnd(PerfStat.RobotsFetchTotal);
 				}
 			}
 		}
@@ -253,55 +262,64 @@ public class RobotExclusionFilter extends ExclusionFilter {
 	 * @see org.archive.wayback.resourceindex.SearchResultFilter#filterSearchResult(org.archive.wayback.core.SearchResult)
 	 */
 	public int filterObject(CaptureSearchResult r) {
-		if(!notifiedSeen) {
-			if(filterGroup != null) {
-				filterGroup.setSawRobots();
-			}
-			notifiedSeen = true;
-		}
-		String resultURL = r.getOriginalUrl();
-		String path = UrlOperations.getURLPath(resultURL);
-		
-		if(path.equals(ROBOT_SUFFIX)) {
-			if(!notifiedPassed) {
-				if(filterGroup != null) {
-					filterGroup.setPassedRobots();
-				}
-				notifiedPassed = true;
-			}
-			return ObjectFilter.FILTER_INCLUDE;
-		}
-		
-		if (pathsCache == null) {
-			pathsCache = new HashMap<String,Integer>();
-		} else {
-			Integer result = pathsCache.get(r.getUrlKey());
-			if (result != null) {
-				return result;
-			}
-		}
-		
 		int filterResult = ObjectFilter.FILTER_EXCLUDE; 
-		RobotRules rules = getRules(r);
-		if(rules == null) {
-			if((filterGroup == null) || (filterGroup.getRobotTimedOut() || filterGroup.getLiveWebGone())) {
-				filterResult = ObjectFilter.FILTER_ABORT;
+		
+		try {
+			PerfStats.timeStart(PerfStat.RobotsTotal);
+			
+			if(!notifiedSeen) {
+				if(filterGroup != null) {
+					filterGroup.setSawRobots();
+				}
+				notifiedSeen = true;
 			}
-		} else {
-			if(!rules.blocksPathForUA(path, userAgent)) {
+			String resultURL = r.getOriginalUrl();
+			String path = UrlOperations.getURLPath(resultURL);
+			
+			if(path.equals(ROBOT_SUFFIX)) {
 				if(!notifiedPassed) {
 					if(filterGroup != null) {
 						filterGroup.setPassedRobots();
 					}
 					notifiedPassed = true;
 				}
-				filterResult = ObjectFilter.FILTER_INCLUDE;
-				LOGGER.finer("ROBOT: ALLOWED("+resultURL+")");
-			} else {
-				LOGGER.fine("ROBOT: BLOCKED("+resultURL+")");
+				return ObjectFilter.FILTER_INCLUDE;
 			}
+			
+			if (pathsCache == null) {
+				pathsCache = new HashMap<String,Integer>();
+			} else {
+				Integer result = pathsCache.get(r.getUrlKey());
+				if (result != null) {
+					return result;
+				}
+			}
+			
+			RobotRules rules = getRules(r);
+			
+			if(rules == null) {
+				if((filterGroup == null) || (filterGroup.getRobotTimedOut() || filterGroup.getLiveWebGone())) {
+					filterResult = ObjectFilter.FILTER_ABORT;
+				}
+			} else {
+				if(!rules.blocksPathForUA(path, userAgent)) {
+					if(!notifiedPassed) {
+						if(filterGroup != null) {
+							filterGroup.setPassedRobots();
+						}
+						notifiedPassed = true;
+					}
+					filterResult = ObjectFilter.FILTER_INCLUDE;
+					LOGGER.finer("ROBOT: ALLOWED("+resultURL+")");
+				} else {
+					LOGGER.fine("ROBOT: BLOCKED("+resultURL+")");
+				}
+			}
+			pathsCache.put(r.getUrlKey(), filterResult);
+		} finally {
+			PerfStats.timeEnd(PerfStat.RobotsTotal, false);
 		}
-		pathsCache.put(r.getUrlKey(), filterResult);
+		
 		return filterResult;
 	}
 

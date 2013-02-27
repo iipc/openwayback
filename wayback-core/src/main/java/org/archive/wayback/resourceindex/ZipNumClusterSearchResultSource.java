@@ -19,7 +19,7 @@ import org.archive.wayback.util.Adapter;
  */
 
 public class ZipNumClusterSearchResultSource implements SearchResultSource, Adapter<String,CaptureSearchResult> {
-	
+		
 	protected ZipNumCluster cluster;
 	protected ZipNumParams params = null;
 	
@@ -37,8 +37,7 @@ public class ZipNumClusterSearchResultSource implements SearchResultSource, Adap
 	public CloseableIterator<CaptureSearchResult> getPrefixIterator(
 			String urlkey) throws ResourceIndexNotAvailableException {
 		
-		try {
-			
+		try {			
 			CloseableIterator<String> cdxIter = null;
 			
 			String prefix = urlkey;

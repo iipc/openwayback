@@ -54,6 +54,7 @@ import org.archive.wayback.util.ObjectFilter;
 import org.archive.wayback.util.ObjectFilterChain;
 import org.archive.wayback.util.ObjectFilterIterator;
 import org.archive.wayback.util.url.AggressiveUrlCanonicalizer;
+import org.archive.wayback.webapp.PerfStats;
 
 /**
  * ResourceIndex implementation which assumes a "local" SearchResultSource.
@@ -99,6 +100,11 @@ public class LocalResourceIndex implements ResourceIndex {
 	 * maximum number of records to return
 	 */
 	private final static int MAX_RECORDS = 1000;
+	
+	enum PerfStat
+	{
+		IndexLoad;
+	}
 	
 	private int maxRecords = MAX_RECORDS;
 
@@ -199,6 +205,8 @@ public class LocalResourceIndex implements ResourceIndex {
 		CloseableIterator<CaptureSearchResult> itr = null;
 		
 		try {
+			PerfStats.timeStart(PerfStat.IndexLoad);
+			
 			itr = new ObjectFilterIterator<CaptureSearchResult>(source.getPrefixIterator(urlKey),filters);
 			
 			while(itr.hasNext()) {
@@ -210,6 +218,8 @@ public class LocalResourceIndex implements ResourceIndex {
 			if (itr != null) {
 				cleanupIterator(itr);
 			}
+			
+			PerfStats.timeEnd(PerfStat.IndexLoad);
 		}
 		
 		for(CaptureFilterGroup cfg : groups) {
@@ -273,6 +283,8 @@ public class LocalResourceIndex implements ResourceIndex {
 		CloseableIterator<UrlSearchResult> itrU = null;
 		
 		try {
+			PerfStats.timeStart(PerfStat.IndexLoad);
+			
 			itrC = new ObjectFilterIterator<CaptureSearchResult>(
 					source.getPrefixIterator(urlKey),cFilters);	
 		
@@ -287,6 +299,7 @@ public class LocalResourceIndex implements ResourceIndex {
 			if (itrU != null) {
 				cleanupIterator(itrU);
 			}
+			PerfStats.timeEnd(PerfStat.IndexLoad);
 		}
 		
 		for(CaptureFilterGroup cfg : groups) {
