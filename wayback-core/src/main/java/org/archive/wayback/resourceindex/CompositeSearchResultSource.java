@@ -69,17 +69,25 @@ public class CompositeSearchResultSource implements SearchResultSource {
 		CompositeSortedIterator<CaptureSearchResult> itr = 
 			new CompositeSortedIterator<CaptureSearchResult>(comparator);
 		
+		int added = 0;
+		ResourceIndexNotAvailableException lastExc = null;
+		
 		try {
 			for (int i = 0; i < sources.size(); i++) {
 				itr.addComponent(sources.get(i).getPrefixIterator(prefix));
+				added++;
 			}
 		} catch (ResourceIndexNotAvailableException e) {
+			lastExc = e;
+		}
+		
+		if ((lastExc != null) && (added == 0)) {
 			try {
 				itr.close();
 			} catch (IOException io) {
 				
 			}
-			throw e;
+			throw lastExc;
 		}
 		
 		return itr;
