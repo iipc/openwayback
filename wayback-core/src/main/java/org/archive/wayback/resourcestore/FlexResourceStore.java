@@ -17,7 +17,6 @@ import org.archive.io.warc.WARCReader;
 import org.archive.io.warc.WARCRecord;
 import org.archive.util.binsearch.SeekableLineReader;
 import org.archive.util.binsearch.SortedTextFile;
-import org.archive.util.binsearch.impl.HTTPSeekableLineReader;
 import org.archive.util.iterator.CloseableIterator;
 import org.archive.wayback.ResourceStore;
 import org.archive.wayback.core.CaptureSearchResult;
@@ -25,7 +24,6 @@ import org.archive.wayback.core.Resource;
 import org.archive.wayback.exception.ResourceNotAvailableException;
 import org.archive.wayback.resourcestore.resourcefile.ArcResource;
 import org.archive.wayback.resourcestore.resourcefile.WarcResource;
-import org.archive.wayback.webapp.PerformanceLogger;
 
 public class FlexResourceStore implements ResourceStore {
 	
@@ -223,8 +221,7 @@ public class FlexResourceStore implements ResourceStore {
 	}
 	
 	public Resource getResource(String path, CaptureSearchResult result) throws IOException
-	{
-		long start = System.currentTimeMillis();
+	{		
 		Resource r = null;
 		
 		long offset = result.getOffset();
@@ -255,27 +252,31 @@ public class FlexResourceStore implements ResourceStore {
 			
 			r.parseHeaders();
 			
-			if ((customHeader != null) && (slr instanceof HTTPSeekableLineReader)) {
-				HTTPSeekableLineReader httpSlr = (HTTPSeekableLineReader)slr;
-				String value = httpSlr.getHeaderValue(customHeader);
-				
-				if (value != null) {				
-					result.put(CaptureSearchResult.CUSTOM_HEADER_PREFIX + customHeader, value);
-				}
-			}
+			// Ability to pass on header prefix from data store request
+//			if ((customHeader != null) && (slr instanceof HTTPSeekableLineReader)) {
+//				HTTPSeekableLineReader httpSlr = (HTTPSeekableLineReader)slr;
+//				String value = httpSlr.getHeaderValue(customHeader);
+//				
+//				if (value != null) {				
+//					result.put(CaptureSearchResult.CUSTOM_HEADER_PREFIX + customHeader, value);
+//				}
+//			}
 			
-		} catch (IOException io) {
+		} catch (Exception e) {
 			if (slr != null) {
 				slr.close();
 			}
+			
 			r = null;
 			slr = null;
-			throw io;	
+			
+			if (e instanceof IOException) {
+				throw (IOException)e;
+			} else {
+				throw new IOException(e);
+			}
 		}
-		
-		long elapsed = System.currentTimeMillis() - start;
-		PerformanceLogger.noteElapsed("{W}arcBlockLoader", elapsed, path);
-		
+				
 		return r;
 	}
 
