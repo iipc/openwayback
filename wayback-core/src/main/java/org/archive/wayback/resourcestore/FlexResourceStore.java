@@ -82,6 +82,7 @@ public class FlexResourceStore implements ResourceStore {
 		
 		protected SortedTextFile pathIndex;
 		protected String path;
+		protected String prefixPath;
 		
 		public void setPathIndex(String path) throws IOException
 		{
@@ -94,6 +95,14 @@ public class FlexResourceStore implements ResourceStore {
 			return path;
 		}
 		
+		public String getPrefixPath() {
+			return prefixPath;
+		}
+
+		public void setPrefixPath(String prefixPath) {
+			this.prefixPath = prefixPath;
+		}
+
 		@Override
 		public String[] lookupPath(String filename) throws IOException {
 			CloseableIterator<String> iter = null;
@@ -107,7 +116,12 @@ public class FlexResourceStore implements ResourceStore {
 				while (iter.hasNext()) {
 					String line = iter.next();
 					if (line.startsWith(prefix)) {
-						paths.add(line.substring(prefix.length()));
+						String path = line.substring(prefix.length());
+						if (prefixPath != null) {
+							paths.add(prefixPath + path);
+						} else {
+							paths.add(path);
+						}
 					} else {
 						break;
 					}
@@ -263,6 +277,11 @@ public class FlexResourceStore implements ResourceStore {
 //			}
 			
 		} catch (Exception e) {
+			
+			if (LOGGER.isLoggable(Level.WARNING)) {
+				LOGGER.warning(e.toString());
+			}
+			
 			if (slr != null) {
 				slr.close();
 			}
