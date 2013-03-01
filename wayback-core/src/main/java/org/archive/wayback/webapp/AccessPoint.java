@@ -695,9 +695,10 @@ implements ShutdownListener {
 					getReplay().getRenderer(wbRequest, closest, httpHeadersResource, payloadResource);
 				
 				if (warcFileHeader != null) {
-					httpResponse.addHeader(warcFileHeader, closest.getFile());
 					if (isRevisit && (closest.getDuplicatePayloadFile() != null)) {
-						httpResponse.addHeader(warcFileHeader + "-revisit", closest.getDuplicatePayloadFile());
+						httpResponse.addHeader(warcFileHeader, closest.getDuplicatePayloadFile());
+					} else {
+						httpResponse.addHeader(warcFileHeader, closest.getFile());
 					}
 				}
 		
