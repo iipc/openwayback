@@ -46,6 +46,7 @@ public class ProxyAccessPoint extends CompositeAccessPoint {
 	private ProxyConfigSelector configSelector;
 	
 	private String proxyHostPort;
+	private String httpsProxyHostPort;
 
 	public ProxyConfigSelector getConfigSelector() {
 		return configSelector;
@@ -77,6 +78,14 @@ public class ProxyAccessPoint extends CompositeAccessPoint {
 
 	public void setProxyHostPort(String proxyHostPort) {
 		this.proxyHostPort = proxyHostPort;
+	}
+
+	public String getHttpsProxyHostPort() {
+		return httpsProxyHostPort;
+	}
+
+	public void setHttpsProxyHostPort(String httpsProxyHostPort) {
+		this.httpsProxyHostPort = httpsProxyHostPort;
 	}
 
 	@Override
@@ -182,11 +191,19 @@ public class ProxyAccessPoint extends CompositeAccessPoint {
 		configSelector.handleProxyPac(httpRequest, httpResponse);
 		
 		String proxyPath = getProxyHostPort();
-		
+
 		if (proxyPath == null) {
 			String hostName = httpRequest.getServerName();
 			int port = httpRequest.getServerPort();
 			proxyPath = hostName + ":" + port;
+		}
+		
+		String httpsProxyPath = getHttpsProxyHostPort();
+		
+		if (httpsProxyPath == null) {
+			String hostName = httpRequest.getServerName();
+			int port = httpRequest.getServerPort();
+			httpsProxyPath = hostName + ":" + port + 2;
 		}
 			
 		httpResponse.setContentType("application/x-ns-proxy-autoconfig");
@@ -199,6 +216,9 @@ public class ProxyAccessPoint extends CompositeAccessPoint {
 		for (String host : directHosts) {
 			writer.println("  if (shExpMatch(host, \"" + host + "\")) { return \"DIRECT\"; }");
 		}
+		
+		// For https support
+		writer.println("  if (url.substring(0, 6) == \"https:\") { return \"PROXY " + httpsProxyPath + "\"; }\n");
 		
 		writer.println("  return \"PROXY " + proxyPath + "\";\n}");
 	}
