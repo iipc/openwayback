@@ -125,8 +125,8 @@ public class FlexResourceStore implements ResourceStore {
 					} else {
 						break;
 					}
-				}			
-				
+				}
+						
 			} finally {
 				if (iter != null) {
 					try {
@@ -168,7 +168,7 @@ public class FlexResourceStore implements ResourceStore {
 		}
 
 		@Override
-		public String[] lookupPath(String filename) throws IOException {
+		public String[] lookupPath(String filename) {
 			if (includeFilter != null) {
 				if (!filename.contains(includeFilter)) {
 					return EMPTY_STRINGS;
@@ -190,47 +190,67 @@ public class FlexResourceStore implements ResourceStore {
 		}
 		
 		Resource resource = null;
+		boolean breakOnErr = false;
 		
-		String excMsg = null;
+		StringBuilder excMsg = new StringBuilder();
 		IOException lastExc = null;
 				
 		for (SourceResolver resolver : sources) {
+			
+			String[] paths = null;
+			
 			try {
-				String[] paths = resolver.lookupPath(filename);
-				
-				if (paths.length == 0) {
-					continue;
+				paths = resolver.lookupPath(filename);
+			} catch (IOException io) {
+				if (excMsg.length() > 0) {
+					excMsg.append(" ");
 				}
+				excMsg.append(io.getMessage());
+				lastExc = io;
 				
-				for (String path : paths) {
+				if (failOnFirstUnavailable) {
+					breakOnErr = true;
+					break;
+				}
+			}
+			
+			if (paths.length == 0) {
+				continue;
+			}
+			
+			for (String path : paths) {
+				try {
 					resource = getResource(path, result);
 					
 					if (resource != null) {
 						return resource;
 					}
+					
+				} catch (IOException io) {
+					if (excMsg.length() > 0) {
+						excMsg.append(" ");
+					}
+					excMsg.append(io.getMessage());
+					lastExc = io;
+					
+					if (failOnFirstUnavailable) {
+						breakOnErr = true;
+						break;
+					}
 				}
-			} catch (IOException e) {
-				if (excMsg != null) {
-					excMsg += " ";
-					excMsg += e.toString();
-				} else {
-					excMsg = e.toString();
-				}
-				
-				lastExc = e;
-				
-				if (failOnFirstUnavailable) {
-					break;
-				}
+			}
+			
+			if (breakOnErr) {
+				break;
 			}
 		}
 		
 		if (lastExc == null) {
 			lastExc = new FileNotFoundException(filename);
-			excMsg = "File not Found: " + filename;
+			excMsg.append("File not Found: " + filename);
 		}
 
-		ResourceNotAvailableException rnae = new ResourceNotAvailableException(excMsg, filename, lastExc);
+		ResourceNotAvailableException rnae = new ResourceNotAvailableException(excMsg.toString(), filename, lastExc);
 		throw rnae;
 	}
 	
