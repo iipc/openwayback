@@ -200,7 +200,10 @@ public class ProxyAccessPoint extends CompositeAccessPoint {
 			HttpServletResponse httpResponse) throws ServletException,
 			IOException {
 		
-		configSelector.handleProxyPac(httpRequest, httpResponse);
+		//TODO: Is this needed anymore (was only for Ipauth testing)
+		if (configSelector != null) {		
+			configSelector.handleProxyPac(httpRequest, httpResponse);
+		}
 		
 		String proxyPath = getProxyHostPort();
 
