@@ -31,6 +31,8 @@ import javax.servlet.http.HttpServletResponse;
 public class AuthenticationControlException extends WaybackException {
 	private static final long serialVersionUID = 1L;
 	protected static final String ID = "authenticationControl";
+	
+	protected boolean requestAuth = true;
 
 	/**
 	 * Constructor
@@ -39,6 +41,18 @@ public class AuthenticationControlException extends WaybackException {
 	 */
 	public AuthenticationControlException(String message) {
 		super(message,"Authenication Problem");
+		id = ID;
+	}
+	
+	/**
+	 * Constructor with option to request auth
+	 * 
+	 * @param message
+	 * @param requestAuth
+	 */	
+	public AuthenticationControlException(String message, boolean requestAuth) {
+		super(message,"Authenication Problem");
+		this.requestAuth = requestAuth;
 		id = ID;
 	}
 	/** 
@@ -51,8 +65,11 @@ public class AuthenticationControlException extends WaybackException {
 		super(message,"Authenication Problem",details);
 		id = ID;
 	}
+	
 	public void setupResponse(HttpServletResponse response) {
-		response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-		response.addHeader("WWW-Authenticate","Basic realm=\"Secured-Wayback\"");
+		if (requestAuth) {
+			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+			response.addHeader("WWW-Authenticate","Basic realm=\"Secured-Wayback\"");
+		}
 	}
 }

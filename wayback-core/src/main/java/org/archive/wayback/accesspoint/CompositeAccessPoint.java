@@ -159,4 +159,9 @@ public class CompositeAccessPoint extends AccessPoint {
 		
 		return null;
 	}
+
+	// Overriden in ProxyAccessPoint when using proxy mode
+	public boolean isProxyEnabled() {
+		return false;
+	}
 }

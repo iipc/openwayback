@@ -110,7 +110,7 @@ implements ShutdownListener {
 	public final static String EMPTY_VALUE = "-";
 	
 	public final static String RUNTIME_ERROR_HEADER = "X-Archive-Wayback-Runtime-Error";
-	public final static String NOTFOUND_ERROR_HEADER = "X-Archive-Wayback-Not-Found";
+	//public final static String NOTFOUND_ERROR_HEADER = "X-Archive-Wayback-Not-Found";
 
 	private static final Logger LOGGER = Logger.getLogger(
 			AccessPoint.class.getName());
@@ -162,6 +162,8 @@ implements ShutdownListener {
 
 	private ExclusionFilterFactory exclusionFactory = null;
 	private BooleanOperator<WaybackRequest> authentication = null;
+	private boolean requestAuth = true;
+	
 	private long embargoMS = 0;
 	private CustomResultFilterFactory filterFactory = null;
 	
@@ -255,7 +257,7 @@ implements ShutdownListener {
 				if(getAuthentication() != null) {
 					if(!getAuthentication().isTrue(wbRequest)) {
 						throw new AuthenticationControlException(
-								"Unauthorized");
+								"Unauthorized", isRequestAuth());
 					}
 				}
 
@@ -320,7 +322,7 @@ implements ShutdownListener {
 						httpResponse.sendRedirect(liveUrl);
 			} else {
 				logNotInArchive(e,wbRequest);
-				writeErrorHeader(httpResponse, NOTFOUND_ERROR_HEADER, e);				
+				writeErrorHeader(httpResponse, RUNTIME_ERROR_HEADER, e);				
 				getException().renderException(httpRequest, httpResponse, 
 						wbRequest, e, getUriConverter());
 			}
@@ -353,6 +355,7 @@ implements ShutdownListener {
 			if (message.length() > 200) {			
 				message = message.substring(0, 200);
 			}
+			message = message.replace('\n', ' ');
 		}
 		
 		httpResponse.setHeader(header, message);
@@ -1441,6 +1444,14 @@ implements ShutdownListener {
 	 */
 	public void setAuthentication(BooleanOperator<WaybackRequest> auth) {
 		this.authentication = auth;
+	}
+
+	public boolean isRequestAuth() {
+		return requestAuth;
+	}
+
+	public void setRequestAuth(boolean requestAuth) {
+		this.requestAuth = requestAuth;
 	}
 
 	/**

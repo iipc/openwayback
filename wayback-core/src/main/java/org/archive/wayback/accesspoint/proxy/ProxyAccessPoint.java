@@ -47,6 +47,12 @@ public class ProxyAccessPoint extends CompositeAccessPoint {
 	
 	private String proxyHostPort;
 	private String httpsProxyHostPort;
+	
+	@Override
+	public boolean isProxyEnabled()
+	{
+		return (configSelector != null);
+	}
 
 	public ProxyConfigSelector getConfigSelector() {
 		return configSelector;
@@ -93,7 +99,13 @@ public class ProxyAccessPoint extends CompositeAccessPoint {
 			HttpServletResponse response) throws ServletException,
 			IOException {
 		
-		boolean isProxyReq = ((nonProxyAccessPoint == null) || request.getHeader("Proxy-Connection") != null);
+		boolean isProxyReq = false;
+		
+		if (request.getHeader("Proxy-Connection") != null) {
+			isProxyReq = true;
+		} else if (isProxyEnabled()) {
+			isProxyReq = true;
+		}
 		
 		if (!isProxyReq) {
 			return handleNonProxy(request, response);
@@ -201,9 +213,7 @@ public class ProxyAccessPoint extends CompositeAccessPoint {
 		String httpsProxyPath = getHttpsProxyHostPort();
 		
 		if (httpsProxyPath == null) {
-			String hostName = httpRequest.getServerName();
-			int port = httpRequest.getServerPort();
-			httpsProxyPath = hostName + ":" + port + 2;
+			httpsProxyPath = proxyPath;
 		}
 			
 		httpResponse.setContentType("application/x-ns-proxy-autoconfig");

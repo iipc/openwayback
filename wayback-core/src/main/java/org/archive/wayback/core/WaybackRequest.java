@@ -922,7 +922,14 @@ public class WaybackRequest {
 	private void extractHttpRequestInfo(HttpServletRequest httpRequest) {
 		
 		putUnlessNull(REQUEST_REFERER_URL, httpRequest.getHeader("REFERER"));
-		putUnlessNull(REQUEST_REMOTE_ADDRESS, httpRequest.getRemoteAddr());
+		
+		String remoteAddr = httpRequest.getHeader("X-Forwarded-For");
+		if (remoteAddr == null) {
+			remoteAddr = httpRequest.getRemoteAddr();
+		}
+		putUnlessNull(REQUEST_REMOTE_ADDRESS, remoteAddr);
+		
+		
 		putUnlessNull(REQUEST_WAYBACK_HOSTNAME, httpRequest.getLocalName());
 		putUnlessNull(REQUEST_AUTH_TYPE, httpRequest.getAuthType());
 		putUnlessNull(REQUEST_REMOTE_USER, httpRequest.getRemoteUser());

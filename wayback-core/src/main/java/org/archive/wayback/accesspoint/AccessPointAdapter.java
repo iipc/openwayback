@@ -92,7 +92,7 @@ public class AccessPointAdapter extends AccessPoint {
 	
 	public boolean isProxyMode()
 	{
-		return (baseAccessPoint instanceof ProxyAccessPoint);
+		return baseAccessPoint.isProxyEnabled();
 	}
 	
 	public boolean isProxySwitchable()
@@ -127,7 +127,6 @@ public class AccessPointAdapter extends AccessPoint {
 	
 	@Override
 	public Properties getConfigs() {
-		// TODO Auto-generated method stub
 		return config.getConfigs();
 	}
 	
@@ -173,43 +172,36 @@ public class AccessPointAdapter extends AccessPoint {
 	
 	@Override
 	public String getStaticPrefix() {
-		// TODO Auto-generated method stub
 		return getPrefix(baseAccessPoint.getStaticPrefix());
 	}
 
 	@Override
 	public String getReplayPrefix() {
-		// TODO Auto-generated method stub
 		return getPrefix(baseAccessPoint.getReplayPrefix());
 	}
 
 	@Override
 	public String getQueryPrefix() {
-		// TODO Auto-generated method stub
 		return getPrefix(baseAccessPoint.getQueryPrefix());
 	}
 
 	@Override
 	public boolean isExactHostMatch() {
-		// TODO Auto-generated method stub
 		return baseAccessPoint.isExactHostMatch();
 	}
 
 	@Override
 	public boolean isExactSchemeMatch() {
-		// TODO Auto-generated method stub
 		return baseAccessPoint.isExactSchemeMatch();
 	}
 
 	@Override
 	public boolean isUseAnchorWindow() {
-		// TODO Auto-generated method stub
 		return baseAccessPoint.isUseAnchorWindow();
 	}
 
 	@Override
 	public boolean isServeStatic() {
-		// TODO Auto-generated method stub
 		return baseAccessPoint.isServeStatic();
 	}
 	
@@ -220,55 +212,46 @@ public class AccessPointAdapter extends AccessPoint {
 
 	@Override
 	public String getLiveWebPrefix() {
-		// TODO Auto-generated method stub
 		return baseAccessPoint.getLiveWebPrefix();
 	}
 
 	@Override
 	public String getInterstitialJsp() {
-		// TODO Auto-generated method stub
 		return baseAccessPoint.getInterstitialJsp();
 	}
 
 	@Override
 	public Locale getLocale() {
-		// TODO Auto-generated method stub
 		return baseAccessPoint.getLocale();
 	}
 
 	@Override
 	public List<String> getFilePatterns() {
-		// TODO Auto-generated method stub
 		return baseAccessPoint.getFilePatterns();
 	}
 
 	@Override
 	public WaybackCollection getCollection() {
-		// TODO Auto-generated method stub
 		return baseAccessPoint.getCollection();
 	}
 
 	@Override
 	public ExceptionRenderer getException() {
-		// TODO Auto-generated method stub
 		return baseAccessPoint.getException();
 	}
 
 	@Override
 	public QueryRenderer getQuery() {
-		// TODO Auto-generated method stub
 		return baseAccessPoint.getQuery();
 	}
 
 	@Override
 	public RequestParser getParser() {
-		// TODO Auto-generated method stub
 		return baseAccessPoint.getParser();
 	}
 
 	@Override
 	public ReplayDispatcher getReplay() {
-		// TODO Auto-generated method stub
 		return baseAccessPoint.getReplay();
 	}
 
@@ -290,43 +273,36 @@ public class AccessPointAdapter extends AccessPoint {
 
 	@Override
 	public BooleanOperator<WaybackRequest> getAuthentication() {
-		// TODO Auto-generated method stub
 		return baseAccessPoint.getAuthentication();
 	}
 
 	@Override
 	public String getRefererAuth() {
-		// TODO Auto-generated method stub
 		return baseAccessPoint.getRefererAuth();
 	}
 
 	@Override
 	public boolean isBounceToReplayPrefix() {
-		// TODO Auto-generated method stub
 		return baseAccessPoint.isBounceToReplayPrefix();
 	}
 
 	@Override
 	public boolean isBounceToQueryPrefix() {
-		// TODO Auto-generated method stub
 		return baseAccessPoint.isBounceToQueryPrefix();
 	}
 
 	@Override
 	public long getEmbargoMS() {
-		// TODO Auto-generated method stub
 		return baseAccessPoint.getEmbargoMS();
 	}
 
 	@Override
 	public boolean isForceCleanQueries() {
-		// TODO Auto-generated method stub
 		return baseAccessPoint.isForceCleanQueries();
 	}
 
 	@Override
 	public CustomResultFilterFactory getFilterFactory() {
-		// TODO Auto-generated method stub
 		return baseAccessPoint.getFilterFactory();
 	}
 	
@@ -334,5 +310,30 @@ public class AccessPointAdapter extends AccessPoint {
 	public UrlCanonicalizer getSelfRedirectCanonicalizer()
 	{
 		return baseAccessPoint.getSelfRedirectCanonicalizer();
+	}
+
+	@Override
+	public boolean isRequestAuth() {
+		return baseAccessPoint.isRequestAuth();
+	}
+
+	@Override
+	public int getMaxRedirectAttempts() {
+		return baseAccessPoint.getMaxRedirectAttempts();
+	}
+
+	@Override
+	public boolean isTimestampSearch() {
+		return baseAccessPoint.isTimestampSearch();
+	}
+
+	@Override
+	public String getPerfStatsHeader() {
+		return baseAccessPoint.getPerfStatsHeader();
+	}
+
+	@Override
+	public String getWarcFileHeader() {
+		return baseAccessPoint.getWarcFileHeader();
 	}
 }
