@@ -43,6 +43,8 @@ import org.archive.wayback.replay.TagMagix;
 import org.archive.wayback.replay.TextReplayRenderer;
 import org.archive.wayback.replay.charset.CharsetDetector;
 import org.archive.wayback.replay.charset.StandardCharsetDetector;
+import org.archive.wayback.replay.html.ContextResultURIConverterFactory;
+import org.archive.wayback.replay.html.IdentityResultURIConverterFactory;
 import org.archive.wayback.replay.html.ReplayParseContext;
 import org.archive.wayback.util.htmllex.ContextAwareLexer;
 import org.archive.wayback.util.htmllex.ParseEventHandler;
@@ -62,6 +64,8 @@ public class ArchivalUrlSAXRewriteReplayRenderer implements ReplayRenderer {
 	private ParseEventHandler delegator = null;
 	private HttpHeaderProcessor httpHeaderProcessor;
 	private CharsetDetector charsetDetector = new StandardCharsetDetector();
+	private ContextResultURIConverterFactory converterFactory = null;
+	
 	private final static String OUTPUT_CHARSET = "utf-8";
 	private static int FRAMESET_SCAN_BUFFER_SIZE = 16 * 1024;
 	private static ReplayRenderer frameWrappingRenderer = null;
@@ -112,9 +116,16 @@ public class ArchivalUrlSAXRewriteReplayRenderer implements ReplayRenderer {
 		// determine the character set used to encode the document bytes:
 		String charSet = charsetDetector.getCharset(httpHeadersResource, decodedResource, wbRequest);
 
-		ArchivalUrlContextResultURIConverterFactory fact = 
-				new ArchivalUrlContextResultURIConverterFactory(
-						(ArchivalUrlResultURIConverter) uriConverter);
+		ContextResultURIConverterFactory fact = null;
+		
+		if (uriConverter instanceof ArchivalUrlResultURIConverter) {
+			fact = new ArchivalUrlContextResultURIConverterFactory(
+					(ArchivalUrlResultURIConverter) uriConverter);
+		} else if (converterFactory != null) {
+			fact = converterFactory;
+		} else {
+			fact = new IdentityResultURIConverterFactory(uriConverter);			
+		}
 		// set up the context:
 		ReplayParseContext context = 
 				new ReplayParseContext(fact,url,result.getCaptureTimestamp());
@@ -230,5 +241,14 @@ public class ArchivalUrlSAXRewriteReplayRenderer implements ReplayRenderer {
 	 */
 	public void setDelegator(ParseEventHandler delegator) {
 		this.delegator = delegator;
+	}
+
+	public ContextResultURIConverterFactory getConverterFactory() {
+		return converterFactory;
+	}
+
+	public void setConverterFactory(
+			ContextResultURIConverterFactory converterFactory) {
+		this.converterFactory = converterFactory;
 	}
 }

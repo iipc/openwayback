@@ -32,6 +32,7 @@ public interface WaybackConstants {
 	 * prefixes of HTTP protocol URL.. 
 	 */
 	public static final String HTTP_URL_PREFIX = "http://";
+	public static final String HTTPS_URL_PREFIX = "https://";
 
 	/**
 	 * default HTTP port: 

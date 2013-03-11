@@ -338,6 +338,10 @@ implements ShutdownListener {
 	
 	public void writeErrorHeader(HttpServletResponse httpResponse, String header, Exception e)
 	{
+		if (LOGGER.isLoggable(Level.WARNING)) {
+			LOGGER.log(Level.WARNING, "Runtime Error", e);
+		}
+		
 		String message = (e != null ? e.toString() : "");
 		
 		if (message == null) {
