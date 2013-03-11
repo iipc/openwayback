@@ -472,7 +472,7 @@ implements ShutdownListener {
 		String redirScheme = UrlOperations.urlToScheme(location);
 		
 		try {	
-			if (redirScheme == null) {
+			if (redirScheme == null && isExactSchemeMatch()) {
 				location = UrlOperations.resolveUrl(closest.getOriginalUrl(), location);
 				redirScheme = UrlOperations.urlToScheme(location);
 			}
@@ -485,6 +485,11 @@ implements ShutdownListener {
 		}			
 		
 		if (location.equals(canonRequestURL)) {
+			// if not exact scheme, don't do scheme compare, must be equal
+			if (!isExactSchemeMatch()) {
+				return true;
+			}
+			
 			String origScheme = 
 				UrlOperations.urlToScheme(wbRequest.getRequestUrl());
 						

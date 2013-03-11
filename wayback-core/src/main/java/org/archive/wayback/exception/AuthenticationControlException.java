@@ -70,6 +70,8 @@ public class AuthenticationControlException extends WaybackException {
 		if (requestAuth) {
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 			response.addHeader("WWW-Authenticate","Basic realm=\"Secured-Wayback\"");
+		} else {
+			response.setStatus(HttpServletResponse.SC_FORBIDDEN);
 		}
 	}
 }
