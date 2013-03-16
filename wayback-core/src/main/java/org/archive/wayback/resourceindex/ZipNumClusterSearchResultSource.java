@@ -2,6 +2,7 @@ package org.archive.wayback.resourceindex;
 
 import java.io.IOException;
 
+import org.archive.format.gzip.zipnum.TimestampCustomDedupIterator;
 import org.archive.format.gzip.zipnum.ZipNumCluster;
 import org.archive.format.gzip.zipnum.ZipNumParams;
 import org.archive.util.iterator.CloseableIterator;
@@ -24,6 +25,8 @@ public class ZipNumClusterSearchResultSource implements SearchResultSource, Adap
 	protected ZipNumParams params = null;
 	
 	protected ZipNumParams oneBlockParams;
+	
+	protected int timestampDedupLength = 0;
 		
 	public void init() throws IOException
 	{
@@ -55,6 +58,10 @@ public class ZipNumClusterSearchResultSource implements SearchResultSource, Adap
 			// Prefix Match
 			} else {
 				cdxIter = cluster.getCDXIterator(urlkey, prefix.substring(0, prefix.length() - 2), false, params);
+			}
+			
+			if (timestampDedupLength > 0) {
+				cdxIter = new TimestampCustomDedupIterator(cdxIter, timestampDedupLength);
 			}
 			
 			return new AdaptedIterator<String,CaptureSearchResult>(cdxIter, this);
@@ -102,5 +109,13 @@ public class ZipNumClusterSearchResultSource implements SearchResultSource, Adap
 	
 	public CaptureSearchResult adapt(String line) {
 		return CDXFlexFormat.parseCDXLineFlex(line);
+	}
+
+	public int getTimestampDedupLength() {
+		return timestampDedupLength;
+	}
+
+	public void setTimestampDedupLength(int timestampDedupLength) {
+		this.timestampDedupLength = timestampDedupLength;
 	}	
 }

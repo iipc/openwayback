@@ -37,7 +37,6 @@ import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.AdministrativeAccessControlException;
 import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.exception.LiveDocumentNotAvailableException;
-import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.exception.RobotAccessControlException;
 import org.archive.wayback.exception.WaybackException;
 import org.archive.wayback.liveweb.LiveWebCache;
@@ -91,14 +90,16 @@ public class LiveWebAccessPoint extends AbstractRequestHandler {
 		try {
 			PerfStats.clearAll();
 			
-			if (inner.getPerfStatsHeader() != null) {
+			if (inner.isEnablePerfStatsHeader()) {
 				PerfStats.timeStart(AccessPoint.PerfStat.Total);
 				httpResponse = new PerfWritingHttpServletResponse(httpResponse, AccessPoint.PerfStat.Total, inner.getPerfStatsHeader());
 			}
 			
 			if(!urlString.startsWith(UrlOperations.HTTP_SCHEME) &&
 				!urlString.startsWith(UrlOperations.HTTPS_SCHEME)) {
-				throw new ResourceNotInArchiveException(urlString);
+				// Assume http
+				urlString = UrlOperations.HTTP_SCHEME + urlString;
+				//throw new ResourceNotInArchiveException(urlString);
 			}
 			Thread.currentThread().setName("Thread " + 
 					Thread.currentThread().getId() + " " + getBeanName() + 

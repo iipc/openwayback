@@ -56,6 +56,7 @@ public class RemoteLiveWebCache implements LiveWebCache {
     private MultiThreadedHttpConnectionManager connectionManager = null;
     private HostConfiguration hostConfiguration = null;
     private HttpClient http = null; 
+    private String requestPrefix = null;
 
     /**
      * 
@@ -76,6 +77,11 @@ public class RemoteLiveWebCache implements LiveWebCache {
 			boolean bUseOlder) throws LiveDocumentNotAvailableException,
 			LiveWebCacheUnavailableException, LiveWebTimeoutException, IOException {
 		String urlString = url.toExternalForm();
+		
+		if (requestPrefix != null) {
+			urlString = requestPrefix + urlString;
+		}
+		
 		HttpMethod method = null;
 		try {
 			method = new GetMethod(urlString);
@@ -207,5 +213,13 @@ public class RemoteLiveWebCache implements LiveWebCache {
 	 */
 	public void setSocketTimeoutMS(int socketTimeoutMS) {
     	connectionManager.getParams().setSoTimeout(socketTimeoutMS);
+	}
+
+	public String getRequestPrefix() {
+		return requestPrefix;
+	}
+
+	public void setRequestPrefix(String requestPrefix) {
+		this.requestPrefix = requestPrefix;
 	}
 }

@@ -60,6 +60,11 @@ public class PerfStats
 		
 		public String toString()
 		{
+			// Skip perf stats that haven't been set at all
+			if (count == 0 && total == 0) {
+				return "";
+			}
+			
 			if (start > 0) {
 				isErr = true;
 			}

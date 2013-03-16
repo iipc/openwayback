@@ -122,7 +122,7 @@ implements ShutdownListener {
 	private boolean serveStatic = true;
 	private boolean bounceToReplayPrefix = false;
 	private boolean bounceToQueryPrefix = false;
-	private boolean forceCleanQueries = false;
+	private boolean forceCleanQueries = true;
 
 	private boolean timestampSearch = false;
 	
@@ -133,8 +133,13 @@ implements ShutdownListener {
 		Total,
 	}
 	
-	private String perfStatsHeader = null;
+	private String errorMsgHeader = RUNTIME_ERROR_HEADER;
+	private String perfStatsHeader = "X-Archive-Wayback-Perf";
 	private String warcFileHeader = "x-archive-src";
+	
+	private boolean enableErrorMsgHeader = false;
+	private boolean enablePerfStatsHeader = false;
+	private boolean enableWarcFileHeader = false;
 		
 	private String liveWebPrefix = null;
 	private String staticPrefix = null;
@@ -232,7 +237,7 @@ implements ShutdownListener {
 		try {
 			PerfStats.clearAll();
 			
-			if (perfStatsHeader != null) {
+			if (this.isEnablePerfStatsHeader() && (perfStatsHeader != null)) {
 				PerfStats.timeStart(PerfStat.Total);
 				httpResponse = new PerfWritingHttpServletResponse(httpResponse, PerfStat.Total, perfStatsHeader);
 			}
@@ -310,24 +315,24 @@ implements ShutdownListener {
 
 		} catch(WaybackException e) {
 			if (wbRequest == null) {
-				writeErrorHeader(httpResponse, RUNTIME_ERROR_HEADER, e);				
+				writeErrorHeader(httpResponse, errorMsgHeader, e);				
 			} else if(wbRequest.isReplayRequest() 
 				&& (getLiveWebPrefix() != null) 
 				&& (getLiveWebPrefix().length() > 0)) {
 				
-				writeErrorHeader(httpResponse, RUNTIME_ERROR_HEADER, e);
+				writeErrorHeader(httpResponse, errorMsgHeader, e);
 
 				String liveUrl = 
 					getLiveWebPrefix() + wbRequest.getRequestUrl();
 						httpResponse.sendRedirect(liveUrl);
 			} else {
 				logNotInArchive(e,wbRequest);
-				writeErrorHeader(httpResponse, RUNTIME_ERROR_HEADER, e);				
+				writeErrorHeader(httpResponse, errorMsgHeader, e);				
 				getException().renderException(httpRequest, httpResponse, 
 						wbRequest, e, getUriConverter());
 			}
 		} catch (Exception other) {
-			writeErrorHeader(httpResponse, RUNTIME_ERROR_HEADER, other);
+			writeErrorHeader(httpResponse, errorMsgHeader, other);
 		} finally {			
 			//Slightly hacky, but ensures that all block loaders are closed
 			ZipNumBlockLoader.closeAllReaders();
@@ -340,6 +345,10 @@ implements ShutdownListener {
 	{
 		if (LOGGER.isLoggable(Level.WARNING)) {
 			LOGGER.log(Level.WARNING, "Runtime Error", e);
+		}
+		
+		if (!this.isEnableErrorMsgHeader()) {
+			return;
 		}
 		
 		String message = (e != null ? e.toString() : "");
@@ -706,7 +715,7 @@ implements ShutdownListener {
 				ReplayRenderer renderer = 
 					getReplay().getRenderer(wbRequest, closest, httpHeadersResource, payloadResource);
 				
-				if (warcFileHeader != null) {
+				if (this.isEnableWarcFileHeader() && (warcFileHeader != null)) {
 					if (isRevisit && (closest.getDuplicatePayloadFile() != null)) {
 						httpResponse.addHeader(warcFileHeader, closest.getDuplicatePayloadFile());
 					} else {
@@ -1593,5 +1602,37 @@ implements ShutdownListener {
 
 	public void setWarcFileHeader(String warcFileHeader) {
 		this.warcFileHeader = warcFileHeader;
+	}
+
+	public String getErrorMsgHeader() {
+		return errorMsgHeader;
+	}
+
+	public void setErrorMsgHeader(String errorMsgHeader) {
+		this.errorMsgHeader = errorMsgHeader;
+	}
+
+	public boolean isEnableErrorMsgHeader() {
+		return enableErrorMsgHeader;
+	}
+
+	public void setEnableErrorMsgHeader(boolean enableErrorMsgHeader) {
+		this.enableErrorMsgHeader = enableErrorMsgHeader;
+	}
+
+	public boolean isEnablePerfStatsHeader() {
+		return enablePerfStatsHeader;
+	}
+
+	public void setEnablePerfStatsHeader(boolean enablePerfStatsHeader) {
+		this.enablePerfStatsHeader = enablePerfStatsHeader;
+	}
+
+	public boolean isEnableWarcFileHeader() {
+		return enableWarcFileHeader;
+	}
+
+	public void setEnableWarcFileHeader(boolean enableWarcFileHeader) {
+		this.enableWarcFileHeader = enableWarcFileHeader;
 	}
 }
