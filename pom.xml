@@ -7,15 +7,13 @@
   <groupId>org.archive.wayback</groupId>
   <artifactId>wayback</artifactId>
   <packaging>pom</packaging>
-  <version>1.7.1-SNAPSHOT</version>
+  <version>1.8.0-SNAPSHOT</version>
   <name>Wayback</name>
 
   <modules>
     <module>wayback-access-control</module>
     <module>wayback-core</module>
     <module>wayback-webapp</module>
-    <module>wayback-hadoop-java</module>
-    <module>wayback-hadoop</module>
     <module>dist</module>
   </modules>
 
@@ -214,7 +212,7 @@
   </distributionManagement>
 
   <developers>
-    <developer>
+     <developer>
       <name>Brad Tofel</name>
       <id>bradtofel</id>
       <email>brad at archive dot org</email>
@@ -222,7 +220,15 @@
       <url>http://www.archive.org</url>
       <timezone>-8</timezone>
     </developer>
-  </developers>
+    <developer>
+      <name>Ilya Kreymer</name>
+      <id>ikreymer</id>
+      <email>ilya at archive dot org</email>
+      <organization>Internet Archive</organization>
+      <url>http://www.archive.org</url>
+      <timezone>-8</timezone>
+    </developer>
+ </developers>
 
   <reporting>
     <plugins>

@@ -34,11 +34,12 @@
       </includes>
     </fileSet>
   </fileSets>
+  <!--
   <files>
     <file>
       <source>../wayback-hadoop/target/wayback-hadoop-jar-with-dependencies.jar</source>
       <destName>wayback-hadoop-${project.version}.jar</destName>
     </file>
-  </files>
+  </files>-->
 
 </assembly>
