@@ -20,7 +20,7 @@
   </modules>
 
   <properties>
-    <website.url>http://archive-access.sourceforge.net/</website.url>
+    <website.url>http://github.com/internetarchive/wayback</website.url>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
