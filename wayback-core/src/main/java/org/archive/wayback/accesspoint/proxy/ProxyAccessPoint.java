@@ -99,15 +99,15 @@ public class ProxyAccessPoint extends CompositeAccessPoint {
 			HttpServletResponse response) throws ServletException,
 			IOException {
 		
-		boolean isProxyReq = false;
+//		boolean isProxyReq = false;
+	
+// Proxy-Connection header is not reliable to differentiate between proxy and non-proxy
+// so not using it anymore.. Define access points explicitly and proxy or non-proxy
+// on different ports
 		
-		if (request.getHeader("Proxy-Connection") != null) {
-			isProxyReq = true;
-		} else if (isProxyEnabled()) {
-			isProxyReq = true;
-		}
-		
-		if (!isProxyReq) {
+//		if (request.getHeader("Proxy-Connection") != null) {
+//			isProxyReq = true;		
+		if (!isProxyEnabled()) {
 			return handleNonProxy(request, response);
 		} else {
 			return handleProxy(request, response);

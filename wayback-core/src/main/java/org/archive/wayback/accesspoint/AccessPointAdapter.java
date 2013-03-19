@@ -298,7 +298,8 @@ public class AccessPointAdapter extends AccessPoint {
 
 	@Override
 	public boolean isForceCleanQueries() {
-		return baseAccessPoint.isForceCleanQueries();
+		// Setting this to false to allow custom handling of adapter access points
+		return false;
 	}
 
 	@Override
