@@ -343,8 +343,8 @@ implements ShutdownListener {
 	
 	public void writeErrorHeader(HttpServletResponse httpResponse, String header, Exception e)
 	{
-		if (LOGGER.isLoggable(Level.WARNING)) {
-			LOGGER.log(Level.WARNING, "Runtime Error", e);
+		if (LOGGER.isLoggable(Level.INFO)) {
+			LOGGER.log(Level.INFO, "Runtime Error", e);
 		}
 		
 		if (!this.isEnableErrorMsgHeader()) {

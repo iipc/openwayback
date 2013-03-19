@@ -22,8 +22,6 @@ package org.archive.wayback.resourcestore;
 import java.io.IOException;
 import java.util.logging.Logger;
 
-import javax.servlet.http.HttpServletResponse;
-
 import org.archive.wayback.ResourceStore;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.Resource;
@@ -60,12 +58,12 @@ public class LocationDBResourceStore implements ResourceStore {
 			urls = db.nameToUrls(fileName);
 		} catch (IOException e1) {
 			//e1.printStackTrace();
-			throw new ResourceNotAvailableException(e1.getLocalizedMessage(), fileName, HttpServletResponse.SC_NOT_FOUND);
+			throw new ResourceNotAvailableException(e1.getLocalizedMessage(), fileName);
 		}
 		if(urls == null || urls.length == 0) {
 			String msg = "Unable to locate(" + fileName + ")";
 			LOGGER.info(msg);
-			throw new ResourceNotAvailableException(msg, fileName, HttpServletResponse.SC_NOT_FOUND);
+			throw new ResourceNotAvailableException(msg, fileName);
 		}
 		
 		final long offset = result.getOffset();
