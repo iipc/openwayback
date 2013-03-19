@@ -42,7 +42,7 @@
     </dependency>
     <dependency>
       <groupId>org.archive</groupId>
-      <artifactId>archive-commons</artifactId>
+      <artifactId>ia-web-commons</artifactId>
       <version>1.0-SNAPSHOT</version>
     </dependency>
     <dependency>
