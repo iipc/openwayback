@@ -16,8 +16,6 @@ import org.archive.util.ArchiveUtils;
 import org.archive.wayback.core.CaptureSearchResult;
 
 public class CustomPolicyOracleFilter extends OracleExclusionFilter {
-
-	public static final String CAPTURE_ORACLE_POLICY = "oracle-policy";
 	
 	private static final Logger LOGGER = Logger.getLogger(
 			CustomPolicyOracleFilter.class.getName());	
@@ -56,7 +54,7 @@ public class CustomPolicyOracleFilter extends OracleExclusionFilter {
 		try {
 			policy = client.getPolicy(ArchiveUtils.addImpliedHttpIfNecessary(url), captureDate, retrievalDate, accessGroup);
 			
-			o.put(CAPTURE_ORACLE_POLICY, policy);
+			o.setOraclePolicy(policy);
 			
 			if (policy == null) {
 				return defaultFilter;

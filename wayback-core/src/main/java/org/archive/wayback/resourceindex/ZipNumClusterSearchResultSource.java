@@ -108,7 +108,7 @@ public class ZipNumClusterSearchResultSource implements SearchResultSource, Adap
 	}
 	
 	public CaptureSearchResult adapt(String line) {
-		return CDXFlexFormat.parseCDXLineFlex(line);
+		return CDXFlexFormat.parseCDXLineFlexFast(line);
 	}
 
 	public int getTimestampDedupLength() {

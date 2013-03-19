@@ -49,7 +49,7 @@ public class OracleAnnotationFilter implements ObjectFilter<CaptureSearchResult>
 				Rule r = client.getRule(url, capDate, new Date(), who);
 				if(r != null) {
 					String publicComment = r.getPublicComment();
-					o.put("ANOTATION", publicComment);
+					o.putCustom("ANOTATION", publicComment);
 				}
 			} catch (RuleOracleUnavailableException e) {
 				e.printStackTrace();

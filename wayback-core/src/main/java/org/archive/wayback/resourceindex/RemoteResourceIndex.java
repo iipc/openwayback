@@ -293,7 +293,7 @@ public class RemoteResourceIndex implements ResourceIndex {
 			String key = chitlens.item(i).getNodeName();
 			String value = getNodeTextValue(chitlens.item(i));
 			if(!key.equals("#text")) {
-				result.put(key,value);
+				result.putCustom(key, value);
 			}
 		}
 	}

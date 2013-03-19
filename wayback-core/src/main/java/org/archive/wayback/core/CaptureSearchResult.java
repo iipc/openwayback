@@ -31,9 +31,9 @@ import org.archive.wayback.util.url.UrlOperations;
  */
 public class CaptureSearchResult extends SearchResult {
 	
-	private long cachedOffset = -1;
-	private long cachedCompressedLength = -1;
-	private long cachedDate = -1;
+	protected long cachedOffset = -1;
+	protected long cachedCompressedLength = -1;
+	protected long cachedDate = -1;
 	
 	// Keep track of the z matched result so that we can walk
 	// back if the current result is a self-redirect/otherwise unavailable
@@ -163,6 +163,20 @@ public class CaptureSearchResult extends SearchResult {
 	 * If-Modified HTTP request headers.
 	 */
 	public static final String CAPTURE_DUPLICATE_HTTP = "http";
+	
+	
+	public static final String CAPTURE_ORACLE_POLICY = "oracle-policy";
+	
+	
+	public CaptureSearchResult()
+	{
+		
+	}
+	
+	protected CaptureSearchResult(boolean autocreateMap)
+	{
+		super(autocreateMap);
+	}
 
 	/**
 	 * @return the original URL which resulted in the capture. If it is not 
@@ -218,7 +232,7 @@ public class CaptureSearchResult extends SearchResult {
 	}
 	public void setCaptureDate(Date date) {
 		cachedDate = date.getTime();
-		put(CAPTURE_CAPTURE_TIMESTAMP, dateToTS(date));
+		setCaptureTimestamp(dateToTS(date));
 	}
 	public String getCaptureTimestamp() {
 		return get(CAPTURE_CAPTURE_TIMESTAMP);
@@ -385,17 +399,17 @@ public class CaptureSearchResult extends SearchResult {
 		put(CAPTURE_ROBOT_FLAGS,robotFlags);
 	}
 	public void setRobotFlag(String flag) {
-		String flags = get(CAPTURE_ROBOT_FLAGS);
+		String flags = getRobotFlags();
 		if(flags == null) {
 			flags = "";
 		}
 		if(!flags.contains(flag)) {
 			flags = flags + flag;
 		}
-		put(CAPTURE_ROBOT_FLAGS,flags);
+		setRobotFlags(flags);
 	}
 	public boolean isRobotFlagSet(String flag) {
-		String flags = get(CAPTURE_ROBOT_FLAGS);
+		String flags = getRobotFlags();
 		if(flags == null) {
 			return false;
 		}
@@ -419,6 +433,12 @@ public class CaptureSearchResult extends SearchResult {
 	}
 	public void setRobotNoFollow() {
 		setRobotFlag(CAPTURE_ROBOT_NOARCHIVE);
+	}
+	public String getOraclePolicy() {
+		return get(CAPTURE_ORACLE_POLICY);
+	}
+	public void setOraclePolicy(String policy) {
+		put(CAPTURE_ORACLE_POLICY, policy);
 	}
 	
 	public void setPrevResult(CaptureSearchResult result)

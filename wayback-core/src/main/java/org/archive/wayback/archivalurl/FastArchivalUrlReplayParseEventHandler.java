@@ -27,7 +27,7 @@ import java.util.HashMap;
 
 import javax.servlet.ServletException;
 
-import org.archive.wayback.accesscontrol.oracleclient.CustomPolicyOracleFilter;
+import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.replay.html.ReplayParseContext;
 import org.archive.wayback.replay.html.StringTransformer;
 import org.archive.wayback.replay.html.transformer.BlockCSSStringTransformer;
@@ -363,7 +363,7 @@ public class FastArchivalUrlReplayParseEventHandler implements
 	
 	protected String getOraclePolicies(ParseContext context)
 	{
-		return context.getData(CustomPolicyOracleFilter.CAPTURE_ORACLE_POLICY);
+		return context.getData(CaptureSearchResult.CAPTURE_ORACLE_POLICY);
 	}
 	
 	//IK: changed private to protected

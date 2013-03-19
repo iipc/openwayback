@@ -959,7 +959,7 @@ implements ShutdownListener {
 				throw lastExc;
 			}
 			
-			throw new ResourceNotAvailableException("Revisit: Missing original for revisit record " + closest.toCanonicalStringMap());
+			throw new ResourceNotAvailableException("Revisit: Missing original for revisit record " + closest.toString());
 		}
 
 		return getResource(payloadLocation, skipFiles);

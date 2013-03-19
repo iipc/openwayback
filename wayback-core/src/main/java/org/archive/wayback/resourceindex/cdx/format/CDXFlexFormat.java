@@ -3,11 +3,13 @@ package org.archive.wayback.resourceindex.cdx.format;
 import java.util.logging.Logger;
 
 import org.archive.wayback.core.CaptureSearchResult;
+import org.archive.wayback.core.FastCaptureSearchResult;
 import org.archive.wayback.util.url.UrlOperations;
 
 public class CDXFlexFormat extends CDXFormat {
 	private final static String SCHEME_STRING = "://";
 	private final static String DEFAULT_SCHEME = "http://";
+	private final static String EMPTY_VALUE = "-";
 
 	private static final Logger LOGGER = 
 		Logger.getLogger(CDXFlexFormat.class.getName());
@@ -36,6 +38,16 @@ public class CDXFlexFormat extends CDXFormat {
 	// Single place to do the flex cdx-line parsing logic
 	public static CaptureSearchResult parseCDXLineFlex(String line) {
 		CaptureSearchResult result = new CaptureSearchResult();
+		return parseCDXLineFlex(line, result);
+	}
+	
+	// Use FastCaptureSearchResult to 
+	public static CaptureSearchResult parseCDXLineFlexFast(String line) {	
+		CaptureSearchResult result = new FastCaptureSearchResult();
+		return parseCDXLineFlex(line, result);
+	}
+		
+	public static CaptureSearchResult parseCDXLineFlex(String line, CaptureSearchResult result) {		
 		String[] tokens = line.split(" ");
 		boolean hasRobotFlags = false;
 		boolean hasLengthFlag = false;
@@ -71,16 +83,16 @@ public class CDXFlexFormat extends CDXFormat {
 			result.setRobotFlags(tokens[nextToken]);
 			nextToken++;
 		}
-		String length = "-";
+		String length = EMPTY_VALUE;
 		if(hasLengthFlag) {
 			length = tokens[nextToken];
 			nextToken++;
 		}
 
-		if(!tokens[nextToken].equals("-")) {
+		if(!tokens[nextToken].equals(EMPTY_VALUE)) {
 			try {
 				compressedOffset = Long.parseLong(tokens[nextToken]);
-				if(!length.equals("-")) {
+				if(!length.equals(EMPTY_VALUE)) {
 					// try to set the endOffset:
 					result.setCompressedLength(Long.parseLong(length));
 				}

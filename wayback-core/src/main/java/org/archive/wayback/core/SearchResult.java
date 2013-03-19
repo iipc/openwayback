@@ -49,17 +49,36 @@ public class SearchResult {
 	public SearchResult() {
 		data = new HashMap<String,String>();
 	}
-	public String get(String key) {
+	
+	protected SearchResult(boolean autocreateMap) {
+		if (autocreateMap) {
+			data = new HashMap<String,String>();
+		}
+	}
+	
+	protected void ensureMap()
+	{
+		if (data == null) {
+			data = new HashMap<String,String>();
+		}
+	}
+	
+	protected String get(String key) {
 		return data.get(key);
 	}
-	public void put(String key, String value) {
+	protected void put(String key, String value) {
 		data.put(key,value);
 	}
-	public boolean getBoolean(String key) {
+	//Explicitly for external/custom properties, ensure map is created
+	public void putCustom(String key, String value) {
+		ensureMap();
+		put(key, value);
+	}
+	protected boolean getBoolean(String key) {
 		String value = get(key);
 		return (value != null && value.equals(RESULT_TRUE_VALUE));
 	}
-	public void putBoolean(String key, boolean value) {
+	protected void putBoolean(String key, boolean value) {
 		if(value) {
 			put(key,RESULT_TRUE_VALUE);
 		} else {
@@ -72,10 +91,10 @@ public class SearchResult {
 	protected Date tsToDate(String timestamp) {
 		return Timestamp.parseBefore(timestamp).getDate();
 	}
-	public Map<String, String> toCanonicalStringMap() {
+	protected Map<String, String> toCanonicalStringMap() {
 		return data;
 	}
-	public void fromCanonicalStringMap(Map<String, String> canonical) {
+	protected void fromCanonicalStringMap(Map<String, String> canonical) {
 		data = new HashMap<String, String>();
 		data.putAll(canonical);
 	}
