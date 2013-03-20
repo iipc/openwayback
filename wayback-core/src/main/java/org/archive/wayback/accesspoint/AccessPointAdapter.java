@@ -229,10 +229,14 @@ public class AccessPointAdapter extends AccessPoint {
 	public List<String> getFilePatterns() {
 		return baseAccessPoint.getFilePatterns();
 	}
-
+	
 	@Override
 	public WaybackCollection getCollection() {
-		return baseAccessPoint.getCollection();
+		if (config.getCollection() != null) {
+			return config.getCollection();
+		} else {
+			return baseAccessPoint.getCollection();
+		}
 	}
 
 	@Override

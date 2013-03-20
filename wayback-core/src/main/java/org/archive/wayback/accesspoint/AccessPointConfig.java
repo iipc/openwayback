@@ -3,6 +3,7 @@ package org.archive.wayback.accesspoint;
 import java.util.List;
 import java.util.Properties;
 
+import org.archive.wayback.webapp.WaybackCollection;
 import org.springframework.beans.factory.BeanNameAware;
 
 public class AccessPointConfig implements BeanNameAware {
@@ -10,6 +11,7 @@ public class AccessPointConfig implements BeanNameAware {
 	private Properties configs = null;
 	private List<String> fileIncludePrefixes = null;
 	private List<String> fileExcludePrefixes = null;
+	private WaybackCollection collection = null;
 	private String beanName;
 	
 	public Properties getConfigs() {
@@ -37,5 +39,11 @@ public class AccessPointConfig implements BeanNameAware {
 	
 	public String getBeanName() {
 		return this.beanName;
+	}
+	public WaybackCollection getCollection() {
+		return collection;
+	}
+	public void setCollection(WaybackCollection collection) {
+		this.collection = collection;
 	}
 }
