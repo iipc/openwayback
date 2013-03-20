@@ -135,9 +135,19 @@ public class AccessPointAdapter extends AccessPoint {
 	{
 		return config.getBeanName();
 	}
+	
+	public boolean hasExclusions()
+	{
+		return (baseAccessPoint.getStaticExclusions() != null) || (baseAccessPoint.getOracleUrl() != null);
+	}
 
 	@Override
 	public ExclusionFilterFactory getExclusionFactory() {
+		
+		if (!hasExclusions()) {
+			return null;
+		}
+		
 		if (exclusionFactory == null) {	
 			exclusionFactory = buildExclusionFactory();
 		}
@@ -155,7 +165,9 @@ public class AccessPointAdapter extends AccessPoint {
 			CompositeExclusionFilterFactory composite = new CompositeExclusionFilterFactory();
 			ArrayList<ExclusionFilterFactory> allExclusions = new ArrayList<ExclusionFilterFactory>();
 			allExclusions.addAll(staticExclusions);
-			allExclusions.add(new DynamicExclusionFactory());
+			if (baseAccessPoint.getOracleUrl() != null) {
+				allExclusions.add(new DynamicExclusionFactory());
+			}
 			composite.setFactories(allExclusions);
 			return composite;
 		}
