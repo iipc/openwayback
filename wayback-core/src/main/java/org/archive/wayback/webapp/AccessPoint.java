@@ -153,6 +153,7 @@ implements ShutdownListener {
 	private Locale locale = null;
 
 	private Properties configs = null;
+	private Map<String, Object> userProps = null;
 
 	private List<String> filePatterns = null;
 	private List<String> fileIncludePrefixes = null;
@@ -1284,8 +1285,28 @@ implements ShutdownListener {
 	 * @param configs the generic customization Properties to use with this
 	 * AccessPoint, generally used to tune the UI
 	 */
+	
 	public void setConfigs(Properties configs) {
 		this.configs = configs;
+	}
+	
+	//TODO: combine these two into a single map?
+	
+	/**
+	 * Get custom user configs, a map of Objects
+	 * @return
+	 */
+	public Map<String, Object> getUserProps() {
+		return userProps;
+	}
+	
+	/**
+	 * Set custom user configs, a map of Objects
+	 * @return
+	 */
+
+	public void setUserProps(Map<String, Object> userProps) {
+		this.userProps = userProps;
 	}
 
 	/**

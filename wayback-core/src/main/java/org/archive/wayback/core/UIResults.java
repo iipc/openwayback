@@ -20,6 +20,7 @@
 package org.archive.wayback.core;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.servlet.RequestDispatcher;
@@ -31,6 +32,7 @@ import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.exception.WaybackException;
 import org.archive.wayback.util.StringFormatter;
 import org.archive.wayback.webapp.AccessPoint;
+import org.archive.wayback.webapp.CustomUserResourceIndex;
 
 /**
  * Simple class which acts as the go-between between Java request handling code
@@ -258,7 +260,17 @@ public class UIResults {
 			Properties configs = context.getConfigs();
 			if(configs != null) {
 				configValue = configs.getProperty(configName);
+				if (configValue != null) {
+					return configValue;
+				}
 			}
+		}
+		if (context.getUserProps() != null) {
+			Object value = context.getUserProps().get(configName);
+			if (value == null) {
+				return null;
+			}
+			configValue = value.toString();
 		}
 		return configValue;
 	}
@@ -628,5 +640,38 @@ public class UIResults {
 			return null;
 		}
 		return uriConverter.makeReplayURI(timestamp, url);
+	}
+	
+	public CustomUserResourceIndex getCustomResourceIndex(String indexName)
+	{
+		AccessPoint ap = this.getWbRequest().getAccessPoint();
+		
+		if (ap == null) {
+			return null;
+		}
+		
+		Map<String, Object> map = ap.getUserProps();
+		
+		if (map == null) {
+			return null;
+		}
+		
+		Object object = map.get(indexName);
+		
+		
+		if (object == null || !(object instanceof CustomUserResourceIndex)) {
+			return null;
+		}
+		
+		return (CustomUserResourceIndex)object;
+	}
+	
+	public String getCustomResourcePaths(String indexName, int fieldNum)
+	{
+		CustomUserResourceIndex cri = getCustomResourceIndex(indexName);
+		if (cri == null) {
+			return "";
+		}
+		return cri.getCustomResourcesPathsAsJSON(getWbRequest(), getReplayPrefix(), fieldNum);
 	}
 }

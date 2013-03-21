@@ -120,8 +120,6 @@ public class CompositeAccessPoint extends AccessPoint {
 			ArrayList<ExclusionFilterFactory> staticExclusions) {
 		this.staticExclusions = staticExclusions;
 	}
-
-	private Map<String, Object> userProps;
 	
 	private AccessPointConfigs accessPointConfigs;
 	
@@ -131,14 +129,7 @@ public class CompositeAccessPoint extends AccessPoint {
 	public void setOracleUrl(String oracleUrl) {
 		this.oracleUrl = oracleUrl;
 	}
-	public Map<String, Object> getUserProps() {
-		return userProps;
-	}
-
-	public void setUserProps(Map<String, Object> userProps) {
-		this.userProps = userProps;
-	}
-
+	
 	public AccessPointConfigs getAccessPointConfigs() {
 		return accessPointConfigs;
 	}
