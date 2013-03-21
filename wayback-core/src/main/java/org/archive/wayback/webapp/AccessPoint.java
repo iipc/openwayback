@@ -153,7 +153,6 @@ implements ShutdownListener {
 	private Locale locale = null;
 
 	private Properties configs = null;
-	private Map<String, Object> userProps = null;
 
 	private List<String> filePatterns = null;
 	private List<String> fileIncludePrefixes = null;
@@ -1290,25 +1289,6 @@ implements ShutdownListener {
 		this.configs = configs;
 	}
 	
-	//TODO: combine these two into a single map?
-	
-	/**
-	 * Get custom user configs, a map of Objects
-	 * @return
-	 */
-	public Map<String, Object> getUserProps() {
-		return userProps;
-	}
-	
-	/**
-	 * Set custom user configs, a map of Objects
-	 * @return
-	 */
-
-	public void setUserProps(Map<String, Object> userProps) {
-		this.userProps = userProps;
-	}
-
 	/**
 	 * @return List of file patterns that will be matched when querying the 
 	 * ResourceIndex
