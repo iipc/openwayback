@@ -40,6 +40,8 @@ import org.springframework.core.io.Resource;
 public class SpringReader {
 	private static final Logger LOGGER = Logger.getLogger(
 			SpringReader.class.getName());
+	
+	protected static XmlBeanFactory currentXmlBeanFactory = null;
 
 	/**
 	 * Read the single Spring XML configuration file located at the specified
@@ -60,6 +62,7 @@ public class SpringReader {
 		
 		Resource resource = new FileSystemResource(configPath);
 		XmlBeanFactory factory = new XmlBeanFactory(resource);
+		currentXmlBeanFactory = factory;
 		Map map = factory.getBeansOfType(PropertyPlaceholderConfigurer.class);
 		if(map != null) {
 			Collection<PropertyPlaceholderConfigurer> macros = map.values();
@@ -73,5 +76,10 @@ public class SpringReader {
 		Map<String,RequestHandler> beans = 
 			factory.getBeansOfType(RequestHandler.class,false,false);
 		return new RequestMapper(beans.values(), servletContext);
+	}
+	
+	public static XmlBeanFactory getCurrentBeanFactory()
+	{
+		return currentXmlBeanFactory;
 	}
 }

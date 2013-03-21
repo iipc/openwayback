@@ -23,7 +23,6 @@ package org.archive.wayback.accesspoint;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Properties;
 
 import javax.servlet.ServletContext;
@@ -52,6 +51,7 @@ public class AccessPointAdapter extends AccessPoint {
 	private AccessPointConfig config;
 	private ExclusionFilterFactory exclusionFactory;
 	private ResultURIConverter cacheUriConverter;
+	private Properties props = null;
 	
 	private boolean switchable = false;
 	
@@ -74,6 +74,7 @@ public class AccessPointAdapter extends AccessPoint {
 		this.exclusionFactory = null;
 		
 		this.switchable = true;
+		initMergedProps();
 	}
 	
 	public AccessPointAdapter(String accessPointName, CompositeAccessPoint baseAccessPoint)
@@ -83,6 +84,22 @@ public class AccessPointAdapter extends AccessPoint {
 		this.config = baseAccessPoint.getAccessPointConfigs().getAccessPointConfigs().get(accessPointName);
 		
 		this.switchable = false;
+		initMergedProps();
+	}
+	
+	protected void initMergedProps()
+	{
+		this.props = new Properties();
+		
+		//First put the generic ones
+		if (baseAccessPoint.getConfigs() != null) {
+			props.putAll(baseAccessPoint.getConfigs());
+		}
+		
+		//Now, the custom ones for this config
+		if (config.getConfigs() != null) {
+			props.putAll(config.getConfigs());
+		}
 	}
 	
 	public CompositeAccessPoint getBaseAccessPoint()
@@ -110,11 +127,6 @@ public class AccessPointAdapter extends AccessPoint {
 		return config;
 	}
 	
-	public Map<String, Object> getUserProps()
-	{
-		return baseAccessPoint.getUserProps();
-	}
-	
 	@Override
 	public List<String> getFileIncludePrefixes() {
 		return config.getFileIncludePrefixes();
@@ -127,7 +139,7 @@ public class AccessPointAdapter extends AccessPoint {
 	
 	@Override
 	public Properties getConfigs() {
-		return config.getConfigs();
+		return props;
 	}
 	
 	@Override

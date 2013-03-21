@@ -19,6 +19,8 @@
  */
 package org.archive.wayback.util.url;
 
+import java.net.URISyntaxException;
+
 import org.apache.commons.httpclient.URIException;
 import org.archive.url.URLKeyMaker;
 import org.archive.url.WaybackURLKeyMaker;
@@ -48,7 +50,11 @@ public class KeyMakerUrlCanonicalizer implements UrlCanonicalizer {
 	}
 	
 	public String urlStringToKey(String url) throws URIException {
-		return keyMaker.makeKey(url);
+		try {
+			return keyMaker.makeKey(url);
+		} catch (URISyntaxException e) {
+			throw new URIException(e.getMessage());
+		}
 	}
 	/**
 	 * @return the keyMaker
