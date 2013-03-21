@@ -634,10 +634,29 @@ public class UIResults {
 		return uriConverter.makeReplayURI(timestamp, url);
 	}
 	
-	public CustomUserResourceIndex getCustomResourceIndex(String indexName)
+	public CustomUserResourceIndex getCustomResourceIndex(String indexKey)
 	{
 		try {
-			CustomUserResourceIndex index =  (CustomUserResourceIndex)SpringReader.getCurrentBeanFactory().getBean(indexName, CustomUserResourceIndex.class);
+			String indexBeanName = null;
+			
+			// First look up bean name in the props			
+			if (getWbRequest().getAccessPoint() != null) {
+				Properties props = getWbRequest().getAccessPoint().getConfigs();
+				
+				if (props != null) {
+					indexBeanName = props.getProperty(indexKey);
+				}
+			}
+			
+			//If not found, attempt the key itself
+			
+			if (indexBeanName == null) {
+				indexBeanName = indexKey;	
+			}
+						
+			CustomUserResourceIndex index = 
+					(CustomUserResourceIndex)SpringReader.getCurrentBeanFactory().getBean(indexBeanName, CustomUserResourceIndex.class);
+			
 			return index;
 		} catch (BeansException e) {
 			return null;
