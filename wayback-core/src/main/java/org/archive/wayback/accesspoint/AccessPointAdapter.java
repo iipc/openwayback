@@ -196,7 +196,7 @@ public class AccessPointAdapter extends AccessPoint {
 	
 	@Override
 	public String getStaticPrefix() {
-		return getPrefix(baseAccessPoint.getStaticPrefix());
+		return baseAccessPoint.getStaticPrefix();
 	}
 
 	@Override

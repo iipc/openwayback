@@ -57,7 +57,7 @@ public class CompositeAccessPoint extends AccessPoint {
 			HttpServletResponse response) throws ServletException,
 			IOException {
 		
-		String configName = request.getRequestURI();
+		String configName = this.translateRequestPath(request);
 		
 		if (!configName.isEmpty() && (configName.charAt(0) == '/')) {
 			configName = configName.substring(1);
@@ -69,7 +69,11 @@ public class CompositeAccessPoint extends AccessPoint {
 			configName = configName.substring(0, slash);
 		}
 		
-		request.setAttribute(REQUEST_CONTEXT_PREFIX, "/" + configName + "/");
+		Object existingPrefixObj = request.getAttribute(REQUEST_CONTEXT_PREFIX);
+		
+		String existingPrefix = (existingPrefixObj != null) ? existingPrefixObj.toString() : "/";
+		
+		request.setAttribute(REQUEST_CONTEXT_PREFIX, existingPrefix + configName + "/");
 		
 		Status status = handleRequest(configName, request, response);
 		return (status == Status.ConfigHandled);
