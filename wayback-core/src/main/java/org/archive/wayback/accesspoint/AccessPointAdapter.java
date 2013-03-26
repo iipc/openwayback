@@ -43,6 +43,7 @@ import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.util.operator.BooleanOperator;
 import org.archive.wayback.webapp.AccessPoint;
 import org.archive.wayback.webapp.CustomResultFilterFactory;
+import org.archive.wayback.webapp.LiveWebRedirector;
 import org.archive.wayback.webapp.WaybackCollection;
 
 public class AccessPointAdapter extends AccessPoint {
@@ -235,8 +236,8 @@ public class AccessPointAdapter extends AccessPoint {
 	}
 
 	@Override
-	public String getLiveWebPrefix() {
-		return baseAccessPoint.getLiveWebPrefix();
+	public LiveWebRedirector getLiveWebRedirector() {
+		return baseAccessPoint.getLiveWebRedirector();
 	}
 
 	@Override

@@ -33,6 +33,7 @@ import org.archive.wayback.accesscontrol.robotstxt.RobotExclusionFilterFactory;
 import org.archive.wayback.accesscontrol.staticmap.StaticMapExclusionFilterFactory;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
+import org.archive.wayback.core.FastCaptureSearchResult;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.AdministrativeAccessControlException;
 import org.archive.wayback.exception.BadQueryException;
@@ -43,7 +44,6 @@ import org.archive.wayback.liveweb.LiveWebCache;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.resourcestore.resourcefile.ArcResource;
 import org.archive.wayback.util.url.UrlOperations;
-import org.archive.wayback.util.webapp.AbstractRequestHandler;
 
 /**
  * @author brad
@@ -52,7 +52,7 @@ import org.archive.wayback.util.webapp.AbstractRequestHandler;
  * using an internal AccessPoint to rewrite replayed documents.
  *
  */
-public class LiveWebAccessPoint extends AbstractRequestHandler {
+public class LiveWebAccessPoint extends LiveWebRequestHandler {
 	private static final Logger LOGGER = Logger.getLogger(
 			LiveWebAccessPoint.class.getName());
 	
@@ -72,6 +72,8 @@ public class LiveWebAccessPoint extends AbstractRequestHandler {
 	
 	private long maxCacheMS = 86400000;
 	
+	
+		
 	public boolean handleRequest(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse) 
 	throws ServletException, IOException {
@@ -84,7 +86,7 @@ public class LiveWebAccessPoint extends AbstractRequestHandler {
 
 		wbRequest.setLiveWebRequest(true);
 		wbRequest.setRequestUrl(urlString);
-		URL url = null;
+		
 		ArcResource r = null;
 		
 		try {
@@ -95,93 +97,28 @@ public class LiveWebAccessPoint extends AbstractRequestHandler {
 				httpResponse = new PerfWritingHttpServletResponse(httpResponse, AccessPoint.PerfStat.Total, inner.getPerfStatsHeader());
 			}
 			
-			if(!urlString.startsWith(UrlOperations.HTTP_SCHEME) &&
-				!urlString.startsWith(UrlOperations.HTTPS_SCHEME)) {
-				// Assume http
-				urlString = UrlOperations.HTTP_SCHEME + urlString;
-				//throw new ResourceNotInArchiveException(urlString);
-			}
-			Thread.currentThread().setName("Thread " + 
-					Thread.currentThread().getId() + " " + getBeanName() + 
-					" handling: " + urlString);
-
-			try {
-				url = new URL(urlString);
-			} catch(MalformedURLException e) {
-				throw new BadQueryException("Bad URL(" + urlString + ")");
-			}
-
-			CaptureSearchResult result = new CaptureSearchResult();
-			result.setOriginalUrl(urlString);
+			CaptureSearchResult result = new FastCaptureSearchResult();
 			
-			String canonUrl = urlString;
+			r = this.getLiveWebResource(result, urlString);
 			
-			if (inner.getSelfRedirectCanonicalizer() != null) {
-				try {
-					canonUrl = inner.getSelfRedirectCanonicalizer().urlStringToKey(urlString);
-				} catch (IOException io) {
-					throw new BadQueryException("Bad URL(" + urlString + ")");
-				}
-			}
-			
-			result.setUrlKey(canonUrl);
-			
-			// check admin excludes first, if configured:
-			if(adminFactory != null) {
-				ExclusionFilter f = adminFactory.get();
-				if(f == null) {
-					LOGGER.severe("Unable to get administrative exclusion filter!");
-					throw new AdministrativeAccessControlException(urlString + "is blocked.");
-				}
-				int ruling = f.filterObject(result);
-				if(ruling == ExclusionFilter.FILTER_EXCLUDE) {
-					throw new AdministrativeAccessControlException(urlString + "is blocked.");
-				}				
-			}
-			// check robots next, if configured
-			if(robotFactory != null) {
-				int ruling = robotFactory.get().filterObject(result);
-				if(ruling == ExclusionFilter.FILTER_EXCLUDE) {
-					throw new RobotAccessControlException(urlString + "is blocked by robots.txt");
-				}
-			}
-			// no robots check, or robots.txt says GO:
-			//long start = System.currentTimeMillis();
-			
-			try {
-				PerfStats.timeStart(PerfStat.LiveWeb);
-				r = (ArcResource) cache.getCachedResource(url, maxCacheMS , false);
-			} finally {
-				PerfStats.timeEnd(PerfStat.LiveWeb);
-			}
-			//long elapsed = System.currentTimeMillis() - start;
-			
-			//PerformanceLogger.noteElapsed("LiveWebRequest",elapsed,urlString);
-			ARCRecord ar = (ARCRecord) r.getArcRecord();
-			int status = ar.getStatusCode();
-			if((status == 200) || ((status >= 300) && (status < 400))) {
-				result.setCaptureTimestamp(ar.getMetaData().getDate());
-				result.setMimeType(ar.getMetaData().getMimetype());
+			if (r != null) {				
 				CaptureSearchResults results = new CaptureSearchResults();
 				results.addSearchResult(result);
 			
 				wbRequest.setReplayTimestamp(result.getCaptureTimestamp());
 					
-				inner.getReplay().getRenderer(wbRequest, result, r).renderResource(
-						httpRequest, httpResponse, wbRequest, result, r, 
-						inner.getUriConverter(), results);
-				
+				inner.getReplay().getRenderer(wbRequest, result, r).renderResource(httpRequest, httpResponse, wbRequest, result, r, 
+						inner.getUriConverter(), results);	
 			} else {
 				throw new LiveDocumentNotAvailableException(urlString);
 			}
 
 		} catch(WaybackException e) {
-			inner.writeErrorHeader(httpResponse, LIVEWEB_RUNTIME_ERROR_HEADER, e);
-			inner.getException().renderException(httpRequest, httpResponse, wbRequest,
-					e, inner.getUriConverter());
+			inner.logError(httpResponse, LIVEWEB_RUNTIME_ERROR_HEADER, e, wbRequest);
+			inner.getException().renderException(httpRequest, httpResponse, wbRequest, e, inner.getUriConverter());
 		
 		} catch(Exception e) {
-			inner.writeErrorHeader(httpResponse, LIVEWEB_RUNTIME_ERROR_HEADER, e);
+			inner.logError(httpResponse, LIVEWEB_RUNTIME_ERROR_HEADER, e, wbRequest);
 		} finally {
 			if (r != null) {
 				r.close();
@@ -189,6 +126,107 @@ public class LiveWebAccessPoint extends AbstractRequestHandler {
 		}
 		
 		return handled;
+	}
+	
+	protected ArcResource getLiveWebResource(CaptureSearchResult result, String urlString) throws WaybackException, IOException
+	{
+		URL url = null;
+		ArcResource r = null;
+
+		if (!urlString.startsWith(UrlOperations.HTTP_SCHEME) &&
+			!urlString.startsWith(UrlOperations.HTTPS_SCHEME)) {
+			// Assume http
+			urlString = UrlOperations.HTTP_SCHEME + urlString;
+			//throw new ResourceNotInArchiveException(urlString);
+		}
+		
+		Thread.currentThread().setName("Thread " + 
+				Thread.currentThread().getId() + " " + getBeanName() + 
+				" handling: " + urlString);
+
+		try {
+			url = new URL(urlString);
+		} catch(MalformedURLException e) {
+			throw new BadQueryException("Bad URL(" + urlString + ")");
+		}
+
+		result.setOriginalUrl(urlString);
+		
+		String canonUrl = urlString;
+		
+		if (inner.getSelfRedirectCanonicalizer() != null) {
+			try {
+				canonUrl = inner.getSelfRedirectCanonicalizer().urlStringToKey(urlString);
+			} catch (IOException io) {
+				throw new BadQueryException("Bad URL(" + urlString + ")");
+			}
+		}
+		
+		result.setUrlKey(canonUrl);
+		
+		// check admin excludes first, if configured:
+		if(adminFactory != null) {
+			ExclusionFilter f = adminFactory.get();
+			if(f == null) {
+				LOGGER.severe("Unable to get administrative exclusion filter!");
+				throw new AdministrativeAccessControlException(urlString + "is blocked.");
+			}
+			int ruling = f.filterObject(result);
+			if(ruling == ExclusionFilter.FILTER_EXCLUDE) {
+				throw new AdministrativeAccessControlException(urlString + "is blocked.");
+			}				
+		}
+		// check robots next, if configured
+		if(robotFactory != null) {
+			int ruling = robotFactory.get().filterObject(result);
+			if(ruling == ExclusionFilter.FILTER_EXCLUDE) {
+				throw new RobotAccessControlException(urlString + "is blocked by robots.txt");
+			}
+		}
+		// no robots check, or robots.txt says GO:
+		//long start = System.currentTimeMillis();
+		
+		try {
+			PerfStats.timeStart(PerfStat.LiveWeb);
+			r = (ArcResource) cache.getCachedResource(url, maxCacheMS , false);
+		} finally {
+			PerfStats.timeEnd(PerfStat.LiveWeb);
+		}
+		//long elapsed = System.currentTimeMillis() - start;
+		
+		//PerformanceLogger.noteElapsed("LiveWebRequest",elapsed,urlString);
+		ARCRecord ar = (ARCRecord) r.getArcRecord();
+		int status = ar.getStatusCode();
+		if ((status == 200) || ((status >= 300) && (status < 400))) {
+			result.setCaptureTimestamp(ar.getMetaData().getDate());
+			result.setMimeType(ar.getMetaData().getMimetype());
+			return r;
+		}
+		
+		return null;
+	}
+	
+	public boolean isLiveWebFound(WaybackRequest wbRequest)
+	{
+		ArcResource r = null;
+		
+		String urlString = wbRequest.getRequestUrl();
+		
+		try {
+			r = getLiveWebResource(new FastCaptureSearchResult(), urlString);
+			return (r != null);
+			
+		} catch (Exception e) {
+			return false;
+		} finally {
+			if (r != null) {
+				try {
+					r.close();
+				} catch (IOException e) {
+					
+				}
+			}
+		}
 	}
 
 	/**

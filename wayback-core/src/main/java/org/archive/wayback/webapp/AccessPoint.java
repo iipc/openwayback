@@ -36,7 +36,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.archive.format.gzip.zipnum.ZipNumBlockLoader;
 import org.archive.wayback.ExceptionRenderer;
 import org.archive.wayback.QueryRenderer;
 import org.archive.wayback.ReplayDispatcher;
@@ -141,7 +140,8 @@ implements ShutdownListener {
 	private boolean enablePerfStatsHeader = false;
 	private boolean enableWarcFileHeader = false;
 		
-	private String liveWebPrefix = null;
+	private LiveWebRedirector liveWebRedirector;
+	
 	private String staticPrefix = null;
 	private String queryPrefix = null;
 	private String replayPrefix = null;
@@ -314,37 +314,36 @@ implements ShutdownListener {
 			handled = true;
 
 		} catch(WaybackException e) {
-			if (wbRequest == null) {
-				writeErrorHeader(httpResponse, errorMsgHeader, e);				
-			} else if(wbRequest.isReplayRequest() 
-				&& (getLiveWebPrefix() != null) 
-				&& (getLiveWebPrefix().length() > 0)) {
-				
-				writeErrorHeader(httpResponse, errorMsgHeader, e);
-
-				String liveUrl = 
-					getLiveWebPrefix() + wbRequest.getRequestUrl();
-						httpResponse.sendRedirect(liveUrl);
-			} else {
-				logNotInArchive(e,wbRequest);
-				writeErrorHeader(httpResponse, errorMsgHeader, e);				
-				getException().renderException(httpRequest, httpResponse, 
-						wbRequest, e, getUriConverter());
+			logError(httpResponse, errorMsgHeader, e, wbRequest);
+			
+			boolean liveWebRedirected = false;
+			
+			if (getLiveWebRedirector() != null) {
+				liveWebRedirected = getLiveWebRedirector().handleRedirect(e, wbRequest, httpResponse);
 			}
+			
+			// If not liveweb redirected, then renderCurrent exception
+			if (!liveWebRedirected) {
+				getException().renderException(httpRequest, httpResponse, wbRequest, e, getUriConverter());
+			}
+			
+			handled = true;
+			
 		} catch (Exception other) {
-			writeErrorHeader(httpResponse, errorMsgHeader, other);
-		} finally {			
-			//Slightly hacky, but ensures that all block loaders are closed
-			ZipNumBlockLoader.closeAllReaders();
+			logError(httpResponse, errorMsgHeader, other, wbRequest);
 		}
 		
 		return handled;
 	}
 	
-	public void writeErrorHeader(HttpServletResponse httpResponse, String header, Exception e)
+	public void logError(HttpServletResponse httpResponse, String header, Exception e, WaybackRequest request)
 	{
 		if (LOGGER.isLoggable(Level.INFO)) {
-			LOGGER.log(Level.INFO, "Runtime Error", e);
+			if (e instanceof ResourceNotInArchiveException) {
+				this.logNotInArchive((ResourceNotInArchiveException)e, request);
+			} else {
+				LOGGER.log(Level.INFO, "Runtime Error", e);
+			}
 		}
 		
 		if (!this.isEnableErrorMsgHeader()) {
@@ -374,17 +373,14 @@ implements ShutdownListener {
 		httpResponse.setHeader(header, message);
 	}
 	
-	private void logNotInArchive(WaybackException e, WaybackRequest r) {
+	private void logNotInArchive(ResourceNotInArchiveException e, WaybackRequest r) {
 		// TODO: move this into ResourceNotInArchiveException constructor
-		if(e instanceof ResourceNotInArchiveException) {
-			String url = r.getRequestUrl();
-			StringBuilder sb = new StringBuilder(100);
-			sb.append("NotInArchive\t");
-			sb.append(getBeanName()).append("\t");
-			sb.append(url);
-			
-			LOGGER.info(sb.toString());
-		}
+		String url = r.getRequestUrl();
+		StringBuilder sb = new StringBuilder(100);
+		sb.append("NotInArchive\t");
+		sb.append(getBeanName()).append("\t");
+		sb.append(url);
+		LOGGER.info(sb.toString());
 	}
 
 	protected void checkAccessPointAware(Object...os) {
@@ -1157,21 +1153,37 @@ implements ShutdownListener {
 	public void setServeStatic(boolean serveStatic) {
 		this.serveStatic = serveStatic;
 	}
+	
+	
 
 	/**
-	 * @return the liveWebPrefix String to use, or null, if this AccessPoint 
-	 * does not use the Live Web to fill in documents missing from the archive
+	 * @return the livewebRedirector which determines if custom loading or handling
+	 * is done for resources that are not successfully loaded, 
 	 */
-	public String getLiveWebPrefix() {
-		return liveWebPrefix;
+	public LiveWebRedirector getLiveWebRedirector() {
+		return liveWebRedirector;
 	}
 
 	/**
 	 * @param liveWebPrefix the String URL prefix to use to attempt to retrieve
 	 * documents missing from the collection from the live web, on demand.
 	 */
+	public void setLiveWebRedirector(LiveWebRedirector liveWebRedirector) {
+		this.liveWebRedirector = liveWebRedirector;
+	}
+	
+	// Set standard liveweb redirector
 	public void setLiveWebPrefix(String liveWebPrefix) {
-		this.liveWebPrefix = liveWebPrefix;
+		this.liveWebRedirector = new LiveWebRedirector(liveWebPrefix);
+	}
+	
+	public String getLiveWebPrefix()
+	{
+		if (this.liveWebRedirector == null) {
+			return null;
+		}
+		
+		return this.liveWebRedirector.getLiveWebPrefix();
 	}
 
 	/**
