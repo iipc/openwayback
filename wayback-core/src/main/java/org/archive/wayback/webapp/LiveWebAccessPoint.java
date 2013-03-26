@@ -97,6 +97,10 @@ public class LiveWebAccessPoint extends LiveWebRequestHandler {
 				httpResponse = new PerfWritingHttpServletResponse(httpResponse, AccessPoint.PerfStat.Total, inner.getPerfStatsHeader());
 			}
 			
+			Thread.currentThread().setName("Thread " + 
+					Thread.currentThread().getId() + " " + getBeanName() + 
+					" handling: " + urlString);
+			
 			CaptureSearchResult result = new FastCaptureSearchResult();
 			
 			r = this.getLiveWebResource(result, urlString);
@@ -135,15 +139,16 @@ public class LiveWebAccessPoint extends LiveWebRequestHandler {
 
 		if (!urlString.startsWith(UrlOperations.HTTP_SCHEME) &&
 			!urlString.startsWith(UrlOperations.HTTPS_SCHEME)) {
+			
+			// Remove accidental calendar page requests
+			if (urlString.startsWith("*/")) {
+				urlString = urlString.substring(2);
+			}
+			
 			// Assume http
 			urlString = UrlOperations.HTTP_SCHEME + urlString;
-			//throw new ResourceNotInArchiveException(urlString);
 		}
 		
-		Thread.currentThread().setName("Thread " + 
-				Thread.currentThread().getId() + " " + getBeanName() + 
-				" handling: " + urlString);
-
 		try {
 			url = new URL(urlString);
 		} catch(MalformedURLException e) {
@@ -192,9 +197,7 @@ public class LiveWebAccessPoint extends LiveWebRequestHandler {
 		} finally {
 			PerfStats.timeEnd(PerfStat.LiveWeb);
 		}
-		//long elapsed = System.currentTimeMillis() - start;
-		
-		//PerformanceLogger.noteElapsed("LiveWebRequest",elapsed,urlString);
+
 		ARCRecord ar = (ARCRecord) r.getArcRecord();
 		int status = ar.getStatusCode();
 		if ((status == 200) || ((status >= 300) && (status < 400))) {
@@ -206,7 +209,8 @@ public class LiveWebAccessPoint extends LiveWebRequestHandler {
 		return null;
 	}
 	
-	public boolean isLiveWebFound(WaybackRequest wbRequest)
+	@Override
+	public boolean isLiveWebFound(HttpServletRequest request, WaybackRequest wbRequest)
 	{
 		ArcResource r = null;
 		

@@ -22,6 +22,7 @@ package org.archive.wayback.core;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.commons.httpclient.ChunkedInputStream;
@@ -64,6 +65,29 @@ public abstract class Resource extends InputStream {
 	public void parseHeaders() throws IOException
 	{
 		//Implemented in warc/arc reader
+	}
+	
+	public String getHeader(String headerName)
+	{
+		Map<String,String> httpHeaders = getHttpHeaders();
+		
+		if (httpHeaders == null) {
+			return null;
+		}
+		
+		Iterator<String> keys = httpHeaders.keySet().iterator();
+
+		String headerUp = headerName.toUpperCase();
+		
+		while (keys.hasNext()) {
+			String key = keys.next();
+			
+			if (key.toUpperCase().equals(headerUp)) {
+				return httpHeaders.get(key);
+			}
+		}
+		
+		return null;
 	}
 
 	private void validate() throws IOException {

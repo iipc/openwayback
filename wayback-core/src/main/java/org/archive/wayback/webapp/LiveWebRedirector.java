@@ -3,6 +3,7 @@ package org.archive.wayback.webapp;
 import java.io.IOException;
 import java.util.Properties;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.archive.wayback.core.WaybackRequest;
@@ -53,7 +54,7 @@ public class LiveWebRedirector {
 	 * @param e
 	 * @throws IOException 
 	 */
-	public boolean handleRedirect(WaybackException e, WaybackRequest wbRequest, HttpServletResponse httpResponse) throws IOException
+	public boolean handleRedirect(WaybackException e, WaybackRequest wbRequest, HttpServletRequest httpRequest, HttpServletResponse httpResponse) throws IOException
 	{
 		if (statusLiveWebPolicy == null) {
 			return false;
@@ -86,7 +87,7 @@ public class LiveWebRedirector {
 			}
 			
 			// Redirect only if found by liveweb handler
-			if (!liveWebHandler.isLiveWebFound(wbRequest)) {
+			if (!liveWebHandler.isLiveWebFound(httpRequest, wbRequest)) {
 				return false;
 			}
 			break;

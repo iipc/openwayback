@@ -14,9 +14,9 @@ public class FastCaptureSearchResult extends CaptureSearchResult {
 	protected String mimeType;
 	protected String httpCode;
 	protected String digest;
-	protected String redirectUrl = EMPTY_VALUE;
+	protected String redirectUrl;
 	protected String file;
-	protected String robotFlags = EMPTY_VALUE;
+	protected String robotFlags;
 	protected String oraclePolicy;
 	
 	protected CaptureSearchResult revisitPayload = null;
@@ -139,6 +139,11 @@ public class FastCaptureSearchResult extends CaptureSearchResult {
 	public void flagDuplicateDigest(CaptureSearchResult payload) {
 		duplicateDigest = true;
 		revisitPayload = payload;
+	}
+	
+	public CaptureSearchResult getDuplicatePayload()
+	{
+		return revisitPayload;
 	}
 
 	@Override

@@ -49,7 +49,11 @@ public class MimeTypeSelector extends BaseReplayRendererSelector {
 		String mime = result.getMimeType();
 		
 		if ((mime == null) || mime.equals(AccessPoint.REVISIT_STR)) {
-			mime = payloadResource.getHttpHeaders().get("Content-Type");
+			if (result.getDuplicatePayload() != null) {
+				mime = result.getDuplicatePayload().getMimeType();
+			} else {
+				mime = payloadResource.getHeader("Content-Type");
+			}
 		}
 		
 		if (mime == null) {

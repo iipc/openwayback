@@ -314,12 +314,17 @@ implements ShutdownListener {
 			handled = true;
 
 		} catch(WaybackException e) {
+			
+			if (wbRequest == null) {
+				wbRequest = new WaybackRequest();
+			}
+			
 			logError(httpResponse, errorMsgHeader, e, wbRequest);
 			
 			boolean liveWebRedirected = false;
 			
 			if (getLiveWebRedirector() != null) {
-				liveWebRedirected = getLiveWebRedirector().handleRedirect(e, wbRequest, httpResponse);
+				liveWebRedirected = getLiveWebRedirector().handleRedirect(e, wbRequest, httpRequest, httpResponse);
 			}
 			
 			// If not liveweb redirected, then renderCurrent exception
@@ -457,14 +462,9 @@ implements ShutdownListener {
 		// Only applies to redirects
 		if ((status < 300) || (status >= 400)) {
 			return false;
-		}
+		}		
 		
-		
-		String location = resource.getHttpHeaders().get("Location");
-		
-		if (location == null) {
-			location = resource.getHttpHeaders().get("location");
-		}
+		String location = resource.getHeader("Location");
 		
 		if (location == null) {
 			return false;

@@ -29,7 +29,6 @@ import org.archive.wayback.resourceindex.filterfactory.ExclusionCaptureFilterGro
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.surt.SURTTokenizer;
 import org.archive.wayback.util.ObjectFilter;
-import org.archive.wayback.util.url.AggressiveUrlCanonicalizer;
 
 /**
  *
@@ -80,7 +79,7 @@ public class StaticMapExclusionFilter extends ExclusionFilter {
 				}
 			}
 		} catch (URIException e) {
-			e.printStackTrace();
+			LOGGER.warning(e.toString());
 			return true;
 		}
 		return false;

@@ -320,6 +320,12 @@ public class CaptureSearchResult extends SearchResult {
 		}
 	}
 	
+	// For use in FastCaptureSearchResult, which stores the payload CaptureSearchResult directly	
+	public CaptureSearchResult getDuplicatePayload()
+	{
+		return null;
+	}
+	
 	public String getDuplicatePayloadFile() {
 		return get(CAPTURE_DUPLICATE_PAYLOAD_FILE);
 	}
