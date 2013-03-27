@@ -294,18 +294,17 @@
         <version>${project.version}</version>
       </dependency>
       
-      
-      
       <dependency>
-        <groupId>org.apache.geronimo.specs</groupId>
-        <artifactId>geronimo-servlet_2.5_spec</artifactId>
-        <version>1.2</version>
+        <groupId>javax.servlet</groupId>
+        <artifactId>servlet-api</artifactId>
+        <version>2.5</version>
         <scope>provided</scope>
       </dependency>
+           
       <dependency>
         <groupId>org.archive.heritrix</groupId>
         <artifactId>heritrix-commons</artifactId>
-        <version>3.1.0-SNAPSHOT</version>
+        <version>3.1.1</version>
       </dependency>
       <dependency>
         <groupId>org.archive</groupId>
