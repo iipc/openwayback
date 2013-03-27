@@ -33,13 +33,7 @@
       <groupId>org.archive.heritrix</groupId>
       <artifactId>heritrix-commons</artifactId>
       <version>3.1.1</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.archive.overlays</groupId>
-          <artifactId>archive-overlay-commons-httpclient</artifactId>
-        </exclusion>      
-      </exclusions>
-    </dependency>
+   </dependency>
     <dependency>
       <groupId>org.archive</groupId>
       <artifactId>ia-web-commons</artifactId>

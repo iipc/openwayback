@@ -2,7 +2,7 @@ package org.archive.wayback.resourceindex;
 
 import java.io.IOException;
 
-import org.archive.format.gzip.zipnum.TimestampCustomDedupIterator;
+import org.archive.format.gzip.zipnum.TimestampBestPickDedupIterator;
 import org.archive.format.gzip.zipnum.ZipNumCluster;
 import org.archive.format.gzip.zipnum.ZipNumParams;
 import org.archive.util.iterator.CloseableIterator;
@@ -61,7 +61,7 @@ public class ZipNumClusterSearchResultSource implements SearchResultSource, Adap
 			}
 			
 			if (timestampDedupLength > 0) {
-				cdxIter = new TimestampCustomDedupIterator(cdxIter, timestampDedupLength);
+				cdxIter = new TimestampBestPickDedupIterator(cdxIter, timestampDedupLength);
 			}
 			
 			return new AdaptedIterator<String,CaptureSearchResult>(cdxIter, this);

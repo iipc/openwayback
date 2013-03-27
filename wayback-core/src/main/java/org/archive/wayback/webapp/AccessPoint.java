@@ -36,6 +36,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.archive.format.gzip.zipnum.ZipNumBlockLoader;
 import org.archive.wayback.ExceptionRenderer;
 import org.archive.wayback.QueryRenderer;
 import org.archive.wayback.ReplayDispatcher;
@@ -336,7 +337,10 @@ implements ShutdownListener {
 			
 		} catch (Exception other) {
 			logError(httpResponse, errorMsgHeader, other, wbRequest);
-		}
+		 } finally {      
+	        //Slightly hacky, but ensures that all block loaders are closed
+	        ZipNumBlockLoader.closeAllReaders();
+	      }
 		
 		return handled;
 	}
