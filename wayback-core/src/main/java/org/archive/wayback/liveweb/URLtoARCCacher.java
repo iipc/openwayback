@@ -37,7 +37,6 @@ import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpConnection;
 import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.HttpMethodRetryHandler;
 import org.apache.commons.httpclient.HttpState;
 import org.apache.commons.httpclient.SimpleHttpConnectionManager;
@@ -50,7 +49,7 @@ import org.archive.httpclient.HttpRecorderGetMethod;
 import org.archive.io.RecordingInputStream;
 import org.archive.io.ReplayInputStream;
 import org.archive.io.arc.ARCWriter;
-import org.archive.net.LaxURI;
+import org.archive.url.LaxURI;
 import org.archive.util.Recorder;
 import org.archive.wayback.util.ByteOp;
 

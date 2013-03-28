@@ -24,7 +24,6 @@ import java.util.Hashtable;
 import java.util.Map;
 
 import org.apache.commons.httpclient.Header;
-import org.apache.commons.httpclient.HttpParser;
 import org.apache.commons.httpclient.StatusLine;
 import org.apache.commons.httpclient.util.EncodingUtil;
 import org.archive.io.ArchiveReader;
@@ -32,6 +31,7 @@ import org.archive.io.ArchiveRecordHeader;
 import org.archive.io.RecoverableIOException;
 import org.archive.io.arc.ARCConstants;
 import org.archive.io.warc.WARCRecord;
+import org.archive.util.LaxHttpParser;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.replay.HttpHeaderOperation;
 
@@ -71,7 +71,7 @@ public class WarcResource extends Resource {
 			return;
 		}
 		
-		byte [] statusBytes = HttpParser.readRawLine(rec);
+		byte [] statusBytes = LaxHttpParser.readRawLine(rec);
 		int eolCharCount = getEolCharsCount(statusBytes);
 		if (eolCharCount <= 0) {
 			throw new RecoverableIOException("Failed to read http status where one " +
@@ -87,7 +87,7 @@ public class WarcResource extends Resource {
 
 		this.status = statusLine.getStatusCode();
 
-		Header[] tmpHeaders = HttpParser.parseHeaders(rec,
+		Header[] tmpHeaders = LaxHttpParser.parseHeaders(rec,
 				ARCConstants.DEFAULT_ENCODING);
 		headers = new Hashtable<String,String>();
 		this.setInputStream(rec);

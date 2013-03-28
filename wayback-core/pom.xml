@@ -31,6 +31,12 @@
     <dependency>
       <groupId>org.archive.heritrix</groupId>
       <artifactId>heritrix-commons</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.archive.overlays</groupId>
+          <artifactId>archive-overlay-commons-httpclient</artifactId>
+        </exclusion>      
+      </exclusions>
    </dependency>
     <dependency>
       <groupId>org.archive</groupId>

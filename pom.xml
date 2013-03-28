@@ -280,16 +280,6 @@
       </dependency>
       <dependency>
         <groupId>${project.groupId}</groupId>
-        <artifactId>wayback-hadoop-java</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>${project.groupId}</groupId>
-        <artifactId>wayback-hadoop</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>${project.groupId}</groupId>
         <artifactId>wayback-webapp</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -304,24 +294,17 @@
       <dependency>
         <groupId>org.archive.heritrix</groupId>
         <artifactId>heritrix-commons</artifactId>
-        <version>3.1.1</version>
+        <version>3.1.2-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>org.archive</groupId>
         <artifactId>ia-web-commons</artifactId>
         <version>1.0-SNAPSHOT</version>
       </dependency>
-<!--
-      <dependency>
-        <groupId>org.archive.heritrix</groupId>
-        <artifactId>heritrix-modules</artifactId>
-        <version>3.1.0-SNAPSHOT</version>
-      </dependency>
--->
       <dependency>
         <groupId>org.archive.access-control</groupId>
         <artifactId>access-control</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
+        <version>0.1.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>org.mozilla</groupId>

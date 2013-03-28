@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.util.logging.Logger;
 
 import org.apache.commons.httpclient.Header;
-import org.apache.commons.httpclient.HttpParser;
 import org.apache.commons.httpclient.StatusLine;
 import org.apache.commons.httpclient.URIException;
 import org.apache.commons.httpclient.util.EncodingUtil;
@@ -33,6 +32,7 @@ import org.archive.io.RecoverableIOException;
 import org.archive.io.arc.ARCConstants;
 import org.archive.io.warc.WARCConstants;
 import org.archive.io.warc.WARCRecord;
+import org.archive.util.LaxHttpParser;
 import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.resourceindex.filters.WARCRevisitAnnotationFilter;
@@ -97,7 +97,7 @@ implements Adapter<WARCRecord,CaptureSearchResult>{
 
 		CaptureSearchResult result = genericResult(rec);
 
-		if(type.equals(WARCConstants.RESPONSE)) {
+		if(type.equals(WARCConstants.WARCRecordType.RESPONSE)) {
 			String mime = annotater.transformHTTPMime(header.getMimetype());
 			if(mime != null && mime.equals("text/dns")) {
 				// close to complete reading, then the digest is legit
@@ -108,11 +108,11 @@ implements Adapter<WARCRecord,CaptureSearchResult>{
 			} else {
 				result = adaptWARCHTTPResponse(result,rec);
 			}
-		} else if(type.equals(WARCConstants.REVISIT)) {
+		} else if(type.equals(WARCConstants.WARCRecordType.REVISIT)) {
 			// also set the mime type:
 			result.setMimeType("warc/revisit");
 
-		} else if(type.equals(WARCConstants.REQUEST)) {
+		} else if(type.equals(WARCConstants.WARCRecordType.REQUEST)) {
 			
 			if(processAll) {
 				// also set the mime type:
@@ -120,7 +120,7 @@ implements Adapter<WARCRecord,CaptureSearchResult>{
 			} else {
 				result = null;
 			}
-		} else if(type.equals(WARCConstants.METADATA)) {
+		} else if(type.equals(WARCConstants.WARCRecordType.METADATA)) {
 
 			if(processAll) {
 				// also set the mime type:
@@ -128,7 +128,7 @@ implements Adapter<WARCRecord,CaptureSearchResult>{
 			} else {
 				result = null;
 			}
-		} else if(type.equals(WARCConstants.WARCINFO)) {
+		} else if(type.equals(WARCConstants.WARCRecordType.WARCINFO)) {
 
 			result.setMimeType(WARC_FILEDESC_VERSION);
 
@@ -169,7 +169,7 @@ implements Adapter<WARCRecord,CaptureSearchResult>{
 		String origUrl = header.getUrl();
 		if(origUrl == null) {
 			String type = header.getHeaderValue(WARCConstants.HEADER_KEY_TYPE).toString();
-			if(type.equals(WARCConstants.WARCINFO)) {
+			if(type.equals(WARCConstants.WARCRecordType.WARCINFO)) {
 				String filename = header.getHeaderValue(
 						WARCConstants.HEADER_KEY_FILENAME).toString();
 				result.setOriginalUrl("filedesc:"+filename);
@@ -268,7 +268,7 @@ implements Adapter<WARCRecord,CaptureSearchResult>{
 		// need to parse the documents HTTP message and headers here: WARCReader
 		// does not implement this... yet..
 		
-        byte [] statusBytes = HttpParser.readRawLine(rec);
+        byte [] statusBytes = LaxHttpParser.readRawLine(rec);
         int eolCharCount = getEolCharsCount(statusBytes);
         if (eolCharCount <= 0) {
             throw new RecoverableIOException("Failed to read http status where one " +
@@ -284,7 +284,7 @@ implements Adapter<WARCRecord,CaptureSearchResult>{
         StatusLine status = new StatusLine(statusLine);
 		result.setHttpCode(String.valueOf(status.getStatusCode()));
         
-		Header[] headers = HttpParser.parseHeaders(rec,
+		Header[] headers = LaxHttpParser.parseHeaders(rec,
                 ARCConstants.DEFAULT_ENCODING);
 
 		
