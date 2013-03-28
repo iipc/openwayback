@@ -34,6 +34,9 @@ import org.archive.wayback.util.ByteOp;
 
 public class CDXFormatIndex extends CDXIndex {
 	public final static String CDX_HEADER_MAGIC = " CDX N b a m s k r M V g";
+	
+	// New 11-Field Format, part of new canon
+	public final static String CDX_HEADER_MAGIC_NEW = " CDX N b a m s k r M S V g";
 
 	private CDXFormat format = null;
 	private long lastMod = -1;

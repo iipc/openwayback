@@ -37,6 +37,7 @@ import org.archive.wayback.resourceindex.updater.IndexClient;
 import org.archive.wayback.resourcestore.locationdb.ResourceFileLocationDB;
 import org.archive.wayback.util.url.AggressiveUrlCanonicalizer;
 import org.archive.wayback.util.url.IdentityUrlCanonicalizer;
+import org.archive.wayback.util.url.KeyMakerUrlCanonicalizer;
 
 /**
  * Simple worker, which gets tasks from an IndexQueue, in the case, the name
@@ -167,6 +168,12 @@ public class IndexWorker implements Shutdownable {
 			if(args[idx].equals("-identity")) {
 				canonicalizer = new IdentityUrlCanonicalizer();
 				isIdentity = true;
+			} else if(args[idx].equals("-new-canon-classic")) {
+				canonicalizer = new KeyMakerUrlCanonicalizer(false);
+				cdxSpec = CDXFormatIndex.CDX_HEADER_MAGIC_NEW;
+			} else if(args[idx].equals("-new-canon-surt")) {
+				canonicalizer = new KeyMakerUrlCanonicalizer(true);
+				cdxSpec = CDXFormatIndex.CDX_HEADER_MAGIC_NEW;				
 			} else if(args[idx].equals("-format")) {
 				idx++;
 				if(idx >= args.length) {
