@@ -65,7 +65,7 @@ import org.springframework.beans.BeansException;
  * @version $Date$, $Revision$
  */
 public class UIResults {
-	private final static String FERRET_NAME = "ui-results";
+	public final static String FERRET_NAME = "ui-results";
 	// usually present
 	private WaybackRequest wbRequest;
 	// usually present	

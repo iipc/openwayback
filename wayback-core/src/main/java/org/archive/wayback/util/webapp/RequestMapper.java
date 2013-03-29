@@ -31,6 +31,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.archive.wayback.core.UIResults;
+
 /**
  * This class maintains a mapping of RequestHandlers and ShutDownListeners, to
  * allow (somewhat) efficient mapping and delegation of incoming requests to
@@ -167,6 +169,12 @@ public class RequestMapper {
 	public boolean handleRequest(HttpServletRequest request,
 			HttpServletResponse response) throws IOException, ServletException {
 		boolean handled = false;
+		
+		// Internally UIResults.forward(), don't handle here
+		if (request.getAttribute(UIResults.FERRET_NAME) != null) {
+			return false;
+		}
+		
 		if(globalPreRequestHandler != null) {
 			handled = 
 				globalPreRequestHandler.handleRequest(request, response);
