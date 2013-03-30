@@ -27,10 +27,11 @@ import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.StatusLine;
 import org.apache.commons.httpclient.URIException;
 import org.apache.commons.httpclient.util.EncodingUtil;
+import org.archive.format.warc.WARCConstants;
+import org.archive.format.warc.WARCConstants.WARCRecordType;
 import org.archive.io.ArchiveRecordHeader;
 import org.archive.io.RecoverableIOException;
 import org.archive.io.arc.ARCConstants;
-import org.archive.io.warc.WARCConstants;
 import org.archive.io.warc.WARCRecord;
 import org.archive.util.LaxHttpParser;
 import org.archive.wayback.UrlCanonicalizer;
@@ -89,15 +90,19 @@ implements Adapter<WARCRecord,CaptureSearchResult>{
 		
 		ArchiveRecordHeader header = rec.getHeader();
 
-		String type = header.getHeaderValue(WARCConstants.HEADER_KEY_TYPE).toString();
-//		if(type.equals(WARCConstants.WARCINFO)) {
-//			LOGGER.info("Skipping record type : " + type);
-//			return null;
-//		}
+		String typeStr = header.getHeaderValue(WARCConstants.HEADER_KEY_TYPE).toString();
+		WARCRecordType type;
+		try {
+			type = WARCRecordType.valueOf(typeStr);
+		} catch (IllegalArgumentException e) {
+			LOGGER.warning("Skipping unrecognized record type : " + typeStr);
+			return null;
+		}
 
 		CaptureSearchResult result = genericResult(rec);
 
-		if(type.equals(WARCConstants.WARCRecordType.RESPONSE)) {
+		switch (type) {
+		case response:
 			String mime = annotater.transformHTTPMime(header.getMimetype());
 			if(mime != null && mime.equals("text/dns")) {
 				// close to complete reading, then the digest is legit
@@ -108,34 +113,41 @@ implements Adapter<WARCRecord,CaptureSearchResult>{
 			} else {
 				result = adaptWARCHTTPResponse(result,rec);
 			}
-		} else if(type.equals(WARCConstants.WARCRecordType.REVISIT)) {
+			break;
+
+			
+		case revisit:
 			// also set the mime type:
 			result.setMimeType("warc/revisit");
-
-		} else if(type.equals(WARCConstants.WARCRecordType.REQUEST)) {
+			break;
 			
+		case request:
 			if(processAll) {
 				// also set the mime type:
 				result.setMimeType("warc/request");
 			} else {
 				result = null;
 			}
-		} else if(type.equals(WARCConstants.WARCRecordType.METADATA)) {
-
+			break;
+			
+		case metadata:
 			if(processAll) {
 				// also set the mime type:
 				result.setMimeType("warc/metadata");
 			} else {
 				result = null;
 			}
-		} else if(type.equals(WARCConstants.WARCRecordType.WARCINFO)) {
-
+			break;
+			
+		case warcinfo:
 			result.setMimeType(WARC_FILEDESC_VERSION);
-
-		} else {
+			break;
+			
+		default:
 			LOGGER.info("Skipping record type : " + type);
+			break;
 		}
-
+		
 		return result;
 	}
 
@@ -169,7 +181,7 @@ implements Adapter<WARCRecord,CaptureSearchResult>{
 		String origUrl = header.getUrl();
 		if(origUrl == null) {
 			String type = header.getHeaderValue(WARCConstants.HEADER_KEY_TYPE).toString();
-			if(type.equals(WARCConstants.WARCRecordType.WARCINFO)) {
+			if(type.equals(WARCConstants.WARCRecordType.warcinfo)) {
 				String filename = header.getHeaderValue(
 						WARCConstants.HEADER_KEY_FILENAME).toString();
 				result.setOriginalUrl("filedesc:"+filename);
