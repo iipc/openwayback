@@ -210,7 +210,16 @@ public class LiveWebAccessPoint extends LiveWebRequestHandler {
 	}
 	
 	@Override
-	public boolean isLiveWebFound(HttpServletRequest request, WaybackRequest wbRequest)
+	public String getLiveWebRedirect(HttpServletRequest request, WaybackRequest wbRequest)
+	{
+		if (isLiveWebFound(request, wbRequest)) {
+			return LiveWebRedirector.DEFAULT;
+		}
+		
+		return null;
+	}
+	
+	private boolean isLiveWebFound(HttpServletRequest request, WaybackRequest wbRequest)
 	{
 		ArcResource r = null;
 		

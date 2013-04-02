@@ -73,6 +73,8 @@ public class LiveWebRedirector {
 		if (stateName != null) {
 			state = RedirectState.valueOf(stateName);
 		}
+		
+		String redirUrl = null;
 				
 		switch (state) {
 		case NEVER:
@@ -86,19 +88,25 @@ public class LiveWebRedirector {
 				return false;
 			}
 			
-			// Redirect only if found by liveweb handler
-			if (!liveWebHandler.isLiveWebFound(httpRequest, wbRequest)) {
-				return false;
-			}
+			redirUrl = liveWebHandler.getLiveWebRedirect(httpRequest, wbRequest);
 			break;
 			
 		default:
 			return false;
 		}
 		
-		// Redirect to LiveWeb!		
-		String liveUrl = getLiveWebPrefix() + wbRequest.getRequestUrl();
-		httpResponse.sendRedirect(liveUrl);
+		// Don't redirect if redirUrl null
+		if (redirUrl == null) {
+			return false;
+		}
+		
+		// If set to DEFAULT then compute the standard redir url
+		if (redirUrl.equals(DEFAULT)) {
+			redirUrl = getLiveWebPrefix() + wbRequest.getRequestUrl();
+		}
+		
+		httpResponse.sendRedirect(redirUrl);
+		
 		return true;
 	}
 

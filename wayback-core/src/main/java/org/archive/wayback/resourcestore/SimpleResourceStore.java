@@ -66,7 +66,7 @@ public class SimpleResourceStore implements ResourceStore {
         // If includeFilter is provided, filter out paths that don't contain the include filter
         if (includeFilter != null) {
         	if (!fileName.contains(includeFilter)) {
-        		throw new ResourceNotAvailableException("Resource " + fileName + " not found in this store", fileName, HttpServletResponse.SC_NOT_FOUND);
+        		throw new ResourceNotAvailableException("Resource " + fileName + " not found in this store", fileName);
         	}
         }		
 
