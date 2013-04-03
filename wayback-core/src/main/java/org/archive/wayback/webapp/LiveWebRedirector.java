@@ -11,10 +11,16 @@ import org.archive.wayback.exception.WaybackException;
 
 public class LiveWebRedirector {
 	
-	enum RedirectState {
-		NEVER,
-		ALWAYS,
-		IF_FOUND,
+	enum RedirectType {
+		NONE,
+		ALL,
+		EMBEDS_ONLY,
+	};
+	
+	enum LiveWebState {
+		NOT_FOUND,
+		FOUND,
+		REDIRECTED
 	};
 	
 	public final static String DEFAULT = "default";
@@ -34,16 +40,15 @@ public class LiveWebRedirector {
 		
 		// Default to always redirect for 404 error, but not others
 		Properties props = new Properties();
-		props.setProperty("404", LiveWebRedirector.RedirectState.ALWAYS.name());
+		props.setProperty("404", LiveWebRedirector.RedirectType.ALL.name());
 		this.setStatusLiveWebPolicy(props);
 	}
 
 	/**
-	 * Check the statusLivewebPolicy to see if, given the WaybackExceptions
-	 * status code, should ALWAYS redirect, NEVER redirect, or CHECK_IF_SUCCESS
-	 * first before redirecting to liveweb.
+	 * Check the statusLiveWebType to see if, given the WaybackExceptions
+	 * status code, should redirect ALL, NONE or EMBEDS_ONLY
 	 * 
-	 * The IF_FOUND will GET liveweb to see if it returns a 200 request,
+	 * Before redirecting, will always check with liveweb to see if it returns a 200 request,
 	 * then redirect to same request, resulting in 2 checks to liveweb
 	 * 
 	 * "default" property is checked if no property is found for current access code
@@ -54,10 +59,15 @@ public class LiveWebRedirector {
 	 * @param e
 	 * @throws IOException 
 	 */
-	public boolean handleRedirect(WaybackException e, WaybackRequest wbRequest, HttpServletRequest httpRequest, HttpServletResponse httpResponse) throws IOException
+	public LiveWebState handleRedirect(WaybackException e, WaybackRequest wbRequest, HttpServletRequest httpRequest, HttpServletResponse httpResponse) throws IOException
 	{
 		if (statusLiveWebPolicy == null) {
-			return false;
+			return LiveWebState.NOT_FOUND;
+		}
+		
+		// Don't do any redirect for identity context or if no handler is set
+		if ((wbRequest == null) || wbRequest.isIdentityContext() || (liveWebHandler == null)) {
+			return LiveWebState.NOT_FOUND;
 		}
 		
 		int status = e.getStatus();
@@ -68,46 +78,39 @@ public class LiveWebRedirector {
 			stateName = statusLiveWebPolicy.getProperty(DEFAULT);
 		}
 		
-		RedirectState state = RedirectState.NEVER;
+		RedirectType state = RedirectType.ALL;
 		
 		if (stateName != null) {
-			state = RedirectState.valueOf(stateName);
+			state = RedirectType.valueOf(stateName);
 		}
 		
 		String redirUrl = null;
-				
-		switch (state) {
-		case NEVER:
-			return false;
-			
-		case ALWAYS:
-			break;
-			
-		case IF_FOUND:
-			if (liveWebHandler == null) {
-				return false;
-			}
-			
-			redirUrl = liveWebHandler.getLiveWebRedirect(httpRequest, wbRequest);
-			break;
-			
-		default:
-			return false;
+		
+		if (state == RedirectType.NONE) {
+			return LiveWebState.NOT_FOUND;
 		}
+		
+		redirUrl = liveWebHandler.getLiveWebRedirect(httpRequest, wbRequest);
 		
 		// Don't redirect if redirUrl null
 		if (redirUrl == null) {
-			return false;
+			return LiveWebState.NOT_FOUND;
 		}
 		
+		// If embeds_only and not embed return if it was found		
+		if ((state == RedirectType.EMBEDS_ONLY) && (!wbRequest.isAnyEmbeddedContext())) {
+			return LiveWebState.FOUND;
+		}
+		
+		// Now try to do a redirect
+				
 		// If set to DEFAULT then compute the standard redir url
 		if (redirUrl.equals(DEFAULT)) {
 			redirUrl = getLiveWebPrefix() + wbRequest.getRequestUrl();
 		}
 		
 		httpResponse.sendRedirect(redirUrl);
-		
-		return true;
+		return LiveWebState.REDIRECTED;
 	}
 
 	public String getLiveWebPrefix() {

@@ -74,6 +74,7 @@ import org.archive.wayback.util.operator.BooleanOperator;
 import org.archive.wayback.util.url.UrlOperations;
 import org.archive.wayback.util.webapp.AbstractRequestHandler;
 import org.archive.wayback.util.webapp.ShutdownListener;
+import org.archive.wayback.webapp.LiveWebRedirector.LiveWebState;
 
 /**
  * Retains all information about a particular Wayback configuration
@@ -116,7 +117,7 @@ implements ShutdownListener {
 			AccessPoint.class.getName());
 
 	private boolean exactHostMatch = false;
-	private boolean exactSchemeMatch = true;
+	private boolean exactSchemeMatch = false;
 	private boolean useAnchorWindow = false;
 	private boolean useServerName = false;
 	private boolean serveStatic = true;
@@ -322,14 +323,15 @@ implements ShutdownListener {
 			
 			logError(httpResponse, errorMsgHeader, e, wbRequest);
 			
-			boolean liveWebRedirected = false;
+			LiveWebState liveWebState = LiveWebState.NOT_FOUND;
 			
 			if (getLiveWebRedirector() != null) {
-				liveWebRedirected = getLiveWebRedirector().handleRedirect(e, wbRequest, httpRequest, httpResponse);
+				liveWebState = getLiveWebRedirector().handleRedirect(e, wbRequest, httpRequest, httpResponse);
 			}
 			
-			// If not liveweb redirected, then renderCurrent exception
-			if (!liveWebRedirected) {
+			// If not liveweb redirected, then render current exception
+			if (liveWebState != LiveWebState.REDIRECTED) {
+				e.setLiveWebAvailable(liveWebState == LiveWebState.FOUND);
 				getException().renderException(httpRequest, httpResponse, wbRequest, e, getUriConverter());
 			}
 			

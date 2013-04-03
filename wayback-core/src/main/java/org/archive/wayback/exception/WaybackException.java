@@ -42,6 +42,8 @@ public class WaybackException extends Exception {
 	private String details = "";
 	protected String id = GENERIC_ID;
 	
+	protected boolean isLiveWebAvailable = false;
+	
 	/**
 	 * Constructor with message only
 	 * 
@@ -118,5 +120,13 @@ public class WaybackException extends Exception {
 	}
 	public void setupResponse(HttpServletResponse response) {
 		response.setStatus(getStatus());
+	}
+
+	public boolean isLiveWebAvailable() {
+		return isLiveWebAvailable;
+	}
+
+	public void setLiveWebAvailable(boolean isLiveWebAvailable) {
+		this.isLiveWebAvailable = isLiveWebAvailable;
 	}
 }
