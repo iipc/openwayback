@@ -48,25 +48,27 @@ public class RobotExclusionFilterTest extends TestCase {
 	/**
 	 * 
 	 */
+	protected final static String HTTP_PREFIX = "http://";
+	
 	public void testSearchResultToRobotUrlStrings() {
 		RobotExclusionFilter f = new RobotExclusionFilter(null,"",100);
 		String test1[] = {"www.foo.com","foo.com"};
-		compareListTo(f.searchResultToRobotUrlStrings("www.foo.com"),test1);
+		compareListTo(f.searchResultToRobotUrlStrings("www.foo.com", HTTP_PREFIX),test1);
 
 		String test2[] = {"foo.com","www.foo.com"};
-		compareListTo(f.searchResultToRobotUrlStrings("foo.com"),test2);
+		compareListTo(f.searchResultToRobotUrlStrings("foo.com", HTTP_PREFIX),test2);
 
 		String test3[] = {"fool.foo.com","www.fool.foo.com"};
-		compareListTo(f.searchResultToRobotUrlStrings("fool.foo.com"),test3);
+		compareListTo(f.searchResultToRobotUrlStrings("fool.foo.com", HTTP_PREFIX),test3);
 
 		String test4[] = {"www4.foo.com","www.foo.com","foo.com"};
-		compareListTo(f.searchResultToRobotUrlStrings("www4.foo.com"),test4);
+		compareListTo(f.searchResultToRobotUrlStrings("www4.foo.com", HTTP_PREFIX),test4);
 
 		String test5[] = {"www4w.foo.com"};
-		compareListTo(f.searchResultToRobotUrlStrings("www4w.foo.com"),test5);
+		compareListTo(f.searchResultToRobotUrlStrings("www4w.foo.com", HTTP_PREFIX),test5);
 		
 		String test6[] = {"www.www.foo.com","www.foo.com"};
-		compareListTo(f.searchResultToRobotUrlStrings("www.www.foo.com"),test6);
+		compareListTo(f.searchResultToRobotUrlStrings("www.www.foo.com", HTTP_PREFIX),test6);
 	}
 	
 	private void compareListTo(List<String> list, String strings[]) {
