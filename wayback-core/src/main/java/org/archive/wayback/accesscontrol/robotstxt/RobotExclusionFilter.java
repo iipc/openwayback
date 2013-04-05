@@ -62,7 +62,7 @@ public class RobotExclusionFilter extends ExclusionFilter {
 	private final static Logger LOGGER = 
 		Logger.getLogger(RobotExclusionFilter.class.getName());
 
-	protected final static String HTTP_PREFIX = "http://";
+	//protected final static String HTTP_PREFIX = "http://";
 	protected final static String ROBOT_SUFFIX = "/robots.txt";
 
 	protected static String WWWN_REGEX = "^www[0-9]+\\.";
@@ -107,7 +107,12 @@ public class RobotExclusionFilter extends ExclusionFilter {
 
 	protected String hostToRobotUrlString(String host, String scheme) {
 		sb.setLength(0);
-		sb.append(scheme).append(host).append(ROBOT_SUFFIX);
+		sb.append(scheme);
+		sb.append(host);
+		if (host.endsWith(".")) {
+			sb.deleteCharAt(scheme.length() + host.length() - 1);
+		}
+		sb.append(ROBOT_SUFFIX);
 		String robotUrl = sb.toString();
 		LOGGER.fine("Adding robot URL:" + robotUrl);
 		return robotUrl;
@@ -122,22 +127,24 @@ public class RobotExclusionFilter extends ExclusionFilter {
 	 *     ]
 	 * If HOST starts with "www[0-9]+.DOMAIN":
 	 *     [
-	 *        http://HOST/robots.txt,
 	 *        http://www.DOMAIN/robots.txt,
-	 *        http://DOMAIN/robots.txt
+	 *        http://DOMAIN/robots.txt,
+	 *        http://HOST/robots.txt,        
 	 *     ]
 	 * Otherwise:
 	 *     [
+	 *        http://www.HOST/robots.txt     
 	 *        http://HOST/robots.txt,
-	 *        http://www.HOST/robots.txt
 	 *     ]
 	 */
+	//TODO: Take a look at this again.. this is the current scheme
+	// (from RedisRobotExclusionFilter)
 	protected List<String> searchResultToRobotUrlStrings(String resultHost, String scheme) {
 		ArrayList<String> list = new ArrayList<String>();
-		list.add(hostToRobotUrlString(resultHost, scheme));
 		
 		if(resultHost.startsWith("www")) {
-			if(resultHost.startsWith("www.")) {
+			if (resultHost.startsWith("www.")) {
+				list.add(hostToRobotUrlString(resultHost, scheme));
 				list.add(hostToRobotUrlString(resultHost.substring(4), scheme));
 			} else {
 				Matcher m = WWWN_PATTERN.matcher(resultHost);
@@ -146,12 +153,36 @@ public class RobotExclusionFilter extends ExclusionFilter {
 					list.add(hostToRobotUrlString("www." + massagedHost, scheme));
 					list.add(hostToRobotUrlString(massagedHost, scheme));
 				}
+				list.add(hostToRobotUrlString(resultHost, scheme));
 			}
-		} else {
-			list.add(hostToRobotUrlString("www." + resultHost, scheme));			
+		} else {	
+			list.add(hostToRobotUrlString("www." + resultHost, scheme));
+			list.add(hostToRobotUrlString(resultHost, scheme));
 		}
 		return list;
 	}
+	
+// Old scheme	
+//	protected List<String> searchResultToRobotUrlStrings(String resultHost, String scheme) {
+//		ArrayList<String> list = new ArrayList<String>();
+//		list.add(hostToRobotUrlString(resultHost, scheme));
+//		
+//		if(resultHost.startsWith("www")) {
+//			if(resultHost.startsWith("www.")) {
+//				list.add(hostToRobotUrlString(resultHost.substring(4), scheme));
+//			} else {
+//				Matcher m = WWWN_PATTERN.matcher(resultHost);
+//				if(m.find()) {
+//					String massagedHost = resultHost.substring(m.end());
+//					list.add(hostToRobotUrlString("www." + massagedHost, scheme));
+//					list.add(hostToRobotUrlString(massagedHost, scheme));
+//				}
+//			}
+//		} else {
+//			list.add(hostToRobotUrlString("www." + resultHost, scheme));			
+//		}
+//		return list;
+//	}
 	
 	private RobotRules getRules(CaptureSearchResult result) {
 		RobotRules rules = null;
