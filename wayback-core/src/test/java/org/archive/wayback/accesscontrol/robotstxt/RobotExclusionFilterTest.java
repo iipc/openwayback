@@ -55,13 +55,13 @@ public class RobotExclusionFilterTest extends TestCase {
 		String test1[] = {"www.foo.com","foo.com"};
 		compareListTo(f.searchResultToRobotUrlStrings("www.foo.com", HTTP_PREFIX),test1);
 
-		String test2[] = {"foo.com","www.foo.com"};
+		String test2[] = {"www.foo.com","foo.com"};
 		compareListTo(f.searchResultToRobotUrlStrings("foo.com", HTTP_PREFIX),test2);
 
-		String test3[] = {"fool.foo.com","www.fool.foo.com"};
+		String test3[] = {"www.fool.foo.com","fool.foo.com"};
 		compareListTo(f.searchResultToRobotUrlStrings("fool.foo.com", HTTP_PREFIX),test3);
 
-		String test4[] = {"www4.foo.com","www.foo.com","foo.com"};
+		String test4[] = {"www.foo.com","foo.com", "www4.foo.com"};
 		compareListTo(f.searchResultToRobotUrlStrings("www4.foo.com", HTTP_PREFIX),test4);
 
 		String test5[] = {"www4w.foo.com"};
