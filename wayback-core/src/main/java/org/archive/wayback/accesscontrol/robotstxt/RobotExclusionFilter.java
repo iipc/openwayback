@@ -105,9 +105,9 @@ public class RobotExclusionFilter extends ExclusionFilter {
 		sb = new StringBuilder(100);
 	}
 
-	protected String hostToRobotUrlString(String host) {
+	protected String hostToRobotUrlString(String host, String scheme) {
 		sb.setLength(0);
-		sb.append(HTTP_PREFIX).append(host).append(ROBOT_SUFFIX);
+		sb.append(scheme).append(host).append(ROBOT_SUFFIX);
 		String robotUrl = sb.toString();
 		LOGGER.fine("Adding robot URL:" + robotUrl);
 		return robotUrl;
@@ -132,23 +132,23 @@ public class RobotExclusionFilter extends ExclusionFilter {
 	 *        http://www.HOST/robots.txt
 	 *     ]
 	 */
-	protected List<String> searchResultToRobotUrlStrings(String resultHost) {
+	protected List<String> searchResultToRobotUrlStrings(String resultHost, String scheme) {
 		ArrayList<String> list = new ArrayList<String>();
-		list.add(hostToRobotUrlString(resultHost));
+		list.add(hostToRobotUrlString(resultHost, scheme));
 		
 		if(resultHost.startsWith("www")) {
 			if(resultHost.startsWith("www.")) {
-				list.add(hostToRobotUrlString(resultHost.substring(4)));
+				list.add(hostToRobotUrlString(resultHost.substring(4), scheme));
 			} else {
 				Matcher m = WWWN_PATTERN.matcher(resultHost);
 				if(m.find()) {
 					String massagedHost = resultHost.substring(m.end());
-					list.add(hostToRobotUrlString("www." + massagedHost));
-					list.add(hostToRobotUrlString(massagedHost));
+					list.add(hostToRobotUrlString("www." + massagedHost, scheme));
+					list.add(hostToRobotUrlString(massagedHost, scheme));
 				}
 			}
 		} else {
-			list.add(hostToRobotUrlString("www." + resultHost));			
+			list.add(hostToRobotUrlString("www." + resultHost, scheme));			
 		}
 		return list;
 	}
@@ -163,7 +163,8 @@ public class RobotExclusionFilter extends ExclusionFilter {
 			LOGGER.warning("ROBOT: Failed to get host from("+result.getOriginalUrl()+")");			
 			return null;
 		}
-		List<String> urlStrings = searchResultToRobotUrlStrings(host);
+		String scheme = UrlOperations.urlToScheme(result.getOriginalUrl());
+		List<String> urlStrings = searchResultToRobotUrlStrings(host, scheme);
 		Iterator<String> itr = urlStrings.iterator();
 		String firstUrlString = null;
 
@@ -194,7 +195,7 @@ public class RobotExclusionFilter extends ExclusionFilter {
 						LOGGER.fine("ROBOT: NotCached - Downloading("+urlString+")");
 					}
 				
-					tmpRules = new RobotRules();
+					tmpRules = new RobotRules();					
 					resource = webCache.getCachedResource(new URL(urlString),
 							maxCacheMS,true);
 					//long elapsed = System.currentTimeMillis() - start;

@@ -16,8 +16,10 @@ import org.archive.wayback.util.webapp.AbstractRequestHandler;
 public class UpdateRobotsRequestHandler extends AbstractRequestHandler {
 	
 	protected final static String HTTP_PREFIX = "http://";
+	protected final static String HTTPS_PREFIX = "https://";	
 	protected final static String WWW_PREFIX = "www.";
 	protected final static String HTTP_WWW_PREFIX = HTTP_PREFIX + WWW_PREFIX;
+	protected final static String HTTPS_WWW_PREFIX = HTTPS_PREFIX + WWW_PREFIX;	
 	protected final static String ROBOT_SUFFIX = "/robots.txt";
 	
 	private SimpleRedisRobotsCache robotsCache;
@@ -59,12 +61,14 @@ public class UpdateRobotsRequestHandler extends AbstractRequestHandler {
 		} else if (robotsCache == null) {
 			writer.println("No Robots Cache Set");
 		} else {
-			if (url.startsWith(HTTP_WWW_PREFIX)) {
+			if (url.startsWith(HTTP_WWW_PREFIX) || url.startsWith(HTTPS_WWW_PREFIX)) {
 				//
 			} else if (url.startsWith(WWW_PREFIX)) {
 				url = HTTP_PREFIX + url;
 			} else if (url.startsWith(HTTP_PREFIX)) {
-				url = HTTP_WWW_PREFIX + url.substring(7);
+				url = HTTP_WWW_PREFIX + url.substring(HTTP_PREFIX.length());
+			} else if (url.startsWith(HTTPS_PREFIX)) {
+				url = HTTPS_WWW_PREFIX + url.substring(HTTPS_PREFIX.length());				
 			} else {
 				url = HTTP_WWW_PREFIX + url;
 			}
