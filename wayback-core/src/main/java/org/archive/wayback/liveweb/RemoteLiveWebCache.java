@@ -53,10 +53,10 @@ public class RemoteLiveWebCache implements LiveWebCache {
 	private static final Logger LOGGER = Logger.getLogger(
 			RemoteLiveWebCache.class.getName());
 
-    private MultiThreadedHttpConnectionManager connectionManager = null;
-    private HostConfiguration hostConfiguration = null;
-    private HttpClient http = null; 
-    private String requestPrefix = null;
+    protected MultiThreadedHttpConnectionManager connectionManager = null;
+    protected HostConfiguration hostConfiguration = null;
+    protected HttpClient http = null; 
+    protected String requestPrefix = null;
 
     /**
      * 
