@@ -61,14 +61,26 @@ public class ProxyRequestParser extends CompositeRequestParser {
 	
 	    WaybackRequest wbRequest = super.parse(httpRequest, wbContext);
 	    if (wbRequest != null) {
-	            // Get the id from the request. If no id, use the ip-address instead.
-	            // Then get the timestamp (or rather datestr) matching this id.
+	    		
+    			// Get the id from the request. If no id, use the ip-address instead.
+	            
+    			// Then get the timestamp (or rather datestr) matching this id.
 	            String id = httpRequest.getHeader("Proxy-Id");
-	            if (id == null)
-	                    id = httpRequest.getRemoteAddr();
-	            // TODO: This is hacky.
-	            String replayDateStr = BDBMap.getTimestampForId(
-	            		httpRequest.getContextPath(), id); 
+	            
+	            if (id == null) {
+	            	id = httpRequest.getRemoteAddr();
+	            }
+	            
+	    		// First try exact timestamp from replayDateStr 
+	    		String replayDateStr = httpRequest.getHeader("Proxy-Timestamp");
+	    		
+	    		if (replayDateStr != null) {
+	    			BDBMap.addTimestampForId(httpRequest.getContextPath(), id, replayDateStr);
+	    		} else {
+		            // TODO: This is hacky.
+		            replayDateStr = BDBMap.getTimestampForId(httpRequest.getContextPath(), id);
+	    		}
+	          
 	            wbRequest.setReplayTimestamp(replayDateStr);
 	            wbRequest.setAnchorTimestamp(replayDateStr);
 	    }

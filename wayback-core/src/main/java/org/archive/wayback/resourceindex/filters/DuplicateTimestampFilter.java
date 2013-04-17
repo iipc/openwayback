@@ -1,12 +1,16 @@
 package org.archive.wayback.resourceindex.filters;
 
+import org.apache.commons.lang.math.NumberUtils;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.util.ObjectFilter;
 
 public class DuplicateTimestampFilter implements ObjectFilter<CaptureSearchResult> {
 
+	final static int WORST_HTTP_CODE = 9999;
+	
 	protected String lastTimestamp;
-	protected String lastHttpCode;
+	//protected int lastHttpCode = WORST_HTTP_CODE;
+	protected int bestHttpCode = WORST_HTTP_CODE;
 	protected int timestampDedupLength;
 	
 	public DuplicateTimestampFilter(int timestampDedupLength)
@@ -23,19 +27,22 @@ public class DuplicateTimestampFilter implements ObjectFilter<CaptureSearchResul
 		
 		String timestamp = o.getCaptureTimestamp();
 		timestamp = timestamp.substring(0, timestampDedupLength);
+		int httpCode = NumberUtils.toInt(o.getHttpCode(), WORST_HTTP_CODE);
 		
 		boolean isDupe = false;
 		
 		if ((lastTimestamp != null) && timestamp.equals(lastTimestamp)) {
-			if ((lastHttpCode == null) || !lastHttpCode.equals(o.getHttpCode())) {
+			if (httpCode < bestHttpCode) {
+				bestHttpCode = httpCode;
+			} else {
 				isDupe = true;
 			}
-			lastHttpCode = o.getHttpCode();
 		} else {
-			lastHttpCode = null;
+			bestHttpCode = httpCode;
 		}
 		
 		lastTimestamp = timestamp;
+
 		
 		return isDupe ? FILTER_EXCLUDE : FILTER_INCLUDE;
 	}

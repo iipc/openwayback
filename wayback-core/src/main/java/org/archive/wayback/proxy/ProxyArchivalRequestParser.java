@@ -72,17 +72,19 @@ public class ProxyArchivalRequestParser  extends CompositeRequestParser {
             AccessPoint wbContext) throws BadQueryException, BetterRequestException {
 	
 	    WaybackRequest wbRequest = super.parse(httpRequest, wbContext);
-	    if (wbRequest != null) {
-            String id = httpRequest.getHeader("Proxy-Id");
-            if (id == null)
-                    id = httpRequest.getRemoteAddr();
+	    if (wbRequest != null) {           
+    		
+	    	String id = httpRequest.getHeader("Proxy-Id");
+            if (id == null) {
+            	id = httpRequest.getRemoteAddr();
+            }
 
             // Get the id from the request. 
 	    	// If no id, use the ip-address instead.
 	    	// Check if the parser parsed a replay request and found a
 	    	// timestamp. If so, then we need to store the timestamp and
 	    	// redirect, which is done with a BetterRequestException:
-	    	if(wbRequest.isReplayRequest()) {
+	    	if (wbRequest.isReplayRequest()) {
 	    		String replayTimestamp = wbRequest.getReplayTimestamp();
 	    		if(replayTimestamp != null) {
 	    			BDBMap.addTimestampForId(httpRequest.getContextPath(),
@@ -92,10 +94,19 @@ public class ProxyArchivalRequestParser  extends CompositeRequestParser {
     			
 	    	}
 	    	
-            // Then get the timestamp (or rather datestr) matching this id.
-            // TODO: This is hacky - need generic way to store session data
-            String replayDateStr = BDBMap.getTimestampForId(
-            		httpRequest.getContextPath(), id);
+    		// First try exact timestamp from replayDateStr 
+    		String replayDateStr = httpRequest.getHeader("Proxy-Timestamp");
+    		
+    		if (replayDateStr != null) {
+    			BDBMap.addTimestampForId(httpRequest.getContextPath(),
+    					id, replayDateStr);
+    		} else {
+	            // Then get the timestamp (or rather datestr) matching this id.
+	            // TODO: This is hacky - need generic way to store session data
+	            replayDateStr = BDBMap.getTimestampForId(
+	            		httpRequest.getContextPath(), id);
+    		}
+		
             wbRequest.setReplayTimestamp(replayDateStr);
             wbRequest.setAnchorTimestamp(replayDateStr);
 	    }

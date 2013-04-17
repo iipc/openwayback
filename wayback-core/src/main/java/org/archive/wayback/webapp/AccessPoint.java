@@ -1180,6 +1180,10 @@ implements ShutdownListener {
 	
 	// Set standard liveweb redirector
 	public void setLiveWebPrefix(String liveWebPrefix) {
+		if (liveWebPrefix == null || liveWebPrefix.isEmpty()) {
+			this.liveWebRedirector = null;
+		}
+		
 		this.liveWebRedirector = new LiveWebRedirector(liveWebPrefix);
 	}
 	
