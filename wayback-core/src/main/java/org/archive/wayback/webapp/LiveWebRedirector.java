@@ -90,7 +90,7 @@ public class LiveWebRedirector {
 			return LiveWebState.NOT_FOUND;
 		}
 		
-		redirUrl = liveWebHandler.getLiveWebRedirect(httpRequest, wbRequest);
+		redirUrl = liveWebHandler.getLiveWebRedirect(httpRequest, wbRequest, e);
 		
 		// Don't redirect if redirUrl null
 		if (redirUrl == null) {

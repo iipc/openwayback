@@ -20,8 +20,10 @@
 package org.archive.wayback.webapp;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
@@ -210,13 +212,50 @@ public class LiveWebAccessPoint extends LiveWebRequestHandler {
 	}
 	
 	@Override
-	public String getLiveWebRedirect(HttpServletRequest request, WaybackRequest wbRequest)
+	public String getLiveWebRedirect(HttpServletRequest request, WaybackRequest wbRequest, WaybackException we)
 	{
 		if (isLiveWebFound(request, wbRequest)) {
 			return LiveWebRedirector.DEFAULT;
 		}
 		
 		return null;
+	}
+	
+	protected boolean checkUrl(String urlString, int timeout)
+	{
+		URL url;
+		
+		try {
+			url = new URL(urlString);
+		} catch(MalformedURLException e) {
+			return false;
+		}
+		
+		InetAddress addr = null;
+		
+		try {
+			addr = InetAddress.getByName(url.getHost());
+		} catch (UnknownHostException e) {
+			return false;
+		}
+		
+		if (addr.isAnyLocalAddress() || addr.isLinkLocalAddress() || addr.isLoopbackAddress()) {
+			return false;
+		}
+		
+		if (timeout == 0) {
+			return true;
+		}
+		
+		try {
+			if (addr.isReachable(timeout)) {
+				return true;
+			}
+		} catch (IOException e) {
+
+		}
+		
+		return false;
 	}
 	
 	private boolean isLiveWebFound(HttpServletRequest request, WaybackRequest wbRequest)
