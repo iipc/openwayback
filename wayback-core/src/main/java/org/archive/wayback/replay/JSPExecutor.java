@@ -48,10 +48,14 @@ public class JSPExecutor {
 	private HttpServletResponse httpResponse = null;
 	private UIResults uiResults = null;
 	
+	private boolean isAjax = false;
+	
 	public JSPExecutor(ResultURIConverter uriConverter,
 			HttpServletRequest httpRequest, HttpServletResponse httpResponse,
 			WaybackRequest wbRequest, CaptureSearchResults results, 
 			CaptureSearchResult result, Resource resource) {
+		
+		this.isAjax = wbRequest.isAjaxRequest();
 
 		this.httpRequest = httpRequest;
 		this.httpResponse = httpResponse; 
@@ -62,6 +66,11 @@ public class JSPExecutor {
 	
 	public String jspToString(String jspPath) 
 	throws ServletException, IOException {
+		
+		// If ajax request, don't do any jsp insertion
+		if (isAjax) {
+			return "";
+		}
 
 		StringHttpServletResponseWrapper wrappedResponse = 
 			new StringHttpServletResponseWrapper(httpResponse);

@@ -283,6 +283,11 @@ public class WaybackRequest {
 		"iframewrappercontext";
 	
 	/**
+	 * Request: Use timestamp as part of the search key
+	 */
+	public static final String REQUEST_AJAX_REQUEST = "requestajaxrequest";	
+	
+	/**
 	 * Request: Charset detection mode 
 	 */
 	public static final String REQUEST_CHARSET_MODE = "charsetmode";
@@ -422,6 +427,7 @@ public class WaybackRequest {
 			REQUEST_AUTH_TYPE,
 			REQUEST_REMOTE_USER,
 			REQUEST_LOCALE_LANG,
+			REQUEST_AJAX_REQUEST,
 			STD_LOGGED_IN_USER,
 			STD_LOGGED_IN_VER,
 			STD_LOGGED_IN_NAME,
@@ -832,6 +838,14 @@ public class WaybackRequest {
 			this.isFrameWrapperContext() || this.isIFrameWrapperContext() || this.isObjectEmbedContext();
 	}
 
+	public void setAjaxRequest(boolean isAjaxRequest) {
+		setBoolean(REQUEST_AJAX_REQUEST,isAjaxRequest);
+	}
+	public boolean isAjaxRequest() {
+		return getBoolean(REQUEST_AJAX_REQUEST);
+	}
+	
+
 	public void setCharsetMode(int mode) {
 		setInt(REQUEST_CHARSET_MODE,mode);
 	}
@@ -929,6 +943,13 @@ public class WaybackRequest {
 		}
 		putUnlessNull(REQUEST_REMOTE_ADDRESS, remoteAddr);
 		
+		// Check for AJAX
+		String x_req_with = httpRequest.getHeader("X-Requested-With");
+		if (x_req_with != null) {
+			if (x_req_with.equals("XMLHttpRequest")) {
+				this.setAjaxRequest(true);
+			}
+		}		
 		
 		putUnlessNull(REQUEST_WAYBACK_HOSTNAME, httpRequest.getLocalName());
 		putUnlessNull(REQUEST_AUTH_TYPE, httpRequest.getAuthType());

@@ -705,15 +705,7 @@ implements ShutdownListener {
 				}
 		
 				p.retrieved();
-		
-				// Check for AJAX
-				String x_req_with = httpRequest.getHeader("X-Requested-With");
-				if ((x_req_with != null)) {
-					if (x_req_with.equals("XMLHttpRequest")) {
-						wbRequest.setIdentityContext(true);
-					}
-				}
-		
+				
 				ReplayRenderer renderer = 
 					getReplay().getRenderer(wbRequest, closest, httpHeadersResource, payloadResource);
 				
