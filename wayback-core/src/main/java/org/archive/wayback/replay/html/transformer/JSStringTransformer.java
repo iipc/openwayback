@@ -57,16 +57,25 @@ public class JSStringTransformer implements StringTransformer {
 			String origHost = host;
 			host = context.contextualizeUrl(host);
 			
-		    // This is a fix for situations for hostnames only being resolved with a trailing slash
-		    // eg. http://example.org -> /datestamp/http://example.org/
-		    // This will remove the trailing /, as it may break certain javascript, and is not necessary
-			// ex 'http://domain' + '.example.org' would get converted to 
-			// 'http://domain/.example.org' instead of 'http://domain.example.org' without this fix.
-			// Wayback does need the trailing slash at all, and may make sense to change this everywhere
-			// for now, just applying this to JS
-		    if ((host != null) && (origHost != null) && host.endsWith("/") && !origHost.endsWith("/")) {
-		    	host = host.substring(0, host.length() - 1);
-		    }
+		    if ((host != null) && (origHost != null)) {
+			    // This is a fix for situations for hostnames only being resolved with a trailing slash
+			    // eg. http://example.org -> /datestamp/http://example.org/
+			    // This will remove the trailing /, as it may break certain javascript, and is not necessary
+				// ex 'http://domain' + '.example.org' would get converted to 
+				// 'http://domain/.example.org' instead of 'http://domain.example.org' without this fix.
+				// Wayback does need the trailing slash at all, and may make sense to change this everywhere
+				// for now, just applying this to JS	
+		    	if (host.endsWith("/") && !origHost.endsWith("/")) {
+		    		host = host.substring(0, host.length() - 1);
+		    	}
+		    	
+			    // Fix for trailing '.' being removed by the canonicalizer.. for JS canonicalization, it is necessary to keep it
+		    	// (opposite effect of the /)
+		    	if (origHost.endsWith(".") && !host.endsWith(".")) {
+		    		host = host + ".";
+		    	}
+		    }		    
+		    
 			m.appendReplacement(replaced, host);
 		}
 		m.appendTail(replaced);

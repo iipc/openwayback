@@ -37,7 +37,7 @@ public class ProxyAccessPoint extends CompositeAccessPoint {
 	private static final Logger LOGGER =
 		Logger.getLogger(ProxyAccessPoint.class.getName());
 	
-	public final static String SWITCH_COLLECTION_PATH = "switchCollection";
+	public final static String SWITCH_COLLECTION_PATH = "http://wayback-proxy/switchCollection";
 	public final static String PROXY_PAC_PATH = "/proxy.pac";
 	
 	private List<String> directHosts;
@@ -106,7 +106,9 @@ public class ProxyAccessPoint extends CompositeAccessPoint {
 // on different ports
 		
 //		if (request.getHeader("Proxy-Connection") != null) {
-//			isProxyReq = true;		
+//			isProxyReq = true;
+		
+		
 		if (!isProxyEnabled()) {
 			return handleNonProxy(request, response);
 		} else {
@@ -135,12 +137,10 @@ public class ProxyAccessPoint extends CompositeAccessPoint {
 		
 		boolean isProxyHost = url.startsWith(getReplayPrefix());
 								
-		if (isProxyHost) {
-			// Special reset link
-			if (url.endsWith(SWITCH_COLLECTION_PATH)) {
-				configSelector.handleSwitch(request, response, this);
-				return true;
-			}
+		// Special reset link
+		if (url.equals(SWITCH_COLLECTION_PATH)) {
+			configSelector.handleSwitch(request, response, this);
+			return true;
 		}
 		
 		String realAccessPoint = configSelector.resolveConfig(request);
