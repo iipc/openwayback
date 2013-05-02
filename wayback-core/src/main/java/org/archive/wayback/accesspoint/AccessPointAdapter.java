@@ -239,6 +239,11 @@ public class AccessPointAdapter extends AccessPoint {
 	public LiveWebRedirector getLiveWebRedirector() {
 		return baseAccessPoint.getLiveWebRedirector();
 	}
+	
+	@Override
+	public String getLiveWebPrefix() {
+		return baseAccessPoint.getLiveWebPrefix();
+	}
 
 	@Override
 	public String getInterstitialJsp() {
