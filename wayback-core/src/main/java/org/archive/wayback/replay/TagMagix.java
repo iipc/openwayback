@@ -24,6 +24,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.archive.wayback.ResultURIConverter;
+import org.archive.wayback.replay.html.ReplayParseContext;
 import org.archive.wayback.util.url.UrlOperations;
 
 /**
@@ -200,6 +201,9 @@ public class TagMagix {
 					urlStart += 2;
 				}
 				int urlLength = url.length();
+				if (url.startsWith(ReplayParseContext.DATA_PREFIX)) {
+					continue;
+				}
 				String finalUrl = UrlOperations.resolveUrl(baseUrl,url);
 				String replayUrl = uriConverter.makeReplayURI(captureDate, finalUrl);
 				int delta = replayUrl.length() - urlLength;
@@ -265,6 +269,11 @@ public class TagMagix {
 				idx = attrEnd;
 				continue;
 			}
+			if (url.startsWith(ReplayParseContext.DATA_PREFIX)) {
+				idx = attrEnd;
+				continue;
+			}
+			
 			String finalUrl = UrlOperations.resolveUrl(baseUrl,url);
 			String replayUrl = quote
 					+ uriConverter.makeReplayURI(captureDate, finalUrl) + quote;
