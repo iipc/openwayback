@@ -35,7 +35,7 @@ public class RegexReplaceStringTransformer implements StringTransformer {
 	public String transform(ReplayParseContext context, String input) {
 		
 		if (ruleId != null) {
-			String policy = context.getData(CaptureSearchResult.CAPTURE_ORACLE_POLICY);
+			String policy = context.getOraclePolicy();
 			
 			if (policy != null && policy.contains("disable-rewrite-" + ruleId)) {
 				return input;

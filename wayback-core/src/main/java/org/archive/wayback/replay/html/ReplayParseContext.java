@@ -41,6 +41,7 @@ public class ReplayParseContext extends ParseContext {
 	private Map<String,ResultURIConverter> converters = null;
 	private String outputCharset;
 	private int phase = -1;
+	private int jsBlockCount = -1;
 
 	public ReplayParseContext(ContextResultURIConverterFactory uriConverterFactory,
 			URL baseUrl, String datespec) {
@@ -163,5 +164,13 @@ public class ReplayParseContext extends ParseContext {
 	 */
 	public void setDatespec(String datespec) {
 		this.datespec = datespec;
+	}
+	
+	public void incJSBlockCount() {
+		jsBlockCount++;
+	}
+
+	public int getJSBlockCount() {
+		return jsBlockCount;
 	}
 }

@@ -29,6 +29,7 @@ import org.apache.commons.httpclient.URIException;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.archive.net.UURI;
 import org.archive.net.UURIFactory;
+import org.archive.wayback.core.CaptureSearchResult;
 /**
  * Class which tracks the context and state involved with parsing an HTML
  * document via SAX events.
@@ -177,5 +178,15 @@ public class ParseContext {
 	 */
 	public void setInScriptText(boolean inScriptText) {
 		this.inScriptText = inScriptText;
+	}
+	
+	public String getOraclePolicy()
+	{
+		return getData(CaptureSearchResult.CAPTURE_ORACLE_POLICY);
+	}
+	
+	public void setOraclePolicy(String policy)
+	{
+		putData(CaptureSearchResult.CAPTURE_ORACLE_POLICY, policy);
 	}
 }

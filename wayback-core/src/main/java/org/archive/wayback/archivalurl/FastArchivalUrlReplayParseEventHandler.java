@@ -173,6 +173,8 @@ public class FastArchivalUrlReplayParseEventHandler implements
 		
 		boolean alreadyInsertedHead = (context.getData(FERRET_HEAD_INSERTED) != null);
 		
+		context.incJSBlockCount();
+		
 		if (alreadyInsertedHead) {
 			textNode.setText(jsBlockTrans.transform(context, textNode.getText()));
 		}
@@ -351,7 +353,7 @@ public class FastArchivalUrlReplayParseEventHandler implements
 		// Check the NOSCRIPT tag, if force-noscript is set,
 		// then  skip the NOSCRIPT tags and include contents explicitly
 		if (tagName.equals("NOSCRIPT")) {
-			String allPolicies = getOraclePolicies(context);
+			String allPolicies = context.getOraclePolicy();
 			
 			if ((allPolicies != null) && allPolicies.contains("force-noscript")) {
 				return false;
@@ -361,12 +363,6 @@ public class FastArchivalUrlReplayParseEventHandler implements
 		return true;
 	}
 	
-	protected String getOraclePolicies(ParseContext context)
-	{
-		return context.getData(CaptureSearchResult.CAPTURE_ORACLE_POLICY);
-	}
-	
-	//IK: changed private to protected
 	protected void emit(ReplayParseContext context, String pre, Node node, 
 			String post) throws IOException {
 		
@@ -459,8 +455,16 @@ public class FastArchivalUrlReplayParseEventHandler implements
 	}
 
 	public void handleParseStart(ParseContext pContext) throws IOException {
+		
+		ReplayParseContext context = (ReplayParseContext) pContext;
+		
+		String policy = context.getJspExec().getUiResults().getResult().getOraclePolicy();
+		
+		if (policy != null) {
+			context.setOraclePolicy(policy);
+		}
+		
 		if(startJsp != null) {
-			ReplayParseContext context = (ReplayParseContext) pContext;
 			OutputStream out = context.getOutputStream();
 			String tmp = null; 
 			try {
