@@ -435,10 +435,10 @@ public class CaptureSearchResult extends SearchResult {
 		setRobotFlag(CAPTURE_ROBOT_NOARCHIVE);
 	}
 	public void setRobotNoIndex() {
-		setRobotFlag(CAPTURE_ROBOT_NOARCHIVE);
+		setRobotFlag(CAPTURE_ROBOT_NOINDEX);
 	}
 	public void setRobotNoFollow() {
-		setRobotFlag(CAPTURE_ROBOT_NOARCHIVE);
+		setRobotFlag(CAPTURE_ROBOT_NOFOLLOW);
 	}
 	public String getOraclePolicy() {
 		return get(CAPTURE_ORACLE_POLICY);
