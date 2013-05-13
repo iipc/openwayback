@@ -23,7 +23,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.archive.wayback.archivalurl.ArchivalUrl;
-import org.archive.wayback.archivalurl.ArchivalUrlRequestParser;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BetterRequestException;
 import org.archive.wayback.requestparser.BaseRequestParser;

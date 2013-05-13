@@ -128,9 +128,9 @@ public class LocalResourceIndex implements ResourceIndex {
 	public LocalResourceIndex() {
 		canonicalizer = new AggressiveUrlCanonicalizer();
 		fgFactories = new ArrayList<FilterGroupFactory>();
+		fgFactories.add(new AccessPointCaptureFilterGroupFactory());		
 		fgFactories.add(new CoreCaptureFilterGroupFactory());		
 		fgFactories.add(new QueryCaptureFilterGroupFactory());		
-		fgFactories.add(new AccessPointCaptureFilterGroupFactory());
 		fgFactories.add(new AnnotatingCaptureFilterGroupFactory());
 		fgFactories.add(new ExclusionCaptureFilterGroupFactory());
 		fgFactories.add(new ClosestTrackingCaptureFilterGroupFactory());
