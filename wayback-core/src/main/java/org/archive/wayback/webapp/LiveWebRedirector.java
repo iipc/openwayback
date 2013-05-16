@@ -98,8 +98,21 @@ public class LiveWebRedirector {
 		}
 		
 		// If embeds_only and not embed return if it was found		
-		if ((state == RedirectType.EMBEDS_ONLY) && (!wbRequest.isAnyEmbeddedContext())) {
-			return LiveWebState.FOUND;
+		if (state == RedirectType.EMBEDS_ONLY) {
+			boolean allowRedirect = wbRequest.isAnyEmbeddedContext();
+			
+			if (!allowRedirect) {
+				String referrer = wbRequest.getRefererUrl();
+				String replayPrefix = wbRequest.getAccessPoint().getReplayPrefix();
+				
+				if ((referrer != null) && (replayPrefix != null) && referrer.startsWith(replayPrefix)) {
+					allowRedirect = true;
+				}
+			}
+			
+			if (!allowRedirect) {
+				return LiveWebState.FOUND;
+			}
 		}
 		
 		// Now try to do a redirect

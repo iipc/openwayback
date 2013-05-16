@@ -142,7 +142,7 @@ public class RobotExclusionFilter extends ExclusionFilter {
 	protected List<String> searchResultToRobotUrlStrings(String resultHost, String scheme) {
 		ArrayList<String> list = new ArrayList<String>();
 		
-		if(resultHost.startsWith("www")) {
+		if (resultHost.startsWith("www")) {
 			if (resultHost.startsWith("www.")) {
 				list.add(hostToRobotUrlString(resultHost, scheme));
 				list.add(hostToRobotUrlString(resultHost.substring(4), scheme));
@@ -155,10 +155,11 @@ public class RobotExclusionFilter extends ExclusionFilter {
 				}
 				list.add(hostToRobotUrlString(resultHost, scheme));
 			}
-		} else {	
+		} else {
+			list.add(hostToRobotUrlString(resultHost, scheme));			
 			list.add(hostToRobotUrlString("www." + resultHost, scheme));
-			list.add(hostToRobotUrlString(resultHost, scheme));
 		}
+		
 		return list;
 	}
 	

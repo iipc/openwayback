@@ -70,6 +70,8 @@ public class LiveWebAccessPoint extends LiveWebRequestHandler {
 	
 	private String perfStatsHeader = null;
 	
+	private String skipHost = null;
+	
 	public final static String LIVEWEB_RUNTIME_ERROR_HEADER = "X-Archive-Wayback-Runtime-Liveweb-Error";
 	
 	private long maxCacheMS = 86400000;
@@ -150,11 +152,15 @@ public class LiveWebAccessPoint extends LiveWebRequestHandler {
 			// Assume http
 			urlString = UrlOperations.HTTP_SCHEME + urlString;
 		}
-		
+				
 		try {
 			url = new URL(urlString);
 		} catch(MalformedURLException e) {
 			throw new BadQueryException("Bad URL(" + urlString + ")");
+		}
+		
+		if ((skipHost != null) && url.getHost().equals(skipHost)) {
+			return null;
 		}
 
 		result.setOriginalUrl(urlString);
@@ -337,5 +343,13 @@ public class LiveWebAccessPoint extends LiveWebRequestHandler {
 
 	public void setPerfStatsHeader(String perfStatsHeader) {
 		this.perfStatsHeader = perfStatsHeader;
+	}
+
+	public String getSkipHost() {
+		return skipHost;
+	}
+
+	public void setSkipHost(String skipHost) {
+		this.skipHost = skipHost;
 	}
 }
