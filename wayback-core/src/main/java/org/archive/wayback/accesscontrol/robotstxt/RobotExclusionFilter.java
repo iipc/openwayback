@@ -309,7 +309,7 @@ public class RobotExclusionFilter extends ExclusionFilter {
 			String resultURL = r.getOriginalUrl();
 			String path = UrlOperations.getURLPath(resultURL);
 			
-			if (path.equals(ROBOT_SUFFIX) || r.isRobotNoFollow()) {
+			if (path.equals(ROBOT_SUFFIX)) {
 				if(!notifiedPassed) {
 					if(filterGroup != null) {
 						filterGroup.setPassedRobots();

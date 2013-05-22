@@ -91,10 +91,10 @@ public class SearchResult {
 	protected Date tsToDate(String timestamp) {
 		return Timestamp.parseBefore(timestamp).getDate();
 	}
-	protected Map<String, String> toCanonicalStringMap() {
+	public Map<String, String> toCanonicalStringMap() {
 		return data;
 	}
-	protected void fromCanonicalStringMap(Map<String, String> canonical) {
+	public void fromCanonicalStringMap(Map<String, String> canonical) {
 		data = new HashMap<String, String>();
 		data.putAll(canonical);
 	}
