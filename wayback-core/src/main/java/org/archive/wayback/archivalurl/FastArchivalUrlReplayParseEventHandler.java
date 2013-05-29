@@ -90,6 +90,8 @@ public class FastArchivalUrlReplayParseEventHandler implements
 //	}
 	private static URLStringTransformer framesetUrlTrans =
 		new URLStringTransformer("fw_");
+	private static URLStringTransformer iframeUrlTrans =
+		new URLStringTransformer("if_");	
 	private static URLStringTransformer cssUrlTrans =
 		new URLStringTransformer("cs_");
 	private static URLStringTransformer jsUrlTrans =
@@ -243,7 +245,7 @@ public class FastArchivalUrlReplayParseEventHandler implements
 				if(tagName.equals(FRAMESET_TAG)) {
 					// don't put the insert in framsets:
 				} else {
-					if(jspInsertPath != null) {
+					if(jspInsertPath != null && !context.getJspExec().getUiResults().getWbRequest().isIFrameWrapperContext()) {
 						String tmp = null; 
 						try {
 							tmp = 
@@ -296,7 +298,7 @@ public class FastArchivalUrlReplayParseEventHandler implements
 			transformAttr(context, tagNode, "SRC", objectEmbedUrlTrans);
 
 		} else if(tagName.equals("IFRAME")) {
-			transformAttr(context, tagNode, "SRC", anchorUrlTrans);
+			transformAttr(context, tagNode, "SRC", iframeUrlTrans);
 
 		} else if(tagName.equals("IMG")) {
 			transformAttr(context, tagNode, "SRC", imageUrlTrans);
