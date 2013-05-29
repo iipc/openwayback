@@ -1,6 +1,7 @@
 package org.archive.wayback.resourceindex;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.archive.format.gzip.zipnum.TimestampBestPickDedupIterator;
 import org.archive.format.gzip.zipnum.ZipNumCluster;
@@ -27,6 +28,8 @@ public class ZipNumClusterSearchResultSource implements SearchResultSource, Adap
 	protected ZipNumParams oneBlockParams;
 	
 	protected int timestampDedupLength = 0;
+	
+	protected List<String> ignoreRobotPaths;
 		
 	public void init() throws IOException
 	{
@@ -107,8 +110,28 @@ public class ZipNumClusterSearchResultSource implements SearchResultSource, Adap
 		this.params = params;
 	}
 	
+	@Override
 	public CaptureSearchResult adapt(String line) {
-		return CDXFlexFormat.parseCDXLineFlexFast(line);
+		CaptureSearchResult result = CDXFlexFormat.parseCDXLineFlexFast(line);
+		
+		if (ignoreRobotPaths != null) {
+			for (String path : ignoreRobotPaths) {
+				if (result.getUrlKey().startsWith(path)) {
+					result.setRobotIgnore();
+					break;
+				}
+			}
+		}
+		
+		return result;
+	}
+
+	public List<String> getIgnoreRobotPaths() {
+		return ignoreRobotPaths;
+	}
+
+	public void setIgnoreRobotPaths(List<String> ignoreRobotPaths) {
+		this.ignoreRobotPaths = ignoreRobotPaths;
 	}
 
 	public int getTimestampDedupLength() {

@@ -107,6 +107,7 @@ public class CaptureSearchResult extends SearchResult {
 	public static final String CAPTURE_ROBOT_NOARCHIVE = "A";
 	public static final String CAPTURE_ROBOT_NOFOLLOW = "F";
 	public static final String CAPTURE_ROBOT_NOINDEX = "I";
+	public static final String CAPTURE_ROBOT_IGNORE = "G";
 	
 	/**
 	 * Result: flag within a SearchResult that indicates this is the closest to
@@ -431,6 +432,9 @@ public class CaptureSearchResult extends SearchResult {
 	public boolean isRobotNoFollow() {
 		return isRobotFlagSet(CAPTURE_ROBOT_NOFOLLOW);
 	}
+	public boolean isRobotIgnore() {
+		return isRobotFlagSet(CAPTURE_ROBOT_IGNORE);
+	}	
 	public void setRobotNoArchive() {
 		setRobotFlag(CAPTURE_ROBOT_NOARCHIVE);
 	}
@@ -440,6 +444,9 @@ public class CaptureSearchResult extends SearchResult {
 	public void setRobotNoFollow() {
 		setRobotFlag(CAPTURE_ROBOT_NOFOLLOW);
 	}
+	public void setRobotIgnore() {
+		setRobotFlag(CAPTURE_ROBOT_IGNORE);
+	}	
 	public String getOraclePolicy() {
 		return get(CAPTURE_ORACLE_POLICY);
 	}
