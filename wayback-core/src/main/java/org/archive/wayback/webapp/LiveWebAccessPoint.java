@@ -25,6 +25,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -70,7 +71,7 @@ public class LiveWebAccessPoint extends LiveWebRequestHandler {
 	
 	private String perfStatsHeader = null;
 	
-	private String skipHost = null;
+	private Pattern skipHost = null;
 	
 	public final static String LIVEWEB_RUNTIME_ERROR_HEADER = "X-Archive-Wayback-Runtime-Liveweb-Error";
 	
@@ -159,7 +160,7 @@ public class LiveWebAccessPoint extends LiveWebRequestHandler {
 			throw new BadQueryException("Bad URL(" + urlString + ")");
 		}
 		
-		if ((skipHost != null) && url.getHost().equals(skipHost)) {
+		if ((skipHost != null) && skipHost.matcher(url.getHost()).matches()) {
 			return null;
 		}
 
@@ -346,10 +347,10 @@ public class LiveWebAccessPoint extends LiveWebRequestHandler {
 	}
 
 	public String getSkipHost() {
-		return skipHost;
+		return skipHost.pattern();
 	}
 
 	public void setSkipHost(String skipHost) {
-		this.skipHost = skipHost;
+		this.skipHost = Pattern.compile(skipHost);
 	}
 }
