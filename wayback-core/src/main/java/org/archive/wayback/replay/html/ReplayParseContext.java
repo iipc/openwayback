@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.archive.wayback.ResultURIConverter;
+import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.replay.JSPExecutor;
 import org.archive.wayback.util.htmllex.ParseContext;
 
@@ -42,14 +43,15 @@ public class ReplayParseContext extends ParseContext {
 	private String outputCharset;
 	private int phase = -1;
 	private int jsBlockCount = -1;
+	private CaptureSearchResult result;
 
 	public ReplayParseContext(ContextResultURIConverterFactory uriConverterFactory,
 			URL baseUrl, String datespec) {
 
 		this.uriConverterFactory = uriConverterFactory;
-		setBaseUrl(baseUrl);
+		super.setBaseUrl(baseUrl);
 		this.datespec = datespec;
-		converters = new HashMap<String,ResultURIConverter>();
+		this.converters = new HashMap<String,ResultURIConverter>();
 	}
 
 	public void setPhase(int phase) {
@@ -64,6 +66,11 @@ public class ReplayParseContext extends ParseContext {
 	 */
 	public Map<String, ResultURIConverter> getConverters() {
 		return converters;
+	}
+	
+	public CaptureSearchResult getCaptureSearchResult()
+	{
+		return result;
 	}
 
 	/**
@@ -150,6 +157,9 @@ public class ReplayParseContext extends ParseContext {
 	 */
 	public void setJspExec(JSPExecutor jspExec) {
 		this.jspExec = jspExec;
+		if (jspExec != null && jspExec.getUiResults() != null) {
+			result = jspExec.getUiResults().getResult();
+		}
 	}
 
 	/**

@@ -72,6 +72,7 @@ public class LiveWebAccessPoint extends LiveWebRequestHandler {
 	private String perfStatsHeader = null;
 	
 	private Pattern skipHost = null;
+	private int dnsCheckTimeout = 0;
 	
 	public final static String LIVEWEB_RUNTIME_ERROR_HEADER = "X-Archive-Wayback-Runtime-Liveweb-Error";
 	
@@ -163,6 +164,10 @@ public class LiveWebAccessPoint extends LiveWebRequestHandler {
 		if ((skipHost != null) && skipHost.matcher(url.getHost()).matches()) {
 			return null;
 		}
+		
+		if ((dnsCheckTimeout > 0) && !checkUrlDns(url, dnsCheckTimeout)) {
+			return null;
+		}
 
 		result.setOriginalUrl(urlString);
 		
@@ -228,16 +233,8 @@ public class LiveWebAccessPoint extends LiveWebRequestHandler {
 		return null;
 	}
 	
-	protected boolean checkUrl(String urlString, int timeout)
-	{
-		URL url;
-		
-		try {
-			url = new URL(urlString);
-		} catch(MalformedURLException e) {
-			return false;
-		}
-		
+	protected boolean checkUrlDns(URL url, int timeout)
+	{		
 		InetAddress addr = null;
 		
 		try {
@@ -352,5 +349,13 @@ public class LiveWebAccessPoint extends LiveWebRequestHandler {
 
 	public void setSkipHost(String skipHost) {
 		this.skipHost = Pattern.compile(skipHost);
+	}
+
+	public int getDnsCheckTimeout() {
+		return dnsCheckTimeout;
+	}
+
+	public void setDnsCheckTimeout(int dnsCheckTimeout) {
+		this.dnsCheckTimeout = dnsCheckTimeout;
 	}
 }

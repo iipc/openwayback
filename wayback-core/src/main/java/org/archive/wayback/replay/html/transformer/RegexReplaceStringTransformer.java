@@ -22,6 +22,7 @@ package org.archive.wayback.replay.html.transformer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.replay.html.ReplayParseContext;
 import org.archive.wayback.replay.html.StringTransformer;
 import org.archive.wayback.replay.html.rewrite.RewriteRule;
@@ -30,6 +31,7 @@ public class RegexReplaceStringTransformer extends RewriteRule implements String
 	private String regex = "";
 	private String replacement = "";
 	private Pattern pattern = null;
+	private String urlScope = null;
 
 	public String transform(ReplayParseContext context, String input) {
 		
@@ -37,6 +39,13 @@ public class RegexReplaceStringTransformer extends RewriteRule implements String
 			String policy = context.getOraclePolicy();
 			
 			if (policy != null && policy.contains("disable-rewrite-" + getBeanName())) {
+				return input;
+			}
+		}
+		
+		if (urlScope != null) {
+			CaptureSearchResult result = context.getCaptureSearchResult();
+			if (result != null && !result.getUrlKey().contains(urlScope)) {
 				return input;
 			}
 		}
@@ -80,6 +89,15 @@ public class RegexReplaceStringTransformer extends RewriteRule implements String
 	@Override
 	public String rewrite(ReplayParseContext context, String policy,
 			String input) {
+		
 		return transform(context, input);
+	}
+
+	public String getUrlScope() {
+		return urlScope;
+	}
+
+	public void setUrlScope(String urlScope) {
+		this.urlScope = urlScope;
 	}
 }
