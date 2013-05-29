@@ -99,19 +99,22 @@ public class LiveWebRedirector {
 		
 		// If embeds_only and not embed return if it was found		
 		if (state == RedirectType.EMBEDS_ONLY) {
-			boolean allowRedirect = wbRequest.isAnyEmbeddedContext();
+//			boolean allowRedirect = wbRequest.isAnyEmbeddedContext();
 			
-			if (!allowRedirect) {
-				String referrer = wbRequest.getRefererUrl();
-				String replayPrefix = wbRequest.getAccessPoint().getReplayPrefix();
-				
-				if ((referrer != null) && (replayPrefix != null) && referrer.startsWith(replayPrefix)) {
-					allowRedirect = true;
-				}
-			}
+//			if (!allowRedirect) {
+//				String referrer = wbRequest.getRefererUrl();
+//				String replayPrefix = wbRequest.getAccessPoint().getReplayPrefix();
+//				
+//				if ((referrer != null) && (replayPrefix != null) && referrer.startsWith(replayPrefix)) {
+//					allowRedirect = true;
+//				}
+//			}
 			
-			if (!allowRedirect) {
-				return LiveWebState.FOUND;
+//			if (!allowRedirect) {
+//				return LiveWebState.FOUND;
+//			}
+			if (!wbRequest.isAnyEmbeddedContext()) {
+				redirUrl = wbRequest.getRequestUrl();
 			}
 		}
 		
