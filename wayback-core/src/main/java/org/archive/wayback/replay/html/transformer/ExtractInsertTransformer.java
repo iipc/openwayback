@@ -177,4 +177,12 @@ public class ExtractInsertTransformer implements StringTransformer {
 	public void setRules(List<Rule> rules) {
 		this.rules = rules;
 	}
+
+	public boolean isMatchOnce() {
+		return matchOnce;
+	}
+
+	public void setMatchOnce(boolean matchOnce) {
+		this.matchOnce = matchOnce;
+	}
 }
