@@ -71,16 +71,20 @@ public class UpdateRobotsRequestHandler extends AbstractRequestHandler {
 		} else if (robotsCache == null) {
 			writer.println("No Robots Cache Set");
 		} else {
-			if (url.startsWith(HTTP_WWW_PREFIX) || url.startsWith(HTTPS_WWW_PREFIX)) {
-				//
-			} else if (url.startsWith(WWW_PREFIX)) {
+//			if (url.startsWith(HTTP_WWW_PREFIX) || url.startsWith(HTTPS_WWW_PREFIX)) {
+//				//
+//			} else if (url.startsWith(WWW_PREFIX)) {
+//				url = HTTP_PREFIX + url;
+//			} else if (url.startsWith(HTTP_PREFIX)) {
+//				url = HTTP_WWW_PREFIX + url.substring(HTTP_PREFIX.length());
+//			} else if (url.startsWith(HTTPS_PREFIX)) {
+//				url = HTTPS_WWW_PREFIX + url.substring(HTTPS_PREFIX.length());				
+//			} else {
+//				url = HTTP_WWW_PREFIX + url;
+//			}
+			
+			if (!url.startsWith(HTTP_PREFIX) && !url.startsWith(HTTPS_PREFIX)) {
 				url = HTTP_PREFIX + url;
-			} else if (url.startsWith(HTTP_PREFIX)) {
-				url = HTTP_WWW_PREFIX + url.substring(HTTP_PREFIX.length());
-			} else if (url.startsWith(HTTPS_PREFIX)) {
-				url = HTTPS_WWW_PREFIX + url.substring(HTTPS_PREFIX.length());				
-			} else {
-				url = HTTP_WWW_PREFIX + url;
 			}
 			
 			//RobotsContext context = robotsCache.forceUpdate(url, minUpdateTime);

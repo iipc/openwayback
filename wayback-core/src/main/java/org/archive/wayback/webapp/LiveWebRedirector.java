@@ -110,12 +110,12 @@ public class LiveWebRedirector {
 //				}
 //			}
 			
-//			if (!allowRedirect) {
-//				return LiveWebState.FOUND;
-//			}
 			if (!wbRequest.isAnyEmbeddedContext()) {
-				redirUrl = wbRequest.getRequestUrl();
+				return LiveWebState.FOUND;
 			}
+//			if (!wbRequest.isAnyEmbeddedContext()) {
+//				redirUrl = wbRequest.getRequestUrl();
+//			}
 		}
 		
 		// Now try to do a redirect
