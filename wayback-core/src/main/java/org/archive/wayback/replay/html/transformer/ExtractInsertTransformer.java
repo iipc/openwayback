@@ -114,11 +114,14 @@ public class ExtractInsertTransformer implements StringTransformer {
 			if (rule.fromPrefix != null) {
 				boolean matching = true;
 				
+				boolean skipRule = false;
+				
 				while (matching) {
 					index = input.indexOf(rule.fromPrefix, index);	
 					
 					if (index < 0) {
-						continue;
+						skipRule = true;
+						break;
 					}
 					
 					if (rule.fromBeforeMatch == null || (isAny(input.charAt(index - 1), rule.fromBeforeMatch))) {
@@ -126,6 +129,10 @@ public class ExtractInsertTransformer implements StringTransformer {
 					}
 					
 					index += rule.fromPrefix.length();
+				}
+				
+				if (skipRule) {
+					continue;
 				}
 				
 				int endIndex = index;
