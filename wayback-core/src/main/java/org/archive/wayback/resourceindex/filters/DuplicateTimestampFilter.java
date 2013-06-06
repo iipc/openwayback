@@ -26,7 +26,7 @@ public class DuplicateTimestampFilter implements ObjectFilter<CaptureSearchResul
 		}
 		
 		String timestamp = o.getCaptureTimestamp();
-		timestamp = timestamp.substring(0, timestampDedupLength);
+		timestamp = timestamp.substring(0, Math.min(timestampDedupLength, timestamp.length()));
 		int httpCode = NumberUtils.toInt(o.getHttpCode(), WORST_HTTP_CODE);
 		
 		boolean isDupe = false;
