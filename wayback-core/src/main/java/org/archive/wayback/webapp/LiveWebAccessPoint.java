@@ -161,7 +161,7 @@ public class LiveWebAccessPoint extends LiveWebRequestHandler {
 			throw new BadQueryException("Bad URL(" + urlString + ")");
 		}
 		
-		if ((skipHost != null) && skipHost.matcher(url.getHost()).matches()) {
+		if ((skipHost != null) && skipHost.matcher(url.getHost()).find()) {
 			return null;
 		}
 		
