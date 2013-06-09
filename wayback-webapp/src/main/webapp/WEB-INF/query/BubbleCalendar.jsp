@@ -32,7 +32,11 @@ if(graphJspPrefix == null) {
 }
 
 // graph size "constants": These are currently baked-in to the JS logic...
-int imgWidth = 882;
+int imgWidth = 0;
+
+for (int year = 1996; year <= Calendar.getInstance().get(Calendar.YEAR); year++)
+    imgWidth += 49;
+
 int imgHeight = 75;
 int yearWidth = 49;
 int monthWidth = 5;
@@ -253,7 +257,7 @@ $().ready(function(){
         </div>
         </a>
         	<%
-        	for(int i = 1996; i <= 2013; i++) {
+        	for(int i = 1996; i <= Calendar.getInstance().get(Calendar.YEAR); i++) {
         		String curClass = "inactiveHighlight";
         		if(data.yearNum == i) {
             		curClass = "activeHighlight";
