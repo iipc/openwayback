@@ -263,7 +263,7 @@ $().ready(function(){
         		}
         	%>
 	            <div class="wbChartThisContainer">
-	                <a style="text-decoration: none;" href="<%= queryPrefix + i + "0101000000*/" + data.searchUrlForHTML %>">
+	                <a style="text-decoration: none;" href="<%= queryPrefix + i + "0201000000*/" + data.searchUrlForHTML %>">
 	                
 	                	<div id="highlight-<%= i - 1996 %>"
 						onmouseover="showTrackers('inline'); setActiveYear(<%= i - 1996 %>)" 
