@@ -47,10 +47,14 @@ Date firstYearDate = data.yearPartitions.get(0).getStart();
 Date lastYearDate = data.yearPartitions.get(data.yearPartitions.size()-1).getEnd();
 
 int resultIndex = 1;
-int imgWidth = 375;
+int imgWidth = 0;
 int imgHeight = 27;
 int monthWidth = 2;
 int yearWidth = 25;
+
+for (int year = 1996; year <= Calendar.getInstance().get(Calendar.YEAR); year++)
+    imgWidth += yearWidth;
+
 String yearFormatKey = "PartitionSize.dateHeader.yearGraphLabel";
 String encodedGraph = data.computeGraphString(yearFormatKey,imgWidth,imgHeight);
 String graphImgUrl = graphJspPrefix + "jsp/graph.jsp?graphdata=" + encodedGraph;
