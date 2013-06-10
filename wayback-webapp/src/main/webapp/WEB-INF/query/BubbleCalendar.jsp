@@ -33,13 +33,12 @@ if(graphJspPrefix == null) {
 
 // graph size "constants": These are currently baked-in to the JS logic...
 int imgWidth = 0;
-
-for (int year = 1996; year <= Calendar.getInstance().get(Calendar.YEAR); year++)
-    imgWidth += 49;
-
 int imgHeight = 75;
 int yearWidth = 49;
 int monthWidth = 5;
+
+for (int year = 1996; year <= Calendar.getInstance().get(Calendar.YEAR); year++)
+    imgWidth += yearWidth;
 
 BubbleCalendarData data = new BubbleCalendarData(results);
 
