@@ -10,7 +10,6 @@ import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BetterRequestException;
-import org.archive.wayback.replay.ReplayRendererDecorator;
 import org.archive.wayback.replay.ReplayRendererDecoratorFactory;
 
 public class DecoratedReplayDispatcher implements ReplayDispatcher {
@@ -38,7 +37,14 @@ public class DecoratedReplayDispatcher implements ReplayDispatcher {
 	
 	public ReplayRenderer getRenderer(WaybackRequest wbRequest,
 			CaptureSearchResult result, Resource resource) {
-		ReplayRenderer r = decorated.getRenderer(wbRequest, result, resource);
+		ReplayRenderer r = decorated.getRenderer(wbRequest, result, resource, resource);
+		return getDecoratedRenderer(r);
+	}
+	
+	public ReplayRenderer getRenderer(WaybackRequest wbRequest,
+			CaptureSearchResult result, Resource httpHeadersResource,
+			Resource payloadResource) {
+		ReplayRenderer r = decorated.getRenderer(wbRequest, result, httpHeadersResource, payloadResource);
 		return getDecoratedRenderer(r);
 	}
 

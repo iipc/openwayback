@@ -20,28 +20,17 @@
 package org.archive.wayback.memento;
 
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.Properties;
-import java.util.TimeZone;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.archive.wayback.ReplayRenderer;
 import org.archive.wayback.ResultURIConverter;
-import org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.WaybackRequest;
-import org.archive.wayback.exception.BadContentException;
 import org.archive.wayback.exception.WaybackException;
-import org.archive.wayback.replay.HttpHeaderProcessor;
-import org.archive.wayback.replay.ReplayRendererDecoratorFactory;
-import org.archive.wayback.replay.TextReplayRenderer;
 import org.archive.wayback.replay.ReplayRendererDecorator;
 
 /**
@@ -73,5 +62,20 @@ public class MementoReplayRendererDecorator extends ReplayRendererDecorator {
 
 		decorated.renderResource(httpRequest, httpResponse, wbRequest, result,
 				resource, uriConverter, results);
+	}
+
+	@Override
+	public void renderResource(HttpServletRequest httpRequest,
+			HttpServletResponse httpResponse, WaybackRequest wbRequest,
+			CaptureSearchResult result, Resource httpHeadersResource,
+			Resource payloadResource, ResultURIConverter uriConverter,
+			CaptureSearchResults results) throws ServletException, IOException,
+			WaybackException {
+		
+		// add Memento headers:
+		MementoUtils.addMementoHeaders(httpResponse, results, wbRequest);
+
+		decorated.renderResource(httpRequest, httpResponse, wbRequest, result,
+				httpHeadersResource, payloadResource, uriConverter, results);		
 	}
 }

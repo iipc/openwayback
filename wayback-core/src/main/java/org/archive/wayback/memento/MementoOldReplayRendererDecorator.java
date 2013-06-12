@@ -23,7 +23,8 @@ public class MementoOldReplayRendererDecorator extends ReplayRendererDecorator  
 	@Override
 	public void renderResource(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
-			CaptureSearchResult result, Resource resource,
+			CaptureSearchResult result, Resource httpHeadersResource,
+			Resource payloadResource,
 			ResultURIConverter uriConverter, CaptureSearchResults results)
 			throws ServletException, IOException, WaybackException {
 		
@@ -177,7 +178,18 @@ public class MementoOldReplayRendererDecorator extends ReplayRendererDecorator  
 				+ origlink + sb.toString() + timemap + timegate);
 		
 		decorated.renderResource(httpRequest, httpResponse, wbRequest, result,
-				resource, uriConverter, results);
+				httpHeadersResource, payloadResource, uriConverter, results);
+	}
+
+	@Override
+	public void renderResource(HttpServletRequest httpRequest,
+			HttpServletResponse httpResponse, WaybackRequest wbRequest,
+			CaptureSearchResult result, Resource resource,
+			ResultURIConverter uriConverter, CaptureSearchResults results)
+			throws ServletException, IOException, WaybackException {
+		
+		this.renderResource(httpRequest, httpResponse, wbRequest,
+				result, resource, resource, uriConverter, results);
 	}
 
 }
