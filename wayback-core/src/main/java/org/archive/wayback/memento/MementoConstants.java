@@ -1,54 +1,82 @@
 package org.archive.wayback.memento;
 
+import java.text.SimpleDateFormat;
 import java.util.TimeZone;
+
 import org.archive.wayback.util.StringFormatter;
 
-public abstract interface MementoConstants
-{
-  public static final String AGGREGATION_PREFIX_CONFIG = "aggregationPrefix";
-  public static final String TIMEGATE_PREFIX_CONFIG = "aggregationPrefix";
-  public static final String GMT_TIMEZONE_STRING = "GMT";
-  public static final TimeZone GMT_TZ = TimeZone.getTimeZone("GMT");
-  public static final String DATE_FORMAT_14 = "yyyyMMddHHmmss";
-  public static final String HTTP_LINK_DATE_FORMAT = "E, dd MMM yyyy HH:mm:ss z";
-  public static final String APPLICATION_LINK_FORMAT = "application/link-format";
-  public static final String APPLICATION_RDF_XML_FORMAT = "application/rdf+xml";
-  public static final String RDF_XML_SERIALIZER = "RDF/XML";
-  public static final String TIMEBUNDLE = "timebundle";
-  public static final int TIMEBUNDLE_RESPONSE_CODE = 303;
-  public static final String TIMEGATE = "timegate";
-  public static final String TIMEMAP = "timemap";
-  public static final String LINK_PATH = "LINK";
-  public static final String LINK = "Link";
-  public static final String VARY = "Vary";
-  public static final String NEGOTIATE_DATETIME = "negotiate,accept-datetime";
-  public static final String ACCPEPT_DATETIME = "Accept-Datetime";
-  public static final String MEMENTO_DATETIME = "Memento-Datetime";
-  public static final String MEMENTO = "memento";
-  public static final String DATETIME = "datetime";
-  public static final String FIRST = "first";
-  public static final String PREV = "prev";
-  public static final String NEXT = "next";
-  public static final String LAST = "last";
-  public static final String FIRST_MEMENTO = StringFormatter.join(" ", new String[] { "first", "memento" });
+public interface MementoConstants {	
 
-  public static final String PREV_MEMENTO = StringFormatter.join(" ", new String[] { "prev", "memento" });
+	public final static String AGGREGATION_PREFIX_CONFIG = "aggregationPrefix";
+	public final static String TIMEGATE_PREFIX_CONFIG = "aggregationPrefix";
+	
+	public final static String GMT_TIMEZONE_STRING = "GMT";
+	public final static TimeZone GMT_TZ = 
+		TimeZone.getTimeZone(GMT_TIMEZONE_STRING);
+	
+	public final static String DATE_FORMAT_14 = "yyyyMMddHHmmss";
+	public final static String HTTP_LINK_DATE_FORMAT = 
+		"E, dd MMM yyyy HH:mm:ss z";	
+	
+	
+	public final static String APPLICATION_LINK_FORMAT = 
+		"application/link-format";
+	public final static String APPLICATION_RDF_XML_FORMAT = 
+		"application/rdf+xml";
+	public final static String RDF_XML_SERIALIZER = 
+		"RDF/XML";
+	
+	
+	
+	public final static String TIMEBUNDLE = "timebundle";
+	public final static int TIMEBUNDLE_RESPONSE_CODE = 303;
+	public final static String TIMEGATE = "timegate";
+	public final static String TIMEMAP = "timemap";
+	public final static String LINK_PATH = "LINK";
+	public final static String LINK = "Link";
+	public final static String VARY = "Vary";
+	public final static String NEGOTIATE_DATETIME = "negotiate,accept-datetime";
+	
+	
+	public final static String ACCPEPT_DATETIME = "Accept-Datetime";
+	public final static String MEMENTO_DATETIME = "Memento-Datetime";
+	public final static String MEMENTO = "memento";
+	public final static String DATETIME = "datetime";
+	public final static String FIRST = "first";
+	public final static String PREV = "prev";
+	public final static String NEXT = "next";
+	public final static String LAST = "last";
 
-  public static final String PREV_FIRST_MEMENTO = StringFormatter.join(" ", new String[] { "prev", "first", "memento" });
+	public final static String FIRST_MEMENTO = 
+		StringFormatter.join(" ", FIRST, MEMENTO);
 
-  public static final String LAST_MEMENTO = StringFormatter.join(" ", new String[] { "last", "memento" });
+	public final static String PREV_MEMENTO = 
+		StringFormatter.join(" ", PREV, MEMENTO);
+	
+	public final static String PREV_FIRST_MEMENTO =
+		StringFormatter.join(" ", PREV, FIRST, MEMENTO);
+	
+	public final static String LAST_MEMENTO = 
+		StringFormatter.join(" ", LAST, MEMENTO);
 
-  public static final String NEXT_MEMENTO = StringFormatter.join(" ", new String[] { "next", "memento" });
+	public final static String NEXT_MEMENTO = 
+		StringFormatter.join(" ", NEXT, MEMENTO);
+	
+	public final static String NEXT_LAST_MEMENTO =
+		StringFormatter.join(" ", NEXT, LAST, MEMENTO);
+	
+	public final static String FIRST_LAST_MEMENTO =
+		StringFormatter.join(" ", FIRST, LAST, MEMENTO);
+	
+	public final static String ORIGINAL = "original";
+	public final static String REL = "rel";
+	
+	public final static String WBR_FORMAT_KEY = "TIMEMAP_FORMAT";
+	public final static String WBR_TIMEGATE_KEY = "TIMEGATE_REQUEST";
+	public final static String WBR_TIMEGATE_VALUE = "yes";
 
-  public static final String NEXT_LAST_MEMENTO = StringFormatter.join(" ", new String[] { "next", "last", "memento" });
+	public final static String FORMAT_RDF = "rdf";
+	public final static String FORMAT_LINK = "link";
 
-  public static final String FIRST_LAST_MEMENTO = StringFormatter.join(" ", new String[] { "first", "last", "memento" });
-  public static final String ORIGINAL = "original";
-  public static final String REL = "rel";
-  public static final String WBR_FORMAT_KEY = "TIMEMAP_FORMAT";
-  public static final String WBR_TIMEGATE_KEY = "TIMEGATE_REQUEST";
-  public static final String WBR_TIMEGATE_VALUE = "yes";
-  public static final String FORMAT_RDF = "rdf";
-  public static final String FORMAT_LINK = "link";
-  public static final String TIMEGATE_JSP_HANDLER = "timegateJsp";
+	public final static String TIMEGATE_JSP_HANDLER = "timegateJsp";
 }
