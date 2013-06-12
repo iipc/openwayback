@@ -66,6 +66,8 @@ import org.archive.wayback.exception.ResourceNotAvailableException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.exception.SpecificCaptureReplayException;
 import org.archive.wayback.exception.WaybackException;
+import org.archive.wayback.memento.MementoConstants;
+import org.archive.wayback.memento.MementoUtils;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.resourceindex.filters.WARCRevisitAnnotationFilter;
 import org.archive.wayback.resourcestore.resourcefile.WarcResource;
@@ -141,6 +143,7 @@ implements ShutdownListener {
 	private boolean enableErrorMsgHeader = false;
 	private boolean enablePerfStatsHeader = false;
 	private boolean enableWarcFileHeader = false;
+	private boolean enableMementoHeader = false;
 		
 	private LiveWebRedirector liveWebRedirector;
 	
@@ -282,6 +285,11 @@ implements ShutdownListener {
 				// single AccessPoint. For now, this is a simple way to expose
 				// the feature to configuration.g
 				wbRequest.setExactScheme(isExactSchemeMatch());
+				
+				
+				if (this.isEnableMementoHeader()) {
+					MementoUtils.addOrigHeader(httpResponse, wbRequest);
+				}
 
 				if(wbRequest.isReplayRequest()) {
 					if(bounceToReplayPrefix) {
@@ -311,7 +319,7 @@ implements ShutdownListener {
 				handled = dispatchLocal(httpRequest,httpResponse);
 			}
 			
-		} catch(BetterRequestException e) {
+		} catch(BetterRequestException e) {			
 			e.generateResponse(httpResponse);
 			handled = true;
 
@@ -715,6 +723,10 @@ implements ShutdownListener {
 					} else {
 						httpResponse.addHeader(warcFileHeader, closest.getFile());
 					}
+				}
+				
+				if (this.isEnableMementoHeader()) {
+					MementoUtils.addMementoHeaders(httpResponse, captureResults, wbRequest);
 				}
 		
 				renderer.renderResource(httpRequest, httpResponse, wbRequest,
@@ -1649,5 +1661,13 @@ implements ShutdownListener {
 
 	public void setEnableWarcFileHeader(boolean enableWarcFileHeader) {
 		this.enableWarcFileHeader = enableWarcFileHeader;
+	}
+
+	public boolean isEnableMementoHeader() {
+		return enableMementoHeader;
+	}
+
+	public void setEnableMementoHeader(boolean enableMementoHeader) {
+		this.enableMementoHeader = enableMementoHeader;
 	}
 }
