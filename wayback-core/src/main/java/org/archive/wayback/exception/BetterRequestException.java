@@ -74,6 +74,12 @@ public class BetterRequestException extends WaybackException {
 	public void addHeader(String name, String value) {
 		extraHeaders.put(name, value);
 	}
+	
+	public boolean hasHeader(String name)
+	{
+		return extraHeaders.containsKey(name);
+	}
+	
 	/**
 	 * @return Returns the betterURI.
 	 */

@@ -58,7 +58,7 @@ public class MementoReplayRendererDecorator extends ReplayRendererDecorator {
 			throws ServletException, IOException, WaybackException {
 		
 		// add Memento headers:
-		MementoUtils.addMementoHeaders(httpResponse, results, wbRequest);
+		MementoUtils.addMementoHeaders(httpResponse, results, result, wbRequest);
 
 		decorated.renderResource(httpRequest, httpResponse, wbRequest, result,
 				resource, uriConverter, results);
@@ -73,7 +73,7 @@ public class MementoReplayRendererDecorator extends ReplayRendererDecorator {
 			WaybackException {
 		
 		// add Memento headers:
-		MementoUtils.addMementoHeaders(httpResponse, results, wbRequest);
+		MementoUtils.addMementoHeaders(httpResponse, results, result, wbRequest);
 
 		decorated.renderResource(httpRequest, httpResponse, wbRequest, result,
 				httpHeadersResource, payloadResource, uriConverter, results);		

@@ -31,6 +31,7 @@ import java.net.URLEncoder;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 
+import org.archive.wayback.memento.MementoUtils;
 import org.archive.wayback.requestparser.OpenSearchRequestParser;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.util.ObjectFilter;
@@ -283,9 +284,14 @@ public class WaybackRequest {
 		"iframewrappercontext";
 	
 	/**
-	 * Request: Use timestamp as part of the search key
+	 * Request: Ajax request -- don't insert extra headers and footers
 	 */
-	public static final String REQUEST_AJAX_REQUEST = "requestajaxrequest";	
+	public static final String REQUEST_AJAX_REQUEST = "requestajaxrequest";
+	
+	/**
+	 * Request: Memento Accept-Datetime used -- don't add extra redirects
+	 */
+	public static final String REQUEST_MEMENTO_REQUEST = "requestmementorequest";	
 	
 	/**
 	 * Request: Charset detection mode 
@@ -845,6 +851,13 @@ public class WaybackRequest {
 		return getBoolean(REQUEST_AJAX_REQUEST);
 	}
 	
+	public void setMementoRequest(boolean isMemento) {
+		setBoolean(REQUEST_MEMENTO_REQUEST, isMemento);
+	}
+	public boolean isMementoRequest() {
+		return getBoolean(REQUEST_MEMENTO_REQUEST);
+	}
+	
 
 	public void setCharsetMode(int mode) {
 		setInt(REQUEST_CHARSET_MODE,mode);
@@ -949,7 +962,18 @@ public class WaybackRequest {
 			if (x_req_with.equals("XMLHttpRequest")) {
 				this.setAjaxRequest(true);
 			}
-		}		
+		}
+		
+		if (accessPoint != null && accessPoint.isEnableMemento()) {		
+			// Check for Memento
+			String acceptDatetime = httpRequest.getHeader(MementoUtils.ACCPEPT_DATETIME);
+			if (acceptDatetime != null) {
+				this.setMementoRequest(true);
+			// Must also check Accept header
+			} else if (MementoUtils.isTimeMapRequest(httpRequest)) {
+				this.setMementoRequest(true);
+			}
+		}
 		
 		putUnlessNull(REQUEST_WAYBACK_HOSTNAME, httpRequest.getLocalName());
 		putUnlessNull(REQUEST_AUTH_TYPE, httpRequest.getAuthType());

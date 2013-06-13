@@ -57,48 +57,60 @@ public class TimeGateRequestParser extends WrappedRequestParser implements Memen
 	public WaybackRequest parse(HttpServletRequest httpRequest,
 			AccessPoint accessPoint) throws BadQueryException,
 			BetterRequestException {
+		
+		if (!accessPoint.isEnableMemento()) {
+			return null;
+		}
 
 		String base = accessPoint.translateRequestPath(httpRequest);
 		String requestPath = accessPoint.translateRequestPathQuery(httpRequest);
 
 		LOGGER.fine("requestPath:" + requestPath);
-		if (base.startsWith(TIMEGATE_SLASH)) {
+		//if (base.startsWith(TIMEGATE_SLASH)) {
 
-			// strip leading "timegate/":
-			String urlStr = base.substring(TIMEGATE_SLASH_LEN);
-			String acceptDateTime = httpRequest.getHeader(ACCPEPT_DATETIME);
-			Date d = null;
-			if(acceptDateTime != null) {
-				// OK, looks like a valid request -- hopefully urlStr is valid..
-				d = MementoUtils.parseAcceptDateTimeHeader(acceptDateTime);				
-			}
-			if(d == null) {
-				d = new Date();
-			}
+		// strip leading "timegate/":
+		//String urlStr = base.substring(TIMEGATE_SLASH_LEN);
+		String urlStr = base;
+		String acceptDateTime = httpRequest.getHeader(ACCPEPT_DATETIME);
+		
+//		if (acceptDateTime == null) {
+//			return null;
+//		}
+		
+		Date d = null;
+		
+		if (acceptDateTime != null) {
+			// OK, looks like a valid request -- hopefully urlStr i1s valid..
+			d = MementoUtils.parseAcceptDateTimeHeader(acceptDateTime);				
+		}
+		
+		if (d == null) {
+			d = new Date();
+		}
 
-			WaybackRequest wbRequest = new WaybackRequest();
-			if (wbRequest.getStartTimestamp() == null) {
-				wbRequest.setStartTimestamp(getEarliestTimestamp());
-			}
+		WaybackRequest wbRequest = new WaybackRequest();
+		if (wbRequest.getStartTimestamp() == null) {
+			wbRequest.setStartTimestamp(getEarliestTimestamp());
+		}
 
-			// this shouldn't be needed.. I think was only used to "pass error"
+		// this shouldn't be needed.. I think was only used to "pass error"
 //			wbRequest.put("dtconneg", acceptDateTime);
 
-			if (wbRequest.getEndTimestamp() == null) {
-				wbRequest.setEndTimestamp(getLatestTimestamp());
-			}
-			wbRequest.setReplayDate(d);
-			wbRequest.setAnchorDate(d);
-			wbRequest.setCaptureQueryRequest();
-			// inidicate the "special" timegate format:
-			MementoUtils.setRequestFormat(wbRequest, TIMEGATE);
-			wbRequest.setRequestUrl(urlStr);
-			if (wbRequest != null) {
-				wbRequest.setResultsPerPage(getMaxRecords());
-			}
-			return wbRequest;
+		if (wbRequest.getEndTimestamp() == null) {
+			wbRequest.setEndTimestamp(getLatestTimestamp());
 		}
-		return null;
+		wbRequest.setReplayDate(d);
+		wbRequest.setAnchorDate(d);
+		wbRequest.setReplayRequest();
+		// indicate the "special" timegate format:
+		//MementoUtils.setRequestFormat(wbRequest, TIMEGATE);
+		wbRequest.setRequestUrl(urlStr);
+		if (wbRequest != null) {
+			wbRequest.setResultsPerPage(getMaxRecords());
+		}
+		return wbRequest;
+		//}
+		//return null;
 	}
 //
 //	public WaybackRequest parseOld(HttpServletRequest httpRequest,

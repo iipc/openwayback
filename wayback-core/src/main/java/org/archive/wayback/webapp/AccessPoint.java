@@ -66,7 +66,6 @@ import org.archive.wayback.exception.ResourceNotAvailableException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.exception.SpecificCaptureReplayException;
 import org.archive.wayback.exception.WaybackException;
-import org.archive.wayback.memento.MementoConstants;
 import org.archive.wayback.memento.MementoUtils;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.resourceindex.filters.WARCRevisitAnnotationFilter;
@@ -143,7 +142,7 @@ implements ShutdownListener {
 	private boolean enableErrorMsgHeader = false;
 	private boolean enablePerfStatsHeader = false;
 	private boolean enableWarcFileHeader = false;
-	private boolean enableMementoHeader = false;
+	private boolean enableMemento = false;
 		
 	private LiveWebRedirector liveWebRedirector;
 	
@@ -287,7 +286,7 @@ implements ShutdownListener {
 				wbRequest.setExactScheme(isExactSchemeMatch());
 				
 				
-				if (this.isEnableMementoHeader()) {
+				if (isMementoActive(wbRequest)) {
 					MementoUtils.addOrigHeader(httpResponse, wbRequest);
 				}
 
@@ -333,7 +332,7 @@ implements ShutdownListener {
 			
 			LiveWebState liveWebState = LiveWebState.NOT_FOUND;
 			
-			if (getLiveWebRedirector() != null) {
+			if ((getLiveWebRedirector() != null) && !isMementoActive(wbRequest)) {
 				liveWebState = getLiveWebRedirector().handleRedirect(e, wbRequest, httpRequest, httpResponse);
 			}
 			
@@ -416,7 +415,7 @@ implements ShutdownListener {
 	private void checkInterstitialRedirect(HttpServletRequest httpRequest,
 			WaybackRequest wbRequest) 
 	throws BetterRequestException {
-		if((refererAuth != null) && (refererAuth.length() > 0)) {
+		if((refererAuth != null) && (refererAuth.length() > 0) && !isMementoActive(wbRequest)) {
 			String referer = httpRequest.getHeader("Referer");
 			if((referer != null) && (referer.length() > 0) && (!referer.contains(refererAuth))) {
 				StringBuffer sb = httpRequest.getRequestURL();
@@ -546,11 +545,22 @@ implements ShutdownListener {
 		}
 	}
 	
-	protected String getRedirectUrl(WaybackRequest wbRequest, String timestamp, String url)
+	// throw BetterRequestException here, also if memento is enabled, this acts as a timegate
+	protected void throwRedirect(WaybackRequest wbRequest, 
+								 HttpServletResponse httpResponse,
+								 CaptureSearchResults captureResults, 
+								 String timestamp, 
+								 String url) throws BetterRequestException
 	{
 		String datespec = ArchivalUrl.getDateSpec(wbRequest, timestamp);
 		String betterURI = getUriConverter().makeReplayURI(datespec, url);
-		return betterURI;
+	
+		// Memento URL-G response
+		if (this.isMementoActive(wbRequest)) {
+			MementoUtils.addTimegateHeaders(httpResponse, captureResults, wbRequest);
+		}
+		
+		throw new BetterRequestException(betterURI);
 	}
 	
 	protected void handleReplay(WaybackRequest wbRequest, 
@@ -672,8 +682,7 @@ implements ShutdownListener {
 						
 						// Then, if both headers and payload are from a different timestamp, redirect to that timestamp
 						if (!closest.getCaptureTimestamp().equals(closest.getDuplicateDigestStoredTimestamp())) {
-							throw new BetterRequestException(
-									getRedirectUrl(wbRequest, closest.getDuplicateDigestStoredTimestamp(), closest.getOriginalUrl()));
+							throwRedirect(wbRequest, httpResponse, captureResults, closest.getDuplicateDigestStoredTimestamp(), closest.getOriginalUrl());
 						}
 						
 						payloadResource = httpHeadersResource;
@@ -708,8 +717,7 @@ implements ShutdownListener {
 				
 				// Redirect to url for the actual closest capture
 				if ((closest != originalClosest) && !closest.getCaptureTimestamp().equals(originalClosest.getCaptureTimestamp())) {
-					throw new BetterRequestException(
-							getRedirectUrl(wbRequest, closest.getCaptureTimestamp(), closest.getOriginalUrl()));
+					throwRedirect(wbRequest, httpResponse, captureResults, closest.getCaptureTimestamp(), closest.getOriginalUrl());
 				}
 		
 				p.retrieved();
@@ -725,8 +733,9 @@ implements ShutdownListener {
 					}
 				}
 				
-				if (this.isEnableMementoHeader()) {
-					MementoUtils.addMementoHeaders(httpResponse, captureResults, wbRequest);
+				// Memento URL-M response
+				if (this.isMementoActive(wbRequest)) {
+					MementoUtils.addMementoHeaders(httpResponse, captureResults, closest, wbRequest);
 				}
 		
 				renderer.renderResource(httpRequest, httpResponse, wbRequest,
@@ -1012,9 +1021,14 @@ implements ShutdownListener {
 			if(closest != null) {
 				closest.setClosest(true);
 			}
-
-			getQuery().renderCaptureResults(httpRequest,httpResponse,wbRequest,
-					cResults,getUriConverter());
+			
+			// Memento URL-T Query -- TODO: generalize perhaps?
+			if (isMementoActive(wbRequest) && MementoUtils.isTimeMapRequest(httpRequest)) {
+				MementoUtils.printTimemapResponse(cResults, wbRequest, httpResponse);
+			} else {
+				getQuery().renderCaptureResults(httpRequest,httpResponse,wbRequest,
+						cResults,getUriConverter());
+			}
 
 		} else if(results instanceof UrlSearchResults) {
 			UrlSearchResults uResults = (UrlSearchResults) results;
@@ -1663,11 +1677,15 @@ implements ShutdownListener {
 		this.enableWarcFileHeader = enableWarcFileHeader;
 	}
 
-	public boolean isEnableMementoHeader() {
-		return enableMementoHeader;
+	public boolean isEnableMemento() {
+		return enableMemento;
+	}
+	
+	public boolean isMementoActive(WaybackRequest wbr) {
+		return isEnableMemento();// && wbr.isMementoRequest();
 	}
 
-	public void setEnableMementoHeader(boolean enableMementoHeader) {
-		this.enableMementoHeader = enableMementoHeader;
+	public void setEnableMemento(boolean enableMemento) {
+		this.enableMemento = enableMemento;
 	}
 }

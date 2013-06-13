@@ -1,14 +1,16 @@
 package org.archive.wayback.memento;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Properties;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.archive.wayback.core.CaptureSearchResult;
@@ -30,6 +32,12 @@ public class MementoUtils implements MementoConstants {
 		DATE_FORMAT_14_FORMATTER = new SimpleDateFormat(DATE_FORMAT_14);
 		DATE_FORMAT_14_FORMATTER.setTimeZone(GMT_TZ);
 	}
+	
+	public static void printTimemapResponse(CaptureSearchResults results, WaybackRequest wbRequest, HttpServletResponse response) throws IOException
+	{
+		response.setContentType("application/link-format");
+		printLinkTimemap(results, wbRequest, response.getWriter());
+	}
 
 	public static void printLinkTimemap(CaptureSearchResults results, 
 			WaybackRequest wbr, PrintWriter pw) {
@@ -37,10 +45,7 @@ public class MementoUtils implements MementoConstants {
 		Date last = results.getLastResultDate();
 		AccessPoint ap = wbr.getAccessPoint();
 		
-		String requestUrl = wbr.getRequestUrl();
-		pw.print(makeLink(getTimebundleUrl(ap, requestUrl), TIMEBUNDLE));
-		pw.println(",");
-		
+		String requestUrl = wbr.getRequestUrl();		
 //		pw.print(makeLink(getTimebundleUrl(ap, requestUrl), TIMEBUNDLE));
 //		pw.println(",");
 		pw.print(makeLink(requestUrl, ORIGINAL));
@@ -89,7 +94,7 @@ public class MementoUtils implements MementoConstants {
 		String requestUrl = wbr.getRequestUrl();
 
 		// add generics:
-		rels.add(makeLink(getTimebundleUrl(ap, requestUrl), TIMEBUNDLE));
+		//rels.add(makeLink(getTimebundleUrl(ap, requestUrl), TIMEBUNDLE));
 		rels.add(makeLink(requestUrl, ORIGINAL));
 		rels.add(makeLink(getTimemapUrl(ap,FORMAT_LINK,requestUrl),
 				TIMEMAP,APPLICATION_LINK_FORMAT));
@@ -151,6 +156,17 @@ public class MementoUtils implements MementoConstants {
 		// HRM.. Are we sure it's *our* Link header, and has the rel="original"?
 		return response.containsHeader(LINK);
 	}
+	
+	public static boolean isTimeMapRequest(HttpServletRequest httpRequest)
+	{
+		String header = httpRequest.getHeader("Accept");
+		
+		if (header != null && header.equals("application/link-format;q=1.0")) {
+			return true;
+		}
+		
+		return false;
+	}
 
 	public static void addOrigHeader(HttpServletResponse response, String url) {
 		response.setHeader(LINK, makeLink(url, ORIGINAL));
@@ -160,10 +176,9 @@ public class MementoUtils implements MementoConstants {
 		addOrigHeader(response,wbr.getRequestUrl());
 	}
 
-	public static void addMementoHeaders(HttpServletResponse response,
-			CaptureSearchResults results, WaybackRequest wbr) {
+	public static void addMementoHeaders(HttpServletResponse response, CaptureSearchResults results, CaptureSearchResult closest, WaybackRequest wbr) {
 		response.setHeader("Memento-Datetime",
-				HTTP_LINK_DATE_FORMATTER.format(results.getClosest().getCaptureDate()));
+				HTTP_LINK_DATE_FORMATTER.format(closest.getCaptureDate()));
 
 		response.setHeader(LINK, generateMementoLinkHeaders(results,wbr));
 	}
@@ -219,31 +234,32 @@ public class MementoUtils implements MementoConstants {
 		}
 		return null;
 	}
-	public static String getTimebundleUrl(AccessPoint ap, String url) {
-		StringBuilder sb = new StringBuilder();
-		sb.append(getTimeBundlePrefix(ap));
-		sb.append(TIMEBUNDLE).append("/").append(url);
-		return sb.toString();
-	}
+//	public static String getTimebundleUrl(AccessPoint ap, String url) {
+//		StringBuilder sb = new StringBuilder();
+//		sb.append(getTimeBundlePrefix(ap));
+//		sb.append(TIMEBUNDLE).append("/").append(url);
+//		return sb.toString();
+//	}
 	public static String getTimegateUrl(AccessPoint ap, String url) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(getTimeBundlePrefix(ap));
-		sb.append(TIMEGATE).append("/").append(url);
+		sb.append(url);
+		//sb.append(TIMEGATE).append("/").append(url);
 		return sb.toString();
 	}
 	public static String getTimemapUrl(AccessPoint ap, String format, 
 			String url) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(getTimeMapPrefix(ap));
-		sb.append(TIMEMAP).append("/").append(format).append("/");
+		//sb.append(TIMEMAP).append("/").append(format).append("/");
 		sb.append(url);
 		return sb.toString();
 	}
 	public static String getTimeMapPrefix(AccessPoint ap) {
-		return getAggregationPrefix(ap);
+		return getAggregationPrefix(ap) + ap.getQueryPrefix() + "*/";
 	}
 	public static String getTimeBundlePrefix(AccessPoint ap) {
-		return getAggregationPrefix(ap);
+		return getAggregationPrefix(ap) + ap.getReplayPrefix();
 	}
 
 
@@ -254,7 +270,7 @@ public class MementoUtils implements MementoConstants {
 		}
 		// TODO: rationalize...
 		if(prefix == null) {
-			prefix = getProp(ap.getConfigs(),AGGREGATION_PREFIX_CONFIG,null);
+			prefix = getProp(ap.getConfigs(),AGGREGATION_PREFIX_CONFIG, "");
 		}
 		if(prefix == null) {
 			prefix = ap.getQueryPrefix();
@@ -282,10 +298,11 @@ public class MementoUtils implements MementoConstants {
 		
 		String timestamp = DATE_FORMAT_14_FORMATTER.format(date);
 		String replayURI = ap.getUriConverter().makeReplayURI(timestamp, url);
+		String prefix = getAggregationPrefix(ap);
 		String httpTime = HTTP_LINK_DATE_FORMATTER.format(date);
 		
-		return String.format("<%s>; rel=\"%s\"; datetime=\"%s\"",
-				replayURI,rel,httpTime);
+		return String.format("<%s%s>; rel=\"%s\"; datetime=\"%s\"",
+				prefix,replayURI,rel,httpTime);
 	}
 
 	private static NotableResultExtractor getNotableResults(CaptureSearchResults r) {

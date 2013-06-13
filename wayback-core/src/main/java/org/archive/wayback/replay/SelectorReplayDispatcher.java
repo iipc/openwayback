@@ -71,9 +71,10 @@ public class SelectorReplayDispatcher implements ReplayDispatcher {
 			return closestSelector.getClosest(wbRequest, results);
 		} catch (BetterRequestException e) {
 			
-			if (wbRequest.getAccessPoint().isEnableMementoHeader()) {
-				e.addHeader(MementoConstants.LINK, 
-						MementoUtils.generateMementoLinkHeaders(results,wbRequest));
+			// Memento URL-G response
+			if (wbRequest.getAccessPoint().isMementoActive(wbRequest)) {
+				e.addHeader(MementoConstants.VARY, MementoConstants.NEGOTIATE_DATETIME);
+				e.addHeader(MementoConstants.LINK, MementoUtils.generateMementoLinkHeaders(results,wbRequest));
 			}
 			
 			throw e;

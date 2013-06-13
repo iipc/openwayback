@@ -32,7 +32,7 @@ public class RedirectSelector extends BaseReplayRendererSelector {
 	public boolean canHandle(WaybackRequest wbRequest,
 			CaptureSearchResult result, Resource httpHeadersResource,
 			Resource payloadResource) {
-		if (!wbRequest.isLiveWebRequest()) {
+		if (!wbRequest.isLiveWebRequest() && !wbRequest.isMementoRequest()) {
 			String code = result.getHttpCode();
 			if ((code != null) && code.startsWith("3")) {
 				return true;

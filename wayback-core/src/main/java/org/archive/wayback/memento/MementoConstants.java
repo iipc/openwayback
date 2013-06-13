@@ -35,7 +35,7 @@ public interface MementoConstants {
 	public final static String LINK_PATH = "LINK";
 	public final static String LINK = "Link";
 	public final static String VARY = "Vary";
-	public final static String NEGOTIATE_DATETIME = "negotiate,accept-datetime";
+	public final static String NEGOTIATE_DATETIME = "accept-datetime";
 	
 	
 	public final static String ACCPEPT_DATETIME = "Accept-Datetime";
