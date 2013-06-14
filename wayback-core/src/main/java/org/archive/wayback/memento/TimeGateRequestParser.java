@@ -80,7 +80,7 @@ public class TimeGateRequestParser extends WrappedRequestParser implements Memen
 		Date d = null;
 		
 		if (acceptDateTime != null) {
-			// OK, looks like a valid request -- hopefully urlStr i1s valid..
+			// OK, looks like a valid request -- hopefully urlStr is valid..
 			d = MementoUtils.parseAcceptDateTimeHeader(acceptDateTime);				
 		}
 		
@@ -99,6 +99,7 @@ public class TimeGateRequestParser extends WrappedRequestParser implements Memen
 		if (wbRequest.getEndTimestamp() == null) {
 			wbRequest.setEndTimestamp(getLatestTimestamp());
 		}
+		wbRequest.setMementoTimegate(true);
 		wbRequest.setReplayDate(d);
 		wbRequest.setAnchorDate(d);
 		wbRequest.setReplayRequest();

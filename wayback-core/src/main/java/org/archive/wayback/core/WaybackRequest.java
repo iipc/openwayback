@@ -296,7 +296,12 @@ public class WaybackRequest {
 	/**
 	 * Request: Memento Timemap Request
 	 */
-	public static final String REQUEST_MEMENTO_TIMEMAP = "requestmementotimegate";
+	public static final String REQUEST_MEMENTO_TIMEMAP = "requestmementotimemap";
+	
+	/**
+	 * Request: Memento Timegate Request
+	 */
+	public static final String REQUEST_MEMENTO_TIMEGATE = "requestmementotimegate";
 	
 	/**
 	 * Request: Charset detection mode 
@@ -872,6 +877,13 @@ public class WaybackRequest {
 	}
 	public boolean hasMementoAcceptDatetime() {
 		return getBoolean(REQUEST_MEMENTO_ACCEPT_DATETIME);
+	}
+	
+	public void setMementoTimegate(boolean timegate) {
+		setBoolean(REQUEST_MEMENTO_TIMEGATE, timegate);
+	}
+	public boolean isMementoTimegate() {
+		return getBoolean(REQUEST_MEMENTO_TIMEGATE);
 	}
 	
 
