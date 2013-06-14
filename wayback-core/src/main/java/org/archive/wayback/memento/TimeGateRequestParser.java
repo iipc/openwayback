@@ -73,9 +73,9 @@ public class TimeGateRequestParser extends WrappedRequestParser implements Memen
 		String urlStr = base;
 		String acceptDateTime = httpRequest.getHeader(ACCPEPT_DATETIME);
 		
-//		if (acceptDateTime == null) {
-//			return null;
-//		}
+		if (acceptDateTime == null) {
+			return null;
+		}
 		
 		Date d = null;
 		
@@ -105,9 +105,11 @@ public class TimeGateRequestParser extends WrappedRequestParser implements Memen
 		// indicate the "special" timegate format:
 		//MementoUtils.setRequestFormat(wbRequest, TIMEGATE);
 		wbRequest.setRequestUrl(urlStr);
+		
 		if (wbRequest != null) {
 			wbRequest.setResultsPerPage(getMaxRecords());
 		}
+		
 		return wbRequest;
 		//}
 		//return null;

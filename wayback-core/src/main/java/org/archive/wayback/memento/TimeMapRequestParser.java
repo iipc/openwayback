@@ -40,34 +40,36 @@ implements MementoConstants {
 		String requestPath = accessPoint.translateRequestPathQuery(httpRequest);
 		LOGGER.fine("requestpath:" + requestPath);
 
-		//if (requestPath.startsWith(TIMEMAP)) {
-
-		String urlStrplus = requestPath
-				.substring(requestPath.indexOf("/") + 1);
-		String format = urlStrplus.substring(0, urlStrplus.indexOf("/"));
-
-		String urlStr = urlStrplus.substring(urlStrplus.indexOf("/") + 1);
-		LOGGER.fine(String.format("Parsed format(%s) URL(%s)",
-				format,urlStr));
-
-		WaybackRequest wbRequest = new WaybackRequest();
-
-
-		if (wbRequest.getStartTimestamp() == null) {
-			wbRequest.setStartTimestamp(getEarliestTimestamp());
+		if (requestPath.startsWith(TIMEMAP)) {		
+			String urlStrplus = requestPath
+					.substring(requestPath.indexOf("/") + 1);
+			String format = urlStrplus.substring(0, urlStrplus.indexOf("/"));
+	
+			String urlStr = urlStrplus.substring(urlStrplus.indexOf("/") + 1);
+			LOGGER.fine(String.format("Parsed format(%s) URL(%s)",
+					format,urlStr));
+	
+			WaybackRequest wbRequest = new WaybackRequest();
+	
+			if (wbRequest.getStartTimestamp() == null) {
+				wbRequest.setStartTimestamp(getEarliestTimestamp());
+			}
+			
+			wbRequest.setAnchorTimestamp(getLatestTimestamp());
+			
+			if (wbRequest.getEndTimestamp() == null) {
+				wbRequest.setEndTimestamp(getLatestTimestamp());
+			}
+			
+			wbRequest.setCaptureQueryRequest();
+			wbRequest.setMementoTimemapFormat(format);
+			wbRequest.setRequestUrl(urlStr);
+	
+			wbRequest.setResultsPerPage(getMaxRecords());
+	
+			return wbRequest;
 		}
-		wbRequest.setAnchorTimestamp(getLatestTimestamp());
-		if (wbRequest.getEndTimestamp() == null) {
-			wbRequest.setEndTimestamp(getLatestTimestamp());
-		}
-		wbRequest.setCaptureQueryRequest();
-		MementoUtils.setRequestFormat(wbRequest, format);
-		wbRequest.setRequestUrl(urlStr);
-
-		wbRequest.setResultsPerPage(getMaxRecords());
-
-		return wbRequest;
-		//}
+		
+		return null;
 	}
-
 }

@@ -21,13 +21,13 @@ package org.archive.wayback.archivalurl.requestparser;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Date;
 
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.exception.BetterRequestException;
 import org.archive.wayback.requestparser.BaseRequestParser;
 import org.archive.wayback.requestparser.PathRequestParser;
-import org.archive.wayback.util.Timestamp;
 import org.archive.wayback.util.url.UrlOperations;
 import org.archive.wayback.webapp.AccessPoint;
 
@@ -78,30 +78,47 @@ public class DatelessReplayRequestParser extends PathRequestParser {
 			try {
 				URL u = new URL(UrlOperations.HTTP_SCHEME + requestPath);
 				// does the authority look legit?
-				if(u.getUserInfo() != null) {
+				if (u.getUserInfo() != null) {
 					throw new BadQueryException("Unable to handle URLs with user information");
 				}
-				if(UrlOperations.isAuthority(u.getAuthority())) {
+				
+				if (UrlOperations.isAuthority(u.getAuthority())) {
 					// ok, we're going to assume this is good:
-					String nowTS = Timestamp.currentTimestamp().getDateStr();
-					String newUrl = 
-						accessPoint.getUriConverter().makeReplayURI(nowTS, 
-								requestPath);
-					throw new BetterRequestException(newUrl);
+					return handleDatelessRequest(accessPoint, requestPath);
 				}
+				
 			} catch(MalformedURLException e) {
 				// eat it silently
 			}
 		} else {
 			// OK, we're going to assume this is a replay request, sans timestamp,
 			// ALWAYS redirect:
-	
-			String nowTS = Timestamp.currentTimestamp().getDateStr();
-			String newUrl = 
-				accessPoint.getUriConverter().makeReplayURI(nowTS, requestPath);
-			throw new BetterRequestException(newUrl);
+			return handleDatelessRequest(accessPoint, requestPath);
 		}
 		return null;
 	}
+	
+	protected WaybackRequest handleDatelessRequest(AccessPoint accessPoint, String requestPath) throws BetterRequestException
+	{
+//		String nowTS = Timestamp.currentTimestamp().getDateStr();
+//		String newUrl = accessPoint.getUriConverter().makeReplayURI(nowTS, requestPath);
+//		throw new BetterRequestException(newUrl);
+		
+		WaybackRequest wbRequest = new WaybackRequest();
+		
+		if (wbRequest.getStartTimestamp() == null) {
+			wbRequest.setStartTimestamp(getEarliestTimestamp());
+		}
 
+		if (wbRequest.getEndTimestamp() == null) {
+			wbRequest.setEndTimestamp(getLatestTimestamp());
+		}
+		
+		Date d = new Date();
+		wbRequest.setReplayDate(d);
+		wbRequest.setAnchorDate(d);
+		wbRequest.setReplayRequest();
+		wbRequest.setRequestUrl(requestPath);
+		return wbRequest;
+	}
 }

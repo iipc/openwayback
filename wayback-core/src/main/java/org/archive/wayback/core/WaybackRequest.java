@@ -291,7 +291,12 @@ public class WaybackRequest {
 	/**
 	 * Request: Memento Accept-Datetime used -- don't add extra redirects
 	 */
-	public static final String REQUEST_MEMENTO_REQUEST = "requestmementorequest";	
+	public static final String REQUEST_MEMENTO_ACCEPT_DATETIME = "requestmementoacceptdatetime";	
+	
+	/**
+	 * Request: Memento Timemap Request
+	 */
+	public static final String REQUEST_MEMENTO_TIMEMAP = "requestmementotimegate";
 	
 	/**
 	 * Request: Charset detection mode 
@@ -851,11 +856,22 @@ public class WaybackRequest {
 		return getBoolean(REQUEST_AJAX_REQUEST);
 	}
 	
-	public void setMementoRequest(boolean isMemento) {
-		setBoolean(REQUEST_MEMENTO_REQUEST, isMemento);
+	public void setMementoTimemapFormat(String format) {
+		put(REQUEST_MEMENTO_TIMEMAP, format);
 	}
-	public boolean isMementoRequest() {
-		return getBoolean(REQUEST_MEMENTO_REQUEST);
+	public String getMementoTimemapFormat()
+	{
+		return get(REQUEST_MEMENTO_TIMEMAP);
+	}
+	public boolean isMementoTimemapRequest() {
+		return get(REQUEST_MEMENTO_TIMEMAP) != null;
+	}
+	
+	public void setMementoAcceptDatetime(boolean acceptDatetime) {
+		setBoolean(REQUEST_MEMENTO_ACCEPT_DATETIME, acceptDatetime);
+	}
+	public boolean hasMementoAcceptDatetime() {
+		return getBoolean(REQUEST_MEMENTO_ACCEPT_DATETIME);
 	}
 	
 
@@ -965,13 +981,10 @@ public class WaybackRequest {
 		}
 		
 		if (accessPoint != null && accessPoint.isEnableMemento()) {		
-			// Check for Memento
+			// Check for Memento Accept-Datetime
 			String acceptDatetime = httpRequest.getHeader(MementoUtils.ACCPEPT_DATETIME);
 			if (acceptDatetime != null) {
-				this.setMementoRequest(true);
-			// Must also check Accept header
-			} else if (MementoUtils.isTimeMapRequest(httpRequest)) {
-				this.setMementoRequest(true);
+				this.setMementoAcceptDatetime(true);
 			}
 		}
 		

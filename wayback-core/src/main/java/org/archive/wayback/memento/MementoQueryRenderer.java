@@ -45,7 +45,7 @@ public class MementoQueryRenderer implements QueryRenderer, MementoConstants {
 			throws ServletException, IOException {
 
 		// assume a TimeMap query:
-		String format = MementoUtils.getRequestFormat(wbRequest);
+		String format = wbRequest.getMementoTimemapFormat();
 		if(format == null) {
 			AccessPoint ap = wbRequest.getAccessPoint();
 			LOG.warning(String.format("No format for(%s)",

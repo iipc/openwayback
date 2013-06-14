@@ -55,7 +55,7 @@ public class DecoratedReplayDispatcher implements ReplayDispatcher {
 			closest = decorated.getClosest(wbRequest, results);
 		} catch (BetterRequestException e) {
 			e.addHeader(MementoConstants.LINK, 
-					MementoUtils.generateMementoLinkHeaders(results,wbRequest));
+					MementoUtils.generateMementoLinkHeaders(results,wbRequest,true));
 			throw e;
 		}
 		return closest;

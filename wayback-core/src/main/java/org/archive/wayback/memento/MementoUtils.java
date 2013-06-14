@@ -80,7 +80,7 @@ public class MementoUtils implements MementoConstants {
 		}
 		pw.flush();
 	}	
-	public static String generateMementoLinkHeaders(CaptureSearchResults results, WaybackRequest wbr) {
+	public static String generateMementoLinkHeaders(CaptureSearchResults results, WaybackRequest wbr, boolean includeTimegate) {
 		NotableResultExtractor nre = getNotableResults(results);
 		CaptureSearchResult first = nre.getFirst();
 		CaptureSearchResult prev = nre.getPrev();
@@ -98,7 +98,10 @@ public class MementoUtils implements MementoConstants {
 		rels.add(makeLink(requestUrl, ORIGINAL));
 		rels.add(makeLink(getTimemapUrl(ap,FORMAT_LINK,requestUrl),
 				TIMEMAP,APPLICATION_LINK_FORMAT));
-		rels.add(makeLink(getTimegateUrl(ap, requestUrl),TIMEGATE));
+		
+		if (includeTimegate) {
+			rels.add(makeLink(getTimegateUrl(ap, requestUrl),TIMEGATE));
+		}
 		
 		// add first/prev/next/last:
 		if(first == last) {
@@ -157,19 +160,24 @@ public class MementoUtils implements MementoConstants {
 		return response.containsHeader(LINK);
 	}
 	
-	public static boolean isTimeMapRequest(HttpServletRequest httpRequest)
-	{
-		String header = httpRequest.getHeader("Accept");
-		
-		if (header != null && header.equals("application/link-format;q=1.0")) {
-			return true;
-		}
-		
-		return false;
-	}
+//	public static boolean isTimeMapRequest(HttpServletRequest httpRequest)
+//	{
+//		String header = httpRequest.getHeader("Accept");
+//		
+//		if (header != null && header.equals("application/link-format;q=1.0")) {
+//			return true;
+//		}
+//		
+//		return false;
+//	}
 
 	public static void addOrigHeader(HttpServletResponse response, String url) {
 		response.setHeader(LINK, makeLink(url, ORIGINAL));
+	}
+	
+	public static String makeOrigHeader(String url)
+	{
+		return makeLink(url, ORIGINAL);
 	}
 
 	public static void addOrigHeader(HttpServletResponse response, WaybackRequest wbr) {
@@ -180,13 +188,13 @@ public class MementoUtils implements MementoConstants {
 		response.setHeader("Memento-Datetime",
 				HTTP_LINK_DATE_FORMATTER.format(closest.getCaptureDate()));
 
-		response.setHeader(LINK, generateMementoLinkHeaders(results,wbr));
+		response.setHeader(LINK, generateMementoLinkHeaders(results,wbr, true));
 	}
 	public static void addTimegateHeaders(HttpServletResponse response,
 			CaptureSearchResults results, WaybackRequest wbr) {
 		addVaryHeader(response);
 
-		response.setHeader(LINK, generateMementoLinkHeaders(results,wbr));
+		response.setHeader(LINK, generateMementoLinkHeaders(results,wbr, false));
 	}
 	private static String getTimegatePrefix(AccessPoint ap) {
 //		if(ap.getClass().isAssignableFrom(MementoAccessPoint.class)) {
@@ -203,17 +211,18 @@ public class MementoUtils implements MementoConstants {
 		}
 		return prefix;
 	}
-	public static void setRequestFormat(WaybackRequest wbr, String format) {
-		wbr.put(WBR_FORMAT_KEY, format);
-	}
-	public static String getRequestFormat(WaybackRequest wbr) {
-		String format = wbr.get(WBR_FORMAT_KEY);
-		// TODO: assume RDF or link? (or is assuming at all a bad idea...?)
-		if((format == null) || (format.length() == 0)) {
-			format = FORMAT_RDF;
-		}
-		return format;
-	}
+//	public static void setRequestFormat(WaybackRequest wbr, String format) {
+//		wbr.put(WBR_FORMAT_KEY, format);
+//	}
+//	public static String getRequestFormat(WaybackRequest wbr) {
+//		String format = wbr.get(WBR_FORMAT_KEY);
+//		// TODO: assume RDF or link? (or is assuming at all a bad idea...?)
+//		if((format == null) || (format.length() == 0)) {
+//			format = FORMAT_RDF;
+//		}
+//		return format;
+//	}
+	
 	public static final SimpleDateFormat ACCEPT_DATE_FORMATS[] = {
 		new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss Z"),
 		new SimpleDateFormat("E, dd MMM yyyy Z"),
@@ -251,12 +260,12 @@ public class MementoUtils implements MementoConstants {
 			String url) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(getTimeMapPrefix(ap));
-		//sb.append(TIMEMAP).append("/").append(format).append("/");
+		sb.append(TIMEMAP).append("/").append(format).append("/");
 		sb.append(url);
 		return sb.toString();
 	}
 	public static String getTimeMapPrefix(AccessPoint ap) {
-		return getAggregationPrefix(ap) + ap.getQueryPrefix() + "*/";
+		return getAggregationPrefix(ap) + ap.getQueryPrefix();
 	}
 	public static String getTimeBundlePrefix(AccessPoint ap) {
 		return getAggregationPrefix(ap) + ap.getReplayPrefix();

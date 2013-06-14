@@ -253,7 +253,7 @@ implements ShutdownListener {
 			LOGGER.fine("Handling translated: " + inputPath);
 			wbRequest = getParser().parse(httpRequest, this);
 
-			if(wbRequest != null) {
+			if (wbRequest != null) {
 				handled = true;
 
 				// TODO: refactor this code into RequestParser implementations
@@ -284,11 +284,6 @@ implements ShutdownListener {
 				// single AccessPoint. For now, this is a simple way to expose
 				// the feature to configuration.g
 				wbRequest.setExactScheme(isExactSchemeMatch());
-				
-				
-				if (isMementoActive(wbRequest)) {
-					MementoUtils.addOrigHeader(httpResponse, wbRequest);
-				}
 
 				if(wbRequest.isReplayRequest()) {
 					if(bounceToReplayPrefix) {
@@ -554,10 +549,10 @@ implements ShutdownListener {
 	{
 		String datespec = ArchivalUrl.getDateSpec(wbRequest, timestamp);
 		String betterURI = getUriConverter().makeReplayURI(datespec, url);
-	
-		// Memento URL-G response
+		
 		if (this.isMementoActive(wbRequest)) {
-			MementoUtils.addTimegateHeaders(httpResponse, captureResults, wbRequest);
+			//MementoUtils.addTimegateHeaders(httpResponse, captureResults, wbRequest);
+			MementoUtils.addOrigHeader(httpResponse, url);
 		}
 		
 		throw new BetterRequestException(betterURI);
@@ -1023,7 +1018,7 @@ implements ShutdownListener {
 			}
 			
 			// Memento URL-T Query -- TODO: generalize perhaps?
-			if (isMementoActive(wbRequest) && MementoUtils.isTimeMapRequest(httpRequest)) {
+			if (this.isEnableMemento() && wbRequest.isMementoTimemapRequest()) {
 				MementoUtils.printTimemapResponse(cResults, wbRequest, httpResponse);
 			} else {
 				getQuery().renderCaptureResults(httpRequest,httpResponse,wbRequest,
