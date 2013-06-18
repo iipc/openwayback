@@ -187,7 +187,7 @@ implements ShutdownListener {
 	
 	protected boolean dispatchLocal(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse) 
-	throws ServletException, IOException, BadQueryException {
+	throws ServletException, IOException {
 		if(LOGGER.isLoggable(Level.FINE)) {
 			LOGGER.fine("Local dispatch /" + translateRequestPath(httpRequest));
 		}

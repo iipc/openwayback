@@ -976,7 +976,7 @@ public class WaybackRequest {
 	 * @param httpRequest
 	 * @throws BadQueryException 
 	 */
-	public void extractHttpRequestInfo(HttpServletRequest httpRequest) throws BadQueryException {
+	public void extractHttpRequestInfo(HttpServletRequest httpRequest) {
 		
 		putUnlessNull(REQUEST_REFERER_URL, httpRequest.getHeader("REFERER"));
 		
@@ -1004,11 +1004,9 @@ public class WaybackRequest {
 				if (!this.isMementoTimegate() && this.isReplayRequest()) {
 					Date date = MementoUtils.parseAcceptDateTimeHeader(acceptDateTime);					
 					// Accept-Datetime specified but is invalid, must return a 400
-					if (date == null) {
-						throw new BadQueryException("Invald Memento datetime request, Accept-Datetime: " + acceptDateTime);
+					if (date != null) {
+						this.setReplayDate(date);	
 					}
-					
-					this.setReplayDate(date);
 				}
 			}
 		}
