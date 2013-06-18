@@ -999,15 +999,6 @@ public class WaybackRequest {
 			String acceptDateTime = httpRequest.getHeader(MementoUtils.ACCEPT_DATETIME);
 			if (acceptDateTime != null) {
 				this.setMementoAcceptDatetime(true);
-				
-				// Wayback Extension for Memento: if not a timegate, override replay datetime with
-				if (!this.isMementoTimegate() && this.isReplayRequest()) {
-					Date date = MementoUtils.parseAcceptDateTimeHeader(acceptDateTime);					
-					// Accept-Datetime specified but is invalid, must return a 400
-					if (date != null) {
-						this.setReplayDate(date);	
-					}
-				}
 			}
 		}
 		
