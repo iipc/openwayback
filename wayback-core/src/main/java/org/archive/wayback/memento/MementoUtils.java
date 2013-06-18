@@ -276,9 +276,7 @@ public class MementoUtils implements MementoConstants {
 			}
 		}
 		
-		// Wayback Extension: attempt standard wayback parsing of datestamp
-		String paddedDateStr = Timestamp.padStartDateStr(datespec);
-		return ArchiveUtils.getDate(paddedDateStr, null);
+		return null;
 	}
 
 	public static String getTimegateUrl(AccessPoint ap, String url) {
