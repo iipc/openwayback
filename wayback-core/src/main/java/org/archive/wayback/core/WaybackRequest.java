@@ -19,18 +19,19 @@
  */
 package org.archive.wayback.core;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.Set;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 
+import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.memento.MementoUtils;
 import org.archive.wayback.requestparser.OpenSearchRequestParser;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
@@ -973,8 +974,9 @@ public class WaybackRequest {
 	 * HttpServletRequest
 	 * 
 	 * @param httpRequest
+	 * @throws BadQueryException 
 	 */
-	private void extractHttpRequestInfo(HttpServletRequest httpRequest) {
+	public void extractHttpRequestInfo(HttpServletRequest httpRequest) throws BadQueryException {
 		
 		putUnlessNull(REQUEST_REFERER_URL, httpRequest.getHeader("REFERER"));
 		
@@ -994,9 +996,20 @@ public class WaybackRequest {
 		
 		if (accessPoint != null && accessPoint.isEnableMemento()) {		
 			// Check for Memento Accept-Datetime
-			String acceptDatetime = httpRequest.getHeader(MementoUtils.ACCPEPT_DATETIME);
-			if (acceptDatetime != null) {
+			String acceptDateTime = httpRequest.getHeader(MementoUtils.ACCEPT_DATETIME);
+			if (acceptDateTime != null) {
 				this.setMementoAcceptDatetime(true);
+				
+				// Wayback Extension for Memento: if not a timegate, override replay datetime with
+				if (!this.isMementoTimegate() && this.isReplayRequest()) {
+					Date date = MementoUtils.parseAcceptDateTimeHeader(acceptDateTime);					
+					// Accept-Datetime specified but is invalid, must return a 400
+					if (date == null) {
+						throw new BadQueryException("Invald Memento datetime request, Accept-Datetime: " + acceptDateTime);
+					}
+					
+					this.setReplayDate(date);
+				}
 			}
 		}
 		
@@ -1031,45 +1044,6 @@ public class WaybackRequest {
 				}
 			}
 		}
-	}
-
-	/**
-	 * attempt to fixup this WaybackRequest, mostly with respect to dates: if
-	 * only "date" was specified, infer start and end dates from it. Also grab
-	 * useful info from the HttpServletRequest, cookies, remote address, etc.
-	 * 
-	 * @param httpRequest
-	 */
-	public void fixup(HttpServletRequest httpRequest) {
-		extractHttpRequestInfo(httpRequest);
-//		String startDate = get(REQUEST_START_DATE);
-//		String endDate = get(REQUEST_END_DATE);
-//		String exactDate = get(REQUEST_EXACT_DATE);
-//		String partialDate = get(REQUEST_DATE);
-//		if (partialDate == null) {
-//			partialDate = "";
-//		}
-//		if (startDate == null || startDate.length() == 0) {
-//			put(REQUEST_START_DATE, Timestamp
-//					.padStartDateStr(partialDate));
-//		} else if (startDate.length() < 14) {
-//			put(REQUEST_START_DATE, Timestamp
-//					.padStartDateStr(startDate));
-//		}
-//		if (endDate == null || endDate.length() == 0) {
-//			put(REQUEST_END_DATE, Timestamp
-//					.padEndDateStr(partialDate));
-//		} else if (endDate.length() < 14) {
-//			put(REQUEST_END_DATE, Timestamp
-//					.padEndDateStr(endDate));
-//		}
-//		if (exactDate == null || exactDate.length() == 0) {
-//			put(REQUEST_EXACT_DATE, Timestamp
-//					.padEndDateStr(partialDate));
-//		} else if (exactDate.length() < 14) {
-//			put(REQUEST_EXACT_DATE, Timestamp
-//					.padEndDateStr(exactDate));
-//		}
 	}
 
 	/**

@@ -10,15 +10,16 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.archive.util.ArchiveUtils;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.partition.NotableResultExtractor;
 import org.archive.wayback.util.ObjectFilterIterator;
 import org.archive.wayback.util.StringFormatter;
+import org.archive.wayback.util.Timestamp;
 import org.archive.wayback.webapp.AccessPoint;
 
 public class MementoUtils implements MementoConstants {
@@ -34,53 +35,91 @@ public class MementoUtils implements MementoConstants {
 	}
 	
 	public static void printTimemapResponse(CaptureSearchResults results, WaybackRequest wbRequest, HttpServletResponse response) throws IOException
-	{
+    {
 		response.setContentType("application/link-format");
 		printLinkTimemap(results, wbRequest, response.getWriter());
 	}
 
-	public static void printLinkTimemap(CaptureSearchResults results, 
+	public static void printLinkTimemap(CaptureSearchResults results,
 			WaybackRequest wbr, PrintWriter pw) {
 		Date first = results.getFirstResultDate();
 		Date last = results.getLastResultDate();
 		AccessPoint ap = wbr.getAccessPoint();
-		
-		String requestUrl = wbr.getRequestUrl();		
-//		pw.print(makeLink(getTimebundleUrl(ap, requestUrl), TIMEBUNDLE));
-//		pw.println(",");
+
+		String requestUrl = wbr.getRequestUrl();
+		// ludab nov30 2012
+
+		String pagedate = wbr.get(PAGE_STARTS);
+		if (pagedate == null) {
+			pagedate = "";
+		} else {
+			pagedate = pagedate + "/";
+		}
+		// end
+
 		pw.print(makeLink(requestUrl, ORIGINAL));
 		pw.println(",");
-		pw.print(makeLink(getTimemapUrl(ap,FORMAT_LINK,requestUrl),
-				TIMEMAP,APPLICATION_LINK_FORMAT));
+		// ludab nov 30 2012
+
+		// pw.print(makeLink(getTimemapUrl(ap,FORMAT_LINK,requestUrl),
+		// TIMEMAP,APPLICATION_LINK_FORMAT));
+		pw.print(makeLink(
+				getTimemapDateUrl(ap, FORMAT_LINK, pagedate, requestUrl),
+				"self", APPLICATION_LINK_FORMAT)
+				+ "; from=\""
+				+ HTTP_LINK_DATE_FORMATTER.format(first)
+				+ "\""
+				+ "; until=\""
+				+ HTTP_LINK_DATE_FORMATTER.format(last) + "\"");
+		// end
 		pw.println(",");
-		pw.print(makeLink(getTimegateUrl(ap, requestUrl),TIMEGATE));
+		pw.print(makeLink(getTimegateUrl(ap, requestUrl), TIMEGATE));
 		pw.println(",");
-		
-		if(first.compareTo(last) == 0) {
-			//special handling of single result:
+
+		if (first.compareTo(last) == 0) {
+			// special handling of single result:
 			CaptureSearchResult result = results.getResults().get(0);
-			pw.print(makeLink(ap,result.getOriginalUrl(),FIRST_LAST_MEMENTO,result.getCaptureDate()));
+			pw.print(makeLink(ap, result.getOriginalUrl(), FIRST_LAST_MEMENTO,
+					result.getCaptureDate()));
 		} else {
 			List<CaptureSearchResult> lr = results.getResults();
 			int count = lr.size();
 			String rel;
-			for(int i = 0; i < count; i++) {
-				CaptureSearchResult result = lr.get(i); 
-				if(i == 0) {
+			for (int i = 0; i < count; i++) {
+				CaptureSearchResult result = lr.get(i);
+				if (i == 0) {
 					rel = FIRST_MEMENTO;
-				} else if(i == count - 1) {
+				} else if (i == count - 1) {
 					pw.println(",");
 					rel = LAST_MEMENTO;
 				} else {
 					pw.println(",");
 					rel = MEMENTO;
 				}
-				pw.print(makeLink(ap,result.getOriginalUrl(),rel,result.getCaptureDate()));
+				pw.print(makeLink(ap, result.getOriginalUrl(), rel,
+						result.getCaptureDate()));
 			}
 		}
+		// ludab nov 30 2012
+		if (results.getMatchingCount() > results.getReturnedCount()) {
+			int sec = last.getSeconds() + 1;
+			last.setSeconds(sec);
+			pw.println(",");
+			pw.print(makeLink(
+					getTimemapDateUrl(ap, FORMAT_LINK,
+							DATE_FORMAT_14_FORMATTER.format(last) + "/",
+							requestUrl), TIMEMAP, APPLICATION_LINK_FORMAT)
+					+ ", from=\""
+					+ HTTP_LINK_DATE_FORMATTER.format(last)
+					+ "\"");
+		}
+		// end
+
 		pw.flush();
-	}	
-	public static String generateMementoLinkHeaders(CaptureSearchResults results, WaybackRequest wbr, boolean includeTimegate) {
+	}
+
+	public static String generateMementoLinkHeaders(
+			CaptureSearchResults results, WaybackRequest wbr, boolean includeTimegateLink) {
 		NotableResultExtractor nre = getNotableResults(results);
 		CaptureSearchResult first = nre.getFirst();
 		CaptureSearchResult prev = nre.getPrev();
@@ -88,68 +127,86 @@ public class MementoUtils implements MementoConstants {
 		CaptureSearchResult next = nre.getNext();
 		CaptureSearchResult last = nre.getLast();
 		ArrayList<String> rels = new ArrayList<String>();
-		
+
 		AccessPoint ap = wbr.getAccessPoint();
-		
+
 		String requestUrl = wbr.getRequestUrl();
 
 		// add generics:
-		//rels.add(makeLink(getTimebundleUrl(ap, requestUrl), TIMEBUNDLE));
+		// rels.add(makeLink(getTimebundleUrl(ap, requestUrl), TIMEBUNDLE));
 		rels.add(makeLink(requestUrl, ORIGINAL));
-		rels.add(makeLink(getTimemapUrl(ap,FORMAT_LINK,requestUrl),
-				TIMEMAP,APPLICATION_LINK_FORMAT));
+
+		rels.add(makeLink(getTimemapUrl(ap, FORMAT_LINK, requestUrl), TIMEMAP,
+				APPLICATION_LINK_FORMAT));
 		
-		if (includeTimegate) {
-			rels.add(makeLink(getTimegateUrl(ap, requestUrl),TIMEGATE));
+		// Spec says not to include timegate link for timegate
+		if (includeTimegateLink) {
+			rels.add(makeLink(getTimegateUrl(ap, requestUrl), TIMEGATE));
 		}
-		
+
 		// add first/prev/next/last:
-		if(first == last) {
+		if (first == last) {
 			// only one capture.. are we sure we want the "actual" memento here?
-			rels.add(makeLink(ap,requestUrl,FIRST_LAST_MEMENTO,first.getCaptureDate()));
+			rels.add(makeLink(ap, requestUrl, FIRST_LAST_MEMENTO,
+					first.getCaptureDate()));
 		} else {
-			if(first == closest) {
+			if (first == closest) {
 				// no previous:
-				rels.add(makeLink(ap,requestUrl,FIRST_MEMENTO,first.getCaptureDate()));
-				if(next == last) {
-					rels.add(makeLink(ap,requestUrl,NEXT_LAST_MEMENTO,last.getCaptureDate()));					
+				rels.add(makeLink(ap, requestUrl, FIRST_MEMENTO,
+						first.getCaptureDate()));
+				if (next == last) {
+					rels.add(makeLink(ap, requestUrl, NEXT_LAST_MEMENTO,
+							last.getCaptureDate()));
 				} else {
-					rels.add(makeLink(ap,requestUrl,NEXT_MEMENTO,next.getCaptureDate()));
-					rels.add(makeLink(ap,requestUrl,LAST_MEMENTO,last.getCaptureDate()));
+					rels.add(makeLink(ap, requestUrl, NEXT_MEMENTO,
+							next.getCaptureDate()));
+					rels.add(makeLink(ap, requestUrl, LAST_MEMENTO,
+							last.getCaptureDate()));
 				}
-			} else if(last == closest) {
+			} else if (last == closest) {
 				// no next:
-				rels.add(makeLink(ap,requestUrl,LAST_MEMENTO,last.getCaptureDate()));
-				if(prev == first) {
-					rels.add(makeLink(ap,requestUrl,PREV_FIRST_MEMENTO,first.getCaptureDate()));
+				rels.add(makeLink(ap, requestUrl, LAST_MEMENTO,
+						last.getCaptureDate()));
+				if (prev == first) {
+					rels.add(makeLink(ap, requestUrl, PREV_FIRST_MEMENTO,
+							first.getCaptureDate()));
 				} else {
-					rels.add(makeLink(ap,requestUrl,FIRST_MEMENTO,first.getCaptureDate()));
-					rels.add(makeLink(ap,requestUrl,PREV_MEMENTO,prev.getCaptureDate()));
+					rels.add(makeLink(ap, requestUrl, FIRST_MEMENTO,
+							first.getCaptureDate()));
+					rels.add(makeLink(ap, requestUrl, PREV_MEMENTO,
+							prev.getCaptureDate()));
 				}
 			} else {
 				// somewhere in the middle:
-				
-				if(prev == first) {
-					rels.add(makeLink(ap,requestUrl,PREV_FIRST_MEMENTO,first.getCaptureDate()));
+
+				if (prev == first) {
+					rels.add(makeLink(ap, requestUrl, PREV_FIRST_MEMENTO,
+							first.getCaptureDate()));
 				} else {
 					// add both prev and first:
-					rels.add(makeLink(ap,requestUrl,FIRST_MEMENTO,first.getCaptureDate()));
-					rels.add(makeLink(ap,requestUrl,PREV_MEMENTO,prev.getCaptureDate()));
+					rels.add(makeLink(ap, requestUrl, FIRST_MEMENTO,
+							first.getCaptureDate()));
+					rels.add(makeLink(ap, requestUrl, PREV_MEMENTO,
+							prev.getCaptureDate()));
 				}
 				// add "actual" memento:
-				rels.add(makeLink(ap,requestUrl,MEMENTO,closest.getCaptureDate()));
-				if(next == last) {
-					rels.add(makeLink(ap,requestUrl,NEXT_LAST_MEMENTO,last.getCaptureDate()));
+				rels.add(makeLink(ap, requestUrl, MEMENTO,
+						closest.getCaptureDate()));
+				if (next == last) {
+					rels.add(makeLink(ap, requestUrl, NEXT_LAST_MEMENTO,
+							last.getCaptureDate()));
 				} else {
-					rels.add(makeLink(ap,requestUrl,NEXT_MEMENTO,next.getCaptureDate()));
-					rels.add(makeLink(ap,requestUrl,LAST_MEMENTO,last.getCaptureDate()));
+					rels.add(makeLink(ap, requestUrl, NEXT_MEMENTO,
+							next.getCaptureDate()));
+					rels.add(makeLink(ap, requestUrl, LAST_MEMENTO,
+							last.getCaptureDate()));
 				}
 			}
 		}
 		return StringFormatter.join(", ", rels.toArray(a));
 	}
+
 	static String[] a = new String[0];
-	
 
 	public static void addVaryHeader(HttpServletResponse response) {
 		response.setHeader(VARY, NEGOTIATE_DATETIME);
@@ -159,20 +216,14 @@ public class MementoUtils implements MementoConstants {
 		// HRM.. Are we sure it's *our* Link header, and has the rel="original"?
 		return response.containsHeader(LINK);
 	}
-	
-//	public static boolean isTimeMapRequest(HttpServletRequest httpRequest)
-//	{
-//		String header = httpRequest.getHeader("Accept");
-//		
-//		if (header != null && header.equals("application/link-format;q=1.0")) {
-//			return true;
-//		}
-//		
-//		return false;
-//	}
 
 	public static void addOrigHeader(HttpServletResponse response, String url) {
 		response.setHeader(LINK, makeLink(url, ORIGINAL));
+	}
+
+	public static void addOrigHeader(HttpServletResponse response,
+			WaybackRequest wbr) {
+		addOrigHeader(response, wbr.getRequestUrl());
 	}
 	
 	public static String makeOrigHeader(String url)
@@ -180,141 +231,142 @@ public class MementoUtils implements MementoConstants {
 		return makeLink(url, ORIGINAL);
 	}
 
-	public static void addOrigHeader(HttpServletResponse response, WaybackRequest wbr) {
-		addOrigHeader(response,wbr.getRequestUrl());
+	public static void addMementoHeaders(HttpServletResponse response,
+			CaptureSearchResults results, CaptureSearchResult result, WaybackRequest wbr) {
+		response.setHeader(MEMENTO_DATETIME, HTTP_LINK_DATE_FORMATTER
+				.format(results.getClosest().getCaptureDate()));
+
+		response.setHeader(LINK, generateMementoLinkHeaders(results, wbr, true));
 	}
 
-	public static void addMementoHeaders(HttpServletResponse response, CaptureSearchResults results, CaptureSearchResult closest, WaybackRequest wbr) {
-		response.setHeader("Memento-Datetime",
-				HTTP_LINK_DATE_FORMATTER.format(closest.getCaptureDate()));
-
-		response.setHeader(LINK, generateMementoLinkHeaders(results,wbr, true));
-	}
 	public static void addTimegateHeaders(HttpServletResponse response,
 			CaptureSearchResults results, WaybackRequest wbr) {
 		addVaryHeader(response);
 
-		response.setHeader(LINK, generateMementoLinkHeaders(results,wbr, false));
+		response.setHeader(LINK, generateMementoLinkHeaders(results, wbr, false));
 	}
-	private static String getTimegatePrefix(AccessPoint ap) {
-//		if(ap.getClass().isAssignableFrom(MementoAccessPoint.class)) {
-		String prefix = null;
-		if(ap instanceof MementoAccessPoint) {
-			prefix = ((MementoAccessPoint) ap).getTimegatePrefix();
-		}
-		if(prefix == null) {
-			prefix = getProp(ap.getConfigs(),TIMEGATE_PREFIX_CONFIG,null);
-		}
-		// TODO: rationalize...
-		if(prefix == null) {
-			prefix = ap.getReplayPrefix();
-		}
-		return prefix;
-	}
-//	public static void setRequestFormat(WaybackRequest wbr, String format) {
-//		wbr.put(WBR_FORMAT_KEY, format);
-//	}
-//	public static String getRequestFormat(WaybackRequest wbr) {
-//		String format = wbr.get(WBR_FORMAT_KEY);
-//		// TODO: assume RDF or link? (or is assuming at all a bad idea...?)
-//		if((format == null) || (format.length() == 0)) {
-//			format = FORMAT_RDF;
+
+//	private static String getTimegatePrefix(AccessPoint ap) {
+//		// if(ap.getClass().isAssignableFrom(MementoAccessPoint.class)) {
+//		String prefix = null;
+//		if (ap instanceof MementoAccessPoint) {
+//			prefix = ((MementoAccessPoint) ap).getTimegatePrefix();
 //		}
-//		return format;
+//		if (prefix == null) {
+//			prefix = getProp(ap.getConfigs(), TIMEGATE_PREFIX_CONFIG, null);
+//		}
+//		// TODO: rationalize...
+//		if (prefix == null) {
+//			prefix = ap.getReplayPrefix();
+//		}
+//		return prefix;
 //	}
-	
+
 	public static final SimpleDateFormat ACCEPT_DATE_FORMATS[] = {
-		new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss Z"),
-		new SimpleDateFormat("E, dd MMM yyyy Z"),
-		new SimpleDateFormat("E, dd MMM yyyy")
-	};
-//	dtsupportedformats
-//	.add(new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss Z"));
-//dtsupportedformats.add(new SimpleDateFormat("E, dd MMM yyyy Z"));
-//dtsupportedformats.add(new SimpleDateFormat("E, dd MMM yyyy"));
-	
+			new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss Z"),
+			new SimpleDateFormat("E, dd MMM yyyy Z"),
+			new SimpleDateFormat("E, dd MMM yyyy") };
+
 	public static Date parseAcceptDateTimeHeader(String datespec) {
-		for(SimpleDateFormat format : ACCEPT_DATE_FORMATS) {
+		for (SimpleDateFormat format : ACCEPT_DATE_FORMATS) {
 			try {
 				return format.parse(datespec);
-			} catch(ParseException e) {
+			} catch (ParseException e) {
 				// ignore and move on..
 			}
 		}
-		return null;
+		
+		// Wayback Extension: attempt standard wayback parsing of datestamp
+		String paddedDateStr = Timestamp.padStartDateStr(datespec);
+		return ArchiveUtils.getDate(paddedDateStr, null);
 	}
-//	public static String getTimebundleUrl(AccessPoint ap, String url) {
-//		StringBuilder sb = new StringBuilder();
-//		sb.append(getTimeBundlePrefix(ap));
-//		sb.append(TIMEBUNDLE).append("/").append(url);
-//		return sb.toString();
-//	}
+
 	public static String getTimegateUrl(AccessPoint ap, String url) {
 		StringBuilder sb = new StringBuilder();
-		sb.append(getTimeBundlePrefix(ap));
+		sb.append(getTimeGatePrefix(ap));
 		sb.append(url);
-		//sb.append(TIMEGATE).append("/").append(url);
 		return sb.toString();
 	}
-	public static String getTimemapUrl(AccessPoint ap, String format, 
-			String url) {
+
+	public static String getTimemapUrl(AccessPoint ap, String format, String url) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(getTimeMapPrefix(ap));
 		sb.append(TIMEMAP).append("/").append(format).append("/");
 		sb.append(url);
 		return sb.toString();
 	}
+
+	public static String getTimemapDateUrl(AccessPoint ap, String format,
+			String pagestr, String url) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(getTimeMapPrefix(ap));
+		sb.append(TIMEMAP).append("/").append(format).append("/");
+		sb.append(pagestr);
+		sb.append(url);
+		return sb.toString();
+	}
+
 	public static String getTimeMapPrefix(AccessPoint ap) {
 		return getAggregationPrefix(ap) + ap.getQueryPrefix();
 	}
-	public static String getTimeBundlePrefix(AccessPoint ap) {
+
+	public static String getTimeGatePrefix(AccessPoint ap) {
 		return getAggregationPrefix(ap) + ap.getReplayPrefix();
 	}
 
-
 	private static String getAggregationPrefix(AccessPoint ap) {
 		String prefix = null;
-		if(ap instanceof MementoAccessPoint) {
+		if (ap instanceof MementoAccessPoint) {
 			prefix = ((MementoAccessPoint) ap).getTimegatePrefix();
 		}
 		// TODO: rationalize...
-		if(prefix == null) {
-			prefix = getProp(ap.getConfigs(),AGGREGATION_PREFIX_CONFIG, "");
+		if (prefix == null) {
+			prefix = getProp(ap.getConfigs(), AGGREGATION_PREFIX_CONFIG, "");
 		}
-		if(prefix == null) {
+		if (prefix == null) {
 			prefix = ap.getQueryPrefix();
 		}
 		return prefix;
 	}
 
+	public static int getPageMaxRecord(AccessPoint ap) {
+		String mr;
+		mr = getProp(ap.getConfigs(), PAGE_MAXRECORDS_CONFIG, "0");
+		if (mr == null) {
+			mr = "0";
+		}
+		return new Integer(mr).intValue();
+	}
+
 	private static String getProp(Properties p, String name, String deflt) {
-		if(p == null) {
+		if (p == null) {
 			return deflt;
 		}
-		return p.getProperty(name,deflt);
+		return p.getProperty(name, deflt);
 	}
 
 	private static String makeLink(String url, String rel) {
-		return String.format("<%s>; rel=\"%s\"",url,rel);
+		return String.format("<%s>; rel=\"%s\"", url, rel);
 	}
 
 	private static String makeLink(String url, String rel, String type) {
-		return String.format("<%s>; rel=\"%s\"; type=\"%s\"",url,rel,type);
+		return String.format("<%s>; rel=\"%s\"; type=\"%s\"", url, rel, type);
 	}
 
-	private static String makeLink(AccessPoint ap, String url, String rel, 
+	private static String makeLink(AccessPoint ap, String url, String rel,
 			Date date) {
-		
+
 		String timestamp = DATE_FORMAT_14_FORMATTER.format(date);
 		String replayURI = ap.getUriConverter().makeReplayURI(timestamp, url);
 		String prefix = getAggregationPrefix(ap);
 		String httpTime = HTTP_LINK_DATE_FORMATTER.format(date);
-		
-		return String.format("<%s%s>; rel=\"%s\"; datetime=\"%s\"",
-				prefix,replayURI,rel,httpTime);
+
+		return String.format("<%s%s>; rel=\"%s\"; datetime=\"%s\"", prefix, replayURI,
+				rel, httpTime);
 	}
 
-	private static NotableResultExtractor getNotableResults(CaptureSearchResults r) {
+	private static NotableResultExtractor getNotableResults(
+			CaptureSearchResults r) {
 		// eventually, the NotableResultExtractor will be part of the standard
 		// ResourceIndex.query() but for now, we'll just do an extra traversal
 		// of the whole set of results:
@@ -322,10 +374,10 @@ public class MementoUtils implements MementoConstants {
 		Iterator<CaptureSearchResult> itr = r.iterator();
 		Date want = r.getClosest().getCaptureDate();
 		NotableResultExtractor nre = new NotableResultExtractor(want);
-		
-		ObjectFilterIterator<CaptureSearchResult> ofi =
-			new ObjectFilterIterator<CaptureSearchResult>(itr, nre);
-		while(ofi.hasNext()) {
+
+		ObjectFilterIterator<CaptureSearchResult> ofi = new ObjectFilterIterator<CaptureSearchResult>(
+				itr, nre);
+		while (ofi.hasNext()) {
 			ofi.next();
 		}
 		return nre;

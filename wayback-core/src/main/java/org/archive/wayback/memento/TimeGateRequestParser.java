@@ -42,8 +42,8 @@ public class TimeGateRequestParser extends WrappedRequestParser implements Memen
 	private static final Logger LOGGER = 
 		Logger.getLogger(TimeGateRequestParser.class.getName());
 
-	private final static String TIMEGATE_SLASH = TIMEGATE + "/";
-	private final static int TIMEGATE_SLASH_LEN = TIMEGATE_SLASH.length();
+	//private final static String TIMEGATE_SLASH = TIMEGATE + "/";
+	//private final static int TIMEGATE_SLASH_LEN = TIMEGATE_SLASH.length();
 
 	/**
 	 * @param wrapped
@@ -71,30 +71,25 @@ public class TimeGateRequestParser extends WrappedRequestParser implements Memen
 		// strip leading "timegate/":
 		//String urlStr = base.substring(TIMEGATE_SLASH_LEN);
 		String urlStr = base;
-		String acceptDateTime = httpRequest.getHeader(ACCPEPT_DATETIME);
+		String acceptDateTime = httpRequest.getHeader(ACCEPT_DATETIME);
 		
+		// Not a timegate request
 		if (acceptDateTime == null) {
 			return null;
 		}
 		
-		Date d = null;
+		Date d = MementoUtils.parseAcceptDateTimeHeader(acceptDateTime);
 		
-		if (acceptDateTime != null) {
-			// OK, looks like a valid request -- hopefully urlStr is valid..
-			d = MementoUtils.parseAcceptDateTimeHeader(acceptDateTime);				
-		}
-		
+		// Accept-Datetime specified but is invalid, must return a 400
 		if (d == null) {
-			d = new Date();
+			throw new BadQueryException("Invald Memento TimeGate datetime request, Accept-Datetime: " + acceptDateTime);
 		}
 
 		WaybackRequest wbRequest = new WaybackRequest();
+		
 		if (wbRequest.getStartTimestamp() == null) {
 			wbRequest.setStartTimestamp(getEarliestTimestamp());
 		}
-
-		// this shouldn't be needed.. I think was only used to "pass error"
-//			wbRequest.put("dtconneg", acceptDateTime);
 
 		if (wbRequest.getEndTimestamp() == null) {
 			wbRequest.setEndTimestamp(getLatestTimestamp());
@@ -103,8 +98,6 @@ public class TimeGateRequestParser extends WrappedRequestParser implements Memen
 		wbRequest.setReplayDate(d);
 		wbRequest.setAnchorDate(d);
 		wbRequest.setReplayRequest();
-		// indicate the "special" timegate format:
-		//MementoUtils.setRequestFormat(wbRequest, TIMEGATE);
 		wbRequest.setRequestUrl(urlStr);
 		
 		if (wbRequest != null) {
@@ -112,8 +105,6 @@ public class TimeGateRequestParser extends WrappedRequestParser implements Memen
 		}
 		
 		return wbRequest;
-		//}
-		//return null;
 	}
 //
 //	public WaybackRequest parseOld(HttpServletRequest httpRequest,

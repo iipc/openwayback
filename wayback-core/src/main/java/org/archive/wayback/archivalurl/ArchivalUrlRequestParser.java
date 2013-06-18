@@ -83,13 +83,13 @@ public class ArchivalUrlRequestParser extends CompositeRequestParser {
 		RequestParser[] theParsers = {
 				new ReplayRequestParser(this),
 				new TimeMapRequestParser(this),
+				new TimeGateRequestParser(this),				
 				new PathDatePrefixQueryRequestParser(this),
 				new PathDateRangeQueryRequestParser(this),
 				new PathPrefixDatePrefixQueryRequestParser(this),
 				new PathPrefixDateRangeQueryRequestParser(this),
 				new OpenSearchRequestParser(this),
 				new ArchivalUrlFormRequestParser(this),
-				new TimeGateRequestParser(this),		
 				new DatelessReplayRequestParser(this)
 				};
 		return theParsers;

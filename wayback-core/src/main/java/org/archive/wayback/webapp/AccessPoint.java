@@ -187,7 +187,7 @@ implements ShutdownListener {
 	
 	protected boolean dispatchLocal(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse) 
-	throws ServletException, IOException {
+	throws ServletException, IOException, BadQueryException {
 		if(LOGGER.isLoggable(Level.FINE)) {
 			LOGGER.fine("Local dispatch /" + translateRequestPath(httpRequest));
 		}
@@ -212,7 +212,7 @@ implements ShutdownListener {
 		WaybackRequest wbRequest = new WaybackRequest();
 //			wbRequest.setContextPrefix(getUrlRoot());
 		wbRequest.setAccessPoint(this);
-		wbRequest.fixup(httpRequest);
+		wbRequest.extractHttpRequestInfo(httpRequest);
 		UIResults uiResults = new UIResults(wbRequest,uriConverter);
 		try {
 			uiResults.forward(httpRequest, httpResponse, translatedQ);
@@ -260,7 +260,7 @@ implements ShutdownListener {
 				wbRequest.setAccessPoint(this);
 //				wbRequest.setContextPrefix(getAbsoluteLocalPrefix(httpRequest));
 //				wbRequest.setContextPrefix(getUrlRoot());
-				wbRequest.fixup(httpRequest);
+				wbRequest.extractHttpRequestInfo(httpRequest);
 				// end of refactor
 
 				if(getAuthentication() != null) {
@@ -321,13 +321,14 @@ implements ShutdownListener {
 			
 			if (wbRequest == null) {
 				wbRequest = new WaybackRequest();
+				wbRequest.setAccessPoint(this);
 			}
 			
 			logError(httpResponse, errorMsgHeader, e, wbRequest);
 			
 			LiveWebState liveWebState = LiveWebState.NOT_FOUND;
 			
-			if ((getLiveWebRedirector() != null) && !isMementoActive(wbRequest)) {
+			if ((getLiveWebRedirector() != null) && !wbRequest.hasMementoAcceptDatetime()) {
 				liveWebState = getLiveWebRedirector().handleRedirect(e, wbRequest, httpRequest, httpResponse);
 			}
 			
@@ -410,7 +411,7 @@ implements ShutdownListener {
 	private void checkInterstitialRedirect(HttpServletRequest httpRequest,
 			WaybackRequest wbRequest) 
 	throws BetterRequestException {
-		if((refererAuth != null) && (refererAuth.length() > 0) && !isMementoActive(wbRequest)) {
+		if((refererAuth != null) && (refererAuth.length() > 0) && !wbRequest.hasMementoAcceptDatetime()) {
 			String referer = httpRequest.getHeader("Referer");
 			if((referer != null) && (referer.length() > 0) && (!referer.contains(refererAuth))) {
 				StringBuffer sb = httpRequest.getRequestURL();
@@ -550,7 +551,7 @@ implements ShutdownListener {
 		String datespec = ArchivalUrl.getDateSpec(wbRequest, timestamp);
 		String betterURI = getUriConverter().makeReplayURI(datespec, url);
 		
-		if (this.isMementoActive(wbRequest)) {
+		if (wbRequest.hasMementoAcceptDatetime()) {
 			//MementoUtils.addTimegateHeaders(httpResponse, captureResults, wbRequest);
 			MementoUtils.addOrigHeader(httpResponse, url);
 		}
@@ -729,7 +730,7 @@ implements ShutdownListener {
 				}
 				
 				// Memento URL-M response
-				if (this.isMementoActive(wbRequest)) {
+				if (wbRequest.hasMementoAcceptDatetime()) {
 					MementoUtils.addMementoHeaders(httpResponse, captureResults, closest, wbRequest);
 				}
 		
@@ -1018,7 +1019,7 @@ implements ShutdownListener {
 			}
 			
 			// Memento URL-T Query -- TODO: generalize perhaps?
-			if (this.isEnableMemento() && wbRequest.isMementoTimemapRequest()) {
+			if (wbRequest.isMementoTimemapRequest()) {
 				MementoUtils.printTimemapResponse(cResults, wbRequest, httpResponse);
 			} else {
 				getQuery().renderCaptureResults(httpRequest,httpResponse,wbRequest,
@@ -1674,10 +1675,6 @@ implements ShutdownListener {
 
 	public boolean isEnableMemento() {
 		return enableMemento;
-	}
-	
-	public boolean isMementoActive(WaybackRequest wbr) {
-		return isEnableMemento();// && wbr.isMementoRequest();
 	}
 
 	public void setEnableMemento(boolean enableMemento) {

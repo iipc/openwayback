@@ -28,8 +28,10 @@ public class MementoQueryRenderer implements QueryRenderer, MementoConstants {
 	private static final String DEFAULT_TIMEMAP_LINK_JSP = 
 		"/WEB-INF/memento/TimemapLink.jsp";
 	
+	private static final String DEFAULT_NOT_PARSABLE_TIMEGATE_JSP =
+			"/WEB-INF/memento/TimegateNotParsable.jsp";
 	
-	private String defaultFormat = FORMAT_RDF;
+	private String defaultFormat = FORMAT_LINK;
 	private Properties formatMap = null;
 
 	public MementoQueryRenderer() {
@@ -37,6 +39,7 @@ public class MementoQueryRenderer implements QueryRenderer, MementoConstants {
 		formatMap.put(TIMEGATE, DEFAULT_TIMEGATE_JSP);
 		formatMap.put(FORMAT_RDF, DEFAULT_TIMEMAP_RDF_JSP);
 		formatMap.put(FORMAT_LINK, DEFAULT_TIMEMAP_LINK_JSP);
+		formatMap.put("NOTPARSABLE", DEFAULT_NOT_PARSABLE_TIMEGATE_JSP);
 	}
 	
 	public void renderCaptureResults(HttpServletRequest httpRequest,
@@ -52,6 +55,7 @@ public class MementoQueryRenderer implements QueryRenderer, MementoConstants {
 					ap.translateRequestPathQuery(httpRequest)));
 			format = defaultFormat;
 		}
+		
 		String handlerJsp = formatMap.getProperty(format);
 		if(handlerJsp == null) {
 			AccessPoint ap = wbRequest.getAccessPoint();
@@ -94,6 +98,11 @@ public class MementoQueryRenderer implements QueryRenderer, MementoConstants {
 	 */
 	public Properties getFormatMap() {
 		return formatMap;
+	
+	
+	
+	
+	
 	}
 
 	/**
