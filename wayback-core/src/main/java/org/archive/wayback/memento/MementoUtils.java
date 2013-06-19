@@ -107,7 +107,7 @@ public class MementoUtils implements MementoConstants {
 					getTimemapDateUrl(ap, FORMAT_LINK,
 							DATE_FORMAT_14_FORMATTER.format(last) + "/",
 							requestUrl), TIMEMAP, APPLICATION_LINK_FORMAT)
-					+ ", from=\""
+					+ "; from=\""
 					+ HTTP_LINK_DATE_FORMATTER.format(last)
 					+ "\"");
 		}

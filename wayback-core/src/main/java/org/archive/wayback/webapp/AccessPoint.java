@@ -551,8 +551,8 @@ implements ShutdownListener {
 		String datespec = ArchivalUrl.getDateSpec(wbRequest, timestamp);
 		String betterURI = getUriConverter().makeReplayURI(datespec, url);
 		
-		if (wbRequest.hasMementoAcceptDatetime()) {
-			//MementoUtils.addTimegateHeaders(httpResponse, captureResults, wbRequest);
+		if (this.isEnableMemento()) {
+			// Redirect as "intermediate resource"
 			MementoUtils.addOrigHeader(httpResponse, url);
 		}
 		
@@ -730,7 +730,7 @@ implements ShutdownListener {
 				}
 				
 				// Memento URL-M response
-				if (wbRequest.hasMementoAcceptDatetime()) {
+				if (this.isEnableMemento()) {
 					MementoUtils.addMementoHeaders(httpResponse, captureResults, closest, wbRequest);
 				}
 		
