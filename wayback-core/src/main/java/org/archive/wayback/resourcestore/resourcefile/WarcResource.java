@@ -20,6 +20,9 @@
 package org.archive.wayback.resourcestore.resourcefile;
 
 import java.io.IOException;
+import java.text.ParseException;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 
@@ -31,6 +34,7 @@ import org.archive.io.ArchiveRecordHeader;
 import org.archive.io.RecoverableIOException;
 import org.archive.io.arc.ARCConstants;
 import org.archive.io.warc.WARCRecord;
+import org.archive.util.DateUtils;
 import org.archive.util.LaxHttpParser;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.replay.HttpHeaderOperation;
@@ -70,36 +74,58 @@ public class WarcResource extends Resource {
 		if (getRecordLength() <= 0) {
 			return;
 		}
-		
-		byte [] statusBytes = LaxHttpParser.readRawLine(rec);
-		int eolCharCount = getEolCharsCount(statusBytes);
-		if (eolCharCount <= 0) {
-			throw new RecoverableIOException("Failed to read http status where one " +
-					" was expected: " + new String(statusBytes));
-		}
-		String statusLineStr = EncodingUtil.getString(statusBytes, 0,
-				statusBytes.length - eolCharCount, ARCConstants.DEFAULT_ENCODING);
-		if ((statusLineStr == null) ||
-				!StatusLine.startsWithHTTP(statusLineStr)) {
-			throw new RecoverableIOException("Failed parse of http status line.");
-		}
-		StatusLine statusLine = new StatusLine(statusLineStr);
+		// WARCRecord should have getRecordType() method returning WARCRecordType.
+		String warctype = (String)rec.getHeader().getHeaderValue("WARC-Type");
+		if ("response".equals(warctype) || "revisit".equals(warctype)) {
+		    byte [] statusBytes = LaxHttpParser.readRawLine(rec);
+		    int eolCharCount = getEolCharsCount(statusBytes);
+		    if (eolCharCount <= 0) {
+		        throw new RecoverableIOException("Failed to read http status where one " +
+		                " was expected: " + new String(statusBytes));
+		    }
+		    String statusLineStr = EncodingUtil.getString(statusBytes, 0,
+		            statusBytes.length - eolCharCount, ARCConstants.DEFAULT_ENCODING);
+		    if ((statusLineStr == null) ||
+		            !StatusLine.startsWithHTTP(statusLineStr)) {
+		        throw new RecoverableIOException("Failed parse of http status line.");
+		    }
+		    StatusLine statusLine = new StatusLine(statusLineStr);
 
-		this.status = statusLine.getStatusCode();
+		    this.status = statusLine.getStatusCode();
 
-		Header[] tmpHeaders = LaxHttpParser.parseHeaders(rec,
-				ARCConstants.DEFAULT_ENCODING);
-		headers = new Hashtable<String,String>();
-		this.setInputStream(rec);
-		for(Header header: tmpHeaders) {
-			headers.put(header.getName(), header.getValue());
-			if(header.getName().toUpperCase().contains(
-					HttpHeaderOperation.HTTP_TRANSFER_ENC_HEADER)) {
-				if(header.getValue().toUpperCase().contains(
-						HttpHeaderOperation.HTTP_CHUNKED_ENCODING_HEADER)) {
-					setChunkedEncoding();
-				}
-			}
+		    Header[] tmpHeaders = LaxHttpParser.parseHeaders(rec,
+		            ARCConstants.DEFAULT_ENCODING);
+		    headers = new Hashtable<String,String>();
+		    this.setInputStream(rec);
+		    for(Header header: tmpHeaders) {
+		        headers.put(header.getName(), header.getValue());
+		        if(header.getName().toUpperCase().contains(
+		                HttpHeaderOperation.HTTP_TRANSFER_ENC_HEADER)) {
+		            if(header.getValue().toUpperCase().contains(
+		                    HttpHeaderOperation.HTTP_CHUNKED_ENCODING_HEADER)) {
+		                setChunkedEncoding();
+		            }
+		        }
+		    }
+		} else if ("metadata".equals(warctype) || "resource".equals(warctype)) {
+		    status = 200;
+		    headers = new HashMap<String, String>();
+		    String ct = (String)rec.getHeader().getHeaderValue("Content-Type");
+		    if (ct != null) {
+		        headers.put("Content-Type", ct);
+		    }
+		    // necessary?
+		    String date = rec.getHeader().getDate();
+		    if (date != null) {
+		        try {
+		            Date d = DateUtils.parse14DigitDate(date);
+		            String httpDate = DateUtils.getRFC1123Date(d);
+		            headers.put("Date", httpDate);
+		        } catch (ParseException ex) {
+		            //
+		        }
+		    }
+		    setInputStream(rec);
 		}
 		parsedHeaders = true;
 	}
