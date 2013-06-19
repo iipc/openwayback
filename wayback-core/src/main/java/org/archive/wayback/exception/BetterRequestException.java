@@ -24,6 +24,10 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.archive.wayback.core.WaybackRequest;
+import org.archive.wayback.memento.MementoUtils;
+import org.archive.wayback.webapp.AccessPoint;
+
 /**
  * Exception class for queries which can be better expressed as another URL, or
  * should, for one reason or another, be requested at a different URL. Likely
@@ -90,10 +94,18 @@ public class BetterRequestException extends WaybackException {
 		return status;
 	}
 	
-	public void generateResponse(HttpServletResponse response) {
+	public void generateResponse(HttpServletResponse response, WaybackRequest wbRequest) {
 		response.setStatus(status);
-		response.setHeader("Location", betterURI);
-		if(extraHeaders.size() > 0) {
+		
+		String redirectURI = betterURI;
+		
+		if ((wbRequest != null) && betterURI.startsWith("/") && wbRequest.hasMementoAcceptDatetime()) {
+			redirectURI = MementoUtils.getMementoPrefix(wbRequest.getAccessPoint()) + betterURI;
+		}
+		
+		response.setHeader("Location", redirectURI);
+		
+		if (extraHeaders.size() > 0) {
 			for (Map.Entry<String,String> entry : extraHeaders.entrySet()) {
 				response.setHeader(entry.getKey(), entry.getValue());
 			}

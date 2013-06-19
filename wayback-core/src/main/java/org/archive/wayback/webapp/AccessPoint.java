@@ -314,7 +314,7 @@ implements ShutdownListener {
 			}
 			
 		} catch(BetterRequestException e) {			
-			e.generateResponse(httpResponse);
+			e.generateResponse(httpResponse, wbRequest);
 			handled = true;
 
 		} catch(WaybackException e) {

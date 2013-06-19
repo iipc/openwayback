@@ -12,14 +12,12 @@ import java.util.Properties;
 
 import javax.servlet.http.HttpServletResponse;
 
-import org.archive.util.ArchiveUtils;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.partition.NotableResultExtractor;
 import org.archive.wayback.util.ObjectFilterIterator;
 import org.archive.wayback.util.StringFormatter;
-import org.archive.wayback.util.Timestamp;
 import org.archive.wayback.webapp.AccessPoint;
 
 public class MementoUtils implements MementoConstants {
@@ -305,26 +303,28 @@ public class MementoUtils implements MementoConstants {
 	}
 
 	public static String getTimeMapPrefix(AccessPoint ap) {
-		return getAggregationPrefix(ap) + ap.getQueryPrefix();
+		return getMementoPrefix(ap) + ap.getQueryPrefix();
 	}
 
 	public static String getTimeGatePrefix(AccessPoint ap) {
-		return getAggregationPrefix(ap) + ap.getReplayPrefix();
+		return getMementoPrefix(ap) + ap.getReplayPrefix();
 	}
 
-	private static String getAggregationPrefix(AccessPoint ap) {
-		String prefix = null;
-		if (ap instanceof MementoAccessPoint) {
-			prefix = ((MementoAccessPoint) ap).getTimegatePrefix();
-		}
-		// TODO: rationalize...
-		if (prefix == null) {
-			prefix = getProp(ap.getConfigs(), AGGREGATION_PREFIX_CONFIG, "");
-		}
-		if (prefix == null) {
-			prefix = ap.getQueryPrefix();
-		}
-		return prefix;
+	public static String getMementoPrefix(AccessPoint ap) {
+		return getProp(ap.getConfigs(), AGGREGATION_PREFIX_CONFIG, "");
+		
+//		String prefix = null;
+//		if (ap instanceof MementoAccessPoint) {
+//			prefix = ((MementoAccessPoint) ap).getTimegatePrefix();
+//		}
+//		// TODO: rationalize...
+//		if (prefix == null) {
+//			prefix = getProp(ap.getConfigs(), AGGREGATION_PREFIX_CONFIG, "");
+//		}
+//		if (prefix == null) {
+//			prefix = ap.getQueryPrefix();
+//		}
+//		return prefix;
 	}
 
 	public static int getPageMaxRecord(AccessPoint ap) {
@@ -356,7 +356,7 @@ public class MementoUtils implements MementoConstants {
 
 		String timestamp = DATE_FORMAT_14_FORMATTER.format(date);
 		String replayURI = ap.getUriConverter().makeReplayURI(timestamp, url);
-		String prefix = getAggregationPrefix(ap);
+		String prefix = getMementoPrefix(ap);
 		String httpTime = HTTP_LINK_DATE_FORMATTER.format(date);
 
 		return String.format("<%s%s>; rel=\"%s\"; datetime=\"%s\"", prefix, replayURI,
