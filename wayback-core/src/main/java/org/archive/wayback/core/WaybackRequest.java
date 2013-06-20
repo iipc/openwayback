@@ -880,8 +880,8 @@ public class WaybackRequest {
 		return getBoolean(REQUEST_MEMENTO_ACCEPT_DATETIME);
 	}
 	
-	public void setMementoTimegate(boolean timegate) {
-		setBoolean(REQUEST_MEMENTO_TIMEGATE, timegate);
+	public void setMementoTimegate() {
+		setBoolean(REQUEST_MEMENTO_TIMEGATE, true);
 	}
 	public boolean isMementoTimegate() {
 		return getBoolean(REQUEST_MEMENTO_TIMEGATE);

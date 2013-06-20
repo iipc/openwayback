@@ -94,7 +94,7 @@ public class TimeGateRequestParser extends WrappedRequestParser implements Memen
 		if (wbRequest.getEndTimestamp() == null) {
 			wbRequest.setEndTimestamp(getLatestTimestamp());
 		}
-		wbRequest.setMementoTimegate(true);
+		wbRequest.setMementoTimegate();
 		wbRequest.setReplayDate(d);
 		wbRequest.setAnchorDate(d);
 		wbRequest.setReplayRequest();
