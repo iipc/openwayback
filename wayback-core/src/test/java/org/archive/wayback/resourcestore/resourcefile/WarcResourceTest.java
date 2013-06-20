@@ -3,34 +3,22 @@
  */
 package org.archive.wayback.resourcestore.resourcefile;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Map;
 
 import junit.framework.TestCase;
 
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.time.DateUtils;
 import org.archive.format.warc.WARCConstants.WARCRecordType;
 import org.archive.io.ArchiveReader;
-import org.archive.io.ArchiveRecord;
+import org.archive.io.warc.TestWARCReader;
+import org.archive.io.warc.TestWARCRecordInfo;
 import org.archive.io.warc.WARCRecord;
 import org.archive.io.warc.WARCRecordInfo;
-import org.archive.util.anvl.ANVLRecord;
-import org.archive.util.anvl.Element;
 import org.archive.wayback.replay.TextReplayRenderer;
 import org.archive.wayback.replay.charset.CharsetDetector;
 import org.archive.wayback.replay.charset.StandardCharsetDetector;
 
-import com.google.common.io.CountingInputStream;
 
 /**
  * TODO: add more tests. it has only tests relevant to recent
@@ -40,131 +28,7 @@ import com.google.common.io.CountingInputStream;
  *
  */
 public class WarcResourceTest extends TestCase {
-    static final String CRLF = "\r\n";
-    
-    /**
-     * WARCRecordInfo with default values.
-     */
-    public static class TestWARCRecordInfo extends WARCRecordInfo {
-        public TestWARCRecordInfo(byte[] content) throws URISyntaxException {
-            this.type = WARCRecordType.response;
-            this.url = "http://test.example.com/";
-            this.mimetype = "application/http; msgtype=response";
-            this.recordId = new URI("uri:recordidentifier");
-            this.contentStream = new ByteArrayInputStream(content);
-            this.contentLength = content.length;
-        }
-    }
 
-    public static byte[] buildHttpResponseBlock(String payload) throws IOException {
-        return buildHttpResponseBlock("text/plain", payload.getBytes());
-    }
-
-    public static byte[] buildHttpResponseBlock(String ctype, byte[] payloadBytes)
-            throws IOException {
-        ByteArrayOutputStream blockbuf = new ByteArrayOutputStream();
-        Writer bw = new OutputStreamWriter(blockbuf);
-        bw.write("HTTP/1.0 200 OK" + CRLF);
-        bw.write("Content-Length: " + payloadBytes.length + CRLF);
-        bw.write("Content-Type: " + ctype + CRLF);
-        bw.write(CRLF);
-        bw.flush();
-        blockbuf.write(payloadBytes);
-        bw.close();
-        return blockbuf.toByteArray();
-    }
-    
-    /**
-     * generates WARC content for new revisit record.
-     * @param ctype value for Content-Type
-     * @param len value for Content-Length
-     * @return record content as byte array
-     * @throws IOException
-     */
-    public static byte[] buildRevisitHttpResponseBlock(String ctype, int len)
-            throws IOException {
-        ByteArrayOutputStream blockbuf = new ByteArrayOutputStream();
-        Writer bw = new OutputStreamWriter(blockbuf);
-        bw.write("HTTP/1.0 200 OK" + CRLF);
-        bw.write("Content-Length: " + len + CRLF);
-        bw.write("Content-Type: " + ctype + CRLF);
-        bw.write(CRLF);
-        bw.flush();
-        bw.close();
-        return blockbuf.toByteArray();
-    }
-    /**
-     * build minimal WARC record byte stream.
-     * @param recinfo WARCRecordInfo with record metadata and content
-     * @return InputStream reading from created record bits
-     * @throws IOException
-     */
-    public static InputStream buildRecordContent(WARCRecordInfo recinfo) throws IOException {
-        ByteArrayOutputStream buf = new ByteArrayOutputStream();
-        Writer w = new OutputStreamWriter(buf);
-        w.write("WARC/1.0" + CRLF);
-        w.write("WARC-Type: " + recinfo.getType() + CRLF);
-        if (StringUtils.isNotEmpty(recinfo.getUrl())) {
-            w.write("WARC-Target-URI: " + recinfo.getUrl() + CRLF);
-        }
-        if (recinfo.getExtraHeaders() != null) {
-            ANVLRecord headers = recinfo.getExtraHeaders();
-            for (Element el : headers) {
-                w.write(el.getLabel() + ": " + el.getValue() + CRLF);
-            }
-        }
-        w.write("Content-Type: " + recinfo.getMimetype() + CRLF);
-        w.write("Content-Length: " + recinfo.getContentLength() + CRLF);
-        w.write(CRLF);
-        w.flush();
-        IOUtils.copy(recinfo.getContentStream(), buf);
-        buf.write((CRLF+CRLF).getBytes());
-        buf.close();
-        
-        return new ByteArrayInputStream(buf.toByteArray());
-    }
-
-    public static class TestWARCReader extends ArchiveReader {
-        public TestWARCReader(InputStream is) {
-            setIn(is);
-        }
-        public TestWARCReader(WARCRecordInfo recinfo) throws IOException {
-            // not clearly stated, but ArchiveReader expects CountingInputStream.
-            setIn(new CountingInputStream(buildRecordContent(recinfo)));
-        }
-        
-        @Override
-        protected ArchiveRecord createArchiveRecord(InputStream is, long offset)
-                throws IOException {
-            return currentRecord(new WARCRecord(is, "<identifier>", offset));
-        }
-        @Override
-        protected void gotoEOR(ArchiveRecord record) throws IOException {
-        }
-        @Override
-        public String getFileExtension() {
-            return "warc";
-        }
-        @Override
-        public String getDotFileExtension() {
-            return ".warc";
-        }
-        @Override
-        public void dump(boolean compress) throws IOException, ParseException {
-            // TODO Auto-generated method stub
-        }
-        @Override
-        public ArchiveReader getDeleteFileOnCloseReader(File f) {
-            // TODO Auto-generated method stub
-            return null;
-        }        
-    }
-
-    static String getHeader(WarcResource res, String name) {
-        Map<String, String> headers = res.getHttpHeaders();
-        return headers.get(name);
-    }
-    
     /* (non-Javadoc)
      * @see junit.framework.TestCase#setUp()
      */
@@ -174,9 +38,9 @@ public class WarcResourceTest extends TestCase {
 
     public void testPlainHttpRecord() throws Exception {
         String payload = "hogehogehogehogehoge";
-        WARCRecordInfo recinfo = new TestWARCRecordInfo(buildHttpResponseBlock(payload));
-        ArchiveReader ar = new TestWARCReader(recinfo);
-        WARCRecord rec = (WARCRecord)ar.get(0);
+        WARCRecordInfo recinfo = TestWARCRecordInfo.createHttpResponse(payload);
+        TestWARCReader ar = new TestWARCReader(recinfo);
+        WARCRecord rec = ar.get(0);
         WarcResource res = new WarcResource(rec, ar);
         res.parseHeaders();
         
@@ -210,8 +74,8 @@ public class WarcResourceTest extends TestCase {
         WARCRecordInfo recinfo = new TestWARCRecordInfo(block);
         recinfo.setType(WARCRecordType.metadata);
         recinfo.setMimetype(ct);
-        ArchiveReader ar = new TestWARCReader(recinfo);
-        WARCRecord rec = (WARCRecord)ar.get(0);
+        TestWARCReader ar = new TestWARCReader(recinfo);
+        WARCRecord rec = ar.get(0);
         WarcResource res = new WarcResource(rec, ar);
         // must not fail
         res.parseHeaders();
@@ -220,6 +84,11 @@ public class WarcResourceTest extends TestCase {
         assertEquals("statusCode", 200, res.getStatusCode());
         // content-type is what's specified in WARC header.
         assertEquals("content-type", ct, res.getHeader("Content-Type"));
+        // must have Date header, in HTTP Date format.
+        String date = res.getHeader("Date");
+        assertNotNull("has date header", date);
+        new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z").parse(date);
+        
         // block as content
         byte[] buf = new byte[block.length + 1];
         int n = res.read(buf);
@@ -247,13 +116,9 @@ public class WarcResourceTest extends TestCase {
      */
     public void testRevisitRecord() throws Exception {
         final String ct = "text/html";
-        byte[] block = buildRevisitHttpResponseBlock(ct, 1345);
-        WARCRecordInfo recinfo = new TestWARCRecordInfo(block);
-        recinfo.setType(WARCRecordType.revisit);
-        recinfo.addExtraHeader("WARC-Truncated", "length");
-        recinfo.addExtraHeader("WARC-Profile", REVISIT_WARC_PROFILE);
-        ArchiveReader ar = new TestWARCReader(recinfo);
-        WARCRecord rec = (WARCRecord)ar.get(0);
+        WARCRecordInfo recinfo = TestWARCRecordInfo.createRevisitHttpResponse(ct, 1345);
+        TestWARCReader ar = new TestWARCReader(recinfo);
+        WARCRecord rec = ar.get(0);
         WarcResource res = new WarcResource(rec, ar);
         res.parseHeaders();
         
@@ -290,25 +155,18 @@ public class WarcResourceTest extends TestCase {
      */
     public void testOldRevisitRecord() throws Exception {
         final String ct = "text/html";
-        byte[] block = buildRevisitHttpResponseBlock(ct, 1345);
-        WARCRecordInfo recinfo = new TestWARCRecordInfo(block);
-        recinfo.setType(WARCRecordType.revisit);
-        recinfo.addExtraHeader("WARC-Truncated", "length");
-        recinfo.addExtraHeader("WARC-Profile", REVISIT_WARC_PROFILE);
-        ArchiveReader ar = new TestWARCReader(recinfo);
-        WARCRecord rec = (WARCRecord)ar.get(0);
+        WARCRecordInfo recinfo = TestWARCRecordInfo.createRevisitHttpResponse(ct, 1345, false);
+        TestWARCReader ar = new TestWARCReader(recinfo);
+        WARCRecord rec = ar.get(0);
         WarcResource res = new WarcResource(rec, ar);
         res.parseHeaders();
-        
-        // these are from this record
-//        assertEquals("statusCode", 200, res.getStatusCode());
-//        assertEquals("content-type", ct, res.getHeader("Content-Type"));
         
         // should either return special value or throw appropriate exception (TBD)
         int scode = res.getStatusCode();
         
         Map<String, String> headers = res.getHttpHeaders();
-        assertNotNull("headers", headers);
+        //assertNotNull("headers", headers);
+        assertNull("headers", headers);
         
         res.close();
     }
@@ -335,6 +193,11 @@ public class WarcResourceTest extends TestCase {
         assertNotNull("headers", headers);
         
         assertEquals("content-type", ct, res.getHeader("Content-Type"));
+
+        // must have Date header, in HTTP Date format.
+        String date = res.getHeader("Date");
+        assertNotNull("has date header", date);
+        new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z").parse(date);
         
         res.close();
     }

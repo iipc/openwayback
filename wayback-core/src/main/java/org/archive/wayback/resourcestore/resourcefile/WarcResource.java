@@ -29,6 +29,7 @@ import java.util.Map;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.StatusLine;
 import org.apache.commons.httpclient.util.EncodingUtil;
+import org.archive.format.warc.WARCConstants.WARCRecordType;
 import org.archive.io.ArchiveReader;
 import org.archive.io.ArchiveRecordHeader;
 import org.archive.io.RecoverableIOException;
@@ -75,8 +76,14 @@ public class WarcResource extends Resource {
 			return;
 		}
 		// WARCRecord should have getRecordType() method returning WARCRecordType.
-		String warctype = (String)rec.getHeader().getHeaderValue("WARC-Type");
-		if ("response".equals(warctype) || "revisit".equals(warctype)) {
+		String rectypeStr = (String)rec.getHeader().getHeaderValue("WARC-Type");
+		WARCRecordType rectype;
+		try {
+		    rectype = WARCRecordType.valueOf(rectypeStr);
+		} catch (IllegalArgumentException ex) {
+		    throw new RecoverableIOException("unrecognized WARC-Type \"" + rectypeStr + "\"");
+		}
+		if (rectype == WARCRecordType.response || rectype == WARCRecordType.revisit) {
 		    byte [] statusBytes = LaxHttpParser.readRawLine(rec);
 		    int eolCharCount = getEolCharsCount(statusBytes);
 		    if (eolCharCount <= 0) {
@@ -107,7 +114,7 @@ public class WarcResource extends Resource {
 		            }
 		        }
 		    }
-		} else if ("metadata".equals(warctype) || "resource".equals(warctype)) {
+		} else if (rectype == WARCRecordType.metadata || rectype == WARCRecordType.resource) {
 		    status = 200;
 		    headers = new HashMap<String, String>();
 		    String ct = (String)rec.getHeader().getHeaderValue("Content-Type");
@@ -118,7 +125,7 @@ public class WarcResource extends Resource {
 		    String date = rec.getHeader().getDate();
 		    if (date != null) {
 		        try {
-		            Date d = DateUtils.parse14DigitDate(date);
+		            Date d = org.apache.commons.lang.time.DateUtils.parseDate(date, new String[] { "yyyy-MM-dd'T'HH:mm:ss'Z'"});
 		            String httpDate = DateUtils.getRFC1123Date(d);
 		            headers.put("Date", httpDate);
 		        } catch (ParseException ex) {
