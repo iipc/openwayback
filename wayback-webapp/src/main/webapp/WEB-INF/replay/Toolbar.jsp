@@ -47,10 +47,14 @@ Date firstYearDate = data.yearPartitions.get(0).getStart();
 Date lastYearDate = data.yearPartitions.get(data.yearPartitions.size()-1).getEnd();
 
 int resultIndex = 1;
-int imgWidth = 375;
+int imgWidth = 0;
 int imgHeight = 27;
 int monthWidth = 2;
 int yearWidth = 25;
+
+for (int year = 1996; year <= Calendar.getInstance().get(Calendar.YEAR); year++)
+    imgWidth += yearWidth;
+
 String yearFormatKey = "PartitionSize.dateHeader.yearGraphLabel";
 String encodedGraph = data.computeGraphString(yearFormatKey,imgWidth,imgHeight);
 String graphImgUrl = graphJspPrefix + "jsp/graph.jsp?graphdata=" + encodedGraph;
@@ -174,7 +178,7 @@ function trackMouseMove(event,element) {
 
        <table style="border-collapse:collapse;margin:0 auto;padding:0;width:570px;"><tbody><tr>
        <td style="padding:3px 0;" colspan="2">
-       <form target="_top" method="get" action="<%= queryPrefix %>query" name="wmtb" id="wmtb" style="margin:0!important;padding:0!important;"><input type="text" name="<%= WaybackRequest.REQUEST_URL %>" id="wmtbURL" value="<%= searchUrlSafe %>" style="width:400px;font-size:11px;font-family:'Lucida Grande','Arial',sans-serif;"/><input type="hidden" name="<%= WaybackRequest.REQUEST_TYPE %>" value="<%= WaybackRequest.REQUEST_REPLAY_QUERY %>"><input type="hidden" name="<%= WaybackRequest.REQUEST_DATE %>" value="<%= data.curResult.getCaptureTimestamp() %>"><input type="submit" value="Go" style="font-size:11px;font-family:'Lucida Grande','Arial',sans-serif;margin-left:5px;"/><span id="wm_tb_options" style="display:block;"></span></form>
+           <form target="_top" method="get" action="<%= queryPrefix %>query" name="wmtb" id="wmtb" style="margin:0!important;padding:0!important;"><input type="text" name="<%= WaybackRequest.REQUEST_URL %>" id="wmtbURL" value="<%= searchUrlSafe %>" maxlength="256" style="width:400px;font-size:11px;font-family:'Lucida Grande','Arial',sans-serif;"/><input type="hidden" name="<%= WaybackRequest.REQUEST_TYPE %>" value="<%= WaybackRequest.REQUEST_REPLAY_QUERY %>"><input type="hidden" name="<%= WaybackRequest.REQUEST_DATE %>" value="<%= data.curResult.getCaptureTimestamp() %>"><input type="submit" value="Go" style="font-size:11px;font-family:'Lucida Grande','Arial',sans-serif;margin-left:5px;"/><span id="wm_tb_options" style="display:block;"></span></form>
        </td>
        <td style="vertical-align:bottom;padding:5px 0 0 0!important;" rowspan="2">
            <table style="border-collapse:collapse;width:110px;color:#99a;font-family:'Helvetica','Lucida Grande','Arial',sans-serif;"><tbody>
