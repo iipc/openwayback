@@ -676,6 +676,7 @@ implements ShutdownListener {
 						
 						// If zero length old-style revisit with no headers, then must use payloadResource as headersResource
 						if (httpHeadersResource.getRecordLength() <= 0) {
+							httpHeadersResource.close();
 							httpHeadersResource = payloadResource;
 						}
 					}
