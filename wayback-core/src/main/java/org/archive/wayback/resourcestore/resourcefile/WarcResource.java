@@ -29,6 +29,7 @@ import java.util.Map;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.StatusLine;
 import org.apache.commons.httpclient.util.EncodingUtil;
+import org.archive.format.warc.WARCConstants;
 import org.archive.format.warc.WARCConstants.WARCRecordType;
 import org.archive.io.ArchiveReader;
 import org.archive.io.ArchiveRecordHeader;
@@ -83,6 +84,26 @@ public class WarcResource extends Resource {
 		} catch (IllegalArgumentException ex) {
 		    throw new RecoverableIOException("unrecognized WARC-Type \"" + rectypeStr + "\"");
 		}
+		
+		// Check for empty revisit record, Content-Length: 0
+		if (rectype == WARCRecordType.revisit) {
+			Object o = rec.getHeader().getHeaderValue(WARCConstants.CONTENT_LENGTH);
+			
+			long contentLength = 0;
+			
+			if (o != null) {
+				contentLength = (o instanceof Long)?((Long)o).longValue(): Long.parseLong((String)o);
+			}
+			
+			if (contentLength <= 0) {
+				headers = null;
+				status = 0;
+				parsedHeaders = true;
+				return;
+			}
+		}
+		
+		
 		if (rectype == WARCRecordType.response || rectype == WARCRecordType.revisit) {
 		    byte [] statusBytes = LaxHttpParser.readRawLine(rec);
 		    int eolCharCount = getEolCharsCount(statusBytes);
