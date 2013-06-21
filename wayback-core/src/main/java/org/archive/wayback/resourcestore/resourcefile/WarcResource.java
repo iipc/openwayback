@@ -29,6 +29,7 @@ import java.util.Map;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.StatusLine;
 import org.apache.commons.httpclient.util.EncodingUtil;
+import org.archive.format.warc.WARCConstants;
 import org.archive.format.warc.WARCConstants.WARCRecordType;
 import org.archive.io.ArchiveReader;
 import org.archive.io.ArchiveRecordHeader;
@@ -72,9 +73,14 @@ public class WarcResource extends Resource {
 		if(parsedHeaders) {
 			return;
 		}
+		
+		// If warc or arc record is 0 length, don't do any more parsing!
+		// Hopefully caller code will check this before proceeding as well
 		if (getRecordLength() <= 0) {
+			parsedHeaders = true;
 			return;
 		}
+		
 		// WARCRecord should have getRecordType() method returning WARCRecordType.
 		String rectypeStr = (String)rec.getHeader().getHeaderValue("WARC-Type");
 		WARCRecordType rectype;
@@ -83,6 +89,7 @@ public class WarcResource extends Resource {
 		} catch (IllegalArgumentException ex) {
 		    throw new RecoverableIOException("unrecognized WARC-Type \"" + rectypeStr + "\"");
 		}
+		
 		if (rectype == WARCRecordType.response || rectype == WARCRecordType.revisit) {
 		    byte [] statusBytes = LaxHttpParser.readRawLine(rec);
 		    int eolCharCount = getEolCharsCount(statusBytes);
@@ -150,7 +157,7 @@ public class WarcResource extends Resource {
 	@Override
 	public long getRecordLength() {
 		if ((length == 0) && (rec.getHeader() != null)) {
-			length = rec.getHeader().getLength();
+			length = rec.getHeader().getContentLength();
 		}
 		return length;
 	}

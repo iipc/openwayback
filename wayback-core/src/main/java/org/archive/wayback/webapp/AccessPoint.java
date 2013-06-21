@@ -673,6 +673,11 @@ implements ShutdownListener {
 					} else {
 						httpHeadersResource = getResource(closest, skipFiles);
 						payloadResource = retrievePayloadForIdenticalContentRevisit(httpHeadersResource, captureResults, closest, skipFiles);
+						
+						// If zero length old-style revisit with no headers, then must use payloadResource as headersResource
+						if (httpHeadersResource.getRecordLength() <= 0) {
+							httpHeadersResource = payloadResource;
+						}
 					}
 				} else {
 					httpHeadersResource = getResource(closest, skipFiles);
