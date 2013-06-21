@@ -219,7 +219,7 @@ $().ready(function(){
     
             <div id="wbMeta">
                 <p class="wbThis"><a href="<%= data.searchUrlForHTML %>"><%= data.searchUrlForHTML %></a> has been crawled <strong><%= fmt.format("{0} times",data.numResults) %></strong> going all the way back to <a href="<%= data.firstResultReplayUrl %>"><%= fmt.format("{0,date,MMMM d, yyyy}",data.firstResultDate) %></a>.</p>
-                <p class="wbNote">A crawl can be a duplicate of the last one. It happens about 25% of the time across 420,000,000 websites. <a href="https://webarchive.jira.com/wiki/display/WWMOS/FAQs">FAQ</a></p>
+                <p class="wbNote">A crawl can be a duplicate of the last one. It happens about 25% of the time across 420,000,000 websites. <a href="http://faq.web.archive.org/">FAQ</a></p>
             </div>
         </div>
         
@@ -521,7 +521,7 @@ filter: alpha(opacity=20);
 .month table td .day a,
 .month table td .day span {
     display: block;
-    font-size: 0.6875em;
+    font-size: 0.75em;
     width: 30px;
     height: 22px;
     padding-top: 8px;
@@ -536,7 +536,7 @@ filter: alpha(opacity=20);
     height: 19px;
 }
 .month table td .day a:hover {
-    font-size: 0.9375em;
+    font-size: 0.95em;
     padding-top: 6px;
     height: 22px;
 }
@@ -557,7 +557,7 @@ filter: alpha(opacity=20);
 .activeHighlight {
     background-color: #000!important;
     padding-top: 4px;
-    font-size: 1.375em!important;
+    font-size: 1.25em!important;
     color: #fff300!important;
     font-weight: normal!important;
     cursor: pointer;
