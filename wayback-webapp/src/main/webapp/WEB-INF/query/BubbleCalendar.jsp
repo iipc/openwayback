@@ -14,6 +14,7 @@
 <%@ page import="org.archive.wayback.util.partition.Partition" %>
 <%@ page import="org.archive.wayback.util.StringFormatter" %>
 <jsp:include page="/WEB-INF/template/CookieJS.jsp" flush="true" />
+
 <%
 UIResults results = UIResults.extractCaptureQuery(request);
 
@@ -49,6 +50,9 @@ String yearImgUrl = graphJspPrefix + "jsp/graph.jsp?nomonth=1&graphdata=" + year
 Calendar cal = BubbleCalendarData.getUTCCalendar();
 
 %>
+<style type="text/css" src="<%= staticPrefix %>css/styles.css">
+@import url("<%= staticPrefix %>css/styles.css");
+</style>
 <script type="text/javascript" src="<%= staticPrefix %>js/jquery-1.4.2.min.js"></script>
 <script type="text/javascript" src="<%= staticPrefix %>js/excanvas.compiled.js"></script>
 <script type="text/javascript" src="<%= staticPrefix %>js/jquery.bt.min.js" charset="utf-8"></script>
@@ -219,7 +223,7 @@ $().ready(function(){
     
             <div id="wbMeta">
                 <p class="wbThis"><a href="<%= data.searchUrlForHTML %>"><%= data.searchUrlForHTML %></a> has been crawled <strong><%= fmt.format("{0} times",data.numResults) %></strong> going all the way back to <a href="<%= data.firstResultReplayUrl %>"><%= fmt.format("{0,date,MMMM d, yyyy}",data.firstResultDate) %></a>.</p>
-                <p class="wbNote">A crawl can be a duplicate of the last one. It happens about 25% of the time across 420,000,000 websites. <a href="http://faq.web.archive.org/">FAQ</a></p>
+                <p class="wbNote">A crawl can be a duplicate of the last one. It happens about 25% of the time across 420,000,000 websites. <a href="https://webarchive.jira.com/wiki/display/WWMOS/FAQs">FAQ</a></p>
             </div>
         </div>
         
@@ -469,178 +473,3 @@ for(int moy = 0; moy < 12; moy++) {
 </div>
   
 <jsp:include page="/WEB-INF/template/UI-footer.jsp" flush="true" />
-
-<style type="text/css">
-body,div,p,td,th,ul,ol,li {margin:0;padding:0;}
-body {background-color:#fff;font-family:"Arial","Helvetica Neue","Helvetica",sans-serif;font-size:100%;}
-img {border:none;}
-a {color:#069;}
-.clearfix{width:100%;clear:both;}
-.clearfix:after {content:".";display:block;height:0;clear:both;visibility:hidden;}
-#position {padding:0;margin:0 auto;width:990px;background-color:#fff;}
-#wbCalendar {position:relative;width:990px;margin-top:25px;}
-.calPosition {padding:15px 0 25px 25px;}
-#calUnder {overflow:hidden;}
-#calOver {position:absolute;top:0;left:0;}
-.hidden{display:none;}
-.opacity20 {
-    opacity:.2;
--ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=20)";
-filter: alpha(opacity=20);
-}
-.month {
-    width: 240px;
-    height: 210px;
-    float: left;
-}
-.month table {
-    border-collapse: collapse;
-    font-family: "Arial", sans-serif;
-    border-spacing: 1px;
-}
-.month table th {
-    font-size: 0.75em;
-    font-weight: 700;
-    text-transform: uppercase;
-    padding: 6px;
-}
-.month table span.label {
-    display: block;
-    min-height: 20px;
-}
-.month table td {
-    padding: 0;
-    vertical-align: middle;
-    color: #666;
-}
-.month table td .day {
-    width: 30px;
-    height: 30px;
-    text-align: center;
-}
-.month table td .day a,
-.month table td .day span {
-    display: block;
-    font-size: 0.75em;
-    width: 30px;
-    height: 22px;
-    padding-top: 8px;
-}
-.month table td .day a {
-    color: #000;
-    font-weight: 700;
-    text-decoration: none;
-}
-.month table td .day span {
-    padding-top: 9px;
-    height: 19px;
-}
-.month table td .day a:hover {
-    font-size: 0.95em;
-    padding-top: 6px;
-    height: 22px;
-}
-.month table td .date {
-    width: 30px;
-    height: 30px;
-}
-.month table td .position {
-    position: relative;
-    top: 15px;
-    left: 15px;
-    width: 1px;
-    height: 1px;
-}
-.month table td .measure {
-    position: absolute;
-}
-.activeHighlight {
-    background-color: #000!important;
-    padding-top: 4px;
-    font-size: 1.25em!important;
-    color: #fff300!important;
-    font-weight: normal!important;
-    cursor: pointer;
-}
-.inactiveHighlight {
-    background-color: #fff!important;
-    padding-top: 4px;
-    font-size: .75em!important;
-    color: #000!important;
-    font-weight: normal!important;
-    cursor: pointer;
-}
-
-.bt-content {
-  text-align: left;
-}
-.pop {display:none;}
-.bt-content h3 {font-size: 1em;font-weight: 700;text-transform: uppercase;margin:0 0 5px;}
-.bt-content p {font-size: 0.875em;margin: 5px 0;color:#666;}
-.bt-content ul {line-height:1.5em;margin:0 0 0 1em;}
-.bt-content em {color:#999;}
-.bt-content a:hover {color:#036;}
-
-#wbSearch {float:left;padding:30px 30px 0;}
-#wbSearch #logo {float:left; width:223px;}
-#wbSearch #form {float:left;width:707px;}
-#wbSearch form {margin:0;padding:0;}
-#wbSearch input {font-family:"Arial","Helvetica Neue","Helvetica",sans-serif;font-size:1.125em;}
-#wbSearch input[type=text] {width:450px;font-weight:700;}
-#wbSearch input[type=submit] {vertical-align: middle;}
-#wbMeta {padding:15px 0;}
-#wbMeta p {margin:0 0 2px;padding:0;}
-#wbMeta p.wbThis {font-size:0.75em;}
-#wbMeta p.wbNote {color:#666;font-size: 0.6875em;}
-#wbMeta p.wbNote a {color:#666;}
-#wbChart {text-align:center;padding:0 30px;}
-#wbChartThis {position:relative;margin:0 auto;}
-.wbChartThisContainer,.wbChartHover {width:<%= yearWidth %>px;height:30px;float:left;overflow:visible;}
-.wbChartThisTop {
-    width: <%= yearWidth %>px;
-    height: 80px;
-    border: 1px solid #ccc;
-}
-.wbGradient {
-    background: #f3f3f3 -moz-linear-gradient(top,#ffffff,#f3f3f3);
-    background: #f3f3f3 -webkit-gradient(linear, left top, left bottom, from(#fff), to(#f3f3f3), color-stop(1.0, #f3f3f3));
-    background-color: #f3f3f3;
-    filter: progid:DXImageTransform.Microsoft.Gradient(enabled='true',startColorstr=#FFFFFFFF, endColorstr=#FFF3F3F3);
-}
-.wbSelected, #wbSelected {
-    background: #fff300!important;
-    border-bottom: 1px solid #000!important;
-    filter: progid:DXImageTransform.Microsoft.Gradient(enabled='false')!important;
-    cursor: pointer;
-}
-#wbSelected {
-    cursor: default!important;
-}
-.wbChartThisBtm {
-    text-align:center;
-}
-.wbChartSm {
-    padding-top: 4px;
-    font-size: 0.625em;
-    color: #999;
-    font-weight: 700;
-}
-.wbChartBig, #wbChartBig {
-    background-color: #000!important;
-    padding-top: 4px;
-    font-size: 1.375em!important;
-    color: #fff300!important;
-    font-weight: normal!important;
-    cursor: pointer;
-}
-#wbChartBig {
-    cursor: default!important;
-}
-#wbChartGraph,#wbChartOver {
-    position: absolute;
-    top: 1px;
-    left: 1px;
-    cursor: pointer;
-}
-
-</style>
