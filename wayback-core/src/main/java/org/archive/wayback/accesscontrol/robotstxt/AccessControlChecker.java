@@ -35,7 +35,7 @@ public class AccessControlChecker extends AbstractRequestHandler {
 		}
 		
 		PrintWriter writer = httpResponse.getWriter();
-		httpResponse.setContentType("text/plain");
+		httpResponse.setContentType("application/json");
 		return checkAccess(url, writer);
 	}
 	
@@ -60,7 +60,7 @@ public class AccessControlChecker extends AbstractRequestHandler {
 			status = filter.filterObject(result);
 		} catch (URIException e) {
 			//Exclude invalid
-		}		
+		}
 		
 		if (status == ExclusionFilter.FILTER_INCLUDE) {
 			writer.println("[\"allow\"]");
