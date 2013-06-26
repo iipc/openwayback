@@ -9,8 +9,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.archive.wayback.accesscontrol.ExclusionFilterFactory;
 import org.archive.wayback.accesscontrol.robotstxt.redis.SimpleRedisRobotsCache.RobotsResult;
-import org.archive.wayback.core.FastCaptureSearchResult;
-import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.util.webapp.AbstractRequestHandler;
 
 //TODO: Add a proper jsp/view for this
@@ -26,7 +24,6 @@ public class UpdateRobotsRequestHandler extends AbstractRequestHandler {
 	protected final static String ROBOT_SUFFIX = "/robots.txt";
 	
 	private SimpleRedisRobotsCache robotsCache;
-	private ExclusionFilterFactory robotsCheckFactory;
 	
 	// Minimum time (secs) between subsequent forced updates
 	// Default: off for now
@@ -56,10 +53,10 @@ public class UpdateRobotsRequestHandler extends AbstractRequestHandler {
 		String url = this.translateRequestPath(httpRequest);
 		PrintWriter writer = httpResponse.getWriter();
 		
-		if (!url.endsWith(ROBOT_SUFFIX)) {			
-			if (checkRobots(url, writer)) {
-				return true;
-			}
+		if (!url.endsWith(ROBOT_SUFFIX)) {
+			httpResponse.setContentType("text/plain");
+			httpResponse.getWriter().println("The request must end in /robots.txt");
+			return true;
 		}
 		
 		httpResponse.setContentType("text/html");
@@ -118,33 +115,5 @@ public class UpdateRobotsRequestHandler extends AbstractRequestHandler {
 		
 		writer.println("<p><i>Current Time: " + new Date().toString() + "</p></body></html>");
 		return true;
-	}
-
-	private boolean checkRobots(String url, PrintWriter writer) {
-		if (robotsCheckFactory == null) {
-			return false;
-		}
-		
-		ExclusionFilter filter = robotsCheckFactory.get();
-		FastCaptureSearchResult result = new FastCaptureSearchResult();
-		result.setOriginalUrl(url);
-		
-		int status = filter.filterObject(result);
-		
-		if (status == ExclusionFilter.FILTER_INCLUDE) {
-			writer.println("allow");
-		} else {
-			writer.println("block");
-		}
-		
-		return true;
-	}
-
-	public ExclusionFilterFactory getRobotsCheckFactory() {
-		return robotsCheckFactory;
-	}
-
-	public void setRobotsCheckFactory(ExclusionFilterFactory robotsCheckFactory) {
-		this.robotsCheckFactory = robotsCheckFactory;
 	}
 }
