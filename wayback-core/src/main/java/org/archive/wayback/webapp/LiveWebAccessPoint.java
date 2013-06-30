@@ -87,13 +87,11 @@ public class LiveWebAccessPoint extends LiveWebRequestHandler {
 		urlString = UrlOperations.fixupHTTPUrlWithOneSlash(urlString);
 		boolean handled = true;
 		
-		if (requireReferrer != null) {
-			String ref = httpRequest.getHeader("Referer");
-			if ((ref == null) || !ref.contains(requireReferrer)) {
-				httpResponse.sendRedirect(inner.getReplayPrefix() + urlString);
-				return true;
-			}
-		}		
+		String ref = httpRequest.getHeader("Referer");
+		if ((ref == null) || !skipHost.matcher(ref).find()) {
+			httpResponse.sendRedirect(inner.getReplayPrefix() + urlString);
+			return true;
+		}	
 		
 		WaybackRequest wbRequest = new WaybackRequest();
 		wbRequest.setAccessPoint(inner);
