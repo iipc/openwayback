@@ -1107,4 +1107,12 @@ public class WaybackRequest {
 	public Set<String> keySet() {
 		return filters.keySet();
 	}
+
+	// Check the date within 1 min to see if its a request for latest date
+	public boolean isLatestDateRequest() {
+		long now = new Date().getTime();
+		long then = this.getReplayDate().getTime();
+		// < 1 min
+		return ((now - then) < 60000);
+	}
 }

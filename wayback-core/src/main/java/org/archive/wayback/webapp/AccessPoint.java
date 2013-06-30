@@ -696,9 +696,9 @@ implements ShutdownListener {
 				}
 				
 				// Attempt to resolve any not-found embedded content with closest
-				if (wbRequest.isAnyEmbeddedContext() && closest.getHttpCode().startsWith("4")) {
+				if (closest.isErrorHttpCode() && (wbRequest.isAnyEmbeddedContext() || wbRequest.isLatestDateRequest())) {
 					CaptureSearchResult nextClosest = findNextClosest(closest, captureResults, requestMS);
-					if ((nextClosest != null) && !nextClosest.getHttpCode().startsWith("4")) {
+					if ((nextClosest != null) && !nextClosest.isErrorHttpCode()) {
 						closest = nextClosest;
 						continue;
 					}

@@ -49,7 +49,10 @@ implements ClosestResultSelector {
 			// exact date. some capture dates are not 14 digits, only compare as 
 			// many digits as are in the result date:
 			if(!resDateStr.equals(reqDateStr.substring(0,resDateStr.length()))) {
-				doRedirect = true;
+				// If looking for latest date, don't redirect until after checking for errors later
+				if (!wbRequest.isLatestDateRequest()) {
+					doRedirect = true;
+				}
 			}
 		}
 		if(doRedirect) {

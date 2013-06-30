@@ -69,15 +69,14 @@ public class LiveWebAccessPoint extends LiveWebRequestHandler {
 	private RobotExclusionFilterFactory robotFactory = null;
 	private StaticMapExclusionFilterFactory adminFactory = null;
 	
-	private String perfStatsHeader = null;
-	
 	private Pattern skipHost = null;
 	private int dnsCheckTimeout = 0;
 	
+	private String requireReferrer = null;
+	
 	public final static String LIVEWEB_RUNTIME_ERROR_HEADER = "X-Archive-Wayback-Runtime-Liveweb-Error";
 	
-	private long maxCacheMS = 86400000;
-	
+	private long maxCacheMS = 86400000;	
 	
 		
 	public boolean handleRequest(HttpServletRequest httpRequest,
@@ -87,6 +86,15 @@ public class LiveWebAccessPoint extends LiveWebRequestHandler {
 		String urlString = translateRequestPathQuery(httpRequest);
 		urlString = UrlOperations.fixupHTTPUrlWithOneSlash(urlString);
 		boolean handled = true;
+		
+		if (requireReferrer != null) {
+			String ref = httpRequest.getHeader("Referer");
+			if ((ref == null) || !ref.contains(requireReferrer)) {
+				httpResponse.sendRedirect(inner.getReplayPrefix() + urlString);
+				return true;
+			}
+		}		
+		
 		WaybackRequest wbRequest = new WaybackRequest();
 		wbRequest.setAccessPoint(inner);
 
@@ -335,14 +343,6 @@ public class LiveWebAccessPoint extends LiveWebRequestHandler {
 		this.adminFactory = adminFactory;
 	}
 
-	public String getPerfStatsHeader() {
-		return perfStatsHeader;
-	}
-
-	public void setPerfStatsHeader(String perfStatsHeader) {
-		this.perfStatsHeader = perfStatsHeader;
-	}
-
 	public String getSkipHost() {
 		return skipHost.pattern();
 	}
@@ -357,5 +357,13 @@ public class LiveWebAccessPoint extends LiveWebRequestHandler {
 
 	public void setDnsCheckTimeout(int dnsCheckTimeout) {
 		this.dnsCheckTimeout = dnsCheckTimeout;
+	}
+
+	public String getRequireReferrer() {
+		return requireReferrer;
+	}
+
+	public void setRequireReferrer(String requireReferrer) {
+		this.requireReferrer = requireReferrer;
 	}
 }

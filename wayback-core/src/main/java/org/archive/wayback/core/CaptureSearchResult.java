@@ -492,4 +492,9 @@ public class CaptureSearchResult extends SearchResult {
 	{
 		return this.getCaptureDate().toString() + " " + this.getOriginalUrl();
 	}
+
+	public boolean isErrorHttpCode() {
+		String httpCode = this.getHttpCode();
+		return (httpCode.startsWith("4") || httpCode.startsWith("5"));
+	}
 }
