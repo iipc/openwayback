@@ -513,7 +513,7 @@ implements ShutdownListener {
 		return false;
 	}
 	
-	protected SearchResults queryIndex(WaybackRequest wbRequest) throws ResourceIndexNotAvailableException, ResourceNotInArchiveException, BadQueryException, AccessControlException, ConfigurationException
+	public SearchResults queryIndex(WaybackRequest wbRequest) throws ResourceIndexNotAvailableException, ResourceNotInArchiveException, BadQueryException, AccessControlException, ConfigurationException
 	{
 		try {
 			PerfStats.timeStart(PerfStat.IndexQueryTotal);

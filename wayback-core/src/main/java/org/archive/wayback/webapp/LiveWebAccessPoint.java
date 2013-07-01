@@ -24,6 +24,7 @@ import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.util.Date;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
@@ -38,9 +39,13 @@ import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.FastCaptureSearchResult;
 import org.archive.wayback.core.WaybackRequest;
+import org.archive.wayback.exception.AccessControlException;
 import org.archive.wayback.exception.AdministrativeAccessControlException;
 import org.archive.wayback.exception.BadQueryException;
+import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.exception.LiveDocumentNotAvailableException;
+import org.archive.wayback.exception.ResourceIndexNotAvailableException;
+import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.exception.RobotAccessControlException;
 import org.archive.wayback.exception.WaybackException;
 import org.archive.wayback.liveweb.LiveWebCache;
@@ -87,22 +92,42 @@ public class LiveWebAccessPoint extends LiveWebRequestHandler {
 		urlString = UrlOperations.fixupHTTPUrlWithOneSlash(urlString);
 		boolean handled = true;
 		
-		String ref = httpRequest.getHeader("Referer");
-		if ((ref == null) || !skipHost.matcher(ref).find()) {
-			httpResponse.sendRedirect(inner.getReplayPrefix() + urlString);
-			return true;
-		}	
+		ArcResource r = null;
 		
 		WaybackRequest wbRequest = new WaybackRequest();
 		wbRequest.setAccessPoint(inner);
-
-		wbRequest.setLiveWebRequest(true);
 		wbRequest.setRequestUrl(urlString);
-		
-		ArcResource r = null;
-		
+
 		try {
-			PerfStats.clearAll();
+			String ref = httpRequest.getHeader("Referer");
+			
+			PerfStats.clearAll();			
+			
+			if ((ref == null) || !skipHost.matcher(ref).find()) {
+				wbRequest.setTimestampSearchKey(true);
+				wbRequest.setReplayDate(new Date());
+				wbRequest.setReplayRequest();
+				
+				try {
+					inner.queryIndex(wbRequest);
+					// Succeeded, so send redirect to query
+					httpResponse.sendRedirect(inner.getReplayPrefix() + urlString);
+					return true;
+				} catch (ResourceIndexNotAvailableException e) {
+					throw new LiveDocumentNotAvailableException(e.toString());
+				} catch (ResourceNotInArchiveException e) {
+					//Continue
+				} catch (BadQueryException e) {
+					throw new LiveDocumentNotAvailableException(e.toString());
+				} catch (AccessControlException e) {
+					//Continue
+					//throw new LiveDocumentNotAvailableException(e.toString());
+				} catch (ConfigurationException e) {
+					throw new LiveDocumentNotAvailableException(e.toString());
+				}
+			}
+			
+			wbRequest.setLiveWebRequest(true);
 			
 			if (inner.isEnablePerfStatsHeader()) {
 				PerfStats.timeStart(AccessPoint.PerfStat.Total);
