@@ -697,10 +697,13 @@ implements ShutdownListener {
 				
 				// Attempt to resolve any not-found embedded content with closest
 				if (closest.isErrorHttpCode() && (wbRequest.isAnyEmbeddedContext() || wbRequest.isLatestDateRequest())) {
-					CaptureSearchResult nextClosest = findNextClosest(closest, captureResults, requestMS);
-					if ((nextClosest != null) && !nextClosest.isErrorHttpCode()) {
-						closest = nextClosest;
-						continue;
+					CaptureSearchResult nextClosest = closest;
+					
+					while ((nextClosest = findNextClosest(nextClosest, captureResults, requestMS)) != null) {
+						if (!nextClosest.isErrorHttpCode()) {
+							closest = nextClosest;
+							break;
+						}
 					}
 				}
 				
