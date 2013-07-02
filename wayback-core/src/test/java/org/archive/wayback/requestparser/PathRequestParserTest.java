@@ -7,7 +7,6 @@ import javax.servlet.http.HttpServletRequest;
 
 import junit.framework.TestCase;
 
-import org.archive.wayback.RequestParserTest;
 import org.archive.wayback.archivalurl.ArchivalUrl;
 import org.archive.wayback.archivalurl.ArchivalUrlRequestParser;
 import org.archive.wayback.archivalurl.requestparser.PathDatePrefixQueryRequestParser;
@@ -23,7 +22,6 @@ import org.archive.wayback.webapp.AccessPoint;
 /**
  * unit tests for {@link PathRequestParser} implementations.
  * 
- * @see RequestParserTest
  * @contributor kenji
  *
  */
