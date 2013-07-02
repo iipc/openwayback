@@ -7,6 +7,7 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.zip.GZIPOutputStream;
 
 import org.archive.format.ArchiveFileConstants;
 import org.archive.format.warc.WARCConstants;
@@ -14,8 +15,12 @@ import org.archive.util.DateUtils;
 
 /**
  * WARCRecordInfo with default values and convenience factory methods.
+ * 
+ * TODO: use existing well-tested HTTP library for generating HTTP content-block.
+ * 
  * @see TestWARCReader
  * @contributor kenji
+ * 
  */
 public class TestWARCRecordInfo extends WARCRecordInfo implements WARCConstants, ArchiveFileConstants {
 
@@ -37,13 +42,32 @@ public class TestWARCRecordInfo extends WARCRecordInfo implements WARCConstants,
     }
     
     // factory methods
+    
+    /**
+     * return TestWARCRecordInfo for HTTP Response with entity {@code payload}.
+     * Content-Type is {@code text/plain}, and {@code payload} is encoded in UTF-8.
+     * @param payload
+     * @return
+     * @throws IOException
+     */
     public static TestWARCRecordInfo createHttpResponse(String payload) 
             throws IOException {
-        return new TestWARCRecordInfo(buildHttpResponseBlock(payload));
+        return new TestWARCRecordInfo(buildHttpResponseBlock("text/plain", payload.getBytes("UTF-8")));
     }
+    /**
+     * return TestWARCRecordInfo for HTTP Response with entity {@code payload}.
+     * @param ctype Content-Type value
+     * @param payloadBytes payload bytes
+     * @return WARCRecordInfo with default values set to key properties.
+     * @throws IOException
+     */
     public static TestWARCRecordInfo createHttpResponse(String ctype, byte[] payloadBytes)
             throws IOException {
         return new TestWARCRecordInfo(buildHttpResponseBlock(ctype, payloadBytes));
+    }
+    public static TestWARCRecordInfo createCompressedHttpResponse(String ctype,
+            byte[] payloadBytes) throws IOException {
+        return new TestWARCRecordInfo(buildCompressedHttpResponseBlock(ctype, payloadBytes));
     }
     public static TestWARCRecordInfo createRevisitHttpResponse(String ctype, int len, boolean withHeader)
             throws IOException {
@@ -64,13 +88,65 @@ public class TestWARCRecordInfo extends WARCRecordInfo implements WARCConstants,
         return buildHttpResponseBlock("text/plain", payload.getBytes());
     }
 
-    public static byte[] buildHttpResponseBlock(String ctype, byte[] payloadBytes)
+    /**
+     * short cut for generating "200 OK" HTTP response content-block.
+     * @param ctype HTTP Content-Type, such as {@code "text/plain"}, {@code "image/gif"}
+     * @param payloadBytes payload bytes
+     * @return content-block bytes with HTTP status line, HTTP headers and payload.
+     * @throws IOException
+     */
+    public static byte[] buildHttpResponseBlock(String ctype, byte[] payloadBytes) throws IOException {
+        return buildHttpResponseBlock("200 OK", ctype, payloadBytes);
+    }
+    
+    /**
+     * return content-block bytes for HTTP response.
+     * @param status HTTP status code and status text separated by a space. ex. {@code "200 OK"}.
+     * @param ctype HTTP Content-Type
+     * @param payloadBytes payload bytes
+     * @return content-block bytes with HTTP status line, HTTP headers and payload.
+     * @throws IOException
+     */
+    public static byte[] buildHttpResponseBlock(String status, String ctype, byte[] payloadBytes)
             throws IOException {
+        ByteArrayOutputStream blockbuf = new ByteArrayOutputStream();
+        Writer bw = new OutputStreamWriter(blockbuf);
+        bw.write("HTTP/1.0 " + status + CRLF);
+        bw.write("Content-Length: " + payloadBytes.length + CRLF);
+        bw.write("Content-Type: " + ctype + CRLF);
+        bw.write(CRLF);
+        bw.flush();
+        blockbuf.write(payloadBytes);
+        bw.close();
+        return blockbuf.toByteArray();
+    }
+    
+    public static byte[] buildHttpRedirectResponseBlock(String location) throws IOException {
+        ByteArrayOutputStream blockbuf = new ByteArrayOutputStream();
+        Writer bw = new OutputStreamWriter(blockbuf);
+        String status = "302 Moved Temporarily";
+        bw.write("HTTP/1.0 " + status + CRLF);
+        bw.write("Content-Length: " + 0 + CRLF);
+        bw.write("Content-Type: text/html" + CRLF);
+        bw.write("Location: " + location + CRLF);
+        bw.write(CRLF);
+        bw.close();
+        return blockbuf.toByteArray();
+    }
+    
+    public static byte[] buildCompressedHttpResponseBlock(String ctype,
+            byte[] payloadBytes) throws IOException {
+        ByteArrayOutputStream gzippedPayloadBytes = new ByteArrayOutputStream();
+        GZIPOutputStream zout = new GZIPOutputStream(gzippedPayloadBytes);
+        zout.write(payloadBytes);
+        zout.close();
+        payloadBytes = gzippedPayloadBytes.toByteArray();
         ByteArrayOutputStream blockbuf = new ByteArrayOutputStream();
         Writer bw = new OutputStreamWriter(blockbuf);
         bw.write("HTTP/1.0 200 OK" + CRLF);
         bw.write("Content-Length: " + payloadBytes.length + CRLF);
         bw.write("Content-Type: " + ctype + CRLF);
+        bw.write("Content-Encoding: gzip" + CRLF);
         bw.write(CRLF);
         bw.flush();
         blockbuf.write(payloadBytes);
@@ -101,5 +177,14 @@ public class TestWARCRecordInfo extends WARCRecordInfo implements WARCConstants,
         }
         return blockbuf.toByteArray();
     }
+
+    // POPULAR PAYLOAD SAMPLES
+    
+    // ubiquitous 1-pixel transparent GIF, if you wonder.
+    public static final byte[] PAYLOAD_GIF = new byte[] {
+            71, 73, 70, 56, 57, 97, 1, 0, 1, 0, -128, 0, 0, -64, -64, -64,
+            0, 0, 0, 33, -7, 4, 1, 0, 0, 0, 0, 44, 0, 0, 0, 0,
+            1, 0, 1, 0, 0, 2, 2, 68, 1, 0, 59, 13, 10, 13, 10
+    };
 
 }

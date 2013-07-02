@@ -19,154 +19,103 @@
  */
 package org.archive.wayback.archivalurl;
 
-import javax.servlet.http.HttpServletRequest;
-
-import org.archive.wayback.archivalurl.requestparser.PathDatePrefixQueryRequestParser;
-import org.archive.wayback.archivalurl.requestparser.PathDateRangeQueryRequestParser;
-import org.archive.wayback.archivalurl.requestparser.PathPrefixDatePrefixQueryRequestParser;
-import org.archive.wayback.archivalurl.requestparser.PathPrefixDateRangeQueryRequestParser;
-import org.archive.wayback.archivalurl.requestparser.ReplayRequestParser;
-import org.archive.wayback.core.WaybackRequest;
-import org.archive.wayback.exception.BadQueryException;
-import org.archive.wayback.exception.BetterRequestException;
-import org.archive.wayback.requestparser.BaseRequestParser;
-import org.archive.wayback.requestparser.PathRequestParser;
-import org.archive.wayback.webapp.AccessPoint;
+import java.lang.reflect.Method;
 
 import junit.framework.TestCase;
 
+import org.archive.wayback.core.WaybackRequest;
+import org.archive.wayback.requestparser.PathRequestParserTest;
+
 /**
+ * @see PathRequestParserTest
  * @author brad
  *
  */
 public class ArchivalUrlTest extends TestCase {
-	ArchivalUrlRequestParser parser = new ArchivalUrlRequestParser();
-	WaybackRequest wbr;
-	ArchivalUrl au;
-	BaseRequestParser brp = new BaseRequestParser() {
-		public int getMaxRecords() { return 10;	}
-		@Override
-		public WaybackRequest parse(HttpServletRequest httpRequest,
-				AccessPoint wbContext) throws BadQueryException,
-				BetterRequestException {
-			return null;
-		}
-	};
-	PathRequestParser parsers[] = new PathRequestParser[] {
-			new ReplayRequestParser(brp),
-			new PathDatePrefixQueryRequestParser(brp),
-			new PathDateRangeQueryRequestParser(brp),
-			new PathPrefixDatePrefixQueryRequestParser(brp),
-			new PathPrefixDateRangeQueryRequestParser(brp),
-	};
-
-	private WaybackRequest parse(String path) 
-	throws BetterRequestException, BadQueryException {
-
-		WaybackRequest wbRequest = null;
-
-		for(int i = 0; i < parsers.length; i++) {
-			wbRequest = parsers[i].parse(path, null);
-			if(wbRequest != null) {
-				break;
-			}
-		}
-		return wbRequest;
-	}
-	private ArchivalUrl parseAU(String path) 
-	throws BetterRequestException, BadQueryException {
-		return new ArchivalUrl(parse(path));
-	}
-	
-	private void trt(String want, String src) {
-		try {
-			assertEquals(want,parseAU(src).toString());
-		} catch (BetterRequestException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		} catch (BadQueryException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
-
-	private void trtBetterExcept(String want, String src) {
-		try {
-			String foo = parseAU(src).toString();
-			fail("should have thrown BetterRequestException");
-		} catch (BetterRequestException e) {
-			assertEquals(want,e.getBetterURI());
-		} catch (BadQueryException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
-	
-	/**
-	 * Test method for {@link org.archive.wayback.archivalurl.ArchivalUrl#toString()}.
-	 * @throws BadQueryException 
-	 * @throws BetterRequestException 
-	 */
-	public void testToString() throws BetterRequestException, BadQueryException {
-		trt(
-				"20010101000000/http://yahoo.com/",
-				"20010101000000/http://yahoo.com/");
-		
-		trt(
-				"20010101000000/http://yahoo.com/",
-				"20010101000000/http://yahoo.com:80/");
-		
-		trt(
-				"20010101000000/http://www.yahoo.com/",
-				"20010101000000/http://www.yahoo.com:80/");
-		trt(
-				"20010101000000/http://www.yahoo.com/",
-				"20010101000000/www.yahoo.com/");
-		trt(
-				"20010101000000/http://www.yahoo.com/",
-				"20010101000000/www.yahoo.com:80/");
-		
-		trt(
-				"20010101000000im_/http://www.yahoo.com/",
-				"20010101000000im_/www.yahoo.com:80/");
-
-		trt(
-				"20010101235959im_/http://www.yahoo.com/",
-				"20010101im_/www.yahoo.com:80/");
-	}
 
 	/**
 	 * Test method for {@link org.archive.wayback.archivalurl.ArchivalUrl#toPrefixQueryString(java.lang.String)}.
 	 */
-	public void testToPrefixQueryString() {
+	public void testToString_PrefixQuery() {
 		WaybackRequest wbr = new WaybackRequest();
 		wbr.setUrlQueryRequest();
 		wbr.setRequestUrl("http://www.yahoo.com/");
 		ArchivalUrl au = new ArchivalUrl(wbr);
 		
-		assertEquals("*/http://www.yahoo.com/*",au.toString());
+		assertEquals("*/http://www.yahoo.com/*", au.toString());
 	}
 
 	/**
 	 * Test method for {@link org.archive.wayback.archivalurl.ArchivalUrl#toQueryString(java.lang.String)}.
 	 */
-	public void testToQueryString() {
+	public void testToString_CaptureQuery() {
 		WaybackRequest wbr = new WaybackRequest();
 		wbr.setCaptureQueryRequest();
 		wbr.setRequestUrl("http://www.yahoo.com/");
 		ArchivalUrl au = new ArchivalUrl(wbr);
 		assertEquals("*/http://www.yahoo.com/",au.toString());
 	}
+	
+	public void testToString_CaptureQuery_SpecificDateRange() {
+	    WaybackRequest wbr = new WaybackRequest();
+	    wbr.setCaptureQueryRequest();
+	    wbr.setRequestUrl("http://www.yahoo.com/");
+	    wbr.setStartTimestamp("20100101000000");
+	    wbr.setEndTimestamp("20101231235959");
+	    ArchivalUrl au = new ArchivalUrl(wbr);
+	    
+	    assertEquals("20100101000000-20101231235959*/http://www.yahoo.com/", au.toString());
+	    
+	    // same as "*" if either startTimestamp or endTimestamp is null
+	    wbr.setEndTimestamp(null);
+	    assertEquals("*/http://www.yahoo.com/", au.toString());
+	}
 
+    private WaybackRequest createReplayWaybackRequest() {
+        WaybackRequest wbr = new WaybackRequest();
+        wbr.setReplayRequest();
+        wbr.setReplayTimestamp("20010101000000");
+        wbr.setRequestUrl("http://www.yahoo.com/");
+        return wbr;
+    }
 	/**
 	 * Test method for {@link org.archive.wayback.archivalurl.ArchivalUrl#toReplayString(java.lang.String)}.
 	 */
-	public void testToReplayString() {
-		WaybackRequest wbr = new WaybackRequest();
-		wbr.setReplayRequest();
-		wbr.setReplayTimestamp("20010101000000");
-		wbr.setRequestUrl("http://www.yahoo.com/");
+	public void testToString_ReplayRequest() {
+		WaybackRequest wbr = createReplayWaybackRequest();
 		ArchivalUrl au = new ArchivalUrl(wbr);
-		assertEquals("20010101000000/http://www.yahoo.com/",au.toString());
+		assertEquals("20010101000000/http://www.yahoo.com/", au.toString());
+	}
+	
+	public String[][] CONTEXT_METHOD_FLAG = {
+	        { "setIdentityContext", "id" },
+	        { "setCSSContext", "cs" },
+	        { "setIMGContext", "im" },
+	        { "setObjectEmbedContext", "oe" },
+	        { "setJSContext", "js" },
+	        { "setFrameWrapperContext", "fw" },
+	        { "setIFrameWrapperContext", "if" }
+	};
+	
+	public void testToString_ReplayRequest_Contexts() throws Exception {
+	    for (String[] tc : CONTEXT_METHOD_FLAG) {
+            WaybackRequest wbr = createReplayWaybackRequest();
+	        String setterName = tc[0];
+	        String flag = tc[1];
+	        // I know there's a method ArchivalUrl.assignFlags() for translating flag text
+	        // into flags of WeybackRequest, but I should not use a method of class under
+	        // test for building test sample!
+	        try {
+	            Method setter = wbr.getClass().getMethod(setterName, boolean.class);
+	            setter.invoke(wbr, Boolean.TRUE);
+	        } catch (NoSuchMethodException ex) {
+	            fail("WaybackRequest has no method \"" + setterName + "(boolean)\"");
+	        }
+	        ArchivalUrl au = new ArchivalUrl(wbr);
+	        assertEquals("20010101000000" + flag + "_/http://www.yahoo.com/", au.toString());
+	    }
+	    
+	    // actually current implementation allows multiple context flags to be true
+	    // at the same time. do we need to test certain combinations?
 	}
 }
