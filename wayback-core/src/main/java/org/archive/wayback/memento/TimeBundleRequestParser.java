@@ -23,7 +23,6 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.exception.BetterRequestException;
@@ -32,17 +31,15 @@ import org.archive.wayback.requestparser.WrappedRequestParser;
 import org.archive.wayback.webapp.AccessPoint;
 
 /**
- * RequestParser subclass which parses "timebundle/URL" and 
- * "timemap/FORMAT/URL" requests
+ * RequestParser subclass which parses "timebundle/URL" and redirects to the
+ * configured TimeMap..
  * 
  * @consultant Lyudmila Balakireva
  *
  */
-public class TimeBundleRequestParser extends WrappedRequestParser {
+public class TimeBundleRequestParser extends WrappedRequestParser implements MementoConstants {
 	private static final Logger LOGGER = 
 		Logger.getLogger(TimeBundleRequestParser.class.getName());
-
-	String MEMENTO_BASE = "timegate";
 
 	/**
 	 * @param wrapped BaseRequestParser holding config
@@ -59,61 +56,14 @@ public class TimeBundleRequestParser extends WrappedRequestParser {
 		String requestPath = accessPoint.translateRequestPathQuery(httpRequest);
 		LOGGER.fine("requestpath:" + requestPath);
 
-		if (requestPath.startsWith("timebundle")) {
+		if (requestPath.startsWith(TIMEBUNDLE)) {
+			String requestUrl = 
+				requestPath.substring(requestPath.indexOf("/") + 1);
+			String timemapUrl =
+				MementoUtils.getTimemapUrl(accessPoint,FORMAT_LINK,requestUrl);
 
-			WaybackRequest wbRequest = new WaybackRequest();
-			String urlStr = requestPath.substring(requestPath.indexOf("/") + 1);
-			if (wbRequest.getStartTimestamp() == null) {
-				wbRequest.setStartTimestamp(getEarliestTimestamp());
-			}
-			if (wbRequest.getEndTimestamp() == null) {
-				wbRequest.setEndTimestamp(getLatestTimestamp());
-			}
-			wbRequest.setCaptureQueryRequest();
-			wbRequest.setRequestUrl(urlStr);
-
-			String uriPrefix = accessPoint.getConfigs().getProperty("aggregationPrefix");
-			if(uriPrefix == null) {
-				// TODO: this is a hack... need to clean up the whole prefix
-				// configuration setup...
-				uriPrefix = accessPoint.getConfigs().getProperty("Prefix");
-			}
-
-			String betterUrl = uriPrefix + "timemap/rdf/" + urlStr;
-	
-			throw new BetterRequestException(betterUrl, 303);
-			// TODO: is it critical to return a 303 code, or will a 302 do?
-			//       if so, this and ORE.jsp can be simplified by throwing a
-			//       BetterRequestException here.
-//			wbRequest.put("redirect", "true");
-//			return wbRequest;
-		}
-
-		if (requestPath.startsWith("timemap")) {
-
-			String urlStrplus = requestPath
-					.substring(requestPath.indexOf("/") + 1);
-			String format = urlStrplus.substring(0, urlStrplus.indexOf("/"));
-
-			LOGGER.fine("format:" + format);
-			String urlStr = urlStrplus.substring(urlStrplus.indexOf("/") + 1);
-			LOGGER.fine("id:" + urlStr);
-			WaybackRequest wbRequest = new WaybackRequest();
-			if (wbRequest.getStartTimestamp() == null) {
-				wbRequest.setStartTimestamp(getEarliestTimestamp());
-			}
-			wbRequest.setAnchorTimestamp(getLatestTimestamp());
-			wbRequest.put("format", format);
-			if (wbRequest.getEndTimestamp() == null) {
-				wbRequest.setEndTimestamp(getLatestTimestamp());
-			}
-			wbRequest.setCaptureQueryRequest();
-			wbRequest.setRequestUrl(urlStr);
-			if (wbRequest != null) {
-				wbRequest.setResultsPerPage(getMaxRecords());
-			}
-			return wbRequest;
-
+			throw new BetterRequestException(timemapUrl,
+					TIMEBUNDLE_RESPONSE_CODE);
 		}
 		return null;
 	}

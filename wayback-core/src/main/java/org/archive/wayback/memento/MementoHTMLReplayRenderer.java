@@ -40,7 +40,7 @@ import org.archive.wayback.replay.HttpHeaderProcessor;
  *
  *
  * @author brad
- * @version $Date$, $Revision$
+ * @version $Date: 2010-09-29 05:28:38 +0700 (Wed, 29 Sep 2010) $, $Revision: 3262 $
  */
 public class MementoHTMLReplayRenderer extends TextReplayRenderer {
 	/**

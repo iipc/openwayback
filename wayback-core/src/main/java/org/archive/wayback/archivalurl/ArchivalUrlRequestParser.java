@@ -27,6 +27,9 @@ import org.archive.wayback.archivalurl.requestparser.PathDateRangeQueryRequestPa
 import org.archive.wayback.archivalurl.requestparser.PathPrefixDatePrefixQueryRequestParser;
 import org.archive.wayback.archivalurl.requestparser.PathPrefixDateRangeQueryRequestParser;
 import org.archive.wayback.archivalurl.requestparser.ReplayRequestParser;
+import org.archive.wayback.memento.TimeBundleRequestParser;
+import org.archive.wayback.memento.TimeGateRequestParser;
+import org.archive.wayback.memento.TimeMapRequestParser;
 import org.archive.wayback.requestparser.CompositeRequestParser;
 import org.archive.wayback.requestparser.OpenSearchRequestParser;
 
@@ -79,6 +82,8 @@ public class ArchivalUrlRequestParser extends CompositeRequestParser {
 	protected RequestParser[] getRequestParsers() {
 		RequestParser[] theParsers = {
 				new ReplayRequestParser(this),
+				new TimeMapRequestParser(this),
+				//new TimeGateRequestParser(this),				
 				new PathDatePrefixQueryRequestParser(this),
 				new PathDateRangeQueryRequestParser(this),
 				new PathPrefixDatePrefixQueryRequestParser(this),
@@ -90,3 +95,4 @@ public class ArchivalUrlRequestParser extends CompositeRequestParser {
 		return theParsers;
 	}
 }
+

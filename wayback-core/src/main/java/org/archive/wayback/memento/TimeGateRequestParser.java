@@ -19,11 +19,7 @@
  */
 package org.archive.wayback.memento;
 
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
@@ -42,16 +38,12 @@ import org.archive.wayback.webapp.AccessPoint;
  * @consultant Lyudmila Balakireva
  * 
  */
-public class TimeGateRequestParser extends WrappedRequestParser {
+public class TimeGateRequestParser extends WrappedRequestParser implements MementoConstants {
 	private static final Logger LOGGER = 
 		Logger.getLogger(TimeGateRequestParser.class.getName());
 
-	String DTHEADER = "Accept-Datetime";
-
-	List<SimpleDateFormat> dtsupportedformats = 
-		new ArrayList<SimpleDateFormat>();
-
-	String MEMENTO_BASE = "timegate/";
+	//private final static String TIMEGATE_SLASH = TIMEGATE + "/";
+	//private final static int TIMEGATE_SLASH_LEN = TIMEGATE_SLASH.length();
 
 	/**
 	 * @param wrapped
@@ -59,120 +51,120 @@ public class TimeGateRequestParser extends WrappedRequestParser {
 	 */
 	public TimeGateRequestParser(BaseRequestParser wrapped) {
 		super(wrapped);
-
-		dtsupportedformats
-				.add(new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss Z"));
-		dtsupportedformats.add(new SimpleDateFormat("E, dd MMM yyyy Z"));
-		dtsupportedformats.add(new SimpleDateFormat("E, dd MMM yyyy"));
 	}
 
 	@Override
 	public WaybackRequest parse(HttpServletRequest httpRequest,
 			AccessPoint accessPoint) throws BadQueryException,
 			BetterRequestException {
+		
+		if (!accessPoint.isEnableMemento()) {
+			return null;
+		}
 
 		String base = accessPoint.translateRequestPath(httpRequest);
 		String requestPath = accessPoint.translateRequestPathQuery(httpRequest);
 
 		LOGGER.fine("requestPath:" + requestPath);
-		if (base.startsWith(MEMENTO_BASE)) {
+		//if (base.startsWith(TIMEGATE_SLASH)) {
 
-			// strip leading "timegate/":
-			String urlStr = base.substring(MEMENTO_BASE.length());
-
-			// get the "Accept-Datetime" header:
-			String httpdate = getHttpDate(httpRequest);
-			Date dtconnegdate = null;
-			if (httpdate != null) {
-				dtconnegdate = checkDateValidity(httpdate, dtsupportedformats);
-				if (dtconnegdate == null) {
-					httpdate="unparsable";
-				}
-			} else {
-				// TODO: should this return null her? no header..
-			}
-
-			WaybackRequest wbRequest = new WaybackRequest();
-			if (wbRequest.getStartTimestamp() == null) {
-				wbRequest.setStartTimestamp(getEarliestTimestamp());
-			}
-			if (dtconnegdate != null) {
-				wbRequest.setReplayDate(dtconnegdate);
-//				wbRequest.setAnchorDate(dtconnegdate);
-			} else {
-				wbRequest.setAnchorTimestamp(getLatestTimestamp());
-
-			}
-
-			wbRequest.put("dtconneg", httpdate);
-
-			if (wbRequest.getEndTimestamp() == null) {
-				wbRequest.setEndTimestamp(getLatestTimestamp());
-			}
-			wbRequest.setCaptureQueryRequest();
-			wbRequest.setRequestUrl(urlStr);
-			if (wbRequest != null) {
-				wbRequest.setResultsPerPage(getMaxRecords());
-			}
-			return wbRequest;
+		// strip leading "timegate/":
+		//String urlStr = base.substring(TIMEGATE_SLASH_LEN);
+		String urlStr = base;
+		String acceptDateTime = httpRequest.getHeader(ACCEPT_DATETIME);
+		
+		// Not a timegate request
+		if (acceptDateTime == null) {
+			return null;
 		}
-		return null;
-	}
-
-	/**
-	 * Extract the value of the "Accept-Datetime" HTTP request header, if 
-	 * present, and further strips the date value from any surrounding "{","}"
-	 * @param req HttpServletRequest for this request
-	 * @return the raw String containing the date information, or null if no
-	 * such HTTP header exists.
-	 */
-	public String getHttpDate(HttpServletRequest req) {
-		String httpdate = req.getHeader(DTHEADER);
-
-		if (httpdate != null) {
-			int j = httpdate.indexOf("{", 0);
-
-			if (j >= 0) {
-
-				httpdate = httpdate.substring(httpdate.indexOf("{", 0) + 1);
-
-			}
-
-			if (httpdate.indexOf("}") > 0) {
-				httpdate = httpdate.substring(0, httpdate.indexOf("}"));
-
-			}
-		}
-		return httpdate;
-	}
-
-	/**
-	 * Attempt to parse the String httpdate argument using one of the
-	 * SimpleDateFormats provided.
-	 * 
-	 * @param httpdate
-	 *            String version of a Date
-	 * @param list
-	 *            of SimpleDateFormats to parse the httpdate
-	 * @return Date object set to the time parsed, or null if not parsed
-	 */
-	public Date checkDateValidity(String httpdate, List<SimpleDateFormat> list) {
-
-		Date d = null;
-		Iterator<SimpleDateFormat> it = list.iterator();
-		while (it.hasNext()) {
-			SimpleDateFormat formatter = it.next();
-			try {
-
-				d = formatter.parse(httpdate);
-				break;
-
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-
+		
+		Date d = MementoUtils.parseAcceptDateTimeHeader(acceptDateTime);
+		
+		// Accept-Datetime specified but is invalid, must return a 400
+		if (d == null) {
+			throw new BadQueryException("Invald Memento TimeGate datetime request, Accept-Datetime: " + acceptDateTime);
 		}
 
-		return d;
+		WaybackRequest wbRequest = new WaybackRequest();
+		
+		if (wbRequest.getStartTimestamp() == null) {
+			wbRequest.setStartTimestamp(getEarliestTimestamp());
+		}
+
+		if (wbRequest.getEndTimestamp() == null) {
+			wbRequest.setEndTimestamp(getLatestTimestamp());
+		}
+		wbRequest.setMementoTimegate();
+		wbRequest.setReplayDate(d);
+		wbRequest.setAnchorDate(d);
+		wbRequest.setReplayRequest();
+		wbRequest.setRequestUrl(urlStr);
+		
+		if (wbRequest != null) {
+			wbRequest.setResultsPerPage(getMaxRecords());
+		}
+		
+		return wbRequest;
 	}
+//
+//	public WaybackRequest parseOld(HttpServletRequest httpRequest,
+//			AccessPoint accessPoint) throws BadQueryException,
+//			BetterRequestException {
+//
+//		String base = accessPoint.translateRequestPath(httpRequest);
+//		String requestPath = accessPoint.translateRequestPathQuery(httpRequest);
+//
+//		LOGGER.fine("requestPath:" + requestPath);
+//		if (base.startsWith(TIMEGATE_SLASH)) {
+//
+//			// strip leading "timegate/":
+//			String urlStr = base.substring(TIMEGATE_SLASH_LEN);
+//			String acceptDateTime = httpRequest.getHeader(ACCPEPT_DATETIME);
+//			Date d = null;
+//			if(acceptDateTime != null) {
+//				// OK, looks like a valid request -- hopefully urlStr is valid..
+//				d = MementoUtils.parseAcceptDateTimeHeader(acceptDateTime);				
+//			}
+//			if(d == null) {
+//				d = new Date();
+//			}
+//			// get the "Accept-Datetime" header:
+////			String httpdate = getHttpDate(httpRequest);
+////			Date dtconnegdate = null;
+////			if (httpdate != null) {
+////				dtconnegdate = checkDateValidity(httpdate, dtsupportedformats);
+////				if (dtconnegdate == null) {
+////					httpdate="unparsable";
+////				}
+////			} else {
+////				// TODO: should this return null her? no header..
+////			}
+//
+//			WaybackRequest wbRequest = new WaybackRequest();
+//			if (wbRequest.getStartTimestamp() == null) {
+//				wbRequest.setStartTimestamp(getEarliestTimestamp());
+//			}
+//			if (dtconnegdate != null) {
+//				wbRequest.setReplayDate(dtconnegdate);
+////				wbRequest.setAnchorDate(dtconnegdate);
+//			} else {
+//				wbRequest.setAnchorTimestamp(getLatestTimestamp());
+//
+//			}
+//
+//			wbRequest.put("dtconneg", httpdate);
+//
+//			if (wbRequest.getEndTimestamp() == null) {
+//				wbRequest.setEndTimestamp(getLatestTimestamp());
+//			}
+//			wbRequest.setCaptureQueryRequest();
+//			wbRequest.setRequestUrl(urlStr);
+//			if (wbRequest != null) {
+//				wbRequest.setResultsPerPage(getMaxRecords());
+//			}
+//			return wbRequest;
+//		}
+//		return null;
+//	}
+
 }

@@ -21,13 +21,17 @@ package org.archive.wayback.archivalurl.requestparser;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Date;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.exception.BetterRequestException;
+import org.archive.wayback.memento.MementoUtils;
+import org.archive.wayback.memento.TimeGateBadQueryException;
 import org.archive.wayback.requestparser.BaseRequestParser;
 import org.archive.wayback.requestparser.PathRequestParser;
-import org.archive.wayback.util.Timestamp;
 import org.archive.wayback.util.url.UrlOperations;
 import org.archive.wayback.webapp.AccessPoint;
 
@@ -44,8 +48,50 @@ public class DatelessReplayRequestParser extends PathRequestParser {
 	public DatelessReplayRequestParser(BaseRequestParser wrapped) {
 		super(wrapped);
 	}
+	
+	
 
+	@Override
+	public WaybackRequest parse(HttpServletRequest httpRequest,
+			AccessPoint accessPoint) throws BadQueryException,
+			BetterRequestException {
+		
+		if (!accessPoint.isEnableMemento()) {
+			return super.parse(httpRequest, accessPoint);
+		}
+		
+		String acceptDateTime = httpRequest.getHeader(MementoUtils.ACCEPT_DATETIME);
+		
+		// Memento TimeGate
+		Date date = null;
+		
+		String requestPath = accessPoint.translateRequestPathQuery(httpRequest);
+		
+		if (acceptDateTime != null) {
+			date = MementoUtils.parseAcceptDateTimeHeader(acceptDateTime);
+			
+			// Accept-Datetime specified but is invalid, must return a 400
+			if (date == null) {
+				throw new TimeGateBadQueryException("Invald Memento TimeGate datetime request, Accept-Datetime: " + acceptDateTime, requestPath);
+			}
+		}
+		
+		WaybackRequest wbRequest = this.parse(requestPath, accessPoint, date);
+		
+		if (wbRequest != null) {
+			wbRequest.setResultsPerPage(getMaxRecords());
+		}
+		
+		return wbRequest;
+	}
+	
 	public WaybackRequest parse(String requestPath, AccessPoint accessPoint)
+			throws BetterRequestException, BadQueryException {
+		
+		return parse(requestPath, accessPoint, new Date());
+	}
+
+	public WaybackRequest parse(String requestPath, AccessPoint accessPoint, Date mementoDate)
 			throws BetterRequestException, BadQueryException {
 		/*
 		 *
@@ -78,30 +124,52 @@ public class DatelessReplayRequestParser extends PathRequestParser {
 			try {
 				URL u = new URL(UrlOperations.HTTP_SCHEME + requestPath);
 				// does the authority look legit?
-				if(u.getUserInfo() != null) {
+				if (u.getUserInfo() != null) {
 					throw new BadQueryException("Unable to handle URLs with user information");
 				}
-				if(UrlOperations.isAuthority(u.getAuthority())) {
+				
+				if (UrlOperations.isAuthority(u.getAuthority())) {
 					// ok, we're going to assume this is good:
-					String nowTS = Timestamp.currentTimestamp().getDateStr();
-					String newUrl = 
-						accessPoint.getUriConverter().makeReplayURI(nowTS, 
-								requestPath);
-					throw new BetterRequestException(newUrl);
+					return handleDatelessRequest(accessPoint, requestPath, mementoDate);
 				}
+				
 			} catch(MalformedURLException e) {
 				// eat it silently
 			}
 		} else {
 			// OK, we're going to assume this is a replay request, sans timestamp,
 			// ALWAYS redirect:
-	
-			String nowTS = Timestamp.currentTimestamp().getDateStr();
-			String newUrl = 
-				accessPoint.getUriConverter().makeReplayURI(nowTS, requestPath);
-			throw new BetterRequestException(newUrl);
+			return handleDatelessRequest(accessPoint, requestPath, mementoDate);
 		}
 		return null;
 	}
+	
+	protected WaybackRequest handleDatelessRequest(AccessPoint accessPoint, String requestPath, Date mementoDate) throws BetterRequestException
+	{
+//		String nowTS = Timestamp.currentTimestamp().getDateStr();
+//		String newUrl = accessPoint.getUriConverter().makeReplayURI(nowTS, requestPath);
+//		throw new BetterRequestException(newUrl);
+		
+		WaybackRequest wbRequest = new WaybackRequest();
+		
+		if (wbRequest.getStartTimestamp() == null) {
+			wbRequest.setStartTimestamp(getEarliestTimestamp());
+		}
 
+		if (wbRequest.getEndTimestamp() == null) {
+			wbRequest.setEndTimestamp(getLatestTimestamp());
+		}
+		
+		if (mementoDate == null) {
+			mementoDate = new Date();
+		}
+		
+		wbRequest.setMementoTimegate();		
+		wbRequest.setReplayDate(mementoDate);
+		wbRequest.setAnchorDate(mementoDate);
+		wbRequest.setReplayRequest();
+		wbRequest.setRequestUrl(requestPath);
+		
+		return wbRequest;
+	}
 }

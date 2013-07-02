@@ -386,7 +386,7 @@ public class UIResults {
 		UIResults results = (UIResults) httpRequest.getAttribute(FERRET_NAME);
 		if(results == null) {
 			WaybackRequest wbRequest = new WaybackRequest();
-			wbRequest.fixup(httpRequest);
+			wbRequest.extractHttpRequestInfo(httpRequest);
 			results = new UIResults(wbRequest, null);
 		}
 		return results;

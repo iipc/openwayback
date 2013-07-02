@@ -19,18 +19,20 @@
  */
 package org.archive.wayback.core;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.Set;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 
+import org.archive.wayback.exception.BadQueryException;
+import org.archive.wayback.memento.MementoUtils;
 import org.archive.wayback.requestparser.OpenSearchRequestParser;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.util.ObjectFilter;
@@ -283,9 +285,24 @@ public class WaybackRequest {
 		"iframewrappercontext";
 	
 	/**
-	 * Request: Use timestamp as part of the search key
+	 * Request: Ajax request -- don't insert extra headers and footers
 	 */
-	public static final String REQUEST_AJAX_REQUEST = "requestajaxrequest";	
+	public static final String REQUEST_AJAX_REQUEST = "requestajaxrequest";
+	
+	/**
+	 * Request: Memento Accept-Datetime used -- don't add extra redirects
+	 */
+	public static final String REQUEST_MEMENTO_ACCEPT_DATETIME = "requestmementoacceptdatetime";	
+	
+	/**
+	 * Request: Memento Timemap Request
+	 */
+	public static final String REQUEST_MEMENTO_TIMEMAP = "requestmementotimemap";
+	
+	/**
+	 * Request: Memento Timegate Request
+	 */
+	public static final String REQUEST_MEMENTO_TIMEGATE = "requestmementotimegate";
 	
 	/**
 	 * Request: Charset detection mode 
@@ -845,6 +862,31 @@ public class WaybackRequest {
 		return getBoolean(REQUEST_AJAX_REQUEST);
 	}
 	
+	public void setMementoTimemapFormat(String format) {
+		put(REQUEST_MEMENTO_TIMEMAP, format);
+	}
+	public String getMementoTimemapFormat()
+	{
+		return get(REQUEST_MEMENTO_TIMEMAP);
+	}
+	public boolean isMementoTimemapRequest() {
+		return get(REQUEST_MEMENTO_TIMEMAP) != null;
+	}
+	
+	public void setMementoAcceptDatetime(boolean acceptDatetime) {
+		setBoolean(REQUEST_MEMENTO_ACCEPT_DATETIME, acceptDatetime);
+	}
+	public boolean hasMementoAcceptDatetime() {
+		return getBoolean(REQUEST_MEMENTO_ACCEPT_DATETIME);
+	}
+	
+	public void setMementoTimegate() {
+		setBoolean(REQUEST_MEMENTO_TIMEGATE, true);
+	}
+	public boolean isMementoTimegate() {
+		return getBoolean(REQUEST_MEMENTO_TIMEGATE);
+	}
+	
 
 	public void setCharsetMode(int mode) {
 		setInt(REQUEST_CHARSET_MODE,mode);
@@ -932,8 +974,9 @@ public class WaybackRequest {
 	 * HttpServletRequest
 	 * 
 	 * @param httpRequest
+	 * @throws BadQueryException 
 	 */
-	private void extractHttpRequestInfo(HttpServletRequest httpRequest) {
+	public void extractHttpRequestInfo(HttpServletRequest httpRequest) {
 		
 		putUnlessNull(REQUEST_REFERER_URL, httpRequest.getHeader("REFERER"));
 		
@@ -949,7 +992,15 @@ public class WaybackRequest {
 			if (x_req_with.equals("XMLHttpRequest")) {
 				this.setAjaxRequest(true);
 			}
-		}		
+		}
+		
+		if (accessPoint != null && accessPoint.isEnableMemento()) {		
+			// Check for Memento Accept-Datetime
+			String acceptDateTime = httpRequest.getHeader(MementoUtils.ACCEPT_DATETIME);
+			if (acceptDateTime != null) {
+				this.setMementoAcceptDatetime(true);
+			}
+		}
 		
 		putUnlessNull(REQUEST_WAYBACK_HOSTNAME, httpRequest.getLocalName());
 		putUnlessNull(REQUEST_AUTH_TYPE, httpRequest.getAuthType());
@@ -982,45 +1033,6 @@ public class WaybackRequest {
 				}
 			}
 		}
-	}
-
-	/**
-	 * attempt to fixup this WaybackRequest, mostly with respect to dates: if
-	 * only "date" was specified, infer start and end dates from it. Also grab
-	 * useful info from the HttpServletRequest, cookies, remote address, etc.
-	 * 
-	 * @param httpRequest
-	 */
-	public void fixup(HttpServletRequest httpRequest) {
-		extractHttpRequestInfo(httpRequest);
-//		String startDate = get(REQUEST_START_DATE);
-//		String endDate = get(REQUEST_END_DATE);
-//		String exactDate = get(REQUEST_EXACT_DATE);
-//		String partialDate = get(REQUEST_DATE);
-//		if (partialDate == null) {
-//			partialDate = "";
-//		}
-//		if (startDate == null || startDate.length() == 0) {
-//			put(REQUEST_START_DATE, Timestamp
-//					.padStartDateStr(partialDate));
-//		} else if (startDate.length() < 14) {
-//			put(REQUEST_START_DATE, Timestamp
-//					.padStartDateStr(startDate));
-//		}
-//		if (endDate == null || endDate.length() == 0) {
-//			put(REQUEST_END_DATE, Timestamp
-//					.padEndDateStr(partialDate));
-//		} else if (endDate.length() < 14) {
-//			put(REQUEST_END_DATE, Timestamp
-//					.padEndDateStr(endDate));
-//		}
-//		if (exactDate == null || exactDate.length() == 0) {
-//			put(REQUEST_EXACT_DATE, Timestamp
-//					.padEndDateStr(partialDate));
-//		} else if (exactDate.length() < 14) {
-//			put(REQUEST_EXACT_DATE, Timestamp
-//					.padEndDateStr(exactDate));
-//		}
 	}
 
 	/**

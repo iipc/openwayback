@@ -28,6 +28,8 @@ import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BetterRequestException;
+import org.archive.wayback.memento.MementoConstants;
+import org.archive.wayback.memento.MementoUtils;
 
 /**
  * ReplayDispatcher instance which uses a configurable ClosestResultSelector
@@ -64,7 +66,23 @@ public class SelectorReplayDispatcher implements ReplayDispatcher {
 	
 	public CaptureSearchResult getClosest(WaybackRequest wbRequest,
 			CaptureSearchResults results) throws BetterRequestException {
-		return closestSelector.getClosest(wbRequest, results);
+		
+		try {
+			return closestSelector.getClosest(wbRequest, results);
+		} catch (BetterRequestException e) {
+			
+			if (wbRequest.getAccessPoint().isEnableMemento()) {
+				// Issue either a Memento URL-G response, or "intermediate resource" response
+				if (wbRequest.isMementoTimegate()) {
+					e.addHeader(MementoConstants.VARY, MementoConstants.NEGOTIATE_DATETIME);
+					e.addHeader(MementoConstants.LINK, MementoUtils.generateMementoLinkHeaders(results, wbRequest, false));
+				} else {
+					e.addHeader(MementoConstants.LINK, MementoUtils.makeOrigHeader(wbRequest.getRequestUrl()));
+				}
+			}
+			
+			throw e;
+		}
 	}
 	
 	/**
