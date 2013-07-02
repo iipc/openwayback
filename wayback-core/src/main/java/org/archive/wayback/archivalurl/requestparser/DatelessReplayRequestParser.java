@@ -88,7 +88,7 @@ public class DatelessReplayRequestParser extends PathRequestParser {
 	public WaybackRequest parse(String requestPath, AccessPoint accessPoint)
 			throws BetterRequestException, BadQueryException {
 		
-		return parse(requestPath, accessPoint, new Date());
+		return parse(requestPath, accessPoint, null);
 	}
 
 	public WaybackRequest parse(String requestPath, AccessPoint accessPoint, Date mementoDate)
@@ -162,6 +162,7 @@ public class DatelessReplayRequestParser extends PathRequestParser {
 		
 		if (mementoDate == null) {
 			mementoDate = new Date();
+			wbRequest.setBestLatestReplayRequest();
 		}
 		
 		wbRequest.setMementoTimegate();		

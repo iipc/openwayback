@@ -50,7 +50,7 @@ implements ClosestResultSelector {
 			// many digits as are in the result date:
 			if(!resDateStr.equals(reqDateStr.substring(0,resDateStr.length()))) {
 				// If looking for latest date, don't redirect until after checking for errors later
-				if (!wbRequest.isLatestDateRequest()) {
+				if (!wbRequest.isBestLatestReplayRequest()) {
 					doRedirect = true;
 				}
 			}

@@ -493,8 +493,18 @@ public class CaptureSearchResult extends SearchResult {
 		return this.getCaptureDate().toString() + " " + this.getOriginalUrl();
 	}
 
-	public boolean isErrorHttpCode() {
+	public boolean isHttpError() {
 		String httpCode = this.getHttpCode();
 		return (httpCode.startsWith("4") || httpCode.startsWith("5"));
+	}
+	
+	public boolean isHttpRedirect() {
+		String httpCode = this.getHttpCode();
+		return (httpCode.startsWith("3"));
+	}
+	
+	public boolean isHttpSuccess() {
+		String httpCode = this.getHttpCode();
+		return (httpCode.startsWith("2"));
 	}
 }

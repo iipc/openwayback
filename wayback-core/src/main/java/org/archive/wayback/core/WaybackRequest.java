@@ -213,6 +213,13 @@ public class WaybackRequest {
 	 * indicates positive value for any request boolean flag.
 	 */
 	public static final String REQUEST_YES = "yes";
+	
+	/**
+	 * indicates request for latest 'best' capture
+	 * This can be used to provide 'best' latest replay, skipping error captures, redirects
+	 * 
+	 */
+	public static final String REQUEST_LATEST_BEST_REPLAY = "latestbestreplay";
 
 	/**
 	 * Replay-Only: indicates the date to tend towards when computing closest
@@ -1120,11 +1127,11 @@ public class WaybackRequest {
 		return filters.keySet();
 	}
 
-	// Check the date within 1 min to see if its a request for latest date
-	public boolean isLatestDateRequest() {
-		long now = new Date().getTime();
-		long then = this.getReplayDate().getTime();
-		// < 1 min
-		return ((now - then) < 60000);
+	public boolean isBestLatestReplayRequest() {
+		return this.getBoolean(REQUEST_LATEST_BEST_REPLAY); 
+	}
+	
+	public void setBestLatestReplayRequest() {
+		this.setBoolean(REQUEST_LATEST_BEST_REPLAY, true);
 	}
 }

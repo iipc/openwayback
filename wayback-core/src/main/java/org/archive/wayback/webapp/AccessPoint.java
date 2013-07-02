@@ -713,11 +713,15 @@ implements ShutdownListener {
 				}
 				
 				// Attempt to resolve any not-found embedded content with closest
-				if (closest.isErrorHttpCode() && (wbRequest.isAnyEmbeddedContext() || wbRequest.isLatestDateRequest())) {
+				if (!closest.isHttpSuccess() && (wbRequest.isAnyEmbeddedContext() || wbRequest.isBestLatestReplayRequest())) {
 					CaptureSearchResult nextClosest = closest;
 					
 					while ((nextClosest = findNextClosest(nextClosest, captureResults, requestMS)) != null) {
-						if (!nextClosest.isErrorHttpCode()) {
+						// If redirect, save but keep looking -- if no better match, will use the redirect
+						if (nextClosest.isHttpRedirect()) {
+							closest = nextClosest;
+						// If success, pick that one!
+						} else if (nextClosest.isHttpSuccess()) {
 							closest = nextClosest;
 							break;
 						}
@@ -725,7 +729,8 @@ implements ShutdownListener {
 				}
 				
 				// Redirect to url for the actual closest capture
-				if ((closest != originalClosest) && !closest.getCaptureTimestamp().equals(originalClosest.getCaptureTimestamp())) {
+				if (!closest.getCaptureTimestamp().equals(wbRequest.getReplayTimestamp())) {
+				//if ((closest != originalClosest) && !closest.getCaptureTimestamp().equals(originalClosest.getCaptureTimestamp())) {
 					throwRedirect(wbRequest, httpResponse, captureResults, closest.getCaptureTimestamp(), closest.getOriginalUrl());
 				}
 		
