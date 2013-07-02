@@ -8,13 +8,14 @@ import java.util.Map;
 
 import junit.framework.TestCase;
 
-import org.apache.commons.lang.time.DateUtils;
 import org.archive.format.warc.WARCConstants.WARCRecordType;
 import org.archive.io.ArchiveReader;
 import org.archive.io.warc.TestWARCReader;
 import org.archive.io.warc.TestWARCRecordInfo;
 import org.archive.io.warc.WARCRecord;
 import org.archive.io.warc.WARCRecordInfo;
+import org.archive.wayback.core.Resource;
+import org.archive.wayback.replay.GzipDecodingResource;
 import org.archive.wayback.replay.TextReplayRenderer;
 import org.archive.wayback.replay.charset.CharsetDetector;
 import org.archive.wayback.replay.charset.StandardCharsetDetector;
@@ -53,6 +54,34 @@ public class WarcResourceTest extends TestCase {
         res.close();
     }
     
+    /**
+     * gzip-compressed HTTP response.
+     * @throws Exception
+     */
+    public void testCompressedHttpRecord() throws Exception {
+        String payload = "hogehogehogehogehoge";
+        String ctype = "text/plain";
+        WARCRecordInfo recinfo = new TestWARCRecordInfo(
+                TestWARCRecordInfo.buildCompressedHttpResponseBlock(ctype,
+                        payload.getBytes()));
+        TestWARCReader ar = new TestWARCReader(recinfo);
+        WARCRecord rec = ar.get(0);
+        WarcResource res = new WarcResource(rec, ar);
+        res.parseHeaders();
+        
+        assertEquals("statusCode", 200, res.getStatusCode());
+        assertEquals("content-type", ctype, res.getHeader("Content-Type"));
+        
+        Resource zres = TextReplayRenderer.decodeResource(res);
+        assertTrue("wrapped with GzipDecodingResource", (zres instanceof GzipDecodingResource));
+        
+        byte[] buf = new byte[payload.getBytes().length + 1];
+        int n = zres.read(buf);
+        assertEquals("content length", buf.length - 1, n);
+        
+        res.close();
+    }
+
     // TODO: add more tests on various Transfer-Encoding and Content-Encoding.
     // TODO: add more tests on corner cases.
     
