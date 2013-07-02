@@ -199,6 +199,10 @@ implements ShutdownListener {
 //		String absPath = getServletContext().getRealPath(contextRelativePath);
 		String absPath = getServletContext().getRealPath(translatedNoQuery);
 		
+		if (this.isEnableMemento()) {
+			MementoUtils.addDoNotNegotiateHeader(httpResponse);
+		}
+		
 		//IK: added null check for absPath, it may be null (ex. on jetty)
 		if (absPath != null) {
 			File test = new File(absPath);

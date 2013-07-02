@@ -218,6 +218,12 @@ public class MementoUtils implements MementoConstants {
 	public static void addOrigHeader(HttpServletResponse response, String url) {
 		response.setHeader(LINK, makeLink(url, ORIGINAL));
 	}
+	
+	public static void addDoNotNegotiateHeader(HttpServletResponse response) {
+		// New Non-Negotiate header
+		// Link: <http://mementoweb.org/terms/donotnegotiate">; rel="type" 
+		response.setHeader(LINK, makeLink("http://mementoweb.org/terms/donotnegotiate", "type"));
+	}
 
 	public static void addOrigHeader(HttpServletResponse response,
 			WaybackRequest wbr) {
