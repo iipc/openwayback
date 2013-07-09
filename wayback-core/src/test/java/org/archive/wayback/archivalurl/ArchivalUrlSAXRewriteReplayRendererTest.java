@@ -94,6 +94,15 @@ public class ArchivalUrlSAXRewriteReplayRendererTest extends TestCase {
         resource.parseHeaders();
         return resource;
     }
+    public static Resource createTestRevisitResource(byte[] payloadBytes, boolean withHeader) throws IOException {
+        WARCRecordInfo recinfo = TestWARCRecordInfo.createRevisitHttpResponse(
+                "text/html", payloadBytes.length, withHeader);
+        TestWARCReader ar = new TestWARCReader(recinfo);
+        WARCRecord rec = ar.get(0);
+        WarcResource resource = new WarcResource(rec, ar);
+        resource.parseHeaders();
+        return resource;
+    }
     
     /**
      * test basic behavior with simple input.
@@ -148,6 +157,93 @@ public class ArchivalUrlSAXRewriteReplayRendererTest extends TestCase {
         assertEquals("baseUrl is correctly set up", "http://www.example.com/a.html", context.resolve("a.html"));
     }
     
+    /**
+     * test revisit record (in new format with HTTP headers).
+     * @throws Exception
+     */
+    public void testRevisit() throws Exception {
+        final String payload = "<HTML></HTML>\n";
+        final byte[] payloadBytes = payload.getBytes("UTF-8");
+        Resource payloadResource = createTestHtmlResource(payloadBytes);
+        Resource headerResource = createTestRevisitResource(payloadBytes, true);
+
+        Capture<ReplayParseContext> parseContextCapture = new Capture<ReplayParseContext>();
+        Capture<Node> nodeCapture = new Capture<Node>();
+        nodeHandler.handleParseStart(EasyMock.<ReplayParseContext>anyObject());
+        nodeHandler.handleParseComplete(EasyMock.<ReplayParseContext>anyObject());
+        TestParseEventHandler delegate = new TestParseEventHandler();
+        nodeHandler.handleNode(EasyMock.capture(parseContextCapture), EasyMock.capture(nodeCapture));
+        EasyMock.expectLastCall().andDelegateTo(delegate).atLeastOnce();
+
+        response.setStatus(200);
+        response.setCharacterEncoding("utf-8");
+        response.setHeader("Content-Length", Integer.toString(payloadBytes.length));
+        response.setHeader(TextReplayRenderer.GUESSED_CHARSET_HEADER, "UTF-8");
+        response.setHeader("Content-Type", "text/html");
+        response.setHeader(EasyMock.matches("X-Archive-Orig-.*"), EasyMock.<String>notNull());
+        EasyMock.expectLastCall().anyTimes();
+        
+        EasyMock.replay(nodeHandler, response, uriConverter);
+        
+        cut.renderResource(null, response, wbRequest, result, headerResource, payloadResource, uriConverter, null);
+        
+        EasyMock.verify(nodeHandler, response, uriConverter);
+        
+        // NOTE: this compares output of Node.toHtml() with the original input.
+        // there's a good chance of Node.toHtml() producing different text than original HTML.
+        String out = servletOutput.getString();
+        assertEquals("servlet output", payload, out);
+        
+        ReplayParseContext context = parseContextCapture.getValue();
+        // testing indirectly because ReplayParseContext has no method returning baseUrl.
+        assertEquals("baseUrl is correctly set up", "http://www.example.com/a.html", context.resolve("a.html"));
+    }
+    
+    // no test for old-style revisit record as headerResource, because it is caller's responsibility to
+    // set headerResource = payloadResource in this case.
+    
+//    /**
+//     * test revisit record (in old format without HTTP headers).
+//     * @throws Exception
+//     */
+//    public void testOldRevisit() throws Exception {
+//        final String payload = "<HTML></HTML>\n";
+//        final byte[] payloadBytes = payload.getBytes("UTF-8");
+//        Resource payloadResource = createTestHtmlResource(payloadBytes);
+//        Resource headerResource = createTestRevisitResource(payloadBytes, false);
+//
+//        Capture<ReplayParseContext> parseContextCapture = new Capture<ReplayParseContext>();
+//        Capture<Node> nodeCapture = new Capture<Node>();
+//        nodeHandler.handleParseStart(EasyMock.<ReplayParseContext>anyObject());
+//        nodeHandler.handleParseComplete(EasyMock.<ReplayParseContext>anyObject());
+//        TestParseEventHandler delegate = new TestParseEventHandler();
+//        nodeHandler.handleNode(EasyMock.capture(parseContextCapture), EasyMock.capture(nodeCapture));
+//        EasyMock.expectLastCall().andDelegateTo(delegate).atLeastOnce();
+//
+//        response.setStatus(200);
+//        response.setCharacterEncoding("utf-8");
+//        response.setHeader("Content-Length", Integer.toString(payloadBytes.length));
+//        response.setHeader(TextReplayRenderer.GUESSED_CHARSET_HEADER, "UTF-8");
+//        response.setHeader("Content-Type", "text/html");
+//        response.setHeader(EasyMock.matches("X-Archive-Orig-.*"), EasyMock.<String>notNull());
+//        EasyMock.expectLastCall().anyTimes();
+//        
+//        EasyMock.replay(nodeHandler, response, uriConverter);
+//        
+//        cut.renderResource(null, response, wbRequest, result, headerResource, payloadResource, uriConverter, null);
+//        
+//        EasyMock.verify(nodeHandler, response, uriConverter);
+//        
+//        // NOTE: this compares output of Node.toHtml() with the original input.
+//        // there's a good chance of Node.toHtml() producing different text than original HTML.
+//        String out = servletOutput.getString();
+//        assertEquals("servlet output", payload, out);
+//        
+//        ReplayParseContext context = parseContextCapture.getValue();
+//        // testing indirectly because ReplayParseContext has no method returning baseUrl.
+//        assertEquals("baseUrl is correctly set up", "http://www.example.com/a.html", context.resolve("a.html"));
+//    }
+
     public void testDoneFlagSetForFrameset() throws Exception {
         String payload = "<frameset cols=\"25%,*,25%\">\n" + 
                 "  <frame src=\"top.html\">\n" +
