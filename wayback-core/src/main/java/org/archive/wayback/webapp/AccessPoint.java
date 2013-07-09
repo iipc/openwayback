@@ -66,6 +66,7 @@ import org.archive.wayback.exception.ResourceNotAvailableException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.exception.SpecificCaptureReplayException;
 import org.archive.wayback.exception.WaybackException;
+import org.archive.wayback.memento.MementoConstants;
 import org.archive.wayback.memento.MementoUtils;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.resourceindex.filters.WARCRevisitAnnotationFilter;
@@ -556,8 +557,13 @@ implements ShutdownListener {
 		String betterURI = getUriConverter().makeReplayURI(datespec, url);
 		
 		if (this.isEnableMemento()) {
-			// Redirect as "intermediate resource"
-			MementoUtils.addOrigHeader(httpResponse, url);
+			// Issue either a Memento URL-G response, or "intermediate resource" response
+			if (wbRequest.isMementoTimegate()) {
+				MementoUtils.addTimegateHeaders(httpResponse, captureResults, wbRequest);
+			} else {
+				// Redirect as "intermediate resource"
+				MementoUtils.addOrigHeader(httpResponse, url);
+			}
 		}
 		
 		throw new BetterRequestException(betterURI);
@@ -828,7 +834,7 @@ implements ShutdownListener {
 					throw scre;
 				}
 			} finally {
-				closeResources(payloadResource, httpHeadersResource);		
+				closeResources(payloadResource, httpHeadersResource);
 			}
 		}
 	}

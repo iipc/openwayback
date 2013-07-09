@@ -80,6 +80,7 @@ public class DatelessReplayRequestParser extends PathRequestParser {
 		
 		if (wbRequest != null) {
 			wbRequest.setResultsPerPage(getMaxRecords());
+			wbRequest.setMementoTimegate();
 		}
 		
 		return wbRequest;
@@ -165,7 +166,6 @@ public class DatelessReplayRequestParser extends PathRequestParser {
 			wbRequest.setBestLatestReplayRequest();
 		}
 		
-		wbRequest.setMementoTimegate();		
 		wbRequest.setReplayDate(mementoDate);
 		wbRequest.setAnchorDate(mementoDate);
 		wbRequest.setReplayRequest();
