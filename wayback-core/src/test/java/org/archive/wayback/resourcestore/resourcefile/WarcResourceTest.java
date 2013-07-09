@@ -37,6 +37,10 @@ public class WarcResourceTest extends TestCase {
         super.setUp();
     }
 
+    /**
+     * plain HTTP response (without any transfer/content-encoding)
+     * @throws Exception
+     */
     public void testPlainHttpRecord() throws Exception {
         String payload = "hogehogehogehogehoge";
         WARCRecordInfo recinfo = TestWARCRecordInfo.createHttpResponse(payload);
@@ -53,7 +57,29 @@ public class WarcResourceTest extends TestCase {
         
         res.close();
     }
-    
+    /**
+     * uncompressed, but chunked-encoded HTTP response 
+     * @throws Exception
+     */
+    public void testPlainChunkedHttpRecord() throws Exception {
+        String payload = "hogehogehogehogehoge";
+        WARCRecordInfo recinfo = new TestWARCRecordInfo(
+                TestWARCRecordInfo.buildHttpResponseBlock("200 OK",
+                        "text/plain", payload.getBytes("UTF-8"), true));
+        TestWARCReader ar = new TestWARCReader(recinfo);
+        WARCRecord rec = ar.get(0);
+        WarcResource res = new WarcResource(rec, ar);
+        res.parseHeaders();
+        
+        assertEquals("statusCode", 200, res.getStatusCode());
+        assertEquals("content-type", "text/plain", res.getHeader("Content-Type"));
+        byte[] buf = new byte[payload.getBytes().length + 1];
+        int n = res.read(buf);
+        assertEquals("content length", buf.length - 1, n);
+        
+        res.close();
+    }
+
     /**
      * gzip-compressed HTTP response.
      * @throws Exception
@@ -64,6 +90,34 @@ public class WarcResourceTest extends TestCase {
         WARCRecordInfo recinfo = new TestWARCRecordInfo(
                 TestWARCRecordInfo.buildCompressedHttpResponseBlock(ctype,
                         payload.getBytes()));
+        TestWARCReader ar = new TestWARCReader(recinfo);
+        WARCRecord rec = ar.get(0);
+        WarcResource res = new WarcResource(rec, ar);
+        res.parseHeaders();
+        
+        assertEquals("statusCode", 200, res.getStatusCode());
+        assertEquals("content-type", ctype, res.getHeader("Content-Type"));
+        
+        Resource zres = TextReplayRenderer.decodeResource(res);
+        assertTrue("wrapped with GzipDecodingResource", (zres instanceof GzipDecodingResource));
+        
+        byte[] buf = new byte[payload.getBytes().length + 1];
+        int n = zres.read(buf);
+        assertEquals("content length", buf.length - 1, n);
+        
+        res.close();
+    }
+    
+    /**
+     * gzip-compressed, chunked-encoded HTTP response.
+     * @throws Exception
+     */
+    public void testCompressedChunkedHttpRecord() throws Exception {
+        String payload = "hogehogehogehogehoge";
+        String ctype = "text/plain";
+        WARCRecordInfo recinfo = new TestWARCRecordInfo(
+                TestWARCRecordInfo.buildCompressedHttpResponseBlock(ctype,
+                        payload.getBytes(), true));
         TestWARCReader ar = new TestWARCReader(recinfo);
         WARCRecord rec = ar.get(0);
         WarcResource res = new WarcResource(rec, ar);
@@ -192,6 +246,7 @@ public class WarcResourceTest extends TestCase {
         
         // should either return special value or throw appropriate exception (TBD)
         int scode = res.getStatusCode();
+        assertEquals("status code", 0, scode);
         
         Map<String, String> headers = res.getHttpHeaders();
         //assertNotNull("headers", headers);

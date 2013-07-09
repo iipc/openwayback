@@ -3,6 +3,7 @@ package org.archive.io.warc;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URI;
@@ -99,26 +100,50 @@ public class TestWARCRecordInfo extends WARCRecordInfo implements WARCConstants,
         return buildHttpResponseBlock("200 OK", ctype, payloadBytes);
     }
     
+    private static void writeChunked(OutputStream out, byte[] data) throws IOException {
+        int s = 0;
+        while (s < data.length) {
+            int n = data.length - s;
+            if (n > 0x1000) n = 0x1000;
+            out.write(String.format("%x" + CRLF, n).getBytes("UTF-8"));
+            out.write(data, s, n);
+            out.write(CRLF.getBytes("UTF-8"));
+            s += n;
+        }
+        out.write(("0" + CRLF + CRLF).getBytes("UTF-8"));
+    }
     /**
      * return content-block bytes for HTTP response.
      * @param status HTTP status code and status text separated by a space. ex. {@code "200 OK"}.
      * @param ctype HTTP Content-Type
      * @param payloadBytes payload bytes
+     * @param chunked if true, use chunked transfer-encoding
      * @return content-block bytes with HTTP status line, HTTP headers and payload.
      * @throws IOException
      */
-    public static byte[] buildHttpResponseBlock(String status, String ctype, byte[] payloadBytes)
+    public static byte[] buildHttpResponseBlock(String status, String ctype, byte[] payloadBytes, boolean chunked)
             throws IOException {
         ByteArrayOutputStream blockbuf = new ByteArrayOutputStream();
         Writer bw = new OutputStreamWriter(blockbuf);
         bw.write("HTTP/1.0 " + status + CRLF);
-        bw.write("Content-Length: " + payloadBytes.length + CRLF);
+        if (chunked) {
+            bw.write("Transfer-Encoding: chunked" + CRLF);
+        } else {
+            bw.write("Content-Length: " + payloadBytes.length + CRLF);
+        }
         bw.write("Content-Type: " + ctype + CRLF);
         bw.write(CRLF);
         bw.flush();
-        blockbuf.write(payloadBytes);
+        if (chunked) {
+            writeChunked(blockbuf, payloadBytes);
+        } else {
+            blockbuf.write(payloadBytes);
+        }
         bw.close();
         return blockbuf.toByteArray();
+    }
+    public static byte[] buildHttpResponseBlock(String status, String ctype, byte[] payloadBytes) throws IOException {
+        return buildHttpResponseBlock(status, ctype, payloadBytes, false);
     }
     
     public static byte[] buildHttpRedirectResponseBlock(String location) throws IOException {
@@ -135,7 +160,7 @@ public class TestWARCRecordInfo extends WARCRecordInfo implements WARCConstants,
     }
     
     public static byte[] buildCompressedHttpResponseBlock(String ctype,
-            byte[] payloadBytes) throws IOException {
+            byte[] payloadBytes, boolean chunked) throws IOException {
         ByteArrayOutputStream gzippedPayloadBytes = new ByteArrayOutputStream();
         GZIPOutputStream zout = new GZIPOutputStream(gzippedPayloadBytes);
         zout.write(payloadBytes);
@@ -144,14 +169,25 @@ public class TestWARCRecordInfo extends WARCRecordInfo implements WARCConstants,
         ByteArrayOutputStream blockbuf = new ByteArrayOutputStream();
         Writer bw = new OutputStreamWriter(blockbuf);
         bw.write("HTTP/1.0 200 OK" + CRLF);
-        bw.write("Content-Length: " + payloadBytes.length + CRLF);
+        if (chunked) {
+            bw.write("Transfer-Encoding: chunked" + CRLF);
+        } else {
+            bw.write("Content-Length: " + payloadBytes.length + CRLF);
+        }
         bw.write("Content-Type: " + ctype + CRLF);
         bw.write("Content-Encoding: gzip" + CRLF);
         bw.write(CRLF);
         bw.flush();
-        blockbuf.write(payloadBytes);
+        if (chunked) {
+            writeChunked(blockbuf, payloadBytes);
+        } else {
+            blockbuf.write(payloadBytes);
+        }
         bw.close();
         return blockbuf.toByteArray();
+    }
+    public static byte[] buildCompressedHttpResponseBlock(String ctype, byte[] payloadBytes) throws IOException {
+        return buildCompressedHttpResponseBlock(ctype, payloadBytes, false);
     }
     
     /**

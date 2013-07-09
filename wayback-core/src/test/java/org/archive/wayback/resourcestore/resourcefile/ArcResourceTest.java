@@ -3,9 +3,6 @@
  */
 package org.archive.wayback.resourcestore.resourcefile;
 
-import java.text.SimpleDateFormat;
-import java.util.Map;
-
 import junit.framework.TestCase;
 
 import org.archive.io.arc.ARCRecord;
@@ -15,7 +12,6 @@ import org.archive.io.warc.WARCRecordInfo;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.replay.GzipDecodingResource;
 import org.archive.wayback.replay.TextReplayRenderer;
-import org.archive.wayback.replay.charset.StandardCharsetDetector;
 
 /**
  * @author kenji
@@ -30,6 +26,10 @@ public class ArcResourceTest extends TestCase {
         super.setUp();
     }
 
+    /**
+     * plain HTTP response, without transfer/content-encoding.
+     * @throws Exception
+     */
     public void testPlainHttpRecord() throws Exception {
         String payload = "hogehogehogehogehoge";
         WARCRecordInfo recinfo = TestWARCRecordInfo.createHttpResponse(payload);
@@ -47,7 +47,30 @@ public class ArcResourceTest extends TestCase {
         
         res.close();
     }
-    
+    /**
+     * uncompressed, but chunked-encoded HTTP response.
+     * @throws Exception
+     */
+    public void testPlainChunkedHttpRecord() throws Exception {
+        String payload = "hogehogehogehogehoge";
+        WARCRecordInfo recinfo = new TestWARCRecordInfo(
+                TestWARCRecordInfo.buildHttpResponseBlock("200 OK",
+                        "text/plain", payload.getBytes("UTF-8"), true));
+        recinfo.setMimetype("text/plain");
+        TestARCReader ar = new TestARCReader(recinfo);
+        ARCRecord rec = ar.get(0);
+        ArcResource res = new ArcResource(rec, ar);
+        res.parseHeaders();
+        
+        assertEquals("statusCode", 200, res.getStatusCode());
+        assertEquals("content-type", "text/plain", res.getHeader("Content-Type"));
+        byte[] buf = new byte[payload.getBytes().length + 1];
+        int n = res.read(buf);
+        assertEquals("content length", buf.length - 1, n);
+        
+        res.close();
+    }
+
     /**
      * gzip-compressed HTTP response.
      * @throws Exception
@@ -77,6 +100,35 @@ public class ArcResourceTest extends TestCase {
         res.close();
     }
     
+    /**
+     * gzip-compressed and chunk-encoded HTTP response.
+     * @throws Exception
+     */
+    public void testCompressedChunkedHttpRecord() throws Exception {
+        String payload = "hogehogehogehogehoge";
+        String ctype = "text/plain";
+        WARCRecordInfo recinfo = new TestWARCRecordInfo(
+                TestWARCRecordInfo.buildCompressedHttpResponseBlock(ctype,
+                        payload.getBytes(), true));
+        recinfo.setMimetype(ctype);
+        TestARCReader ar = new TestARCReader(recinfo);
+        ARCRecord rec = ar.get(0);
+        ArcResource res = new ArcResource(rec, ar);
+        res.parseHeaders();
+        
+        assertEquals("statusCode", 200, res.getStatusCode());
+        assertEquals("content-type", ctype, res.getHeader("Content-Type"));
+        
+        Resource zres = TextReplayRenderer.decodeResource(res);
+        assertTrue("wrapped with GzipDecodingResource", (zres instanceof GzipDecodingResource));
+        
+        byte[] buf = new byte[payload.getBytes().length + 1];
+        int n = zres.read(buf);
+        assertEquals("content length", buf.length - 1, n);
+        
+        res.close();
+    }
+
     // TODO: add more tests on various Transfer-Encoding and Content-Encoding.
     // TODO: add more tests on corner cases.
     
