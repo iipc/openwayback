@@ -66,7 +66,6 @@ import org.archive.wayback.exception.ResourceNotAvailableException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.exception.SpecificCaptureReplayException;
 import org.archive.wayback.exception.WaybackException;
-import org.archive.wayback.memento.MementoConstants;
 import org.archive.wayback.memento.MementoUtils;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.resourceindex.filters.WARCRevisitAnnotationFilter;
@@ -718,8 +717,8 @@ implements ShutdownListener {
 					continue;
 				}
 				
-				// Attempt to resolve any not-found embedded content with closest
-				// Also, resolve latest request to 
+				// Attempt to resolve any not-found embedded content with next-best
+				// For "best last" capture, skip not-founds and redirects, hoping to find the best 200 response.
 				if ((wbRequest.isAnyEmbeddedContext() && closest.isHttpError()) || 
 					(wbRequest.isBestLatestReplayRequest() && !closest.isHttpSuccess())) {
 					CaptureSearchResult nextClosest = closest;

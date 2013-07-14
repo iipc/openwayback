@@ -90,6 +90,7 @@ public class RemoteLiveWebCache implements LiveWebCache {
 			throw new LiveDocumentNotAvailableException("Url:" + urlString +
 					"does not look like an URL?");
 		}
+		boolean success = false;
 	    try {
 	    	int status = http.executeMethod(method);
 	    	if(status == 200) {
@@ -105,6 +106,7 @@ public class RemoteLiveWebCache implements LiveWebCache {
 	    		} else if(ar.getStatusCode() == 504) {
 	    			throw new LiveWebTimeoutException("Timeout:" + urlString);
 	    		}
+	    		success = true;
 	    		return ar;
 	    		
 	    	} else {
@@ -132,6 +134,9 @@ public class RemoteLiveWebCache implements LiveWebCache {
     		throw new LiveWebTimeoutException(e.getLocalizedMessage() 
     				+ " : " + urlString);	    	
 		} finally {
+			if (!success) {
+				method.abort();
+			}
 	    	method.releaseConnection();
 	    }
 	}
