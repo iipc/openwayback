@@ -3,31 +3,32 @@
 
 ##### Table of Contents
 
-[Intro and Usage](#intro-and-usage)
+#### [Intro and Usage](#intro-and-usage)
+
+* [Basic usage](#basic-usage)
+
+* [Url Match Scope](#url-match-scope)
+
+* [Output Format (JSON)](#output-format-json)
+
+* [Filtering](#filtering)
+
+* [Query Result Limits](#query-result-limits)
+
+* [Resumption Key](#resumption)
 
 
-[Url Match Scope](#url-match-scope)
+#### [Advanced Usage](#advanced-usage) 
 
-[Output Format (JSON)](#output-format-json)
+* [Paging API](#paging-api)
 
-[Filtering](#filtering)
-
-[Query Result Limits](#query-result-limits)
-
-[Resumption Key](#resumption)
-
-
-[Advanced Usage](#advanced-usage) 
-
-[Paging API](#paging-api)
-
-[Access Control](#access-control)
+* [Access Control](#access-control)
 
 
 
 ## Intro and Usage ##
 
-The `cdx-server` is a standalone HTTP servlet that serves the index that the `wayback` machine uses to lookup captures.
+The `wayback-cdx-server` is a standalone HTTP servlet that serves the index that the `wayback` machine uses to lookup captures.
 
 The index format is known as 'cdx' and contains various fields representing the capture, usually
 sorted by url and date.
@@ -35,16 +36,34 @@ http://archive.org/web/researcher/cdx_file_format.php
 
 The server responds to GET queries and returns either the plain text CDX data, or optionally a JSON array of the CDX.
 
-It is possible to add access control to require an authentication token to restrict access to certain URLs
-or CDX fields.
+The CDX server is deployed as part of web.archive.org Wayback Machine and the usage below reference this deployment.
+
+However, the cdx server is freely available with the rest of the open-source wayback machine software in this repository.
+
+Further documentation will focus on configuration and deployment in other environments.
+
+Please contant us at wwm@archive.org for additional questions.
+
+
+### Basic Usage ###
 
 The most simple query and the only required param for the CDX server is the **url** param
 
  * http://web.archive.org/cdx/search/cdx?url=archive.org
 
-The above query will return all captures of the site 'archive.org' available in this collection.
+The above query will return a portion of the index, one per row, for each 'capture' of the url "archive.org"
+that is available in the archive.
+
+The columns of each line are the fields of the cdx.
+At this time, the following cdx fields are publicly available:
+
+  `["urlkey","timestamp","original","mimetype","statuscode","digest","length"]`
+
+
+The the **url=** value should be [url encoded](http://en.wikipedia.org/wiki/Percent-encoding) if the url itself contains a query.
 
 All other params are optional and are explained below.
+
 
 For doing large/bulk queries, the use of the [Paging API](#paging-api) is recommended.
 
