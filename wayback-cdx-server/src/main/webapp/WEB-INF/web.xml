@@ -3,15 +3,16 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_5.xsd"
     version="2.5">
-  <display-name>CDX Cluster Server</display-name>
+  <display-name>Wayback CDX Server</display-name>
   
   <servlet>
-    <servlet-name>cdx-server</servlet-name>
+    <servlet-name>wayback-cdx-server</servlet-name>
     <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
   </servlet>
 
+  <!-- CDX servlet handlers configured under subpath to allow static resource under root -->
   <servlet-mapping>
-    <servlet-name>cdx-server</servlet-name>
+    <servlet-name>wayback-cdx-server</servlet-name>
     <url-pattern>/search/*</url-pattern>
   </servlet-mapping>
   

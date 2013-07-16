@@ -20,7 +20,7 @@
 
 #### [Advanced Usage](#advanced-usage) 
 
-* [Paging API](#paging-api)
+* [Pagination API](#pagination-api)
 
 * [Access Control](#access-control)
 
@@ -65,7 +65,7 @@ The the **url=** value should be [url encoded](http://en.wikipedia.org/wiki/Perc
 All other params are optional and are explained below.
 
 
-For doing large/bulk queries, the use of the [Paging API](#paging-api) is recommended.
+For doing large/bulk queries, the use of the [Pagination API](#pagination-api) is recommended.
 
 
 ### Url Match Scope ###
@@ -202,7 +202,7 @@ org%2Carchive%29%2F+19980109140106%21
 
 ## Advanced Usage
 
-### Paging API ###
+### Pagination API ###
 
 The above resume key allows for sequential querying of CDX data.
 However, in some cases where very large querying is needed (for example domain query), it may be useful to perform queries
@@ -212,10 +212,14 @@ in parallel and also estimate the total size of the query.
 Such an index contains CDX lines store in concatenated GZIP blocks (usually 3000 lines each) and a secondary index
 which provides binary search to the 'zipnum' blocks.
 By using the secondary index, it is possible to estimate the total size of a query and also break up the query in size.
-Using the zipnum format or other secondary index is needed to support paging API.
+Using the zipnum format or other secondary index is needed to support pagination.
+
+However, pagination can only work on a single index at a time, merging input from multiple sources (plain cdx or zipnum)
+is not possible with pagination. As such, the results from the paginated version may be slightly less up-to-date than
+the default non-paginated query.
 
 
-  * To use paging, simply add the **page=i** param to the query to return the i-th page. If the paging API is not supported, cdx server will return a 400.
+  * To use pagination, simply add the **page=i** param to the query to return the i-th page. If the pagination is not supported, cdx server will return a 400.
 
   * Pages are numbered from 0 to *num pages - 1*. If *i<0*, pages are not used. If *i>=num pages*, no results are returned.
 
@@ -234,7 +238,7 @@ Using the zipnum format or other secondary index is needed to support paging API
 
   * It is also possible to have the cdx server return the raw secondary index, by specifying **showPagedIndex=true**. This query returns the secondary index instead of the cdx results and may be subject to access restrictions.
 
-  * All other params, including the resumeKey= should work in conjunction with the paging.
+  * All other params, including the resumeKey= should work in conjunction with the pagination.
 
 
 
@@ -244,7 +248,7 @@ The cdx server is designed to improve access to archival data.
 
 However, in certain cases restrictions are necessary.
 
-As such, The cdx server supports granting access via a custom auth cookie as part of the server configuration.
+As such, The cdx server supports granting access via a custom API Key, passed in via as a custom cookie.
 
 Currently there are two possible restrictions:
 
@@ -253,13 +257,13 @@ Currently there are two possible restrictions:
 * Access to certain fields, such as filename in the CDX. When restricted, the cdx results contain only public fields.
 
 
-To allow access, the cookie must be explicitly set on the client, eg:
+To allow access, the API key cookie must be explicitly set on the client, eg:
 
 ```
-curl -H "Cookie: cdx-server-auth-cookie=secret-value http://mycdxserver/search/cdx?url=..."
+curl -H "Cookie: cdx-auth-token=API-Key-Secret http://mycdxserver/search/cdx?url=..."
 ```
 
-The name of *cdx-server-auth-cookie* and *secret-value* can be configured in the CDX server config.
+The *API-Key-Secret* can be set in the cdx server configuration.
 
 
 ## CDX Server Configuration ##

@@ -24,7 +24,6 @@ import java.lang.reflect.Method;
 import junit.framework.TestCase;
 
 import org.archive.wayback.core.WaybackRequest;
-import org.archive.wayback.requestparser.PathRequestParserTest;
 
 /**
  * @see PathRequestParserTest

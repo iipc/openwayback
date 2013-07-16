@@ -24,7 +24,7 @@
   </bean>
         
 
-  <!-- ZipNum Input Example -- to use paging, the source must be a zipnum cluster -->
+  <!-- ZipNum Input Example - to use paging, the source must be a zipnum cluster -->
   <!-- 
   <bean name="zipnumCluster" class="org.archive.format.gzip.zipnum.ZipNumCluster" init-method="init">
     <property name="summaryFile" value="${cdx.summaryPath}" />          
