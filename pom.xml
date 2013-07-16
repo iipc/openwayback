@@ -145,11 +145,11 @@
 
   <scm>
     <connection>
-      scm:git:git://github.com/internetarchive/wayback-machine.git
+      scm:git:git://github.com/internetarchive/wayback.git
     </connection>
     <tag>HEAD</tag>
     <url>
-      http://github.com/internetarchive/wayback-machine
+      http://github.com/internetarchive/wayback
     </url>
   </scm>
 
