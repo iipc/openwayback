@@ -49,6 +49,7 @@ public class TransparentReplayRenderer implements ReplayRenderer {
 	// TODO: Figure out best way to generalize this, but probably good default
 	// Add special don't cache header in case of at least 100M
 	private final static int NOCACHE_THRESHOLD = 100000000;
+
 	private final static String NOCACHE_HEADER_NAME = "X-Accel-Buffering";
 	private final static String NOCACHE_HEADER_VALUE = "no";
 	
