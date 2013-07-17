@@ -47,8 +47,8 @@ public class TransparentReplayRenderer implements ReplayRenderer {
 	private HttpHeaderProcessor httpHeaderProcessor;
 	
 	// TODO: Figure out best way to generalize this, but probably good default
-	// Add special don't cache header in case of at least 10^8=100M size.
-	private final static int NOCACHE_THRESHOLD = 8;
+	// Add special don't cache header in case of at least 100M
+	private final static int NOCACHE_THRESHOLD = 100000000;
 	private final static String NOCACHE_HEADER_NAME = "X-Accel-Buffering";
 	private final static String NOCACHE_HEADER_VALUE = "no";
 	
@@ -87,9 +87,17 @@ public class TransparentReplayRenderer implements ReplayRenderer {
 		if(origLength != null) {
 			headers.put(HttpHeaderOperation.HTTP_LENGTH_HEADER, origLength);
 			
-			//TODO: Generalize? Don't buffer content length > 10^8 (>=100M)
-			if ((origLength.length() >= NOCACHE_THRESHOLD)) {
-			    httpResponse.addHeader(NOCACHE_HEADER_NAME, NOCACHE_HEADER_VALUE);
+			int contentLength = -1;
+			
+			try {
+			    contentLength = Integer.parseInt(origLength);
+			} catch (NumberFormatException n) {
+			    
+			}
+			
+			//TODO: Generalize? Don't buffer NOCACHE_THRESHOLD
+			if ((contentLength >= NOCACHE_THRESHOLD)) {
+			    headers.put(NOCACHE_HEADER_NAME, NOCACHE_HEADER_VALUE);
 			}
 		}
 
