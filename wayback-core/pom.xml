@@ -43,6 +43,10 @@
       <artifactId>ia-web-commons</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.archive.wayback</groupId>
+      <artifactId>wayback-cdx-server</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.archive.access-control</groupId>
       <artifactId>access-control</artifactId>
       <exclusions>
@@ -86,10 +90,10 @@
       <version>2.0.0</version>
     </dependency>
     <dependency>
-    	<groupId>org.easymock</groupId>
-    	<artifactId>easymock</artifactId>
-    	<version>2.5.1</version>
-    	<scope>test</scope>
+      <groupId>org.easymock</groupId>
+      <artifactId>easymock</artifactId>
+      <version>2.5.1</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 

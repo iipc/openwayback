@@ -24,6 +24,8 @@ import org.archive.format.gzip.zipnum.ZipNumParams;
 import org.archive.url.UrlSurtRangeComputer.MatchType;
 import org.archive.util.RegexFieldMatcher;
 import org.archive.util.iterator.CloseableIterator;
+import org.springframework.web.bind.ServletRequestBindingException;
+import org.springframework.web.bind.ServletRequestUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -32,8 +34,8 @@ public class CDXServer extends BaseCDXServer {
     public final static String X_NUM_PAGES = "X-CDX-Num-Pages";
     public final static String X_MAX_LINES = "X-CDX-Max-Lines";
 
-    protected ZipNumCluster mainCluster;
-    protected CDXInputSource mergedSource;
+    protected ZipNumCluster zipnumSource;
+    protected CDXInputSource cdxSource;
     protected ZipNumParams zipParams;
     protected ZipNumParams dedupedParams;
 
@@ -49,8 +51,8 @@ public class CDXServer extends BaseCDXServer {
         dedupedParams.setMaxBlocks(pageSize);
         dedupedParams.setTimestampDedupLength(8);
 
-        if (mergedSource == null) {
-            mergedSource = mainCluster;
+        if (cdxSource == null) {
+            cdxSource = zipnumSource;
         }
 
         super.afterPropertiesSet();
@@ -59,12 +61,12 @@ public class CDXServer extends BaseCDXServer {
     protected int pageSize = 1;
     protected int queryMaxLimit = 1;
 
-    public ZipNumCluster getMainCluster() {
-        return mainCluster;
+    public ZipNumCluster getZipnumSource() {
+        return zipnumSource;
     }
 
-    public void setMainCluster(ZipNumCluster mainCluster) {
-        this.mainCluster = mainCluster;
+    public void setZipnumSource(ZipNumCluster zipnumSource) {
+        this.zipnumSource = zipnumSource;
     }
 
     public int getPageSize() {
@@ -83,12 +85,46 @@ public class CDXServer extends BaseCDXServer {
         this.queryMaxLimit = queryMaxLimit;
     }
 
-    public CDXInputSource getMergedSource() {
-        return mergedSource;
+    public CDXInputSource getCdxSource() {
+        return cdxSource;
     }
 
-    public void setMergedSource(CDXInputSource mergedSource) {
-        this.mergedSource = mergedSource;
+    public void setCdxSource(CDXInputSource cdxSource) {
+        this.cdxSource = cdxSource;
+    }
+    
+    public void getCdx(
+            HttpServletRequest request,
+            HttpServletResponse response) throws IOException, ServletRequestBindingException
+    {
+        String url = ServletRequestUtils.getRequiredStringParameter(request, "url");
+        MatchType matchType = null;
+        
+        String matchTypeStr = ServletRequestUtils.getStringParameter(request, "matchType", null);
+        if (matchTypeStr != null) {
+            matchType = MatchType.valueOf(matchTypeStr);
+        }        
+        
+        String from = ServletRequestUtils.getStringParameter(request, "from", "");
+        String to = ServletRequestUtils.getStringParameter(request, "to", "");
+        
+        boolean gzip = ServletRequestUtils.getBooleanParameter(request, "gzip", true);
+        String output = ServletRequestUtils.getStringParameter(request, "output", "");
+        
+        String[] filter = ServletRequestUtils.getStringParameters(request, "filter");
+        
+        int offset = ServletRequestUtils.getIntParameter(request, "offset", 0);
+        int limit = ServletRequestUtils.getIntParameter(request, "limit", 0);
+        
+        int page = ServletRequestUtils.getIntParameter(request, "page", -1);        
+
+        boolean showNumPages = ServletRequestUtils.getBooleanParameter(request, "showNumPages", false);
+        boolean showPagedIndex = ServletRequestUtils.getBooleanParameter(request, "showPagedIndex", false);
+
+        String resumeKey = ServletRequestUtils.getStringParameter(request, "resumeKey", "");
+        boolean showResumeKey = ServletRequestUtils.getBooleanParameter(request, "showResumeKey", false);
+        
+        this.getCdx(request, response, url, matchType, from, to, gzip, output, filter, offset, limit, page, showNumPages, showPagedIndex, resumeKey, showResumeKey);
     }
 
     @RequestMapping(value = { "/cdx" })
@@ -150,7 +186,7 @@ public class CDXServer extends BaseCDXServer {
 
             // Paged query
             if (page >= 0 || showNumPages) {
-                if (mainCluster == null) {
+                if (zipnumSource == null) {
                     response.setStatus(400);
                     response.getWriter()
                             .println(
@@ -158,7 +194,7 @@ public class CDXServer extends BaseCDXServer {
                     return;
                 }
 
-                PageResult pageResult = mainCluster.getNthPage(startEndUrl,
+                PageResult pageResult = zipnumSource.getNthPage(startEndUrl,
                         page, pageSize, showNumPages);
 
                 response.setHeader(X_NUM_PAGES, "" + pageResult.numPages);
@@ -186,11 +222,11 @@ public class CDXServer extends BaseCDXServer {
                     startEndUrl[0] += " " + from;
                 }
 
-                iter = mainCluster.getCDXIterator(iter, startEndUrl[0],
+                iter = zipnumSource.getCDXIterator(iter, startEndUrl[0],
                         startEndUrl[1], page, pageResult.numPages, zipParams);
 
                 response.addHeader(X_MAX_LINES,
-                        "" + (mainCluster.getCdxLinesPerBlock() * pageSize));
+                        "" + (zipnumSource.getCdxLinesPerBlock() * pageSize));
 
             } else {
                 // Non-Paged Merged query
@@ -205,7 +241,7 @@ public class CDXServer extends BaseCDXServer {
                     searchKey = startEndUrl[0];
                 }
 
-                iter = mergedSource.getCDXIterator(searchKey, startEndUrl[0],
+                iter = cdxSource.getCDXIterator(searchKey, startEndUrl[0],
                         startEndUrl[1], dedupedParams);
 
                 if (limit == 0) {

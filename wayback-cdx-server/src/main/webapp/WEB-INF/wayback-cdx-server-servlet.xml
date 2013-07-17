@@ -55,7 +55,7 @@
     <property name="queryMaxLimit" value="150000"/>
     
     <!-- Main Input Source -->
-    <property name="mergedSource" ref="cdxSource" />
+    <property name="cdxSource" ref="cdxSource" />
     
     <!-- Optional: Add an auth checker to restrict access -->
     <!-- 
@@ -65,7 +65,7 @@
     <!-- Optional: ZipNum input for paging and page size -->
     
     <!-- 
-    <property name="mainCluster" ref="zipnumCluster" />
+    <property name="zipnumSource" ref="zipnumCluster" />
     <property name="pageSize" value="50"/>
      -->
   </bean>

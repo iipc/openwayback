@@ -1,11 +1,6 @@
 package org.archive.cdxserver.auth;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
 import java.util.List;
-
-import org.apache.commons.io.IOUtils;
 
 /**
  * Simple checking of permissions for cdx server actions
@@ -13,10 +8,12 @@ import org.apache.commons.io.IOUtils;
  *  -Ability to see blocked urls
  *  -Ability to see full cdx line
  *  
+ *  The checkAccess() for each url is implemented in the subclasses 
+ *  
  * @author ilya
  *
  */
-public class AuthChecker {
+public abstract class AuthChecker {
 	
 	protected String accessCheckUrl;
 	
@@ -46,32 +43,7 @@ public class AuthChecker {
 		return isAllowed(auth, allCdxFieldsAccessTokens);
 	}
 
-	public boolean checkAccess(String url)
-	{
-		if (accessCheckUrl == null) {
-			return true;
-		}
-		
-		InputStream is = null;
-		
-		try {
-			is = new URL(accessCheckUrl + url).openStream();
-			String result = IOUtils.toString(is);
-			
-			if (result.contains("allow")) {
-				return true;
-			}
-			
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-		} finally {
-			if (is != null) {
-				IOUtils.closeQuietly(is);
-			}
-		}
-		
-		return false;
-	}
+	public abstract boolean checkAccess(String url);
 
 	public String getAccessCheckUrl() {
 		return accessCheckUrl;

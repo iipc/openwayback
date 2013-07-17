@@ -276,6 +276,11 @@
       -->
       <dependency>
         <groupId>${project.groupId}</groupId>
+        <artifactId>wayback-cdx-server</artifactId>
+        <version>${project.version}</version>
+      </dependency>      
+      <dependency>
+        <groupId>${project.groupId}</groupId>
         <artifactId>wayback-core</artifactId>
         <version>${project.version}</version>
       </dependency>
