@@ -45,6 +45,13 @@ import org.archive.wayback.exception.BadContentException;
  */
 public class TransparentReplayRenderer implements ReplayRenderer {
 	private HttpHeaderProcessor httpHeaderProcessor;
+	
+	// TODO: Figure out best way to generalize this, but probably good default
+	// Add special don't cache header in case of at least 10^8=100M size.
+	private final static int NOCACHE_THRESHOLD = 8;
+	private final static String NOCACHE_HEADER_NAME = "X-Accel-Buffering";
+	private final static String NOCACHE_HEADER_VALUE = "no";
+	
 	private final static int BUFFER_SIZE = 4096;
 	public TransparentReplayRenderer(HttpHeaderProcessor httpHeaderProcessor) {
 		this.httpHeaderProcessor = httpHeaderProcessor;
@@ -79,6 +86,11 @@ public class TransparentReplayRenderer implements ReplayRenderer {
 		String origLength = HttpHeaderOperation.getContentLength(headers);
 		if(origLength != null) {
 			headers.put(HttpHeaderOperation.HTTP_LENGTH_HEADER, origLength);
+			
+			//TODO: Generalize? Don't buffer content length > 10^8 (>=100M)
+			if ((origLength.length() >= NOCACHE_THRESHOLD)) {
+			    httpResponse.addHeader(NOCACHE_HEADER_NAME, NOCACHE_HEADER_VALUE);
+			}
 		}
 
 		HttpHeaderOperation.sendHeaders(headers, httpResponse);
