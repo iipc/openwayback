@@ -158,7 +158,9 @@ The matchType may also be set implicitly by using wildcard '*' at end or beginni
 
   * *Advanced Option:* **fastLatest=true** may be set to return *some number* of latest results for an exact match and is faster than the standard last results search. The number of results is at least 1 so **limit=-1** implies this setting. The number of results may be greater >1 when a secondary index format (such as ZipNum) is used, but is not guaranteed to return any more than 1 result. Combining this setting with **limit=** will ensure that *no more* than N last results.
 
-    Ex: This query will result in 1 to 5 of the latest (by date) query results: http://web.archive.org/cdx/search/cdx?url=archive.org&fastLatest=true&limit=-1
+    Ex: This query will result in upto 5 of the latest (by date) query results: 
+
+    http://web.archive.org/cdx/search/cdx?url=archive.org&fastLatest=true&limit=-5
 
   * The **offset=** *M* param can be used in conjunction with limit to 'skip' the first M records. This allows for a simple way to scroll through the results.
 
