@@ -2,6 +2,9 @@ package org.archive.cdxserver.auth;
 
 import java.util.List;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+
 /**
  * Simple checking of permissions for cdx server actions
  * Permissions include:
@@ -14,11 +17,37 @@ import java.util.List;
  *
  */
 public abstract class AuthChecker {
+    
+    public final static String CDX_AUTH_TOKEN = "cdx-auth-token";
+    
+    protected String cookieAuthToken = CDX_AUTH_TOKEN;
 	
 	protected String accessCheckUrl;
 	
 	protected List<String> allUrlAccessTokens;
 	protected List<String> allCdxFieldsAccessTokens;
+	
+	public AuthToken createAuthToken(HttpServletRequest request)
+	{
+	    return new AuthToken(this, extractAuthToken(request));
+	}
+	
+    String extractAuthToken(HttpServletRequest request)
+    {
+        Cookie[] cookies = request.getCookies();
+
+        if (cookies == null) {
+            return null;
+        }
+
+        for (Cookie cookie : cookies) {
+            if (cookie.getName().equals(cookieAuthToken)) {
+                return cookie.getValue();
+            }
+        }
+
+        return null;
+    }
 	
 	boolean isAllowed(AuthToken auth, List<String> allowVector)
 	{
@@ -53,7 +82,15 @@ public abstract class AuthChecker {
 		this.accessCheckUrl = accessCheckUrl;
 	}
 	
-	public List<String> getAllUrlAccessTokens() {
+	public String getCookieAuthToken() {
+        return cookieAuthToken;
+    }
+
+    public void setCookieAuthToken(String cookieAuthToken) {
+        this.cookieAuthToken = cookieAuthToken;
+    }
+
+    public List<String> getAllUrlAccessTokens() {
 		return allUrlAccessTokens;
 	}
 

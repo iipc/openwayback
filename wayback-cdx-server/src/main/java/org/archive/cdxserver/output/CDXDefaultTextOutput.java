@@ -12,8 +12,9 @@ public class CDXDefaultTextOutput implements CDXOutput {
     }
 
     @Override
-    public void writeLine(PrintWriter writer, CDXLine line) {
+    public int writeLine(PrintWriter writer, CDXLine line) {
         writer.println(line.fullLine);
+        return 1;
     }
 
     @Override

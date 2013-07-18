@@ -6,9 +6,11 @@ import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.util.zip.GZIPOutputStream;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.archive.cdxserver.auth.AuthChecker;
+import org.archive.cdxserver.auth.AuthToken;
 import org.archive.url.UrlSurtRangeComputer;
 import org.archive.url.WaybackURLKeyMaker;
 import org.springframework.beans.factory.InitializingBean;
@@ -69,11 +71,21 @@ public class BaseCDXServer implements InitializingBean {
 		});
 		
 		return writer;
-    }	
+    }
 	
 	protected void prepareResponse(HttpServletResponse response)
 	{
 		response.setContentType("text/plain; charset=\"UTF-8\"");		
+	}
+	
+	protected AuthToken initAuthToken(HttpServletRequest request)
+	{
+	    if (authChecker == null) {
+	        //TODO: Think more about the security implications
+	        return AuthToken.createAllAccessToken();
+	    }
+	    
+	    return authChecker.createAuthToken(request);
 	}
 		
 	public AuthChecker getAuthChecker() {

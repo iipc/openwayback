@@ -1,11 +1,7 @@
 package org.archive.cdxserver.auth;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
 
 public class AuthToken {
-
-	public final static String CDX_AUTH_TOKEN = "cdx-auth-token";
 	
 	final String authToken;
 	final private AuthChecker authChecker;
@@ -13,32 +9,15 @@ public class AuthToken {
 	private Boolean allUrlsAllowed;
 	private Boolean allCdxAllowed;
 	
-	public AuthToken(AuthChecker authChecker, HttpServletRequest request)
+	public static AuthToken createAllAccessToken()
 	{
-		this.authChecker = authChecker;
-		
-		if (authChecker != null) {
-			this.authToken = extractAuthToken(request);
-		} else {
-			this.authToken = null;
-		}
+	    return new AuthToken(null, null);
 	}
 	
-	private String extractAuthToken(HttpServletRequest request)
+	AuthToken(AuthChecker authChecker, String authToken)
 	{
-		Cookie[] cookies = request.getCookies();
-		
-		if (cookies == null) {
-			return null;
-		}
-		
-		for (Cookie cookie : cookies) {
-			if (cookie.getName().equals(CDX_AUTH_TOKEN)) {
-				return cookie.getValue();
-			}
-		}
-		
-		return null;
+		this.authChecker = authChecker;
+		this.authToken = authToken;
 	}
 	
 	public boolean isAllUrlAccessAllowed()

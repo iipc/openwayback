@@ -146,15 +146,19 @@ The matchType may also be set implicitly by using wildcard '*' at end or beginni
 ### Query Result Limits ###
 
   As the CDX server may return millions or billions of record, it is often necessary to set limits on a single query for practical reasons.
-  The CDX server provides several mechanisms.
+  The CDX server provides several mechanisms, including ability to return the last N as well as first N results.
 
   * The CDX server config provides a setting for absolute maximum length returned from a single query (currently set to 150000 by default).
  
-  * The **limit=** *N* param, used is a simple way to limit the number of matches returned in a query to N, where N>0.
+  * Set **limit=** *N* to return the first N results.
+ 
+  * Set **limit=** *-N* to return the last N results. The query may be slow as it begins reading from the beginning of the search space and skips all but last N results. 
+
+  * *Advanced Option:* **fastLatest=true** may be set to return *some number* of latest results for an exact match and is faster than the standard last results search. The number of results is at least 1 so **limit=-1** implies this setting. The number of results may be greater >1 when a secondary index format (such as ZipNum) is used, but is not guaranteed to return any more than 1 result. This setting can be used with limit to ensure *no more* than N last results, eg: **limit=-5&fastLatest=true** will result in 1 to 5 of the latest results.
 
   * The **offset=** *M* param can be used in conjunction with limit to 'skip' the first M records. This allows for a simple way to scroll through the results.
 
-However, the offset/limit model does not scale well to large querties since the CDX server must read and skip through the number of results specified by
+    However, the offset/limit model does not scale well to large querties since the CDX server must read and skip through the number of results specified by
 **offset**, so the CDX server begins reading at the beginning every time.
 
 

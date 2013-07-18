@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- IA web archive cdx server config
+This file represents a part of the config used by the CDX server at web.archive.org/cdx
+
+This config is included by the top-level CDX server config, which is not open-source at this time
+
+The following properties are set externally
+
+        wayback.maxHostConn=<Max Host Connections>
+        wayback.maxTotalConn=<Max Total Connections>
+        wayback.datadir=<Home Path for CDX Indexs>
+        wayback.numBlocksPerPage=<Num ZipNum Blocks Per Page>
+ -->
+ 
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+  xmlns:context="http://www.springframework.org/schema/context"
+  xmlns:mvc="http://www.springframework.org/schema/mvc"
+  xsi:schemaLocation="
+        http://www.springframework.org/schema/beans 
+        http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+        http://www.springframework.org/schema/context 
+        http://www.springframework.org/schema/context/spring-context-3.0.xsd
+        http://www.springframework.org/schema/mvc
+        http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd">
+        
+ <!-- Shared Block Loader -->
+  <bean id="zipBlockLoader" class="org.archive.format.gzip.zipnum.ZipNumBlockLoader">
+    <property name="maxHostConnections" value="${wayback.maxHostConn}"/>
+    <property name="maxTotalConnections" value="${wayback.maxTotalConn}"/>
+    <property name="noKeepAlive" value="true"/>
+    <property name="bufferFully" value="true"/>  
+    <property name="useNio" value="true"/>    
+  </bean>
+
+  <!-- Cluster Setup: Main "Big" Cluster -->
+  <bean name="fullBig" class="org.archive.format.gzip.zipnum.ZipNumCluster" init-method="init">
+    <property name="summaryFile" value="${wayback.datadir}/index/active/ALL.summary" />          
+    <property name="locFile" value="${wayback.datadir}/index/active/ALL.loc" />
+    <property name="useNio" value="false"/>
+    <property name="blockLoader" ref="zipBlockLoader"/>
+  </bean>
+    
+  <!-- Delta Medium -->
+  <bean name="deltaMedium" class="org.archive.format.gzip.zipnum.ZipNumCluster" init-method="init">
+    <property name="summaryFile" value="${wayback.datadir}/deltacdx/full/ALL.summary" />          
+    <property name="locFile" value="${wayback.datadir}/deltacdx/full/ALL.loc" />
+    <property name="useNio" value="false"/>  
+    <property name="blockLoader" ref="zipBlockLoader"/>
+    <property name="cdxLinesPerBlock" value="1000"/>    
+  </bean>
+  
+  <!-- Delta Small -->
+  <bean name="deltaSmall" class="org.archive.format.gzip.zipnum.ZipNumCluster" init-method="init">
+    <property name="summaryFile" value="${wayback.datadir}/deltacdx/delta/ALL.summary" />          
+    <property name="locFile" value="${wayback.datadir}/deltacdx/delta/ALL.loc" />
+    <property name="useNio" value="false"/>
+    <property name="blockLoader" ref="zipBlockLoader"/>    
+  </bean>
+ 
+  <bean name="all" class="org.archive.format.cdx.MultiCDXInputSource">
+    <property name="cdx">
+       <list>
+         <ref bean="fullBig"/>
+         <ref bean="deltaMedium"/>
+         <ref bean="deltaSmall"/>         
+       </list>
+    </property>
+  </bean>
+  
+  <bean name="fullDelta" class="org.archive.format.cdx.MultiCDXInputSource">
+    <property name="cdx">
+       <list>
+         <ref bean="fullBig"/>
+         <ref bean="deltaMedium"/>       
+       </list>
+    </property>
+  </bean>  
+  
+  <bean name="delta" class="org.archive.format.cdx.MultiCDXInputSource">
+    <property name="cdx">
+       <list>
+         <ref bean="deltaMedium"/>
+         <ref bean="deltaSmall"/>
+       </list>
+    </property>
+  </bean>  
+
+  <!-- HowMany JSP -->
+  <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+    <property name="viewClass" value="org.springframework.web.servlet.view.JstlView"/>
+    <property name="prefix">
+      <value>/WEB-INF/jsps/</value>
+    </property>
+    <property name="suffix">
+      <value>.jsp</value>
+    </property>
+  </bean>  
+
+  <!-- HowMany Controller -->
+  <bean name="howmany" class="org.archive.cdxserver.HowManyController">
+    <property name="mainCluster" ref="fullBig" />
+    
+    
+    
+    <property name="allClusters">
+        <map>
+            <entry key="big">
+                <list>
+                    <ref bean="fullBig"/>
+                </list>
+            </entry>
+            <entry key="medium">
+                <list>
+                    <ref bean="deltaMedium"/>
+                </list>
+            </entry>  
+            <entry key="small">
+                <list>
+                    <ref bean="deltaSmall"/>
+                </list>
+            </entry>
+            <entry key="delta">
+                <list>
+                    <ref bean="deltaMedium"/>                    
+                    <ref bean="deltaSmall"/>
+                </list>
+            </entry>
+            <entry key="all">
+                <list>
+                    <ref bean="fullBig"/>                    
+                    <ref bean="deltaMedium"/>                    
+                    <ref bean="deltaSmall"/>
+                </list>
+            </entry>
+        </map>
+    </property>
+    
+    <property name="authChecker" ref="authCheck"/>    
+    <property name="surtMode" value="true" />    
+  </bean>
+    
+  <bean name="cdxServer" class="org.archive.cdxserver.CDXServer">
+    <property name="zipnumSource" ref="fullBig" />
+    <property name="pageSize" value="${wayback.numBlocksPerPage}"/>
+    <property name="queryMaxLimit" value="150000"/>
+    <property name="cdxSource" ref="all" />
+    
+    <property name="authChecker" ref="authCheck"/>    
+    <property name="surtMode" value="true" />    
+  </bean>    
+  
+</beans>

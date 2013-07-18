@@ -15,6 +15,7 @@ import org.archive.cdxserver.auth.AuthToken;
 import org.archive.cdxserver.output.CDXDefaultTextOutput;
 import org.archive.cdxserver.output.CDXJsonOutput;
 import org.archive.cdxserver.output.CDXOutput;
+import org.archive.cdxserver.output.LastNLineOutput;
 import org.archive.format.cdx.CDXInputSource;
 import org.archive.format.cdx.CDXLine;
 import org.archive.format.cdx.PublicCDXLine;
@@ -115,6 +116,7 @@ public class CDXServer extends BaseCDXServer {
         
         int offset = ServletRequestUtils.getIntParameter(request, "offset", 0);
         int limit = ServletRequestUtils.getIntParameter(request, "limit", 0);
+        boolean fastLatest = ServletRequestUtils.getBooleanParameter(request, "fastLatest", false);
         
         int page = ServletRequestUtils.getIntParameter(request, "page", -1);        
 
@@ -124,7 +126,7 @@ public class CDXServer extends BaseCDXServer {
         String resumeKey = ServletRequestUtils.getStringParameter(request, "resumeKey", "");
         boolean showResumeKey = ServletRequestUtils.getBooleanParameter(request, "showResumeKey", false);
         
-        this.getCdx(request, response, url, matchType, from, to, gzip, output, filter, offset, limit, page, showNumPages, showPagedIndex, resumeKey, showResumeKey);
+        this.getCdx(request, response, url, matchType, from, to, gzip, output, filter, offset, limit, fastLatest, page, showNumPages, showPagedIndex, resumeKey, showResumeKey);
     }
 
     @RequestMapping(value = { "/cdx" })
@@ -144,6 +146,7 @@ public class CDXServer extends BaseCDXServer {
 
             @RequestParam(value = "offset", defaultValue = "0") int offset,
             @RequestParam(value = "limit", defaultValue = "0") int limit,
+            @RequestParam(value = "fastLatest", defaultValue = "false") boolean fastLatest,
 
             @RequestParam(value = "page", defaultValue = "-1") int page,
             @RequestParam(value = "showNumPages", defaultValue = "false") boolean showNumPages,
@@ -155,7 +158,7 @@ public class CDXServer extends BaseCDXServer {
         CloseableIterator<String> iter = null;
         PrintWriter writer = null;
 
-        AuthToken authToken = new AuthToken(authChecker, request);
+        AuthToken authToken = super.initAuthToken(request);
 
         try {
             prepareResponse(response);
@@ -183,14 +186,23 @@ public class CDXServer extends BaseCDXServer {
 
             String startEndUrl[] = urlSurtRangeComputer.determineRange(url,
                     matchType, "", "");
+            
+            if (startEndUrl == null) {
+                response.setStatus(400);
+                response.getWriter().println("Sorry, matchType=" + matchType.name() + " is not supported by this server");
+                return;
+            }
+            
+            int maxLimit;
+            
+            // Optimize: always fastLatest if just last line
+            fastLatest = fastLatest || (limit == -1);
 
             // Paged query
             if (page >= 0 || showNumPages) {
                 if (zipnumSource == null) {
                     response.setStatus(400);
-                    response.getWriter()
-                            .println(
-                                    "Sorry, this server is not configured to support paged query. Remove page= param and try again.");
+                    response.getWriter().println("Sorry, this server is not configured to support paged query. Remove page= param and try again.");
                     return;
                 }
 
@@ -220,6 +232,8 @@ public class CDXServer extends BaseCDXServer {
                     startEndUrl[0] = URLDecoder.decode(resumeKey, "UTF-8");
                 } else if (!from.isEmpty()) {
                     startEndUrl[0] += " " + from;
+                } else if (fastLatest) {
+                    startEndUrl[0] += "!";
                 }
 
                 iter = zipnumSource.getCDXIterator(iter, startEndUrl[0],
@@ -227,6 +241,9 @@ public class CDXServer extends BaseCDXServer {
 
                 response.addHeader(X_MAX_LINES,
                         "" + (zipnumSource.getCdxLinesPerBlock() * pageSize));
+                
+                // Page size determines the max limit here
+                maxLimit = Integer.MAX_VALUE;
 
             } else {
                 // Non-Paged Merged query
@@ -237,18 +254,16 @@ public class CDXServer extends BaseCDXServer {
                     startEndUrl[0] = resumeKey;
                 } else if (!from.isEmpty()) {
                     searchKey = startEndUrl[0] + " " + from;
+                } else if (fastLatest) {
+                    searchKey = startEndUrl[0] + "!";            
                 } else {
                     searchKey = startEndUrl[0];
                 }
 
                 iter = cdxSource.getCDXIterator(searchKey, startEndUrl[0],
                         startEndUrl[1], dedupedParams);
-
-                if (limit == 0) {
-                    limit = this.queryMaxLimit;
-                } else {
-                    limit = Math.min(limit, this.queryMaxLimit);
-                }
+                
+                maxLimit = this.queryMaxLimit;
             }
 
             if (gzip) {
@@ -264,6 +279,15 @@ public class CDXServer extends BaseCDXServer {
                 response.setContentType("application/json");
             } else {
                 outputFormatter = new CDXDefaultTextOutput();
+            }
+            
+            if (limit < 0) {
+                limit = Math.min(-limit, maxLimit);
+                outputFormatter = new LastNLineOutput(outputFormatter, limit);
+            } else if (limit == 0) {
+                limit = maxLimit;
+            } else {
+                limit = Math.min(limit, maxLimit);
             }
 
             writeCdxResponse(outputFormatter, writer, iter, from, to, filter,
@@ -392,8 +416,7 @@ public class CDXServer extends BaseCDXServer {
                 continue;
             }
 
-            outputFormatter.writeLine(writer, line);
-            writeCount++;
+            writeCount += outputFormatter.writeLine(writer, line);
 
             if (Thread.interrupted()) {
                 break;

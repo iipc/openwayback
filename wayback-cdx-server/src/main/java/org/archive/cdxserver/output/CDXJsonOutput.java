@@ -21,7 +21,7 @@ public class CDXJsonOutput implements CDXOutput {
     }
 
     @Override
-    public void writeLine(PrintWriter writer, CDXLine line) {
+    public int writeLine(PrintWriter writer, CDXLine line) {
         if (firstLine) {
             if (writeHeader) {
                 writer.println(line.getNamesAsJson() + ",");
@@ -50,6 +50,7 @@ public class CDXJsonOutput implements CDXOutput {
         }
 
         writer.print(']');
+        return 1;
     }
 
     @Override
