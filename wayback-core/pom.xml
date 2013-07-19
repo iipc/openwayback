@@ -45,6 +45,8 @@
     <dependency>
       <groupId>org.archive.wayback</groupId>
       <artifactId>wayback-cdx-server</artifactId>
+      <type>jar</type>
+      <classifier>classes</classifier>
     </dependency>
     <dependency>
       <groupId>org.archive.access-control</groupId>
