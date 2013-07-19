@@ -278,7 +278,9 @@
         <groupId>${project.groupId}</groupId>
         <artifactId>wayback-cdx-server</artifactId>
         <version>${project.version}</version>
-      </dependency>      
+        <type>jar</type>
+        <classifier>classes</classifier>        
+      </dependency>
       <dependency>
         <groupId>${project.groupId}</groupId>
         <artifactId>wayback-core</artifactId>
