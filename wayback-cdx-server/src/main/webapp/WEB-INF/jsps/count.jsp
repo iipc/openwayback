@@ -2,4 +2,4 @@
 %><%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" 
 %><%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"
 %><%@ page session="false" 
-%><fmt:formatNumber type="number" pattern="###.#" value="${count / 1000000000}" />
+%><fmt:formatNumber type="number" value="${count}" />
