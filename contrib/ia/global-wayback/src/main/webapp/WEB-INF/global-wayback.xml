@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd"
+       default-init-method="init">
+
+  <!-- Change this file to alter the location of the wayback.properties file, or set them explicitly here -->
+  <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+      <property name="locations">
+        <list>
+          <value>classpath:wayback.properties</value>
+        </list>
+      </property>
+      <property name="ignoreResourceNotFound" value="true"/>
+      <property name="systemPropertiesModeName" value="SYSTEM_PROPERTIES_MODE_OVERRIDE"/>
+  </bean>
+  
+  <import resource="GlobalCollection.xml"/>
+
+  <bean id="proxylivewebcache" class="org.archive.wayback.liveweb.RemoteLiveWebCache">
+    <property name="connectionTimeoutMS" value="${liveweb.timeout}" />
+    <property name="socketTimeoutMS" value="${liveweb.timeout}" />
+    <property name="maxTotalConnections" value="${wayback.maxTotalConn}" />
+    <property name="maxHostConnections" value="${wayback.maxHostConn}" />
+    <property name="requestPrefix" value="${liveweb.requestPrefix}" />
+  </bean>
+
+  <!-- ROBOTS AND STATIC MAP EXCLUSION: -->
+  <bean id="excluder-factory-static" class="org.archive.wayback.accesscontrol.staticmap.StaticMapExclusionFilterFactory">
+    <property name="file" value="${wayback.excludesPath}" />
+    <property name="checkInterval" value="600" />
+    <property name="canonicalizer" ref="waybackCanonicalizer"/>
+  </bean>
+    
+  <!-- Robots Force Updater -->
+  <bean id="robotsUpdater" class="org.archive.wayback.accesscontrol.robotstxt.redis.UpdateRobotsRequestHandler">
+    <property name="internalPort" value="${wayback.port}"/> 
+    <property name="accessPointPath" value="${wayback.updateRobotsPrefix}"/>
+    <property name="robotsCache" ref="redisCache"/>
+    <property name="minUpdateTime" value="0"/>
+  </bean>
+  
+  <!-- Access Control Check -->
+  <bean id="aclChecker" class="org.archive.wayback.accesscontrol.robotstxt.AccessControlChecker">
+    <property name="internalPort" value="${wayback.port}"/> 
+    <property name="accessPointPath" value="/check-access/"/>      
+  	<property name="exclusionFactory" ref="excluder-factory-composite"/>
+    <property name="canonicalizer" ref="waybackCanonicalizer"/>  	
+  </bean>
+  
+  <!-- REDIS CACHE -->	    
+  <bean id="redisCache" class="org.archive.wayback.accesscontrol.robotstxt.redis.SimpleRedisRobotsCache">
+    <property name="redisConnMan">
+	    <bean class="org.archive.wayback.accesscontrol.robotstxt.redis.RedisConnectionManager">
+	      <property name="host" value="${redis.host}"/>
+	      <property name="port" value="${redis.port}"/>
+	      <property name="password" value="${redis.password}"/>
+	      <property name="timeout" value="${redis.timeout}"/>
+	      <property name="connections" value="${redis.maxConnections}"/>
+	    </bean>
+    </property>
+    <property name="gzipRobots" value="${redis.gzipRobots}"/>
+    <property name="liveweb" ref="proxylivewebcache"/>
+  </bean>
+  
+  <!-- Robots Factory -->
+  <bean id="excluder-factory-robot" class="org.archive.wayback.accesscontrol.robotstxt.redis.RedisRobotExclusionFilterFactory">
+    <property name="cacheFails" value="true" />
+    <property name="userAgent" value="ia_archiver" />
+    <property name="webCache" ref="redisCache" />
+  </bean>
+  
+  <bean id="excluder-factory-composite" class="org.archive.wayback.accesscontrol.CompositeExclusionFilterFactory">
+    <property name="factories">
+      <list>
+        <ref bean="excluder-factory-static" />
+        <ref bean="excluder-factory-robot" />
+      </list>
+    </property>
+  </bean>
+  <!-- /ROBOTS AND STATIC MAP EXCLUSION: -->
+
+  <import resource="ArchivalUrlReplay.xml"/>
+
+  <bean name="+" class="org.archive.wayback.webapp.ServerRelativeArchivalRedirect">
+    <!--<property name="matchHost" value="${wayback.host}" /> -->
+    <property name="matchPort" value="${wayback.port}" />
+    <property name="useCollection" value="true" />
+    <property name="replayPrefix" value="${wayback.relativeRedirPrefix}" />
+  </bean>
+  
+  <bean id="aitExcludesFilter" class="org.archive.wayback.webapp.FileRegexParamFilterAndFactory" init-method="loadParamFile">
+    <property name="patterns">
+      <list>
+        <value>ARCHIVEIT-(\d+)-</value>
+      </list>
+    </property>
+    <!-- For quicker skipping, check prefix and don't do regex if not matching -->
+    <!-- <property name="prefixMatch" value="ARCHIVEIT-"/>-->
+    <property name="paramIndex" value="1"/>
+    <property name="paramFile" value="${wayback.aitExcludePath}"/>
+  </bean>
+
+  <!-- THE QUERY/UI SPECIFIC ACCESSPOINT: -->
+  <bean name="waybackAccessPoint" class="org.archive.wayback.webapp.AccessPoint">
+  
+    <property name="accessPointPath" value="${wayback.webPrefix}"/>
+    <property name="internalPort" value="${wayback.port}"/>
+    
+    <property name="timestampSearch" value="true"/>
+    
+    <property name="filterFactory">
+      <bean class="org.archive.wayback.webapp.CustomMultiFilterFactory">
+        <property name="filters">
+          <list>
+            <ref bean="aitExcludesFilter"/>
+            <bean class="org.archive.wayback.webapp.DuplicateFiltersFactory">
+              <property name="timestampDedupLength" value="${wayback.calendarDedupLength}"/>
+            </bean>
+          </list>
+        </property>
+      </bean>
+    </property>
+    
+    <property name="enableErrorMsgHeader" value="true"/>
+    <property name="enablePerfStatsHeader" value="true"/>
+    <property name="enableWarcFileHeader" value="true"/>
+    <property name="enableMemento" value="true"/>
+    
+    <property name="maxRedirectAttempts" value="10"/>
+
+    <property name="selfRedirectCanonicalizer" ref="waybackCanonicalizer"/>
+      
+    <property name="serveStatic" value="true" />
+    <property name="bounceToReplayPrefix" value="false" />
+    <property name="bounceToQueryPrefix" value="false" />
+
+
+    <property name="replayPrefix" value="${wayback.webPrefix}" />
+    <property name="queryPrefix" value="${wayback.webPrefix}" />
+    <property name="staticPrefix" value="${wayback.staticPrefix}" />
+    
+    <property name="liveWebRedirector">
+      <bean class="org.archive.wayback.webapp.LiveWebRedirector">
+        <property name="liveWebPrefix" value="${wayback.livewebPrefix}" />
+        <property name="statusLiveWebPolicy">
+          <!-- Options are ALL, EMBEDS_ONLY, NONE -->
+          <props>
+            <prop key="404">ALL</prop>           
+            <prop key="default">EMBEDS_ONLY</prop>            
+          </props>
+        </property>
+        <property name="liveWebHandler" ref="liveWebAccessPoint"/>
+      </bean>
+    </property>
+
+    <property name="fileExcludePrefixes">
+      <list>
+        <value>${wayback.aitExcludeExtra}</value>
+      </list>
+    </property>
+    
+    <property name="configs">
+      <props>
+        <prop key="graphJspPrefix">${wayback.webPrefix}</prop>
+	    <prop key="aggregationPrefix">${memento.aggregationPrefix}</prop>
+	    <prop key="aggregationMaxRecord">${mememnto.aggregationMaxRecord}</prop>
+      </props>
+    </property>
+
+    <property name="collection" ref="${wayback.defaultCollection}" />
+    
+    <property name="replay" ref="archivalurlreplay" />
+    <property name="query">
+      <bean class="org.archive.wayback.query.Renderer">
+
+        <property name="captureJsp" value="/WEB-INF/query/BubbleCalendar.jsp" />
+      </bean>
+    </property>
+
+    <property name="exclusionFactory" ref="excluder-factory-composite" />
+    <property name="uriConverter">
+      <bean class="org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter">
+        <property name="replayURIPrefix" value="${wayback.webPrefix}"/>
+      </bean>
+    </property>
+
+    <property name="parser">
+      <bean class="org.archive.wayback.archivalurl.ArchivalUrlRequestParser">
+        <property name="maxRecords" value="${wayback.maxRecords}" />
+      </bean>
+    </property>
+    
+    <property name="forceCleanQueries" value="false"/>
+
+  </bean>
+  
+  <!-- <import resource="ProxyRWReplay.xml"/>-->
+  
+  <bean name="staticAccessPoint" parent="waybackAccessPoint">
+    <property name="accessPointPath" value="${wayback.staticPrefix}"/>
+    <property name="serveStatic" value="true" />
+    <property name="bounceToReplayPrefix" value="true" />
+    <property name="bounceToQueryPrefix" value="true" />
+  </bean>
+
+  <import resource="classpath:colls.xml" />
+  
+  <bean name="testAccessPoint" parent="waybackAccessPoint">
+    <property name="accessPointPath" value="${wayback.root}/_testDrawer/"/>
+    <property name="queryPrefix" value="${wayback.root}/_testDrawer/" />
+    <property name="query">
+      <bean class="org.archive.wayback.query.Renderer">
+        <property name="captureJsp" value="/WEB-INF/query/DrawerCalendar.jsp" />
+      </bean>
+    </property>
+  </bean>
+  
+<!-- LIVE WEB FETCHING WHEN NOT IN ARCHIVE:    -->
+  <bean name="liveWebAccessPoint" class="org.archive.wayback.webapp.LiveWebAccessPoint">
+    <property name="accessPointPath" value="${wayback.livewebPrefix}"/>
+    <property name="internalPort" value="${wayback.port}"/>
+   
+    <!-- <property name="robotFactory" ref="excluder-factory-liveweb-robot"/>-->
+    <property name="adminFactory" ref="excluder-factory-static"/>
+    <property name="cache" ref="proxylivewebcache"/>
+    <property name="inner" ref="waybackAccessPoint" />
+    <property name="dnsCheckTimeout" value="0"/>
+    <property name="skipHost" value="\.archive\.org" />
+  </bean>
+<!-- LIVE WEB FETCHING WHEN NOT IN ARCHIVE:    -->
+
+</beans>

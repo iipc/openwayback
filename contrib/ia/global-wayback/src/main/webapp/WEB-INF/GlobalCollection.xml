@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd"
+  default-init-method="init">
+  
+  <!-- petabox -->
+  <bean id="petaboxSource" class="org.archive.wayback.resourcestore.FlexResourceStore$PrefixLookup">
+    <property name="prefix" value="${wayback.itemProxyUrl}"/>
+    <property name="includeFilter" value="/"/>
+  </bean>
+    
+  <bean id="globalResourceStore" class="org.archive.wayback.resourcestore.FlexResourceStore">
+    <property name="sources">
+      <list>
+        <ref bean="petaboxSource"/>
+      </list>
+    </property>
+    <property name="blockLoader" ref="warcBlockLoader"/>
+  </bean>
+  
+  <!-- Main Block Loader Settings, shared by both warc and cdx loading -->
+  <bean id="mainBlockLoader" abstract="true" class="org.archive.format.gzip.zipnum.ZipNumBlockLoader">
+    <property name="maxHostConnections" value="${wayback.maxHostConn}"/>
+    <property name="maxTotalConnections" value="${wayback.maxTotalConn}"/>
+    <property name="noKeepAlive" value="false"/>
+    <property name="bufferFully" value="true"/>
+    <property name="connectTimeoutMS" value="${wayback.warcConnectTimeout}" />
+    <property name="readTimeoutMS" value="${wayback.warcReadTimeout}" />
+    <property name="httpLib" value="APACHE_31"/>
+    <!-- <property name="cookie" value="${wayback.cookie}"/>-->
+  </bean>
+  
+  <!-- CDX Block Loader -->
+  <bean id="zipBlockLoader" parent="mainBlockLoader">
+    <!-- Add any customizations cdx block loader here -->
+  </bean>  
+  
+  
+  <!-- WARC Block Loader -->
+  <bean id="warcBlockLoader" parent="mainBlockLoader">
+    <property name="bufferFully" value="false"/>
+    <!-- Add any customizations warc block loader here -->
+  </bean>
+
+
+  <bean id="zipParams" class="org.archive.format.gzip.zipnum.ZipNumParams">
+    <property name="maxAggregateBlocks" value="${wayback.maxBlocks}" />
+    <property name="maxBlocks" value="${wayback.maxBlocks}" />
+    <property name="timestampDedupLength" value="${wayback.timestampDedup}" />
+  </bean>
+  
+
+  <bean id="baseCluster" abstract="true" class="org.archive.format.gzip.zipnum.ZipNumCluster" init-method="init">
+    <property name="useNio" value="false"/>  
+    <property name="blockLoader" ref="zipBlockLoader"/>     
+  </bean>
+      
+  <bean id="baseSource" abstract="true" class="org.archive.wayback.resourceindex.ZipNumClusterSearchResultSource" init-method="init">
+    <property name="params" ref="zipParams"/>
+    <property name="ignoreRobotPaths">
+        <list>
+            <value>org,archive,wayback-fakeurl</value>
+            <value>com,youtube,c,</value>
+        </list>
+    </property>    
+    <property name="timestampDedupLength" value="${wayback.calendarDedupLength}"/>
+  </bean>
+  
+  <!-- Petabox Main -->
+  <bean id="bigCluster" parent="baseSource" init-method="init">
+    <property name="cluster">
+        <bean parent="baseCluster">
+        	<property name="summaryFile" value="${wayback.petaboxAllSummary}" />          
+    		<property name="locFile" value="${wayback.petaboxAllLoc}" />
+        </bean>
+    </property>  
+  </bean>
+        
+  <!-- SmallCdx Full -->
+  <bean id="cdxMedium" parent="baseSource" init-method="init">
+    <property name="cluster">
+        <bean parent="baseCluster">
+        	<property name="summaryFile" value="${wayback.datadir}/deltacdx/full/ALL.summary" />          
+    		<property name="locFile" value="${wayback.datadir}/deltacdx/full/ALL.loc" />
+        </bean>
+    </property>  
+  </bean>
+  
+  <!-- SmallCdx Delta -->
+  <bean id="cdxSmall" parent="baseSource" init-method="init">
+    <property name="cluster">
+        <bean parent="baseCluster">
+        	<property name="summaryFile" value="${wayback.datadir}/deltacdx/delta/ALL.summary" />          
+    		<property name="locFile" value="${wayback.datadir}/deltacdx/delta/ALL.loc" />
+        </bean>
+    </property>  
+  </bean>
+  
+  <!-- Video  -->
+  <bean id="video" parent="baseSource" init-method="init">
+    <property name="cluster">
+        <bean parent="baseCluster">
+        	<property name="summaryFile" value="${wayback.datadir}/videos/ALL.summary" />          
+    		<property name="locFile" value="${wayback.datadir}/videos/ALL.loc" />
+        </bean>
+    </property>  
+  </bean>
+  
+  <bean id="deltaCluster" class="org.archive.wayback.resourceindex.CompositeSearchResultSource">
+    <property name="sources">
+      <list>
+          <ref bean="cdxMedium"/>
+          <ref bean="cdxSmall"/>
+      </list>
+    </property>
+  </bean>
+  
+  <bean id="allCluster" class="org.archive.wayback.resourceindex.CompositeSearchResultSource">
+    <property name="sources">
+      <list>
+          <ref bean="bigCluster"/>
+          <ref bean="cdxMedium"/>
+          <ref bean="cdxSmall"/>
+      </list>
+    </property>
+  </bean>  
+ 
+  <bean id="waybackCanonicalizer" class="org.archive.wayback.util.url.KeyMakerUrlCanonicalizer">
+      <property name="keyMaker">
+	      <bean class="org.archive.url.WaybackURLKeyMaker">
+	          <property name="customRules">
+	              <list>
+	                  <bean class="org.archive.url.WaybackURLKeyMaker$RewriteRule">
+	                      <property name="startsWith" value="com,youtube)/watch"/>
+	                      <property name="regex" value="com,youtube\)/watch.*[?&amp;]v=([^&amp;]+).*"/>
+	                      <property name="replace" value="com,youtube)/watch?v=$1"/>
+	                  </bean>
+	              </list>
+	          </property>
+	      </bean>
+      </property>
+  </bean>
+
+  <bean id="httpFilter"
+    class="org.archive.wayback.resourceindex.filters.HttpCodeFilter">
+    <property name="excludes">
+      <list>
+        <value>500</value>
+        <value>502</value>
+      </list>
+    </property>
+  </bean>
+  
+  
+  <bean id="baseResourceIndex" abstract="true" class="org.archive.wayback.resourceindex.LocalResourceIndex">
+    <property name="dedupeRecords" value="true" />
+    <property name="timestampSearch" value="true" />
+    <property name="markPrefixQueries" value="true" />
+    <property name="canonicalizer" ref="waybackCanonicalizer" />
+    <property name="filter" ref="httpFilter" />
+
+    <property name="maxRecords" value="${wayback.maxRecords}" />
+  </bean>
+
+  <!-- Big Cluster Collection -->
+  <bean id="bigClusterCollection" class="org.archive.wayback.webapp.WaybackCollection">
+    <property name="resourceStore" ref="globalResourceStore" />
+    <property name="resourceIndex">
+        <bean parent="baseResourceIndex">
+    		<property name="source" ref="bigCluster" />            
+        </bean>
+    </property>
+  </bean>
+  
+  <!-- All Collection -->
+  <bean id="webAllCollection" class="org.archive.wayback.webapp.WaybackCollection">
+    <property name="resourceStore" ref="globalResourceStore" />
+    <property name="resourceIndex">
+        <bean parent="baseResourceIndex">
+    		<property name="source" ref="allCluster" />            
+        </bean>
+    </property>
+  </bean>
+  
+  <bean id="deltaCollection" class="org.archive.wayback.webapp.WaybackCollection">
+    <property name="resourceStore" ref="globalResourceStore" />
+    <property name="resourceIndex">
+        <bean parent="baseResourceIndex">
+        <property name="source" ref="deltaCluster" />            
+        </bean>
+    </property>
+  </bean>
+ 
+</beans>
+

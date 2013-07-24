@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+ 
+   <bean id="proxyHttpFilter" class="org.archive.wayback.resourceindex.filters.HttpCodeFilter">
+    <property name="excludes">
+      <list>
+        <value>40</value>
+        <value>50</value>
+      </list>
+    </property>
+  </bean>
+  
+  <bean id="proxyCollection" class="org.archive.wayback.webapp.WaybackCollection">
+    <property name="resourceStore" ref="globalResourceStore" />
+    <property name="resourceIndex">
+        <bean parent="baseResourceIndex">
+    		<property name="source" ref="bigCluster" />     
+    		<property name="filter" ref="proxyHttpFilter"/>       
+        </bean>
+    </property>
+  </bean>
+      
+  <bean name="proxyaccesspoint" parent="waybackAccessPoint">
+	<property name="collection" ref="proxyCollection" />      
+    
+    <property name="accessPointPath" value="${wayback.proxyPort}"/>
+    
+    <property name="replay" ref="proxyreplay" />
+    <property name="parser" ref="proxyparser" />
+    <property name="uriConverter" ref="proxyuriconverter" />
+    
+    <property name="replayPrefix" value="${wayback.proxyPath}" />
+    <property name="queryPrefix" value="${wayback.proxyPath}" />
+    <property name="staticPrefix" value="${wayback.proxyPath}" />
+        
+    <property name="liveWebPrefix" value=""/>
+  </bean>
+      
+ 
+  <bean id="proxyhttpheaderprocessor" class="org.archive.wayback.replay.RedirectRewritingHttpHeaderProcessor">
+  </bean>  
+
+  <bean id="proxytransparentreplayrenderer" class="org.archive.wayback.replay.TransparentReplayRenderer">
+    <constructor-arg><ref bean="proxyhttpheaderprocessor"/></constructor-arg>
+  </bean>
+  
+  <bean id="proxyuriconverter" class="org.archive.wayback.proxy.RedirectResultURIConverter">
+    <property name="redirectURI" value="${wayback.proxyPath}/jsp/QueryUI/Redirect.jsp" />
+  </bean>
+  
+  <bean id="proxyparser" class="org.archive.wayback.proxy.ProxyArchivalRequestParser" init-method="init">
+    <property name="localhostNames">
+      <list>
+        <value>${wayback.host}</value>
+      </list>
+    </property>
+    <property name="maxRecords" value="100000" />
+    <property name="addDefaults" value="false" />
+    <property name="earliestTimestamp" value="1996"/>    
+  </bean>  
+  
+  <!-- 
+  <bean id="proxymarkupreplayrenderer" class="org.archive.wayback.proxy.ProxyHTMLMarkupReplayRenderer">
+    <constructor-arg><ref bean="proxyhttpheaderprocessor"/></constructor-arg>
+    <property name="jspInserts">
+      <list>
+        <value>/WEB-INF/replay/DisclaimerWithComment.jsp</value>
+      </list>
+    </property>
+  </bean>-->
+  
+  <bean id="httpsRewriter" class="org.archive.wayback.replay.html.transformer.JSStringTransformer">
+    <property name="regex" value="(https:\\?/\\?/[A-Za-z0-9:_@.-]+)"/>
+  </bean>
+  
+  <bean id="proxyUriConverterFactory" class="org.archive.wayback.replay.html.IdentityResultURIConverterFactory">
+    <constructor-arg>
+      <bean class="org.archive.wayback.proxy.ProxyHttpsResultURIConverter"/>
+    </constructor-arg>
+  </bean>
+  
+  <bean id="proxyRewritingSAXDelegator" class="org.archive.wayback.archivalurl.FastArchivalUrlReplayParseEventHandler">
+    <property name="jsBlockTrans" ref="httpsRewriter"/>
+    <property name="jspInsertPath"><null/></property>
+    <property name="endJsp"><null/></property>
+    <property name="headInsertJsp"><null/></property>
+  </bean>
+  
+  <bean id="proxyrewritereplayrenderer" class="org.archive.wayback.archivalurl.ArchivalUrlSAXRewriteReplayRenderer">
+    <constructor-arg><ref bean="proxyhttpheaderprocessor"/></constructor-arg>
+    <property name="charsetDetector">
+      <bean class="org.archive.wayback.replay.charset.RotatingCharsetDetector"/>
+    </property>
+    <property name="delegator" ref="proxyRewritingSAXDelegator"/>
+    <property name="converterFactory" ref="proxyUriConverterFactory"/>
+  </bean>
+  
+  <bean id="proxyRewriteJSreplayrenderer" class="org.archive.wayback.archivalurl.ArchivalURLJSStringTransformerReplayRenderer">
+    <constructor-arg>
+      <ref bean="proxyhttpheaderprocessor"/>
+    </constructor-arg>
+    <!-- 
+    <property name="jspInserts">
+      <list>
+        <value>/WEB-INF/replay/ArchiveCSSComment.jsp</value>
+      </list>
+    </property>-->
+    <property name="transformer" ref="httpsRewriter"/>
+    <property name="converterFactory" ref="proxyUriConverterFactory"/>    
+  </bean>
+  
+  <bean id="proxyRewriteCssreplayrenderer" class="org.archive.wayback.archivalurl.ArchivalUrlCSSReplayRenderer">
+    <constructor-arg>
+      <ref bean="archivalurlhttpheaderprocessor"/>
+    </constructor-arg>
+    <!-- 
+    <property name="jspInserts">
+      <list>
+        <value>/WEB-INF/replay/ArchiveCSSComment.jsp</value>
+      </list>
+    </property>-->
+  </bean>  
+  
+  <bean id="proxyreplay" class="org.archive.wayback.replay.SelectorReplayDispatcher">
+    <property name="closestSelector">
+      <bean class="org.archive.wayback.replay.DefaultClosestResultSelector" />
+    </property>
+    
+    <property name="selectors">
+      <list>
+
+        <!-- HTML REPLAY -->
+        <bean class="org.archive.wayback.replay.selector.MimeTypeSelector">
+          <property name="mimeContains">
+            <list>
+              <value>text/html</value>
+              <value>application/xhtml</value>
+            </list>
+          </property>
+          <property name="renderer" ref="proxyrewritereplayrenderer"/>
+        </bean>
+        
+        <!-- JS & CSS REPLAY -->
+        <bean class="org.archive.wayback.replay.selector.MimeTypeSelector">
+          <property name="mimeContains">
+            <list>
+              <value>text/javascript</value>
+              <value>application/javascript</value>
+              <value>application/x-javascript</value>             
+            </list>
+          </property>
+          <property name="renderer" ref="proxyRewriteJSreplayrenderer"/>
+        </bean>
+        
+        <!-- CSS REPLAY -->
+        <bean class="org.archive.wayback.replay.selector.MimeTypeSelector">
+          <property name="mimeContains">
+            <list>
+              <value>text/css</value>
+            </list>
+          </property>
+          <property name="renderer" ref="proxyRewriteCssreplayrenderer"/>
+        </bean>
+
+        <!-- DEFAULT-TRANSPARENT REPLAY -->
+        <bean class="org.archive.wayback.replay.selector.AlwaysMatchSelector">
+          <property name="renderer" ref="proxytransparentreplayrenderer"/>
+        </bean>
+
+      </list>
+    </property>
+  </bean>
+</beans>
