@@ -23,6 +23,7 @@ import org.archive.format.gzip.zipnum.ZipNumCluster;
 import org.archive.format.gzip.zipnum.ZipNumIndex.PageResult;
 import org.archive.format.gzip.zipnum.ZipNumParams;
 import org.archive.url.UrlSurtRangeComputer.MatchType;
+import org.archive.util.PrefixFieldDeduper;
 import org.archive.util.RegexFieldMatcher;
 import org.archive.util.iterator.CloseableIterator;
 import org.springframework.web.bind.ServletRequestBindingException;
@@ -113,6 +114,7 @@ public class CDXServer extends BaseCDXServer {
         String output = ServletRequestUtils.getStringParameter(request, "output", "");
         
         String[] filter = ServletRequestUtils.getStringParameters(request, "filter");
+        String[] collapse = ServletRequestUtils.getStringParameters(request, "collapse");
         
         int offset = ServletRequestUtils.getIntParameter(request, "offset", 0);
         int limit = ServletRequestUtils.getIntParameter(request, "limit", 0);
@@ -126,7 +128,7 @@ public class CDXServer extends BaseCDXServer {
         String resumeKey = ServletRequestUtils.getStringParameter(request, "resumeKey", "");
         boolean showResumeKey = ServletRequestUtils.getBooleanParameter(request, "showResumeKey", false);
         
-        this.getCdx(request, response, url, matchType, from, to, gzip, output, filter, offset, limit, fastLatest, page, showNumPages, showPagedIndex, resumeKey, showResumeKey);
+        this.getCdx(request, response, url, matchType, from, to, gzip, output, filter, collapse, offset, limit, fastLatest, page, showNumPages, showPagedIndex, resumeKey, showResumeKey);
     }
 
     @RequestMapping(value = { "/cdx" })
@@ -143,6 +145,7 @@ public class CDXServer extends BaseCDXServer {
             @RequestParam(value = "output", defaultValue = "") String output,
 
             @RequestParam(value = "filter", required = false) String[] filter,
+            @RequestParam(value = "collapse", required = false) String[] collapse,
 
             @RequestParam(value = "offset", defaultValue = "0") int offset,
             @RequestParam(value = "limit", defaultValue = "0") int limit,
@@ -166,7 +169,9 @@ public class CDXServer extends BaseCDXServer {
             if (!authToken.isAllUrlAccessAllowed()
                     && !authChecker.checkAccess(url)) {
                 if (showNumPages) {
-                    response.setHeader(X_NUM_PAGES, "0");
+                    // Default to 1 page even if no results
+                    response.setHeader(X_NUM_PAGES, "1");
+                    response.getWriter().println("1");
                 }
                 return;
             }
@@ -290,7 +295,7 @@ public class CDXServer extends BaseCDXServer {
                 limit = Math.min(limit, maxLimit);
             }
 
-            writeCdxResponse(outputFormatter, writer, iter, from, to, filter,
+            writeCdxResponse(outputFormatter, writer, iter, from, to, filter, collapse,
                     offset, limit, showResumeKey, authToken, matchType);
 
             writer.flush();
@@ -324,13 +329,21 @@ public class CDXServer extends BaseCDXServer {
 
     protected void writeCdxResponse(CDXOutput outputFormatter,
             PrintWriter writer, CloseableIterator<String> cdx, String from,
-            String to, String[] filter, int offset, int limit,
+            String to, String[] filter, String[] dedup, int offset, int limit,
             boolean showResumeKey, AuthToken authToken, MatchType matchType) {
+        
         RegexFieldMatcher filterMatcher = null;
 
         if (filter != null) {
             // TODO: Ability to specify different cdx names?
             filterMatcher = new RegexFieldMatcher(filter, CDXLine.CDX_ALL_NAMES);
+        }
+        
+        PrefixFieldDeduper deduper = null;
+        
+        if (dedup != null) {
+            // TODO: Ability to specify different cdx names?
+            deduper = new PrefixFieldDeduper(dedup, CDXLine.CDX_ALL_NAMES);
         }
 
         CDXLine prev = null, line = null;
@@ -413,6 +426,11 @@ public class CDXServer extends BaseCDXServer {
 
             // Check regex matcher if it exists
             if ((filterMatcher != null) && !filterMatcher.matches(line)) {
+                continue;
+            }
+            
+            // Check deduper
+            if ((deduper != null) && !deduper.isUnique(line)) {
                 continue;
             }
 
