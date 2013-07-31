@@ -13,6 +13,8 @@
 
 * [Filtering](#filtering)
 
+* [Collapsing](#collapsing)
+
 * [Query Result Limits](#query-result-limits)
 
 * [Resumption Key](#resumption)
@@ -141,6 +143,30 @@ The matchType may also be set implicitly by using wildcard '*' at end or beginni
 * Ex: Query for 10 capture results with a non-200 status code and non text/html mime type matching a specific digest:
     
   http://web.archive.org/cdx/search/cdx?url=archive.org&output=json&limit=10&filter=!statuscode:200&filter=!mimetype:text/html&filter=digest:2WAXX5NUWNNCS2BDKCO5OVDQBJVNKIVV
+
+### Collapsing ###
+
+A new form of filtering is the option to 'collapse' results based on a field, or a substring of a field.
+Collapsing is done on adjacent cdx lines where all captures after the first one that are duplicate are filtered ut.
+This is useful for filtering out captures that are 'too dense' or when looking for unique captures.
+
+To use collapsing, add one or more **collapse=field** or **collapse=field:N** where N is the first N characters of *field* to test.
+
+* Ex: Only show at most 1 capture per hour (compare the first 10 digits of the timestamp field). Given 2 captures 20130226010000 and 20130226010800, since first 10 digits 2013022601 match, the 2nd capture will be filtered out.
+
+  http://web.archive.org/cdx/search/cdx?url=google.com&collapse=timestamp:10
+
+  The calendar page at web.archive.org uses this filter by default: http://web.archive.org/web/*/archive.org
+
+
+* Ex: Only show unique captures by digest (note that only adjacent digest are collapsed, duplicates elsewhere in the cdx are not affected)
+
+  http://web.archive.org/cdx/search/cdx?url=archive.org&collapse=digest
+
+
+* Ex: Only show unique urls in a prefix query (filtering out captures except first capture of a given url). This is similar to the old prefix query in wayback (note: this query may be slow at the moment):
+
+  http://web.archive.org/cdx/search/cdx?url=archive.org&collapse=urlkey&matchType=prefix
 
 
 ### Query Result Limits ###
