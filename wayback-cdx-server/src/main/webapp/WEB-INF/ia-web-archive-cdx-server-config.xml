@@ -137,7 +137,7 @@ The following properties are set externally
         </map>
     </property>
     
-    <property name="authChecker" ref="authCheck"/>    
+    <property name="authChecker" ref="authCheck"/>
     <property name="surtMode" value="true" />    
   </bean>
     
@@ -147,7 +147,8 @@ The following properties are set externally
     <property name="queryMaxLimit" value="150000"/>
     <property name="cdxSource" ref="all" />
     
-    <property name="authChecker" ref="authCheck"/>    
+    <property name="authChecker" ref="authCheck"/>
+    <property name="cdxFormat" value="cdx11"/>
     <property name="surtMode" value="true" />    
   </bean>    
   

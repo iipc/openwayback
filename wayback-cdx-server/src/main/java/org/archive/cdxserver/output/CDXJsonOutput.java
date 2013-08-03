@@ -4,6 +4,7 @@ import java.io.PrintWriter;
 
 import org.apache.commons.lang.StringEscapeUtils;
 import org.archive.format.cdx.CDXLine;
+import org.archive.format.cdx.FieldSplitFormat;
 
 public class CDXJsonOutput implements CDXOutput {
 
@@ -19,12 +20,34 @@ public class CDXJsonOutput implements CDXOutput {
         firstLine = true;
         writer.print('[');
     }
+    
+    protected void writeHeader(PrintWriter writer, FieldSplitFormat names)
+    {
+  		if (names == null || names.getLength() == 0) {
+  			writer.print("[]");
+  			return;
+  		}
+
+  		writer.print('[');
+
+  		for (int i = 0; i < names.getLength(); i++) {
+  			if (i > 0) {
+  				writer.print(',');
+  			}
+  			writer.print('\"');
+  			writer.print(names.getName(i));
+  			writer.print('\"');
+  		}
+
+  		writer.print(']');
+    }
 
     @Override
-    public int writeLine(PrintWriter writer, CDXLine line) {
+    public boolean writeLine(PrintWriter writer, CDXLine line) {
         if (firstLine) {
             if (writeHeader) {
-                writer.println(line.getNamesAsJson() + ",");
+            	writeHeader(writer, line.getNames());
+                writer.println(',');
             }
             firstLine = false;
         } else {
@@ -35,7 +58,8 @@ public class CDXJsonOutput implements CDXOutput {
 
         boolean firstField = true;
 
-        for (String field : line.fields) {
+        for (int i = 0; i < line.getNumFields(); i++) {
+          String field = line.getField(i);
             if (firstField) {
                 writer.print('\"');
                 firstField = false;
@@ -50,7 +74,7 @@ public class CDXJsonOutput implements CDXOutput {
         }
 
         writer.print(']');
-        return 1;
+        return true;
     }
 
     @Override
@@ -66,4 +90,15 @@ public class CDXJsonOutput implements CDXOutput {
         writer.print(resumeKey);
         writer.print("\"]");
     }
+
+	@Override
+	public void trackLine(CDXLine line) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public FieldSplitFormat modifyOutputFormat(FieldSplitFormat format) {
+		return format;
+	}
 }

@@ -37,7 +37,8 @@
   <!-- 
   <bean name="authCheck" class="org.archive.cdxserver.auth.AuthChecker">
     <property name="accessCheckUrl" value="http://web.archive.org/check-access/"/>
-    
+    <property name="publicCdxFields" value="urlkey,timestamp,original,mimetype,statuscode,digest,length,dupecount"/>
+        
     <property name="allUrlAccessTokens">
         <list>
             <value>secret</value>

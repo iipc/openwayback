@@ -5,39 +5,33 @@ import java.util.LinkedList;
 
 import org.archive.format.cdx.CDXLine;
 
-public class LastNLineOutput implements CDXOutput {
+public class LastNLineOutput extends WrappedCDXOutput {
     
-    protected CDXOutput output;
     protected LinkedList<CDXLine> lines;
     protected int limit = 1;
     
     public LastNLineOutput(CDXOutput output, int limit)
     {
-        this.output = output;
+        super(output);
         this.lines = new LinkedList<CDXLine>();
         this.limit = limit;
     }
 
     @Override
-    public void begin(PrintWriter writer) {
-        output.begin(writer);
-    }
-
-    @Override
-    public int writeLine(PrintWriter writer, CDXLine line) {
+    public boolean writeLine(PrintWriter writer, CDXLine line) {
         lines.add(line);
         
         if (lines.size() > limit) {
             lines.removeFirst();
         }
         
-        return 0;
+        return false;
     }
     
     protected void flush(PrintWriter writer)
     {
         for (CDXLine line : lines) {
-            output.writeLine(writer, line);
+            inner.writeLine(writer, line);
         }
         lines.clear();
     }
@@ -48,7 +42,7 @@ public class LastNLineOutput implements CDXOutput {
             flush(writer);
         }
         
-        output.writeResumeKey(writer, resumeKey);
+        inner.writeResumeKey(writer, resumeKey);
     }
 
     @Override
@@ -57,6 +51,6 @@ public class LastNLineOutput implements CDXOutput {
             flush(writer);
         }
         
-        output.end(writer);
+        inner.end(writer);
     }
 }
