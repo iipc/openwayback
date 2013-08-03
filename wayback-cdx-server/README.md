@@ -280,13 +280,11 @@ the default non-paginated query.
 
 ### Access Control ###
 
-The cdx server is designed to improve access to archival data.
+The cdx server is designed to improve access to archived data to a broad audience, but it may be necessary to restrict certain parts of the cdx.
 
-However, in certain cases restrictions are necessary.
+The cdx server provides greanting permissions to restricted data via an API key that is passed in as a cookie.
 
-As such, The cdx server supports granting access via a custom API Key, passed in via as a custom cookie.
-
-Currently there are two possible restrictions:
+Currently two restrictions/permission types are supported:
 
 * Access to certain urls which are considered private. When restricted, only public urls are included in query results and access to secondary index is restricted.
 
