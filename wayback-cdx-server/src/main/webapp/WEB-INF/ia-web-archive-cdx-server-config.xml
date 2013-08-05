@@ -138,7 +138,8 @@ The following properties are set externally
     </property>
     
     <property name="authChecker" ref="authCheck"/>
-    <property name="surtMode" value="true" />    
+    <property name="surtMode" value="true" />
+    <property name="ajaxAccessControl" value="*"/>
   </bean>
     
   <bean name="cdxServer" class="org.archive.cdxserver.CDXServer">
@@ -147,9 +148,11 @@ The following properties are set externally
     <property name="queryMaxLimit" value="150000"/>
     <property name="cdxSource" ref="all" />
     
-    <property name="authChecker" ref="authCheck"/>
     <property name="cdxFormat" value="cdx11"/>
-    <property name="surtMode" value="true" />    
+    
+    <property name="authChecker" ref="authCheck"/>
+    <property name="surtMode" value="true" />
+    <property name="ajaxAccessControl" value="*"/>
   </bean>    
   
 </beans>

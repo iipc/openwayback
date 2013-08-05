@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.archive.cdxserver.auth.AuthToken;
 import org.archive.format.gzip.zipnum.ZipNumCluster;
@@ -151,6 +152,7 @@ public class HowManyController extends BaseCDXServer {
     @RequestMapping(value = { "/howmany/{clusterId}" })
     public String getHowManyCluster(
             HttpServletRequest request,
+            HttpServletResponse response,            
             @RequestParam(value = "url", defaultValue = "") String url,
             @RequestParam(value = "from", defaultValue = "") String from,
             @RequestParam(value = "to", defaultValue = "") String to,
@@ -159,12 +161,13 @@ public class HowManyController extends BaseCDXServer {
             @PathVariable String clusterId,
             ModelMap model)
             throws URISyntaxException, IOException {
-        return getHowMany(request, url, from, to, matchType, clusterId, format, model);
+        return getHowMany(request, response, url, from, to, matchType, clusterId, format, model);
     }
 
     @RequestMapping(value = { "/howmany" })
     public String getHowMany(
             HttpServletRequest request,
+            HttpServletResponse response,
             @RequestParam(value = "url", defaultValue = "") String url,
             @RequestParam(value = "from", defaultValue = "") String from,
             @RequestParam(value = "to", defaultValue = "") String to,
@@ -176,6 +179,10 @@ public class HowManyController extends BaseCDXServer {
         String host;
         long numLines = 0;
         boolean restricted = false;
+        
+        if (ajaxAccessControl != null) {
+            response.setHeader("Access-Control-Allow-Origin", ajaxAccessControl);
+        }
 
         if (url.isEmpty()) {
             start = url;
