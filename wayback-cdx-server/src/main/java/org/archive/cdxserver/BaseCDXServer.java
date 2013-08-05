@@ -22,6 +22,7 @@ public class BaseCDXServer implements InitializingBean {
 	protected UrlSurtRangeComputer urlSurtRangeComputer;
 	protected WaybackURLKeyMaker canonicalizer = null;
 	protected AuthChecker authChecker;
+	protected String ajaxAccessControl;
 	
 	protected boolean surtMode = false;
 
@@ -76,6 +77,9 @@ public class BaseCDXServer implements InitializingBean {
 	protected void prepareResponse(HttpServletResponse response)
 	{
 		response.setContentType("text/plain; charset=\"UTF-8\"");		
+		if (ajaxAccessControl != null) {
+		    response.setHeader("Access-Control-Allow-Origin", ajaxAccessControl);
+		}
 	}
 	
 	protected AuthToken initAuthToken(HttpServletRequest request)
@@ -95,4 +99,12 @@ public class BaseCDXServer implements InitializingBean {
 	public void setAuthChecker(AuthChecker authChecker) {
 		this.authChecker = authChecker;
 	}
+
+    public String getAjaxAccessControl() {
+        return ajaxAccessControl;
+    }
+
+    public void setAjaxAccessControl(String ajaxAccessControl) {
+        this.ajaxAccessControl = ajaxAccessControl;
+    }
 }
