@@ -76,10 +76,19 @@ public class BaseCDXServer implements InitializingBean {
 	
 	protected void prepareResponse(HttpServletResponse response)
 	{
-		response.setContentType("text/plain; charset=\"UTF-8\"");		
-		if (ajaxAccessControl != null) {
-		    response.setHeader("Access-Control-Allow-Origin", ajaxAccessControl);
-		}
+		response.setContentType("text/plain; charset=\"UTF-8\"");
+	}
+	
+	protected void handleAjax(HttpServletRequest request, HttpServletResponse response)
+	{
+	    String origin = request.getHeader("Origin");
+	    
+	    if (origin == null) {
+	        return;
+	    }
+	    
+	    response.setHeader("Access-Control-Allow-Credentials", "true");
+	    response.setHeader("Access-Control-Allow-Origin", origin);
 	}
 	
 	protected AuthToken initAuthToken(HttpServletRequest request)

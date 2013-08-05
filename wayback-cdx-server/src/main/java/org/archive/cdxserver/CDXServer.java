@@ -195,6 +195,7 @@ public class CDXServer extends BaseCDXServer {
 
 		try {
 			prepareResponse(response);
+			handleAjax(request, response);
 
 			if (!authToken.isAllUrlAccessAllowed() && !authChecker.checkAccess(url)) {
 				if (showNumPages) {

@@ -180,9 +180,7 @@ public class HowManyController extends BaseCDXServer {
         long numLines = 0;
         boolean restricted = false;
         
-        if (ajaxAccessControl != null) {
-            response.setHeader("Access-Control-Allow-Origin", ajaxAccessControl);
-        }
+        handleAjax(request, response);
 
         if (url.isEmpty()) {
             start = url;
