@@ -53,13 +53,13 @@ public class CDXServer extends BaseCDXServer {
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		zipParams = new ZipNumParams();
-		zipParams.setMaxAggregateBlocks(pageSize);
-		zipParams.setMaxBlocks(pageSize);
+		zipParams.setMaxAggregateBlocks(maxPageSize);
+		zipParams.setMaxBlocks(maxPageSize);
 		zipParams.setTimestampDedupLength(0);
 
 		dedupedParams = new ZipNumParams();
-		dedupedParams.setMaxAggregateBlocks(pageSize);
-		dedupedParams.setMaxBlocks(pageSize);
+		dedupedParams.setMaxAggregateBlocks(maxPageSize);
+		dedupedParams.setMaxBlocks(maxPageSize);
 		dedupedParams.setTimestampDedupLength(8);
 
 		if (cdxSource == null) {
@@ -76,7 +76,7 @@ public class CDXServer extends BaseCDXServer {
 		super.afterPropertiesSet();
 	}
 
-	protected int pageSize = 1;
+	protected int maxPageSize = 1;
 	protected int queryMaxLimit = 1;
 
 	public ZipNumCluster getZipnumSource() {
@@ -88,11 +88,11 @@ public class CDXServer extends BaseCDXServer {
 	}
 
 	public int getPageSize() {
-		return pageSize;
+		return maxPageSize;
 	}
 
 	public void setPageSize(int pageSize) {
-		this.pageSize = pageSize;
+		this.maxPageSize = pageSize;
 	}
 
 	public String getCdxFormat() {
@@ -147,6 +147,7 @@ public class CDXServer extends BaseCDXServer {
 		String fl = ServletRequestUtils.getStringParameter(request, "fl", "");
 		
 		int page = ServletRequestUtils.getIntParameter(request, "page", -1);
+		int pageSize = ServletRequestUtils.getIntParameter(request, "pageSize", 0);
 
 		boolean showNumPages = ServletRequestUtils.getBooleanParameter(request, "showNumPages", false);
 		boolean showPagedIndex = ServletRequestUtils.getBooleanParameter(request, "showPagedIndex", false);
@@ -155,7 +156,7 @@ public class CDXServer extends BaseCDXServer {
 		boolean showResumeKey = ServletRequestUtils.getBooleanParameter(request, "showResumeKey", false);
 
 		this.getCdx(request, response, url, matchType, from, to, gzip, output, filter, collapse, dupeCount, skipCount, lastSkipTimestamp,
-				offset, limit, fastLatest, fl, page, showNumPages, showPagedIndex,
+				offset, limit, fastLatest, fl, page, pageSize, showNumPages, showPagedIndex,
 				resumeKey, showResumeKey);
 	}
 
@@ -182,7 +183,9 @@ public class CDXServer extends BaseCDXServer {
 			@RequestParam(value = "fastLatest", defaultValue = "false") boolean fastLatest,
 			@RequestParam(value = "fl", defaultValue = "") String fl,
 
-			@RequestParam(value = "page", defaultValue = "-1") int page, 
+			@RequestParam(value = "page", defaultValue = "-1") int page,
+			@RequestParam(value = "pageSize", defaultValue = "0") int pageSize,
+			
 			@RequestParam(value = "showNumPages", defaultValue = "false") boolean showNumPages,
 			@RequestParam(value = "showPagedIndex", defaultValue = "false") boolean showPagedIndex,
 
@@ -238,6 +241,10 @@ public class CDXServer extends BaseCDXServer {
 					response.setStatus(400);
 					response.getWriter().println("Sorry, this server is not configured to support paged query. Remove page= param and try again.");
 					return;
+				}
+				
+				if ((pageSize <= 0) || (pageSize > maxPageSize)) {
+				    pageSize = maxPageSize;
 				}
 
 				PageResult pageResult = zipnumSource.getNthPage(startEndUrl, page, pageSize, showNumPages);

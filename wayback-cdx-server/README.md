@@ -1,9 +1,19 @@
-# Wayback CDX Server API 1.0 - BETA #
+# Wayback CDX Server API - BETA #
+
+##### Changelist
+
+* 2013-08-07 -- Add this changelist! Page size is now adjustable [Pagination API](#pagination-api)
+
+* 2013-08-07 -- Added support for [Counters](#counters) and [Field Order](#field-order).
+
+* 2013-08-03 -- Added support for [Collapsing](#collapsing)
 
 
 ##### Table of Contents
 
 #### [Intro and Usage](#intro-and-usage)
+
+* [Changelist](#changelist)
 
 * [Basic usage](#basic-usage)
 
@@ -11,16 +21,23 @@
 
 * [Output Format (JSON)](#output-format-json)
 
+* [Field Order](#field-order)
+
 * [Filtering](#filtering)
 
 * [Collapsing](#collapsing)
 
 * [Query Result Limits](#query-result-limits)
 
+#### [Advanced Usage](#advanced-usage) 
+
 * [Resumption Key](#resumption)
 
+* [Counters] (#counters)
 
-#### [Advanced Usage](#advanced-usage) 
+  * [Duplicate Counter] (#duplicate-counter)
+  
+  * [Skip Counter] (#skip-counter)
 
 * [Pagination API](#pagination-api)
 
@@ -60,7 +77,8 @@ The columns of each line are the fields of the cdx.
 At this time, the following cdx fields are publicly available:
 
   `["urlkey","timestamp","original","mimetype","statuscode","digest","length"]`
-
+  
+It is possible to customize the [Field Order](#field order) as well.
 
 The the **url=** value should be [url encoded](http://en.wikipedia.org/wiki/Percent-encoding) if the url itself contains a query.
 
@@ -113,6 +131,15 @@ The matchType may also be set implicitly by using wildcard '*' at end or beginni
 ```
 
 * By default, CDX server returns gzip encoded data for all queries. To turn this off, add the **gzip=false** param
+
+### Field Order ###
+
+It is possible to customize the fields returned from the cdx server using the **fl=** param.
+Simply pass in a comma seperate list of fields and only those fields will be returned:
+
+* The following returns only the timestamp and mimetype fields with the header `["timestamp","mimetype"]` http://web.archive.org/cdx/search/cdx?url=archive.org&fl=timestamp,mimetype
+
+* If omitted, all the available fields are returned by default.
 
 
 ### Filtering ###
@@ -167,7 +194,7 @@ To use collapsing, add one or more **collapse=field** or **collapse=field:N** wh
 * Ex: Only show unique urls in a prefix query (filtering out captures except first capture of a given url). This is similar to the old prefix query in wayback (note: this query may be slow at the moment):
 
   http://web.archive.org/cdx/search/cdx?url=archive.org&collapse=urlkey&matchType=prefix
-
+  
 
 ### Query Result Limits ###
 
@@ -192,6 +219,11 @@ To use collapsing, add one or more **collapse=field** or **collapse=field:N** wh
 
     However, the offset/limit model does not scale well to large querties since the CDX server must read and skip through the number of results specified by
 **offset**, so the CDX server begins reading at the beginning every time.
+
+
+## Advanced Usage
+
+The following features are for more specific/advanced usage of the CDX server.
 
 
 ### Resumption Key ###
@@ -235,8 +267,34 @@ org%2Carchive%29%2F+19980109140106%21
 
     Ex: http://web.archive.org/cdx/search/cdx?url=archive.org&limit=5&showResumeKey=true&resumeKey=org%2Carchive%29%2F+19980109140106%21
 
+### Counters ###
 
-## Advanced Usage
+There is some work on custom counters to enchance the aggregation capabilities of CDX server.
+These features are brand new and should be considered experimental.
+
+#### Duplicate Counter ####
+
+While collapsing allows for filtering out adjacent results that are duplicates, it is also possible to track duplicates throughout the cdx
+using a special new extension.
+By adding the **showDupeCount=true** a new `dupecount` column will be added to the results.
+
+* The duplicates are determined by tracking rows with the same `digest` field.
+
+* The `warc/revisit` mimetype in duplicates > 0 will automatically be resolved to the mimetype of the original, if found.
+
+* Using **showDupeCount=true** will only show unique captures: http://web.archive.org/cdx/search/cdx?url=archive.org&showDupeCount=true&output=json&limit=50
+
+
+#### Skip Counter ####
+
+It is possible to track how many CDX lines were skipped due to [Filtering](#filtering) and [Collapsing](#collapsing)
+by adding the special `skipcount` counter with **showSkipCount=true**. 
+An optional `endtimestamp` count can also be used to print the timestamp of the last capture by adding **lastSkipTimestamp=true**
+
+* Ex: Collapse results by year and print number of additional captures skipped and timestamp of last capture:
+
+  http://web.archive.org/cdx/search/cdx?url=archive.org&collapse=timestamp:4&output=json&showSkipCount=true&lastSkipTimestamp=true
+
 
 ### Pagination API ###
 
@@ -254,7 +312,6 @@ However, pagination can only work on a single index at a time, merging input fro
 is not possible with pagination. As such, the results from the paginated version may be slightly less up-to-date than
 the default non-paginated query.
 
-
   * To use pagination, simply add the **page=i** param to the query to return the i-th page. If the pagination is not supported, cdx server will return a 400.
 
   * Pages are numbered from 0 to *num pages - 1*. If *i<0*, pages are not used. If *i>=num pages*, no results are returned.
@@ -268,7 +325,14 @@ the default non-paginated query.
 
     Ex: http://web.archive.org/cdx/search/cdx?url=archive.org&showNumPages=true
   
-  * Page size (number of results per page) is fixed and is set by cdx server, and may be similar to max query limit in non-paged mode.
+  * Page size (number of results per page) is configured to an optimal value on the cdx server, and may be similar to max query limit in non-paged mode. The CDX server on archive.org has a page size of 50 currently.
+  
+  * It is possible to adjust the page size to a smaller value than the default by setting the **pageSize=P** where 1 <= P <= default page size.
+  
+    Ex: Get # of pages with smallest page size: http://web.archive.org/cdx/search/cdx?url=archive.org&showNumPages=true&pageSize=1
+    
+    Ex: Get first page with smallest page size: http://web.archive.org/cdx/search/cdx?url=archive.org&page=0&pageSize=1
+    
 
   * If there is only one page, adding the **page=0** param will return the same results as without setting a page.
 
