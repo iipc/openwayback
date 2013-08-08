@@ -78,7 +78,7 @@ At this time, the following cdx fields are publicly available:
 
   `["urlkey","timestamp","original","mimetype","statuscode","digest","length"]`
   
-It is possible to customize the [Field Order](#field order) as well.
+It is possible to customize the [Field Order](#field-order) as well.
 
 The the **url=** value should be [url encoded](http://en.wikipedia.org/wiki/Percent-encoding) if the url itself contains a query.
 
@@ -137,7 +137,7 @@ The matchType may also be set implicitly by using wildcard '*' at end or beginni
 It is possible to customize the fields returned from the cdx server using the **fl=** param.
 Simply pass in a comma seperate list of fields and only those fields will be returned:
 
-* The following returns only the timestamp and mimetype fields with the header `["timestamp","mimetype"]` http://web.archive.org/cdx/search/cdx?url=archive.org&fl=timestamp,mimetype
+* The following returns only the timestamp and mimetype fields with the header `["timestamp","mimetype"]` http://web.archive.org/cdx/search/cdx?url=archive.org&fl=timestamp,mimetype&output=json
 
 * If omitted, all the available fields are returned by default.
 

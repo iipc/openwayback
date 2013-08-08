@@ -17,8 +17,8 @@
   <bean name="cdxSource" class="org.archive.format.cdx.MultiCDXInputSource">
     <property name="cdxUris">
     <list>
-        /tmp/mycdx1.cdx
-        /tmp/mycdx2.cdx
+        <value>/tmp/mycdx1.cdx</value>
+        <value>/tmp/mycdx2.cdx</value>
     </list>
     </property>
   </bean>
