@@ -642,7 +642,7 @@ implements ShutdownListener {
 				counter++;
 				
 				if (closest == null) {
-					throw new ResourceNotAvailableException("Self-Redirect: No Closest Match Found");
+					throw new ResourceNotInArchiveException("Self-Redirect: No Closest Match Found");
 				}
 				
 				closest.setClosest(true);
@@ -995,7 +995,7 @@ implements ShutdownListener {
 				throw lastExc;
 			}
 			
-			throw new ResourceNotAvailableException("Revisit: Missing original for revisit record " + closest.toString());
+			throw new ResourceNotInArchiveException("Revisit: Missing original for revisit record " + closest.toString());
 		}
 
 		return getResource(payloadLocation, skipFiles);
