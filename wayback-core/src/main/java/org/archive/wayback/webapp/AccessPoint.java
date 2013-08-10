@@ -142,7 +142,7 @@ implements ShutdownListener {
 	private boolean enableErrorMsgHeader = false;
 	private boolean enablePerfStatsHeader = false;
 	private boolean enableWarcFileHeader = false;
-	private boolean enableMemento = false;
+	private boolean enableMemento = true;
 		
 	private LiveWebRedirector liveWebRedirector;
 	
@@ -555,17 +555,23 @@ implements ShutdownListener {
 		String datespec = ArchivalUrl.getDateSpec(wbRequest, timestamp);
 		String betterURI = getUriConverter().makeReplayURI(datespec, url);
 		
+		//TODO: better detection of non-redirect proxy mode?
+		// For now, checking if the betterURI does not contain the timestamp, then we're not doing a redirect
+		boolean isNonRedirectProxy = !betterURI.contains(timestamp);
+		
 		if (this.isEnableMemento()) {
 			// Issue either a Memento URL-G response, or "intermediate resource" response
 			if (wbRequest.isMementoTimegate()) {
-				MementoUtils.addTimegateHeaders(httpResponse, captureResults, wbRequest);
+				MementoUtils.addTimegateHeaders(httpResponse, captureResults, wbRequest, !isNonRedirectProxy);
 			} else {
 				// Redirect as "intermediate resource"
 				MementoUtils.addOrigHeader(httpResponse, url);
 			}
 		}
 		
-		throw new BetterRequestException(betterURI);
+		if (!isNonRedirectProxy) {
+		    throw new BetterRequestException(betterURI);
+		}
 	}
 	
 	protected void handleReplay(WaybackRequest wbRequest, 

@@ -117,7 +117,7 @@ public class MementoUtils implements MementoConstants {
 	}
 
 	public static String generateMementoLinkHeaders(
-			CaptureSearchResults results, WaybackRequest wbr, boolean includeTimegateLink) {
+			CaptureSearchResults results, WaybackRequest wbr, boolean includeTimegateLink, boolean includeOriginalLink) {
 		NotableResultExtractor nre = getNotableResults(results);
 		CaptureSearchResult first = nre.getFirst();
 		CaptureSearchResult prev = nre.getPrev();
@@ -132,7 +132,9 @@ public class MementoUtils implements MementoConstants {
 
 		// add generics:
 		// rels.add(makeLink(getTimebundleUrl(ap, requestUrl), TIMEBUNDLE));
-		rels.add(makeLink(requestUrl, ORIGINAL));
+		if (includeOriginalLink) {
+		    rels.add(makeLink(requestUrl, ORIGINAL));
+		}
 
 		rels.add(makeLink(getTimemapUrl(ap, FORMAT_LINK, requestUrl), TIMEMAP,
 				APPLICATION_LINK_FORMAT));
@@ -239,15 +241,17 @@ public class MementoUtils implements MementoConstants {
 			CaptureSearchResults results, CaptureSearchResult result, WaybackRequest wbr) {
 		response.setHeader(MEMENTO_DATETIME, HTTP_LINK_DATE_FORMATTER
 				.format(results.getClosest().getCaptureDate()));
-
-		response.setHeader(LINK, generateMementoLinkHeaders(results, wbr, true));
+		
+		if (!wbr.isMementoTimegate()) {
+		    response.setHeader(LINK, generateMementoLinkHeaders(results, wbr, true, true));
+		}
 	}
 
 	public static void addTimegateHeaders(HttpServletResponse response,
-			CaptureSearchResults results, WaybackRequest wbr) {
+			CaptureSearchResults results, WaybackRequest wbr, boolean includeOriginal) {
 		addVaryHeader(response);
 
-		response.setHeader(LINK, generateMementoLinkHeaders(results, wbr, false));
+		response.setHeader(LINK, generateMementoLinkHeaders(results, wbr, false, includeOriginal));
 	}
 
 //	private static String getTimegatePrefix(AccessPoint ap) {

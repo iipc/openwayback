@@ -75,7 +75,7 @@ public class SelectorReplayDispatcher implements ReplayDispatcher {
 				// Issue either a Memento URL-G response, or "intermediate resource" response
 				if (wbRequest.isMementoTimegate()) {
 					e.addHeader(MementoConstants.VARY, MementoConstants.NEGOTIATE_DATETIME);
-					e.addHeader(MementoConstants.LINK, MementoUtils.generateMementoLinkHeaders(results, wbRequest, false));
+					e.addHeader(MementoConstants.LINK, MementoUtils.generateMementoLinkHeaders(results, wbRequest, false, true));
 				} else {
 					e.addHeader(MementoConstants.LINK, MementoUtils.makeOrigHeader(wbRequest.getRequestUrl()));
 				}

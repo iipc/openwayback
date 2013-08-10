@@ -83,8 +83,9 @@ public class ProxyArchivalRequestParser  extends CompositeRequestParser {
                 Date date = MementoUtils.parseAcceptDateTimeHeader(replayDateStr);
                 
                 if (date != null) {
-                    wbRequest.setReplayTimestamp(replayDateStr);
-                    wbRequest.setAnchorTimestamp(replayDateStr);
+                    wbRequest.setReplayDate(date);
+                    wbRequest.setAnchorDate(date);
+                    wbRequest.setMementoTimegate();
                     return wbRequest;
                 }
             }
