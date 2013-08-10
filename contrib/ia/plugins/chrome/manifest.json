@@ -1,0 +1,15 @@
+{
+   "name": "Wayback Chrome Plugin",
+   "version": "1.0",
+   "manifest_version": 2,
+   "background": {
+       "scripts": ["wayback.js"]
+   },
+   "permissions": [
+       "webRequest",
+       "webRequestBlocking",
+       "<all_urls>",
+       "tabs",
+       "proxy"
+   ]
+}
