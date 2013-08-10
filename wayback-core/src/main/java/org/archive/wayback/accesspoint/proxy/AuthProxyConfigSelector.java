@@ -58,6 +58,13 @@ public class AuthProxyConfigSelector implements ProxyConfigSelector {
 	}
 
 	public String resolveConfig(HttpServletRequest request) {
+	    String customCollHeader = request.getHeader("X-Wayback-Proxy-Coll");
+	    
+	    if (customCollHeader != null) {
+	        return customCollHeader;
+	    }
+	    
+	    
 		String authenticate = request.getHeader("Proxy-Authorization");
 
 		if (authenticate != null) {
