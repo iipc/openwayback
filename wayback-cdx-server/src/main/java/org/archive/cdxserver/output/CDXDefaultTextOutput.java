@@ -13,9 +13,9 @@ public class CDXDefaultTextOutput implements CDXOutput {
 	}
 
 	@Override
-	public boolean writeLine(PrintWriter writer, CDXLine line) {
+	public int writeLine(PrintWriter writer, CDXLine line) {
 		writer.println(line.toString());
-		return true;
+		return 1;
 	}
 
 	@Override

@@ -20,7 +20,7 @@ public class WrappedCDXOutput implements CDXOutput {
 	}
 
 	@Override
-	public boolean writeLine(PrintWriter writer, CDXLine line) {
+	public int writeLine(PrintWriter writer, CDXLine line) {
 		return inner.writeLine(writer, line);
 	}
 

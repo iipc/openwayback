@@ -39,26 +39,26 @@ public class CDXSkipCountWriter extends WrappedCDXOutput {
 		lastLineSkipped = true;
 	}
 	
-	protected boolean writeDeferredLine(PrintWriter writer)
+	protected int writeDeferredLine(PrintWriter writer)
 	{
-		boolean result = false;
+		int written = 0;
 		
 		if (deferWriteLine != null) {
 			deferWriteLine.setField(skipcount, "" + skipCount);
 			if (writeLastTimestamp) {
 				deferWriteLine.setField(endtimestamp, (prevReadLine != null ? prevReadLine.getTimestamp() : "-"));
 			}
-			result = inner.writeLine(writer, deferWriteLine);
+			written = inner.writeLine(writer, deferWriteLine);
 			deferWriteLine = null;
 		}
 		
-		return result;
+		return written;
 	}
 	
 	@Override
-	public boolean writeLine(PrintWriter writer, CDXLine cdxLine)
+	public int writeLine(PrintWriter writer, CDXLine cdxLine)
 	{
-		boolean written = writeDeferredLine(writer);
+		int written = writeDeferredLine(writer);
 		
 		lastLineSkipped = false;
 		skipCount = 0;

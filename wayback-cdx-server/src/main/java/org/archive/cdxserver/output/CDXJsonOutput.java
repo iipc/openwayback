@@ -43,7 +43,7 @@ public class CDXJsonOutput implements CDXOutput {
     }
 
     @Override
-    public boolean writeLine(PrintWriter writer, CDXLine line) {
+    public int writeLine(PrintWriter writer, CDXLine line) {
         if (firstLine) {
             if (writeHeader) {
             	writeHeader(writer, line.getNames());
@@ -74,7 +74,7 @@ public class CDXJsonOutput implements CDXOutput {
         }
 
         writer.print(']');
-        return true;
+        return 1;
     }
 
     @Override

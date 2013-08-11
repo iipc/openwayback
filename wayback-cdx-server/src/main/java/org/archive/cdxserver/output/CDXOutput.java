@@ -10,7 +10,7 @@ public interface CDXOutput {
 	
 	public void trackLine(CDXLine line);
 	
-	public boolean writeLine(PrintWriter writer, CDXLine line);
+	public int writeLine(PrintWriter writer, CDXLine line);
 	public void writeResumeKey(PrintWriter writer, String resumeKey);
 	
 	public void end(PrintWriter writer);

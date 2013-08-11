@@ -18,14 +18,14 @@ public class LastNLineOutput extends WrappedCDXOutput {
     }
 
     @Override
-    public boolean writeLine(PrintWriter writer, CDXLine line) {
+    public int writeLine(PrintWriter writer, CDXLine line) {
         lines.add(line);
         
         if (lines.size() > limit) {
             lines.removeFirst();
         }
         
-        return false;
+        return 0;
     }
     
     protected void flush(PrintWriter writer)

@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.httpclient.URIException;
 import org.archive.cdxserver.auth.AuthToken;
+import org.archive.cdxserver.output.CDXClosestTimestampSorted;
 import org.archive.cdxserver.output.CDXDefaultTextOutput;
 import org.archive.cdxserver.output.CDXDupeCountWriter;
 import org.archive.cdxserver.output.CDXJsonOutput;
@@ -43,7 +44,6 @@ public class CDXServer extends BaseCDXServer {
 	protected ZipNumCluster zipnumSource;
 	protected CDXInputSource cdxSource;
 	protected ZipNumParams zipParams;
-	protected ZipNumParams dedupedParams;
 	
 	protected String cdxFormat = null;
 	
@@ -52,15 +52,7 @@ public class CDXServer extends BaseCDXServer {
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
-		zipParams = new ZipNumParams();
-		zipParams.setMaxAggregateBlocks(maxPageSize);
-		zipParams.setMaxBlocks(maxPageSize);
-		zipParams.setTimestampDedupLength(0);
-
-		dedupedParams = new ZipNumParams();
-		dedupedParams.setMaxAggregateBlocks(maxPageSize);
-		dedupedParams.setMaxBlocks(maxPageSize);
-		dedupedParams.setTimestampDedupLength(8);
+		zipParams = new ZipNumParams(maxPageSize, maxPageSize, 0);
 
 		if (cdxSource == null) {
 			cdxSource = zipnumSource;
@@ -130,6 +122,7 @@ public class CDXServer extends BaseCDXServer {
 
 		String from = ServletRequestUtils.getStringParameter(request, "from", "");
 		String to = ServletRequestUtils.getStringParameter(request, "to", "");
+		String closest = ServletRequestUtils.getStringParameter(request, "closest", "");
 
 		boolean gzip = ServletRequestUtils.getBooleanParameter(request, "gzip", true);
 		String output = ServletRequestUtils.getStringParameter(request, "output", "");
@@ -138,6 +131,7 @@ public class CDXServer extends BaseCDXServer {
 		String[] collapse = ServletRequestUtils.getStringParameters(request, "collapse");
 		
 		boolean dupeCount = ServletRequestUtils.getBooleanParameter(request, "showDupeCount");
+        boolean resolveRevisits = ServletRequestUtils.getBooleanParameter(request, "resolveRevisits");
 		boolean skipCount = ServletRequestUtils.getBooleanParameter(request, "showSkipCount");
 		boolean lastSkipTimestamp = ServletRequestUtils.getBooleanParameter(request, "lastSkipTimestamp");
 		
@@ -155,7 +149,8 @@ public class CDXServer extends BaseCDXServer {
 		String resumeKey = ServletRequestUtils.getStringParameter(request, "resumeKey", "");
 		boolean showResumeKey = ServletRequestUtils.getBooleanParameter(request, "showResumeKey", false);
 
-		this.getCdx(request, response, url, matchType, from, to, gzip, output, filter, collapse, dupeCount, skipCount, lastSkipTimestamp,
+		this.getCdx(request, response, url, matchType, from, to, closest, gzip, output, 
+		        filter, collapse, dupeCount, resolveRevisits, skipCount, lastSkipTimestamp,
 				offset, limit, fastLatest, fl, page, pageSize, showNumPages, showPagedIndex,
 				resumeKey, showResumeKey);
 	}
@@ -167,6 +162,7 @@ public class CDXServer extends BaseCDXServer {
 
 			@RequestParam(value = "from", defaultValue = "") String from,
 			@RequestParam(value = "to", defaultValue = "") String to,
+			@RequestParam(value = "closest", defaultValue = "") String closest,
 
 			@RequestParam(value = "gzip", defaultValue = "true") boolean gzip, 
 			@RequestParam(value = "output", defaultValue = "") String output,
@@ -175,6 +171,7 @@ public class CDXServer extends BaseCDXServer {
 			@RequestParam(value = "collapse", required = false) String[] collapse,
 			
 			@RequestParam(value = "showDupeCount", defaultValue = "false") boolean showDupeCount,
+            @RequestParam(value = "resolveRevisits", defaultValue = "false") boolean resolveRevisits,
 			@RequestParam(value = "showSkipCount", defaultValue = "false") boolean showSkipCount,
 			@RequestParam(value = "lastSkipTimestamp", defaultValue = "false") boolean lastSkipTimestamp,
 			
@@ -234,6 +231,10 @@ public class CDXServer extends BaseCDXServer {
 
 			// Optimize: always fastLatest if just last line
 			fastLatest = fastLatest || (limit == -1);
+			
+			if (!closest.isEmpty() && (limit > 0)) {
+			    fastLatest = true;
+			}
 
 			// Paged query
 			if (page >= 0 || showNumPages) {
@@ -267,16 +268,8 @@ public class CDXServer extends BaseCDXServer {
 					writeIdxResponse(response.getWriter(), iter);
 					return;
 				}
-
-				if (!resumeKey.isEmpty()) {
-					startEndUrl[0] = URLDecoder.decode(resumeKey, "UTF-8");
-				} else if (!from.isEmpty()) {
-					startEndUrl[0] += " " + from;
-				} else if (fastLatest) {
-					startEndUrl[0] += "!";
-				}
-
-				iter = zipnumSource.getCDXIterator(iter, startEndUrl[0], startEndUrl[1], page, pageResult.numPages, zipParams);
+				
+				iter = createBoundedCdxIterator(startEndUrl, from, resumeKey, closest, fastLatest, page, pageResult, iter);
 
 				response.addHeader(X_MAX_LINES, "" + (zipnumSource.getCdxLinesPerBlock() * pageSize));
 
@@ -285,20 +278,7 @@ public class CDXServer extends BaseCDXServer {
 
 			} else {
 				// Non-Paged Merged query
-				String searchKey = null;
-
-				if (!resumeKey.isEmpty()) {
-					searchKey = URLDecoder.decode(resumeKey, "UTF-8");
-					startEndUrl[0] = resumeKey;
-				} else if (!from.isEmpty()) {
-					searchKey = startEndUrl[0] + " " + from;
-				} else if (fastLatest) {
-					searchKey = startEndUrl[0] + "!";
-				} else {
-					searchKey = startEndUrl[0];
-				}
-
-				iter = cdxSource.getCDXIterator(searchKey, startEndUrl[0], startEndUrl[1], dedupedParams);
+				iter = createBoundedCdxIterator(startEndUrl, from, resumeKey, closest, fastLatest, -1, null, null);
 
 				maxLimit = this.queryMaxLimit;
 			}
@@ -327,8 +307,12 @@ public class CDXServer extends BaseCDXServer {
 				limit = Math.min(limit, maxLimit);
 			}
 			
-			if (showDupeCount) {
-				outputProcessor = new CDXDupeCountWriter(outputProcessor);
+	        if (!closest.isEmpty()) {
+	            outputProcessor = new CDXClosestTimestampSorted(outputProcessor, closest, limit);
+	        }
+			
+			if (showDupeCount || resolveRevisits) {
+				outputProcessor = new CDXDupeCountWriter(outputProcessor, showDupeCount, resolveRevisits);
 			}
 			
 			if (showSkipCount) {
@@ -357,6 +341,41 @@ public class CDXServer extends BaseCDXServer {
 			}
 		}
 	}
+	
+	protected CloseableIterator<String> createBoundedCdxIterator(String[] startEndUrl, 
+	                                                             String from, 
+	                                                             String resumeKey, 
+	                                                             String closest,
+	                                                             boolean fastLatest,
+	                                                             
+	                                                             int page,
+	                                                             PageResult pageResult,
+	                                                             CloseableIterator<String> idx) throws IOException
+	{
+	    String searchKey = null;
+	    
+        ZipNumParams params = new ZipNumParams(maxPageSize, maxPageSize, 0);
+	    
+        if (!resumeKey.isEmpty()) {
+            searchKey = URLDecoder.decode(resumeKey, "UTF-8");
+            startEndUrl[0] = resumeKey;
+        } else if (!from.isEmpty()) {
+            searchKey = startEndUrl[0] + " " + from;
+        } else if (fastLatest) {
+            String endkey = (closest.isEmpty() ? "!" : " " + closest);
+            params.setMaxAggregateBlocks(1);
+            searchKey = startEndUrl[0] + endkey;
+        } else {
+            searchKey = startEndUrl[0];
+        }
+        
+        if (pageResult != null) {
+            return zipnumSource.getCDXIterator(idx, searchKey, startEndUrl[1], page, pageResult.numPages, params);            
+        } else {
+            params.setTimestampDedupLength(8);
+            return cdxSource.getCDXIterator(searchKey, startEndUrl[0], startEndUrl[1], params);
+        }        
+	}
 
 	// TODO: Support idx/summary in json?
 	protected void writeIdxResponse(PrintWriter writer, CloseableIterator<String> iter) {
@@ -370,7 +389,7 @@ public class CDXServer extends BaseCDXServer {
 			PrintWriter writer, 
 			CloseableIterator<String> cdx, 
 			
-			String from, 
+			String from,
 			String to,
 			
 			String[] filter,
@@ -492,9 +511,7 @@ public class CDXServer extends BaseCDXServer {
 				line = new CDXLine(line, outputFields);
 			}
 			
-			if (outputProcessor.writeLine(writer, line)) {
-				writeCount++;
-			}
+			writeCount += outputProcessor.writeLine(writer, line);
 
 			if (Thread.interrupted()) {
 				break;
