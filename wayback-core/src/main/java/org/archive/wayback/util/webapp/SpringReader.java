@@ -56,7 +56,7 @@ public class SpringReader {
 			ServletContext servletContext) {
 		LOGGER.info("Loading from config file " + configPath);
 
-		currentContext = new FileSystemXmlApplicationContext(configPath);
+		currentContext = new FileSystemXmlApplicationContext("file:" + configPath);
 		Map<String,RequestHandler> beans = 
 				currentContext.getBeansOfType(RequestHandler.class,false,false);
 
