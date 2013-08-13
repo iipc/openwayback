@@ -742,7 +742,7 @@ implements ShutdownListener {
 				}
 				
 				// Redirect to url for the actual closest capture
-				if (!closest.getCaptureTimestamp().equals(wbRequest.getReplayTimestamp())) {
+				if (!wbRequest.getReplayTimestamp().startsWith(closest.getCaptureTimestamp())) {
 				//if ((closest != originalClosest) && !closest.getCaptureTimestamp().equals(originalClosest.getCaptureTimestamp())) {
 					throwRedirect(wbRequest, httpResponse, captureResults, closest.getCaptureTimestamp(), closest.getOriginalUrl());
 				}

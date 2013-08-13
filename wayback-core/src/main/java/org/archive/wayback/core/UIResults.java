@@ -655,7 +655,7 @@ public class UIResults {
 			}
 						
 			CustomUserResourceIndex index = 
-					(CustomUserResourceIndex)SpringReader.getCurrentBeanFactory().getBean(indexBeanName, CustomUserResourceIndex.class);
+					(CustomUserResourceIndex)SpringReader.getCurrentContext().getBean(indexBeanName, CustomUserResourceIndex.class);
 			
 			return index;
 		} catch (BeansException e) {
