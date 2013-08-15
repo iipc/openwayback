@@ -2,20 +2,33 @@ var tabIdToUrl = {};
 
 var archivalURLRegex = /([^/]*)\/(\d{1,14})([a-z]{2}_)*\/(.*)/;
 
-var knownWaybackPrefixs = 
+var knownWaybackPrefixList = 
   ["http://web.archive.org/", 
    "http://wayback.archive-it.org/", 
    "http://webharvest.gov/"];
 
 function findWaybackPrefix(url)
 {
-  for (i in knownWaybackPrefixs) {
+  for (i in knownWaybackPrefixList) {
     if (url.indexOf(knownWaybackPrefixs[i]) == 0) {
-      return knownWaybackPrefixs[i];
+      return knownWaybackPrefixList[i];
     }
   }
   
   return null;
+}
+
+function extractHostPrefix(url)
+{
+  var schemeIndex = url.indexOf("://");
+  var start = (schemeIndex > 0 ? schemeIndex + 3 : 0);
+  
+  var end = url.indexOf("/", start);
+  if (end > 0) {
+    return url.substr(0, end + 1);
+  } else {
+    return url.substr(0) + "/";
+  }  
 }
 
 function extractWaybackReplayInfo(waybackPrefix, url, matchOnly)
@@ -36,7 +49,8 @@ function extractWaybackReplayInfo(waybackPrefix, url, matchOnly)
           "waybackPrefix": waybackPrefix,
           "coll": parts[1], 
           "timestamp": parts[2], 
-          "mod": parts[3], 
+          "mod": parts[3],
+          "hostPrefix": extractHostPrefix(parts[4]),
           "url": parts[4]};
 }
 
@@ -59,16 +73,7 @@ function makeReplayUrl(replayInfo, url)
     }
     
     if (path) {
-      var fullPath = replayInfo.fullWaybackUrl;
-      var lastSlash = fullPath.lastIndexOf("/");
-      if (lastSlash > 0) {
-        fullPath = replayInfo.fullWaybackUrl.substr(0, lastSlash + 1);
-      } else {
-        fullPath += "/";
-      }
-      fullPath += path;
-      console.log(url + " -> " + fullPath);
-      return fullPath;
+      url = replayInfo.hostPrefix + path;
     }
   }  
   
@@ -88,8 +93,7 @@ function isWaybackReplayTab(tabId)
 
 
 function archivalRedirect(details)
-{
-        
+{        
   // Top Level Request
   if (details.type == "main_frame") {
     var waybackPrefix = findWaybackPrefix(details.url);
@@ -106,10 +110,10 @@ function archivalRedirect(details)
            //console.log(replayInfo.mod);
            return { redirectUrl: makeReplayUrl(replayInfo, replayInfo.url) };
         }
+        
+        return {};
       }
     }
-    
-    return {};
   }
   
   if (details.url.indexOf("/crossdomain.xml") >= 0) {
@@ -176,7 +180,7 @@ if (proxyMode) {
       // Rewrite https -> http as https proxying not supported
       if (details.url.indexOf("https://") == 0) {
         httpUrl = "http://" + details.url.substr("https://".length);
-        console.log(details.url + " -> " + httpUrl);
+        //console.log(details.url + " -> " + httpUrl);
         
         return { redirectUrl: httpUrl };
       } 

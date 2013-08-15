@@ -3,7 +3,7 @@
 This is a new experimental plugin that attempts to use [chrome.webRequest](http://developer.chrome.com/extensions/webRequest.html) API to handle wayback url rewriting on the client.
 
 ### Archival Mode Support ###
-When enabled, the plugin will attempt to 'intercept' requests to a list of `knownWaybackPrefixs` (declared in the plugin) and redirect the archival url to the id_ (transparent replay) and handle rewriting on the client side.
+When enabled, the plugin will attempt to 'intercept' requests to urls from the *knownWaybackPrefixList* (declared in the plugin) and redirect the archival url to the id_ (transparent replay) and handle rewriting on the client side.
 
 
 ### Proxy Mode Support ###
