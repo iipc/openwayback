@@ -10,7 +10,7 @@ var knownWaybackPrefixList =
 function findWaybackPrefix(url)
 {
   for (i in knownWaybackPrefixList) {
-    if (url.indexOf(knownWaybackPrefixs[i]) == 0) {
+    if (url.indexOf(knownWaybackPrefixList[i]) == 0) {
       return knownWaybackPrefixList[i];
     }
   }
