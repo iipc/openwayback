@@ -31,17 +31,29 @@ function extractHostPrefix(url)
   }  
 }
 
-function extractWaybackReplayInfo(waybackPrefix, url, matchOnly)
+function isReplayUrl(waybackPrefix, url)
+{
+  if (url.indexOf(waybackPrefix) != 0) {
+    return false;
+  }
+  
+  var rest = url.substr(waybackPrefix.length);
+  var parts = rest.match(archivalURLRegex);
+  
+  if (!parts) {
+    return false;
+  }
+  
+  return true;
+}
+
+function extractWaybackReplayInfo(waybackPrefix, url)
 {
   var rest = url.substr(waybackPrefix.length);
   var parts = rest.match(archivalURLRegex);
   
   if (!parts) {
     return null;
-  }
-  
-  if (matchOnly) {
-    return true;
   }
   
   return {"fullWaybackUrl": url,
@@ -128,7 +140,7 @@ function archivalRedirect(details)
   var replayInfo = tabIdToUrl[details.tabId];
   
   // If already a wayback url, pass through
-  if (extractWaybackReplayInfo(replayInfo.waybackPrefix, details.url, true)) {
+  if (isReplayUrl(replayInfo.waybackPrefix, details.url)) {
     return {};
   }
   
@@ -144,7 +156,29 @@ function archivalRedirect(details)
 
 chrome.tabs.onUpdated.addListener(function(tabId, changeinfo, tab) {
   if (isWaybackReplayTab(tabId)) {
-    chrome.tabs.executeScript(null, {file: "banner.js"});
+    if (tab.status == "loading") {
+      chrome.tabs.executeScript(null, {file: "banner.js"});
+    }
+  }
+});
+
+chrome.tabs.getAllInWindow(null, function(tabs){
+  for (var i = 0; i < tabs.length; i++) {
+    
+    var url = tabs[i].url;
+    var tabId = tabs[i].id;
+    
+    var waybackPrefix = findWaybackPrefix(url);
+    
+    if (waybackPrefix) {
+      var replayInfo = extractWaybackReplayInfo(waybackPrefix, url);
+      
+      if (replayInfo) {
+        //console.log("Found " + tabId + " " + url);
+        //console.log(replayInfo);
+        tabIdToUrl[tabId] = replayInfo;
+      }
+    }
   }
 });
 
