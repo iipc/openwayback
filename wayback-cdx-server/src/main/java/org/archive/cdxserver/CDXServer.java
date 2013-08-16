@@ -134,7 +134,7 @@ public class CDXServer extends BaseCDXServer {
 		
 		int offset = ServletRequestUtils.getIntParameter(request, "offset", 0);
 		int limit = ServletRequestUtils.getIntParameter(request, "limit", 0);
-		boolean fastLatest = ServletRequestUtils.getBooleanParameter(request, "fastLatest", false);
+		Boolean fastLatest = ServletRequestUtils.getBooleanParameter(request, "fastLatest", false);
 		String fl = ServletRequestUtils.getStringParameter(request, "fl", "");
 		
 		int page = ServletRequestUtils.getIntParameter(request, "page", -1);
@@ -174,7 +174,7 @@ public class CDXServer extends BaseCDXServer {
 			
 			@RequestParam(value = "offset", defaultValue = "0") int offset, 
 			@RequestParam(value = "limit", defaultValue = "0") int limit,
-			@RequestParam(value = "fastLatest", defaultValue = "false") boolean fastLatest,
+			@RequestParam(value = "fastLatest", required = false) Boolean fastLatest,
 			@RequestParam(value = "fl", defaultValue = "") String fl,
 
 			@RequestParam(value = "page", defaultValue = "-1") int page,
@@ -226,12 +226,15 @@ public class CDXServer extends BaseCDXServer {
 
 			int maxLimit;
 
-			// Optimize: always fastLatest if just last line
-			fastLatest = fastLatest || (limit == -1);
-			
-			if (!closest.isEmpty() && (limit > 0)) {
-			    fastLatest = true;
+			if (fastLatest == null) {
+				// Optimize: default fastLatest to true for last line or closest sorted results
+				if ((limit == -1) || (!closest.isEmpty() && (limit > 0))) {
+				    fastLatest = true;
+				} else {
+					fastLatest = false;
+				}
 			}
+
 
 			// Paged query
 			if (page >= 0 || showNumPages) {
