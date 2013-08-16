@@ -12,7 +12,6 @@
   </parent>
 
   <properties>
-    <org.springframework.version>3.0.6.RELEASE</org.springframework.version>
     <wayback.port>9000</wayback.port>
   </properties>
 

@@ -20,6 +20,8 @@
   <properties>
     <website.url>http://github.com/internetarchive/wayback</website.url>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    
+    <org.springframework.version>3.0.6.RELEASE</org.springframework.version>
   </properties>
 
   <description>
@@ -322,12 +324,12 @@
       <dependency>
         <groupId>org.springframework</groupId>
         <artifactId>spring-core</artifactId>
-        <version>3.0.5.RELEASE</version>
+        <version>${org.springframework.version}</version>
       </dependency>
       <dependency>
         <groupId>org.springframework</groupId>
         <artifactId>spring-beans</artifactId>
-        <version>3.0.5.RELEASE</version>
+        <version>${org.springframework.version}</version>
       </dependency>
       <dependency>
         <groupId>org.beanshell</groupId>
