@@ -31,13 +31,17 @@
 
 #### [Advanced Usage](#advanced-usage) 
 
+* [Closest Timestamp Match](#closest-timestamp-match)
+
 * [Resumption Key](#resumption)
 
-* [Counters] (#counters)
-
-  * [Duplicate Counter] (#duplicate-counter)
+* [Resolve Revisits](#resolve-revisits)
   
-  * [Skip Counter] (#skip-counter)
+* [Counters](#counters)
+
+  * [Duplicate Counter](#duplicate-counter)
+  
+  * [Skip Counter](#skip-counter)
 
 * [Pagination API](#pagination-api)
 

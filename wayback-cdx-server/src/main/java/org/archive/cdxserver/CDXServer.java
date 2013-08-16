@@ -43,7 +43,6 @@ public class CDXServer extends BaseCDXServer {
 
 	protected ZipNumCluster zipnumSource;
 	protected CDXInputSource cdxSource;
-	protected ZipNumParams zipParams;
 	
 	protected String cdxFormat = null;
 	
@@ -52,8 +51,6 @@ public class CDXServer extends BaseCDXServer {
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
-		zipParams = new ZipNumParams(maxPageSize, maxPageSize, 0);
-
 		if (cdxSource == null) {
 			cdxSource = zipnumSource;
 		}

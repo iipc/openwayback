@@ -38,7 +38,9 @@ The following properties are set externally
   <bean name="fullBig" class="org.archive.format.gzip.zipnum.ZipNumCluster" init-method="init">
     <property name="summaryFile" value="${wayback.datadir}/index/active/ALL.summary" />          
     <property name="locFile" value="${wayback.datadir}/index/active/ALL.loc" />
-    <property name="useNio" value="false"/>
+    <property name="useNio" value="true"/>
+    <property name="binsearchBlockSize" value="1024"/>
+    <property name="readaheadSize" value="512"/>
     <property name="blockLoader" ref="zipBlockLoader"/>
   </bean>
     
