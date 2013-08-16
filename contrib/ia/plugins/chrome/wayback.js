@@ -2,10 +2,14 @@ var tabIdToUrl = {};
 
 var archivalURLRegex = /([^/]*)\/(\d{1,14})([a-z]{2}_)*\/(.*)/;
 
+// Access to Waybacks at these urls will be intercepted and rewritten on the client
 var knownWaybackPrefixList = 
-  ["http://web.archive.org/", 
+  [
+   "http://web.archive.org/", 
    "http://wayback.archive-it.org/", 
    "http://webharvest.gov/"];
+
+var wayback404Prefix = "http://web.archive.org/"
 
 function findWaybackPrefix(url)
 {
@@ -181,6 +185,69 @@ chrome.tabs.getAllInWindow(null, function(tabs){
     }
   }
 });
+
+// ********* 404 Handler
+
+function getCdxTestUrl(url)
+{
+  return wayback404Prefix + "cdx/search/cdx?url=" + encodeURIComponent(url) + "&filter=statuscode:[23]..&limit=-2&gzip=false";
+}
+
+function doRedirectTo(tabId, url, timestamp)
+{
+  var coll = "web";
+  var mod = "";
+  var waybackUrl = wayback404Prefix + coll + "/" + timestamp + mod + "/" + url;
+  
+  //console.log("redirect to: " + waybackUrl);
+  
+  chrome.tabs.update(tabId, {"url": waybackUrl});
+}
+
+
+function handleWaybackRedirect(tabId, url)
+{
+  var xhr = new XMLHttpRequest();
+  xhr.onreadystatechange = function parseCdxAndRedirect()
+  {
+    if (xhr.readyState != 4) {
+      return;
+    }
+    
+    if (xhr.status != 200) {
+      return;
+    }
+    
+    if (!xhr.responseText || (xhr.responseText == "")) {
+      return;
+    }
+    
+    // TODO: Need to get two lines due to bug in cdx server at moment, will fix
+    var lines = xhr.responseText.split('\n');
+    var fields = lines[lines.length - 2].split(' ');
+    if (fields[1]) {
+      doRedirectTo(tabId, url, fields[1]);
+    }
+  };
+  
+  var cdxUrl = getCdxTestUrl(url);
+  //console.log(cdxUrl);
+  xhr.open("GET", cdxUrl, true);
+  xhr.send();
+}
+
+function errorHandler(details)
+{
+  if ((details.statusCode && details.statusCode > 400) || details.error) {
+    //console.log("Not Found: " + details.url);
+    handleWaybackRedirect(details.tabId, details.url);
+  }
+};
+
+chrome.webRequest.onErrorOccurred.addListener(errorHandler, {urls: ["<all_urls>"]});
+chrome.webRequest.onCompleted.addListener(errorHandler, {urls: ["<all_urls>"]});
+
+// ********* End 404 Handler
 
 
 // Proxy Mode
