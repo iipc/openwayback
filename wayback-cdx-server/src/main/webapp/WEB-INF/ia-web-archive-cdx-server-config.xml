@@ -39,26 +39,34 @@ The following properties are set externally
     <property name="summaryFile" value="${wayback.datadir}/index/active/ALL.summary" />          
     <property name="locFile" value="${wayback.datadir}/index/active/ALL.loc" />
     <property name="useNio" value="true"/>
-    <property name="binsearchBlockSize" value="1024"/>
-    <property name="readaheadSize" value="512"/>
+    <property name="binsearchBlockSize" value="512"/>
+    <property name="readaheadSize" value="256"/>
     <property name="blockLoader" ref="zipBlockLoader"/>
+    <property name="cacheRemoteLoc" value="true"/>
+    <property name="locPrefix" value="http://archive.org/download/"/>
   </bean>
     
   <!-- Delta Medium -->
   <bean name="deltaMedium" class="org.archive.format.gzip.zipnum.ZipNumCluster" init-method="init">
     <property name="summaryFile" value="${wayback.datadir}/deltacdx/full/ALL.summary" />          
     <property name="locFile" value="${wayback.datadir}/deltacdx/full/ALL.loc" />
-    <property name="useNio" value="false"/>  
+    <property name="useNio" value="true"/>
+    <property name="binsearchBlockSize" value="512"/>
+    <property name="readaheadSize" value="256"/>
     <property name="blockLoader" ref="zipBlockLoader"/>
-    <property name="cdxLinesPerBlock" value="1000"/>    
+    <property name="cdxLinesPerBlock" value="1000"/>
+    <property name="cacheRemoteLoc" value="true"/>
+    <property name="locPrefix" value="http://archive.org/download/"/>
   </bean>
   
   <!-- Delta Small -->
   <bean name="deltaSmall" class="org.archive.format.gzip.zipnum.ZipNumCluster" init-method="init">
     <property name="summaryFile" value="${wayback.datadir}/deltacdx/delta/ALL.summary" />          
     <property name="locFile" value="${wayback.datadir}/deltacdx/delta/ALL.loc" />
-    <property name="useNio" value="false"/>
-    <property name="blockLoader" ref="zipBlockLoader"/>    
+    <property name="useNio" value="true"/>
+    <property name="binsearchBlockSize" value="512"/>
+    <property name="readaheadSize" value="256"/>
+    <property name="blockLoader" ref="zipBlockLoader"/>  
   </bean>
  
   <bean name="all" class="org.archive.format.cdx.MultiCDXInputSource">

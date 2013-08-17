@@ -24,6 +24,7 @@ import org.archive.format.cdx.CDXLine;
 import org.archive.format.cdx.CDXLineFactory;
 import org.archive.format.cdx.FieldSplitFormat;
 import org.archive.format.cdx.StandardCDXLineFactory;
+import org.archive.format.gzip.zipnum.LineBufferingIterator;
 import org.archive.format.gzip.zipnum.ZipNumCluster;
 import org.archive.format.gzip.zipnum.ZipNumIndex.PageResult;
 import org.archive.format.gzip.zipnum.ZipNumParams;
@@ -135,6 +136,7 @@ public class CDXServer extends BaseCDXServer {
 		int offset = ServletRequestUtils.getIntParameter(request, "offset", 0);
 		int limit = ServletRequestUtils.getIntParameter(request, "limit", 0);
 		Boolean fastLatest = ServletRequestUtils.getBooleanParameter(request, "fastLatest", false);
+		boolean reverse = ServletRequestUtils.getBooleanParameter(request, "reverse", false);
 		String fl = ServletRequestUtils.getStringParameter(request, "fl", "");
 		
 		int page = ServletRequestUtils.getIntParameter(request, "page", -1);
@@ -148,7 +150,7 @@ public class CDXServer extends BaseCDXServer {
 
 		this.getCdx(request, response, url, matchType, from, to, closest, gzip, output, 
 		        filter, collapse, dupeCount, resolveRevisits, skipCount, lastSkipTimestamp,
-				offset, limit, fastLatest, fl, page, pageSize, showNumPages, showPagedIndex,
+				offset, limit, fastLatest, reverse, fl, page, pageSize, showNumPages, showPagedIndex,
 				resumeKey, showResumeKey);
 	}
 
@@ -175,6 +177,7 @@ public class CDXServer extends BaseCDXServer {
 			@RequestParam(value = "offset", defaultValue = "0") int offset, 
 			@RequestParam(value = "limit", defaultValue = "0") int limit,
 			@RequestParam(value = "fastLatest", required = false) Boolean fastLatest,
+			@RequestParam(value = "reverse", required = false) boolean reverse,			
 			@RequestParam(value = "fl", defaultValue = "") String fl,
 
 			@RequestParam(value = "page", defaultValue = "-1") int page,
@@ -262,6 +265,10 @@ public class CDXServer extends BaseCDXServer {
 				if (iter == null) {
 					return;
 				}
+				
+				if (reverse) {
+					iter = new LineBufferingIterator(iter, pageSize, true);
+				}
 
 				if (showPagedIndex && authToken.isAllUrlAccessAllowed()) {
 					response.addHeader(X_MAX_LINES, "" + pageSize);
@@ -269,7 +276,7 @@ public class CDXServer extends BaseCDXServer {
 					return;
 				}
 				
-				iter = createBoundedCdxIterator(startEndUrl, from, resumeKey, closest, fastLatest, page, pageResult, iter);
+				iter = createBoundedCdxIterator(startEndUrl, from, resumeKey, closest, fastLatest, reverse, page, pageResult, iter);
 
 				response.addHeader(X_MAX_LINES, "" + (zipnumSource.getCdxLinesPerBlock() * pageSize));
 
@@ -278,7 +285,7 @@ public class CDXServer extends BaseCDXServer {
 
 			} else {
 				// Non-Paged Merged query
-				iter = createBoundedCdxIterator(startEndUrl, from, resumeKey, closest, fastLatest, -1, null, null);
+				iter = createBoundedCdxIterator(startEndUrl, from, resumeKey, closest, fastLatest, reverse, -1, null, null);
 
 				maxLimit = this.queryMaxLimit;
 			}
@@ -347,6 +354,7 @@ public class CDXServer extends BaseCDXServer {
 	                                                             String resumeKey, 
 	                                                             String closest,
 	                                                             boolean fastLatest,
+	                                                             boolean reverse,
 	                                                             
 	                                                             int page,
 	                                                             PageResult pageResult,
@@ -354,7 +362,7 @@ public class CDXServer extends BaseCDXServer {
 	{
 	    String searchKey = null;
 	    
-        ZipNumParams params = new ZipNumParams(maxPageSize, maxPageSize, 0);
+        ZipNumParams params = new ZipNumParams(maxPageSize, maxPageSize, 0, reverse);
 	    
         if (!resumeKey.isEmpty()) {
             searchKey = URLDecoder.decode(resumeKey, "UTF-8");
