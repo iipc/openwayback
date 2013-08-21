@@ -66,19 +66,26 @@ public class CompositeSearchResultSource implements SearchResultSource {
 			throws ResourceIndexNotAvailableException {
 
 		Comparator<CaptureSearchResult> comparator = new SearchResultComparator();
-		CompositeSortedIterator<CaptureSearchResult> itr = 
-			new CompositeSortedIterator<CaptureSearchResult>(comparator);
+		CompositeSortedIterator<CaptureSearchResult> itr = new CompositeSortedIterator<CaptureSearchResult>(comparator);
 		
 		int added = 0;
 		ResourceIndexNotAvailableException lastExc = null;
 		
-		try {
-			for (int i = 0; i < sources.size(); i++) {
-				itr.addComponent(sources.get(i).getPrefixIterator(prefix));
+		for (int i = 0; i < sources.size(); i++) {
+			SearchResultSource source = sources.get(i);
+			
+			try {
+				itr.addComponent(source.getPrefixIterator(prefix));
 				added++;
+			} catch (ResourceIndexNotAvailableException e) {
+				if (source instanceof ZipNumClusterSearchResultSource) {
+					if (((ZipNumClusterSearchResultSource)source).getCluster().isRequired()) {
+						throw e;
+					}
+				}
+				
+				lastExc = e;
 			}
-		} catch (ResourceIndexNotAvailableException e) {
-			lastExc = e;
 		}
 		
 		if ((lastExc != null) && (added == 0)) {

@@ -29,9 +29,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
 
+import org.archive.util.io.RuntimeIOException;
 import org.archive.util.iterator.CloseableIterator;
 import org.archive.util.zip.OpenJDK7GZIPInputStream;
-import org.archive.wayback.exception.RuntimeIOException;
 import org.archive.wayback.util.ByteOp;
 
 /**

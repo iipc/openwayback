@@ -25,6 +25,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.httpclient.URIException;
+import org.archive.util.io.RuntimeIOException;
 import org.archive.util.iterator.CloseableIterator;
 import org.archive.wayback.ResourceIndex;
 import org.archive.wayback.UrlCanonicalizer;
@@ -39,7 +40,6 @@ import org.archive.wayback.exception.AccessControlException;
 import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
-import org.archive.wayback.exception.RuntimeIOException;
 import org.archive.wayback.resourceindex.adapters.CaptureToUrlSearchResultIterator;
 import org.archive.wayback.resourceindex.filterfactory.AccessPointCaptureFilterGroupFactory;
 import org.archive.wayback.resourceindex.filterfactory.AnnotatingCaptureFilterGroupFactory;
