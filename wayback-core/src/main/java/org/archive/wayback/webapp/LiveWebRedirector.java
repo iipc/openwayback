@@ -89,14 +89,7 @@ public class LiveWebRedirector {
 		if (state == RedirectType.NONE) {
 			return LiveWebState.NOT_FOUND;
 		}
-		
-		redirUrl = liveWebHandler.getLiveWebRedirect(httpRequest, wbRequest, e);
-		
-		// Don't redirect if redirUrl null
-		if (redirUrl == null) {
-			return LiveWebState.NOT_FOUND;
-		}
-		
+				
 		// If embeds_only and not embed return if it was found		
 		if (state == RedirectType.EMBEDS_ONLY) {
 //			boolean allowRedirect = wbRequest.isAnyEmbeddedContext();
@@ -119,6 +112,12 @@ public class LiveWebRedirector {
 		}
 		
 		// Now try to do a redirect
+		redirUrl = liveWebHandler.getLiveWebRedirect(httpRequest, wbRequest, e);
+		
+		// Don't redirect if redirUrl null
+		if (redirUrl == null) {
+			return LiveWebState.NOT_FOUND;
+		}
 				
 		// If set to DEFAULT then compute the standard redir url
 		if (redirUrl.equals(DEFAULT)) {
