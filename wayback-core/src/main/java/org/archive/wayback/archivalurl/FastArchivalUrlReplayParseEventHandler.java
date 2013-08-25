@@ -24,10 +24,10 @@ import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.Vector;
 
 import javax.servlet.ServletException;
 
-import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.replay.html.ReplayParseContext;
 import org.archive.wayback.replay.html.StringTransformer;
 import org.archive.wayback.replay.html.transformer.BlockCSSStringTransformer;
@@ -38,6 +38,7 @@ import org.archive.wayback.replay.html.transformer.URLStringTransformer;
 import org.archive.wayback.util.htmllex.NodeUtils;
 import org.archive.wayback.util.htmllex.ParseContext;
 import org.archive.wayback.util.htmllex.ParseEventHandler;
+import org.htmlparser.Attribute;
 import org.htmlparser.Node;
 import org.htmlparser.nodes.RemarkNode;
 import org.htmlparser.nodes.TagNode;
@@ -334,6 +335,12 @@ public class FastArchivalUrlReplayParseEventHandler implements
 
 		} else if(tagName.equals("SCRIPT")) {
 			transformAttr(context, tagNode, "SRC", jsUrlTrans);
+		} else if(tagName.equals("DIV") || tagName.equals("LI")) {
+			//HTML5 -- can have data-src or data-uri attributes in any tag!
+			//Can really be in any tag but for now using most common use cases
+			//Experimental
+			transformAttr(context,tagNode,"data-src", objectEmbedUrlTrans);
+			transformAttr(context,tagNode,"data-uri", objectEmbedUrlTrans);
 		} else {
 			if (!checkAllowTag(context, tagNode)) {
 				return;
@@ -344,6 +351,7 @@ public class FastArchivalUrlReplayParseEventHandler implements
 		transformAttr(context,tagNode,"STYLE", cssInlineTrans);
 		transformAttr(context,tagNode,"onclick", jsBlockTrans);
 		transformAttr(context,tagNode,"onload", jsBlockTrans);
+		
 
 		emit(context,preEmit,tagNode,postEmit);
 	}

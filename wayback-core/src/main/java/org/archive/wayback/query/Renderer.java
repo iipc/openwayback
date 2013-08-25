@@ -47,12 +47,14 @@ public class Renderer implements QueryRenderer {
 	private String xmlCaptureJsp = "/WEB-INF/query/XMLCaptureResults.jsp";
 	private String xmlUrlJsp = "/WEB-INF/query/XMLUrlResults.jsp";
 	
+	protected ResultURIConverter queryUriConverter = null;
+	
 	public void renderCaptureResults(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
 			CaptureSearchResults results, ResultURIConverter uriConverter)
 			throws ServletException, IOException {
 
-		UIResults uiResults = new UIResults(wbRequest,uriConverter,results);
+		UIResults uiResults = new UIResults(wbRequest,(queryUriConverter != null ? queryUriConverter : uriConverter),results);
 		if(wbRequest.isXMLMode()) {
 			uiResults.forward(httpRequest, httpResponse, xmlCaptureJsp);
 		} else {
@@ -68,7 +70,7 @@ public class Renderer implements QueryRenderer {
 			UrlSearchResults results, ResultURIConverter uriConverter)
 			throws ServletException, IOException {
 
-		UIResults uiResults = new UIResults(wbRequest,uriConverter,results);
+		UIResults uiResults = new UIResults(wbRequest,(queryUriConverter != null ? queryUriConverter : uriConverter),results);
 		if(wbRequest.isXMLMode()) {
 			uiResults.forward(httpRequest, httpResponse, xmlUrlJsp);
 		} else {
@@ -129,5 +131,13 @@ public class Renderer implements QueryRenderer {
 	 */
 	public void setXmlUrlJsp(String xmlUrlJsp) {
 		this.xmlUrlJsp = xmlUrlJsp;
+	}
+
+	public ResultURIConverter getQueryUriConverter() {
+		return queryUriConverter;
+	}
+
+	public void setQueryUriConverter(ResultURIConverter queryUriConverter) {
+		this.queryUriConverter = queryUriConverter;
 	}
 }
