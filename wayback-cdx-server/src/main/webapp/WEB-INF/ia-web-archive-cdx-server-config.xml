@@ -43,7 +43,6 @@ The following properties are set externally
     <property name="readaheadSize" value="256"/>
     <property name="blockLoader" ref="zipBlockLoader"/>
     <property name="cacheRemoteLoc" value="true"/>
-    <property name="locPrefix" value="http://archive.org/download/"/>
   </bean>
     
   <!-- Delta Medium -->
@@ -56,7 +55,6 @@ The following properties are set externally
     <property name="blockLoader" ref="zipBlockLoader"/>
     <property name="cdxLinesPerBlock" value="1000"/>
     <property name="cacheRemoteLoc" value="true"/>
-    <property name="locPrefix" value="http://archive.org/download/"/>
   </bean>
   
   <!-- Delta Small -->

@@ -218,6 +218,13 @@ public class CDXServer extends BaseCDXServer {
 					matchType = MatchType.exact;
 				}
 			}
+			
+			// For now, don't support domain or host output w/o key as access check is too slow
+			if (matchType == MatchType.domain || matchType == MatchType.host) {
+				if (!authToken.isAllUrlAccessAllowed()) {
+					return;
+				}
+			}
 
 			String startEndUrl[] = urlSurtRangeComputer.determineRange(url, matchType, "", "");
 
