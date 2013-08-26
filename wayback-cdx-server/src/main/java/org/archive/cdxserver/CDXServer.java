@@ -196,16 +196,7 @@ public class CDXServer extends BaseCDXServer {
 		try {
 			prepareResponse(response);
 			handleAjax(request, response);
-
-			if (!authToken.isAllUrlAccessAllowed() && !authChecker.checkAccess(url)) {
-				if (showNumPages) {
-					// Default to 1 page even if no results
-					response.setHeader(X_NUM_PAGES, "1");
-					response.getWriter().println("1");
-				}
-				return;
-			}
-
+			
 			// Check for wildcards as shortcuts for matchType
 			if (matchType == null) {
 				if (url.startsWith("*.")) {
@@ -224,6 +215,15 @@ public class CDXServer extends BaseCDXServer {
 				if (!authToken.isAllUrlAccessAllowed()) {
 					return;
 				}
+			}
+
+			if (!authToken.isAllUrlAccessAllowed() && !authChecker.checkAccess(url)) {
+				if (showNumPages) {
+					// Default to 1 page even if no results
+					response.setHeader(X_NUM_PAGES, "1");
+					response.getWriter().println("1");
+				}
+				return;
 			}
 
 			String startEndUrl[] = urlSurtRangeComputer.determineRange(url, matchType, "", "");
