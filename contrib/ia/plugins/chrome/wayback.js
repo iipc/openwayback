@@ -238,9 +238,11 @@ function handleWaybackRedirect(tabId, url)
 
 function errorHandler(details)
 {
-  if ((details.statusCode && details.statusCode > 400) || details.error) {
-    //console.log("Not Found: " + details.url);
-    handleWaybackRedirect(details.tabId, details.url);
+  if (details.type == "main_frame") {
+    if ((details.statusCode && details.statusCode > 400) || details.error) {
+      //console.log("Not Found: " + details.url);
+      handleWaybackRedirect(details.tabId, details.url);
+    }
   }
 };
 
