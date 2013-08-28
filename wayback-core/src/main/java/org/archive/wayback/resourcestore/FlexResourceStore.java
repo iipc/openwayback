@@ -261,18 +261,20 @@ public class FlexResourceStore implements ResourceStore {
 		long offset = result.getOffset();
 		int length = (int)result.getCompressedLength();
 		
-		SeekableLineReader slr = null;
+		if (LOGGER.isLoggable(Level.INFO)) {
+			LOGGER.info("Loading " + path + " - " + offset + ":" + length);
+		}
+		
+		boolean success = false;
+		
+		SeekableLineReader slr = blockLoader.attemptLoadBlock(path, offset, length, false, false);
+		
+		if (slr == null) {
+			return null;
+		}
 		
 		try {
-			slr = blockLoader.createBlockReader(path);
-			
-			slr.seekWithMaxRead(offset, false, length);
-			
 			InputStream is = slr.getInputStream();
-			
-			if (LOGGER.isLoggable(Level.INFO)) {
-				LOGGER.info("Loading " + path + " - " + offset + ":" + length);
-			}
 					
 			ArchiveReader archiveReader = ArchiveReaderFactory.get(path, is, (offset == 0));
 			
@@ -286,36 +288,16 @@ public class FlexResourceStore implements ResourceStore {
 			
 			r.parseHeaders();
 			
-			// Ability to pass on header prefix from data store request
-//			if ((customHeader != null) && (slr instanceof HTTPSeekableLineReader)) {
-//				HTTPSeekableLineReader httpSlr = (HTTPSeekableLineReader)slr;
-//				String value = httpSlr.getHeaderValue(customHeader);
-//				
-//				if (value != null) {				
-//					result.put(CaptureSearchResult.CUSTOM_HEADER_PREFIX + customHeader, value);
-//				}
-//			}
+			success = true;
 			
-		} catch (Exception e) {
-			
-			if (LOGGER.isLoggable(Level.SEVERE)) {
-				LOGGER.log(Level.SEVERE, e.toString() + " -- " + path + " " + offset + ":" + length);
-			}
-			
-			if (slr != null) {
-				slr.close();
-			}
-			
-			r = null;
-			slr = null;
-			
-			if (e instanceof IOException) {
-				throw (IOException)e;
-			} else {
-				throw new IOException(e);
+		} finally {
+			if (!success) {
+				if (slr != null) {
+					slr.close();
+				}	
 			}
 		}
-				
+
 		return r;
 	}
 
