@@ -298,8 +298,8 @@ public class FlexResourceStore implements ResourceStore {
 			
 		} catch (Exception e) {
 			
-			if (LOGGER.isLoggable(Level.WARNING)) {
-				LOGGER.warning(e.toString());
+			if (LOGGER.isLoggable(Level.SEVERE)) {
+				LOGGER.log(Level.SEVERE, e.toString() + " -- " + path + " " + offset + ":" + length);
 			}
 			
 			if (slr != null) {
