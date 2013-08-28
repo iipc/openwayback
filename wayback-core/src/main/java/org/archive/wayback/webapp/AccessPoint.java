@@ -332,7 +332,8 @@ implements ShutdownListener {
 			
 			LiveWebState liveWebState = LiveWebState.NOT_FOUND;
 			
-			if ((getLiveWebRedirector() != null) && !wbRequest.hasMementoAcceptDatetime()) {
+			if ((getLiveWebRedirector() != null) && 
+					!wbRequest.hasMementoAcceptDatetime() && !wbRequest.isMementoTimemapRequest() && !wbRequest.isBestLatestReplayRequest()) {
 				liveWebState = getLiveWebRedirector().handleRedirect(e, wbRequest, httpRequest, httpResponse);
 			}
 			
@@ -648,7 +649,7 @@ implements ShutdownListener {
 				counter++;
 				
 				if (closest == null) {
-					throw new ResourceNotInArchiveException("Self-Redirect: No Closest Match Found");
+					throw new ResourceNotAvailableException("Self-Redirect: No Closest Match Found", 404);
 				}
 				
 				closest.setClosest(true);
@@ -1001,7 +1002,7 @@ implements ShutdownListener {
 				throw lastExc;
 			}
 			
-			throw new ResourceNotInArchiveException("Revisit: Missing original for revisit record " + closest.toString());
+			throw new ResourceNotAvailableException("Revisit: Missing original for revisit record " + closest.toString(), 404);
 		}
 
 		return getResource(payloadLocation, skipFiles);
