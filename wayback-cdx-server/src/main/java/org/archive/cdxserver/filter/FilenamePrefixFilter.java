@@ -1,4 +1,4 @@
-package org.archive.cdxserver.cdx.filter;
+package org.archive.cdxserver.filter;
 
 import java.io.IOException;
 import java.util.ArrayList;

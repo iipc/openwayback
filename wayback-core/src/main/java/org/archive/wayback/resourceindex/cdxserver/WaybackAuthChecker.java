@@ -3,7 +3,7 @@ package org.archive.wayback.resourceindex.cdxserver;
 import org.apache.commons.httpclient.URIException;
 import org.archive.cdxserver.auth.AuthToken;
 import org.archive.cdxserver.auth.PrivTokenAuthChecker;
-import org.archive.cdxserver.cdx.filter.FilenamePrefixFilter;
+import org.archive.cdxserver.filter.FilenamePrefixFilter;
 import org.archive.format.cdx.CDXLine;
 import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.accesscontrol.robotstxt.redis.RedisRobotExclusionFilterFactory;

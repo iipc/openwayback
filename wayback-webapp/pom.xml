@@ -7,7 +7,7 @@
   <parent>
     <artifactId>wayback</artifactId>
     <groupId>org.archive.wayback</groupId>
-    <version>${version}</version>
+    <version>1.8.1-SNAPSHOT</version>
   </parent>
 
   <artifactId>wayback-webapp</artifactId>

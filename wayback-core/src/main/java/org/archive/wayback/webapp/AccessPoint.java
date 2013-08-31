@@ -326,6 +326,10 @@ implements ShutdownListener {
 
 		} catch(WaybackException e) {
 			
+			if (httpResponse.isCommitted()) {
+				return true;
+			}
+			
 			if (wbRequest == null) {
 				wbRequest = new WaybackRequest();
 				wbRequest.setAccessPoint(this);

@@ -85,7 +85,8 @@ public class EmbeddedCDXServerIndex implements MementoTimemapRenderer, ResourceI
         
         captureWriter.setSelfRedirFilter(selfRedirFilter);
                 
-        AuthToken waybackAuthToken = new AuthToken(wbRequest.get(CDXServer.CDX_AUTH_TOKEN));
+        //AuthToken waybackAuthToken = new AuthToken(wbRequest.get(CDXServer.CDX_AUTH_TOKEN));
+        AuthToken waybackAuthToken = new AuthToken();
         waybackAuthToken.setAllCdxFieldsAllow();
 
         try {    	
@@ -136,21 +137,8 @@ public class EmbeddedCDXServerIndex implements MementoTimemapRenderer, ResourceI
 
         try {    	
     		cdxServer.getCdx(request, response, query);
-	        
-        } catch (IOException e) {
-        	throw new ResourceIndexNotAvailableException(e.toString());
-        } catch (RuntimeException rte) {
-        	Throwable cause = rte.getCause();
-        	
-        	if (cause instanceof AccessControlException) {
-        		throw (AccessControlException)cause;
-        	}
-        	
-        	if (cause instanceof IOException) {
-        		throw new ResourceIndexNotAvailableException(cause.toString());
-        	}
-        	
-        	throw rte;
+        } catch (Exception e) {
+        	//CDX server handles its own output
         }
 
 		return true;

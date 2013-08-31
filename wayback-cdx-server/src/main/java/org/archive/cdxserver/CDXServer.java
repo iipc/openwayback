@@ -11,8 +11,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.httpclient.URIException;
 import org.archive.cdxserver.auth.AuthToken;
-import org.archive.cdxserver.cdx.filter.CollapseFieldFilter;
-import org.archive.cdxserver.cdx.filter.FieldRegexFilter;
+import org.archive.cdxserver.filter.CollapseFieldFilter;
+import org.archive.cdxserver.filter.FieldRegexFilter;
 import org.archive.cdxserver.processor.BaseProcessor;
 import org.archive.cdxserver.processor.ClosestTimestampSorted;
 import org.archive.cdxserver.processor.DupeCountProcessor;
