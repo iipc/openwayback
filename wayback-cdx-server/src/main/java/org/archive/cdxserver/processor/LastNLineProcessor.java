@@ -1,16 +1,15 @@
-package org.archive.cdxserver.output;
+package org.archive.cdxserver.processor;
 
-import java.io.PrintWriter;
 import java.util.LinkedList;
 
 import org.archive.format.cdx.CDXLine;
 
-public class LastNLineOutput extends WrappedCDXOutput {
+public class LastNLineProcessor extends WrappedProcessor {
     
     protected LinkedList<CDXLine> lines;
     protected int limit = 1;
     
-    public LastNLineOutput(CDXOutput output, int limit)
+    public LastNLineProcessor(BaseProcessor output, int limit)
     {
         super(output);
         this.lines = new LinkedList<CDXLine>();
@@ -18,7 +17,7 @@ public class LastNLineOutput extends WrappedCDXOutput {
     }
 
     @Override
-    public int writeLine(PrintWriter writer, CDXLine line) {
+    public int writeLine(CDXLine line) {
         lines.add(line);
         
         if (lines.size() > limit) {
@@ -28,29 +27,29 @@ public class LastNLineOutput extends WrappedCDXOutput {
         return 0;
     }
     
-    protected void flush(PrintWriter writer)
+    protected void flush()
     {
         for (CDXLine line : lines) {
-            inner.writeLine(writer, line);
+            inner.writeLine(line);
         }
         lines.clear();
     }
 
     @Override
-    public void writeResumeKey(PrintWriter writer, String resumeKey) {
+    public void writeResumeKey(String resumeKey) {
         if (!lines.isEmpty()) {
-            flush(writer);
+            flush();
         }
         
-        inner.writeResumeKey(writer, resumeKey);
+        inner.writeResumeKey(resumeKey);
     }
 
     @Override
-    public void end(PrintWriter writer) {
+    public void end() {
         if (!lines.isEmpty()) {
-            flush(writer);
+            flush();
         }
         
-        inner.end(writer);
+        inner.end();
     }
 }

@@ -7,7 +7,7 @@
   <groupId>org.archive.wayback</groupId>
   <artifactId>wayback</artifactId>
   <packaging>pom</packaging>
-  <version>1.8.0-SNAPSHOT</version>
+  <version>${version}</version>
   <name>Wayback</name>
 
   <modules>
@@ -20,6 +20,8 @@
   <properties>
     <website.url>http://github.com/internetarchive/wayback</website.url>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    
+    <version>1.8.1-SNAPSHOT</version>
     
     <org.springframework.version>3.0.6.RELEASE</org.springframework.version>
   </properties>

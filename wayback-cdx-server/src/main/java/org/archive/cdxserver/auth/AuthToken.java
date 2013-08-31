@@ -4,45 +4,22 @@ package org.archive.cdxserver.auth;
 public class AuthToken {
 	
 	final String authToken;
-	final private AuthChecker authChecker;
+	Boolean cachedAllUrlAllow = null;
+	Boolean cachedAllCdxAllow = null;
 	
-	private Boolean allUrlsAllowed;
-	private Boolean allCdxAllowed;
-	
-	public static AuthToken createAllAccessToken()
+	public AuthToken()
 	{
-	    return new AuthToken(null, null);
+		this.authToken = null;
 	}
 	
-	AuthToken(AuthChecker authChecker, String authToken)
+	public AuthToken(String authToken)
 	{
-		this.authChecker = authChecker;
 		this.authToken = authToken;
 	}
 	
-	public boolean isAllUrlAccessAllowed()
+	//TODO: is this good way of doing so
+	public void setAllCdxFieldsAllow()
 	{
-		if (authChecker == null) {
-			return true;
-		}
-		
-		if (this.allUrlsAllowed == null) {
-			this.allUrlsAllowed = authChecker.isAllUrlAccessAllowed(this);	
-		}
-		
-		return this.allUrlsAllowed;
-	}
-	
-	public boolean isAllCdxFieldsAllowed()
-	{
-		if (authChecker == null) {
-			return true;
-		}
-		
-		if (this.allCdxAllowed == null) {
-			this.allCdxAllowed = authChecker.isAllCdxAccessAllowed(this);
-		}
-		
-		return this.allCdxAllowed;
+		cachedAllCdxAllow = true;
 	}
 }

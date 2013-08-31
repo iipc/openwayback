@@ -8,7 +8,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.httpclient.URIException;
-import org.apache.commons.lang.StringEscapeUtils;
 import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.accesscontrol.ExclusionFilterFactory;
 import org.archive.wayback.core.FastCaptureSearchResult;

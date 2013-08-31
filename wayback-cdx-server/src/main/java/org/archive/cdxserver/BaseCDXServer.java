@@ -6,9 +6,11 @@ import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.util.zip.GZIPOutputStream;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.archive.cdxserver.auth.AllAccessAuth;
 import org.archive.cdxserver.auth.AuthChecker;
 import org.archive.cdxserver.auth.AuthToken;
 import org.archive.url.UrlSurtRangeComputer;
@@ -18,6 +20,10 @@ import org.springframework.stereotype.Controller;
 
 @Controller
 public class BaseCDXServer implements InitializingBean {
+	
+	public final static String CDX_AUTH_TOKEN = "cdx_auth_token";
+
+	protected String cookieAuthToken = CDX_AUTH_TOKEN;
 	
 	protected UrlSurtRangeComputer urlSurtRangeComputer;
 	protected WaybackURLKeyMaker canonicalizer = null;
@@ -33,9 +39,21 @@ public class BaseCDXServer implements InitializingBean {
 	public void setSurtMode(boolean surtMode) {
 		this.surtMode = surtMode;
 	}
+	
+	public String getCookieAuthToken() {
+		return cookieAuthToken;
+	}
+
+	public void setCookieAuthToken(String cookieAuthToken) {
+		this.cookieAuthToken = cookieAuthToken;
+	}
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
+		if (authChecker == null) {
+			authChecker = new AllAccessAuth();
+		}
+		
 		canonicalizer = new WaybackURLKeyMaker(surtMode);
 		urlSurtRangeComputer = new UrlSurtRangeComputer(surtMode);
 	}
@@ -64,6 +82,7 @@ public class BaseCDXServer implements InitializingBean {
     protected PrintWriter getGzipWriter(HttpServletResponse response) throws IOException
     {
 		response.setHeader("Content-Encoding", "gzip");
+		
 		PrintWriter writer = new PrintWriter(new GZIPOutputStream(response.getOutputStream())
 		{
 //			{
@@ -90,16 +109,6 @@ public class BaseCDXServer implements InitializingBean {
 	    response.setHeader("Access-Control-Allow-Credentials", "true");
 	    response.setHeader("Access-Control-Allow-Origin", origin);
 	}
-	
-	protected AuthToken initAuthToken(HttpServletRequest request)
-	{
-	    if (authChecker == null) {
-	        //TODO: Think more about the security implications
-	        return AuthToken.createAllAccessToken();
-	    }
-	    
-	    return authChecker.createAuthToken(request);
-	}
 		
 	public AuthChecker getAuthChecker() {
 		return authChecker;
@@ -116,4 +125,25 @@ public class BaseCDXServer implements InitializingBean {
     public void setAjaxAccessControl(String ajaxAccessControl) {
         this.ajaxAccessControl = ajaxAccessControl;
     }
+    
+    protected AuthToken createAuthToken(HttpServletRequest request)
+    {
+    	return new AuthToken(extractAuthToken(request, cookieAuthToken));
+    }
+    
+    protected String extractAuthToken(HttpServletRequest request, String cookieAuthToken) {
+		Cookie[] cookies = request.getCookies();
+
+		if (cookies == null) {
+			return null;
+		}
+
+		for (Cookie cookie : cookies) {
+			if (cookie.getName().equals(cookieAuthToken)) {
+				return cookie.getValue();
+			}
+		}
+
+		return null;
+	}
 }

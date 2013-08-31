@@ -53,11 +53,28 @@ public class TimeMapRequestParser extends WrappedRequestParser implements
 
 		if (requestPath.startsWith(TIMEMAP)) {
 
-			String urlStrplus = requestPath
-					.substring(requestPath.indexOf("/") + 1);
-			String format = urlStrplus.substring(0, urlStrplus.indexOf("/"));
-
-			String urlStr = urlStrplus.substring(urlStrplus.indexOf("/") + 1);
+			String urlStrplus = null, format = null, urlStr = null;
+			int index = requestPath.indexOf("/");
+			
+			if (index >= 0) {
+				urlStrplus = requestPath.substring(index + 1);
+				
+				index = urlStrplus.indexOf("/");
+				
+				if (index >= 0) {
+					format = urlStrplus.substring(0, index);
+					urlStr = urlStrplus.substring(index + 1);
+				} else {
+					//Support CDX server query
+					format = httpRequest.getParameter("output");
+					urlStr = httpRequest.getParameter("url");
+				}
+			}
+			
+			if (urlStr == null) {
+				return null;
+			}			
+			
 			LOGGER.fine(String.format("Parsed format(%s) URL(%s)", format,
 					urlStr));
 

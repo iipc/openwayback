@@ -8,7 +8,7 @@
   <parent>
     <artifactId>wayback</artifactId>
     <groupId>org.archive.wayback</groupId>
-    <version>1.8.0-SNAPSHOT</version>
+    <version>${version}</version>
   </parent>
 
   <properties>

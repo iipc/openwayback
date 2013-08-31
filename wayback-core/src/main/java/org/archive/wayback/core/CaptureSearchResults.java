@@ -22,7 +22,6 @@ package org.archive.wayback.core;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
 
 import org.archive.wayback.util.Timestamp;
 
@@ -124,7 +123,7 @@ public class CaptureSearchResults extends SearchResults implements Iterable<Capt
 		return results.isEmpty();
 	}
 
-	public List<CaptureSearchResult> getResults() {
+	public LinkedList<CaptureSearchResult> getResults() {
 		return results;
 	}
 	

@@ -1,0 +1,92 @@
+package org.archive.cdxserver.auth;
+
+import java.util.List;
+
+import org.archive.format.cdx.CDXLine;
+
+/**
+ * Simple checking of permissions for cdx server actions Permissions include:
+ * -Ability to see blocked urls -Ability to see full cdx line
+ * 
+ * The checkAccess() for each url is implemented in the subclasses
+ * 
+ * @author ilya
+ * 
+ */
+public abstract class PrivTokenAuthChecker implements AuthChecker {
+
+	
+	protected String publicCdxFields;
+
+	protected List<String> allUrlAccessTokens;
+	protected List<String> allCdxFieldsAccessTokens;
+
+	boolean isAllowed(AuthToken auth, List<String> allowVector) {
+		if (auth == null || auth.authToken == null || allowVector == null) {
+			return false;
+		}
+
+		if (allowVector.contains(auth.authToken)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public boolean isAllUrlAccessAllowed(AuthToken auth) {
+		if (auth.cachedAllUrlAllow == null) {
+			auth.cachedAllUrlAllow = isAllowed(auth, allUrlAccessTokens);
+		}
+		return auth.cachedAllUrlAllow;
+	}
+
+	@Override
+	public boolean isAllCdxFieldAccessAllowed(AuthToken auth) {
+		if (auth.cachedAllCdxAllow == null) {
+			auth.cachedAllCdxAllow = isAllowed(auth, allCdxFieldsAccessTokens);
+		}
+		return auth.cachedAllCdxAllow;
+	}
+	
+	@Override
+    public boolean isUrlAllowed(String url, AuthToken token)
+    {        
+        if (isAllUrlAccessAllowed(token)) {
+        	return true;
+        }
+        
+        return checkUrlAccess(url);
+    }
+	
+	@Override
+    public boolean isCaptureAllowed(CDXLine line, AuthToken auth) {
+		return true;
+    }
+	
+	protected abstract boolean checkUrlAccess(String url);
+
+	public String getPublicCdxFields() {
+		return publicCdxFields;
+	}
+
+	public void setPublicCdxFields(String publicCdxFields) {
+		this.publicCdxFields = publicCdxFields;
+	}
+
+	public List<String> getAllUrlAccessTokens() {
+		return allUrlAccessTokens;
+	}
+
+	public void setAllUrlAccessTokens(List<String> allUrlAccessTokens) {
+		this.allUrlAccessTokens = allUrlAccessTokens;
+	}
+
+	public List<String> getAllCdxFieldsAccessTokens() {
+		return allCdxFieldsAccessTokens;
+	}
+
+	public void setAllCdxFieldsAccessTokens(List<String> allCdxFieldsAccessTokens) {
+		this.allCdxFieldsAccessTokens = allCdxFieldsAccessTokens;
+	}
+}

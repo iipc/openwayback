@@ -1,27 +1,30 @@
-package org.archive.cdxserver.output;
+package org.archive.cdxserver.writer;
 
-import java.io.PrintWriter;
+import java.io.IOException;
+
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.StringEscapeUtils;
 import org.archive.format.cdx.CDXLine;
 import org.archive.format.cdx.FieldSplitFormat;
 
-public class CDXJsonOutput implements CDXOutput {
+public class JsonWriter extends HttpCDXWriter {
 
     boolean writeHeader = true;
     boolean firstLine = true;
-
-    public CDXJsonOutput() {
-
+    
+    public JsonWriter(HttpServletResponse response) throws IOException {
+    	super(response);
+		setContentType("application/json");
     }
 
     @Override
-    public void begin(PrintWriter writer) {
+    public void begin() {
         firstLine = true;
         writer.print('[');
     }
     
-    protected void writeHeader(PrintWriter writer, FieldSplitFormat names)
+    protected void writeHeader(FieldSplitFormat names)
     {
   		if (names == null || names.getLength() == 0) {
   			writer.print("[]");
@@ -43,10 +46,10 @@ public class CDXJsonOutput implements CDXOutput {
     }
 
     @Override
-    public int writeLine(PrintWriter writer, CDXLine line) {
+    public int writeLine(CDXLine line) {
         if (firstLine) {
             if (writeHeader) {
-            	writeHeader(writer, line.getNames());
+            	writeHeader(line.getNames());
                 writer.println(',');
             }
             firstLine = false;
@@ -78,27 +81,16 @@ public class CDXJsonOutput implements CDXOutput {
     }
 
     @Override
-    public void end(PrintWriter writer) {
+    public void end() {
         writer.println(']');
     }
 
     @Override
-    public void writeResumeKey(PrintWriter writer, String resumeKey) {
+    public void writeResumeKey(String resumeKey) {
         writer.println(",");
         writer.println("[],");
         writer.print("[\"");
         writer.print(resumeKey);
         writer.print("\"]");
     }
-
-	@Override
-	public void trackLine(CDXLine line) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public FieldSplitFormat modifyOutputFormat(FieldSplitFormat format) {
-		return format;
-	}
 }

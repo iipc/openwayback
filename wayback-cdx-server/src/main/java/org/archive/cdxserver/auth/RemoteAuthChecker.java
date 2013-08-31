@@ -7,15 +7,17 @@ import java.net.URL;
 import org.apache.commons.io.IOUtils;
 
 /**
- * An AuthChecker which determines if a url is allowed/restricted by checking the Wayback
- * machine's check-access interface
+ * An AuthChecker which determines if a url is allowed/restricted by checking a remote wayback /check-access interface
  * 
  * @author ilya
  *
  */
-public class WaybackAuthChecker extends AuthChecker {
+public class RemoteAuthChecker extends PrivTokenAuthChecker {
 
-    public boolean checkAccess(String url)
+	protected String accessCheckUrl;
+	
+	@Override
+    public boolean checkUrlAccess(String url)
     {
         if (accessCheckUrl == null) {
             return true;
@@ -41,4 +43,12 @@ public class WaybackAuthChecker extends AuthChecker {
         
         return false;
     }
+	
+	public String getAccessCheckUrl() {
+		return accessCheckUrl;
+	}
+
+	public void setAccessCheckUrl(String accessCheckUrl) {
+		this.accessCheckUrl = accessCheckUrl;
+	}
 }

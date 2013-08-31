@@ -1,13 +1,12 @@
-package org.archive.cdxserver.output;
+package org.archive.cdxserver.processor;
 
-import java.io.PrintWriter;
 import java.util.Date;
 import java.util.TreeMap;
 
 import org.archive.format.cdx.CDXLine;
 import org.archive.util.ArchiveUtils;
 
-public class CDXClosestTimestampSorted extends WrappedCDXOutput {
+public class ClosestTimestampSorted extends WrappedProcessor {
     
     enum Dir
     {
@@ -27,7 +26,7 @@ public class CDXClosestTimestampSorted extends WrappedCDXOutput {
         return ArchiveUtils.getDate(timestamp, new Date()).getTime();
     }
     
-    public CDXClosestTimestampSorted(CDXOutput output, String target, int limit) {
+    public ClosestTimestampSorted(BaseProcessor output, String target, int limit) {
         super(output);
         
         if (target.startsWith("-")) {
@@ -46,7 +45,7 @@ public class CDXClosestTimestampSorted extends WrappedCDXOutput {
     }
 
     @Override
-    public int writeLine(PrintWriter writer, CDXLine line) {
+    public int writeLine(CDXLine line) {
         if (done) {
             return Integer.MAX_VALUE;
         }
@@ -81,7 +80,7 @@ public class CDXClosestTimestampSorted extends WrappedCDXOutput {
             // Assumes ascending timestamp input 
             if (diff > closestLines.lastKey()) {
                 done = true;
-                return writeSorted(writer);
+                return writeSorted();
             }
         }
         
@@ -94,10 +93,10 @@ public class CDXClosestTimestampSorted extends WrappedCDXOutput {
         return 0;
     }
 
-    protected int writeSorted(PrintWriter writer) {
+    protected int writeSorted() {
         int count = 0;
         for (CDXLine line : closestLines.values()) {
-            super.writeLine(writer, line);
+            super.writeLine(line);
             ++count;
         }
         closestLines.clear();
@@ -105,14 +104,14 @@ public class CDXClosestTimestampSorted extends WrappedCDXOutput {
     }
 
     @Override
-    public void writeResumeKey(PrintWriter writer, String resumeKey) {
-        writeSorted(writer);
-        super.writeResumeKey(writer, resumeKey);
+    public void writeResumeKey(String resumeKey) {
+        writeSorted();
+        super.writeResumeKey(resumeKey);
     }
 
     @Override
-    public void end(PrintWriter writer) {
-        writeSorted(writer);
-        super.end(writer);
+    public void end() {
+        writeSorted();
+        super.end();
     }
 }

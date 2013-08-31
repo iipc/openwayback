@@ -66,6 +66,7 @@ import org.archive.wayback.exception.ResourceNotAvailableException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.exception.SpecificCaptureReplayException;
 import org.archive.wayback.exception.WaybackException;
+import org.archive.wayback.memento.MementoTimemapRenderer;
 import org.archive.wayback.memento.MementoUtils;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.resourceindex.filters.WARCRevisitAnnotationFilter;
@@ -168,6 +169,8 @@ implements ShutdownListener {
 	private RequestParser      parser       = null;
 	private ReplayDispatcher   replay       = null;
 	private ResultURIConverter uriConverter = null;
+	
+	private MementoTimemapRenderer mementoTimemapRenderer = null;
 
 	private ExclusionFilterFactory exclusionFactory = null;
 	private BooleanOperator<WaybackRequest> authentication = null;
@@ -1035,6 +1038,14 @@ implements ShutdownListener {
 	throws ServletException, IOException, WaybackException {
 
 		PerformanceLogger p = new PerformanceLogger("query");
+		
+		// Memento: custom renderer
+		if ((this.getMementoTimemapRenderer() != null) && (wbRequest.isMementoTimemapRequest())) {
+			if (mementoTimemapRenderer.renderMementoTimemap(wbRequest, httpRequest, httpResponse)) {
+				return;
+			}
+		}
+		
 		SearchResults results = queryIndex(wbRequest);
 		
 		p.queried();
@@ -1711,5 +1722,14 @@ implements ShutdownListener {
 
 	public void setEnableMemento(boolean enableMemento) {
 		this.enableMemento = enableMemento;
+	}
+
+	public MementoTimemapRenderer getMementoTimemapRenderer() {
+		return mementoTimemapRenderer;
+	}
+
+	public void setMementoTimemapRenderer(
+	        MementoTimemapRenderer mementoTimemapRenderer) {
+		this.mementoTimemapRenderer = mementoTimemapRenderer;
 	}
 }

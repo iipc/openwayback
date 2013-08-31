@@ -158,6 +158,9 @@ The following properties are set externally
     
     <property name="cdxFormat" value="cdx11"/>
     
+    <property name="defaultParams" ref="defaultParams"/>
+    <property name="pageParams" ref="pageParams"/>
+    
     <property name="authChecker" ref="authCheck"/>
     <property name="surtMode" value="true" />
     <property name="ajaxAccessControl" value="*"/>

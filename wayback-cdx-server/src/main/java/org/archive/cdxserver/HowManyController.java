@@ -187,10 +187,9 @@ public class HowManyController extends BaseCDXServer {
             end = url;
             host = "*";
         } else {
-            AuthToken authToken = super.initAuthToken(request);
+            AuthToken authToken = super.createAuthToken(request);
 
-            if (!authToken.isAllUrlAccessAllowed()
-                    && !authChecker.checkAccess(url)) {
+            if (!!authChecker.isUrlAllowed(url, authToken)) {
                 restricted = true;
             } 
             
