@@ -1,21 +1,132 @@
+var waybackDefs = [
+                   //Global Wayback
+                   {"waybackUrl": "http://web.archive.org/",
+                    "waybackName": "Internet Archive Wayback Machine",
+                    
+                    "proxyHost": null,
+                    "proxyPort": null,
+                    
+                    "collections": ["web"]},
+
+                   //AIT Wayback
+                   {"waybackUrl": "http://wayback.archive-it.org/",
+                    "waybackName": "AIT Wayback",
+                    
+                    "proxyHost": "wayback.archive-it.org",
+                    "proxyPort": 8081,
+                    
+                    "collections": ["all", "194", "1068", "2106"]}                    
+                  ];
+
+//TODO:
+var currWayback = waybackDefs[0];
+var currColl = waybackDefs[0].collections[0];
+
+var state = {"isClientRewrite": false,
+             "isRedirectErrors": false,
+             "isProxyMode": false};
+
+               
+chrome.extension.onMessage.addListener(
+  function(request, sender, sendResponse) {
+    if (request.type == "LIST_WAYBACKS") {
+      sendResponse({"waybacks": waybackDefs, "opts": state, "currWayback": currWayback});
+      return;
+    }
+    
+    if (request.type == "SEL_WAYBACK") {
+      currWayback = waybackDefs[request.index];
+      currColl = currWayback.collections[0];
+      sendResponse({"currWayback": currWayback});
+      return;
+    }
+    
+    if (request.type == "TOGGLE_OPT") {
+      //console.log(request.id + " " + request.enabled);
+      
+      switch (request.id) {
+        case "redirectErrors":
+          toggleRedirectErrors(request.enabled);
+          break;
+          
+        case "proxyMode":
+          toggleProxyMode(request.enabled);
+          break;
+          
+        case "clientRewrite":
+          toggleClientRewrite(request.enabled);
+          break;
+      }
+      return;
+    }
+  });
+
+//********* Client Rewriter
+
+// All known tabs
 var tabIdToUrl = {};
 
+// Archival Url Regex
 var archivalURLRegex = /([^/]*)\/(\d{1,14})([a-z]{2}_)*\/(.*)/;
 
-// Access to Waybacks at these urls will be intercepted and rewritten on the client
-var knownWaybackPrefixList = 
-  [
-   "http://web.archive.org/", 
-   "http://wayback.archive-it.org/", 
-   "http://webharvest.gov/"];
+function toggleClientRewrite(enabled)
+{
+  state.isClientRewrite = enabled;
+  
+  if (enabled) {
+    chrome.tabs.onUpdated.addListener(bannerInsert);
 
-var wayback404Prefix = "http://web.archive.org/"
+    chrome.webRequest.onBeforeRequest.addListener(
+        archivalRedirect, 
+        {urls: ["<all_urls>"]},
+        ["blocking"]
+      );
+
+    // Init tabs
+    tabIdToUrl = {};
+    
+    chrome.tabs.getAllInWindow(null, loadAllTabs); 
+    
+  } else {
+    chrome.tabs.onUpdated.removeListener(bannerInsert);
+    chrome.webRequest.onBeforeRequest.removeListener(archivalRedirect);
+  }
+}
+
+function bannerInsert(tabId, changeinfo, tab) {
+  if (isWaybackReplayTab(tabId)) {
+    if (tab.status == "loading") {
+      chrome.tabs.executeScript(null, {file: "banner.js"});
+    }
+  }
+}
+
+function loadAllTabs(tabs)
+{
+  for (var i = 0; i < tabs.length; i++) {
+    
+    var url = tabs[i].url;
+    var tabId = tabs[i].id;
+    
+    var waybackPrefix = findWaybackPrefix(url);
+    
+    if (waybackPrefix) {
+      var replayInfo = extractWaybackReplayInfo(waybackPrefix, url);
+      
+      if (replayInfo) {
+        //console.log("Found " + tabId + " " + url);
+        //console.log(replayInfo);
+        tabIdToUrl[tabId] = replayInfo;
+      }
+    }
+  }
+}
 
 function findWaybackPrefix(url)
 {
-  for (i in knownWaybackPrefixList) {
-    if (url.indexOf(knownWaybackPrefixList[i]) == 0) {
-      return knownWaybackPrefixList[i];
+  for (i in waybackDefs) {
+    if (url.indexOf(waybackDefs[i].waybackUrl) == 0) {
+      return waybackDefs[i].waybackUrl;
     }
   }
   
@@ -100,7 +211,7 @@ function makeReplayUrl(replayInfo, url)
 
 function isWaybackReplayTab(tabId)
 {
-  if (proxyMode) {
+  if (state.isProxyMode) {
     return true;
   }
   
@@ -155,84 +266,77 @@ function archivalRedirect(details)
   return { redirectUrl: url };
 }
 
-
-// Exec on startup below
-
-chrome.tabs.onUpdated.addListener(function(tabId, changeinfo, tab) {
-  if (isWaybackReplayTab(tabId)) {
-    if (tab.status == "loading") {
-      chrome.tabs.executeScript(null, {file: "banner.js"});
-    }
-  }
-});
-
-chrome.tabs.getAllInWindow(null, function(tabs){
-  for (var i = 0; i < tabs.length; i++) {
-    
-    var url = tabs[i].url;
-    var tabId = tabs[i].id;
-    
-    var waybackPrefix = findWaybackPrefix(url);
-    
-    if (waybackPrefix) {
-      var replayInfo = extractWaybackReplayInfo(waybackPrefix, url);
-      
-      if (replayInfo) {
-        //console.log("Found " + tabId + " " + url);
-        //console.log(replayInfo);
-        tabIdToUrl[tabId] = replayInfo;
-      }
-    }
-  }
-});
+// ********* End Client Rewriter
 
 // ********* 404 Handler
-
-function getCdxTestUrl(url)
+function toggleRedirectErrors(enabled)
 {
-  return wayback404Prefix + "cdx/search/cdx?url=" + encodeURIComponent(url) + "&filter=statuscode:[23]..&limit=-2&gzip=false";
+  state.isRedirectErrors = enabled;
+  
+  if (enabled) {
+    chrome.webRequest.onErrorOccurred.addListener(errorHandler, {urls: ["<all_urls>"]});
+    chrome.webRequest.onCompleted.addListener(errorHandler, {urls: ["<all_urls>"]});
+  } else {
+    chrome.webRequest.onErrorOccurred.removeListener(errorHandler);
+    chrome.webRequest.onCompleted.removeListener(errorHandler);
+  }
 }
 
-function doRedirectTo(tabId, url, timestamp)
+function getWBTestUrl(url)
 {
-  var coll = "web";
-  var mod = "";
-  var waybackUrl = wayback404Prefix + coll + "/" + timestamp + mod + "/" + url;
-  
+  //return wayback404Prefix + "cdx/search/cdx?url=" + encodeURIComponent(url) + "&filter=statuscode:[23]..&limit=-2&gzip=false";
+  return currWayback.waybackUrl + currColl + "/3id_/" + url;
+}
+
+function doRedirectTo(tabId, url)
+{
+  //var mod = "";
+  //var waybackUrl = wayback404Prefix + coll + "/" + timestamp + mod + "/" + url;  
   //console.log("redirect to: " + waybackUrl);
   
-  chrome.tabs.update(tabId, {"url": waybackUrl});
+  var redirUrl = currWayback.waybackUrl + currColl + "/" + url;
+  
+  chrome.tabs.update(tabId, {"url": redirUrl});
 }
 
 
 function handleWaybackRedirect(tabId, url)
 {
   var xhr = new XMLHttpRequest();
+  
   xhr.onreadystatechange = function parseCdxAndRedirect()
   {
     if (xhr.readyState != 4) {
       return;
     }
     
-    if (xhr.status != 200) {
+    if (xhr.status < 200 || xhr.status >= 400) {
       return;
     }
     
-    if (!xhr.responseText || (xhr.responseText == "")) {
-      return;
-    }
+    doRedirectTo(tabId, url);    
     
-    // TODO: Need to get two lines due to bug in cdx server at moment, will fix
-    var lines = xhr.responseText.split('\n');
-    var fields = lines[lines.length - 2].split(' ');
-    if (fields[1]) {
-      doRedirectTo(tabId, url, fields[1]);
-    }
+//    if (!xhr.responseText || (xhr.responseText == "")) {
+//      return;
+//    }
+    
+//    var lines = xhr.responseText.split('\n');
+//    var fields = lines[0].split(' ');
+//    if (fields[1]) {
+//      doRedirectTo(tabId, url, fields[1]);
+//    }
   };
   
-  var cdxUrl = getCdxTestUrl(url);
-  //console.log(cdxUrl);
-  xhr.open("GET", cdxUrl, true);
+  xhr.onload = function doneLoading()
+  {
+    if (xhr.status < 200 || xhr.status >= 400) {
+      return;
+    }
+  }
+  
+  //var cdxUrl = getCdxTestUrl(url);
+  var testUrl = getWBTestUrl(url);
+  xhr.open("HEAD", testUrl, true);
   xhr.send();
 }
 
@@ -246,97 +350,99 @@ function errorHandler(details)
   }
 };
 
-chrome.webRequest.onErrorOccurred.addListener(errorHandler, {urls: ["<all_urls>"]});
-chrome.webRequest.onCompleted.addListener(errorHandler, {urls: ["<all_urls>"]});
-
 // ********* End 404 Handler
 
 
-// Proxy Mode
-var proxyHost = "wayback.archive-it.org";
-var proxyPort = 8081;
-var proxyColl = "3701";
-var proxyMode = false;
-
-if (proxyMode) {
-
-  var config = {
-    mode: "fixed_servers",
-    rules: {
-      singleProxy: {
-        host: proxyHost,
-        port: proxyPort
-      },
-      
-      bypassList: [proxyHost]
-    }
-  };
+// ********* Proxy Mode ************
+function toggleProxyMode(enabled)
+{
+  state.isProxyMode = enabled;
+  proxyHost = currWayback.proxyHost;
+  proxyPort = currWayback.proxyPort;
   
-  chrome.proxy.settings.set(
-      {value: config, scope: 'regular'},
-      function() {});
-    
-      
-  chrome.webRequest.onBeforeRequest.addListener(
-    function(details)
-    {
-      // Rewrite https -> http as https proxying not supported
-      if (details.url.indexOf("https://") == 0) {
-        httpUrl = "http://" + details.url.substr("https://".length);
-        //console.log(details.url + " -> " + httpUrl);
+  //TODO: raise error?
+  if (!proxyHost || !proxyPort) {
+    console.log("Missing proxyHost" + proxyHost + " or port " + proxyPort);
+    state.isProxyMode = false;
+  }
+
+  if (state.isProxyMode) {
+  
+    var config = {
+      mode: "fixed_servers",
+      rules: {
+        singleProxy: {
+          host: proxyHost,
+          port: proxyPort
+        },
         
-        return { redirectUrl: httpUrl };
-      } 
-    },
-    
-    {urls: ["<all_urls>"]},
-    ["blocking"]
-  );
-  
-  chrome.webRequest.onBeforeSendHeaders.addListener(
-    function(details)
-    {
-      if (proxyColl) {
-        if (details.requestHeaders) {
-          headers = details.requestHeaders;
-        } else {
-          headers = [];
-        }
-        headers.push({"name": "X-Wayback-Proxy-Coll", "value": proxyColl});
-        //headers.push({"name": "Proxy-Timestamp", "value": "20130605191057"});
-        return { requestHeaders: headers };
+        bypassList: [proxyHost]
       }
-      
-      return {};
-    },
-    {urls: ["<all_urls>"]},
-    ["blocking"]    
-  );
- 
- /*   
-  chrome.webRequest.onAuthRequired.addListener(
-    function(details)
-    {
-      return { authCredentials: { username: proxyColl, password: "" } };
-    },
-    {urls: ["<all_urls>"]},
-    ["blocking"]    
-  );*/
+    };
+          
+    chrome.webRequest.onBeforeRequest.addListener( 
+      proxyHttpsToHttp,
+      {urls: ["<all_urls>"]},
+      ["blocking"]
+    );
     
-} else {
+    chrome.webRequest.onBeforeSendHeaders.addListener(
+      proxySendHeaders,
+      {urls: ["<all_urls>"]},
+      ["blocking"]    
+    );
+ 
+   /*   
+    chrome.webRequest.onAuthRequired.addListener(
+      function(details)
+      {
+        return { authCredentials: { username: proxyColl, password: "" } };
+      },
+      {urls: ["<all_urls>"]},
+      ["blocking"]    
+    );*/
+    
+  } else {
 
-  var config = {
-    mode: "direct",
-  };
+    var config = {
+      mode: "direct",
+    };
+    
+    chrome.proxy.settings.set({value: config, scope: 'regular'}, function() {});
+    
+    chrome.webRequest.onBeforeRequest.removeListener(proxyHttpsToHttp);
+    chrome.webRequest.onBeforeSendHeaders.removeListener(proxySendHeaders);
+  }
   
-  chrome.proxy.settings.set(
-      {value: config, scope: 'regular'},
-      function() {});
-
-  chrome.webRequest.onBeforeRequest.addListener(
-    archivalRedirect, 
-    {urls: ["<all_urls>"]},
-    ["blocking"]
-  );
-
+  // Alter the proxy settings here
+  chrome.proxy.settings.set({value: config, scope: 'regular'}, function() {});
 }
+
+function proxyHttpsToHttp(details)
+{
+  // Rewrite https -> http as https proxying not supported
+  if (details.url.indexOf("https://") == 0) {
+    var httpUrl = "http://" + details.url.substr("https://".length);
+    //console.log(details.url + " -> " + httpUrl);
+    
+    return { redirectUrl: httpUrl };
+  } 
+}
+
+function proxySendHeaders(details)
+{
+  if (currColl) {
+    if (details.requestHeaders) {
+      headers = details.requestHeaders;
+    } else {
+      headers = [];
+    }
+    headers.push({"name": "X-Wayback-Proxy-Coll", "value": currColl});
+    //headers.push({"name": "Proxy-Timestamp", "value": "20130605191057"});
+    return { requestHeaders: headers };
+  }
+  
+  return {};
+}
+
+//********* End Proxy Mode ************

@@ -1,0 +1,37 @@
+<html>
+
+<head>
+  <script src="jquery-1.8.3.js"></script>
+  <script src="popup.js"></script>
+</head>
+
+<body style="width: 400px; font-family: sans-serif">
+
+
+<div style="text-align: center">
+  <img src="logo_WM.png"/>
+  <br/>
+  <select style="text-align: center; font-size: 18pt" id="waybacks" title="Select Wayback"></select>
+</div>
+<!--
+<label for="waybacks">Select Wayback:</label>-->
+<div id="collsDiv">
+<label for="colls">Collection:</label>
+<select id="colls"></select>
+</div>
+
+<p style="font-weight: bold">
+<input id="redirectErrors" type="checkbox"/>
+<label for="redirectErrors">Enable 404 Error Handler</label>
+<br/>
+<input id="proxyMode" type="checkbox"/>
+<label for="proxyMode">Enable Proxy Mode</label>
+<br/>
+<input id="clientRewrite" type="checkbox"/>
+<label for="clientRewrite">Enable Client-Side Rewriting</label>
+<br/>
+<p/>
+
+</body>
+
+</html>
