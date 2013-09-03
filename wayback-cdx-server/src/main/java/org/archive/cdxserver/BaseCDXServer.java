@@ -1,10 +1,7 @@
 package org.archive.cdxserver;
 
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
-import java.util.zip.GZIPOutputStream;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -78,20 +75,6 @@ public class BaseCDXServer implements InitializingBean {
 						
 		return canonicalizer.makeKey(url);
 	}
-	
-    protected PrintWriter getGzipWriter(HttpServletResponse response) throws IOException
-    {
-		response.setHeader("Content-Encoding", "gzip");
-		
-		PrintWriter writer = new PrintWriter(new GZIPOutputStream(response.getOutputStream())
-		{
-//			{
-//			    def.setLevel(Deflater.BEST_COMPRESSION);
-//			}
-		});
-		
-		return writer;
-    }
 	
 	protected void prepareResponse(HttpServletResponse response)
 	{

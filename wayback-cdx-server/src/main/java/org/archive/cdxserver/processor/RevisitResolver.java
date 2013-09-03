@@ -17,7 +17,7 @@ public abstract class RevisitResolver extends DupeCountProcessor {
 	{
         line.setField(origlength, CDXLine.EMPTY_VALUE);
         line.setField(origoffset, CDXLine.EMPTY_VALUE);
-        line.setField(origfilename, CDXLine.EMPTY_VALUE);		
+        line.setField(origfilename, CDXLine.EMPTY_VALUE);
 	}
 	
 	protected void fillRevisit(CDXLine line, CDXLine origLine)

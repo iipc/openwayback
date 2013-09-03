@@ -11,7 +11,7 @@ public abstract class CDXWriter implements BaseProcessor {
 		//Do nothing by default		
 	}
 	
-	public boolean checkError()
+	public boolean isAborted()
 	{
 		return false;
 	}

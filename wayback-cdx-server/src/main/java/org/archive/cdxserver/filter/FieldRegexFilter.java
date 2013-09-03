@@ -6,8 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import org.archive.format.cdx.FieldSplitLine;
+import org.archive.format.cdx.CDXLine;
 import org.archive.format.cdx.FieldSplitFormat;
+import org.archive.format.cdx.FieldSplitLine;
 
 /**
  * Matches a FieldSplitLine against a string of regex
@@ -22,7 +23,7 @@ import org.archive.format.cdx.FieldSplitFormat;
  * @author ilya
  *
  */
-public class FieldRegexFilter {
+public class FieldRegexFilter implements CDXFilter {
 	
 	final static String INVERT_CHAR = "!";
 	final static String FIELD_SEP_CHAR = ":";
@@ -111,7 +112,7 @@ public class FieldRegexFilter {
 		}
 	}
 	
-	public boolean include(FieldSplitLine line)
+	public boolean include(CDXLine line)
 	{
 		for (RegexMatch regexMatch : regexMatchers) 
 		{

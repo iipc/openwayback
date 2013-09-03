@@ -12,9 +12,9 @@ public class JsonWriter extends HttpCDXWriter {
 
     boolean writeHeader = true;
     boolean firstLine = true;
-    
-    public JsonWriter(HttpServletResponse response) throws IOException {
-    	super(response);
+
+    public JsonWriter(HttpServletResponse response, boolean gzip) throws IOException {
+    	super(response, gzip);
 		setContentType("application/json");
     }
 

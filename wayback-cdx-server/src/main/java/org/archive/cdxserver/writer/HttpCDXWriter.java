@@ -2,6 +2,7 @@ package org.archive.cdxserver.writer;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.zip.GZIPOutputStream;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -13,9 +14,14 @@ public abstract class HttpCDXWriter extends CDXWriter {
 	protected HttpServletResponse response;
 	protected PrintWriter writer;
 	
-	public HttpCDXWriter(HttpServletResponse response) throws IOException {
+	public HttpCDXWriter(HttpServletResponse response, boolean gzip) throws IOException {
 	    this.response = response;
-	    this.writer = response.getWriter();
+	    
+	    if (gzip) {
+	    	this.writer = getGzipWriter(response);
+	    } else {
+	    	this.writer = response.getWriter();
+	    }
     }
 	
 	@Override
@@ -26,7 +32,7 @@ public abstract class HttpCDXWriter extends CDXWriter {
 	}
 	
 	@Override
-	public boolean checkError()
+	public boolean isAborted()
 	{
 		return writer.checkError();
 	}
@@ -62,5 +68,19 @@ public abstract class HttpCDXWriter extends CDXWriter {
 		if (printInBody) {
 			writer.println(numPages);
 		}
+    }
+	
+    public static PrintWriter getGzipWriter(HttpServletResponse response) throws IOException
+    {
+		response.setHeader("Content-Encoding", "gzip");
+		
+		PrintWriter writer = new PrintWriter(new GZIPOutputStream(response.getOutputStream())
+		{
+//			{
+//			    def.setLevel(Deflater.BEST_COMPRESSION);
+//			}
+		});
+		
+		return writer;
     }
 }

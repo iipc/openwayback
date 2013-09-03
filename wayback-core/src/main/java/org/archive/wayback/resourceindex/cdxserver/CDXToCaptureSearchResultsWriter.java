@@ -1,11 +1,11 @@
 package org.archive.wayback.resourceindex.cdxserver;
 
+import java.util.HashMap;
+import java.util.LinkedList;
+
 import org.apache.commons.lang.math.NumberUtils;
 import org.archive.cdxserver.CDXQuery;
-import org.archive.cdxserver.processor.RevisitResolver;
-import org.archive.cdxserver.writer.CDXWriter;
 import org.archive.format.cdx.CDXLine;
-import org.archive.format.cdx.FieldSplitFormat;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.FastCaptureSearchResult;
@@ -13,59 +13,62 @@ import org.archive.wayback.resourceindex.filters.SelfRedirectFilter;
 import org.archive.wayback.util.ObjectFilter;
 import org.archive.wayback.util.Timestamp;
 
-public class CDXToCaptureSearchResultsWriter extends CDXWriter {
+public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 	
-	protected final CaptureSearchResults results = new CaptureSearchResults();
-	protected String msg;
+	public final static String REVISIT_VALUE = "warc/revisit";
+	
+	protected CaptureSearchResults results = null;
 	
 	protected String targetTimestamp;
 	protected int flip = 1;
+	protected boolean done = false;
 	protected CaptureSearchResult closest = null;
 	protected SelfRedirectFilter selfRedirFilter = null;
 	
-	protected CDXQuery query;
+	protected HashMap<String, CaptureSearchResult> digestToOriginal;
+	protected HashMap<String, LinkedList<CaptureSearchResult>> digestToRevisits;
 	
-	public CDXToCaptureSearchResultsWriter(CDXQuery query)
+	protected boolean resolveRevisits = false;
+	protected boolean seekSingleCapture = false;
+	protected boolean isReverse = false;
+	
+	public CDXToCaptureSearchResultsWriter(CDXQuery query,
+										   boolean resolveRevisits, 
+										   boolean seekSingleCapture)
 	{
-		this.query = query;
+		super(query);
+		
+		this.resolveRevisits = resolveRevisits;
+		this.seekSingleCapture = seekSingleCapture;
+		this.isReverse = query.isReverse();
 	}
 	
-	public void setTargetTimestamp(String timestamp, boolean reverse)
-	{
-		// If closest query, first result is always closest
-		if (!query.getClosest().isEmpty()) {
-			return;
-		}
-		
+	public void setTargetTimestamp(String timestamp)
+	{		
 		targetTimestamp = timestamp;
-		if (reverse) {
+		
+		if (isReverse) {
 			flip = -1;
 		}
 	}
 
 	@Override
     public void begin() {
-	    // TODO Auto-generated method stub
+		results = new CaptureSearchResults();
+		
+		if (resolveRevisits) {
+			if (isReverse) {
+				digestToRevisits = new HashMap<String, LinkedList<CaptureSearchResult>>();
+			} else {
+				digestToOriginal = new HashMap<String, CaptureSearchResult>();
+			}
+		}
     }
-
-	@Override
-    public void trackLine(CDXLine line) {
-	    // TODO Auto-generated method stub
-    }
-	
-	public void printError(String msg)
-	{
-		this.msg = msg;
-	}
-	
-	public String getErrorMsg()
-	{
-		return msg;
-	}
 
 	@Override
     public int writeLine(CDXLine line) {
 		FastCaptureSearchResult result = new FastCaptureSearchResult();
+		
 		result.setUrlKey(line.getUrlKey());
 		result.setCaptureTimestamp(line.getTimestamp());
 		result.setOriginalUrl(line.getOriginalUrl());
@@ -86,23 +89,79 @@ public class CDXToCaptureSearchResultsWriter extends CDXWriter {
 		result.setFile(line.getFilename());
 		result.setRobotFlags(line.getRobotFlags());
 		
-		String payloadFile = line.getField(RevisitResolver.origfilename, null);
+		boolean isRevisit = false;
 		
-		if (payloadFile != null) {
-			FastCaptureSearchResult payload = new FastCaptureSearchResult();
-			payload.setFile(payloadFile);
-			payload.setOffset(NumberUtils.toLong(line.getField(RevisitResolver.origoffset), -1));
-			payload.setCompressedLength(NumberUtils.toLong(line.getField(RevisitResolver.origlength), -1));
-			result.flagDuplicateDigest(payload);
+		if (resolveRevisits) {
+			isRevisit = result.getFile().equals(CDXLine.EMPTY_VALUE) ||
+						result.getMimeType().equals(REVISIT_VALUE);
+			
+			String digest = result.getDigest();
+			
+			if (isRevisit) {
+				if (!isReverse) {
+					CaptureSearchResult payload = digestToOriginal.get(digest);
+					if (payload != null) {
+						result.flagDuplicateDigest(payload);
+					}
+				} else {
+					LinkedList<CaptureSearchResult> revisits = digestToRevisits.get(digest);
+					if (revisits == null) {
+						revisits = new LinkedList<CaptureSearchResult>();
+						digestToRevisits.put(digest, revisits);
+					}
+					revisits.add(result);
+				}
+			} else {
+				if (!isReverse) {
+					digestToOriginal.put(digest, result);
+				} else {
+					LinkedList<CaptureSearchResult> revisits = digestToRevisits.remove(digest);
+					if (revisits != null) {
+						for (CaptureSearchResult revisit : revisits) {
+							revisit.flagDuplicateDigest(result);
+						}
+					}
+				}
+			}
 		}
+		
+//		String payloadFile = line.getField(RevisitResolver.origfilename);
+//		
+//		if (!payloadFile.equals(CDXLine.EMPTY_VALUE)) {
+//			FastCaptureSearchResult payload = new FastCaptureSearchResult();
+//			payload.setFile(payloadFile);
+//			payload.setOffset(NumberUtils.toLong(line.getField(RevisitResolver.origoffset), -1));
+//			payload.setCompressedLength(NumberUtils.toLong(line.getField(RevisitResolver.origlength), -1));
+//			result.flagDuplicateDigest(payload);
+//		}
 		
 		if ((targetTimestamp != null) && (closest == null)) {
 			closest = determineClosest(result);
 		}
 		
-		results.addSearchResult(result, (flip == 1));
+		results.addSearchResult(result, !isReverse);
+		
+		// Short circuit the load if seeking single capture
+		if (seekSingleCapture && resolveRevisits) {
+			if (closest != null) {
+				// If not a revisit, we're done
+				if (!isRevisit) {
+					done = true;
+				// Else make sure the revisit is resolved
+				} else if (result.getDuplicatePayload() != null) {
+					done = true;
+				}
+			}
+		}
+		
 		return 1;
     }
+	
+	@Override
+	public boolean isAborted()
+	{
+		return done;
+	}
 	
 	protected CaptureSearchResult determineClosest(CaptureSearchResult nextResult)
 	{		
@@ -135,11 +194,6 @@ public class CDXToCaptureSearchResultsWriter extends CDXWriter {
 		}
 	}
 
-	@Override
-    public void writeResumeKey(String resumeKey) {
-	    // TODO Auto-generated method stub
-    }
-
     public void end() {
 		results.setClosest(this.getClosest());
 		results.setReturnedCount(results.getResults().size());
@@ -152,11 +206,6 @@ public class CDXToCaptureSearchResultsWriter extends CDXWriter {
     		return closest;
     	}
     	
-    	// If closest query, first result is closest
-    	if (!query.getClosest().isEmpty()) {
-    		return results.getResults().getFirst();
-    	}
-    	
     	if (!results.isEmpty()) {
     		return results.getResults().getLast();
     	}
@@ -164,14 +213,10 @@ public class CDXToCaptureSearchResultsWriter extends CDXWriter {
     	return null;
     }
     
-    public CaptureSearchResults getCaptureSearchResults()
+    @Override
+    public CaptureSearchResults getSearchResults()
     {
     	return results;
-    }
-
-	@Override
-    public FieldSplitFormat modifyOutputFormat(FieldSplitFormat format) {
-	    return format;
     }
 
 	public SelfRedirectFilter getSelfRedirFilter() {

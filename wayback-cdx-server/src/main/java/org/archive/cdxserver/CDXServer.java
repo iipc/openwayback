@@ -11,16 +11,17 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.httpclient.URIException;
 import org.archive.cdxserver.auth.AuthToken;
+import org.archive.cdxserver.filter.CDXAccessFilter;
 import org.archive.cdxserver.filter.CollapseFieldFilter;
 import org.archive.cdxserver.filter.FieldRegexFilter;
 import org.archive.cdxserver.processor.BaseProcessor;
 import org.archive.cdxserver.processor.ClosestTimestampSorted;
 import org.archive.cdxserver.processor.DupeCountProcessor;
 import org.archive.cdxserver.processor.DupeTimestampBestStatusFilter;
-import org.archive.cdxserver.processor.FowardRevisitResolver;
+import org.archive.cdxserver.processor.ForwardRevisitResolver;
+import org.archive.cdxserver.processor.GroupCountProcessor;
 import org.archive.cdxserver.processor.LastNLineProcessor;
 import org.archive.cdxserver.processor.ReverseRevisitResolver;
-import org.archive.cdxserver.processor.SkipCountProcessor;
 import org.archive.cdxserver.writer.CDXWriter;
 import org.archive.cdxserver.writer.JsonWriter;
 import org.archive.cdxserver.writer.PlainTextWriter;
@@ -44,7 +45,8 @@ public class CDXServer extends BaseCDXServer {
 	
 	protected String cdxFormat = null;
 	
-	protected FieldSplitFormat defaultCdxFormat;
+	protected CDXLineFactory cdxLineFactory;
+	//protected FieldSplitFormat defaultCdxFormat;
 	protected FieldSplitFormat publicCdxFields;
 
 	@Override
@@ -53,8 +55,8 @@ public class CDXServer extends BaseCDXServer {
 			cdxSource = zipnumSource;
 		}
 		
-		CDXLineFactory cdxLineFactory = new StandardCDXLineFactory(cdxFormat);
-		defaultCdxFormat = cdxLineFactory.getParseFormat();
+		cdxLineFactory = new StandardCDXLineFactory(cdxFormat);
+		//defaultCdxFormat = cdxLineFactory.getParseFormat();
 		
 		if (authChecker != null && authChecker.getPublicCdxFields() != null) {
 			publicCdxFields = new FieldSplitFormat(authChecker.getPublicCdxFields());
@@ -63,19 +65,14 @@ public class CDXServer extends BaseCDXServer {
 		if (defaultParams == null) {
 			defaultParams = new ZipNumParams(maxPageSize, maxPageSize, 0, false);
 		}
-		
-		if (pageParams == null) {
-			pageParams = defaultParams;
-		}
 
 		super.afterPropertiesSet();
 	}
 
 	protected int maxPageSize = 1;
-	protected int queryMaxLimit = 1;
+	protected int queryMaxLimit = Integer.MAX_VALUE;
 	
 	protected ZipNumParams defaultParams;
-	protected ZipNumParams pageParams;
 
 	public ZipNumCluster getZipnumSource() {
 		return zipnumSource;
@@ -101,14 +98,6 @@ public class CDXServer extends BaseCDXServer {
 		this.defaultParams = defaultParams;
 	}
 
-	public ZipNumParams getPageParams() {
-		return pageParams;
-	}
-
-	public void setPageParams(ZipNumParams pageParams) {
-		this.pageParams = pageParams;
-	}
-
 	public String getCdxFormat() {
 		return cdxFormat;
 	}
@@ -131,8 +120,7 @@ public class CDXServer extends BaseCDXServer {
 
 	public void setCdxSource(CDXInputSource cdxSource) {
 		this.cdxSource = cdxSource;
-	}
-	
+	}	
 	
 	@RequestMapping(value = { "/cdx" })
 	public void getCdx(HttpServletRequest request, HttpServletResponse response, CDXQuery query) throws IOException {		
@@ -141,9 +129,9 @@ public class CDXServer extends BaseCDXServer {
 		CDXWriter responseWriter = null;
 		
 		if (query.output.equals("json")) {
-			responseWriter = new JsonWriter(response);
+			responseWriter = new JsonWriter(response, query.isGzip());
 		} else {
-			responseWriter = new PlainTextWriter(response);
+			responseWriter = new PlainTextWriter(response, query.isGzip());
 		}
 		
 		AuthToken authToken = super.createAuthToken(request);
@@ -169,25 +157,31 @@ public class CDXServer extends BaseCDXServer {
 				}
 			}
 			
-			// For now, don't support domain or host output w/o key as access check is too slow
-			if (query.matchType == MatchType.domain || query.matchType == MatchType.host) {
-				if (!authChecker.isAllUrlAccessAllowed(authToken)) {
-					return;
-				}
+			CDXAccessFilter accessChecker = null;
+			
+			if (!authChecker.isAllUrlAccessAllowed(authToken)) {
+				accessChecker = authChecker.createAccessFilter(authToken);
 			}
-
-			if (!authChecker.isUrlAllowed(query.url, authToken)) {				
-				if (query.showNumPages) {
-					// Default to 1 page even if no results
-					responseWriter.printNumPages(1, false);
-				}
-				return;
-			}
+			
+//			// For now, don't support domain or host output w/o key as access check is too slow
+//			if (query.matchType == MatchType.domain || query.matchType == MatchType.host) {
+//				if (!authChecker.isAllUrlAccessAllowed(authToken)) {
+//					return;
+//				}
+//			}
 
 			String startEndUrl[] = urlSurtRangeComputer.determineRange(query.url, query.matchType, "", "");
 
 			if (startEndUrl == null) {
 				responseWriter.printError("Sorry, matchType=" + query.matchType.name() + " is not supported by this server");
+				return;
+			}
+			
+			if ((accessChecker != null) && !accessChecker.include(startEndUrl[0], query.url)) {				
+				if (query.showNumPages) {
+					// Default to 1 page even if no results
+					responseWriter.printNumPages(1, false);
+				}
 				return;
 			}
 
@@ -228,7 +222,7 @@ public class CDXServer extends BaseCDXServer {
 					return;
 				}
 				
-				if (query.reverse) {
+				if (query.isReverse()) {
 					iter = new LineBufferingIterator(iter, query.pageSize, true);
 				}
 
@@ -252,7 +246,7 @@ public class CDXServer extends BaseCDXServer {
 				maxLimit = this.queryMaxLimit;
 			}
 			
-			writeCdxResponse(responseWriter, iter, maxLimit, query, authToken);
+			writeCdxResponse(responseWriter, iter, maxLimit, query, authToken, accessChecker);
 
 		} catch (URIException e) {
 			responseWriter.printError(e.toString());
@@ -275,17 +269,20 @@ public class CDXServer extends BaseCDXServer {
 	{
 	    String searchKey = null;
 	    
-        ZipNumParams params = new ZipNumParams((pageResult != null) ? pageParams : defaultParams);
+        ZipNumParams params = new ZipNumParams(defaultParams);
         
-        params.setReverse(query.reverse);
+        params.setReverse(query.isReverse());
 	    
         if (!query.resumeKey.isEmpty()) {
             searchKey = URLDecoder.decode(query.resumeKey, "UTF-8");
             startEndUrl[0] =  query.resumeKey;
         } else if (!query.from.isEmpty()) {
             searchKey = startEndUrl[0] + " " + query.from;
+        } else if (query.isReverse() && !query.closest.isEmpty()) {
+            searchKey = startEndUrl[0];
+            startEndUrl[1] = startEndUrl[0] + " " + query.closest;
         } else if (query.fastLatest) {
-            String endkey = (query.closest.isEmpty() ? "!" : " " +  query.closest);
+            String endkey = (query.closest.isEmpty() ? "!" : " " + query.closest);
             params.setMaxAggregateBlocks(1);
             searchKey = startEndUrl[0] + endkey;
         } else {
@@ -293,6 +290,7 @@ public class CDXServer extends BaseCDXServer {
         }
         
         if (pageResult != null) {
+        	params.setTimestampDedupLength(0);
             return zipnumSource.getCDXIterator(idx, searchKey, startEndUrl[1],  query.page, pageResult.numPages, params);            
         } else {
             return cdxSource.getCDXIterator(searchKey, startEndUrl[0], startEndUrl[1], params);
@@ -316,7 +314,8 @@ public class CDXServer extends BaseCDXServer {
 			int readLimit,
 			
 			CDXQuery query,			
-			AuthToken authToken) {
+			AuthToken authToken,
+			CDXAccessFilter accessChecker) {
 		
 		BaseProcessor outputProcessor = responseWriter;
 		
@@ -329,46 +328,47 @@ public class CDXServer extends BaseCDXServer {
 			query.limit = Math.min(query.limit, readLimit);
 		}
 		
-        if (!query.closest.isEmpty()) {
+        if (!query.closest.isEmpty() && query.isSortClosest()) {
             outputProcessor = new ClosestTimestampSorted(outputProcessor, query.closest, query.limit);
         }
         
+        // Experimental
         if (query.resolveRevisits) {
-        	if (query.reverse) {
+        	if (query.isReverse()) {
         		outputProcessor = new ReverseRevisitResolver(outputProcessor, query.showDupeCount);
         	} else {
-        		outputProcessor = new FowardRevisitResolver(outputProcessor, query.showDupeCount);        		
+        		outputProcessor = new ForwardRevisitResolver(outputProcessor, query.showDupeCount);        		
         	}
         } else if (query.showDupeCount) {
         	outputProcessor = new DupeCountProcessor(outputProcessor, true);
         }
 			
-		if (query.showSkipCount) {
-			outputProcessor = new SkipCountProcessor(outputProcessor, query.lastSkipTimestamp);
+		if (query.showGroupCount || query.showUniqCount) {
+			outputProcessor = new GroupCountProcessor(outputProcessor, query.lastSkipTimestamp, query.showUniqCount);
 		}
 		
 		if (query.collapseTime > 0) {
 			outputProcessor = new DupeTimestampBestStatusFilter(outputProcessor, query.collapseTime);
 		}
 		
-		FieldSplitFormat parseFormat = outputProcessor.modifyOutputFormat(defaultCdxFormat);
+		FieldSplitFormat parseFormat = outputProcessor.modifyOutputFormat(cdxLineFactory.getParseFormat());
 
 		FieldRegexFilter filterMatcher = null;
 
-		if (query.filter != null) {
+		if (query.filter != null && (query.filter.length > 0)) {
 			filterMatcher = new FieldRegexFilter(query.filter, parseFormat);
 		}
 
 		CollapseFieldFilter collapser = null;
 
-		if (query.collapse != null) {
+		if (query.collapse != null && (query.collapse.length > 0)) {
 			collapser = new CollapseFieldFilter(query.collapse, parseFormat);
 		}
 
-		CDXLine prev = null;
+		//CDXLine prev = null;
 		CDXLine line = null;
 
-		boolean prevUrlAllowed = true;
+		//boolean prevUrlAllowed = true;
 		
 		FieldSplitFormat outputFields = null;
 		
@@ -396,12 +396,7 @@ public class CDXServer extends BaseCDXServer {
 		
 		int writeLimit = query.limit;
 
-		while (cdx.hasNext() && ((writeLimit == 0) || (writeCount < writeLimit)) && (allCount < readLimit)) {
-			if ((allCount % 1000) == 0) {
-				if (responseWriter.checkError()) {
-					break;
-				}
-			}
+		while (cdx.hasNext() && ((writeLimit == 0) || (writeCount < writeLimit)) && (allCount < readLimit) && !responseWriter.isAborted()) {
 			
 			String rawLine = cdx.next();
 			allCount++;
@@ -411,29 +406,37 @@ public class CDXServer extends BaseCDXServer {
 				continue;
 			}
 
-			prev = line;
+//			prev = line;
 			
-			line = new CDXLine(rawLine, parseFormat);
+			//line = new CDXLine(rawLine, parseFormat);
+			line = this.cdxLineFactory.createStandardCDXLine(rawLine, parseFormat);
 			
 			//TODO: better way to handle this special case?
 			if (line.getMimeType().equals("alexa/dat")) {
 				continue;
 			}
-
-			if (!authChecker.isAllUrlAccessAllowed(authToken)) {
-				if ((query.matchType != MatchType.exact) && ((prev == null) || !line.getUrlKey().equals(prev.getUrlKey()))) {
-					prevUrlAllowed = authChecker.isUrlAllowed(line.getOriginalUrl(), authToken);
-				}
-
-				if (!prevUrlAllowed) {
+			
+			// Additional access check, per capture
+			if (accessChecker != null) {
+				if (!accessChecker.include(line)) {
 					continue;
 				}
 			}
-			
-			if (!authChecker.isCaptureAllowed(line, authToken)) {
-				continue;
-			}
-			
+
+//			if (!authChecker.isAllUrlAccessAllowed(authToken)) {
+//				if ((query.matchType != MatchType.exact) && ((prev == null) || !line.getUrlKey().equals(prev.getUrlKey()))) {
+//					prevUrlAllowed = authChecker.isUrlAllowed(line.getOriginalUrl(), authToken);
+//				}
+//
+//				if (!prevUrlAllowed) {
+//					continue;
+//				}
+//			}
+//			
+//			if (!authChecker.isCaptureAllowed(line, authToken)) {
+//				continue;
+//			}
+//			
 			outputProcessor.trackLine(line);
 
 			// Timestamp Range Filtering

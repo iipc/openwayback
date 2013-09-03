@@ -14,7 +14,7 @@
     <module>wayback-cdx-server</module>
     <module>wayback-core</module>
     <module>wayback-webapp</module>
-    <module>dist</module>
+    <!-- <module>dist</module>-->
   </modules>
 
   <properties>

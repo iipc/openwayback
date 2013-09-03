@@ -2,9 +2,9 @@ package org.archive.cdxserver.processor;
 
 import org.archive.format.cdx.CDXLine;
 
-public class FowardRevisitResolver extends RevisitResolver {
+public class ForwardRevisitResolver extends RevisitResolver {
 
-	public FowardRevisitResolver(BaseProcessor output, boolean showDupeCount) {
+	public ForwardRevisitResolver(BaseProcessor output, boolean showDupeCount) {
 	    super(output, showDupeCount);
     }
 	
@@ -32,7 +32,7 @@ public class FowardRevisitResolver extends RevisitResolver {
         if ((origLine != null) && isRevisit(line)) {
         	this.fillRevisit(line, origLine);
         } else {
-        	this.fillBlankOrig(origLine);
+        	this.fillBlankOrig(line);
         }
     }
     

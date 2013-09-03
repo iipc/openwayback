@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.archive.cdxserver.auth.AuthToken;
+import org.archive.cdxserver.filter.CDXAccessFilter;
 import org.archive.format.gzip.zipnum.ZipNumCluster;
 import org.archive.url.UrlSurtRangeComputer.MatchType;
 import org.archive.util.ArchiveUtils;
@@ -188,15 +189,21 @@ public class HowManyController extends BaseCDXServer {
             host = "*";
         } else {
             AuthToken authToken = super.createAuthToken(request);
-
-            if (!!authChecker.isUrlAllowed(url, authToken)) {
-                restricted = true;
-            } 
+            
+            CDXAccessFilter accessChecker = null;
+            
+			if (!authChecker.isAllUrlAccessAllowed(authToken)) {
+				accessChecker = authChecker.createAccessFilter(authToken);
+			}
             
             String[] startEnd = urlSurtRangeComputer.determineRange(url, matchType, from, to);
             start = startEnd[0];
             end = startEnd[1];
             host = startEnd[2];
+            
+            if (accessChecker != null && !accessChecker.include(start, url)) {
+                restricted = true;
+            } 
         }
 
         String[] firstLastDate = null;

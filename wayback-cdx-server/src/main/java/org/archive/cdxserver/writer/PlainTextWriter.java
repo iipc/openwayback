@@ -8,9 +8,9 @@ import org.archive.format.cdx.CDXLine;
 
 public class PlainTextWriter extends HttpCDXWriter {
 	
-	public PlainTextWriter(HttpServletResponse response) throws IOException
+	public PlainTextWriter(HttpServletResponse response, boolean gzip) throws IOException
 	{
-		super(response);
+		super(response, gzip);
 		setContentType("text/plain; charset=\"UTF-8\"");
 	}
 	

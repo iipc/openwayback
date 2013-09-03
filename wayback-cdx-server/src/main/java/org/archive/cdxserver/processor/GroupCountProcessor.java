@@ -5,11 +5,11 @@ import java.util.HashSet;
 import org.archive.format.cdx.CDXLine;
 import org.archive.format.cdx.FieldSplitFormat;
 
-public class SkipCountProcessor extends WrappedProcessor {
+public class GroupCountProcessor extends WrappedProcessor {
 	
-	protected final static String skipcount = "skipcount";
-	protected final static String endtimestamp = "endtimestamp";
-	protected final static String uniqcount = "uniqcount";
+	public final static String groupcount = "groupcount";
+	public final static String endtimestamp = "endtimestamp";
+	public final static String uniqcount = "uniqcount";
 	
 	protected CDXLine prevReadLine;
 	protected CDXLine lastReadLine;
@@ -21,13 +21,15 @@ public class SkipCountProcessor extends WrappedProcessor {
 	
 	protected boolean writeLastTimestamp;
 	
-	protected boolean writeUniqCount;
 	protected HashSet<Integer> uniqDigestSet;
 
-	public SkipCountProcessor(BaseProcessor base, boolean writeLastTimestamp)
+	public GroupCountProcessor(BaseProcessor base, boolean writeLastTimestamp, boolean writeUniqCount)
 	{
 		super(base);
 		this.writeLastTimestamp = writeLastTimestamp;
+		if (writeUniqCount) {
+			uniqDigestSet = new HashSet<Integer>();
+		}
 	}
 
 	@Override
@@ -52,7 +54,7 @@ public class SkipCountProcessor extends WrappedProcessor {
 		int written = 0;
 		
 		if (deferWriteLine != null) {
-			deferWriteLine.setField(skipcount, "" + skipCount);
+			deferWriteLine.setField(groupcount, "" + (skipCount + 1));
 			if (writeLastTimestamp) {
 				deferWriteLine.setField(endtimestamp, (prevReadLine != null ? prevReadLine.getTimestamp() : "-"));
 			}
@@ -86,7 +88,7 @@ public class SkipCountProcessor extends WrappedProcessor {
 	@Override
 	public FieldSplitFormat modifyOutputFormat(FieldSplitFormat format)
 	{
-		format = super.modifyOutputFormat(format).addFieldNames(skipcount);
+		format = super.modifyOutputFormat(format).addFieldNames(groupcount);
 		
 		if (writeLastTimestamp) {
 			format = format.addFieldNames(endtimestamp);

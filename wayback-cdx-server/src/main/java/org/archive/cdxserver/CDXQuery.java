@@ -2,6 +2,7 @@ package org.archive.cdxserver;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.archive.url.UrlSurtRangeComputer;
 import org.archive.url.UrlSurtRangeComputer.MatchType;
 import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.ServletRequestUtils;
@@ -9,7 +10,13 @@ import org.springframework.web.bind.ServletRequestUtils;
 public class CDXQuery {
 	
 	public static String EMPTY_STRING = "";
-
+	
+	public enum SortType
+	{
+		regular,
+		reverse,
+		closest,
+	};
 	
 	String url;
 	
@@ -20,6 +27,9 @@ public class CDXQuery {
 	String from = EMPTY_STRING;
 	String to = EMPTY_STRING;
 	String closest = EMPTY_STRING;
+	
+	SortType sort = null;
+	
 	int collapseTime = 0;
 
 	boolean gzip = true;
@@ -30,13 +40,13 @@ public class CDXQuery {
 
 	boolean showDupeCount =  false;
     boolean resolveRevisits = false;
-	boolean showSkipCount = false;
+	boolean showGroupCount = false;
 	boolean lastSkipTimestamp = false;
+	boolean showUniqCount = false;
 	
 	int offset = 0;
 	int limit = 0;
 	Boolean fastLatest = null;
-	boolean reverse = false;
 	String fl = EMPTY_STRING;
 	
 	int page = -1;
@@ -47,6 +57,7 @@ public class CDXQuery {
 
 	String resumeKey = EMPTY_STRING;
 	boolean showResumeKey = false;
+	
 
 	public CDXQuery()
 	{
@@ -56,21 +67,45 @@ public class CDXQuery {
 	public CDXQuery(String url)
 	{
 		this.url = url;
-	}	
+	}
+	
+	public CDXQuery(HttpServletRequest request)
+	{
+		try {
+	        fill(request);
+        } catch (ServletRequestBindingException e) {
+        	//Ignore
+        }
+	}
+	
+	protected <E extends Enum<E>> E getEnumValue(HttpServletRequest request, String name, Class<E> eclass, E defaultValue)
+	{
+		String enumStr = ServletRequestUtils.getStringParameter(request, name, null);
+		
+		E enumVal = defaultValue;
+		
+		if (enumStr != null) {
+			try {
+				enumVal = Enum.valueOf(eclass, enumStr);
+			} catch (IllegalArgumentException ill) {
+				
+			}
+		}
+		
+		return enumVal;
+	}
 		
 	public void fill(HttpServletRequest request) throws ServletRequestBindingException
 	{
 		url = ServletRequestUtils.getRequiredStringParameter(request, "url");
-
-		String matchTypeStr = ServletRequestUtils.getStringParameter(request, "matchType", null);
 		
-		if (matchTypeStr != null) {
-			matchType = MatchType.valueOf(matchTypeStr);
-		}
+		matchType = getEnumValue(request, "matchType", UrlSurtRangeComputer.MatchType.class, null);
 
 		from = ServletRequestUtils.getStringParameter(request, "from", "");
 		to = ServletRequestUtils.getStringParameter(request, "to", "");
 		closest = ServletRequestUtils.getStringParameter(request, "closest", "");
+		
+		sort = getEnumValue(request, "sort", SortType.class, SortType.regular);
 		collapseTime = ServletRequestUtils.getIntParameter(request, "collapseTime", 0);
 
 		gzip = ServletRequestUtils.getBooleanParameter(request, "gzip", true);
@@ -81,13 +116,13 @@ public class CDXQuery {
 		
 		showDupeCount = ServletRequestUtils.getBooleanParameter(request, "showDupeCount", false);
         resolveRevisits = ServletRequestUtils.getBooleanParameter(request, "resolveRevisits", false);
-		showSkipCount = ServletRequestUtils.getBooleanParameter(request, "showSkipCount", false);
+		showGroupCount = ServletRequestUtils.getBooleanParameter(request, "showGroupCount", false);
 		lastSkipTimestamp = ServletRequestUtils.getBooleanParameter(request, "lastSkipTimestamp", false);
+		showUniqCount = ServletRequestUtils.getBooleanParameter(request, "showUniqCount", false);
 		
 		offset = ServletRequestUtils.getIntParameter(request, "offset", 0);
 		limit = ServletRequestUtils.getIntParameter(request, "limit", 0);
 		fastLatest = ServletRequestUtils.getBooleanParameter(request, "fastLatest", false);
-		reverse = ServletRequestUtils.getBooleanParameter(request, "reverse", false);
 		fl = ServletRequestUtils.getStringParameter(request, "fl", "");
 		
 		page = ServletRequestUtils.getIntParameter(request, "page", -1);
@@ -148,6 +183,23 @@ public class CDXQuery {
 		this.closest = closest;
 	}
 
+	public SortType getSort() {
+		return sort;
+	}
+
+	public void setSort(SortType sort) {
+		this.sort = sort;
+	}
+	
+	public boolean isReverse() {
+		return this.sort == SortType.reverse;
+	}
+	
+	public boolean isSortClosest()
+	{
+		return this.sort == SortType.closest;
+	}
+
 	public boolean isGzip() {
 		return gzip;
 	}
@@ -196,12 +248,12 @@ public class CDXQuery {
 		this.resolveRevisits = resolveRevisits;
 	}
 
-	public boolean isShowSkipCount() {
-		return showSkipCount;
+	public boolean isShowGroupCount() {
+		return showGroupCount;
 	}
 
-	public void setShowSkipCount(boolean showSkipCount) {
-		this.showSkipCount = showSkipCount;
+	public void setShowGroupCount(boolean showGroupCount) {
+		this.showGroupCount = showGroupCount;
 	}
 
 	public boolean isLastSkipTimestamp() {
@@ -210,6 +262,14 @@ public class CDXQuery {
 
 	public void setLastSkipTimestamp(boolean lastSkipTimestamp) {
 		this.lastSkipTimestamp = lastSkipTimestamp;
+	}
+
+	public boolean isShowUniqCount() {
+		return showUniqCount;
+	}
+
+	public void setShowUniqCount(boolean showUniqCount) {
+		this.showUniqCount = showUniqCount;
 	}
 
 	public int getOffset() {
@@ -234,14 +294,6 @@ public class CDXQuery {
 
 	public void setFastLatest(Boolean fastLatest) {
 		this.fastLatest = fastLatest;
-	}
-
-	public boolean isReverse() {
-		return reverse;
-	}
-
-	public void setReverse(boolean reverse) {
-		this.reverse = reverse;
 	}
 
 	public String getFl() {

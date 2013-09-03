@@ -15,7 +15,7 @@ import org.archive.util.GeneralURIStreamFactory;
 import org.archive.util.binsearch.SeekableLineReaderFactory;
 import org.archive.util.binsearch.SeekableLineReaderIterator;
 
-public class FilenamePrefixFilter {
+public class FilenamePrefixFilter implements CDXFilter {
 	
 	private static final Logger LOGGER =
         Logger.getLogger(FilenamePrefixFilter.class.getName());
@@ -25,7 +25,7 @@ public class FilenamePrefixFilter {
 	protected boolean isExclusion = true;
 	protected char delim = '\t';
 	
-	protected String prefixMatch;
+	protected String containsMatch;
 	
 	protected Set<String> paramSet = null;
 	protected Pattern patterns[] = null;
@@ -75,8 +75,8 @@ public class FilenamePrefixFilter {
 		final String file = line.getFilename();
 		boolean matched = false;
 		
-		if (prefixMatch != null) {
-			if (!file.startsWith(prefixMatch)) {
+		if (containsMatch != null) {
+			if (!file.contains(containsMatch)) {
 				return (isExclusion ? true : false);
 			}
 		}
@@ -136,12 +136,12 @@ public class FilenamePrefixFilter {
 		this.delim = delim;
 	}
 
-	public String getPrefixMatch() {
-		return prefixMatch;
+	public String getContainsMatch() {
+		return containsMatch;
 	}
 
-	public void setPrefixMatch(String prefixMatch) {
-		this.prefixMatch = prefixMatch;
+	public void setContainsMatch(String containsMatch) {
+		this.containsMatch = containsMatch;
 	}
 	
 	public List<String> getPatterns() {

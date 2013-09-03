@@ -21,7 +21,7 @@ public class ReverseRevisitResolver extends RevisitResolver {
 			if (lines == null) {
 				lines = new LinkedList<CDXLine>();
 			}
-			lines.add(line);			
+			lines.add(line);
 		}
 		
 		void fillRevisits(CDXLine origLine)
@@ -45,7 +45,7 @@ public class ReverseRevisitResolver extends RevisitResolver {
     protected void handleLine(DupeTrack counter, CDXLine line, boolean isDupe) {
     	RevisitTrack revisits = (RevisitTrack)counter;
 		
-		super.fillBlankOrig(line);		
+		super.fillBlankOrig(line);
 		
 		if (isRevisit(line)) {
 			revisits.add(line);

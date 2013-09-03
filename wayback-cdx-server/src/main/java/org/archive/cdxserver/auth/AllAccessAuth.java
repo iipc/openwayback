@@ -1,16 +1,11 @@
 package org.archive.cdxserver.auth;
 
-import org.archive.format.cdx.CDXLine;
+import org.archive.cdxserver.filter.CDXAccessFilter;
 
 public class AllAccessAuth implements AuthChecker {
 
 	@Override
     public boolean isAllUrlAccessAllowed(AuthToken auth) {
-		return true;
-    }
-
-	@Override
-    public boolean isUrlAllowed(String url, AuthToken auth) {
 		return true;
     }
 
@@ -25,7 +20,7 @@ public class AllAccessAuth implements AuthChecker {
     }
 
 	@Override
-    public boolean isCaptureAllowed(CDXLine line, AuthToken auth) {
-		return true;
+    public CDXAccessFilter createAccessFilter(AuthToken auth) {
+		return null;
     }
 }
