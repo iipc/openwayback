@@ -22,6 +22,8 @@ import org.archive.wayback.memento.MementoConstants;
 import org.archive.wayback.memento.MementoTimemapRenderer;
 import org.archive.wayback.resourceindex.filters.SelfRedirectFilter;
 import org.archive.wayback.util.webapp.AbstractRequestHandler;
+import org.archive.wayback.webapp.PerfStats;
+import org.archive.wayback.webapp.AccessPoint.PerfStat;
 import org.springframework.web.bind.ServletRequestBindingException;
 
 public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements MementoTimemapRenderer, ResourceIndex {
@@ -153,27 +155,33 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
     public boolean renderMementoTimemap(WaybackRequest wbRequest,
             HttpServletRequest request, HttpServletResponse response) throws ResourceIndexNotAvailableException, AccessControlException {
 		
-		String format = wbRequest.getMementoTimemapFormat();
-		
-		if ((format != null) && format.equals(MementoConstants.FORMAT_LINK)) {
-			return false;
-		}
-		
-		CDXQuery query = new CDXQuery();
-		
-		query.setOutput(wbRequest.getMementoTimemapFormat());
-		
 		try {
-	        query.fill(request);
-        } catch (ServletRequestBindingException e1) {
-        	//Ignore
-        }
-
-        try {    	
-    		cdxServer.getCdx(request, response, query);
-        } catch (Exception e) {
-        	//CDX server handles its own output
-        }
+			PerfStats.timeStart(PerfStat.IndexQueryTotal);
+			
+			String format = wbRequest.getMementoTimemapFormat();
+			
+			if ((format != null) && format.equals(MementoConstants.FORMAT_LINK)) {
+				return false;
+			}
+			
+			CDXQuery query = new CDXQuery();
+			
+			query.setOutput(wbRequest.getMementoTimemapFormat());
+			
+			try {
+		        query.fill(request);
+	        } catch (ServletRequestBindingException e1) {
+	        	//Ignore
+	        }
+	
+	        try {    	
+	    		cdxServer.getCdx(request, response, query);
+	        } catch (Exception e) {
+	        	//CDX server handles its own output
+	        }
+		} finally {
+			PerfStats.timeEnd(PerfStat.IndexQueryTotal);
+		}
 
 		return true;
     }

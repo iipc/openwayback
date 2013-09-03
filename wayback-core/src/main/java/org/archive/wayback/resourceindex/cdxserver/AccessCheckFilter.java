@@ -43,29 +43,23 @@ public class AccessCheckFilter implements CDXAccessFilter {
 		resultTester.setOriginalUrl(originalUrl);
 		
 		int status = ExclusionFilter.FILTER_EXCLUDE;
+			
+		// Admin Excludes
+		if (adminFilter != null) {
+			status = adminFilter.filterObject(resultTester);
+		}
 		
-		try {			
-			// Admin Excludes
-			if (adminFilter != null) {
-				status = adminFilter.filterObject(resultTester);
-			}
-			
-			if (status != ExclusionFilter.FILTER_INCLUDE) {
-				throw new RuntimeException(new AdministrativeAccessControlException(originalUrl + " is not available in the Wayback Machine."));
-			}
-			
-			// Robot Excludes
-			if (robotsFilter != null) {
-				status = robotsFilter.filterObject(resultTester);
-			}
-			
-			if (status != ExclusionFilter.FILTER_INCLUDE) {
-				throw new RuntimeException(new RobotAccessControlException(originalUrl + " is blocked by the sites robots.txt file"));
-			}
-					
-		} catch (Exception e) {
-			//Is this right?
-			cachedValue = false;
+		if (status != ExclusionFilter.FILTER_INCLUDE) {
+			throw new RuntimeException(new AdministrativeAccessControlException(originalUrl + " is not available in the Wayback Machine."));
+		}
+		
+		// Robot Excludes
+		if (robotsFilter != null) {
+			status = robotsFilter.filterObject(resultTester);
+		}
+		
+		if (status != ExclusionFilter.FILTER_INCLUDE) {
+			throw new RuntimeException(new RobotAccessControlException(originalUrl + " is blocked by the sites robots.txt file"));
 		}
 		
 		cachedValue = true;

@@ -12,6 +12,7 @@ import org.archive.wayback.core.FastCaptureSearchResult;
 import org.archive.wayback.resourceindex.filters.SelfRedirectFilter;
 import org.archive.wayback.util.ObjectFilter;
 import org.archive.wayback.util.Timestamp;
+import org.archive.wayback.util.url.UrlOperations;
 
 public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 	
@@ -72,6 +73,13 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 		result.setUrlKey(line.getUrlKey());
 		result.setCaptureTimestamp(line.getTimestamp());
 		result.setOriginalUrl(line.getOriginalUrl());
+		
+		// Special case: filter out captures that have userinfo
+		boolean hasUserInfo = (UrlOperations.urlToUserInfo(result.getOriginalUrl()) != null);
+		
+		if (hasUserInfo) {
+			return 0;
+		}
 		
 		result.setRedirectUrl(line.getRedirect());
 		result.setHttpCode(line.getStatusCode());
