@@ -1,6 +1,5 @@
 package org.archive.wayback.webapp;
 
-import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Level;
@@ -167,6 +166,23 @@ public class PerfStats
 	
 	public static String getAllStats()
 	{
-		return Arrays.toString(perfStats.get().values().toArray());
+		StringBuilder sb = new StringBuilder("[");
+		boolean first = true;
+		
+		for (PerfStatEntry entry : perfStats.get().values()) {
+			if (entry.count == 0) {
+				continue;
+			}
+			
+			if (first) {
+				first = false;
+			} else {
+				sb.append(", ");
+			}
+			sb.append(entry.toString());
+		}
+		
+		sb.append("]");
+		return sb.toString();
 	}
 }

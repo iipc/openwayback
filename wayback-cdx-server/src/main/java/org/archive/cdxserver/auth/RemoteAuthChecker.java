@@ -22,12 +22,12 @@ public class RemoteAuthChecker extends PrivTokenAuthChecker {
 	public class RemoteFilter implements CDXAccessFilter {
 
 		@Override
-		public boolean include(CDXLine line) {
-			return include(line.getUrlKey(), line.getOriginalUrl());
+		public boolean includeCapture(CDXLine line) {
+			return includeUrl(line.getUrlKey(), line.getOriginalUrl());
 		}
 
 		@Override
-		public boolean include(String urlKey, String originalUrl) {
+		public boolean includeUrl(String urlKey, String originalUrl) {
 			
 			if (accessCheckUrl == null) {
 				return true;

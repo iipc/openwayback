@@ -23,7 +23,6 @@ import org.archive.wayback.memento.MementoTimemapRenderer;
 import org.archive.wayback.resourceindex.filters.SelfRedirectFilter;
 import org.archive.wayback.util.webapp.AbstractRequestHandler;
 import org.archive.wayback.webapp.PerfStats;
-import org.archive.wayback.webapp.AccessPoint.PerfStat;
 import org.springframework.web.bind.ServletRequestBindingException;
 
 public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements MementoTimemapRenderer, ResourceIndex {
@@ -34,8 +33,24 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 		
 	private SelfRedirectFilter selfRedirFilter;
 	
+	enum PerfStat
+	{
+		IndexLoad;
+	}
+	
 	@Override
     public SearchResults query(WaybackRequest wbRequest)
+            throws ResourceIndexNotAvailableException,
+            ResourceNotInArchiveException, BadQueryException,
+            AccessControlException {
+		try {
+			PerfStats.timeStart(PerfStat.IndexLoad);
+			return doQuery(wbRequest);
+		} finally {
+			PerfStats.timeEnd(PerfStat.IndexLoad);
+		}
+	}
+    public SearchResults doQuery(WaybackRequest wbRequest)
             throws ResourceIndexNotAvailableException,
             ResourceNotInArchiveException, BadQueryException,
             AccessControlException {
@@ -152,7 +167,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
             HttpServletRequest request, HttpServletResponse response) throws ResourceIndexNotAvailableException, AccessControlException {
 		
 		try {
-			PerfStats.timeStart(PerfStat.IndexQueryTotal);
+			PerfStats.timeStart(PerfStat.IndexLoad);
 			
 			String format = wbRequest.getMementoTimemapFormat();
 			
@@ -160,7 +175,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 				return false;
 			}
 			
-			CDXQuery query = new CDXQuery();
+			CDXQuery query = new CDXQuery(wbRequest.getRequestUrl());
 			
 			query.setOutput(wbRequest.getMementoTimemapFormat());
 			
@@ -176,7 +191,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 	        	//CDX server handles its own output
 	        }
 		} finally {
-			PerfStats.timeEnd(PerfStat.IndexQueryTotal);
+			PerfStats.timeEnd(PerfStat.IndexLoad);
 		}
 
 		return true;

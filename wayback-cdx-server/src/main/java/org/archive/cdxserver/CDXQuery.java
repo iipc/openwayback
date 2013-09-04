@@ -97,7 +97,9 @@ public class CDXQuery {
 		
 	public void fill(HttpServletRequest request) throws ServletRequestBindingException
 	{
-		url = ServletRequestUtils.getRequiredStringParameter(request, "url");
+		if (this.url == null) {
+			url = ServletRequestUtils.getRequiredStringParameter(request, "url");
+		}
 		
 		matchType = getEnumValue(request, "matchType", UrlSurtRangeComputer.MatchType.class, null);
 
@@ -109,7 +111,8 @@ public class CDXQuery {
 		collapseTime = ServletRequestUtils.getIntParameter(request, "collapseTime", 0);
 
 		gzip = ServletRequestUtils.getBooleanParameter(request, "gzip", true);
-		output = ServletRequestUtils.getStringParameter(request, "output", "");
+		
+		output = ServletRequestUtils.getStringParameter(request, "output", output);
 
 		filter = ServletRequestUtils.getStringParameters(request, "filter");
 		collapse = ServletRequestUtils.getStringParameters(request, "collapse");

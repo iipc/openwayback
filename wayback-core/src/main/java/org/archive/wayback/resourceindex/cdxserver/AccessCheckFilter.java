@@ -33,11 +33,13 @@ public class AccessCheckFilter implements CDXAccessFilter {
 	    this.resultTester = new FastCaptureSearchResult();
     }
 	
-	public boolean include(String urlKey, String originalUrl) {
+	public boolean include(String urlKey, String originalUrl, boolean throwOnFail) {
 		
 		if ((lastKey != null) && lastKey.equals(urlKey)) {
 			return cachedValue;
 		}
+		
+		cachedValue = false;
 
 		resultTester.setUrlKey(urlKey);
 		resultTester.setOriginalUrl(originalUrl);
@@ -50,7 +52,12 @@ public class AccessCheckFilter implements CDXAccessFilter {
 		}
 		
 		if (status != ExclusionFilter.FILTER_INCLUDE) {
-			throw new RuntimeException(new AdministrativeAccessControlException(originalUrl + " is not available in the Wayback Machine."));
+			if (throwOnFail) {
+				throw new RuntimeException(new AdministrativeAccessControlException(originalUrl + " is not available in the Wayback Machine."));
+			} else {
+				lastKey = urlKey;
+				return cachedValue;
+			}
 		}
 		
 		// Robot Excludes
@@ -59,19 +66,30 @@ public class AccessCheckFilter implements CDXAccessFilter {
 		}
 		
 		if (status != ExclusionFilter.FILTER_INCLUDE) {
-			throw new RuntimeException(new RobotAccessControlException(originalUrl + " is blocked by the sites robots.txt file"));
+			if (throwOnFail) {
+				throw new RuntimeException(new RobotAccessControlException(originalUrl + " is blocked by the sites robots.txt file"));
+			} else {
+				lastKey = urlKey;
+				return cachedValue;
+			}
 		}
 		
-		cachedValue = true;
 		lastKey = urlKey;
+		cachedValue = true;
 		
 		return cachedValue;
     }
+	
+	@Override
+	public boolean includeUrl(String urlKey, String originalUrl)
+	{
+		return include(urlKey, originalUrl, true);
+	}
 
 	@Override
-    public boolean include(CDXLine line) {
+    public boolean includeCapture(CDXLine line) {
 		
-	    if (!include(line.getUrlKey(), line.getOriginalUrl())) {
+	    if (!include(line.getUrlKey(), line.getOriginalUrl(), false)) {
 	    	return false;
 	    }
 	    

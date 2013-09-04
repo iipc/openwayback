@@ -201,7 +201,7 @@ public class HowManyController extends BaseCDXServer {
             end = startEnd[1];
             host = startEnd[2];
             
-            if (accessChecker != null && !accessChecker.include(start, url)) {
+            if (accessChecker != null && !accessChecker.includeUrl(start, url)) {
                 restricted = true;
             } 
         }

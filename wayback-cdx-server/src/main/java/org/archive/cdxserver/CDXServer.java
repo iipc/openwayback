@@ -177,7 +177,7 @@ public class CDXServer extends BaseCDXServer {
 				return;
 			}
 			
-			if ((accessChecker != null) && !accessChecker.include(startEndUrl[0], query.url)) {				
+			if ((accessChecker != null) && !accessChecker.includeUrl(startEndUrl[0], query.url)) {				
 				if (query.showNumPages) {
 					// Default to 1 page even if no results
 					responseWriter.printNumPages(1, false);
@@ -418,7 +418,7 @@ public class CDXServer extends BaseCDXServer {
 			
 			// Additional access check, per capture
 			if (accessChecker != null) {
-				if (!accessChecker.include(line)) {
+				if (!accessChecker.includeCapture(line)) {
 					continue;
 				}
 			}
