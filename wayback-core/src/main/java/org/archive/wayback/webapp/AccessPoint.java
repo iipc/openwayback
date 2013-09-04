@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -37,6 +38,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.archive.format.gzip.zipnum.ZipNumBlockLoader;
+import org.archive.util.ArchiveUtils;
 import org.archive.wayback.ExceptionRenderer;
 import org.archive.wayback.QueryRenderer;
 import org.archive.wayback.ReplayDispatcher;
@@ -708,7 +710,7 @@ implements ShutdownListener {
 						
 					} else {
 						httpHeadersResource = getResource(closest, skipFiles);
-						payloadResource = retrievePayloadForIdenticalContentRevisit(httpHeadersResource, captureResults, closest, skipFiles);
+						payloadResource = retrievePayloadForIdenticalContentRevisit(wbRequest, httpHeadersResource, captureResults, closest, skipFiles);
 						
 						// If zero length old-style revisit with no headers, then must use payloadResource as headersResource
 						if (httpHeadersResource.getRecordLength() <= 0) {
@@ -925,7 +927,7 @@ implements ShutdownListener {
 	 * @throws BetterRequestException 
 	 * @see WARCRevisitAnnotationFilter
 	 */
-	protected Resource retrievePayloadForIdenticalContentRevisit(Resource revisitRecord,
+	protected Resource retrievePayloadForIdenticalContentRevisit(WaybackRequest currRequest, Resource revisitRecord,
 			CaptureSearchResults captureResults, CaptureSearchResult closest, Set<String> skipFiles)
 					throws ResourceNotAvailableException, ConfigurationException, ResourceIndexNotAvailableException, ResourceNotInArchiveException, BadQueryException, AccessControlException, BetterRequestException {
 		if (!closest.isDuplicateDigest()) {
@@ -987,12 +989,19 @@ implements ShutdownListener {
 		
 		if (warcHeaders != null) {
 			payloadUri = (String) warcHeaders.get("WARC-Refers-To-Target-URI");
-			payloadTimestamp = (String) warcHeaders.get("WARC-Refers-To-Date");	
+			
+			Date date = ArchiveUtils.parse14DigitISODate((String)warcHeaders.get("WARC-Refers-To-Date"), null);
+			
+			if (date != null) {
+				payloadTimestamp = ArchiveUtils.get14DigitDate(date);
+			}
 		}
 		
 		if (payloadUri != null && payloadTimestamp != null) {
-			WaybackRequest wbr = new WaybackRequest();
+			WaybackRequest wbr = currRequest.clone();
 			wbr.setReplayTimestamp(payloadTimestamp);
+			wbr.setAnchorTimestamp(payloadTimestamp);
+			wbr.setTimestampSearchKey(true);
 			wbr.setRequestUrl(payloadUri);
 
 			SearchResults results = queryIndex(wbr);

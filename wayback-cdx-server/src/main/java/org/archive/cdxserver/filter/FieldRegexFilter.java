@@ -86,9 +86,9 @@ public class FieldRegexFilter implements CDXFilter {
 			boolean matched;
 			
 			if (fieldIndex < 0) {
-				matched = regex.matcher(line.toString()).find();
+				matched = regex.matcher(line.toString()).matches();
 			} else {
-				matched = regex.matcher(line.getField(fieldIndex)).find();
+				matched = regex.matcher(line.getField(fieldIndex)).matches();
 			}
 			
 			if (inverted) {

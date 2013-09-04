@@ -95,28 +95,24 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 			//query.setCollapse(new String[]{"timestamp:" + timestampDedupLength});
 			query.setCollapseTime(timestampDedupLength);
 		}
-		
-		if (wbRequest.isBestLatestReplayRequest()) {
-			String statusFilter = "statuscode:[23]..";
-			query.setFilter(new String[]{statusFilter});
-			query.setSort(CDXQuery.SortType.reverse);
-			query.setLimit(1);
-			return query;
-		}
-		
+				
 		query.setLimit(limit);
 		
-		//query.setFilter(new String[]{"!statuscode:(500|502|504)"});
-		query.setFilter(new String[]{"statuscode:^[23-]"});
+		String statusFilter = "!statuscode:(500|502|504)";
 		
 		if (wbRequest.isReplayRequest()) {
-			//query.setResolveRevisits(true);		
+			if (wbRequest.isBestLatestReplayRequest()) {
+				statusFilter = "statuscode:[23]..";
+				query.setSort(CDXQuery.SortType.reverse);
+			}
 			
-			if (wbRequest.isTimestampSearchKey()) {
+			if (wbRequest.isTimestampSearchKey()) {		
 				query.setClosest(wbRequest.getReplayTimestamp());
 				query.setSort(CDXQuery.SortType.reverse);
 			}
 		}
+		
+		query.setFilter(new String[]{statusFilter});
 		
 		return query;
 	}
