@@ -254,7 +254,7 @@ public class FlexResourceStore implements ResourceStore {
 		throw rnae;
 	}
 	
-	public Resource getResource(String path, CaptureSearchResult result) throws IOException
+	public Resource getResource(String path, CaptureSearchResult result) throws IOException, ResourceNotAvailableException
 	{		
 		Resource r = null;
 		
@@ -275,16 +275,8 @@ public class FlexResourceStore implements ResourceStore {
 		
 		try {
 			InputStream is = slr.getInputStream();
-					
-			ArchiveReader archiveReader = ArchiveReaderFactory.get(path, is, (offset == 0));
 			
-			if (archiveReader instanceof ARCReader) {
-				r = new ArcResource((ARCRecord)archiveReader.get(), archiveReader);
-			} else if (archiveReader instanceof WARCReader) {
-				r = new WarcResource((WARCRecord)archiveReader.get(), archiveReader);	
-			} else {
-				throw new IOException("Unknown ArchiveReader");
-			}
+			r = loadResource(path, is);
 			
 			r.parseHeaders();
 			
@@ -299,6 +291,19 @@ public class FlexResourceStore implements ResourceStore {
 		}
 
 		return r;
+	}
+	
+	protected Resource loadResource(String path, InputStream is) throws IOException, ResourceNotAvailableException
+	{
+		ArchiveReader archiveReader = ArchiveReaderFactory.get(path, is, false);
+		
+		if (archiveReader instanceof ARCReader) {
+			return new ArcResource((ARCRecord)archiveReader.get(), archiveReader);
+		} else if (archiveReader instanceof WARCReader) {
+			return new WarcResource((WARCRecord)archiveReader.get(), archiveReader);	
+		} else {
+			throw new IOException("Unknown ArchiveReader");
+		}
 	}
 
 	@Override
