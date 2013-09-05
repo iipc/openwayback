@@ -187,7 +187,8 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 			return nextResult;
 		}
 		
-		CaptureSearchResult lastResult = results.getResults().getLast();
+		CaptureSearchResult lastResult = getLastAdded();
+		
 		
 		// Now compare date diff
 		long nextTime = nextResult.getCaptureDate().getTime();
@@ -215,10 +216,19 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
     	}
     	
     	if (!results.isEmpty()) {
-    		return results.getResults().getLast();
+    		return getLastAdded();
     	}
     	
     	return null;
+    }
+    
+    protected CaptureSearchResult getLastAdded()
+    {
+		if (!isReverse) {
+			return results.getResults().getLast();
+		} else {
+			return results.getResults().getFirst();
+		}
     }
     
     @Override

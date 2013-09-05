@@ -18,6 +18,7 @@ public class MementoLinkWriter extends HttpCDXWriter {
 		
 	protected String timemapUrl;
 	protected String timegateUrl;
+	protected String format;
 
 	
 	public MementoLinkWriter(
@@ -38,8 +39,12 @@ public class MementoLinkWriter extends HttpCDXWriter {
 
 	    if (index > 0) {
 	    	timegateUrl = requestUrlBuff.substring(0, index);
+	    	index += TIMEMAP.length() + 1;
+	    	int endIndex = requestUrlBuff.indexOf("/", index);
+	    	format = ((endIndex > 0) ? requestUrlBuff.substring(index, endIndex) : requestUrlBuff.substring(index));
 	    } else {
 	    	timegateUrl = requestUrlBuff.toString();
+	    	format = LINK;
 	    }
 	    
 	    String query = request.getQueryString();
@@ -82,7 +87,7 @@ public class MementoLinkWriter extends HttpCDXWriter {
 	
 	public final static String TIMEGATE = "timegate";
 	public final static String TIMEMAP = "timemap";
-	public final static String FORMAT_LINK = "link";
+	public final static String LINK = "link";
 	
 	public final static String FIRST = "first memento";
 	public final static String LAST = "last memento";
@@ -179,7 +184,7 @@ public class MementoLinkWriter extends HttpCDXWriter {
 		StringBuilder sb = new StringBuilder(timegateUrl);
 		sb.append(TIMEMAP);
 		sb.append("/");
-		sb.append(FORMAT_LINK);
+		sb.append(format);
 		sb.append("/");
 		sb.append(timestamp);
 		sb.append("/");

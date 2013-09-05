@@ -67,7 +67,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
         } else if (wbRequest.isUrlQueryRequest()) {
         	resultWriter = this.getUrlSearchWriter(wbRequest);
         } else {
-        	return null;
+        	throw new BadQueryException("Unknown Query Type");
         }
 
         try {    	
@@ -112,18 +112,17 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 		}
 				
 		query.setLimit(limit);
+		query.setSort(CDXQuery.SortType.reverse);
 		
 		String statusFilter = "!statuscode:(500|502|504)";
 		
 		if (wbRequest.isReplayRequest()) {
 			if (wbRequest.isBestLatestReplayRequest()) {
 				statusFilter = "statuscode:[23]..";
-				query.setSort(CDXQuery.SortType.reverse);
 			}
 			
 			if (wbRequest.isTimestampSearchKey()) {		
 				query.setClosest(wbRequest.getReplayTimestamp());
-				query.setSort(CDXQuery.SortType.reverse);
 			}
 		}
 		
