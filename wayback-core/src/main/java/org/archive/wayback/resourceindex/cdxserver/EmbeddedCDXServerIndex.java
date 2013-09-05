@@ -179,6 +179,12 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 			
 			query.setOutput(wbRequest.getMementoTimemapFormat());
 			
+			String from = wbRequest.get(MementoConstants.PAGE_STARTS);
+			
+			if (from != null) {
+				query.setFrom(from);
+			}
+			
 			try {
 		        query.fill(request);
 	        } catch (ServletRequestBindingException e1) {

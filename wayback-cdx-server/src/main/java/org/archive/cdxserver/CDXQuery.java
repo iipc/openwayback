@@ -32,7 +32,7 @@ public class CDXQuery {
 	
 	int collapseTime = 0;
 
-	boolean gzip = true;
+	Boolean gzip = null;
 	String output = EMPTY_STRING;
 
 	String[] filter = null;
@@ -103,14 +103,14 @@ public class CDXQuery {
 		
 		matchType = getEnumValue(request, "matchType", UrlSurtRangeComputer.MatchType.class, null);
 
-		from = ServletRequestUtils.getStringParameter(request, "from", "");
+		from = ServletRequestUtils.getStringParameter(request, "from", from);
 		to = ServletRequestUtils.getStringParameter(request, "to", "");
 		closest = ServletRequestUtils.getStringParameter(request, "closest", "");
 		
 		sort = getEnumValue(request, "sort", SortType.class, SortType.regular);
 		collapseTime = ServletRequestUtils.getIntParameter(request, "collapseTime", 0);
 
-		gzip = ServletRequestUtils.getBooleanParameter(request, "gzip", true);
+		gzip = ServletRequestUtils.getBooleanParameter(request, "gzip");
 		
 		output = ServletRequestUtils.getStringParameter(request, "output", output);
 
@@ -125,7 +125,7 @@ public class CDXQuery {
 		
 		offset = ServletRequestUtils.getIntParameter(request, "offset", 0);
 		limit = ServletRequestUtils.getIntParameter(request, "limit", 0);
-		fastLatest = ServletRequestUtils.getBooleanParameter(request, "fastLatest", false);
+		fastLatest = ServletRequestUtils.getBooleanParameter(request, "fastLatest");
 		fl = ServletRequestUtils.getStringParameter(request, "fl", "");
 		
 		page = ServletRequestUtils.getIntParameter(request, "page", -1);
@@ -203,11 +203,11 @@ public class CDXQuery {
 		return this.sort == SortType.closest;
 	}
 
-	public boolean isGzip() {
+	public Boolean isGzip() {
 		return gzip;
 	}
 
-	public void setGzip(boolean gzip) {
+	public void setGzip(Boolean gzip) {
 		this.gzip = gzip;
 	}
 

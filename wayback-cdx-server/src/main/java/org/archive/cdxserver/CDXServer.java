@@ -24,6 +24,7 @@ import org.archive.cdxserver.processor.LastNLineProcessor;
 import org.archive.cdxserver.processor.ReverseRevisitResolver;
 import org.archive.cdxserver.writer.CDXWriter;
 import org.archive.cdxserver.writer.JsonWriter;
+import org.archive.cdxserver.writer.MementoLinkWriter;
 import org.archive.cdxserver.writer.PlainTextWriter;
 import org.archive.format.cdx.CDXInputSource;
 import org.archive.format.cdx.CDXLine;
@@ -120,7 +121,22 @@ public class CDXServer extends BaseCDXServer {
 
 	public void setCdxSource(CDXInputSource cdxSource) {
 		this.cdxSource = cdxSource;
-	}	
+	}
+	
+	protected boolean determineGzip(HttpServletRequest request, CDXQuery query)
+	{
+		Boolean isGzip = query.isGzip();
+		if (isGzip != null) {
+			return isGzip;
+		}
+		
+		String encoding = request.getHeader("Accept-Encoding");
+		if (encoding == null) {
+			return false;
+		}
+		
+		return encoding.contains("gzip");
+	}
 	
 	@RequestMapping(value = { "/cdx" })
 	public void getCdx(HttpServletRequest request, HttpServletResponse response, CDXQuery query) throws IOException {		
@@ -128,10 +144,14 @@ public class CDXServer extends BaseCDXServer {
 		
 		CDXWriter responseWriter = null;
 		
+		boolean gzip = determineGzip(request, query);
+		
 		if (query.output.equals("json")) {
-			responseWriter = new JsonWriter(response, query.isGzip());
+			responseWriter = new JsonWriter(response, gzip);
+		} else if (query.output.equals("memento")) {
+			responseWriter = new MementoLinkWriter(request, response, query, gzip);			
 		} else {
-			responseWriter = new PlainTextWriter(response, query.isGzip());
+			responseWriter = new PlainTextWriter(response, gzip);
 		}
 		
 		AuthToken authToken = super.createAuthToken(request);
