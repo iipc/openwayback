@@ -146,7 +146,7 @@ public class MementoLinkWriter extends HttpCDXWriter {
 			
 			String digest = line.getDigest();
 			if (!digest.equals(CDXLine.EMPTY_VALUE)) {
-				writer.print("; hash=\"md5:");
+				writer.print("; hash=\"sha1:");
 				writer.print(digest);
 				writer.print("\"");
 			}
