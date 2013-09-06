@@ -135,8 +135,8 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 	{
 		final CDXQuery query = createQuery(wbRequest);
 		
-		boolean seekSingleCapture = (wbRequest.isReplayRequest() && wbRequest.isTimestampSearchKey());
 		boolean resolveRevisits = wbRequest.isReplayRequest();
+		boolean seekSingleCapture = resolveRevisits && (wbRequest.isTimestampSearchKey() || wbRequest.isBestLatestReplayRequest());
 		
 		CDXToCaptureSearchResultsWriter captureWriter = new CDXToCaptureSearchResultsWriter(query, resolveRevisits, seekSingleCapture);
 				
