@@ -25,6 +25,7 @@ import java.util.Date;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.archive.util.ArchiveUtils;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.exception.BetterRequestException;
@@ -32,6 +33,7 @@ import org.archive.wayback.memento.MementoUtils;
 import org.archive.wayback.memento.TimeGateBadQueryException;
 import org.archive.wayback.requestparser.BaseRequestParser;
 import org.archive.wayback.requestparser.PathRequestParser;
+import org.archive.wayback.util.Timestamp;
 import org.archive.wayback.util.url.UrlOperations;
 import org.archive.wayback.webapp.AccessPoint;
 
@@ -69,6 +71,11 @@ public class DatelessReplayRequestParser extends PathRequestParser {
 		
 		if (acceptDateTime != null) {
 			date = MementoUtils.parseAcceptDateTimeHeader(acceptDateTime);
+			
+			if (date == null) {
+				String timestamp = Timestamp.padEndDateStr(acceptDateTime);
+				date = ArchiveUtils.getDate(timestamp, null);
+			}
 			
 			// Accept-Datetime specified but is invalid, must return a 400
 			if (date == null) {

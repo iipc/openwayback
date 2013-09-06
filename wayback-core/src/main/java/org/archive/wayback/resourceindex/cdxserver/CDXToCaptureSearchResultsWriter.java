@@ -216,7 +216,12 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
     	}
     	
     	if (!results.isEmpty()) {
-    		return getLastAdded();
+    		// If no target timestamp, always return the latest capture, otherwise first or last based on reverse state
+    		if (targetTimestamp != null) {
+    			return getLastAdded();
+    		} else {
+    			return results.getResults().getLast();
+    		}
     	}
     	
     	return null;
