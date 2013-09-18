@@ -8,6 +8,8 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.text.ParseException;
+import java.util.Date;
 import java.util.zip.GZIPOutputStream;
 
 import org.archive.format.ArchiveFileConstants;
@@ -39,7 +41,31 @@ public class TestWARCRecordInfo extends WARCRecordInfo implements WARCConstants,
         }
         this.contentStream = new ByteArrayInputStream(content);
         this.contentLength = content.length;
+        // NB: create14DigitDate must be in ISOZ format (name "14DigitDate" is confusing)
         this.create14DigitDate = DateUtils.getLog14Date();
+    }
+    
+    /**
+     * translates DT14 (YYYYmmddHHMMSS) to ISOZ format used in WARC-Date header.
+     * @param dt14
+     * @return ISOZ (YYYY-mm-ddTHH:MM:SSZ)
+     * @exception IOException dt14 is in bad format (wrapping ParseException to simply error handling)
+     */
+    public static String dt14ToISOZ(String dt14) throws IOException {
+        try {
+            Date date = DateUtils.parse14DigitDate(dt14);
+            return DateUtils.getLog14Date(date);
+        } catch (ParseException ex) {
+            throw new IOException("invalid DT14 " + dt14, ex);
+        }
+    }
+    /**
+     * utility method for updating create14DigitDate from DT14.
+     * @param dt14 DT14 (YYYYmmddHHMMSS)
+     * @throws IOException dt14 is in bad format.
+     */
+    public void setCreate14DigitDateFromDT14(String dt14) throws IOException {
+        create14DigitDate = dt14ToISOZ(dt14);
     }
     
     // factory methods

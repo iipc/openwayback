@@ -13,8 +13,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.archive.io.ArchiveReader;
 import org.archive.io.ArchiveRecord;
-import org.archive.io.warc.WARCRecord;
-import org.archive.io.warc.WARCRecordInfo;
 import org.archive.util.anvl.ANVLRecord;
 import org.archive.util.anvl.Element;
 
