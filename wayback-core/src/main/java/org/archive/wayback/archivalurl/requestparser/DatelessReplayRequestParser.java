@@ -22,6 +22,7 @@ package org.archive.wayback.archivalurl.requestparser;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Date;
+import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -51,6 +52,8 @@ public class DatelessReplayRequestParser extends PathRequestParser {
 		super(wrapped);
 	}
 	
+	private final static Pattern WB_DATE_PATTERN = Pattern.compile("^(\\d{0,14})$");
+	
 	
 
 	@Override
@@ -73,10 +76,13 @@ public class DatelessReplayRequestParser extends PathRequestParser {
 			date = MementoUtils.parseAcceptDateTimeHeader(acceptDateTime);
 			
 			if (date == null) {
-				//TODO: Integrate with Accept-Datetime
-				acceptDateTime = httpRequest.getHeader("Accept-Timestamp");
-				String timestamp = Timestamp.padEndDateStr(acceptDateTime);
-				date = ArchiveUtils.getDate(timestamp, null);
+				//TODO: Integrate with Accept-Datetime?
+				String acceptTimestamp = httpRequest.getHeader("Accept-Timestamp");
+				
+				if ((acceptTimestamp != null) && WB_DATE_PATTERN.matcher(acceptTimestamp).matches()) {
+					String timestamp = Timestamp.padEndDateStr(acceptTimestamp);
+					date = ArchiveUtils.getDate(timestamp, null);
+				}
 			}
 			
 			// Accept-Datetime specified but is invalid, must return a 400
