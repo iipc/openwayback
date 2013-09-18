@@ -176,7 +176,8 @@ public class ServerRelativeArchivalRedirect extends AbstractRequestHandler {
 				if (queryString != null) {
 					thisPath += "?" + queryString;
 				}
-				if(thisPath.startsWith("/http://")) {
+				//TODO: rethink this fallback, for now adding https support as well
+				if(thisPath.startsWith("/http://") || thisPath.startsWith("/https://")) {
 					// assume a replay request:
 					StringBuilder sb = new StringBuilder(thisPath.length() + replayPrefix.length() + 16);
 					sb.append(replayPrefix);

@@ -73,6 +73,8 @@ public class DatelessReplayRequestParser extends PathRequestParser {
 			date = MementoUtils.parseAcceptDateTimeHeader(acceptDateTime);
 			
 			if (date == null) {
+				//TODO: Integrate with Accept-Datetime
+				acceptDateTime = httpRequest.getHeader("Accept-Timestamp");
 				String timestamp = Timestamp.padEndDateStr(acceptDateTime);
 				date = ArchiveUtils.getDate(timestamp, null);
 			}
