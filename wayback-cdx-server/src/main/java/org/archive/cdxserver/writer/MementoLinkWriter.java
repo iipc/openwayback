@@ -157,7 +157,7 @@ public class MementoLinkWriter extends HttpCDXWriter {
     public int writeLine(CDXLine line) {
 		if (prevLine == null) {
 			prevLine = line;
-			return 0;
+			return 1;
 		}
 		
 		writeHeaderAndFirstLine(prevLine, FIRST, MEMENTO);		
@@ -169,7 +169,7 @@ public class MementoLinkWriter extends HttpCDXWriter {
 
 	@Override
     public void writeResumeKey(String resumeKey) {
-		writeHeaderAndFirstLine(null, FIRST_LAST, LAST);
+		writeHeaderAndFirstLine(prevLine, FIRST_LAST, LAST);
 		CDXLine lastLine = prevLine;
 		prevLine = null;
 		

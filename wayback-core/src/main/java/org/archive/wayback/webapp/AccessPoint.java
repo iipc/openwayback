@@ -68,7 +68,8 @@ import org.archive.wayback.exception.ResourceNotAvailableException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.exception.SpecificCaptureReplayException;
 import org.archive.wayback.exception.WaybackException;
-import org.archive.wayback.memento.MementoTimemapRenderer;
+import org.archive.wayback.memento.DefaultMementoHandler;
+import org.archive.wayback.memento.MementoHandler;
 import org.archive.wayback.memento.MementoUtils;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.resourceindex.filters.WARCRevisitAnnotationFilter;
@@ -172,7 +173,7 @@ implements ShutdownListener {
 	private ReplayDispatcher   replay       = null;
 	private ResultURIConverter uriConverter = null;
 	
-	private MementoTimemapRenderer mementoTimemapRenderer = null;
+	private MementoHandler mementoHandler = new DefaultMementoHandler();
 
 	private ExclusionFilterFactory exclusionFactory = null;
 	private BooleanOperator<WaybackRequest> authentication = null;
@@ -306,8 +307,7 @@ implements ShutdownListener {
 					handleReplay(wbRequest,httpRequest,httpResponse);
 					
 				} else {
-
-					if(bounceToQueryPrefix) {
+					if (bounceToQueryPrefix) {
 						// we don't accept replay requests on this AccessPoint
 						// bounce the user to the right place:
 						String suffix = translateRequestPathQuery(httpRequest);
@@ -558,24 +558,23 @@ implements ShutdownListener {
 	// throw BetterRequestException here, also if memento is enabled, this acts as a timegate
 	protected void throwRedirect(WaybackRequest wbRequest, 
 								 HttpServletResponse httpResponse,
-								 CaptureSearchResults captureResults, 
-								 String timestamp, 
-								 String url) throws BetterRequestException
+								 CaptureSearchResults captureResults,
+								 CaptureSearchResult closest) throws BetterRequestException
 	{
-		String datespec = ArchivalUrl.getDateSpec(wbRequest, timestamp);
-		String betterURI = getUriConverter().makeReplayURI(datespec, url);
 		
 		//TODO: better detection of non-redirect proxy mode?
 		// For now, checking if the betterURI does not contain the timestamp, then we're not doing a redirect
-		boolean isNonRedirectProxy = !betterURI.contains(timestamp);
+		String datespec = ArchivalUrl.getDateSpec(wbRequest, closest.getCaptureTimestamp());
+		String betterURI = getUriConverter().makeReplayURI(datespec, closest.getOriginalUrl());
+		boolean isNonRedirectProxy = !betterURI.contains(closest.getCaptureTimestamp());
 		
 		if (this.isEnableMemento()) {
 			// Issue either a Memento URL-G response, or "intermediate resource" response
-			if (wbRequest.isMementoTimegate()) {
-				MementoUtils.addTimegateHeaders(httpResponse, captureResults, wbRequest, !isNonRedirectProxy);
+			if (wbRequest.isMementoTimegate() && this.getMementoHandler() != null) {
+				this.getMementoHandler().addTimegateHeaders(httpResponse, captureResults, wbRequest, !isNonRedirectProxy);
 			} else {
 				// Redirect as "intermediate resource"
-				MementoUtils.addOrigHeader(httpResponse, url);
+				MementoUtils.addOrigHeader(httpResponse, closest.getOriginalUrl());
 			}
 		}
 		
@@ -701,10 +700,10 @@ implements ShutdownListener {
 						// See that this is successful
 						httpHeadersResource = getResource(closest, skipFiles);
 						
-						// Then, if both headers and payload are from a different timestamp, redirect to that timestamp
-						if (!closest.getCaptureTimestamp().equals(closest.getDuplicateDigestStoredTimestamp())) {
-							throwRedirect(wbRequest, httpResponse, captureResults, closest.getDuplicateDigestStoredTimestamp(), closest.getOriginalUrl());
-						}
+						// Hmm, since this is a revisit it should not redirect -- was: if both headers and payload are from a different timestamp, redirect to that timestamp
+//						if (!closest.getCaptureTimestamp().equals(closest.getDuplicateDigestStoredTimestamp())) {
+//							throwRedirect(wbRequest, httpResponse, captureResults, closest.getDuplicateDigestStoredTimestamp(), closest.getOriginalUrl(), closest.getHttpCode());
+//						}
 						
 						payloadResource = httpHeadersResource;
 						
@@ -754,7 +753,8 @@ implements ShutdownListener {
 				// Redirect to url for the actual closest capture
 				if (!wbRequest.getReplayTimestamp().startsWith(closest.getCaptureTimestamp())) {
 				//if ((closest != originalClosest) && !closest.getCaptureTimestamp().equals(originalClosest.getCaptureTimestamp())) {
-					throwRedirect(wbRequest, httpResponse, captureResults, closest.getCaptureTimestamp(), closest.getOriginalUrl());
+					captureResults.setClosest(closest);
+					throwRedirect(wbRequest, httpResponse, captureResults, closest);
 				}
 		
 				p.retrieved();
@@ -1052,9 +1052,9 @@ implements ShutdownListener {
 
 		PerformanceLogger p = new PerformanceLogger("query");
 		
-		// Memento: custom renderer
-		if ((this.getMementoTimemapRenderer() != null) && (wbRequest.isMementoTimemapRequest())) {
-			if (mementoTimemapRenderer.renderMementoTimemap(wbRequest, httpRequest, httpResponse)) {
+		// Memento: render timemap
+		if ((this.getMementoHandler() != null) && (wbRequest.isMementoTimemapRequest())) {
+			if (this.getMementoHandler().renderMementoTimemap(wbRequest, httpRequest, httpResponse)) {
 				return;
 			}
 		}
@@ -1074,13 +1074,8 @@ implements ShutdownListener {
 				closest.setClosest(true);
 			}
 			
-			// Memento URL-T Query -- TODO: generalize perhaps?
-			if (wbRequest.isMementoTimemapRequest()) {
-				MementoUtils.printTimemapResponse(cResults, wbRequest, httpResponse);
-			} else {
-				getQuery().renderCaptureResults(httpRequest,httpResponse,wbRequest,
+			getQuery().renderCaptureResults(httpRequest,httpResponse,wbRequest,
 						cResults,getUriConverter());
-			}
 
 		} else if(results instanceof UrlSearchResults) {
 			UrlSearchResults uResults = (UrlSearchResults) results;
@@ -1737,12 +1732,11 @@ implements ShutdownListener {
 		this.enableMemento = enableMemento;
 	}
 
-	public MementoTimemapRenderer getMementoTimemapRenderer() {
-		return mementoTimemapRenderer;
+	public MementoHandler getMementoHandler() {
+		return mementoHandler;
 	}
 
-	public void setMementoTimemapRenderer(
-	        MementoTimemapRenderer mementoTimemapRenderer) {
-		this.mementoTimemapRenderer = mementoTimemapRenderer;
+	public void setMementoHandler(MementoHandler mementoHandler) {
+		this.mementoHandler = mementoHandler;
 	}
 }

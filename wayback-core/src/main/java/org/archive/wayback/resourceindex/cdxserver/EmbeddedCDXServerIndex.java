@@ -12,20 +12,26 @@ import org.archive.cdxserver.auth.AuthToken;
 import org.archive.format.cdx.CDXLine;
 import org.archive.url.UrlSurtRangeComputer.MatchType;
 import org.archive.wayback.ResourceIndex;
+import org.archive.wayback.core.CaptureSearchResult;
+import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.AccessControlException;
 import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
+import org.archive.wayback.exception.WaybackException;
 import org.archive.wayback.memento.MementoConstants;
-import org.archive.wayback.memento.MementoTimemapRenderer;
+import org.archive.wayback.memento.MementoHandler;
+import org.archive.wayback.memento.MementoUtils;
 import org.archive.wayback.resourceindex.filters.SelfRedirectFilter;
 import org.archive.wayback.util.webapp.AbstractRequestHandler;
 import org.archive.wayback.webapp.PerfStats;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.springframework.web.bind.ServletRequestBindingException;
 
-public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements MementoTimemapRenderer, ResourceIndex {
+public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements MementoHandler, ResourceIndex {
 
 	protected CDXServer cdxServer;
 	protected int timestampDedupLength = 0;
@@ -166,7 +172,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 
 	@Override
     public boolean renderMementoTimemap(WaybackRequest wbRequest,
-            HttpServletRequest request, HttpServletResponse response) throws ResourceIndexNotAvailableException, AccessControlException {
+            HttpServletRequest request, HttpServletResponse response) throws WaybackException, IOException {
 		
 		try {
 			PerfStats.timeStart(PerfStat.IndexLoad);
@@ -251,4 +257,34 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 	public void setLimit(int limit) {
 		this.limit = limit;
 	}
+	
+	@Override
+    public void addTimegateHeaders(
+    		HttpServletResponse response,
+            CaptureSearchResults results,
+            WaybackRequest wbRequest,
+            
+            boolean includeOriginal) {
+
+		MementoUtils.addTimegateHeaders(response, results, wbRequest, includeOriginal);
+			
+		// Add custom JSON header
+		CaptureSearchResult result = results.getClosest();
+		
+		JSONObject obj = new JSONObject();
+		
+		JSONObject closestSnapshot = new JSONObject();
+		
+		try {
+			obj.put("wb_url", MementoUtils.getMementoPrefix(wbRequest.getAccessPoint()) + wbRequest.getAccessPoint().getUriConverter().makeReplayURI(result.getCaptureTimestamp(), wbRequest.getRequestUrl()));
+			obj.put("timestamp", result.getCaptureTimestamp());
+			obj.put("status", result.getHttpCode());
+			closestSnapshot.put("closest", obj);
+		} catch (JSONException je) {
+			
+		}
+		String json = closestSnapshot.toString();
+		json = json.replace("\\/", "/");
+		response.setHeader("X-Link-JSON", json);
+    }
 }

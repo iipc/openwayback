@@ -77,8 +77,7 @@ public class MementoUtils implements MementoConstants {
 		if (first.compareTo(last) == 0) {
 			// special handling of single result:
 			CaptureSearchResult result = results.getResults().get(0);
-			pw.print(makeLink(ap, result.getOriginalUrl(), FIRST_LAST_MEMENTO,
-					result.getCaptureDate()));
+			pw.print(makeLink(ap, result.getOriginalUrl(), FIRST_LAST_MEMENTO, result));
 		} else {
 			List<CaptureSearchResult> lr = results.getResults();
 			int count = lr.size();
@@ -95,7 +94,7 @@ public class MementoUtils implements MementoConstants {
 					rel = MEMENTO;
 				}
 				pw.print(makeLink(ap, result.getOriginalUrl(), rel,
-						result.getCaptureDate()));
+						result));
 			}
 		}
 		// ludab nov 30 2012
@@ -148,58 +147,58 @@ public class MementoUtils implements MementoConstants {
 		if (first == last) {
 			// only one capture.. are we sure we want the "actual" memento here?
 			rels.add(makeLink(ap, requestUrl, FIRST_LAST_MEMENTO,
-					first.getCaptureDate()));
+					first));
 		} else {
 			if (first == closest) {
 				// no previous:
 				rels.add(makeLink(ap, requestUrl, FIRST_MEMENTO,
-						first.getCaptureDate()));
+						first));
 				if (next == last) {
 					rels.add(makeLink(ap, requestUrl, NEXT_LAST_MEMENTO,
-							last.getCaptureDate()));
+							last));
 				} else {
 					rels.add(makeLink(ap, requestUrl, NEXT_MEMENTO,
-							next.getCaptureDate()));
+							next));
 					rels.add(makeLink(ap, requestUrl, LAST_MEMENTO,
-							last.getCaptureDate()));
+							last));
 				}
 			} else if (last == closest) {
 				// no next:
 				rels.add(makeLink(ap, requestUrl, LAST_MEMENTO,
-						last.getCaptureDate()));
+						last));
 				if (prev == first) {
 					rels.add(makeLink(ap, requestUrl, PREV_FIRST_MEMENTO,
-							first.getCaptureDate()));
+							first));
 				} else {
 					rels.add(makeLink(ap, requestUrl, FIRST_MEMENTO,
-							first.getCaptureDate()));
+							first));
 					rels.add(makeLink(ap, requestUrl, PREV_MEMENTO,
-							prev.getCaptureDate()));
+							prev));
 				}
 			} else {
 				// somewhere in the middle:
 
 				if (prev == first) {
 					rels.add(makeLink(ap, requestUrl, PREV_FIRST_MEMENTO,
-							first.getCaptureDate()));
+							first));
 				} else {
 					// add both prev and first:
 					rels.add(makeLink(ap, requestUrl, FIRST_MEMENTO,
-							first.getCaptureDate()));
+							first));
 					rels.add(makeLink(ap, requestUrl, PREV_MEMENTO,
-							prev.getCaptureDate()));
+							prev));
 				}
 				// add "actual" memento:
 				rels.add(makeLink(ap, requestUrl, MEMENTO,
-						closest.getCaptureDate()));
+						closest));
 				if (next == last) {
 					rels.add(makeLink(ap, requestUrl, NEXT_LAST_MEMENTO,
-							last.getCaptureDate()));
+							last));
 				} else {
 					rels.add(makeLink(ap, requestUrl, NEXT_MEMENTO,
-							next.getCaptureDate()));
+							next));
 					rels.add(makeLink(ap, requestUrl, LAST_MEMENTO,
-							last.getCaptureDate()));
+							last));
 				}
 			}
 		}
@@ -361,16 +360,17 @@ public class MementoUtils implements MementoConstants {
 		return String.format("<%s>; rel=\"%s\"; type=\"%s\"", url, rel, type);
 	}
 
-	private static String makeLink(AccessPoint ap, String url, String rel,
-			Date date) {
+	private static String makeLink(AccessPoint ap, String url, String rel, CaptureSearchResult result) {
 
+		Date date = result.getCaptureDate();
 		String timestamp = DATE_FORMAT_14_FORMATTER.format(date);
 		String replayURI = ap.getUriConverter().makeReplayURI(timestamp, url);
 		String prefix = getMementoPrefix(ap);
 		String httpTime = HTTP_LINK_DATE_FORMATTER.format(date);
 
-		return String.format("<%s%s>; rel=\"%s\"; datetime=\"%s\"", prefix, replayURI,
-				rel, httpTime);
+//		return String.format("<%s%s>; rel=\"%s\"; datetime=\"%s\"; status=\"%s\"", prefix, replayURI,
+//				rel, httpTime, result.getHttpCode());
+		return String.format("<%s%s>; rel=\"%s\"; datetime=\"%s\"", prefix, replayURI, rel, httpTime);
 	}
 
 	private static NotableResultExtractor getNotableResults(
