@@ -72,23 +72,26 @@ public class DatelessReplayRequestParser extends PathRequestParser {
 		
 		String requestPath = accessPoint.translateRequestPathQuery(httpRequest);
 		
+		boolean invalidAcceptDateTime = false;
+		
 		if (acceptDateTime != null) {
 			date = MementoUtils.parseAcceptDateTimeHeader(acceptDateTime);
+			invalidAcceptDateTime = true;
+		}
+		
+		if (date == null) {
+			//TODO: Integrate with Accept-Datetime?
+			String acceptTimestamp = httpRequest.getHeader("Accept-Timestamp");
 			
-			if (date == null) {
-				//TODO: Integrate with Accept-Datetime?
-				String acceptTimestamp = httpRequest.getHeader("Accept-Timestamp");
-				
-				if ((acceptTimestamp != null) && WB_DATE_PATTERN.matcher(acceptTimestamp).matches()) {
-					String timestamp = Timestamp.padEndDateStr(acceptTimestamp);
-					date = ArchiveUtils.getDate(timestamp, null);
-				}
+			if ((acceptTimestamp != null) && WB_DATE_PATTERN.matcher(acceptTimestamp).matches()) {
+				String timestamp = Timestamp.padEndDateStr(acceptTimestamp);
+				date = ArchiveUtils.getDate(timestamp, null);
 			}
-			
-			// Accept-Datetime specified but is invalid, must return a 400
-			if (date == null) {
-				throw new TimeGateBadQueryException("Invald Memento TimeGate datetime request, Accept-Datetime: " + acceptDateTime, requestPath);
-			}
+		}
+		
+		// Accept-Datetime specified but is invalid and timestamp not specified, must return a 400
+		if (invalidAcceptDateTime && (date == null)) {
+			throw new TimeGateBadQueryException("Invald Memento TimeGate datetime request, Accept-Datetime: " + acceptDateTime, requestPath);
 		}
 		
 		WaybackRequest wbRequest = this.parse(requestPath, accessPoint, date);
