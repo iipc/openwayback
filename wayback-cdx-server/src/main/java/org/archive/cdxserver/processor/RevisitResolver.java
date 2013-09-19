@@ -23,6 +23,7 @@ public abstract class RevisitResolver extends DupeCountProcessor {
 	protected void fillRevisit(CDXLine line, CDXLine origLine)
 	{
         line.setMimeType(origLine.getMimeType());
+        line.setStatusCode(origLine.getStatusCode());
         
         line.setField(origlength, origLine.getLength());
         line.setField(origoffset, origLine.getOffset());
