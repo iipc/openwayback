@@ -8,6 +8,7 @@ import org.archive.wayback.core.FastCaptureSearchResult;
 import org.archive.wayback.exception.AdministrativeAccessControlException;
 import org.archive.wayback.exception.RobotAccessControlException;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
+import org.archive.wayback.util.url.UrlOperations;
 
 public class AccessCheckFilter implements CDXAccessFilter {
 	
@@ -40,6 +41,10 @@ public class AccessCheckFilter implements CDXAccessFilter {
 		}
 		
 		cachedValue = false;
+		
+		if (UrlOperations.urlToScheme(originalUrl) == null) {
+			originalUrl = UrlOperations.HTTP_SCHEME + originalUrl;
+		}
 
 		resultTester.setUrlKey(urlKey);
 		resultTester.setOriginalUrl(originalUrl);
