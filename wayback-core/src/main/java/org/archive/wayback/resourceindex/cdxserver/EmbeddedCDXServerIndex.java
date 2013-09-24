@@ -180,7 +180,9 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 			String format = wbRequest.getMementoTimemapFormat();
 			
 			if ((format != null) && format.equals(MementoConstants.FORMAT_LINK)) {
-				return false;
+				SearchResults cResults = wbRequest.getAccessPoint().queryIndex(wbRequest);
+				MementoUtils.printTimemapResponse((CaptureSearchResults)cResults, wbRequest, response);				
+				return true;
 			}
 			
 			CDXQuery query = new CDXQuery(wbRequest.getRequestUrl());
