@@ -10,7 +10,8 @@ public abstract class HttpCDXWriter extends CDXWriter {
 
 	public final static String X_NUM_PAGES = "X-CDX-Num-Pages";
 	public final static String X_MAX_LINES = "X-CDX-Max-Lines";
-
+	public final static String X_CLUSTER_URI = "X-CDX-Cluster-Uri";
+	
 	protected HttpServletResponse response;
 	protected PrintWriter writer;
 	
@@ -51,8 +52,12 @@ public abstract class HttpCDXWriter extends CDXWriter {
 	}
 
 	@Override
-    public void setMaxLines(int maxLines) {
+    public void setMaxLines(int maxLines, String remoteClusterUri) {
 		response.setHeader(X_MAX_LINES, "" + maxLines);
+		
+		if (remoteClusterUri != null) {
+			response.setHeader(X_CLUSTER_URI, remoteClusterUri);
+		}
     }
 	
 	//TODO: remove this eventually, used for idx output

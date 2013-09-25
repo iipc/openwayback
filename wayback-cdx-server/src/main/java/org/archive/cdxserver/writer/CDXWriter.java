@@ -26,7 +26,7 @@ public abstract class CDXWriter implements BaseProcessor {
 		//Do nothing by default
 	}
 	
-	public void setMaxLines(int numLines)
+	public void setMaxLines(int numLines, String remoteClusterUri)
 	{
 		//Do nothing by default
 	}

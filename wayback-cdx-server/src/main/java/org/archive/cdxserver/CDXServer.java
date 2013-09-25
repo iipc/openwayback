@@ -5,6 +5,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -218,44 +219,12 @@ public class CDXServer extends BaseCDXServer {
 
 			// Paged query
 			if (query.page >= 0 || query.showNumPages) {
-				if (zipnumSource == null) {
-					responseWriter.printError("Sorry, this server is not configured to support paged query. Remove page= param and try again.");
-					return;
-				}
+				iter = createPagedCdxIterator(startEndUrl, query, authToken, responseWriter);
 				
-				if ((query.pageSize <= 0) || (query.pageSize > maxPageSize)) {
-					query.pageSize = maxPageSize;
-				}
-
-				PageResult pageResult = zipnumSource.getNthPage(startEndUrl, query.page, query.pageSize, query.showNumPages);
-
-				if (query.showNumPages) {
-					responseWriter.printNumPages(pageResult.numPages, true);
-					return;
-				} else {
-					responseWriter.printNumPages(pageResult.numPages, false);					
-				}
-				
-				iter = pageResult.iter;
-
 				if (iter == null) {
 					return;
 				}
 				
-				if (query.isReverse()) {
-					iter = new LineBufferingIterator(iter, query.pageSize, true);
-				}
-
-				if (query.showPagedIndex && authChecker.isAllUrlAccessAllowed(authToken)) {
-					responseWriter.setMaxLines(query.pageSize);
-					writeIdxResponse(responseWriter, iter);
-					return;
-				}
-				
-				iter = createBoundedCdxIterator(startEndUrl, query, pageResult, iter);
-
-				responseWriter.setMaxLines((zipnumSource.getCdxLinesPerBlock() * query.pageSize));
-
 				// Page size determines the max limit here
 				maxLimit = Integer.MAX_VALUE;
 
@@ -281,6 +250,53 @@ public class CDXServer extends BaseCDXServer {
 				responseWriter.close();
 			}
 		}
+	}
+	
+	protected CloseableIterator<String> createPagedCdxIterator(String[] startEndUrl, CDXQuery query, AuthToken authToken, CDXWriter responseWriter) throws IOException
+	{
+		if (zipnumSource == null) {
+			responseWriter.printError("Sorry, this server is not configured to support paged query. Remove page= param and try again.");
+			return null;
+		}
+		
+		boolean allAccess = authChecker.isAllUrlAccessAllowed(authToken);
+		
+		if ((query.pageSize <= 0) || ((query.pageSize > maxPageSize) && !allAccess)) {
+			query.pageSize = maxPageSize;
+		}
+
+		PageResult pageResult = zipnumSource.getNthPage(startEndUrl, query.page, query.pageSize, query.showNumPages);
+
+		if (query.showNumPages) {
+			responseWriter.printNumPages(pageResult.numPages, true);
+			return null;
+		} else {
+			responseWriter.printNumPages(pageResult.numPages, false);					
+		}
+		
+		CloseableIterator<String> iter = pageResult.iter;
+
+		if (iter == null) {
+			return null;
+		}
+		
+		if (query.isReverse()) {
+			iter = new LineBufferingIterator(iter, query.pageSize, true);
+		}
+		
+		String zipnumClusterUri = zipnumSource.getLocRoot();
+
+		if (query.showPagedIndex && allAccess) {
+			responseWriter.setMaxLines(query.pageSize, zipnumClusterUri);
+			writeIdxResponse(responseWriter, iter);
+			return null;
+		} else {
+			responseWriter.setMaxLines(query.pageSize * zipnumSource.getCdxLinesPerBlock(), zipnumClusterUri);
+		}
+		
+		iter = createBoundedCdxIterator(startEndUrl, query, pageResult, iter);
+		
+		return iter;		
 	}
 	
 	protected CloseableIterator<String> createBoundedCdxIterator(String[] startEndUrl, CDXQuery query,	                                                             
