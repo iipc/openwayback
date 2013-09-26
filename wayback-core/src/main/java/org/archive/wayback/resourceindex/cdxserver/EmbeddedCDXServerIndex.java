@@ -118,7 +118,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 		}
 				
 		query.setLimit(limit);
-		query.setSort(CDXQuery.SortType.reverse);
+		//query.setSort(CDXQuery.SortType.reverse);
 		
 		String statusFilter = "!statuscode:(500|502|504)";
 		
