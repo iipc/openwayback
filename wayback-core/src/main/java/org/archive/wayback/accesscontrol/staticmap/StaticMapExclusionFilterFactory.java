@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import org.apache.commons.httpclient.URIException;
 import org.archive.util.iterator.CloseableIterator;
 import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.accesscontrol.ExclusionFilterFactory;
@@ -104,10 +105,17 @@ public class StaticMapExclusionFilterFactory implements ExclusionFilterFactory {
 		while(itr.hasNext()) {
 			String line = (String) itr.next();
 			line = line.trim();
-			if(line.length() == 0) {
+			
+			if (line.length() == 0) {
 				continue;
 			}
-			line = canonicalizer.urlStringToKey(line);
+			
+			try {
+				line = canonicalizer.urlStringToKey(line);
+			} catch (URIException exc) {
+				continue;
+			}
+			
 			String surt;
 			
 			if (canonicalizer.isSurtForm()) {
