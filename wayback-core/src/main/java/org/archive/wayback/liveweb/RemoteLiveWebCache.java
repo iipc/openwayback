@@ -227,4 +227,9 @@ public class RemoteLiveWebCache implements LiveWebCache {
 	public void setRequestPrefix(String requestPrefix) {
 		this.requestPrefix = requestPrefix;
 	}
+	
+	public HttpClient getHttpClient()
+	{
+		return http;
+	}
 }

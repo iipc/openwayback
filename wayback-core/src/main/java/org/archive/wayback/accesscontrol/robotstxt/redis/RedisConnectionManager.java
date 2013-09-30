@@ -98,7 +98,9 @@ public class RedisConnectionManager {
         public Object makeObject() throws Exception {
             final Jedis jedis;
             jedis = new JedisValid(host, port, timeout);
-            jedis.getClient().setPassword(password);
+            if (password != null) {
+            	jedis.getClient().setPassword(password);
+            }
             jedis.connect();
             return jedis;
         }
