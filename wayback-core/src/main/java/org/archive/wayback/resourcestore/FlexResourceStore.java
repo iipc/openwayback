@@ -149,6 +149,7 @@ public class FlexResourceStore implements ResourceStore {
 	public static class PrefixLookup implements SourceResolver
 	{		
 		String prefix;
+		String skipPrefix = "http://";
 		String includeFilter;
 		
 		public String getPrefix() {
@@ -157,6 +158,14 @@ public class FlexResourceStore implements ResourceStore {
 
 		public void setPrefix(String prefix) {
 			this.prefix = prefix;
+		}
+
+		public String getSkipPrefix() {
+			return skipPrefix;
+		}
+
+		public void setSkipPrefix(String skipPrefix) {
+			this.skipPrefix = skipPrefix;
 		}
 
 		public String getIncludeFilter() {
@@ -175,7 +184,11 @@ public class FlexResourceStore implements ResourceStore {
 				}
 			}
 			
-			return new String[]{prefix + filename};
+			if ((skipPrefix != null) && filename.startsWith(skipPrefix)) {
+				return new String[]{filename};
+			} else {
+				return new String[]{prefix + filename};
+			}
 		}
 	}
 
