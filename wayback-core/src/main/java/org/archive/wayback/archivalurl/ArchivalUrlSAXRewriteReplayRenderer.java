@@ -116,16 +116,8 @@ public class ArchivalUrlSAXRewriteReplayRenderer implements ReplayRenderer {
 		// determine the character set used to encode the document bytes:
 		String charSet = charsetDetector.getCharset(httpHeadersResource, decodedResource, wbRequest);
 
-		ContextResultURIConverterFactory fact = null;
+		ContextResultURIConverterFactory fact = createConverterFactory(uriConverter, httpRequest, wbRequest);
 		
-		if (uriConverter instanceof ArchivalUrlResultURIConverter) {
-			fact = new ArchivalUrlContextResultURIConverterFactory(
-					(ArchivalUrlResultURIConverter) uriConverter);
-		} else if (converterFactory != null) {
-			fact = converterFactory;
-		} else {
-			fact = new IdentityResultURIConverterFactory(uriConverter);			
-		}
 		// set up the context:
 		ReplayParseContext context = 
 				new ReplayParseContext(fact,url,result.getCaptureTimestamp());
@@ -213,6 +205,22 @@ public class ArchivalUrlSAXRewriteReplayRenderer implements ReplayRenderer {
 		httpResponse.setCharacterEncoding(OUTPUT_CHARSET);
 
 		httpResponse.getOutputStream().write(utf8Bytes);
+	}
+	
+	protected ContextResultURIConverterFactory createConverterFactory(ResultURIConverter uriConverter, HttpServletRequest httpRequest, WaybackRequest wbRequest)
+	{
+		ContextResultURIConverterFactory fact = null;
+		
+		if (uriConverter instanceof ArchivalUrlResultURIConverter) {
+			fact = new ArchivalUrlContextResultURIConverterFactory(
+					(ArchivalUrlResultURIConverter) uriConverter);
+		} else if (converterFactory != null) {
+			fact = converterFactory;
+		} else {
+			fact = new IdentityResultURIConverterFactory(uriConverter);			
+		}
+		
+		return fact;
 	}
 
 	/**
