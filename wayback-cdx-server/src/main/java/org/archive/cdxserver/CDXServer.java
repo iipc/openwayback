@@ -204,6 +204,10 @@ public class CDXServer extends BaseCDXServer {
 				}
 				return;
 			}
+			
+			if (query.last) {
+				query.limit = -query.limit;
+			}
 
 			int maxLimit;
 

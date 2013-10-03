@@ -46,6 +46,7 @@ public class CDXQuery {
 	
 	int offset = 0;
 	int limit = 0;
+	boolean last = false;
 	Boolean fastLatest = null;
 	String fl = EMPTY_STRING;
 	
@@ -289,6 +290,14 @@ public class CDXQuery {
 
 	public void setLimit(int limit) {
 		this.limit = limit;
+	}
+
+	public boolean isLast() {
+		return last;
+	}
+
+	public void setLast(boolean last) {
+		this.last = last;
 	}
 
 	public Boolean getFastLatest() {
