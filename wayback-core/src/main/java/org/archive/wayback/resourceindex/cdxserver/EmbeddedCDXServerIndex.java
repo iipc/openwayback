@@ -218,8 +218,14 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
             HttpServletResponse httpResponse) throws ServletException,
             IOException {
 		
-		CDXQuery query = new CDXQuery(httpRequest);		
-		cdxServer.getCdx(httpRequest, httpResponse, query);
+		CDXQuery query = new CDXQuery(httpRequest);
+		
+		try {
+			cdxServer.getCdx(httpRequest, httpResponse, query);
+		} catch (Exception e) {
+			
+		}
+		
 		return true;
     }	
 	
