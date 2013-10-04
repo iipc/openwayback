@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.httpclient.URIException;
+import org.archive.cdxserver.CDXQuery.SortType;
 import org.archive.cdxserver.auth.AuthToken;
 import org.archive.cdxserver.filter.CDXAccessFilter;
 import org.archive.cdxserver.filter.CollapseFieldFilter;
@@ -36,6 +37,7 @@ import org.archive.format.gzip.zipnum.ZipNumCluster;
 import org.archive.format.gzip.zipnum.ZipNumIndex.PageResult;
 import org.archive.format.gzip.zipnum.ZipNumParams;
 import org.archive.url.UrlSurtRangeComputer.MatchType;
+import org.archive.util.io.RuntimeIOException;
 import org.archive.util.iterator.CloseableIterator;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -139,24 +141,36 @@ public class CDXServer extends BaseCDXServer {
 	}
 	
 	@RequestMapping(value = { "/cdx" })
-	public void getCdx(HttpServletRequest request, HttpServletResponse response, CDXQuery query) throws IOException {		
+	public void getCdx(HttpServletRequest request, HttpServletResponse response, CDXQuery query) {		
 		handleAjax(request, response);
 		
 		CDXWriter responseWriter = null;
 		
 		boolean gzip = determineGzip(request, query);
 		
-		if (query.output.equals("json")) {
-			responseWriter = new JsonWriter(response, gzip);
-		} else if (query.output.equals("memento")) {
-			responseWriter = new MementoLinkWriter(request, response, query, gzip);			
-		} else {
-			responseWriter = new PlainTextWriter(response, gzip);
+		try {
+		
+			if (query.output.equals("json")) {
+				responseWriter = new JsonWriter(response, gzip);
+			} else if (query.output.equals("memento")) {
+				responseWriter = new MementoLinkWriter(request, response, query, gzip);			
+			} else {
+				responseWriter = new PlainTextWriter(response, gzip);
+			}
+			
+			AuthToken authToken = super.createAuthToken(request);
+		
+			getCdx(query, authToken, responseWriter);
+			
+		} catch (IOException io) {
+			responseWriter.serverError(io);
+		} catch (RuntimeIOException rte) {
+			responseWriter.serverError(rte);
+		} finally {
+			if (responseWriter != null) {
+				responseWriter.close();
+			}
 		}
-		
-		AuthToken authToken = super.createAuthToken(request);
-		
-		getCdx(query, authToken, responseWriter);
 	}
 		
 	public void getCdx(CDXQuery query, AuthToken authToken, CDXWriter responseWriter) throws IOException
@@ -206,7 +220,8 @@ public class CDXServer extends BaseCDXServer {
 			}
 			
 			if (query.last) {
-				query.limit = -query.limit;
+				//query.limit = -query.limit;
+				query.setSort(SortType.reverse);
 			}
 
 			int maxLimit;
@@ -247,10 +262,6 @@ public class CDXServer extends BaseCDXServer {
 		} finally {
 			if (iter != null) {
 				iter.close();
-			}
-			
-			if (responseWriter != null) {
-				responseWriter.close();
 			}
 		}
 	}
@@ -309,6 +320,11 @@ public class CDXServer extends BaseCDXServer {
 	    String searchKey = null;
 	    
         ZipNumParams params = new ZipNumParams(defaultParams);
+        
+        // Opt: testing out sequential load!
+        if (query.last && Math.abs(query.limit) == 1) {
+        	params.setSequential(true);
+        }
         
         params.setReverse(query.isReverse());
 	    

@@ -46,6 +46,13 @@ public abstract class HttpCDXWriter extends CDXWriter {
     }
 	
 	@Override
+	public void serverError(Exception io) {
+	    response.setStatus(503);
+	    writer.println(io.toString());
+	    writer.flush();
+    }
+	
+	@Override
 	public void setContentType(String type)
 	{
 		response.setContentType(type);
