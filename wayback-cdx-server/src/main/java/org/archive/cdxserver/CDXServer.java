@@ -219,8 +219,8 @@ public class CDXServer extends BaseCDXServer {
 				return;
 			}
 			
-			if (query.last) {
-				//query.limit = -query.limit;
+			if (query.last || (query.limit == -1)) {
+				query.limit = 1;
 				query.setSort(SortType.reverse);
 			}
 
@@ -322,7 +322,7 @@ public class CDXServer extends BaseCDXServer {
         ZipNumParams params = new ZipNumParams(defaultParams);
         
         // Opt: testing out sequential load!
-        if (query.last && Math.abs(query.limit) == 1) {
+        if (Math.abs(query.limit) == 1) {
         	params.setSequential(true);
         }
         
