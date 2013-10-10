@@ -111,11 +111,6 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 	protected CDXQuery createQuery(WaybackRequest wbRequest)
 	{
 		CDXQuery query = new CDXQuery(wbRequest.getRequestUrl());
-		
-		if (timestampDedupLength > 0) {
-			//query.setCollapse(new String[]{"timestamp:" + timestampDedupLength});
-			query.setCollapseTime(timestampDedupLength);
-		}
 				
 		query.setLimit(limit);
 		//query.setSort(CDXQuery.SortType.reverse);
@@ -129,6 +124,11 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 			
 			if (wbRequest.isTimestampSearchKey()) {		
 				query.setClosest(wbRequest.getReplayTimestamp());
+			}
+		} else {
+			if (timestampDedupLength > 0) {
+				//query.setCollapse(new String[]{"timestamp:" + timestampDedupLength});
+				query.setCollapseTime(timestampDedupLength);
 			}
 		}
 		
