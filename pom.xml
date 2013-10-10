@@ -4,7 +4,13 @@
                              http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>org.archive.wayback</groupId>
+  <parent>
+    <groupId>org.sonatype.oss</groupId>
+    <artifactId>oss-parent</artifactId>
+    <version>7</version>
+  </parent>
+
+  <groupId>org.netpreserve.openwayback</groupId>
   <artifactId>wayback</artifactId>
   <packaging>pom</packaging>
   <version>1.8.0-SNAPSHOT</version>
@@ -18,7 +24,7 @@
   </modules>
 
   <properties>
-    <website.url>http://github.com/internetarchive/wayback</website.url>
+    <website.url>http://github.com/iipc/openwayback</website.url>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     
     <org.springframework.version>3.0.6.RELEASE</org.springframework.version>
@@ -29,7 +35,7 @@
     Internet Archive's Wayback Machine.
   </description>
   
-  <url>http://github.com/internetarchive/wayback</url>
+  <url>http://github.com/iipc/openwayback</url>
   <inceptionYear>2005</inceptionYear>
 
   <licenses>
@@ -41,8 +47,8 @@
   </licenses>
 
   <organization>
-    <name>Internet Archive</name>
-    <url>http://www.archive.org/</url>
+    <name>IIPC</name>
+    <url>http://netpreserve.org/</url>
   </organization>
 
   <issueManagement>
@@ -51,8 +57,8 @@
   </issueManagement>
 
   <ciManagement>
-    <system>continuum</system>
-    <url>http://builds.archive.org:8081/continuum/</url>
+    <system>travis-ci</system>
+    <url>https://travis-ci.org/iipc/openwayback</url>
   </ciManagement>
   
   <mailingLists>
@@ -85,13 +91,13 @@
   </mailingLists>
 
   <repositories>
+  
+    <!-- Heritrix Commons from here: -->
     <repository>
-
       <id>internetarchive</id>
       <name>Internet Archive Maven Repository</name>
       <url>http://builds.archive.org:8080/maven2</url>
       <layout>default</layout>
-
       <releases>
         <enabled>true</enabled>
         <updatePolicy>daily</updatePolicy>
@@ -109,7 +115,6 @@
         <name>Cloudera Hadoop</name>
         <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
         <layout>default</layout>
-
         <releases>
           <enabled>true</enabled>
           <updatePolicy>daily</updatePolicy>
@@ -124,34 +129,13 @@
           
   </repositories>
 
-  <pluginRepositories>
-    <pluginRepository>
-
-      <id>archive</id>
-      <name>archive.org</name>
-      <url>http://builds.archive.org:8080/maven2</url>
-      <layout>default</layout>
-
-      <releases>
-        <enabled>true</enabled>
-        <updatePolicy>daily</updatePolicy>
-        <checksumPolicy>warn</checksumPolicy>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-        <updatePolicy>never</updatePolicy>
-        <checksumPolicy>warn</checksumPolicy>
-      </snapshots>
-    </pluginRepository>
-  </pluginRepositories>
-
   <scm>
     <connection>
-      scm:git:git://github.com/internetarchive/wayback.git
+      scm:git:git://github.com/iipc/openwayback.git
     </connection>
     <tag>HEAD</tag>
     <url>
-      http://github.com/internetarchive/wayback
+      http://github.com/iipc/openwayback
     </url>
   </scm>
 
@@ -230,6 +214,14 @@
       <url>http://www.archive.org</url>
       <timezone>-8</timezone>
     </developer>
+    <developer>
+      <name>Andy Jackson</name>
+      <id>anjackson</id>
+      <email>andrew dot jackson at bl dot uk</email>
+      <organization>The UK Web Archive</organization>
+      <url>http://www.webarchive.org.uk</url>
+      <timezone>0</timezone>
+    </developer>
  </developers>
 
   <reporting>
@@ -303,22 +295,22 @@
       </dependency>
            
       <dependency>
-        <groupId>org.archive.heritrix</groupId>
+        <groupId>org.netpreserve.heritrix</groupId>
         <artifactId>heritrix-commons</artifactId>
         <version>3.1.2-SNAPSHOT</version>
       </dependency>
       <dependency>
-        <groupId>org.archive</groupId>
-        <artifactId>ia-web-commons</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <groupId>org.netpreserve.commons</groupId>
+        <artifactId>web-commons</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
       </dependency>
       <dependency>
-        <groupId>org.archive.access-control</groupId>
+        <groupId>org.netpreserve.commons</groupId>
         <artifactId>access-control</artifactId>
         <version>0.1.0-SNAPSHOT</version>
       </dependency>
       <dependency>
-        <groupId>org.mozilla</groupId>
+        <groupId>com.googlecode.juniversalchardet</groupId>
         <artifactId>juniversalchardet</artifactId>
         <version>1.0.3</version>
       </dependency>
