@@ -13,26 +13,24 @@
   <groupId>org.netpreserve.openwayback</groupId>
   <artifactId>wayback</artifactId>
   <packaging>pom</packaging>
-  <version>1.8.0-SNAPSHOT</version>
+  <version>2.0.0.BETA.1-SNAPSHOT</version>
   <name>Wayback</name>
 
   <modules>
     <module>wayback-cdx-server</module>
     <module>wayback-core</module>
     <module>wayback-webapp</module>
-    <!-- <module>dist</module>-->
+    <module>dist</module>
   </modules>
 
   <properties>
     <website.url>http://github.com/iipc/openwayback</website.url>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    
     <org.springframework.version>3.0.6.RELEASE</org.springframework.version>
   </properties>
 
   <description>
-    The wayback project is an open source implementation of the
-    Internet Archive's Wayback Machine.
+    OpenWayback is the open source project behind the Wayback Machine, and is supported by the members of the International Internet Preservation Consortium (IIPC).
   </description>
   
   <url>http://github.com/iipc/openwayback</url>

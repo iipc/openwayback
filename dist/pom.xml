@@ -6,11 +6,11 @@
 
   <parent>
     <artifactId>wayback</artifactId>
-    <groupId>org.archive.wayback</groupId>
-    <version>1.8.0-SNAPSHOT</version>
+    <groupId>org.netpreserve.openwayback</groupId>
+    <version>2.0.0.BETA.1-SNAPSHOT</version>
   </parent>
 
-  <artifactId>dist</artifactId>
+  <artifactId>wayback-dist</artifactId>
   <name>Wayback tar.gz Distribution</name>
   <packaging>pom</packaging>
 
@@ -33,7 +33,7 @@
           <descriptors>
             <descriptor>src/main/assembly/distribution.xml</descriptor>
           </descriptors>
-          <finalName>wayback</finalName>
+          <finalName>openwayback</finalName>
         </configuration>
         <executions>
           <execution>
