@@ -71,6 +71,10 @@ public class ServerRelativeArchivalRedirect extends AbstractRequestHandler {
 				int thirdSlash = remainder.indexOf('/');
 				if(thirdSlash > -1) {
 					String datespec = remainder.substring(0,thirdSlash);
+					if (!Character.isDigit(datespec.charAt(0))) {
+						datespec = null;
+					}
+					
 					String url = ArchiveUtils.addImpliedHttpIfNecessary(
 					remainder.substring(thirdSlash+1));
 					String thisPath = httpRequest.getRequestURI();
@@ -81,9 +85,19 @@ public class ServerRelativeArchivalRedirect extends AbstractRequestHandler {
 					
 					String resolved = UrlOperations.resolveUrl(url, thisPath);
 					String contextPath = httpRequest.getContextPath();
-					String finalUrl = uri.getScheme() + "://" + 
-					uri.getAuthority() + contextPath + collection + "/" 
-					+ datespec + "/" + resolved;
+					StringBuilder sb = new StringBuilder(uri.getScheme());
+					sb.append("://"); 
+					sb.append(uri.getAuthority());
+					sb.append(contextPath);
+					sb.append(collection);
+					sb.append("/");
+					if (datespec != null) {
+						sb.append(datespec);
+						sb.append("/");
+					}
+					sb.append(resolved);
+					String finalUrl = sb.toString();
+					
 					// cross your fingers!!!
 					LOGGER.info("Server-Relative-Redirect:\t" + referer + "\t" 
 					+ thisPath + "\t" + finalUrl);
