@@ -66,7 +66,8 @@ public class ServerRelativeArchivalRedirect extends AbstractRequestHandler {
 			String path = uri.getPath();
 			int secondSlash = path.indexOf('/',1);
 			if(secondSlash > -1) {
-				String collection = path.substring(0,secondSlash);
+				String collection = path.substring(0, secondSlash);
+				collection = modifyCollection(collection);
 				String remainder = path.substring(secondSlash+1);
 				int thirdSlash = remainder.indexOf('/');
 				if(thirdSlash > -1) {
@@ -114,6 +115,11 @@ public class ServerRelativeArchivalRedirect extends AbstractRequestHandler {
 		        
 		return handled;
 	}
+
+	// Default just return the referrer's collection, but allow subclasses to provide a custom replacement
+	protected String modifyCollection(String collection) {
+		return collection;
+    }
 
 	private boolean handleRequestWithoutCollection(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse) throws ServletException,
