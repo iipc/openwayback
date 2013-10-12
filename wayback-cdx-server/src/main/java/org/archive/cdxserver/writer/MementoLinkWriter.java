@@ -19,6 +19,8 @@ public class MementoLinkWriter extends HttpCDXWriter {
 	protected String timemapUrl;
 	protected String timegateUrl;
 	protected String format;
+	
+	protected final static String RESUME_KEY = "resumeKey=";
 
 	
 	public MementoLinkWriter(
@@ -181,14 +183,28 @@ public class MementoLinkWriter extends HttpCDXWriter {
 			return;
 		}
 		
-		StringBuilder sb = new StringBuilder(timegateUrl);
-		sb.append(TIMEMAP);
-		sb.append("/");
-		sb.append(format);
-		sb.append("/");
-		sb.append(timestamp);
-		sb.append("/");
-		sb.append(lastLine.getOriginalUrl());
+		StringBuilder sb = new StringBuilder(timemapUrl);
+		int resumeIndex = sb.indexOf(RESUME_KEY);
+		if (resumeIndex > 0) {
+			int end = sb.indexOf("&", resumeIndex);
+			if (end < 0) {
+				end = sb.length();
+			}
+			sb.replace(resumeIndex + RESUME_KEY.length(), end, resumeKey);
+		} else {
+			sb.append("&");
+			sb.append(RESUME_KEY);
+			sb.append(resumeKey);
+		}
+		
+		
+//		sb.append(TIMEMAP);
+//		sb.append("/");
+//		sb.append(format);
+//		sb.append("/");
+//		sb.append(timestamp);
+//		sb.append("/");
+//		sb.append(lastLine.getOriginalUrl());
 		
 		writer.println(",");
 		writer.print(makeLink(sb.toString(), TIMEMAP, APPLICATION_LINK_FORMAT)

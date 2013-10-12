@@ -36,6 +36,7 @@ import org.archive.format.gzip.zipnum.LineBufferingIterator;
 import org.archive.format.gzip.zipnum.ZipNumCluster;
 import org.archive.format.gzip.zipnum.ZipNumIndex.PageResult;
 import org.archive.format.gzip.zipnum.ZipNumParams;
+import org.archive.url.UrlSurtRangeComputer;
 import org.archive.url.UrlSurtRangeComputer.MatchType;
 import org.archive.util.io.RuntimeIOException;
 import org.archive.util.iterator.CloseableIterator;
@@ -330,7 +331,11 @@ public class CDXServer extends BaseCDXServer {
 	    
         if (!query.resumeKey.isEmpty()) {
             searchKey = URLDecoder.decode(query.resumeKey, "UTF-8");
-            startEndUrl[0] =  query.resumeKey;
+            startEndUrl[0] = searchKey;
+//            int lastSpace = startEndUrl[0].lastIndexOf(' ');
+//            if (lastSpace > 0) {
+//            	startEndUrl[0] = searchKey.substring(0, lastSpace);
+//            }
         } else if (!query.from.isEmpty()) {
             searchKey = startEndUrl[0] + " " + query.from;
         } else if (query.isReverse() && !query.closest.isEmpty()) {
@@ -534,9 +539,8 @@ public class CDXServer extends BaseCDXServer {
 		if (query.showResumeKey && (line != null) && (writeLimit > 0) && (writeCount >= writeLimit)) {
 			StringBuilder sb = new StringBuilder();
 			sb.append(line.getUrlKey());
-			sb.append(line.getTimestamp());
 			sb.append(' ');
-			sb.append('!');
+			sb.append(UrlSurtRangeComputer.incLastChar(line.getTimestamp()));
 			String resumeKey;
 			try {
 				resumeKey = URLEncoder.encode(sb.toString(), "UTF-8");
