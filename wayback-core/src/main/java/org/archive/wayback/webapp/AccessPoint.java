@@ -503,6 +503,8 @@ implements ShutdownListener {
 			if (redirScheme == null && isExactSchemeMatch()) {
 				location = UrlOperations.resolveUrl(closest.getOriginalUrl(), location);
 				redirScheme = UrlOperations.urlToScheme(location);
+			} else if (location.startsWith("/")) {
+				location = UrlOperations.resolveUrl(closest.getOriginalUrl(), location);				
 			}
 			
 			if (getSelfRedirectCanonicalizer() != null) {
