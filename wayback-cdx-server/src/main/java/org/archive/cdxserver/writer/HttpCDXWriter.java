@@ -12,6 +12,8 @@ public abstract class HttpCDXWriter extends CDXWriter {
 	public final static String X_MAX_LINES = "X-CDX-Max-Lines";
 	public final static String X_CLUSTER_URI = "X-CDX-Cluster-Uri";
 	
+	public final static String RUNTIME_ERROR_HEADER = "X-Archive-Wayback-Runtime-Error";
+	
 	protected HttpServletResponse response;
 	protected PrintWriter writer;
 	
@@ -48,6 +50,7 @@ public abstract class HttpCDXWriter extends CDXWriter {
 	@Override
 	public void serverError(Exception io) {
 	    response.setStatus(503);
+	    response.setHeader(RUNTIME_ERROR_HEADER, io.toString());
 	    writer.println(io.toString());
 	    writer.flush();
     }

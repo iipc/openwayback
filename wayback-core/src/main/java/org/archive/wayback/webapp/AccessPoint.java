@@ -116,6 +116,8 @@ implements ShutdownListener {
 	public final static String EMPTY_VALUE = "-";
 	
 	public final static String RUNTIME_ERROR_HEADER = "X-Archive-Wayback-Runtime-Error";
+	private final static int MAX_ERR_HEADER_LEN = 300;
+	
 	//public final static String NOTFOUND_ERROR_HEADER = "X-Archive-Wayback-Not-Found";
 
 	private static final Logger LOGGER = Logger.getLogger(
@@ -392,8 +394,8 @@ implements ShutdownListener {
 				}
 			}
 			
-			if (message.length() > 200) {			
-				message = message.substring(0, 200);
+			if (message.length() > MAX_ERR_HEADER_LEN) {			
+				message = message.substring(0, MAX_ERR_HEADER_LEN);
 			}
 			message = message.replace('\n', ' ');
 		}
