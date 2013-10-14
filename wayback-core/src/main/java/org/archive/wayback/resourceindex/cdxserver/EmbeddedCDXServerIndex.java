@@ -92,7 +92,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
         		throw new ResourceIndexNotAvailableException(cause.toString());
         	}
         	
-        	throw rte;
+        	throw new ResourceIndexNotAvailableException(rte.getMessage());
         }
         
         if (resultWriter.getErrorMsg() != null) {
@@ -201,11 +201,8 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 	        	//Ignore
 	        }
 	
-	        try {    	
-	    		cdxServer.getCdx(request, response, query);
-	        } catch (Exception e) {
-	        	//CDX server handles its own output
-	        }
+    		cdxServer.getCdx(request, response, query);
+    		
 		} finally {
 			PerfStats.timeEnd(PerfStat.IndexLoad);
 		}
@@ -219,13 +216,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
             IOException {
 		
 		CDXQuery query = new CDXQuery(httpRequest);
-		
-		try {
-			cdxServer.getCdx(httpRequest, httpResponse, query);
-		} catch (Exception e) {
-			
-		}
-		
+		cdxServer.getCdx(httpRequest, httpResponse, query);		
 		return true;
     }	
 	
