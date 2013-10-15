@@ -72,7 +72,7 @@ public class ServerRelativeArchivalRedirect extends AbstractRequestHandler {
 				int thirdSlash = remainder.indexOf('/');
 				if(thirdSlash > -1) {
 					String datespec = remainder.substring(0,thirdSlash);
-					if (!Character.isDigit(datespec.charAt(0))) {
+					if (!datespec.isEmpty() && !Character.isDigit(datespec.charAt(0))) {
 						datespec = null;
 					}
 					

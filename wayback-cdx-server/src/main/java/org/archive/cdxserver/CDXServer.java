@@ -38,7 +38,6 @@ import org.archive.format.gzip.zipnum.ZipNumIndex.PageResult;
 import org.archive.format.gzip.zipnum.ZipNumParams;
 import org.archive.url.UrlSurtRangeComputer;
 import org.archive.url.UrlSurtRangeComputer.MatchType;
-import org.archive.util.io.RuntimeIOException;
 import org.archive.util.iterator.CloseableIterator;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -165,7 +164,7 @@ public class CDXServer extends BaseCDXServer {
 			
 		} catch (IOException io) {
 			responseWriter.serverError(io);
-		} catch (RuntimeIOException rte) {
+		} catch (RuntimeException rte) {
 			responseWriter.serverError(rte);
 		} finally {
 			if (responseWriter != null) {
