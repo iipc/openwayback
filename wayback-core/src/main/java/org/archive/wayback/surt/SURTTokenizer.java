@@ -111,7 +111,7 @@ public class SURTTokenizer {
 						return remainder;
 					}
 				}
-				if(remainder.charAt(lastSlash-1) == ')') {
+				if((lastSlash > 0) && remainder.charAt(lastSlash-1) == ')') {
 					String tmp = remainder.substring(0,lastSlash+1);
 					remainder = remainder.substring(0,lastSlash-1);
 					return tmp;
