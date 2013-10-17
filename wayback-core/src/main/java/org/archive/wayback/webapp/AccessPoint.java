@@ -668,6 +668,32 @@ implements ShutdownListener {
 				closest.setClosest(true);
 				checkAnchorWindow(wbRequest,closest);
 				
+				
+				// Attempt to resolve any not-found embedded content with next-best
+				// For "best last" capture, skip not-founds and redirects, hoping to find the best 200 response.
+				if ((wbRequest.isAnyEmbeddedContext() && closest.isHttpError()) || 
+					(wbRequest.isBestLatestReplayRequest() && !closest.isHttpSuccess())) {
+					CaptureSearchResult nextClosest = closest;
+					
+					while ((nextClosest = findNextClosest(nextClosest, captureResults, requestMS)) != null) {
+						// If redirect, save but keep looking -- if no better match, will use the redirect
+						if (nextClosest.isHttpRedirect()) {
+							closest = nextClosest;
+						// If success, pick that one!
+						} else if (nextClosest.isHttpSuccess()) {
+							closest = nextClosest;
+							break;
+						}
+					}
+				}
+				
+				// Redirect to url for the actual closest capture
+				if (!wbRequest.getReplayTimestamp().startsWith(closest.getCaptureTimestamp())) {
+				//if ((closest != originalClosest) && !closest.getCaptureTimestamp().equals(originalClosest.getCaptureTimestamp())) {
+					captureResults.setClosest(closest);
+					throwRedirect(wbRequest, httpResponse, captureResults, closest);
+				}			
+				
 				// If revisit, may load two resources separately
 				if (closest.isDuplicateDigest()) {
 					isRevisit = true;
@@ -736,32 +762,7 @@ implements ShutdownListener {
 					closest = findNextClosest(closest, captureResults, requestMS);
 					continue;
 				}
-				
-				// Attempt to resolve any not-found embedded content with next-best
-				// For "best last" capture, skip not-founds and redirects, hoping to find the best 200 response.
-				if ((wbRequest.isAnyEmbeddedContext() && closest.isHttpError()) || 
-					(wbRequest.isBestLatestReplayRequest() && !closest.isHttpSuccess())) {
-					CaptureSearchResult nextClosest = closest;
-					
-					while ((nextClosest = findNextClosest(nextClosest, captureResults, requestMS)) != null) {
-						// If redirect, save but keep looking -- if no better match, will use the redirect
-						if (nextClosest.isHttpRedirect()) {
-							closest = nextClosest;
-						// If success, pick that one!
-						} else if (nextClosest.isHttpSuccess()) {
-							closest = nextClosest;
-							break;
-						}
-					}
-				}
-				
-				// Redirect to url for the actual closest capture
-				if (!wbRequest.getReplayTimestamp().startsWith(closest.getCaptureTimestamp())) {
-				//if ((closest != originalClosest) && !closest.getCaptureTimestamp().equals(originalClosest.getCaptureTimestamp())) {
-					captureResults.setClosest(closest);
-					throwRedirect(wbRequest, httpResponse, captureResults, closest);
-				}
-		
+									
 				p.retrieved();
 				
 				ReplayRenderer renderer = 
