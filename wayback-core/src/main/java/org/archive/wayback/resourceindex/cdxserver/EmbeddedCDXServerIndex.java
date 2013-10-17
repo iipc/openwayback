@@ -6,11 +6,16 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.httpclient.util.URIUtil;
 import org.archive.cdxserver.CDXQuery;
 import org.archive.cdxserver.CDXServer;
 import org.archive.cdxserver.auth.AuthToken;
 import org.archive.format.cdx.CDXLine;
+import org.archive.format.cdx.StandardCDXLineFactory;
 import org.archive.url.UrlSurtRangeComputer.MatchType;
+import org.archive.util.binsearch.impl.HTTPSeekableLineReader;
+import org.archive.util.binsearch.impl.HTTPSeekableLineReaderFactory;
+import org.archive.util.binsearch.impl.http.ApacheHttp31SLRFactory;
 import org.archive.wayback.ResourceIndex;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
@@ -39,10 +44,41 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 		
 	private SelfRedirectFilter selfRedirFilter;
 	
+	protected String remoteCdxPath;
+	
+	private HTTPSeekableLineReaderFactory remoteCdxHttp = new ApacheHttp31SLRFactory();
+	private StandardCDXLineFactory cdxLineFactory = new StandardCDXLineFactory("cdx11");
+	private String remoteAuthCookie;
+	
 	enum PerfStat
 	{
 		IndexLoad;
 	}
+	
+//	public void init()
+//	{
+//		initAuthCookie();
+//	}
+//	
+//	protected String initAuthCookie()
+//	{
+//		if (cdxServer == null) {
+//			return;
+//		}
+//		
+//		AuthChecker check = cdxServer.getAuthChecker();
+//		if (!(check instanceof PrivTokenAuthChecker)) {
+//			return;
+//		}
+//		
+//		List<String> list = ((PrivTokenAuthChecker)check).getAllCdxFieldsAccessTokens();
+//		
+//		if (list == null || list.isEmpty()) {
+//			return;
+//		}
+//		
+//		return CDXServer.CDX_AUTH_TOKEN + ": " + list.get(0);
+//	}
 	
 	@Override
     public SearchResults query(WaybackRequest wbRequest)
@@ -56,6 +92,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 			PerfStats.timeEnd(PerfStat.IndexLoad);
 		}
 	}
+	
     public SearchResults doQuery(WaybackRequest wbRequest)
             throws ResourceIndexNotAvailableException,
             ResourceNotInArchiveException, BadQueryException,
@@ -76,8 +113,12 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
         	throw new BadQueryException("Unknown Query Type");
         }
 
-        try {    	
-	        cdxServer.getCdx(resultWriter.getQuery(), waybackAuthToken, resultWriter);
+        try {
+        	if (remoteCdxPath != null) {
+        		this.remoteCdxServerQuery(resultWriter.getQuery(), waybackAuthToken, resultWriter);
+        	} else {
+        		cdxServer.getCdx(resultWriter.getQuery(), waybackAuthToken, resultWriter);
+        	}
 	        
         } catch (IOException e) {
         	throw new ResourceIndexNotAvailableException(e.toString());
@@ -135,6 +176,60 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 		query.setFilter(new String[]{statusFilter});
 		
 		return query;
+	}
+	
+	protected void remoteCdxServerQuery(CDXQuery query, AuthToken authToken, CDXToSearchResultWriter resultWriter) throws IOException
+	{
+		HTTPSeekableLineReader reader = null;
+		
+		StringBuilder sb = new StringBuilder(remoteCdxPath);
+		
+		sb.append("?url=");
+		//sb.append(URLEncoder.encode(query.getUrl(), "UTF-8"));
+		sb.append(query.getUrl());
+		sb.append("&limit=");
+		sb.append(query.getLimit());
+		sb.append("&filter=");
+		sb.append(query.getFilter()[0]);
+		
+		if (!query.getClosest().isEmpty()) {
+			sb.append("&closest=");
+			sb.append(query.getClosest());
+		}
+		
+		if (query.getCollapseTime() > 0) {
+			sb.append("&collapseTime=");
+			sb.append(query.getCollapseTime());
+		}
+		
+		sb.append("&gzip=true");
+		
+		String finalUrl = URIUtil.encodePathQuery(sb.toString(), "UTF-8");
+		
+		reader = this.remoteCdxHttp.get(finalUrl);
+		
+		if (remoteAuthCookie != null) {
+			reader.setCookie(CDXServer.CDX_AUTH_TOKEN + "=" + remoteAuthCookie);
+		}
+		
+		reader.seekWithMaxRead(0, true, -1);
+		
+		String cacheInfo = reader.getHeaderValue("X-Page-Cache");
+		if (cacheInfo != null) {
+			System.out.println(cacheInfo.equals("HIT") ? "*** CACHED" : "*** MISS CACHE");
+		}
+		
+		
+		String rawLine = null;
+		
+		resultWriter.begin();
+		
+		while ((rawLine = reader.readLine()) != null && !resultWriter.isAborted()) {
+			CDXLine line = cdxLineFactory.createStandardCDXLine(rawLine, StandardCDXLineFactory.cdx11);
+			resultWriter.writeLine(line);
+		}
+		
+		resultWriter.end();
 	}
 	
 	protected CDXToSearchResultWriter getCaptureSearchWriter(WaybackRequest wbRequest)
@@ -286,4 +381,28 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 		json = json.replace("\\/", "/");
 		response.setHeader("X-Link-JSON", json);
     }
+
+	public String getRemoteCdxPath() {
+		return remoteCdxPath;
+	}
+
+	public void setRemoteCdxPath(String remoteCdxPath) {
+		this.remoteCdxPath = remoteCdxPath;
+	}
+
+	public String getRemoteAuthCookie() {
+		return remoteAuthCookie;
+	}
+
+	public void setRemoteAuthCookie(String remoteAuthCookie) {
+		this.remoteAuthCookie = remoteAuthCookie;
+	}
+	
+	public HTTPSeekableLineReaderFactory getRemoteCdxHttp() {
+		return remoteCdxHttp;
+	}
+
+	public void setRemoteCdxHttp(HTTPSeekableLineReaderFactory remoteCdxHttp) {
+		this.remoteCdxHttp = remoteCdxHttp;
+	}
 }
