@@ -1,6 +1,8 @@
 package org.archive.wayback.resourceindex.cdxserver;
 
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -31,6 +33,7 @@ import org.archive.wayback.memento.MementoHandler;
 import org.archive.wayback.memento.MementoUtils;
 import org.archive.wayback.resourceindex.filters.SelfRedirectFilter;
 import org.archive.wayback.util.webapp.AbstractRequestHandler;
+import org.archive.wayback.webapp.AccessPoint;
 import org.archive.wayback.webapp.PerfStats;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -38,6 +41,9 @@ import org.springframework.web.bind.ServletRequestBindingException;
 
 public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements MementoHandler, ResourceIndex {
 
+	private static final Logger LOGGER = Logger.getLogger(
+			EmbeddedCDXServerIndex.class.getName());
+	
 	protected CDXServer cdxServer;
 	protected int timestampDedupLength = 0;
 	protected int limit = 0;
@@ -214,11 +220,12 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 		
 		reader.seekWithMaxRead(0, true, -1);
 		
-		String cacheInfo = reader.getHeaderValue("X-Page-Cache");
-		if (cacheInfo != null) {
-			System.out.println(cacheInfo.equals("HIT") ? "*** CACHED" : "*** MISS CACHE");
-		}
-		
+		if (LOGGER.isLoggable(Level.FINE)) {
+			String cacheInfo = reader.getHeaderValue("X-Page-Cache");
+			if (cacheInfo != null && cacheInfo.equals("HIT")) {
+				LOGGER.fine("CACHED");
+			}
+		}		
 		
 		String rawLine = null;
 		
