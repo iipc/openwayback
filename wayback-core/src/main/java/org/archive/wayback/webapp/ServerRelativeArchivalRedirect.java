@@ -66,11 +66,16 @@ public class ServerRelativeArchivalRedirect extends AbstractRequestHandler {
 			String path = uri.getPath();
 			int secondSlash = path.indexOf('/',1);
 			if(secondSlash > -1) {
-				String collection = path.substring(0,secondSlash);
+				String collection = path.substring(0, secondSlash);
+				collection = modifyCollection(collection);
 				String remainder = path.substring(secondSlash+1);
 				int thirdSlash = remainder.indexOf('/');
 				if(thirdSlash > -1) {
 					String datespec = remainder.substring(0,thirdSlash);
+					if (!datespec.isEmpty() && !Character.isDigit(datespec.charAt(0))) {
+						datespec = null;
+					}
+					
 					String url = ArchiveUtils.addImpliedHttpIfNecessary(
 					remainder.substring(thirdSlash+1));
 					String thisPath = httpRequest.getRequestURI();
@@ -81,9 +86,19 @@ public class ServerRelativeArchivalRedirect extends AbstractRequestHandler {
 					
 					String resolved = UrlOperations.resolveUrl(url, thisPath);
 					String contextPath = httpRequest.getContextPath();
-					String finalUrl = uri.getScheme() + "://" + 
-					uri.getAuthority() + contextPath + collection + "/" 
-					+ datespec + "/" + resolved;
+					StringBuilder sb = new StringBuilder(uri.getScheme());
+					sb.append("://"); 
+					sb.append(uri.getAuthority());
+					sb.append(contextPath);
+					sb.append(collection);
+					sb.append("/");
+					if (datespec != null) {
+						sb.append(datespec);
+						sb.append("/");
+					}
+					sb.append(resolved);
+					String finalUrl = sb.toString();
+					
 					// cross your fingers!!!
 					LOGGER.info("Server-Relative-Redirect:\t" + referer + "\t" 
 					+ thisPath + "\t" + finalUrl);
@@ -100,6 +115,11 @@ public class ServerRelativeArchivalRedirect extends AbstractRequestHandler {
 		        
 		return handled;
 	}
+
+	// Default just return the referrer's collection, but allow subclasses to provide a custom replacement
+	protected String modifyCollection(String collection) {
+		return collection;
+    }
 
 	private boolean handleRequestWithoutCollection(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse) throws ServletException,

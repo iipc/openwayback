@@ -201,32 +201,46 @@ public class SimpleRedisRobotsCache implements LiveWebCache {
 		}
 	}
 	
+	protected String getArcResourceRobots(ArcResource arc) throws IOException
+	{		
+	
+		//String contentType = origResource.getArcRecord().getHeader().getMimetype();
+		
+		int numToRead = (int)arc.getArcRecord().getHeader().getLength();
+		
+		int maxRead = Math.min(numToRead, MAX_ROBOTS_SIZE);
+		
+		String contents = IOUtils.toString(new LimitInputStream(arc, maxRead), "UTF-8");
+		
+		//context.doRead(numToRead, contentType, origResource, "UTF-8");
+		
+		return contents;
+	}
+	
 	protected RobotsResult loadExternal(URL urlURL, long maxCacheMS, boolean bUseOlder)
 	{
 		//RobotsContext context = new RobotsContext(url, current, true, true);
 		
-		ArcResource origResource = null;
+		Resource origResource = null;
 		int status = 0;
 		String contents = null;
 		
 		try {
 			PerfStats.timeStart(PerfStat.RobotsLive);
 			
-			origResource = (ArcResource)liveweb.getCachedResource(urlURL, maxCacheMS, bUseOlder);
+			origResource = liveweb.getCachedResource(urlURL, maxCacheMS, bUseOlder);
+			
 			status = origResource.getStatusCode();
 			
-			if (status == STATUS_OK) {		
-				//String contentType = origResource.getArcRecord().getHeader().getMimetype();
-				
-				int numToRead = (int)origResource.getArcRecord().getHeader().getLength();
-				
-				int maxRead = Math.min(numToRead, MAX_ROBOTS_SIZE);
-				
-				contents = IOUtils.toString(new LimitInputStream(origResource, maxRead), "UTF-8");
-				
-				//context.doRead(numToRead, contentType, origResource, "UTF-8");
+			if (status == STATUS_OK) {	
+				if (origResource instanceof ArcResource) {
+					contents = getArcResourceRobots((ArcResource)origResource);
+				} else if (origResource instanceof RobotsTxtResource) {
+					contents = ((RobotsTxtResource)origResource).getContents();
+				} else {
+					contents = "";
+				}
 			}
-			
 		} catch (Exception e) {
 			status = STATUS_ERROR;
 		} finally {

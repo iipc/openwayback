@@ -4,6 +4,7 @@ import org.archive.cdxserver.auth.AuthToken;
 import org.archive.cdxserver.filter.CDXAccessFilter;
 import org.archive.cdxserver.filter.FilenamePrefixFilter;
 import org.archive.format.cdx.CDXLine;
+import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.FastCaptureSearchResult;
 import org.archive.wayback.exception.AdministrativeAccessControlException;
 import org.archive.wayback.exception.RobotAccessControlException;
@@ -16,16 +17,21 @@ public class AccessCheckFilter implements CDXAccessFilter {
 	protected ExclusionFilter robotsFilter;
 	protected FilenamePrefixFilter prefixFilter;
 	
-	protected FastCaptureSearchResult resultTester;
+	protected CaptureSearchResult resultTester;
+	
+	protected AuthToken authToken;
 	
 	protected String lastKey;
 	protected boolean cachedValue = false;
 
-	public AccessCheckFilter(AuthToken token, 
+	public AccessCheckFilter(
+			AuthToken token, 
 			ExclusionFilter adminFilter,
 			ExclusionFilter robotsFilter,
 			FilenamePrefixFilter prefixFilter) {
 	    
+		this.authToken = token;
+		
 	    this.adminFilter = adminFilter;
 	    this.robotsFilter = robotsFilter;
 	    
@@ -49,6 +55,11 @@ public class AccessCheckFilter implements CDXAccessFilter {
 		resultTester.setUrlKey(urlKey);
 		resultTester.setOriginalUrl(originalUrl);
 		
+		return include(resultTester, throwOnFail);
+	}
+		
+	public boolean include(CaptureSearchResult resultTester, boolean throwOnFail)
+	{			
 		int status = ExclusionFilter.FILTER_EXCLUDE;
 			
 		// Admin Excludes
@@ -58,28 +69,28 @@ public class AccessCheckFilter implements CDXAccessFilter {
 		
 		if (status != ExclusionFilter.FILTER_INCLUDE) {
 			if (throwOnFail) {
-				throw new RuntimeException(new AdministrativeAccessControlException(originalUrl + " is not available in the Wayback Machine."));
+				throw new RuntimeException(new AdministrativeAccessControlException(resultTester.getOriginalUrl() + " is not available in the Wayback Machine."));
 			} else {
-				lastKey = urlKey;
+				lastKey = resultTester.getUrlKey();
 				return cachedValue;
 			}
 		}
 		
 		// Robot Excludes
-		if (robotsFilter != null) {
+		if ((robotsFilter != null) && !authToken.isIgnoreRobots()) {
 			status = robotsFilter.filterObject(resultTester);
 		}
 		
 		if (status != ExclusionFilter.FILTER_INCLUDE) {
 			if (throwOnFail) {
-				throw new RuntimeException(new RobotAccessControlException(originalUrl + " is blocked by the sites robots.txt file"));
+				throw new RuntimeException(new RobotAccessControlException(resultTester.getOriginalUrl() + " is blocked by the sites robots.txt file"));
 			} else {
-				lastKey = urlKey;
+				lastKey = resultTester.getUrlKey();
 				return cachedValue;
 			}
 		}
 		
-		lastKey = urlKey;
+		lastKey = resultTester.getUrlKey();
 		cachedValue = true;
 		
 		return cachedValue;

@@ -763,10 +763,16 @@ public class WaybackRequest {
 	}
 
 	public void setLiveWebRequest(boolean isLiveWebRequest) {
-		setBoolean(REQUEST_IS_LIVE_WEB,isLiveWebRequest);
+		setInt(REQUEST_IS_LIVE_WEB, 1);
+	}
+	public void setLiveWebEmbedRequest(boolean isLiveWebEmbedRequest) {
+		setInt(REQUEST_IS_LIVE_WEB, 2);
 	}
 	public boolean isLiveWebRequest() {
-		return getBoolean(REQUEST_IS_LIVE_WEB);
+		return getInt(REQUEST_IS_LIVE_WEB) != -1;
+	}
+	public boolean isLiveWebEmbedRequest() {
+		return getInt(REQUEST_IS_LIVE_WEB) == 2;
 	}
 	
 	public String getAnchorTimestamp() {

@@ -71,7 +71,7 @@ public class FlexResourceStore implements ResourceStore {
 		this.failOnFirstUnavailable = failOnFirstUnavailable;
 	}
 
-	interface SourceResolver
+	public interface SourceResolver
 	{
 		String[] lookupPath(String filename) throws IOException;
 	}
