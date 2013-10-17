@@ -156,7 +156,7 @@ public class AccessPointTest extends TestCase {
         
         // behavior returning null are commented out because EasyMock provides them by default.
         httpRequest = EasyMock.createNiceMock(HttpServletRequest.class);
-        httpResponse = EasyMock.createMock(HttpServletResponse.class);
+        httpResponse = EasyMock.createNiceMock(HttpServletResponse.class);
         // RequestDispatcher - setup expectations, call replay() and verify() if
         // method calls are expected.
         requestDispatcher = EasyMock.createMock(RequestDispatcher.class);
