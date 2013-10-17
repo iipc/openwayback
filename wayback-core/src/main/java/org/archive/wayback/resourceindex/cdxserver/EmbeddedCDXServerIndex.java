@@ -208,10 +208,10 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 			sb.append("&filter=");
 			sb.append(query.getFilter()[0]);
 			
-			if (!query.getClosest().isEmpty()) {
-				sb.append("&closest=");
-				sb.append(query.getClosest());
-			}
+//			if (!query.getClosest().isEmpty()) {
+//				sb.append("&closest=");
+//				sb.append(query.getClosest().substring(0, 4));
+//			}
 			
 			if (query.getCollapseTime() > 0) {
 				sb.append("&collapseTime=");
