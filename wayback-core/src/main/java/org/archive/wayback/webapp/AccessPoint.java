@@ -326,6 +326,7 @@ implements ShutdownListener {
 			
 		} catch(BetterRequestException e) {			
 			e.generateResponse(httpResponse, wbRequest);
+			httpResponse.getWriter(); // cause perf headers to be committed
 			handled = true;
 
 		} catch(WaybackException e) {
