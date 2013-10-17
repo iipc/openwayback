@@ -6,6 +6,8 @@ import java.util.zip.GZIPOutputStream;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.archive.util.io.RuntimeIOException;
+
 public abstract class HttpCDXWriter extends CDXWriter {
 
 	public final static String X_NUM_PAGES = "X-CDX-Num-Pages";
@@ -49,7 +51,13 @@ public abstract class HttpCDXWriter extends CDXWriter {
 	
 	@Override
 	public void serverError(Exception io) {
-	    response.setStatus(503);
+		int status = 503;
+		
+		if (io instanceof RuntimeIOException) {
+			status = ((RuntimeIOException)io).getStatus();
+		}
+		
+	    response.setStatus(status);
 	    response.setHeader(RUNTIME_ERROR_HEADER, io.toString());
 	    writer.println(io.toString());
 	    writer.flush();

@@ -12,10 +12,12 @@ import org.apache.commons.httpclient.util.URIUtil;
 import org.archive.cdxserver.CDXQuery;
 import org.archive.cdxserver.CDXServer;
 import org.archive.cdxserver.auth.AuthToken;
+import org.archive.cdxserver.writer.HttpCDXWriter;
 import org.archive.format.cdx.CDXLine;
 import org.archive.format.cdx.StandardCDXLineFactory;
 import org.archive.url.UrlSurtRangeComputer.MatchType;
 import org.archive.util.binsearch.impl.HTTPSeekableLineReader;
+import org.archive.util.binsearch.impl.HTTPSeekableLineReader.BadHttpStatusException;
 import org.archive.util.binsearch.impl.HTTPSeekableLineReaderFactory;
 import org.archive.util.binsearch.impl.http.ApacheHttp31SLRFactory;
 import org.archive.wayback.ResourceIndex;
@@ -24,16 +26,17 @@ import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.AccessControlException;
+import org.archive.wayback.exception.AdministrativeAccessControlException;
 import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
+import org.archive.wayback.exception.RobotAccessControlException;
 import org.archive.wayback.exception.WaybackException;
 import org.archive.wayback.memento.MementoConstants;
 import org.archive.wayback.memento.MementoHandler;
 import org.archive.wayback.memento.MementoUtils;
 import org.archive.wayback.resourceindex.filters.SelfRedirectFilter;
 import org.archive.wayback.util.webapp.AbstractRequestHandler;
-import org.archive.wayback.webapp.AccessPoint;
 import org.archive.wayback.webapp.PerfStats;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -184,59 +187,87 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 		return query;
 	}
 	
-	protected void remoteCdxServerQuery(CDXQuery query, AuthToken authToken, CDXToSearchResultWriter resultWriter) throws IOException
+	protected void remoteCdxServerQuery(CDXQuery query, AuthToken authToken, CDXToSearchResultWriter resultWriter) throws IOException, AccessControlException
 	{
 		HTTPSeekableLineReader reader = null;
 		
-		StringBuilder sb = new StringBuilder(remoteCdxPath);
+		//Do local access/url validation check
+		String urlkey = selfRedirFilter.getCanonicalizer().urlStringToKey(query.getUrl());
 		
-		sb.append("?url=");
-		//sb.append(URLEncoder.encode(query.getUrl(), "UTF-8"));
-		sb.append(query.getUrl());
-		sb.append("&limit=");
-		sb.append(query.getLimit());
-		sb.append("&filter=");
-		sb.append(query.getFilter()[0]);
+		cdxServer.getAuthChecker().createAccessFilter(authToken).includeUrl(urlkey, query.getUrl());
 		
-		if (!query.getClosest().isEmpty()) {
-			sb.append("&closest=");
-			sb.append(query.getClosest());
-		}
-		
-		if (query.getCollapseTime() > 0) {
-			sb.append("&collapseTime=");
-			sb.append(query.getCollapseTime());
-		}
-		
-		sb.append("&gzip=true");
-		
-		String finalUrl = URIUtil.encodePathQuery(sb.toString(), "UTF-8");
-		
-		reader = this.remoteCdxHttp.get(finalUrl);
-		
-		if (remoteAuthCookie != null) {
-			reader.setCookie(CDXServer.CDX_AUTH_TOKEN + "=" + remoteAuthCookie);
-		}
-		
-		reader.seekWithMaxRead(0, true, -1);
-		
-		if (LOGGER.isLoggable(Level.FINE)) {
-			String cacheInfo = reader.getHeaderValue("X-Page-Cache");
-			if (cacheInfo != null && cacheInfo.equals("HIT")) {
-				LOGGER.fine("CACHED");
+		try {
+			
+			StringBuilder sb = new StringBuilder(remoteCdxPath);
+			
+			sb.append("?url=");
+			//sb.append(URLEncoder.encode(query.getUrl(), "UTF-8"));
+			sb.append(query.getUrl());
+			sb.append("&limit=");
+			sb.append(query.getLimit());
+			sb.append("&filter=");
+			sb.append(query.getFilter()[0]);
+			
+			if (!query.getClosest().isEmpty()) {
+				sb.append("&closest=");
+				sb.append(query.getClosest());
 			}
-		}		
-		
-		String rawLine = null;
-		
-		resultWriter.begin();
-		
-		while ((rawLine = reader.readLine()) != null && !resultWriter.isAborted()) {
-			CDXLine line = cdxLineFactory.createStandardCDXLine(rawLine, StandardCDXLineFactory.cdx11);
-			resultWriter.writeLine(line);
+			
+			if (query.getCollapseTime() > 0) {
+				sb.append("&collapseTime=");
+				sb.append(query.getCollapseTime());
+			}
+			
+			sb.append("&gzip=true");
+			
+			String finalUrl = URIUtil.encodePathQuery(sb.toString(), "UTF-8");
+			
+			reader = this.remoteCdxHttp.get(finalUrl);
+			
+			if (remoteAuthCookie != null) {
+				reader.setCookie(CDXServer.CDX_AUTH_TOKEN + "=" + remoteAuthCookie);
+			}
+			
+			reader.setSaveErrHeader(HttpCDXWriter.RUNTIME_ERROR_HEADER);
+			
+			reader.seekWithMaxRead(0, true, -1);
+			
+			if (LOGGER.isLoggable(Level.FINE)) {
+				String cacheInfo = reader.getHeaderValue("X-Page-Cache");
+				if (cacheInfo != null && cacheInfo.equals("HIT")) {
+					LOGGER.fine("CACHED");
+				}
+			}
+			
+			String rawLine = null;
+			
+			resultWriter.begin();
+			
+			while ((rawLine = reader.readLine()) != null && !resultWriter.isAborted()) {
+				CDXLine line = cdxLineFactory.createStandardCDXLine(rawLine, StandardCDXLineFactory.cdx11);
+				resultWriter.writeLine(line);
+			}
+			
+			resultWriter.end();
+		} catch (BadHttpStatusException badStatus) {
+			if (reader != null) {
+				String header = reader.getErrHeader();
+				
+				if (header != null) {
+					if (header.contains("Robot")) {
+						throw new RobotAccessControlException(query.getUrl() + " is blocked by the sites robots.txt file");
+					} else if (header.contains("AdministrativeAccess")) {
+						throw new AdministrativeAccessControlException(query.getUrl() + " is not available in the Wayback Machine.");
+					}
+				}
+			}
+			
+			throw badStatus;
+		} finally {
+			if (reader != null) {
+				reader.close();
+			}
 		}
-		
-		resultWriter.end();
 	}
 	
 	protected CDXToSearchResultWriter getCaptureSearchWriter(WaybackRequest wbRequest)

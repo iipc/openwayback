@@ -4,6 +4,7 @@ import org.archive.cdxserver.auth.AuthToken;
 import org.archive.cdxserver.filter.CDXAccessFilter;
 import org.archive.cdxserver.filter.FilenamePrefixFilter;
 import org.archive.format.cdx.CDXLine;
+import org.archive.util.io.RuntimeIOException;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.FastCaptureSearchResult;
 import org.archive.wayback.exception.AdministrativeAccessControlException;
@@ -69,7 +70,7 @@ public class AccessCheckFilter implements CDXAccessFilter {
 		
 		if (status != ExclusionFilter.FILTER_INCLUDE) {
 			if (throwOnFail) {
-				throw new RuntimeException(new AdministrativeAccessControlException(resultTester.getOriginalUrl() + " is not available in the Wayback Machine."));
+				throw new RuntimeIOException(403, new AdministrativeAccessControlException(resultTester.getOriginalUrl() + " is not available in the Wayback Machine."));
 			} else {
 				lastKey = resultTester.getUrlKey();
 				return cachedValue;
@@ -83,7 +84,7 @@ public class AccessCheckFilter implements CDXAccessFilter {
 		
 		if (status != ExclusionFilter.FILTER_INCLUDE) {
 			if (throwOnFail) {
-				throw new RuntimeException(new RobotAccessControlException(resultTester.getOriginalUrl() + " is blocked by the sites robots.txt file"));
+				throw new RuntimeIOException(403, new RobotAccessControlException(resultTester.getOriginalUrl() + " is blocked by the sites robots.txt file"));
 			} else {
 				lastKey = resultTester.getUrlKey();
 				return cachedValue;
