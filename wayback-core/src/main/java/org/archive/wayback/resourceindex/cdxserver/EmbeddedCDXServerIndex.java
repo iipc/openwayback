@@ -1,6 +1,7 @@
 package org.archive.wayback.resourceindex.cdxserver;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -201,10 +202,10 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 			StringBuilder sb = new StringBuilder(remoteCdxPath);
 			
 			sb.append("?url=");
-			//sb.append(URLEncoder.encode(query.getUrl(), "UTF-8"));
-			sb.append(query.getUrl());
-			sb.append("&limit=");
-			sb.append(query.getLimit());
+			sb.append(URLEncoder.encode(query.getUrl(), "UTF-8"));
+			//sb.append(query.getUrl());
+//			sb.append("&limit=");
+//			sb.append(query.getLimit());
 			sb.append("&filter=");
 			sb.append(query.getFilter()[0]);
 			
