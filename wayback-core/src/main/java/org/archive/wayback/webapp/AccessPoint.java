@@ -187,6 +187,8 @@ implements ShutdownListener {
 	private UrlCanonicalizer selfRedirectCanonicalizer = null;
 	
 	private int maxRedirectAttempts = 0;
+	
+	private boolean fixedEmbeds = false;
 
 	public void init() {
 		checkAccessPointAware(collection,exception,query,parser,replay,
@@ -560,8 +562,26 @@ implements ShutdownListener {
 		}
 	}
 	
+	protected boolean isWaybackReferer(WaybackRequest wbRequest, String path)
+	{
+		String referer = wbRequest.getRefererUrl();
+		
+		if (referer == null) {
+			return false;
+		}
+		
+		Object value = this.getConfigs().get("fullPathPrefix");
+		String fullPathPrefix = (value != null ? value.toString() : null);
+		
+		if (fullPathPrefix != null && !fullPathPrefix.isEmpty()) {
+			return referer.startsWith(fullPathPrefix + path);
+		} else {
+			return referer.contains(path);
+		}
+	}
+	
 	// throw BetterRequestException here, also if memento is enabled, this acts as a timegate
-	protected void throwRedirect(WaybackRequest wbRequest, 
+	protected void handleReplayRedirect(WaybackRequest wbRequest, 
 								 HttpServletResponse httpResponse,
 								 CaptureSearchResults captureResults,
 								 CaptureSearchResult closest) throws BetterRequestException
@@ -571,6 +591,12 @@ implements ShutdownListener {
 		// For now, checking if the betterURI does not contain the timestamp, then we're not doing a redirect
 		String datespec = ArchivalUrl.getDateSpec(wbRequest, closest.getCaptureTimestamp());
 		String betterURI = getUriConverter().makeReplayURI(datespec, closest.getOriginalUrl());
+		
+		if (fixedEmbeds && !wbRequest.isMementoTimegate() && isWaybackReferer(wbRequest, this.getReplayPrefix())) {
+			httpResponse.setHeader("Content-Location", betterURI);
+			return;
+		}
+		
 		boolean isNonRedirectProxy = !betterURI.contains(closest.getCaptureTimestamp());
 		
 		if (this.isEnableMemento()) {
@@ -691,7 +717,7 @@ implements ShutdownListener {
 				if (!wbRequest.getReplayTimestamp().startsWith(closest.getCaptureTimestamp())) {
 				//if ((closest != originalClosest) && !closest.getCaptureTimestamp().equals(originalClosest.getCaptureTimestamp())) {
 					captureResults.setClosest(closest);
-					throwRedirect(wbRequest, httpResponse, captureResults, closest);
+					handleReplayRedirect(wbRequest, httpResponse, captureResults, closest);
 				}			
 				
 				// If revisit, may load two resources separately
@@ -797,7 +823,7 @@ implements ShutdownListener {
 				CaptureSearchResult nextClosest = null;
 				
 				// if exceed maxRedirectAttempts, stop
-				if (counter > maxRedirectAttempts) {
+				if ((counter > maxRedirectAttempts) && ((this.getLiveWebPrefix() == null) || !isWaybackReferer(wbRequest, this.getLiveWebPrefix()))) {
 					LOGGER.info("LOADFAIL: Timeout: Too many retries, limited to " + maxRedirectAttempts);
 				} else if ((closest != null) && !wbRequest.isIdentityContext()) {
 					nextClosest = findNextClosest(closest, captureResults, requestMS);
@@ -943,7 +969,8 @@ implements ShutdownListener {
 		
 		CaptureSearchResult payloadLocation = null;
 		
-		// maybe WARCRevisitAnnotationFilter already found the payload 
+		// Revisit from same url -- shold have been found by the loader
+		
 		if (closest.getDuplicatePayloadFile() != null && closest.getDuplicatePayloadOffset() != null) {
 			payloadLocation = new CaptureSearchResult();
 			payloadLocation.setFile(closest.getDuplicatePayloadFile());
@@ -952,9 +979,48 @@ implements ShutdownListener {
 		}
 
 		Map<String, Object> warcHeaders = null;
+
+		// Url Agnostic Revisit with target-uri and refers-to-date
+		if (payloadLocation == null) {
+			
+			String payloadUri = null; 
+			String payloadTimestamp = null;
+			
+			if (warcHeaders == null) {
+				WarcResource wr = (WarcResource) revisitRecord;
+				warcHeaders = wr.getWarcHeaders().getHeaderFields();
+			}
+			
+			if (warcHeaders != null) {
+				payloadUri = (String) warcHeaders.get("WARC-Refers-To-Target-URI");
+				
+				Date date = ArchiveUtils.parse14DigitISODate((String)warcHeaders.get("WARC-Refers-To-Date"), null);
+				
+				if (date != null) {
+					payloadTimestamp = ArchiveUtils.get14DigitDate(date);
+				}
+			}
+			
+			if (payloadUri != null && payloadTimestamp != null) {
+				WaybackRequest wbr = currRequest.clone();
+				wbr.setReplayTimestamp(payloadTimestamp);
+				wbr.setAnchorTimestamp(payloadTimestamp);
+				wbr.setTimestampSearchKey(true);
+				wbr.setRequestUrl(payloadUri);
+	
+				SearchResults results = queryIndex(wbr);
+				
+				if(!(results instanceof CaptureSearchResults)) {
+					throw new ResourceNotAvailableException("Bad results looking up " + payloadTimestamp + " " + payloadUri);
+				}
+				CaptureSearchResults payloadCaptureResults = (CaptureSearchResults) results;
+				payloadLocation = getReplay().getClosest(wbr, payloadCaptureResults);
+			}
+		}
+		
+		// Less common less recommended revisit with specific warc/filename
 		
 		if (payloadLocation == null) {
-			// expect the warc revisit record points us to the payload
 			WarcResource wr = (WarcResource) revisitRecord;
 			warcHeaders = wr.getWarcHeaders().getHeaderFields();
 			String payloadWarcFile = (String) warcHeaders.get("WARC-Refers-To-Filename");
@@ -965,65 +1031,8 @@ implements ShutdownListener {
 				payloadLocation.setOffset(Long.parseLong(offsetStr));
 			}
 		}
-		
-		ResourceNotAvailableException lastExc = null;
-
-		if (payloadLocation != null) {
-			try {
-				return getResource(payloadLocation, skipFiles);
-			} catch (ResourceNotAvailableException e) {
-				// one last effort to follow
-				payloadLocation = null;
-				lastExc = e;
-			}
-		}
-
-		/*
-		 * One last thing to try. This could happen if the revisit record is
-		 * url-agnostic and points to a record that was reorganized into a
-		 * different warc.
-		 */
-		// XXX needs testing
-		
-		String payloadUri = null; 
-		String payloadTimestamp = null;
-		
-		if (warcHeaders == null) {
-			WarcResource wr = (WarcResource) revisitRecord;
-			warcHeaders = wr.getWarcHeaders().getHeaderFields();
-		}
-		
-		if (warcHeaders != null) {
-			payloadUri = (String) warcHeaders.get("WARC-Refers-To-Target-URI");
 			
-			Date date = ArchiveUtils.parse14DigitISODate((String)warcHeaders.get("WARC-Refers-To-Date"), null);
-			
-			if (date != null) {
-				payloadTimestamp = ArchiveUtils.get14DigitDate(date);
-			}
-		}
-		
-		if (payloadUri != null && payloadTimestamp != null) {
-			WaybackRequest wbr = currRequest.clone();
-			wbr.setReplayTimestamp(payloadTimestamp);
-			wbr.setAnchorTimestamp(payloadTimestamp);
-			wbr.setTimestampSearchKey(true);
-			wbr.setRequestUrl(payloadUri);
-
-			SearchResults results = queryIndex(wbr);
-			
-			if(!(results instanceof CaptureSearchResults)) {
-				throw new ResourceNotAvailableException("Bad results looking up " + payloadTimestamp + " " + payloadUri);
-			}
-			CaptureSearchResults payloadCaptureResults = (CaptureSearchResults) results;
-			payloadLocation = getReplay().getClosest(wbr, payloadCaptureResults);
-		}
-		
-		if (payloadLocation == null) {
-			if (lastExc != null) {
-				throw lastExc;
-			}
-			
+		if (payloadLocation == null) {			
 			throw new ResourceNotAvailableException("Revisit: Missing original for revisit record " + closest.toString(), 404);
 		}
 
@@ -1672,6 +1681,14 @@ implements ShutdownListener {
 
 	public void setMaxRedirectAttempts(int maxRedirectAttempts) {
 		this.maxRedirectAttempts = maxRedirectAttempts;
+	}
+
+	public boolean isFixedEmbeds() {
+		return fixedEmbeds;
+	}
+
+	public void setFixedEmbeds(boolean fixedEmbeds) {
+		this.fixedEmbeds = fixedEmbeds;
 	}
 
 	public boolean isTimestampSearch() {
