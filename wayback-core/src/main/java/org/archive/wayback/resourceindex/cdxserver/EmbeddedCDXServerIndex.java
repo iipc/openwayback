@@ -274,19 +274,19 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 			if (LOGGER.isLoggable(Level.FINE)) {
 				LOGGER.fine("CACHED");
 			}
+		}
 			
-			if (extraSource != null) {
-				ZipNumParams params = new ZipNumParams();
-				CloseableIterator<String> extraIter = extraSource.getCDXIterator(urlkey, urlkey, urlkey, params);
-				
-				if (extraIter.hasNext()) {
-					SortedCompositeIterator<String> sortedIter = new SortedCompositeIterator<String>(MultiCDXInputSource.defaultComparator);
-					sortedIter.addIterator(iter);
-					sortedIter.addIterator(extraIter);
-					return sortedIter;
-				}
+		if (extraSource != null) {
+			ZipNumParams params = new ZipNumParams();
+			CloseableIterator<String> extraIter = extraSource.getCDXIterator(urlkey, urlkey, urlkey, params);
+			
+			if (extraIter.hasNext()) {
+				SortedCompositeIterator<String> sortedIter = new SortedCompositeIterator<String>(MultiCDXInputSource.defaultComparator);
+				sortedIter.addIterator(iter);
+				sortedIter.addIterator(extraIter);
+				return sortedIter;
 			}
-		}	
+		}
 		
 		return iter;
     }
