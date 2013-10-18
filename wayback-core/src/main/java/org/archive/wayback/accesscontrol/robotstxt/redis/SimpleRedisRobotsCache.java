@@ -201,22 +201,6 @@ public class SimpleRedisRobotsCache implements LiveWebCache {
 		}
 	}
 	
-	protected String getArcResourceRobots(ArcResource arc) throws IOException
-	{		
-	
-		//String contentType = origResource.getArcRecord().getHeader().getMimetype();
-		
-		int numToRead = (int)arc.getArcRecord().getHeader().getLength();
-		
-		int maxRead = Math.min(numToRead, MAX_ROBOTS_SIZE);
-		
-		String contents = IOUtils.toString(new LimitInputStream(arc, maxRead), "UTF-8");
-		
-		//context.doRead(numToRead, contentType, origResource, "UTF-8");
-		
-		return contents;
-	}
-	
 	protected RobotsResult loadExternal(URL urlURL, long maxCacheMS, boolean bUseOlder)
 	{
 		//RobotsContext context = new RobotsContext(url, current, true, true);
@@ -233,12 +217,10 @@ public class SimpleRedisRobotsCache implements LiveWebCache {
 			status = origResource.getStatusCode();
 			
 			if (status == STATUS_OK) {	
-				if (origResource instanceof ArcResource) {
-					contents = getArcResourceRobots((ArcResource)origResource);
-				} else if (origResource instanceof RobotsTxtResource) {
+				if (origResource instanceof RobotsTxtResource) {
 					contents = ((RobotsTxtResource)origResource).getContents();
 				} else {
-					contents = "";
+					contents = IOUtils.toString(new LimitInputStream(origResource, MAX_ROBOTS_SIZE), "UTF-8");
 				}
 			}
 		} catch (Exception e) {
