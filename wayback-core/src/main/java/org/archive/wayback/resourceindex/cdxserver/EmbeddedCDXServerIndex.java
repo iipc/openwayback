@@ -207,7 +207,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 //			sb.append("&limit=");
 //			sb.append(query.getLimit());
 			sb.append("&filter=");
-			sb.append(query.getFilter()[0]);
+			sb.append(URLEncoder.encode(query.getFilter()[0], "UTF-8"));
 			
 //			if (!query.getClosest().isEmpty()) {
 //				sb.append("&closest=");
@@ -221,7 +221,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 			
 			sb.append("&gzip=true");
 			
-			String finalUrl = URIUtil.encodePathQuery(sb.toString(), "UTF-8");
+			String finalUrl = sb.toString();
 			
 			reader = this.remoteCdxHttp.get(finalUrl);
 			
