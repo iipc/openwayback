@@ -562,7 +562,7 @@ implements ShutdownListener {
 		}
 	}
 	
-	protected boolean isWaybackReferer(WaybackRequest wbRequest, String path)
+	public boolean isWaybackReferer(WaybackRequest wbRequest, String path)
 	{
 		String referer = wbRequest.getRefererUrl();
 		
