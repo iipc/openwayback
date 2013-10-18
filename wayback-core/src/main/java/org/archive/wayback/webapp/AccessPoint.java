@@ -657,7 +657,7 @@ implements ShutdownListener {
 		closest = 
 			getReplay().getClosest(wbRequest, captureResults);
 		
-		CaptureSearchResult originalClosest = closest;
+		//CaptureSearchResult originalClosest = closest;
 		
 		int counter = 0;
 		
@@ -741,7 +741,7 @@ implements ShutdownListener {
 						captureResults = (CaptureSearchResults)results;
 						
 						closest = getReplay().getClosest(wbRequest, captureResults);
-						originalClosest = closest;
+						//originalClosest = closest;
 						//maxTimeouts *= 2;
 						//maxMissingRevisits *= 2;
 						
@@ -766,7 +766,14 @@ implements ShutdownListener {
 						
 					} else {
 						httpHeadersResource = getResource(closest, skipFiles);
-						payloadResource = retrievePayloadForIdenticalContentRevisit(wbRequest, httpHeadersResource, captureResults, closest, skipFiles);
+						
+						CaptureSearchResult payloadLocation = retrievePayloadForIdenticalContentRevisit(wbRequest, httpHeadersResource, closest);
+						
+						if (payloadLocation == null) {
+							throw new ResourceNotAvailableException("Revisit: Missing original for revisit record " + closest.toString(), 404);
+						}
+						
+						payloadResource = getResource(payloadLocation, skipFiles);
 						
 						// If zero length old-style revisit with no headers, then must use payloadResource as headersResource
 						if (httpHeadersResource.getRecordLength() <= 0) {
@@ -871,7 +878,7 @@ implements ShutdownListener {
 					captureResults = (CaptureSearchResults)results;
 					
 					closest = getReplay().getClosest(wbRequest, captureResults);
-					originalClosest = closest;
+					//originalClosest = closest;
 					
 					//maxTimeouts *= 2;
 					//maxMissingRevisits *= 2;
@@ -959,9 +966,11 @@ implements ShutdownListener {
 	 * @throws BetterRequestException 
 	 * @see WARCRevisitAnnotationFilter
 	 */
-	protected Resource retrievePayloadForIdenticalContentRevisit(WaybackRequest currRequest, Resource revisitRecord,
-			CaptureSearchResults captureResults, CaptureSearchResult closest, Set<String> skipFiles)
-					throws ResourceNotAvailableException, ConfigurationException, ResourceIndexNotAvailableException, ResourceNotInArchiveException, BadQueryException, AccessControlException, BetterRequestException {
+	protected CaptureSearchResult retrievePayloadForIdenticalContentRevisit(
+			WaybackRequest currRequest,
+			Resource revisitRecord,
+			CaptureSearchResult closest) throws WaybackException {
+		
 		if (!closest.isDuplicateDigest()) {
 			LOGGER.warning("Revisit: record is not a revisit by identical content digest " + closest.getCaptureTimestamp() + " " + closest.getOriginalUrl());
 			return null;
@@ -976,67 +985,63 @@ implements ShutdownListener {
 			payloadLocation.setFile(closest.getDuplicatePayloadFile());
 			payloadLocation.setOffset(closest.getDuplicatePayloadOffset());
 			payloadLocation.setCompressedLength(closest.getDuplicatePayloadCompressedLength());
+			return payloadLocation;
 		}
-
-		Map<String, Object> warcHeaders = null;
 
 		// Url Agnostic Revisit with target-uri and refers-to-date
-		if (payloadLocation == null) {
-			
-			String payloadUri = null; 
-			String payloadTimestamp = null;
-			
-			if (warcHeaders == null) {
-				WarcResource wr = (WarcResource) revisitRecord;
-				warcHeaders = wr.getWarcHeaders().getHeaderFields();
-			}
-			
-			if (warcHeaders != null) {
-				payloadUri = (String) warcHeaders.get("WARC-Refers-To-Target-URI");
-				
-				Date date = ArchiveUtils.parse14DigitISODate((String)warcHeaders.get("WARC-Refers-To-Date"), null);
-				
-				if (date != null) {
-					payloadTimestamp = ArchiveUtils.get14DigitDate(date);
-				}
-			}
-			
-			if (payloadUri != null && payloadTimestamp != null) {
-				WaybackRequest wbr = currRequest.clone();
-				wbr.setReplayTimestamp(payloadTimestamp);
-				wbr.setAnchorTimestamp(payloadTimestamp);
-				wbr.setTimestampSearchKey(true);
-				wbr.setRequestUrl(payloadUri);
-	
-				SearchResults results = queryIndex(wbr);
-				
-				if(!(results instanceof CaptureSearchResults)) {
-					throw new ResourceNotAvailableException("Bad results looking up " + payloadTimestamp + " " + payloadUri);
-				}
-				CaptureSearchResults payloadCaptureResults = (CaptureSearchResults) results;
-				payloadLocation = getReplay().getClosest(wbr, payloadCaptureResults);
-			}
-		}
 		
-		// Less common less recommended revisit with specific warc/filename
+		Map<String, Object> warcHeaders = null;
+
+		String payloadUri = null; 
+		String payloadTimestamp = null;
 		
-		if (payloadLocation == null) {
+		if (warcHeaders == null) {
 			WarcResource wr = (WarcResource) revisitRecord;
 			warcHeaders = wr.getWarcHeaders().getHeaderFields();
-			String payloadWarcFile = (String) warcHeaders.get("WARC-Refers-To-Filename");
-			String offsetStr = (String) warcHeaders.get("WARC-Refers-To-File-Offset");
-			if (payloadWarcFile != null && offsetStr != null) {
-				payloadLocation = new CaptureSearchResult();
-				payloadLocation.setFile(payloadWarcFile);
-				payloadLocation.setOffset(Long.parseLong(offsetStr));
+		}
+		
+		if (warcHeaders != null) {
+			payloadUri = (String) warcHeaders.get("WARC-Refers-To-Target-URI");
+			
+			Date date = ArchiveUtils.parse14DigitISODate((String)warcHeaders.get("WARC-Refers-To-Date"), null);
+			
+			if (date != null) {
+				payloadTimestamp = ArchiveUtils.get14DigitDate(date);
 			}
 		}
-			
-		if (payloadLocation == null) {			
-			throw new ResourceNotAvailableException("Revisit: Missing original for revisit record " + closest.toString(), 404);
-		}
+		
+		if (payloadUri != null && payloadTimestamp != null) {
+			WaybackRequest wbr = currRequest.clone();
+			wbr.setReplayTimestamp(payloadTimestamp);
+			wbr.setAnchorTimestamp(payloadTimestamp);
+			wbr.setTimestampSearchKey(true);
+			wbr.setRequestUrl(payloadUri);
 
-		return getResource(payloadLocation, skipFiles);
+			SearchResults results = queryIndex(wbr);
+			
+			if(!(results instanceof CaptureSearchResults)) {
+				throw new ResourceNotAvailableException("Bad results looking up " + payloadTimestamp + " " + payloadUri);
+			}
+			CaptureSearchResults payloadCaptureResults = (CaptureSearchResults) results;
+			payloadLocation = getReplay().getClosest(wbr, payloadCaptureResults);
+		}
+		
+//		if (payloadLocation != null) {
+//			return payloadLocation;
+//		}
+//		
+		// Less common less recommended revisit with specific warc/filename
+//		WarcResource wr = (WarcResource) revisitRecord;
+//		warcHeaders = wr.getWarcHeaders().getHeaderFields();
+//		String payloadWarcFile = (String) warcHeaders.get("WARC-Refers-To-Filename");
+//		String offsetStr = (String) warcHeaders.get("WARC-Refers-To-File-Offset");
+//		if (payloadWarcFile != null && offsetStr != null) {
+//			payloadLocation = new CaptureSearchResult();
+//			payloadLocation.setFile(payloadWarcFile);
+//			payloadLocation.setOffset(Long.parseLong(offsetStr));
+//		}
+		
+		return payloadLocation;
 	}
 
 	private void checkAnchorWindow(WaybackRequest wbRequest, 
