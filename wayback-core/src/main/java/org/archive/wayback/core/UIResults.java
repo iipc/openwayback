@@ -20,6 +20,7 @@
 package org.archive.wayback.core;
 
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.util.Properties;
 
 import javax.servlet.RequestDispatcher;
@@ -33,6 +34,8 @@ import org.archive.wayback.util.StringFormatter;
 import org.archive.wayback.util.webapp.SpringReader;
 import org.archive.wayback.webapp.AccessPoint;
 import org.archive.wayback.webapp.CustomUserResourceIndex;
+import org.archive.wayback.webapp.PerfStats;
+import org.archive.wayback.webapp.PerfStats.PerfStatEntry;
 import org.springframework.beans.BeansException;
 
 /**
@@ -85,6 +88,20 @@ public class UIResults {
 	private Resource resource = null;
 	// Present for... requests that resulted in an expected Exception.
 	private WaybackException exception = null;
+	
+	private final static String localHostName;
+	
+	static {
+		String name;
+		
+		try {
+			name = java.net.InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e) {
+        	name = "localhost";
+        }
+		
+		localHostName = name;
+	}
 	
 	/**
 	 * Constructor for a "generic" UIResults, where little/no context is 
@@ -691,5 +708,16 @@ public class UIResults {
 			return "";
 		}
 		return cri.getCustomResourcesPathsAsJSON(getWbRequest(), getReplayPrefix(), fieldNum);
+	}
+	
+	public static String getLocalHostName()
+	{
+		return localHostName;
+	}
+	
+	public static int getTotalCount()
+	{
+		PerfStatEntry entry = PerfStats.get("Total");
+		return ((entry != null) ? entry.getCount() : 0);
 	}
 }

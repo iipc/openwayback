@@ -77,6 +77,11 @@ public class PerfStats
 			}
 			return builder.toString();
 		}
+		
+		public int getCount()
+		{
+			return count;
+		}
 	}
 	
 	static ThreadLocal<Map<String, PerfStatEntry>> perfStats = new ThreadLocal<Map<String, PerfStatEntry>>()

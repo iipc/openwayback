@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 import javax.servlet.ServletOutputStream;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
 
@@ -14,9 +15,12 @@ public class PerfWritingHttpServletResponse extends HttpServletResponseWrapper {
 	protected boolean hasWritten;
 	protected HttpServletResponse httpResponse;
 	
+	protected String requestURI;
+	
 	public PerfWritingHttpServletResponse(HttpServletResponse response, Enum<?> stat, String perfStatsHeader)
 	{
 		super(response);
+		
 		this.httpResponse = response;		
 		this.perfStat = stat;
 		this.perfStatsHeader = perfStatsHeader;
@@ -28,10 +32,18 @@ public class PerfWritingHttpServletResponse extends HttpServletResponseWrapper {
 			return;
 		}
 		
-		PerfStats.timeEnd(perfStat);
+		long elapsed = PerfStats.timeEnd(perfStat);
 		
 		if (perfStatsHeader != null) {
 			httpResponse.setHeader(perfStatsHeader, PerfStats.getAllStats());
+		}
+		
+		if (requestURI != null) {
+			Cookie cookie = new Cookie("wb_total_perf", String.valueOf(elapsed));
+			cookie.setMaxAge(10);
+			//cookie.setDomain(domainName);
+			cookie.setPath(requestURI);
+			httpResponse.addCookie(cookie);
 		}
 		
 		hasWritten = true;
@@ -66,4 +78,8 @@ public class PerfWritingHttpServletResponse extends HttpServletResponseWrapper {
 		writePerfStats();
 		return super.getWriter();
 	}
+
+	public void enablePerfCookie(String requestURI) {
+		this.requestURI = requestURI;
+    }
 }
