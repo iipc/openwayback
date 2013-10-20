@@ -128,7 +128,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
         }
 
         try {
-        	if (remoteCdxPath != null) {
+        	if ((remoteCdxPath != null) && !wbRequest.isUrlQueryRequest()) {
         		this.remoteCdxServerQuery(resultWriter.getQuery(), waybackAuthToken, resultWriter);
         	} else {
         		cdxServer.getCdx(resultWriter.getQuery(), waybackAuthToken, resultWriter);
