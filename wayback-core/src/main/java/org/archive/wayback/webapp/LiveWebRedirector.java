@@ -11,13 +11,13 @@ import org.archive.wayback.exception.WaybackException;
 
 public class LiveWebRedirector {
 	
-	enum RedirectType {
+	public enum RedirectType {
 		NONE,
 		ALL,
 		EMBEDS_ONLY,
 	};
 	
-	enum LiveWebState {
+	public enum LiveWebState {
 		NOT_FOUND,
 		FOUND,
 		REDIRECTED
