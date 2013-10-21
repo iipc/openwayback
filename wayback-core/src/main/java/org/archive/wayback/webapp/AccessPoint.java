@@ -347,7 +347,7 @@ implements ShutdownListener {
 			LiveWebState liveWebState = LiveWebState.NOT_FOUND;
 			
 			if ((getLiveWebRedirector() != null) && 
-					!wbRequest.hasMementoAcceptDatetime() && !wbRequest.isMementoTimemapRequest() && !wbRequest.isBestLatestReplayRequest()) {
+					!wbRequest.hasMementoAcceptDatetime() && !wbRequest.isMementoTimemapRequest()) {
 				liveWebState = getLiveWebRedirector().handleRedirect(e, wbRequest, httpRequest, httpResponse);
 			}
 			
