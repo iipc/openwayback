@@ -15,6 +15,8 @@ public class PerfWritingHttpServletResponse extends HttpServletResponseWrapper {
 	protected boolean hasWritten;
 	protected HttpServletResponse httpResponse;
 	
+	protected int expireTimeout = 60;
+	
 	protected String requestURI;
 	
 	public PerfWritingHttpServletResponse(HttpServletResponse response, Enum<?> stat, String perfStatsHeader)
@@ -40,7 +42,7 @@ public class PerfWritingHttpServletResponse extends HttpServletResponseWrapper {
 		
 		if (requestURI != null) {
 			Cookie cookie = new Cookie("wb_total_perf", String.valueOf(elapsed));
-			cookie.setMaxAge(10);
+			cookie.setMaxAge(expireTimeout);
 			//cookie.setDomain(domainName);
 			cookie.setPath(requestURI);
 			httpResponse.addCookie(cookie);
