@@ -78,9 +78,9 @@ public class PerfStats
 			return builder.toString();
 		}
 		
-		public int getCount()
+		public long getTotal()
 		{
-			return count;
+			return total;
 		}
 	}
 	

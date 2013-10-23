@@ -89,6 +89,7 @@ public class UIResults {
 	private Resource resource = null;
 	// Present for... requests that resulted in an expected Exception.
 	private WaybackException exception = null;
+	private PerfWritingHttpServletResponse perfResponse;
 	
 	private final static String localHostName;
 	
@@ -387,6 +388,7 @@ public class UIResults {
 		if(dispatcher == null) {
 			throw new IOException("No dispatcher for " + target);
 		}
+				
 		dispatcher.forward(request, response);
 	}
 	
@@ -716,18 +718,22 @@ public class UIResults {
 		return localHostName;
 	}
 	
-	public static String enableAnalytics(HttpServletRequest request, HttpServletResponse response)
+	public String enableAnalytics(HttpServletRequest request)
 	{
-		if (response instanceof PerfWritingHttpServletResponse) {
-		    ((PerfWritingHttpServletResponse)response).enablePerfCookie(request.getRequestURI());
+		if (perfResponse != null) {
+			perfResponse.enablePerfCookie(request.getRequestURI());
 		}
 		
 		return localHostName;
 	}
 	
-	public static int getTotalCount()
+	public static long getTotalCount()
 	{
 		PerfStatEntry entry = PerfStats.get("Total");
-		return ((entry != null) ? entry.getCount() : 0);
+		return ((entry != null) ? entry.getTotal() : 0);
 	}
+
+	public void setPerfResponse(PerfWritingHttpServletResponse perfResponse) {
+		this.perfResponse = perfResponse;
+    }
 }
