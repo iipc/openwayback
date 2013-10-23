@@ -60,7 +60,9 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 	
 	private HTTPSeekableLineReaderFactory remoteCdxHttp = new ApacheHttp31SLRFactory();
 	private StandardCDXLineFactory cdxLineFactory = new StandardCDXLineFactory("cdx11");
+	
 	private String remoteAuthCookie;
+	private String remoteAuthCookieIgnoreRobots;
 	
 	protected CDXInputSource extraSource;
 	
@@ -117,6 +119,12 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
         AuthToken waybackAuthToken = new AuthToken();
         waybackAuthToken.setAllCdxFieldsAllow();
         
+    	boolean ignoreRobots = wbRequest.isCSSContext() || wbRequest.isIMGContext() || wbRequest.isJSContext();
+    	
+    	if (ignoreRobots) {
+    		waybackAuthToken.setIgnoreRobots(true);
+    	}
+        
         CDXToSearchResultWriter resultWriter = null;
         
         if (wbRequest.isReplayRequest() || wbRequest.isCaptureQueryRequest()) {
@@ -127,8 +135,9 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
         	throw new BadQueryException("Unknown Query Type");
         }
 
-        try {
+        try {        	
         	if ((remoteCdxPath != null) && !wbRequest.isUrlQueryRequest()) {
+        		wbRequest.setTimestampSearchKey(false); // Not supported for remote requests, cacheing the entire cdx
         		this.remoteCdxServerQuery(resultWriter.getQuery(), waybackAuthToken, resultWriter);
         	} else {
         		cdxServer.getCdx(resultWriter.getQuery(), waybackAuthToken, resultWriter);
@@ -235,7 +244,16 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 			reader = this.remoteCdxHttp.get(finalUrl);
 			
 			if (remoteAuthCookie != null) {
-				reader.setCookie(CDXServer.CDX_AUTH_TOKEN + "=" + remoteAuthCookie);
+				
+				String cookie;
+				
+				if (authToken.isIgnoreRobots() && (remoteAuthCookieIgnoreRobots != null)) {
+					cookie = remoteAuthCookieIgnoreRobots;
+				} else {
+					cookie = remoteAuthCookie;
+				}
+				
+				reader.setCookie(CDXServer.CDX_AUTH_TOKEN + "=" + cookie);
 			}
 			
 			reader.setSaveErrHeader(HttpCDXWriter.RUNTIME_ERROR_HEADER);
@@ -457,6 +475,14 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 		this.remoteAuthCookie = remoteAuthCookie;
 	}
 	
+	public String getRemoteAuthCookieIgnoreRobots() {
+		return remoteAuthCookieIgnoreRobots;
+	}
+
+	public void setRemoteAuthCookieIgnoreRobots(String remoteAuthCookieIgnoreRobots) {
+		this.remoteAuthCookieIgnoreRobots = remoteAuthCookieIgnoreRobots;
+	}
+
 	public HTTPSeekableLineReaderFactory getRemoteCdxHttp() {
 		return remoteCdxHttp;
 	}

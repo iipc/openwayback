@@ -48,7 +48,6 @@ import org.archive.wayback.replay.html.IdentityResultURIConverterFactory;
 import org.archive.wayback.replay.html.ReplayParseContext;
 import org.archive.wayback.util.htmllex.ContextAwareLexer;
 import org.archive.wayback.util.htmllex.ParseEventHandler;
-import org.archive.wayback.webapp.PerfWritingHttpServletResponse;
 import org.htmlparser.Node;
 import org.htmlparser.lexer.Lexer;
 import org.htmlparser.lexer.Page;
@@ -204,11 +203,6 @@ public class ArchivalUrlSAXRewriteReplayRenderer implements ReplayRenderer {
 		// who knows what that is, or what that will do to the page..
 		// let's try explicitly setting it to what we used:
 		httpResponse.setCharacterEncoding(OUTPUT_CHARSET);
-		
-		if (httpResponse instanceof PerfWritingHttpServletResponse) {
-			((PerfWritingHttpServletResponse)httpResponse).enablePerfCookie(httpRequest.getRequestURI());
-		}
-
 		httpResponse.getOutputStream().write(utf8Bytes);
 	}
 	

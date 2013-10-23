@@ -36,6 +36,7 @@ import org.archive.wayback.webapp.AccessPoint;
 import org.archive.wayback.webapp.CustomUserResourceIndex;
 import org.archive.wayback.webapp.PerfStats;
 import org.archive.wayback.webapp.PerfStats.PerfStatEntry;
+import org.archive.wayback.webapp.PerfWritingHttpServletResponse;
 import org.springframework.beans.BeansException;
 
 /**
@@ -312,7 +313,7 @@ public class UIResults {
 	}
 
 	/**
-	 * @return the defined staticPrefix for the AccessPoint
+	 * @return the defined staticPrefix for the AccessPoint%><%@ page import="org.archive.wayback.webapp.PerfWritingHttpServletResponse"
 	 */
 	public String getStaticPrefix() {
 		if(wbRequest != null) {
@@ -712,6 +713,15 @@ public class UIResults {
 	
 	public static String getLocalHostName()
 	{
+		return localHostName;
+	}
+	
+	public static String enableAnalytics(HttpServletRequest request, HttpServletResponse response)
+	{
+		if (response instanceof PerfWritingHttpServletResponse) {
+		    ((PerfWritingHttpServletResponse)response).enablePerfCookie(request.getRequestURI());
+		}
+		
 		return localHostName;
 	}
 	
