@@ -26,6 +26,8 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 	protected CaptureSearchResult closest = null;
 	protected SelfRedirectFilter selfRedirFilter = null;
 	
+	protected CaptureSearchResult lastResult = null;
+	
 	protected HashMap<String, CaptureSearchResult> digestToOriginal;
 	protected HashMap<String, LinkedList<CaptureSearchResult>> digestToRevisits;
 	
@@ -70,8 +72,17 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
     public int writeLine(CDXLine line) {
 		FastCaptureSearchResult result = new FastCaptureSearchResult();
 		
+		String timestamp = line.getTimestamp();
+		
+		if (lastResult != null) {
+			if (lastResult.getCaptureTimestamp().equals(timestamp)) {
+				// Skip this
+				return 0;
+			}
+		}
+				
 		result.setUrlKey(line.getUrlKey());
-		result.setCaptureTimestamp(line.getTimestamp());
+		result.setCaptureTimestamp(timestamp);
 		result.setOriginalUrl(line.getOriginalUrl());
 		
 		// Special case: filter out captures that have userinfo
@@ -148,6 +159,7 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 		}
 		
 		results.addSearchResult(result, !isReverse);
+		lastResult = result;
 		
 		// Short circuit the load if seeking single capture
 		if (seekSingleCapture && resolveRevisits) {
