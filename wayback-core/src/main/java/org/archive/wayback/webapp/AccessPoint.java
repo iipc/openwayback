@@ -586,6 +586,12 @@ implements ShutdownListener {
 								 CaptureSearchResults captureResults,
 								 CaptureSearchResult closest) throws BetterRequestException
 	{
+		if (wbRequest.getReplayTimestamp().startsWith(closest.getCaptureTimestamp())) {
+			// Matching
+			return;
+		}
+		
+		captureResults.setClosest(closest);
 		
 		//TODO: better detection of non-redirect proxy mode?
 		// For now, checking if the betterURI does not contain the timestamp, then we're not doing a redirect
@@ -713,10 +719,8 @@ implements ShutdownListener {
 					}
 				}
 				
-				// Redirect to url for the actual closest capture
-				if (!wbRequest.getReplayTimestamp().startsWith(closest.getCaptureTimestamp())) {
-				//if ((closest != originalClosest) && !closest.getCaptureTimestamp().equals(originalClosest.getCaptureTimestamp())) {
-					captureResults.setClosest(closest);
+				// Redirect to url for the actual closest capture, if not a retry
+				if (counter == 1) {
 					handleReplayRedirect(wbRequest, httpResponse, captureResults, closest);
 				}			
 				
@@ -794,6 +798,10 @@ implements ShutdownListener {
 					LOGGER.info("Self-Redirect: Skipping " + closest.getCaptureTimestamp() + "/" + closest.getOriginalUrl());
 					closest = findNextClosest(closest, captureResults, requestMS);
 					continue;
+				}
+				
+				if (counter > 1) {
+					handleReplayRedirect(wbRequest, httpResponse, captureResults, closest);
 				}
 									
 				p.retrieved();
