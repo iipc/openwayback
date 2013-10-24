@@ -53,6 +53,7 @@ public class BubbleCalendarData {
 	public long dataEndMSSE;
 	public long numResults = 0;
 	public String firstResultReplayUrl;
+	public String lastResultReplayUrl;
 	
 
 	private List<Partition<CaptureSearchResult>> months; 
@@ -85,9 +86,9 @@ public class BubbleCalendarData {
 		searchUrlForHTML = fmt.escapeHtml(searchUrl);
 		searchUrlForJS = fmt.escapeJavaScript(searchUrl);
 		firstResultDate = cResults.getFirstResultDate();
-		firstResultReplayUrl = fmt.escapeHtml(
-				results.resultToReplayUrl(cResults.getResults().get(0)));
+		firstResultReplayUrl = fmt.escapeHtml(results.resultToReplayUrl(cResults.getResults().getFirst()));
 		lastResultDate = cResults.getLastResultDate();
+		lastResultReplayUrl = fmt.escapeHtml(results.resultToReplayUrl(cResults.getResults().getLast()));
 		Date searchStartDate = wbRequest.getStartDate();
 		Date searchEndDate = wbRequest.getEndDate();
 		months = capturePartitioner.getRange(monthSize,searchStartDate,searchEndDate);

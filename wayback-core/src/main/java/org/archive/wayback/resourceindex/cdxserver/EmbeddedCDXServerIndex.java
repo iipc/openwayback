@@ -135,14 +135,9 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
         	throw new BadQueryException("Unknown Query Type");
         }
 
-        try {        	
-        	if ((remoteCdxPath != null) && !wbRequest.isUrlQueryRequest()) {
-        		wbRequest.setTimestampSearchKey(false); // Not supported for remote requests, cacheing the entire cdx
-        		this.remoteCdxServerQuery(resultWriter.getQuery(), waybackAuthToken, resultWriter);
-        	} else {
-        		cdxServer.getCdx(resultWriter.getQuery(), waybackAuthToken, resultWriter);
-        	}
-	        
+        try {
+        	loadWaybackCdx(wbRequest, resultWriter.getQuery(), waybackAuthToken, resultWriter);
+        		        
         } catch (IOException e) {
         	throw new ResourceIndexNotAvailableException(e.toString());
         } catch (RuntimeException rte) {
@@ -171,6 +166,23 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
         
 		return searchResults;
 	}
+
+	protected void loadWaybackCdx(WaybackRequest wbRequest, CDXQuery query, AuthToken waybackAuthToken,
+            CDXToSearchResultWriter resultWriter) throws IOException, AccessControlException {
+		
+    	if ((remoteCdxPath != null) && !wbRequest.isUrlQueryRequest()) {
+    		try {
+    			wbRequest.setTimestampSearchKey(false); // Not supported for remote requests, cacheing the entire cdx
+    			this.remoteCdxServerQuery(resultWriter.getQuery(), waybackAuthToken, resultWriter);
+    			return;
+    			
+    		} catch (IOException io) {
+    			//Try again below
+    		}
+    	}
+    	
+   		cdxServer.getCdx(resultWriter.getQuery(), waybackAuthToken, resultWriter);
+    }
 
 	protected CDXQuery createQuery(WaybackRequest wbRequest)
 	{
