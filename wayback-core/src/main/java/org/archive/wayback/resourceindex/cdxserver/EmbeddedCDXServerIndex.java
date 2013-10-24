@@ -23,6 +23,7 @@ import org.archive.util.binsearch.SeekableLineReaderIterator;
 import org.archive.util.binsearch.impl.HTTPSeekableLineReader;
 import org.archive.util.binsearch.impl.HTTPSeekableLineReaderFactory;
 import org.archive.util.binsearch.impl.http.ApacheHttp31SLRFactory;
+import org.archive.util.io.RuntimeIOException;
 import org.archive.util.iterator.CloseableIterator;
 import org.archive.util.iterator.SortedCompositeIterator;
 import org.archive.wayback.ResourceIndex;
@@ -178,6 +179,8 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
     			
     		} catch (IOException io) {
     			//Try again below
+    		} catch (RuntimeIOException runtimeIO) {
+    			LOGGER.warning(runtimeIO.toString());
     		}
     	}
     	
