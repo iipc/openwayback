@@ -76,14 +76,14 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 		String originalUrl = line.getOriginalUrl();
 		String statusCode = line.getStatusCode();
 		
-		if (lastResult != null) {
-			if (lastResult.getCaptureTimestamp().equals(timestamp) && 
-			    lastResult.getOriginalUrl().equals(originalUrl) &&
-			    lastResult.getHttpCode().equals(statusCode)) {
-				// Skip this
-				return 0;
-			}
-		}
+//		if (lastResult != null) {
+//			if (lastResult.getCaptureTimestamp().equals(timestamp) && 
+//			    lastResult.getOriginalUrl().equals(originalUrl) &&
+//			    lastResult.getHttpCode().equals(statusCode)) {
+//				// Skip this
+//				return 0;
+//			}
+//		}
 				
 		result.setUrlKey(line.getUrlKey());
 		result.setCaptureTimestamp(timestamp);
