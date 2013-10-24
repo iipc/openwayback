@@ -179,8 +179,14 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
     			
     		} catch (IOException io) {
     			//Try again below
-    		} catch (RuntimeIOException runtimeIO) {
-    			LOGGER.warning(runtimeIO.toString());
+    		} catch (RuntimeIOException rte) {
+            	Throwable cause = rte.getCause();
+            	
+            	if (cause instanceof AccessControlException) {
+            		throw (AccessControlException)cause;
+            	} else {
+        			LOGGER.warning(rte.toString());
+            	}
     		}
     	}
     	
