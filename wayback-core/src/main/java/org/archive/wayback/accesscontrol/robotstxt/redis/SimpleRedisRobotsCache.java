@@ -13,10 +13,9 @@ import org.archive.wayback.exception.LiveDocumentNotAvailableException;
 import org.archive.wayback.exception.LiveWebCacheUnavailableException;
 import org.archive.wayback.exception.LiveWebTimeoutException;
 import org.archive.wayback.liveweb.LiveWebCache;
-import org.archive.wayback.resourcestore.resourcefile.ArcResource;
 import org.archive.wayback.webapp.PerfStats;
 
-import com.google.common.io.LimitInputStream;
+import com.google.common.io.ByteStreams;
 
 public class SimpleRedisRobotsCache implements LiveWebCache {
 	
@@ -220,7 +219,7 @@ public class SimpleRedisRobotsCache implements LiveWebCache {
 				if (origResource instanceof RobotsTxtResource) {
 					contents = ((RobotsTxtResource)origResource).getContents();
 				} else {
-					contents = IOUtils.toString(new LimitInputStream(origResource, MAX_ROBOTS_SIZE), "UTF-8");
+					contents = IOUtils.toString(ByteStreams.limit(origResource, MAX_ROBOTS_SIZE), "UTF-8");
 				}
 			}
 		} catch (Exception e) {

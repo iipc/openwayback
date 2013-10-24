@@ -40,7 +40,11 @@
         <exclusion>
           <groupId>org.archive.overlays</groupId>
           <artifactId>archive-overlay-commons-httpclient</artifactId>
-        </exclusion>      
+        </exclusion> 
+        <exclusion>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
+        </exclusion>              
       </exclusions>
    </dependency>
     <dependency>
