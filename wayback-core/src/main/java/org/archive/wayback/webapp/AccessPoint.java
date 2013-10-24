@@ -916,6 +916,17 @@ implements ShutdownListener {
 			return prev;
 		}
 		
+		long prevMS = prev.getCaptureDate().getTime();
+		long nextMS = next.getCaptureDate().getTime();
+		long prevDiff = Math.abs(prevMS - requestMS);
+		long nextDiff = Math.abs(requestMS - nextMS);
+		
+		if (prevDiff == 0) {
+			return prev;
+		} else if (nextDiff == 0) {
+			return next;
+		}		
+		
 		String currHash = currentClosest.getDigest();
 		String prevHash = prev.getDigest();
 		String nextHash = next.getDigest();
@@ -935,11 +946,6 @@ implements ShutdownListener {
 		if (prev200 != next200) {
 			return (prev200 ? prev : next);
 		}
-		
-		long prevMS = prev.getCaptureDate().getTime();
-		long nextMS = next.getCaptureDate().getTime();
-		long prevDiff = Math.abs(prevMS - requestMS);
-		long nextDiff = Math.abs(requestMS - nextMS);
 		
 		if (prevDiff < nextDiff) {
 			return prev;
