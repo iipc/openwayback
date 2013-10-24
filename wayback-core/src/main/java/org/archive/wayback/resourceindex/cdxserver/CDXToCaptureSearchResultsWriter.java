@@ -73,9 +73,13 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 		FastCaptureSearchResult result = new FastCaptureSearchResult();
 		
 		String timestamp = line.getTimestamp();
+		String originalUrl = line.getOriginalUrl();
+		String statusCode = line.getStatusCode();
 		
 		if (lastResult != null) {
-			if (lastResult.getCaptureTimestamp().equals(timestamp)) {
+			if (lastResult.getCaptureTimestamp().equals(timestamp) && 
+			    lastResult.getOriginalUrl().equals(originalUrl) &&
+			    lastResult.getHttpCode().equals(statusCode)) {
 				// Skip this
 				return 0;
 			}
@@ -83,7 +87,7 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 				
 		result.setUrlKey(line.getUrlKey());
 		result.setCaptureTimestamp(timestamp);
-		result.setOriginalUrl(line.getOriginalUrl());
+		result.setOriginalUrl(originalUrl);
 		
 		// Special case: filter out captures that have userinfo
 		boolean hasUserInfo = (UrlOperations.urlToUserInfo(result.getOriginalUrl()) != null);
@@ -93,7 +97,7 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 		}
 		
 		result.setRedirectUrl(line.getRedirect());
-		result.setHttpCode(line.getStatusCode());
+		result.setHttpCode(statusCode);
 		
 		if (selfRedirFilter != null && !result.getRedirectUrl().equals(CDXLine.EMPTY_VALUE)) {
 			if (selfRedirFilter.filterObject(result) != ObjectFilter.FILTER_INCLUDE) {
