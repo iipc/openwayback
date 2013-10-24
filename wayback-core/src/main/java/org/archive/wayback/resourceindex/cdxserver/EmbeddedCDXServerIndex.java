@@ -151,7 +151,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
         		throw new ResourceIndexNotAvailableException(cause.toString());
         	}
         	
-        	throw new ResourceIndexNotAvailableException(rte.getMessage());
+        	throw new ResourceIndexNotAvailableException(rte.toString());
         }
         
         if (resultWriter.getErrorMsg() != null) {
