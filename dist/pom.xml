@@ -5,19 +5,19 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <artifactId>wayback</artifactId>
+    <artifactId>openwayback</artifactId>
     <groupId>org.netpreserve.openwayback</groupId>
     <version>2.0.0.BETA.1-SNAPSHOT</version>
   </parent>
 
-  <artifactId>wayback-dist</artifactId>
+  <artifactId>openwayback-dist</artifactId>
   <name>Wayback tar.gz Distribution</name>
   <packaging>pom</packaging>
 
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>wayback-core</artifactId>
+      <artifactId>openwayback-core</artifactId>
     </dependency>
   </dependencies>
   <build>

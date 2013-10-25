@@ -3,12 +3,12 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <artifactId>wayback</artifactId>
+    <artifactId>openwayback</artifactId>
     <groupId>org.netpreserve.openwayback</groupId>
     <version>2.0.0.BETA.1-SNAPSHOT</version>
   </parent>
 
-  <artifactId>wayback-cdx-server</artifactId>
+  <artifactId>openwayback-cdx-server</artifactId>
   <packaging>war</packaging>
   <name>Wayback CDX Server</name>
 
@@ -31,7 +31,7 @@
   <dependencies>
     <dependency>
       <groupId>org.netpreserve.commons</groupId>
-      <artifactId>web-commons</artifactId>
+      <artifactId>commons-web</artifactId>
     </dependency>
 
     <!-- Spring framework -->

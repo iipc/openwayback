@@ -11,7 +11,7 @@
   </parent>
 
   <groupId>org.netpreserve.openwayback</groupId>
-  <artifactId>wayback</artifactId>
+  <artifactId>openwayback</artifactId>
   <packaging>pom</packaging>
   <version>2.0.0.BETA.1-SNAPSHOT</version>
   <name>Wayback</name>
@@ -191,7 +191,7 @@
       <id>website</id>
       <name>Website</name>
       <!--Pass as command-line system property to maven-->
-      <url>${website.url}/projects/wayback/</url>
+      <url>${website.url}/projects/openwayback/</url>
     </site>
   </distributionManagement>
 
@@ -269,19 +269,19 @@
       -->
       <dependency>
         <groupId>${project.groupId}</groupId>
-        <artifactId>wayback-cdx-server</artifactId>
+        <artifactId>openwayback-cdx-server</artifactId>
         <version>${project.version}</version>
         <type>jar</type>
         <classifier>classes</classifier>
       </dependency>
       <dependency>
         <groupId>${project.groupId}</groupId>
-        <artifactId>wayback-core</artifactId>
+        <artifactId>openwayback-core</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>${project.groupId}</groupId>
-        <artifactId>wayback-webapp</artifactId>
+        <artifactId>openwayback-webapp</artifactId>
         <version>${project.version}</version>
       </dependency>
       
@@ -299,12 +299,12 @@
       </dependency>
       <dependency>
         <groupId>org.netpreserve.commons</groupId>
-        <artifactId>web-commons</artifactId>
+        <artifactId>commons-web</artifactId>
         <version>1.0.0-SNAPSHOT</version>
       </dependency>
       <dependency>
-        <groupId>org.netpreserve.commons</groupId>
-        <artifactId>access-control</artifactId>
+        <groupId>org.netpreserve.openwayback.access-control</groupId>
+        <artifactId>access-control-core</artifactId>
         <version>0.1.0-SNAPSHOT</version>
       </dependency>
       <dependency>
