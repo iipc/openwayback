@@ -46,6 +46,8 @@ import org.archive.wayback.replay.charset.StandardCharsetDetector;
 public abstract class TextReplayRenderer implements ReplayRenderer {
 
 	public static String GUESSED_CHARSET_HEADER = "X-Archive-Guessed-Charset";
+	
+	public static String ORIG_ENCODING = "X-Archive-Orig-Encoding";
 
 	private String guessedCharsetHeader = GUESSED_CHARSET_HEADER;
 	private List<String> jspInserts = null;
@@ -171,6 +173,8 @@ public abstract class TextReplayRenderer implements ReplayRenderer {
 			String encoding =  headers.get(HttpHeaderOperation.HTTP_CONTENT_ENCODING);
 			if (encoding != null) {
 				if (encoding.toLowerCase().equals(GzipDecodingResource.GZIP)) {
+					headers.put(ORIG_ENCODING, encoding);
+					headers.remove(HttpHeaderOperation.HTTP_CONTENT_ENCODING);
 					return new GzipDecodingResource(resource);
 				}
 
