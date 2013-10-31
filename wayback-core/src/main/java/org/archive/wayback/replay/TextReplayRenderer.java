@@ -174,10 +174,10 @@ public abstract class TextReplayRenderer implements ReplayRenderer {
 			if (encoding != null) {
 				if (encoding.toLowerCase().equals(GzipDecodingResource.GZIP)) {
 					headers.put(ORIG_ENCODING, encoding);
-					headers.remove(HttpHeaderOperation.HTTP_CONTENT_ENCODING);
+					HttpHeaderOperation.removeHeader(headers, HttpHeaderOperation.HTTP_CONTENT_ENCODING);
 					
 					if (HttpHeaderOperation.isChunkEncoded(headers)) {
-						headers.remove(HttpHeaderOperation.HTTP_TRANSFER_ENC_HEADER);
+						HttpHeaderOperation.removeHeader(headers, HttpHeaderOperation.HTTP_TRANSFER_ENC_HEADER);
 					}
 					
 					return new GzipDecodingResource(resource);
