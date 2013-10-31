@@ -509,7 +509,7 @@ implements ShutdownListener {
 				location = UrlOperations.resolveUrl(closest.getOriginalUrl(), location);
 				redirScheme = UrlOperations.urlToScheme(location);
 			} else if (location.startsWith("/")) {
-				location = UrlOperations.resolveUrl(closest.getOriginalUrl(), location);				
+				location = UrlOperations.resolveUrl(closest.getOriginalUrl(), location);
 			}
 			
 			if (getSelfRedirectCanonicalizer() != null) {
@@ -577,7 +577,7 @@ implements ShutdownListener {
 		String fullPathPrefix = (value != null ? value.toString() : null);
 		
 		if (fullPathPrefix != null && !fullPathPrefix.isEmpty()) {
-			return referer.startsWith(fullPathPrefix + path);
+			return referer.contains(fullPathPrefix + path);
 		} else {
 			return referer.contains(path);
 		}
@@ -589,7 +589,7 @@ implements ShutdownListener {
 								 CaptureSearchResults captureResults,
 								 CaptureSearchResult closest) throws BetterRequestException
 	{
-		if (wbRequest.getReplayTimestamp().startsWith(closest.getCaptureTimestamp())) {
+		if (wbRequest.getReplayTimestamp().startsWith(closest.getCaptureTimestamp()) && !wbRequest.isMementoTimegate()) {
 			// Matching
 			return;
 		}
