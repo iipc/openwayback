@@ -257,7 +257,7 @@ implements ShutdownListener {
 			
 			if (this.isEnablePerfStatsHeader() && (perfStatsHeader != null)) {
 				PerfStats.timeStart(PerfStat.Total);
-				httpResponse = new PerfWritingHttpServletResponse(httpResponse, PerfStat.Total, perfStatsHeader);
+				httpResponse = new PerfWritingHttpServletResponse(httpRequest, httpResponse, PerfStat.Total, perfStatsHeader);
 			}
 			
 			String inputPath = translateRequestPathQuery(httpRequest);

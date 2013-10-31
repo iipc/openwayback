@@ -5,6 +5,7 @@ import java.io.PrintWriter;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
 
@@ -18,12 +19,14 @@ public class PerfWritingHttpServletResponse extends HttpServletResponseWrapper {
 	protected int expireTimeout = 60;
 	
 	protected String requestURI;
+	protected boolean perfCookie = false;
 	
-	public PerfWritingHttpServletResponse(HttpServletResponse response, Enum<?> stat, String perfStatsHeader)
+	public PerfWritingHttpServletResponse(HttpServletRequest request, HttpServletResponse response, Enum<?> stat, String perfStatsHeader)
 	{
 		super(response);
 		
-		this.httpResponse = response;		
+		this.httpResponse = response;
+		this.requestURI = request.getRequestURI();
 		this.perfStat = stat;
 		this.perfStatsHeader = perfStatsHeader;
 	}
@@ -81,7 +84,7 @@ public class PerfWritingHttpServletResponse extends HttpServletResponseWrapper {
 		return super.getWriter();
 	}
 
-	public void enablePerfCookie(String requestURI) {
-		this.requestURI = requestURI;
+	public void enablePerfCookie() {
+		this.perfCookie  = true;
     }
 }

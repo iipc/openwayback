@@ -414,7 +414,7 @@ public class UIResults {
 
 	/**
 	 * Extract an Exception UIResults from the HttpServletRequest. Probably used
-	 * by a .jsp responsible for actual drawing errors for the user.
+	 * by a .jsp responsible for actual drawing errors for the user.private
 	 * @param httpRequest the HttpServletRequest where the UIResults was 
 	 * ferreted away
 	 * @return Exception UIResult with info from httpRequest applied.
@@ -692,7 +692,7 @@ public class UIResults {
 //		
 //		if (map == null) {
 //			return null;
-//		}
+//		}private
 //		
 //		Object object = map.get(indexName);
 //		
@@ -718,10 +718,10 @@ public class UIResults {
 		return localHostName;
 	}
 	
-	public String enableAnalytics(HttpServletRequest request)
+	public String enableAnalytics()
 	{
 		if (perfResponse != null) {
-			perfResponse.enablePerfCookie(request.getRequestURI());
+			perfResponse.enablePerfCookie();
 		}
 		
 		return localHostName;
