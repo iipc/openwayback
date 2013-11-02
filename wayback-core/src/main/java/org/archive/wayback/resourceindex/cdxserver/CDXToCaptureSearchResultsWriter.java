@@ -26,7 +26,8 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 	protected CaptureSearchResult closest = null;
 	protected SelfRedirectFilter selfRedirFilter = null;
 	
-	protected CaptureSearchResult lastResult = null;
+	protected CaptureSearchResult prevResult = null;
+	protected CDXLine prevLine = null;
 	
 	protected HashMap<String, CaptureSearchResult> digestToOriginal;
 	protected HashMap<String, LinkedList<CaptureSearchResult>> digestToRevisits;
@@ -34,16 +35,20 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 	protected boolean resolveRevisits = false;
 	protected boolean seekSingleCapture = false;
 	protected boolean isReverse = false;
+
+	protected String preferContains = null;
 	
 	public CDXToCaptureSearchResultsWriter(CDXQuery query,
 										   boolean resolveRevisits, 
-										   boolean seekSingleCapture)
+										   boolean seekSingleCapture,
+										   String preferContains)
 	{
 		super(query);
 		
 		this.resolveRevisits = resolveRevisits;
 		this.seekSingleCapture = seekSingleCapture;
 		this.isReverse = query.isReverse();
+		this.preferContains = preferContains;
 	}
 	
 	public void setTargetTimestamp(String timestamp)
@@ -76,14 +81,22 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 		String originalUrl = line.getOriginalUrl();
 		String statusCode = line.getStatusCode();
 		
-//		if (lastResult != null) {
-//			if (lastResult.getCaptureTimestamp().equals(timestamp) && 
-//			    lastResult.getOriginalUrl().equals(originalUrl) &&
-//			    lastResult.getHttpCode().equals(statusCode)) {
-//				// Skip this
-//				return 0;
-//			}
-//		}
+		if ((prevResult != null) && prevResult.getCaptureTimestamp().equals(timestamp) && (preferContains != null)) {
+			String strPrevLine = prevLine.toString();
+			String strCurrLine = line.toString();
+			
+			int currSpace = strCurrLine.lastIndexOf(' ');
+			int prevSpace = strPrevLine.lastIndexOf(' ');
+			if (currSpace == prevSpace && currSpace > 0) {
+				if (strCurrLine.substring(0, currSpace).equals(strPrevLine.substring(0, prevSpace))) {
+					String currFile = line.getFilename();
+					if (currFile.contains(preferContains) && !prevResult.getFile().contains(preferContains)) {
+						prevResult.setFile(currFile);
+					}
+					return 0;
+				}
+			}
+		}
 				
 		result.setUrlKey(line.getUrlKey());
 		result.setCaptureTimestamp(timestamp);
@@ -163,7 +176,8 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 		}
 		
 		results.addSearchResult(result, !isReverse);
-		lastResult = result;
+		prevResult = result;
+		prevLine = line;
 		
 		// Short circuit the load if seeking single capture
 		if (seekSingleCapture && resolveRevisits) {

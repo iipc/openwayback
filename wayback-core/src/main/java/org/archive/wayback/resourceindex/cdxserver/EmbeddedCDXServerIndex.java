@@ -67,6 +67,8 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 	
 	protected CDXInputSource extraSource;
 	
+	protected String preferContains;
+	
 	enum PerfStat
 	{
 		IndexLoad;
@@ -340,7 +342,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 		boolean seekSingleCapture = resolveRevisits && wbRequest.isTimestampSearchKey();
 		//boolean seekSingleCapture = resolveRevisits && (wbRequest.isTimestampSearchKey() || (wbRequest.isBestLatestReplayRequest() && !wbRequest.hasMementoAcceptDatetime()));
 		
-		CDXToCaptureSearchResultsWriter captureWriter = new CDXToCaptureSearchResultsWriter(query, resolveRevisits, seekSingleCapture);
+		CDXToCaptureSearchResultsWriter captureWriter = new CDXToCaptureSearchResultsWriter(query, resolveRevisits, seekSingleCapture, preferContains);
 				
         captureWriter.setTargetTimestamp(wbRequest.getReplayTimestamp());
         
@@ -518,5 +520,13 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 
 	public void setExtraSource(CDXInputSource extraSource) {
 		this.extraSource = extraSource;
+	}
+
+	public String getPreferContains() {
+		return preferContains;
+	}
+
+	public void setPreferContains(String preferContains) {
+		this.preferContains = preferContains;
 	}
 }

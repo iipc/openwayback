@@ -4,13 +4,13 @@ import org.archive.cdxserver.auth.AuthToken;
 import org.archive.cdxserver.auth.PrivTokenAuthChecker;
 import org.archive.cdxserver.filter.CDXAccessFilter;
 import org.archive.cdxserver.filter.FilenamePrefixFilter;
+import org.archive.wayback.accesscontrol.ExclusionFilterFactory;
 import org.archive.wayback.accesscontrol.robotstxt.redis.RedisRobotExclusionFilterFactory;
-import org.archive.wayback.accesscontrol.staticmap.StaticMapExclusionFilterFactory;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 
 public class WaybackAuthChecker extends PrivTokenAuthChecker {
 	
-	protected StaticMapExclusionFilterFactory adminExclusions;
+	protected ExclusionFilterFactory adminExclusions;
 	protected RedisRobotExclusionFilterFactory robotsExclusions;
 	
 	protected FilenamePrefixFilter prefixFilter = null;
@@ -30,11 +30,11 @@ public class WaybackAuthChecker extends PrivTokenAuthChecker {
 		return new AccessCheckFilter(token, adminFilter, robotsFilter, prefixFilter);
 	}	
 	
-	public StaticMapExclusionFilterFactory getAdminExclusions() {
+	public ExclusionFilterFactory getAdminExclusions() {
 		return adminExclusions;
 	}
 
-	public void setAdminExclusions(StaticMapExclusionFilterFactory adminExclusions) {
+	public void setAdminExclusions(ExclusionFilterFactory adminExclusions) {
 		this.adminExclusions = adminExclusions;
 	}
 
