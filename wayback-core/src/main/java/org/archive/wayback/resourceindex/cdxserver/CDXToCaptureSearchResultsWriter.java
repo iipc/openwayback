@@ -79,23 +79,21 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 		
 		String timestamp = line.getTimestamp();
 		String originalUrl = line.getOriginalUrl();
-		String statusCode = line.getStatusCode();
 		
-		if ((prevResult != null) && prevResult.getCaptureTimestamp().equals(timestamp) && (preferContains != null)) {
-			String strPrevLine = prevLine.toString();
-			String strCurrLine = line.toString();
+		if ((prevResult != null) && (preferContains != null) && 
+			 prevResult.getCaptureTimestamp().equals(timestamp) && 
+			 prevResult.getOriginalUrl().equals(originalUrl) &&
+			 prevLine.getLength().equals(line.getLength()) &&
+			 prevLine.getOffset().equals(line.getOffset())) {
 			
-			int currSpace = strCurrLine.lastIndexOf(' ');
-			int prevSpace = strPrevLine.lastIndexOf(' ');
-			if (currSpace == prevSpace && currSpace > 0) {
-				if (strCurrLine.substring(0, currSpace).equals(strPrevLine.substring(0, prevSpace))) {
-					String currFile = line.getFilename();
-					if (currFile.contains(preferContains) && !prevResult.getFile().contains(preferContains)) {
-						prevResult.setFile(currFile);
-					}
-					return 0;
-				}
+			String currFile = line.getFilename();
+			String prevFile = prevLine.getFilename();
+			
+			if (currFile.contains(preferContains) && !prevFile.contains(preferContains)) {
+				prevResult.setFile(currFile);
 			}
+			
+			return 0;
 		}
 				
 		result.setUrlKey(line.getUrlKey());
@@ -110,7 +108,7 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 		}
 		
 		result.setRedirectUrl(line.getRedirect());
-		result.setHttpCode(statusCode);
+		result.setHttpCode(line.getStatusCode());
 		
 		if (selfRedirFilter != null && !result.getRedirectUrl().equals(CDXLine.EMPTY_VALUE)) {
 			if (selfRedirFilter.filterObject(result) != ObjectFilter.FILTER_INCLUDE) {
