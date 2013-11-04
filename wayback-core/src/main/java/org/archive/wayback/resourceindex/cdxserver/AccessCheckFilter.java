@@ -2,7 +2,7 @@ package org.archive.wayback.resourceindex.cdxserver;
 
 import org.archive.cdxserver.auth.AuthToken;
 import org.archive.cdxserver.filter.CDXAccessFilter;
-import org.archive.cdxserver.filter.FilenamePrefixFilter;
+import org.archive.cdxserver.filter.CDXFilter;
 import org.archive.format.cdx.CDXLine;
 import org.archive.util.io.RuntimeIOException;
 import org.archive.wayback.core.CaptureSearchResult;
@@ -16,7 +16,8 @@ public class AccessCheckFilter implements CDXAccessFilter {
 	
 	protected ExclusionFilter adminFilter;
 	protected ExclusionFilter robotsFilter;
-	protected FilenamePrefixFilter prefixFilter;
+	protected CDXFilter prefixFilter1;
+	protected CDXFilter prefixFilter2;
 	
 	protected CaptureSearchResult resultTester;
 	
@@ -29,14 +30,16 @@ public class AccessCheckFilter implements CDXAccessFilter {
 			AuthToken token, 
 			ExclusionFilter adminFilter,
 			ExclusionFilter robotsFilter,
-			FilenamePrefixFilter prefixFilter) {
+			CDXFilter prefixFilter1,
+			CDXFilter prefixFilter2) {
 	    
 		this.authToken = token;
 		
 	    this.adminFilter = adminFilter;
 	    this.robotsFilter = robotsFilter;
 	    
-	    this.prefixFilter = prefixFilter;
+	    this.prefixFilter1 = prefixFilter1;
+	    this.prefixFilter2 = prefixFilter2;
 	    
 	    this.resultTester = new FastCaptureSearchResult();
     }
@@ -61,7 +64,7 @@ public class AccessCheckFilter implements CDXAccessFilter {
 		
 	public boolean include(CaptureSearchResult resultTester, boolean throwOnFail)
 	{			
-		int status = ExclusionFilter.FILTER_EXCLUDE;
+		int status = ExclusionFilter.FILTER_INCLUDE;
 			
 		// Admin Excludes
 		if (adminFilter != null) {
@@ -110,9 +113,15 @@ public class AccessCheckFilter implements CDXAccessFilter {
 	    	return false;
 	    }
 	    
-		// Custom Prefix Filter
-		if (prefixFilter != null) {
-			if (!prefixFilter.include(line)) {
+		// Custom Prefix Filters
+		if (prefixFilter1 != null) {
+			if (!prefixFilter1.include(line)) {
+				return false;
+			}
+		}
+		
+		if (prefixFilter2 != null) {
+			if (!prefixFilter2.include(line)) {
 				return false;
 			}
 		}

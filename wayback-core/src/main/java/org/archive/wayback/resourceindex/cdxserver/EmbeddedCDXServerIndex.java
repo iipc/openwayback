@@ -27,6 +27,7 @@ import org.archive.util.io.RuntimeIOException;
 import org.archive.util.iterator.CloseableIterator;
 import org.archive.util.iterator.SortedCompositeIterator;
 import org.archive.wayback.ResourceIndex;
+import org.archive.wayback.accesscontrol.ExclusionFilterFactory;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.SearchResults;
@@ -39,6 +40,7 @@ import org.archive.wayback.exception.WaybackException;
 import org.archive.wayback.memento.MementoConstants;
 import org.archive.wayback.memento.MementoHandler;
 import org.archive.wayback.memento.MementoUtils;
+import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.resourceindex.filters.SelfRedirectFilter;
 import org.archive.wayback.util.webapp.AbstractRequestHandler;
 import org.archive.wayback.webapp.PerfStats;
@@ -55,7 +57,8 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 	protected int timestampDedupLength = 0;
 	protected int limit = 0;
 		
-	private SelfRedirectFilter selfRedirFilter;
+	protected SelfRedirectFilter selfRedirFilter;
+	protected ExclusionFilter policyExclusionFilter;
 	
 	protected String remoteCdxPath;
 	
@@ -68,6 +71,8 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 	protected CDXInputSource extraSource;
 	
 	protected String preferContains;
+
+	protected boolean tryFuzzyMatch = false;
 	
 	enum PerfStat
 	{
@@ -112,14 +117,9 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 		}
 	}
 	
-    public SearchResults doQuery(WaybackRequest wbRequest)
-            throws ResourceIndexNotAvailableException,
-            ResourceNotInArchiveException, BadQueryException,
-            AccessControlException {
-			
-	                
-        //AuthToken waybackAuthToken = new AuthToken(wbRequest.get(CDXServer.CDX_AUTH_TOKEN));
-        AuthToken waybackAuthToken = new AuthToken();
+	protected AuthToken createAuthToken(WaybackRequest wbRequest)
+	{
+		AuthToken waybackAuthToken = new AuthToken();
         waybackAuthToken.setAllCdxFieldsAllow();
         
     	boolean ignoreRobots = wbRequest.isCSSContext() || wbRequest.isIMGContext() || wbRequest.isJSContext();
@@ -127,11 +127,24 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
     	if (ignoreRobots) {
     		waybackAuthToken.setIgnoreRobots(true);
     	}
+    	
+    	return waybackAuthToken;
+	}
+	
+    public SearchResults doQuery(WaybackRequest wbRequest)
+            throws ResourceIndexNotAvailableException,
+            ResourceNotInArchiveException, BadQueryException,
+            AccessControlException {
+			
+	                
+        //AuthToken waybackAuthToken = new AuthToken(wbRequest.get(CDXServer.CDX_AUTH_TOKEN));
+        AuthToken waybackAuthToken = createAuthToken(wbRequest);
         
         CDXToSearchResultWriter resultWriter = null;
+        SearchResults searchResults = null;
         
         if (wbRequest.isReplayRequest() || wbRequest.isCaptureQueryRequest()) {
-        	resultWriter = this.getCaptureSearchWriter(wbRequest);
+        	resultWriter = this.getCaptureSearchWriter(wbRequest, waybackAuthToken, false);
         } else if (wbRequest.isUrlQueryRequest()) {
         	resultWriter = this.getUrlSearchWriter(wbRequest);
         } else {
@@ -139,7 +152,23 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
         }
 
         try {
-        	loadWaybackCdx(wbRequest, resultWriter.getQuery(), waybackAuthToken, resultWriter);
+        	loadWaybackCdx(wbRequest, resultWriter.getQuery(), waybackAuthToken, resultWriter, false);
+        	
+            if (resultWriter.getErrorMsg() != null) {
+            	throw new BadQueryException(resultWriter.getErrorMsg());
+            }
+        	
+            searchResults = resultWriter.getSearchResults();
+            
+            if ((searchResults.getReturnedCount() == 0) && (wbRequest.isReplayRequest() || wbRequest.isCaptureQueryRequest()) && tryFuzzyMatch) {
+            	resultWriter = this.getCaptureSearchWriter(wbRequest, waybackAuthToken, true);
+            	
+            	loadWaybackCdx(wbRequest, resultWriter.getQuery(), waybackAuthToken, resultWriter, true);
+            }
+            
+            if (searchResults.getReturnedCount() == 0) {
+            	throw new ResourceNotInArchiveException(wbRequest.getRequestUrl() + " was not found");
+            }
         		        
         } catch (IOException e) {
         	throw new ResourceIndexNotAvailableException(e.toString());
@@ -156,26 +185,16 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
         	
         	throw new ResourceIndexNotAvailableException(rte.toString());
         }
-        
-        if (resultWriter.getErrorMsg() != null) {
-        	throw new BadQueryException(resultWriter.getErrorMsg());
-        }
-        
-        SearchResults searchResults = resultWriter.getSearchResults();
-        
-        if (searchResults.getReturnedCount() == 0) {
-        	throw new ResourceNotInArchiveException(wbRequest.getRequestUrl() + " was not found");
-        }
-        
+                
 		return searchResults;
 	}
 
 	protected void loadWaybackCdx(WaybackRequest wbRequest, CDXQuery query, AuthToken waybackAuthToken,
-            CDXToSearchResultWriter resultWriter) throws IOException, AccessControlException {
+            CDXToSearchResultWriter resultWriter, boolean fuzzy) throws IOException, AccessControlException {
 		
     	if ((remoteCdxPath != null) && !wbRequest.isUrlQueryRequest()) {
     		try {
-    			wbRequest.setTimestampSearchKey(false); // Not supported for remote requests, cacheing the entire cdx
+    			wbRequest.setTimestampSearchKey(false); // Not supported for remote requests, caching the entire cdx
     			this.remoteCdxServerQuery(resultWriter.getQuery(), waybackAuthToken, resultWriter);
     			return;
     			
@@ -195,7 +214,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
    		cdxServer.getCdx(resultWriter.getQuery(), waybackAuthToken, resultWriter);
     }
 
-	protected CDXQuery createQuery(WaybackRequest wbRequest)
+	protected CDXQuery createQuery(WaybackRequest wbRequest, boolean isFuzzy)
 	{
 		CDXQuery query = new CDXQuery(wbRequest.getRequestUrl());
 				
@@ -332,9 +351,9 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 		return iter;
     }
 
-	protected CDXToSearchResultWriter getCaptureSearchWriter(WaybackRequest wbRequest)
+	protected CDXToSearchResultWriter getCaptureSearchWriter(WaybackRequest wbRequest, AuthToken waybackAuthToken, boolean isFuzzy)
 	{
-		final CDXQuery query = createQuery(wbRequest);
+		final CDXQuery query = createQuery(wbRequest, isFuzzy);
 		
 		boolean resolveRevisits = wbRequest.isReplayRequest();
 
@@ -343,11 +362,16 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 		//boolean seekSingleCapture = resolveRevisits && (wbRequest.isTimestampSearchKey() || (wbRequest.isBestLatestReplayRequest() && !wbRequest.hasMementoAcceptDatetime()));
 		
 		CDXToCaptureSearchResultsWriter captureWriter = new CDXToCaptureSearchResultsWriter(query, resolveRevisits, seekSingleCapture, preferContains);
-				
+						
         captureWriter.setTargetTimestamp(wbRequest.getReplayTimestamp());
         
         captureWriter.setSelfRedirFilter(selfRedirFilter);
         
+        ExclusionFilterFactory extraExclusions = wbRequest.getAccessPoint().getExclusionFactory();
+        if (extraExclusions != null) {
+        	captureWriter.setExclusionFilter(extraExclusions.get());
+        }
+                
         return captureWriter;
 	}
 	
@@ -528,5 +552,13 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 
 	public void setPreferContains(String preferContains) {
 		this.preferContains = preferContains;
+	}
+
+	public boolean isTryFuzzyMatch() {
+		return tryFuzzyMatch;
+	}
+
+	public void setFuzzyMatch(boolean tryFuzzyMatch) {
+		this.tryFuzzyMatch = tryFuzzyMatch;
 	}
 }

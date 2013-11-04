@@ -9,6 +9,7 @@ import org.archive.format.cdx.CDXLine;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.FastCaptureSearchResult;
+import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.resourceindex.filters.SelfRedirectFilter;
 import org.archive.wayback.util.ObjectFilter;
 import org.archive.wayback.util.Timestamp;
@@ -25,6 +26,7 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 	protected boolean done = false;
 	protected CaptureSearchResult closest = null;
 	protected SelfRedirectFilter selfRedirFilter = null;
+	protected ExclusionFilter exclusionFilter = null;
 	
 	protected CaptureSearchResult prevResult = null;
 	protected CDXLine prevLine = null;
@@ -112,6 +114,12 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 		
 		if (selfRedirFilter != null && !result.getRedirectUrl().equals(CDXLine.EMPTY_VALUE)) {
 			if (selfRedirFilter.filterObject(result) != ObjectFilter.FILTER_INCLUDE) {
+				return 0;
+			}
+		}
+		
+		if (exclusionFilter != null) {
+			if (exclusionFilter.filterObject(result) != ObjectFilter.FILTER_INCLUDE) {
 				return 0;
 			}
 		}
@@ -276,5 +284,13 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 
 	public void setSelfRedirFilter(SelfRedirectFilter selfRedirFilter) {
 		this.selfRedirFilter = selfRedirFilter;
+	}
+
+	public ExclusionFilter getExclusionFilter() {
+		return exclusionFilter;
+	}
+
+	public void setExclusionFilter(ExclusionFilter exclusionFilter) {
+		this.exclusionFilter = exclusionFilter;
 	}
 }
