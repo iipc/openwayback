@@ -558,7 +558,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 		return tryFuzzyMatch;
 	}
 
-	public void setFuzzyMatch(boolean tryFuzzyMatch) {
+	public void setTryFuzzyMatch(boolean tryFuzzyMatch) {
 		this.tryFuzzyMatch = tryFuzzyMatch;
 	}
 }
