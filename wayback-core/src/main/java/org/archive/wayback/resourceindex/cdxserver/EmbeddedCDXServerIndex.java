@@ -164,6 +164,8 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
             	resultWriter = this.getCaptureSearchWriter(wbRequest, waybackAuthToken, true);
             	
             	loadWaybackCdx(wbRequest, resultWriter.getQuery(), waybackAuthToken, resultWriter, true);
+            	
+                searchResults = resultWriter.getSearchResults();
             }
             
             if (searchResults.getReturnedCount() == 0) {
