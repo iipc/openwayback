@@ -163,9 +163,11 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
             if ((searchResults.getReturnedCount() == 0) && (wbRequest.isReplayRequest() || wbRequest.isCaptureQueryRequest()) && tryFuzzyMatch) {
             	resultWriter = this.getCaptureSearchWriter(wbRequest, waybackAuthToken, true);
             	
-            	loadWaybackCdx(wbRequest, resultWriter.getQuery(), waybackAuthToken, resultWriter, true);
-            	
-                searchResults = resultWriter.getSearchResults();
+            	if (resultWriter != null) {    	
+	            	loadWaybackCdx(wbRequest, resultWriter.getQuery(), waybackAuthToken, resultWriter, true);
+	            	
+	                searchResults = resultWriter.getSearchResults();
+            	}
             }
             
             if (searchResults.getReturnedCount() == 0) {
@@ -356,6 +358,10 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 	protected CDXToSearchResultWriter getCaptureSearchWriter(WaybackRequest wbRequest, AuthToken waybackAuthToken, boolean isFuzzy)
 	{
 		final CDXQuery query = createQuery(wbRequest, isFuzzy);
+		
+		if (isFuzzy && query == null) {
+			return null;
+		}
 		
 		boolean resolveRevisits = wbRequest.isReplayRequest();
 
