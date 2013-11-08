@@ -366,7 +366,8 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 		boolean resolveRevisits = wbRequest.isReplayRequest();
 
 		// For now, not using seek single capture to allow for run time checking of additional records  
-		boolean seekSingleCapture = resolveRevisits && wbRequest.isTimestampSearchKey();
+		//boolean seekSingleCapture = resolveRevisits && wbRequest.isTimestampSearchKey();
+		boolean seekSingleCapture = false;
 		//boolean seekSingleCapture = resolveRevisits && (wbRequest.isTimestampSearchKey() || (wbRequest.isBestLatestReplayRequest() && !wbRequest.hasMementoAcceptDatetime()));
 		
 		CDXToCaptureSearchResultsWriter captureWriter = new CDXToCaptureSearchResultsWriter(query, resolveRevisits, seekSingleCapture, preferContains);
