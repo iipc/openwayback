@@ -112,6 +112,9 @@ public class BubbleCalendarData {
 		}
 		// if there's no activeYear, something is quite wrong...
 		// TODO: check anyways:
+		if (activeYear == null) {
+			activeYear = years.get(years.size() - 1);
+		}
 		String yearStr = fmt.format("{0,date,yyyy}",activeYear.getStart());
 		yearNum = Integer.parseInt(yearStr);
 

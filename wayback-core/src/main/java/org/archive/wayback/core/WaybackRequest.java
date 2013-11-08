@@ -1005,6 +1005,8 @@ public class WaybackRequest {
 			if (x_req_with.equals("XMLHttpRequest")) {
 				this.setAjaxRequest(true);
 			}
+		} else if (this.getRefererUrl() != null && httpRequest.getParameter("ajaxpipe") != null) {
+			this.setAjaxRequest(true);
 		}
 		
 		if (accessPoint != null && accessPoint.isEnableMemento()) {		
