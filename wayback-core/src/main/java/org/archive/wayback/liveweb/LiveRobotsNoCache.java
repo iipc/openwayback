@@ -37,7 +37,7 @@ public class LiveRobotsNoCache extends RemoteLiveWebCache {
 		HttpClient http = super.getHttpClient();
 		
 		GetMethod method = new GetMethod(url.toString());
-		method.setFollowRedirects(false);
+		method.setFollowRedirects(true);
 		method.getParams().setCookiePolicy(CookiePolicy.IGNORE_COOKIES);
 
 		try {
