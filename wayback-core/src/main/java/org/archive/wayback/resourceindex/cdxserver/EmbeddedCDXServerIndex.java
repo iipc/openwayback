@@ -28,7 +28,6 @@ import org.archive.util.io.RuntimeIOException;
 import org.archive.util.iterator.CloseableIterator;
 import org.archive.util.iterator.SortedCompositeIterator;
 import org.archive.wayback.ResourceIndex;
-import org.archive.wayback.accesscontrol.ExclusionFilterFactory;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.SearchResults;
@@ -41,7 +40,6 @@ import org.archive.wayback.exception.WaybackException;
 import org.archive.wayback.memento.MementoConstants;
 import org.archive.wayback.memento.MementoHandler;
 import org.archive.wayback.memento.MementoUtils;
-import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.resourceindex.filters.SelfRedirectFilter;
 import org.archive.wayback.util.webapp.AbstractRequestHandler;
 import org.archive.wayback.webapp.PerfStats;
@@ -59,7 +57,6 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 	protected int limit = 0;
 		
 	protected SelfRedirectFilter selfRedirFilter;
-	protected ExclusionFilter policyExclusionFilter;
 	
 	protected String remoteCdxPath;
 	
@@ -367,7 +364,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 		return iter;
     }
 
-	protected CDXToSearchResultWriter getCaptureSearchWriter(WaybackRequest wbRequest, AuthToken waybackAuthToken, boolean isFuzzy)
+	protected CDXToCaptureSearchResultsWriter getCaptureSearchWriter(WaybackRequest wbRequest, AuthToken waybackAuthToken, boolean isFuzzy)
 	{
 		final CDXQuery query = createQuery(wbRequest, isFuzzy);
 		
@@ -387,12 +384,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
         captureWriter.setTargetTimestamp(wbRequest.getReplayTimestamp());
         
         captureWriter.setSelfRedirFilter(selfRedirFilter);
-        
-        ExclusionFilterFactory extraExclusions = wbRequest.getAccessPoint().getExclusionFactory();
-        if (extraExclusions != null) {
-        	captureWriter.setExclusionFilter(extraExclusions.get());
-        }
-                
+                        
         return captureWriter;
 	}
 	
