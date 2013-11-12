@@ -2,6 +2,7 @@ package org.archive.wayback.resourceindex.cdxserver;
 
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -73,6 +74,8 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 	protected String preferContains;
 
 	protected boolean tryFuzzyMatch = false;
+
+	protected List<String> ignoreRobotPaths;
 	
 	enum PerfStat
 	{
@@ -127,6 +130,15 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
     	if (ignoreRobots) {
     		waybackAuthToken.setIgnoreRobots(true);
     	}
+    	
+		if (ignoreRobotPaths != null) {
+			for (String path : ignoreRobotPaths) {
+				if (wbRequest.getRequestUrl().startsWith(path)) {
+		    		waybackAuthToken.setIgnoreRobots(true);
+					break;
+				}
+			}
+		}
     	
     	return waybackAuthToken;
 	}
@@ -561,6 +573,14 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 
 	public void setPreferContains(String preferContains) {
 		this.preferContains = preferContains;
+	}
+
+	public List<String> getIgnoreRobotPaths() {
+		return ignoreRobotPaths;
+	}
+
+	public void setIgnoreRobotPaths(List<String> ignoreRobotPaths) {
+		this.ignoreRobotPaths = ignoreRobotPaths;
 	}
 
 	public boolean isTryFuzzyMatch() {
