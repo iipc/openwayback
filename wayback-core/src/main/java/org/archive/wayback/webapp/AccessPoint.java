@@ -1286,7 +1286,7 @@ implements ShutdownListener {
 			this.liveWebRedirector = null;
 		}
 		
-		this.liveWebRedirector = new LiveWebRedirector(liveWebPrefix);
+		this.liveWebRedirector = new DefaultLiveWebRedirector(liveWebPrefix);
 	}
 	
 	public String getLiveWebPrefix()
