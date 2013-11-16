@@ -10,6 +10,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.httpclient.URIException;
 import org.archive.cdxserver.CDXQuery;
 import org.archive.cdxserver.CDXServer;
 import org.archive.cdxserver.auth.AuthToken;
@@ -117,7 +118,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 		}
 	}
 	
-	protected AuthToken createAuthToken(WaybackRequest wbRequest)
+	protected AuthToken createAuthToken(WaybackRequest wbRequest, String urlkey)
 	{
 		AuthToken waybackAuthToken = new AuthToken();
         waybackAuthToken.setAllCdxFieldsAllow();
@@ -130,7 +131,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
     	
 		if (ignoreRobotPaths != null) {
 			for (String path : ignoreRobotPaths) {
-				if (wbRequest.getRequestUrl().startsWith(path)) {
+				if (urlkey.startsWith(path)) {
 		    		waybackAuthToken.setIgnoreRobots(true);
 					break;
 				}
@@ -145,9 +146,19 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
             ResourceNotInArchiveException, BadQueryException,
             AccessControlException {
 			
-	                
+
+    	//Compute url key (surt)
+		String urlkey = null;
+		
+		try {
+			urlkey = selfRedirFilter.getCanonicalizer().urlStringToKey(wbRequest.getRequestUrl());
+		} catch (URIException ue) {
+			throw new BadQueryException(ue.toString());
+		}
+
+		//Do local access/url validation check		
         //AuthToken waybackAuthToken = new AuthToken(wbRequest.get(CDXServer.CDX_AUTH_TOKEN));
-        AuthToken waybackAuthToken = createAuthToken(wbRequest);
+        AuthToken waybackAuthToken = createAuthToken(wbRequest, urlkey);
         
         CDXToSearchResultWriter resultWriter = null;
         SearchResults searchResults = null;
@@ -161,7 +172,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
         }
 
         try {
-        	loadWaybackCdx(wbRequest, resultWriter.getQuery(), waybackAuthToken, resultWriter, false);
+        	loadWaybackCdx(urlkey, wbRequest, resultWriter.getQuery(), waybackAuthToken, resultWriter, false);
         	
             if (resultWriter.getErrorMsg() != null) {
             	throw new BadQueryException(resultWriter.getErrorMsg());
@@ -173,7 +184,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
             	resultWriter = this.getCaptureSearchWriter(wbRequest, waybackAuthToken, true);
             	
             	if (resultWriter != null) {    	
-	            	loadWaybackCdx(wbRequest, resultWriter.getQuery(), waybackAuthToken, resultWriter, true);
+	            	loadWaybackCdx(urlkey, wbRequest, resultWriter.getQuery(), waybackAuthToken, resultWriter, true);
 	            	
 	                searchResults = resultWriter.getSearchResults();
             	}
@@ -202,13 +213,13 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 		return searchResults;
 	}
 
-	protected void loadWaybackCdx(WaybackRequest wbRequest, CDXQuery query, AuthToken waybackAuthToken,
+	protected void loadWaybackCdx(String urlkey, WaybackRequest wbRequest, CDXQuery query, AuthToken waybackAuthToken,
             CDXToSearchResultWriter resultWriter, boolean fuzzy) throws IOException, AccessControlException {
 		
     	if ((remoteCdxPath != null) && !wbRequest.isUrlQueryRequest()) {
     		try {
     			wbRequest.setTimestampSearchKey(false); // Not supported for remote requests, caching the entire cdx
-    			this.remoteCdxServerQuery(resultWriter.getQuery(), waybackAuthToken, resultWriter);
+    			this.remoteCdxServerQuery(urlkey, resultWriter.getQuery(), waybackAuthToken, resultWriter);
     			return;
     			
     		} catch (IOException io) {
@@ -256,13 +267,9 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 		return query;
 	}
 	
-	protected void remoteCdxServerQuery(CDXQuery query, AuthToken authToken, CDXToSearchResultWriter resultWriter) throws IOException, AccessControlException
+	protected void remoteCdxServerQuery(String urlkey, CDXQuery query, AuthToken authToken, CDXToSearchResultWriter resultWriter) throws IOException, AccessControlException
 	{
-		HTTPSeekableLineReader reader = null;
-		
-		//Do local access/url validation check
-		String urlkey = selfRedirFilter.getCanonicalizer().urlStringToKey(query.getUrl());
-		
+		HTTPSeekableLineReader reader = null;		
 		
 		// This will throw AccessControlException if blocked
 		cdxServer.getAuthChecker().createAccessFilter(authToken).includeUrl(urlkey, query.getUrl());
