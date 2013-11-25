@@ -144,6 +144,8 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 					CaptureSearchResult payload = digestToOriginal.get(digest);
 					if (payload != null) {
 						result.flagDuplicateDigest(payload);
+					} else {
+						result.flagDuplicateDigest();
 					}
 				} else {
 					LinkedList<CaptureSearchResult> revisits = digestToRevisits.get(digest);
