@@ -25,6 +25,9 @@ import org.archive.wayback.replay.html.StringTransformer;
 public class BlockCSSStringTransformer extends BaseCSSStringTransformer implements StringTransformer {
 
 	public String transform(ReplayParseContext context, String css) {
+	    if (!context.isRewriteSupported(css)) {
+	    	return css;
+	    }
 		StringBuilder sb = new StringBuilder(css);
 		patternRewrite((ReplayParseContext)context, sb,cssUrlPattern, "cs_");
 		patternRewrite((ReplayParseContext)context, sb,cssImportNoUrlPattern, 

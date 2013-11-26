@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.archive.wayback.ResultURIConverter;
+import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.replay.JSPExecutor;
 import org.archive.wayback.util.htmllex.ParseContext;
@@ -44,6 +45,7 @@ public class ReplayParseContext extends ParseContext {
 	private int phase = -1;
 	private int jsBlockCount = -1;
 	private CaptureSearchResult result;
+	private boolean rewriteHttpsOnly;
 
 	public ReplayParseContext(ContextResultURIConverterFactory uriConverterFactory,
 			URL baseUrl, String datespec) {
@@ -59,6 +61,20 @@ public class ReplayParseContext extends ParseContext {
 	}
 	public int getPhase() {
 		return phase;
+	}
+	
+	public void setRewriteHttpsOnly(boolean rewriteHttpsOnly)
+	{
+		this.rewriteHttpsOnly = rewriteHttpsOnly;
+	}
+		
+	public boolean isRewriteSupported(String url)
+	{
+		if (!rewriteHttpsOnly) {
+			return true;
+		}
+		
+	    return url.startsWith(WaybackConstants.HTTPS_URL_PREFIX);
 	}
 
 	/**
@@ -108,6 +124,9 @@ public class ReplayParseContext extends ParseContext {
 	    	return url;
 	    }
 	    if(url.startsWith(DATA_PREFIX) || url.startsWith(MAILTO_PREFIX)) {
+	    	return url;
+	    }
+	    if (!isRewriteSupported(url)) {
 	    	return url;
 	    }
 	    url = super.contextualizeUrl(url);
