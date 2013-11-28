@@ -103,7 +103,7 @@ public class ArchivalUrlSAXRewriteReplayRenderer implements ReplayRenderer {
 			CaptureSearchResults results) throws ServletException, IOException,
 			WaybackException {
 
-		Resource decodedResource = TextReplayRenderer.decodeResource(payloadResource);
+		Resource decodedResource = TextReplayRenderer.decodeResource(httpHeadersResource, payloadResource);
 
 		// The URL of the page, for resolving in-page relative URLs: 
 		URL url = null;
