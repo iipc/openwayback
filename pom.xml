@@ -50,8 +50,8 @@
   </organization>
 
   <issueManagement>
-    <system>Jira</system>
-    <url>http://webarchive.jira.com/secure/IssueNavigator.jspa?component=10031</url>
+    <url>https://github.com/iipc/openwayback/issues</url>
+    <system>GitHub</system>
   </issueManagement>
 
   <ciManagement>
