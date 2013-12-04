@@ -20,7 +20,6 @@
     <dependency>
       <groupId>org.archive.heritrix</groupId>
       <artifactId>heritrix-commons</artifactId>
-      <version>3.1.2-SNAPSHOT</version>
       <exclusions>
         <exclusion>
           <groupId>org.archive</groupId>

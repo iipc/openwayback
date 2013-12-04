@@ -278,7 +278,7 @@
       </dependency>
            
       <dependency>
-        <groupId>org.netpreserve.heritrix</groupId>
+        <groupId>org.archive.heritrix</groupId>
         <artifactId>heritrix-commons</artifactId>
         <version>3.1.2-SNAPSHOT</version>
       </dependency>
