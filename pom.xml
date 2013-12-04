@@ -180,21 +180,6 @@
     </pluginManagement>
   </build>
 
-  <distributionManagement>
-    <repository>
-      <id>repository</id>
-      <name>Repository</name>
-      <!--Pass as command-line system property to maven-->
-      <url>${repository.url}</url>
-    </repository>
-    <site>
-      <id>website</id>
-      <name>Website</name>
-      <!--Pass as command-line system property to maven-->
-      <url>${website.url}/projects/openwayback/</url>
-    </site>
-  </distributionManagement>
-
   <developers>
      <developer>
       <name>Brad Tofel</name>
