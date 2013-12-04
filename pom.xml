@@ -336,20 +336,6 @@
         <scope>test</scope>
       </dependency>
 
-    <!--
-         org.dspace-foresite doesn't seem to be in any pulic repository,
-         so a custom built version is on builds.archive.org, with SNAPSHOT
-         version..
-         TODO: fix this..
-    -->
-      <dependency>
-        <groupId>org.dspace</groupId>
-        <artifactId>foresite</artifactId>
-        <version>SNAPSHOT</version>
-      </dependency>
-
-
-            
     </dependencies>
   </dependencyManagement>
 
