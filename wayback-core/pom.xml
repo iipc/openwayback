@@ -46,11 +46,16 @@
           <artifactId>guava</artifactId>
         </exclusion>              
       </exclusions>
-   </dependency>
+    </dependency>
     <dependency>
       <groupId>org.archive</groupId>
       <artifactId>ia-web-commons</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.jwat</groupId>
+      <artifactId>jwat-wayback</artifactId>
+      <version>0.1.0-SNAPSHOT</version>
+    </dependency>    
     <dependency>
       <groupId>org.archive.access-control</groupId>
       <artifactId>access-control</artifactId>
