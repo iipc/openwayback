@@ -43,9 +43,36 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
+<<<<<<< HEAD
       <groupId>org.netpreserve.commons</groupId>
       <artifactId>commons-web</artifactId>
+=======
+      <groupId>org.archive</groupId>
+      <artifactId>ia-web-commons</artifactId>
+>>>>>>> a1a86c09dd5bbcf9fb7aacb1bc4b28d0226b9c67
     </dependency>
+    <!-- JWAT Dependencies -->
+    <dependency>
+      <groupId>org.jwat</groupId>
+      <artifactId>jwat-common</artifactId>
+      <version>1.0.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jwat</groupId>
+      <artifactId>jwat-gzip</artifactId>
+      <version>1.0.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jwat</groupId>
+      <artifactId>jwat-arc</artifactId>
+      <version>1.0.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jwat</groupId>
+      <artifactId>jwat-warc</artifactId>
+      <version>1.0.0</version>
+    </dependency>
+    <!-- End JWAT Dependencies -->
     <dependency>
       <groupId>org.netpreserve.openwayback.access-control</groupId>
       <artifactId>access-control-core</artifactId>
@@ -88,6 +115,11 @@
       <groupId>redis.clients</groupId>
       <artifactId>jedis</artifactId>
       <version>2.0.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sleepycat</groupId>
+      <artifactId>je</artifactId>
+      <version>4.1.6</version>
     </dependency>
     <dependency>
       <groupId>org.easymock</groupId>

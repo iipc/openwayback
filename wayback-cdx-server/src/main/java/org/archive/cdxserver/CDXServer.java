@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.httpclient.URIException;
+import org.archive.cdxserver.CDXQuery.SortType;
 import org.archive.cdxserver.auth.AuthToken;
 import org.archive.cdxserver.filter.CDXAccessFilter;
 import org.archive.cdxserver.filter.CollapseFieldFilter;
@@ -35,6 +36,7 @@ import org.archive.format.gzip.zipnum.LineBufferingIterator;
 import org.archive.format.gzip.zipnum.ZipNumCluster;
 import org.archive.format.gzip.zipnum.ZipNumIndex.PageResult;
 import org.archive.format.gzip.zipnum.ZipNumParams;
+import org.archive.url.UrlSurtRangeComputer;
 import org.archive.url.UrlSurtRangeComputer.MatchType;
 import org.archive.util.iterator.CloseableIterator;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -139,24 +141,36 @@ public class CDXServer extends BaseCDXServer {
 	}
 	
 	@RequestMapping(value = { "/cdx" })
-	public void getCdx(HttpServletRequest request, HttpServletResponse response, CDXQuery query) throws IOException {		
+	public void getCdx(HttpServletRequest request, HttpServletResponse response, CDXQuery query) {		
 		handleAjax(request, response);
 		
 		CDXWriter responseWriter = null;
 		
 		boolean gzip = determineGzip(request, query);
 		
-		if (query.output.equals("json")) {
-			responseWriter = new JsonWriter(response, gzip);
-		} else if (query.output.equals("memento")) {
-			responseWriter = new MementoLinkWriter(request, response, query, gzip);			
-		} else {
-			responseWriter = new PlainTextWriter(response, gzip);
+		try {
+		
+			if (query.output.equals("json")) {
+				responseWriter = new JsonWriter(response, gzip);
+			} else if (query.output.equals("memento")) {
+				responseWriter = new MementoLinkWriter(request, response, query, gzip);			
+			} else {
+				responseWriter = new PlainTextWriter(response, gzip);
+			}
+			
+			AuthToken authToken = super.createAuthToken(request);
+		
+			getCdx(query, authToken, responseWriter);
+			
+		} catch (IOException io) {
+			responseWriter.serverError(io);
+		} catch (RuntimeException rte) {
+			responseWriter.serverError(rte);
+		} finally {
+			if (responseWriter != null) {
+				responseWriter.close();
+			}
 		}
-		
-		AuthToken authToken = super.createAuthToken(request);
-		
-		getCdx(query, authToken, responseWriter);
 	}
 		
 	public void getCdx(CDXQuery query, AuthToken authToken, CDXWriter responseWriter) throws IOException
@@ -204,6 +218,11 @@ public class CDXServer extends BaseCDXServer {
 				}
 				return;
 			}
+			
+			if (query.last || (query.limit == -1)) {
+				query.limit = 1;
+				query.setSort(SortType.reverse);
+			}
 
 			int maxLimit;
 
@@ -243,10 +262,6 @@ public class CDXServer extends BaseCDXServer {
 		} finally {
 			if (iter != null) {
 				iter.close();
-			}
-			
-			if (responseWriter != null) {
-				responseWriter.close();
 			}
 		}
 	}
@@ -306,11 +321,20 @@ public class CDXServer extends BaseCDXServer {
 	    
         ZipNumParams params = new ZipNumParams(defaultParams);
         
+        // Opt: testing out sequential load!
+        if (Math.abs(query.limit) == 1) {
+        	params.setSequential(true);
+        }
+        
         params.setReverse(query.isReverse());
 	    
         if (!query.resumeKey.isEmpty()) {
             searchKey = URLDecoder.decode(query.resumeKey, "UTF-8");
-            startEndUrl[0] =  query.resumeKey;
+            startEndUrl[0] = searchKey;
+//            int lastSpace = startEndUrl[0].lastIndexOf(' ');
+//            if (lastSpace > 0) {
+//            	startEndUrl[0] = searchKey.substring(0, lastSpace);
+//            }
         } else if (!query.from.isEmpty()) {
             searchKey = startEndUrl[0] + " " + query.from;
         } else if (query.isReverse() && !query.closest.isEmpty()) {
@@ -514,9 +538,8 @@ public class CDXServer extends BaseCDXServer {
 		if (query.showResumeKey && (line != null) && (writeLimit > 0) && (writeCount >= writeLimit)) {
 			StringBuilder sb = new StringBuilder();
 			sb.append(line.getUrlKey());
-			sb.append(line.getTimestamp());
 			sb.append(' ');
-			sb.append('!');
+			sb.append(UrlSurtRangeComputer.incLastChar(line.getTimestamp()));
 			String resumeKey;
 			try {
 				resumeKey = URLEncoder.encode(sb.toString(), "UTF-8");

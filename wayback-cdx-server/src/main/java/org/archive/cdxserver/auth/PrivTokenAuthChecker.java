@@ -16,6 +16,7 @@ public abstract class PrivTokenAuthChecker implements AuthChecker
 	protected String publicCdxFields;
 
 	protected List<String> allUrlAccessTokens;
+	protected List<String> ignoreRobotsAccessTokens;
 	protected List<String> allCdxFieldsAccessTokens;
 
 	boolean isAllowed(AuthToken auth, List<String> allowVector) {
@@ -34,6 +35,8 @@ public abstract class PrivTokenAuthChecker implements AuthChecker
 	public boolean isAllUrlAccessAllowed(AuthToken auth) {
 		if (auth.cachedAllUrlAllow == null) {
 			auth.cachedAllUrlAllow = isAllowed(auth, allUrlAccessTokens);
+			
+			auth.setIgnoreRobots(isAllowed(auth, ignoreRobotsAccessTokens));
 		}
 		return auth.cachedAllUrlAllow;
 	}
@@ -68,5 +71,13 @@ public abstract class PrivTokenAuthChecker implements AuthChecker
 
 	public void setAllCdxFieldsAccessTokens(List<String> allCdxFieldsAccessTokens) {
 		this.allCdxFieldsAccessTokens = allCdxFieldsAccessTokens;
+	}
+
+	public List<String> getIgnoreRobotsAccessTokens() {
+		return ignoreRobotsAccessTokens;
+	}
+
+	public void setIgnoreRobotsAccessTokens(List<String> ignoreRobotsAccessTokens) {
+		this.ignoreRobotsAccessTokens = ignoreRobotsAccessTokens;
 	}
 }

@@ -6,11 +6,15 @@ import java.util.zip.GZIPOutputStream;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.archive.util.io.RuntimeIOException;
+
 public abstract class HttpCDXWriter extends CDXWriter {
 
 	public final static String X_NUM_PAGES = "X-CDX-Num-Pages";
 	public final static String X_MAX_LINES = "X-CDX-Max-Lines";
 	public final static String X_CLUSTER_URI = "X-CDX-Cluster-Uri";
+	
+	public final static String RUNTIME_ERROR_HEADER = "X-Archive-Wayback-Runtime-Error";
 	
 	protected HttpServletResponse response;
 	protected PrintWriter writer;
@@ -42,6 +46,20 @@ public abstract class HttpCDXWriter extends CDXWriter {
     public void printError(String msg) {
 	    response.setStatus(400);
 	    writer.println(msg);
+	    writer.flush();
+    }
+	
+	@Override
+	public void serverError(Exception io) {
+		int status = 503;
+		
+		if (io instanceof RuntimeIOException) {
+			status = ((RuntimeIOException)io).getStatus();
+		}
+		
+	    response.setStatus(status);
+	    response.setHeader(RUNTIME_ERROR_HEADER, io.toString());
+	    writer.println(io.toString());
 	    writer.flush();
     }
 	

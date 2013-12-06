@@ -20,6 +20,7 @@
 package org.archive.wayback.core;
 
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.util.Properties;
 
 import javax.servlet.RequestDispatcher;
@@ -33,6 +34,9 @@ import org.archive.wayback.util.StringFormatter;
 import org.archive.wayback.util.webapp.SpringReader;
 import org.archive.wayback.webapp.AccessPoint;
 import org.archive.wayback.webapp.CustomUserResourceIndex;
+import org.archive.wayback.webapp.PerfStats;
+import org.archive.wayback.webapp.PerfStats.PerfStatEntry;
+import org.archive.wayback.webapp.PerfWritingHttpServletResponse;
 import org.springframework.beans.BeansException;
 
 /**
@@ -85,6 +89,21 @@ public class UIResults {
 	private Resource resource = null;
 	// Present for... requests that resulted in an expected Exception.
 	private WaybackException exception = null;
+	private PerfWritingHttpServletResponse perfResponse;
+	
+	private final static String localHostName;
+	
+	static {
+		String name;
+		
+		try {
+			name = java.net.InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e) {
+        	name = "localhost";
+        }
+		
+		localHostName = name;
+	}
 	
 	/**
 	 * Constructor for a "generic" UIResults, where little/no context is 
@@ -295,7 +314,7 @@ public class UIResults {
 	}
 
 	/**
-	 * @return the defined staticPrefix for the AccessPoint
+	 * @return the defined staticPrefix for the AccessPoint%><%@ page import="org.archive.wayback.webapp.PerfWritingHttpServletResponse"
 	 */
 	public String getStaticPrefix() {
 		if(wbRequest != null) {
@@ -369,6 +388,7 @@ public class UIResults {
 		if(dispatcher == null) {
 			throw new IOException("No dispatcher for " + target);
 		}
+				
 		dispatcher.forward(request, response);
 	}
 	
@@ -394,7 +414,7 @@ public class UIResults {
 
 	/**
 	 * Extract an Exception UIResults from the HttpServletRequest. Probably used
-	 * by a .jsp responsible for actual drawing errors for the user.
+	 * by a .jsp responsible for actual drawing errors for the user.private
 	 * @param httpRequest the HttpServletRequest where the UIResults was 
 	 * ferreted away
 	 * @return Exception UIResult with info from httpRequest applied.
@@ -672,7 +692,7 @@ public class UIResults {
 //		
 //		if (map == null) {
 //			return null;
-//		}
+//		}private
 //		
 //		Object object = map.get(indexName);
 //		
@@ -692,4 +712,28 @@ public class UIResults {
 		}
 		return cri.getCustomResourcesPathsAsJSON(getWbRequest(), getReplayPrefix(), fieldNum);
 	}
+	
+	public static String getLocalHostName()
+	{
+		return localHostName;
+	}
+	
+	public String enableAnalytics()
+	{
+		if (perfResponse != null) {
+			perfResponse.enablePerfCookie();
+		}
+		
+		return localHostName;
+	}
+	
+	public static long getTotalCount()
+	{
+		PerfStatEntry entry = PerfStats.get("Total");
+		return ((entry != null) ? entry.getTotal() : 0);
+	}
+
+	public void setPerfResponse(PerfWritingHttpServletResponse perfResponse) {
+		this.perfResponse = perfResponse;
+    }
 }

@@ -25,6 +25,9 @@ import org.archive.wayback.replay.html.StringTransformer;
 public class InlineCSSStringTransformer extends BaseCSSStringTransformer implements StringTransformer {
 
 	public String transform(ReplayParseContext context, String css) {
+	    if (!context.isRewriteSupported(css)) {
+	    	return css;
+	    }
 		StringBuilder sb = new StringBuilder(css);
 		patternRewrite(context, sb,cssUrlPattern, "im_");
 		return sb.toString();

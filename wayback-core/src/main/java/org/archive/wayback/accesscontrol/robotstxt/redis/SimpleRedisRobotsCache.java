@@ -13,10 +13,9 @@ import org.archive.wayback.exception.LiveDocumentNotAvailableException;
 import org.archive.wayback.exception.LiveWebCacheUnavailableException;
 import org.archive.wayback.exception.LiveWebTimeoutException;
 import org.archive.wayback.liveweb.LiveWebCache;
-import org.archive.wayback.resourcestore.resourcefile.ArcResource;
 import org.archive.wayback.webapp.PerfStats;
 
-import com.google.common.io.LimitInputStream;
+import com.google.common.io.ByteStreams;
 
 public class SimpleRedisRobotsCache implements LiveWebCache {
 	
@@ -205,28 +204,24 @@ public class SimpleRedisRobotsCache implements LiveWebCache {
 	{
 		//RobotsContext context = new RobotsContext(url, current, true, true);
 		
-		ArcResource origResource = null;
+		Resource origResource = null;
 		int status = 0;
 		String contents = null;
 		
 		try {
 			PerfStats.timeStart(PerfStat.RobotsLive);
 			
-			origResource = (ArcResource)liveweb.getCachedResource(urlURL, maxCacheMS, bUseOlder);
+			origResource = liveweb.getCachedResource(urlURL, maxCacheMS, bUseOlder);
+			
 			status = origResource.getStatusCode();
 			
-			if (status == STATUS_OK) {		
-				//String contentType = origResource.getArcRecord().getHeader().getMimetype();
-				
-				int numToRead = (int)origResource.getArcRecord().getHeader().getLength();
-				
-				int maxRead = Math.min(numToRead, MAX_ROBOTS_SIZE);
-				
-				contents = IOUtils.toString(new LimitInputStream(origResource, maxRead), "UTF-8");
-				
-				//context.doRead(numToRead, contentType, origResource, "UTF-8");
+			if (status == STATUS_OK) {	
+				if (origResource instanceof RobotsTxtResource) {
+					contents = ((RobotsTxtResource)origResource).getContents();
+				} else {
+					contents = IOUtils.toString(ByteStreams.limit(origResource, MAX_ROBOTS_SIZE), "UTF-8");
+				}
 			}
-			
 		} catch (Exception e) {
 			status = STATUS_ERROR;
 		} finally {

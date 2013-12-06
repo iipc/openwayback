@@ -31,6 +31,7 @@ import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.UIResults;
 import org.archive.wayback.core.WaybackRequest;
+import org.archive.wayback.webapp.PerfWritingHttpServletResponse;
 
 /**
  * Class which encapsulates all Replay context information needed to execute
@@ -70,6 +71,10 @@ public class JSPExecutor {
 		// If ajax request, don't do any jsp insertion
 		if (isAjax) {
 			return "";
+		}
+		
+		if (httpResponse instanceof PerfWritingHttpServletResponse) {
+			uiResults.setPerfResponse((PerfWritingHttpServletResponse)httpResponse);
 		}
 
 		StringHttpServletResponseWrapper wrappedResponse = 

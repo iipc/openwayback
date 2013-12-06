@@ -116,6 +116,8 @@ implements ShutdownListener {
 	public final static String EMPTY_VALUE = "-";
 	
 	public final static String RUNTIME_ERROR_HEADER = "X-Archive-Wayback-Runtime-Error";
+	private final static int MAX_ERR_HEADER_LEN = 300;
+	
 	//public final static String NOTFOUND_ERROR_HEADER = "X-Archive-Wayback-Not-Found";
 
 	private static final Logger LOGGER = Logger.getLogger(
@@ -185,6 +187,8 @@ implements ShutdownListener {
 	private UrlCanonicalizer selfRedirectCanonicalizer = null;
 	
 	private int maxRedirectAttempts = 0;
+	
+	private boolean fixedEmbeds = false;
 
 	public void init() {
 		checkAccessPointAware(collection,exception,query,parser,replay,
@@ -253,7 +257,7 @@ implements ShutdownListener {
 			
 			if (this.isEnablePerfStatsHeader() && (perfStatsHeader != null)) {
 				PerfStats.timeStart(PerfStat.Total);
-				httpResponse = new PerfWritingHttpServletResponse(httpResponse, PerfStat.Total, perfStatsHeader);
+				httpResponse = new PerfWritingHttpServletResponse(httpRequest, httpResponse, PerfStat.Total, perfStatsHeader);
 			}
 			
 			String inputPath = translateRequestPathQuery(httpRequest);
@@ -324,6 +328,7 @@ implements ShutdownListener {
 			
 		} catch(BetterRequestException e) {			
 			e.generateResponse(httpResponse, wbRequest);
+			httpResponse.getWriter(); // cause perf headers to be committed
 			handled = true;
 
 		} catch(WaybackException e) {
@@ -342,7 +347,7 @@ implements ShutdownListener {
 			LiveWebState liveWebState = LiveWebState.NOT_FOUND;
 			
 			if ((getLiveWebRedirector() != null) && 
-					!wbRequest.hasMementoAcceptDatetime() && !wbRequest.isMementoTimemapRequest() && !wbRequest.isBestLatestReplayRequest()) {
+					!wbRequest.hasMementoAcceptDatetime() && !wbRequest.isMementoTimemapRequest()) {
 				liveWebState = getLiveWebRedirector().handleRedirect(e, wbRequest, httpRequest, httpResponse);
 			}
 			
@@ -392,8 +397,8 @@ implements ShutdownListener {
 				}
 			}
 			
-			if (message.length() > 200) {			
-				message = message.substring(0, 200);
+			if (message.length() > MAX_ERR_HEADER_LEN) {			
+				message = message.substring(0, MAX_ERR_HEADER_LEN);
 			}
 			message = message.replace('\n', ' ');
 		}
@@ -503,6 +508,8 @@ implements ShutdownListener {
 			if (redirScheme == null && isExactSchemeMatch()) {
 				location = UrlOperations.resolveUrl(closest.getOriginalUrl(), location);
 				redirScheme = UrlOperations.urlToScheme(location);
+			} else if (location.startsWith("/")) {
+				location = UrlOperations.resolveUrl(closest.getOriginalUrl(), location);
 			}
 			
 			if (getSelfRedirectCanonicalizer() != null) {
@@ -555,17 +562,50 @@ implements ShutdownListener {
 		}
 	}
 	
+	public boolean isWaybackReferer(WaybackRequest wbRequest, String path)
+	{
+		return isWaybackReferer(wbRequest.getRefererUrl(), path);
+	}
+	
+	public boolean isWaybackReferer(String referer, String path)
+	{		
+		if (referer == null) {
+			return false;
+		}
+		
+		Object value = this.getConfigs().get("fullPathPrefix");
+		String fullPathPrefix = (value != null ? value.toString() : null);
+		
+		if (fullPathPrefix != null && !fullPathPrefix.isEmpty()) {
+			return referer.contains(fullPathPrefix + path);
+		} else {
+			return referer.contains(path);
+		}
+	}
+	
 	// throw BetterRequestException here, also if memento is enabled, this acts as a timegate
-	protected void throwRedirect(WaybackRequest wbRequest, 
+	protected void handleReplayRedirect(WaybackRequest wbRequest, 
 								 HttpServletResponse httpResponse,
 								 CaptureSearchResults captureResults,
 								 CaptureSearchResult closest) throws BetterRequestException
 	{
+		if (wbRequest.getReplayTimestamp().startsWith(closest.getCaptureTimestamp()) && !wbRequest.isMementoTimegate()) {
+			// Matching
+			return;
+		}
+		
+		captureResults.setClosest(closest);
 		
 		//TODO: better detection of non-redirect proxy mode?
 		// For now, checking if the betterURI does not contain the timestamp, then we're not doing a redirect
 		String datespec = ArchivalUrl.getDateSpec(wbRequest, closest.getCaptureTimestamp());
 		String betterURI = getUriConverter().makeReplayURI(datespec, closest.getOriginalUrl());
+		
+		if (fixedEmbeds && !wbRequest.isMementoTimegate() && isWaybackReferer(wbRequest, this.getReplayPrefix())) {
+			httpResponse.setHeader("Content-Location", betterURI);
+			return;
+		}
+		
 		boolean isNonRedirectProxy = !betterURI.contains(closest.getCaptureTimestamp());
 		
 		if (this.isEnableMemento()) {
@@ -626,7 +666,7 @@ implements ShutdownListener {
 		closest = 
 			getReplay().getClosest(wbRequest, captureResults);
 		
-		CaptureSearchResult originalClosest = closest;
+		//CaptureSearchResult originalClosest = closest;
 		
 		int counter = 0;
 		
@@ -663,6 +703,30 @@ implements ShutdownListener {
 				closest.setClosest(true);
 				checkAnchorWindow(wbRequest,closest);
 				
+				
+				// Attempt to resolve any not-found embedded content with next-best
+				// For "best last" capture, skip not-founds and redirects, hoping to find the best 200 response.
+				if ((wbRequest.isAnyEmbeddedContext() && closest.isHttpError()) || 
+					(wbRequest.isBestLatestReplayRequest() && !closest.isHttpSuccess())) {
+					CaptureSearchResult nextClosest = closest;
+					
+					while ((nextClosest = findNextClosest(nextClosest, captureResults, requestMS)) != null) {
+						// If redirect, save but keep looking -- if no better match, will use the redirect
+						if (nextClosest.isHttpRedirect()) {
+							closest = nextClosest;
+						// If success, pick that one!
+						} else if (nextClosest.isHttpSuccess()) {
+							closest = nextClosest;
+							break;
+						}
+					}
+				}
+				
+				// Redirect to url for the actual closest capture, if not a retry
+				if (counter == 1) {
+					handleReplayRedirect(wbRequest, httpResponse, captureResults, closest);
+				}			
+				
 				// If revisit, may load two resources separately
 				if (closest.isDuplicateDigest()) {
 					isRevisit = true;
@@ -684,7 +748,7 @@ implements ShutdownListener {
 						captureResults = (CaptureSearchResults)results;
 						
 						closest = getReplay().getClosest(wbRequest, captureResults);
-						originalClosest = closest;
+						//originalClosest = closest;
 						//maxTimeouts *= 2;
 						//maxMissingRevisits *= 2;
 						
@@ -709,7 +773,14 @@ implements ShutdownListener {
 						
 					} else {
 						httpHeadersResource = getResource(closest, skipFiles);
-						payloadResource = retrievePayloadForIdenticalContentRevisit(wbRequest, httpHeadersResource, captureResults, closest, skipFiles);
+						
+						CaptureSearchResult payloadLocation = retrievePayloadForIdenticalContentRevisit(wbRequest, httpHeadersResource, closest);
+						
+						if (payloadLocation == null) {
+							throw new ResourceNotAvailableException("Revisit: Missing original for revisit record " + closest.toString(), 404);
+						}
+						
+						payloadResource = getResource(payloadLocation, skipFiles);
 						
 						// If zero length old-style revisit with no headers, then must use payloadResource as headersResource
 						if (httpHeadersResource.getRecordLength() <= 0) {
@@ -732,31 +803,10 @@ implements ShutdownListener {
 					continue;
 				}
 				
-				// Attempt to resolve any not-found embedded content with next-best
-				// For "best last" capture, skip not-founds and redirects, hoping to find the best 200 response.
-				if ((wbRequest.isAnyEmbeddedContext() && closest.isHttpError()) || 
-					(wbRequest.isBestLatestReplayRequest() && !closest.isHttpSuccess())) {
-					CaptureSearchResult nextClosest = closest;
-					
-					while ((nextClosest = findNextClosest(nextClosest, captureResults, requestMS)) != null) {
-						// If redirect, save but keep looking -- if no better match, will use the redirect
-						if (nextClosest.isHttpRedirect()) {
-							closest = nextClosest;
-						// If success, pick that one!
-						} else if (nextClosest.isHttpSuccess()) {
-							closest = nextClosest;
-							break;
-						}
-					}
+				if (counter > 1) {
+					handleReplayRedirect(wbRequest, httpResponse, captureResults, closest);
 				}
-				
-				// Redirect to url for the actual closest capture
-				if (!wbRequest.getReplayTimestamp().startsWith(closest.getCaptureTimestamp())) {
-				//if ((closest != originalClosest) && !closest.getCaptureTimestamp().equals(originalClosest.getCaptureTimestamp())) {
-					captureResults.setClosest(closest);
-					throwRedirect(wbRequest, httpResponse, captureResults, closest);
-				}
-		
+									
 				p.retrieved();
 				
 				ReplayRenderer renderer = 
@@ -791,7 +841,7 @@ implements ShutdownListener {
 				CaptureSearchResult nextClosest = null;
 				
 				// if exceed maxRedirectAttempts, stop
-				if (counter > maxRedirectAttempts) {
+				if ((counter > maxRedirectAttempts) && ((this.getLiveWebPrefix() == null) || !isWaybackReferer(wbRequest, this.getLiveWebPrefix()))) {
 					LOGGER.info("LOADFAIL: Timeout: Too many retries, limited to " + maxRedirectAttempts);
 				} else if ((closest != null) && !wbRequest.isIdentityContext()) {
 					nextClosest = findNextClosest(closest, captureResults, requestMS);
@@ -839,7 +889,7 @@ implements ShutdownListener {
 					captureResults = (CaptureSearchResults)results;
 					
 					closest = getReplay().getClosest(wbRequest, captureResults);
-					originalClosest = closest;
+					//originalClosest = closest;
 					
 					//maxTimeouts *= 2;
 					//maxMissingRevisits *= 2;
@@ -869,6 +919,17 @@ implements ShutdownListener {
 			return prev;
 		}
 		
+		long prevMS = prev.getCaptureDate().getTime();
+		long nextMS = next.getCaptureDate().getTime();
+		long prevDiff = Math.abs(prevMS - requestMS);
+		long nextDiff = Math.abs(requestMS - nextMS);
+		
+		if (prevDiff == 0) {
+			return prev;
+		} else if (nextDiff == 0) {
+			return next;
+		}		
+		
 		String currHash = currentClosest.getDigest();
 		String prevHash = prev.getDigest();
 		String nextHash = next.getDigest();
@@ -888,11 +949,6 @@ implements ShutdownListener {
 		if (prev200 != next200) {
 			return (prev200 ? prev : next);
 		}
-		
-		long prevMS = prev.getCaptureDate().getTime();
-		long nextMS = next.getCaptureDate().getTime();
-		long prevDiff = Math.abs(prevMS - requestMS);
-		long nextDiff = Math.abs(requestMS - nextMS);
 		
 		if (prevDiff < nextDiff) {
 			return prev;
@@ -927,9 +983,11 @@ implements ShutdownListener {
 	 * @throws BetterRequestException 
 	 * @see WARCRevisitAnnotationFilter
 	 */
-	protected Resource retrievePayloadForIdenticalContentRevisit(WaybackRequest currRequest, Resource revisitRecord,
-			CaptureSearchResults captureResults, CaptureSearchResult closest, Set<String> skipFiles)
-					throws ResourceNotAvailableException, ConfigurationException, ResourceIndexNotAvailableException, ResourceNotInArchiveException, BadQueryException, AccessControlException, BetterRequestException {
+	protected CaptureSearchResult retrievePayloadForIdenticalContentRevisit(
+			WaybackRequest currRequest,
+			Resource revisitRecord,
+			CaptureSearchResult closest) throws WaybackException {
+		
 		if (!closest.isDuplicateDigest()) {
 			LOGGER.warning("Revisit: record is not a revisit by identical content digest " + closest.getCaptureTimestamp() + " " + closest.getOriginalUrl());
 			return null;
@@ -937,48 +995,20 @@ implements ShutdownListener {
 		
 		CaptureSearchResult payloadLocation = null;
 		
-		// maybe WARCRevisitAnnotationFilter already found the payload 
+		// Revisit from same url -- shold have been found by the loader
+		
 		if (closest.getDuplicatePayloadFile() != null && closest.getDuplicatePayloadOffset() != null) {
 			payloadLocation = new CaptureSearchResult();
 			payloadLocation.setFile(closest.getDuplicatePayloadFile());
 			payloadLocation.setOffset(closest.getDuplicatePayloadOffset());
 			payloadLocation.setCompressedLength(closest.getDuplicatePayloadCompressedLength());
+			return payloadLocation;
 		}
 
+		// Url Agnostic Revisit with target-uri and refers-to-date
+		
 		Map<String, Object> warcHeaders = null;
-		
-		if (payloadLocation == null) {
-			// expect the warc revisit record points us to the payload
-			WarcResource wr = (WarcResource) revisitRecord;
-			warcHeaders = wr.getWarcHeaders().getHeaderFields();
-			String payloadWarcFile = (String) warcHeaders.get("WARC-Refers-To-Filename");
-			String offsetStr = (String) warcHeaders.get("WARC-Refers-To-File-Offset");
-			if (payloadWarcFile != null && offsetStr != null) {
-				payloadLocation = new CaptureSearchResult();
-				payloadLocation.setFile(payloadWarcFile);
-				payloadLocation.setOffset(Long.parseLong(offsetStr));
-			}
-		}
-		
-		ResourceNotAvailableException lastExc = null;
 
-		if (payloadLocation != null) {
-			try {
-				return getResource(payloadLocation, skipFiles);
-			} catch (ResourceNotAvailableException e) {
-				// one last effort to follow
-				payloadLocation = null;
-				lastExc = e;
-			}
-		}
-
-		/*
-		 * One last thing to try. This could happen if the revisit record is
-		 * url-agnostic and points to a record that was reorganized into a
-		 * different warc.
-		 */
-		// XXX needs testing
-		
 		String payloadUri = null; 
 		String payloadTimestamp = null;
 		
@@ -1013,15 +1043,22 @@ implements ShutdownListener {
 			payloadLocation = getReplay().getClosest(wbr, payloadCaptureResults);
 		}
 		
-		if (payloadLocation == null) {
-			if (lastExc != null) {
-				throw lastExc;
-			}
-			
-			throw new ResourceNotAvailableException("Revisit: Missing original for revisit record " + closest.toString(), 404);
-		}
-
-		return getResource(payloadLocation, skipFiles);
+//		if (payloadLocation != null) {
+//			return payloadLocation;
+//		}
+//		
+		// Less common less recommended revisit with specific warc/filename
+//		WarcResource wr = (WarcResource) revisitRecord;
+//		warcHeaders = wr.getWarcHeaders().getHeaderFields();
+//		String payloadWarcFile = (String) warcHeaders.get("WARC-Refers-To-Filename");
+//		String offsetStr = (String) warcHeaders.get("WARC-Refers-To-File-Offset");
+//		if (payloadWarcFile != null && offsetStr != null) {
+//			payloadLocation = new CaptureSearchResult();
+//			payloadLocation.setFile(payloadWarcFile);
+//			payloadLocation.setOffset(Long.parseLong(offsetStr));
+//		}
+		
+		return payloadLocation;
 	}
 
 	private void checkAnchorWindow(WaybackRequest wbRequest, 
@@ -1249,7 +1286,7 @@ implements ShutdownListener {
 			this.liveWebRedirector = null;
 		}
 		
-		this.liveWebRedirector = new LiveWebRedirector(liveWebPrefix);
+		this.liveWebRedirector = new DefaultLiveWebRedirector(liveWebPrefix);
 	}
 	
 	public String getLiveWebPrefix()
@@ -1666,6 +1703,14 @@ implements ShutdownListener {
 
 	public void setMaxRedirectAttempts(int maxRedirectAttempts) {
 		this.maxRedirectAttempts = maxRedirectAttempts;
+	}
+
+	public boolean isFixedEmbeds() {
+		return fixedEmbeds;
+	}
+
+	public void setFixedEmbeds(boolean fixedEmbeds) {
+		this.fixedEmbeds = fixedEmbeds;
 	}
 
 	public boolean isTimestampSearch() {

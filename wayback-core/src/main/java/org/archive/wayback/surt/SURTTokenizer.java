@@ -20,8 +20,8 @@
 package org.archive.wayback.surt;
 
 import org.apache.commons.httpclient.URIException;
-import org.archive.net.UURI;
-import org.archive.net.UURIFactory;
+import org.archive.url.UsableURI;
+import org.archive.url.UsableURIFactory;
 import org.archive.util.ArchiveUtils;
 import org.archive.util.SURT;
 
@@ -111,7 +111,7 @@ public class SURTTokenizer {
 						return remainder;
 					}
 				}
-				if(remainder.charAt(lastSlash-1) == ')') {
+				if((lastSlash > 0) && remainder.charAt(lastSlash-1) == ')') {
 					String tmp = remainder.substring(0,lastSlash+1);
 					remainder = remainder.substring(0,lastSlash-1);
 					return tmp;
@@ -169,7 +169,7 @@ public class SURTTokenizer {
 	throws URIException {
 
 		String key = ArchiveUtils.addImpliedHttpIfNecessary(url);
-		UURI uuri = UURIFactory.getInstance(key);
+		UsableURI uuri = UsableURIFactory.getInstance(key);
 		key = uuri.getScheme() + "://" + uuri.getAuthority() + 
 			uuri.getEscapedPathQuery();
 

@@ -15,6 +15,8 @@ import org.archive.format.cdx.FieldSplitLine;
  * Supports matching against individual fields if specified
  * eg:
  * 
+ * ~<containsstr> = look for containing sting <containsstr> and not a regex
+ * 
  * <regex> = match whole line
  * <field>:<regex> = match <field> in FieldSplitLine, by name or number, and match only that field
  * 
@@ -26,6 +28,7 @@ import org.archive.format.cdx.FieldSplitLine;
 public class FieldRegexFilter implements CDXFilter {
 	
 	final static String INVERT_CHAR = "!";
+	final static String CONTAINS_CHAR = "~";
 	final static String FIELD_SEP_CHAR = ":";
 	
 	final protected FieldSplitFormat names;
@@ -34,6 +37,7 @@ public class FieldRegexFilter implements CDXFilter {
 	class RegexMatch {
 		final Pattern regex;
 		final boolean inverted;
+		final String containsStr;
 		final int fieldIndex;
 		
 		RegexMatch(String str)
@@ -42,6 +46,13 @@ public class FieldRegexFilter implements CDXFilter {
 				str = URLDecoder.decode(str, "UTF-8");
 			} catch (UnsupportedEncodingException e) {
 
+			}
+			
+			boolean contains = false;
+			
+			if (str.startsWith(CONTAINS_CHAR)) {
+				str = str.substring(1);
+				contains = true;
 			}
 			
 			if (str.startsWith(INVERT_CHAR)) {
@@ -56,7 +67,13 @@ public class FieldRegexFilter implements CDXFilter {
 			// Match entire line
 			if (sepIndex < 0) {
 				fieldIndex = -1;
-				regex = Pattern.compile(str);
+				if (contains) {
+					containsStr = str;
+					regex = null;
+				} else {
+					containsStr = null;
+					regex = Pattern.compile(str);
+				}
 				return;
 			}
 			
@@ -77,8 +94,15 @@ public class FieldRegexFilter implements CDXFilter {
 				index = names.getFieldIndex(field);
 			}
 			
-			fieldIndex = index;			
-			regex = Pattern.compile(pattern);			
+			fieldIndex = index;
+			
+			if (contains) {
+				containsStr = pattern;
+				regex = null;
+			} else {
+				containsStr = null;
+				regex = Pattern.compile(pattern);
+			}		
 		}
 		
 		boolean matches(FieldSplitLine line)
@@ -86,9 +110,17 @@ public class FieldRegexFilter implements CDXFilter {
 			boolean matched;
 			
 			if (fieldIndex < 0) {
-				matched = regex.matcher(line.toString()).matches();
+				if (containsStr != null) {
+					matched = line.toString().contains(containsStr);
+				} else {
+					matched = regex.matcher(line.toString()).matches();	
+				}
 			} else {
-				matched = regex.matcher(line.getField(fieldIndex)).matches();
+				if (containsStr != null) {
+					matched = line.getField(fieldIndex).contains(containsStr);
+				} else {
+					matched = regex.matcher(line.getField(fieldIndex)).matches();
+				}
 			}
 			
 			if (inverted) {

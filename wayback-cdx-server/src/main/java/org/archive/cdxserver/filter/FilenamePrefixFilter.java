@@ -30,6 +30,8 @@ public class FilenamePrefixFilter implements CDXFilter {
 	protected Set<String> paramSet = null;
 	protected Pattern patterns[] = null;
 	
+	protected List<String> prefixList = null;
+	
 	// This method should be set as the init-method in the spring config
 	// init-method="loadParamFile" when using this Filter
 	public void loadParamFile() throws IOException
@@ -81,16 +83,26 @@ public class FilenamePrefixFilter implements CDXFilter {
 			}
 		}
 		
-		for (Pattern pattern : patterns) {
-			Matcher matcher = pattern.matcher(file);
-			if (matcher.find()) {
-				String param = matcher.group(paramIndex);
-				if (paramSet.contains(param)) {
-					if (LOGGER.isLoggable(Level.FINE)) {
-						LOGGER.fine("Excluding (w)arc: " + file);
+		if (prefixList != null) {	
+			for (String prefix : prefixList) {
+				if (file.startsWith(prefix)) {
+					return (isExclusion ? false : true);
+				}
+			}
+		}
+		
+		if (patterns != null) {
+			for (Pattern pattern : patterns) {
+				Matcher matcher = pattern.matcher(file);
+				if (matcher.find()) {
+					String param = matcher.group(paramIndex);
+					if (paramSet.contains(param)) {
+						if (LOGGER.isLoggable(Level.FINE)) {
+							LOGGER.fine("Excluding (w)arc: " + file);
+						}
+						matched = true;
+						break;
 					}
-					matched = true;
-					break;
 				}
 			}
 		}
@@ -158,5 +170,13 @@ public class FilenamePrefixFilter implements CDXFilter {
 		for(int i = 0; i < size; i++) {
 			patterns[i] = Pattern.compile(patternStrings.get(i));
 		}
+	}
+
+	public List<String> getPrefixList() {
+		return prefixList;
+	}
+
+	public void setPrefixList(List<String> prefixList) {
+		this.prefixList = prefixList;
 	}
 }

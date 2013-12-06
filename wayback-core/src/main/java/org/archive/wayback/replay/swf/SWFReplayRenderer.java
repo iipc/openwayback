@@ -33,8 +33,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.httpclient.URIException;
-import org.archive.net.UURI;
-import org.archive.net.UURIFactory;
+import org.archive.url.UsableURI;
+import org.archive.url.UsableURIFactory;
 import org.archive.wayback.ReplayRenderer;
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.core.CaptureSearchResult;
@@ -253,7 +253,7 @@ public class SWFReplayRenderer implements ReplayRenderer {
 	}
 
 	private class SWFUrlRewriter {
-		UURI baseUrl = null;
+		UsableURI baseUrl = null;
 		ResultURIConverter converter;
 		String datespec;
 
@@ -262,7 +262,7 @@ public class SWFReplayRenderer implements ReplayRenderer {
 			this.datespec = datespec;
 			this.converter = converter;
 			try {
-				this.baseUrl = UURIFactory
+				this.baseUrl = UsableURIFactory
 						.getInstance(baseUrl.toExternalForm());
 			} catch (URIException e) {
 				e.printStackTrace();
@@ -274,7 +274,7 @@ public class SWFReplayRenderer implements ReplayRenderer {
 			try {
 				String resolved = url;
 				if (baseUrl != null) {
-					resolved = UURIFactory.getInstance(baseUrl, url).toString();
+					resolved = UsableURIFactory.getInstance(baseUrl, url).toString();
 				}
 				return converter.makeReplayURI(datespec, resolved);
 			} catch (URIException e) {

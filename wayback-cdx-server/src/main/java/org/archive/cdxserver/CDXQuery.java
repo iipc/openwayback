@@ -46,6 +46,7 @@ public class CDXQuery {
 	
 	int offset = 0;
 	int limit = 0;
+	boolean last = false;
 	Boolean fastLatest = null;
 	String fl = EMPTY_STRING;
 	
@@ -125,6 +126,7 @@ public class CDXQuery {
 		
 		offset = ServletRequestUtils.getIntParameter(request, "offset", 0);
 		limit = ServletRequestUtils.getIntParameter(request, "limit", 0);
+		last = ServletRequestUtils.getBooleanParameter(request, "last", false);
 		fastLatest = ServletRequestUtils.getBooleanParameter(request, "fastLatest");
 		fl = ServletRequestUtils.getStringParameter(request, "fl", "");
 		
@@ -289,6 +291,14 @@ public class CDXQuery {
 
 	public void setLimit(int limit) {
 		this.limit = limit;
+	}
+
+	public boolean isLast() {
+		return last;
+	}
+
+	public void setLast(boolean last) {
+		this.last = last;
 	}
 
 	public Boolean getFastLatest() {

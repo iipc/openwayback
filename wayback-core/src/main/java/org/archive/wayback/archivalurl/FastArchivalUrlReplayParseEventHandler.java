@@ -24,7 +24,6 @@ import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
-import java.util.Vector;
 
 import javax.servlet.ServletException;
 
@@ -38,7 +37,6 @@ import org.archive.wayback.replay.html.transformer.URLStringTransformer;
 import org.archive.wayback.util.htmllex.NodeUtils;
 import org.archive.wayback.util.htmllex.ParseContext;
 import org.archive.wayback.util.htmllex.ParseEventHandler;
-import org.htmlparser.Attribute;
 import org.htmlparser.Node;
 import org.htmlparser.nodes.RemarkNode;
 import org.htmlparser.nodes.TagNode;
@@ -215,6 +213,8 @@ public class FastArchivalUrlReplayParseEventHandler implements
 		String tagName = tagNode.getTagName();
 		
 		boolean alreadyInsertedHead = (context.getData(FERRET_HEAD_INSERTED) != null);
+		
+		boolean inHead = (context.getData(FERRET_IN_HEAD) != null);
 
 		if (!alreadyInsertedHead) {
 			// If we're at the beginning of a <head> tag, and haven't inserted yet, 
@@ -234,11 +234,15 @@ public class FastArchivalUrlReplayParseEventHandler implements
 				emitHeadInsert(context, null, false);
 				// Don't return continue to further processing
 			}
-		}		
-		
-		
-		boolean inHead = (context.getData(FERRET_IN_HEAD) != null);
-		
+		} else if (tagName.equals(BODY_TAG) && inHead) {
+			context.putData(FERRET_IN_HEAD, null);
+			inHead = false;
+			
+			
+			OutputStream out = context.getOutputStream();
+			out.write("</head>".getBytes(context.getOutputCharset()));
+		}
+				
 		// Time to insert the JSP header?
 		//IK added check to avoid inserting inside css or script
 		if(!insertedJsp && !context.isInCSS() && !context.isInScriptText() && !inHead) {

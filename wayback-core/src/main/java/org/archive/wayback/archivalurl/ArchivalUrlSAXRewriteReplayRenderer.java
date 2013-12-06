@@ -65,6 +65,7 @@ public class ArchivalUrlSAXRewriteReplayRenderer implements ReplayRenderer {
 	private HttpHeaderProcessor httpHeaderProcessor;
 	private CharsetDetector charsetDetector = new StandardCharsetDetector();
 	private ContextResultURIConverterFactory converterFactory = null;
+	private boolean rewriteHttpsOnly;
 	
 	private final static String OUTPUT_CHARSET = "utf-8";
 	private static int FRAMESET_SCAN_BUFFER_SIZE = 16 * 1024;
@@ -102,7 +103,7 @@ public class ArchivalUrlSAXRewriteReplayRenderer implements ReplayRenderer {
 			CaptureSearchResults results) throws ServletException, IOException,
 			WaybackException {
 
-		Resource decodedResource = TextReplayRenderer.decodeResource(payloadResource);
+		Resource decodedResource = TextReplayRenderer.decodeResource(httpHeadersResource, payloadResource);
 
 		// The URL of the page, for resolving in-page relative URLs: 
 		URL url = null;
@@ -121,6 +122,8 @@ public class ArchivalUrlSAXRewriteReplayRenderer implements ReplayRenderer {
 		// set up the context:
 		ReplayParseContext context = 
 				new ReplayParseContext(fact,url,result.getCaptureTimestamp());
+		
+		context.setRewriteHttpsOnly(rewriteHttpsOnly);
 
 		if(!wbRequest.isFrameWrapperContext()) {
 			// in case this is an HTML page with FRAMEs, peek ahead an look:
@@ -203,7 +206,6 @@ public class ArchivalUrlSAXRewriteReplayRenderer implements ReplayRenderer {
 		// who knows what that is, or what that will do to the page..
 		// let's try explicitly setting it to what we used:
 		httpResponse.setCharacterEncoding(OUTPUT_CHARSET);
-
 		httpResponse.getOutputStream().write(utf8Bytes);
 	}
 	
@@ -258,5 +260,13 @@ public class ArchivalUrlSAXRewriteReplayRenderer implements ReplayRenderer {
 	public void setConverterFactory(
 			ContextResultURIConverterFactory converterFactory) {
 		this.converterFactory = converterFactory;
+	}
+
+	public boolean isRewriteHttpsOnly() {
+		return rewriteHttpsOnly;
+	}
+
+	public void setRewriteHttpsOnly(boolean rewriteHttpsOnly) {
+		this.rewriteHttpsOnly = rewriteHttpsOnly;
 	}
 }

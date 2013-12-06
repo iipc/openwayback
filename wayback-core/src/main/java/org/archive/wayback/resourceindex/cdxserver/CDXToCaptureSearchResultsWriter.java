@@ -9,6 +9,7 @@ import org.archive.format.cdx.CDXLine;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.FastCaptureSearchResult;
+import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.resourceindex.filters.SelfRedirectFilter;
 import org.archive.wayback.util.ObjectFilter;
 import org.archive.wayback.util.Timestamp;
@@ -25,6 +26,10 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 	protected boolean done = false;
 	protected CaptureSearchResult closest = null;
 	protected SelfRedirectFilter selfRedirFilter = null;
+	protected ExclusionFilter exclusionFilter = null;
+	
+	protected CaptureSearchResult prevResult = null;
+	protected CDXLine prevLine = null;
 	
 	protected HashMap<String, CaptureSearchResult> digestToOriginal;
 	protected HashMap<String, LinkedList<CaptureSearchResult>> digestToRevisits;
@@ -32,16 +37,20 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 	protected boolean resolveRevisits = false;
 	protected boolean seekSingleCapture = false;
 	protected boolean isReverse = false;
+
+	protected String preferContains = null;
 	
 	public CDXToCaptureSearchResultsWriter(CDXQuery query,
 										   boolean resolveRevisits, 
-										   boolean seekSingleCapture)
+										   boolean seekSingleCapture,
+										   String preferContains)
 	{
 		super(query);
 		
 		this.resolveRevisits = resolveRevisits;
 		this.seekSingleCapture = seekSingleCapture;
 		this.isReverse = query.isReverse();
+		this.preferContains = preferContains;
 	}
 	
 	public void setTargetTimestamp(String timestamp)
@@ -70,9 +79,28 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
     public int writeLine(CDXLine line) {
 		FastCaptureSearchResult result = new FastCaptureSearchResult();
 		
+		String timestamp = line.getTimestamp();
+		String originalUrl = line.getOriginalUrl();
+		
+		if ((prevResult != null) && (preferContains != null) && 
+			 prevResult.getCaptureTimestamp().equals(timestamp) && 
+			 prevResult.getOriginalUrl().equals(originalUrl) &&
+			 prevLine.getLength().equals(line.getLength()) &&
+			 prevLine.getOffset().equals(line.getOffset())) {
+			
+			String currFile = line.getFilename();
+			String prevFile = prevLine.getFilename();
+			
+			if (currFile.contains(preferContains) && !prevFile.contains(preferContains)) {
+				prevResult.setFile(currFile);
+			}
+			
+			return 0;
+		}
+				
 		result.setUrlKey(line.getUrlKey());
-		result.setCaptureTimestamp(line.getTimestamp());
-		result.setOriginalUrl(line.getOriginalUrl());
+		result.setCaptureTimestamp(timestamp);
+		result.setOriginalUrl(originalUrl);
 		
 		// Special case: filter out captures that have userinfo
 		boolean hasUserInfo = (UrlOperations.urlToUserInfo(result.getOriginalUrl()) != null);
@@ -86,6 +114,12 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 		
 		if (selfRedirFilter != null && !result.getRedirectUrl().equals(CDXLine.EMPTY_VALUE)) {
 			if (selfRedirFilter.filterObject(result) != ObjectFilter.FILTER_INCLUDE) {
+				return 0;
+			}
+		}
+		
+		if (exclusionFilter != null) {
+			if (exclusionFilter.filterObject(result) != ObjectFilter.FILTER_INCLUDE) {
 				return 0;
 			}
 		}
@@ -110,6 +144,8 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 					CaptureSearchResult payload = digestToOriginal.get(digest);
 					if (payload != null) {
 						result.flagDuplicateDigest(payload);
+					} else {
+						result.flagDuplicateDigest();
 					}
 				} else {
 					LinkedList<CaptureSearchResult> revisits = digestToRevisits.get(digest);
@@ -148,6 +184,8 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 		}
 		
 		results.addSearchResult(result, !isReverse);
+		prevResult = result;
+		prevLine = line;
 		
 		// Short circuit the load if seeking single capture
 		if (seekSingleCapture && resolveRevisits) {
@@ -248,5 +286,13 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 
 	public void setSelfRedirFilter(SelfRedirectFilter selfRedirFilter) {
 		this.selfRedirFilter = selfRedirFilter;
+	}
+
+	public ExclusionFilter getExclusionFilter() {
+		return exclusionFilter;
+	}
+
+	public void setExclusionFilter(ExclusionFilter exclusionFilter) {
+		this.exclusionFilter = exclusionFilter;
 	}
 }

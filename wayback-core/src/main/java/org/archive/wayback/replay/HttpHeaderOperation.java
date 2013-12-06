@@ -132,5 +132,20 @@ public class HttpHeaderOperation {
 		}
 		return value;
 	}
+	
+	public static boolean removeHeader(Map<String,String> headers, String k) {
+		Iterator<String> itr = headers.keySet().iterator();
+		String keyUp = k.toUpperCase();
+		while(itr.hasNext()) {
+			String key = itr.next();
+			if(key != null) {
+				if (key.toUpperCase().contains(keyUp)) {
+					itr.remove();
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 
 }

@@ -34,6 +34,7 @@ public class ArchivalURLJSStringTransformerReplayRenderer extends TextReplayRend
 
 	private StringTransformer transformer;
 	private ContextResultURIConverterFactory converterFactory = null;
+	private boolean rewriteHttpsOnly;
 
 	
 	public StringTransformer getTransformer() {
@@ -43,6 +44,16 @@ public class ArchivalURLJSStringTransformerReplayRenderer extends TextReplayRend
 
 	public void setTransformer(StringTransformer transformer) {
 		this.transformer = transformer;
+	}
+	
+
+	public boolean isRewriteHttpsOnly() {
+		return rewriteHttpsOnly;
+	}
+
+
+	public void setRewriteHttpsOnly(boolean rewriteHttpsOnly) {
+		this.rewriteHttpsOnly = rewriteHttpsOnly;
 	}
 
 
@@ -78,6 +89,8 @@ public class ArchivalURLJSStringTransformerReplayRenderer extends TextReplayRend
 		// set up the context:
 		ReplayParseContext context = 
 			new ReplayParseContext(fact,url,result.getCaptureTimestamp());
+		
+		context.setRewriteHttpsOnly(rewriteHttpsOnly);
 		
 		JSPExecutor jspExec = new JSPExecutor(uriConverter, httpRequest, 
 				httpResponse, wbRequest, results, result, resource);
