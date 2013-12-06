@@ -28,8 +28,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.httpclient.URIException;
-import org.archive.net.UURI;
-import org.archive.net.UURIFactory;
+import org.archive.url.UsableURI;
+import org.archive.url.UsableURIFactory;
 import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.util.ByteOp;
 
@@ -214,13 +214,13 @@ public class AggressiveUrlCanonicalizer implements UrlCanonicalizer {
 
 		// TODO: These next few lines look crazy -- need to be reworked.. This
 		// was the only easy way I could find to get the correct unescaping
-		// out of UURIs, possible a bug. Definitely needs some TLC in any case,
-		// as building UURIs is *not* a cheap operation.
+		// out of UsableURIs, possible a bug. Definitely needs some TLC in any case,
+		// as building UsableURIs is *not* a cheap operation.
 		
 		// unescape anything that can be:
-		UURI tmpURI = null;
+		UsableURI tmpURI = null;
 		try {
-			tmpURI = UURIFactory.getInstance(searchUrl);
+			tmpURI = UsableURIFactory.getInstance(searchUrl);
 		} catch (StringIndexOutOfBoundsException e) {
 			LOGGER.warning(e.getMessage() + ": " + searchUrl);
 			return searchUrl;
@@ -230,8 +230,8 @@ public class AggressiveUrlCanonicalizer implements UrlCanonicalizer {
 		}
 		tmpURI.setPath(tmpURI.getPath());
 		
-		// convert to UURI to perform required URI fixup:
-		UURI searchURI = UURIFactory.getInstance(tmpURI.getURI());
+		// convert to UsableURI to perform required URI fixup:
+		UsableURI searchURI = UsableURIFactory.getInstance(tmpURI.getURI());
 		
 		// replace ' ' with '+' (this is only to match Alexa's canonicalization)
 		String newPath = searchURI.getEscapedPath().replace("%20","+");

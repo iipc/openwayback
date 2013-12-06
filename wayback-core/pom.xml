@@ -34,20 +34,6 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.archive.heritrix</groupId>
-      <artifactId>heritrix-commons</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>org.archive.overlays</groupId>
-          <artifactId>archive-overlay-commons-httpclient</artifactId>
-        </exclusion> 
-        <exclusion>
-          <groupId>com.google.guava</groupId>
-          <artifactId>guava</artifactId>
-        </exclusion>              
-      </exclusions>
-    </dependency>
-    <dependency>
       <groupId>org.archive</groupId>
       <artifactId>ia-web-commons</artifactId>
     </dependency>
@@ -115,6 +101,11 @@
       <groupId>redis.clients</groupId>
       <artifactId>jedis</artifactId>
       <version>2.0.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sleepycat</groupId>
+      <artifactId>je</artifactId>
+      <version>4.1.6</version>
     </dependency>
     <dependency>
       <groupId>org.easymock</groupId>
