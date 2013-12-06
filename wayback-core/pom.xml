@@ -18,16 +18,6 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.archive.heritrix</groupId>
-      <artifactId>heritrix-commons</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>org.archive</groupId>
-          <artifactId>ia-web-commons</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>openwayback-cdx-server</artifactId>
       <classifier>classes</classifier>
@@ -43,13 +33,8 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-<<<<<<< HEAD
       <groupId>org.netpreserve.commons</groupId>
       <artifactId>commons-web</artifactId>
-=======
-      <groupId>org.archive</groupId>
-      <artifactId>ia-web-commons</artifactId>
->>>>>>> a1a86c09dd5bbcf9fb7aacb1bc4b28d0226b9c67
     </dependency>
     <!-- JWAT Dependencies -->
     <dependency>
