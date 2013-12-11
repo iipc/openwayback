@@ -3,11 +3,10 @@ package org.archive.wayback.archivalurl;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
 import java.net.URL;
 
-import org.archive.wayback.ResultURIConverter;
+import junit.framework.TestCase;
+
 import org.archive.wayback.replay.html.ReplayParseContext;
 import org.archive.wayback.util.htmllex.ContextAwareLexer;
 import org.htmlparser.Node;
@@ -15,24 +14,73 @@ import org.htmlparser.lexer.Lexer;
 import org.htmlparser.lexer.Page;
 import org.htmlparser.util.ParserException;
 
-import junit.framework.TestCase;
-
 public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
-	
-	
-	
 
-	public void testRewrite() throws Exception {
-		assertEquals("<html><a href=\"http://replay.archive.org/2001/http://www.example.com/foo.html\">foo</a></html>",doEndToEnd("<html><a href=\"/foo.html\">foo</a></html>"));
-		assertEquals("<html><a href=\"http://replay.archive.org/2001/http://www.example.com/foo.html\">foo</a></html>",doEndToEnd("<html><a href=\"foo.html\">foo</a></html>"));
-		assertEquals("<html><a href=\"javascript:doWin('http://replay.archive.org/2001/http://www.symphony.org')\">American Symphony Orchestra League</a></html>",doEndToEnd("<html><a href=\"javascript:doWin('http://www.symphony.org')\">American Symphony Orchestra League</a></html>"));
+	public void testAnchorHrefAbsolute() throws Exception {
+		assertEquals("<html><a href=\"http://replay.archive.org/2001/http://www.example.com/foo.html\">foo</a></html>",
+		        doEndToEnd("<html><a href=\"/foo.html\">foo</a></html>"));
+	}
+	public void testAnchorHrefRelative() throws Exception {
+		assertEquals("<html><a href=\"http://replay.archive.org/2001/http://www.example.com/foo.html\">foo</a></html>",
+		        doEndToEnd("<html><a href=\"foo.html\">foo</a></html>"));
+	}
+	public void testAnchorHrefAbsoluteInJavascript() throws Exception {
+		assertEquals("<html><a href=\"javascript:doWin('http://replay.archive.org/2001/http://www.symphony.org')\">American Symphony Orchestra League</a></html>",
+		        doEndToEnd("<html><a href=\"javascript:doWin('http://www.symphony.org')\">American Symphony Orchestra League</a></html>"));
+	}
+	
+	public void testStyleElementBackgroundUrl() throws Exception {
+	    final String input = "<html>" +
+	    		"<head>" +
+	    		"<style type=\"text/css\">" +
+	    		"#head{" +
+	    		"background:transparent url(/images/logo.jpg);" +
+	    		"}" +
+	    		"</style>" +
+	    		"</head>" +
+	    		"</html>";
+        final String expected = "<html>" +
+                "<head>" +
+                "<style type=\"text/css\">" +
+                "#head{" +
+                "background:transparent url(http://replay.archive.org/2001im_/http://www.example.com/images/logo.jpg);" +
+                "}" +
+                "</style>" +
+                "</head>" +
+                "</html>";
+	    assertEquals(expected, doEndToEnd(input));
+	}
+	
+	public void testStyleElementImportUrl() throws Exception {
+        final String input = "<html>" +
+                "<head>" +
+                "<style type=\"text/css\">" +
+                "@import \"style1.css\";\n" +
+                "@import \'style2.css\';\n" +
+                "@import 'http://archive.org/common.css';\n" +
+                "}" +
+                "</style>" +
+                "</head>" +
+                "</html>";
+        final String expected = "<html>" +
+                "<head>" +
+                "<style type=\"text/css\">" +
+                "@import \"http://replay.archive.org/2001cs_/http://www.example.com/style1.css\";\n" +
+                "@import 'http://replay.archive.org/2001cs_/http://www.example.com/style2.css\';\n" +
+                "@import 'http://replay.archive.org/2001cs_/http://archive.org/common.css';\n" +
+                "}" +
+                "</style>" +
+                "</head>" +
+                "</html>";
+        assertEquals(expected, doEndToEnd(input));
+	    
 	}
 	
 	public String doEndToEnd(String input) throws Exception {
-		String baseUrl = "http://www.example.com/";
-		String timestamp = "2001";
-		String outputCharset = "UTF-8";
-		String charSet = "UTF-8";
+		final String baseUrl = "http://www.example.com/";
+		final String timestamp = "2001";
+		final String outputCharset = "UTF-8";
+		final String charSet = "UTF-8";
 		
 		ByteArrayInputStream bais = new ByteArrayInputStream(input.getBytes(charSet));
 		
@@ -48,21 +96,14 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 					(ArchivalUrlResultURIConverter) uriConverter);
 
 		// The URL of the page, for resolving in-page relative URLs: 
-    	URL url = null;
-		try {
-			url = new URL(baseUrl);
-		} catch (MalformedURLException e1) {
-			// TODO: this shouldn't happen...
-			e1.printStackTrace();
-			throw new IOException(e1.getMessage());
-		}
+    	URL url = new URL(baseUrl);
 
 		// To make sure we get the length, we have to buffer it all up...
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
 		// set up the context:
-		ReplayParseContext context = 
-			new ReplayParseContext(fact,url,timestamp);
+        ReplayParseContext context = new ReplayParseContext(fact, url,
+                timestamp);
 		context.setOutputCharset(outputCharset);
 		context.setOutputStream(baos);
 		context.setJspExec(null);
