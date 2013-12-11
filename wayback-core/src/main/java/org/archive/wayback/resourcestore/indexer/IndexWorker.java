@@ -113,7 +113,7 @@ public class IndexWorker implements Shutdownable {
 						break;
 					}
 				}
-			} catch(IOException e) {
+			} catch(Exception e) {
 				LOGGER.severe("FAILED to index or upload (" + name + ")");
 				e.printStackTrace();
 			}
