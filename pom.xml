@@ -89,25 +89,15 @@
   </mailingLists>
 
   <repositories>
-  
-    <!-- Heritrix Commons from here: -->
+
+    <!-- For SleepyCat JE -->
     <repository>
-      <id>internetarchive</id>
-      <name>Internet Archive Maven Repository</name>
-      <url>http://builds.archive.org:8080/maven2</url>
+      <id>oracleReleases</id>
+      <name>Oracle Released Java Packages</name>
+      <url>http://download.oracle.com/maven</url>
       <layout>default</layout>
-      <releases>
-        <enabled>true</enabled>
-        <updatePolicy>daily</updatePolicy>
-        <checksumPolicy>warn</checksumPolicy>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-        <updatePolicy>daily</updatePolicy>
-        <checksumPolicy>warn</checksumPolicy>
-      </snapshots>
     </repository>
-    
+  
       <repository>
         <id>cloudera</id>
         <name>Cloudera Hadoop</name>
@@ -280,7 +270,7 @@
       <dependency>
         <groupId>org.netpreserve.commons</groupId>
         <artifactId>commons-web</artifactId>
-        <version>1.0.1-SNAPSHOT</version>
+        <version>1.1.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>org.netpreserve.openwayback.access-control</groupId>
