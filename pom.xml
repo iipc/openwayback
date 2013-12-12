@@ -1,328 +1,334 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
                              http://maven.apache.org/maven-v4_0_0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+	<modelVersion>4.0.0</modelVersion>
 
-  <parent>
-    <groupId>org.sonatype.oss</groupId>
-    <artifactId>oss-parent</artifactId>
-    <version>7</version>
-  </parent>
+	<parent>
+		<groupId>org.sonatype.oss</groupId>
+		<artifactId>oss-parent</artifactId>
+		<version>7</version>
+	</parent>
 
-  <groupId>org.netpreserve.openwayback</groupId>
-  <artifactId>openwayback</artifactId>
-  <packaging>pom</packaging>
-  <version>2.0.0.BETA.1-SNAPSHOT</version>
-  <name>OpenWayback</name>
+	<groupId>org.netpreserve.openwayback</groupId>
+	<artifactId>openwayback</artifactId>
+	<packaging>pom</packaging>
+	<version>2.0.0.BETA.1-SNAPSHOT</version>
+	<name>OpenWayback</name>
 
-  <modules>
-    <module>wayback-cdx-server</module>
-    <module>wayback-core</module>
-    <module>wayback-webapp</module>
-    <module>dist</module>
-  </modules>
+	<modules>
+		<module>wayback-cdx-server</module>
+		<module>wayback-core</module>
+		<module>wayback-webapp</module>
+		<module>dist</module>
+	</modules>
 
-  <properties>
-    <website.url>http://github.com/iipc/openwayback</website.url>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <org.springframework.version>3.0.6.RELEASE</org.springframework.version>
-  </properties>
+	<properties>
+		<website.url>http://github.com/iipc/openwayback</website.url>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<org.springframework.version>3.0.6.RELEASE</org.springframework.version>
+	</properties>
 
-  <description>
+	<description>
     OpenWayback is the open source project behind the Wayback Machine, and is supported by the members of the International Internet Preservation Consortium (IIPC).
   </description>
-  
-  <url>http://github.com/iipc/openwayback</url>
-  <inceptionYear>2005</inceptionYear>
 
-  <licenses>
-    <license>
-      <name>Apache License, Version 2.0</name>
-      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-      <distribution>repo</distribution>
-    </license>
-  </licenses>
+	<url>http://github.com/iipc/openwayback</url>
+	<inceptionYear>2005</inceptionYear>
 
-  <organization>
-    <name>IIPC</name>
-    <url>http://netpreserve.org/</url>
-  </organization>
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
 
-  <issueManagement>
-    <url>https://github.com/iipc/openwayback/issues</url>
-    <system>GitHub</system>
-  </issueManagement>
+	<organization>
+		<name>IIPC</name>
+		<url>http://netpreserve.org/</url>
+	</organization>
 
-  <ciManagement>
-    <system>travis-ci</system>
-    <url>https://travis-ci.org/iipc/openwayback</url>
-  </ciManagement>
-  
-  <mailingLists>
-    <mailingList>
-      <name>Archive Access ARC Tools Discussion List</name>
-      <subscribe>
+	<issueManagement>
+		<url>https://github.com/iipc/openwayback/issues</url>
+		<system>GitHub</system>
+	</issueManagement>
+
+	<ciManagement>
+		<system>travis-ci</system>
+		<url>https://travis-ci.org/iipc/openwayback</url>
+	</ciManagement>
+
+	<mailingLists>
+		<mailingList>
+			<name>Archive Access ARC Tools Discussion List</name>
+			<subscribe>
         http://lists.sourceforge.net/lists/listinfo/archive-access-discuss
       </subscribe>
-      <unsubscribe>
+			<unsubscribe>
         http://lists.sourceforge.net/lists/listinfo/archive-access-discuss
       </unsubscribe>
-      <post>archive-access-discuss</post>
-      <archive>
+			<post>archive-access-discuss</post>
+			<archive>
         http://sourceforge.net/mailarchive/forum.php?forum_name=archive-access-discuss
       </archive>
-    </mailingList>
-    <mailingList>
-      <name>Archive Access ARC Tools Commits</name>
-      <subscribe>
+		</mailingList>
+		<mailingList>
+			<name>Archive Access ARC Tools Commits</name>
+			<subscribe>
         https://lists.sourceforge.net/lists/listinfo/archive-access-cvs
       </subscribe>
-      <unsubscribe>
+			<unsubscribe>
         https://lists.sourceforge.net/lists/listinfo/archive-access-cvs
       </unsubscribe>
-      <post>archive-access-cvs</post>
-      <archive>
+			<post>archive-access-cvs</post>
+			<archive>
         http://sourceforge.net/mailarchive/forum.php?forum=archive-access-cvs
       </archive>
-    </mailingList>
-  </mailingLists>
+		</mailingList>
+	</mailingLists>
 
-  <repositories>
+	<repositories>
 
-    <!-- For SleepyCat JE -->
-    <repository>
-      <id>oracleReleases</id>
-      <name>Oracle Released Java Packages</name>
-      <url>http://download.oracle.com/maven</url>
-      <layout>default</layout>
-    </repository>
-  
-      <repository>
-        <id>cloudera</id>
-        <name>Cloudera Hadoop</name>
-        <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
-        <layout>default</layout>
-        <releases>
-          <enabled>true</enabled>
-          <updatePolicy>daily</updatePolicy>
-          <checksumPolicy>warn</checksumPolicy>
-        </releases>
-        <snapshots>
-          <enabled>true</enabled>
-          <updatePolicy>daily</updatePolicy>
-          <checksumPolicy>warn</checksumPolicy>
-        </snapshots>
-      </repository>
-          
-  </repositories>
+		<!-- For SleepyCat JE -->
+		<repository>
+			<id>oracleReleases</id>
+			<name>Oracle Released Java Packages</name>
+			<url>http://download.oracle.com/maven</url>
+			<layout>default</layout>
+		</repository>
 
-  <scm>
-    <connection>
+		<repository>
+			<id>oss.sonatype.org</id>
+			<name>OSS Sonatype</name>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<url>https://oss.sonatype.org/content/repositories/releases/</url>
+		</repository>
+
+		<repository>
+			<id>cloudera</id>
+			<name>Cloudera Hadoop</name>
+			<url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
+			<layout>default</layout>
+			<releases>
+				<enabled>true</enabled>
+				<updatePolicy>daily</updatePolicy>
+				<checksumPolicy>warn</checksumPolicy>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+				<updatePolicy>daily</updatePolicy>
+				<checksumPolicy>warn</checksumPolicy>
+			</snapshots>
+		</repository>
+
+	</repositories>
+
+	<scm>
+		<connection>
       scm:git:git://github.com/iipc/openwayback.git
     </connection>
-    <tag>HEAD</tag>
-    <url>
+		<tag>HEAD</tag>
+		<url>
       http://github.com/iipc/openwayback
     </url>
-  </scm>
+	</scm>
 
-  <prerequisites>
-    <maven>2.1</maven>
-  </prerequisites>
-
-
-  <build>
-    <plugins>
-      <plugin>
-        <!-- install source jars to maven repo
-             http://maven.apache.org/plugins/maven-source-plugin/usage.html -->
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-source-plugin</artifactId>
-        <version>2.1.2</version>
-        <executions>
-          <execution>
-            <id>attach-sources</id>
-            <phase>verify</phase>
-            <goals>
-              <goal>jar-no-fork</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-compiler-plugin</artifactId>
-          <configuration>
-            <source>1.6</source>
-            <target>1.6</target>
-          </configuration>
-        </plugin>
-        <plugin>
-          <groupId>org.mortbay.jetty</groupId>
-          <artifactId>maven-jetty-plugin</artifactId>
-          <version>6.1.22</version>
-        </plugin>
-      </plugins>
-    </pluginManagement>
-  </build>
-
-  <developers>
-     <developer>
-      <name>Brad Tofel</name>
-      <id>bradtofel</id>
-      <email>brad at archive dot org</email>
-      <organization>Internet Archive</organization>
-      <url>http://www.archive.org</url>
-      <timezone>-8</timezone>
-    </developer>
-    <developer>
-      <name>Ilya Kreymer</name>
-      <id>ikreymer</id>
-      <email>ilya at archive dot org</email>
-      <organization>Internet Archive</organization>
-      <url>http://www.archive.org</url>
-      <timezone>-8</timezone>
-    </developer>
-    <developer>
-      <name>Andy Jackson</name>
-      <id>anjackson</id>
-      <email>andrew dot jackson at bl dot uk</email>
-      <organization>The UK Web Archive</organization>
-      <url>http://www.webarchive.org.uk</url>
-      <timezone>0</timezone>
-    </developer>
- </developers>
-
-  <reporting>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
-        <version>2.9.1</version>
-        <configuration>
-          <code>javadoc:aggregate</code>
-          <code>javadoc:test-aggregate</code>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-project-info-reports-plugin</artifactId>
-        <version>2.1</version>
-        <reportSets>
-          <reportSet>
-            <reports>
-              <report>dependencies</report>
-              <report>project-team</report>
-              <report>mailing-list</report>
-              <report>cim</report>
-              <report>issue-tracking</report>
-              <report>license</report>
-              <report>scm</report>
-            </reports>
-          </reportSet>
-        </reportSets>
-      </plugin>
-    </plugins>
-  </reporting>
-
-<!--
-  Finally, the dependencyManagement - all version coordinates for all
-  dependencies should be specified here, allowing child modules to specify
-  only groupId and artifactId coordinates.
--->
-
-  <dependencyManagement>
-    <dependencies>
-    
-      <!--
-        Link all Wayback child module version dependencies to the parent POM
-        version.
-      -->
-      <dependency>
-        <groupId>${project.groupId}</groupId>
-        <artifactId>openwayback-cdx-server</artifactId>
-        <version>${project.version}</version>
-        <type>jar</type>
-        <classifier>classes</classifier>
-      </dependency>
-      <dependency>
-        <groupId>${project.groupId}</groupId>
-        <artifactId>openwayback-core</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>${project.groupId}</groupId>
-        <artifactId>openwayback-webapp</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      
-      <dependency>
-        <groupId>javax.servlet</groupId>
-        <artifactId>servlet-api</artifactId>
-        <version>2.5</version>
-        <scope>provided</scope>
-      </dependency>
-           
-      <dependency>
-        <groupId>org.netpreserve.commons</groupId>
-        <artifactId>commons-web</artifactId>
-        <version>1.1.0</version>
-      </dependency>
-      <dependency>
-        <groupId>org.netpreserve.openwayback.access-control</groupId>
-        <artifactId>access-control-core</artifactId>
-        <version>1.0.0</version>
-      </dependency>
-      <dependency>
-        <groupId>com.googlecode.juniversalchardet</groupId>
-        <artifactId>juniversalchardet</artifactId>
-        <version>1.0.3</version>
-      </dependency>
-      <dependency>
-        <groupId>org.springframework</groupId>
-        <artifactId>spring-core</artifactId>
-        <version>${org.springframework.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.springframework</groupId>
-        <artifactId>spring-beans</artifactId>
-        <version>${org.springframework.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.beanshell</groupId>
-        <artifactId>bsh</artifactId>
-        <version>2.0b4</version>
-      </dependency>
-      <dependency>
-        <groupId>org.htmlparser</groupId>
-        <artifactId>htmlparser</artifactId>
-        <version>1.6</version>
-      </dependency>
-      <dependency>
-        <groupId>com.flagstone</groupId>
-        <artifactId>transform</artifactId>
-        <version>3.0.2</version>
-      </dependency>
-      <dependency>
-        <artifactId>hadoop-core</artifactId>
-        <groupId>org.apache.hadoop</groupId>
-        <version>0.20.2-cdh3u4</version>
-      </dependency>
+	<prerequisites>
+		<maven>2.1</maven>
+	</prerequisites>
 
 
-      <dependency>
-        <groupId>junit</groupId>
-        <artifactId>junit</artifactId>
-        <version>3.8.1</version>
-        <scope>test</scope>
-      </dependency>
+	<build>
+		<plugins>
+			<plugin>
+				<!-- install source jars to maven repo http://maven.apache.org/plugins/maven-source-plugin/usage.html -->
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>2.1.2</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>jar-no-fork</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<configuration>
+						<source>1.6</source>
+						<target>1.6</target>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.mortbay.jetty</groupId>
+					<artifactId>maven-jetty-plugin</artifactId>
+					<version>6.1.22</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
 
-    </dependencies>
-  </dependencyManagement>
+	<developers>
+		<developer>
+			<name>Brad Tofel</name>
+			<id>bradtofel</id>
+			<email>brad at archive dot org</email>
+			<organization>Internet Archive</organization>
+			<url>http://www.archive.org</url>
+			<timezone>-8</timezone>
+		</developer>
+		<developer>
+			<name>Ilya Kreymer</name>
+			<id>ikreymer</id>
+			<email>ilya at archive dot org</email>
+			<organization>Internet Archive</organization>
+			<url>http://www.archive.org</url>
+			<timezone>-8</timezone>
+		</developer>
+		<developer>
+			<name>Andy Jackson</name>
+			<id>anjackson</id>
+			<email>andrew dot jackson at bl dot uk</email>
+			<organization>The UK Web Archive</organization>
+			<url>http://www.webarchive.org.uk</url>
+			<timezone>0</timezone>
+		</developer>
+	</developers>
+
+	<reporting>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.9.1</version>
+				<configuration>
+					<code>javadoc:aggregate</code>
+					<code>javadoc:test-aggregate</code>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-project-info-reports-plugin</artifactId>
+				<version>2.1</version>
+				<reportSets>
+					<reportSet>
+						<reports>
+							<report>dependencies</report>
+							<report>project-team</report>
+							<report>mailing-list</report>
+							<report>cim</report>
+							<report>issue-tracking</report>
+							<report>license</report>
+							<report>scm</report>
+						</reports>
+					</reportSet>
+				</reportSets>
+			</plugin>
+		</plugins>
+	</reporting>
+
+	<!-- Finally, the dependencyManagement - all version coordinates for all 
+		dependencies should be specified here, allowing child modules to specify 
+		only groupId and artifactId coordinates. -->
+
+	<dependencyManagement>
+		<dependencies>
+
+			<!-- Link all Wayback child module version dependencies to the parent 
+				POM version. -->
+			<dependency>
+				<groupId>${project.groupId}</groupId>
+				<artifactId>openwayback-cdx-server</artifactId>
+				<version>${project.version}</version>
+				<type>jar</type>
+				<classifier>classes</classifier>
+			</dependency>
+			<dependency>
+				<groupId>${project.groupId}</groupId>
+				<artifactId>openwayback-core</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>${project.groupId}</groupId>
+				<artifactId>openwayback-webapp</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>javax.servlet</groupId>
+				<artifactId>servlet-api</artifactId>
+				<version>2.5</version>
+				<scope>provided</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>org.netpreserve.commons</groupId>
+				<artifactId>commons-web</artifactId>
+				<version>1.1.0</version>
+			</dependency>
+			<dependency>
+				<groupId>org.netpreserve.openwayback.access-control</groupId>
+				<artifactId>access-control-core</artifactId>
+				<version>1.0.0</version>
+			</dependency>
+			<dependency>
+				<groupId>com.googlecode.juniversalchardet</groupId>
+				<artifactId>juniversalchardet</artifactId>
+				<version>1.0.3</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-core</artifactId>
+				<version>${org.springframework.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-beans</artifactId>
+				<version>${org.springframework.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.beanshell</groupId>
+				<artifactId>bsh</artifactId>
+				<version>2.0b4</version>
+			</dependency>
+			<dependency>
+				<groupId>org.htmlparser</groupId>
+				<artifactId>htmlparser</artifactId>
+				<version>1.6</version>
+			</dependency>
+			<dependency>
+				<groupId>com.flagstone</groupId>
+				<artifactId>transform</artifactId>
+				<version>3.0.2</version>
+			</dependency>
+			<dependency>
+				<artifactId>hadoop-core</artifactId>
+				<groupId>org.apache.hadoop</groupId>
+				<version>0.20.2-cdh3u4</version>
+			</dependency>
+
+
+			<dependency>
+				<groupId>junit</groupId>
+				<artifactId>junit</artifactId>
+				<version>3.8.1</version>
+				<scope>test</scope>
+			</dependency>
+
+		</dependencies>
+	</dependencyManagement>
 
 
 
