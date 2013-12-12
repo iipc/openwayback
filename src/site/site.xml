@@ -1,21 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="Wayback">
   <bannerLeft>
-    <name>Wayback</name>
+    <name>OpenWayback</name>
     <src>images/ia_logo.gif</src>
-    <href>http://archive-access.sourceforge.net/projects/wayback/</href>
+    <href>http://iipc.github.io/openwayback/</href>
   </bannerLeft>
   <bannerRight>
-    <name>Wayback</name>
+    <name>OpenWayback</name>
   </bannerRight>
+  <skin>
+    <groupId>org.apache.maven.skins</groupId>
+    <artifactId>maven-fluido-skin</artifactId>
+    <version>1.3.0</version>
+  </skin>
   <body>
 
     <links>
-      <item name="Sourceforge" href="http://www.sourceforge.net"/>
-      <item name="Heritrix" href="http://crawler.archive.org"/>
-      <item name="NutchWAX" href="http://archive-access.sourceforge.net/projects/nutchwax/"/>
-      <item name="Archive Access" href="http://archive-access.sourceforge.net"/>
-      <item name="Internet Archive" href="http://www.archive.org"/>
+      <item name="GitHub" href="https://github.com/iipc/openwayback"/>
       <item name="Home" href="index.html"/>
     </links>
 
