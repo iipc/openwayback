@@ -76,7 +76,33 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 	    
 	}
 	
-	public String doEndToEnd(String input) throws Exception {
+    public void testStyleElementFontfaceSrcUrl() throws Exception {
+        final String input = "<html>" +
+                "<head>" +
+                "<style type=\"text/css\">" +
+                "@font-face {" +
+                "font-family: 'TestFont" +
+                "src: local('TestFont')" +
+                "src: url(/fonts/TestFont.otf)" +
+                "}" +
+                "</style>" +
+                "</head>" +
+                "</html>";
+        final String expected = "<html>" +
+                "<head>" +
+                "<style type=\"text/css\">" +
+                "@font-face {" +
+                "font-family: 'TestFont" +
+                "src: local('TestFont')" +
+                "src: url(http://replay.archive.org/2001/http://www.example.com/fonts/TestFont.otf)" +
+                "}" +
+                "</style>" +
+                "</head>" +
+                "</html>";
+        assertEquals(expected, doEndToEnd(input));
+    }
+
+    public String doEndToEnd(String input) throws Exception {
 		final String baseUrl = "http://www.example.com/";
 		final String timestamp = "2001";
 		final String outputCharset = "UTF-8";
@@ -85,7 +111,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 		ByteArrayInputStream bais = new ByteArrayInputStream(input.getBytes(charSet));
 		
 		FastArchivalUrlReplayParseEventHandler delegator = new FastArchivalUrlReplayParseEventHandler();
-		delegator.setCommentJsp(null);
+		delegator.setEndJsp(null);
 		delegator.setJspInsertPath(null);
 		
 		ArchivalUrlResultURIConverter uriConverter = new ArchivalUrlResultURIConverter();
@@ -114,16 +140,12 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 		Lexer lexer = new Lexer(lexPage);
 		Lexer.STRICT_REMARKS = false;
     	ContextAwareLexer lex = new ContextAwareLexer(lexer, context);
+
     	Node node;
-    	try {
-			while((node = lex.nextNode()) != null) {
-				delegator.handleNode(context, node);
-			}
-			delegator.handleParseComplete(context);
-		} catch (ParserException e) {
-			e.printStackTrace();
-			throw new IOException(e.getMessage());
-		}
+    	while((node = lex.nextNode()) != null) {
+    	    delegator.handleNode(context, node);
+    	}
+    	delegator.handleParseComplete(context);
 
 		// At this point, baos contains the utf-8 encoded bytes of our result:
 		return new String(baos.toByteArray(),outputCharset);
