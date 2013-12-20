@@ -77,6 +77,9 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 	}
 	
     public void testStyleElementFontfaceSrcUrl() throws Exception {
+        // font data is not an image technically, but it'd require more elaborate
+        // pattern match to differentiate a context of url function. use im_ for
+        // font data for now.
         final String input = "<html>" +
                 "<head>" +
                 "<style type=\"text/css\">" +
@@ -94,7 +97,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
                 "@font-face {" +
                 "font-family: 'TestFont" +
                 "src: local('TestFont')" +
-                "src: url(http://replay.archive.org/2001/http://www.example.com/fonts/TestFont.otf)" +
+                "src: url(http://replay.archive.org/2001im_/http://www.example.com/fonts/TestFont.otf)" +
                 "}" +
                 "</style>" +
                 "</head>" +
