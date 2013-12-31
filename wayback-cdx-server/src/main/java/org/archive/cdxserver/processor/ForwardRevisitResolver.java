@@ -23,13 +23,15 @@ public class ForwardRevisitResolver extends RevisitResolver {
     	
 	    CDXLine origLine = null;
 	    
-    	if (!isDupe) {
+    	boolean currIsRevisit = isRevisit(line);
+    	
+    	if ((origLineDupeTrack.line == null) && !currIsRevisit) {
 	    	origLineDupeTrack.line = line;
-	    } else {
+	    } else {	    	
 	    	origLine = origLineDupeTrack.line;
 	    }
         
-        if ((origLine != null) && isRevisit(line)) {
+        if ((origLine != null) && currIsRevisit) {
         	this.fillRevisit(line, origLine);
         } else {
         	this.fillBlankOrig(line);
