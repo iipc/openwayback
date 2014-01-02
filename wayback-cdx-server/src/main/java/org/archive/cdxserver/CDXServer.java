@@ -50,7 +50,7 @@ public class CDXServer extends BaseCDXServer {
 	
 	protected CDXLineFactory cdxLineFactory;
 	//protected FieldSplitFormat defaultCdxFormat;
-	protected FieldSplitFormat publicCdxFields;
+	//protected FieldSplitFormat publicCdxFields;
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
@@ -61,9 +61,9 @@ public class CDXServer extends BaseCDXServer {
 		cdxLineFactory = new StandardCDXLineFactory(cdxFormat);
 		//defaultCdxFormat = cdxLineFactory.getParseFormat();
 		
-		if (authChecker != null && authChecker.getPublicCdxFields() != null) {
-			publicCdxFields = new FieldSplitFormat(authChecker.getPublicCdxFields());
-		}
+		//if (authChecker != null && authChecker.getPublicCdxFields() != null) {
+			//publicCdxFields = new FieldSplitFormat(authChecker.getPublicCdxFields());
+		//}
 		
 		if (defaultParams == null) {
 			defaultParams = new ZipNumParams(maxPageSize, maxPageSize, 0, false);
@@ -442,7 +442,7 @@ public class CDXServer extends BaseCDXServer {
 		FieldSplitFormat outputFields = null;
 		
 		if (!authChecker.isAllCdxFieldAccessAllowed(authToken)) {
-			outputFields = this.publicCdxFields;
+			outputFields = this.authChecker.getPublicCdxFormat();
 		}
 		
 		if (!query.fl.isEmpty()) {
