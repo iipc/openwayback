@@ -26,8 +26,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.archive.net.UURI;
-import org.archive.net.UURIFactory;
+import org.archive.url.UsableURI;
+import org.archive.url.UsableURIFactory;
 import org.archive.util.ArchiveUtils;
 import org.archive.wayback.util.Timestamp;
 import org.archive.wayback.util.url.UrlOperations;
@@ -52,7 +52,7 @@ public class ServerRelativeArchivalRedirect extends AbstractRequestHandler {
 		// hope that it's a server relative request, with a valid referrer:
 		String referer = httpRequest.getHeader("Referer");
 		if(referer != null) {
-			UURI uri = UURIFactory.getInstance(referer);
+			UsableURI uri = UsableURIFactory.getInstance(referer);
 			
 			// Check that the Referer is our current wayback path
 			// before attempting to use referer as base archival url
@@ -129,7 +129,7 @@ public class ServerRelativeArchivalRedirect extends AbstractRequestHandler {
 		String referer = httpRequest.getHeader("Referer");
 		if(referer != null) {
 			LOGGER.fine("referer:" + referer);
-			UURI uri = UURIFactory.getInstance(referer);
+			UsableURI uri = UsableURIFactory.getInstance(referer);
 			String path = uri.getPath();
 
 			String remainder = path.substring(1);

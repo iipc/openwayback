@@ -27,8 +27,8 @@ import java.util.logging.Logger;
 
 import org.apache.commons.httpclient.URIException;
 import org.apache.commons.lang.StringEscapeUtils;
-import org.archive.net.UURI;
-import org.archive.net.UURIFactory;
+import org.archive.url.UsableURI;
+import org.archive.url.UsableURIFactory;
 import org.archive.wayback.core.CaptureSearchResult;
 /**
  * Class which tracks the context and state involved with parsing an HTML
@@ -48,7 +48,7 @@ public class ParseContext {
 	private static final Logger LOGGER = Logger.getLogger(
 			ParseContext.class.getName());
 
-	protected UURI baseUrl = null;
+	protected UsableURI baseUrl = null;
 
 	private boolean inCSS = false;
 	private boolean inJS = false;
@@ -89,7 +89,7 @@ public class ParseContext {
 	 */
 	public void setBaseUrl(URL url) {
 		try {
-			baseUrl = UURIFactory.getInstance(url.toExternalForm());
+			baseUrl = UsableURIFactory.getInstance(url.toExternalForm());
 		} catch (URIException e) {
 			e.printStackTrace();
 		}
@@ -118,7 +118,7 @@ public class ParseContext {
 		}
 		
 		try {
-			return UURIFactory.getInstance(baseUrl, url).toString() + frag;
+			return UsableURIFactory.getInstance(baseUrl, url).toString() + frag;
 		} catch (URIException e) {
 			LOGGER.warning("FAILED RESOLVE: base(" + baseUrl + ") frag(" + url +
 					") error(" + e.getMessage() + ")");

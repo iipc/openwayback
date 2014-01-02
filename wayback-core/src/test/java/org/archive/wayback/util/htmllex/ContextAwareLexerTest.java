@@ -24,8 +24,6 @@ import java.net.URL;
 import java.util.ArrayList;
 
 import org.apache.commons.lang.StringEscapeUtils;
-import org.archive.net.UURI;
-import org.archive.net.UURIFactory;
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.archivalurl.FastArchivalUrlReplayParseEventHandler;
 import org.archive.wayback.replay.html.ContextResultURIConverterFactory;

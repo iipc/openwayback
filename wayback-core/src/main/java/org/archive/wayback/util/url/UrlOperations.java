@@ -24,8 +24,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.httpclient.URIException;
-import org.archive.net.UURI;
-import org.archive.net.UURIFactory;
+import org.archive.url.UsableURI;
+import org.archive.url.UsableURIFactory;
 import org.archive.wayback.archivalurl.ArchivalUrl;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.webapp.AccessPoint;
@@ -168,7 +168,7 @@ public class UrlOperations {
 	 * @param url the URL, possibly relative, to make absolute.
 	 * @return url resolved against baseUrl, unless it is absolute already, and
 	 * further transformed by whatever escaping normally takes place with a 
-	 * UURI.
+	 * UsableURI.
 	 * In case of error, return the defaultValue
 	 */
 	public static String resolveUrl(String baseUrl, String url, String defaultValue) {
@@ -176,7 +176,7 @@ public class UrlOperations {
 		for(final String scheme : ALL_SCHEMES) {
 			if(url.startsWith(scheme)) {
 				try {
-					return UURIFactory.getInstance(url).getEscapedURI();
+					return UsableURIFactory.getInstance(url).getEscapedURI();
 				} catch (URIException e) {
 					LOGGER.warning(e.getLocalizedMessage() + ": " + url);
 					// can't let a space exist... send back close to whatever came
@@ -185,11 +185,11 @@ public class UrlOperations {
 				}
 			}
 		}
-		UURI absBaseURI;
-		UURI resolvedURI = null;
+		UsableURI absBaseURI;
+		UsableURI resolvedURI = null;
 		try {
-			absBaseURI = UURIFactory.getInstance(baseUrl);
-			resolvedURI = UURIFactory.getInstance(absBaseURI, url);
+			absBaseURI = UsableURIFactory.getInstance(baseUrl);
+			resolvedURI = UsableURIFactory.getInstance(absBaseURI, url);
 		} catch (URIException e) {
 			LOGGER.warning(e.getLocalizedMessage() + ": " + url);
 			return defaultValue;
@@ -379,7 +379,7 @@ public class UrlOperations {
 	public static String getUrlParentDir(String url) {
 		
 		try {
-			UURI uri = UURIFactory.getInstance(url);
+			UsableURI uri = UsableURIFactory.getInstance(url);
 			String path = uri.getPath();
 			if(path.length() > 1) {
 				int startIdx = path.length()-1;
