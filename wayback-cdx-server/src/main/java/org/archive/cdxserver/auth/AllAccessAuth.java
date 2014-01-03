@@ -1,6 +1,7 @@
 package org.archive.cdxserver.auth;
 
 import org.archive.cdxserver.filter.CDXAccessFilter;
+import org.archive.format.cdx.FieldSplitFormat;
 
 public class AllAccessAuth implements AuthChecker {
 
@@ -16,6 +17,11 @@ public class AllAccessAuth implements AuthChecker {
 
 	@Override
     public String getPublicCdxFields() {
+		return null;
+    }
+	
+	@Override
+    public FieldSplitFormat getPublicCdxFormat() {
 		return null;
     }
 

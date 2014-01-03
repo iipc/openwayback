@@ -2,6 +2,8 @@ package org.archive.cdxserver.auth;
 
 import java.util.List;
 
+import org.archive.format.cdx.FieldSplitFormat;
+
 /**
  * Simple checking of permissions for cdx server actions Permissions include:
  * -Ability to see blocked urls -Ability to see full cdx line
@@ -13,7 +15,8 @@ import java.util.List;
  */
 public abstract class PrivTokenAuthChecker implements AuthChecker 
 {	
-	protected String publicCdxFields;
+	protected String publicCdxFields = null;
+	protected FieldSplitFormat publicCdxFormat = null;
 
 	protected List<String> allUrlAccessTokens;
 	protected List<String> ignoreRobotsAccessTokens;
@@ -49,12 +52,20 @@ public abstract class PrivTokenAuthChecker implements AuthChecker
 		return auth.cachedAllCdxAllow;
 	}
 
+	@Override
 	public String getPublicCdxFields() {
 		return publicCdxFields;
+	}
+	
+	@Override
+	public FieldSplitFormat getPublicCdxFormat()
+	{
+		return publicCdxFormat;
 	}
 
 	public void setPublicCdxFields(String publicCdxFields) {
 		this.publicCdxFields = publicCdxFields;
+		this.publicCdxFormat = new FieldSplitFormat(publicCdxFields);
 	}
 
 	public List<String> getAllUrlAccessTokens() {
