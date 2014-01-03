@@ -75,7 +75,7 @@ public class CDXServer extends BaseCDXServer {
 	protected int maxPageSize = 1;
 	protected int queryMaxLimit = Integer.MAX_VALUE;
 	
-	protected String noCollapsePrefix = null;
+	protected String[] noCollapsePrefix = null;
 	
 	protected ZipNumParams defaultParams;
 
@@ -119,11 +119,11 @@ public class CDXServer extends BaseCDXServer {
 		this.queryMaxLimit = queryMaxLimit;
 	}
 
-	public String getNoCollapsePrefix() {
+	public String[] getNoCollapsePrefix() {
 		return noCollapsePrefix;
 	}
 
-	public void setNoCollapsePrefix(String noCollapsePrefix) {
+	public void setNoCollapsePrefix(String[] noCollapsePrefix) {
 		this.noCollapsePrefix = noCollapsePrefix;
 	}
 

@@ -13,9 +13,9 @@ public class DupeTimestampBestStatusFilter extends WrappedProcessor {
 	protected int bestHttpCode = WORST_HTTP_CODE;
 	protected int timestampDedupLength;
 	
-	protected String noCollapsePrefix;
+	protected String[] noCollapsePrefix;
 	
-	public DupeTimestampBestStatusFilter(BaseProcessor output, int timestampDedupLength, String noCollapsePrefix)
+	public DupeTimestampBestStatusFilter(BaseProcessor output, int timestampDedupLength, String[] noCollapsePrefix)
 	{
 		super(output);
 		this.timestampDedupLength = timestampDedupLength;
@@ -39,8 +39,12 @@ public class DupeTimestampBestStatusFilter extends WrappedProcessor {
 		}
 		
 		// If starts with special no collapse prefix, then always include
-		if ((noCollapsePrefix != null) && line.getFilename().startsWith(noCollapsePrefix)) {
-			return true;
+		if (noCollapsePrefix != null) {
+			for (String prefix : noCollapsePrefix) {
+				if (line.getFilename().startsWith(prefix)) {
+					return true;
+				}
+			}
 		}
 		
 		String timestamp = line.getTimestamp();
