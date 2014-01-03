@@ -256,11 +256,11 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 			if (wbRequest.isTimestampSearchKey()) {		
 				query.setClosest(wbRequest.getReplayTimestamp());
 			}
-		} else {
-			if (timestampDedupLength > 0) {
-				//query.setCollapse(new String[]{"timestamp:" + timestampDedupLength});
-				query.setCollapseTime(timestampDedupLength);
-			}
+		}
+		
+		if (timestampDedupLength > 0) {
+			//query.setCollapse(new String[]{"timestamp:" + timestampDedupLength});
+			query.setCollapseTime(timestampDedupLength);
 		}
 		
 		query.setFilter(new String[]{statusFilter});
