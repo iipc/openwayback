@@ -761,6 +761,9 @@ public class AccessPointTest extends TestCase {
     // memento headers here.
 
     public void testMemento_replay_exactCapture() throws Exception {
+		// Setting default locale to something else than english to be sure date-formatting is working across locales.
+		Locale.setDefault(Locale.FRANCE);
+		
         final String AGGREGATION_PREFIX = "http://web.archive.org";
         
         cut.setEnableMemento(true);

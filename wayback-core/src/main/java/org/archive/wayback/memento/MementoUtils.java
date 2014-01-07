@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Properties;
 
 import javax.servlet.http.HttpServletResponse;
@@ -26,9 +27,9 @@ public class MementoUtils implements MementoConstants {
 	public final static SimpleDateFormat DATE_FORMAT_14_FORMATTER;
 
 	static {
-		HTTP_LINK_DATE_FORMATTER = new SimpleDateFormat(HTTP_LINK_DATE_FORMAT);
+		HTTP_LINK_DATE_FORMATTER = new SimpleDateFormat(HTTP_LINK_DATE_FORMAT, Locale.US);
 		HTTP_LINK_DATE_FORMATTER.setTimeZone(GMT_TZ);
-		DATE_FORMAT_14_FORMATTER = new SimpleDateFormat(DATE_FORMAT_14);
+		DATE_FORMAT_14_FORMATTER = new SimpleDateFormat(DATE_FORMAT_14, Locale.US);
 		DATE_FORMAT_14_FORMATTER.setTimeZone(GMT_TZ);
 	}
 	
@@ -270,9 +271,9 @@ public class MementoUtils implements MementoConstants {
 //	}
 
 	public static final SimpleDateFormat ACCEPT_DATE_FORMATS[] = {
-			new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss Z"),
-			new SimpleDateFormat("E, dd MMM yyyy Z"),
-			new SimpleDateFormat("E, dd MMM yyyy") };
+			new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss Z", Locale.US),
+			new SimpleDateFormat("E, dd MMM yyyy Z", Locale.US),
+			new SimpleDateFormat("E, dd MMM yyyy", Locale.US) };
 
 	public static Date parseAcceptDateTimeHeader(String datespec) {
 		for (SimpleDateFormat format : ACCEPT_DATE_FORMATS) {
