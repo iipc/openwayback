@@ -128,15 +128,11 @@
 
 	</repositories>
 
-	<scm>
-		<connection>
-      scm:git:git://github.com/iipc/openwayback.git
-    </connection>
-		<tag>HEAD</tag>
-		<url>
-      http://github.com/iipc/openwayback
-    </url>
-	</scm>
+        <scm>
+                <connection>scm:git:git@github.com:iipc/iipc-web-commons.git</connection>
+                <developerConnection>scm:git:git@github.com:iipc/iipc-web-commons.git</developerConnection>
+                <url>git@github.com:iipc/iipc-web-commons.git</url>
+        </scm>
 
 	<prerequisites>
 		<maven>2.1</maven>
