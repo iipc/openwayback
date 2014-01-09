@@ -129,9 +129,9 @@
 	</repositories>
 
         <scm>
-                <connection>scm:git:git@github.com:iipc/iipc-web-commons.git</connection>
-                <developerConnection>scm:git:git@github.com:iipc/iipc-web-commons.git</developerConnection>
-                <url>git@github.com:iipc/iipc-web-commons.git</url>
+                <connection>scm:git:git@github.com:iipc/openwayback.git</connection>
+                <developerConnection>scm:git:git@github.com:iipc/openwayback.git</developerConnection>
+                <url>git@github.com:iipc/openwayback.git</url>
         </scm>
 
 	<prerequisites>
