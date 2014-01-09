@@ -275,6 +275,13 @@ public class TextDocument {
 	/**
 	 * @param toInsert
 	 */	
+	public void insertAtEndOfDocument( String toInsert ) {
+		sb.append( "\n" + toInsert );
+	}
+
+	/**
+	 * @param toInsert
+	 */	
 	public void insertAtStartOfHead(String toInsert) {
 		int insertPoint = TagMagix.getEndOfFirstTag(sb,"head");
 		if (-1 == insertPoint) {
