@@ -40,6 +40,10 @@ implements StringTransformer {
 	 * @see org.archive.wayback.replay.html.StringTransformer#transform(org.archive.wayback.replay.html.ReplayParseContext, java.lang.String)
 	 */
 	public String transform(ReplayParseContext context, String input) {
+	    if (!context.isRewriteSupported(input)) {
+	    	return input;
+	    }
+	    
 		/*
 		 <META 
           HTTP-EQUIV="Refresh"

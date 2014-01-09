@@ -12,7 +12,8 @@ import java.util.logging.Logger;
 
 import org.archive.wayback.accesscontrol.robotstxt.redis.RedisRobotsLogic.KeyRedisValue;
 import org.archive.wayback.exception.LiveWebCacheUnavailableException;
-import org.archive.wayback.liveweb.RemoteLiveWebCache;
+import org.archive.wayback.liveweb.LiveRobotsNoCache;
+import org.archive.wayback.webapp.PerfStats;
 
 public class RedisRefresher extends SimpleRedisRobotsCache {
 	
@@ -45,11 +46,12 @@ public class RedisRefresher extends SimpleRedisRobotsCache {
 		}
 		
 		// Init Live Web
-		RemoteLiveWebCache liveweb = new RemoteLiveWebCache();
+		LiveRobotsNoCache liveweb = new LiveRobotsNoCache();
+		liveweb.setMaxRobotsSize(Integer.parseInt(props.getProperty("liveweb.maxRobotsSize", "512000")));
 		liveweb.setMaxHostConnections(Integer.parseInt(props.getProperty("liveweb.maxHostConn", "500")));
 		int maxTotalConn = Integer.parseInt(props.getProperty("liveweb.maxTotalConn", "500"));
 		liveweb.setMaxTotalConnections(maxTotalConn);
-		liveweb.setProxyHostPort(props.getProperty("liveweb.proxyHostPort"));
+		//liveweb.setProxyHostPort(props.getProperty("liveweb.proxyHostPort"));
 		liveweb.setConnectionTimeoutMS(Integer.parseInt(props.getProperty("liveweb.timeout", "10000")));
 		liveweb.setConnectionTimeoutMS(Integer.parseInt(props.getProperty("liveweb.timeout", "10000")));
 		
@@ -69,6 +71,8 @@ public class RedisRefresher extends SimpleRedisRobotsCache {
 		refresher.setRedisConnMan(redisConnMan);
 		refresher.setRefreshService(refreshService);
 		refresher.setGzipRobots(Boolean.parseBoolean(props.getProperty("redis.gzipRobots", "false")));
+		
+		Logger.getLogger(PerfStats.class.getName()).setLevel(Level.OFF);
 		
 		refresher.processRedisUpdateQueue();
 	}

@@ -74,6 +74,10 @@ public class SearchResult {
 		ensureMap();
 		put(key, value);
 	}
+	public String getCustom(String key) {
+		ensureMap();
+		return get(key);
+	}
 	protected boolean getBoolean(String key) {
 		String value = get(key);
 		return (value != null && value.equals(RESULT_TRUE_VALUE));

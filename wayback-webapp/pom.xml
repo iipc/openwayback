@@ -5,17 +5,17 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <artifactId>wayback</artifactId>
-    <groupId>org.archive.wayback</groupId>
-    <version>1.8.0-SNAPSHOT</version>
+    <artifactId>openwayback</artifactId>
+    <groupId>org.netpreserve.openwayback</groupId>
+    <version>2.0.0.BETA.1-SNAPSHOT</version>
   </parent>
 
-  <artifactId>wayback-webapp</artifactId>
+  <artifactId>openwayback-webapp</artifactId>
   <name>Wayback Web Application</name>
   <packaging>war</packaging>
 
   <build>
-    <finalName>wayback-${project.version}</finalName>
+    <finalName>openwayback-${project.version}</finalName>
     <plugins>
       <plugin>
         <artifactId>maven-war-plugin</artifactId>
@@ -42,7 +42,13 @@
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>wayback-core</artifactId>
+      <artifactId>openwayback-core</artifactId>
+    </dependency>
+    <dependency>
+      <!-- This is only required for ORE.jsp which should be removed as Memento support is now done elsewhere I think. -->
+      <groupId>com.googlecode.foresite-toolkit</groupId>
+      <artifactId>foresite</artifactId>
+      <version>0.9</version>
     </dependency>
   </dependencies>
 

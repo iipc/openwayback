@@ -131,7 +131,7 @@ public class LiveWebAccessPoint extends LiveWebRequestHandler {
 			
 			if (inner.isEnablePerfStatsHeader()) {
 				PerfStats.timeStart(AccessPoint.PerfStat.Total);
-				httpResponse = new PerfWritingHttpServletResponse(httpResponse, AccessPoint.PerfStat.Total, inner.getPerfStatsHeader());
+				httpResponse = new PerfWritingHttpServletResponse(httpRequest, httpResponse, AccessPoint.PerfStat.Total, inner.getPerfStatsHeader());
 			}
 			
 			Thread.currentThread().setName("Thread " + 

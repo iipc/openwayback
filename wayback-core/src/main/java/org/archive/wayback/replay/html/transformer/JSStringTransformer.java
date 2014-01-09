@@ -49,6 +49,10 @@ public class JSStringTransformer implements StringTransformer {
 
 	public String transform(ReplayParseContext context, String input) {
 
+	    if (!context.isRewriteSupported(input)) {
+	    	return input;
+	    }
+	    
 		StringBuffer replaced = new StringBuffer(input.length());
 		Matcher m = pattern.matcher(input);
 		while (m.find()) {

@@ -19,7 +19,7 @@
  */
 package org.archive.wayback.resourceindex;
 
-import it.unimi.dsi.mg4j.util.MutableString;
+import it.unimi.dsi.lang.MutableString;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;

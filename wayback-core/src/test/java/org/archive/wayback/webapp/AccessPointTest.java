@@ -156,7 +156,7 @@ public class AccessPointTest extends TestCase {
         
         // behavior returning null are commented out because EasyMock provides them by default.
         httpRequest = EasyMock.createNiceMock(HttpServletRequest.class);
-        httpResponse = EasyMock.createMock(HttpServletResponse.class);
+        httpResponse = EasyMock.createNiceMock(HttpServletResponse.class);
         // RequestDispatcher - setup expectations, call replay() and verify() if
         // method calls are expected.
         requestDispatcher = EasyMock.createMock(RequestDispatcher.class);
@@ -761,6 +761,9 @@ public class AccessPointTest extends TestCase {
     // memento headers here.
 
     public void testMemento_replay_exactCapture() throws Exception {
+		// Setting default locale to something else than english to be sure date-formatting is working across locales.
+		Locale.setDefault(Locale.FRANCE);
+		
         final String AGGREGATION_PREFIX = "http://web.archive.org";
         
         cut.setEnableMemento(true);

@@ -46,6 +46,8 @@ import org.archive.wayback.replay.charset.StandardCharsetDetector;
 public abstract class TextReplayRenderer implements ReplayRenderer {
 
 	public static String GUESSED_CHARSET_HEADER = "X-Archive-Guessed-Charset";
+	
+	public static String ORIG_ENCODING = "X-Archive-Orig-Encoding";
 
 	private String guessedCharsetHeader = GUESSED_CHARSET_HEADER;
 	private List<String> jspInserts = null;
@@ -80,13 +82,13 @@ public abstract class TextReplayRenderer implements ReplayRenderer {
 			CaptureSearchResults results) throws ServletException,
 			IOException, BadContentException {
 
+		// Decode resource (such as if gzip encoded)
+		Resource decodedResource = decodeResource(httpHeadersResource, payloadResource);
+		
 		HttpHeaderOperation.copyHTTPMessageHeader(httpHeadersResource, httpResponse);
 
 		Map<String,String> headers = HttpHeaderOperation.processHeaders(
 				httpHeadersResource, result, uriConverter, httpHeaderProcessor);
-
-		// Decode resource (such as if gzip encoded)
-		Resource decodedResource = decodeResource(payloadResource);
 
 		String charSet = charsetDetector.getCharset(httpHeadersResource,
 				decodedResource, wbRequest);
@@ -162,22 +164,34 @@ public abstract class TextReplayRenderer implements ReplayRenderer {
 	public void setGuessedCharsetHeader(String guessedCharsetHeader) {
 		this.guessedCharsetHeader = guessedCharsetHeader;
 	}
-
+	
 	public static Resource decodeResource(Resource resource) throws IOException
 	{
-		Map<String, String> headers = resource.getHttpHeaders();
+		return decodeResource(resource, resource);
+	}
+
+	public static Resource decodeResource(Resource headersResource, Resource payloadResource) throws IOException
+	{
+		Map<String, String> headers = headersResource.getHttpHeaders();
 
 		if (headers != null) {
-			String encoding =  headers.get(HttpHeaderOperation.HTTP_CONTENT_ENCODING);
+			String encoding =  HttpHeaderOperation.getHeaderValue(headers, HttpHeaderOperation.HTTP_CONTENT_ENCODING);
 			if (encoding != null) {
 				if (encoding.toLowerCase().equals(GzipDecodingResource.GZIP)) {
-					return new GzipDecodingResource(resource);
+					headers.put(ORIG_ENCODING, encoding);
+					HttpHeaderOperation.removeHeader(headers, HttpHeaderOperation.HTTP_CONTENT_ENCODING);
+					
+					if (HttpHeaderOperation.isChunkEncoded(headers)) {
+						HttpHeaderOperation.removeHeader(headers, HttpHeaderOperation.HTTP_TRANSFER_ENC_HEADER);
+					}
+					
+					return new GzipDecodingResource(payloadResource);
 				}
 
 				//TODO: check for other encodings?
 			}
 		}
 
-		return resource;
+		return payloadResource;
 	}
 }

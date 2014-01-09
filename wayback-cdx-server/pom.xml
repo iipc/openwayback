@@ -1,15 +1,16 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>wayback-cdx-server</artifactId>
-  <packaging>war</packaging>
-  <name>Wayback CDX Server</name>
 
   <parent>
-    <artifactId>wayback</artifactId>
-    <groupId>org.archive.wayback</groupId>
-    <version>1.8.0-SNAPSHOT</version>
+    <artifactId>openwayback</artifactId>
+    <groupId>org.netpreserve.openwayback</groupId>
+    <version>2.0.0.BETA.1-SNAPSHOT</version>
   </parent>
+
+  <artifactId>openwayback-cdx-server</artifactId>
+  <packaging>war</packaging>
+  <name>Wayback CDX Server</name>
 
   <properties>
     <wayback.port>9000</wayback.port>
@@ -29,31 +30,30 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.archive</groupId>
-      <artifactId>ia-web-commons</artifactId>
+      <groupId>org.netpreserve.commons</groupId>
+      <artifactId>commons-web</artifactId>
     </dependency>
 
     <!-- Spring framework -->
     <dependency>
       <groupId>org.springframework</groupId>
-      <artifactId>org.springframework.core</artifactId>
+      <artifactId>spring-core</artifactId>
       <version>${org.springframework.version}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
-      <artifactId>org.springframework.web</artifactId>
+      <artifactId>spring-web</artifactId>
       <version>${org.springframework.version}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
-      <artifactId>org.springframework.web.servlet</artifactId>
+      <artifactId>spring-webmvc</artifactId>
       <version>${org.springframework.version}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-context</artifactId>
       <version>${org.springframework.version}</version>
-      <scope>runtime</scope>
       <exclusions>
         <exclusion>
           <groupId>commons-logging</groupId>

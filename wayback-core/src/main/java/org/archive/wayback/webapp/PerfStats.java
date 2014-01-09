@@ -77,6 +77,11 @@ public class PerfStats
 			}
 			return builder.toString();
 		}
+		
+		public long getTotal()
+		{
+			return total;
+		}
 	}
 	
 	static ThreadLocal<Map<String, PerfStatEntry>> perfStats = new ThreadLocal<Map<String, PerfStatEntry>>()

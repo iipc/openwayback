@@ -233,6 +233,7 @@ public class TestWARCRecordInfo extends WARCRecordInfo implements WARCConstants,
             bw.write("HTTP/1.0 200 OK" + CRLF);
             bw.write("Content-Length: " + len + CRLF);
             bw.write("Content-Type: " + ctype + CRLF);
+            bw.write("Content-Encoding: gzip");
             bw.write(CRLF);
             bw.flush();
             bw.close();

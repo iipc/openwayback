@@ -49,4 +49,8 @@ public abstract class CDXWriter implements BaseProcessor {
 	public void trackLine(CDXLine line) {
 		// TODO Auto-generated method stub		
 	}
+
+	public void serverError(Exception io) {
+	    // TODO Auto-generated method stub
+    }
 }

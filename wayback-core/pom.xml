@@ -6,21 +6,20 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <artifactId>wayback</artifactId>
-    <groupId>org.archive.wayback</groupId>
-    <version>1.8.0-SNAPSHOT</version>
+    <artifactId>openwayback</artifactId>
+    <groupId>org.netpreserve.openwayback</groupId>
+    <version>2.0.0.BETA.1-SNAPSHOT</version>
   </parent>
 
-  <artifactId>wayback-core</artifactId>
+  <artifactId>openwayback-core</artifactId>
   <name>Wayback Core Java Classes</name>
   <packaging>jar</packaging>
 
 
   <dependencies>
     <dependency>
-      <groupId>org.archive.wayback</groupId>
-      <artifactId>wayback-cdx-server</artifactId>
-      <type>jar</type>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>openwayback-cdx-server</artifactId>
       <classifier>classes</classifier>
     </dependency>
     <dependency>
@@ -34,35 +33,47 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.archive.heritrix</groupId>
-      <artifactId>heritrix-commons</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>org.archive.overlays</groupId>
-          <artifactId>archive-overlay-commons-httpclient</artifactId>
-        </exclusion>      
-      </exclusions>
-   </dependency>
+      <groupId>org.netpreserve.commons</groupId>
+      <artifactId>commons-web</artifactId>
+    </dependency>
+    <!-- JWAT Dependencies -->
     <dependency>
-      <groupId>org.archive</groupId>
-      <artifactId>ia-web-commons</artifactId>
+      <groupId>org.jwat</groupId>
+      <artifactId>jwat-common</artifactId>
+      <version>1.0.0</version>
     </dependency>
     <dependency>
-      <groupId>org.archive.access-control</groupId>
-      <artifactId>access-control</artifactId>
+      <groupId>org.jwat</groupId>
+      <artifactId>jwat-gzip</artifactId>
+      <version>1.0.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jwat</groupId>
+      <artifactId>jwat-arc</artifactId>
+      <version>1.0.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jwat</groupId>
+      <artifactId>jwat-warc</artifactId>
+      <version>1.0.0</version>
+    </dependency>
+    <!-- End JWAT Dependencies -->
+    <dependency>
+      <groupId>org.netpreserve.openwayback.access-control</groupId>
+      <artifactId>access-control-core</artifactId>
       <exclusions>
         <exclusion>
           <groupId>commons-pool</groupId>
           <artifactId>commons-pool</artifactId>
         </exclusion>
         <exclusion>
-          <groupId>org.archive.heritrix</groupId>
+          <groupId>org.netpreserve.heritrix</groupId>
           <artifactId>commons</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>org.mozilla</groupId>
+      <groupId>com.googlecode.juniversalchardet</groupId>
       <artifactId>juniversalchardet</artifactId>
     </dependency>
     <dependency>
@@ -89,6 +100,11 @@
       <groupId>redis.clients</groupId>
       <artifactId>jedis</artifactId>
       <version>2.0.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sleepycat</groupId>
+      <artifactId>je</artifactId>
+      <version>4.1.6</version>
     </dependency>
     <dependency>
       <groupId>org.easymock</groupId>
