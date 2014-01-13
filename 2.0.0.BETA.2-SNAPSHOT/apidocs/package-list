@@ -1,3 +1,8 @@
+org.archive.cdxserver
+org.archive.cdxserver.auth
+org.archive.cdxserver.filter
+org.archive.cdxserver.processor
+org.archive.cdxserver.writer
 org.archive.wayback
 org.archive.wayback.accesscontrol
 org.archive.wayback.accesscontrol.oracleclient
