@@ -155,7 +155,7 @@ public class RedisConnectionManager {
 			config.testOnBorrow = true;
 			config.testOnReturn = false;
 			config.testWhileIdle = true;
-			config.whenExhaustedAction = GenericObjectPool.WHEN_EXHAUSTED_BLOCK;
+			config.whenExhaustedAction = GenericObjectPool.WHEN_EXHAUSTED_FAIL;
 		}
 		
 		goPool = new GenericObjectPool(new JedisFactory(), config);

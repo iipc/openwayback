@@ -120,7 +120,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 	
 	protected AuthToken createAuthToken(WaybackRequest wbRequest, String urlkey)
 	{
-		AuthToken waybackAuthToken = new AuthToken();
+		AuthToken waybackAuthToken = new APContextAuthToken(wbRequest.getAccessPoint());
         waybackAuthToken.setAllCdxFieldsAllow();
         
     	boolean ignoreRobots = wbRequest.isCSSContext() || wbRequest.isIMGContext() || wbRequest.isJSContext();
