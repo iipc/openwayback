@@ -323,6 +323,10 @@ public class TextDocument {
 			CaptureSearchResult result, Resource resource) 
 	throws ServletException, IOException {
 		
+		if (wbRequest.isAjaxRequest()) {
+			return "";
+		}
+		
 		UIResults uiResults = new UIResults(wbRequest,uriConverter,results,
 				result,resource);
 
