@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"
+       default-init-method="init">
+
+
+  <!-- Load CDX Properties from .properties files -->
+  <!-- Allows passing settings from mvn config -->
+  <bean id="placeholderConfig" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+    <property name="location" value="classpath:wayback.properties"/>
+    <property name="ignoreUnresolvablePlaceholders" value="true"/>
+  </bean>
+
+  <bean name="cdx" class="org.archive.format.cdx.MultiCDXInputSource">
+    <property name="cdxUris">
+      <list>
+        <value>./sample/cdx/example.cdx</value>
+        <!-- include other cdxs here ... -->
+      </list>
+    </property>
+  </bean>
+
+  <bean name="cdxServer" class="org.archive.cdxserver.CDXServer">
+    <property name="cdxSource" ref="cdx"/>
+    
+    <property name="cdxFormat" value="cdx09"/>
+    <!-- for CDX-11 field format -->
+    <!--<property name="cdxFormat" value="cdx11"/>-->
+    
+    <property name="surtMode" value="false"/>
+  </bean>
+
+  <!-- CDX Index --> 
+  <bean id="embedCDXIndex" class="org.archive.wayback.resourceindex.cdxserver.EmbeddedCDXServerIndex">
+    <property name="internalPort" value="${wayback.port}"/> 
+    <property name="accessPointPath" value="${wayback.cdxPath}"/>       
+    <property name="limit" value="100000"/>
+    <property name="cdxServer" ref="cdxServer"/>
+    <property name="selfRedirFilter">
+        <bean class="org.archive.wayback.resourceindex.filters.SelfRedirectFilter">
+            <property name="canonicalizer" ref="waybackCanonicalizer"/>
+        </bean>
+    </property>
+  </bean>
+
+  <!-- JWAT Flex Resource Store when it is available -->
+  <!--<bean id="resourceStore" class="org.archive.wayback.resourcestore.JWATFlexResourceStore">-->
+  <bean id="resourceStore" class="org.archive.wayback.resourcestore.FlexResourceStore">
+    <property name="sources">
+      <list>
+        <!-- path index lookup example -->
+        <!--
+        <bean class="org.archive.wayback.resourcestore.FlexResourceStore$PathIndex">
+          <property name="pathIndex" value="${wayback.path.ait}/path/ait-path-index.txt"/>
+        </bean>
+        -->
+	<bean class="org.archive.wayback.resourcestore.FlexResourceStore$PrefixLookup">
+	  <property name="prefix" value="./sample/warcs/"/>
+	</bean>
+      </list>
+    </property>
+    <property name="blockLoader">
+      <bean class="org.archive.format.gzip.zipnum.ZipNumBlockLoader">
+      </bean>
+    </property>
+  </bean>
+  
+  <bean id="waybackCollection" class="org.archive.wayback.webapp.WaybackCollection">
+    <property name="resourceStore" ref="resourceStore" />
+    <property name="resourceIndex" ref="embedCDXIndex"/>
+  </bean>
+
+</beans>
