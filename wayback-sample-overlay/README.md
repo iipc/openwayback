@@ -40,9 +40,9 @@ to a servlet container, such as Apache Tomcat
 
 You can also run:
 
-* `mvn jetty:run-war` to start an instance of Jetty for testing
+* **mvn jetty:run-war** to start an instance of Jetty for testing
 
-* `mvn tomcat7:run-war` to start an instance of Tomcat 7 for testing
+* **mvn tomcat7:run-war** to start an instance of Tomcat 7 for testing
 
 
 Both commands will build and execute the .war file on the command line.
@@ -52,11 +52,11 @@ and is configured to read the sample cdx and warc. The cdx contains one entry fo
 
 If successful, the following paths will be accessible:
 
-* http://localhost:8080/wayback/*/http://example.com -- Calendar Page
+* **Calendar Page:** [http://localhost:8080/wayback/*/http://example.com]([http://localhost:8080/wayback/*/http://example.com)
 
-* http://localhost:8080/wayback/20140206032125/http://example.com -- Capture Replay
+* **Capture Replay:** [http://localhost:8080/wayback/20140206032125/http://example.com](http://localhost:8080/wayback/20140206032125/http://example.com)
 
-* http://localhost:8080/cdx?url=example.com -- CDX Query
+* **CDX Query:** [http://localhost:8080/cdx?url=example.com](http://localhost:8080/cdx?url=example.com)
 
 
 ### Maven Config Details
