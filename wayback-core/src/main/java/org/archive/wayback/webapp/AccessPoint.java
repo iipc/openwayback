@@ -374,6 +374,13 @@ implements ShutdownListener {
 		if (LOGGER.isLoggable(Level.INFO)) {
 			if (e instanceof ResourceNotInArchiveException) {
 				this.logNotInArchive((ResourceNotInArchiveException)e, request);
+			} else if (e instanceof AccessControlException) {
+				// While StaticMapExclusionFilter#isExcluded(String) reports
+				// exclusion at INFO level, RobotExclusionFilter logs exclusion
+				// at FINE level only. I believe here is the better place to log
+				// exclusion. Unfortunately, AccessControlException has no
+				// detailed info (TODO). we don't need a stack trace.
+				LOGGER.log(Level.INFO, "Access Blocked:" + request.getRequestUrl() + ": "+ e.getMessage());
 			} else {
 				LOGGER.log(Level.INFO, "Runtime Error", e);
 			}

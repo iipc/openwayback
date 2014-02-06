@@ -273,6 +273,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 		HTTPSeekableLineReader reader = null;		
 		
 		// This will throw AccessControlException if blocked
+		// (in fact, it throws RuntimeIOException wrapping AccessControlException)
 		cdxServer.getAuthChecker().createAccessFilter(authToken).includeUrl(urlkey, query.getUrl());
 		
 		
