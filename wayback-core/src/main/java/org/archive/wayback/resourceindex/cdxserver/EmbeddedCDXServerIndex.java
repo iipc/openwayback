@@ -241,6 +241,10 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 
 	protected CDXQuery createQuery(WaybackRequest wbRequest, boolean isFuzzy)
 	{
+		// Create cdx query that is sent to cdx server
+		// The query specifies standard cdx server params described at:
+		// https://github.com/internetarchive/wayback/tree/master/wayback-cdx-server
+		
 		CDXQuery query = new CDXQuery(wbRequest.getRequestUrl());
 				
 		query.setLimit(limit);
@@ -257,6 +261,10 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 				query.setClosest(wbRequest.getReplayTimestamp());
 			}
 		} else if (wbRequest.isCaptureQueryRequest()) {
+			// Add support for range calendar queries:
+			// eg: /2005-2007*/
+			// by mapping request start and end timestamp
+			// to cdx server from= and to= params
 			String start = wbRequest.getStartTimestamp();
 			if (start != null) {
 				query.setFrom(start);
