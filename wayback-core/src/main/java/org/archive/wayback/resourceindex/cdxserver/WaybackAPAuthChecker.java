@@ -3,6 +3,7 @@ package org.archive.wayback.resourceindex.cdxserver;
 import org.archive.cdxserver.auth.AuthToken;
 import org.archive.cdxserver.filter.CDXAccessFilter;
 import org.archive.cdxserver.filter.FilenamePrefixFilter;
+import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.webapp.AccessPoint;
 
 public class WaybackAPAuthChecker extends WaybackAuthChecker {
@@ -34,6 +35,16 @@ public class WaybackAPAuthChecker extends WaybackAuthChecker {
 			exclude.setPrefixList(ap.getFileExcludePrefixes());
 		}
 		
-		return new AccessCheckFilter(token, null, null, include, exclude);
+		ExclusionFilter adminFilter = null;
+		if (adminExclusions != null) {
+			adminFilter = adminExclusions.get();
+		}
+		
+		ExclusionFilter robotsFilter = null;
+		if (robotsExclusions != null) {
+			robotsFilter = robotsExclusions.get();
+		}
+		
+		return new AccessCheckFilter(token, adminFilter, robotsFilter, include, exclude);
 	}
 }
