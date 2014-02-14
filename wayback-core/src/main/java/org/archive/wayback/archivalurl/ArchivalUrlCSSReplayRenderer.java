@@ -75,6 +75,7 @@ public class ArchivalUrlCSSReplayRenderer extends TextReplayRenderer {
 			}
 		}
 
-		page.insertAtStartOfDocument(toInsert.toString());
+//		page.insertAtStartOfDocument(toInsert.toString());
+		page.insertAtEndOfDocument( toInsert.toString() );
 	}
 }
