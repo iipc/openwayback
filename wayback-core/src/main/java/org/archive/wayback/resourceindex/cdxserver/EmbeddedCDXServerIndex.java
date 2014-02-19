@@ -29,6 +29,7 @@ import org.archive.util.io.RuntimeIOException;
 import org.archive.util.iterator.CloseableIterator;
 import org.archive.util.iterator.SortedCompositeIterator;
 import org.archive.wayback.ResourceIndex;
+import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.SearchResults;
@@ -57,6 +58,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 	protected int timestampDedupLength = 0;
 	protected int limit = 0;
 		
+	protected UrlCanonicalizer canonicalizer = null;
 	protected SelfRedirectFilter selfRedirFilter;
 	
 	protected String remoteCdxPath;
@@ -150,8 +152,21 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
     	//Compute url key (surt)
 		String urlkey = null;
 		
+		// If no canonicalizer is set, use selfRedirFilter's canonicalizer
+		// Either selfRedirFilter or a canonicalizer must be set
+		
+		UrlCanonicalizer canon = getCanonicalizer();
+		
+		if (canon == null && selfRedirFilter != null) {
+			canon = selfRedirFilter.getCanonicalizer();
+		}
+		
+		if (canon == null) {
+			throw new IllegalArgumentException("Unable to find canonicalizer, canonicalizer property or selfRedirFilter property must be set");
+		}
+		
 		try {
-			urlkey = selfRedirFilter.getCanonicalizer().urlStringToKey(wbRequest.getRequestUrl());
+			urlkey = canon.urlStringToKey(wbRequest.getRequestUrl());
 		} catch (URIException ue) {
 			throw new BadQueryException(ue.toString());
 		}
@@ -505,6 +520,14 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 
 	public void setSelfRedirFilter(SelfRedirectFilter selfRedirFilter) {
 		this.selfRedirFilter = selfRedirFilter;
+	}
+
+	public UrlCanonicalizer getCanonicalizer() {
+		return canonicalizer;
+	}
+
+	public void setCanonicalizer(UrlCanonicalizer canonicalizer) {
+		this.canonicalizer = canonicalizer;
 	}
 
 	public int getLimit() {

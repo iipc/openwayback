@@ -1027,10 +1027,13 @@ implements ShutdownListener {
 		if (warcHeaders != null) {
 			payloadUri = (String) warcHeaders.get("WARC-Refers-To-Target-URI");
 			
-			Date date = ArchiveUtils.parse14DigitISODate((String)warcHeaders.get("WARC-Refers-To-Date"), null);
+			String dateString = (String)warcHeaders.get("WARC-Refers-To-Date");
 			
-			if (date != null) {
-				payloadTimestamp = ArchiveUtils.get14DigitDate(date);
+			if (dateString != null) {
+				Date date = ArchiveUtils.parse14DigitISODate(dateString, null);
+				if (date != null) {
+					payloadTimestamp = ArchiveUtils.get14DigitDate(date);
+				}
 			}
 		}
 		
