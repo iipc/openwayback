@@ -65,4 +65,50 @@ public class RobotRulesTest extends TestCase {
 			fail(e.getMessage());
 		}
 	}
+	
+	// User-agent: *
+	// Sitemap: X
+	//
+	// User-agent: B
+	// Disallow: /
+	//
+	// ia_archiver ALLOWED as disallow rule only applies to B
+	public void testMultiUAWithOtherLinesLine() {
+		String testString = "User-agent: *\nSitemap: X\n\nUser-agent: B\nDisallow: /\n";
+		RobotRules rr = new RobotRules();
+		try {
+			rr.parse(new ByteArrayInputStream(testString.getBytes()));
+			assertFalse(rr.hasSyntaxErrors());
+			// ALLOWED
+			assertFalse(rr.blocksPathForUA("/", "ia_archiver"));
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		} catch (IOException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+	
+	// User-agent: *
+	// User-agent: B
+	// Disallow: /
+	//
+	// ia_archiver BLOCKED as disallow rule applies to both all and B 
+	public void testMultiUA() {
+		String testString = "User-agent: *\nUser-agent: B\nDisallow: /\n";
+		RobotRules rr = new RobotRules();
+		try {
+			rr.parse(new ByteArrayInputStream(testString.getBytes()));
+			assertFalse(rr.hasSyntaxErrors());
+			// BLOCKED
+			assertTrue(rr.blocksPathForUA("/", "ia_archiver"));
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		} catch (IOException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
 }

@@ -90,8 +90,11 @@ public class RobotRules {
 				(InputStream) is,ByteOp.UTF8));
         String read;
         boolean allowRuleFound = false;
+        // true if last line was a UA line
+        boolean currLineUA = false, lastLineUA = false;
         ArrayList<String> current = null;
         while (br != null) {
+        	lastLineUA = currLineUA;
             do {
                 read = br.readLine();
                 // Skip comments & blanks
@@ -101,6 +104,7 @@ public class RobotRules {
             	br.close();
             	br = null;
             } else {
+            	currLineUA = false;
                 int commentIndex = read.indexOf("#");
                 if (commentIndex > -1) {
                     // Strip trailing comment
@@ -109,13 +113,14 @@ public class RobotRules {
                 read = read.trim();
                 if (USER_AGENT_PATTERN.matcher(read).matches()) {
                     String ua = read.substring(11).trim().toLowerCase();
-                    if (current == null || current.size() != 0 || allowRuleFound) {
+                    if (current == null || current.size() != 0 || allowRuleFound || !lastLineUA) {
                         // only create new rules-list if necessary
                         // otherwise share with previous user-agent
                         current = new ArrayList<String>();
                     }
                     rules.put(ua, current);
                     allowRuleFound = false;
+                    currLineUA = true;
                     LOGGER.fine("Found User-agent(" + ua + ") rules...");
                     continue;
                 } else if (DISALLOW_PATTERN.matcher(read).matches()) {
