@@ -90,11 +90,12 @@ public class RobotRules {
 				(InputStream) is,ByteOp.UTF8));
         String read;
         boolean allowRuleFound = false;
-        // true if last line was a UA line
-        boolean currLineUA = false, lastLineUA = false;
+        // true if curr or last line read was a User-agent line 
+        boolean currLineUA = false; 
+        boolean lastLineUA = false;
         ArrayList<String> current = null;
         while (br != null) {
-        	lastLineUA = currLineUA;
+            lastLineUA = currLineUA;
             do {
                 read = br.readLine();
                 // Skip comments & blanks
@@ -104,7 +105,7 @@ public class RobotRules {
             	br.close();
             	br = null;
             } else {
-            	currLineUA = false;
+                currLineUA = false;
                 int commentIndex = read.indexOf("#");
                 if (commentIndex > -1) {
                     // Strip trailing comment
