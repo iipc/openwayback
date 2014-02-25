@@ -184,16 +184,13 @@ public class RobotRulesTest extends TestCase {
 				"Disallow: /actions/\n" +
 				"\n" +
 				"# sensitive stuff\n" +
-				"Disallow: /etc\n" +
-				"\n" +
-				"User-agent: ia_archiver\n" +
-				"Allow: /icon/\n";
+				"Disallow: /etc\n";
 		load(testString);
 		
 		assertTrue(rr.blocksPathForUA("/cgi-bin/", WB_UA));
 		assertTrue(rr.blocksPathForUA("/img/", WB_UA));
+		assertTrue(rr.blocksPathForUA("/icon/", WB_UA));
 		assertTrue(rr.blocksPathForUA("/etc/", WB_UA));
-		assertFalse(rr.blocksPathForUA("/icon/", WB_UA));
 	}
 	
 	/**
