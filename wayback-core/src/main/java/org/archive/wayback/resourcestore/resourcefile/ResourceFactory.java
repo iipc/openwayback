@@ -179,6 +179,8 @@ public class ResourceFactory {
 			r = WARCArchiveRecordToResource(reader.get(), reader);
 
 		} else {
+			is.close();
+			raf.close();
 			throw new ResourceNotAvailableException("Unknown extension");
 		}
 
