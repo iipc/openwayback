@@ -2,7 +2,7 @@
 <project name="Wayback">
   <bannerLeft>
     <name>OpenWayback</name>
-    <src>images/ia_logo.gif</src>
+    <src>images/iipc_logo.png</src>
     <href>http://iipc.github.io/openwayback/</href>
   </bannerLeft>
   <bannerRight>

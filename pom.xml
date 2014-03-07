@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
@@ -118,7 +119,7 @@
 				<checksumPolicy>warn</checksumPolicy>
 			</releases>
 			<snapshots>
-				<enabled>true</enabled>
+				<enabled>false</enabled>
 				<updatePolicy>daily</updatePolicy>
 				<checksumPolicy>warn</checksumPolicy>
 			</snapshots>
@@ -136,6 +137,15 @@
 		<maven>2.1</maven>
 	</prerequisites>
 
+	<!-- Hack to ensure we can deploy a multi-module site under a prefix. See 
+		https://github.com/github/maven-plugins/issues/22#issuecomment-8421445 -->
+	<distributionManagement>
+		<site>
+			<id>github-pages-site</id>
+			<name>Deployment through GitHub's site deployment plugin</name>
+			<url>${project.version}</url>
+		</site>
+	</distributionManagement>
 
 	<build>
 		<plugins>
@@ -180,6 +190,13 @@
 							<goal>jar</goal>
 						</goals>
 					</execution>
+<execution>
+            <id>aggregate</id>
+            <goals>
+              <goal>aggregate</goal>
+            </goals>
+            <phase>site</phase>
+          </execution>
 				</executions>
 			</plugin>
 			<plugin>
@@ -193,7 +210,8 @@
 					<!-- The commit message -->
 					<message>Creating site for ${project.version}</message>
 					<!-- The location where the site is uploaded -->
-					<!-- <path>${site.path}</path> -->
+					<!-- -->
+					<path>${project.distributionManagement.site.url}</path>
 					<!-- Use merge or override the content -->
 					<merge>true</merge>
 				</configuration>
@@ -276,10 +294,19 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-project-info-reports-plugin</artifactId>
 				<version>2.7</version>
+           <configuration>
+<dependencyLocationEnabled>false</dependencyLocationEnabled>
+<dependencyDetailsEnabled>false</dependencyDetailsEnabled>
+</configuration>
 				<reportSets>
 					<reportSet>
 						<reports>
+							<report>index</report>
+							<report>modules</report>
 							<report>dependencies</report>
+							<report>dependency-info</report>
+							<report>dependency-management</report>
+							<report>dependency-convergence</report>
 							<report>project-team</report>
 							<report>mailing-list</report>
 							<report>cim</report>
@@ -330,12 +357,12 @@
 			<dependency>
 				<groupId>org.netpreserve.commons</groupId>
 				<artifactId>webarchive-commons</artifactId>
-				<version>1.1.1</version>
+				<version>1.1.2</version>
 			</dependency>
 			<dependency>
 				<groupId>org.netpreserve.openwayback</groupId>
 				<artifactId>openwayback-access-control-core</artifactId>
-				<version>1.0.1</version>
+				<version>1.0.2</version>
 			</dependency>
 			<dependency>
 				<groupId>com.googlecode.juniversalchardet</groupId>

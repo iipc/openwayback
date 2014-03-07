@@ -9,6 +9,7 @@
 
   <body>
     <section name="Introduction">
+        <p><b>WARNING: This information is somewhat out of date and is being reviewed as the OpenWayback collaboration proceeds.</b></p>
         <p><b>wayback</b> is an open source java implementation of the
         <a href="http://www.archive.org/web/web.php">The Internet Archive
         Wayback Machine</a>.
