@@ -31,7 +31,7 @@
     </dependency>
     <dependency>
       <groupId>org.netpreserve.commons</groupId>
-      <artifactId>commons-web</artifactId>
+      <artifactId>webarchive-commons</artifactId>
     </dependency>
     <!-- JWAT Dependencies -->
     <dependency>
@@ -56,8 +56,8 @@
     </dependency>
     <!-- End JWAT Dependencies -->
     <dependency>
-      <groupId>org.netpreserve.openwayback.access-control</groupId>
-      <artifactId>access-control-core</artifactId>
+      <groupId>org.netpreserve.openwayback</groupId>
+      <artifactId>openwayback-access-control-core</artifactId>
       <exclusions>
         <exclusion>
           <groupId>commons-pool</groupId>
