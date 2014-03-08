@@ -494,16 +494,25 @@ public class CaptureSearchResult extends SearchResult {
 	}
 
 	public boolean isHttpError() {
+		if (this.isDuplicateDigest() && (this.getDuplicatePayload() != null)) {
+			return this.getDuplicatePayload().isHttpError();
+		}
 		String httpCode = this.getHttpCode();
 		return (httpCode.startsWith("4") || httpCode.startsWith("5"));
 	}
 	
 	public boolean isHttpRedirect() {
+		if (this.isDuplicateDigest() && (this.getDuplicatePayload() != null)) {
+			return this.getDuplicatePayload().isHttpRedirect();
+		}		
 		String httpCode = this.getHttpCode();
 		return (httpCode.startsWith("3"));
 	}
 	
 	public boolean isHttpSuccess() {
+		if (this.isDuplicateDigest() && (this.getDuplicatePayload() != null)) {
+			return this.getDuplicatePayload().isHttpSuccess();
+		}			
 		String httpCode = this.getHttpCode();
 		return (httpCode.startsWith("2"));
 	}

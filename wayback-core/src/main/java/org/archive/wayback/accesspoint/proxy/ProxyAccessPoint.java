@@ -29,6 +29,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.accesspoint.CompositeAccessPoint;
 import org.archive.wayback.webapp.AccessPoint;
 
@@ -43,6 +44,8 @@ public class ProxyAccessPoint extends CompositeAccessPoint {
 	private List<String> directHosts;
 	private AccessPoint nonProxyAccessPoint;
 	
+	private ResultURIConverter archivalToProxyConverter;
+	
 	private ProxyConfigSelector configSelector;
 	
 	private String proxyHostPort;
@@ -52,7 +55,7 @@ public class ProxyAccessPoint extends CompositeAccessPoint {
 	public boolean isProxyEnabled()
 	{
 		return (configSelector != null);
-	}
+	}	
 
 	public ProxyConfigSelector getConfigSelector() {
 		return configSelector;
@@ -92,6 +95,17 @@ public class ProxyAccessPoint extends CompositeAccessPoint {
 
 	public void setHttpsProxyHostPort(String httpsProxyHostPort) {
 		this.httpsProxyHostPort = httpsProxyHostPort;
+	}
+
+	// Special converter for fomratting archival url that comes in to proxy mode
+	// if not specified, default uriConverter from AccessPoint may be used
+	public ResultURIConverter getArchivalToProxyConverter() {
+		return archivalToProxyConverter;
+	}
+
+	public void setArchivalToProxyConverter(
+	        ResultURIConverter archivalToProxyConverter) {
+		this.archivalToProxyConverter = archivalToProxyConverter;
 	}
 
 	@Override
@@ -135,7 +149,12 @@ public class ProxyAccessPoint extends CompositeAccessPoint {
 		StringBuffer urlBuff = request.getRequestURL();
 		String url = urlBuff.toString();
 		
-		boolean isProxyHost = url.startsWith(getReplayPrefix());
+		boolean isProxyHost = url.contains(getReplayPrefix());
+		
+		// Check the nonProxyAccessPoint prefix
+		if (!isProxyHost && (nonProxyAccessPoint != null)) {
+			isProxyHost = url.contains(nonProxyAccessPoint.getReplayPrefix());
+		}
 								
 		// Special reset link
 		if (url.equals(SWITCH_COLLECTION_PATH)) {
@@ -158,7 +177,28 @@ public class ProxyAccessPoint extends CompositeAccessPoint {
 					
 					// If matches this config, simply redirect and strip
 					if (uri.startsWith(prefix)) {
-						response.sendRedirect("/" + requestUrl);
+						
+						String paths[] = requestUrl.split("/", 2);
+						if (paths.length < 2) {
+							return false;
+						}
+						String timestamp = paths[0];
+						String replayUrl = paths[1];
+						// Calendar -> redirect to collection-less proxy query
+						String redirUrl = null;
+						
+						if (timestamp.contains("*")) {
+							redirUrl = "/" + requestUrl;
+						} else {
+							ResultURIConverter converter = getArchivalToProxyConverter();
+							if (converter == null) {
+								converter = this.getUriConverter();
+							}
+							redirUrl = converter.makeReplayURI(timestamp, replayUrl);
+						}
+						
+						response.sendRedirect(redirUrl);
+					
 						return true;
 					}
 				}

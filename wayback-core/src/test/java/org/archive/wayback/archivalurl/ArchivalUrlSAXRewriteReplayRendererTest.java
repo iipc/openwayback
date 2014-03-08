@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import junit.framework.TestCase;
 
+import org.archive.format.http.HttpHeaders;
 import org.archive.io.warc.TestWARCReader;
 import org.archive.io.warc.TestWARCRecordInfo;
 import org.archive.io.warc.WARCRecord;
@@ -20,6 +21,7 @@ import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.replay.RedirectRewritingHttpHeaderProcessor;
 import org.archive.wayback.replay.TextReplayRenderer;
 import org.archive.wayback.replay.TransparentReplayRendererTest.TestServletOutputStream;
+import org.archive.wayback.replay.charset.CharsetDetector;
 import org.archive.wayback.replay.html.ReplayParseContext;
 import org.archive.wayback.resourcestore.resourcefile.WarcResource;
 import org.archive.wayback.util.htmllex.ParseContext;
@@ -82,6 +84,16 @@ public class ArchivalUrlSAXRewriteReplayRendererTest extends TestCase {
         wbRequest = new WaybackRequest();
         wbRequest.setFrameWrapperContext(false);
         
+        // replace default CharsetDetector (StandardCharsetDetector) with a stub 
+        // so as not to depend on its behavior.
+        cut.setCharsetDetector(new CharsetDetector() {
+            @Override
+            public String getCharset(Resource httpHeadersResource,
+                    Resource payloadResource, WaybackRequest wbRequest) {
+                return "UTF-8";
+            }
+        });
+        
         result = new CaptureSearchResult();
         result.setOriginalUrl("http://www.example.com/");
     }
@@ -94,9 +106,9 @@ public class ArchivalUrlSAXRewriteReplayRendererTest extends TestCase {
         resource.parseHeaders();
         return resource;
     }
-    public static Resource createTestRevisitResource(byte[] payloadBytes, boolean withHeader) throws IOException {
+    public static Resource createTestRevisitResource(byte[] payloadBytes, boolean withHeader, boolean gzipContent) throws IOException {
         WARCRecordInfo recinfo = TestWARCRecordInfo.createRevisitHttpResponse(
-                "text/html", payloadBytes.length, withHeader);
+                "text/html", payloadBytes.length, withHeader, gzipContent);
         TestWARCReader ar = new TestWARCReader(recinfo);
         WARCRecord rec = ar.get(0);
         WarcResource resource = new WarcResource(rec, ar);
@@ -165,7 +177,8 @@ public class ArchivalUrlSAXRewriteReplayRendererTest extends TestCase {
         final String payload = "<HTML></HTML>\n";
         final byte[] payloadBytes = payload.getBytes("UTF-8");
         Resource payloadResource = createTestHtmlResource(payloadBytes);
-        Resource headerResource = createTestRevisitResource(payloadBytes, true);
+        // payloadResource is Content-Encoding: gzip, revisit must be gzipped, too.
+        Resource headerResource = createTestRevisitResource(payloadBytes, true, true);
 
         Capture<ReplayParseContext> parseContextCapture = new Capture<ReplayParseContext>();
         Capture<Node> nodeCapture = new Capture<Node>();

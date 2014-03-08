@@ -98,7 +98,11 @@ public class TestWARCRecordInfo extends WARCRecordInfo implements WARCConstants,
     }
     public static TestWARCRecordInfo createRevisitHttpResponse(String ctype, int len, boolean withHeader)
             throws IOException {
-        TestWARCRecordInfo recinfo = new TestWARCRecordInfo(buildRevisitHttpResponseBlock(ctype, len, withHeader));
+        return createRevisitHttpResponse(ctype, len, withHeader, false);
+    }
+    public static TestWARCRecordInfo createRevisitHttpResponse(String ctype, int len, boolean withHeader, boolean gzipContent)
+            throws IOException {
+        TestWARCRecordInfo recinfo = new TestWARCRecordInfo(buildRevisitHttpResponseBlock(ctype, len, withHeader, gzipContent));
         recinfo.setType(WARCRecordType.revisit);
         recinfo.addExtraHeader("WARC-Truncated", "length");
         recinfo.addExtraHeader("WARC-Profile", REVISIT_WARC_PROFILE);
@@ -222,18 +226,21 @@ public class TestWARCRecordInfo extends WARCRecordInfo implements WARCConstants,
      * @param len value for Content-Length
      * @param withHeader include HTTP status line and headers.
      *      passing false generates old-style revisit content block.
+     * @param gzipContent if true, block will have "Content-Encoding: gzip" header.
+     *      (this shall match the compress-ness of previous capture).
      * @return record content as byte array
      * @throws IOException
      */
     public static byte[] buildRevisitHttpResponseBlock(String ctype, int len,
-            boolean withHeader) throws IOException {
+            boolean withHeader, boolean gzipContent) throws IOException {
         ByteArrayOutputStream blockbuf = new ByteArrayOutputStream();
         Writer bw = new OutputStreamWriter(blockbuf);
         if (withHeader) {
             bw.write("HTTP/1.0 200 OK" + CRLF);
             bw.write("Content-Length: " + len + CRLF);
             bw.write("Content-Type: " + ctype + CRLF);
-            bw.write("Content-Encoding: gzip");
+            if (gzipContent)
+                bw.write("Content-Encoding: gzip" + CRLF);
             bw.write(CRLF);
             bw.flush();
             bw.close();

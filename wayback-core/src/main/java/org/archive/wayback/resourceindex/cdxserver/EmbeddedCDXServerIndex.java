@@ -29,6 +29,7 @@ import org.archive.util.io.RuntimeIOException;
 import org.archive.util.iterator.CloseableIterator;
 import org.archive.util.iterator.SortedCompositeIterator;
 import org.archive.wayback.ResourceIndex;
+import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.SearchResults;
@@ -57,6 +58,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 	protected int timestampDedupLength = 0;
 	protected int limit = 0;
 		
+	protected UrlCanonicalizer canonicalizer = null;
 	protected SelfRedirectFilter selfRedirFilter;
 	
 	protected String remoteCdxPath;
@@ -120,7 +122,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 	
 	protected AuthToken createAuthToken(WaybackRequest wbRequest, String urlkey)
 	{
-		AuthToken waybackAuthToken = new AuthToken();
+		AuthToken waybackAuthToken = new APContextAuthToken(wbRequest.getAccessPoint());
         waybackAuthToken.setAllCdxFieldsAllow();
         
     	boolean ignoreRobots = wbRequest.isCSSContext() || wbRequest.isIMGContext() || wbRequest.isJSContext();
@@ -150,8 +152,21 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
     	//Compute url key (surt)
 		String urlkey = null;
 		
+		// If no canonicalizer is set, use selfRedirFilter's canonicalizer
+		// Either selfRedirFilter or a canonicalizer must be set
+		
+		UrlCanonicalizer canon = getCanonicalizer();
+		
+		if (canon == null && selfRedirFilter != null) {
+			canon = selfRedirFilter.getCanonicalizer();
+		}
+		
+		if (canon == null) {
+			throw new IllegalArgumentException("Unable to find canonicalizer, canonicalizer property or selfRedirFilter property must be set");
+		}
+		
 		try {
-			urlkey = selfRedirFilter.getCanonicalizer().urlStringToKey(wbRequest.getRequestUrl());
+			urlkey = canon.urlStringToKey(wbRequest.getRequestUrl());
 		} catch (URIException ue) {
 			throw new BadQueryException(ue.toString());
 		}
@@ -241,6 +256,10 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 
 	protected CDXQuery createQuery(WaybackRequest wbRequest, boolean isFuzzy)
 	{
+		// Create cdx query that is sent to cdx server
+		// The query specifies standard cdx server params described at:
+		// https://github.com/internetarchive/wayback/tree/master/wayback-cdx-server
+		
 		CDXQuery query = new CDXQuery(wbRequest.getRequestUrl());
 				
 		query.setLimit(limit);
@@ -256,11 +275,24 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 			if (wbRequest.isTimestampSearchKey()) {		
 				query.setClosest(wbRequest.getReplayTimestamp());
 			}
-		} else {
-			if (timestampDedupLength > 0) {
-				//query.setCollapse(new String[]{"timestamp:" + timestampDedupLength});
-				query.setCollapseTime(timestampDedupLength);
+		} else if (wbRequest.isCaptureQueryRequest()) {
+			// Add support for range calendar queries:
+			// eg: /2005-2007*/
+			// by mapping request start and end timestamp
+			// to cdx server from= and to= params
+			String start = wbRequest.getStartTimestamp();
+			if (start != null) {
+				query.setFrom(start);
 			}
+			String end = wbRequest.getEndTimestamp();
+			if (end != null) {
+				query.setTo(end);
+			}
+		}
+		
+		if (timestampDedupLength > 0) {
+			//query.setCollapse(new String[]{"timestamp:" + timestampDedupLength});
+			query.setCollapseTime(timestampDedupLength);
 		}
 		
 		query.setFilter(new String[]{statusFilter});
@@ -273,6 +305,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 		HTTPSeekableLineReader reader = null;		
 		
 		// This will throw AccessControlException if blocked
+		// (in fact, it throws RuntimeIOException wrapping AccessControlException)
 		cdxServer.getAuthChecker().createAccessFilter(authToken).includeUrl(urlkey, query.getUrl());
 		
 		
@@ -487,6 +520,14 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 
 	public void setSelfRedirFilter(SelfRedirectFilter selfRedirFilter) {
 		this.selfRedirFilter = selfRedirFilter;
+	}
+
+	public UrlCanonicalizer getCanonicalizer() {
+		return canonicalizer;
+	}
+
+	public void setCanonicalizer(UrlCanonicalizer canonicalizer) {
+		this.canonicalizer = canonicalizer;
 	}
 
 	public int getLimit() {

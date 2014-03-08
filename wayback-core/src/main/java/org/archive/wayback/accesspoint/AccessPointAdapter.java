@@ -281,7 +281,13 @@ public class AccessPointAdapter extends AccessPoint {
 
 	@Override
 	public RequestParser getParser() {
-		return baseAccessPoint.getParser();
+		RequestParser requestParser = config.getRequestParser();
+		
+		if (requestParser != null) {
+			return requestParser;
+		} else {		
+			return baseAccessPoint.getParser();
+		}
 	}
 
 	@Override
