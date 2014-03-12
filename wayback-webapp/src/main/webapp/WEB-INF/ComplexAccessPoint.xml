@@ -23,7 +23,7 @@
 
     <property name="uriConverter">
       <bean class="org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter">
-        <property name="replayURIPrefix" value="http://localhost.archive.org:8080/wayback/"/>
+        <property name="replayURIPrefix" value="http://localhost:8080/wayback/"/>
       </bean>
     </property>
 
@@ -89,18 +89,18 @@
 
  <!--
   <bean name="8091" parent="8080:wayback">
-    <property name="urlRoot" value="http://localhost.archive.org/" />
+    <property name="urlRoot" value="http://localhost/" />
     <property name="replay" ref="proxyreplay" />
     <property name="uriConverter">
       <bean class="org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter">
-        <property name="replayURIPrefix" value="http://localhost.archive.org/"/>
+        <property name="replayURIPrefix" value="http://localhost/"/>
       </bean>
     </property>
     <property name="parser">
       <bean class="org.archive.wayback.proxy.ProxyArchivalRequestParser">
         <property name="localhostNames">
           <list>
-            <value>localhost.archive.org</value>
+            <value>localhost</value>
           </list>
         </property>
         <property name="maxRecords" value="1000" />
@@ -157,7 +157,7 @@
 
     <property name="uriConverter">
       <bean class="org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter">
-        <property name="replayURIPrefix" value="http://localhost.archive.org:8080/netsecure/" />
+        <property name="replayURIPrefix" value="http://localhost:8080/netsecure/" />
       </bean>
     </property>
   </bean>
