@@ -31,7 +31,6 @@ import java.util.regex.Pattern;
  *
  */
 public class BeanNameRegistrar {
-
 	private static final Logger LOGGER = Logger.getLogger(
 			BeanNameRegistrar.class.getName());
 
@@ -172,6 +171,13 @@ public class BeanNameRegistrar {
 		
 		if (name == null) {
 			name = handler.getBeanName();
+			if (name != null) {
+				LOGGER.warning("Request handler with bean name " + name + " does not provide explict " +
+						"access point path. Will try to use the beanname to infer. This fallback " +
+						"is DEPRECATED and will be removed in the future. Please update configuration " +
+						"to explicitly set 'accessPointPath' property (and 'internalPort' if needed).");
+
+			}
 		}
 		
 		if(name != null) {
