@@ -165,20 +165,21 @@ public class ResourceFactory {
 			name = name.substring(0, name.length()
 					- ArcWarcFilenameFilter.OPEN_SUFFIX.length());
 		}
-		RandomAccessFile raf = new RandomAccessFile(file, "r");
-		raf.seek(offset);
-		InputStream is = new FileInputStream(raf.getFD());
-		String fPath = file.getAbsolutePath();
-		if (isArc(name)) {
-			ArchiveReader reader = ARCReaderFactory.get(fPath, is, false);
-			r = ARCArchiveRecordToResource(reader.get(), reader);
+        RandomAccessFile raf = new RandomAccessFile(file, "r");
+        raf.seek(offset);
+        InputStream is = new FileInputStream(raf.getFD());
+        String fPath = file.getAbsolutePath();
+        if (isArc(name)) {
+            ArchiveReader reader = ARCReaderFactory.get(file);
+            ARCRecord record = (ARCRecord) reader.get(offset);
+            r = new ArcResource(record, reader);
+            r.parseHeaders();
+        } else if (isWarc(name)) {
 
-		} else if (isWarc(name)) {
+            ArchiveReader reader = WARCReaderFactory.get(fPath, is, false);
+            r = WARCArchiveRecordToResource(reader.get(), reader);
 
-			ArchiveReader reader = WARCReaderFactory.get(fPath, is, false);
-			r = WARCArchiveRecordToResource(reader.get(), reader);
-
-		} else {
+        } else {
 			throw new ResourceNotAvailableException("Unknown extension");
 		}
 

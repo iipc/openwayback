@@ -27,3 +27,6 @@ target/
 
 # PDT-specific
 .buildpath
+
+#For intellij users
+.idea
