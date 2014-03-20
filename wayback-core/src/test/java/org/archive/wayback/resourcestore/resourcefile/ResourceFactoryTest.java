@@ -9,7 +9,7 @@ import junit.framework.TestCase;
  */
 public class ResourceFactoryTest extends TestCase {
 
-    private String testfile="wayback-core/src/test/java/org/archive/wayback/resourcestore/testdata/testdata1.arc";
+    private String testfile="src/test/java/org/archive/wayback/resourcestore/testdata/testdata1.arc";
     private long offset = 7728L;
 
     /**
