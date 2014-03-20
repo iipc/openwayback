@@ -81,7 +81,9 @@
     with your fully qualified hostname of the computer running Tomcat.
 -->
   <import resource="ArchivalUrlReplay.xml"/>
-  <bean name="8080:wayback" class="org.archive.wayback.webapp.AccessPoint">
+  <bean name="standardaccesspoint" class="org.archive.wayback.webapp.AccessPoint">
+    <property name="accessPointPath" value="http://localhost:8080/wayback/"/>
+    <property name="internalPort" value="8080"/>
     <property name="staticPrefix" value="http://localhost:8080/wayback/" />
   	
     <property name="collection" ref="localbdbcollection" />
@@ -107,7 +109,9 @@
   </bean>
 
   <import resource="MementoReplay.xml"/>
-  <bean name="8080:memento" parent="8080:wayback">
+  <bean name="mementoaccesspoint" parent="standardaccesspoint">
+    <property name="accessPointPath" value="http://localhost:8080/memento/"/>
+    <property name="internalPort" value="8080"/>
     <property name="staticPrefix" value="http://localhost:8080/memento/" />
 	<property name="configs">
       <props>
@@ -142,7 +146,7 @@
   </bean>
 
 
-  <bean name="8080:ore" parent="8080:memento">
+  <bean name="8080:ore" parent="mementoaccesspoint">
     <property name="staticPrefix" value="http://localhost:8080/ore/" />
 	<property name="configs">
 	  <props>
