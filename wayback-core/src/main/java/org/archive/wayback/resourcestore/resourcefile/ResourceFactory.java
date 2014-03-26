@@ -166,16 +166,18 @@ public class ResourceFactory {
 					- ArcWarcFilenameFilter.OPEN_SUFFIX.length());
 		}
 		RandomAccessFile raf = new RandomAccessFile(file, "r");
-		raf.seek(offset);
-		InputStream is = new FileInputStream(raf.getFD());
 		String fPath = file.getAbsolutePath();
 		if (isArc(name)) {
-            ArchiveReader reader = ARCReaderFactory.get(file);
+
+            InputStream is = new FileInputStream(raf.getFD());
+            ArchiveReader reader = ARCReaderFactory.get(fPath, is, true);
             ARCRecord record = (ARCRecord) reader.get(offset);
-            r = new ArcResource(record, reader);
-            r.parseHeaders();
+            r = ARCArchiveRecordToResource(record, reader);
+
 		} else if (isWarc(name)) {
 
+            raf.seek(offset);
+            InputStream is = new FileInputStream(raf.getFD());
 			ArchiveReader reader = WARCReaderFactory.get(fPath, is, false);
 			r = WARCArchiveRecordToResource(reader.get(), reader);
 
