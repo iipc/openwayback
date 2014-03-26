@@ -169,8 +169,11 @@ public class ResourceFactory {
 		String fPath = file.getAbsolutePath();
 		if (isArc(name)) {
 
+            raf.seek(0L);
             InputStream is = new FileInputStream(raf.getFD());
-            ArchiveReader reader = ARCReaderFactory.get(fPath, is, true);
+            //TODO the following should work, but actually breaks the unit test for (as yet) unknown reasons
+            //ArchiveReader reader = ARCReaderFactory.get(fPath, is, true);
+            ArchiveReader reader = ARCReaderFactory.get(file);
             r = ARCArchiveRecordToResource(reader.get(offset), reader);
 
 		} else if (isWarc(name)) {

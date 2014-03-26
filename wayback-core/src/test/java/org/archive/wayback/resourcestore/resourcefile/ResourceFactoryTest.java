@@ -10,7 +10,7 @@ import junit.framework.TestCase;
 public class ResourceFactoryTest extends TestCase {
 
     private String testfile="src/test/java/org/archive/wayback/resourcestore/testdata/testdata1.arc";
-    private long offset = 7728L;
+    private long offset = 198408L;
 
     /**
      * Test reading uncompressed arcfile for issue
@@ -21,6 +21,6 @@ public class ResourceFactoryTest extends TestCase {
         ArcResource arcResource = (ArcResource) ResourceFactory.getResource(testfile, offset);
         final long position = arcResource.getArcRecord().getPosition();
         final long recordLength = arcResource.getRecordLength();
-        assertTrue("Position " + position + " is after end of record " + recordLength, position < recordLength);
+        assertTrue("Position " + position + " is after end of record " + recordLength, position <= recordLength);
     }
 }
