@@ -171,8 +171,7 @@ public class ResourceFactory {
 
             InputStream is = new FileInputStream(raf.getFD());
             ArchiveReader reader = ARCReaderFactory.get(fPath, is, true);
-            ARCRecord record = (ARCRecord) reader.get(offset);
-            r = ARCArchiveRecordToResource(record, reader);
+            r = ARCArchiveRecordToResource(reader.get(offset), reader);
 
 		} else if (isWarc(name)) {
 
