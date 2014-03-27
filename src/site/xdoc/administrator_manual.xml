@@ -468,7 +468,7 @@
             </td>
             <td>
               Points to the Archival URL prefix of the Access Point as
-              illustrated in <a href="access_point_naming.html">Access Point Naming</a> document.
+              illustrated in <a href="access_point_naming.html">Access Point Path Configuration</a> document.
             </td>
           </tr>
         </table>
