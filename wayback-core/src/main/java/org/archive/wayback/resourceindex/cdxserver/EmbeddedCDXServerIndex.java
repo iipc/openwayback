@@ -44,11 +44,17 @@ import org.archive.wayback.memento.MementoHandler;
 import org.archive.wayback.memento.MementoUtils;
 import org.archive.wayback.resourceindex.filters.SelfRedirectFilter;
 import org.archive.wayback.util.webapp.AbstractRequestHandler;
+import org.archive.wayback.util.webapp.RequestHandler;
 import org.archive.wayback.webapp.PerfStats;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.web.bind.ServletRequestBindingException;
 
+/**
+ * {@link ResourceIndex} on top of {@link CDXServer}. Also a {@link RequestHandler}
+ * for CDX server queries.
+ *
+ */
 public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements MementoHandler, ResourceIndex {
 
 	private static final Logger LOGGER = Logger.getLogger(
@@ -82,31 +88,6 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 		IndexLoad;
 	}
 	
-//	public void init()
-//	{
-//		initAuthCookie();
-//	}
-//	
-//	protected String initAuthCookie()
-//	{
-//		if (cdxServer == null) {
-//			return;
-//		}
-//		
-//		AuthChecker check = cdxServer.getAuthChecker();
-//		if (!(check instanceof PrivTokenAuthChecker)) {
-//			return;
-//		}
-//		
-//		List<String> list = ((PrivTokenAuthChecker)check).getAllCdxFieldsAccessTokens();
-//		
-//		if (list == null || list.isEmpty()) {
-//			return;
-//		}
-//		
-//		return CDXServer.CDX_AUTH_TOKEN + ": " + list.get(0);
-//	}
-	
 	@Override
     public SearchResults query(WaybackRequest wbRequest)
             throws ResourceIndexNotAvailableException,
@@ -120,6 +101,13 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 		}
 	}
 	
+	/**
+	 * return {@link AuthToken} representing user's privileges on {@code urlkey}.
+	 * <ul>
+	 * <li>robots.txt may be ignored for embedded resources (CSS, images, javascripts)</li>
+	 * <li>robots.txt may be ignored if {@code urlkey} starts with any of {@code ignoreRobotPaths}</li>
+	 * </ul>
+	 */
 	protected AuthToken createAuthToken(WaybackRequest wbRequest, String urlkey)
 	{
 		AuthToken waybackAuthToken = new APContextAuthToken(wbRequest.getAccessPoint());
@@ -254,12 +242,20 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
    		cdxServer.getCdx(resultWriter.getQuery(), waybackAuthToken, resultWriter);
     }
 
-	protected CDXQuery createQuery(WaybackRequest wbRequest, boolean isFuzzy)
-	{
-		// Create cdx query that is sent to cdx server
-		// The query specifies standard cdx server params described at:
-		// https://github.com/internetarchive/wayback/tree/master/wayback-cdx-server
-		
+	/**
+	 * Create {@link CDXQuery} that is sent to {@link CDXServer}.
+	 *
+	 * The query specifies standard cdx server params described at:
+	 * https://github.com/internetarchive/wayback/tree/master/wayback-cdx-server
+	 *
+	 * Note: this method adds extra filters meant for interactive (Wayback UI)
+	 * use. CDXServer web API should not use this method.
+	 *
+	 * @param wbRequest {@link WaybackRequest}
+	 * @param isFuzzy unused (?)
+	 * @return
+	 */
+	protected CDXQuery createQuery(WaybackRequest wbRequest, boolean isFuzzy) {
 		CDXQuery query = new CDXQuery(wbRequest.getRequestUrl());
 				
 		query.setLimit(limit);
@@ -295,6 +291,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 			query.setCollapseTime(timestampDedupLength);
 		}
 		
+		// CDXServer#writeCdxResponse translates this into FieldRegexFilter
 		query.setFilter(new String[]{statusFilter});
 		
 		return query;
