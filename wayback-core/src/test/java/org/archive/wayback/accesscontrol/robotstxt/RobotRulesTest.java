@@ -78,15 +78,32 @@ public class RobotRulesTest extends TestCase {
 		assertFalse(rr.blocksPathForUA("/", WB_UA));
 	}
 	
+	/**
+	 * optional white spaces before/after "{@code :}", before EOL.
+	 * @throws Exception
+	 */
 	public void testLessSpaceExtraSpace() throws Exception {
 		final String testString =
-				"User-agent:*  \n" +
+				"User-agent :*  \n" +
 				"Disallow:/  \n";
 		load(testString);
 		
 		assertTrue(rr.blocksPathForUA("/index.html", WB_UA));
 	}
 	
+	/**
+	 * white spaces are allowed at the beginning of the line, too.
+	 * @throws Exception
+	 */
+	public void testExtraSpace2() throws Exception {
+		final String testString =
+				"  User-agent: *\n" +
+				"  Disallow:/\n";
+		load(testString);
+
+		assertTrue(rr.blocksPathForUA("/index.html", WB_UA));
+	}
+
 	public void testComments() throws Exception {
 		final String testString =
 				"# User-agent: *\n" +
