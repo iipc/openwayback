@@ -14,6 +14,10 @@ import org.htmlparser.lexer.Lexer;
 import org.htmlparser.lexer.Page;
 import org.htmlparser.util.ParserException;
 
+/**
+ * test {@link FastArchivalUrlReplayParseEventHandler}.
+ *
+ */
 public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 
 	public void testAnchorHrefAbsolute() throws Exception {
@@ -104,6 +108,27 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
                 "</html>";
         assertEquals(expected, doEndToEnd(input));
     }
+
+    /**
+     * URL-rewrite must not unescape HTML entities in URL.
+     * <p>Reported in <a href="https://webarchive.jira.com/browse/ARI-3774">ARI-3774</a>.</p>
+     *
+     * @throws Exception
+     */
+	public void testHTMLEntityInURL() throws Exception {
+		// note "&amp;amp" - it should appear in translated URL as it does in the original.
+		final String input = "<html>"
+				+ "<body>"
+				+ "<iframe src=\"https://example.com/player/?url=https%3A//api.example.com/"
+				+ "tracks/135768597%3Ftoken%3Dsss&amp;amp;auto_play=false\"></iframe>"
+				+ "</body>" + "</html>";
+		final String expected = "<html>"
+				+ "<body>"
+				+ "<iframe src=\"http://replay.archive.org/2001if_/https://example.com/player/?url=https%3A//api.example.com/"
+				+ "tracks/135768597%3Ftoken%3Dsss&amp;amp;auto_play=false\"></iframe>"
+				+ "</body>" + "</html>";
+		assertEquals(expected, doEndToEnd(input));
+	}
 
     public String doEndToEnd(String input) throws Exception {
 		final String baseUrl = "http://www.example.com/";
