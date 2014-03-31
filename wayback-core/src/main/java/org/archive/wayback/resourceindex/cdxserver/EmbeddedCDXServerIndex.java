@@ -167,9 +167,9 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
         SearchResults searchResults = null;
         
         if (wbRequest.isReplayRequest() || wbRequest.isCaptureQueryRequest()) {
-        	resultWriter = this.getCaptureSearchWriter(wbRequest, waybackAuthToken, false);
+			resultWriter = this.getCaptureSearchWriter(wbRequest, false);
         } else if (wbRequest.isUrlQueryRequest()) {
-        	resultWriter = this.getUrlSearchWriter(wbRequest);
+			resultWriter = this.getUrlSearchWriter(wbRequest);
         } else {
         	throw new BadQueryException("Unknown Query Type");
         }
@@ -184,7 +184,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
             searchResults = resultWriter.getSearchResults();
             
             if ((searchResults.getReturnedCount() == 0) && (wbRequest.isReplayRequest() || wbRequest.isCaptureQueryRequest()) && tryFuzzyMatch) {
-            	resultWriter = this.getCaptureSearchWriter(wbRequest, waybackAuthToken, true);
+				resultWriter = this.getCaptureSearchWriter(wbRequest, true);
             	
             	if (resultWriter != null) {    	
 	            	loadWaybackCdx(urlkey, wbRequest, resultWriter.getQuery(), waybackAuthToken, resultWriter, true);
@@ -245,13 +245,16 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 	/**
 	 * Create {@link CDXQuery} that is sent to {@link CDXServer}.
 	 *
-	 * The query specifies standard cdx server params described at:
+	 * The query specifies standard CDX server params described at:
 	 * https://github.com/internetarchive/wayback/tree/master/wayback-cdx-server
 	 *
 	 * Note: this method adds extra filters meant for interactive (Wayback UI)
-	 * use. CDXServer web API should not use this method.
+	 * use. CDXServer web API should not use this method.  this method is used
+	 * for replay and capture-search requests only.
 	 *
-	 * @param wbRequest {@link WaybackRequest}
+	 * TODO: move this to {@link CDXQuery} as static method.
+	 *
+	 * @param wbRequest {@link WaybackRequest} either replay or capture-query
 	 * @param isFuzzy unused (?)
 	 * @return
 	 */
@@ -402,7 +405,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 		return iter;
     }
 
-	protected CDXToCaptureSearchResultsWriter getCaptureSearchWriter(WaybackRequest wbRequest, AuthToken waybackAuthToken, boolean isFuzzy)
+	protected CDXToSearchResultWriter getCaptureSearchWriter(WaybackRequest wbRequest, boolean isFuzzy)
 	{
 		final CDXQuery query = createQuery(wbRequest, isFuzzy);
 		
