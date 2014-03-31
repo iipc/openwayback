@@ -83,6 +83,12 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 
 	protected List<String> ignoreRobotPaths;
 	
+	protected String baseStatusRegexp;
+	protected String baseStatusFilter;
+	{
+		setBaseStatusRegexp("!(500|502|504)");
+	}
+
 	enum PerfStat
 	{
 		IndexLoad;
@@ -264,7 +270,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 		query.setLimit(limit);
 		//query.setSort(CDXQuery.SortType.reverse);
 		
-		String statusFilter = "!statuscode:(500|502|504)";
+		String statusFilter = baseStatusFilter;
 		
 		if (wbRequest.isReplayRequest()) {
 			if (wbRequest.isBestLatestReplayRequest()) {
@@ -295,7 +301,8 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 		}
 		
 		// CDXServer#writeCdxResponse translates this into FieldRegexFilter
-		query.setFilter(new String[]{statusFilter});
+		if (statusFilter != null && !statusFilter.isEmpty())
+			query.setFilter(new String[]{statusFilter});
 		
 		return query;
 	}
@@ -631,4 +638,49 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 	public void setTryFuzzyMatch(boolean tryFuzzyMatch) {
 		this.tryFuzzyMatch = tryFuzzyMatch;
 	}
+
+	public String getBaseStatusRegexp() {
+		return baseStatusRegexp;
+	}
+
+	/**
+	 * filter on {@code statuscode} field applied by default for <em>interactive</em>
+	 * CDX lookup (i.e. from Wayback UI, not via CDX Server API).
+	 * <p>Value is a regular expression for status code field. Only those CDXes
+	 * with matching statuscode field will be returned. Leading/Traling spaces are stripped off.
+	 * If value starts with "{@code !}",
+	 * only CDXes with <em>unmatching</em> statuscode field will be returned
+	 * (<em>exception</em>: value "!" is treated as empty string, i.e. no filtering).</p>
+	 * <p>Value will be ignored if WybackRequest.isBestLatestReplayRequest is set, for which
+	 * hard-coded value "{@code [23]..}" is used.</p>
+	 * <p>Default value is "{@code !(500|502|504)}".</p>
+	 * <p><strong>NOTE</strong>: this is a quick hack to allow for customizing replay/listing of 5xx captures.
+	 * it may be replaced by different customization method, or moved to other class in the
+	 * future.</p>
+	 * @param baseStatusRegexp regular expression for status code.
+	 */
+	public void setBaseStatusRegexp(String baseStatusRegexp) {
+		this.baseStatusRegexp = baseStatusRegexp;
+		this.baseStatusFilter = buildStatusFilter(baseStatusRegexp);
+	}
+
+	protected static String buildStatusFilter(String regexp) {
+		if (regexp == null)
+			return "";
+		String re = regexp.trim();
+		if (re.isEmpty())
+			return "";
+		else {
+			if (re.charAt(0) == '!') {
+				re = re.substring(1).trim();
+				if (re.isEmpty())
+					return "";
+				else
+					return "!statuscode:" + re;
+			} else {
+				return "statuscode:" + re;
+			}
+		}
+	}
+
 }

@@ -58,6 +58,10 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 			}
 			responseWriter.end();
 		}
+		
+		public void clearCapturedArgs() {
+			capturedArgs.clear();
+		}
 	}
 
 	EmbeddedCDXServerIndex cut;
@@ -109,6 +113,66 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 		
 		AuthToken authToken = (AuthToken)args[1];
 		assertFalse(authToken.isIgnoreRobots());
+	}
+	/**
+	 * quick test of {@link EmbeddedCDXServerIndex#buildStatusFilter(String)}
+	 */
+	public void testBuildStatusFilter() {
+		final String[][] CASES = new String[][] {
+				{ "!500", "!statuscode:500" },
+				{ "! 400|500|502 ", "!statuscode:400|500|502" },
+				{ "[23]..", "statuscode:[23].." },
+				{ "! ", "" },
+				{ "", "" },
+				{ null, "" }
+		};
+		for (String[] c : CASES) {
+			assertEquals(c[1], EmbeddedCDXServerIndex.buildStatusFilter(c[0]));
+		}
+	}
+	
+	/**
+	 * test of {@link EmbeddedCDXServerIndex#setBaseStatusRegexp(String)}
+	 * @throws Exception
+	 */
+	public void testQueryWithCustomStatusFilter() throws Exception {
+		WaybackRequest wbr = new WaybackRequest();
+		wbr.setRequestUrl("http://example.com/");
+		wbr.setCaptureQueryRequest();
+		
+		// urlkey, timestamp, original, mimetype, statuscode, digest, redirect, robotflags,
+		// length, offset, filename.
+		FieldSplitFormat fmt = CDXFieldConstants.CDX_ALL_NAMES;
+		testCDXServer.cdxLines = new CDXLine[] {
+				new CDXLine(CDXLINE1, fmt)
+		};
+
+		
+		cut.setBaseStatusRegexp("");
+		{
+			SearchResults sr = cut.query(wbr);
+
+			assertEquals(1, testCDXServer.capturedArgs.size());
+
+			Object[] args = testCDXServer.capturedArgs.get(0);
+			CDXQuery query = (CDXQuery)args[0];
+			String[] filter = query.getFilter();
+			assertNull("there should be no filter", filter);
+		}
+		
+		testCDXServer.clearCapturedArgs();
+		cut.setBaseStatusRegexp("!500");
+		{
+			SearchResults sr = cut.query(wbr);
+
+			assertEquals(1, testCDXServer.capturedArgs.size());
+			
+			Object[] args = testCDXServer.capturedArgs.get(0);
+			CDXQuery query = (CDXQuery)args[0];
+			String[] filter = query.getFilter();
+			assertEquals(1, filter.length);
+			assertEquals("!statuscode:500", filter[0]);
+		}
 	}
 	
 	/**
