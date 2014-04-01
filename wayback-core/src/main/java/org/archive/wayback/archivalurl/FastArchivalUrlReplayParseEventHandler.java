@@ -27,6 +27,7 @@ import java.util.HashMap;
 
 import javax.servlet.ServletException;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import org.archive.wayback.replay.html.ReplayParseContext;
 import org.archive.wayback.replay.html.StringTransformer;
 import org.archive.wayback.replay.html.transformer.BlockCSSStringTransformer;
@@ -443,9 +444,11 @@ public class FastArchivalUrlReplayParseEventHandler implements
 	private boolean transformAttr(ReplayParseContext context, TagNode node, 
 			String attr, StringTransformer transformer) {
 		String orig = node.getAttribute(attr);
-		if(orig != null) {
-			node.setAttribute(attr, 
-					transformer.transform(context, orig));
+		if (orig != null) {
+			// htmlparser does neither unescape HTML entities while it parses HTML, nor escape
+			// HTML special chars while writing HTML.  So we take care of it for ourselves.
+			String transformed = transformer.transform(context, StringEscapeUtils.unescapeHtml(orig));
+			node.setAttribute(attr, StringEscapeUtils.escapeHtml(transformed));
 			return true;
 		}
 		return false;

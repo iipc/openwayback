@@ -101,10 +101,6 @@ public class ParseContext {
 	 * @throws URISyntaxException if the input URL is malformed
 	 */
 	public String resolve(String url) throws URISyntaxException {
-		// BUG in Translate.decode(): "foo?a=b&lang=en" acts as if it 
-		// was "&lang;"
-//		url = Translate.decode(url);
-		url = StringEscapeUtils.unescapeHtml(url);
 		int hashIdx = url.indexOf('#');
 		String frag = "";
 		if(hashIdx != -1) {
@@ -118,10 +114,11 @@ public class ParseContext {
 		}
 		
 		try {
-			return UsableURIFactory.getInstance(baseUrl, url).toString() + frag;
+			url = UsableURIFactory.getInstance(baseUrl, url).toString() + frag;
 		} catch (URIException e) {
 			LOGGER.warning("FAILED RESOLVE: base(" + baseUrl + ") frag(" + url +
 					") error(" + e.getMessage() + ")");
+			url = url + frag;
 		}
 		return url;
 	}
