@@ -166,15 +166,20 @@ public class ResourceFactory {
 					- ArcWarcFilenameFilter.OPEN_SUFFIX.length());
 		}
 		RandomAccessFile raf = new RandomAccessFile(file, "r");
-		raf.seek(offset);
-		InputStream is = new FileInputStream(raf.getFD());
 		String fPath = file.getAbsolutePath();
 		if (isArc(name)) {
-			ArchiveReader reader = ARCReaderFactory.get(fPath, is, false);
-			r = ARCArchiveRecordToResource(reader.get(), reader);
+
+            raf.seek(0L);
+            InputStream is = new FileInputStream(raf.getFD());
+            //TODO the following should work, but actually breaks the unit test for (as yet) unknown reasons
+            //ArchiveReader reader = ARCReaderFactory.get(fPath, is, true);
+            ArchiveReader reader = ARCReaderFactory.get(file);
+            r = ARCArchiveRecordToResource(reader.get(offset), reader);
 
 		} else if (isWarc(name)) {
 
+            raf.seek(offset);
+            InputStream is = new FileInputStream(raf.getFD());
 			ArchiveReader reader = WARCReaderFactory.get(fPath, is, false);
 			r = WARCArchiveRecordToResource(reader.get(), reader);
 
