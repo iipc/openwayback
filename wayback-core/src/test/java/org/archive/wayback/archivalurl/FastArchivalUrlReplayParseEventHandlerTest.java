@@ -2,7 +2,6 @@ package org.archive.wayback.archivalurl;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.net.URL;
 
 import junit.framework.TestCase;
@@ -10,9 +9,9 @@ import junit.framework.TestCase;
 import org.archive.wayback.replay.html.ReplayParseContext;
 import org.archive.wayback.util.htmllex.ContextAwareLexer;
 import org.htmlparser.Node;
+import org.htmlparser.Tag;
 import org.htmlparser.lexer.Lexer;
 import org.htmlparser.lexer.Page;
-import org.htmlparser.util.ParserException;
 
 /**
  * test {@link FastArchivalUrlReplayParseEventHandler}.
@@ -21,16 +20,33 @@ import org.htmlparser.util.ParserException;
 public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 
 	public void testAnchorHrefAbsolute() throws Exception {
-		assertEquals("<html><a href=\"http://replay.archive.org/2001/http://www.example.com/foo.html\">foo</a></html>",
-		        doEndToEnd("<html><a href=\"/foo.html\">foo</a></html>"));
+		final String input = "<html>" +
+				"<a href=\"/foo.html\">foo</a>" +
+				"</html>";
+		final String expected = "<html>" +
+				"<a href=\"http://replay.archive.org/2001/http://www.example.com/foo.html\">" +
+				"foo</a></html>";
+		assertEquals(expected, doEndToEnd(input));
 	}
+
 	public void testAnchorHrefRelative() throws Exception {
-		assertEquals("<html><a href=\"http://replay.archive.org/2001/http://www.example.com/foo.html\">foo</a></html>",
-		        doEndToEnd("<html><a href=\"foo.html\">foo</a></html>"));
+		final String input = "<html>" +
+				"<a href=\"foo.html\">foo</a>" +
+				"</html>";
+		final String expected = "<html>" +
+				"<a href=\"http://replay.archive.org/2001/http://www.example.com/foo.html\">foo</a>" +
+				"</html>";
+		assertEquals(expected, doEndToEnd(input));
 	}
+
 	public void testAnchorHrefAbsoluteInJavascript() throws Exception {
-		assertEquals("<html><a href=\"javascript:doWin('http://replay.archive.org/2001/http://www.symphony.org')\">American Symphony Orchestra League</a></html>",
-		        doEndToEnd("<html><a href=\"javascript:doWin('http://www.symphony.org')\">American Symphony Orchestra League</a></html>"));
+		final String input = "<html>" +
+				"<a href=\"javascript:doWin('http://www.symphony.org')\">American Symphony Orchestra League</a>" +
+				"</html>";
+		final String expected = "<html>" +
+				"<a href=\"javascript:doWin('http://replay.archive.org/2001/http://www.symphony.org')\">American Symphony Orchestra League</a>" +
+				"</html>";
+		assertEquals(expected, doEndToEnd(input));
 	}
 	
 	public void testStyleElementBackgroundUrl() throws Exception {
@@ -48,6 +64,33 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
                 "<style type=\"text/css\">" +
                 "#head{" +
                 "background:transparent url(http://replay.archive.org/2001im_/http://www.example.com/images/logo.jpg);" +
+                "}" +
+                "</style>" +
+                "</head>" +
+                "</html>";
+	    assertEquals(expected, doEndToEnd(input));
+	}
+	/**
+	 * HTML entities in &lt;STYLE> element are not unescaped.
+	 * (although this is an unlikely scenario)
+	 * @throws Exception
+	 */
+	public void testStyleElementBackgroundUrlNoUnescape() throws Exception {
+	    final String input = "<html>" +
+	    		"<head>" +
+	    		"<style type=\"text/css\">" +
+	    		"#head{" +
+	    		"background-image:url(/genbg?a=2&amp;b=1);" +
+	    		"}" +
+	    		"</style>" +
+	    		"</head>" +
+	    		"</html>";
+        final String expected = "<html>" +
+                "<head>" +
+                "<style type=\"text/css\">" +
+                "#head{" +
+                "background-image:url(http://replay.archive.org/2001im_" +
+                "/http://www.example.com/genbg?a=2&amp;b=1);" +
                 "}" +
                 "</style>" +
                 "</head>" +
@@ -130,6 +173,42 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 		assertEquals(expected, doEndToEnd(input));
 	}
 
+	public void testLinkElement() throws Exception {
+		final String input = "<html>" +
+				"<head>" +
+				"  <link rel=\"stylesheet\" href=\"basic.css?v=1.0&amp;l=en\">" +
+				"  <link rel=\"shortcut icon\" href=\"icon.png?v=1.0&amp;rg=en\">" +
+				"</head>" +
+				"<body>" +
+				"</body>";
+		final String expected = "<html>" +
+				"<head>" +
+				"  <link rel=\"stylesheet\" href=\"http://replay.archive.org/2001cs_/http://www.example.com/basic.css?v=1.0&amp;l=en\">" +
+				"  <link rel=\"shortcut icon\" href=\"http://replay.archive.org/2001im_/http://www.example.com/icon.png?v=1.0&amp;rg=en\">" +
+				"</head>" +
+				"<body>" +
+				"</body>";
+		assertEquals(expected, doEndToEnd(input));
+	}
+
+	public void testStyleAttribute() throws Exception {
+		final String input = "<html>" +
+				"<body>" +
+				"<div style=\"background-image:url(genbg?a=1&amp;b=2);\">" +
+				"blah" +
+				"</div>" +
+				"</body>" +
+				"</html>";
+		final String expected = "<html>" +
+				"<body>" +
+				"<div style=\"background-image:url(http://replay.archive.org/2001im_/http://www.example.com/genbg?a=1&amp;b=2);\">" +
+				"blah" +
+				"</div>" +
+				"</body>" +
+				"</html>";
+		assertEquals(expected, doEndToEnd(input));
+	}
+
     public String doEndToEnd(String input) throws Exception {
 		final String baseUrl = "http://www.example.com/";
 		final String timestamp = "2001";
@@ -179,4 +258,35 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 		return new String(baos.toByteArray(),outputCharset);
 
 	}
+
+    /**
+     * test expected behavior of htmlparser.
+     * <p>htmlparser does neither unescape HTML entities found in text, nor
+     * escape special characters in Node.toHtml().  We have a workaround based on this
+     * behavior.  If this expectation breaks, we need to modify our code.</p>
+     * @throws Exception
+     */
+    public void testHtmlParser() throws Exception {
+    	final String html = "<html>" +
+    			"<body>" +
+    			"<a href=\"http://example.com/api?a=1&amp;b=2&c=3&#34;\">anchor</a>" +
+    			"</body>" +
+    			"</html>";
+    	byte[] bytes = html.getBytes();
+    	ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
+    	Page page = new Page(bais, "UTF-8");
+    	Lexer lexer = new Lexer(page);
+    	Node node;
+    	while ((node = lexer.nextNode()) != null) {
+    		if (node instanceof Tag) {
+    			Tag tag = (Tag)node;
+    			if (tag.getTagName().equalsIgnoreCase("A") && !tag.isEndTag()) {
+    				assertEquals("href", "http://example.com/api?a=1&amp;b=2&c=3&#34;", tag.getAttribute("HREF"));
+
+    				String htmlout = tag.toHtml();
+    				assertEquals("toHtml output", "<a href=\"http://example.com/api?a=1&amp;b=2&c=3&#34;\">", htmlout);
+    			}
+    		}
+    	}
+    }
 }
