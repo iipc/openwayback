@@ -14,6 +14,7 @@ import org.apache.commons.httpclient.URIException;
 import org.archive.cdxserver.CDXQuery;
 import org.archive.cdxserver.CDXServer;
 import org.archive.cdxserver.auth.AuthToken;
+import org.archive.cdxserver.writer.CDXWriter;
 import org.archive.cdxserver.writer.HttpCDXWriter;
 import org.archive.format.cdx.CDXInputSource;
 import org.archive.format.cdx.CDXLine;
@@ -173,7 +174,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
         SearchResults searchResults = null;
         
         if (wbRequest.isReplayRequest() || wbRequest.isCaptureQueryRequest()) {
-			resultWriter = this.getCaptureSearchWriter(wbRequest, false);
+			resultWriter = this.getCaptureSearchWriter(wbRequest, waybackAuthToken, false);
         } else if (wbRequest.isUrlQueryRequest()) {
 			resultWriter = this.getUrlSearchWriter(wbRequest);
         } else {
@@ -190,7 +191,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
             searchResults = resultWriter.getSearchResults();
             
             if ((searchResults.getReturnedCount() == 0) && (wbRequest.isReplayRequest() || wbRequest.isCaptureQueryRequest()) && tryFuzzyMatch) {
-				resultWriter = this.getCaptureSearchWriter(wbRequest, true);
+				resultWriter = this.getCaptureSearchWriter(wbRequest, waybackAuthToken, true);
             	
             	if (resultWriter != null) {    	
 	            	loadWaybackCdx(urlkey, wbRequest, resultWriter.getQuery(), waybackAuthToken, resultWriter, true);
@@ -412,7 +413,20 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 		return iter;
     }
 
-	protected CDXToSearchResultWriter getCaptureSearchWriter(WaybackRequest wbRequest, boolean isFuzzy)
+	/**
+	 * create {@link CDXWriter} for writing capture search result.
+	 * <p>possible future changes:
+	 * <ul>
+	 * <li>drop unused argument {@code waybackAuthToken}</li>
+	 * <li>change return type to super class (as far up as appropriate)</li>
+	 * </ul>
+	 * </p>
+	 * @param wbRequest {@link WaybackRequest} for configuring {@link CDXQuery}
+	 * @param waybackAuthToken unused
+	 * @param isFuzzy {@code true} to enable fuzzy query
+	 * @return CDXCaptureSearchResultWriter
+	 */
+	protected CDXToCaptureSearchResultsWriter getCaptureSearchWriter(WaybackRequest wbRequest, AuthToken waybackAuthToken, boolean isFuzzy)
 	{
 		final CDXQuery query = createQuery(wbRequest, isFuzzy);
 		
