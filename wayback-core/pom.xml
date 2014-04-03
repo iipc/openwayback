@@ -9,7 +9,7 @@
   </parent>
 
   <artifactId>openwayback-core</artifactId>
-  <name>Wayback Core Java Classes</name>
+  <name>OpenWayback Core Java Classes</name>
   <packaging>jar</packaging>
 
 

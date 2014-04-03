@@ -8,7 +8,7 @@
   </parent>
 
   <artifactId>openwayback-dist</artifactId>
-  <name>Wayback tar.gz Distribution</name>
+  <name>OpenWayback tar.gz Distribution</name>
   <packaging>pom</packaging>
 
   <dependencies>
