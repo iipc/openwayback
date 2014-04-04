@@ -29,7 +29,6 @@ import java.util.Map;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.StatusLine;
 import org.apache.commons.httpclient.util.EncodingUtil;
-import org.archive.format.warc.WARCConstants;
 import org.archive.format.warc.WARCConstants.WARCRecordType;
 import org.archive.io.ArchiveReader;
 import org.archive.io.ArchiveRecordHeader;

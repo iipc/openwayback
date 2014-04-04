@@ -19,7 +19,6 @@
  */
 package org.archive.wayback.replay;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -27,6 +26,20 @@ import java.util.Set;
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.core.CaptureSearchResult;
 
+/**
+ * {@link HttpHeaderProcessor} that renames all headers by prepending a prefix,
+ * except for a few <em>pass-through</em> headers.
+ * <p>
+ * Headers copied as-is:
+ * <ul>
+ * <li>{@code Content-Type}</li>
+ * <li>{@code Content-Disposition}</li>
+ * </ul>
+ * </p>
+ * <p>This is only useful for proxy mode, because it does not translate URLs found
+ * in headers like {@code Location}.</p>
+ * @see RedirectRewritingHttpHeaderProcessor
+ */
 public class XArchiveHttpHeaderProcessor implements HttpHeaderProcessor {
 
 	private static String DEFAULT_PREFIX = "X-Wayback-Orig-";

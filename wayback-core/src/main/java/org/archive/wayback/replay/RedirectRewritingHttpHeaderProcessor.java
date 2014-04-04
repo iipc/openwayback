@@ -28,10 +28,28 @@ import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.util.url.UrlOperations;
 
 /**
- *
+ * {@link HttpHeaderProcessor} that preserves all headers by prepending a prefix,
+ * translates URL in resource location headers and pass-through certain headers.
+ * <p>Headers rewritten:
+ * <ul>
+ * <li>{@code Location}</li>
+ * <li>{@code Content-Location}</li>
+ * <li>{@code Content-Base}</li>
+ * </ul>
+ * Headers passed-through:
+ * <ul>
+ * <li>{@code Content-Type}</li>
+ * <li>{@code Content-Disposition}</li>
+ * </ul>
+ * </p>
+ * <p>If {@code prefix} property is {@code null} (default), all headers but {@code Content-Length}
+ * are copied as they are. With non-{@code null} prefix, all headers, including
+ * {@code Length} are preserved by prepending header name with {@code prefix}.</p>
+ * <p>Caveat: if {@code prefix} is an empty string, all headers including {@code Content-Length}
+ * are copied as they are. This is presumably a bug.</p>
+ * <p>Intended for archival-URL and domain-prefix mode.</p>
  *
  * @author brad
- * @version $Date$, $Revision$
  */
 public class RedirectRewritingHttpHeaderProcessor 
 	implements HttpHeaderProcessor {

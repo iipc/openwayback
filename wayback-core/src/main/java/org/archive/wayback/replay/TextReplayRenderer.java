@@ -170,6 +170,22 @@ public abstract class TextReplayRenderer implements ReplayRenderer {
 		return decodeResource(resource, resource);
 	}
 
+	/**
+	 * return gzip-decoding wrapper Resource if Resource has {@code Content-Encoding: gzip}.
+	 * return {@code payloadResource} otherwise.
+	 * <p>if headerResource's content is gzip-compressed (i.e. {@code Content-Encoding} is "{@code gzip}"),
+	 * return a wrapping Resource that returns decoded content.</p>
+	 * <p>As a side-effect, {@code Content-Encoding} and
+	 * {@code Transfer-Encoding} headers are removed from {@code headersResource} (this happens only when
+	 * {@code headerResoruce} is gzip-compressed.). It is assumed that {@code headerResource} and
+	 * {@code payloadResource} are captures of identical response content.</p>
+	 * <p>TODO: XArchiveHttpHeaderProcessor also does HTTP header removal. Check for refactoring case.</p>
+	 * @param headersResource Resource to read HTTP headers from.
+	 * @param payloadResource Resource to read content from (same as {@code headerResource} for regular captures,
+	 * 	different Resource if headersResource is a revisit record.)
+	 * @return
+	 * @throws IOException
+	 */
 	public static Resource decodeResource(Resource headersResource, Resource payloadResource) throws IOException
 	{
 		Map<String, String> headers = headersResource.getHttpHeaders();
