@@ -183,6 +183,23 @@ public class RobotRulesTest extends TestCase {
 	}
 	
 	/**
+	 * similarly to previous test case, {@code Crawl-delay:} line shall
+	 * end the group.
+	 */
+	public void testMultiUAWithOtherLinesLine2() throws Exception {
+		final String testString =
+				"User-agent: *\n" +
+				"Crawl-delay: 30\n" +
+				"\n" +
+				"User-agent: B\n" +
+				"Disallow: /\n";
+		load(testString);
+
+		// ALLOWED
+		assertFalse(rr.blocksPathForUA("/", WB_UA));
+	}
+
+	/**
 	 * this is a syntax error per RFC, but ok with Google/Yahoo/Bing/Ask convention.
 	 * blank lines are permitted within a group to improve readability. they are simply
 	 * ignored, don't end group.
