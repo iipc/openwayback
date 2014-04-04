@@ -27,6 +27,8 @@ import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.resourcestore.resourcefile.WarcResource;
+import org.easymock.Capture;
+import org.easymock.CaptureType;
 import org.easymock.EasyMock;
 
 /**
@@ -117,7 +119,6 @@ public class TransparentReplayRendererTest extends TestCase {
      * TransparentReplayRenderer copies original, compressed payload to the output.
      * 
      * TODO: should render uncompressed content if client cannot handle
-     * 
      * {@code Content-Encoding: gzip}.
      * 
      * @throws Exception
@@ -195,5 +196,62 @@ public class TransparentReplayRendererTest extends TestCase {
 
         byte[] content = servletOutput.getBytes();
         assertEquals("payload length", 0, content.length);
+    }
+
+    /**
+     * test replay of capture with {@code Transfer-Encoding: chunked}.
+     *
+     * <p>TransparentReplayRenderer writes out chunk-decoded payload, because
+     * {@link WarcResource} always decodes chunked-entity. Point of this test
+     * is that response never have {@code Transfer-Encoding: chunked} header,
+     * even when initialized with {@link IdentityHttpHeaderProcessor}.
+     * so, this is not really a unit test for TransparentReplayRenderer, but
+     * a multi-component test placed here for convenience.</p>
+     * <p>This test does not use member object {@code cut}, in order to test
+     * with {@link IdentityHttpHeaderProcessor}.</p>
+     *
+     * @throws Exception
+     */
+    public void testRenderResource_Chunked() throws Exception {
+        final String ct = "text/xml";
+        final String payload = "<?xml version=\"1.0\"?>\n" +
+        		"<payload name=\"archive\">\n" +
+        		"  <inside/>\n" +
+        		"</payload>\n";
+        final byte[] recordBytes = TestWARCRecordInfo.buildHttpResponseBlock(
+        		"200 OK", ct, payload.getBytes("UTF-8"), true);
+        //System.out.println(new String(recordBytes, "UTF-8"));
+        WARCRecordInfo recinfo = new TestWARCRecordInfo(recordBytes);
+        TestWARCReader ar = new TestWARCReader(recinfo);
+        WARCRecord rec = ar.get(0);
+        Resource payloadResource = new WarcResource(rec, ar);
+        payloadResource.parseHeaders();
+        Resource headersResource = payloadResource;
+
+        TestServletOutputStream servletOutput = new TestServletOutputStream();
+        // expectations
+        response.setStatus(200);
+        EasyMock.expect(response.getOutputStream()).andReturn(servletOutput);
+        // capture setHeader() call for "Transfer-Encoding"
+        Capture<String> transferEncodingCapture = new Capture<String>(CaptureType.FIRST);
+        response.setHeader(EasyMock.eq("Transfer-Encoding"), EasyMock.capture(transferEncodingCapture));
+        EasyMock.expectLastCall().anyTimes();
+        response.setHeader(EasyMock.<String>anyObject(), EasyMock.<String>anyObject());
+        EasyMock.expectLastCall().anyTimes();
+
+        EasyMock.replay(response);
+
+        // creating separate test object to use IdentityHttpHeaderProcessor
+        TransparentReplayRenderer cut2 = new TransparentReplayRenderer(new IdentityHttpHeaderProcessor());
+        cut2.renderResource(request, response, wbRequest, result,
+        		headersResource, payloadResource, uriConverter, results);
+
+        EasyMock.verify(response);
+
+        assertFalse("Transfer-Encoding header must not be set", transferEncodingCapture.hasCaptured());
+
+        // content is the original gzip-compressed bytes for PAYLOAD_GIF.
+        String output = new String(servletOutput.getBytes(), "UTF-8");
+        assertEquals(payload, output);
     }
 }
