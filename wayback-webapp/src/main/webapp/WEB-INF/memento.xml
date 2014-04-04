@@ -77,12 +77,14 @@
     uriConverter.
 
     This AccessPoint currently will provide access only from the machine
-    running Tomcat. To provide external access, replace "localhost.archive.org"
+    running Tomcat. To provide external access, replace "localhost"
     with your fully qualified hostname of the computer running Tomcat.
 -->
   <import resource="ArchivalUrlReplay.xml"/>
-  <bean name="8080:wayback" class="org.archive.wayback.webapp.AccessPoint">
-    <property name="staticPrefix" value="http://localhost.archive.org:8080/wayback/" />
+  <bean name="standardaccesspoint" class="org.archive.wayback.webapp.AccessPoint">
+    <property name="accessPointPath" value="http://localhost:8080/wayback/"/>
+    <property name="internalPort" value="8080"/>
+    <property name="staticPrefix" value="http://localhost:8080/wayback/" />
   	
     <property name="collection" ref="localbdbcollection" />
     <property name="replay" ref="archivalurlreplay" />
@@ -93,7 +95,7 @@
     </property>
     <property name="uriConverter">
       <bean class="org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter">
-	    <property name="replayURIPrefix" value="http://localhost.archive.org:8080/wayback/"/>
+	    <property name="replayURIPrefix" value="http://localhost:8080/wayback/"/>
       </bean>
     </property>
 
@@ -107,11 +109,13 @@
   </bean>
 
   <import resource="MementoReplay.xml"/>
-  <bean name="8080:memento" parent="8080:wayback">
-    <property name="staticPrefix" value="http://localhost.archive.org:8080/memento/" />
+  <bean name="mementoaccesspoint" parent="standardaccesspoint">
+    <property name="accessPointPath" value="http://localhost:8080/memento/"/>
+    <property name="internalPort" value="8080"/>
+    <property name="staticPrefix" value="http://localhost:8080/memento/" />
 	<property name="configs">
       <props>
-	    <prop key="aggregationPrefix">http://localhost.archive.org:8080/ore/</prop>
+	    <prop key="aggregationPrefix">http://localhost:8080/ore/</prop>
       </props>
 	</property>
 
@@ -124,7 +128,7 @@
 
     <property name="uriConverter">
       <bean class="org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter">
-        <property name="replayURIPrefix" value="http://localhost.archive.org:8080/memento/"/>
+        <property name="replayURIPrefix" value="http://localhost:8080/memento/"/>
       </bean>
     </property>
     <property name="parser">
@@ -142,11 +146,11 @@
   </bean>
 
 
-  <bean name="8080:ore" parent="8080:memento">
-    <property name="staticPrefix" value="http://localhost.archive.org:8080/ore/" />
+  <bean name="8080:ore" parent="mementoaccesspoint">
+    <property name="staticPrefix" value="http://localhost:8080/ore/" />
 	<property name="configs">
 	  <props>
-	    <prop key="Prefix">http://localhost.archive.org:8080/memento/</prop>
+	    <prop key="Prefix">http://localhost:8080/memento/</prop>
 	  </props>
 	</property>
 

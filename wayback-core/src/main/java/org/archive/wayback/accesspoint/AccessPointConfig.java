@@ -3,6 +3,7 @@ package org.archive.wayback.accesspoint;
 import java.util.List;
 import java.util.Properties;
 
+import org.archive.wayback.RequestParser;
 import org.archive.wayback.webapp.WaybackCollection;
 import org.springframework.beans.factory.BeanNameAware;
 
@@ -12,6 +13,7 @@ public class AccessPointConfig implements BeanNameAware {
 	private List<String> fileIncludePrefixes = null;
 	private List<String> fileExcludePrefixes = null;
 	private WaybackCollection collection = null;
+	private RequestParser requestParser = null;
 	private String beanName;
 	
 	public Properties getConfigs() {
@@ -46,4 +48,12 @@ public class AccessPointConfig implements BeanNameAware {
 	public void setCollection(WaybackCollection collection) {
 		this.collection = collection;
 	}
+	// Ability to override requestParser per config
+	public RequestParser getRequestParser() {
+		return requestParser;
+	}
+	public void setRequestParser(RequestParser requestParser) {
+		this.requestParser = requestParser;
+	}
+	
 }

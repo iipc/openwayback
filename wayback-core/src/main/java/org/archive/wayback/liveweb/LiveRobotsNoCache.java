@@ -39,6 +39,8 @@ public class LiveRobotsNoCache extends RemoteLiveWebCache {
 		GetMethod method = new GetMethod(url.toString());
 		method.setFollowRedirects(true);
 		method.getParams().setCookiePolicy(CookiePolicy.IGNORE_COOKIES);
+		
+		InputStream in = null;
 
 		try {
 			int responseStatus = http.executeMethod(method);
@@ -47,12 +49,16 @@ public class LiveRobotsNoCache extends RemoteLiveWebCache {
 				throw new LiveDocumentNotAvailableException("Invalid Status: " + responseStatus);
 			}		
 			
-			InputStream in = ByteStreams.limit(method.getResponseBodyAsStream(), maxRobotsSize);
+			in = ByteStreams.limit(method.getResponseBodyAsStream(), maxRobotsSize);
 			return new RobotsTxtResource(IOUtils.toString(in));
 			
 		} catch (IOException io) {
 			throw new LiveDocumentNotAvailableException(io.toString());
 		} finally {
+			if (in != null) {
+				in.close();
+			}
+			
 			method.abort();
 			method.releaseConnection();
 		}
