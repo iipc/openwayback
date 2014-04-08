@@ -100,10 +100,19 @@ public class ReplayParseContext extends ParseContext {
 	}
 	
 
+	// TODO: inline - used only in one place, no readability benefit.
 	private ResultURIConverter makeConverter(String flags) {
 		return uriConverterFactory.getContextConverter(flags);
 	}
+	/**
+	 * returns {@link ResultURIConverter} for resource context <code>flags</code>.
+	 * @param flags resource context indicator such as "{@code cs_}", "{@code im_}".
+	 * @return ResultURIConverter for translating URL
+	 * @see org.archive.wayback.archivalurl.ArchivalUrlSpecialContextReusltURIConverter
+	 */
 	public ResultURIConverter getConverter(String flags) {
+		// TODO: caching should be a responsibility of ContextResultURIConverterFactory.
+		// but it's a API-breaking change as converters is exposed through getter.
 		ResultURIConverter converter = converters.get(flags);
 		if(converter == null) {
 			converter = makeConverter(flags);
@@ -123,13 +132,16 @@ public class ReplayParseContext extends ParseContext {
 	    if(url.startsWith(JAVASCRIPT_PREFIX) || url.startsWith(MAILTO_PREFIX)) {
 	    	return url;
 	    }
+	    // XXX duplicated check for MAILTO_PREFIX??
 	    if(url.startsWith(DATA_PREFIX) || url.startsWith(MAILTO_PREFIX)) {
 	    	return url;
 	    }
 	    if (!isRewriteSupported(url)) {
 	    	return url;
 	    }
+	    // first make url into absolute, taking BASE into account.
 	    url = super.contextualizeUrl(url);
+	    // XXX do this in getConverter
 	    if(flags == null) {
 	    	flags = "";
 	    }

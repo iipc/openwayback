@@ -22,9 +22,15 @@ package org.archive.wayback.replay.html.transformer;
 import org.archive.wayback.replay.html.ReplayParseContext;
 import org.archive.wayback.replay.html.StringTransformer;
 
+/**
+ * StringTransformer for translating URLs found in &lt;STYLE&gt; element.
+ *
+ */
 public class BlockCSSStringTransformer extends BaseCSSStringTransformer implements StringTransformer {
 
 	public String transform(ReplayParseContext context, String css) {
+		// suspicious code - ReplayParseContext#isRewriteSupported assumes
+		// argument is a URL. input here is a CSS block.
 	    if (!context.isRewriteSupported(css)) {
 	    	return css;
 	    }

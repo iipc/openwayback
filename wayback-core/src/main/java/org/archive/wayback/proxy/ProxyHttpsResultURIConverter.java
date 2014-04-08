@@ -3,6 +3,11 @@ package org.archive.wayback.proxy;
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.WaybackConstants;
 
+/**
+ * {@link ResultURIConverter} that replaces "{@code https://}" with "{@code http://}".
+ * <p>For use in proxy-mode, where all access need to be plain HTTP.</p>
+ *
+ */
 public class ProxyHttpsResultURIConverter implements ResultURIConverter {
 
 	@Override

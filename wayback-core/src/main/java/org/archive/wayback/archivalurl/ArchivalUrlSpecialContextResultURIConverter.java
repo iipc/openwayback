@@ -22,9 +22,13 @@ package org.archive.wayback.archivalurl;
 import org.archive.wayback.ResultURIConverter;
 
 /**
- * wrapper around an ArchivalUrlResultURIConverter, adding flags after the
- * datespec for a specific context ("js_" for javascript, "cs_" for CSS, etc)
- *
+ * Wraps around an ArchivalUrlResultURIConverter, to add flags after the
+ * datespec for a specific context ("js_" for javascript, "cs_" for CSS, etc).
+ * <p>Actually this class does not wrap ArchivalUrlResultURIConverter.  It only saves
+ * replayURIPrefix of ArchivalUrlResultURIConverter given, and translates URL on its own.</p>
+ * <p>For use in archival-URL mode.</p>
+ * <p>Possible Refactoring: may change to an inner class of {@link ArchivalUrlContextResultURIConverterFactory},
+ * the sole user of this class, or other class.</p>
  * @author brad
  * @version $Date$, $Revision$
  */

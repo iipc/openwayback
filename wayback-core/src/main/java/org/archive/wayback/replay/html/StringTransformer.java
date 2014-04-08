@@ -19,6 +19,18 @@
  */
 package org.archive.wayback.replay.html;
 
+/**
+ * Transforms text with certain rewrite rules.
+ * <p>Input text may be entire HTML, JavaScript block, or as small as
+ * single attribute value.</p>
+ */
 public interface StringTransformer {
+	/**
+	 * transforms text with certain rewrite rules.
+	 * <p>Refactoring: change <code>input</code> type to <code>CharSequence</code>.
+	 * @param context ReplayParseContext
+	 * @param input text data to be transformed
+	 * @return transformed text
+	 */
 	public String transform(ReplayParseContext context, String input);
 }

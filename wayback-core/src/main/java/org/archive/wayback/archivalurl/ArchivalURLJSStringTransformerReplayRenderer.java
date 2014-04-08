@@ -25,6 +25,22 @@ import org.archive.wayback.replay.html.IdentityResultURIConverterFactory;
 import org.archive.wayback.replay.html.ReplayParseContext;
 import org.archive.wayback.replay.html.StringTransformer;
 
+/**
+ * {@link TextReplayRenderer} that uses {@link StringTransformer} as an underlining
+ * rewrite engine.
+ * <p><code>transformer</code> can be any <code>StringTransformer</code> such as
+ * <code>JSStringTransformer</code> or <code>MultiRegexReplaceStringTransformer</code>.</p>
+ * <p>This class itself is not specific to either JavaScript rewriting or archival-URL mode.
+ * It is all up to <code>transformer</code> how URLs in resource is rewritten.
+ * As such, this class is also used for rewriting {@code https://} URLs in proxy-mode
+ * in spite of its name.
+ * </p>
+ * <p>TODO:
+ * @see org.archive.wayback.replay.html.transformer.JSStringTransformer
+ * @see org.archive.wayback.replay.html.transformer.MultiRegexReplaceStringTransformer
+ * @author ilya
+ *
+ */
 public class ArchivalURLJSStringTransformerReplayRenderer extends TextReplayRenderer {
 	
 	public ArchivalURLJSStringTransformerReplayRenderer(HttpHeaderProcessor httpHeaderProcessor) {
@@ -75,6 +91,7 @@ public class ArchivalURLJSStringTransformerReplayRenderer extends TextReplayRend
 			throw new IOException(e1.getMessage());
 		}
 
+		// same code in ArchivalUrlSAXRewriteReplayRenderer
 		ContextResultURIConverterFactory fact = null;
 		
 		if (uriConverter instanceof ArchivalUrlResultURIConverter) {

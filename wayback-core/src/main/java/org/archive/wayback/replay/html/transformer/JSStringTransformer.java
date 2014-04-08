@@ -26,8 +26,11 @@ import org.archive.wayback.replay.html.ReplayParseContext;
 import org.archive.wayback.replay.html.StringTransformer;
 
 /**
- * Attempts to rewrite any absolute URLs found within the text/javascript MIME
- * 
+ * Translates absolute URLs found in JavaScript code block.
+ * <p>Looks for http/https absolute URLs in JavaScript code and translates
+ * them with {@link ReplayParseContext#contextualizeUrl(String)}.</p>
+ * <p>TODO: org.archive.wayback.archivalurl.ArchivalUrlJSReplayRenderer has
+ * similar code.  can be consolidated, like ArchivalURLJSStringTransformerReplayRenderer?</p>
  * @author brad
  *
  */
@@ -48,7 +51,8 @@ public class JSStringTransformer implements StringTransformer {
 	}
 
 	public String transform(ReplayParseContext context, String input) {
-
+		// suspicious code - ReplayParseContext#isRewriteSupported assumes
+		// argument is a URL. input here is a JavaScript block.
 	    if (!context.isRewriteSupported(input)) {
 	    	return input;
 	    }

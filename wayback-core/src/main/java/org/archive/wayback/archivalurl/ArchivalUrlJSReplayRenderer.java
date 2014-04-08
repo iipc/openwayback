@@ -40,12 +40,13 @@ import org.archive.wayback.replay.TextReplayRenderer;
 import org.archive.wayback.util.Timestamp;
 
 /**
- * ReplayRenderer which attempts to rewrite absolute URLs within a 
- * text/javascript document to make them load correctly from an ArchivalURL
- * AccessPoint.
- * 
+ * {@link TextReplayRenderer} that rewrites URLs in JavaScript resource for
+ * replay in ArchivalURL mode.
+ * <p>Alternative is {@link ArchivalURLJSStringTransformerReplayRenderer}. This class
+ * has not been receiving recent improvements to support corner cases.</p>
+ *
+ * @see ArchivalURLJSStringTransformerReplayRenderer
  * @author brad
- * @version $Date$, $Revision$
  */
 
 public class ArchivalUrlJSReplayRenderer extends TextReplayRenderer {

@@ -25,6 +25,8 @@ import org.archive.wayback.replay.html.ContextResultURIConverterFactory;
 /**
  * Factory which creates a context specific ArchivalUrlResultURIConverter,
  * given a base ArchivalUrlResultURIConverter and the flags to add.
+ * <p>Possible Refactoring: this class may be deleted, or made private.</p>
+ * @see ArchivalUrlSpecialContextResultURIConverter
  * @author brad
  *
  */
