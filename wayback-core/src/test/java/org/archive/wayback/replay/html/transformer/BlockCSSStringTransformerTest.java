@@ -42,10 +42,10 @@ public class BlockCSSStringTransformerTest extends TestCase {
         st.transform(rc, input);
         
         assertEquals(4, rc.got.size());
-        assertEquals("style1.css", rc.got.get(0));
-        assertEquals("style2.css", rc.got.get(1));
-        assertEquals("http://archive.org/common.css", rc.got.get(2));
-        assertEquals("bg.gif", rc.got.get(3));
+        assertTrue(rc.got.contains("style1.css"));
+        assertTrue(rc.got.contains("style2.css"));
+        assertTrue(rc.got.contains("http://archive.org/common.css"));
+        assertTrue(rc.got.contains("bg.gif"));
 	}
 	
 	public void testRewriteHttpsOnly() throws Exception {
@@ -66,7 +66,7 @@ public class BlockCSSStringTransformerTest extends TestCase {
         st.transform(rc, input);
         
         assertEquals(2, rc.got.size());
-        assertEquals("https://secure.archive.org/common.css", rc.got.get(0));
-        assertEquals("https://secure.archive.org/img/error-icon.gif", rc.got.get(1));
+        assertTrue(rc.got.contains("https://secure.archive.org/common.css"));
+        assertTrue(rc.got.contains("https://secure.archive.org/img/error-icon.gif"));
 	}
 }

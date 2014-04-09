@@ -87,16 +87,18 @@ public class JSStringTransformerTest extends TestCase {
 		rc.setRewriteHttpsOnly(true);
 		
 		final String input = "var img1 = 'http://example.com/img/1.jpeg';\n" +
-				"var img2 = 'https://secure.example.com/img/2.jpeg';\n" +
+				"var img2 = 'https://secure1.example.com/img/2.jpeg';\n" +
 				"var img3 = '/img/3.jpeg';\n" +
 				"var host1 = 'http://example.com';\n" +
-				"var host2 = 'https://secure.example.com';\n";
+				"var host2 = 'https://secure2.example.com';\n";
 
 		jst.transform(rc, input);
 
 		assertEquals(2, rc.got.size());
-		assertEquals("https://secure.example.com/img/2.jpeg", rc.got.get(0));
-		assertEquals("https://ecure.example.com", rc.got.get(1));
+		// with default regex, JSStringTransformer captures
+		// scheme and netloc only (no path).
+		assertTrue(rc.got.contains("https://secure1.example.com"));
+		assertTrue(rc.got.contains("https://secure2.example.com"));
 	}
 
 	/**
