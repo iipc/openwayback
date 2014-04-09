@@ -56,34 +56,20 @@ public class MetaRefreshUrlStringTransformer extends URLStringTransformer
 	 * .wayback.replay.html.ReplayParseContext, java.lang.String)
 	 */
 	public String transform(ReplayParseContext context, String input) {
-		// suspicious code - ReplayParseContext#isRewriteSupported assumes
-		// argument is a URL. input here is a value of META/@CONTENT attribute.
-		if (!context.isRewriteSupported(input)) {
-			return input;
-		}
-
-		/*
-		 * <META HTTP-EQUIV="Refresh" CONTENT="0; URL=/ics/default.asp">
-		 *
-		 * Our argument "input" is set to the value of the "CONTENT" attribute.
-		 *
-		 * So, we need to search for the "URL=", take everything to the right of
-		 * that, trim it, contextualize it, and return that.
-		 */
+		// Ex. <META HTTP-EQUIV="Refresh" CONTENT="0; URL=/ics/default.asp">
+		// input receives the value of the "CONTENT" attribute.
+		// So, we need to search for the "URL=", take everything to the right of
+		// that, trim it, contextualize it, and return that.
 		Matcher m = refreshURLPattern.matcher(input);
 		if (m.matches()) {
 			if (m.groupCount() == 1) {
-				StringBuilder sb = new StringBuilder(input.length() * 2);
-
-				sb.append(input.substring(0, m.start(1)));
-
-				sb.append(super.transform(context, m.group(1)));
-
-				// This was temporarily used for testing the regex:
-				// sb.append("(((").append(m.group(1)).append(")))");
-
-				sb.append(input.substring(m.end(1)));
-				return sb.toString();
+				String url = m.group(1);
+				if (context.isRewriteSupported(url)) {
+					url = context.contextualizeUrl(url);
+					input = input.substring(0, m.start(1)) +
+							url +
+							input.substring(m.end(1));
+				}
 			}
 		}
 		return input;

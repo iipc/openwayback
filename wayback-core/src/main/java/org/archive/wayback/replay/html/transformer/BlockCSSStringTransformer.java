@@ -31,16 +31,10 @@ import org.archive.wayback.replay.html.StringTransformer;
 public class BlockCSSStringTransformer extends BaseCSSStringTransformer implements StringTransformer {
 
 	public String transform(ReplayParseContext context, String css) {
-		// suspicious code - ReplayParseContext#isRewriteSupported assumes
-		// argument is a URL. input here is a CSS block.
-	    if (!context.isRewriteSupported(css)) {
-	    	return css;
-	    }
 		StringBuilder sb = new StringBuilder(css);
-		patternRewrite((ReplayParseContext)context, sb,cssUrlPattern, "im_");
-		patternRewrite((ReplayParseContext)context, sb,cssImportNoUrlPattern, 
+		patternRewrite((ReplayParseContext) context, sb, cssUrlPattern, "im_");
+		patternRewrite((ReplayParseContext) context, sb, cssImportNoUrlPattern,
 				"cs_");
-//		return "__BCSS__" + sb.toString() + "__BCSS__";
 		return sb.toString();
 	}
 
