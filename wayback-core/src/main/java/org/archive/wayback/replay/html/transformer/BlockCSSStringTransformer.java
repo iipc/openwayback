@@ -25,6 +25,8 @@ import org.archive.wayback.replay.html.StringTransformer;
 /**
  * StringTransformer for translating URLs found in &lt;STYLE&gt; element.
  *
+ * @see org.archive.wayback.archivalurl.FastArchivalUrlReplayParseEventHandler
+ * @see InlineCSSStringTransformer
  */
 public class BlockCSSStringTransformer extends BaseCSSStringTransformer implements StringTransformer {
 

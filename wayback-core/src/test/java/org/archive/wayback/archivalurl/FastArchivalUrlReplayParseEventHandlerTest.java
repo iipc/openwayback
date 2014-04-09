@@ -2,7 +2,6 @@ package org.archive.wayback.archivalurl;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.net.URL;
 
 import junit.framework.TestCase;
@@ -12,7 +11,6 @@ import org.archive.wayback.util.htmllex.ContextAwareLexer;
 import org.htmlparser.Node;
 import org.htmlparser.lexer.Lexer;
 import org.htmlparser.lexer.Page;
-import org.htmlparser.util.ParserException;
 
 public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 
