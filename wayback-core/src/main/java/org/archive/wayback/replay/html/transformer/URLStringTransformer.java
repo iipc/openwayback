@@ -26,7 +26,7 @@ import org.archive.wayback.replay.html.StringTransformer;
  * StringTransformer for translating URLs.
  * <p>input is a URL (strictly speaking, URI), typically from an HTML attribute.</p>
  * <p>As translation is simply delegated to {@link ReplayParseContext} passed to
- * {@link #transform(ReplayParseContext, String)} method, this class is merely a holder
+ * {@link #transform} method, this class is merely a holder
  * of <code>flags</code> value representing a type of context pointed resource is used.
  * This is necessary because StringTransformer interface does not allow for communicating
  * this information to {@link ReplayParseContext#contextualizeUrl(String, String)}.</p>
@@ -39,9 +39,13 @@ import org.archive.wayback.replay.html.StringTransformer;
  * <li>communicate flags information through ReplayParserContext?</li>
  * <li>let FastArchivalUrlReplayParseEventHandler call contextualizeUrl(String, String)
  * directly?</li>
+ * <li>move this class to non-static inner class of FastArchivalUrlReplayParseEventHandler.
+ * Perhaps it doesn't need to implement StringTransformer at all
+ * (sub-class MetaRefreshUrlStringTransformer needs separate rewrite.)</li>
  * </ul>
  * </p>
  * @see org.archive.wayback.archivalurl.FastArchivalUrlReplayParseEventHandler
+ * @see MetaRefreshUrlStringTransformer
  * @author brad
  *
  */

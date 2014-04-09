@@ -30,6 +30,13 @@ import org.archive.wayback.replay.html.StringTransformer;
  * <p>
  * Extracts URL part in <code>CONTENT</code> attribute value, and translates it.
  * </p>
+ * <p>Possible Refactoring:
+ * There's no strong reason this class should extend {@link URLStringTransformer}.
+ * Since <code>javascript:</code> URI in META-REFRESH is rejected by most browsers,
+ * <code>transform</code> method could simply call {@link ReplayParseContext#contextualizeUrl(String)}
+ * rather than <code>super.transform</code>.  As META-REFRESH is found only in HTML
+ * document, there's no need for <code>flags</code> member either.
+ * </p>
  *
  * @author brad
  *
