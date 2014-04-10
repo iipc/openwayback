@@ -95,20 +95,23 @@ public class ParseContext {
 		}
 	}
 	/**
-	 * @param url which should be resolved against the baseUrl for this 
-	 * ParseContext.
-	 * @return absolute form of url, resolved against baseUrl if relative.
+	 * Resolve possibly-relative {@code url} with {@code baseUrl} set to
+	 * this object. 
+	 * <p>Caveat: this method no longer unescape HTML entities in {@code url}.
+	 * HTML entities must be all unescaped before calling method.</p>
+	 * @param url which should be resolved
+	 * @return absolute URL.
 	 * @throws URISyntaxException if the input URL is malformed
 	 */
 	public String resolve(String url) throws URISyntaxException {
 		int hashIdx = url.indexOf('#');
 		String frag = "";
-		if(hashIdx != -1) {
+		if (hashIdx != -1) {
 			frag = url.substring(hashIdx);
-			url = url.substring(0,hashIdx);
+			url = url.substring(0, hashIdx);
 		}
 		
-		if(baseUrl == null) {
+		if (baseUrl == null) {
 			// TODO: log ?
 			return url + frag;
 		}
