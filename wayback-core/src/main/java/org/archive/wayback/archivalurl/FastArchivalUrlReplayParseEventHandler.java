@@ -124,15 +124,15 @@ public class FastArchivalUrlReplayParseEventHandler implements
 			remarkNode.setText(jsBlockTrans.transform(context, remarkNode.getText()));
 			emit(context,null,node,null);
 
-		} else if(NodeUtils.isTextNode(node)) {
+		} else if (NodeUtils.isTextNode(node)) {
 			TextNode textNode = (TextNode) node;
-			if(context.isInCSS()) {
+			if (context.isInCSS()) {
 				handleCSSTextNode(context,textNode);
 				
-			} else if(context.isInScriptText()) {
+			} else if (context.isInScriptText()) {
 				handleJSTextNode(context,textNode);
 			} else {
-				emit(context,null,textNode,null);
+				emit(context, null, textNode, null);
 //				handleContentTextNode(context,textNode);
 			}
 		} else if(NodeUtils.isTagNode(node)) {
@@ -147,13 +147,13 @@ public class FastArchivalUrlReplayParseEventHandler implements
 				}
 				
 				if (checkAllowTag(pContext, tagNode)) {
-					emit(context,null,tagNode,null);
+					emit(context, null, tagNode, null);
 				}
 					
 //				handleCloseTagNode(context,tagNode);
 			} else {
 				// assume start, possibly empty:
-				handleOpenTagNode(context,tagNode);
+				handleOpenTagNode(context, tagNode);
 			}
 		} else {
 			throw new IllegalArgumentException("Unknown node type..");
@@ -184,7 +184,7 @@ public class FastArchivalUrlReplayParseEventHandler implements
 			textNode.setText(jsBlockTrans.transform(context, textNode.getText()));
 		}
 		
-		emit(context,null,textNode,null);
+		emit(context, null, textNode, null);
 	}
 	
 	private void handleJSIncludeNode(ReplayParseContext context, TagNode tagNode) throws IOException {
@@ -203,7 +203,7 @@ public class FastArchivalUrlReplayParseEventHandler implements
 			}
 		}
 		
-		emit(context,null,tagNode,null);
+		emit(context, null, tagNode, null);
 	}
 
 	private void handleOpenTagNode(ReplayParseContext context, TagNode tagNode) 
@@ -249,12 +249,12 @@ public class FastArchivalUrlReplayParseEventHandler implements
 				
 		// Time to insert the JSP header?
 		//IK added check to avoid inserting inside css or script
-		if(!insertedJsp && !context.isInCSS() && !context.isInScriptText() && !inHead) {
-			if(!okHeadTagMap.containsKey(tagName)) {
-				if(tagName.equals(FRAMESET_TAG)) {
+		if (!insertedJsp && !context.isInCSS() && !context.isInScriptText()	&& !inHead) {
+			if (!okHeadTagMap.containsKey(tagName)) {
+				if (tagName.equals(FRAMESET_TAG)) {
 					// don't put the insert in framsets:
 				} else {
-					if(jspInsertPath != null && !context.getJspExec().getUiResults().getWbRequest().isIFrameWrapperContext()) {
+					if (jspInsertPath != null && !context.getJspExec().getUiResults().getWbRequest().isIFrameWrapperContext()) {
 						String tmp = null; 
 						try {
 							tmp = 
@@ -281,17 +281,17 @@ public class FastArchivalUrlReplayParseEventHandler implements
 		// this could be slightly optimized by moving tags more likely to occur
 		// to the front of the if/else if/else if routing...
 
-		if(tagName.equals("A")) {
+		if (tagName.equals("A")) {
 			transformAttr(context, tagNode, "HREF", anchorUrlTrans);
 
-		} else if(tagName.equals("APPLET")) {
+		} else if (tagName.equals("APPLET")) {
 			transformAttr(context, tagNode, "CODEBASE", objectEmbedUrlTrans);
 			transformAttr(context, tagNode, "ARCHIVE", objectEmbedUrlTrans);
 
-		} else if(tagName.equals("AREA")) {
+		} else if (tagName.equals("AREA")) {
 			transformAttr(context, tagNode, "HREF", anchorUrlTrans);
 
-		} else if(tagName.equals("BASE")) {
+		} else if (tagName.equals("BASE")) {
 			String orig = tagNode.getAttribute("HREF"); 
 			if(orig != null) {
 				try {
@@ -303,70 +303,68 @@ public class FastArchivalUrlReplayParseEventHandler implements
 				}
 			}
 
-		} else if(tagName.equals("EMBED")) {
+		} else if (tagName.equals("EMBED")) {
 			transformAttr(context, tagNode, "SRC", objectEmbedUrlTrans);
 
-		} else if(tagName.equals("IFRAME")) {
+		} else if (tagName.equals("IFRAME")) {
 			transformAttr(context, tagNode, "SRC", iframeUrlTrans);
 
-		} else if(tagName.equals("IMG")) {
+		} else if (tagName.equals("IMG")) {
 			transformAttr(context, tagNode, "SRC", imageUrlTrans);
 
-		} else if(tagName.equals("INPUT")) {
+		} else if (tagName.equals("INPUT")) {
 			transformAttr(context, tagNode, "SRC", imageUrlTrans);
 
-		} else if(tagName.equals("FORM")) {
+		} else if (tagName.equals("FORM")) {
 			transformAttr(context, tagNode, "ACTION", anchorUrlTrans);
 
-		} else if(tagName.equals("FRAME")) {
+		} else if (tagName.equals("FRAME")) {
 			transformAttr(context, tagNode, "SRC", framesetUrlTrans);
 
-		} else if(tagName.equals("LINK")) {
-			if(transformAttrWhere(context, tagNode, "REL", "STYLESHEET", 
+		} else if (tagName.equals("LINK")) {
+			if (transformAttrWhere(context, tagNode, "REL", "STYLESHEET", 
 					"HREF",cssUrlTrans)) {
 				// no-op
-			} else if(transformAttrWhere(context,tagNode,"REL","SHORTCUT ICON",
+			} else if (transformAttrWhere(context,tagNode,"REL","SHORTCUT ICON",
 					"HREF", imageUrlTrans)) {
 				// no-op
 			} else {
 				transformAttr(context, tagNode, "HREF", anchorUrlTrans);
 			}
 
-		} else if(tagName.equals("META")) {
+		} else if (tagName.equals("META")) {
 			transformAttrWhere(context, tagNode, "HTTP-EQUIV", "REFRESH",
 					"CONTENT", metaRefreshTrans);
 			transformAttr(context, tagNode, "URL", anchorUrlTrans);
 
-		} else if(tagName.equals("OBJECT")) {
+		} else if (tagName.equals("OBJECT")) {
 			transformAttr(context, tagNode, "CODEBASE", objectEmbedUrlTrans);
 			transformAttr(context, tagNode, "CDATA", objectEmbedUrlTrans);
 
-		} else if(tagName.equals("SCRIPT")) {
+		} else if (tagName.equals("SCRIPT")) {
 			transformAttr(context, tagNode, "SRC", jsUrlTrans);
-		} else if(tagName.equals("DIV") || tagName.equals("LI")) {
+		} else if (tagName.equals("DIV") || tagName.equals("LI")) {
 			//HTML5 -- can have data-src or data-uri attributes in any tag!
 			//Can really be in any tag but for now using most common use cases
 			//Experimental
-			transformAttr(context,tagNode,"data-src", objectEmbedUrlTrans);
-			transformAttr(context,tagNode,"data-uri", objectEmbedUrlTrans);
+			transformAttr(context, tagNode, "data-src", objectEmbedUrlTrans);
+			transformAttr(context, tagNode, "data-uri", objectEmbedUrlTrans);
 		} else {
 			if (!checkAllowTag(context, tagNode)) {
 				return;
 			}
 		}
 		// now, for *all* tags...
-		transformAttr(context,tagNode,"BACKGROUND", imageUrlTrans);
-		transformAttr(context,tagNode,"STYLE", cssInlineTrans);
-		transformAttr(context,tagNode,"onclick", jsBlockTrans);
-		transformAttr(context,tagNode,"onload", jsBlockTrans);
-		transformAttr(context,tagNode,"onchange", jsBlockTrans);
-		
+		transformAttr(context, tagNode, "BACKGROUND", imageUrlTrans);
+		transformAttr(context, tagNode, "STYLE", cssInlineTrans);
+		transformAttr(context, tagNode, "onclick", jsBlockTrans);
+		transformAttr(context, tagNode, "onload", jsBlockTrans);
+		transformAttr(context, tagNode, "onchange", jsBlockTrans);
 
-		emit(context,preEmit,tagNode,postEmit);
+		emit(context, preEmit, tagNode, postEmit);
 	}
 	
-	protected boolean checkAllowTag(ParseContext context, TagNode tagNode)
-	{
+	protected boolean checkAllowTag(ParseContext context, TagNode tagNode) {
 		String tagName = tagNode.getTagName();
 		
 		// Check the NOSCRIPT tag, if force-noscript is set,
@@ -386,12 +384,11 @@ public class FastArchivalUrlReplayParseEventHandler implements
 			String post) throws IOException {
 		
 		OutputStream out = context.getOutputStream();
-		if(out != null) {
+		if (out != null) {
 //			Charset charset = Charset.forName(context.getOutputCharset());
 			String charset = context.getOutputCharset();
 
-			if(pre != null) {
-
+			if (pre != null) {
 				out.write(pre.getBytes(charset));
 			}
 			
@@ -399,8 +396,7 @@ public class FastArchivalUrlReplayParseEventHandler implements
 				out.write(node.toHtml(true).getBytes(charset));
 			}
 
-			if(post != null) {
-
+			if (post != null) {
 				out.write(post.getBytes(charset));
 			}
 		}
@@ -427,9 +423,9 @@ public class FastArchivalUrlReplayParseEventHandler implements
 			String attrName, String attrVal, String modAttr, 
 			StringTransformer transformer) {
 		String val = node.getAttribute(attrName);
-		if(val != null) {
-			if(val.toUpperCase().equals(attrVal)) {
-				return transformAttr(context,node,modAttr,transformer);
+		if (val != null) {
+			if (val.toUpperCase().equals(attrVal)) {
+				return transformAttr(context, node, modAttr, transformer);
 			}
 		}
 		return false;
@@ -464,7 +460,7 @@ public class FastArchivalUrlReplayParseEventHandler implements
 	}
 
 	public void handleParseComplete(ParseContext pContext) throws IOException {
-		if(endJsp != null) {
+		if (endJsp != null) {
 			ReplayParseContext context = (ReplayParseContext) pContext;
 			OutputStream out = context.getOutputStream();
 			String tmp = null; 
@@ -473,7 +469,7 @@ public class FastArchivalUrlReplayParseEventHandler implements
 			} catch (ServletException e) {
 				e.printStackTrace();
 			}
-			if(tmp != null) {
+			if (tmp != null) {
 //				Charset charset = Charset.forName(context.getOutputCharset());
 				String charset = context.getOutputCharset();
 				out.write(tmp.getBytes(charset));
@@ -491,7 +487,7 @@ public class FastArchivalUrlReplayParseEventHandler implements
 			context.setOraclePolicy(policy);
 		}
 		
-		if(startJsp != null) {
+		if (startJsp != null) {
 			OutputStream out = context.getOutputStream();
 			String tmp = null; 
 			try {
@@ -499,7 +495,7 @@ public class FastArchivalUrlReplayParseEventHandler implements
 			} catch (ServletException e) {
 				e.printStackTrace();
 			}
-			if(tmp != null) {
+			if (tmp != null) {
 //				Charset charset = Charset.forName(context.getOutputCharset());
 				String charset = context.getOutputCharset();
 				out.write(tmp.getBytes(charset));
@@ -580,7 +576,6 @@ public class FastArchivalUrlReplayParseEventHandler implements
 	public void setJsBlockTrans(StringTransformer jsBlockTrans) {
 		this.jsBlockTrans = jsBlockTrans;
         anchorUrlTrans.setJsTransformer(jsBlockTrans);
-		
 	}
 
 	public String getHeadInsertJsp() {
@@ -591,28 +586,28 @@ public class FastArchivalUrlReplayParseEventHandler implements
 		this.headInsertJsp = headInsertJsp;
 	}
 
-	protected void emitHeadInsert(ReplayParseContext context, Node node, boolean postInsert)
-			throws IOException {
-				String headInsert = null;
-				
-				if (headInsertJsp == null) {
-					this.emit(context, null, node, null);
-					return;
-				}
-			
-				try {
-					headInsert = context.getJspExec().jspToString(headInsertJsp);
-					context.putData(FERRET_HEAD_INSERTED, FERRET_HEAD_INSERTED);
-				} catch (ServletException e) {
-					e.printStackTrace();
-				}
-				
-				if (postInsert) {
-					this.emit(context, null, node, headInsert);
-				} else {
-					this.emit(context, headInsert, node, null);
-				}
-			}
+	protected void emitHeadInsert(ReplayParseContext context, Node node,
+			boolean postInsert) throws IOException {
+		String headInsert = null;
+
+		if (headInsertJsp == null) {
+			this.emit(context, null, node, null);
+			return;
+		}
+
+		try {
+			headInsert = context.getJspExec().jspToString(headInsertJsp);
+			context.putData(FERRET_HEAD_INSERTED, FERRET_HEAD_INSERTED);
+		} catch (ServletException e) {
+			e.printStackTrace();
+		}
+
+		if (postInsert) {
+			this.emit(context, null, node, headInsert);
+		} else {
+			this.emit(context, headInsert, node, null);
+		}
+	}
 
 	public boolean isUnescapeAttributeValues() {
 		return unescapeAttributeValues;

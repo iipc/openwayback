@@ -248,7 +248,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 		assertEquals(expected, doEndToEnd(input));
 	}
 
-    public String doEndToEnd(String input) throws Exception {
+	public String doEndToEnd(String input) throws Exception {
 		final String baseUrl = "http://www.example.com/";
 		final String timestamp = "2001";
 		final String outputCharset = "UTF-8";
@@ -284,14 +284,13 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
     	ContextAwareLexer lex = new ContextAwareLexer(lexer, context);
 
     	Node node;
-    	while((node = lex.nextNode()) != null) {
+    	while ((node = lex.nextNode()) != null) {
     	    delegator.handleNode(context, node);
     	}
     	delegator.handleParseComplete(context);
 
 		// At this point, baos contains the utf-8 encoded bytes of our result:
 		return new String(baos.toByteArray(),outputCharset);
-
 	}
 
     /**
