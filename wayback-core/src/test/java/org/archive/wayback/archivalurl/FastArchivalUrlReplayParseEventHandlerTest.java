@@ -19,6 +19,15 @@ import org.htmlparser.lexer.Page;
  */
 public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 
+	FastArchivalUrlReplayParseEventHandler delegator;
+
+	@Override
+	protected void setUp() throws Exception {
+		delegator = new FastArchivalUrlReplayParseEventHandler();
+		delegator.setEndJsp(null);
+		delegator.setJspInsertPath(null);
+	}
+
 	public void testAnchorHrefAbsolute() throws Exception {
 		final String input = "<html>" +
 				"<a href=\"/foo.html\">foo</a>" +
@@ -154,7 +163,10 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 
     /**
      * URL-rewrite must not unescape HTML entities in URL.
-     * <p>Reported in <a href="https://webarchive.jira.com/browse/ARI-3774">ARI-3774</a>.</p>
+     * <p>Reported in <a href="https://webarchive.jira.com/browse/ARI-3774">ARI-3774</a>.
+     * Now all attribute values are unescaped before processing, and then escaped back
+     * before writing out.  This has a side-effect: bare "{@code &}" gets rewritten to
+     * "{@code &amp;}"</p>
      *
      * @throws Exception
      */
@@ -163,13 +175,40 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 		final String input = "<html>"
 				+ "<body>"
 				+ "<iframe src=\"https://example.com/player/?url=https%3A//api.example.com/"
-				+ "tracks/135768597%3Ftoken%3Dsss&amp;amp;auto_play=false\"></iframe>"
-				+ "</body>" + "</html>";
+				+ "tracks/135768597%3Ftoken%3Dsss&amp;amp;auto_play=false&bare=1\"></iframe>"
+				+ "</body>"
+				+ "</html>";
 		final String expected = "<html>"
 				+ "<body>"
 				+ "<iframe src=\"http://replay.archive.org/2001if_/https://example.com/player/?url=https%3A//api.example.com/"
-				+ "tracks/135768597%3Ftoken%3Dsss&amp;amp;auto_play=false\"></iframe>"
-				+ "</body>" + "</html>";
+				+ "tracks/135768597%3Ftoken%3Dsss&amp;amp;auto_play=false&amp;bare=1\"></iframe>"
+				+ "</body>"
+				+ "</html>";
+		assertEquals(expected, doEndToEnd(input));
+	}
+
+	/**
+	 * test of {@code unescapeAttributeValue } == {@code false} case.
+	 * bare "{@code &}" is unchanged.
+	 * @throws Exception
+	 */
+	public void testUnescapeAttributeValuesFalse() throws Exception {
+		// disable unescaping HTML entities in attribute value.
+		delegator.setUnescapeAttributeValues(false);
+
+		// note "&amp;amp" - it should appear in translated URL as it does in the original.
+		final String input = "<html>"
+				+ "<body>"
+				+ "<iframe src=\"https://example.com/player/?url=https%3A//api.example.com/"
+				+ "tracks/135768597%3Ftoken%3Dsss&amp;amp;auto_play=false&intact=1\"></iframe>"
+				+ "</body>"
+				+ "</html>";
+		final String expected = "<html>"
+				+ "<body>"
+				+ "<iframe src=\"http://replay.archive.org/2001if_/https://example.com/player/?url=https%3A//api.example.com/"
+				+ "tracks/135768597%3Ftoken%3Dsss&amp;amp;auto_play=false&intact=1\"></iframe>"
+				+ "</body>"
+				+ "</html>";
 		assertEquals(expected, doEndToEnd(input));
 	}
 
@@ -216,10 +255,6 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 		final String charSet = "UTF-8";
 		
 		ByteArrayInputStream bais = new ByteArrayInputStream(input.getBytes(charSet));
-		
-		FastArchivalUrlReplayParseEventHandler delegator = new FastArchivalUrlReplayParseEventHandler();
-		delegator.setEndJsp(null);
-		delegator.setJspInsertPath(null);
 		
 		ArchivalUrlResultURIConverter uriConverter = new ArchivalUrlResultURIConverter();
 		uriConverter.setReplayURIPrefix("http://replay.archive.org/");

@@ -84,6 +84,9 @@ public class FastArchivalUrlReplayParseEventHandler implements
 
 	protected String headInsertJsp = null;
 	
+	// @see #transformAttrWhere
+	private boolean unescapeAttributeValues = true;
+
 //	static {
 //		anchorUrlTrans = new URLStringTransformer();
 //		anchorUrlTrans.setJsTransformer(jsBlockTrans);
@@ -447,8 +450,14 @@ public class FastArchivalUrlReplayParseEventHandler implements
 		if (orig != null) {
 			// htmlparser does neither unescape HTML entities while it parses HTML, nor escape
 			// HTML special chars while writing HTML.  So we take care of it for ourselves.
-			String transformed = transformer.transform(context, StringEscapeUtils.unescapeHtml(orig));
-			node.setAttribute(attr, StringEscapeUtils.escapeHtml(transformed));
+			// ParseContext.resolve() used to unescape URL (but did not escape back). It no longer
+			// does in alignment with this change.
+			if (unescapeAttributeValues)
+				orig = StringEscapeUtils.unescapeHtml(orig);
+			String transformed = transformer.transform(context, orig);
+			if (unescapeAttributeValues)
+				transformed = StringEscapeUtils.escapeHtml(transformed);
+			node.setAttribute(attr, transformed);
 			return true;
 		}
 		return false;
@@ -604,4 +613,28 @@ public class FastArchivalUrlReplayParseEventHandler implements
 					this.emit(context, headInsert, node, null);
 				}
 			}
+
+	public boolean isUnescapeAttributeValues() {
+		return unescapeAttributeValues;
+	}
+
+	/**
+	 * set this property false if you want to disable unescaping
+	 * (and corresponding re-escaping) of attribute values.
+	 * <p>By default, HTML entities (such as <code>&amp;amp;</code>)
+	 * in attribute values are unescaped before translation attempt,
+	 * and then escaped back before writing out.  Although this is
+	 * supposedly the right thing to do, it has a side-effect: all
+	 * bare "<code>&amp;</code>" (not escaped as "<code>&amp;amp;</code>")
+	 * will be replaced by "<code>&amp;amp;</code>".  Setting this property
+	 * to <code>false</code> disables it.</p>
+	 * <p>As URL rewrite does neither parse nor modify query part, it
+	 * should mostly work without unescaping.  But there may be some
+	 * corner cases where escaping is crucial.  Don't set this to {@code false}
+	 * unless it's absolutely necessary.</p>
+	 * @param unescapeAttributeValues <code>false</code> to disable unescaping
+	 */
+	public void setUnescapeAttributeValues(boolean unescapeAttributeValues) {
+		this.unescapeAttributeValues = unescapeAttributeValues;
+	}
 }
