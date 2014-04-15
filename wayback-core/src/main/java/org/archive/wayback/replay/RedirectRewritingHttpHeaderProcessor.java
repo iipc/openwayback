@@ -28,18 +28,34 @@ import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.util.url.UrlOperations;
 
 /**
- *
+ * {@link HttpHeaderProcessor} that preserves all headers by prepending a prefix,
+ * translates URL in resource location headers and pass-through certain headers.
+ * <p>Headers rewritten:
+ * <ul>
+ * <li>{@code Location}</li>
+ * <li>{@code Content-Location}</li>
+ * <li>{@code Content-Base}</li>
+ * </ul>
+ * Headers passed-through:
+ * <ul>
+ * <li>{@code Content-Type}</li>
+ * <li>{@code Content-Disposition}</li>
+ * </ul>
+ * </p>
+ * <p>If {@code prefix} property is {@code null} (default), all headers but {@code Content-Length}
+ * are copied as they are. With non-{@code null} prefix, all headers, including
+ * {@code Length} are preserved by prepending header name with {@code prefix}.</p>
+ * <p>Caveat: if {@code prefix} is an empty string, all headers including {@code Content-Length}
+ * are copied as they are. This is presumably a bug.</p>
+ * <p>Intended for archival-URL and domain-prefix mode.</p>
  *
  * @author brad
- * @version $Date$, $Revision$
  */
-public class RedirectRewritingHttpHeaderProcessor 
-	implements HttpHeaderProcessor {
+public class RedirectRewritingHttpHeaderProcessor extends PreservingHttpHeaderProcessor {
 
-	private static String DEFAULT_PREFIX = null;
-	private String prefix = DEFAULT_PREFIX; 
 	private Set<String> passThroughHeaders = null;
 	private Set<String> rewriteHeaders = null;
+	private Set<String> dropHeaders;
 	
 	public RedirectRewritingHttpHeaderProcessor() {
 		passThroughHeaders = new HashSet<String>();
@@ -50,16 +66,11 @@ public class RedirectRewritingHttpHeaderProcessor
 		rewriteHeaders.add(HTTP_LOCATION_HEADER_UP);
 		rewriteHeaders.add(HTTP_CONTENT_LOCATION_HEADER_UP);
 		rewriteHeaders.add(HTTP_CONTENT_BASE_HEADER_UP);
-	}
 
-	public String getPrefix() {
-		return prefix;
+		dropHeaders = new HashSet<String>();
+		dropHeaders.add(HTTP_LENGTH_HEADER_UP);
+		dropHeaders.add(HTTP_TRANSFER_ENCODING_HEADER_UP);
 	}
-
-	public void setPrefix(String prefix) {
-		this.prefix = prefix;
-	}
-
 
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.replay.HttpHeaderProcessor#filter(java.util.Map, java.lang.String, java.lang.String, org.archive.wayback.ResultURIConverter, org.archive.wayback.core.CaptureSearchResult)
@@ -71,28 +82,18 @@ public class RedirectRewritingHttpHeaderProcessor
 
 		// first stick it in as-is, or with prefix, then maybe we'll overwrite
 		// with the later logic.
-		if(prefix == null) {
-			if(!keyUp.equals(HTTP_LENGTH_HEADER_UP)) {
-				output.put(key, value);
-			}
-		} else {
-			output.put(prefix + key, value);
-		}
+		if (dropHeaders.contains(keyUp))
+			preserve(output, key, value);
+		else
+			preserveAlways(output, key, value);
 
 		// rewrite Location header URLs
 		if(rewriteHeaders.contains(keyUp)) {
-//		if (keyUp.startsWith(HTTP_LOCATION_HEADER_UP) ||
-//			keyUp.startsWith(HTTP_CONTENT_LOCATION_HEADER_UP) ||
-//			keyUp.startsWith(HTTP_CONTENT_BASE_HEADER_UP)) {
-
 			String baseUrl = result.getOriginalUrl();
 			String cd = result.getCaptureTimestamp();
 			// by the spec, these should be absolute already, but just in case:
 			String u = UrlOperations.resolveUrl(baseUrl, value);
-
 			output.put(key, uriConverter.makeReplayURI(cd,u));
-
-//		} else if(keyUp.startsWith(HTTP_CONTENT_TYPE_HEADER_UP)) {
 		} else if(passThroughHeaders.contains(keyUp)) {
 			// let's leave this one as-is:
 			output.put(key,value);

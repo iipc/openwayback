@@ -32,6 +32,8 @@ import org.archive.wayback.core.CaptureSearchResult;
  */
 public interface HttpHeaderProcessor {
 
+	// TODO: consolidate constants with org.archive.wayback.replay.HttpHeaderOperation
+
 	public final static String HTTP_LENGTH_HEADER = "Content-Length";
 	public final static String HTTP_LENGTH_HEADER_UP = 
 		HTTP_LENGTH_HEADER.toUpperCase();
@@ -56,6 +58,12 @@ public interface HttpHeaderProcessor {
 	public final static String HTTP_CONTENT_DISP_HEADER_UP = 
 		HTTP_CONTENT_DISP_HEADER.toUpperCase();
 
+	public final static String HTTP_TRANSFER_ENCODING_HEADER = "Transfer-Encoding";
+	/**
+	 * Transfer-Encoding in all-uppercase
+	 */
+	public final static String HTTP_TRANSFER_ENCODING_HEADER_UP =
+			HTTP_TRANSFER_ENCODING_HEADER.toUpperCase();
 	
 	/**
 	 * optionally add header key:value to output for later returning to client
