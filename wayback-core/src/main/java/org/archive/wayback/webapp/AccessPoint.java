@@ -371,18 +371,22 @@ implements ShutdownListener {
 	
 	public void logError(HttpServletResponse httpResponse, String header, Exception e, WaybackRequest request)
 	{
-		if (LOGGER.isLoggable(Level.INFO)) {
-			if (e instanceof ResourceNotInArchiveException) {
+		if (e instanceof ResourceNotInArchiveException) {
+			if (LOGGER.isLoggable(Level.INFO)) {
 				this.logNotInArchive((ResourceNotInArchiveException)e, request);
-			} else if (e instanceof AccessControlException) {
-				// While StaticMapExclusionFilter#isExcluded(String) reports
-				// exclusion at INFO level, RobotExclusionFilter logs exclusion
-				// at FINE level only. I believe here is the better place to log
-				// exclusion. Unfortunately, AccessControlException has no
-				// detailed info (TODO). we don't need a stack trace.
+			}
+		} else if (e instanceof AccessControlException) {
+			// While StaticMapExclusionFilter#isExcluded(String) reports
+			// exclusion at INFO level, RobotExclusionFilter logs exclusion
+			// at FINE level only. I believe here is the better place to log
+			// exclusion. Unfortunately, AccessControlException has no
+			// detailed info (TODO). we don't need a stack trace.
+			if (LOGGER.isLoggable(Level.INFO)) {
 				LOGGER.log(Level.INFO, "Access Blocked:" + request.getRequestUrl() + ": "+ e.getMessage());
-			} else {
-				LOGGER.log(Level.INFO, "Runtime Error", e);
+			}
+		} else {
+			if (LOGGER.isLoggable(Level.WARNING)) {
+				LOGGER.log(Level.WARNING, "Runtime Error", e);
 			}
 		}
 		
