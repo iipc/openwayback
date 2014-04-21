@@ -62,7 +62,6 @@ public class MultipleResourceStore implements ResourceStore {
 			throw new ResourceNotAvailableException("No ARC/WARC name in search result...", fileName);
 		}
 
-		final long offset = result.getOffset();
 		if(!fileName.endsWith(ArcWarcFilenameFilter.ARC_SUFFIX)
 				&& !fileName.endsWith(ArcWarcFilenameFilter.ARC_GZ_SUFFIX)
 				&& !fileName.endsWith(ArcWarcFilenameFilter.WARC_SUFFIX)

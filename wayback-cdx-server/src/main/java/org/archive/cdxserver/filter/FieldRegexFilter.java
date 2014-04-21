@@ -42,12 +42,6 @@ public class FieldRegexFilter implements CDXFilter {
 		
 		RegexMatch(String str)
 		{
-			try {
-				str = URLDecoder.decode(str, "UTF-8");
-			} catch (UnsupportedEncodingException e) {
-
-			}
-			
 			boolean contains = false;
 			
 			if (str.startsWith(CONTAINS_CHAR)) {

@@ -19,14 +19,14 @@
  */
 package org.archive.wayback.util.htmllex;
 
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.Date;
-
-import org.apache.commons.lang.StringEscapeUtils;
-import org.htmlparser.util.Translate;
 
 import junit.framework.TestCase;
+
+import org.htmlparser.util.Translate;
 
 /**
  * @author brad
@@ -35,7 +35,8 @@ import junit.framework.TestCase;
 public class ParseContextTest extends TestCase {
 
 	/**
-	 * 
+	 * test of {@link Translate#decode(String)}
+	 * Note: we no longer use this method for decoding entities.
 	 */
 	public void testTranslate() {
 		String orig = "http://foo.com/main?arg1=1&lang=2";
@@ -44,67 +45,48 @@ public class ParseContextTest extends TestCase {
 		String orig2 = "&#32;               gaz.cgi?foo=bar&lang=2";
 		String xlated2 = Translate.decode(orig2);
 		System.out.format("Orig2(%s) xlated2(%s)\n",orig2,xlated2);
-		
 	}
 	
 	/**
 	 * Test method for {@link org.archive.wayback.util.htmllex.ParseContext#contextualizeUrl(java.lang.String)}.
 	 */
-	public void testContextualizeUrl() {
+	public void testContextualizeUrl() throws URISyntaxException, MalformedURLException {
 		ParseContext pc = new ParseContext();
-		try {
-			
-			URI tmp = new URI("http://base.com/foo.html#REF");
-			String ref = tmp.getFragment();
-			assertEquals("REF",ref);
-			tmp = new URI("http://base.com/foo.html");
-			assertNull(tmp.getFragment());
 
-			
-			pc.setBaseUrl(new URL("http://base.com/"));
-			assertEquals("http://base.com/images.gif",
-					pc.contextualizeUrl("/images.gif"));
-			assertEquals("http://base.com/images.gif",
-					pc.contextualizeUrl("../images.gif"));
-			assertEquals("http://base.com/images.gif",
-					pc.contextualizeUrl("../../images.gif"));
-			assertEquals("http://base.com/image/1s.gif",
-					pc.contextualizeUrl("/image/1s.gif"));
-			assertEquals("http://base.com/image/1s.gif",
-					pc.contextualizeUrl("../../image/1s.gif"));
-			assertEquals("http://base.com/image/1s.gif",
-					pc.contextualizeUrl("/../../image/1s.gif"));
-			assertEquals("http://base.com/image/1.html#REF",
-					pc.contextualizeUrl("/../../image/1.html#REF"));
-			assertEquals("http://base.com/image/1.html#REF FOO",
-					pc.contextualizeUrl("/../../image/1.html#REF FOO"));
-			assertEquals("http://base.com/image/foo?boo=baz",
-					pc.contextualizeUrl("/image/foo?boo=baz"));
+		URI tmp = new URI("http://base.com/foo.html#REF");
+		String ref = tmp.getFragment();
+		assertEquals("REF",ref);
+		tmp = new URI("http://base.com/foo.html");
+		assertNull(tmp.getFragment());
 
-			
-			assertEquals("http://base.com/image/foo?boo=baz%3A&gar=war",
-					pc.contextualizeUrl("/image/foo?boo=baz%3A&gar=war"));
+		pc.setBaseUrl(new URL("http://base.com/"));
+		assertEquals("http://base.com/images.gif",
+				pc.contextualizeUrl("/images.gif"));
+		assertEquals("http://base.com/images.gif",
+				pc.contextualizeUrl("../images.gif"));
+		assertEquals("http://base.com/images.gif",
+				pc.contextualizeUrl("../../images.gif"));
+		assertEquals("http://base.com/image/1s.gif",
+				pc.contextualizeUrl("/image/1s.gif"));
+		assertEquals("http://base.com/image/1s.gif",
+				pc.contextualizeUrl("../../image/1s.gif"));
+		assertEquals("http://base.com/image/1s.gif",
+				pc.contextualizeUrl("/../../image/1s.gif"));
+		assertEquals("http://base.com/image/1.html#REF",
+				pc.contextualizeUrl("/../../image/1.html#REF"));
+		assertEquals("http://base.com/image/1.html#REF FOO",
+				pc.contextualizeUrl("/../../image/1.html#REF FOO"));
+		assertEquals("http://base.com/image/foo?boo=baz",
+				pc.contextualizeUrl("/image/foo?boo=baz"));
 
-			
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			fail(e.getLocalizedMessage());
-		}
-		
+		assertEquals("http://base.com/image/foo?boo=baz%3A&gar=war",
+				pc.contextualizeUrl("/image/foo?boo=baz%3A&gar=war"));
 	}
 
-	public void testResolve() {
-		
+	public void testResolve() throws Exception {
+
 		ParseContext pc = new ParseContext();
-		URL base = null;
-		try {
-			base = new URL("http://foo.com/dir/bar.html#REF");
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			fail(e.getLocalizedMessage());
-		}
+		URL base = new URL("http://foo.com/dir/bar.html#REF");
 			
 		pc.setBaseUrl(base);
 		checkRes(pc,"http://foo.com/images.gif","/images.gif");
@@ -118,30 +100,17 @@ public class ParseContextTest extends TestCase {
 		checkRes(pc,"http://foo.com/im/images.gif","/im/images.gif   ");
 
 		checkRes(pc,"http://foo.com/dir/images.gif","    images.gif");
-		checkRes(pc,"http://foo.com/dir/images.gif","&#32;    images.gif");
 
-		checkRes(pc,"http://foo.com/dir/images.gif#NAME","&#32;    images.gif#NAME");
-
-		checkRes(pc,"http://foo.com/dir/images.gif#NAME","&#32;    images.gif  #NAME");
+		checkRes(pc,"http://foo.com/dir/images.gif#NAME","     images.gif#NAME");
+		checkRes(pc,"http://foo.com/dir/images.gif#NAME","     images.gif  #NAME");
 
 		
 		checkRes(pc,"http://foo.com/%20im.gif","/ im.gif");
 		checkRes(pc,"http://foo.com/%20%20im.gif","/  im.gif");
 		checkRes(pc,"http://foo.com/%20%20im.gif","/  im.gif ");
-		
-		checkRes(pc,"http://foo.com/%20%20im.gif","/&#32; im.gif");
-
 	}
-	private void checkRes(ParseContext pc, String want, String rel) {
-		try {
-			
-			assertEquals(want,pc.resolve(rel));
 
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			fail(e.getLocalizedMessage());
-		}
-		
+	private void checkRes(ParseContext pc, String want, String rel) throws URISyntaxException {
+		assertEquals(want, pc.resolve(rel));
 	}
 }
