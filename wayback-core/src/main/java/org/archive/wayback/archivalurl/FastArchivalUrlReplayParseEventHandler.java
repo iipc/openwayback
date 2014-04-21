@@ -47,6 +47,19 @@ import org.htmlparser.nodes.TextNode;
  * HTML rewrite rules, and should be much faster than the fully configurable
  * version.
  * 
+ * <p>This class has kludgy support for disabling JavaScript inclusion
+ * with <code>&lt;SCRIPT SRC=...&gt;</code> element.  <code>jsBlockTrans</code>,
+ * whose primary use is translating JavaScript code block (inline &lt;SCRIPT&gt;,
+ * <code>javascript:</code> URI in <code>HREF</code> attribute, and event
+ * handler attributes), is also called with a value of <code>SRC</code> attribute
+ * of &lt;SCRIPT&gt; tag.  If <code>jsBlockTrans</code> returns either <code>null</code>
+ * or an empty String, &lt;SCRIPT&gt; element is disabled by changing <code>SRC</code> to
+ * an empty value.  Note that in this case <code>jsBlockTrans</code> is used only for
+ * a test, and its return value is simply discarded.
+ * URL translation is done by a subsequent call to {@link URLStringTransformer} for
+ * <code>js_</code> context.  This feature is very likely a subject of refactoring
+ * in the future.</p>
+ *
  * @author brad
  * 
  */
@@ -563,6 +576,10 @@ public class FastArchivalUrlReplayParseEventHandler implements
 	}
 
 	/**
+	 * StringTransformer used for rewriting JavaScript code block
+	 * (<code>&lt;SCRIPT&gt;</code> and <code>javascript:</code> attribute).
+	 * Also used (abused) as a test whether particular <code>&lt;SCRIPT SRC=...&gt;</code>
+	 * should be disabled (See class-level javadoc for details). 
 	 * @param jsBlockTrans the jsBlockTrans to set
 	 */
 	public void setJsBlockTrans(StringTransformer jsBlockTrans) {

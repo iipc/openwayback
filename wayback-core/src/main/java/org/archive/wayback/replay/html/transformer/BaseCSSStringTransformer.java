@@ -69,11 +69,14 @@ public abstract class BaseCSSStringTransformer {
 				url = url.substring(2, origUrlLength - 2);
 				urlStart += 2;
 			}
-			int urlLength = url.length();
-			String replayUrl = context.contextualizeUrl(url, flags);
-			int delta = replayUrl.length() - urlLength;
-			sb.replace(urlStart, urlStart + urlLength, replayUrl);
-			idx += delta;
+			if (context.isRewriteSupported(url)) {
+				int urlLength = url.length();
+				String replayUrl = context.contextualizeUrl(url, flags);
+				int delta = replayUrl.length() - urlLength;
+				sb.replace(urlStart, urlStart + urlLength, replayUrl);
+				// adjust start of next match as URL extends
+				idx += delta;
+			}
 		}
 	}
 }

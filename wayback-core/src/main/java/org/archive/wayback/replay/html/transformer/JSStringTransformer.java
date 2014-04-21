@@ -26,8 +26,11 @@ import org.archive.wayback.replay.html.ReplayParseContext;
 import org.archive.wayback.replay.html.StringTransformer;
 
 /**
- * Attempts to rewrite any absolute URLs found within the text/javascript MIME
- * 
+ * Translates absolute URLs found in JavaScript code block.
+ * <p>Looks for http/https absolute URLs in JavaScript code and translates
+ * them with {@link ReplayParseContext#contextualizeUrl(String)}.</p>
+ * <p>TODO: org.archive.wayback.archivalurl.ArchivalUrlJSReplayRenderer has
+ * similar code.  can be consolidated, like ArchivalURLJSStringTransformerReplayRenderer?</p>
  * @author brad
  *
  */
@@ -48,39 +51,35 @@ public class JSStringTransformer implements StringTransformer {
 	}
 
 	public String transform(ReplayParseContext context, String input) {
-
-	    if (!context.isRewriteSupported(input)) {
-	    	return input;
-	    }
-	    
 		StringBuffer replaced = new StringBuffer(input.length());
 		Matcher m = pattern.matcher(input);
 		while (m.find()) {
-			String host = m.group(1);
-			
-			String origHost = host;
-			host = context.contextualizeUrl(host);
-			
-		    if ((host != null) && (origHost != null)) {
-			    // This is a fix for situations for hostnames only being resolved with a trailing slash
-			    // eg. http://example.org -> /datestamp/http://example.org/
-			    // This will remove the trailing /, as it may break certain javascript, and is not necessary
-				// ex 'http://domain' + '.example.org' would get converted to 
-				// 'http://domain/.example.org' instead of 'http://domain.example.org' without this fix.
-				// Wayback does need the trailing slash at all, and may make sense to change this everywhere
-				// for now, just applying this to JS	
-		    	if (host.endsWith("/") && !origHost.endsWith("/")) {
-		    		host = host.substring(0, host.length() - 1);
-		    	}
-		    	
-			    // Fix for trailing '.' being removed by the canonicalizer.. for JS canonicalization, it is necessary to keep it
-		    	// (opposite effect of the /)
-		    	if (origHost.endsWith(".") && !host.endsWith(".")) {
-		    		host = host + ".";
-		    	}
-		    }		    
-		    
-			m.appendReplacement(replaced, host);
+			String url = m.group(1);
+			if (context.isRewriteSupported(url)) {
+				String origUrl = url;
+				url = context.contextualizeUrl(url);
+
+				if ((url != null) && (origUrl != null)) {
+					// reverse some changes made to url by contextualizeUrl method, that
+					// may break assumptions in subsequent JavaScript processing.
+					// eg. "http://example.org" -> "/20140101012345/http://example.org/"
+					// eg. "https://domain" + ".example.org" -> "http://domain/" + ".example.org"
+					// eg. "https://domain." + "example.org" -> "http://domain" + "example.org"
+
+					// remove trailing "/" if origUrl doesn't have it.  As Wayback does not need
+					// trailing slash, it may make sense to this everywhere.  Just doing this fix
+					// in JavaScript for now.
+					if (url.endsWith("/") && !origUrl.endsWith("/")) {
+						url = url.substring(0, url.length() - 1);
+					}
+
+					// add trailing "." (removed by canonicalizer) back, if origUrl has it.
+					if (origUrl.endsWith(".") && !url.endsWith(".")) {
+						url = url + ".";
+					}
+				}
+			}
+			m.appendReplacement(replaced, url);
 		}
 		m.appendTail(replaced);
 		return replaced.toString();

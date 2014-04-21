@@ -211,6 +211,7 @@ public class ArchivalUrlSAXRewriteReplayRenderer implements ReplayRenderer {
 	
 	protected ContextResultURIConverterFactory createConverterFactory(ResultURIConverter uriConverter, HttpServletRequest httpRequest, WaybackRequest wbRequest)
 	{
+		// sam ecode in ArchivalURLJSStringTransformerReplayRenderer
 		ContextResultURIConverterFactory fact = null;
 		
 		if (uriConverter instanceof ArchivalUrlResultURIConverter) {

@@ -27,6 +27,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.archive.wayback.ReplayRenderer;
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.CaptureSearchResult;
@@ -37,8 +38,21 @@ import org.archive.wayback.replay.TextReplayRenderer;
 import org.archive.wayback.replay.HttpHeaderProcessor;
 
 /**
- * ReplayRenderer which attempts to rewrite URLs found within a text/css 
- * document to load from this context.
+ * {@link ReplayRenderer} that rewrites URLs found in CSS resource and inserts
+ * {@code jspInserts} at the top of the document.
+ * <p>This ReplayRenderer searches for URLs in CSS document, and rewrites
+ * them with {@link ResultURIConverter} set to {@link TextDocument}.</p>
+ * <p>In fact, this class simply calls {@link TextDocument#resolveCSSUrls()}
+ * for URL rewrites.  Note that ResultURIConverter argument to {@code updatePage}
+ * method is unused.</p>
+ * <p>This class may be used in both Archival-URL and Proxy mode, despite its
+ * name, by choosing appropriate {@code ResultURIConverter}.</p>
+ * <p>There's separate classes for rewriting CSS text embedded
+ * in HTML.  They use their own code for looking up URLs in CSS.</p>
+ * @see TextDocument#resolveCSSUrls()
+ * @see ResultURIConverter
+ * @see org.archive.wayback.replay.html.transformer.BlockCSSStringTransformer
+ * @see org.archive.wayback.replay.html.transformer.InlineCSSStringTransformer
  * @author brad
  *
  */

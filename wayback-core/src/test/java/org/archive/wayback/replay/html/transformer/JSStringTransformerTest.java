@@ -34,33 +34,79 @@ import junit.framework.TestCase;
  */
 public class JSStringTransformerTest extends TestCase {
 
+	URL baseURL;
+	// TODO: extract interface from ReplayParseContext and
+	// use EasyMock instead of hand-writing mock object.
+	RecordingReplayParseContext rc;
+	JSStringTransformer jst;
+
+	@Override
+	protected void setUp() throws Exception {
+		baseURL = new URL("http://foo.com");
+		rc = new RecordingReplayParseContext(null, baseURL, null);
+		jst = new JSStringTransformer();
+	}
+
 	/**
 	 * Test method for {@link org.archive.wayback.replay.html.transformer.JSStringTransformer#transform(org.archive.wayback.replay.html.ReplayParseContext, java.lang.String)}.
 	 * @throws MalformedURLException 
 	 */
-	public void testTransform() throws MalformedURLException {
-		RecordingReplayParseContext rc = new RecordingReplayParseContext(null, new URL("http://foo.com/"), null);
+	public void testTransform_HostOnly() throws MalformedURLException {
 		String input = "'<a href=\'http://www.gavelgrab.org\' target=\'_blank\'>Learn more in Gavel Grab</a>'";
 		JSStringTransformer jst = new JSStringTransformer();
 		jst.transform(rc, input);
 		assertEquals(1,rc.got.size());
 		assertEquals("http://www.gavelgrab.org",rc.got.get(0));
+	}
 
-		input = "'<a href=\'http://www.gavelgrab.org/foobla/blah\' target=\'_blank\'>Learn more in Gavel Grab</a>'";
-		rc = new RecordingReplayParseContext(null, new URL("http://foo.com/"), null);
+	public void testTransform_WithPath() {
+		final String input = "'<a href=\'http://www.gavelgrab.org/foobla/blah\' target=\'_blank\'>Learn more in Gavel Grab</a>'";
 		jst.transform(rc, input);
 		assertEquals(1,rc.got.size());
 		assertEquals("http://www.gavelgrab.org",rc.got.get(0));
+	}
 
-		input = "onloadRegister(function (){window.location.href=\"http:\\/\\/www.facebook.com\\/barrettforwisconsin?v=info\";});";
-		rc = new RecordingReplayParseContext(null, new URL("http://foo.com/"), null);
+	/**
+	 * slash is often escaped with backslash in JavaScript (esp. JSON).
+	 */
+	public void testTransform_EscapedSlashes() {
+
+		final String input = "onloadRegister(function (){window.location.href=\"http:\\/\\/www.facebook.com\\/barrettforwisconsin?v=info\";});";
 		jst.transform(rc, input);
 		assertEquals(1,rc.got.size());
 		assertEquals("http:\\/\\/www.facebook.com",rc.got.get(0));
-		
 	}
 
-	public class RecordingReplayParseContext extends ReplayParseContext {
+	/**
+	 * {@code rewriteHttpsOnly} property is used to limit URL rewrite
+	 * to HTTPS ones (intended for proxy mode). That should affect how
+	 * StringTransformer picks up URLs in text for translation.
+	 * @throws Exception
+	 */
+	public void testRewriteHttpsOnly() throws Exception {
+		rc.setRewriteHttpsOnly(true);
+		
+		final String input = "var img1 = 'http://example.com/img/1.jpeg';\n" +
+				"var img2 = 'https://secure1.example.com/img/2.jpeg';\n" +
+				"var img3 = '/img/3.jpeg';\n" +
+				"var host1 = 'http://example.com';\n" +
+				"var host2 = 'https://secure2.example.com';\n";
+
+		jst.transform(rc, input);
+
+		assertEquals(2, rc.got.size());
+		// with default regex, JSStringTransformer captures
+		// scheme and netloc only (no path).
+		assertTrue(rc.got.contains("https://secure1.example.com"));
+		assertTrue(rc.got.contains("https://secure2.example.com"));
+	}
+
+	/**
+	 * ReplayParseContext mock
+	 * TODO: move to package-level as this is useful for testing other
+	 * {@code StringTransformer}s.
+	 */
+	public static class RecordingReplayParseContext extends ReplayParseContext {
 		ArrayList<String> got = null;
 		/**
 		 * @param uriConverterFactory
@@ -78,6 +124,11 @@ public class JSStringTransformerTest extends TestCase {
 			got.add(url);
 			return url;
 		}
-		
+		@Override
+		public String contextualizeUrl(String url, String flags) {
+			// TODO record flags, too
+			got.add(url);
+			return url;
+		}
 	}
 }

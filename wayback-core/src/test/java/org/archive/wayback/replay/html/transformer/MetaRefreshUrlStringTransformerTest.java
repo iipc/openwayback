@@ -19,40 +19,61 @@
  */
 package org.archive.wayback.replay.html.transformer;
 
+import java.net.URL;
+
+import org.archive.wayback.replay.html.transformer.JSStringTransformerTest.RecordingReplayParseContext;
+
 import junit.framework.TestCase;
 
 /**
  * @author brad
- *
+ * @author kenji
  */
 public class MetaRefreshUrlStringTransformerTest extends TestCase {
 
-	/**
-	 * Test method for {@link org.archive.wayback.replay.html.transformer.MetaRefreshUrlStringTransformer#transform(org.archive.wayback.replay.html.ReplayParseContext, java.lang.String)}.
-	 */
-	public void testTransform() {
-//		cmpT("0; url=http://foo.com/bar","0; url=(((http://foo.com/bar)))");
-//		cmpT("0; url=/bar","0; url=(((/bar)))");
-//		cmpT("0; url =/bar","0; url =(((/bar)))");
-//		cmpT("0;  url =/bar","0;  url =(((/bar)))");
-//		cmpT(";  url =/bar",";  url =/bar");
-//		cmpT("0;  URL =/bar","0;  URL =(((/bar)))");
-//
-//		cmpT("0; URL = /bar","0; URL = (((/bar)))");
-//		cmpT("0; URL = /bar ","0; URL = (((/bar))) ");
-//		cmpT("0; URL = /bar   ","0; URL = (((/bar)))   ");
-//		cmpT("0; URL = /baz foo","0; URL = (((/baz foo)))");
-//		cmpT("0; URL = /baz foo ","0; URL = (((/baz foo))) ");
-//		cmpT("0; URL=/baz foo ","0; URL=(((/baz foo))) ");
-//
-//		cmpT("0; UrL=/baz foo ","0; UrL=(((/baz foo))) ");
-//		cmpT("0; UrL=/baZefoo ","0; UrL=(((/baZefoo))) ");
-		
-	}
-	private void cmpT(String source, String want) {
-		MetaRefreshUrlStringTransformer m = new MetaRefreshUrlStringTransformer();
-		String got = m.transform(null,source);
-		assertEquals(want, got);
+	URL baseURL;
+	RecordingReplayParseContext rc;
+	MetaRefreshUrlStringTransformer st;
+
+	@Override
+	protected void setUp() throws Exception {
+		baseURL = new URL("http://foo.com/");
+		rc = new RecordingReplayParseContext(null, baseURL, null);
+		st = new MetaRefreshUrlStringTransformer();
 	}
 
+	public void testTransformFull() throws Exception {
+		final String input = "0; URL=https://www.example.com/content";
+		st.transform(rc, input);
+		
+		assertEquals(1, rc.got.size());
+		assertEquals("https://www.example.com/content", rc.got.get(0));
+	}
+
+	public void testTransformVariations() throws Exception {
+		final String[][] cases = new String[][] {
+				{ "0; url=/bar", "/bar" },
+				{ "10; url =/bar", "/bar" },
+				{ "2;url=/bar", "/bar" },
+				// do we want to allow this?
+				//{ "; url=/bar", "/bar" },
+				{ "0; URL=/bar", "/bar" },
+		};
+		for (String[] c : cases) {
+			rc = new RecordingReplayParseContext(null, baseURL, null);
+			st.transform(rc, c[0]);
+			assertEquals(c[0], 1, rc.got.size());
+			assertEquals(c[0], c[1], rc.got.get(0));
+		}
+	}
+
+	public void testRewriteHttpsOnly() throws Exception {
+		rc.setRewriteHttpsOnly(true);
+
+		final String input = "0; URL=https://www.example.com/content";
+		st.transform(rc, input);
+
+		assertEquals(1, rc.got.size());
+		assertEquals("https://www.example.com/content", rc.got.get(0));
+	}
 }
