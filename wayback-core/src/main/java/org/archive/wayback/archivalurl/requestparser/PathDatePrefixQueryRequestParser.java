@@ -30,10 +30,17 @@ import org.archive.wayback.webapp.AccessPoint;
 
 /**
  * RequestParser implementation that extracts request info from an Archival Url
- * representing an exact url and a date prefix.
- *
+ * representing an exact URL and a date prefix.
+ * <p>This class handles URL paths like:</p>
+ * <ul>
+ * <li><code>20140101&#42;/http://archive.org/</code></li>
+ * <li><code>&#42;/http://archive.org/</code></li>
+ * </ul>
+ * <p>but, not</p>
+ * <ul>
+ * <li><code>20140101&#42;/http://archive.org/&#42;</code></li>
+ * </ul>
  * @author brad
- * @version $Date$, $Revision$
  */
 public class PathDatePrefixQueryRequestParser extends PathRequestParser {
 	/**
@@ -63,11 +70,11 @@ public class PathDatePrefixQueryRequestParser extends PathRequestParser {
 			String startDate;
 			String endDate;
 			String requestDate;
-			if(dateStr.length() == 0) {
+			if (dateStr.length() == 0) {
 				startDate = getEarliestTimestamp();
 				endDate = getLatestTimestamp();
 				requestDate = endDate;
-			} else if(dateStr.length() == 14) {
+			} else if (dateStr.length() == 14) {
 				startDate = getEarliestTimestamp();
 				endDate = getLatestTimestamp();
 				requestDate = Timestamp.parseAfter(dateStr).getDateStr();

@@ -37,7 +37,6 @@ import org.archive.wayback.webapp.AccessPoint;
  * are expected to be encoded within the query ("q") field.
  *
  * @author brad
- * @version $Date$, $Revision$
  */
 public class OpenSearchRequestParser extends WrappedRequestParser {
 
@@ -86,13 +85,13 @@ public class OpenSearchRequestParser extends WrappedRequestParser {
 		@SuppressWarnings("unchecked")
 		Map<String,String[]> queryMap = httpRequest.getParameterMap();
 		String query = AccessPoint.getMapParam(queryMap, SEARCH_QUERY);
-		if(query == null) {
+		if (query == null) {
 			return null;
 		}
 		wbRequest = new WaybackRequest();
 		
 		String base = wbContext.translateRequestPath(httpRequest);
-		if(base.startsWith(REPLAY_BASE)) {
+		if (base.startsWith(REPLAY_BASE)) {
 			wbRequest.setReplayRequest();
 		} else if(base.startsWith(QUERY_BASE)){
 			wbRequest.setCaptureQueryRequest();
@@ -141,20 +140,22 @@ public class OpenSearchRequestParser extends WrappedRequestParser {
 			if (colonIndex == -1) {
 				throw new BadQueryException("Bad search token(" + token + ")");
 			}
-                        try {
-				String key   = URLDecoder.decode(token.substring(0, colonIndex) ,"UTF-8");
-                        	String value = URLDecoder.decode(token.substring(colonIndex + 1),"UTF-8");
+			try {
+				String key = URLDecoder.decode(token.substring(0, colonIndex),
+						"UTF-8");
+				String value = URLDecoder.decode(
+						token.substring(colonIndex + 1), "UTF-8");
 				// TODO: make sure key is in singleTokens?
 				// let's just let em all thru for now:
 				wbRequest.put(key, value);
-                        } catch ( UnsupportedEncodingException e ) {
+			} catch (UnsupportedEncodingException e) {
 				throw new BadQueryException("Unsupported encoding: UTF-8");
-                        }
+			}
 		}
-		if(wbRequest.getStartTimestamp() == null) {
+		if (wbRequest.getStartTimestamp() == null) {
 			wbRequest.setStartTimestamp(getEarliestTimestamp());
 		}
-		if(wbRequest.getEndTimestamp() == null) {
+		if (wbRequest.getEndTimestamp() == null) {
 			wbRequest.setEndTimestamp(getLatestTimestamp());
 		}
 
