@@ -102,6 +102,32 @@ public class JSStringTransformerTest extends TestCase {
 	}
 
 	/**
+	 * test of rewriting protocol relative URLs ({@code "//www.example.com/..."})
+	 * with non-default regex.
+	 * <p>check if text preceding the first group is preserved in the result.
+	 * also make sure it works with URLs with protocol.</p>
+	 * @throws Exception
+	 */
+	public void testRewriteProtocolRelativeWithCustomRegex() throws Exception {
+		jst.setRegex("[\"']((?:https?:)?//(?:[^/]+@)?[^@:/]+(?:\\.[^@:/]+)+(?:[0-9]+)?)");
+
+		final String input = "js=d.createElement(s);js.id=id;js.src=\"//platform.twitter.com/widgets.js\";" +
+				"js.src2=\"https://platform2.twitter.com/widgets2.js\";" +
+				"fjs.parentNode.insertBefore(js,fjs);";
+		final String expected = "js=d.createElement(s);js.id=id;js.src=\"###//platform.twitter.com/widgets.js\";" +
+				"js.src2=\"###https://platform2.twitter.com/widgets2.js\";" +
+				"fjs.parentNode.insertBefore(js,fjs);";
+
+		String output = jst.transform(rc, input);
+
+		assertEquals(2, rc.got.size());
+		assertTrue(rc.got.contains("//platform.twitter.com"));
+		assertTrue(rc.got.contains("https://platform2.twitter.com"));
+
+		assertEquals(expected, output);
+	}
+
+	/**
 	 * ReplayParseContext mock
 	 * TODO: move to package-level as this is useful for testing other
 	 * {@code StringTransformer}s.
@@ -122,13 +148,13 @@ public class JSStringTransformerTest extends TestCase {
 		}
 		public String contextualizeUrl(String url) {
 			got.add(url);
-			return url;
+			return "###" + url;
 		}
 		@Override
 		public String contextualizeUrl(String url, String flags) {
 			// TODO record flags, too
 			got.add(url);
-			return url;
+			return "###" + url;
 		}
 	}
 }
