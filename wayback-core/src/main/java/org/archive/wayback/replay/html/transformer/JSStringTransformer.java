@@ -94,7 +94,7 @@ public class JSStringTransformer implements StringTransformer {
 					}
 				}
 			}
-			m.appendReplacement(replaced, pre + url + post);
+			m.appendReplacement(replaced, Matcher.quoteReplacement(pre + url + post));
 		}
 		m.appendTail(replaced);
 		return replaced.toString();
