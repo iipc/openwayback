@@ -458,6 +458,59 @@ public class WaybackRequest {
 			STD_PHP_SESSION_ID,
 			STD_J_SESSION_ID };
 
+	// static constructor methods for typical cases
+
+	/**
+	 * create WaybackRequet for URL-Query request.
+	 * @param url target URL
+	 * @param start start timestamp (14-digit)
+	 * @param end end timestamp (14-digit)
+	 * @return WaybackRequest
+	 */
+	public static WaybackRequest createUrlQueryRequest(String url, String start, String end) {
+		WaybackRequest r = new WaybackRequest();
+		r.setUrlQueryRequest();
+		r.setRequestUrl(url);
+		r.setStartTimestamp(start);
+		r.setEndTimestamp(end);
+		return r;
+	}
+
+	/**
+	 * create WaybackRequest for Capture-Query request.
+	 * @param url target URL
+	 * @param replay highlight date
+	 * @param start start timestamp (14-digit)
+	 * @param end end timestamp (14-digit)
+	 * @return WaybackRequest
+	 */
+	public static WaybackRequest createCaptureQueryRequet(String url, String replay, String start, String end) {
+		WaybackRequest r = new WaybackRequest();
+		r.setCaptureQueryRequest();
+		r.setRequestUrl(url);
+		r.setReplayTimestamp(replay);
+		r.setStartTimestamp(start);
+		r.setEndTimestamp(end);
+		return r;
+	}
+	/**
+	 * create WaybackRequet for Replay request.
+	 * @param url target URL
+	 * @param replay requested date
+	 * @param start start timestamp (14-digit)
+	 * @param end end timestamp (14-digit)
+	 * @return WaybackRequet
+	 */
+	public static WaybackRequest createReplayRequest(String url, String replay, String start, String end) {
+		WaybackRequest r = new WaybackRequest();
+		r.setReplayRequest();
+		r.setRequestUrl(url);
+		r.setReplayTimestamp(replay);
+		r.setStartTimestamp(start);
+		r.setEndTimestamp(end);
+		return r;
+	}
+
 	/**
 	 * @return Returns the resultsPerPage.
 	 */

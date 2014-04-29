@@ -40,7 +40,7 @@ public class ReplayRequestParserTest extends TestCase {
 	 * Test method for {@link org.archive.wayback.archivalurl.requestparser.ReplayRequestParser#parse(java.lang.String)}.
 	 * @throws BetterRequestException 
 	 */
-	public void testParseString() throws BetterRequestException {
+	public void testParseString() throws Exception {
 		BaseRequestParser wrapped = new ArchivalUrlRequestParser();
 		ReplayRequestParser p = new ReplayRequestParser(wrapped);
 		WaybackRequest r;

@@ -136,7 +136,7 @@ public class RequestMapper {
 				+ (path == null ? "(null)" : path));
 		Integer portInt = Integer.valueOf(port);
 		PortMapper portMapper = portMap.get(portInt);
-		if(portMapper == null) {
+		if (portMapper == null) {
 			portMapper = new PortMapper(portInt);
 			portMap.put(portInt, portMapper);
 		}
@@ -149,7 +149,7 @@ public class RequestMapper {
 		int port = request.getLocalPort();
 		Integer portInt = Integer.valueOf(port);
 		PortMapper portMapper = portMap.get(portInt);
-		if(portMapper != null) {
+		if (portMapper != null) {
 			handlerContext = portMapper.getRequestHandlerContext(request);
 		} else {
 			LOGGER.warning("No PortMapper for port " + port);
@@ -175,28 +175,27 @@ public class RequestMapper {
 			return false;
 		}
 		
-		if(globalPreRequestHandler != null) {
-			handled = 
-				globalPreRequestHandler.handleRequest(request, response);
+		if (globalPreRequestHandler != null) {
+			handled = globalPreRequestHandler.handleRequest(request, response);
 		}
-		if(handled == false) {
+		if (handled == false) {
 			RequestHandlerContext handlerContext = mapRequest(request);
-			if(handlerContext != null) {
+			if (handlerContext != null) {
 				RequestHandler requestHandler = 
 					handlerContext.getRequestHandler();
 				// need to add trailing "/" iff prefix is not "/":
 				String pathPrefix = handlerContext.getPathPrefix();
-				if(!pathPrefix.equals("/")) {
+				if (!pathPrefix.equals("/")) {
 					pathPrefix += "/";
 				}
 				request.setAttribute(REQUEST_CONTEXT_PREFIX,pathPrefix); 
 				handled = requestHandler.handleRequest(request, response);
 			}
 		}
-		if(handled == false) {
+		if (handled == false) {
 			if(globalPostRequestHandler != null) {
-				handled = 
-					globalPostRequestHandler.handleRequest(request, response);
+				handled = globalPostRequestHandler.handleRequest(request,
+						response);
 			}
 		}
 			
@@ -208,7 +207,7 @@ public class RequestMapper {
 	 * being destroyed.
 	 */
 	public void shutdown() {
-		for(ShutdownListener shutdownListener : shutdownListeners) {
+		for (ShutdownListener shutdownListener : shutdownListeners) {
 			try {
 				shutdownListener.shutdown();
 			} catch(Exception e) {
@@ -238,10 +237,10 @@ public class RequestMapper {
 	public static String getRequestContextPath(HttpServletRequest request) {
 		String prefix = (String) request.getAttribute(REQUEST_CONTEXT_PREFIX);
 		String requestUrl = request.getRequestURI();
-		if(prefix == null) {
+		if (prefix == null) {
 			return requestUrl;
 		}
-		if(requestUrl.startsWith(prefix)) {
+		if (requestUrl.startsWith(prefix)) {
 			return requestUrl.substring(prefix.length());
 		}
 		return requestUrl;
@@ -254,19 +253,21 @@ public class RequestMapper {
 	 * arguments.
 	 */
 	public static String getRequestContextPathQuery(HttpServletRequest request) {
-		String prefix = (String) request.getAttribute(REQUEST_CONTEXT_PREFIX);
+		String prefix = (String)request.getAttribute(REQUEST_CONTEXT_PREFIX);
+		// HttpServletRequest.getRequestURI() returns path portion of request URL
+		// (does not include query part), *undecoded*.
 		StringBuilder sb = new StringBuilder(request.getRequestURI());
 		String requestUrl = null;
 		String query = request.getQueryString();
-		if(query != null) {
+		if (query != null) {
 			requestUrl = sb.append("?").append(query).toString();
 		} else {
 			requestUrl = sb.toString();
 		}
-		if(prefix == null) {
+		if (prefix == null) {
 			return requestUrl;
 		}
-		if(requestUrl.startsWith(prefix)) {
+		if (requestUrl.startsWith(prefix)) {
 			return requestUrl.substring(prefix.length());
 		} 
 		// Fix for access point with missing end slash

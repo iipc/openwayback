@@ -73,18 +73,32 @@ public abstract class AbstractRequestHandler implements RequestHandler {
 		return servletContext;
 	}
 
+	// Refactor: this method is only called by RequestMapper, and eventually
+	// calls RequestMapper.addRequestHandler() through static method BeanNameRegistrar.registerHandler().
+	// AbstractRequestHandler does not play any active role there.  Move this code to RequestMapper.
+	/**
+	 * @deprecated 2014-04-24 call {@link BeanNameRegistrar#registerHandler(RequestHandler, RequestMapper)} directly.
+	 */
 	public void registerPortListener(RequestMapper requestMapper) {
 		BeanNameRegistrar.registerHandler(this, requestMapper);
 	}
 
+	/**
+	 * @deprecated 2014-04-23 use {@link RequestMapper#getRequestContextPath(HttpServletRequest)} directly.
+	 */
 	public String translateRequestPath(HttpServletRequest httpRequest) {
 		return RequestMapper.getRequestContextPath(httpRequest);
 	}
 
+	/**
+	 * @deprecated 2014-04-23 use {@link RequestMapper#getRequestContextPathQuery(HttpServletRequest)} directly
+	 */
 	public String translateRequestPathQuery(HttpServletRequest httpRequest) {
 		return RequestMapper.getRequestContextPathQuery(httpRequest);
 	}
 
+	// Refactor: move getMapParam, getRequiredMapParam and getMapParamOrEmpty
+	// to RequestParser base class.
 	/**
 	 * Extract the first value in the array mapped to by field in queryMap
 	 * @param queryMap the Map in which to search
