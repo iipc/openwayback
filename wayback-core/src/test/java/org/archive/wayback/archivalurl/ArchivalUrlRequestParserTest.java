@@ -83,11 +83,12 @@ public class ArchivalUrlRequestParserTest extends TestCase {
     }
 
     protected WaybackRequest parse(String url) throws BadQueryException, BetterRequestException {
-        // note: url is set to HttpServletRequest's requestURI property. it should NOT contain
-        // query part. RequestParser will receive value translated by
-        HttpServletRequest req = getRequestMock(url, null);
-        EasyMock.replay(req);
-        return cut.parse(req, accessPoint);
+	    // note: url is set to HttpServletRequest's requestURI property. it should NOT contain
+		// query part. RequestParser will receive value translated by RequestMapper.getRequestContextPath()
+		// (i.e. "/web/" part removed.)
+		HttpServletRequest req = getRequestMock(url, null);
+		EasyMock.replay(req);
+		return cut.parse(req, accessPoint);
     }
     
     public void testReplayRequest() throws Exception {
@@ -155,22 +156,20 @@ public class ArchivalUrlRequestParserTest extends TestCase {
      * @throws Exception
      */
     public void testDatePrefixEncoded() throws Exception {
-    	@SuppressWarnings("unused")
 		WaybackRequest wbr1 = parse("/web/20100101%2A/http://www.yahoo.com/?p=%2A");
-//    	assertNotNull(wbr1);
-//    	assertTrue(wbr1.isCaptureQueryRequest());
-//    	assertEquals("20100101000000", wbr1.getStartTimestamp());
-//    	assertEquals("20100101235959", wbr1.getEndTimestamp());
-//    	assertEquals("20100101235959", wbr1.getReplayTimestamp());
-//    	assertEquals("http://www.yahoo.com/?p=%2A", wbr1.getRequestUrl());
+		assertNotNull(wbr1);
+		assertTrue(wbr1.isCaptureQueryRequest());
+		assertEquals("20100101000000", wbr1.getStartTimestamp());
+		assertEquals("20100101235959", wbr1.getEndTimestamp());
+		assertEquals("20100101235959", wbr1.getReplayTimestamp());
+		assertEquals("http://www.yahoo.com/?p=%2A", wbr1.getRequestUrl());
     	
-    	@SuppressWarnings("unused")
 		WaybackRequest wbr2 = parse("/web/%2A/http://www.yahoo.com/");
-//    	assertNotNull(wbr2);
-//    	assertTrue(wbr2.isCaptureQueryRequest());
-//    	assertEquals(EXPECTED_START_TIMESTAMP, wbr2.getStartTimestamp());
-//    	assertEquals(EXPECTED_END_TIMESTAMP, wbr2.getEndTimestamp());
-//    	assertEquals(null, wbr2.getReplayTimestamp());    	
+		assertNotNull(wbr2);
+		assertTrue(wbr2.isCaptureQueryRequest());
+		assertEquals(EXPECTED_START_TIMESTAMP, wbr2.getStartTimestamp());
+		assertEquals(EXPECTED_END_TIMESTAMP, wbr2.getEndTimestamp());
+		assertEquals(null, wbr2.getReplayTimestamp());
     }
     
     /**
@@ -202,8 +201,21 @@ public class ArchivalUrlRequestParserTest extends TestCase {
 		// Date range without "*" results in 404. We could make it work.
 		WaybackRequest wbr3 = parse("/web/2010-2014/http://www.yahoo.com/");
 		assertNull(wbr3);
-		
-		// TODO: %-encoded version.
+    }
+
+    /**
+     * test for {@link PathDateRangeQueryRequestParser}, %-encoded version.
+     * @throws Exception
+     */
+    public void testPathDateRangeEncoded() throws Exception {
+		WaybackRequest wbr1 = parse("/web/20100101000000-20100630235959%2A/http://www.yahoo.com/");
+		assertNotNull(wbr1);
+		assertTrue(wbr1.isCaptureQueryRequest());
+		assertEquals("20100101000000", wbr1.getStartTimestamp());
+		assertEquals("20100630235959", wbr1.getEndTimestamp());
+//		assertEquals("20100630235959", wbr1.getReplayTimestamp());
+		assertEquals(null, wbr1.getReplayTimestamp());
+		assertEquals("http://www.yahoo.com/", wbr1.getRequestUrl());
     }
 
     /**
@@ -234,6 +246,30 @@ public class ArchivalUrlRequestParserTest extends TestCase {
     	WaybackRequest wbr3 = parse("/web/20130101000000*/http://www.yahoo.com/*");
     	assertNull(wbr3);
     }
+    /**
+     * test of {@link PathPrefixDatePrefixQueryRequestParser}.
+     * <p>%-encoded timestamp.</p>
+     * @throws Exception
+     */
+    public void testPathPrefixDatePrefixEncoded() throws Exception {
+		{
+			WaybackRequest wbr = parse("/web/2010%2A/http://www.yahoo.com/*");
+			assertNotNull(wbr);
+			assertTrue(wbr.isUrlQueryRequest());
+			assertEquals("20100101000000", wbr.getStartTimestamp());
+			assertEquals("20101231235959", wbr.getEndTimestamp());
+			assertEquals("http://www.yahoo.com/", wbr.getRequestUrl());
+		}
+		// negative case - %2A doesn't make it path-prefix.
+		{
+			WaybackRequest wbr = parse("/web/2010%2A/http://www.yahoo.com/%2A");
+			assertNotNull(wbr);
+			assertTrue(wbr.isCaptureQueryRequest());
+			assertEquals("20100101000000", wbr.getStartTimestamp());
+			assertEquals("20101231235959", wbr.getEndTimestamp());
+			assertEquals("http://www.yahoo.com/%2A", wbr.getRequestUrl());
+		}
+    }
 
 	/**
      * test of {@link PathPrefixDateRangeQueryRequestParser}.
@@ -243,15 +279,32 @@ public class ArchivalUrlRequestParserTest extends TestCase {
      * <p>timerange without "*" is not recognized. it could be.</p> 
      */
 	public void testPathPrefixDateRange() throws Exception {
-		WaybackRequest wbr1 = parse("/web/20100101-20100531*/http://www.yahoo.com/*");
-		assertNotNull(wbr1);
-		assertTrue(wbr1.isUrlQueryRequest());
-		assertEquals("20100101000000", wbr1.getStartTimestamp());
-		assertEquals("20100531235959", wbr1.getEndTimestamp());
-		assertEquals("http://www.yahoo.com/", wbr1.getRequestUrl());
+		{
+			WaybackRequest wbr1 = parse("/web/20100101-20100531*/http://www.yahoo.com/*");
+			assertNotNull(wbr1);
+			assertTrue(wbr1.isUrlQueryRequest());
+			assertEquals("20100101000000", wbr1.getStartTimestamp());
+			assertEquals("20100531235959", wbr1.getEndTimestamp());
+			assertEquals("http://www.yahoo.com/", wbr1.getRequestUrl());
+		}
 
 		// TODO: date range without "*"
-		// TODO: %-encoded case.
+	}
+
+	/**
+	 * test of {@link PathPrefixDateRangeQueryRequestParser},
+	 * %-encoded version.
+	 * @throws Exception
+	 */
+	public void testPathPrefixdateRangeEncoded() throws Exception {
+		{
+			WaybackRequest wbr = parse("/web/20100101%2D20100531%2A/http://www.yahoo.com/*");
+			assertNotNull(wbr);
+			assertTrue(wbr.isUrlQueryRequest());
+			assertEquals("20100101000000", wbr.getStartTimestamp());
+			assertEquals("20100531235959", wbr.getEndTimestamp());
+			assertEquals("http://www.yahoo.com/", wbr.getRequestUrl());
+		}
 	}
 	
 	protected void checkPathDateless(WaybackRequest wbr, String requestUrl) {
@@ -420,4 +473,28 @@ public class ArchivalUrlRequestParserTest extends TestCase {
 			assertEquals(EXPECTED_END_TIMESTAMP, wbr.getEndTimestamp());
 		}
 	}
+
+	/**
+	 * some pathological cases.
+	 * @throws Exception
+	 */
+    public void testPathological() throws Exception {
+		{
+			WaybackRequest wbr = parse("/web/20100101*30/http://www.yahoo.com/?p=*");
+			assertNull(wbr);
+		}
+		{
+			WaybackRequest wbr = parse("/web/*20100101*/http://www.yahoo.com/");
+			assertNull(wbr);
+		}
+		{
+			WaybackRequest wbr = parse("/web/20100101*im_/http://www.yahoo.com/a.png");
+			assertNull(wbr);
+		}
+		// TODO: should we accept this?
+		{
+			WaybackRequest wbr = parse("/web//20100101*/http://www.yahoo.com/");
+			assertNull(wbr);
+		}
+    }
 }
