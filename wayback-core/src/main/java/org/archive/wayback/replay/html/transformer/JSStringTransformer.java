@@ -29,6 +29,17 @@ import org.archive.wayback.replay.html.StringTransformer;
  * Translates absolute URLs found in JavaScript code block.
  * <p>Looks for http/https absolute URLs in JavaScript code and translates
  * them with {@link ReplayParseContext#contextualizeUrl(String)}.</p>
+ * <p>You can customize the pattern for finding URLs with {@code regex} property.
+ * Regular expression must have at least one <em>capturing</em>, and the first
+ * capturing group encloses URL to be rewritten.
+ * (new feature 2014-04-22) Any matching text preceding and
+ * following the first group will be preserved.</p>
+ * <p>For example: if you want to replace protocol-relative URL in addition to
+ * regular full URL in JavaScript, you could use conservative regex like:
+ * <pre>
+ * "[\"']((?:https?:)?//(?:[^/]+@)?[^@:/]+(?:\\.[^@:/]+)+(?:[0-9]+)?)"
+ * </pre>
+ * Note single/double quote preceding URL is preserved in 2014-04-22 version and on.</p>
  * <p>TODO: org.archive.wayback.archivalurl.ArchivalUrlJSReplayRenderer has
  * similar code.  can be consolidated, like ArchivalURLJSStringTransformerReplayRenderer?</p>
  * @author brad
@@ -40,13 +51,15 @@ public class JSStringTransformer implements StringTransformer {
 	
 	private Pattern pattern = defaultHttpPattern;
 	
-	public void setRegex(String regex)
-	{
+	/**
+	 * a regular expression for searching URLs in the target resource.
+	 * @param regex
+	 */
+	public void setRegex(String regex) {
 		pattern = Pattern.compile(regex);
 	}
 	
-	public String getRegex()
-	{
+	public String getRegex() {
 		return pattern.pattern();
 	}
 
@@ -55,6 +68,8 @@ public class JSStringTransformer implements StringTransformer {
 		Matcher m = pattern.matcher(input);
 		while (m.find()) {
 			String url = m.group(1);
+			String pre = input.substring(m.start(), m.start(1));
+			String post = input.substring(m.end(1), m.end());
 			if (context.isRewriteSupported(url)) {
 				String origUrl = url;
 				url = context.contextualizeUrl(url);
@@ -79,7 +94,7 @@ public class JSStringTransformer implements StringTransformer {
 					}
 				}
 			}
-			m.appendReplacement(replaced, url);
+			m.appendReplacement(replaced, pre + url + post);
 		}
 		m.appendTail(replaced);
 		return replaced.toString();
