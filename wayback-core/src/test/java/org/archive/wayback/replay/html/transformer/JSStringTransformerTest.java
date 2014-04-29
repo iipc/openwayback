@@ -128,6 +128,29 @@ public class JSStringTransformerTest extends TestCase {
 	}
 
 	/**
+	 * test of rewriting corner case where URL contains special chars for
+	 * {@code Matcher#appendReplacement}.
+	 *
+	 * @throws Exception
+	 */
+	public void testRewriteSpecialCharURL() throws Exception {
+		// using custom regex, as default pattern does not allow backslash in URL.
+		// this regex also deliberately excludes single quote so that replacement
+		// text ends with backslash.
+		jst.setRegex("[\"']((?:https?:)?//(?:[^/]+@)?[^@:/']+(?:\\.[^@:/']+)+(?:[0-9]+)?)");
+		final String input = "var b='http://www.example.com\\'";
+		final String expected = "var b='###http://www.example.com\\'";
+
+		// throws an exception if replacement text is not properly escaped.
+		String output = jst.transform(rc, input);
+
+		assertEquals(1, rc.got.size());
+		assertEquals("http://www.example.com\\", rc.got.get(0));
+
+		assertEquals(expected, output);
+	}
+
+	/**
 	 * ReplayParseContext mock
 	 * TODO: move to package-level as this is useful for testing other
 	 * {@code StringTransformer}s.
