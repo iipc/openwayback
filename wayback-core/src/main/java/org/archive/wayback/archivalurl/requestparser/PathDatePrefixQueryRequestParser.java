@@ -24,9 +24,7 @@ import java.util.regex.Pattern;
 
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.requestparser.BaseRequestParser;
-import org.archive.wayback.requestparser.PathRequestParser;
 import org.archive.wayback.util.Timestamp;
-import org.archive.wayback.webapp.AccessPoint;
 
 /**
  * RequestParser implementation that extracts request info from an Archival Url
@@ -42,7 +40,7 @@ import org.archive.wayback.webapp.AccessPoint;
  * </ul>
  * @author brad
  */
-public class PathDatePrefixQueryRequestParser extends PathRequestParser {
+public class PathDatePrefixQueryRequestParser extends DateUrlPathRequestParser {
 	/**
 	 * @param wrapped BaseRequestParser which provides general configuration
 	 */
@@ -51,44 +49,36 @@ public class PathDatePrefixQueryRequestParser extends PathRequestParser {
 	}
 
 	/**
-	 * Regex which parses Archival URL queries into timestamp + url for an exact 
-	 * URL
+	 * Regular expression for the first path element (timestamp + "{@code *}").
 	 */
-	private final static Pattern WB_QUERY_REGEX = Pattern
-			.compile("^(\\d{0,14})\\*/(.*[^*])$");
+	private final static Pattern TIMESTAMP_REGEX = Pattern.compile("(\\d{0,14})\\*");
 
-	public WaybackRequest parse(String requestPath, AccessPoint ap) {
+	@Override
+	protected WaybackRequest parseDateUrl(String dateStr, String urlStr) {
+		if (urlStr.endsWith("*")) return null;
 		
-		WaybackRequest wbRequest = null;
-		Matcher matcher = WB_QUERY_REGEX.matcher(requestPath);
-		if (matcher != null && matcher.matches()) {
+		Matcher matcher = TIMESTAMP_REGEX.matcher(dateStr);
+		if (!matcher.matches())
+			return null;
 
-			wbRequest = new WaybackRequest();
-			String dateStr = matcher.group(1);
-			String urlStr = matcher.group(2);
+		dateStr = matcher.group(1);
 
-			String startDate;
-			String endDate;
-			String requestDate;
-			if (dateStr.length() == 0) {
-				startDate = getEarliestTimestamp();
-				endDate = getLatestTimestamp();
-				requestDate = endDate;
-			} else if (dateStr.length() == 14) {
-				startDate = getEarliestTimestamp();
-				endDate = getLatestTimestamp();
-				requestDate = Timestamp.parseAfter(dateStr).getDateStr();
-			} else {
-				startDate = Timestamp.parseBefore(dateStr).getDateStr();
-				endDate = Timestamp.parseAfter(dateStr).getDateStr();
-				requestDate = endDate;
-			}
-			wbRequest.setStartTimestamp(startDate);
-			wbRequest.setEndTimestamp(endDate);
-			wbRequest.setReplayTimestamp(requestDate);
-			wbRequest.setCaptureQueryRequest();
-            wbRequest.setRequestUrl(urlStr);
+		String startDate;
+		String endDate;
+		String requestDate;
+		if (dateStr.length() == 0) {
+			startDate = getEarliestTimestamp();
+			endDate = getLatestTimestamp();
+			requestDate = endDate;
+		} else if (dateStr.length() == 14) {
+			startDate = getEarliestTimestamp();
+			endDate = getLatestTimestamp();
+			requestDate = Timestamp.parseAfter(dateStr).getDateStr();
+		} else {
+			startDate = Timestamp.parseBefore(dateStr).getDateStr();
+			endDate = Timestamp.parseAfter(dateStr).getDateStr();
+			requestDate = endDate;
 		}
-		return wbRequest;
+		return WaybackRequest.createCaptureQueryRequet(urlStr, requestDate, startDate, endDate);
 	}
 }

@@ -24,27 +24,23 @@ import java.util.regex.Pattern;
 
 import org.archive.wayback.archivalurl.ArchivalUrl;
 import org.archive.wayback.core.WaybackRequest;
-import org.archive.wayback.exception.BetterRequestException;
 import org.archive.wayback.requestparser.BaseRequestParser;
-import org.archive.wayback.requestparser.PathRequestParser;
 import org.archive.wayback.util.Timestamp;
-import org.archive.wayback.webapp.AccessPoint;
 
 /**
  * RequestParser implementation that extracts request info from a Replay
  * Archival Url path.
  * 
  * @author brad
- * @version $Date$, $Revision$
  */
-public class ReplayRequestParser extends PathRequestParser {
-	/**
-	 * Regex which parses Archival URL replay requests into:
-	 *      timestamp, flags, & url
-	 */
-	public final static Pattern WB_REQUEST_REGEX = Pattern
-			.compile("^(\\d{1,14})(([a-z]{2}[0-9]*_)*)/(.*)$");
-
+public class ReplayRequestParser extends DateUrlPathRequestParser {
+//	/**
+//	 * Regex which parses Archival URL replay requests into:
+//	 *      timestamp, flags, & url
+//	 */
+//	public final static Pattern WB_REQUEST_REGEX = Pattern
+//			.compile("^(\\d{1,14})(([a-z]{2}[0-9]*_)*)/(.*)$");
+	public final static Pattern TIMESTAMPCTX_REGEX = Pattern.compile("(\\d{1,14})((?:[a-z]{2}[0-9]*_)*)");
 	/**
 	 * @param wrapped BaseRequestParser which provides general configuration
 	 */
@@ -52,85 +48,50 @@ public class ReplayRequestParser extends PathRequestParser {
 		super(wrapped);
 	}
 
-	public WaybackRequest parse(String requestPath, AccessPoint ap) 
-	throws BetterRequestException {
-		WaybackRequest wbRequest = null;
-		Matcher matcher = WB_REQUEST_REGEX.matcher(requestPath);
-		String urlStr = null;
-		if (matcher != null && matcher.matches()) {
-			wbRequest = new WaybackRequest();
-			String dateStr = matcher.group(1);
-			urlStr = matcher.group(4);
-			String flags = matcher.group(2);
-			ArchivalUrl.assignFlags(wbRequest,flags);
+	@Override
+	protected WaybackRequest parseDateUrl(String dateStr, String urlStr) {
+		Matcher matcher = TIMESTAMPCTX_REGEX.matcher(dateStr);
+		if (!matcher.matches())
+			return null;
 
-			// The logic of the classic WM wrt timestamp bounding:
-			// if 14-digits are specified, assume min-max range boundaries
-			// if less than 14 are specified, assume min-max range boundaries
-			// based upon amount given (2001 => 20010101... - 20011231...)
-			// AND assume the user asked for the LATEST possible date
-			// within that range...
-
-			String startDate = null;
-			String endDate = null;
-			if (dateStr.length() == 12) {
-				// assume this is one of those old old alexa ARCs which has 
-				// some 12-digit dates. Pad with "00";
-				dateStr = dateStr.concat("00");
-			}
-			if (dateStr.length() == 14) {
-				startDate = getEarliestTimestamp();
-				endDate = getLatestTimestamp();
-				if(endDate == null) {
-					endDate = Timestamp.currentTimestamp().getDateStr();
-				}
-			} else {
-
-				// classic behavior:
-				startDate = Timestamp.parseBefore(dateStr).getDateStr();
-				endDate = Timestamp.parseAfter(dateStr).getDateStr();
-				dateStr = endDate;
-
-				// maybe "better" behavior:
-//				startDate = getEarliestTimestamp();
-//				endDate = getLatestTimestamp();
-//				dateStr = Timestamp.parseAfter(dateStr).getDateStr();
-
-			}
-			wbRequest.setReplayTimestamp(dateStr);
-			wbRequest.setStartTimestamp(startDate);
-			wbRequest.setEndTimestamp(endDate);
-
-			wbRequest.setReplayRequest();
-			wbRequest.setRequestUrl(urlStr);
-		} else {
-			// see if the remainder looks like an URL:
-//			String scheme = UrlOperations.urlToScheme(requestPath);
-//			if(scheme != null) {
-//				// lets interpret this as a replay request missing the
-//				// timestamp: use "NOW"
-//				String nowTS = Timestamp.currentTimestamp().getDateStr();
-//				ResultURIConverter conv = ap.getUriConverter();
-//
-//				String betterURI = conv.makeReplayURI(nowTS, requestPath);
-//				throw new BetterRequestException(betterURI);
-//			} else {
-//				// not obviously an URL... see if UURI can handle it:
-//				String httpUrl = UrlOperations.HTTP_SCHEME + requestPath;
-//				try {
-//					UURIFactory.getInstance(httpUrl);
-//					// that worked. use httpUrl:
-//					String nowTS = Timestamp.currentTimestamp().getDateStr();
-//					ResultURIConverter conv = ap.getUriConverter();
-//
-//					String betterURI = conv.makeReplayURI(nowTS, requestPath);
-//					throw new BetterRequestException(betterURI);
-//				} catch (URIException e) {
-//					// oh well. lets just fail:
-//				}
-//			}
+		dateStr = matcher.group(1);
+		String flags = matcher.group(2);
 		
+		// The logic of the classic WM wrt timestamp bounding:
+		// if 14-digits are specified, assume min-max range boundaries
+		// if less than 14 are specified, assume min-max range boundaries
+		// based upon amount given (2001 => 20010101... - 20011231...)
+		// AND assume the user asked for the LATEST possible date
+		// within that range...
+
+		String startDate = null;
+		String endDate = null;
+		if (dateStr.length() == 12) {
+			// assume this is one of those old old alexa ARCs which has 
+			// some 12-digit dates. Pad with "00";
+			dateStr = dateStr.concat("00");
 		}
+		if (dateStr.length() == 14) {
+			startDate = getEarliestTimestamp();
+			endDate = getLatestTimestamp();
+			if(endDate == null) {
+				endDate = Timestamp.currentTimestamp().getDateStr();
+			}
+		} else {
+			// classic behavior:
+			startDate = Timestamp.parseBefore(dateStr).getDateStr();
+			endDate = Timestamp.parseAfter(dateStr).getDateStr();
+			dateStr = endDate;
+
+			// maybe "better" behavior:
+//			startDate = getEarliestTimestamp();
+//			endDate = getLatestTimestamp();
+//			dateStr = Timestamp.parseAfter(dateStr).getDateStr();
+		}
+
+		WaybackRequest wbRequest = WaybackRequest.createReplayRequest(urlStr, dateStr, startDate, endDate);
+		ArchivalUrl.assignFlags(wbRequest, flags);
+
 		return wbRequest;
 	}
 
