@@ -23,10 +23,11 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 
-import org.archive.wayback.replay.html.ContextResultURIConverterFactory;
-import org.archive.wayback.replay.html.ReplayParseContext;
-
 import junit.framework.TestCase;
+
+import org.archive.wayback.replay.html.ContextResultURIConverterFactory;
+import org.archive.wayback.replay.html.IdentityResultURIConverterFactory;
+import org.archive.wayback.replay.html.ReplayParseContext;
 
 /**
  * @author brad
@@ -102,6 +103,48 @@ public class JSStringTransformerTest extends TestCase {
 	}
 
 	/**
+	 * same as above, slashes are backslash-escaped.
+	 * @throws Exception
+	 */
+	public void testRewriteHttpsOnlyEscapedSlashes() throws Exception {
+		// using custom RecordingReplayParseContext for testing actual rewrite. This is more than
+		// a unit test of JSStringTransformer, but it is useful to capture bugs caused by inconsistency
+		// among JSStringTransformer, ReplayParseContext and ResultURIConverterFactory (hopefully
+		// they should be refactored into coherent, easier-to-test components.) this is a common
+		// setup for proxy-mode (IdentityResultURIConverterFactory returns ProxyHttpsResultURIConverter.)
+		IdentityResultURIConverterFactory uriConverterFactory = new IdentityResultURIConverterFactory();
+		rc = new RecordingReplayParseContext(uriConverterFactory, baseURL, null);
+		rc.setRewriteHttpsOnly(true);
+
+		// Note: ParseContext.resolve(String) uses UsableURIFactory.getInstance() for
+		// making URL absolute. It not only prepends baseURL but also removes escaping
+		// like "\/", "%3A". So, depending on the URL pattern, more "\/" may be replaced
+		// by "/" (as the default pattern matches scheme and netloc only, "\/" in
+		// path part is retained here). ResultURIConverter
+		final String input = "var img1 = 'http:\\/\\/example.com\\/img\\/1.jpeg';\n" +
+				"var img2 = 'https:\\/\\/secure1.example.com\\/img\\/2.jpeg';\n" +
+				"var img3 = '\\/img\\/3.jpeg';\n" +
+				"var host1 = 'http:\\/\\/example.com';\n" +
+				"var host2 = 'https:\\/\\/secure2.example.com';\n";
+		final String expected = "var img1 = 'http:\\/\\/example.com\\/img\\/1.jpeg';\n" +
+				"var img2 = 'http://secure1.example.com\\/img\\/2.jpeg';\n" +
+				"var img3 = '\\/img\\/3.jpeg';\n" +
+				"var host1 = 'http:\\/\\/example.com';\n" +
+				"var host2 = 'http://secure2.example.com';\n";
+
+		String out = jst.transform(rc, input);
+
+		assertEquals(2, rc.got.size());
+		// with default regex, JSStringTransformer captures
+		// scheme and netloc only (no path).
+		assertTrue(rc.got.contains("https:\\/\\/secure1.example.com"));
+		assertTrue(rc.got.contains("https:\\/\\/secure2.example.com"));
+
+		assertEquals(expected, out);
+	}
+
+
+	/**
 	 * test of rewriting protocol relative URLs ({@code "//www.example.com/..."})
 	 * with non-default regex.
 	 * <p>check if text preceding the first group is preserved in the result.
@@ -157,6 +200,7 @@ public class JSStringTransformerTest extends TestCase {
 	 */
 	public static class RecordingReplayParseContext extends ReplayParseContext {
 		ArrayList<String> got = null;
+		boolean stub = true;
 		/**
 		 * @param uriConverterFactory
 		 * @param baseUrl
@@ -167,17 +211,16 @@ public class JSStringTransformerTest extends TestCase {
 				URL baseUrl, String datespec) {
 			super(uriConverterFactory, baseUrl, datespec);
 			got = new ArrayList<String>();
-			// TODO Auto-generated constructor stub
-		}
-		public String contextualizeUrl(String url) {
-			got.add(url);
-			return "###" + url;
+			stub = (uriConverterFactory == null);
 		}
 		@Override
 		public String contextualizeUrl(String url, String flags) {
 			// TODO record flags, too
 			got.add(url);
-			return "###" + url;
+			if (stub)
+				return "###" + url;
+			else
+				return super.contextualizeUrl(url, flags);
 		}
 	}
 }
