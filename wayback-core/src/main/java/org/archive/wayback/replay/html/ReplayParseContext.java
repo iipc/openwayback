@@ -74,7 +74,7 @@ public class ReplayParseContext extends ParseContext {
 			return true;
 		}
 		
-	    return url.startsWith(WaybackConstants.HTTPS_URL_PREFIX);
+	    return url.startsWith(WaybackConstants.HTTPS_URL_PREFIX_FOR_REWRITE_DECISION);
 	}
 
 	/**

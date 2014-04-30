@@ -33,6 +33,7 @@ public interface WaybackConstants {
 	 */
 	public static final String HTTP_URL_PREFIX = "http://";
 	public static final String HTTPS_URL_PREFIX = "https://";
+        public static final String HTTPS_URL_PREFIX_FOR_REWRITE_DECISION = "https";
 
 	/**
 	 * default HTTP port: 
