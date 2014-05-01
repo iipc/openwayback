@@ -23,7 +23,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.archive.wayback.replay.html.ReplayParseContext;
-import org.archive.wayback.replay.html.StringTransformer;
 
 /**
  * Translates URL found in META-REFRESH's <code>CONTENT</code> attribute.
@@ -41,8 +40,7 @@ import org.archive.wayback.replay.html.StringTransformer;
  * @author brad
  *
  */
-public class MetaRefreshUrlStringTransformer extends URLStringTransformer
-		implements StringTransformer {
+public class MetaRefreshUrlStringTransformer extends URLStringTransformer {
 
 	private final static Pattern refreshURLPattern = Pattern.compile(
 			"^[\\d.]+\\s*;\\s*url\\s*=\\s*(.+?)\\s*$", Pattern.CASE_INSENSITIVE
@@ -64,10 +62,9 @@ public class MetaRefreshUrlStringTransformer extends URLStringTransformer
 		if (m.matches()) {
 			if (m.groupCount() == 1) {
 				String url = m.group(1);
-				if (context.isRewriteSupported(url)) {
-					url = context.contextualizeUrl(url);
-					input = input.substring(0, m.start(1)) +
-							url +
+				String replayUrl = context.contextualizeUrl(url);
+				if (replayUrl != url) {
+					input = input.substring(0, m.start(1)) + replayUrl +
 							input.substring(m.end(1));
 				}
 			}
