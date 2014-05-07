@@ -105,14 +105,10 @@ public class HTTPRecordAnnotater {
 					// right now, we're ignoring "Content-Location"
 					//
 					
-					// NOTE: FILLING THE REDIRECT FIELD IN CDX IS DISABLED!
-					// If we want to support redirect in cdx as long as the url is valid
-					// comment out the following lines:
-					
-					// String locationStr = httpHeader.getValue();
-					// result.setRedirectUrl(
-					//		UrlOperations.resolveUrl(result.getOriginalUrl(),
-					//				locationStr, "-"));
+					String locationStr = httpHeader.getValue();
+					result.setRedirectUrl(
+							UrlOperations.resolveUrl(result.getOriginalUrl(),
+									locationStr, "-"));
 
 				} else if(httpHeader.getName().toLowerCase().equals("content-type")) {
 					mimeType = transformHTTPMime(httpHeader.getValue());
