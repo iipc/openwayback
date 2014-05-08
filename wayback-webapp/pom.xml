@@ -8,7 +8,7 @@
   </parent>
 
   <artifactId>openwayback-webapp</artifactId>
-  <name>Wayback Web Application</name>
+  <name>OpenWayback Web Application</name>
   <packaging>war</packaging>
 
   <build>

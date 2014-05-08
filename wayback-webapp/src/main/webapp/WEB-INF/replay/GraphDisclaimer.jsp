@@ -176,9 +176,9 @@ var wbCurrentUrl = "<%= searchUrlJS %>";
 <div id="wm-disclaim" dir="ltr" >
 	<table width="100%" border="0" cellpadding="0" cellspacing="3">
 		<tr>
-			<!-- WAYBACK LOGO -->
+			<!-- OPENWAYBACK LOGO -->
 			<td rowspan="2" valign="top" align="left"><a href="<%= queryPrefix %>"><img style="padding-right:15px;" src="<%= staticPrefix %>images/wayback_logo_tr.gif" width="153" height="54" border="0"></a></td>
-			<!-- /WAYBACK LOGO -->
+			<!-- /OPENWAYBACK LOGO -->
 			<td width="99%">
 				<table width="100%" border="0" cellpadding="0" cellspacing="0">
 					<tr>
@@ -259,4 +259,4 @@ var wbCurrentUrl = "<%= searchUrlJS %>";
     disclaimElement(wmDisclaimBanner);
   }
 </script>
-<!-- END WAYBACK TIMELINE DISCLAIMER INSERT -->
+<!-- END OPENWAYBACK TIMELINE DISCLAIMER INSERT -->

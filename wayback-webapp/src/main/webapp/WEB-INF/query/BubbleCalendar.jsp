@@ -210,7 +210,7 @@ $().ready(function(){
     <div id="wbSearch">
     
         <div id="logo">
-            <a href="/index.jsp"><img src="<%= staticPrefix %>images/logo_WM.png" alt="logo: Internet Archive's Wayback Machine" width="183" height="65" /></a>
+            <a href="/index.jsp"><img src="<%= staticPrefix %>images/logo_WM.png" alt="logo: OpenWayback" width="183" height="65" /></a>
         </div>
 
         <div id="form">
@@ -468,7 +468,7 @@ for(int moy = 0; moy < 12; moy++) {
   </div>
   <div id="wbCalNote">
     <h2>Note</h2>
-    <p>This calendar view maps the number of times <%= data.searchUrlForHTML %> was crawled by the Wayback Machine, <em>not</em> how many times the site was actually updated. More info in the <a href="https://webarchive.jira.com/wiki/display/WWMOS/FAQs">FAQ</a>.</p>
+    <p>This calendar view maps the number of times <%= data.searchUrlForHTML %> was crawled, <em>not</em> how many times the site was actually updated. More info in the <a href="https://webarchive.jira.com/wiki/display/WWMOS/FAQs">FAQ</a>.</p>
   </div>
 </div>
   
