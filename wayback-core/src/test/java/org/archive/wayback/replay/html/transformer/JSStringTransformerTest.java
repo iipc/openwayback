@@ -82,23 +82,28 @@ public class JSStringTransformerTest extends TestCase {
 	 * {@code rewriteHttpsOnly} property is used to limit URL rewrite
 	 * to HTTPS ones (intended for proxy mode). That should affect how
 	 * StringTransformer picks up URLs in text for translation.
+	 * <p>Now {@code rewriteHttpsOnly} has no effect on {@code JSStringTransformer}'s
+	 * behavior and picks up all fulll URLs.</p>
 	 * @throws Exception
 	 */
 	public void testRewriteHttpsOnly() throws Exception {
+		rc = new RecordingReplayParseContext(null, baseURL, null);
 		rc.setRewriteHttpsOnly(true);
 		
-		final String input = "var img1 = 'http://example.com/img/1.jpeg';\n" +
+		final String input = "var img1 = 'http://www1.example.com/img/1.jpeg';\n" +
 				"var img2 = 'https://secure1.example.com/img/2.jpeg';\n" +
 				"var img3 = '/img/3.jpeg';\n" +
-				"var host1 = 'http://example.com';\n" +
+				"var host1 = 'http://www2.example.com';\n" +
 				"var host2 = 'https://secure2.example.com';\n";
 
 		jst.transform(rc, input);
 
-		assertEquals(2, rc.got.size());
+		assertEquals(4, rc.got.size());
 		// with default regex, JSStringTransformer captures
 		// scheme and netloc only (no path).
+		assertTrue(rc.got.contains("http://www1.example.com"));
 		assertTrue(rc.got.contains("https://secure1.example.com"));
+		assertTrue(rc.got.contains("http://www2.example.com"));
 		assertTrue(rc.got.contains("https://secure2.example.com"));
 	}
 
@@ -133,12 +138,6 @@ public class JSStringTransformerTest extends TestCase {
 				"var host2 = 'http://secure2.example.com';\n";
 
 		String out = jst.transform(rc, input);
-
-		assertEquals(2, rc.got.size());
-		// with default regex, JSStringTransformer captures
-		// scheme and netloc only (no path).
-		assertTrue(rc.got.contains("https:\\/\\/secure1.example.com"));
-		assertTrue(rc.got.contains("https:\\/\\/secure2.example.com"));
 
 		assertEquals(expected, out);
 	}

@@ -64,12 +64,8 @@ public class URLStringTransformer implements StringTransformer {
 	}
 	
 	public String transform(ReplayParseContext context, String url) {
-	    if (!context.isRewriteSupported(url)) {
-	    	return url;
-	    }
-	    
-		if(url.startsWith(ReplayParseContext.JAVASCRIPT_PREFIX)) {
-			if(jsTransformer == null) {
+		if (url.startsWith(ReplayParseContext.JAVASCRIPT_PREFIX)) {
+			if (jsTransformer == null) {
 				return url;
 			}
 			StringBuilder sb = new StringBuilder(url.length());

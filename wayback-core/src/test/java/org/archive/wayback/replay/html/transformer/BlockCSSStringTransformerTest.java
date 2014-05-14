@@ -48,6 +48,12 @@ public class BlockCSSStringTransformerTest extends TestCase {
         assertTrue(rc.got.contains("bg.gif"));
 	}
 	
+	/**
+	 * test of rewriteHttpsOnly.
+	 * <p>Now it doesn't affect StringTransformer's behavior. This test
+	 * will be dropped soon.</p>
+	 * @throws Exception
+	 */
 	public void testRewriteHttpsOnly() throws Exception {
 		rc.setRewriteHttpsOnly(true);
 		
@@ -65,8 +71,12 @@ public class BlockCSSStringTransformerTest extends TestCase {
         		"}\n";
         st.transform(rc, input);
         
-        assertEquals(2, rc.got.size());
+        assertEquals(6, rc.got.size());
         assertTrue(rc.got.contains("https://secure.archive.org/common.css"));
         assertTrue(rc.got.contains("https://secure.archive.org/img/error-icon.gif"));
+        assertTrue(rc.got.contains("style1.css"));
+        assertTrue(rc.got.contains("style2.css"));
+        assertTrue(rc.got.contains("http://archive.org/common.css"));
+        assertTrue(rc.got.contains("bg.gif"));
 	}
 }

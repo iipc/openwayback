@@ -42,6 +42,12 @@ import org.archive.wayback.replay.html.StringTransformer;
  * Note single/double quote preceding URL is preserved in 2014-04-22 version and on.</p>
  * <p>TODO: org.archive.wayback.archivalurl.ArchivalUrlJSReplayRenderer has
  * similar code.  can be consolidated, like ArchivalURLJSStringTransformerReplayRenderer?</p>
+ * <p>May 1, 2014: slight design change:
+ * Now JSStringTransformer does not run it's own should-rewrite check and sends all matching
+ * text to {@link ReplayParseContext#contextualizeUrl(String)}. More specifically it no longer
+ * be affected by {@code rewriteHttpsOnly} flag. This is a design choice to keep
+ * {@code StringTransformer} detached from replay mode knowledge and focus on find-and-replace URLs
+ * </p>
  * @author brad
  *
  */
@@ -70,28 +76,27 @@ public class JSStringTransformer implements StringTransformer {
 			String url = m.group(1);
 			String pre = input.substring(m.start(), m.start(1));
 			String post = input.substring(m.end(1), m.end());
-			if (context.isRewriteSupported(url)) {
-				String origUrl = url;
-				url = context.contextualizeUrl(url);
 
-				if ((url != null) && (origUrl != null)) {
-					// reverse some changes made to url by contextualizeUrl method, that
-					// may break assumptions in subsequent JavaScript processing.
-					// eg. "http://example.org" -> "/20140101012345/http://example.org/"
-					// eg. "https://domain" + ".example.org" -> "http://domain/" + ".example.org"
-					// eg. "https://domain." + "example.org" -> "http://domain" + "example.org"
+			String origUrl = url;
+			url = context.contextualizeUrl(url);
 
-					// remove trailing "/" if origUrl doesn't have it.  As Wayback does not need
-					// trailing slash, it may make sense to this everywhere.  Just doing this fix
-					// in JavaScript for now.
-					if (url.endsWith("/") && !origUrl.endsWith("/")) {
-						url = url.substring(0, url.length() - 1);
-					}
+			if (url != origUrl) {
+				// reverse some changes made to url by contextualizeUrl method, that
+				// may break assumptions in subsequent JavaScript processing.
+				// eg. "http://example.org" -> "/20140101012345/http://example.org/"
+				// eg. "https://domain" + ".example.org" -> "http://domain/" + ".example.org"
+				// eg. "https://domain." + "example.org" -> "http://domain" + "example.org"
 
-					// add trailing "." (removed by canonicalizer) back, if origUrl has it.
-					if (origUrl.endsWith(".") && !url.endsWith(".")) {
-						url = url + ".";
-					}
+				// remove trailing "/" if origUrl doesn't have it.  As Wayback does not need
+				// trailing slash, it may make sense to this everywhere.  Just doing this fix
+				// in JavaScript for now.
+				if (url.endsWith("/") && !origUrl.endsWith("/")) {
+					url = url.substring(0, url.length() - 1);
+				}
+
+				// add trailing "." (removed by canonicalizer) back, if origUrl has it.
+				if (origUrl.endsWith(".") && !url.endsWith(".")) {
+					url = url + ".";
 				}
 			}
 			m.appendReplacement(replaced, Matcher.quoteReplacement(pre + url + post));

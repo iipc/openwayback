@@ -55,15 +55,21 @@ public class InlineCSSStringTransformerTest extends TestCase {
 		}
 	}
 	
+	/**
+	 * test of {@code rewriteHttpsOnly}.
+	 * <p>Now it doesn't affect StringTransformer's behavior. This test will
+	 * be dropped soon.</p>
+	 * @throws Exception
+	 */
 	public void testRewriteHttpsOnly() throws Exception {
 		final String[][] cases = new String[][] {
 				{
 					"color: #fff; background: transparent url(bg.gif)",
-					null
+					"bg.gif"
 				},
 				{
 					"background-image: url(http://archive.org/grid.png);",
-					null,
+					"http://archive.org/grid.png",
 				},
 				{
 					"background-image: url(https://secure.archive.org/grid.png);"+
@@ -72,7 +78,7 @@ public class InlineCSSStringTransformerTest extends TestCase {
 				},
 				{
 					"list-style:square url(\"//archive.org/sqred.gif\");",
-					null
+					"//archive.org/sqred.gif"
 				}
 		};
 
