@@ -266,16 +266,17 @@ public class TextDocument {
 	}
 
 	/**
+	 * insert {@code toInsert} at the beginning of this text.
 	 * @param toInsert
 	 */	
-	public void insertAtStartOfDocument(String toInsert) {
+	public final void insertAtStartOfDocument(CharSequence toInsert) {
 		sb.insert(0,toInsert);
 	}
 
 	/**
 	 * @param toInsert
 	 */	
-	public void insertAtStartOfHead(String toInsert) {
+	public void insertAtStartOfHead(CharSequence toInsert) {
 		int insertPoint = TagMagix.getEndOfFirstTag(sb,"head");
 		if (-1 == insertPoint) {
 			insertPoint = 0;
@@ -286,7 +287,7 @@ public class TextDocument {
 	/**
 	 * @param toInsert
 	 */
-	public void insertAtEndOfBody(String toInsert) {
+	public void insertAtEndOfBody(CharSequence toInsert) {
 		int insertPoint = sb.lastIndexOf("</body>");
 		if (-1 == insertPoint) {
 			insertPoint = sb.lastIndexOf("</BODY>");
@@ -299,7 +300,7 @@ public class TextDocument {
 	/**
 	 * @param toInsert
 	 */
-	public void insertAtStartOfBody(String toInsert) {
+	public void insertAtStartOfBody(CharSequence toInsert) {
 		int insertPoint = TagMagix.getEndOfFirstTag(sb,"body");
 		if (-1 == insertPoint) {
 			insertPoint = 0;

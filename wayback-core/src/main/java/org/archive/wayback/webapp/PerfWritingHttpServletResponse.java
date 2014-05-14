@@ -84,6 +84,9 @@ public class PerfWritingHttpServletResponse extends HttpServletResponseWrapper {
 		return super.getWriter();
 	}
 
+	/**
+	 * @deprecated 1.8.1, no replacement. this method has no effect.
+	 */
 	public void enablePerfCookie() {
 		this.perfCookie  = true;
     }

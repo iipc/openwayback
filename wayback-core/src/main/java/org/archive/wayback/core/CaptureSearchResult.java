@@ -29,8 +29,8 @@ import org.archive.wayback.util.url.UrlOperations;
  *
  * @author brad
  */
-public class CaptureSearchResult extends SearchResult {
-
+public class CaptureSearchResult extends SearchResult implements Capture {
+	
 	protected long cachedOffset = -1;
 	protected long cachedCompressedLength = -1;
 	protected long cachedDate = -1;
@@ -187,12 +187,10 @@ public class CaptureSearchResult extends SearchResult {
 		super(autocreateMap);
 	}
 
-	/**
-	 * @return the original URL which resulted in the capture. If it is not
-	 *         available, the urlKey and original Host will be used to
-	 *         reconstruct something possibly closer to the original URL than
-	 *         the urlKey
+	/* (non-Javadoc)
+	 * @see org.archive.wayback.core.Capture#getOriginalUrl()
 	 */
+	@Override
 	public String getOriginalUrl() {
 		String url = get(CAPTURE_ORIGINAL_URL);
 		if (url == null) {
@@ -252,6 +250,10 @@ public class CaptureSearchResult extends SearchResult {
 		setCaptureTimestamp(dateToTS(date));
 	}
 
+	/* (non-Javadoc)
+	 * @see org.archive.wayback.core.Capture#getCaptureTimestamp()
+	 */
+	@Override
 	public String getCaptureTimestamp() {
 		return get(CAPTURE_CAPTURE_TIMESTAMP);
 	}

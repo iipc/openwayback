@@ -260,4 +260,33 @@ public abstract class TextReplayRenderer implements ReplayRenderer {
 			ContextResultURIConverterFactory pageConverterFactory) {
 		this.pageConverterFactory = pageConverterFactory;
 	}
+
+	/**
+	 * return text to insert.
+	 * <p>{@code jspInserts} are executed in sequence, concatenating
+	 * their output.</p>
+	 * @param page for calling {@code includeJspString} method
+	 * @param httpRequest incoming request
+	 * @param httpResponse outgoing response
+	 * @param wbRequest wayback request info
+	 * @param results captures
+	 * @param result capture being replayed
+	 * @param resource resource being replayed
+	 * @return concatenated output of {@code jspInserts}
+	 *  (empty if no {@code jspInserts} is configured.)
+	 * @throws IOException error from {@link TextDocument#includeJspString}
+	 * @throws ServletException error from {@link TextDocument#includeJspString}
+	 */
+	protected CharSequence buildInsertText(TextDocument page,
+			HttpServletRequest httpRequest, HttpServletResponse httpResponse,
+			WaybackRequest wbRequest, CaptureSearchResults results,
+			CaptureSearchResult result, Resource resource) throws IOException, ServletException {
+		if (jspInserts == null || jspInserts.isEmpty())
+			return "";
+		StringBuilder toInsert = new StringBuilder(300);
+		for (String jspName : jspInserts) {
+			toInsert.append(page.includeJspString(jspName, httpRequest, httpResponse, wbRequest, results, result, resource));
+		}
+		return toInsert;
+	}
 }

@@ -19,41 +19,25 @@
  */
 package org.archive.wayback.core;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-
 /**
- * Output of URL query.
- *
- * @author brad
+ * capture of a URL at certain time.
  */
-public class UrlSearchResults extends SearchResults implements Iterable<UrlSearchResult> {
+public interface Capture {
+
 	/**
-	 * List of UrlSearchResult objects for index records matching a query
+	 * return the URL key of this capture.
+	 * @return URL key
 	 */
-	private ArrayList<UrlSearchResult> results = new ArrayList<UrlSearchResult>();
+	public abstract String getUrlKey();
+	/**
+	 * return the original URL (ordinary, non-SURT form) which resulted in the capture.
+	 * @return the original URL
+	 */
+	public abstract String getOriginalUrl();
+	/**
+	 * return time of capture.
+	 * @return String in "{@code YYYYmmddHHMMSS}" format.
+	 */
+	public abstract String getCaptureTimestamp();
 
-	public void addSearchResult(UrlSearchResult result) {
-		addSearchResult(result, true);
-	}
-
-	public void addSearchResult(UrlSearchResult result, boolean append) {
-		if (append) {
-			results.add(result);
-		} else {
-			results.add(0, result);
-		}
-	}
-
-	public boolean isEmpty() {
-		return results.isEmpty();
-	}
-
-	public Iterator<UrlSearchResult> iterator() {
-		return results.iterator();
-	}
-
-	public int size() {
-		return results.size();
-	}
 }

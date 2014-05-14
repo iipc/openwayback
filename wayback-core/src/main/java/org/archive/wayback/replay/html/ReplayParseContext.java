@@ -19,6 +19,7 @@
  */
 package org.archive.wayback.replay.html;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URL;
 import java.util.HashMap;
@@ -30,6 +31,19 @@ import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.replay.JSPExecutor;
 import org.archive.wayback.util.htmllex.ParseContext;
 
+/**
+ * {@code ReplayParseContext} holds context information shared among
+ * replay rewriter components.
+ * <p>2014-05-02 small behavior/interface changes:
+ * <ul>
+ * <li>{@link #setJspExec(JSPExecutor)} no longer copies {@code CaptureSearchResult}
+ * object from its {@code UIResults} object to {@code result} member. Use new constructor
+ * taking {@code CaptureSearchResult} object (recommended), or use
+ * {@link #setCaptureSearchResult(CaptureSearchResult)} method.</li>
+ * <li>
+ * </ul>
+ * TODO: consider replacing {@code CaptureSearchResult} reference with {@code Capture}.
+ */
 public class ReplayParseContext extends ParseContext {
 	private static final String MAILTO_PREFIX = "mailto:";
 	public static final String JAVASCRIPT_PREFIX = "javascript:";
@@ -47,6 +61,33 @@ public class ReplayParseContext extends ParseContext {
 	private CaptureSearchResult result;
 	private boolean rewriteHttpsOnly;
 
+	/**
+	 * Constructs {@code ReplayParseContext} for rewriting a resource
+	 * represented by {@code result}.
+	 * <p>Initializes {@code baseUrl} and {@code datespec} from {@code result}'s
+	 * {@code originalUrl} and {@code captureTimestamp}, respectively.</p>
+	 * @param uriConverterFactory
+	 * @param result
+	 * @throws IOException
+	 */
+	public ReplayParseContext(ContextResultURIConverterFactory uriConverterFactory,
+			CaptureSearchResult result) throws IOException {
+		this.uriConverterFactory = uriConverterFactory;
+		this.result = result;
+		super.setBaseUrl(new URL(result.getOriginalUrl()));
+		this.datespec = result.getCaptureTimestamp();
+
+		this.converters = new HashMap<String, ResultURIConverter>();
+	}
+
+	/**
+	 * constructor. {@code CaptureSearchResult} needs to be set via
+	 * {@link #setCaptureSearchResult}.
+	 * @param uriConverterFactory
+	 * @param baseUrl
+	 * @param datespec
+	 * @deprecated 2014-05-02 use {@link #ReplayParseContext(ContextResultURIConverterFactory, CaptureSearchResult)}
+	 */
 	public ReplayParseContext(ContextResultURIConverterFactory uriConverterFactory,
 			URL baseUrl, String datespec) {
 
@@ -90,9 +131,19 @@ public class ReplayParseContext extends ParseContext {
 		return converters;
 	}
 	
-	public CaptureSearchResult getCaptureSearchResult()
-	{
+	/**
+	 * return {@code CaptureSearchResult} being rendered.
+	 * <p>intended for selecting site-specific rewrite rules.</p>
+	 * <p>TODO: what's really needed is its {@code urlKey}. add
+	 * a method for it for better encapsulation.</p>
+	 * @return {@code CaptureSearchResult} in replay mode,
+	 *   or {@code null} otherwise.
+	 */
+	public CaptureSearchResult getCaptureSearchResult() {
 		return result;
+	}
+	public void setCaptureSearchResult(CaptureSearchResult result) {
+		this.result = result;
 	}
 
 	/**
@@ -104,12 +155,7 @@ public class ReplayParseContext extends ParseContext {
 	public void addConverter(String flag, ResultURIConverter converter) {
 		converters.put(flag, converter);
 	}
-	
 
-	// TODO: inline - used only in one place, no readability benefit.
-	private ResultURIConverter makeConverter(String flags) {
-		return uriConverterFactory.getContextConverter(flags);
-	}
 	/**
 	 * returns {@link ResultURIConverter} for resource context <code>flags</code>.
 	 * @param flags resource context indicator such as "{@code cs_}", "{@code im_}".
@@ -121,7 +167,7 @@ public class ReplayParseContext extends ParseContext {
 		// but it's a API-breaking change as converters is exposed through getter.
 		ResultURIConverter converter = converters.get(flags);
 		if(converter == null) {
-			converter = makeConverter(flags);
+			converter = uriConverterFactory.getContextConverter(flags);
 			converters.put(flags,converter);
 		}
 		return converter;
@@ -205,9 +251,11 @@ public class ReplayParseContext extends ParseContext {
 	 */
 	public void setJspExec(JSPExecutor jspExec) {
 		this.jspExec = jspExec;
-		if (jspExec != null && jspExec.getUiResults() != null) {
-			result = jspExec.getUiResults().getResult();
-		}
+		// TODO: remove this obscure code and let Renderer set result
+		// explicitly.
+//		if (jspExec != null && jspExec.getUiResults() != null) {
+//			result = jspExec.getUiResults().getResult();
+//		}
 	}
 
 	/**

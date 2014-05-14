@@ -40,7 +40,7 @@ import java.util.List;
  *
  * @param <T> Generic type which this partition holds.
  */
-public class Partition<T> {
+public class Partition<T> implements Iterable<T> {
 
 	private Date start = null;
 	private Date end = null;

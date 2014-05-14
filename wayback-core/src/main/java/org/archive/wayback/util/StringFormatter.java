@@ -22,7 +22,6 @@ package org.archive.wayback.util;
 import java.text.DateFormat;
 import java.text.Format;
 import java.text.MessageFormat;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -46,9 +45,9 @@ import org.apache.commons.lang.StringEscapeUtils;
 public class StringFormatter {
 	private final static TimeZone TZ_UTC = TimeZone.getTimeZone("UTC");
 	
-	ResourceBundle bundle = null;
-	Locale locale = null;
-	Map<String,MessageFormat> formats = null;
+	final ResourceBundle bundle;
+	final Locale locale;
+	final Map<String,MessageFormat> formats;
 	/**
 	 * Construct a StringFormatter...
 	 * @param bundle ResourceBundle to lookup patterns for MessageFormat 
@@ -56,7 +55,7 @@ public class StringFormatter {
 	 * @param locale to use, where applicable with MessageFormat objects
 	 */
 	public StringFormatter(ResourceBundle bundle) {
-		this(null,Locale.getDefault());
+		this(null, Locale.getDefault());
 	}
 	/**
 	 * Construct a StringFormatter...
@@ -67,25 +66,32 @@ public class StringFormatter {
 	public StringFormatter(ResourceBundle bundle, Locale locale) {
 		this.bundle = bundle;
 		this.locale = locale;
-		formats = new HashMap<String,MessageFormat>();
+		this.formats = new HashMap<String, MessageFormat>();
 	}
-	
+	/**
+	 * return {@code ResourceBundle} set to this object.
+	 * (for migration to JSTL.)
+	 * @return {@code ResourceBundle}
+	 */
+	public ResourceBundle getResourceBundle() {
+		return bundle;
+	}
+
 	public MessageFormat getFormat(String pattern) {
 		MessageFormat format = formats.get(pattern);
-		if(format == null) {
+		if (format == null) {
 			format = new MessageFormat(pattern,locale);
 			// lets try to make sure any internal DateFormats use UTC:
 			Format[] subFormats = format.getFormats();
-			if(subFormats != null) {
-				for(Format subFormat : subFormats) {
-					if(subFormat instanceof DateFormat) {
-						DateFormat subDateFormat = (DateFormat) subFormat;
+			if (subFormats != null) {
+				for (Format subFormat : subFormats) {
+					if (subFormat instanceof DateFormat) {
+						DateFormat subDateFormat = (DateFormat)subFormat;
 						subDateFormat.setTimeZone(TZ_UTC);
 					}
 				}
 			}
-
-			formats.put(pattern,format);
+			formats.put(pattern, format);
 		}
 		return format;
 	}
@@ -98,7 +104,7 @@ public class StringFormatter {
 	 * something goes wrong...
 	 */
 	public String getLocalized(String key) {
-		if(bundle != null) {
+		if (bundle != null) {
 			try {
 				return bundle.getString(key);
 	//			String localized = bundle.getString(key);
@@ -201,7 +207,8 @@ public class StringFormatter {
 	}
 
 	/**
-	 * handy shortcut to the apache StringEscapeUtils
+	 * handy shortcut to the Apache StringEscapeUtils.
+	 * <p>Intended for JSP use. Otherwise use {@link StringEscapeUtils#escapeHtml(String)} instead.</p>
 	 * @param raw string to be escaped
 	 * @return the string escaped so it's safe for insertion in HTML
 	 */
@@ -209,7 +216,8 @@ public class StringFormatter {
 		return StringEscapeUtils.escapeHtml(raw);
 	}
 	/**
-	 * handy shortcut to the apache StringEscapeUtils
+	 * handy shortcut to the Apache StringEscapeUtils.
+	 * <p>Intended for JSP use. Otherwise use {@link StringEscapeUtils#escapeJavaScript(String)} instead.</p>
 	 * @param raw string to be escaped
 	 * @return the string escaped so it's safe for insertion in Javascript
 	 */
@@ -229,13 +237,13 @@ public class StringFormatter {
 	public static String join(String delim, String...stuff) {
 		int max = stuff.length - 1;
 		int len = delim.length() * max;
-		for(String s : stuff) {
+		for (String s : stuff) {
 			len += s.length();
 		}
 		StringBuilder sb = new StringBuilder(len);
-		for(int i = 0; i < stuff.length; i++) {
+		for (int i = 0; i < stuff.length; i++) {
 			sb.append(stuff[i]);
-			if(i < max) {
+			if (i < max) {
 				sb.append(delim);
 			}
 		}

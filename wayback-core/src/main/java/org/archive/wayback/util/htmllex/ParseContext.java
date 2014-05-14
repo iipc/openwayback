@@ -26,7 +26,6 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import org.apache.commons.httpclient.URIException;
-import org.apache.commons.lang.StringEscapeUtils;
 import org.archive.url.UsableURI;
 import org.archive.url.UsableURIFactory;
 import org.archive.wayback.core.CaptureSearchResult;

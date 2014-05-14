@@ -20,8 +20,6 @@
 package org.archive.wayback.archivalurl;
 
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -124,19 +122,7 @@ public class ArchivalUrlJSReplayRenderer extends TextReplayRenderer {
 		page.sb.append(replaced);
 
 		// if any JS-specific jsp inserts are configured, run and insert...
-		List<String> jspInserts = getJspInserts();
-
-		StringBuilder toInsert = new StringBuilder(300);
-
-		if (jspInserts != null) {
-			Iterator<String> itr = jspInserts.iterator();
-			while (itr.hasNext()) {
-				toInsert.append(page.includeJspString(itr.next(), httpRequest,
-						httpResponse, wbRequest, results, result, resource));
-			}
-		}
-
-		page.insertAtStartOfDocument(toInsert.toString());
-
+		page.insertAtStartOfDocument(buildInsertText(page, httpRequest,
+				httpResponse, wbRequest, results, result, resource));
 	}
 }
