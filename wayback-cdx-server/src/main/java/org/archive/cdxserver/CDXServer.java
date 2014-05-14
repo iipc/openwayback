@@ -42,7 +42,7 @@ import org.archive.util.iterator.CloseableIterator;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 public class CDXServer extends BaseCDXServer {
-
+	
 	protected ZipNumCluster zipnumSource;
 	protected CDXInputSource cdxSource;
 	
@@ -50,7 +50,7 @@ public class CDXServer extends BaseCDXServer {
 	
 	protected CDXLineFactory cdxLineFactory;
 	//protected FieldSplitFormat defaultCdxFormat;
-	protected FieldSplitFormat publicCdxFields;
+	//protected FieldSplitFormat publicCdxFields;
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
@@ -61,9 +61,9 @@ public class CDXServer extends BaseCDXServer {
 		cdxLineFactory = new StandardCDXLineFactory(cdxFormat);
 		//defaultCdxFormat = cdxLineFactory.getParseFormat();
 		
-		if (authChecker != null && authChecker.getPublicCdxFields() != null) {
-			publicCdxFields = new FieldSplitFormat(authChecker.getPublicCdxFields());
-		}
+		//if (authChecker != null && authChecker.getPublicCdxFields() != null) {
+			//publicCdxFields = new FieldSplitFormat(authChecker.getPublicCdxFields());
+		//}
 		
 		if (defaultParams == null) {
 			defaultParams = new ZipNumParams(maxPageSize, maxPageSize, 0, false);
@@ -74,6 +74,8 @@ public class CDXServer extends BaseCDXServer {
 
 	protected int maxPageSize = 1;
 	protected int queryMaxLimit = Integer.MAX_VALUE;
+	
+	protected String[] noCollapsePrefix = null;
 	
 	protected ZipNumParams defaultParams;
 
@@ -115,6 +117,14 @@ public class CDXServer extends BaseCDXServer {
 
 	public void setQueryMaxLimit(int queryMaxLimit) {
 		this.queryMaxLimit = queryMaxLimit;
+	}
+
+	public String[] getNoCollapsePrefix() {
+		return noCollapsePrefix;
+	}
+
+	public void setNoCollapsePrefix(String[] noCollapsePrefix) {
+		this.noCollapsePrefix = noCollapsePrefix;
 	}
 
 	public CDXInputSource getCdxSource() {
@@ -407,7 +417,7 @@ public class CDXServer extends BaseCDXServer {
 		}
 		
 		if (query.collapseTime > 0) {
-			outputProcessor = new DupeTimestampBestStatusFilter(outputProcessor, query.collapseTime);
+			outputProcessor = new DupeTimestampBestStatusFilter(outputProcessor, query.collapseTime, noCollapsePrefix);
 		}
 		
 		FieldSplitFormat parseFormat = outputProcessor.modifyOutputFormat(cdxLineFactory.getParseFormat());
@@ -432,7 +442,7 @@ public class CDXServer extends BaseCDXServer {
 		FieldSplitFormat outputFields = null;
 		
 		if (!authChecker.isAllCdxFieldAccessAllowed(authToken)) {
-			outputFields = this.publicCdxFields;
+			outputFields = this.authChecker.getPublicCdxFormat();
 		}
 		
 		if (!query.fl.isEmpty()) {

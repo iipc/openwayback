@@ -29,7 +29,7 @@ public class BlockCSSStringTransformer extends BaseCSSStringTransformer implemen
 	    	return css;
 	    }
 		StringBuilder sb = new StringBuilder(css);
-		patternRewrite((ReplayParseContext)context, sb,cssUrlPattern, "cs_");
+		patternRewrite((ReplayParseContext)context, sb,cssUrlPattern, "im_");
 		patternRewrite((ReplayParseContext)context, sb,cssImportNoUrlPattern, 
 				"cs_");
 //		return "__BCSS__" + sb.toString() + "__BCSS__";

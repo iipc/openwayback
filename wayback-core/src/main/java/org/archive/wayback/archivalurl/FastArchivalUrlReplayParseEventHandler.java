@@ -355,6 +355,7 @@ public class FastArchivalUrlReplayParseEventHandler implements
 		transformAttr(context,tagNode,"STYLE", cssInlineTrans);
 		transformAttr(context,tagNode,"onclick", jsBlockTrans);
 		transformAttr(context,tagNode,"onload", jsBlockTrans);
+		transformAttr(context,tagNode,"onchange", jsBlockTrans);
 		
 
 		emit(context,preEmit,tagNode,postEmit);

@@ -12,9 +12,9 @@ String prettyArchiveString = fmt.format(prettyDateFormat,exactDate);
 String prettyRequestString = fmt.format(prettyDateFormat,now);
 %>
 /*
-     FILE ARCHIVED ON <%= prettyArchiveString %> AND RETRIEVED FROM THE
-     INTERNET ARCHIVE ON <%= prettyRequestString %>.
-     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
+     FILE ARCHIVED ON <%= prettyArchiveString %> AND RETRIEVED FROM
+     AN OPENWAYBACK INSTANCE ON <%= prettyRequestString %>.
+     JAVASCRIPT APPENDED BY OPENWAYBACK, COPYRIGHT INTERNET ARCHIVE.
 
      ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
      SECTION 108(a)(3)).

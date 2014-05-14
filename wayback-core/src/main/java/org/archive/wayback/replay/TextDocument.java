@@ -275,6 +275,13 @@ public class TextDocument {
 	/**
 	 * @param toInsert
 	 */	
+	public void insertAtEndOfDocument( String toInsert ) {
+		sb.append( "\n" + toInsert );
+	}
+
+	/**
+	 * @param toInsert
+	 */	
 	public void insertAtStartOfHead(String toInsert) {
 		int insertPoint = TagMagix.getEndOfFirstTag(sb,"head");
 		if (-1 == insertPoint) {
@@ -322,6 +329,10 @@ public class TextDocument {
 			WaybackRequest wbRequest, CaptureSearchResults results, 
 			CaptureSearchResult result, Resource resource) 
 	throws ServletException, IOException {
+		
+		if (wbRequest.isAjaxRequest()) {
+			return "";
+		}
 		
 		UIResults uiResults = new UIResults(wbRequest,uriConverter,results,
 				result,resource);

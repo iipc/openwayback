@@ -2,7 +2,7 @@
 <project name="Wayback">
   <bannerLeft>
     <name>OpenWayback</name>
-    <src>images/ia_logo.gif</src>
+    <src>images/iipc_logo.png</src>
     <href>http://iipc.github.io/openwayback/</href>
   </bannerLeft>
   <bannerRight>
@@ -24,7 +24,7 @@
       <item name="Requirements" href="requirements.html"/>
       <item name="Downloads" href="downloads.html"/>
       <item name="Administrator Manual" href="administrator_manual.html"/>
-      <item name="URL Prefixes and AccessPoint names" href="access_point_naming.html"/>
+      <item name="Access Point Path Configuration" href="access_point_naming.html"/>
       <item name="Hadoop CDX Generation" href="hadoop.html"/>
       <item name="Release Notes" href="release_notes.html"/>
       <item name="FAQ" href="/faq.html"/>

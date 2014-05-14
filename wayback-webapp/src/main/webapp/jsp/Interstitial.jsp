@@ -44,7 +44,7 @@ if(toUrl == null) {
         <div id="positionHome">
             <section>
             <div id="logoHome">
-                <a href="/index.jsp"><h1><span>Internet Archive's Wayback Machine</span></h1></a>
+                <a href="/index.jsp"><h1><span>OpenWayback</span></h1></a>
             </div>
             </section>
             <section>
@@ -55,7 +55,7 @@ if(toUrl == null) {
 	}
 	window.setTimeout("go()",<%= secs * 1000 %>);
 	</script>
-	    <h2 class="blue">Welcome to Wayback.</h2>
+	    <h2 class="blue">Welcome to OpenWayback.</h2>
 		<p class="code">Loading...</p>
 		<%
 		if(safeReplayUrl != null && prettyReplayDate != null) {

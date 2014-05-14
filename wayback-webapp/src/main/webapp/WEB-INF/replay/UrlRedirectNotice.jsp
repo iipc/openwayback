@@ -58,7 +58,7 @@ int secs = 5;
         <div id="positionHome">
             <section>
             <div id="logoHome">
-                <a href="/index.jsp"><h1><span>Internet Archive's Wayback Machine</span></h1></a>
+                <a href="/index.jsp"><h1><span>OpenWayback</span></h1></a>
             </div>
             </section>
             <section>

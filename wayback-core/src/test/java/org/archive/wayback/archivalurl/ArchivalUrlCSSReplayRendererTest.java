@@ -7,6 +7,7 @@ import java.io.IOException;
 
 import javax.servlet.http.HttpServletResponse;
 
+import junit.framework.Assert;
 import junit.framework.TestCase;
 
 import org.archive.io.warc.TestWARCReader;
@@ -135,7 +136,7 @@ public class ArchivalUrlCSSReplayRendererTest extends TestCase {
                 "  background: transparent url(/web/20100101123456/http://www.example.com/bg.gif);\n" +
                 "}\n";
         String out = servletOutput.getString();
-        assertEquals("servlet output", expected, out);        
+        Assert.assertTrue( out.startsWith( expected ) );
     }
     
     // TODO: more tests
