@@ -42,22 +42,21 @@ public abstract class AbstractRequestHandler implements RequestHandler {
 	private int internalPort = 0;
 
 	public void setBeanName(final String beanName) {
-		this.beanName = beanName; 
+		this.beanName = beanName;
 	}
+
 	public String getBeanName() {
 		return beanName;
 	}
-	
-	public int getInternalPort()
-	{
+
+	public int getInternalPort() {
 		return internalPort;
 	}
-	
-	public void setInternalPort(int internalPort)
-	{
+
+	public void setInternalPort(int internalPort) {
 		this.internalPort = internalPort;
 	}
-	
+
 	public String getAccessPointPath() {
 		return accessPointPath;
 	}
@@ -69,6 +68,7 @@ public abstract class AbstractRequestHandler implements RequestHandler {
 	public void setServletContext(ServletContext servletContext) {
 		this.servletContext = servletContext;
 	}
+
 	public ServletContext getServletContext() {
 		return servletContext;
 	}
@@ -124,17 +124,16 @@ public abstract class AbstractRequestHandler implements RequestHandler {
 	 * @throws BadQueryException if there is nothing mapped to field, or if the
 	 * Array mapped to field is empty
 	 */
-	public static String getRequiredMapParam(Map<String,String[]> queryMap,
-			String field)
-	throws BadQueryException {
+	public static String getRequiredMapParam(Map<String, String[]> queryMap,
+			String field) throws BadQueryException {
 		// TODO: Throw something different, org.archive.wayback.util should have
 		// no references outside of org.archive.wayback.util 
-		String value = getMapParam(queryMap,field);
-		if(value == null) {
+		String value = getMapParam(queryMap, field);
+		if (value == null) {
 			throw new BadQueryException("missing field " + field);
 		}
-		if(value.length() == 0) {
-			throw new BadQueryException("empty field " + field);			
+		if (value.length() == 0) {
+			throw new BadQueryException("empty field " + field);
 		}
 		return value;
 	}
@@ -148,7 +147,7 @@ public abstract class AbstractRequestHandler implements RequestHandler {
 	 */
 	public static String getMapParamOrEmpty(Map<String,String[]> map, 
 			String param) {
-		String val = getMapParam(map,param);
+		String val = getMapParam(map, param);
 		return (val == null) ? "" : val;
 	}
 }
