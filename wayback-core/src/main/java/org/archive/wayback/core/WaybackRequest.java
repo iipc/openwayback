@@ -928,6 +928,18 @@ public class WaybackRequest {
 		return getBoolean(REQUEST_AJAX_REQUEST);
 	}
 	
+	/**
+	 * checks if Memento response is enabled in the {@link AccessPoint}
+	 * for this request.
+	 * <p>Better than accessing {@link AccessPoint#isEnableMemento()} through
+	 * {@link #getAccessPoint()}.</p>
+	 * @return {@code true} if enabled.
+	 * @see AccessPoint#isEnableMemento()
+	 */
+	public boolean isMementoEnabled() {
+		return accessPoint != null && accessPoint.isEnableMemento();
+	}
+
 	public void setMementoTimemapFormat(String format) {
 		put(REQUEST_MEMENTO_TIMEMAP, format);
 	}
@@ -1062,7 +1074,7 @@ public class WaybackRequest {
 			this.setAjaxRequest(true);
 		}
 		
-		if (accessPoint != null && accessPoint.isEnableMemento()) {		
+		if (isMementoEnabled()) {
 			// Check for Memento Accept-Datetime
 			String acceptDateTime = httpRequest.getHeader(MementoUtils.ACCEPT_DATETIME);
 			if (acceptDateTime != null) {
