@@ -21,14 +21,24 @@
 package org.archive.wayback.archivalurl;
 
 import org.archive.wayback.ResultURIConverter;
+import org.archive.wayback.accesspoint.CompositeAccessPoint;
 import org.archive.wayback.replay.html.ContextResultURIConverterFactory;
 
+/**
+ * The {@link ArchivalUrlResultURIConverterFactory} creates new
+ * {@link ArchivalUrlResultURIConverter}.
+ * <p>
+ * {@link #getContextConverter(String)} method expects {@code replayURIPrefix} as argument,
+ * which is set to {@code ArchivalUrlResultURIConverter} returned. This class is used as a
+ * bootstrapping factory for {@link CompositeAccessPoint}.
+ * </p>
+ */
 public class ArchivalUrlResultURIConverterFactory implements
 		ContextResultURIConverterFactory {
 
-	public ResultURIConverter getContextConverter(String flags) {
+	public ResultURIConverter getContextConverter(String replayURIPrefix) {
 		ArchivalUrlResultURIConverter converter = new ArchivalUrlResultURIConverter();
-		converter.setReplayURIPrefix(flags);
+		converter.setReplayURIPrefix(replayURIPrefix);
 		return converter;
 	}
 	

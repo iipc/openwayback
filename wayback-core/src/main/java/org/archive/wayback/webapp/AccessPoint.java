@@ -1564,6 +1564,8 @@ implements ShutdownListener {
 	}
 
 	/**
+	 * <p>Refactoring: remove this method. let {@link #getUriConverter()} create
+	 * ResultURIConverter with factory (like AccessPointAdapter does).</p>
 	 * @param uriConverter the ResultURIConverter to use with this AccessPoint
 	 * to construct Replay URLs
 	 */
