@@ -40,23 +40,13 @@
     <!-- JWAT Dependencies -->
     <dependency>
       <groupId>org.jwat</groupId>
-      <artifactId>jwat-common</artifactId>
-      <version>1.0.1-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>org.jwat</groupId>
-      <artifactId>jwat-gzip</artifactId>
-      <version>1.0.1-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>org.jwat</groupId>
       <artifactId>jwat-arc</artifactId>
-      <version>1.0.1-SNAPSHOT</version>
+      <version>1.0.1</version>
     </dependency>
     <dependency>
       <groupId>org.jwat</groupId>
       <artifactId>jwat-warc</artifactId>
-      <version>1.0.1-SNAPSHOT</version>
+      <version>1.0.1</version>
     </dependency>
     <!-- End JWAT Dependencies -->
     <dependency>
