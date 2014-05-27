@@ -58,7 +58,7 @@
 
 	<mailingLists>
 		<mailingList>
-			<name>Archive Access ARC Tools Discussion List</name>
+			<name>Archive Access Tools Discussion List</name>
 			<subscribe>
         http://lists.sourceforge.net/lists/listinfo/archive-access-discuss
       </subscribe>
@@ -71,16 +71,16 @@
       </archive>
 		</mailingList>
 		<mailingList>
-			<name>Archive Access ARC Tools Commits</name>
+			<name>OpenWayback Developers Mailing List</name>
 			<subscribe>
-        https://lists.sourceforge.net/lists/listinfo/archive-access-cvs
+        https://groups.google.com/forum/#!forum/openwayback-dev
       </subscribe>
 			<unsubscribe>
-        https://lists.sourceforge.net/lists/listinfo/archive-access-cvs
+        https://groups.google.com/forum/#!forum/openwayback-dev
       </unsubscribe>
-			<post>archive-access-cvs</post>
+			<post>https://groups.google.com/forum/#!forum/openwayback-dev</post>
 			<archive>
-        http://sourceforge.net/mailarchive/forum.php?forum=archive-access-cvs
+        https://groups.google.com/forum/#!forum/openwayback-dev
       </archive>
 		</mailingList>
 	</mailingLists>
