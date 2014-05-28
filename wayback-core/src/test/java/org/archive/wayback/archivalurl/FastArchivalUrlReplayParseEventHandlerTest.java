@@ -3,10 +3,12 @@ package org.archive.wayback.archivalurl;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.net.URL;
+import java.util.Properties;
 
 import junit.framework.TestCase;
 
 import org.archive.wayback.replay.html.ReplayParseContext;
+import org.archive.wayback.replay.html.StringTransformer;
 import org.archive.wayback.util.htmllex.ContextAwareLexer;
 import org.htmlparser.Node;
 import org.htmlparser.Tag;
@@ -15,6 +17,7 @@ import org.htmlparser.lexer.Page;
 
 /**
  * test {@link FastArchivalUrlReplayParseEventHandler}.
+ * also covers {@link StandardAttributeRewriter}.
  *
  */
 public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
@@ -26,6 +29,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 		delegator = new FastArchivalUrlReplayParseEventHandler();
 		delegator.setEndJsp(null);
 		delegator.setJspInsertPath(null);
+		delegator.init();
 	}
 
 	public void testAnchorHrefAbsolute() throws Exception {
@@ -194,7 +198,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 	 */
 	public void testUnescapeAttributeValuesFalse() throws Exception {
 		// disable unescaping HTML entities in attribute value.
-		delegator.setUnescapeAttributeValues(false);
+		((StandardAttributeRewriter)delegator.getAttributeRewriter()).setUnescapeAttributeValues(false);
 
 		// note "&amp;amp" - it should appear in translated URL as it does in the original.
 		final String input = "<html>"
@@ -245,6 +249,128 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 				"</div>" +
 				"</body>" +
 				"</html>";
+		assertEquals(expected, doEndToEnd(input));
+	}
+
+	/**
+	 * test of rewriting SCRIPT tag.
+	 * Also covered is a feature for disabling script by returning {@code null} from
+	 * {@code jsBlockTrans} (This feature may be removed/redesigned at any time).
+	 * @throws Exception
+	 */
+	public void testDisableScriptElement() throws Exception {
+		delegator.setJsBlockTrans(new StringTransformer() {
+			@Override
+			public String transform(ReplayParseContext context, String input) {
+				if (input.equals("dropthis.js"))
+					return null;
+				else
+					return input;
+			}
+		});
+		final String input = "<html>" +
+				"<head>" +
+				"<script src=\"rewrite.js\"></script>" +
+				"<script src=\"dropthis.js\"></script>" +
+				"</head>" +
+				"<body>" +
+				"</body>" +
+				"</html>";
+		final String expected = "<html>" +
+				"<head>" +
+				"<script src=\"http://replay.archive.org/2001js_/http://www.example.com/rewrite.js\"></script>" +
+				"<script src=\"\"></script>" +
+				"</head>" +
+				"<body>" +
+				"</body>" +
+				"</html>";
+		assertEquals(expected, doEndToEnd(input));
+	}
+
+	/**
+	 * URL rewrite takes {@code BASE} element into account.
+	 * @throws Exception
+	 */
+	public void testBase() throws Exception {
+		final String input = "<html>" +
+				"<base href='http://othersite.com/'>" +
+				"<body>" +
+				"<a href='nextpage.html'>next page</a>" +
+				"<base href='http://anothersite.com/'>" +
+				"</body>" +
+				"</html>";
+		final String expected = "<html>" +
+				"<base href='http://replay.archive.org/2001/http://othersite.com/'>" +
+				"<body>" +
+				"<a href='http://replay.archive.org/2001/http://othersite.com/nextpage.html'>next page</a>" +
+				"<base href='http://replay.archive.org/2001/http://anothersite.com/'>" +
+				"</body>" +
+				"</html>";
+		assertEquals(expected, doEndToEnd(input));
+	}
+
+	/**
+	 * test of additional attribute rewrite rules for {@link StandardAttributeRewriter}.
+	 * additional rules takes precedence over default one, if they are of the same specificity.
+	 * @throws Exception
+	 */
+	public void testAdditionalAttributeRewriteRules() throws Exception {
+		// adding custom rewrite rules through backdoor...
+		Properties rules = new Properties();
+		rules.setProperty("SPAN.DATA-URI.type", "an");
+		rules.setProperty("A[ROLE=logo.download].HREF.type", "im");
+		rules.setProperty("LINK[TYPE=text/javascript].HREF.type", "js");
+		((StandardAttributeRewriter)delegator.getAttributeRewriter()).loadRulesFromProperties(rules);
+
+		final String input = "<html>" +
+				"<head>" +
+				"<link rel='stylesheet' type='text/javascript' href='styles.js'>" +
+				"</head>" +
+				"<body>" +
+				"<span data-uri='http://datasource.example.com/data1'></span>" +
+				"<a href='logo.png' role='logo.download'>download logo</a>" +
+				"</body>" +
+				"</html>";
+		final String expected = "<html>" +
+				"<head>" +
+				"<link rel='stylesheet' type='text/javascript' href='http://replay.archive.org/2001js_/http://www.example.com/styles.js'>" +
+				"</head>" +
+				"<body>" +
+				"<span data-uri='http://replay.archive.org/2001/http://datasource.example.com/data1'></span>" +
+				"<a href='http://replay.archive.org/2001im_/http://www.example.com/logo.png' role='logo.download'>download logo</a>" +
+				"</body>" +
+				"</html>";
+
+		assertEquals(expected, doEndToEnd(input));
+	}
+
+	/**
+	 * test of {@link StandardAttributeRewriter#setDefaultRulesDisabled(boolean)}
+	 * @throws Exception
+	 */
+	public void testDisableDefaultRules() throws Exception {
+		// use local instance for modifying defaultRulesDisabled property.
+		StandardAttributeRewriter rewriter = new StandardAttributeRewriter();
+		rewriter.setDefaultRulesDisabled(true);
+		Properties rules = new Properties();
+		rules.setProperty("A[REWRITE=TRUE].HREF.type", "an");
+		rewriter.setConfigProperties(rules);
+		rewriter.init();
+		delegator.setAttributeRewriter(rewriter);
+
+		final String input ="<html>" +
+				"<body>" +
+				"<a href=\"ignore.html\">ignore this</a>" +
+				"<a href=\"rewrite.html\" rewrite=\"true\">rewrite this</a>" +
+				"</body>" +
+				"</html>";
+		final String expected ="<html>" +
+				"<body>" +
+				"<a href=\"ignore.html\">ignore this</a>" +
+				"<a href=\"http://replay.archive.org/2001/http://www.example.com/rewrite.html\" rewrite=\"true\">rewrite this</a>" +
+				"</body>" +
+				"</html>";
+
 		assertEquals(expected, doEndToEnd(input));
 	}
 

@@ -24,16 +24,14 @@ import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
 
-import org.apache.commons.lang.StringEscapeUtils;
 import org.archive.wayback.replay.html.ReplayParseContext;
 import org.archive.wayback.replay.html.StringTransformer;
 import org.archive.wayback.replay.html.transformer.BlockCSSStringTransformer;
-import org.archive.wayback.replay.html.transformer.InlineCSSStringTransformer;
 import org.archive.wayback.replay.html.transformer.JSStringTransformer;
-import org.archive.wayback.replay.html.transformer.MetaRefreshUrlStringTransformer;
 import org.archive.wayback.replay.html.transformer.URLStringTransformer;
 import org.archive.wayback.util.htmllex.NodeUtils;
 import org.archive.wayback.util.htmllex.ParseContext;
@@ -67,6 +65,9 @@ import org.htmlparser.nodes.TextNode;
 public class FastArchivalUrlReplayParseEventHandler implements
 		ParseEventHandler {
 
+	private static final Logger LOGGER = Logger
+			.getLogger(FastArchivalUrlReplayParseEventHandler.class.getName());
+
 	public final static String FERRET_DONE_KEY = 
 		FastArchivalUrlReplayParseEventHandler.class.toString();
 	
@@ -87,12 +88,8 @@ public class FastArchivalUrlReplayParseEventHandler implements
 
 	private BlockCSSStringTransformer cssBlockTrans = 
 		new BlockCSSStringTransformer();
-	private InlineCSSStringTransformer cssInlineTrans = 
-		new InlineCSSStringTransformer();
 	private StringTransformer jsBlockTrans =
 		new JSStringTransformer();
-	private MetaRefreshUrlStringTransformer metaRefreshTrans = 
-		new MetaRefreshUrlStringTransformer();
 	private URLStringTransformer anchorUrlTrans = new URLStringTransformer();
 
 	protected String headInsertJsp = null;
@@ -100,22 +97,21 @@ public class FastArchivalUrlReplayParseEventHandler implements
 	// @see #transformAttrWhere
 	private boolean unescapeAttributeValues = true;
 
-//	static {
-//		anchorUrlTrans = new URLStringTransformer();
-//		anchorUrlTrans.setJsTransformer(jsBlockTrans);
-//	}
-	private static URLStringTransformer framesetUrlTrans =
-		new URLStringTransformer("fw_");
-	private static URLStringTransformer iframeUrlTrans =
-		new URLStringTransformer("if_");	
-	private static URLStringTransformer cssUrlTrans =
-		new URLStringTransformer("cs_");
+	private AttributeRewriter attributeRewriter;
+
+	public void init() throws IOException {
+		if (attributeRewriter == null) {
+			StandardAttributeRewriter b = new StandardAttributeRewriter();
+			if (jsBlockTrans != null)
+				b.setJsBlockTrans(jsBlockTrans);
+			b.setUnescapeAttributeValues(unescapeAttributeValues);
+			b.init();
+			attributeRewriter = b;
+		}
+	}
+
 	private static URLStringTransformer jsUrlTrans =
 		new URLStringTransformer("js_");
-	private static URLStringTransformer imageUrlTrans =
-		new URLStringTransformer("im_");
-	private static URLStringTransformer objectEmbedUrlTrans =
-		new URLStringTransformer("oe_");
 	
 	/** Constructor... */
 	public FastArchivalUrlReplayParseEventHandler() {
@@ -265,8 +261,9 @@ public class FastArchivalUrlReplayParseEventHandler implements
 		if (!insertedJsp && !context.isInCSS() && !context.isInScriptText()	&& !inHead) {
 			if (!okHeadTagMap.containsKey(tagName)) {
 				if (tagName.equals(FRAMESET_TAG)) {
-					// don't put the insert in framsets:
+					// don't put the insert in FRAMESET
 				} else {
+					// FIXME: bad chain of references
 					if (jspInsertPath != null && !context.getJspExec().getUiResults().getWbRequest().isIFrameWrapperContext()) {
 						String tmp = null; 
 						try {
@@ -290,91 +287,24 @@ public class FastArchivalUrlReplayParseEventHandler implements
 			}
 		}
 		
-		// now do all the usual attribute rewriting:
-		// this could be slightly optimized by moving tags more likely to occur
-		// to the front of the if/else if/else if routing...
-
-		if (tagName.equals("A")) {
-			transformAttr(context, tagNode, "HREF", anchorUrlTrans);
-
-		} else if (tagName.equals("APPLET")) {
-			transformAttr(context, tagNode, "CODEBASE", objectEmbedUrlTrans);
-			transformAttr(context, tagNode, "ARCHIVE", objectEmbedUrlTrans);
-
-		} else if (tagName.equals("AREA")) {
-			transformAttr(context, tagNode, "HREF", anchorUrlTrans);
-
-		} else if (tagName.equals("BASE")) {
-			String orig = tagNode.getAttribute("HREF"); 
-			if(orig != null) {
+		if (tagName.equals("BASE")) {
+			String baseURL = tagNode.getAttribute("HREF");
+			if (baseURL != null) {
 				try {
-					context.setBaseUrl(new URL(orig));
-					transformAttr(context, tagNode, "HREF", anchorUrlTrans);
-					
-				} catch (MalformedURLException e) {
-					e.printStackTrace();
+					context.setBaseUrl(new URL(baseURL));
+				} catch (MalformedURLException ex) {
+					LOGGER.warning("malformed BASE/@HREF \"" + baseURL + "\" ignored (" + ex.getMessage() + ")");
 				}
 			}
-
-		} else if (tagName.equals("EMBED")) {
-			transformAttr(context, tagNode, "SRC", objectEmbedUrlTrans);
-
-		} else if (tagName.equals("IFRAME")) {
-			transformAttr(context, tagNode, "SRC", iframeUrlTrans);
-
-		} else if (tagName.equals("IMG")) {
-			transformAttr(context, tagNode, "SRC", imageUrlTrans);
-
-		} else if (tagName.equals("INPUT")) {
-			transformAttr(context, tagNode, "SRC", imageUrlTrans);
-
-		} else if (tagName.equals("FORM")) {
-			transformAttr(context, tagNode, "ACTION", anchorUrlTrans);
-
-		} else if (tagName.equals("FRAME")) {
-			transformAttr(context, tagNode, "SRC", framesetUrlTrans);
-
-		} else if (tagName.equals("LINK")) {
-			if (transformAttrWhere(context, tagNode, "REL", "STYLESHEET", 
-					"HREF",cssUrlTrans)) {
-				// no-op
-			} else if (transformAttrWhere(context,tagNode,"REL","SHORTCUT ICON",
-					"HREF", imageUrlTrans)) {
-				// no-op
-			} else {
-				transformAttr(context, tagNode, "HREF", anchorUrlTrans);
-			}
-
-		} else if (tagName.equals("META")) {
-			transformAttrWhere(context, tagNode, "HTTP-EQUIV", "REFRESH",
-					"CONTENT", metaRefreshTrans);
-			transformAttr(context, tagNode, "URL", anchorUrlTrans);
-
-		} else if (tagName.equals("OBJECT")) {
-			transformAttr(context, tagNode, "CODEBASE", objectEmbedUrlTrans);
-			transformAttr(context, tagNode, "CDATA", objectEmbedUrlTrans);
-
-		} else if (tagName.equals("SCRIPT")) {
-			transformAttr(context, tagNode, "SRC", jsUrlTrans);
-		} else if (tagName.equals("DIV") || tagName.equals("LI")) {
-			//HTML5 -- can have data-src or data-uri attributes in any tag!
-			//Can really be in any tag but for now using most common use cases
-			//Experimental
-			transformAttr(context, tagNode, "data-src", objectEmbedUrlTrans);
-			transformAttr(context, tagNode, "data-uri", objectEmbedUrlTrans);
-		} else {
-			if (!checkAllowTag(context, tagNode)) {
-				return;
-			}
 		}
-		// now, for *all* tags...
-		transformAttr(context, tagNode, "BACKGROUND", imageUrlTrans);
-		transformAttr(context, tagNode, "STYLE", cssInlineTrans);
-		transformAttr(context, tagNode, "onclick", jsBlockTrans);
-		transformAttr(context, tagNode, "onload", jsBlockTrans);
-		transformAttr(context, tagNode, "onchange", jsBlockTrans);
+		// now do all the usual attribute rewriting
+		attributeRewriter.rewrite(context, tagNode);
+
+		// drop tags named by rewrite policy as such.
+		if (!checkAllowTag(context, tagNode)) return;
 
 		emit(context, preEmit, tagNode, postEmit);
+
 	}
 	
 	protected boolean checkAllowTag(ParseContext context, TagNode tagNode) {
@@ -415,63 +345,6 @@ public class FastArchivalUrlReplayParseEventHandler implements
 		}
 	}
 	
-	/**
-	 * Transform a particular attribute on a TagNode, if that TagNode has a
-	 * previous value for the updated attribute, AND if that TagNode contains
-	 * another named attribute with a specific value.
-	 * 
-	 * @param context the ReplayParseContext
-	 * @param node the TagNode to be updated
-	 * @param attrName update only occurs if the TagNode has an attribute with
-	 * this name.
-	 * @param attrVal update only occurs if the TagNode has an attribute 
-	 * attrName has this value, case insensitive. In fact as an optimization,
-	 * it is ASSUMED that this argument is already UPPER-CASED
-	 * @param modAttr the attribute value to update
-	 * @param transformer the StringTransformer responsible for creating the
-	 * new value based on the old one.
-	 * @return true if the attribute was updated.
-	 */
-	private boolean transformAttrWhere(ReplayParseContext context, TagNode node, 
-			String attrName, String attrVal, String modAttr, 
-			StringTransformer transformer) {
-		String val = node.getAttribute(attrName);
-		if (val != null) {
-			if (val.toUpperCase().equals(attrVal)) {
-				return transformAttr(context, node, modAttr, transformer);
-			}
-		}
-		return false;
-	}
-	/**
-	 * Transform a particular attribute on a TagNode, iff that attribute exists
-	 * 
-	 * @param context The ReplayParseContext being transformed
-	 * @param node the TagNode to update
-	 * @param attr the attribute name to transform
-	 * @param transformer the StringTransformer responsible for creating the
-	 * new value
-	 * @return true if the attribute was found and updated
-	 */
-	private boolean transformAttr(ReplayParseContext context, TagNode node, 
-			String attr, StringTransformer transformer) {
-		String orig = node.getAttribute(attr);
-		if (orig != null) {
-			// htmlparser does neither unescape HTML entities while it parses HTML, nor escape
-			// HTML special chars while writing HTML.  So we take care of it for ourselves.
-			// ParseContext.resolve() used to unescape URL (but did not escape back). It no longer
-			// does in alignment with this change.
-			if (unescapeAttributeValues)
-				orig = StringEscapeUtils.unescapeHtml(orig);
-			String transformed = transformer.transform(context, orig);
-			if (unescapeAttributeValues)
-				transformed = StringEscapeUtils.escapeHtml(transformed);
-			node.setAttribute(attr, transformed);
-			return true;
-		}
-		return false;
-	}
-
 	public void handleParseComplete(ParseContext pContext) throws IOException {
 		if (endJsp != null) {
 			ReplayParseContext context = (ReplayParseContext) pContext;
@@ -514,6 +387,19 @@ public class FastArchivalUrlReplayParseEventHandler implements
 				out.write(tmp.getBytes(charset));
 			}
 		}
+	}
+
+	/**
+	 * set {@link AttributeRewriter} for rewriting attribute values.
+	 * if not set, {@link StandardAttributeRewriter} will be used as default.
+	 * @param attributeRewriter {@link AttributeRewriter} instance.
+	 */
+	public void setAttributeRewriter(AttributeRewriter attributeRewriter) {
+		this.attributeRewriter = attributeRewriter;
+	}
+
+	public AttributeRewriter getAttributeRewriter() {
+		return attributeRewriter;
 	}
 
 	/**
@@ -626,6 +512,12 @@ public class FastArchivalUrlReplayParseEventHandler implements
 		}
 	}
 
+	/**
+	 *
+	 * @return {@code true} if attribute value unescape/re-escape
+	 * is enabled.
+	 * @deprecated 1.8.1/05-23-2014 moved to {@link StandardAttributeRewriter}.
+	 */
 	public boolean isUnescapeAttributeValues() {
 		return unescapeAttributeValues;
 	}
@@ -645,8 +537,13 @@ public class FastArchivalUrlReplayParseEventHandler implements
 	 * corner cases where escaping is crucial.  Don't set this to {@code false}
 	 * unless it's absolutely necessary.</p>
 	 * @param unescapeAttributeValues <code>false</code> to disable unescaping
+	 * @deprecated 1.8.1/05-23-2014 property moved to {@link StandardAttributeRewriter}
+	 *   This property still works, but only with {@code StandardAttributeRewriter}.
 	 */
 	public void setUnescapeAttributeValues(boolean unescapeAttributeValues) {
 		this.unescapeAttributeValues = unescapeAttributeValues;
+		if (attributeRewriter instanceof StandardAttributeRewriter) {
+			((StandardAttributeRewriter)attributeRewriter).setUnescapeAttributeValues(unescapeAttributeValues);
+		}
 	}
 }
