@@ -90,7 +90,6 @@ public class FastArchivalUrlReplayParseEventHandler implements
 		new BlockCSSStringTransformer();
 	private StringTransformer jsBlockTrans =
 		new JSStringTransformer();
-	private URLStringTransformer anchorUrlTrans = new URLStringTransformer();
 
 	protected String headInsertJsp = null;
 	
@@ -110,16 +109,12 @@ public class FastArchivalUrlReplayParseEventHandler implements
 		}
 	}
 
-	private static URLStringTransformer jsUrlTrans =
-		new URLStringTransformer("js_");
-	
 	/** Constructor... */
 	public FastArchivalUrlReplayParseEventHandler() {
 		okHeadTagMap = new HashMap<String, Object>(okHeadTags.length);
 		for (String tag : okHeadTags) {
 			okHeadTagMap.put(tag, null);
 		}
-		anchorUrlTrans.setJsTransformer(jsBlockTrans);
 	}
 	
 	// TODO: This should all be refactored up into an abstract base class with
@@ -147,10 +142,7 @@ public class FastArchivalUrlReplayParseEventHandler implements
 		} else if(NodeUtils.isTagNode(node)) {
 			TagNode tagNode = (TagNode) node;
 			
-			if (NodeUtils.isOpenTagNodeNamed(tagNode, NodeUtils.SCRIPT_TAG_NAME)) {
-				handleJSIncludeNode(context, tagNode);			
-			} else if(tagNode.isEndTag()) {
-				
+			if (tagNode.isEndTag()) {
 				if (tagNode.getTagName().equals("HEAD")) {
 					context.putData(FERRET_IN_HEAD, null);	
 				}
@@ -196,23 +188,31 @@ public class FastArchivalUrlReplayParseEventHandler implements
 		emit(context, null, textNode, null);
 	}
 	
-	private void handleJSIncludeNode(ReplayParseContext context, TagNode tagNode) throws IOException {
+	/**
+	 * kludgy support for selectively disabling JavaScript that messes up
+	 * replay.
+	 * <p>
+	 * If {@code jsBlockTrans.transform} returns {@code null} or empty for
+	 * {@code SCRIPT/@SRC}, {@code SCRIPT} element is disabled by replacing
+	 * {@code SRC} attribute with empty value.
+	 * </p>
+	 * <p>TODO: I believe this feature is no longer used;
+	 * {@link org.archive.wayback.replay.html.rewrite.DisableJSIncludeRewriteRule}
+	 * provides alternative method currently in use.</p>
+	 *
+	 * @param context {@link ReplayParseContext}
+	 * @param tagNode {@code SCRIPT} tag.
+	 */
+	private void handleJSIncludeNode(ReplayParseContext context, TagNode tagNode) {
 		String file = tagNode.getAttribute("SRC");
 		if (file != null) {
-			//TODO: This is hacky.. fix it
-			// This is used to check if the file should be skipped...
-			//from a custom rule..
 			String result = jsBlockTrans.transform(context, file);
-			//The rewriting is done by the js_ rewriter
-			if ((result != null) && !result.isEmpty()) {
-				tagNode.setAttribute("SRC", jsUrlTrans.transform(context, file));				
-			} else {
-				file = "";
-				tagNode.setAttribute("SRC", jsUrlTrans.transform(context, file));
+			// URL rewrite is done by AttributeRewriter, which should ignore
+			// empty value.
+			if (result == null || result.isEmpty()) {
+				tagNode.setAttribute("SRC", "");
 			}
 		}
-		
-		emit(context, null, tagNode, null);
 	}
 
 	private void handleOpenTagNode(ReplayParseContext context, TagNode tagNode) 
@@ -296,7 +296,11 @@ public class FastArchivalUrlReplayParseEventHandler implements
 					LOGGER.warning("malformed BASE/@HREF \"" + baseURL + "\" ignored (" + ex.getMessage() + ")");
 				}
 			}
+		} else if (tagName.equals("SCRIPT")) {
+			// hacky disable-SCRIPT feature.
+			handleJSIncludeNode(context, tagNode);
 		}
+
 		// now do all the usual attribute rewriting
 		attributeRewriter.rewrite(context, tagNode);
 
@@ -478,7 +482,6 @@ public class FastArchivalUrlReplayParseEventHandler implements
 	 */
 	public void setJsBlockTrans(StringTransformer jsBlockTrans) {
 		this.jsBlockTrans = jsBlockTrans;
-        anchorUrlTrans.setJsTransformer(jsBlockTrans);
 	}
 
 	public String getHeadInsertJsp() {

@@ -1,7 +1,6 @@
 package org.archive.wayback.archivalurl;
 
 import org.archive.wayback.replay.html.ReplayParseContext;
-import org.archive.wayback.replay.html.rules.AttributeModifyingRule;
 import org.htmlparser.nodes.TagNode;
 
 /**
