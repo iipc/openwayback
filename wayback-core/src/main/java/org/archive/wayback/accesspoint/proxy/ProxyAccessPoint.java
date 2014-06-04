@@ -190,6 +190,10 @@ public class ProxyAccessPoint extends CompositeAccessPoint {
 						}
 						String timestamp = paths[0];
 						String replayUrl = paths[1];
+						String queryString = request.getQueryString();
+						if (queryString != null) {
+							replayUrl = replayUrl + "?" + queryString;
+						}
 						
 						String redirUrl = null;
 						if (timestamp.contains("*")) {
