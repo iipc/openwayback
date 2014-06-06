@@ -2,11 +2,16 @@ package org.archive.wayback.archivalurl;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.net.URL;
 import java.util.Properties;
 
+import javax.servlet.ServletException;
+
 import junit.framework.TestCase;
 
+import org.archive.wayback.core.WaybackRequest;
+import org.archive.wayback.replay.JSPExecutor;
 import org.archive.wayback.replay.html.ReplayParseContext;
 import org.archive.wayback.replay.html.StringTransformer;
 import org.archive.wayback.util.htmllex.ContextAwareLexer;
@@ -23,6 +28,8 @@ import org.htmlparser.lexer.Page;
 public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 
 	FastArchivalUrlReplayParseEventHandler delegator;
+
+	JSPExecutor jspExec = null;
 
 	@Override
 	protected void setUp() throws Exception {
@@ -374,6 +381,33 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 		assertEquals(expected, doEndToEnd(input));
 	}
 
+	/**
+	 * Servers often return non-HTML resource with {@code Content-Type: text/html}.
+	 * Inserting HTML annotation to non-HTML resource can break its replay.
+	 * Therefore, don't insert {@code EndJsp} if resource does not appear to be
+	 * HTML.
+	 * @throws Exception
+	 */
+	public void testNoEndJspForNonHTML() throws Exception {
+		delegator.setEndJsp("end.jsp");
+		// we cannot pass null WaybackRequest to JSPExecutor constructor, as
+		// it accesses its isAjaxRequest() method. Make sure it's false.
+		WaybackRequest wbRequest = new WaybackRequest();
+		wbRequest.setAjaxRequest(false);
+		jspExec = new JSPExecutor(null, null, null, wbRequest, null, null, null) {
+			@Override
+			public String jspToString(String jspPath) {
+				return "[[[JSP-INSERT:" + jspPath + "]]]";
+			}
+		};
+		final String input = "{\"a\": 1}";
+		final String expected = "{\"a\": 1}";
+
+		String output = doEndToEnd(input);
+		System.out.println(output);
+		assertEquals(expected, output);
+	}
+
 	public String doEndToEnd(String input) throws Exception {
 		final String baseUrl = "http://www.example.com/";
 		final String timestamp = "2001";
@@ -400,7 +434,8 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
                 timestamp);
 		context.setOutputCharset(outputCharset);
 		context.setOutputStream(baos);
-		context.setJspExec(null);
+		// jspExec is null for attribute rewrite tests.
+		context.setJspExec(jspExec);
 		
 		// and finally, parse, using the special lexer that knows how to
 		// handle javascript blocks containing unescaped HTML entities:

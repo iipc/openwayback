@@ -50,6 +50,7 @@ public class ParseContext {
 
 	protected UsableURI baseUrl = null;
 
+	private boolean inHTML = false;
 	private boolean inCSS = false;
 	private boolean inJS = false;
 	private boolean inScriptText = false;
@@ -140,6 +141,20 @@ public class ParseContext {
 			e.printStackTrace();
 			return url;
 		}
+	}
+
+	/**
+	 * set to {@code true} when any HTML open tag
+	 * is found.
+	 * <p>used for checking if the content really
+	 * looks like an HTML document.</p>
+	 * @param inHTML
+	 */
+	public void setInHTML(boolean inHTML) {
+		this.inHTML = inHTML;
+	}
+	public boolean isInHTML() {
+		return inHTML;
 	}
 
 	/**

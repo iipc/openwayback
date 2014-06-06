@@ -153,6 +153,7 @@ public class FastArchivalUrlReplayParseEventHandler implements
 					
 //				handleCloseTagNode(context,tagNode);
 			} else {
+				context.setInHTML(true);
 				// assume start, possibly empty:
 				handleOpenTagNode(context, tagNode);
 			}
@@ -350,7 +351,8 @@ public class FastArchivalUrlReplayParseEventHandler implements
 	}
 	
 	public void handleParseComplete(ParseContext pContext) throws IOException {
-		if (endJsp != null) {
+		// if no HTML element was found (inHTML==false), don't insert EndJsp.
+		if (endJsp != null && pContext.isInHTML()) {
 			ReplayParseContext context = (ReplayParseContext) pContext;
 			OutputStream out = context.getOutputStream();
 			String tmp = null; 
