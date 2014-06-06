@@ -90,8 +90,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 		setBaseStatusRegexp("!(500|502|504)");
 	}
 
-	enum PerfStat
-	{
+	enum PerfStat {
 		IndexLoad;
 	}
 	
@@ -100,6 +99,8 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
             throws ResourceIndexNotAvailableException,
             ResourceNotInArchiveException, BadQueryException,
             AccessControlException {
+		// TODO: AccessPoint.queryIndex has PerfStats code immediately around
+		// a call to this method. Remove this PerfStats thing.
 		try {
 			PerfStats.timeStart(PerfStat.IndexLoad);
 			return doQuery(wbRequest);
@@ -308,6 +309,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 		return query;
 	}
 	
+	// TODO: move this method to its own class for remote CDX server access.
 	protected void remoteCdxServerQuery(String urlkey, CDXQuery query, AuthToken authToken, CDXToSearchResultWriter resultWriter) throws IOException, AccessControlException
 	{
 		HTTPSeekableLineReader reader = null;		
@@ -426,8 +428,9 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 	 * @param isFuzzy {@code true} to enable fuzzy query
 	 * @return CDXCaptureSearchResultWriter
 	 */
-	protected CDXToCaptureSearchResultsWriter getCaptureSearchWriter(WaybackRequest wbRequest, AuthToken waybackAuthToken, boolean isFuzzy)
-	{
+	protected CDXToCaptureSearchResultsWriter getCaptureSearchWriter(
+			WaybackRequest wbRequest, AuthToken waybackAuthToken,
+			boolean isFuzzy) {
 		final CDXQuery query = createQuery(wbRequest, isFuzzy);
 		
 		if (isFuzzy && query == null) {
@@ -450,8 +453,8 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
         return captureWriter;
 	}
 	
-	protected CDXToSearchResultWriter getUrlSearchWriter(WaybackRequest wbRequest)
-	{	
+	protected CDXToSearchResultWriter getUrlSearchWriter(
+			WaybackRequest wbRequest) {
 		final CDXQuery query = new CDXQuery(wbRequest.getRequestUrl());
 		
 		query.setCollapse(new String[]{CDXLine.urlkey});
@@ -465,15 +468,16 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
     }
 
 	@Override
-    public boolean renderMementoTimemap(WaybackRequest wbRequest,
-            HttpServletRequest request, HttpServletResponse response) throws WaybackException, IOException {
-		
+	public boolean renderMementoTimemap(WaybackRequest wbRequest,
+			HttpServletRequest request, HttpServletResponse response)
+			throws WaybackException, IOException {
 		try {
 			PerfStats.timeStart(PerfStat.IndexLoad);
 			
 			String format = wbRequest.getMementoTimemapFormat();
 			
 			if ((format != null) && format.equals(MementoConstants.FORMAT_LINK)) {
+				// TODO: have queryIndex() in this class, or move this method somewhere else.
 				SearchResults cResults = wbRequest.getAccessPoint().queryIndex(wbRequest);
 				MementoUtils.printTimemapResponse((CaptureSearchResults)cResults, wbRequest, response);				
 				return true;
@@ -504,11 +508,11 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 		return true;
     }
 	
+	// TODO: move this method to separate RequestHandler class
 	@Override
     public boolean handleRequest(HttpServletRequest httpRequest,
             HttpServletResponse httpResponse) throws ServletException,
             IOException {
-		
 		CDXQuery query = new CDXQuery(httpRequest);
 		cdxServer.getCdx(httpRequest, httpResponse, query);		
 		return true;
@@ -531,6 +535,29 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 		return timestampDedupLength;
 	}
 
+	/**
+	 * The number of digits of timestamp used for culling (<em>deduplicating</em>)
+	 * captures in CDX query result.
+	 * <p>For example, with this property set to 11, {#query} will
+	 * return at most only one captures within each 10 minutes span.</p>
+	 * <p>Non-positive value or 14 disables deduplication.</p>
+	 * <p>Note: deduplication is done by {@link CDXServer}.
+	 * {@code ZipNumIndex} also implements timestamp-deduplication, which
+	 * can be turned on by setting positive value to {@code defaultParams.timestampDedupLength}
+	 * and happens before the deduplication controlled by this property.
+	 * That is, setting this property to smaller value than
+	 * {@code defaultParams.timestampDedupLength} will have no effect.
+	 * It is recommended to leave {@code defaultParams.timestampDedupLength} zero
+	 * and control deduplication with this property.</p>
+	 * <p>Note also currently this parameter applies to all types of CDX queries,
+	 * including looking up matching captures for the replay request. This often
+	 * results in a failure to locate specific capture requested, even though it
+	 * does exists in the archive. This needs to be fixed.</p>
+	 * @param timestampDedupLength the number of digits of timestamp
+	 * used for deduplication.
+	 * @see ZipNumParams#setTimestampDedupLength(int)
+	 * @see CDXServer#writeCdxResponse
+	 */
 	public void setTimestampDedupLength(int timestampDedupLength) {
 		this.timestampDedupLength = timestampDedupLength;
 	}
