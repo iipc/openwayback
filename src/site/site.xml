@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="Wayback">
+<project name="OpenWayback">
   <bannerLeft>
-    <name>OpenWayback</name>
+    <name>${project.name}</name>
     <src>images/iipc_logo.png</src>
-    <href>http://iipc.github.io/openwayback/</href>
+    <href>http://netpreserve.org/</href>
   </bannerLeft>
   <bannerRight>
-    <name>OpenWayback</name>
+    <name>${project.name}</name>
   </bannerRight>
   <skin>
     <groupId>org.apache.maven.skins</groupId>
@@ -14,6 +14,10 @@
     <version>1.3.0</version>
   </skin>
   <body>
+    <breadcrumbs>
+      <item name="OpenWayback wiki" href="https://github.com/iipc/openwayback/wiki"/>
+      <item name="OpenWayback" href="index.html"/>
+    </breadcrumbs>
 
     <links>
       <item name="GitHub" href="https://github.com/iipc/openwayback"/>
@@ -28,12 +32,11 @@
       <item name="Hadoop CDX Generation" href="hadoop.html"/>
       <item name="Release Notes" href="release_notes.html"/>
       <item name="FAQ" href="/faq.html"/>
-      <item name="API" href="./apidocs"/>
-      <item name="Browse/Submit a Bug" 
-        href="https://webarchive.jira.com/browse/ACC/component/10031"/>
+      <item name="API" href="./apidocs/index.html"/>
+      <item name="Browse/Submit a Bug"
+        href="https://github.com/iipc/openwayback/issues"/>
     </menu>
 
-    <menu ref="reports"/>
-
+    <menu ref="reports" inherit="top"/>
   </body>
 </project>
