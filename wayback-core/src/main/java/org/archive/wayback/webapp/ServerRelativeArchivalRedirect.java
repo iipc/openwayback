@@ -87,10 +87,10 @@ public class ServerRelativeArchivalRedirect extends AbstractRequestHandler {
 							!Character.isDigit(datespec.charAt(0))) {
 						datespec = null;
 					}
+					String url = remainder.substring(thirdSlash + 1);
+					url = UrlOperations.fixupScheme(url);
+					url = ArchiveUtils.addImpliedHttpIfNecessary(url);
 
-					String url = ArchiveUtils
-						.addImpliedHttpIfNecessary(remainder
-							.substring(thirdSlash + 1));
 					String thisPath = httpRequest.getRequestURI();
 					String queryString = httpRequest.getQueryString();
 					if (queryString != null) {
@@ -152,8 +152,9 @@ public class ServerRelativeArchivalRedirect extends AbstractRequestHandler {
 					") 3rd(" + thirdSlash + ")");
 			if (thirdSlash > -1) {
 				String datespec = remainder.substring(0, thirdSlash);
-				String url = ArchiveUtils.addImpliedHttpIfNecessary(remainder
-					.substring(thirdSlash + 1));
+				String url = remainder.substring(thirdSlash + 1);
+				url = UrlOperations.fixupScheme(url);
+				url = ArchiveUtils.addImpliedHttpIfNecessary(url);
 				String thisPath = httpRequest.getRequestURI();
 				String queryString = httpRequest.getQueryString();
 				if (queryString != null) {
