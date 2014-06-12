@@ -80,7 +80,7 @@ public class ServerRelativeArchivalRedirectTest extends TestCase {
 	 * come in as {@code Referer}. {@code ServerRelativeArchivalRedirect} needs
 	 * to be able to handle it. See ARI-3905.
 	 */
-	public void testCrippledReferer() throws Exception {
+	public void testMalformedTargetURLInReferer() throws Exception {
 
 		final String TARGET_URL = "http:/example.com/index.html";
 		final String REPLAY_BASE = "http://web.archive.org/web/20010203040506/";
