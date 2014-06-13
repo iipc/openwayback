@@ -391,6 +391,10 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 			// because it accesses WaybackRequst.isAjaxRequest() method.
 			super(null, null, null, stubWaybackRequest(), null, null, null);
 		}
+		// for testing with context flags (ex. fw_)
+		public TestJSPExecutor(WaybackRequest wbRequest) {
+			super(null, null, null, wbRequest, null, null, null);
+		}
 		@Override
 		public String jspToString(String jspPath) throws ServletException,
 				IOException {
@@ -720,17 +724,24 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 		assertEquals(expected, output);
 	}
 
-	public void testBodyTagInScript() throws Exception {
+	/**
+	 * body-inset shall not be inserted to resource rendered
+	 * insider {@code FRAME} (identified by {@code fw_} context
+	 * flag, {@code frameWrapperContext} in {@code WaybackRequest}.
+	 * @throws Exception
+	 */
+	public void testNoBodyInsertForFrameContent() throws Exception {
 		delegator.setHeadInsertJsp("head.jsp");
 		delegator.setJspInsertPath("body-insert.jsp");
-		jspExec = new TestJSPExecutor();
+		WaybackRequest wbRequest = new WaybackRequest();
+		wbRequest.setAjaxRequest(false);
+		wbRequest.setFrameWrapperContext(true);
+
+		jspExec = new TestJSPExecutor(wbRequest);
 
 		final String input = "<html>" +
 				"<head>" +
 				"<title>BarBar</title>" +
-				"<script type=\"text/javascript\">" +
-				"var h = \"<body>\";" +
-				"</script>" +
 				"</head>" +
 				"<body>" +
 				"content" +
@@ -740,15 +751,83 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 				"<head>" +
 				"[[[JSP-INSERT:head.jsp]]]" +
 				"<title>BarBar</title>" +
-				"<script type=\"text/javascript\">" +
-				"var h = \"<body>\";" +
-				"</script>" +
 				"</head>" +
 				"<body>" +
-				"[[[JSP-INSERT:body-insert.jsp]]]" +
 				"content" +
 				"</body>" +
 				"</html>";
+		String output = doEndToEnd(input);
+		System.out.println(output);
+		assertEquals(expected, output);
+	}
+
+	/**
+	 * similarly for {@code IFRAME}.
+	 * @throws Exception
+	 */
+	public void testNoBodyInsertForIFrameContent() throws Exception {
+		delegator.setHeadInsertJsp("head.jsp");
+		delegator.setJspInsertPath("body-insert.jsp");
+		WaybackRequest wbRequest = new WaybackRequest();
+		wbRequest.setAjaxRequest(false);
+		wbRequest.setIFrameWrapperContext(true);
+
+		jspExec = new TestJSPExecutor(wbRequest);
+
+		final String input = "<html>" +
+				"<head>" +
+				"<title>BarBar</title>" +
+				"</head>" +
+				"<body>" +
+				"content" +
+				"</body>" +
+				"</html>";
+		final String expected = "<html>" +
+				"<head>" +
+				"[[[JSP-INSERT:head.jsp]]]" +
+				"<title>BarBar</title>" +
+				"</head>" +
+				"<body>" +
+				"content" +
+				"</body>" +
+				"</html>";
+		String output = doEndToEnd(input);
+		System.out.println(output);
+		assertEquals(expected, output);
+	}
+
+	/**
+	 * Pathological case:
+	 * content-bearing tags before FRAMESET, even before HEAD.
+	 * currently {@link FastArchivalUrlReplayParseEventHandler} alone cannot
+	 * handle this case well. {@link ArchivalUrlSAXRewriteReplayRenderer} has
+	 * workaround for this kind of case.
+	 * @throws Exception
+	 */
+	public void testFramesetWithExtraTags() throws Exception {
+		delegator.setHeadInsertJsp("head.jsp");
+		delegator.setJspInsertPath("body-insert.jsp");
+		jspExec = new TestJSPExecutor();
+
+		final String input =
+				"<span><p>" +
+				"<head>" +
+				"</head>" +
+				"<frameset border=\"0\" cols=\"150,*\" frameborder=\"0\">" +
+				"<frame>" +
+				"<frame>" +
+				"</frameset>" +
+				"</span>";
+		final String expected =
+				"[[[JSP-INSERT:head.jsp]]][[[JSP-INSERT:body-insert.jsp]]]" +
+				"<span><p>" +
+				"<head>" +
+				"</head>" +
+				"<frameset border=\"0\" cols=\"150,*\" frameborder=\"0\">" +
+				"<frame>" +
+				"<frame>" +
+				"</frameset>" +
+				"</span>";
 		String output = doEndToEnd(input);
 		System.out.println(output);
 		assertEquals(expected, output);

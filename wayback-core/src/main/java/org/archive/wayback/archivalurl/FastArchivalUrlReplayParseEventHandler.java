@@ -29,6 +29,7 @@ import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
 
+import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.replay.JSPExecutor;
 import org.archive.wayback.replay.html.ReplayParseContext;
 import org.archive.wayback.replay.html.StringTransformer;
@@ -522,7 +523,10 @@ public class FastArchivalUrlReplayParseEventHandler implements
 			return null;
 		JSPExecutor jspExec = context.getJspExec();
 		// FIXME bad chain of references. add method to ReplayParseContext?
-		if (jspExec.getUiResults().getWbRequest().isFrameWrapperContext())
+		WaybackRequest wbRequest = jspExec.getUiResults().getWbRequest();
+		// isAnyEmbeddedContext() used as shorthand for (isFrameWrapperContext()
+		// && isIFrameWrapperContext()).
+		if (wbRequest.isAnyEmbeddedContext())
 			return null;
 		try {
 			return jspExec.jspToString(jspInsertPath);
