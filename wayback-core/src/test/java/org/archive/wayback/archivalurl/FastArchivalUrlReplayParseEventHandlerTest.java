@@ -566,6 +566,41 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 
 	/**
 	 * Pathological case:
+	 * Content has {@code <HEAD>} but missing {@code </HEAD>} and {@code BODY}.
+	 * @throws Exception
+	 */
+	public void testMissingHeadCloseAndBodyTag() throws Exception {
+		delegator.setHeadInsertJsp("head.jsp");
+		delegator.setJspInsertPath("body-insert.jsp");
+		jspExec = new TestJSPExecutor();
+
+		final String input = "<html>" +
+				"<head>" +
+				"<title>BarBar</title>" +
+				"<script src=\"a.js\"></script>" +
+				"<p align=\"center\">" +
+				"<img src=\"map.gif\">" +
+				"</p>" +
+				"</body>" +
+				"</html>";
+		final String expected = "<html>" +
+				"<head>" +
+				"[[[JSP-INSERT:head.jsp]]]" +
+				"<title>BarBar</title>" +
+				"<script src=\"http://replay.archive.org/2001js_/http://www.example.com/a.js\"></script>" +
+				"[[[JSP-INSERT:body-insert.jsp]]]" +
+				"<p align=\"center\">" +
+				"<img src=\"http://replay.archive.org/2001im_/http://www.example.com/map.gif\">" +
+				"</p>" +
+				"</body>" +
+				"</html>";
+		String output = doEndToEnd(input);
+		System.out.println(output);
+		assertEquals(expected, output);
+	}
+
+	/**
+	 * Pathological case:
 	 * both HEAD and BODY tags are missing. There are some in-HEAD tags.
 	 * @throws Exception
 	 */
