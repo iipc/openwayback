@@ -382,6 +382,30 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 	}
 
 	/**
+	 * JSPExecutor patched to return predictable text without
+	 * actually running JSP.
+	 */
+	protected static class TestJSPExecutor extends JSPExecutor {
+		public TestJSPExecutor() {
+			// we cannot pass null WaybackRequest to JSPExecutor constructor,
+			// because it accesses WaybackRequst.isAjaxRequest() method.
+			super(null, null, null, stubWaybackRequest(), null, null, null);
+		}
+		@Override
+		public String jspToString(String jspPath) throws ServletException,
+				IOException {
+			return "[[[JSP-INSERT:" + jspPath + "]]]";
+		}
+		private static WaybackRequest stubWaybackRequest() {
+			WaybackRequest wbRequest = new WaybackRequest();
+			// make sure ajaxRequest is false (true disables JSP inserts)
+			// it's false by default currently, but just in case (paranoia).
+			wbRequest.setAjaxRequest(false);
+			return wbRequest;
+		}
+	}
+
+	/**
 	 * Servers often return non-HTML resource with {@code Content-Type: text/html}.
 	 * Inserting HTML annotation to non-HTML resource can break its replay.
 	 * Therefore, don't insert {@code EndJsp} if resource does not appear to be
@@ -390,21 +414,274 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 	 */
 	public void testNoEndJspForNonHTML() throws Exception {
 		delegator.setEndJsp("end.jsp");
-		// we cannot pass null WaybackRequest to JSPExecutor constructor, as
-		// it accesses its isAjaxRequest() method. Make sure it's false.
-		WaybackRequest wbRequest = new WaybackRequest();
-		wbRequest.setAjaxRequest(false);
-		jspExec = new JSPExecutor(null, null, null, wbRequest, null, null, null) {
-			@Override
-			public String jspToString(String jspPath) {
-				return "[[[JSP-INSERT:" + jspPath + "]]]";
-			}
-		};
+		jspExec = new TestJSPExecutor();
+
 		final String input = "{\"a\": 1}";
 		final String expected = "{\"a\": 1}";
 
 		String output = doEndToEnd(input);
 		System.out.println(output);
+		assertEquals(expected, output);
+	}
+	
+	/**
+	 * JSP inserts: well formed case.
+	 * @throws Exception
+	 */
+	public void testInserts() throws Exception {
+		delegator.setHeadInsertJsp("head.jsp");
+		delegator.setJspInsertPath("body-insert.jsp");
+		jspExec = new TestJSPExecutor();
+
+		final String input = "<html>" +
+				"<head>" +
+				"<title>BarBar</title>" +
+				"<script src=\"a.js\"></script>" +
+				"<link rel=\"stylesheet\" type=\"text/css\" href=\"style.css\">" +
+				"</head>" +
+				"<body>" +
+				"<p align=\"center\">" +
+				"<img src=\"map.gif\">" +
+				"</p>" +
+				"</body>" +
+				"</html>";
+		final String expected = "<html>" +
+				"<head>" +
+				"[[[JSP-INSERT:head.jsp]]]" +
+				"<title>BarBar</title>" +
+				"<script src=\"http://replay.archive.org/2001js_/http://www.example.com/a.js\"></script>" +
+				"<link rel=\"stylesheet\" type=\"text/css\" href=\"http://replay.archive.org/2001cs_/http://www.example.com/style.css\">" +
+				"</head>" +
+				"<body>" +
+				"[[[JSP-INSERT:body-insert.jsp]]]" +
+				"<p align=\"center\">" +
+				"<img src=\"http://replay.archive.org/2001im_/http://www.example.com/map.gif\">" +
+				"</p>" +
+				"</body>" +
+				"</html>";
+		String output = doEndToEnd(input);
+		System.out.println(output);
+		assertEquals(expected, output);		
+	}
+
+	/**
+	 * Pathological case:
+	 * Missing HEAD tag. head-insert shall be inserted just before
+	 * the first open tag (excluding !DOCTYPE and HTML).
+	 * @throws Exception
+	 */
+	public void testMissingHeadTag() throws Exception {
+		delegator.setHeadInsertJsp("head.jsp");
+		delegator.setJspInsertPath("body.jsp");
+		jspExec = new TestJSPExecutor();
+
+		final String input = "<html>" +
+				"<title>BarBar</title>" +
+				"<body>" +
+				"Content" +
+				"</body>" +
+				"</html>";
+		final String expected = "<html>" +
+				"[[[JSP-INSERT:head.jsp]]]" +
+				"<title>BarBar</title>" +
+				"<body>" +
+				"[[[JSP-INSERT:body.jsp]]]" +
+				"Content" +
+				"</body>" +
+				"</html>";
+
+		String output = doEndToEnd(input);
+		assertEquals(expected, output);
+	}
+
+	public void testMissingBodyTag() throws Exception {
+		delegator.setHeadInsertJsp("head.jsp");
+		delegator.setJspInsertPath("body-insert.jsp");
+		jspExec = new TestJSPExecutor();
+
+		final String input = "<html>" +
+				"<head>" +
+				"<title>BarBar</title>" +
+				"<script src=\"a.js\"></script>" +
+				"</head>" +
+				"<p align=\"center\">" +
+				"<img src=\"map.gif\">" +
+				"</p>" +
+				"</body>" +
+				"</html>";
+		final String expected = "<html>" +
+				"<head>" +
+				"[[[JSP-INSERT:head.jsp]]]" +
+				"<title>BarBar</title>" +
+				"<script src=\"http://replay.archive.org/2001js_/http://www.example.com/a.js\"></script>" +
+				"</head>" +
+				"[[[JSP-INSERT:body-insert.jsp]]]" +
+				"<p align=\"center\">" +
+				"<img src=\"http://replay.archive.org/2001im_/http://www.example.com/map.gif\">" +
+				"</p>" +
+				"</body>" +
+				"</html>";
+		String output = doEndToEnd(input);
+		System.out.println(output);
+		assertEquals(expected, output);
+	}
+
+	/**
+	 * Pathological case:
+	 * Content has {@code <HEAD>} but missing {@code </HEAD>} and {@code BODY}. 
+	 * @throws Exception
+	 */
+	public void testMissingHeadCloseTag() throws Exception {
+		delegator.setHeadInsertJsp("head.jsp");
+		delegator.setJspInsertPath("body-insert.jsp");
+		jspExec = new TestJSPExecutor();
+
+		final String input = "<html>" +
+				"<head>" +
+				"<title>BarBar</title>" +
+				"<script src=\"a.js\"></script>" +
+				"<body>" +
+				"<p align=\"center\">" +
+				"<img src=\"map.gif\">" +
+				"</p>" +
+				"</body>" +
+				"</html>";
+		final String expected = "<html>" +
+				"<head>" +
+				"[[[JSP-INSERT:head.jsp]]]" +
+				"<title>BarBar</title>" +
+				"<script src=\"http://replay.archive.org/2001js_/http://www.example.com/a.js\"></script>" +
+				"</head>" +
+				"<body>" +
+				"[[[JSP-INSERT:body-insert.jsp]]]" +
+				"<p align=\"center\">" +
+				"<img src=\"http://replay.archive.org/2001im_/http://www.example.com/map.gif\">" +
+				"</p>" +
+				"</body>" +
+				"</html>";
+		String output = doEndToEnd(input);
+		System.out.println(output);
+		assertEquals(expected, output);
+	}
+
+	/**
+	 * Pathological case:
+	 * both HEAD and BODY tags are missing. There are some in-HEAD tags.
+	 * @throws Exception
+	 */
+	public void testMissingHeadAndBodyTag() throws Exception {
+		delegator.setHeadInsertJsp("head.jsp");
+		delegator.setJspInsertPath("body-insert.jsp");
+		jspExec = new TestJSPExecutor();
+
+		final String input =
+				"<title>BarBar</title>" +
+				"<script src=\"a.js\"></script>" +
+				"<p align=\"center\">" +
+				"<img src=\"map.gif\">" +
+				"</p>";
+		final String expected =
+				"[[[JSP-INSERT:head.jsp]]]" +
+				"<title>BarBar</title>" +
+				"<script src=\"http://replay.archive.org/2001js_/http://www.example.com/a.js\"></script>" +
+				"[[[JSP-INSERT:body-insert.jsp]]]" +
+				"<p align=\"center\">" +
+				"<img src=\"http://replay.archive.org/2001im_/http://www.example.com/map.gif\">" +
+				"</p>";
+		String output = doEndToEnd(input);
+		System.out.println(output);
+		assertEquals(expected, output);
+	}
+
+	/**
+	 * Pathological case:
+	 * both HEAD and BODY tags are missing. There are some in-HEAD tags.
+	 * @throws Exception
+	 */
+	public void testMissingHeadAndBodyTagStartsWithContentTag() throws Exception {
+		delegator.setHeadInsertJsp("head.jsp");
+		delegator.setJspInsertPath("body-insert.jsp");
+		jspExec = new TestJSPExecutor();
+
+		final String input =
+				"<p align=\"center\">" +
+				"<img src=\"map.gif\">" +
+				"</p>";
+		final String expected =
+				"[[[JSP-INSERT:head.jsp]]]" +
+				"[[[JSP-INSERT:body-insert.jsp]]]" +
+				"<p align=\"center\">" +
+				"<img src=\"http://replay.archive.org/2001im_/http://www.example.com/map.gif\">" +
+				"</p>";
+		String output = doEndToEnd(input);
+		System.out.println(output);
+		assertEquals(expected, output);
+	}
+
+	/**
+	 * Pathological case:
+	 * Content-producing tag appearing before BODY tag.
+	 * body-insert is inserted before the tag, not after the BODY tag.
+	 * @throws Exception
+	 */
+	public void testNonHeadTagBeforeBodyTag() throws Exception {
+		delegator.setHeadInsertJsp("head.jsp");
+		delegator.setJspInsertPath("body-insert.jsp");
+		jspExec = new TestJSPExecutor();
+
+		final String input = "<html>" +
+				"<title>BarBar</title>" +
+				"<script src=\"a.js\"></script>" +
+				"<div>TEXT</div>" +
+				"<body>" +
+				"<p align=\"center\">" +
+				"<img src=\"map.gif\">" +
+				"</p>" +
+				"</body>" +
+				"</html>";
+		final String expected = "<html>" +
+				"[[[JSP-INSERT:head.jsp]]]" +
+				"<title>BarBar</title>" +
+				"<script src=\"http://replay.archive.org/2001js_/http://www.example.com/a.js\"></script>" +
+				"[[[JSP-INSERT:body-insert.jsp]]]" +
+				"<div>TEXT</div>" +
+				"<body>" +
+				"<p align=\"center\">" +
+				"<img src=\"http://replay.archive.org/2001im_/http://www.example.com/map.gif\">" +
+				"</p>" +
+				"</body>" +
+				"</html>";
+		String output = doEndToEnd(input);
+		System.out.println(output);
+		assertEquals(expected, output);
+	}
+
+	/**
+	 * pathological case of two HEAD tags.
+	 * head-insert shall be inserted after the first HEAD tag.
+	 * @throws Exception
+	 */
+	public void testExtraHeadTag() throws Exception {
+		delegator.setHeadInsertJsp("head.jsp");
+		jspExec = new TestJSPExecutor();
+		
+		final String input = "<html>" +
+				"<head>" +
+				"<head>" +
+				"<title>BarBar</title>" +
+				"</head>" +
+				"Content" +
+				"</html>";
+		final String expected = "<html>" +
+				"<head>" +
+				"[[[JSP-INSERT:head.jsp]]]" +
+				"<head>" +
+				"<title>BarBar</title>" +
+				"</head>" +
+				"Content" +
+				"</html>";
+		
+		String output = doEndToEnd(input);
 		assertEquals(expected, output);
 	}
 
