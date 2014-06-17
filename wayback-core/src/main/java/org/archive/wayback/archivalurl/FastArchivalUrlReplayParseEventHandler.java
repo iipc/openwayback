@@ -24,10 +24,13 @@ import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
 
+import org.archive.wayback.core.WaybackRequest;
+import org.archive.wayback.replay.JSPExecutor;
 import org.archive.wayback.replay.html.ReplayParseContext;
 import org.archive.wayback.replay.html.StringTransformer;
 import org.archive.wayback.replay.html.transformer.BlockCSSStringTransformer;
@@ -153,6 +156,7 @@ public class FastArchivalUrlReplayParseEventHandler implements
 					
 //				handleCloseTagNode(context,tagNode);
 			} else {
+				context.setInHTML(true);
 				// assume start, possibly empty:
 				handleOpenTagNode(context, tagNode);
 			}
@@ -218,15 +222,13 @@ public class FastArchivalUrlReplayParseEventHandler implements
 	private void handleOpenTagNode(ReplayParseContext context, TagNode tagNode) 
 	throws IOException {
 		
-		boolean insertedJsp = context.getData(FERRET_DONE_KEY) != null;
-		
 		String preEmit = null;
 		String postEmit = null;
 
 		String tagName = tagNode.getTagName();
 		
 		boolean alreadyInsertedHead = (context.getData(FERRET_HEAD_INSERTED) != null);
-		
+		boolean insertedJsp = context.getData(FERRET_DONE_KEY) != null;
 		boolean inHead = (context.getData(FERRET_IN_HEAD) != null);
 
 		if (!alreadyInsertedHead) {
@@ -235,10 +237,10 @@ public class FastArchivalUrlReplayParseEventHandler implements
 			if (tagName.equals("HEAD")) {
 				emitHeadInsert(context, tagNode, true);
 				context.putData(FERRET_IN_HEAD, FERRET_IN_HEAD);
+				// this means HEAD tag does not get its attribute
+				// rewritten. probably that's ok...
 				return;
 			}
-				
-			
 			// If we're at the beginning of any tag, other than <html>,
 			// (including <body>) and haven't inserted yet,
 			// insert right BEFORE the next tag, also continue other default processing
@@ -250,40 +252,26 @@ public class FastArchivalUrlReplayParseEventHandler implements
 		} else if (tagName.equals(BODY_TAG) && inHead) {
 			context.putData(FERRET_IN_HEAD, null);
 			inHead = false;
-			
-			
+
 			OutputStream out = context.getOutputStream();
 			out.write("</head>".getBytes(context.getOutputCharset()));
 		}
 				
 		// Time to insert the JSP header?
 		//IK added check to avoid inserting inside css or script
-		if (!insertedJsp && !context.isInCSS() && !context.isInScriptText()	&& !inHead) {
-			if (!okHeadTagMap.containsKey(tagName)) {
-				if (tagName.equals(FRAMESET_TAG)) {
-					// don't put the insert in FRAMESET
-				} else {
-					// FIXME: bad chain of references
-					if (jspInsertPath != null && !context.getJspExec().getUiResults().getWbRequest().isIFrameWrapperContext()) {
-						String tmp = null; 
-						try {
-							tmp = 
-								context.getJspExec().jspToString(jspInsertPath);
-						} catch (ServletException e) {
-							e.printStackTrace();
-						}
-						if (tagName.equals(BODY_TAG)) {
-							// insert it now, *after* the current Tag:
-							postEmit = tmp;
-						} else {
-							// hrm... we are seeing a node that should be in
-							// the body.. lets emit the jsp now, *before*
-							// the current Tag:
-							preEmit = tmp;
-						}
-					}
-				}
-				context.putData(FERRET_DONE_KEY,"");
+		if (!insertedJsp && !context.isInCSS() && !context.isInScriptText()) {
+			if (tagName.equals(FRAMESET_TAG)) {
+				// don't put the insert in FRAMESET
+				context.putData(FERRET_DONE_KEY, "");
+			} else if (tagName.equals(BODY_TAG)) {
+				postEmit = bodyInsertContent(context);
+				context.putData(FERRET_DONE_KEY, "");
+			} else if (!okHeadTagMap.containsKey(tagName)) {
+				// hrm... we are seeing a node that should be in
+				// the body.. lets emit the jsp now, *before*
+				// the current Tag:
+				preEmit = bodyInsertContent(context);
+				context.putData(FERRET_DONE_KEY, "");
 			}
 		}
 		
@@ -350,7 +338,8 @@ public class FastArchivalUrlReplayParseEventHandler implements
 	}
 	
 	public void handleParseComplete(ParseContext pContext) throws IOException {
-		if (endJsp != null) {
+		// if no HTML element was found (inHTML==false), don't insert EndJsp.
+		if (endJsp != null && pContext.isInHTML()) {
 			ReplayParseContext context = (ReplayParseContext) pContext;
 			OutputStream out = context.getOutputStream();
 			String tmp = null; 
@@ -488,6 +477,11 @@ public class FastArchivalUrlReplayParseEventHandler implements
 		return headInsertJsp;
 	}
 
+	/**
+	 * servlet whose output will be
+	 * inserted right after {@code HEAD} tag.
+	 * @param headInsertJsp context-relative path
+	 */
 	public void setHeadInsertJsp(String headInsertJsp) {
 		this.headInsertJsp = headInsertJsp;
 	}
@@ -512,6 +506,37 @@ public class FastArchivalUrlReplayParseEventHandler implements
 			this.emit(context, null, node, headInsert);
 		} else {
 			this.emit(context, headInsert, node, null);
+		}
+	}
+
+	/**
+	 * return body-insert text.
+	 * <p>Run {@code jspInsertPath} and return its output as String.
+	 * if {@code jspInsertPath} is {@code null}, or body-insert should not be
+	 * inserted into the resource being processed, returns {@code null}.</p>
+	 * @param context context for the resource being processed
+	 * @return insert text as String, or {@code null} if no insertion shall be
+	 *         made.
+	 */
+	protected String bodyInsertContent(ReplayParseContext context) {
+		if (jspInsertPath == null)
+			return null;
+		JSPExecutor jspExec = context.getJspExec();
+		// FIXME bad chain of references. add method to ReplayParseContext?
+		WaybackRequest wbRequest = jspExec.getUiResults().getWbRequest();
+		// isAnyEmbeddedContext() used as shorthand for (isFrameWrapperContext()
+		// && isIFrameWrapperContext()).
+		if (wbRequest.isAnyEmbeddedContext())
+			return null;
+		try {
+			return jspExec.jspToString(jspInsertPath);
+		} catch (ServletException ex) {
+			LOGGER.log(Level.WARNING, "execution of " + jspInsertPath +
+					" failed", ex);
+			return null;
+		} catch (IOException ex) {
+			LOGGER.log(Level.WARNING, "erorr executing " + jspInsertPath, ex);
+			return null;
 		}
 	}
 
