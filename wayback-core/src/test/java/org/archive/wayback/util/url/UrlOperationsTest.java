@@ -48,6 +48,27 @@ public class UrlOperationsTest extends TestCase {
 
 	}
 	
+	public void testFixupScheme() {
+		assertEquals("http://one.com/foo.html",
+			UrlOperations.fixupScheme("http:/one.com/foo.html"));
+		assertEquals("https://one.com/foo.html",
+			UrlOperations.fixupScheme("https:/one.com/foo.html"));
+		assertEquals("ftp://one.com/foo.html",
+			UrlOperations.fixupScheme("ftp:/one.com/foo.html"));
+		assertEquals("rtsp://one.com/foo.html",
+			UrlOperations.fixupScheme("rtsp:/one.com/foo.html"));
+		assertEquals("mms://one.com/foo.html",
+			UrlOperations.fixupScheme("mms:/one.com/foo.html"));
+
+		assertEquals(
+			"http://web.archive.org/web/2010/http:/example.com",
+			UrlOperations
+				.fixupScheme("http://web.archive.org/web/2010/http:/example.com"));
+
+		final String url = "http://example.com/well/formed.html";
+		assertTrue(url == UrlOperations.fixupScheme(url));
+	}
+
 	public void testIsAuthority() {
 		checkAuthority("foo.com",true);
 		checkAuthority("foo.con",false);
