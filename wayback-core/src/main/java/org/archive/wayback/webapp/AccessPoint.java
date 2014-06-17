@@ -1092,6 +1092,20 @@ implements ShutdownListener {
 		}
 	}
 	
+	private int queryCollapseTime = -1;
+
+	/**
+	 * CDXServer {@code collapseTime} parameter for capture query.
+	 * @param queryCollapseTime integer, negative value instructs
+	 * CDXServer to use the default value.
+	 */
+	public void setQueryCollapseTime(int queryCollapseTime) {
+		this.queryCollapseTime = queryCollapseTime;
+	}
+	public int getQueryCollapseTime() {
+		return queryCollapseTime;
+	}
+
 	protected void handleQuery(WaybackRequest wbRequest, 
 			HttpServletRequest httpRequest, HttpServletResponse httpResponse) 
 	throws ServletException, IOException, WaybackException {
@@ -1105,6 +1119,10 @@ implements ShutdownListener {
 				return;
 			}
 		}
+
+		// TODO: should this be applied to Memento Timemap as well?
+		if (queryCollapseTime >= 0)
+			wbRequest.setCollapseTime(queryCollapseTime);
 		
 		SearchResults results = queryIndex(wbRequest);
 		

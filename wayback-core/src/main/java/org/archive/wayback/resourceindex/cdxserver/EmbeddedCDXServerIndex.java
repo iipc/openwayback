@@ -310,11 +310,15 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 			}
 		}
 
-		if (timestampDedupLength > 0) {
-			// CDXServer#writeCdxResponse sets up timestamp collapsing filter
-			// if collapseTime > 0
-			query.setCollapseTime(timestampDedupLength);
+		// CDXServer#writeCdxResponse sets up timestamp collapsing filter
+		// if collapseTime > 0
+		int collapseTime = wbRequest.getCollapseTime();
+		if (collapseTime < 0) {
+			// unspecified - default to timestampDedupLength
+			// (note: even zero is considered "specified")
+			collapseTime = timestampDedupLength;
 		}
+		query.setCollapseTime(collapseTime);
 
 		// CDXServer#writeCdxResponse translates this into FieldRegexFilter
 		if (statusFilter != null && !statusFilter.isEmpty())
@@ -565,20 +569,30 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 	 * <p>Non-positive value or 14 disables deduplication.</p>
 	 * <p>Note: deduplication is done by {@link CDXServer}.
 	 * {@code ZipNumIndex} also implements timestamp-deduplication, which
-	 * can be turned on by setting positive value to {@code defaultParams.timestampDedupLength}
-	 * and happens before the deduplication controlled by this property.
-	 * That is, setting this property to smaller value than
-	 * {@code defaultParams.timestampDedupLength} will have no effect.
-	 * It is recommended to leave {@code defaultParams.timestampDedupLength} zero
-	 * and control deduplication with this property.</p>
-	 * <p>Note also currently this parameter applies to all types of CDX queries,
-	 * including looking up matching captures for the replay request. This often
-	 * results in a failure to locate specific capture requested, even though it
-	 * does exists in the archive. This needs to be fixed.</p>
+	 * can be turned on by setting positive value to {@code defaultParams.timestampDedupLength}.
+	 * It is recommended to leave this off and use this parameter only,
+	 * for several reasons:
+	 * <ul>
+	 * <li>ZipNumIndex's collapsing works at ZipNum block level. It works
+	 * only when captures of single URL spans multiple ZipNum blocks, and
+	 * can produce unexpected result if ever worked.</li>
+	 * <li>ZipNumIndex's collapsing is closed to single index cluster.
+	 * it can produce confusing result when multiple index clusters are
+	 * combined.</li>
+	 * <li>There's no point running timestamp-collapsing more than once
+	 * (although the intent of ZipNumIndex's collapsing may be to quickly
+	 * cut down on the number of results from URL with many many captures.)</li>
+	 * </ul>
+	 * <p>Note now it is possible to pass {@code collapseTime} parameter to
+	 * {@code EmbeddedCDXServerIndex#query}, and this {@code timestampDedupLength}
+	 * parameter serves as a default, used only when {@code collapseTime}
+	 * is unspecified.
+	 * See {@link WaybackRequest#setCollapseTime(int)}.</p>
 	 * @param timestampDedupLength the number of digits of timestamp
 	 * used for deduplication.
 	 * @see ZipNumParams#setTimestampDedupLength(int)
 	 * @see CDXServer#writeCdxResponse
+	 * @see WaybackRequest#setCollapseTime(int)
 	 */
 	public void setTimestampDedupLength(int timestampDedupLength) {
 		this.timestampDedupLength = timestampDedupLength;

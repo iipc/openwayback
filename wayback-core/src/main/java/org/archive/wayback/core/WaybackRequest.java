@@ -1207,4 +1207,33 @@ public class WaybackRequest {
 	public void setBestLatestReplayRequest() {
 		this.setBoolean(REQUEST_LATEST_BEST_REPLAY, true);
 	}
+
+	// CDX query parameters - need to stuff this into WaybackRequest
+	// because ResourceIndex.query method takes nothing but WaybackRequest.
+	// Calls for redesign.
+
+	/**
+	 * for passing {@code collapseTime} parameter to {@code CDXServer}.
+	 * (it'd be ideal to change {@code ResourceIndex} interface.)
+	 */
+	private static final String CDXQUERY_COLLAPSE_TIME = "collapse.time";
+
+	/**
+	 * {@code collapseTime} parameter for {@code CDXServer}.
+	 * @return integer, {@code -1} if parameter is unspecified.
+	 */
+	public int getCollapseTime() {
+		return getInt(CDXQUERY_COLLAPSE_TIME);
+	}
+	/**
+	 * {@code collapseTime} parameter for {@code CDXServer}.
+	 * @param collapseTime integer, negative value for <i>unspecified</i>.
+	 */
+	public void setCollapseTime(int collapseTime) {
+		if (collapseTime < 0)
+			remove(CDXQUERY_COLLAPSE_TIME);
+		else
+			setInt(CDXQUERY_COLLAPSE_TIME, collapseTime);
+	}
+
 }

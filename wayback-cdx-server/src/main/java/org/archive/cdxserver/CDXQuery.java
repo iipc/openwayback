@@ -32,7 +32,7 @@ public class CDXQuery {
 
     SortType sort = null;
 
-    int collapseTime = 0;
+    int collapseTime = -1;
 
     Boolean gzip = null;
     String output = EMPTY_STRING;
