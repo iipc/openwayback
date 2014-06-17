@@ -131,9 +131,6 @@ public class RequestMapper {
 	 */
 	public void addRequestHandler(int port, String host, String path, 
 			RequestHandler requestHandler) {
-		LOGGER.info("Registered:" + port + ":" +
-				(host == null ? "(null)" : host) + ":"
-				+ (path == null ? "(null)" : path));
 		Integer portInt = Integer.valueOf(port);
 		PortMapper portMapper = portMap.get(portInt);
 		if (portMapper == null) {
@@ -141,6 +138,10 @@ public class RequestMapper {
 			portMap.put(portInt, portMapper);
 		}
 		portMapper.addRequestHandler(host, path, requestHandler);
+		LOGGER.info("Registered " + port + "/" +
+				(host == null ? "*" : host) + "/" +
+				(path == null ? "*" : path) + " --> " +
+				requestHandler);
 	}
 
 	public RequestHandlerContext mapRequest(HttpServletRequest request) {
