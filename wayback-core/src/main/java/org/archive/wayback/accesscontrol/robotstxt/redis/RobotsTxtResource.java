@@ -45,14 +45,4 @@ public class RobotsTxtResource extends Resource {
 	public String getContents() {
 		return contents;
 	}
-
-	@Override
-	public String getRefersToTargetURI() {
-		return null;
-	}
-
-	@Override
-	public String getRefersToDate() {
-		return null;
-	}
 }
