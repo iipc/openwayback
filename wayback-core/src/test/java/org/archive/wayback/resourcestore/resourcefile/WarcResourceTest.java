@@ -254,6 +254,30 @@ public class WarcResourceTest extends TestCase {
         
         res.close();
     }
+
+    public void testUrlAgnosticRevisitRecord() throws Exception {
+		final String ctype = "text/html";
+		WARCRecordInfo recinfo = TestWARCRecordInfo
+			.createUrlAgnosticRevisitHttpResponse(ctype, 1345);
+        TestWARCReader ar = new TestWARCReader(recinfo);
+        WARCRecord rec = ar.get(0);
+        WarcResource res = new WarcResource(rec, ar);
+        res.parseHeaders();
+
+		// these are from this record.
+		assertEquals("statusCode", 200, res.getStatusCode());
+		assertEquals("content-type", ctype, res.getHeader("Content-Type"));
+
+        assertEquals("http://example.com/", res.getRefersToTargetURI());
+        assertEquals("20140101101010", res.getRefersToDate());
+
+        StandardCharsetDetector csd = new StandardCharsetDetector();
+        // assuming WaybackRequest (3rd parameter) is not used in getCharset()
+        csd.getCharset(res, res, null);
+
+        res.close();
+    }
+
     /**
      * resource record, typically used for archiving ftp fetches.
      * @throws Exception

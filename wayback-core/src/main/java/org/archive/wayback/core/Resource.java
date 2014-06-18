@@ -67,6 +67,21 @@ public abstract class Resource extends InputStream {
 	 */
 	public abstract Map<String,String> getHttpHeaders();
 	
+	// URL-Agnostic Revisit Support
+
+	/**
+	 * return {@code WARC-Refer-To-Target-URI} WARC record header value or
+	 * equivalent.
+	 * @return header value (URI)
+	 */
+	public abstract String getRefersToTargetURI();
+	/**
+	 * return {@code WARC-Refer-To-Date} WARC record header value or
+	 * equivalent.
+	 * @return String 14-digit timestamp
+	 */
+	public abstract String getRefersToDate();
+
 	public void parseHeaders() throws IOException
 	{
 		//Implemented in warc/arc reader

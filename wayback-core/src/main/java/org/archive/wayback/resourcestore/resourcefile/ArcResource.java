@@ -185,4 +185,16 @@ public class ArcResource extends Resource {
 	public long getRecordLength() {
 		return arcRecord.getMetaData().getLength();
 	}
+
+	@Override
+	public String getRefersToTargetURI() {
+		// ARC does not support URL-Agnostic Revisits
+		return null;
+	}
+
+	@Override
+	public String getRefersToDate() {
+		// ARC does not support URL-Agnostic Revisits
+		return null;
+	}
 }
