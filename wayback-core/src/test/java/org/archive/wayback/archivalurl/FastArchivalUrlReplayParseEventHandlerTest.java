@@ -153,12 +153,13 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
                 "</html>";
         final String expected = "<html>" +
                 "<head>" +
-                "<style type=\"text/css\"/*<![CDATA[*/\n" +
+                "<style type=\"text/css\">/*<![CDATA[*/\n" +
 				"    @import \"http://replay.archive.org/2001cs_/http://www.example.com/shared.css\";\n" + 
 				"/*]]>*/</style>" +
                 "</head>" +
                 "</html>";
-        assertEquals(expected, doEndToEnd(input));
+        String out = doEndToEnd(input);
+        assertEquals(expected, out);
 	}
 
     public void testStyleElementFontfaceSrcUrl() throws Exception {
