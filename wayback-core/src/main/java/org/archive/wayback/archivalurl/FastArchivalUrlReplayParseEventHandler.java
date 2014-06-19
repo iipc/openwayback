@@ -135,10 +135,9 @@ public class FastArchivalUrlReplayParseEventHandler implements
 				handleCSSTextNode(context, textNode);
 			} else if (context.isInScriptText()) {
 				handleJSTextNode(context, textNode);
-			} else {
-				emit(context, null, textNode, null);
-//				handleContentTextNode(context,textNode);
 			}
+			emit(context, null, textNode, null);
+//				handleContentTextNode(context,textNode);
 		} else if (NodeUtils.isTagNode(node)) {
 			TagNode tagNode = (TagNode)node;
 
@@ -152,6 +151,27 @@ public class FastArchivalUrlReplayParseEventHandler implements
 				}
 
 //				handleCloseTagNode(context,tagNode);
+			} else if (tagNode.getTagName().startsWith("![CDATA[")) {
+				// CDATA section is delivered as TagNode, and it
+				// appears there's no ordinary way of replacing its
+				// body content. Also CSS/JS handling method wants
+				// TextNode. Create a temporary TextNode for them,
+				// and write "<![CDATA["..."]]>" around it.
+				String text = tagNode.getText();
+				int s = "![CDATA[".length();
+				// text is supposed to end with "]]", but just in case.
+				int e = text.endsWith("]]") ? text.length() - 2 : text.length();
+				if (context.isInCSS()) {
+					TextNode textNode = new TextNode(text.substring(s, e));
+					handleCSSTextNode(context, textNode);
+					emit(context, "<![CDATA[", textNode, "]]>");
+				} else if (context.isInScriptText()) {
+					TextNode textNode = new TextNode(text.substring(s, e));
+					handleJSTextNode(context, textNode);
+					emit(context, "<![CDATA[", textNode, "]]>");
+				} else {
+					emit(context, null, tagNode, null);
+				}
 			} else {
 				context.setInHTML(true);
 				// assume start, possibly empty:
@@ -169,7 +189,7 @@ public class FastArchivalUrlReplayParseEventHandler implements
 	 */
 	private void handleCSSTextNode(ReplayParseContext context, TextNode textNode) throws IOException {
 		textNode.setText(cssBlockTrans.transform(context, textNode.getText()));
-		emit(context,null,textNode,null);
+		//emit(context, null, textNode, null);
 	}
 	/**
 	 * @param context
@@ -182,7 +202,7 @@ public class FastArchivalUrlReplayParseEventHandler implements
 		if (alreadyInsertedHead) {
 			textNode.setText(jsBlockTrans.transform(context, textNode.getText()));
 		}
-		emit(context, null, textNode, null);
+		//emit(context, null, textNode, null);
 	}
 	
 	/**
