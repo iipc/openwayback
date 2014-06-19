@@ -19,6 +19,7 @@ import org.htmlparser.Node;
 import org.htmlparser.Tag;
 import org.htmlparser.lexer.Lexer;
 import org.htmlparser.lexer.Page;
+import org.htmlparser.nodes.TagNode;
 
 /**
  * test {@link FastArchivalUrlReplayParseEventHandler}.
@@ -140,9 +141,26 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
                 "</head>" +
                 "</html>";
         assertEquals(expected, doEndToEnd(input));
-	    
 	}
 	
+	public void testStyleElmeentImportUrlInsideCDATA() throws Exception {
+        final String input = "<html>" +
+                "<head>" +
+                "<style type=\"text/css\">/*<![CDATA[*/\n" +
+				"    @import \"/shared.css\";\n" +
+				"/*]]>*/</style>" +
+                "</head>" +
+                "</html>";
+        final String expected = "<html>" +
+                "<head>" +
+                "<style type=\"text/css\"/*<![CDATA[*/\n" +
+				"    @import \"http://replay.archive.org/2001cs_/http://www.example.com/shared.css\";\n" + 
+				"/*]]>*/</style>" +
+                "</head>" +
+                "</html>";
+        assertEquals(expected, doEndToEnd(input));
+	}
+
     public void testStyleElementFontfaceSrcUrl() throws Exception {
         // font data is not an image technically, but it'd require more elaborate
         // pattern match to differentiate a context of url function. use im_ for
@@ -879,6 +897,10 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 		return new String(baos.toByteArray(),outputCharset);
 	}
 
+	// The followings checks expected (quirky) behaviors of HTMLParser.
+	// If these expectations get broken by HTMLParser upgrades, it is very likely
+	// we need to change our code.
+
     /**
      * test expected behavior of htmlparser.
      * <p>htmlparser does neither unescape HTML entities found in text, nor
@@ -886,7 +908,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
      * behavior.  If this expectation breaks, we need to modify our code.</p>
      * @throws Exception
      */
-    public void testHtmlParser() throws Exception {
+    public void testHtmlParser_attributeValueEscaping() throws Exception {
     	final String html = "<html>" +
     			"<body>" +
     			"<a href=\"http://example.com/api?a=1&amp;b=2&c=3&#34;\">anchor</a>" +
@@ -907,6 +929,44 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
     				assertEquals("toHtml output", "<a href=\"http://example.com/api?a=1&amp;b=2&c=3&#34;\">", htmlout);
     			}
     		}
+    	}
+    }
+    /**
+     * test expected behavior of {@code HTMLParser} - handling of CDATA.
+     * {@code HTMLParser} gives out {@code <![CDATA[ ... ]]>} as single
+     * {@code TagNode}.  Quirk is that {@code tagName} can also include
+     * characters following "<![CDATA[". And apparently there's no way
+     * to update the content.
+     * @throws Exception
+     */
+    public void testHtmlParser_CDATA() throws Exception {
+    	final String html = "<![CDATA[aaaa\nbbbb]]>";
+
+    	byte[] bytes = html.getBytes();
+    	ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
+    	Page page = new Page(bais, "UTF-8");
+    	Lexer lexer = new Lexer(page);
+    	Node node;
+
+    	node = lexer.nextNode();
+    	// HTMLParser returns CDATA section as TagNode
+    	assertTrue(node instanceof TagNode);
+    	TagNode tag = (TagNode)node;
+    	// whose tagName is "![CDATA[" *plus* non-whitespace chars following
+    	// it.  And if they are alphabets, they get capitalized.
+    	assertTrue(tag.getTagName().startsWith("![CDATA["));
+    	assertEquals("AAAA", tag.getTagName().substring("![CDATA[".length()));
+    	// Fortunately, getText() returns entire CDATA section, including
+    	// leading "!CDATA[" and trailing "]]" (no < and >), unmodified.
+    	String text = tag.getText();
+    	System.out.println("text=\"" + text + "\" (" + text.length() + " chars)");
+    	assertEquals("![CDATA[aaaa\nbbbb]]", text);
+    	// but setText() results in ClassCastException
+    	try {
+    		tag.setText("![CDATA[bbbb]]");
+    		fail("setText() did not throw an Exception");
+    	} catch (ClassCastException ex) {
+    		// expected
     	}
     }
 }
