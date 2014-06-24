@@ -69,33 +69,31 @@ public class FastArchivalUrlReplayParseEventHandler implements
 		ParseEventHandler {
 
 	private static final Logger LOGGER = Logger
-			.getLogger(FastArchivalUrlReplayParseEventHandler.class.getName());
+		.getLogger(FastArchivalUrlReplayParseEventHandler.class.getName());
 
-	public final static String FERRET_DONE_KEY = 
-		FastArchivalUrlReplayParseEventHandler.class.toString();
-	
+	public final static String FERRET_DONE_KEY = FastArchivalUrlReplayParseEventHandler.class
+		.toString();
+
 	protected final static String FERRET_IN_HEAD = "FERRET_IN_HEAD";
 
 	private String jspInsertPath = "/WEB-INF/replay/DisclaimChooser.jsp";
 	private String endJsp = "/WEB-INF/replay/ArchiveComment.jsp";
 	private String startJsp = null;
 
-	private final String[] okHeadTags = { "![CDATA[*", "![CDATA[", "?", 
-			"!DOCTYPE", "HTML",	"HEAD", "BASE", "LINK", "META", "TITLE", 
-			"STYLE", "SCRIPT" , "BGSOUND"};
+	private final String[] okHeadTags = { "![CDATA[*", "![CDATA[", "?",
+		"!DOCTYPE", "HTML", "HEAD", "BASE", "LINK", "META", "TITLE", "STYLE",
+		"SCRIPT", "BGSOUND" };
 	private HashMap<String, Object> okHeadTagMap = null;
 	private final static String FRAMESET_TAG = "FRAMESET";
 	private final static String BODY_TAG = "BODY";
 
 	protected static final String FERRET_HEAD_INSERTED = "FERRET_HEAD_INSERTED";
 
-	private BlockCSSStringTransformer cssBlockTrans = 
-		new BlockCSSStringTransformer();
-	private StringTransformer jsBlockTrans =
-		new JSStringTransformer();
+	private BlockCSSStringTransformer cssBlockTrans = new BlockCSSStringTransformer();
+	private StringTransformer jsBlockTrans = new JSStringTransformer();
 
 	protected String headInsertJsp = null;
-	
+
 	// @see #transformAttrWhere
 	private boolean unescapeAttributeValues = true;
 
@@ -123,38 +121,57 @@ public class FastArchivalUrlReplayParseEventHandler implements
 	// TODO: This should all be refactored up into an abstract base class with
 	// default no-op methods, allowing a subclass to only override the ones they
 	// want...
-	public void handleNode(ParseContext pContext, Node node) 
-	throws IOException {
-		ReplayParseContext context = (ReplayParseContext) pContext;
-		if(NodeUtils.isRemarkNode(node)) {
-			RemarkNode remarkNode = (RemarkNode) node;
-			remarkNode.setText(jsBlockTrans.transform(context, remarkNode.getText()));
-			emit(context,null,node,null);
+	public void handleNode(ParseContext pContext, Node node) throws IOException {
+		ReplayParseContext context = (ReplayParseContext)pContext;
+		if (NodeUtils.isRemarkNode(node)) {
+			RemarkNode remarkNode = (RemarkNode)node;
+			remarkNode.setText(jsBlockTrans.transform(context,
+				remarkNode.getText()));
+			emit(context, null, node, null);
 
 		} else if (NodeUtils.isTextNode(node)) {
-			TextNode textNode = (TextNode) node;
+			TextNode textNode = (TextNode)node;
 			if (context.isInCSS()) {
-				handleCSSTextNode(context,textNode);
-				
+				handleCSSTextNode(context, textNode);
 			} else if (context.isInScriptText()) {
-				handleJSTextNode(context,textNode);
-			} else {
-				emit(context, null, textNode, null);
-//				handleContentTextNode(context,textNode);
+				handleJSTextNode(context, textNode);
 			}
-		} else if(NodeUtils.isTagNode(node)) {
-			TagNode tagNode = (TagNode) node;
-			
+			emit(context, null, textNode, null);
+//				handleContentTextNode(context,textNode);
+		} else if (NodeUtils.isTagNode(node)) {
+			TagNode tagNode = (TagNode)node;
+
 			if (tagNode.isEndTag()) {
 				if (tagNode.getTagName().equals("HEAD")) {
-					context.putData(FERRET_IN_HEAD, null);	
+					context.putData(FERRET_IN_HEAD, null);
 				}
-				
+
 				if (checkAllowTag(pContext, tagNode)) {
 					emit(context, null, tagNode, null);
 				}
-					
+
 //				handleCloseTagNode(context,tagNode);
+			} else if (tagNode.getTagName().startsWith("![CDATA[")) {
+				// CDATA section is delivered as TagNode, and it
+				// appears there's no ordinary way of replacing its
+				// body content. Also CSS/JS handling method wants
+				// TextNode. Create a temporary TextNode for them,
+				// and write "<![CDATA["..."]]>" around it.
+				String text = tagNode.getText();
+				int s = "![CDATA[".length();
+				// text is supposed to end with "]]", but just in case.
+				int e = text.endsWith("]]") ? text.length() - 2 : text.length();
+				if (context.isInCSS()) {
+					TextNode textNode = new TextNode(text.substring(s, e));
+					handleCSSTextNode(context, textNode);
+					emit(context, "<![CDATA[", textNode, "]]>");
+				} else if (context.isInScriptText()) {
+					TextNode textNode = new TextNode(text.substring(s, e));
+					handleJSTextNode(context, textNode);
+					emit(context, "<![CDATA[", textNode, "]]>");
+				} else {
+					emit(context, null, tagNode, null);
+				}
 			} else {
 				context.setInHTML(true);
 				// assume start, possibly empty:
@@ -172,7 +189,7 @@ public class FastArchivalUrlReplayParseEventHandler implements
 	 */
 	private void handleCSSTextNode(ReplayParseContext context, TextNode textNode) throws IOException {
 		textNode.setText(cssBlockTrans.transform(context, textNode.getText()));
-		emit(context,null,textNode,null);
+		//emit(context, null, textNode, null);
 	}
 	/**
 	 * @param context
@@ -180,16 +197,12 @@ public class FastArchivalUrlReplayParseEventHandler implements
 	 * @throws IOException 
 	 */
 	private void handleJSTextNode(ReplayParseContext context, TextNode textNode) throws IOException {
-		
 		boolean alreadyInsertedHead = (context.getData(FERRET_HEAD_INSERTED) != null);
-		
 		context.incJSBlockCount();
-		
 		if (alreadyInsertedHead) {
 			textNode.setText(jsBlockTrans.transform(context, textNode.getText()));
 		}
-		
-		emit(context, null, textNode, null);
+		//emit(context, null, textNode, null);
 	}
 	
 	/**
