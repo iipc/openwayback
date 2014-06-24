@@ -93,6 +93,19 @@ public class TestWARCRecordInfo extends WARCRecordInfo implements WARCConstants,
             throws IOException {
         return new TestWARCRecordInfo(buildHttpResponseBlock(ctype, payloadBytes));
     }
+    /**
+     * return TestWARCRecordInfo for HTTP Response with response status line {@code status},
+     * entity {@code payload} of content-type {@code ctype}.
+     * @param status status line, such as {@code "200 OK"}
+     * @param ctype content-type
+     * @param payloadBytes payload bytes
+     * @return TestWARCRecordInfo
+     * @throws IOException
+     */
+	public static TestWARCRecordInfo createHttpResponse(String status,
+			String ctype, byte[] payloadBytes) throws IOException {
+		return new TestWARCRecordInfo(buildHttpResponseBlock(status, ctype, payloadBytes));
+	}
     public static TestWARCRecordInfo createCompressedHttpResponse(String ctype,
             byte[] payloadBytes) throws IOException {
         return new TestWARCRecordInfo(buildCompressedHttpResponseBlock(ctype, payloadBytes));
@@ -200,10 +213,15 @@ public class TestWARCRecordInfo extends WARCRecordInfo implements WARCConstants,
     }
     
     public static byte[] buildHttpRedirectResponseBlock(String location) throws IOException {
+    	return buildHttpRedirectResponseBlock("302 Moved Temporarily", location);
+    }
+
+	public static byte[] buildHttpRedirectResponseBlock(String statusline,
+			String location) throws IOException {
+		assert statusline.startsWith("3");
         ByteArrayOutputStream blockbuf = new ByteArrayOutputStream();
         Writer bw = new OutputStreamWriter(blockbuf);
-        String status = "302 Moved Temporarily";
-        bw.write("HTTP/1.0 " + status + CRLF);
+        bw.write("HTTP/1.0 " + statusline + CRLF);
         bw.write("Content-Length: " + 0 + CRLF);
         bw.write("Content-Type: text/html" + CRLF);
         bw.write("Location: " + location + CRLF);
@@ -260,7 +278,9 @@ public class TestWARCRecordInfo extends WARCRecordInfo implements WARCConstants,
         Writer bw = new OutputStreamWriter(blockbuf);
         if (withHeader) {
             bw.write("HTTP/1.0 200 OK" + CRLF);
-            bw.write("Content-Length: " + len + CRLF);
+            if (len >= 0) {
+            	bw.write("Content-Length: " + len + CRLF);
+            }
             bw.write("Content-Type: " + ctype + CRLF);
             if (gzipContent)
                 bw.write("Content-Encoding: gzip" + CRLF);

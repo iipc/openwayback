@@ -40,9 +40,11 @@ import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.exception.WaybackException;
+import org.archive.wayback.exception.ResourceNotAvailableException;
 import org.archive.wayback.memento.MementoUtils;
 import org.archive.wayback.resourcestore.resourcefile.ArcResource;
 import org.archive.wayback.resourcestore.resourcefile.WarcResource;
+import org.archive.wayback.util.url.KeyMakerUrlCanonicalizer;
 import org.archive.wayback.util.webapp.RequestMapper;
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
@@ -155,6 +157,9 @@ public class AccessPointTest extends TestCase {
         cut.setQueryPrefix(WEB_PREFIX);
         cut.setStaticPrefix(STATIC_PREFIX);
         
+        KeyMakerUrlCanonicalizer canonicalizer = new KeyMakerUrlCanonicalizer();
+        cut.setSelfRedirectCanonicalizer(canonicalizer);
+
         resourceStore = EasyMock.createMock(ResourceStore.class);
         resourceIndex = EasyMock.createMock(ResourceIndex.class);
         collection = new WaybackCollection();
@@ -228,6 +233,20 @@ public class AccessPointTest extends TestCase {
         resource.parseHeaders();
         return resource;
     }
+	public static Resource createTestRevisitResource(String timestamp, Resource revisited,
+			boolean withHeader) throws IOException {
+		String clen = revisited.getHttpHeaders().get("Content-Length");
+		int len = clen != null ? Integer.parseInt(clen) : -1;
+		TestWARCRecordInfo recinfo = TestWARCRecordInfo.createRevisitHttpResponse("text/html", len, withHeader);
+		recinfo.setCreate14DigitDateFromDT14(timestamp);
+		recinfo.addExtraHeader("WARC-Refers-To-Target-URI", ((WarcResource)revisited).getWarcHeaders().getUrl());
+		recinfo.addExtraHeader("WARC-Refers-To-Date", ((WarcResource)revisited).getWarcHeaders().getDate());
+		TestWARCReader ar = new TestWARCReader(recinfo);
+		WARCRecord rec = ar.get(0);
+		WarcResource resource = new WarcResource(rec, ar);
+		resource.parseHeaders();
+		return resource;
+	}
     
     /**
      * checks if {@code ts} has expected format (YYYYmmddHHMMSS)
@@ -274,8 +293,13 @@ public class AccessPointTest extends TestCase {
      */
     protected CaptureSearchResults setupCaptures(int closestIndex, Resource... resources) throws Exception {
         CaptureSearchResults results = new CaptureSearchResults();
+        CaptureSearchResult prev = null;
         for (Resource res : resources) {
             CaptureSearchResult result = new CaptureSearchResult();
+            if (prev != null) {
+            	prev.setNextResult(result);
+            	result.setPrevResult(prev);
+            }
             // TODO: Resource should have methods for accessing URI and date
             if (res instanceof WarcResource) {
                 // TODO: want to use WARCRecordToSearchResultAdapter? WarcResource
@@ -483,6 +507,39 @@ public class AccessPointTest extends TestCase {
         return null;
     }
     
+    public static class CaptureSearchMatcher implements IArgumentMatcher {
+    	private String url;
+    	private String replayTimestamp;
+    	public CaptureSearchMatcher(String url, String replayTimestamp) {
+    		this.url = url;
+    		this.replayTimestamp = replayTimestamp;
+    	}
+    	@Override
+    	public boolean matches(Object actual) {
+    		if (!(actual instanceof WaybackRequest)) return false;
+    		WaybackRequest wbRequest = (WaybackRequest)actual;
+    		String replayTimestamp = wbRequest.getReplayTimestamp();
+    		String url = wbRequest.getRequestUrl();
+    		if (url == null || replayTimestamp == null) return false;
+    		if (this.url == null || this.replayTimestamp == null) return false;
+    		// Only exact match is supported. i.e. http://example.com/ and http://example.com
+    		// are different even though they typically get canonicalized into the same string.
+    		// Also not checking if wbRequest is in fact a capture search request.
+    		return this.url.equals(url) && this.replayTimestamp.equals(replayTimestamp);
+    	}
+    	@Override
+    	public void appendTo(StringBuffer buffer) {
+    		buffer.append("eqCaptureSearchRequest(");
+    		buffer.append(url).append(",").append(replayTimestamp);
+    		buffer.append(")");
+    	}
+    }
+	public static WaybackRequest eqCaptureSearchRequest(String url,
+			String replayTimestamp) {
+		EasyMock.reportMatcher(new CaptureSearchMatcher(url, replayTimestamp));
+		return null;
+	}
+
     /**
      * test of revisit. 
      * closest capture is a revisit. 
@@ -524,6 +581,75 @@ public class AccessPointTest extends TestCase {
         // TODO: failure case: self-redirecting -> calls finxNextClosest() and fails if there's no more closest.
         // wbRequest.timestampSearchKey == true -> calls queryIndex() once again.
         
+    }
+
+    public static Resource createSelfRedirectResource(String url, String timestamp) throws IOException {
+    	assert !url.endsWith("/");
+    	// typical redirect: http://example.com to http://example.com/
+    	String location = url + "/";
+		TestWARCRecordInfo recinfo = new TestWARCRecordInfo(
+			TestWARCRecordInfo.buildHttpRedirectResponseBlock("301 Moved Permanently", location));
+		recinfo.setUrl(url);
+		recinfo.setCreate14DigitDateFromDT14(timestamp);
+        TestWARCReader ar = new TestWARCReader(recinfo);
+        WARCRecord rec = ar.get(0);
+        WarcResource resource = new WarcResource(rec, ar);
+        resource.parseHeaders();
+        return resource;
+    }
+
+	/**
+	 * {@code handleReplay()} is supposed to throw {@code ResourceNotAvailableException}
+	 * when it cannot find a replay-able capture for a request.
+	 * This is a test for one of such "capture not found" case: revisited re
+	 * This is rather a corner case. handlReplay() is supposed to throw
+	 * ResourceNotAvailableException when it can not find
+	 * @throws Exception
+	 */
+    public void testHandleRequest_MissingRevisitPayload() throws Exception {
+    	setReplayRequest("http://example.com", "20140619004054");
+    	// resource revisited, but missing in capture search result
+    	Resource revisited = createSelfRedirectResource("http://example.com", "20140619015411");
+        CaptureSearchResults results = setupCaptures(
+            0,
+            createSelfRedirectResource("http://example.com", "20140619004054"),
+            createTestRevisitResource("20140619016511", revisited, true)
+            );
+        CaptureSearchResult revisit = results.getResults().get(1);
+        revisit.flagDuplicateDigest(); // revisit, but original is not found.
+
+        // expectation:
+        // 1. first capture is skipped because it is self-redirect. selects the second.
+        // 2. second capture is a revisit, calls resourceIndex.query() for the revisited,
+        //    but original capture is not found in the result.
+        // 3. ResourceNotAvailableException is thrown
+        // 4. exception captured, skip to the next capture and finds none.
+        // 5. ResourceNotAvailableException is thrown out of handleReplay
+        // 6. ExceptionRenderer.renderException is called (in handleQuery)
+
+        // XXX setting these up manually feels very fragile - perhaps we need a
+        // test ResourceIndex + ReplayDispatcher.
+		EasyMock.expect(
+			resourceIndex.query(eqCaptureSearchRequest("http://example.com",
+				"20140619015411"))).andReturn(results);
+		EasyMock.expect(
+			replay.getClosest(
+				eqCaptureSearchRequest("http://example.com", "20140619015411"),
+				EasyMock.same(results))).andReturn(results.getResults().get(0));
+
+        // for this test, it is easier to test handleReplay, not handleQuery
+
+        EasyMock.replay(httpRequest, httpResponse, resourceIndex, resourceStore, replay);
+
+        cut.init();
+        try {
+        	cut.handleReplay(wbRequest, httpRequest, httpResponse);
+        	fail("handleReplay did not throw ResourceNotAvailableException");
+        } catch (ResourceNotAvailableException ex) {
+        	// expected.
+        }
+
+        EasyMock.verify(resourceIndex, resourceStore, replay);
     }
     
     /**
