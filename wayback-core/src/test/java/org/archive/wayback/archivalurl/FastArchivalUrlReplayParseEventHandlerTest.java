@@ -867,7 +867,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 
 		final String input = "<html><head><script>/</g;900>a;a<k;</script></head>" +
 				"<body></body></html>";
-		final String expected = "<html><head>[[JSP-INSERT:head.jsp]]]<script>/</g;900>a;a<k;</script></head>" +
+		final String expected = "<html><head>[[[JSP-INSERT:head.jsp]]]<script>/</g;900>a;a<k;</script></head>" +
 				"<body>[[[JSP-INSERT:body-insert.jsp]]]</body></html>";
 
         String out = doEndToEnd(input);
