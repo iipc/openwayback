@@ -66,11 +66,12 @@ public class SelectorReplayDispatcher implements ReplayDispatcher {
 	
 	public CaptureSearchResult getClosest(WaybackRequest wbRequest,
 			CaptureSearchResults results) throws BetterRequestException {
-		
 		try {
 			return closestSelector.getClosest(wbRequest, results);
 		} catch (BetterRequestException e) {
-			
+			// AccessPoint.handleReplayRedirect() has the same code for adding Memento URL-G /
+			// "intermediate resource" response. move and unify this code with it. Eventually
+			// this method will stop throwing BetterRequestException.
 			if (wbRequest.isMementoEnabled()) {
 				// Issue either a Memento URL-G response, or "intermediate resource" response
 				if (wbRequest.isMementoTimegate()) {

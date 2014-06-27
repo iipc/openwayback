@@ -115,6 +115,13 @@ public class MementoUtils implements MementoConstants {
 		pw.flush();
 	}
 
+	/**
+	 * Add {@code Link} header value.
+	 * Includes: {@code first}, {@code prev}, {@code next}, {@code last}, {@code original}
+	 * (if {@code includeOriginal} is {@code true}), and {@code timegate} (if {@code includeTimegateLink}
+	 * is {@code true}).
+	 *
+	 */
 	public static String generateMementoLinkHeaders(
 			CaptureSearchResults results, WaybackRequest wbr, boolean includeTimegateLink, boolean includeOriginalLink) {
 		NotableResultExtractor nre = getNotableResults(results);
@@ -246,6 +253,16 @@ public class MementoUtils implements MementoConstants {
 		}
 	}
 
+	/**
+	 * Add {@code Vary: accept-datetime} header and {@code Link} header for timegate
+	 * response.
+	 * See {@link #generateMementoLinkHeaders(CaptureSearchResults, WaybackRequest, boolean, boolean)}
+	 * for details of {@code Link} header.
+	 * @param response
+	 * @param results
+	 * @param wbr
+	 * @param includeOriginal
+	 */
 	public static void addTimegateHeaders(HttpServletResponse response,
 			CaptureSearchResults results, WaybackRequest wbr, boolean includeOriginal) {
 		addVaryHeader(response);

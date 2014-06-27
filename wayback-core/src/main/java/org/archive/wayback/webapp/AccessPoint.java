@@ -2,8 +2,8 @@
  *  This file is part of the Wayback archival access software
  *   (http://archive-access.sourceforge.net/projects/wayback/).
  *
- *  Licensed to the Internet Archive (IA) by one or more individual 
- *  contributors. 
+ *  Licensed to the Internet Archive (IA) by one or more individual
+ *  contributors.
  *
  *  The IA licenses this file to You under the Apache License, Version 2.0
  *  (the "License"); you may not use this file except in compliance with
@@ -92,9 +92,8 @@ import org.archive.wayback.webapp.LiveWebRedirector.LiveWebState;
  *
  *
  * @author brad
- * @version $Date$, $Revision$
  */
-public class AccessPoint extends AbstractRequestHandler 
+public class AccessPoint extends AbstractRequestHandler
 implements ShutdownListener {
 	/** webapp relative location of Interstitial.jsp */
 	public final static String INTERSTITIAL_JSP = "jsp/Interstitial.jsp";
@@ -107,17 +106,17 @@ implements ShutdownListener {
 	public final static String INTERSTITIAL_DATE = "date";
 	/** argument for Interstitial.jsp URL being loaded */
 	public final static String INTERSTITIAL_URL = "url";
-	
+
 	public final static String REVISIT_STR = "warc/revisit";
 	public final static String EMPTY_VALUE = "-";
-	
+
 	public final static String RUNTIME_ERROR_HEADER = "X-Archive-Wayback-Runtime-Error";
 	private final static int MAX_ERR_HEADER_LEN = 300;
-	
+
 	//public final static String NOTFOUND_ERROR_HEADER = "X-Archive-Wayback-Not-Found";
 
 	private static final Logger LOGGER = Logger.getLogger(
-			AccessPoint.class.getName());
+		AccessPoint.class.getName());
 
 	private boolean exactHostMatch = false;
 	private boolean exactSchemeMatch = false;
@@ -129,29 +128,28 @@ implements ShutdownListener {
 	private boolean forceCleanQueries = true;
 
 	private boolean timestampSearch = false;
-	
-	public static enum PerfStat
-	{
+
+	public static enum PerfStat {
 		IndexQueryTotal,
 		WArcResource,
 		Total,
 	}
-	
+
 	private String errorMsgHeader = RUNTIME_ERROR_HEADER;
 	private String perfStatsHeader = "X-Archive-Wayback-Perf";
 	private String warcFileHeader = "x-archive-src";
-	
+
 	private boolean enableErrorMsgHeader = false;
 	private boolean enablePerfStatsHeader = false;
 	private boolean enableWarcFileHeader = false;
 	private boolean enableMemento = true;
-		
+
 	private LiveWebRedirector liveWebRedirector;
-	
+
 	private String staticPrefix = null;
 	private String queryPrefix = null;
 	private String replayPrefix = null;
-	
+
 	private String interstitialJsp = INTERSTITIAL_JSP;
 
 	private String refererAuth = null;
@@ -164,51 +162,51 @@ implements ShutdownListener {
 	private List<String> fileIncludePrefixes = null;
 	private List<String> fileExcludePrefixes = null;
 
-	private WaybackCollection  collection   = null;
-	private ExceptionRenderer  exception    = new BaseExceptionRenderer();
-	private QueryRenderer      query        = null;
-	private RequestParser      parser       = null;
-	private ReplayDispatcher   replay       = null;
+	private WaybackCollection collection = null;
+	private ExceptionRenderer exception = new BaseExceptionRenderer();
+	private QueryRenderer query = null;
+	private RequestParser parser = null;
+	private ReplayDispatcher replay = null;
 	private ResultURIConverter uriConverter = null;
-	
+
 	private MementoHandler mementoHandler = new DefaultMementoHandler();
 
 	private ExclusionFilterFactory exclusionFactory = null;
 	private BooleanOperator<WaybackRequest> authentication = null;
 	private boolean requestAuth = true;
-	
+
 	private long embargoMS = 0;
 	private CustomResultFilterFactory filterFactory = null;
-	
+
 	private UrlCanonicalizer selfRedirectCanonicalizer = null;
-	
+
 	private int maxRedirectAttempts = 0;
-	
+
 	private boolean fixedEmbeds = false;
 
 	public void init() {
 		checkAccessPointAware(collection,exception,query,parser,replay,
-				uriConverter,exclusionFactory, authentication, filterFactory);
+			uriConverter,exclusionFactory, authentication, filterFactory);
 	}
-	
+
 	protected boolean dispatchLocal(HttpServletRequest httpRequest,
-			HttpServletResponse httpResponse) 
-	throws ServletException, IOException {
-		if(LOGGER.isLoggable(Level.FINE)) {
+			HttpServletResponse httpResponse) throws ServletException,
+			IOException {
+		if (LOGGER.isLoggable(Level.FINE)) {
 			LOGGER.fine("Local dispatch /" + translateRequestPath(httpRequest));
 		}
-		if(!serveStatic) {
+		if (!serveStatic) {
 			return false;
 		}
 //		String contextRelativePath = httpRequest.getServletPath();
 		String translatedNoQuery = "/" + translateRequestPath(httpRequest);
 //		String absPath = getServletContext().getRealPath(contextRelativePath);
 		String absPath = getServletContext().getRealPath(translatedNoQuery);
-		
+
 		if (this.isEnableMemento()) {
 			MementoUtils.addDoNotNegotiateHeader(httpResponse);
 		}
-		
+
 		//IK: added null check for absPath, it may be null (ex. on jetty)
 		if (absPath != null) {
 			File test = new File(absPath);
@@ -216,7 +214,7 @@ implements ShutdownListener {
 				return false;
 			}
 		}
-				
+
 		String translatedQ = "/" + translateRequestPathQuery(httpRequest);
 
 		WaybackRequest wbRequest = new WaybackRequest();
@@ -235,30 +233,30 @@ implements ShutdownListener {
 	}
 
 	/**
-	 * @param httpRequest HttpServletRequest which is being handled 
-	 * @param httpResponse HttpServletResponse which is being handled 
+	 * @param httpRequest HttpServletRequest which is being handled
+	 * @param httpResponse HttpServletResponse which is being handled
 	 * @return true if the request was actually handled
 	 * @throws ServletException per usual
 	 * @throws IOException per usual
 	 */
 	public boolean handleRequest(HttpServletRequest httpRequest,
-			HttpServletResponse httpResponse) 
-	throws ServletException, IOException {
+			HttpServletResponse httpResponse) throws ServletException,
+			IOException {
 
 		WaybackRequest wbRequest = null;
 		boolean handled = false;
 
 		try {
 			PerfStats.clearAll();
-			
+
 			if (this.isEnablePerfStatsHeader() && (perfStatsHeader != null)) {
 				PerfStats.timeStart(PerfStat.Total);
 				httpResponse = new PerfWritingHttpServletResponse(httpRequest, httpResponse, PerfStat.Total, perfStatsHeader);
 			}
-			
+
 			String inputPath = translateRequestPathQuery(httpRequest);
-			Thread.currentThread().setName("Thread " + 
-					Thread.currentThread().getId() + " " + getBeanName() + 
+			Thread.currentThread().setName("Thread " +
+					Thread.currentThread().getId() + " " + getBeanName() +
 					" handling: " + inputPath);
 			LOGGER.fine("Handling translated: " + inputPath);
 			wbRequest = getParser().parse(httpRequest, this);
@@ -276,16 +274,15 @@ implements ShutdownListener {
 				if (getAuthentication() != null) {
 					if (!getAuthentication().isTrue(wbRequest)) {
 						throw new AuthenticationControlException(
-								"Unauthorized", isRequestAuth());
+							"Unauthorized", isRequestAuth());
 					}
 				}
 
 				if (getExclusionFactory() != null) {
-					ExclusionFilter exclusionFilter = 
-						getExclusionFactory().get();
+					ExclusionFilter exclusionFilter = getExclusionFactory().get();
 					if (exclusionFilter == null) {
 						throw new AdministrativeAccessControlException(
-								"AccessControl list unavailable");
+							"AccessControl list unavailable");
 					}
 					wbRequest.setExclusionFilter(exclusionFilter);
 				}
@@ -318,53 +315,70 @@ implements ShutdownListener {
 					handleQuery(wbRequest, httpRequest, httpResponse);
 				}
 			} else {
-				handled = dispatchLocal(httpRequest,httpResponse);
-			}			
+				handled = dispatchLocal(httpRequest, httpResponse);
+			}
 		} catch (BetterRequestException e) {
+			// want to move Memento header generation for redirect here. We need to
+			// define a sub-class of BetterRequestException for capture redirect,
+			// carrying CaptureSearchResults necessary for generating Memento header.
+			/*
+			if (wbRequest.isMementoEnabled()) {
+				// Issue either a Memento URL-G response, or "intermediate resource" response
+				if (wbRequest.isMementoTimegate()) {
+					MementoUtils.addTimegateHeaders(httpResponse, results, wbRequest, true);
+				} else {
+					// redirecting to a Memento (aka "intermediate resource).
+					// NO Vary, NO Memento-Datetime. Link MUST be provided
+					// with "original" relation type. Other relation types ("timegate", "timemap"
+					// and "memento") are optional.
+					MementoUtils.addOrigHeader(httpResponse, wbRequest.getRequestUrl());
+				}
+			}
+			 */
 			e.generateResponse(httpResponse, wbRequest);
 			httpResponse.getWriter(); // cause perf headers to be committed
 			handled = true;
 
-		} catch(WaybackException e) {
-			
+		} catch (WaybackException e) {
+
 			if (httpResponse.isCommitted()) {
 				return true;
 			}
-			
+
 			if (wbRequest == null) {
 				wbRequest = new WaybackRequest();
 				wbRequest.setAccessPoint(this);
 			}
-			
+
 			logError(httpResponse, errorMsgHeader, e, wbRequest);
-			
+
 			LiveWebState liveWebState = LiveWebState.NOT_FOUND;
-			
-			if ((getLiveWebRedirector() != null) && 
+
+			if ((getLiveWebRedirector() != null) &&
 					!wbRequest.hasMementoAcceptDatetime() && !wbRequest.isMementoTimemapRequest()) {
 				liveWebState = getLiveWebRedirector().handleRedirect(e, wbRequest, httpRequest, httpResponse);
 			}
-			
+
 			// If not liveweb redirected, then render current exception
 			if (liveWebState != LiveWebState.REDIRECTED) {
 				e.setLiveWebAvailable(liveWebState == LiveWebState.FOUND);
 				getException().renderException(httpRequest, httpResponse, wbRequest, e, getUriConverter());
 			}
-			
+
 			handled = true;
-			
+
 		} catch (Exception other) {
 			logError(httpResponse, errorMsgHeader, other, wbRequest);
-		 } finally {      
-	        //Slightly hacky, but ensures that all block loaders are closed
-	        ZipNumBlockLoader.closeAllReaders();
-	      }
-		
+		} finally {
+			//Slightly hacky, but ensures that all block loaders are closed
+			ZipNumBlockLoader.closeAllReaders();
+		}
+
 		return handled;
 	}
-	
-	public void logError(HttpServletResponse httpResponse, String header, Exception e, WaybackRequest request)
-	{
+
+	public void logError(HttpServletResponse httpResponse, String header,
+			Exception e, WaybackRequest request) {
 		if (e instanceof ResourceNotInArchiveException) {
 			if (LOGGER.isLoggable(Level.INFO)) {
 				this.logNotInArchive((ResourceNotInArchiveException)e, request);
@@ -383,13 +397,13 @@ implements ShutdownListener {
 				LOGGER.log(Level.WARNING, "Runtime Error", e);
 			}
 		}
-		
+
 		if (!this.isEnableErrorMsgHeader()) {
 			return;
 		}
-		
+
 		String message = (e != null ? e.toString() : "");
-		
+
 		if (message == null) {
 			message = "";
 		} else {
@@ -401,16 +415,16 @@ implements ShutdownListener {
 					message = message.substring(index + 1);
 				}
 			}
-			
-			if (message.length() > MAX_ERR_HEADER_LEN) {			
+
+			if (message.length() > MAX_ERR_HEADER_LEN) {
 				message = message.substring(0, MAX_ERR_HEADER_LEN);
 			}
 			message = message.replace('\n', ' ');
 		}
-		
+
 		httpResponse.setHeader(header, message);
 	}
-	
+
 	private void logNotInArchive(ResourceNotInArchiveException e, WaybackRequest r) {
 		// TODO: move this into ResourceNotInArchiveException constructor
 		String url = r.getRequestUrl();
@@ -421,25 +435,26 @@ implements ShutdownListener {
 		LOGGER.info(sb.toString());
 	}
 
-	protected void checkAccessPointAware(Object...os) {
-		if(os != null) {
-			for(Object o : os) {
-				if(o instanceof AccessPointAware) {
-					AccessPointAware apa = (AccessPointAware) o;
+	protected void checkAccessPointAware(Object... os) {
+		if (os != null) {
+			for (Object o : os) {
+				if (o instanceof AccessPointAware) {
+					AccessPointAware apa = (AccessPointAware)o;
 					apa.setAccessPoint(this);
 				}
 			}
 		}
 	}
-	
+
 	private void checkInterstitialRedirect(HttpServletRequest httpRequest,
-			WaybackRequest wbRequest) 
-	throws BetterRequestException {
-		if((refererAuth != null) && (refererAuth.length() > 0) && !wbRequest.hasMementoAcceptDatetime()) {
+			WaybackRequest wbRequest) throws BetterRequestException {
+		if ((refererAuth != null) && (refererAuth.length() > 0) &&
+				!wbRequest.hasMementoAcceptDatetime()) {
 			String referer = httpRequest.getHeader("Referer");
-			if((referer != null) && (referer.length() > 0) && (!referer.contains(refererAuth))) {
+			if ((referer != null) && (referer.length() > 0) &&
+					(!referer.contains(refererAuth))) {
 				StringBuffer sb = httpRequest.getRequestURL();
-				if(httpRequest.getQueryString() != null) {
+				if (httpRequest.getQueryString() != null) {
 					sb.append("?").append(httpRequest.getQueryString());
 				}
 				StringBuilder u = new StringBuilder();
@@ -448,11 +463,13 @@ implements ShutdownListener {
 				u.append("?");
 				u.append(INTERSTITIAL_SECONDS).append("=").append(5);
 				u.append("&");
-				u.append(INTERSTITIAL_DATE).append("=").append(wbRequest.getReplayDate().getTime());
+				u.append(INTERSTITIAL_DATE).append("=")
+					.append(wbRequest.getReplayDate().getTime());
 				u.append("&");
 				u.append(INTERSTITIAL_URL).append("=");
 				try {
-					u.append(URLEncoder.encode(wbRequest.getRequestUrl(), "UTF-8"));
+					u.append(URLEncoder.encode(wbRequest.getRequestUrl(),
+						"UTF-8"));
 				} catch (UnsupportedEncodingException e) {
 					// not gonna happen...
 					u.append(wbRequest.getRequestUrl());
@@ -470,14 +487,14 @@ implements ShutdownListener {
 			}
 		}
 	}
-	
+
 //	protected void addCustomHeaders(HttpServletResponse httpResponse, CaptureSearchResult closest)
 //	{
 //		Map<String, String> resultData = closest.toCanonicalStringMap();
-//		
+//
 //		for (Entry<String, String> entry : resultData.entrySet()) {
 //			String key = entry.getKey();
-//			
+//
 //			if ((key != null) && key.startsWith(CaptureSearchResult.CUSTOM_HEADER_PREFIX)) {
 //				key = key.substring(CaptureSearchResult.CUSTOM_HEADER_PREFIX.length());
 //				String value = entry.getValue();
@@ -487,132 +504,146 @@ implements ShutdownListener {
 //			}
 //		}
 //	}
-		
-	protected boolean isSelfRedirect(Resource resource, CaptureSearchResult closest, WaybackRequest wbRequest, String canonRequestURL)
-	{
+
+	protected boolean isSelfRedirect(Resource resource,
+			CaptureSearchResult closest, WaybackRequest wbRequest,
+			String canonRequestURL) {
 		int status = resource.getStatusCode();
-		
+
 		// Only applies to redirects
 		if ((status < 300) || (status >= 400)) {
 			return false;
-		}		
-		
+		}
+
 		String location = resource.getHeader("Location");
-		
+
 		if (location == null) {
 			return false;
 		}
-					
+
 //		if (!closest.getCaptureTimestamp().equals(wbRequest.getReplayTimestamp())) {
-//			return false;			
+//			return false;
 //		}
-		
+
 		String redirScheme = UrlOperations.urlToScheme(location);
-		
-		try {	
+
+		try {
 			if (redirScheme == null && isExactSchemeMatch()) {
 				location = UrlOperations.resolveUrl(closest.getOriginalUrl(), location);
 				redirScheme = UrlOperations.urlToScheme(location);
 			} else if (location.startsWith("/")) {
 				location = UrlOperations.resolveUrl(closest.getOriginalUrl(), location);
 			}
-			
+
 			if (getSelfRedirectCanonicalizer() != null) {
 				location = getSelfRedirectCanonicalizer().urlStringToKey(location);
 			}
 		} catch (IOException e) {
 			return false;
-		}			
-		
+		}
+
 		if (location.equals(canonRequestURL)) {
 			// if not exact scheme, don't do scheme compare, must be equal
 			if (!isExactSchemeMatch()) {
 				return true;
 			}
-			
-			String origScheme = 
-				UrlOperations.urlToScheme(wbRequest.getRequestUrl());
-						
-			if((origScheme != null) && (redirScheme != null) &&
+
+			String origScheme = UrlOperations.urlToScheme(wbRequest
+				.getRequestUrl());
+
+			if ((origScheme != null) && (redirScheme != null) &&
 					(origScheme.compareTo(redirScheme) == 0)) {
 				return true;
 			}
 		}
-		
+
 		return false;
 	}
-	
-	public SearchResults queryIndex(WaybackRequest wbRequest) throws ResourceIndexNotAvailableException, ResourceNotInArchiveException, BadQueryException, AccessControlException, ConfigurationException
-	{
+
+	public SearchResults queryIndex(WaybackRequest wbRequest)
+			throws ResourceIndexNotAvailableException,
+			ResourceNotInArchiveException, BadQueryException,
+			AccessControlException, ConfigurationException {
 		try {
 			PerfStats.timeStart(PerfStat.IndexQueryTotal);
 			return getCollection().getResourceIndex().query(wbRequest);
 		} finally {
-			PerfStats.timeEnd(PerfStat.IndexQueryTotal);			
+			PerfStats.timeEnd(PerfStat.IndexQueryTotal);
 		}
 	}
-	
-	protected Resource getResource(CaptureSearchResult closest, Set<String> skipFiles) throws ResourceNotAvailableException, ConfigurationException
-	{		
+
+	protected Resource getResource(CaptureSearchResult closest,
+			Set<String> skipFiles) throws ResourceNotAvailableException,
+			ConfigurationException {
 		try {
 			PerfStats.timeStart(PerfStat.WArcResource);
-			
+
 			if ((skipFiles != null) && skipFiles.contains(closest.getFile())) {
-				throw new ResourceNotAvailableException("Revisit: Skipping already failed " + closest.getFile());
+				throw new ResourceNotAvailableException(
+					"Revisit: Skipping already failed " + closest.getFile());
 			}
-			
+
 			return getCollection().getResourceStore().retrieveResource(closest);
 		} finally {
 			PerfStats.timeEnd(PerfStat.WArcResource);
 		}
 	}
-	
-	public boolean isWaybackReferer(WaybackRequest wbRequest, String path)
-	{
+
+	public boolean isWaybackReferer(WaybackRequest wbRequest, String path) {
 		return isWaybackReferer(wbRequest.getRefererUrl(), path);
 	}
-	
-	public boolean isWaybackReferer(String referer, String path)
-	{		
+
+	public boolean isWaybackReferer(String referer, String path) {
 		if (referer == null) {
 			return false;
 		}
-		
+
 		Object value = this.getConfigs().get("fullPathPrefix");
 		String fullPathPrefix = (value != null ? value.toString() : null);
-		
+
 		if (fullPathPrefix != null && !fullPathPrefix.isEmpty()) {
 			return referer.contains(fullPathPrefix + path);
 		} else {
 			return referer.contains(path);
 		}
 	}
-	
-	// throw BetterRequestException here, also if memento is enabled, this acts as a timegate
-	protected void handleReplayRedirect(WaybackRequest wbRequest, 
-								 HttpServletResponse httpResponse,
-								 CaptureSearchResults captureResults,
-								 CaptureSearchResult closest) throws BetterRequestException
-	{
+
+	/**
+	 * if capture {@code closest} is of timestamp different from the one requested,
+	 * redirect to exact Archival-URL for {@code closest}.
+	 * Memento Timegate request is always redirected regardless of timestamp.
+	 * Needs better method name.
+	 * @param wbRequest
+	 * @param httpResponse
+	 * @param captureResults
+	 * @param closest
+	 * @throws BetterRequestException
+	 */
+	protected void handleReplayRedirect(WaybackRequest wbRequest,
+			HttpServletResponse httpResponse,
+			CaptureSearchResults captureResults, CaptureSearchResult closest)
+			throws BetterRequestException {
 		if (wbRequest.getReplayTimestamp().startsWith(closest.getCaptureTimestamp()) && !wbRequest.isMementoTimegate()) {
 			// Matching
 			return;
 		}
-		
+
 		captureResults.setClosest(closest);
-		
+
 		//TODO: better detection of non-redirect proxy mode?
 		// For now, checking if the betterURI does not contain the timestamp, then we're not doing a redirect
 		String datespec = ArchivalUrl.getDateSpec(wbRequest, closest.getCaptureTimestamp());
 		String betterURI = getUriConverter().makeReplayURI(datespec, closest.getOriginalUrl());
-		
+
 		if (fixedEmbeds && !wbRequest.isMementoTimegate() && isWaybackReferer(wbRequest, this.getReplayPrefix())) {
 			httpResponse.setHeader("Content-Location", betterURI);
 			return;
 		}
-		
+
 		boolean isNonRedirectProxy = !betterURI.contains(closest.getCaptureTimestamp());
-		
+
+		// there's same code in SelectorReplayDispatcher.getClosest().
+		// redirect-related code needs to be consolidated.
 		if (this.isEnableMemento()) {
 			// Issue either a Memento URL-G response, or "intermediate resource" response
 			if (wbRequest.isMementoTimegate() && this.getMementoHandler() != null) {
@@ -622,64 +653,66 @@ implements ShutdownListener {
 				MementoUtils.addOrigHeader(httpResponse, closest.getOriginalUrl());
 			}
 		}
-		
+
 		if (!isNonRedirectProxy) {
-		    throw new BetterRequestException(betterURI);
+			throw new BetterRequestException(betterURI);
 		}
 	}
-	
-	protected void handleReplay(WaybackRequest wbRequest, 
-			HttpServletRequest httpRequest, HttpServletResponse httpResponse) 
-	throws IOException, ServletException, WaybackException {			
-		
+
+	protected void handleReplay(WaybackRequest wbRequest,
+			HttpServletRequest httpRequest, HttpServletResponse httpResponse)
+					throws IOException, ServletException, WaybackException {
+
 		checkInterstitialRedirect(httpRequest,wbRequest);
-				
+
 		String requestURL = wbRequest.getRequestUrl();
-		
+
 		if (getSelfRedirectCanonicalizer() != null) {
 			try {
 				requestURL = getSelfRedirectCanonicalizer().urlStringToKey(requestURL);
 			} catch (IOException io) {
-				
+
 			}
 		}
-		
+
 		long requestMS = Timestamp.parseBefore(wbRequest.getReplayTimestamp()).getDate().getTime();
-		
-		
+
 		PerformanceLogger p = new PerformanceLogger("replay");
-		
+
 		// If optimized url+timestamp search is supported, mark the request
-		if (this.isTimestampSearch()) {		
+		if (this.isTimestampSearch()) {
 			if (wbRequest.isAnyEmbeddedContext() || wbRequest.isIdentityContext()) {
 				wbRequest.setTimestampSearchKey(true);
 			}
 		}
-		
+
 		SearchResults results = queryIndex(wbRequest);
 		p.queried();
-		
+
 		if (!(results instanceof CaptureSearchResults)) {
 			throw new ResourceNotAvailableException("Bad results...");
 		}
 		CaptureSearchResults captureResults = (CaptureSearchResults)results;
-		
-		CaptureSearchResult closest = null;
-		
-		closest = getReplay().getClosest(wbRequest, captureResults);
-		
+
+		// typically throws BetterRequestException if timestamp of closest
+		// capture and requested timestamp are different. That is, request
+		// is first redirected to closest capture, even when it is NOT
+		// replay-able (ex. self-redirect) and results in another redirect.
+		CaptureSearchResult closest = getReplay().getClosest(wbRequest,
+			captureResults);
+
 		//CaptureSearchResult originalClosest = closest;
-		
+
 		int counter = 0;
-		
+
 		//TODO: parameterize
 		//int maxTimeouts = 2;
 		//int maxMissingRevisits = 2;
-		
+
 		Set<String> skipFiles = null;
 		//boolean isRevisit = false;
-		
-		while (true) {		
+
+		while (true) {
 			// Support for redirect from the CDX redirectUrl field
 			// This was the intended use of the redirect field, but has not actually be tested
 			// To enable this functionality, uncomment the lines below
@@ -690,100 +723,100 @@ implements ShutdownListener {
 			//  String fullRedirect = getUriConverter().makeReplayURI(closest.getCaptureTimestamp(), redir);
 			//  throw new BetterRequestException(fullRedirect, Integer.valueOf(closest.getHttpCode()));
 			//}
-			
+
 			Resource httpHeadersResource = null;
 			Resource payloadResource = null;
 			boolean isRevisit = false;
-			
+
 			try {
 				counter++;
-				
+
 				if (closest == null) {
 					throw new ResourceNotAvailableException("Self-Redirect: No Closest Match Found", 404);
 				}
-				
+
 				closest.setClosest(true);
 				checkAnchorWindow(wbRequest,closest);
-				
-				
+
 				// Attempt to resolve any not-found embedded content with next-best
 				// For "best last" capture, skip not-founds and redirects, hoping to find the best 200 response.
-				if ((wbRequest.isAnyEmbeddedContext() && closest.isHttpError()) || 
-					(wbRequest.isBestLatestReplayRequest() && !closest.isHttpSuccess())) {
+				if ((wbRequest.isAnyEmbeddedContext() && closest.isHttpError()) ||
+						(wbRequest.isBestLatestReplayRequest() && !closest.isHttpSuccess())) {
 					CaptureSearchResult nextClosest = closest;
-					
+
 					while ((nextClosest = findNextClosest(nextClosest, captureResults, requestMS)) != null) {
 						// If redirect, save but keep looking -- if no better match, will use the redirect
 						if (nextClosest.isHttpRedirect()) {
 							closest = nextClosest;
-						// If success, pick that one!
+							// If success, pick that one!
 						} else if (nextClosest.isHttpSuccess()) {
 							closest = nextClosest;
 							break;
 						}
 					}
 				}
-				
+
 				// Redirect to url for the actual closest capture, if not a retry
 				if (counter == 1) {
 					handleReplayRedirect(wbRequest, httpResponse, captureResults, closest);
-				}			
-				
+				}
+
 				// If revisit, may load two resources separately
 				if (closest.isDuplicateDigest()) {
 					isRevisit = true;
-					
+
 					// If the payload record is known and it failed before with this payload, don't try
 					// loading the header resource even.. outcome will likely be same
 					if ((closest.getDuplicatePayloadFile() != null) &&
-						(skipFiles != null) && skipFiles.contains(closest.getDuplicatePayloadFile())) {
+							(skipFiles != null) && skipFiles.contains(closest.getDuplicatePayloadFile())) {
 						counter--; //don't really count this as we're not even checking the file anymore
-						throw new ResourceNotAvailableException("Revisit: Skipping already failed " + closest.getDuplicatePayloadFile());
-					
+						throw new ResourceNotAvailableException(
+							"Revisit: Skipping already failed " +
+									closest.getDuplicatePayloadFile());
 					} else if ((closest.getDuplicatePayloadFile() == null) && wbRequest.isTimestampSearchKey()) {
 						// If a missing revisit and loaded optimized, try loading the entire timeline again
-						
+
 						wbRequest.setTimestampSearchKey(false);
-						
+
 						results = queryIndex(wbRequest);
-						
+
 						captureResults = (CaptureSearchResults)results;
-						
+
 						closest = getReplay().getClosest(wbRequest, captureResults);
 						//originalClosest = closest;
 						//maxTimeouts *= 2;
 						//maxMissingRevisits *= 2;
-						
+
 						continue;
 					}
-					
+
 					// If old-style arc revisit (no mimetype, filename is '-'), then don't load
 					// headersResource = payloadResource
 					if (EMPTY_VALUE.equals(closest.getFile())) {
 						closest.setFile(closest.getDuplicatePayloadFile());
 						closest.setOffset(closest.getDuplicatePayloadOffset());
-						
+
 						// See that this is successful
 						httpHeadersResource = getResource(closest, skipFiles);
-						
+
 						// Hmm, since this is a revisit it should not redirect -- was: if both headers and payload are from a different timestamp, redirect to that timestamp
 //						if (!closest.getCaptureTimestamp().equals(closest.getDuplicateDigestStoredTimestamp())) {
 //							throwRedirect(wbRequest, httpResponse, captureResults, closest.getDuplicateDigestStoredTimestamp(), closest.getOriginalUrl(), closest.getHttpCode());
 //						}
-						
+
 						payloadResource = httpHeadersResource;
-						
+
 					} else {
 						httpHeadersResource = getResource(closest, skipFiles);
-						
+
 						CaptureSearchResult payloadLocation = retrievePayloadForIdenticalContentRevisit(wbRequest, httpHeadersResource, closest);
-						
+
 						if (payloadLocation == null) {
 							throw new ResourceNotAvailableException("Revisit: Missing original for revisit record " + closest.toString(), 404);
 						}
-						
+
 						payloadResource = getResource(payloadLocation, skipFiles);
-						
+
 						// If zero length old-style revisit with no headers, then must use payloadResource as headersResource
 						if (httpHeadersResource.getRecordLength() <= 0) {
 							httpHeadersResource.close();
@@ -794,26 +827,26 @@ implements ShutdownListener {
 					httpHeadersResource = getResource(closest, skipFiles);
 					payloadResource = httpHeadersResource;
 				}
-				
+
 				// Ensure that we are not self-redirecting!
 				// If the status is a redirect, check that the location or url date's are different from the current request
 				// Otherwise, replay the previous matched capture.
-				// This chain is unlikely to go past one previous capture, but is possible 
+				// This chain is unlikely to go past one previous capture, but is possible
 				if (isSelfRedirect(httpHeadersResource, closest, wbRequest, requestURL)) {
 					LOGGER.info("Self-Redirect: Skipping " + closest.getCaptureTimestamp() + "/" + closest.getOriginalUrl());
 					closest = findNextClosest(closest, captureResults, requestMS);
 					continue;
 				}
-				
+
 				if (counter > 1) {
 					handleReplayRedirect(wbRequest, httpResponse, captureResults, closest);
 				}
-									
+
 				p.retrieved();
-				
-				ReplayRenderer renderer = 
-					getReplay().getRenderer(wbRequest, closest, httpHeadersResource, payloadResource);
-				
+
+				ReplayRenderer renderer =
+						getReplay().getRenderer(wbRequest, closest, httpHeadersResource, payloadResource);
+
 				if (this.isEnableWarcFileHeader() && (warcFileHeader != null)) {
 					if (isRevisit && (closest.getDuplicatePayloadFile() != null)) {
 						httpResponse.addHeader(warcFileHeader, closest.getDuplicatePayloadFile());
@@ -821,50 +854,50 @@ implements ShutdownListener {
 						httpResponse.addHeader(warcFileHeader, closest.getFile());
 					}
 				}
-				
+
 				// Memento URL-M response
 				if (this.isEnableMemento()) {
 					MementoUtils.addMementoHeaders(httpResponse, captureResults, closest, wbRequest);
 				}
-		
+
 				renderer.renderResource(httpRequest, httpResponse, wbRequest,
-						closest, httpHeadersResource, payloadResource, getUriConverter(), captureResults);
-			
+					closest, httpHeadersResource, payloadResource, getUriConverter(), captureResults);
+
 				p.rendered();
 				p.write(wbRequest.getReplayTimestamp() + " " +
 						wbRequest.getRequestUrl());
-			
+
 				break;
-				
+
 			} catch (SpecificCaptureReplayException scre) {
-				
+
 				//final String SOCKET_TIMEOUT_MSG = "java.net.SocketTimeoutException: Read timed out";
-				
+
 				CaptureSearchResult nextClosest = null;
-				
+
 				// if exceed maxRedirectAttempts, stop
 				if ((counter > maxRedirectAttempts) && ((this.getLiveWebPrefix() == null) || !isWaybackReferer(wbRequest, this.getLiveWebPrefix()))) {
 					LOGGER.info("LOADFAIL: Timeout: Too many retries, limited to " + maxRedirectAttempts);
 				} else if ((closest != null) && !wbRequest.isIdentityContext()) {
 					nextClosest = findNextClosest(closest, captureResults, requestMS);
 				}
-				
+
 				// Skip any nextClosest that has the same exact filename?
 				// Removing in case skip something that works..
 				// while ((nextClosest != null) && closest.getFile().equals(nextClosest.getFile())) {
 				//	nextClosest = findNextClosest(nextClosest, captureResults, requestMS);
 				//}
-				
+
 				String msg = null;
-				
+
 				if (closest != null) {
 					msg = scre.getMessage() + " /" + closest.getCaptureTimestamp() + "/" + closest.getOriginalUrl();
 				} else {
 					msg = scre.getMessage() + " /" + wbRequest.getReplayTimestamp() + "/" + wbRequest.getRequestUrl();
 				}
-				
+
 				if (nextClosest != null) {
-				
+
 					// Store failed filename for revisits, as they may be repeated
 					if (isRevisit) {
 						if (scre.getDetails() != null) {
@@ -873,29 +906,29 @@ implements ShutdownListener {
 							}
 							// Details should contain the failed filename from the ResourceStore
 							skipFiles.add(scre.getDetails());
-						}						
+						}
 					}
-					
-					if (msg.startsWith("Self-Redirect")) {					
+
+					if (msg.startsWith("Self-Redirect")) {
 						LOGGER.info("(" + counter + ")LOADFAIL-> " + msg + " -> " + nextClosest.getCaptureTimestamp());
 					} else {
 						LOGGER.warning("(" + counter + ")LOADFAIL-> " + msg + " -> " + nextClosest.getCaptureTimestamp());
 					}
-					
+
 					closest = nextClosest;
 				} else if (wbRequest.isTimestampSearchKey()) {
 					wbRequest.setTimestampSearchKey(false);
-					
+
 					results = queryIndex(wbRequest);
-					
+
 					captureResults = (CaptureSearchResults)results;
-					
+
 					closest = getReplay().getClosest(wbRequest, captureResults);
 					//originalClosest = closest;
-					
+
 					//maxTimeouts *= 2;
 					//maxMissingRevisits *= 2;
-					
+
 					continue;
 				} else {
 					LOGGER.warning("(" + counter + ")LOADFAIL: " + msg);
@@ -907,51 +940,52 @@ implements ShutdownListener {
 			}
 		}
 	}
-	
-	protected CaptureSearchResult findNextClosest(CaptureSearchResult currentClosest, CaptureSearchResults results, long requestMS)
-	{
+
+	protected CaptureSearchResult findNextClosest(
+			CaptureSearchResult currentClosest, CaptureSearchResults results,
+			long requestMS) {
 		CaptureSearchResult prev = currentClosest.getPrevResult();
 		CaptureSearchResult next = currentClosest.getNextResult();
-		
+
 		currentClosest.removeFromList();
-		
+
 		if (prev == null) {
 			return next;
 		} else if (next == null) {
 			return prev;
 		}
-		
+
 		long prevMS = prev.getCaptureDate().getTime();
 		long nextMS = next.getCaptureDate().getTime();
 		long prevDiff = Math.abs(prevMS - requestMS);
 		long nextDiff = Math.abs(requestMS - nextMS);
-		
+
 		if (prevDiff == 0) {
 			return prev;
 		} else if (nextDiff == 0) {
 			return next;
-		}		
-		
+		}
+
 		String currHash = currentClosest.getDigest();
 		String prevHash = prev.getDigest();
 		String nextHash = next.getDigest();
 		boolean prevSameHash = (prevHash.equals(currHash));
 		boolean nextSameHash = (nextHash.equals(currHash));
-		
+
 		if (prevSameHash != nextSameHash) {
 			return prevSameHash ? prev : next;
 		}
-		
+
 		String prevStatus = prev.getHttpCode();
 		String nextStatus = next.getHttpCode();
 		boolean prev200 = (prevStatus != null) && prevStatus.equals("200");
 		boolean next200 = (nextStatus != null) && nextStatus.equals("200");
-		
+
 		// If only one is a 200, prefer the entry with the 200
 		if (prev200 != next200) {
 			return (prev200 ? prev : next);
 		}
-		
+
 		if (prevDiff < nextDiff) {
 			return prev;
 		} else {
@@ -963,34 +997,34 @@ implements ShutdownListener {
 	// WarcResource#isRevisitNotModified().
 
 	/**
-	 * If closest 
+	 * If closest
 	 * @param revisitRecord
 	 * @param captureResults
 	 * @param closest
 	 * @return the payload resource
 	 * @throws ResourceNotAvailableException
 	 * @throws ConfigurationException
-	 * @throws AccessControlException 
-	 * @throws BadQueryException 
-	 * @throws ResourceNotInArchiveException 
-	 * @throws ResourceIndexNotAvailableException 
-	 * @throws BetterRequestException 
+	 * @throws AccessControlException
+	 * @throws BadQueryException
+	 * @throws ResourceNotInArchiveException
+	 * @throws ResourceIndexNotAvailableException
+	 * @throws BetterRequestException
 	 * @see WARCRevisitAnnotationFilter
 	 */
 	protected CaptureSearchResult retrievePayloadForIdenticalContentRevisit(
 			WaybackRequest currRequest,
 			Resource revisitRecord,
 			CaptureSearchResult closest) throws WaybackException {
-		
+
 		if (!closest.isDuplicateDigest()) {
 			LOGGER.warning("Revisit: record is not a revisit by identical content digest " + closest.getCaptureTimestamp() + " " + closest.getOriginalUrl());
 			return null;
 		}
-		
+
 		CaptureSearchResult payloadLocation = null;
-		
+
 		// Revisit from same url -- shold have been found by the loader
-		
+
 		if (closest.getDuplicatePayloadFile() != null && closest.getDuplicatePayloadOffset() != null) {
 			payloadLocation = new CaptureSearchResult();
 			payloadLocation.setFile(closest.getDuplicatePayloadFile());
@@ -1032,18 +1066,23 @@ implements ShutdownListener {
 			wbr.setRequestUrl(payloadUri);
 
 			SearchResults results = queryIndex(wbr);
-			
-			if(!(results instanceof CaptureSearchResults)) {
-				throw new ResourceNotAvailableException("Bad results looking up " + payloadTimestamp + " " + payloadUri);
+
+			if (!(results instanceof CaptureSearchResults)) {
+				throw new ResourceNotAvailableException(
+					"Bad results looking up " + payloadTimestamp + " " +
+							payloadUri);
 			}
-			CaptureSearchResults payloadCaptureResults = (CaptureSearchResults) results;
+			CaptureSearchResults payloadCaptureResults = (CaptureSearchResults)results;
+			// FIXME 	can throw BetterRequestException - it can be back to the original
+			// capture if revisited capture is missing in the index, and results
+			// in redirect loop.
 			payloadLocation = getReplay().getClosest(wbr, payloadCaptureResults);
 		}
-		
+
 //		if (payloadLocation != null) {
 //			return payloadLocation;
 //		}
-//		
+//
 		// Less common less recommended revisit with specific warc/filename
 //		WarcResource wr = (WarcResource) revisitRecord;
 //		warcHeaders = wr.getWarcHeaders().getHeaderFields();
@@ -1054,29 +1093,28 @@ implements ShutdownListener {
 //			payloadLocation.setFile(payloadWarcFile);
 //			payloadLocation.setOffset(Long.parseLong(offsetStr));
 //		}
-		
+
 		return payloadLocation;
 	}
 
-	private void checkAnchorWindow(WaybackRequest wbRequest, 
+	private void checkAnchorWindow(WaybackRequest wbRequest,
 			CaptureSearchResult result) throws AnchorWindowTooSmallException {
-		if(isUseAnchorWindow()) {
+		if (isUseAnchorWindow()) {
 			String anchorDate = wbRequest.getAnchorTimestamp();
-			if(anchorDate != null) {
+			if (anchorDate != null) {
 				long wantTime = wbRequest.getReplayDate().getTime();
 				long maxWindow = wbRequest.getAnchorWindow() * 1000;
-				if(maxWindow > 0) {
-					long closestDistance = Math.abs(wantTime - 
+				if (maxWindow > 0) {
+					long closestDistance = Math.abs(wantTime -
 							result.getCaptureDate().getTime());
 
-					if(closestDistance > maxWindow) {
-						throw new AnchorWindowTooSmallException("Closest is " + 
-								closestDistance + " seconds away, Window is " + 
+					if (closestDistance > maxWindow) {
+						throw new AnchorWindowTooSmallException("Closest is " +
+								closestDistance + " seconds away, Window is " +
 								maxWindow);
 					}
 				}
 			}
-			
 		}
 	}
 	
@@ -1094,16 +1132,18 @@ implements ShutdownListener {
 		return queryCollapseTime;
 	}
 
-	protected void handleQuery(WaybackRequest wbRequest, 
-			HttpServletRequest httpRequest, HttpServletResponse httpResponse) 
-	throws ServletException, IOException, WaybackException {
+	protected void handleQuery(WaybackRequest wbRequest,
+			HttpServletRequest httpRequest, HttpServletResponse httpResponse)
+			throws ServletException, IOException, WaybackException {
 
 		PerformanceLogger p = new PerformanceLogger("query");
-		
+
 		// TODO: move this Memento code out of this method.
 		// Memento: render timemap
-		if ((this.getMementoHandler() != null) && (wbRequest.isMementoTimemapRequest())) {
-			if (this.getMementoHandler().renderMementoTimemap(wbRequest, httpRequest, httpResponse)) {
+		if ((this.getMementoHandler() != null) &&
+				(wbRequest.isMementoTimemapRequest())) {
+			if (this.getMementoHandler().renderMementoTimemap(wbRequest,
+				httpRequest, httpResponse)) {
 				return;
 			}
 		}
@@ -1116,12 +1156,12 @@ implements ShutdownListener {
 		wbRequest.setCollapseTime(getQueryCollapseTime());
 		
 		SearchResults results = queryIndex(wbRequest);
-		
+
 		p.queried();
-		
+
 		if (results instanceof CaptureSearchResults) {
 			CaptureSearchResults cResults = (CaptureSearchResults)results;
-			
+
 			// The Firefox proxy plugin maks an XML request to populate the
 			// list of available captures, and needs the closest result to
 			// the one being replayed to be flagged as such:
@@ -1129,49 +1169,49 @@ implements ShutdownListener {
 			if (closest != null) {
 				closest.setClosest(true);
 			}
-			
+
 			getQuery().renderCaptureResults(httpRequest, httpResponse,
-					wbRequest, cResults, getUriConverter());
+				wbRequest, cResults, getUriConverter());
 
 		} else if (results instanceof UrlSearchResults) {
 			UrlSearchResults uResults = (UrlSearchResults)results;
 			getQuery().renderUrlResults(httpRequest, httpResponse, wbRequest,
-					uResults, getUriConverter());
+				uResults, getUriConverter());
 		} else {
 			throw new WaybackException("Unknown index format");
 		}
 		p.rendered();
 		p.write(wbRequest.getRequestUrl());
 	}
-	
-	
+
 	/**
 	 * Release any resources associated with this AccessPoint, including
 	 * stopping any background processing threads
 	 */
 	public void shutdown() {
-		if(collection != null) {
+		if (collection != null) {
 			try {
 				collection.shutdown();
 			} catch (IOException e) {
-				LOGGER.severe("FAILED collection shutdown"+e.getMessage());
+				LOGGER.severe("FAILED collection shutdown" + e.getMessage());
 			}
 		}
-		if(exclusionFactory != null) {
+		if (exclusionFactory != null) {
 			exclusionFactory.shutdown();
 		}
 	}
-	
-	protected void closeResources(Resource payloadResource, Resource httpHeadersResource)
-	{
-		if ((payloadResource != null) && (payloadResource != httpHeadersResource)) {
+
+	protected void closeResources(Resource payloadResource,
+			Resource httpHeadersResource) {
+		if ((payloadResource != null) &&
+				(payloadResource != httpHeadersResource)) {
 			try {
 				payloadResource.close();
 			} catch (IOException e) {
 				LOGGER.warning(e.toString());
 			}
 		}
-		
+
 		if (httpHeadersResource != null) {
 			try {
 				httpHeadersResource.close();
@@ -1180,27 +1220,27 @@ implements ShutdownListener {
 			}
 		}
 	}
-	
+
 	private String getBestPrefix(String best, String next, String last) {
-		if(best != null) {
+		if (best != null) {
 			return best;
 		}
-		if(next != null) {
+		if (next != null) {
 			return next;
 		}
 		return last;
 	}
-	
+
 	/*
 	 * *******************************************************************
 	 * *******************************************************************
 	 * 
-	 *    ALL GETTER/SETTER BELOW HERE 
+	 *    ALL GETTER/SETTER BELOW HERE
 	 * 
 	 * *******************************************************************
 	 * *******************************************************************
 	 */
-	
+
 	/**
 	 * @return the exactHostMatch
 	 */
@@ -1274,18 +1314,16 @@ implements ShutdownListener {
 	}
 
 	/**
-	 * @param serveStatic if set to true, this AccessPoint will serve static 
+	 * @param serveStatic if set to true, this AccessPoint will serve static
 	 * content, and .jsp files
 	 */
 	public void setServeStatic(boolean serveStatic) {
 		this.serveStatic = serveStatic;
 	}
-	
-	
 
 	/**
 	 * @return the livewebRedirector which determines if custom loading or handling
-	 * is done for resources that are not successfully loaded, 
+	 * is done for resources that are not successfully loaded,
 	 */
 	public LiveWebRedirector getLiveWebRedirector() {
 		return liveWebRedirector;
@@ -1298,27 +1336,26 @@ implements ShutdownListener {
 	public void setLiveWebRedirector(LiveWebRedirector liveWebRedirector) {
 		this.liveWebRedirector = liveWebRedirector;
 	}
-	
+
 	// Set standard liveweb redirector
 	public void setLiveWebPrefix(String liveWebPrefix) {
 		if (liveWebPrefix == null || liveWebPrefix.isEmpty()) {
 			this.liveWebRedirector = null;
 		}
-		
+
 		this.liveWebRedirector = new DefaultLiveWebRedirector(liveWebPrefix);
 	}
-	
-	public String getLiveWebPrefix()
-	{
+
+	public String getLiveWebPrefix() {
 		if (this.liveWebRedirector == null) {
 			return null;
 		}
-		
+
 		return this.liveWebRedirector.getLiveWebPrefix();
 	}
 
 	/**
-	 * @return the String url prefix to use when generating self referencing 
+	 * @return the String url prefix to use when generating self referencing
 	 * 			static URLs
 	 */
 	public String getStaticPrefix() {
@@ -1334,11 +1371,11 @@ implements ShutdownListener {
 	}
 
 	/**
-	 * @return the String url prefix to use when generating self referencing 
+	 * @return the String url prefix to use when generating self referencing
 	 * 			replay URLs
 	 */
 	public String getReplayPrefix() {
-		return getBestPrefix(replayPrefix,queryPrefix,staticPrefix);
+		return getBestPrefix(replayPrefix, queryPrefix, staticPrefix);
 	}
 
 	/**
@@ -1358,11 +1395,11 @@ implements ShutdownListener {
 	}
 
 	/**
-	 * @return the String url prefix to use when generating self referencing 
+	 * @return the String url prefix to use when generating self referencing
 	 * 			replay URLs
 	 */
 	public String getQueryPrefix() {
-		return getBestPrefix(queryPrefix,staticPrefix,replayPrefix);
+		return getBestPrefix(queryPrefix, staticPrefix, replayPrefix);
 	}
 
 	/**
@@ -1404,7 +1441,7 @@ implements ShutdownListener {
 	}
 
 	/**
-	 * @param urlRoot explicit URL prefix to use when creating ANY self 
+	 * @param urlRoot explicit URL prefix to use when creating ANY self
 	 * referencing URLs
 	 * @deprecated use setQueryPrefix, setReplayPrefix, setStaticPrefix
 	 */
@@ -1415,7 +1452,7 @@ implements ShutdownListener {
 	}
 
 	/**
-	 * @return the String url prefix used when generating self referencing 
+	 * @return the String url prefix used when generating self referencing
 	 * 			URLs
 	 * @deprecated use getQueryPrefix, getReplayPrefix, getStaticPrefix
 	 */
@@ -1431,7 +1468,7 @@ implements ShutdownListener {
 	}
 
 	/**
-	 * @param locale explicit Locale to use for requests within this 
+	 * @param locale explicit Locale to use for requests within this
 	 * 		AccessPoint. If not set, will attempt to use the one specified by
 	 * 		each requests User Agent via HTTP headers
 	 */
@@ -1451,13 +1488,13 @@ implements ShutdownListener {
 	 * @param configs the generic customization Properties to use with this
 	 * AccessPoint, generally used to tune the UI
 	 */
-	
+
 	public void setConfigs(Properties configs) {
 		this.configs = configs;
 	}
-	
+
 	/**
-	 * @return List of file patterns that will be matched when querying the 
+	 * @return List of file patterns that will be matched when querying the
 	 * ResourceIndex
 	 */
 	public List<String> getFilePatterns() {
@@ -1474,7 +1511,7 @@ implements ShutdownListener {
 	}
 
 	/**
-	 * @return List of file String prefixes that will be matched when querying 
+	 * @return List of file String prefixes that will be matched when querying
 	 * 		the ResourceIndex
 	 */
 	public List<String> getFileIncludePrefixes() {
@@ -1483,7 +1520,7 @@ implements ShutdownListener {
 
 	/**
 	 * @param fileIncludePrefixes List of String file prefixes that will be matched
-	 * 		when querying the ResourceIndex - only SearchResults from files 
+	 * 		when querying the ResourceIndex - only SearchResults from files
 	 * 		with a prefix matching one of those in this List will be returned.
 	 */
 	public void setFileIncludePrefixes(List<String> fileIncludePrefixes) {
@@ -1491,7 +1528,7 @@ implements ShutdownListener {
 	}
 
 	/**
-	 * @return List of file String prefixes that will be matched when querying 
+	 * @return List of file String prefixes that will be matched when querying
 	 * 		the ResourceIndex
 	 */
 	public List<String> getFileExcludePrefixes() {
@@ -1500,15 +1537,13 @@ implements ShutdownListener {
 
 	/**
 	 * @param fileExcludePrefixes List of String file prefixes that will be matched
-	 * 		when querying the ResourceIndex - only SearchResults from files 
+	 * 		when querying the ResourceIndex - only SearchResults from files
 	 * 		with a prefix matching one of those in this List will be returned.
 	 */
 	public void setFileExcludePrefixes(List<String> fileExcludePrefixes) {
 		this.fileExcludePrefixes = fileExcludePrefixes;
 	}
 
-
-	
 	/**
 	 * @return the WaybackCollection used by this AccessPoint
 	 */
@@ -1543,7 +1578,7 @@ implements ShutdownListener {
 	public QueryRenderer getQuery() {
 		return query;
 	}
-	
+
 	/**
 	 * @param query the QueryRenderer responsible for returning query data to
 	 * clients.
@@ -1553,14 +1588,14 @@ implements ShutdownListener {
 	}
 
 	/**
-	 * @return the RequestParser used by this AccessPoint to attempt to 
-	 * translate incoming HttpServletRequest objects into WaybackRequest 
+	 * @return the RequestParser used by this AccessPoint to attempt to
+	 * translate incoming HttpServletRequest objects into WaybackRequest
 	 * objects
 	 */
 	public RequestParser getParser() {
 		return parser;
 	}
-	
+
 	/**
 	 * @param parser the RequestParser to use with this AccessPoint
 	 */
@@ -1619,7 +1654,7 @@ implements ShutdownListener {
 	}
 
 	/**
-	 * @return the configured AuthenticationControl BooleanOperator in use with 
+	 * @return the configured AuthenticationControl BooleanOperator in use with
 	 *      this AccessPoint.
 	 */
 	public BooleanOperator<WaybackRequest> getAuthentication() {
@@ -1729,22 +1764,21 @@ implements ShutdownListener {
 	public CustomResultFilterFactory getFilterFactory() {
 		return filterFactory;
 	}
-	
+
 	/**
 	 * Optional
 	 * @param selfRedirectCanonicalizer
 	 */
-	public void setSelfRedirectCanonicalizer(UrlCanonicalizer selfRedirectCanonicalizer)
-	{
+	public void setSelfRedirectCanonicalizer(
+			UrlCanonicalizer selfRedirectCanonicalizer) {
 		this.selfRedirectCanonicalizer = selfRedirectCanonicalizer;
 	}
-	
+
 	/**
-	 * 
-	 * @return
+	 * URL canonicalizer for testing self-redirect.
+	 * @return UrlCanonicalizer
 	 */
-	public UrlCanonicalizer getSelfRedirectCanonicalizer()
-	{
+	public UrlCanonicalizer getSelfRedirectCanonicalizer() {
 		return this.selfRedirectCanonicalizer;
 	}
 

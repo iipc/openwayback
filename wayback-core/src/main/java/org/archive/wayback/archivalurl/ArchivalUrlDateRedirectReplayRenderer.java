@@ -34,9 +34,8 @@ import org.archive.wayback.core.WaybackRequest;
 
 /**
  *
- *
+ * @deprecated 1.8.1 2014-06-26 with no replacement.
  * @author brad
- * @version $Date$, $Revision$
  */
 
 public class ArchivalUrlDateRedirectReplayRenderer implements ReplayRenderer {

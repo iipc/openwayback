@@ -493,6 +493,10 @@ public class CaptureSearchResult extends SearchResult {
 		return this.getCaptureDate().toString() + " " + this.getOriginalUrl();
 	}
 
+	/**
+	 * {@code true} if HTTP response code is either {@code 4xx} or {@code 5xx}.
+	 * @return
+	 */
 	public boolean isHttpError() {
 		if (this.isDuplicateDigest() && (this.getDuplicatePayload() != null)) {
 			return this.getDuplicatePayload().isHttpError();
@@ -501,6 +505,10 @@ public class CaptureSearchResult extends SearchResult {
 		return (httpCode.startsWith("4") || httpCode.startsWith("5"));
 	}
 	
+	/**
+	 * {@code true} if HTTP response code is {@code 3xx}.
+	 * @return
+	 */
 	public boolean isHttpRedirect() {
 		if (this.isDuplicateDigest() && (this.getDuplicatePayload() != null)) {
 			return this.getDuplicatePayload().isHttpRedirect();
@@ -509,6 +517,10 @@ public class CaptureSearchResult extends SearchResult {
 		return (httpCode.startsWith("3"));
 	}
 	
+	/**
+	 * {@code true} if HTTP response code is {@code 2xx}.
+	 * @return
+	 */
 	public boolean isHttpSuccess() {
 		if (this.isDuplicateDigest() && (this.getDuplicatePayload() != null)) {
 			return this.getDuplicatePayload().isHttpSuccess();
