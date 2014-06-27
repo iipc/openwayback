@@ -1121,8 +1121,11 @@ implements ShutdownListener {
 		}
 
 		// TODO: should this be applied to Memento Timemap as well?
-		if (queryCollapseTime >= 0)
-			wbRequest.setCollapseTime(queryCollapseTime);
+
+		// Must call getQueryCollapseTime() because AccessPointAdapter
+		// needs to read parent's value, not the unused field of its
+		// own.
+		wbRequest.setCollapseTime(getQueryCollapseTime());
 		
 		SearchResults results = queryIndex(wbRequest);
 		
