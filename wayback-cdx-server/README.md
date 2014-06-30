@@ -370,8 +370,9 @@ The *API-Key-Secret* can be set in the cdx server configuration.
 
 ## CDX Server Configuration ##
 
+
 TODO
 
-
+Start by editing the wayback-cdx-server-servlet.xml File in the WEB-INF Directory. Just put some valid CDX-Files in the cdxUris-List (Files must end with cdx or cdx.gz!) 
 
 

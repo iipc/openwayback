@@ -20,14 +20,36 @@
 package org.archive.wayback.replay.html;
 
 import org.archive.wayback.ResultURIConverter;
+import org.archive.wayback.accesspoint.AccessPointAdapter;
+import org.archive.wayback.archivalurl.ArchivalURLJSStringTransformerReplayRenderer;
+import org.archive.wayback.archivalurl.ArchivalUrlSAXRewriteReplayRenderer;
 
 /**
- * 
  * Abstracts creation of specialized ResultURIConverters based on particular
  * flags.
- * 
- * @author brad
+ * <p>
+ * Currently {@code ContextResultURIConverterFactory} is used in two different
+ * contexts, and it receives critically different information as {@code flags}
+ * argument for each context.
+ * <ol>
+ * <li>customizing the way parent request handler builds
+ * {@link ResultURIConverter} for each of its children
+ *  - receives {@code replayURIPrefix} as {@code flags}.
+ * ({@link AccessPointAdapter})</li>
+ * <li>passing requested resource type (often called <i>flags</i>) information to
+ * {@link ReplayParseContext}
+ * - receives resource type (such as {@code "cs_"}) as {@code flags}.
+ * ({@link ArchivalUrlSAXRewriteReplayRenderer} and
+ * {@link ArchivalURLJSStringTransformerReplayRenderer}).</li>
+ * </ol>
+ * <p>Using single interface in semantically different contexts leads to
+ * a lot of confusion and awkward code. Redesign is highly desired.
+ * Current plan is to do away with usage 2, and design better interface for
+ * usage 1.</p>
  *
+ * @author brad
+ * @see ReplayParseContext#makeConverter
+ * @see AccessPointAdapter#getUriConverter
  */
 public interface ContextResultURIConverterFactory {
 	public ResultURIConverter getContextConverter(String flags);

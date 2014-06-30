@@ -24,6 +24,13 @@ import java.util.List;
 import org.archive.wayback.replay.html.ReplayParseContext;
 import org.archive.wayback.replay.html.StringTransformer;
 
+/**
+ * {@link StringTransformer} that aggregates multiple sub-<code>StringTransformer</code>s that
+ * are applied in sequential manner.
+ * <p>Despite the name, this class has nothing to do with regular expression.
+ * sub-StringTransformers can be any <code>StringTransformer</code> regardless of
+ * being regular-expression base or not.</p>
+ */
 public class MultiRegexReplaceStringTransformer implements StringTransformer {
 	List<StringTransformer> transformers;
 	public String transform(ReplayParseContext context, String input) {

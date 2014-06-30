@@ -32,7 +32,7 @@ public abstract class BaseCSSStringTransformer {
 //		"url\\s*\\(\\s*([^\\)]*)\\s*\\)";
 
 	// this looks for various forms of "@import ZZZ" where "ZZZ" may or may not
-	// have quotes and parenths around it..
+	// have quotes and parentheses around it..
 	// this regex is not supposed to match the (correct) @import url(ZZZ) form,
 	// which is handled by the more generic "url(ZZZ)" pattern
 	protected static String cssImportNoUrlPatString = 
@@ -71,9 +71,12 @@ public abstract class BaseCSSStringTransformer {
 			}
 			int urlLength = url.length();
 			String replayUrl = context.contextualizeUrl(url, flags);
-			int delta = replayUrl.length() - urlLength;
-			sb.replace(urlStart, urlStart + urlLength, replayUrl);
-			idx += delta;
+			if (replayUrl != url) {
+				int delta = replayUrl.length() - urlLength;
+				sb.replace(urlStart, urlStart + urlLength, replayUrl);
+				// adjust start of next match as URL extends
+				idx += delta;
+			}
 		}
 	}
 }

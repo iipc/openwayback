@@ -458,6 +458,59 @@ public class WaybackRequest {
 			STD_PHP_SESSION_ID,
 			STD_J_SESSION_ID };
 
+	// static constructor methods for typical cases
+
+	/**
+	 * create WaybackRequet for URL-Query request.
+	 * @param url target URL
+	 * @param start start timestamp (14-digit)
+	 * @param end end timestamp (14-digit)
+	 * @return WaybackRequest
+	 */
+	public static WaybackRequest createUrlQueryRequest(String url, String start, String end) {
+		WaybackRequest r = new WaybackRequest();
+		r.setUrlQueryRequest();
+		r.setRequestUrl(url);
+		r.setStartTimestamp(start);
+		r.setEndTimestamp(end);
+		return r;
+	}
+
+	/**
+	 * create WaybackRequest for Capture-Query request.
+	 * @param url target URL
+	 * @param replay highlight date
+	 * @param start start timestamp (14-digit)
+	 * @param end end timestamp (14-digit)
+	 * @return WaybackRequest
+	 */
+	public static WaybackRequest createCaptureQueryRequet(String url, String replay, String start, String end) {
+		WaybackRequest r = new WaybackRequest();
+		r.setCaptureQueryRequest();
+		r.setRequestUrl(url);
+		r.setReplayTimestamp(replay);
+		r.setStartTimestamp(start);
+		r.setEndTimestamp(end);
+		return r;
+	}
+	/**
+	 * create WaybackRequet for Replay request.
+	 * @param url target URL
+	 * @param replay requested date
+	 * @param start start timestamp (14-digit)
+	 * @param end end timestamp (14-digit)
+	 * @return WaybackRequet
+	 */
+	public static WaybackRequest createReplayRequest(String url, String replay, String start, String end) {
+		WaybackRequest r = new WaybackRequest();
+		r.setReplayRequest();
+		r.setRequestUrl(url);
+		r.setReplayTimestamp(replay);
+		r.setStartTimestamp(start);
+		r.setEndTimestamp(end);
+		return r;
+	}
+
 	/**
 	 * @return Returns the resultsPerPage.
 	 */
@@ -815,6 +868,7 @@ public class WaybackRequest {
 
 	public void setJSContext(boolean isJSContext) {
 		setBoolean(REQUEST_JS_CONTEXT,isJSContext);
+		setForcedContentType(isJSContext ? "text/javascript" : null);
 	}
 	public boolean isJSContext() {
 		return getBoolean(REQUEST_JS_CONTEXT);
@@ -822,6 +876,7 @@ public class WaybackRequest {
 
 	public void setCSSContext(boolean isCSSContext) {
 		setBoolean(REQUEST_CSS_CONTEXT,isCSSContext);
+		setForcedContentType(isCSSContext ? "text/css" : null);
 	}
 	public boolean isCSSContext() {
 		return getBoolean(REQUEST_CSS_CONTEXT);
@@ -829,6 +884,9 @@ public class WaybackRequest {
 	
 	public void setIMGContext(boolean isIMGContext) {
 		setBoolean(REQUEST_IMAGE_CONTEXT,isIMGContext);
+		// not setting foredContentType because 1) subtype is
+		// unknown. 2) catch-all transparent ReplayRenderer
+		// is used for im_ anyways.
 	}
 	public boolean isIMGContext() {
 		return getBoolean(REQUEST_IMAGE_CONTEXT);
@@ -862,6 +920,22 @@ public class WaybackRequest {
 		return getBoolean(REQUEST_IFRAME_WRAPPER_CONTEXT);
 	}
 	
+	// TODO: this could be a native field.
+	private static final String REQUEST_FORCED_CONTENT_TYPE = "forced.content.type";
+
+	/**
+	 * set content type forced by context flag (ex. {@code cs_}).
+	 * If this is set, it overrides contentType from index/resource.
+	 * @param contentType content type (ex. {@code text/css}) or {@code null}.
+	 * @see org.archive.wayback.replay.selector.MimeTypeSelector
+	 */
+	public void setForcedContentType(String contentType) {
+		put(REQUEST_FORCED_CONTENT_TYPE, contentType);
+	}
+	public String getForcedContentType() {
+		return get(REQUEST_FORCED_CONTENT_TYPE);
+	}
+
 	public boolean isAnyEmbeddedContext()
 	{
 		return this.isCSSContext() || this.isIMGContext() || this.isJSContext() ||
@@ -875,6 +949,18 @@ public class WaybackRequest {
 		return getBoolean(REQUEST_AJAX_REQUEST);
 	}
 	
+	/**
+	 * checks if Memento response is enabled in the {@link AccessPoint}
+	 * for this request.
+	 * <p>Better than accessing {@link AccessPoint#isEnableMemento()} through
+	 * {@link #getAccessPoint()}.</p>
+	 * @return {@code true} if enabled.
+	 * @see AccessPoint#isEnableMemento()
+	 */
+	public boolean isMementoEnabled() {
+		return accessPoint != null && accessPoint.isEnableMemento();
+	}
+
 	public void setMementoTimemapFormat(String format) {
 		put(REQUEST_MEMENTO_TIMEMAP, format);
 	}
@@ -1009,7 +1095,7 @@ public class WaybackRequest {
 			this.setAjaxRequest(true);
 		}
 		
-		if (accessPoint != null && accessPoint.isEnableMemento()) {		
+		if (isMementoEnabled()) {
 			// Check for Memento Accept-Datetime
 			String acceptDateTime = httpRequest.getHeader(MementoUtils.ACCEPT_DATETIME);
 			if (acceptDateTime != null) {

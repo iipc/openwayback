@@ -23,16 +23,28 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.archive.wayback.ReplayRenderer;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.webapp.AccessPoint;
 
 /**
- * 
- * 
+ * Selects {@link ReplayRenderer} by Content-Type.
+ * Sources of Content-Type (higher priority to lower):
+ * <ul>
+ * <li>{@link WaybackRequest#getForcedContentType()} (set by context flags)</li>
+ * <li>{@link CaptureSearchResult#getMimeType()} (from index, {@code warc/revisit} is ignored)</li>
+ * <li>{@link CaptureSearchResult#getMimeType()} of {@code duplicatePayload}</li>
+ * <li>{@code Content-Type} header of payload {@link Resource}</li>
+ * </ul>
+ * <p>1.8.1 2014-06-17 {@code getForcedContentType()} is added.
+ * This makes following selectors optional:
+ * <ul>
+ * <li>{@code CSSRequestSelector}</li>
+ * <li>{@code JSRequestSelector}</li>
+ * </ul>
  * @author brad
- * @version $Date$, $Revision$
  */
 public class MimeTypeSelector extends BaseReplayRendererSelector {
 	private Map<String, Object> mimeMatches = null;
@@ -46,7 +58,11 @@ public class MimeTypeSelector extends BaseReplayRendererSelector {
 		if (isResourceTooBig(payloadResource)) {
 			return false;
 		}
-		String mime = result.getMimeType();
+
+		String mime = wbRequest.getForcedContentType();
+
+		if (mime == null)
+			mime = result.getMimeType();
 		
 		if ((mime == null) || mime.equals(AccessPoint.REVISIT_STR)) {
 			if (result.getDuplicatePayload() != null) {

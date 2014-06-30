@@ -52,8 +52,7 @@ public class ProxyAccessPoint extends CompositeAccessPoint {
 	private String httpsProxyHostPort;
 	
 	@Override
-	public boolean isProxyEnabled()
-	{
+	public boolean isProxyEnabled() {
 		return (configSelector != null);
 	}	
 
@@ -142,10 +141,14 @@ public class ProxyAccessPoint extends CompositeAccessPoint {
 
 		return baseHandleRequest(request, response);
 	}
-		
+
 	protected boolean handleProxy(HttpServletRequest request,
-			HttpServletResponse response) throws ServletException, IOException
-	{			
+			HttpServletResponse response) throws ServletException, IOException {
+		
+		// if request is Archival-URL style URL, redirect to proxy calendar view or
+		// proxy replay end point. Archival-URL is recognized only when the request
+		// URL starts with replayPrefix of this AccessPoint (or non-proxy AccessPoint)
+
 		StringBuffer urlBuff = request.getRequestURL();
 		String url = urlBuff.toString();
 		
@@ -162,6 +165,8 @@ public class ProxyAccessPoint extends CompositeAccessPoint {
 			return true;
 		}
 		
+		// name of collection specified in the request (ex. Proxy-Authorization),
+		// such as "3548"
 		String realAccessPoint = configSelector.resolveConfig(request);
 		
 		if (realAccessPoint != null) {
@@ -169,10 +174,11 @@ public class ProxyAccessPoint extends CompositeAccessPoint {
 			// See if the archival url form was included and redirect to strip it
 			if (isProxyHost) {
 				String prefix = "/" + realAccessPoint + "/";
+				// ex. "/3548/20140101123059/http://example.com/"
 				String uri = request.getRequestURI();
 				
-				
-				if (uri.length() > prefix.length()) {		
+				if (uri.length() > prefix.length()) {
+					// "20140101123059/http://example.com/"
 					String requestUrl = uri.substring(prefix.length());
 					
 					// If matches this config, simply redirect and strip
@@ -184,12 +190,18 @@ public class ProxyAccessPoint extends CompositeAccessPoint {
 						}
 						String timestamp = paths[0];
 						String replayUrl = paths[1];
-						// Calendar -> redirect to collection-less proxy query
-						String redirUrl = null;
+						String queryString = request.getQueryString();
+						if (queryString != null) {
+							replayUrl = replayUrl + "?" + queryString;
+						}
 						
+						String redirUrl = null;
 						if (timestamp.contains("*")) {
+							// Calendar -> redirect to collection-less proxy query
 							redirUrl = "/" + requestUrl;
 						} else {
+							// specific timestamp -> redirect to collection-less
+							// proxy replay.
 							ResultURIConverter converter = getArchivalToProxyConverter();
 							if (converter == null) {
 								converter = this.getUriConverter();
@@ -203,12 +215,16 @@ public class ProxyAccessPoint extends CompositeAccessPoint {
 					}
 				}
 				
+				// URL doesn't have collection part, or collection part does not match
+				// collection specified in the request.
+
 				//If archival url with any *different* config, force a selection
 				//if (ReplayRequestParser.WB_REQUEST_REGEX.matcher(requestUrl).matches()) {
 				//	return configSelector.selectConfigHandler(request, response, this);					
 				//}
 			}	
 			
+			// handle regular proxy-mode requests.
 			Status status = handleRequest(realAccessPoint, request, response);
 			
 			switch (status) {
@@ -223,6 +239,7 @@ public class ProxyAccessPoint extends CompositeAccessPoint {
 			}
 		}
 		
+		// collection is unknown. let user choose.
 		return configSelector.selectConfigHandler(request, response, this);
 	}
 	

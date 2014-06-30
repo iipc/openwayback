@@ -46,9 +46,17 @@ import org.archive.wayback.webapp.CustomResultFilterFactory;
 import org.archive.wayback.webapp.LiveWebRedirector;
 import org.archive.wayback.webapp.WaybackCollection;
 
+/**
+ * Sub-AccessPoint managed by {@link CompositeAccessPoint}.
+ *
+ * TODO: Strictly speaking this is not an <i>Adapter</i>. It is an
+ * {@link AccessPoint} extended with a capability to inherit/override
+ * parent's configuration.
+ *
+ */
 public class AccessPointAdapter extends AccessPoint {
 	
-	private CompositeAccessPoint baseAccessPoint;
+	private CompositeAccessPoint composite;
 	private AccessPointConfig config;
 	private ExclusionFilterFactory exclusionFactory;
 	private ResultURIConverter cacheUriConverter;
@@ -56,21 +64,19 @@ public class AccessPointAdapter extends AccessPoint {
 	
 	private boolean switchable = false;
 	
-	private class DynamicExclusionFactory implements ExclusionFilterFactory
-	{
-		public ExclusionFilter get()
-		{
-			return new CustomPolicyOracleFilter(baseAccessPoint.getOracleUrl(), config.getBeanName(), null);
+	private class DynamicExclusionFactory implements ExclusionFilterFactory {
+		public ExclusionFilter get() {
+			return new CustomPolicyOracleFilter(composite.getOracleUrl(),
+					config.getBeanName(), null);
 		}
-		
-		public void shutdown() {
 
-		}		
+		public void shutdown() {
+		}
 	}
 	
-	public AccessPointAdapter(CompositeAccessPoint baseAccessPoint, AccessPointConfig config)
-	{
-		this.baseAccessPoint = baseAccessPoint;
+	public AccessPointAdapter(CompositeAccessPoint baseAccessPoint,
+			AccessPointConfig config) {
+		this.composite = baseAccessPoint;
 		this.config = config;
 		this.exclusionFactory = null;
 		
@@ -78,9 +84,9 @@ public class AccessPointAdapter extends AccessPoint {
 		initMergedProps();
 	}
 	
-	public AccessPointAdapter(String accessPointName, CompositeAccessPoint baseAccessPoint)
-	{
-		this.baseAccessPoint = baseAccessPoint;
+	public AccessPointAdapter(String accessPointName,
+			CompositeAccessPoint baseAccessPoint) {
+		this.composite = baseAccessPoint;
 		this.exclusionFactory = null;
 		this.config = baseAccessPoint.getAccessPointConfigs().getAccessPointConfigs().get(accessPointName);
 		
@@ -88,46 +94,40 @@ public class AccessPointAdapter extends AccessPoint {
 		initMergedProps();
 	}
 	
-	protected void initMergedProps()
-	{
+	protected void initMergedProps() {
 		this.props = new Properties();
-		
-		//First put the generic ones
-		if (baseAccessPoint.getConfigs() != null) {
-			props.putAll(baseAccessPoint.getConfigs());
+
+		// First put the generic ones
+		if (composite.getConfigs() != null) {
+			props.putAll(composite.getConfigs());
 		}
-		
-		//Now, the custom ones for this config
+
+		// Now, the custom ones for this config
 		if (config.getConfigs() != null) {
 			props.putAll(config.getConfigs());
 		}
 	}
 	
-	public CompositeAccessPoint getBaseAccessPoint()
-	{
-		return baseAccessPoint;
+	public CompositeAccessPoint getBaseAccessPoint() {
+		return composite;
 	}
-	
-	public boolean isProxyMode()
-	{
-		return baseAccessPoint.isProxyEnabled();
+
+	public boolean isProxyMode() {
+		return composite.isProxyEnabled();
 	}
-	
-	public boolean isProxySwitchable()
-	{
+
+	public boolean isProxySwitchable() {
 		return switchable && isProxyMode();
 	}
-	
-	public String getSwitchCollPath()
-	{
+
+	public String getSwitchCollPath() {
 		return ProxyAccessPoint.SWITCH_COLLECTION_PATH;
 	}
-	
-	public AccessPointConfig getAccessPointConfig()
-	{
+
+	public AccessPointConfig getAccessPointConfig() {
 		return config;
 	}
-	
+
 	@Override
 	public List<String> getFileIncludePrefixes() {
 		return config.getFileIncludePrefixes();
@@ -137,174 +137,172 @@ public class AccessPointAdapter extends AccessPoint {
 	public List<String> getFileExcludePrefixes() {
 		return config.getFileExcludePrefixes();
 	}
-	
+
 	@Override
 	public Properties getConfigs() {
 		return props;
 	}
-	
+
 	@Override
-	public String getAccessPointPath()
-	{
+	public String getAccessPointPath() {
 		return config.getBeanName();
 	}
-	
-	public boolean hasExclusions()
-	{
-		return (baseAccessPoint.getStaticExclusions() != null) || (baseAccessPoint.getOracleUrl() != null);
+
+	public boolean hasExclusions() {
+		return (composite.getStaticExclusions() != null) ||
+				(composite.getOracleUrl() != null);
 	}
 
 	@Override
 	public ExclusionFilterFactory getExclusionFactory() {
-		
+
 		if (!hasExclusions()) {
 			return null;
 		}
-		
-		if (exclusionFactory == null) {	
+
+		if (exclusionFactory == null) {
 			exclusionFactory = buildExclusionFactory();
 		}
-		
+
 		return exclusionFactory;
 	}
-	
-	protected ExclusionFilterFactory buildExclusionFactory()
-	{	
-		ArrayList<ExclusionFilterFactory> staticExclusions = baseAccessPoint.getStaticExclusions();
-		
+
+	protected ExclusionFilterFactory buildExclusionFactory() {
+		ArrayList<ExclusionFilterFactory> staticExclusions = composite
+				.getStaticExclusions();
+
 		if (staticExclusions == null) {
 			return new DynamicExclusionFactory();
 		} else {
-			CompositeExclusionFilterFactory composite = new CompositeExclusionFilterFactory();
+			CompositeExclusionFilterFactory factory = new CompositeExclusionFilterFactory();
 			ArrayList<ExclusionFilterFactory> allExclusions = new ArrayList<ExclusionFilterFactory>();
 			allExclusions.addAll(staticExclusions);
-			if (baseAccessPoint.getOracleUrl() != null) {
+			if (composite.getOracleUrl() != null) {
 				allExclusions.add(new DynamicExclusionFactory());
 			}
-			composite.setFactories(allExclusions);
-			return composite;
+			factory.setFactories(allExclusions);
+			return factory;
 		}
 	}
-	
-	protected String getPrefix(String basePrefix)
-	{
+
+	protected String getPrefix(String basePrefix) {
 		if (isProxyMode()) {
 			return basePrefix;
 		} else {
 			return basePrefix + config.getBeanName() + "/";
 		}
 	}
-	
+
 	@Override
 	public String getStaticPrefix() {
-		return baseAccessPoint.getStaticPrefix();
+		return composite.getStaticPrefix();
 	}
 
 	@Override
 	public String getReplayPrefix() {
-		return getPrefix(baseAccessPoint.getReplayPrefix());
+		return getPrefix(composite.getReplayPrefix());
 	}
 
 	@Override
 	public String getQueryPrefix() {
-		return getPrefix(baseAccessPoint.getQueryPrefix());
+		return getPrefix(composite.getQueryPrefix());
 	}
 
 	@Override
 	public boolean isExactHostMatch() {
-		return baseAccessPoint.isExactHostMatch();
+		return composite.isExactHostMatch();
 	}
 
 	@Override
 	public boolean isExactSchemeMatch() {
-		return baseAccessPoint.isExactSchemeMatch();
+		return composite.isExactSchemeMatch();
 	}
 
 	@Override
 	public boolean isUseAnchorWindow() {
-		return baseAccessPoint.isUseAnchorWindow();
+		return composite.isUseAnchorWindow();
 	}
 
 	@Override
 	public boolean isServeStatic() {
-		return baseAccessPoint.isServeStatic();
+		return composite.isServeStatic();
 	}
-	
-	@Override	
+
+	@Override
 	public ServletContext getServletContext() {
-		return baseAccessPoint.getServletContext();
+		return composite.getServletContext();
 	}
 
 	@Override
 	public LiveWebRedirector getLiveWebRedirector() {
-		return baseAccessPoint.getLiveWebRedirector();
+		return composite.getLiveWebRedirector();
 	}
-	
+
 	@Override
 	public String getLiveWebPrefix() {
-		return baseAccessPoint.getLiveWebPrefix();
+		return composite.getLiveWebPrefix();
 	}
 
 	@Override
 	public String getInterstitialJsp() {
-		return baseAccessPoint.getInterstitialJsp();
+		return composite.getInterstitialJsp();
 	}
 
 	@Override
 	public Locale getLocale() {
-		return baseAccessPoint.getLocale();
+		return composite.getLocale();
 	}
 
 	@Override
 	public List<String> getFilePatterns() {
-		return baseAccessPoint.getFilePatterns();
+		return composite.getFilePatterns();
 	}
-	
+
 	@Override
 	public WaybackCollection getCollection() {
 		if (config.getCollection() != null) {
 			return config.getCollection();
 		} else {
-			return baseAccessPoint.getCollection();
+			return composite.getCollection();
 		}
 	}
 
 	@Override
 	public ExceptionRenderer getException() {
-		return baseAccessPoint.getException();
+		return composite.getException();
 	}
 
 	@Override
 	public QueryRenderer getQuery() {
-		return baseAccessPoint.getQuery();
+		return composite.getQuery();
 	}
 
 	@Override
 	public RequestParser getParser() {
 		RequestParser requestParser = config.getRequestParser();
-		
+
 		if (requestParser != null) {
 			return requestParser;
-		} else {		
-			return baseAccessPoint.getParser();
+		} else {
+			return composite.getParser();
 		}
 	}
 
 	@Override
 	public ReplayDispatcher getReplay() {
-		return baseAccessPoint.getReplay();
+		return composite.getReplay();
 	}
 
 	@Override
 	public ResultURIConverter getUriConverter() {
 		
 		if (cacheUriConverter == null) {		
-			ContextResultURIConverterFactory factory = baseAccessPoint.getUriConverterFactory();
+			ContextResultURIConverterFactory factory = composite.getUriConverterFactory();
 			
 			if (factory != null) {
 				cacheUriConverter = factory.getContextConverter(getReplayPrefix());
 			} else {
-				cacheUriConverter = baseAccessPoint.getUriConverter();
+				cacheUriConverter = composite.getUriConverter();
 			}
 		}
 		
@@ -313,68 +311,68 @@ public class AccessPointAdapter extends AccessPoint {
 
 	@Override
 	public BooleanOperator<WaybackRequest> getAuthentication() {
-		return baseAccessPoint.getAuthentication();
+		return composite.getAuthentication();
 	}
 
 	@Override
 	public String getRefererAuth() {
-		return baseAccessPoint.getRefererAuth();
+		return composite.getRefererAuth();
 	}
 
 	@Override
 	public boolean isBounceToReplayPrefix() {
-		return baseAccessPoint.isBounceToReplayPrefix();
+		return composite.isBounceToReplayPrefix();
 	}
 
 	@Override
 	public boolean isBounceToQueryPrefix() {
-		return baseAccessPoint.isBounceToQueryPrefix();
+		return composite.isBounceToQueryPrefix();
 	}
 
 	@Override
 	public long getEmbargoMS() {
-		return baseAccessPoint.getEmbargoMS();
+		return composite.getEmbargoMS();
 	}
 
 	@Override
 	public boolean isForceCleanQueries() {
-		// Setting this to false to allow custom handling of adapter access points
+		// Setting this to false to allow custom handling of adapter access
+		// points
 		return false;
 	}
 
 	@Override
 	public CustomResultFilterFactory getFilterFactory() {
-		return baseAccessPoint.getFilterFactory();
+		return composite.getFilterFactory();
 	}
-	
+
 	@Override
-	public UrlCanonicalizer getSelfRedirectCanonicalizer()
-	{
-		return baseAccessPoint.getSelfRedirectCanonicalizer();
+	public UrlCanonicalizer getSelfRedirectCanonicalizer() {
+		return composite.getSelfRedirectCanonicalizer();
 	}
 
 	@Override
 	public boolean isRequestAuth() {
-		return baseAccessPoint.isRequestAuth();
+		return composite.isRequestAuth();
 	}
 
 	@Override
 	public int getMaxRedirectAttempts() {
-		return baseAccessPoint.getMaxRedirectAttempts();
+		return composite.getMaxRedirectAttempts();
 	}
 
 	@Override
 	public boolean isTimestampSearch() {
-		return baseAccessPoint.isTimestampSearch();
+		return composite.isTimestampSearch();
 	}
 
 	@Override
 	public String getPerfStatsHeader() {
-		return baseAccessPoint.getPerfStatsHeader();
+		return composite.getPerfStatsHeader();
 	}
 
 	@Override
 	public String getWarcFileHeader() {
-		return baseAccessPoint.getWarcFileHeader();
+		return composite.getWarcFileHeader();
 	}
 }

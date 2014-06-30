@@ -130,6 +130,7 @@ public class ContextAwareLexerTest extends TestCase {
 			new FastArchivalUrlReplayParseEventHandler();
 		handler.setCommentJsp(null);
 		handler.setJspInsertPath(null);
+		handler.init();
 		
 		while(true) {
 			Node next = caLex.nextNode();

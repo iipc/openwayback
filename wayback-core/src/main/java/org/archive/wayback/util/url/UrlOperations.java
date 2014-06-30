@@ -308,6 +308,7 @@ public class UrlOperations {
 	 * @param orig String containing a URL, possibly beginning with "http:/".
 	 * @return original string if orig begins with "http://", or a new String
 	 * with the extra slash, if orig only had one slash.
+	 * @see #fixupScheme
 	 */
 	public static String fixupHTTPUrlWithOneSlash(String orig) {
 		if(orig.startsWith("http:/") && ! orig.startsWith(HTTP_SCHEME)) {
@@ -318,7 +319,30 @@ public class UrlOperations {
 		}
 		return orig;
 	}
-	
+		
+	/**
+	 * fixes up malformed scheme part.
+	 * <p>currently supports fixing missing second slash for protocols
+	 * {@code http}, {@code https}, {@code ftp}, {@code rtsp} and
+	 * {@code mms}. For example fixing {@code http:/} to {@code https://}</p>
+	 * @param url URL to be checked and fixed
+	 * @return new String, or {@code url} if not fix is required.
+	 * @version 1.8.1
+	 */
+	public static String fixupScheme(String url) {
+		final String[] SCHEMES = {
+			"http:/", "https:/", "ftp:/", "rtsp:/", "mms:/"
+		};
+		int ul = url.length();
+		for (String scheme : SCHEMES) {
+			int sl = scheme.length();
+			if (url.startsWith(scheme) && (ul == sl || url.charAt(sl) != '/')) {
+				return scheme + "/" + url.substring(sl);
+			}
+		}
+		return url;
+	}
+
 	/**
 	 * Attempt to extract the hostname component of an absolute URL argument.
 	 * @param url the url String from which to extract the hostname

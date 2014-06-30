@@ -22,11 +22,9 @@ package org.archive.wayback.resourcestore;
 import java.io.IOException;
 import java.util.logging.Logger;
 
-import javax.servlet.http.HttpServletResponse;
-
 import org.archive.wayback.ResourceStore;
-import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.CaptureSearchResult;
+import org.archive.wayback.core.Resource;
 import org.archive.wayback.exception.ResourceNotAvailableException;
 import org.archive.wayback.resourcestore.resourcefile.ArcWarcFilenameFilter;
 import org.archive.wayback.resourcestore.resourcefile.ResourceFactory;

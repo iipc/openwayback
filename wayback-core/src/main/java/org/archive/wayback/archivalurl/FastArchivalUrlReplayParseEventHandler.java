@@ -24,15 +24,17 @@ import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
 
+import org.archive.wayback.core.WaybackRequest;
+import org.archive.wayback.replay.JSPExecutor;
 import org.archive.wayback.replay.html.ReplayParseContext;
 import org.archive.wayback.replay.html.StringTransformer;
 import org.archive.wayback.replay.html.transformer.BlockCSSStringTransformer;
-import org.archive.wayback.replay.html.transformer.InlineCSSStringTransformer;
 import org.archive.wayback.replay.html.transformer.JSStringTransformer;
-import org.archive.wayback.replay.html.transformer.MetaRefreshUrlStringTransformer;
 import org.archive.wayback.replay.html.transformer.URLStringTransformer;
 import org.archive.wayback.util.htmllex.NodeUtils;
 import org.archive.wayback.util.htmllex.ParseContext;
@@ -47,109 +49,133 @@ import org.htmlparser.nodes.TextNode;
  * HTML rewrite rules, and should be much faster than the fully configurable
  * version.
  * 
+ * <p>This class has kludgy support for disabling JavaScript inclusion
+ * with <code>&lt;SCRIPT SRC=...&gt;</code> element.  <code>jsBlockTrans</code>,
+ * whose primary use is translating JavaScript code block (inline &lt;SCRIPT&gt;,
+ * <code>javascript:</code> URI in <code>HREF</code> attribute, and event
+ * handler attributes), is also called with a value of <code>SRC</code> attribute
+ * of &lt;SCRIPT&gt; tag.  If <code>jsBlockTrans</code> returns either <code>null</code>
+ * or an empty String, &lt;SCRIPT&gt; element is disabled by changing <code>SRC</code> to
+ * an empty value.  Note that in this case <code>jsBlockTrans</code> is used only for
+ * a test, and its return value is simply discarded.
+ * URL translation is done by a subsequent call to {@link URLStringTransformer} for
+ * <code>js_</code> context.  This feature is very likely a subject of refactoring
+ * in the future.</p>
+ *
  * @author brad
  * 
  */
 public class FastArchivalUrlReplayParseEventHandler implements
 		ParseEventHandler {
 
-	public final static String FERRET_DONE_KEY = 
-		FastArchivalUrlReplayParseEventHandler.class.toString();
-	
+	private static final Logger LOGGER = Logger
+		.getLogger(FastArchivalUrlReplayParseEventHandler.class.getName());
+
+	public final static String FERRET_DONE_KEY = FastArchivalUrlReplayParseEventHandler.class
+		.toString();
+
 	protected final static String FERRET_IN_HEAD = "FERRET_IN_HEAD";
 
 	private String jspInsertPath = "/WEB-INF/replay/DisclaimChooser.jsp";
 	private String endJsp = "/WEB-INF/replay/ArchiveComment.jsp";
 	private String startJsp = null;
 
-	private final String[] okHeadTags = { "![CDATA[*", "![CDATA[", "?", 
-			"!DOCTYPE", "HTML",	"HEAD", "BASE", "LINK", "META", "TITLE", 
-			"STYLE", "SCRIPT" , "BGSOUND"};
+	private final String[] okHeadTags = { "![CDATA[*", "![CDATA[", "?",
+		"!DOCTYPE", "HTML", "HEAD", "BASE", "LINK", "META", "TITLE", "STYLE",
+		"SCRIPT", "BGSOUND" };
 	private HashMap<String, Object> okHeadTagMap = null;
 	private final static String FRAMESET_TAG = "FRAMESET";
 	private final static String BODY_TAG = "BODY";
 
 	protected static final String FERRET_HEAD_INSERTED = "FERRET_HEAD_INSERTED";
 
-	private BlockCSSStringTransformer cssBlockTrans = 
-		new BlockCSSStringTransformer();
-	private InlineCSSStringTransformer cssInlineTrans = 
-		new InlineCSSStringTransformer();
-	private StringTransformer jsBlockTrans =
-		new JSStringTransformer();
-	private MetaRefreshUrlStringTransformer metaRefreshTrans = 
-		new MetaRefreshUrlStringTransformer();
-	private URLStringTransformer anchorUrlTrans = new URLStringTransformer();
+	private BlockCSSStringTransformer cssBlockTrans = new BlockCSSStringTransformer();
+	private StringTransformer jsBlockTrans = new JSStringTransformer();
 
 	protected String headInsertJsp = null;
-	
-//	static {
-//		anchorUrlTrans = new URLStringTransformer();
-//		anchorUrlTrans.setJsTransformer(jsBlockTrans);
-//	}
-	private static URLStringTransformer framesetUrlTrans =
-		new URLStringTransformer("fw_");
-	private static URLStringTransformer iframeUrlTrans =
-		new URLStringTransformer("if_");	
-	private static URLStringTransformer cssUrlTrans =
-		new URLStringTransformer("cs_");
-	private static URLStringTransformer jsUrlTrans =
-		new URLStringTransformer("js_");
-	private static URLStringTransformer imageUrlTrans =
-		new URLStringTransformer("im_");
-	private static URLStringTransformer objectEmbedUrlTrans =
-		new URLStringTransformer("oe_");
-	
+
+	// @see #transformAttrWhere
+	private boolean unescapeAttributeValues = true;
+
+	private AttributeRewriter attributeRewriter;
+
+	public void init() throws IOException {
+		if (attributeRewriter == null) {
+			StandardAttributeRewriter b = new StandardAttributeRewriter();
+			if (jsBlockTrans != null)
+				b.setJsBlockTrans(jsBlockTrans);
+			b.setUnescapeAttributeValues(unescapeAttributeValues);
+			b.init();
+			attributeRewriter = b;
+		}
+	}
+
 	/** Constructor... */
 	public FastArchivalUrlReplayParseEventHandler() {
 		okHeadTagMap = new HashMap<String, Object>(okHeadTags.length);
 		for (String tag : okHeadTags) {
 			okHeadTagMap.put(tag, null);
 		}
-		anchorUrlTrans.setJsTransformer(jsBlockTrans);
 	}
 	
 	// TODO: This should all be refactored up into an abstract base class with
 	// default no-op methods, allowing a subclass to only override the ones they
 	// want...
-	public void handleNode(ParseContext pContext, Node node) 
-	throws IOException {
-		ReplayParseContext context = (ReplayParseContext) pContext;
-		if(NodeUtils.isRemarkNode(node)) {
-			RemarkNode remarkNode = (RemarkNode) node;
-			remarkNode.setText(jsBlockTrans.transform(context, remarkNode.getText()));
-			emit(context,null,node,null);
+	public void handleNode(ParseContext pContext, Node node) throws IOException {
+		ReplayParseContext context = (ReplayParseContext)pContext;
+		if (NodeUtils.isRemarkNode(node)) {
+			RemarkNode remarkNode = (RemarkNode)node;
+			remarkNode.setText(jsBlockTrans.transform(context,
+				remarkNode.getText()));
+			emit(context, null, node, null);
 
-		} else if(NodeUtils.isTextNode(node)) {
-			TextNode textNode = (TextNode) node;
-			if(context.isInCSS()) {
-				handleCSSTextNode(context,textNode);
-				
-			} else if(context.isInScriptText()) {
-				handleJSTextNode(context,textNode);
-			} else {
-				emit(context,null,textNode,null);
-//				handleContentTextNode(context,textNode);
+		} else if (NodeUtils.isTextNode(node)) {
+			TextNode textNode = (TextNode)node;
+			if (context.isInCSS()) {
+				handleCSSTextNode(context, textNode);
+			} else if (context.isInScriptText()) {
+				handleJSTextNode(context, textNode);
 			}
-		} else if(NodeUtils.isTagNode(node)) {
-			TagNode tagNode = (TagNode) node;
-			
-			if (NodeUtils.isOpenTagNodeNamed(tagNode, NodeUtils.SCRIPT_TAG_NAME)) {
-				handleJSIncludeNode(context, tagNode);			
-			} else if(tagNode.isEndTag()) {
-				
+			emit(context, null, textNode, null);
+//				handleContentTextNode(context,textNode);
+		} else if (NodeUtils.isTagNode(node)) {
+			TagNode tagNode = (TagNode)node;
+
+			if (tagNode.isEndTag()) {
 				if (tagNode.getTagName().equals("HEAD")) {
-					context.putData(FERRET_IN_HEAD, null);	
+					context.putData(FERRET_IN_HEAD, null);
 				}
-				
+
 				if (checkAllowTag(pContext, tagNode)) {
-					emit(context,null,tagNode,null);
+					emit(context, null, tagNode, null);
 				}
-					
+
 //				handleCloseTagNode(context,tagNode);
+			} else if (tagNode.getTagName().startsWith("![CDATA[")) {
+				// CDATA section is delivered as TagNode, and it
+				// appears there's no ordinary way of replacing its
+				// body content. Also CSS/JS handling method wants
+				// TextNode. Create a temporary TextNode for them,
+				// and write "<![CDATA["..."]]>" around it.
+				String text = tagNode.getText();
+				int s = "![CDATA[".length();
+				// text is supposed to end with "]]", but just in case.
+				int e = text.endsWith("]]") ? text.length() - 2 : text.length();
+				if (context.isInCSS()) {
+					TextNode textNode = new TextNode(text.substring(s, e));
+					handleCSSTextNode(context, textNode);
+					emit(context, "<![CDATA[", textNode, "]]>");
+				} else if (context.isInScriptText()) {
+					TextNode textNode = new TextNode(text.substring(s, e));
+					handleJSTextNode(context, textNode);
+					emit(context, "<![CDATA[", textNode, "]]>");
+				} else {
+					emit(context, null, tagNode, null);
+				}
 			} else {
+				context.setInHTML(true);
 				// assume start, possibly empty:
-				handleOpenTagNode(context,tagNode);
+				handleOpenTagNode(context, tagNode);
 			}
 		} else {
 			throw new IllegalArgumentException("Unknown node type..");
@@ -163,7 +189,7 @@ public class FastArchivalUrlReplayParseEventHandler implements
 	 */
 	private void handleCSSTextNode(ReplayParseContext context, TextNode textNode) throws IOException {
 		textNode.setText(cssBlockTrans.transform(context, textNode.getText()));
-		emit(context,null,textNode,null);
+		//emit(context, null, textNode, null);
 	}
 	/**
 	 * @param context
@@ -171,41 +197,43 @@ public class FastArchivalUrlReplayParseEventHandler implements
 	 * @throws IOException 
 	 */
 	private void handleJSTextNode(ReplayParseContext context, TextNode textNode) throws IOException {
-		
 		boolean alreadyInsertedHead = (context.getData(FERRET_HEAD_INSERTED) != null);
-		
 		context.incJSBlockCount();
-		
 		if (alreadyInsertedHead) {
 			textNode.setText(jsBlockTrans.transform(context, textNode.getText()));
 		}
-		
-		emit(context,null,textNode,null);
+		//emit(context, null, textNode, null);
 	}
 	
-	private void handleJSIncludeNode(ReplayParseContext context, TagNode tagNode) throws IOException {
+	/**
+	 * kludgy support for selectively disabling JavaScript that messes up
+	 * replay.
+	 * <p>
+	 * If {@code jsBlockTrans.transform} returns {@code null} or empty for
+	 * {@code SCRIPT/@SRC}, {@code SCRIPT} element is disabled by replacing
+	 * {@code SRC} attribute with empty value.
+	 * </p>
+	 * <p>TODO: I believe this feature is no longer used;
+	 * {@link org.archive.wayback.replay.html.rewrite.DisableJSIncludeRewriteRule}
+	 * provides alternative method currently in use.</p>
+	 *
+	 * @param context {@link ReplayParseContext}
+	 * @param tagNode {@code SCRIPT} tag.
+	 */
+	private void handleJSIncludeNode(ReplayParseContext context, TagNode tagNode) {
 		String file = tagNode.getAttribute("SRC");
 		if (file != null) {
-			//TODO: This is hacky.. fix it
-			// This is used to check if the file should be skipped...
-			//from a custom rule..
 			String result = jsBlockTrans.transform(context, file);
-			//The rewriting is done by the js_ rewriter
-			if ((result != null) && !result.isEmpty()) {
-				tagNode.setAttribute("SRC", jsUrlTrans.transform(context, file));				
-			} else {
-				file = "";
-				tagNode.setAttribute("SRC", jsUrlTrans.transform(context, file));
+			// URL rewrite is done by AttributeRewriter, which should ignore
+			// empty value.
+			if (result == null || result.isEmpty()) {
+				tagNode.setAttribute("SRC", "");
 			}
 		}
-		
-		emit(context,null,tagNode,null);
 	}
 
 	private void handleOpenTagNode(ReplayParseContext context, TagNode tagNode) 
 	throws IOException {
-		
-		boolean insertedJsp = context.getData(FERRET_DONE_KEY) != null;
 		
 		String preEmit = null;
 		String postEmit = null;
@@ -213,7 +241,7 @@ public class FastArchivalUrlReplayParseEventHandler implements
 		String tagName = tagNode.getTagName();
 		
 		boolean alreadyInsertedHead = (context.getData(FERRET_HEAD_INSERTED) != null);
-		
+		boolean insertedJsp = context.getData(FERRET_DONE_KEY) != null;
 		boolean inHead = (context.getData(FERRET_IN_HEAD) != null);
 
 		if (!alreadyInsertedHead) {
@@ -222,10 +250,10 @@ public class FastArchivalUrlReplayParseEventHandler implements
 			if (tagName.equals("HEAD")) {
 				emitHeadInsert(context, tagNode, true);
 				context.putData(FERRET_IN_HEAD, FERRET_IN_HEAD);
+				// this means HEAD tag does not get its attribute
+				// rewritten. probably that's ok...
 				return;
 			}
-				
-			
 			// If we're at the beginning of any tag, other than <html>,
 			// (including <body>) and haven't inserted yet,
 			// insert right BEFORE the next tag, also continue other default processing
@@ -237,132 +265,54 @@ public class FastArchivalUrlReplayParseEventHandler implements
 		} else if (tagName.equals(BODY_TAG) && inHead) {
 			context.putData(FERRET_IN_HEAD, null);
 			inHead = false;
-			
-			
+
 			OutputStream out = context.getOutputStream();
 			out.write("</head>".getBytes(context.getOutputCharset()));
 		}
 				
 		// Time to insert the JSP header?
 		//IK added check to avoid inserting inside css or script
-		if(!insertedJsp && !context.isInCSS() && !context.isInScriptText() && !inHead) {
-			if(!okHeadTagMap.containsKey(tagName)) {
-				if(tagName.equals(FRAMESET_TAG)) {
-					// don't put the insert in framsets:
-				} else {
-					if(jspInsertPath != null && !context.getJspExec().getUiResults().getWbRequest().isIFrameWrapperContext()) {
-						String tmp = null; 
-						try {
-							tmp = 
-								context.getJspExec().jspToString(jspInsertPath);
-						} catch (ServletException e) {
-							e.printStackTrace();
-						}
-						if (tagName.equals(BODY_TAG)) {
-							// insert it now, *after* the current Tag:
-							postEmit = tmp;
-						} else {
-							// hrm... we are seeing a node that should be in
-							// the body.. lets emit the jsp now, *before*
-							// the current Tag:
-							preEmit = tmp;
-						}
-					}
-				}
-				context.putData(FERRET_DONE_KEY,"");
+		if (!insertedJsp && !context.isInCSS() && !context.isInScriptText()) {
+			if (tagName.equals(FRAMESET_TAG)) {
+				// don't put the insert in FRAMESET
+				context.putData(FERRET_DONE_KEY, "");
+			} else if (tagName.equals(BODY_TAG)) {
+				postEmit = bodyInsertContent(context);
+				context.putData(FERRET_DONE_KEY, "");
+			} else if (!okHeadTagMap.containsKey(tagName)) {
+				// hrm... we are seeing a node that should be in
+				// the body.. lets emit the jsp now, *before*
+				// the current Tag:
+				preEmit = bodyInsertContent(context);
+				context.putData(FERRET_DONE_KEY, "");
 			}
 		}
 		
-		// now do all the usual attribute rewriting:
-		// this could be slightly optimized by moving tags more likely to occur
-		// to the front of the if/else if/else if routing...
-
-		if(tagName.equals("A")) {
-			transformAttr(context, tagNode, "HREF", anchorUrlTrans);
-
-		} else if(tagName.equals("APPLET")) {
-			transformAttr(context, tagNode, "CODEBASE", objectEmbedUrlTrans);
-			transformAttr(context, tagNode, "ARCHIVE", objectEmbedUrlTrans);
-
-		} else if(tagName.equals("AREA")) {
-			transformAttr(context, tagNode, "HREF", anchorUrlTrans);
-
-		} else if(tagName.equals("BASE")) {
-			String orig = tagNode.getAttribute("HREF"); 
-			if(orig != null) {
+		if (tagName.equals("BASE")) {
+			String baseURL = tagNode.getAttribute("HREF");
+			if (baseURL != null) {
 				try {
-					context.setBaseUrl(new URL(orig));
-					transformAttr(context, tagNode, "HREF", anchorUrlTrans);
-					
-				} catch (MalformedURLException e) {
-					e.printStackTrace();
+					context.setBaseUrl(new URL(baseURL));
+				} catch (MalformedURLException ex) {
+					LOGGER.warning("malformed BASE/@HREF \"" + baseURL + "\" ignored (" + ex.getMessage() + ")");
 				}
 			}
-
-		} else if(tagName.equals("EMBED")) {
-			transformAttr(context, tagNode, "SRC", objectEmbedUrlTrans);
-
-		} else if(tagName.equals("IFRAME")) {
-			transformAttr(context, tagNode, "SRC", iframeUrlTrans);
-
-		} else if(tagName.equals("IMG")) {
-			transformAttr(context, tagNode, "SRC", imageUrlTrans);
-
-		} else if(tagName.equals("INPUT")) {
-			transformAttr(context, tagNode, "SRC", imageUrlTrans);
-
-		} else if(tagName.equals("FORM")) {
-			transformAttr(context, tagNode, "ACTION", anchorUrlTrans);
-
-		} else if(tagName.equals("FRAME")) {
-			transformAttr(context, tagNode, "SRC", framesetUrlTrans);
-
-		} else if(tagName.equals("LINK")) {
-			if(transformAttrWhere(context, tagNode, "REL", "STYLESHEET", 
-					"HREF",cssUrlTrans)) {
-				// no-op
-			} else if(transformAttrWhere(context,tagNode,"REL","SHORTCUT ICON",
-					"HREF", imageUrlTrans)) {
-				// no-op
-			} else {
-				transformAttr(context, tagNode, "HREF", anchorUrlTrans);
-			}
-
-		} else if(tagName.equals("META")) {
-			transformAttrWhere(context, tagNode, "HTTP-EQUIV", "REFRESH",
-					"CONTENT", metaRefreshTrans);
-			transformAttr(context, tagNode, "URL", anchorUrlTrans);
-
-		} else if(tagName.equals("OBJECT")) {
-			transformAttr(context, tagNode, "CODEBASE", objectEmbedUrlTrans);
-			transformAttr(context, tagNode, "CDATA", objectEmbedUrlTrans);
-
-		} else if(tagName.equals("SCRIPT")) {
-			transformAttr(context, tagNode, "SRC", jsUrlTrans);
-		} else if(tagName.equals("DIV") || tagName.equals("LI")) {
-			//HTML5 -- can have data-src or data-uri attributes in any tag!
-			//Can really be in any tag but for now using most common use cases
-			//Experimental
-			transformAttr(context,tagNode,"data-src", objectEmbedUrlTrans);
-			transformAttr(context,tagNode,"data-uri", objectEmbedUrlTrans);
-		} else {
-			if (!checkAllowTag(context, tagNode)) {
-				return;
-			}
+		} else if (tagName.equals("SCRIPT")) {
+			// hacky disable-SCRIPT feature.
+			handleJSIncludeNode(context, tagNode);
 		}
-		// now, for *all* tags...
-		transformAttr(context,tagNode,"BACKGROUND", imageUrlTrans);
-		transformAttr(context,tagNode,"STYLE", cssInlineTrans);
-		transformAttr(context,tagNode,"onclick", jsBlockTrans);
-		transformAttr(context,tagNode,"onload", jsBlockTrans);
-		transformAttr(context,tagNode,"onchange", jsBlockTrans);
-		
 
-		emit(context,preEmit,tagNode,postEmit);
+		// now do all the usual attribute rewriting
+		attributeRewriter.rewrite(context, tagNode);
+
+		// drop tags named by rewrite policy as such.
+		if (!checkAllowTag(context, tagNode)) return;
+
+		emit(context, preEmit, tagNode, postEmit);
+
 	}
 	
-	protected boolean checkAllowTag(ParseContext context, TagNode tagNode)
-	{
+	protected boolean checkAllowTag(ParseContext context, TagNode tagNode) {
 		String tagName = tagNode.getTagName();
 		
 		// Check the NOSCRIPT tag, if force-noscript is set,
@@ -382,12 +332,11 @@ public class FastArchivalUrlReplayParseEventHandler implements
 			String post) throws IOException {
 		
 		OutputStream out = context.getOutputStream();
-		if(out != null) {
+		if (out != null) {
 //			Charset charset = Charset.forName(context.getOutputCharset());
 			String charset = context.getOutputCharset();
 
-			if(pre != null) {
-
+			if (pre != null) {
 				out.write(pre.getBytes(charset));
 			}
 			
@@ -395,64 +344,15 @@ public class FastArchivalUrlReplayParseEventHandler implements
 				out.write(node.toHtml(true).getBytes(charset));
 			}
 
-			if(post != null) {
-
+			if (post != null) {
 				out.write(post.getBytes(charset));
 			}
 		}
 	}
 	
-	/**
-	 * Transform a particular attribute on a TagNode, if that TagNode has a
-	 * previous value for the updated attribute, AND if that TagNode contains
-	 * another named attribute with a specific value.
-	 * 
-	 * @param context the ReplayParseContext
-	 * @param node the TagNode to be updated
-	 * @param attrName update only occurs if the TagNode has an attribute with
-	 * this name.
-	 * @param attrVal update only occurs if the TagNode has an attribute 
-	 * attrName has this value, case insensitive. In fact as an optimization,
-	 * it is ASSUMED that this argument is already UPPER-CASED
-	 * @param modAttr the attribute value to update
-	 * @param transformer the StringTransformer responsible for creating the
-	 * new value based on the old one.
-	 * @return true if the attribute was updated.
-	 */
-	private boolean transformAttrWhere(ReplayParseContext context, TagNode node, 
-			String attrName, String attrVal, String modAttr, 
-			StringTransformer transformer) {
-		String val = node.getAttribute(attrName);
-		if(val != null) {
-			if(val.toUpperCase().equals(attrVal)) {
-				return transformAttr(context,node,modAttr,transformer);
-			}
-		}
-		return false;
-	}
-	/**
-	 * Transform a particular attribute on a TagNode, iff that attribute exists
-	 * 
-	 * @param context The ReplayParseContext being transformed
-	 * @param node the TagNode to update
-	 * @param attr the attribute name to transform
-	 * @param transformer the StringTransformer responsible for creating the
-	 * new value
-	 * @return true if the attribute was found and updated
-	 */
-	private boolean transformAttr(ReplayParseContext context, TagNode node, 
-			String attr, StringTransformer transformer) {
-		String orig = node.getAttribute(attr);
-		if(orig != null) {
-			node.setAttribute(attr, 
-					transformer.transform(context, orig));
-			return true;
-		}
-		return false;
-	}
-
 	public void handleParseComplete(ParseContext pContext) throws IOException {
-		if(endJsp != null) {
+		// if no HTML element was found (inHTML==false), don't insert EndJsp.
+		if (endJsp != null && pContext.isInHTML()) {
 			ReplayParseContext context = (ReplayParseContext) pContext;
 			OutputStream out = context.getOutputStream();
 			String tmp = null; 
@@ -461,7 +361,7 @@ public class FastArchivalUrlReplayParseEventHandler implements
 			} catch (ServletException e) {
 				e.printStackTrace();
 			}
-			if(tmp != null) {
+			if (tmp != null) {
 //				Charset charset = Charset.forName(context.getOutputCharset());
 				String charset = context.getOutputCharset();
 				out.write(tmp.getBytes(charset));
@@ -479,7 +379,7 @@ public class FastArchivalUrlReplayParseEventHandler implements
 			context.setOraclePolicy(policy);
 		}
 		
-		if(startJsp != null) {
+		if (startJsp != null) {
 			OutputStream out = context.getOutputStream();
 			String tmp = null; 
 			try {
@@ -487,12 +387,25 @@ public class FastArchivalUrlReplayParseEventHandler implements
 			} catch (ServletException e) {
 				e.printStackTrace();
 			}
-			if(tmp != null) {
+			if (tmp != null) {
 //				Charset charset = Charset.forName(context.getOutputCharset());
 				String charset = context.getOutputCharset();
 				out.write(tmp.getBytes(charset));
 			}
 		}
+	}
+
+	/**
+	 * set {@link AttributeRewriter} for rewriting attribute values.
+	 * if not set, {@link StandardAttributeRewriter} will be used as default.
+	 * @param attributeRewriter {@link AttributeRewriter} instance.
+	 */
+	public void setAttributeRewriter(AttributeRewriter attributeRewriter) {
+		this.attributeRewriter = attributeRewriter;
+	}
+
+	public AttributeRewriter getAttributeRewriter() {
+		return attributeRewriter;
 	}
 
 	/**
@@ -563,42 +476,115 @@ public class FastArchivalUrlReplayParseEventHandler implements
 	}
 
 	/**
+	 * StringTransformer used for rewriting JavaScript code block
+	 * (<code>&lt;SCRIPT&gt;</code> and <code>javascript:</code> attribute).
+	 * Also used (abused) as a test whether particular <code>&lt;SCRIPT SRC=...&gt;</code>
+	 * should be disabled (See class-level javadoc for details). 
 	 * @param jsBlockTrans the jsBlockTrans to set
 	 */
 	public void setJsBlockTrans(StringTransformer jsBlockTrans) {
 		this.jsBlockTrans = jsBlockTrans;
-        anchorUrlTrans.setJsTransformer(jsBlockTrans);
-		
 	}
 
 	public String getHeadInsertJsp() {
 		return headInsertJsp;
 	}
 
+	/**
+	 * servlet whose output will be
+	 * inserted right after {@code HEAD} tag.
+	 * @param headInsertJsp context-relative path
+	 */
 	public void setHeadInsertJsp(String headInsertJsp) {
 		this.headInsertJsp = headInsertJsp;
 	}
 
-	protected void emitHeadInsert(ReplayParseContext context, Node node, boolean postInsert)
-			throws IOException {
-				String headInsert = null;
-				
-				if (headInsertJsp == null) {
-					this.emit(context, null, node, null);
-					return;
-				}
-			
-				try {
-					headInsert = context.getJspExec().jspToString(headInsertJsp);
-					context.putData(FERRET_HEAD_INSERTED, FERRET_HEAD_INSERTED);
-				} catch (ServletException e) {
-					e.printStackTrace();
-				}
-				
-				if (postInsert) {
-					this.emit(context, null, node, headInsert);
-				} else {
-					this.emit(context, headInsert, node, null);
-				}
-			}
+	protected void emitHeadInsert(ReplayParseContext context, Node node,
+			boolean postInsert) throws IOException {
+		String headInsert = null;
+
+		if (headInsertJsp == null) {
+			this.emit(context, null, node, null);
+			return;
+		}
+
+		try {
+			headInsert = context.getJspExec().jspToString(headInsertJsp);
+			context.putData(FERRET_HEAD_INSERTED, FERRET_HEAD_INSERTED);
+		} catch (ServletException e) {
+			e.printStackTrace();
+		}
+
+		if (postInsert) {
+			this.emit(context, null, node, headInsert);
+		} else {
+			this.emit(context, headInsert, node, null);
+		}
+	}
+
+	/**
+	 * return body-insert text.
+	 * <p>Run {@code jspInsertPath} and return its output as String.
+	 * if {@code jspInsertPath} is {@code null}, or body-insert should not be
+	 * inserted into the resource being processed, returns {@code null}.</p>
+	 * @param context context for the resource being processed
+	 * @return insert text as String, or {@code null} if no insertion shall be
+	 *         made.
+	 */
+	protected String bodyInsertContent(ReplayParseContext context) {
+		if (jspInsertPath == null)
+			return null;
+		JSPExecutor jspExec = context.getJspExec();
+		// FIXME bad chain of references. add method to ReplayParseContext?
+		WaybackRequest wbRequest = jspExec.getUiResults().getWbRequest();
+		// isAnyEmbeddedContext() used as shorthand for (isFrameWrapperContext()
+		// && isIFrameWrapperContext()).
+		if (wbRequest.isAnyEmbeddedContext())
+			return null;
+		try {
+			return jspExec.jspToString(jspInsertPath);
+		} catch (ServletException ex) {
+			LOGGER.log(Level.WARNING, "execution of " + jspInsertPath +
+					" failed", ex);
+			return null;
+		} catch (IOException ex) {
+			LOGGER.log(Level.WARNING, "erorr executing " + jspInsertPath, ex);
+			return null;
+		}
+	}
+
+	/**
+	 *
+	 * @return {@code true} if attribute value unescape/re-escape
+	 * is enabled.
+	 * @deprecated 1.8.1/05-23-2014 moved to {@link StandardAttributeRewriter}.
+	 */
+	public boolean isUnescapeAttributeValues() {
+		return unescapeAttributeValues;
+	}
+
+	/**
+	 * set this property false if you want to disable unescaping
+	 * (and corresponding re-escaping) of attribute values.
+	 * <p>By default, HTML entities (such as <code>&amp;amp;</code>)
+	 * in attribute values are unescaped before translation attempt,
+	 * and then escaped back before writing out.  Although this is
+	 * supposedly the right thing to do, it has a side-effect: all
+	 * bare "<code>&amp;</code>" (not escaped as "<code>&amp;amp;</code>")
+	 * will be replaced by "<code>&amp;amp;</code>".  Setting this property
+	 * to <code>false</code> disables it.</p>
+	 * <p>As URL rewrite does neither parse nor modify query part, it
+	 * should mostly work without unescaping.  But there may be some
+	 * corner cases where escaping is crucial.  Don't set this to {@code false}
+	 * unless it's absolutely necessary.</p>
+	 * @param unescapeAttributeValues <code>false</code> to disable unescaping
+	 * @deprecated 1.8.1/05-23-2014 property moved to {@link StandardAttributeRewriter}
+	 *   This property still works, but only with {@code StandardAttributeRewriter}.
+	 */
+	public void setUnescapeAttributeValues(boolean unescapeAttributeValues) {
+		this.unescapeAttributeValues = unescapeAttributeValues;
+		if (attributeRewriter instanceof StandardAttributeRewriter) {
+			((StandardAttributeRewriter)attributeRewriter).setUnescapeAttributeValues(unescapeAttributeValues);
+		}
+	}
 }

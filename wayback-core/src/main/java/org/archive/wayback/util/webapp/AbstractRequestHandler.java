@@ -42,22 +42,21 @@ public abstract class AbstractRequestHandler implements RequestHandler {
 	private int internalPort = 0;
 
 	public void setBeanName(final String beanName) {
-		this.beanName = beanName; 
+		this.beanName = beanName;
 	}
+
 	public String getBeanName() {
 		return beanName;
 	}
-	
-	public int getInternalPort()
-	{
+
+	public int getInternalPort() {
 		return internalPort;
 	}
-	
-	public void setInternalPort(int internalPort)
-	{
+
+	public void setInternalPort(int internalPort) {
 		this.internalPort = internalPort;
 	}
-	
+
 	public String getAccessPointPath() {
 		return accessPointPath;
 	}
@@ -69,22 +68,37 @@ public abstract class AbstractRequestHandler implements RequestHandler {
 	public void setServletContext(ServletContext servletContext) {
 		this.servletContext = servletContext;
 	}
+
 	public ServletContext getServletContext() {
 		return servletContext;
 	}
 
+	// Refactor: this method is only called by RequestMapper, and eventually
+	// calls RequestMapper.addRequestHandler() through static method BeanNameRegistrar.registerHandler().
+	// AbstractRequestHandler does not play any active role there.  Move this code to RequestMapper.
+	/**
+	 * @deprecated 2014-04-24 call {@link BeanNameRegistrar#registerHandler(RequestHandler, RequestMapper)} directly.
+	 */
 	public void registerPortListener(RequestMapper requestMapper) {
 		BeanNameRegistrar.registerHandler(this, requestMapper);
 	}
 
+	/**
+	 * @deprecated 2014-04-23 use {@link RequestMapper#getRequestContextPath(HttpServletRequest)} directly.
+	 */
 	public String translateRequestPath(HttpServletRequest httpRequest) {
 		return RequestMapper.getRequestContextPath(httpRequest);
 	}
 
+	/**
+	 * @deprecated 2014-04-23 use {@link RequestMapper#getRequestContextPathQuery(HttpServletRequest)} directly
+	 */
 	public String translateRequestPathQuery(HttpServletRequest httpRequest) {
 		return RequestMapper.getRequestContextPathQuery(httpRequest);
 	}
 
+	// Refactor: move getMapParam, getRequiredMapParam and getMapParamOrEmpty
+	// to RequestParser base class.
 	/**
 	 * Extract the first value in the array mapped to by field in queryMap
 	 * @param queryMap the Map in which to search
@@ -110,17 +124,16 @@ public abstract class AbstractRequestHandler implements RequestHandler {
 	 * @throws BadQueryException if there is nothing mapped to field, or if the
 	 * Array mapped to field is empty
 	 */
-	public static String getRequiredMapParam(Map<String,String[]> queryMap,
-			String field)
-	throws BadQueryException {
+	public static String getRequiredMapParam(Map<String, String[]> queryMap,
+			String field) throws BadQueryException {
 		// TODO: Throw something different, org.archive.wayback.util should have
 		// no references outside of org.archive.wayback.util 
-		String value = getMapParam(queryMap,field);
-		if(value == null) {
+		String value = getMapParam(queryMap, field);
+		if (value == null) {
 			throw new BadQueryException("missing field " + field);
 		}
-		if(value.length() == 0) {
-			throw new BadQueryException("empty field " + field);			
+		if (value.length() == 0) {
+			throw new BadQueryException("empty field " + field);
 		}
 		return value;
 	}
@@ -134,7 +147,7 @@ public abstract class AbstractRequestHandler implements RequestHandler {
 	 */
 	public static String getMapParamOrEmpty(Map<String,String[]> map, 
 			String param) {
-		String val = getMapParam(map,param);
+		String val = getMapParam(map, param);
 		return (val == null) ? "" : val;
 	}
 }

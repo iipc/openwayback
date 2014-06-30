@@ -22,14 +22,19 @@ package org.archive.wayback.replay.html.transformer;
 import org.archive.wayback.replay.html.ReplayParseContext;
 import org.archive.wayback.replay.html.StringTransformer;
 
+/**
+ * {@link StringTransformer} that rewrites URLs in CSS in <code>STYLE</code>
+ * attribute.
+ *
+ * @see org.archive.wayback.archivalurl.FastArchivalUrlReplayParseEventHandler
+ * @see BlockCSSStringTransformer
+ *
+ */
 public class InlineCSSStringTransformer extends BaseCSSStringTransformer implements StringTransformer {
 
 	public String transform(ReplayParseContext context, String css) {
-	    if (!context.isRewriteSupported(css)) {
-	    	return css;
-	    }
 		StringBuilder sb = new StringBuilder(css);
-		patternRewrite(context, sb,cssUrlPattern, "im_");
+		patternRewrite(context, sb, cssUrlPattern, "im_");
 		return sb.toString();
 	}
 
