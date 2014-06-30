@@ -5,11 +5,11 @@
   <parent>
     <artifactId>openwayback</artifactId>
     <groupId>org.netpreserve.openwayback</groupId>
-    <version>2.0.0.BETA.2-SNAPSHOT</version>
+    <version>2.0.0.BETA.3-SNAPSHOT</version>
   </parent>
 
   <artifactId>openwayback-core</artifactId>
-  <name>Wayback Core Java Classes</name>
+  <name>OpenWayback Core Java Classes</name>
   <packaging>jar</packaging>
 
 
@@ -37,22 +37,22 @@
     <dependency>
       <groupId>org.jwat</groupId>
       <artifactId>jwat-common</artifactId>
-      <version>1.0.1-SNAPSHOT</version>
+      <version>1.0.1</version>
     </dependency>
     <dependency>
       <groupId>org.jwat</groupId>
       <artifactId>jwat-gzip</artifactId>
-      <version>1.0.1-SNAPSHOT</version>
+      <version>1.0.1</version>
     </dependency>
     <dependency>
       <groupId>org.jwat</groupId>
       <artifactId>jwat-arc</artifactId>
-      <version>1.0.1-SNAPSHOT</version>
+      <version>1.0.1</version>
     </dependency>
     <dependency>
       <groupId>org.jwat</groupId>
       <artifactId>jwat-warc</artifactId>
-      <version>1.0.1-SNAPSHOT</version>
+      <version>1.0.1</version>
     </dependency>
     <!-- End JWAT Dependencies -->
     <dependency>
