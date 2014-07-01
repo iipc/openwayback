@@ -9,6 +9,8 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -24,7 +26,9 @@ import org.archive.format.cdx.CDXLine;
 import org.archive.format.cdx.FieldSplitFormat;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.WaybackRequest;
+import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.util.url.KeyMakerUrlCanonicalizer;
+import org.archive.wayback.webapp.PerfStats;
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
 
@@ -74,8 +78,28 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 		cut = new EmbeddedCDXServerIndex();
 		cut.setCanonicalizer(new KeyMakerUrlCanonicalizer());
 		cut.setCdxServer(testCDXServer = new TestCDXServer());
+
+		Logger.getLogger(PerfStats.class.getName()).setLevel(Level.WARNING);
 	}
 	
+	/**
+	 * Set CDX lines TestCDXServer stub returns.
+	 * Lines are parsed with {@link CDXFieldConstants#CDX_ALL_NAMES}.
+	 * Note {@link EmbeddedCDXServerIndex#query} will throw {@link ResourceNotInArchiveException}
+	 * if {@code lines} is empty.
+	 * @param lines text CDX lines
+	 */
+	protected void setCdxLines(String... lines) {
+		// urlkey, timestamp, original, mimetype, statuscode, digest, redirect,
+		// robotflags, length, offset, filename.
+		final FieldSplitFormat fmt = CDXFieldConstants.CDX_ALL_NAMES;
+		testCDXServer.cdxLines = new CDXLine[lines.length];
+		int i = 0;
+		for (String line : lines) {
+			testCDXServer.cdxLines[i++] = new CDXLine(line, fmt);
+		}
+	}
+
 	// === sample cdx lines ===
 	
 	final String CDXLINE1 = "com,example)/ 20101124000000 http://example.com/ text/html 200" +
@@ -142,11 +166,7 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 		
 		// urlkey, timestamp, original, mimetype, statuscode, digest, redirect, robotflags,
 		// length, offset, filename.
-		FieldSplitFormat fmt = CDXFieldConstants.CDX_ALL_NAMES;
-		testCDXServer.cdxLines = new CDXLine[] {
-				new CDXLine(CDXLINE1, fmt)
-		};
-
+		setCdxLines(CDXLINE1);
 		
 		cut.setBaseStatusRegexp("");
 		{
@@ -188,10 +208,7 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 		
 		// urlkey, timestamp, original, mimetype, statuscode, digest, redirect, robotflags,
 		// length, offset, filename.
-		FieldSplitFormat fmt = CDXFieldConstants.CDX_ALL_NAMES;
-		testCDXServer.cdxLines = new CDXLine[] {
-				new CDXLine(CDXLINE2, fmt)
-		};
+		setCdxLines(CDXLINE2);
 		
 		SearchResults sr = cut.query(wbr);
 		
@@ -203,6 +220,36 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 		assertTrue(authToken.isIgnoreRobots());
 	}
 	
+	/**
+	 * test of timestamp-collapsing.
+	 * <p>Actual processing happens in {@link CDXServer}. {@link EmbeddedCDXServerIndex}
+	 * simply passes {@link WaybackRequest#getCollapseTime()} to {@link CDXQuery#setCollapse(String[])}.
+	 * if {@code collapseTime} is unspecified in {@code WaybackRequest} (-1), default value
+	 * {@code timestampDedupLength} will be used.
+	 * @throws Exception
+	 */
+	public void testCollapseTime() throws Exception {
+		WaybackRequest wbr = WaybackRequest.createCaptureQueryRequet(
+			"http://example.com/", null, null, null);
+		setCdxLines(CDXLINE1);
+
+		{
+			cut.setTimestampDedupLength(10);
+			SearchResults sr = cut.query(wbr);
+
+			Object[] args = testCDXServer.capturedArgs.get(0);
+			assertEquals(10, ((CDXQuery)args[0]).getCollapseTime());
+		}
+		testCDXServer.clearCapturedArgs();
+		{
+			wbr.setCollapseTime(8);
+			SearchResults sr = cut.query(wbr);
+
+			Object[] args = testCDXServer.capturedArgs.get(0);
+			assertEquals(8, ((CDXQuery)args[0]).getCollapseTime());
+		}
+	}
+
 	/**
 	 * {@link EmbeddedCDXServerIndex#handleRequest(HttpServletRequest, HttpServletResponse)} is
 	 * a entry point for CDXServer API. It should return all accessible cdx lines, without applying

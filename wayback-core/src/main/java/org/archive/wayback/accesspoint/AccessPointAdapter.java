@@ -375,4 +375,9 @@ public class AccessPointAdapter extends AccessPoint {
 	public String getWarcFileHeader() {
 		return composite.getWarcFileHeader();
 	}
+
+	@Override
+	public int getQueryCollapseTime() {
+		return composite.getQueryCollapseTime();
+	}
 }

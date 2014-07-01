@@ -277,17 +277,17 @@ implements ShutdownListener {
 				wbRequest.extractHttpRequestInfo(httpRequest);
 				// end of refactor
 
-				if(getAuthentication() != null) {
-					if(!getAuthentication().isTrue(wbRequest)) {
+				if (getAuthentication() != null) {
+					if (!getAuthentication().isTrue(wbRequest)) {
 						throw new AuthenticationControlException(
 								"Unauthorized", isRequestAuth());
 					}
 				}
 
-				if(getExclusionFactory() != null) {
+				if (getExclusionFactory() != null) {
 					ExclusionFilter exclusionFilter = 
 						getExclusionFactory().get();
-					if(exclusionFilter == null) {
+					if (exclusionFilter == null) {
 						throw new AdministrativeAccessControlException(
 								"AccessControl list unavailable");
 					}
@@ -299,8 +299,8 @@ implements ShutdownListener {
 				// the feature to configuration.g
 				wbRequest.setExactScheme(isExactSchemeMatch());
 
-				if(wbRequest.isReplayRequest()) {
-					if(bounceToReplayPrefix) {
+				if (wbRequest.isReplayRequest()) {
+					if (bounceToReplayPrefix) {
 						// we don't accept replay requests on this AccessPoint
 						// bounce the user to the right place:
 						String suffix = translateRequestPathQuery(httpRequest);
@@ -308,8 +308,7 @@ implements ShutdownListener {
 						httpResponse.sendRedirect(replayUrl);
 						return true;
 					}
-					handleReplay(wbRequest,httpRequest,httpResponse);
-					
+					handleReplay(wbRequest, httpRequest, httpResponse);
 				} else {
 					if (bounceToQueryPrefix) {
 						// we don't accept replay requests on this AccessPoint
@@ -320,13 +319,12 @@ implements ShutdownListener {
 						return true;
 					}
 					wbRequest.setExactHost(isExactHostMatch());
-					handleQuery(wbRequest,httpRequest,httpResponse);
+					handleQuery(wbRequest, httpRequest, httpResponse);
 				}
 			} else {
 				handled = dispatchLocal(httpRequest,httpResponse);
-			}
-			
-		} catch(BetterRequestException e) {			
+			}			
+		} catch (BetterRequestException e) {
 			e.generateResponse(httpResponse, wbRequest);
 			httpResponse.getWriter(); // cause perf headers to be committed
 			handled = true;
@@ -665,17 +663,14 @@ implements ShutdownListener {
 		SearchResults results = queryIndex(wbRequest);
 		p.queried();
 		
-		if(!(results instanceof CaptureSearchResults)) {
+		if (!(results instanceof CaptureSearchResults)) {
 			throw new ResourceNotAvailableException("Bad results...");
 		}
-		CaptureSearchResults captureResults = 
-			(CaptureSearchResults) results;
-
+		CaptureSearchResults captureResults = (CaptureSearchResults)results;
 		
 		CaptureSearchResult closest = null;
 		
-		closest = 
-			getReplay().getClosest(wbRequest, captureResults);
+		closest = getReplay().getClosest(wbRequest, captureResults);
 		
 		//CaptureSearchResult originalClosest = closest;
 		
@@ -1097,41 +1092,63 @@ implements ShutdownListener {
 		}
 	}
 	
+	private int queryCollapseTime = -1;
+
+	/**
+	 * CDXServer {@code collapseTime} parameter for capture query.
+	 * @param queryCollapseTime integer, negative value instructs
+	 * CDXServer to use the default value.
+	 */
+	public void setQueryCollapseTime(int queryCollapseTime) {
+		this.queryCollapseTime = queryCollapseTime;
+	}
+	public int getQueryCollapseTime() {
+		return queryCollapseTime;
+	}
+
 	protected void handleQuery(WaybackRequest wbRequest, 
 			HttpServletRequest httpRequest, HttpServletResponse httpResponse) 
 	throws ServletException, IOException, WaybackException {
 
 		PerformanceLogger p = new PerformanceLogger("query");
 		
+		// TODO: move this Memento code out of this method.
 		// Memento: render timemap
 		if ((this.getMementoHandler() != null) && (wbRequest.isMementoTimemapRequest())) {
 			if (this.getMementoHandler().renderMementoTimemap(wbRequest, httpRequest, httpResponse)) {
 				return;
 			}
 		}
+
+		// TODO: should this be applied to Memento Timemap as well?
+
+		// Must call getQueryCollapseTime() because AccessPointAdapter
+		// needs to read parent's value, not the unused field of its
+		// own.
+		wbRequest.setCollapseTime(getQueryCollapseTime());
 		
 		SearchResults results = queryIndex(wbRequest);
 		
 		p.queried();
 		
-		if(results instanceof CaptureSearchResults) {
-			CaptureSearchResults cResults = (CaptureSearchResults) results;
+		if (results instanceof CaptureSearchResults) {
+			CaptureSearchResults cResults = (CaptureSearchResults)results;
 			
 			// The Firefox proxy plugin maks an XML request to populate the
 			// list of available captures, and needs the closest result to
 			// the one being replayed to be flagged as such:
 			CaptureSearchResult closest = cResults.getClosest();
-			if(closest != null) {
+			if (closest != null) {
 				closest.setClosest(true);
 			}
 			
-			getQuery().renderCaptureResults(httpRequest,httpResponse,wbRequest,
-						cResults,getUriConverter());
+			getQuery().renderCaptureResults(httpRequest, httpResponse,
+					wbRequest, cResults, getUriConverter());
 
-		} else if(results instanceof UrlSearchResults) {
-			UrlSearchResults uResults = (UrlSearchResults) results;
-			getQuery().renderUrlResults(httpRequest,httpResponse,wbRequest,
-					uResults,getUriConverter());
+		} else if (results instanceof UrlSearchResults) {
+			UrlSearchResults uResults = (UrlSearchResults)results;
+			getQuery().renderUrlResults(httpRequest, httpResponse, wbRequest,
+					uResults, getUriConverter());
 		} else {
 			throw new WaybackException("Unknown index format");
 		}
@@ -1682,6 +1699,12 @@ implements ShutdownListener {
 	}
 
 	/**
+	 * {@link CustomResultFilterFactory} to be applied on CDX query result.
+	 * <p>AccessPoint itself does not use this object.
+	 * {@link org.archive.wayback.ResourceIndex} implementation needs to implement filtering
+	 * using this property. {@code ClusterResourceIndex} is the only
+	 * implementation known at this moment.</p>
+	 * <p>Note: this property will likely be removed in the future.</p>
 	 * @param filterFactory the filterFactory to set
 	 */
 	public void setFilterFactory(CustomResultFilterFactory filterFactory) {
