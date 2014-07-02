@@ -29,8 +29,8 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.archive</groupId>
-      <artifactId>ia-web-commons</artifactId>
+      <groupId>org.netpreserve.commons</groupId>
+      <artifactId>webarchive-commons</artifactId>
     </dependency>
 
     <!-- Spring framework -->
