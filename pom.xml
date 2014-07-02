@@ -303,9 +303,9 @@
       </dependency>
            
       <dependency>
-        <groupId>org.archive</groupId>
-        <artifactId>ia-web-commons</artifactId>
-        <version>1.1.0</version>
+        <groupId>org.netpreserve.commons</groupId>
+        <artifactId>webarchive-commons</artifactId>
+        <version>1.1.1-IA-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>org.archive.access-control</groupId>
@@ -325,6 +325,11 @@
       <dependency>
         <groupId>org.springframework</groupId>
         <artifactId>spring-beans</artifactId>
+        <version>${org.springframework.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-web</artifactId>
         <version>${org.springframework.version}</version>
       </dependency>
       <dependency>
