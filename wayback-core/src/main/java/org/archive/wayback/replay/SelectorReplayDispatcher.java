@@ -71,7 +71,7 @@ public class SelectorReplayDispatcher implements ReplayDispatcher {
 			return closestSelector.getClosest(wbRequest, results);
 		} catch (BetterRequestException e) {
 			
-			if (wbRequest.getAccessPoint().isEnableMemento()) {
+			if (wbRequest.isMementoEnabled()) {
 				// Issue either a Memento URL-G response, or "intermediate resource" response
 				if (wbRequest.isMementoTimegate()) {
 					e.addHeader(MementoConstants.VARY, MementoConstants.NEGOTIATE_DATETIME);

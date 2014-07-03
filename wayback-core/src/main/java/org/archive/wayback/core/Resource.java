@@ -28,18 +28,23 @@ import java.util.Map;
 import org.apache.commons.httpclient.ChunkedInputStream;
 
 /**
- * Abstraction on top of a document stored in a WaybackCollection. Currently
- * implemented subclasses include ArcResource and WarcResource.
+ * Abstraction on top of a document stored in a WaybackCollection.
  * 
- * This implementation needs some pretty drastic refactoring.. May have to wait
+ * TODO: This implementation needs some pretty drastic refactoring.. May have to wait
  * for 2.0. This should be a byte-oriented record, and allow wrapping the 
  * interior byte-stream in on the more full featured HTTP libraries 
  * (jetty/apache-http-client/w3c-http-reference).
  * 
  * For now, it is a system-wide assumption that all resources are HTTP based.
  * 
+ * TODO: Some code downcasts Resource to its sub-classes to gain access to
+ * methods only available in specific implementation.  Consider adding more methods
+ * to make downcast unnecessary.  More sub-classes are expected, for encapsulating
+ * revisit-original pair of Resources as single Resource, for example.
+ *
+ * @see org.archive.wayback.ResourceStore#retrieveResource(CaptureSearchResult)
+ *
  * @author Brad Tofel
- * @version $Date$, $Revision$
  */
 public abstract class Resource extends InputStream {
 	
@@ -105,7 +110,7 @@ public abstract class Resource extends InputStream {
 	}
 
 	/**
-	 * indicate that there is a Transfer-Encoding: chunked header, so the input
+	 * indicate that there is a {@code Transfer-Encoding: chunked} header, so the input
 	 *   data should be dechunked as it is read. This method actually peeks
 	 *   ahead to verify that there is a hex-encoded chunk length before
 	 *   assuming the data is chunked.

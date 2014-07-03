@@ -30,6 +30,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.archive.wayback.util.ByteOp;
@@ -52,9 +53,9 @@ public class RobotRules {
 	 */
 	public static final String GLOBAL_USER_AGENT = "*";
 	
-	protected static final Pattern USER_AGENT_PATTERN = Pattern.compile("(?i)^User-agent:.*");
-	protected static final Pattern DISALLOW_PATTERN = Pattern.compile("(?i)Disallow:.*");
-	protected static final Pattern ALLOW_PATTERN = Pattern.compile("(?i)Allow:.*");
+	protected static final Pattern USER_AGENT_PATTERN = Pattern.compile("(?i)^User-agent\\s*:(.*)");
+	protected static final Pattern DISALLOW_PATTERN = Pattern.compile("(?i)Disallow\\s*:(.*)");
+	protected static final Pattern ALLOW_PATTERN = Pattern.compile("(?i)Allow\\s*:(.*)");
 	
 	private boolean bSyntaxErrors = false;
 	private HashMap<String, ArrayList<String>> rules = 
@@ -90,8 +91,12 @@ public class RobotRules {
 				(InputStream) is,ByteOp.UTF8));
         String read;
         boolean allowRuleFound = false;
+        // true if curr or last line read was a User-agent line 
+        boolean currLineUA = false; 
+        boolean lastLineUA = false;
         ArrayList<String> current = null;
         while (br != null) {
+            lastLineUA = currLineUA;
             do {
                 read = br.readLine();
                 // Skip comments & blanks
@@ -101,33 +106,40 @@ public class RobotRules {
             	br.close();
             	br = null;
             } else {
+                currLineUA = false;
                 int commentIndex = read.indexOf("#");
                 if (commentIndex > -1) {
                     // Strip trailing comment
                     read = read.substring(0, commentIndex);
                 }
                 read = read.trim();
-                if (USER_AGENT_PATTERN.matcher(read).matches()) {
-                    String ua = read.substring(11).trim().toLowerCase();
-                    if (current == null || current.size() != 0 || allowRuleFound) {
+                Matcher uaMatcher = USER_AGENT_PATTERN.matcher(read);
+                if (uaMatcher.matches()) {
+                    String ua = uaMatcher.group(1).trim().toLowerCase();
+                    if (current == null || current.size() != 0 || allowRuleFound || !lastLineUA) {
                         // only create new rules-list if necessary
                         // otherwise share with previous user-agent
                         current = new ArrayList<String>();
                     }
                     rules.put(ua, current);
                     allowRuleFound = false;
+                    currLineUA = true;
                     LOGGER.fine("Found User-agent(" + ua + ") rules...");
                     continue;
-                } else if (DISALLOW_PATTERN.matcher(read).matches()) {
+                }
+                Matcher disallowMatcher = DISALLOW_PATTERN.matcher(read);
+                if (disallowMatcher.matches()) {
                 	if (current == null) {
                         // buggy robots.txt
                     	bSyntaxErrors = true;
                         continue;
                     }
-                    String path = read.substring(9).trim();
+                    String path = disallowMatcher.group(1).trim();
                     current.add(path);
                     continue;
-                } else if (ALLOW_PATTERN.matcher(read).matches()) {
+                }
+                Matcher allowMatcher = ALLOW_PATTERN.matcher(read);
+                if (allowMatcher.matches()) {
                 	// Mark that there was an allow rule to clear the current list for next user-agent
                 	allowRuleFound = true;
                 }

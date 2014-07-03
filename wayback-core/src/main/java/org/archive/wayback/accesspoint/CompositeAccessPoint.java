@@ -29,6 +29,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.accesscontrol.ExclusionFilterFactory;
 import org.archive.wayback.replay.html.ContextResultURIConverterFactory;
 import org.archive.wayback.webapp.AccessPoint;
@@ -106,12 +107,23 @@ public class CompositeAccessPoint extends AccessPoint {
 	private String oracleUrl;
 	private ArrayList<ExclusionFilterFactory> staticExclusions;
 	
+	// Refactoring: move uriConverterFactory and getUriConverterFactory() to
+	// AccessPoint, so that ResultURIConverter can be bootstrapped in a
+	// consistent manner.
+
 	private ContextResultURIConverterFactory uriConverterFactory;
 		
 	public ContextResultURIConverterFactory getUriConverterFactory() {
 		return uriConverterFactory;
 	}
 
+	/**
+	 * set {@link ContextResultURIConverterFactory} used for creating
+	 * {@link ResultURIConverter} for each sub-{@code AccessPoint}.
+	 * <p>it will receive default {@code replayURIPrefix} for sub-AccessPoint
+	 * as {@code flags} argument.</p>
+	 * @param uriConverterFactory
+	 */
 	public void setUriConverterFactory(ContextResultURIConverterFactory uriConverterFactory) {
 		this.uriConverterFactory = uriConverterFactory;
 	}

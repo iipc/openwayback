@@ -14,6 +14,7 @@ import org.apache.commons.httpclient.URIException;
 import org.archive.cdxserver.CDXQuery;
 import org.archive.cdxserver.CDXServer;
 import org.archive.cdxserver.auth.AuthToken;
+import org.archive.cdxserver.writer.CDXWriter;
 import org.archive.cdxserver.writer.HttpCDXWriter;
 import org.archive.format.cdx.CDXInputSource;
 import org.archive.format.cdx.CDXLine;
@@ -44,11 +45,17 @@ import org.archive.wayback.memento.MementoHandler;
 import org.archive.wayback.memento.MementoUtils;
 import org.archive.wayback.resourceindex.filters.SelfRedirectFilter;
 import org.archive.wayback.util.webapp.AbstractRequestHandler;
+import org.archive.wayback.util.webapp.RequestHandler;
 import org.archive.wayback.webapp.PerfStats;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.web.bind.ServletRequestBindingException;
 
+/**
+ * {@link ResourceIndex} on top of {@link CDXServer}. Also a {@link RequestHandler}
+ * for CDX server queries.
+ *
+ */
 public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements MementoHandler, ResourceIndex {
 
 	private static final Logger LOGGER = Logger.getLogger(
@@ -77,35 +84,16 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 
 	protected List<String> ignoreRobotPaths;
 	
+	protected String baseStatusRegexp;
+	protected String baseStatusFilter;
+	{
+		setBaseStatusRegexp("!(500|502|504)");
+	}
+
 	enum PerfStat
 	{
 		IndexLoad;
 	}
-	
-//	public void init()
-//	{
-//		initAuthCookie();
-//	}
-//	
-//	protected String initAuthCookie()
-//	{
-//		if (cdxServer == null) {
-//			return;
-//		}
-//		
-//		AuthChecker check = cdxServer.getAuthChecker();
-//		if (!(check instanceof PrivTokenAuthChecker)) {
-//			return;
-//		}
-//		
-//		List<String> list = ((PrivTokenAuthChecker)check).getAllCdxFieldsAccessTokens();
-//		
-//		if (list == null || list.isEmpty()) {
-//			return;
-//		}
-//		
-//		return CDXServer.CDX_AUTH_TOKEN + ": " + list.get(0);
-//	}
 	
 	@Override
     public SearchResults query(WaybackRequest wbRequest)
@@ -120,6 +108,13 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 		}
 	}
 	
+	/**
+	 * return {@link AuthToken} representing user's privileges on {@code urlkey}.
+	 * <ul>
+	 * <li>robots.txt may be ignored for embedded resources (CSS, images, javascripts)</li>
+	 * <li>robots.txt may be ignored if {@code urlkey} starts with any of {@code ignoreRobotPaths}</li>
+	 * </ul>
+	 */
 	protected AuthToken createAuthToken(WaybackRequest wbRequest, String urlkey)
 	{
 		AuthToken waybackAuthToken = new APContextAuthToken(wbRequest.getAccessPoint());
@@ -179,9 +174,9 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
         SearchResults searchResults = null;
         
         if (wbRequest.isReplayRequest() || wbRequest.isCaptureQueryRequest()) {
-        	resultWriter = this.getCaptureSearchWriter(wbRequest, waybackAuthToken, false);
+			resultWriter = this.getCaptureSearchWriter(wbRequest, waybackAuthToken, false);
         } else if (wbRequest.isUrlQueryRequest()) {
-        	resultWriter = this.getUrlSearchWriter(wbRequest);
+			resultWriter = this.getUrlSearchWriter(wbRequest);
         } else {
         	throw new BadQueryException("Unknown Query Type");
         }
@@ -196,7 +191,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
             searchResults = resultWriter.getSearchResults();
             
             if ((searchResults.getReturnedCount() == 0) && (wbRequest.isReplayRequest() || wbRequest.isCaptureQueryRequest()) && tryFuzzyMatch) {
-            	resultWriter = this.getCaptureSearchWriter(wbRequest, waybackAuthToken, true);
+				resultWriter = this.getCaptureSearchWriter(wbRequest, waybackAuthToken, true);
             	
             	if (resultWriter != null) {    	
 	            	loadWaybackCdx(urlkey, wbRequest, resultWriter.getQuery(), waybackAuthToken, resultWriter, true);
@@ -254,18 +249,29 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
    		cdxServer.getCdx(resultWriter.getQuery(), waybackAuthToken, resultWriter);
     }
 
-	protected CDXQuery createQuery(WaybackRequest wbRequest, boolean isFuzzy)
-	{
-		// Create cdx query that is sent to cdx server
-		// The query specifies standard cdx server params described at:
-		// https://github.com/internetarchive/wayback/tree/master/wayback-cdx-server
-		
+	/**
+	 * Create {@link CDXQuery} that is sent to {@link CDXServer}.
+	 *
+	 * The query specifies standard CDX server params described at:
+	 * https://github.com/internetarchive/wayback/tree/master/wayback-cdx-server
+	 *
+	 * Note: this method adds extra filters meant for interactive (Wayback UI)
+	 * use. CDXServer web API should not use this method.  this method is used
+	 * for replay and capture-search requests only.
+	 *
+	 * TODO: move this to {@link CDXQuery} as static method.
+	 *
+	 * @param wbRequest {@link WaybackRequest} either replay or capture-query
+	 * @param isFuzzy unused (?)
+	 * @return
+	 */
+	protected CDXQuery createQuery(WaybackRequest wbRequest, boolean isFuzzy) {
 		CDXQuery query = new CDXQuery(wbRequest.getRequestUrl());
 				
 		query.setLimit(limit);
 		//query.setSort(CDXQuery.SortType.reverse);
 		
-		String statusFilter = "!statuscode:(500|502|504)";
+		String statusFilter = baseStatusFilter;
 		
 		if (wbRequest.isReplayRequest()) {
 			if (wbRequest.isBestLatestReplayRequest()) {
@@ -295,7 +301,9 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 			query.setCollapseTime(timestampDedupLength);
 		}
 		
-		query.setFilter(new String[]{statusFilter});
+		// CDXServer#writeCdxResponse translates this into FieldRegexFilter
+		if (statusFilter != null && !statusFilter.isEmpty())
+			query.setFilter(new String[]{statusFilter});
 		
 		return query;
 	}
@@ -405,6 +413,19 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 		return iter;
     }
 
+	/**
+	 * create {@link CDXWriter} for writing capture search result.
+	 * <p>possible future changes:
+	 * <ul>
+	 * <li>drop unused argument {@code waybackAuthToken}</li>
+	 * <li>change return type to super class (as far up as appropriate)</li>
+	 * </ul>
+	 * </p>
+	 * @param wbRequest {@link WaybackRequest} for configuring {@link CDXQuery}
+	 * @param waybackAuthToken unused
+	 * @param isFuzzy {@code true} to enable fuzzy query
+	 * @return CDXCaptureSearchResultWriter
+	 */
 	protected CDXToCaptureSearchResultsWriter getCaptureSearchWriter(WaybackRequest wbRequest, AuthToken waybackAuthToken, boolean isFuzzy)
 	{
 		final CDXQuery query = createQuery(wbRequest, isFuzzy);
@@ -631,4 +652,49 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 	public void setTryFuzzyMatch(boolean tryFuzzyMatch) {
 		this.tryFuzzyMatch = tryFuzzyMatch;
 	}
+
+	public String getBaseStatusRegexp() {
+		return baseStatusRegexp;
+	}
+
+	/**
+	 * filter on {@code statuscode} field applied by default for <em>interactive</em>
+	 * CDX lookup (i.e. from Wayback UI, not via CDX Server API).
+	 * <p>Value is a regular expression for status code field. Only those CDXes
+	 * with matching statuscode field will be returned. Leading/Traling spaces are stripped off.
+	 * If value starts with "{@code !}",
+	 * only CDXes with <em>unmatching</em> statuscode field will be returned
+	 * (<em>exception</em>: value "!" is treated as empty string, i.e. no filtering).</p>
+	 * <p>Value will be ignored if WybackRequest.isBestLatestReplayRequest is set, for which
+	 * hard-coded value "{@code [23]..}" is used.</p>
+	 * <p>Default value is "{@code !(500|502|504)}".</p>
+	 * <p><strong>NOTE</strong>: this is a quick hack to allow for customizing replay/listing of 5xx captures.
+	 * it may be replaced by different customization method, or moved to other class in the
+	 * future.</p>
+	 * @param baseStatusRegexp regular expression for status code.
+	 */
+	public void setBaseStatusRegexp(String baseStatusRegexp) {
+		this.baseStatusRegexp = baseStatusRegexp;
+		this.baseStatusFilter = buildStatusFilter(baseStatusRegexp);
+	}
+
+	protected static String buildStatusFilter(String regexp) {
+		if (regexp == null)
+			return "";
+		String re = regexp.trim();
+		if (re.isEmpty())
+			return "";
+		else {
+			if (re.charAt(0) == '!') {
+				re = re.substring(1).trim();
+				if (re.isEmpty())
+					return "";
+				else
+					return "!statuscode:" + re;
+			} else {
+				return "statuscode:" + re;
+			}
+		}
+	}
+
 }

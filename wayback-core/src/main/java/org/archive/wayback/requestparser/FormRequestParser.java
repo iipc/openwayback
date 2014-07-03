@@ -36,7 +36,6 @@ import org.archive.wayback.webapp.AccessPoint;
  * HTTP GET request arguments
  *
  * @author brad
- * @version $Date$, $Revision$
  */
 public class FormRequestParser extends WrappedRequestParser {
 	/**
@@ -60,55 +59,56 @@ public class FormRequestParser extends WrappedRequestParser {
 
 		WaybackRequest wbRequest = null;
 		@SuppressWarnings("unchecked")
-		Map<String,String[]> queryMap = httpRequest.getParameterMap();
-		if(queryMap.size() > 0) {
+		Map<String, String[]> queryMap = httpRequest.getParameterMap();
+		if (queryMap.size() > 0) {
 			wbRequest = new WaybackRequest();
-			
+
 			String base = accessPoint.translateRequestPath(httpRequest);
-			if(base.startsWith(REPLAY_BASE)) {
+			if (base.startsWith(REPLAY_BASE)) {
 				wbRequest.setReplayRequest();
-			} else if(base.startsWith(QUERY_BASE)) {
+			} else if (base.startsWith(QUERY_BASE)) {
 				wbRequest.setCaptureQueryRequest();
-			} else if(base.startsWith(XQUERY_BASE)){
+			} else if (base.startsWith(XQUERY_BASE)) {
 				wbRequest.setCaptureQueryRequest();
 				wbRequest.setXMLMode(true);
-				
+
 			} else {
 				return null;
 			}
 			wbRequest.setResultsPerPage(getMaxRecords());
 			Set<String> keys = queryMap.keySet();
 			Iterator<String> itr = keys.iterator();
-			while(itr.hasNext()) {
+			while (itr.hasNext()) {
 				String key = itr.next();
-				if(key.equals(SUBMIT_BUTTON)) {
+				if (key.equals(SUBMIT_BUTTON)) {
 					continue;
 				}
 				// just jam everything else in:
-				String val = AccessPoint.getMapParam(queryMap,key);
-				if(key.equals(WaybackRequest.REQUEST_URL)) {
+				String val = AccessPoint.getMapParam(queryMap, key);
+				if (key.equals(WaybackRequest.REQUEST_URL)) {
 					String scheme = UrlOperations.urlToScheme(val);
-					if(scheme == null) {
+					if (scheme == null) {
 						val = UrlOperations.HTTP_SCHEME + val;
 					}
 				}
-				wbRequest.put(key,val);
+				wbRequest.put(key, val);
 			}
 			String partialTS = wbRequest.getReplayTimestamp();
-			if(partialTS != null) {
-				if(wbRequest.getStartTimestamp()== null) {
-					String startTS = Timestamp.parseBefore(partialTS).getDateStr();
+			if (partialTS != null) {
+				if (wbRequest.getStartTimestamp() == null) {
+					String startTS = Timestamp.parseBefore(partialTS)
+							.getDateStr();
 					wbRequest.setStartTimestamp(startTS);
 				}
-				if(wbRequest.getEndTimestamp() == null) {
+				if (wbRequest.getEndTimestamp() == null) {
 					String endTS = Timestamp.parseAfter(partialTS).getDateStr();
 					wbRequest.setEndTimestamp(endTS);
 				}
 			} else {
-				if(wbRequest.getStartTimestamp()== null) {
+				if (wbRequest.getStartTimestamp() == null) {
 					wbRequest.setStartTimestamp(getEarliestTimestamp());
 				}
-				if(wbRequest.getEndTimestamp() == null) {
+				if (wbRequest.getEndTimestamp() == null) {
 					wbRequest.setEndTimestamp(getLatestTimestamp());
 				}
 			}

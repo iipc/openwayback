@@ -72,6 +72,8 @@ public class DatelessReplayRequestParser extends PathRequestParser {
 		
 		String requestPath = accessPoint.translateRequestPathQuery(httpRequest);
 		
+		// FIXME: this flag indicates if Accept-Datetime header had a non-null value,
+		// not it's value is valid or not. equivalent of acceptDateTime != null.
 		boolean invalidAcceptDateTime = false;
 		
 		if (acceptDateTime != null) {
@@ -133,13 +135,15 @@ public class DatelessReplayRequestParser extends PathRequestParser {
 		 */
 		
 		String scheme = UrlOperations.urlToScheme(requestPath);
-		if(scheme == null) {
+		if (scheme == null) {
+			// if it has "http:/" instead of "http://", repair it.
+			// (some client canonicalizes "//" in path into "/".)
 			if(requestPath.startsWith("http:/")) {
 				requestPath = "http://" + requestPath.substring(6);
 				scheme = "http://";
 			}
 		}
-		if(scheme == null) {
+		if (scheme == null) {
 			try {
 				URL u = new URL(UrlOperations.HTTP_SCHEME + requestPath);
 				// does the authority look legit?
@@ -163,8 +167,8 @@ public class DatelessReplayRequestParser extends PathRequestParser {
 		return null;
 	}
 	
-	protected WaybackRequest handleDatelessRequest(AccessPoint accessPoint, String requestPath, Date mementoDate) throws BetterRequestException
-	{
+	protected WaybackRequest handleDatelessRequest(AccessPoint accessPoint,
+			String requestPath, Date mementoDate) throws BetterRequestException	{
 //		String nowTS = Timestamp.currentTimestamp().getDateStr();
 //		String newUrl = accessPoint.getUriConverter().makeReplayURI(nowTS, requestPath);
 //		throw new BetterRequestException(newUrl);

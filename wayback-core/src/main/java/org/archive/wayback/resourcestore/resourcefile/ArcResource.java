@@ -104,7 +104,6 @@ public class ArcResource extends Resource {
 
 			// copy all ARC record header fields to metaData, prefixing with 
 			// ARC_META_PREFIX
-			@SuppressWarnings("unchecked")
 			Map<String,Object> headerMetaMap = arcRecord.getMetaData().getHeaderFields();
 			Set<String> keys = headerMetaMap.keySet();
 			Iterator<String> itr = keys.iterator();

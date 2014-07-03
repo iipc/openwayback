@@ -36,16 +36,6 @@
     <!-- JWAT Dependencies -->
     <dependency>
       <groupId>org.jwat</groupId>
-      <artifactId>jwat-common</artifactId>
-      <version>1.0.1</version>
-    </dependency>
-    <dependency>
-      <groupId>org.jwat</groupId>
-      <artifactId>jwat-gzip</artifactId>
-      <version>1.0.1</version>
-    </dependency>
-    <dependency>
-      <groupId>org.jwat</groupId>
       <artifactId>jwat-arc</artifactId>
       <version>1.0.1</version>
     </dependency>
