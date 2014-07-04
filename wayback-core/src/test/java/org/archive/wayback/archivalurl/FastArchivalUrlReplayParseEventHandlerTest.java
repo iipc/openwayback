@@ -2,9 +2,12 @@ package org.archive.wayback.archivalurl;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.net.URL;
 import java.util.Properties;
+import java.util.regex.Pattern;
 
 import javax.servlet.ServletException;
 
@@ -850,6 +853,27 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 		String output = doEndToEnd(input);
 		System.out.println(output);
 		assertEquals(expected, output);
+	}
+
+	/**
+	 * HTMLParser appears to parse the content of {@code <SCRIPT>} element
+	 * as HTML.
+	 * @throws Exception
+	 */
+	public void testElementLookAlikeInScript() throws Exception {
+		delegator.setHeadInsertJsp("head.jsp");
+		delegator.setJspInsertPath("body-insert.jsp");
+		jspExec = new TestJSPExecutor();
+
+		final String input = "<html><head><script>/</g;900>a;a<k;</script></head>" +
+				"<body></body></html>";
+		final String expected = "<html><head>[[[JSP-INSERT:head.jsp]]]<script>/</g;900>a;a<k;</script></head>" +
+				"<body>[[[JSP-INSERT:body-insert.jsp]]]</body></html>";
+
+        String out = doEndToEnd(input);
+        System.out.println(out);
+
+        assertEquals(expected, out);
 	}
 
 	public String doEndToEnd(String input) throws Exception {
