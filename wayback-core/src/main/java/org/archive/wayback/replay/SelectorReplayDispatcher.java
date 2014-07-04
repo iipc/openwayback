@@ -65,25 +65,25 @@ public class SelectorReplayDispatcher implements ReplayDispatcher {
 	}
 	
 	public CaptureSearchResult getClosest(WaybackRequest wbRequest,
-			CaptureSearchResults results) throws BetterRequestException {
-		try {
+			CaptureSearchResults results) {
+//		try {
 			return closestSelector.getClosest(wbRequest, results);
-		} catch (BetterRequestException e) {
-			// AccessPoint.handleReplayRedirect() has the same code for adding Memento URL-G /
-			// "intermediate resource" response. move and unify this code with it. Eventually
-			// this method will stop throwing BetterRequestException.
-			if (wbRequest.isMementoEnabled()) {
-				// Issue either a Memento URL-G response, or "intermediate resource" response
-				if (wbRequest.isMementoTimegate()) {
-					e.addHeader(MementoConstants.VARY, MementoConstants.NEGOTIATE_DATETIME);
-					e.addHeader(MementoConstants.LINK, MementoUtils.generateMementoLinkHeaders(results, wbRequest, false, true));
-				} else {
-					e.addHeader(MementoConstants.LINK, MementoUtils.makeOrigHeader(wbRequest.getRequestUrl()));
-				}
-			}
-			
-			throw e;
-		}
+//		} catch (BetterRequestException e) {
+//			// AccessPoint.handleReplayRedirect() has the same code for adding Memento URL-G /
+//			// "intermediate resource" response. move and unify this code with it. Eventually
+//			// this method will stop throwing BetterRequestException.
+//			if (wbRequest.isMementoEnabled()) {
+//				// Issue either a Memento URL-G response, or "intermediate resource" response
+//				if (wbRequest.isMementoTimegate()) {
+//					e.addHeader(MementoConstants.VARY, MementoConstants.NEGOTIATE_DATETIME);
+//					e.addHeader(MementoConstants.LINK, MementoUtils.generateMementoLinkHeaders(results, wbRequest, false, true));
+//				} else {
+//					e.addHeader(MementoConstants.LINK, MementoUtils.makeOrigHeader(wbRequest.getRequestUrl()));
+//				}
+//			}
+//			
+//			throw e;
+//		}
 	}
 	
 	/**

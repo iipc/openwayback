@@ -66,6 +66,7 @@ import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.exception.SpecificCaptureReplayException;
 import org.archive.wayback.exception.WaybackException;
 import org.archive.wayback.memento.DefaultMementoHandler;
+import org.archive.wayback.memento.MementoConstants;
 import org.archive.wayback.memento.MementoHandler;
 import org.archive.wayback.memento.MementoUtils;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
@@ -659,6 +660,31 @@ implements ShutdownListener {
 		}
 	}
 
+	/**
+	 * return {@code true} if capture's timestamp matches exactly what's requested.
+	 * If requested timestamp is less specific (i.e. less digits) than capture's
+	 * timestamp, it is considered non-matching. On the other hand, capture's
+	 * timestamp being prefix of requested timestamp is considered a match (this is
+	 * to support captures with timestamp shorter than 14-digits. this may change).
+	 * @param closest capture to check
+	 * @param wbRequest request object
+	 * @return {@code true} if match
+	 */
+	private static boolean timestampMatch(CaptureSearchResult closest, WaybackRequest wbRequest) {
+		String replayTimestamp = wbRequest.getReplayTimestamp();
+		String captureTimestamp = closest.getCaptureTimestamp();
+
+		if (replayTimestamp.length() < captureTimestamp.length())
+			return false;
+		if (replayTimestamp.startsWith(captureTimestamp))
+			return true;
+		// if looking for latest date, consider it a tentative match, until
+		// checking if it's replay-able.
+		if (wbRequest.isBestLatestReplayRequest())
+			return true;
+		return false;
+	}
+
 	protected void handleReplay(WaybackRequest wbRequest,
 			HttpServletRequest httpRequest, HttpServletResponse httpResponse)
 					throws IOException, ServletException, WaybackException {
@@ -700,8 +726,42 @@ implements ShutdownListener {
 		// replay-able (ex. self-redirect) and results in another redirect.
 		CaptureSearchResult closest = getReplay().getClosest(wbRequest,
 			captureResults);
-
-		//CaptureSearchResult originalClosest = closest;
+		// code moved from ArchivalUrlDateRedirectingClosestResultSelector
+		// if we want to do capture-redirect here, we need to add code that
+		// checks if this AccessPoint is in proxy mode, where we don't do
+		// redirect.
+		// capture-redirect will be handled just the same way by handleReplayRedirect()
+		// below, without this code - I think it's safe to remove this code
+		// altogether.
+		if (false) {
+			// Request is first redirected to closest capture, even when it is NOT
+			// replay-able (ex. self-redirect) and results in another redirect.
+			if (!timestampMatch(closest, wbRequest)) {
+				String url = closest.getOriginalUrl();
+				String captureDate = closest.getCaptureTimestamp();
+				// ArchivalUrlDateRedirectingClosestResultSelector builds URL
+				// differently:
+				// ArchivalUrl aUrl = new ArchivalUrl(wbRequest);
+				// String replayURI = getReplayPrefix() + aUrl.toString(captureDate, url);
+				String replayURI = getUriConverter().makeReplayURI(
+					ArchivalUrl.getDateSpec(wbRequest, captureDate), url);
+				
+				BetterRequestException e = new BetterRequestException(replayURI);
+				if (wbRequest.isMementoEnabled()) {
+					// Issue either a Memento URL-G response, or "intermediate resource" response
+					if (wbRequest.isMementoTimegate()) {
+						// (this is exactly the same as MementoUtils.addTimegateHeaders(), but works
+						// on BetterReuquestException.
+						e.addHeader(MementoConstants.VARY, MementoConstants.NEGOTIATE_DATETIME);
+						e.addHeader(MementoConstants.LINK, MementoUtils.generateMementoLinkHeaders(captureResults, wbRequest, false, true));
+					} else {
+						// similary
+						e.addHeader(MementoConstants.LINK, MementoUtils.makeOrigHeader(wbRequest.getRequestUrl()));
+					}
+				}
+				throw e;
+			}
+		}
 
 		int counter = 0;
 
@@ -1008,13 +1068,16 @@ implements ShutdownListener {
 	 * @throws BadQueryException
 	 * @throws ResourceNotInArchiveException
 	 * @throws ResourceIndexNotAvailableException
-	 * @throws BetterRequestException
 	 * @see WARCRevisitAnnotationFilter
 	 */
 	protected CaptureSearchResult retrievePayloadForIdenticalContentRevisit(
 			WaybackRequest currRequest,
 			Resource revisitRecord,
-			CaptureSearchResult closest) throws WaybackException {
+			CaptureSearchResult closest)
+			throws ResourceIndexNotAvailableException,
+			ResourceNotInArchiveException, BadQueryException,
+			AccessControlException, ConfigurationException,
+			ResourceNotAvailableException {
 
 		if (!closest.isDuplicateDigest()) {
 			LOGGER.warning("Revisit: record is not a revisit by identical content digest " + closest.getCaptureTimestamp() + " " + closest.getOriginalUrl());
@@ -1073,10 +1136,23 @@ implements ShutdownListener {
 							payloadUri);
 			}
 			CaptureSearchResults payloadCaptureResults = (CaptureSearchResults)results;
+			// closest may not be the one pointed by payloadTimestamp
 			// FIXME 	can throw BetterRequestException - it can be back to the original
 			// capture if revisited capture is missing in the index, and results
 			// in redirect loop.
 			payloadLocation = getReplay().getClosest(wbr, payloadCaptureResults);
+			// closest will not be the one pointed by payloadTimestamp if revisited
+			// capture is missing (can happen for many reasons; not indexed yet, archive
+			// has gone missing, for example).
+			// TODO: this is pretty inefficient. should have a method for searching
+			// just one capture at specific timestamp. Perhaps timestampSearchKey
+			// is meant for this purpose, but it's not working as expected, apparently.
+			if (payloadLocation != null) {
+				String captureTimestamp = payloadLocation.getCaptureTimestamp();
+				// not supporting captureTimestamp less than 14 digits.
+				if (!captureTimestamp.equals(payloadTimestamp))
+					payloadLocation = null;
+			}
 		}
 
 //		if (payloadLocation != null) {
