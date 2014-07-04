@@ -24,6 +24,7 @@
 		<website.url>http://github.com/iipc/openwayback</website.url>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<org.springframework.version>3.0.6.RELEASE</org.springframework.version>
+		<additionalparam>-Xdoclint:none</additionalparam>
 	</properties>
 
 	<description>
