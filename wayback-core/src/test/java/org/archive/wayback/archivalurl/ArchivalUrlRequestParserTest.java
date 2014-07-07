@@ -422,7 +422,7 @@ public class ArchivalUrlRequestParserTest extends TestCase {
 	}
 	
 	public void testPathDatelessWithDateHeader() throws Exception {
-		final String dateHeader = "Thu, 24 Apr 2014 21:15:51 GMT+00:00";
+		final String dateHeader = "Thu, 24 Apr 2014 21:15:51 PST";
 		final Date date = (new SimpleDateFormat("EEE, dd MMM yyyy hh:mm:ss z")).parse(dateHeader);
 		{
 			acceptDatetimeHeader = dateHeader;
