@@ -347,7 +347,7 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-project-info-reports-plugin</artifactId>
                 <configuration>
-                    <dependencyLocationEnabled>false</dependencyLocationEnabled>
+                    <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
                     <dependencyDetailsEnabled>false</dependencyDetailsEnabled>
                 </configuration>
 				<reportSets>
