@@ -20,6 +20,18 @@
 		<module>dist</module>
 	</modules>
 
+	<profiles>
+          <profile>
+            <id>JDK 8 Build</id>
+            <activation>
+              <jdk>[1.8,)</jdk>
+            </activation>
+            <properties>
+              <additionalparam>-Xdoclint:none</additionalparam>
+            </properties>
+          </profile>
+        </profiles>
+
 	<properties>
 		<website.url>http://github.com/iipc/openwayback</website.url>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
