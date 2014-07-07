@@ -22,9 +22,9 @@ public class URLtoARCCacherTest extends TestCase {
     	http.setHostConfiguration(hostConfiguration);
 		HttpMethod method = null;
 //		String urlString = "http://wayback.archive-it.org:6100/one";
-		String urlString = "http://hello.com/one";
-		int socketTimeoutMS = 10;
-		int connectTimeoutMS = 100;
+		String urlString = "http://netpreserve.org/";
+		int socketTimeoutMS = 100;
+		int connectTimeoutMS = 200;
     	connectionManager.getParams().setSoTimeout(socketTimeoutMS);
     	connectionManager.getParams().setConnectionTimeout(connectTimeoutMS);
 		try {
