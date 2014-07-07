@@ -58,6 +58,6 @@ public class StandardCharsetDetector extends CharsetDetector {
 			if (charset != null)
 				return charset;
 		}
-		return null;
+		return DEFAULT_CHARSET;
 	}
 }
