@@ -75,6 +75,30 @@
         </p>
     </section>
     <section name="News">
+        <subsection name="New Release - 2.0.0 BETA 3, ??/??/???">
+          <p>
+            The 2.0.0 BETA 3 release is now available, with XXX.
+            See the <a href="release_notes.html">release notes</a> page for details.
+            Upgrading to this version will require changes to Wayback Spring XML
+            configuration.
+          </p>
+        </subsection>
+        <subsection name="New Release - 2.0.0 BETA 2, ??/??/???">
+          <p>
+            The 2.0.0 BETA 3 release is now available, with XXX.
+            See the <a href="release_notes.html">release notes</a> page for details.
+            Upgrading to this version will require changes to Wayback Spring XML
+            configuration.
+          </p>
+        </subsection>
+        <subsection name="New Release - 2.0.0 BETA 1, ??/??/???">
+          <p>
+            The 2.0.0 BETA 3 release is now available, with XXX.
+            See the <a href="release_notes.html">release notes</a> page for details.
+            Upgrading to this version will require changes to Wayback Spring XML
+            configuration.
+          </p>
+        </subsection>
         <subsection name="New Release - 1.6.0, 1/3/2011">
           <p>
             The 1.6.0 release is now available, with improved
