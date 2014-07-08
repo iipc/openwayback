@@ -19,8 +19,11 @@ import org.archive.wayback.resourcestore.resourcefile.WarcResource;
 public class RotatingCharsetDetectorTest extends TestCase {
 
 	protected WarcResource createResource(String payload, String encoding) throws IOException {
+		return createResource("text/html", payload, encoding);
+	}
+	protected WarcResource createResource(String contentType, String payload, String encoding) throws IOException {
 		final byte[] payloadBytes = payload.getBytes(encoding);
-		TestWARCRecordInfo recinfo = TestWARCRecordInfo.createHttpResponse("text/html", payloadBytes);
+		TestWARCRecordInfo recinfo = TestWARCRecordInfo.createHttpResponse(contentType, payloadBytes);
 		TestWARCReader wr = new TestWARCReader(recinfo);
 		WARCRecord rec = wr.get(0);
 		WarcResource resource = new WarcResource(rec, wr);
@@ -83,5 +86,38 @@ public class RotatingCharsetDetectorTest extends TestCase {
 		//assertEquals("UTF-16BE", charset);
 	}
 	
+	/**
+	 * test of {@link ContentTypeHeaderSniffer}
+	 * @throws Exception
+	 */
+	public void testContentTypeHeaderSniffer() throws Exception {
+		ContentTypeHeaderSniffer cut = new ContentTypeHeaderSniffer();
+		final String payload = "<html>" +
+				"<body>" +
+				"</body>" +
+				"</html>";
+		{
+			WarcResource resource = createResource("text/html", payload, "UTF-8");
+			String enc = cut.sniff(resource);
+			assertNull(enc);
+		}
+		{
+			WarcResource resource = createResource("text/html;charset=utf-8", payload, "UTF-8");
+			String enc = cut.sniff(resource);
+			assertEquals("utf-8", enc);
+		}
+		{
+			WarcResource resource = createResource("text/html; charset=shift_jis", payload, "shift_jis");
+			String enc = cut.sniff(resource);
+			assertEquals("shift_jis", enc);
+		}
+		{
+			// rescuing broken charset name
+			WarcResource resource = createResource("text/html; charset=i so-8859-1", payload, "iso-8859-1");
+			String enc = cut.sniff(resource);
+			// sniffer maps "iso-8859-1" to "cp1252";
+			assertEquals("cp1252", enc);
+		}
+	}
 	// more tests?
 }
