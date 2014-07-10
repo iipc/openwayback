@@ -41,7 +41,9 @@ public class WaybackAPAuthChecker extends WaybackAuthChecker {
 		}
 		
 		ExclusionFilter robotsFilter = null;
-		if (robotsExclusions != null) {
+		if (robotsExclusions != null &&
+				!isAllowed(token, ignoreRobotsAccessTokens) &&
+				!token.isIgnoreRobots()) {
 			robotsFilter = robotsExclusions.get();
 		}
 		
