@@ -255,6 +255,11 @@ public class UIResults {
 	/**
 	 * Create a self-referencing URL that will perform a query for all copies
 	 * of the given URL.
+	 * <p>This method builds URL that passes target URL in CGI parameter,
+	 * along with other parameters unnecessary for making simple capture
+	 * query request. It is not suitable for simple links.
+	 * {@link #makePlainCaptureQueryUrl(String)} generates clean and
+	 * plain URL.</p>
 	 * @param url to search for copies of
 	 * @return String url that will make a query for all captures of an URL.
 	 */
@@ -265,6 +270,19 @@ public class UIResults {
 		newWBR.setRequestUrl(url);
 		return newWBR.getAccessPoint().getQueryPrefix() + "query?" +
 			newWBR.getQueryArguments(1);
+	}
+
+	/**
+	 * Build a self-referencing URL that will perform a query for all copies
+	 * of the given URL (plain, clean URL version).
+	 * @param url URL to search for copies of
+	 * @return String URL for querying captures of
+	 * @version 1.8.1
+	 */
+	public String makePlainCaptureQueryUrl(String url) {
+		// TOOD: want "2014*" instead of "20140101000000-20141231115959*"
+		return wbRequest.getAccessPoint().makeCaptureQueryUrl(url,
+			wbRequest.getStartTimestamp(), wbRequest.getEndTimestamp());
 	}
 
 	/**
