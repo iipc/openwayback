@@ -3,6 +3,7 @@ package org.archive.wayback.archivalurl;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Locale;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -423,7 +424,7 @@ public class ArchivalUrlRequestParserTest extends TestCase {
 	
 	public void testPathDatelessWithDateHeader() throws Exception {
 		final String dateHeader = "Thu, 24 Apr 2014 21:15:51 UTC+00:00";
-		final Date date = (new SimpleDateFormat("EEE, dd MMM yyyy hh:mm:ss z")).parse(dateHeader);
+		final Date date = (new SimpleDateFormat("EEE, dd MMM yyyy hh:mm:ss z", Locale.ENGLISH)).parse(dateHeader);
 		{
 			acceptDatetimeHeader = dateHeader;
 			WaybackRequest wbr = parse("/web/http://www.yahoo.com/");
