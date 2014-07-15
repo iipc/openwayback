@@ -23,6 +23,7 @@ import java.util.List;
 
 import org.archive.wayback.replay.html.ReplayParseContext;
 import org.archive.wayback.replay.html.StringTransformer;
+import org.archive.wayback.replay.html.rewrite.RewriteRule;
 
 /**
  * {@link StringTransformer} that aggregates multiple sub-<code>StringTransformer</code>s that
@@ -31,7 +32,9 @@ import org.archive.wayback.replay.html.StringTransformer;
  * sub-StringTransformers can be any <code>StringTransformer</code> regardless of
  * being regular-expression base or not.</p>
  */
-public class MultiRegexReplaceStringTransformer implements StringTransformer {
+public class MultiRegexReplaceStringTransformer extends RewriteRule 
+		implements StringTransformer {
+	
 	List<StringTransformer> transformers;
 	public String transform(ReplayParseContext context, String input) {
 		if(transformers == null) {
@@ -54,5 +57,12 @@ public class MultiRegexReplaceStringTransformer implements StringTransformer {
 	public void setTransformers(List<StringTransformer> transformers) {
 		this.transformers = transformers;
 	}
+	
+	@Override
+	public String rewrite(ReplayParseContext context, String policy,
+			String input) {
+		
+		return transform(context, input);
+	}	
 
 }
