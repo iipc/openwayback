@@ -14,8 +14,15 @@
   <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
     <property name="properties">
       <value>
-        wayback.basedir=/tmp/wayback
-        wayback.urlprefix=http://localhost:8080/wayback/
+        wayback.basedir=/tmp/openwayback
+        
+        wayback.archivedir.1=${wayback.basedir}/files1/
+        wayback.archivedir.2=${wayback.basedir}/files2/
+        
+        wayback.url.scheme=http
+        wayback.url.host=localhost
+        wayback.url.port=8080
+        wayback.url.prefix=${wayback.url.scheme}://${wayback.url.host}:${wayback.url.port}
       </value>
     </property>
   </bean>
@@ -150,8 +157,8 @@
   </bean>
 
   <bean name="standardaccesspoint" class="org.archive.wayback.webapp.AccessPoint">
-    <property name="accessPointPath" value="http://localhost:8080/wayback/"/>
-    <property name="internalPort" value="8080"/>
+    <property name="accessPointPath" value="${wayback.url.prefix}/wayback/"/>
+    <property name="internalPort" value="${wayback.url.port}"/>
     <property name="serveStatic" value="true" />
     <property name="bounceToReplayPrefix" value="false" />
     <property name="bounceToQueryPrefix" value="false" />
@@ -161,9 +168,9 @@
 	  requests by different URL prefixes
 	-->
 	
-    <property name="replayPrefix" value="${wayback.urlprefix}" />
-    <property name="queryPrefix" value="${wayback.urlprefix}" />
-    <property name="staticPrefix" value="${wayback.urlprefix}" />
+    <property name="replayPrefix" value="${wayback.url.prefix}/wayback/" />
+    <property name="queryPrefix" value="${wayback.url.prefix}/wayback/" />
+    <property name="staticPrefix" value="${wayback.url.prefix}/wayback/" />
 
 	<!--
 		The following property will cause only results matching the exact host
@@ -193,7 +200,7 @@
 
     <property name="uriConverter">
       <bean class="org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter">
-        <property name="replayURIPrefix" value="${wayback.urlprefix}"/>
+        <property name="replayURIPrefix" value="${wayback.url.prefix}/wayback/"/>
       </bean>
     </property>
 
@@ -229,10 +236,10 @@
 <!--
   <import resource="MementoReplay.xml"/>
   <bean name="mementoaccesspoint" parent="standardaccesspoint">
-    <property name="accessPointPath" value="http://localhost:8080/memento/"/>
-    <property name="internalPort" value="8080"/>
-    <property name="replayPrefix" value="http://localhost:8080/memento/" />
-    <property name="queryPrefix" value="http://localhost:8080/list/" />
+    <property name="accessPointPath" value="${wayback.url.prefix}/memento/"/>
+    <property name="internalPort" value="${wayback.url.host}"/>
+    <property name="replayPrefix" value="$${wayback.url.prefix}/memento/" />
+    <property name="queryPrefix" value="${wayback.url.prefix}/list/" />
 	<property name="configs">
       <props>
 	    <prop key="aggregationPrefix">http://localhost:8080/list/</prop>
@@ -248,7 +255,7 @@
 
     <property name="uriConverter">
       <bean class="org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter">
-        <property name="replayURIPrefix" value="http://localhost:8080/memento/"/>
+        <property name="replayURIPrefix" value="${wayback.url.prefix}/memento/"/>
       </bean>
     </property>
     <property name="parser">
@@ -265,13 +272,14 @@
   </bean>
 
 
-  <bean name="8080:list" parent="mementoaccesspoint">
-    <property name="replayPrefix" value="http://localhost:8080/memento/" />
-    <property name="queryPrefix" value="http://localhost:8080/list/" />
-    <property name="staticPrefix" value="http://localhost:8080/list/" />
+  <bean name="list" parent="mementoaccesspoint">
+    <property name="replayPrefix" value="${wayback.url.prefix}/memento/" />
+    <property name="queryPrefix" value="${wayback.url.prefix}/list/" />
+    <property name="staticPrefix" value="${wayback.url.prefix}/list/" />
+    <property name="internalPort" value="${wayback.url.host}"/>
 	<property name="configs">
 	  <props>
-	    <prop key="Prefix">http://localhost:8080/memento/</prop>
+	    <prop key="Prefix">${wayback.url.scheme}://${wayback.url.host}:${wayback.url.port}/memento/</prop>
 	  </props>
 	</property>
 
@@ -300,9 +308,9 @@
  -->
  <!--
   <bean name="opensearchaccesspoint" parent="standardaccesspoint">
-    <property name="accessPointPath" value="http://localhost:8080/opensearch/"/>
-    <property name="internalPort" value="8080"/>
-    <property name="queryPrefix" value="http://localhost:8080/opensearch/" />
+    <property name="accessPointPath" value="${wayback.url.prefix}/opensearch/"/>
+    <property name="internalPort" value="${wayback.url.port}"/>
+    <property name="queryPrefix" value="${wayback.url.prefix}/opensearch/" />
     <property name="query">
       <bean class="org.archive.wayback.query.Renderer">
         <property name="captureJsp" value="/WEB-INF/query/OpenSearchCaptureResults.jsp" />
