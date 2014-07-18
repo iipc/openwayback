@@ -1378,6 +1378,30 @@ implements ShutdownListener {
 	}
 
 	/**
+	 * Build a self-referencing URL that will perform a query for all copies
+	 * of URL {@code url}.
+	 * @param url URL to search for copies of
+	 * @param startdate start of date range in DT14 format (may be {@code null}
+	 * for no date range.
+	 * @param enddate end of date range in DT14 format (may be {@code null}, ignored
+	 * if {@code startdate} is {@code null})
+	 * @return String URL that will make a query for all captures of {@code url}.
+	 */
+	public String makeCaptureQueryUrl(String url, String startdate, String enddate) {
+		// XXX assumes particular style of query URL, which may not be compatible
+		// with RequestParsers in use. TODO: refactor.
+		if (startdate != null) {
+			if (enddate != null) {
+				return getQueryPrefix() + startdate + "-" + enddate + "*/" + url;
+			} else {
+				return getQueryPrefix() + startdate + "*/" + url;
+			}
+		} else {
+			return getQueryPrefix() + "*/" + url;
+		}
+	}
+
+	/**
 	 * @param interstitialJsp the interstitialJsp to set
 	 */
 	public void setInterstitialJsp(String interstitialJsp) {
