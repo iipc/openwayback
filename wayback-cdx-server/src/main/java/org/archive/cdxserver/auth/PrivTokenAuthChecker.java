@@ -2,6 +2,7 @@ package org.archive.cdxserver.auth;
 
 import java.util.List;
 
+import org.archive.cdxserver.filter.CDXAccessFilter;
 import org.archive.format.cdx.FieldSplitFormat;
 
 /**
@@ -22,7 +23,7 @@ public abstract class PrivTokenAuthChecker implements AuthChecker
 	protected List<String> ignoreRobotsAccessTokens;
 	protected List<String> allCdxFieldsAccessTokens;
 
-	boolean isAllowed(AuthToken auth, List<String> allowVector) {
+	protected boolean isAllowed(AuthToken auth, List<String> allowVector) {
 		if (auth == null || auth.authToken == null || allowVector == null) {
 			return false;
 		}
@@ -38,8 +39,6 @@ public abstract class PrivTokenAuthChecker implements AuthChecker
 	public boolean isAllUrlAccessAllowed(AuthToken auth) {
 		if (auth.cachedAllUrlAllow == null) {
 			auth.cachedAllUrlAllow = isAllowed(auth, allUrlAccessTokens);
-			
-			auth.setIgnoreRobots(isAllowed(auth, ignoreRobotsAccessTokens));
 		}
 		return auth.cachedAllUrlAllow;
 	}

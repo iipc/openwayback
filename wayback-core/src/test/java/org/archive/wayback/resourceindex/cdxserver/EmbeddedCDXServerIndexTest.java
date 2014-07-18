@@ -8,25 +8,41 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import junit.framework.TestCase;
 
+import org.apache.commons.collections.iterators.ArrayIterator;
 import org.archive.cdxserver.CDXQuery;
 import org.archive.cdxserver.CDXServer;
+import org.archive.cdxserver.auth.AuthChecker;
 import org.archive.cdxserver.auth.AuthToken;
+import org.archive.cdxserver.auth.PrivTokenAuthChecker;
+import org.archive.cdxserver.filter.CDXAccessFilter;
 import org.archive.cdxserver.writer.CDXWriter;
+import org.archive.cdxserver.writer.HttpCDXWriter;
 import org.archive.format.cdx.CDXFieldConstants;
 import org.archive.format.cdx.CDXLine;
 import org.archive.format.cdx.FieldSplitFormat;
+import org.archive.format.gzip.zipnum.ZipNumCluster;
+import org.archive.format.gzip.zipnum.ZipNumParams;
+import org.archive.util.iterator.CloseableIterator;
+import org.archive.wayback.accesscontrol.robotstxt.redis.RedisRobotExclusionFilterFactory;
+import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
+import org.archive.wayback.exception.RobotAccessControlException;
+import org.archive.wayback.resourceindex.filters.ExclusionFilter;
+import org.archive.wayback.util.ObjectFilter;
+import org.archive.wayback.util.WrappedCloseableIterator;
 import org.archive.wayback.util.url.KeyMakerUrlCanonicalizer;
 import org.archive.wayback.webapp.PerfStats;
 import org.easymock.EasyMock;
@@ -329,5 +345,139 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 		// shall be done by test case for MementoLinkWriter.
 		//System.out.println("response=" + sw.toString());
 		assertTrue(sw.toString().startsWith("<http://example.com/>;"));
+	}
+
+	// WaybackAuthChecker wants RedisRobotExclusionFilterFactory for
+	// robotsExclusions. BAD, BAD, BAD!
+	public static class ExcludeAllFilterFactory extends RedisRobotExclusionFilterFactory {
+		@Override
+		public ExclusionFilter get() {
+			return new ExclusionFilter() {
+				@Override
+				public int filterObject(CaptureSearchResult o) {
+					return ObjectFilter.FILTER_EXCLUDE;
+				}
+			};
+		}
+	}
+	// XXX CDXServer demands ZipNumCluster even though it doesn't
+	// call methods specific to it. BAD.
+	public static class StubZipNumCluster extends ZipNumCluster {
+		List<String> cdxlines;
+		public StubZipNumCluster(String... cdxlines) {
+			this.cdxlines = Arrays.asList(cdxlines);
+		}
+		// method called by EmbeddedCDXServer.query(WaybackRequest) for
+		// non-paged queries.
+		@Override
+		public CloseableIterator<String> getCDXIterator(String key,
+				String start, String end, ZipNumParams params)
+				throws IOException {
+			return new WrappedCloseableIterator<String>(cdxlines.iterator());
+		}
+	}
+	/**
+	 * robots.txt exclusion shall be disable for embeds.
+	 * <p>TODO: This is actually testing classes in {@code wayback-cdx-server}
+	 * module. Implemented here because it takes more work to do this
+	 * in wayback-cdx-server module, and it makes little sense to do it before
+	 * planned refactoring.</p>
+	 * <p>Ref: WWM-119. A bug in {@link PrivTokenAuthChecker}.</p>
+	 * @throws Exception
+	 */
+	public void testIgnoreRobotsForEmbeds() throws Exception {
+		CDXServer cdxServer = new CDXServer();
+		ZipNumCluster cdxSource = new StubZipNumCluster(
+			"com,example)/style.css 20101124000000 http://example.com/style.css text/css 200"
+					+ " ABCDEFGHIJKLMNOPQRSTUVWXYZ012345 - - 2000 0 /a/a.warc.gz");
+		cdxServer.setZipnumSource(cdxSource);
+		// This is the class being tested here... so AuthChecker shall no be mocked.
+		// We cannot use PrivTokenAuthCheck class for this test, because it has no
+		// real support for robots.txt exclusion. This is the main reason why we
+		// cannot have this test in wayback-cdx-server project.
+		WaybackAuthChecker authChecker = new WaybackAuthChecker();
+		authChecker.setRobotsExclusions(new ExcludeAllFilterFactory());
+		cdxServer.setAuthChecker(authChecker);
+		cdxServer.afterPropertiesSet();
+		cut.setCdxServer(cdxServer);
+
+		{
+			WaybackRequest wbRequest = WaybackRequest.createReplayRequest(
+				"http://example.com/style.css", "20140101000000", null, null);
+			wbRequest.setCSSContext(true); // i.e. "embed"
+
+			try {
+				cut.query(wbRequest);
+			} catch (RobotAccessControlException ex) {
+				fail("robots.txt exclusion is not disabled for embeds");
+			}
+		}
+		// additional tests to make sure robots.txt exclusion is implemented
+		// right, not just broken. these would have better been in a separate
+		// test method(s), but just for now... CDX server refactoring will
+		// break these anyways.
+		{
+			WaybackRequest wbRequest = WaybackRequest.createReplayRequest(
+				"http://example.com/style.css", "20140101000000", null, null);
+			// not embed
+			try {
+				cut.query(wbRequest);
+				fail("RobotAccessControlException was not thrown");
+			} catch (RobotAccessControlException ex) {
+				// expected.
+			}
+		}
+
+		// check robots.txt exclusion is working for CDX server API entry point
+		{
+			HttpServletRequest httpRequest = EasyMock.createNiceMock(HttpServletRequest.class);
+			EasyMock.expect(httpRequest.getParameter("url")).andStubReturn("http://exmaple.com/style.css");
+
+			HttpServletResponse httpResponse = EasyMock.createMock(HttpServletResponse.class);
+			// expect error response; 403 with error header containing "Robot"
+			final StringWriter output = new StringWriter();
+			EasyMock.expect(httpResponse.getWriter()).andReturn(new PrintWriter(output));
+			httpResponse.setContentType(EasyMock.<String>notNull());
+			EasyMock.expectLastCall().once();
+			httpResponse.setStatus(403);
+			EasyMock.expectLastCall().once();
+			httpResponse.setHeader(EasyMock.eq(HttpCDXWriter.RUNTIME_ERROR_HEADER), EasyMock.matches("(?i).*Robot.*"));
+
+			EasyMock.replay(httpRequest, httpResponse);
+
+			cut.handleRequest(httpRequest, httpResponse);
+
+			EasyMock.verify(httpResponse);
+		}
+
+		// check if robots.txt exclusion can be disabled by cookie.
+		{
+			final String IGNORE_ROBOTS_TOKEN = "DISABLE-ROBOTS-EXCLUSION";
+			authChecker.setIgnoreRobotsAccessTokens(Collections.singletonList(IGNORE_ROBOTS_TOKEN));
+
+			HttpServletRequest httpRequest = EasyMock.createNiceMock(HttpServletRequest.class);
+			EasyMock.expect(httpRequest.getParameter("url")).andStubReturn("http://exmaple.com/style.css");
+			EasyMock.expect(httpRequest.getCookies()).andStubReturn(
+				new Cookie[] { new Cookie(cdxServer.getCookieAuthToken(),
+					IGNORE_ROBOTS_TOKEN) });
+
+			HttpServletResponse httpResponse = EasyMock.createMock(HttpServletResponse.class);
+			// expect 200 response = robots exclusion is disabled.
+			final StringWriter output = new StringWriter();
+			EasyMock.expect(httpResponse.getWriter()).andReturn(new PrintWriter(output));
+			httpResponse.setContentType(EasyMock.<String>notNull());
+			EasyMock.expectLastCall().once();
+			//httpResponse.setStatus(200); // this is not explicitly called
+			//EasyMock.expectLastCall().once();
+
+			EasyMock.replay(httpRequest, httpResponse);
+
+			cut.handleRequest(httpRequest, httpResponse);
+			// if it's not working, EasyMock will report unexpected call to httpResponse.setStatus(403).
+
+			EasyMock.verify(httpResponse);
+
+			System.out.println(output.toString());
+		}
 	}
 }
