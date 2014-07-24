@@ -1,10 +1,3 @@
-/** 
- *  JWATResource -- created by Nick Clarke for interfacing with JWAT ARC/WARC Readers
- *  Originally forked from 
- *  
- *  https://bitbucket.org/nclarkekb/jwat-wayback-resourcestore 
- */
-
 package org.archive.wayback.resourcestore.jwat;
 
 import java.io.BufferedInputStream;
@@ -33,6 +26,18 @@ import org.jwat.warc.WarcReader;
 import org.jwat.warc.WarcReaderFactory;
 import org.jwat.warc.WarcRecord;
 
+/**
+ * JWATResource -- created by Nick Clarke for interfacing with JWAT ARC/WARC Readers
+ * Originally forked from https://bitbucket.org/nclarkekb/jwat-wayback-resourcestore
+ * <p>Note: JWATResource does not meet {@link Resource} expectations 100%:
+ * <ul>
+ * <li>chunk-ed entity - returns chunked content as-is</li>
+ * <li>old-style WARC revisit record (revisit without HTTP headers) -
+ * mostly work ok, but assumes status=200.</li>
+ * <li>{@code metadata}/{@code resource} WARC records - does not return
+ * Content-Type in WARC record header.</li>
+ * </ul>
+ */
 public class JWATResource extends Resource {
 
 	protected ByteCountingPushBackInputStream pbin;
@@ -52,7 +57,8 @@ public class JWATResource extends Resource {
 	protected long length = 0;
 	protected int status = 0;
 
-	public static Resource getResource(InputStream rin, long offset) throws IOException, ResourceNotAvailableException {
+	public static Resource getResource(InputStream rin, long offset)
+			throws IOException, ResourceNotAvailableException {
 		JWATResource r = new JWATResource();
 
 		r.pbin = new ByteCountingPushBackInputStream(rin, 32);
@@ -60,13 +66,14 @@ public class JWATResource extends Resource {
 
 		if (GzipReader.isGzipped(r.pbin)) {
 			r.gzipReader = new GzipReader(r.pbin);
-			if ( (r.gzipEntry = r.gzipReader.getNextEntry()) != null ) {
-				in = new ByteCountingPushBackInputStream(new BufferedInputStream( r.gzipEntry.getInputStream(), 8192), 32);
+			if ((r.gzipEntry = r.gzipReader.getNextEntry()) != null) {
+				in = new ByteCountingPushBackInputStream(
+					new BufferedInputStream(r.gzipEntry.getInputStream(), 8192),
+					32);
 			} else {
 				throw new ResourceNotAvailableException("GZip entry is invalid");
 			}
-		}
-		else {
+		} else {
 			in = r.pbin;
 		}
 		Payload payload = null;
@@ -96,10 +103,10 @@ public class JWATResource extends Resource {
 					r.status = 200;
 				}
 			}
-		}
-		else if ( WarcReaderFactory.isWarcRecord(in) ) {
+		} else if (WarcReaderFactory.isWarcRecord(in)) {
 			r.warcReader = WarcReaderFactory.getReaderUncompressed();
-			r.warcReader.setWarcTargetUriProfile(UriProfile.RFC3986_ABS_16BIT_LAX);
+			r.warcReader
+				.setWarcTargetUriProfile(UriProfile.RFC3986_ABS_16BIT_LAX);
 			r.warcReader.setBlockDigestEnabled(false);
 			r.warcReader.setPayloadDigestEnabled(false);
 			r.warcRecord = r.warcReader.getNextRecordFrom(in, offset);
@@ -122,8 +129,7 @@ public class JWATResource extends Resource {
 					r.status = 200;
 				}
 			}
-		}
-		else {
+		} else {
 			throw new ResourceNotAvailableException("Unknown archive record");
 		}
 		if (r.payloadStream == null) {
@@ -131,13 +137,15 @@ public class JWATResource extends Resource {
 			r = null;
 		} else {
 			r.setInputStream(r.payloadStream);
-	        r.headers = new Hashtable<String,String>();
+			r.headers = new Hashtable<String, String>();
 			if (httpHeader != null) {
-				Iterator<HeaderLine> headerLines = httpHeader.getHeaderList().iterator();
+				Iterator<HeaderLine> headerLines = httpHeader.getHeaderList()
+					.iterator();
 				HeaderLine headerLine;
 				while (headerLines.hasNext()) {
 					headerLine = headerLines.next();
-					r.headers.put(headerLine.name.toLowerCase(), headerLine.value);
+					r.headers.put(headerLine.name.toLowerCase(),
+						headerLine.value);
 				}
 			}
 		}
