@@ -30,11 +30,7 @@
 
     <property name="resourceStore">
       <bean class="org.archive.wayback.resourcestore.LocationDBResourceStore">
-        <property name="db">
-          <bean class="org.archive.wayback.resourcestore.locationdb.FlatFileResourceFileLocationDB">
-            <property name="path" value="${wayback.basedir}/path-index.txt" />
-          </bean>
-        </property>
+        <property name="db" ref="resourcefilelocationdb" />
       </bean>
     </property>
 
