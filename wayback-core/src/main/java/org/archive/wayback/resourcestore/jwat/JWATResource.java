@@ -194,9 +194,9 @@ public class JWATResource extends Resource implements WARCConstants {
 				if (contentType != null || httpDate != null) {
 					r.headers = new Hashtable<String, String>();
 					if (contentType != null)
-						r.headers.put("content-type", contentType);
+						r.headers.put("Content-Type", contentType);
 					if (httpDate != null)
-						r.headers.put("date", httpDate);
+						r.headers.put("Date", httpDate);
 				}
 			}
 		}
