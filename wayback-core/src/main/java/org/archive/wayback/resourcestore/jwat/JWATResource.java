@@ -4,14 +4,17 @@ import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.ParseException;
 import java.util.Date;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.Map;
 
 import org.archive.util.ArchiveUtils;
+import org.apache.commons.lang.time.DateUtils;
+import org.archive.format.warc.WARCConstants;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.exception.ResourceNotAvailableException;
+import org.archive.wayback.replay.HttpHeaderOperation;
 import org.jwat.arc.ArcReader;
 import org.jwat.arc.ArcReaderFactory;
 import org.jwat.arc.ArcRecordBase;
@@ -29,16 +32,10 @@ import org.jwat.warc.WarcRecord;
 /**
  * JWATResource -- created by Nick Clarke for interfacing with JWAT ARC/WARC Readers
  * Originally forked from https://bitbucket.org/nclarkekb/jwat-wayback-resourcestore
- * <p>Note: JWATResource does not meet {@link Resource} expectations 100%:
- * <ul>
- * <li>chunk-ed entity - returns chunked content as-is</li>
- * <li>old-style WARC revisit record (revisit without HTTP headers) -
- * mostly work ok, but assumes status=200.</li>
- * <li>{@code metadata}/{@code resource} WARC records - does not return
- * Content-Type in WARC record header.</li>
- * </ul>
+ *
+ * @see JWATFlexResourceStore
  */
-public class JWATResource extends Resource {
+public class JWATResource extends Resource implements WARCConstants {
 
 	protected ByteCountingPushBackInputStream pbin;
 
@@ -56,6 +53,20 @@ public class JWATResource extends Resource {
 	protected Map<String, String> headers = null;
 	protected long length = 0;
 	protected int status = 0;
+
+	private static WARCRecordType getWARCRecordType(WarcRecord rec)
+			throws ResourceNotAvailableException {
+		HeaderLine rectypeHeader = rec.getHeader(HEADER_KEY_TYPE);
+		if (rectypeHeader == null) {
+			throw new ResourceNotAvailableException("WARC-Type header is missing");
+		}
+		try {
+			return WARCRecordType.valueOf(rectypeHeader.value);
+		} catch (IllegalArgumentException ex) {
+			throw new ResourceNotAvailableException(
+				"unrecognized WARC-Type \"" + rectypeHeader.value + "\"");
+		}
+	}
 
 	public static Resource getResource(InputStream rin, long offset)
 			throws IOException, ResourceNotAvailableException {
@@ -78,6 +89,9 @@ public class JWATResource extends Resource {
 		}
 		Payload payload = null;
 		HttpHeader httpHeader = null;
+		// essential metadata for non-HTTP response records.
+		String contentType = null;
+		String httpDate = null;
 		if (ArcReaderFactory.isArcRecord(in)) {
 			r.arcReader = ArcReaderFactory.getReaderUncompressed();
 			r.arcReader.setUriProfile(UriProfile.RFC3986_ABS_16BIT_LAX);
@@ -111,22 +125,48 @@ public class JWATResource extends Resource {
 			r.warcReader.setPayloadDigestEnabled(false);
 			r.warcRecord = r.warcReader.getNextRecordFrom(in, offset);
 			if (r.warcRecord != null) {
-				payload = r.warcRecord.getPayload();
-				if (payload != null) {
-					httpHeader = r.warcRecord.getHttpHeader();
-				}
-				if (httpHeader != null) {
-					r.payloadStream = httpHeader.getPayloadInputStream();
-					r.length = httpHeader.payloadLength;
-					r.status = httpHeader.statusCode;
-				} else if (payload != null) {
+				WARCRecordType rectype = getWARCRecordType(r.warcRecord);
+				if (rectype == WARCRecordType.response || rectype == WARCRecordType.revisit) {
+					payload = r.warcRecord.getPayload();
+					if (payload != null) {
+						httpHeader = r.warcRecord.getHttpHeader();
+					}
+					if (httpHeader != null) {
+						r.payloadStream = httpHeader.getPayloadInputStream();
+						r.length = httpHeader.payloadLength;
+						r.status = httpHeader.statusCode;
+					} else if (payload != null) {
+						r.payloadStream = payload.getInputStreamComplete();
+						r.length = payload.getTotalLength();
+						r.status = 200;
+					} else {
+						r.payloadStream = new ByteArrayInputStream(new byte[0]);
+						r.length = 0;
+						if (rectype == WARCRecordType.revisit)
+							r.status = 0; // look in the original
+						else
+							r.status = 200;
+					}
+				} else if (rectype == WARCRecordType.metadata || rectype == WARCRecordType.resource) {
+					// record body is the payload, assume 200 status.
+					payload = r.warcRecord.getPayload();
 					r.payloadStream = payload.getInputStreamComplete();
 					r.length = payload.getTotalLength();
 					r.status = 200;
-				} else {
-					r.payloadStream = new ByteArrayInputStream(new byte[0]);
-					r.length = 0;
-					r.status = 200;
+					HeaderLine ctHeader = r.warcRecord.getHeader("content-type");
+					if (ctHeader != null) {
+						contentType = ctHeader.value;
+					}
+					HeaderLine dateHeader = r.warcRecord.getHeader(HEADER_KEY_DATE);
+					if (dateHeader != null) {
+						try {
+							// translate ISOZ date in WARC-Date header to standard HTTP date.
+							Date d = DateUtils.parseDate(dateHeader.value, new String[] { "yyyy-MM-dd'T'HH:mm:ss'Z'" });
+							httpDate = org.archive.util.DateUtils.getRFC1123Date(d);
+						} catch (ParseException ex) {
+							//ignore.
+						}
+					}
 				}
 			}
 		} else {
@@ -137,15 +177,26 @@ public class JWATResource extends Resource {
 			r = null;
 		} else {
 			r.setInputStream(r.payloadStream);
-			r.headers = new Hashtable<String, String>();
 			if (httpHeader != null) {
-				Iterator<HeaderLine> headerLines = httpHeader.getHeaderList()
-					.iterator();
-				HeaderLine headerLine;
-				while (headerLines.hasNext()) {
-					headerLine = headerLines.next();
-					r.headers.put(headerLine.name.toLowerCase(),
-						headerLine.value);
+				r.headers = new Hashtable<String, String>();
+				for (HeaderLine headerLine : httpHeader.getHeaderList()) {
+					String name = headerLine.name.toLowerCase();
+					if (name.equals("transfer-encoding")) {
+						if (HttpHeaderOperation.HTTP_CHUNKED_ENCODING_HEADER
+							.equals(headerLine.value.toUpperCase())) {
+							r.setChunkedEncoding();
+						}
+					}
+					r.headers.put(name, headerLine.value);
+				}
+			} else {
+				// metadata, resource or old-style revisit
+				if (contentType != null || httpDate != null) {
+					r.headers = new Hashtable<String, String>();
+					if (contentType != null)
+						r.headers.put("content-type", contentType);
+					if (httpDate != null)
+						r.headers.put("date", httpDate);
 				}
 			}
 		}
