@@ -11,10 +11,12 @@ import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Date;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.archive.util.ArchiveUtils;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.exception.ResourceNotAvailableException;
 import org.jwat.arc.ArcReader;
@@ -155,6 +157,30 @@ public class JWATResource extends Resource {
 	@Override
 	public int getStatusCode() {
 		return status;
+	}
+
+	@Override
+	public String getRefersToTargetURI() {
+		if (warcRecord != null) {
+			HeaderLine h = warcRecord.getHeader("WARC-Refers-To-Target-URI");
+			if (h != null)
+				return h.value;
+		}
+		return null;
+	}
+
+	@Override
+	public String getRefersToDate() {
+		if (warcRecord != null) {
+			HeaderLine h = warcRecord.getHeader("WARC-Refers-To-Date");
+			if (h != null) {
+				Date date = ArchiveUtils.parse14DigitISODate(h.value, null);
+				if (date != null) {
+					return ArchiveUtils.get14DigitDate(date);
+				}
+			}
+		}
+		return null;
 	}
 
 	@Override

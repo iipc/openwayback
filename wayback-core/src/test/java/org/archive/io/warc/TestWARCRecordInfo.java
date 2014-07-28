@@ -14,6 +14,7 @@ import java.util.zip.GZIPOutputStream;
 
 import org.archive.format.ArchiveFileConstants;
 import org.archive.format.warc.WARCConstants;
+import org.archive.format.warc.WARCConstants.WARCRecordType;
 import org.archive.util.DateUtils;
 
 /**
@@ -27,7 +28,7 @@ import org.archive.util.DateUtils;
  */
 public class TestWARCRecordInfo extends WARCRecordInfo implements WARCConstants, ArchiveFileConstants {
 
-    final static String REVISIT_WARC_PROFILE =
+    public final static String REVISIT_WARC_PROFILE =
             "http://netpreserve.org/warc/1.0/revisit/identical-payload-digest";
     
     public TestWARCRecordInfo(byte[] content) {
@@ -113,7 +114,29 @@ public class TestWARCRecordInfo extends WARCRecordInfo implements WARCConstants,
             throws IOException {
         return createRevisitHttpResponse(ctype, len, true);
     }
-    
+    /**
+     * creates TestWARCRecordInfo with URL-Agnostic Revisit WARC record content.
+     * <ul>
+     * <li>{@code WARC-Refers-To-Target-URI} = {@code http://example.com/}</li>
+     * <li>{@code WARC-Refers-To-Date} = {@code 2014-01-01T10:10:10Z}</li>
+     * </ul>
+     * @param ctype Content-Type
+     * @param len Content-Length (arbitrary)
+     * @return TestWARCRecordInfo
+     * @throws IOException
+     */
+	public static TestWARCRecordInfo createUrlAgnosticRevisitHttpResponse(
+			String ctype, int len) throws IOException {
+		TestWARCRecordInfo recinfo = new TestWARCRecordInfo(
+			TestWARCRecordInfo.buildRevisitHttpResponseBlock(ctype, len, true,
+				false));
+		recinfo.setType(WARCRecordType.revisit);
+		recinfo.addExtraHeader("WARC-Truncated", "length");
+		recinfo.addExtraHeader("WARC-Profile", TestWARCRecordInfo.REVISIT_WARC_PROFILE);
+		recinfo.addExtraHeader("WARC-Refers-To-Target-URI", "http://example.com/");
+		recinfo.addExtraHeader("WARC-Refers-To-Date", "2014-01-01T10:10:10Z");
+		return recinfo;
+    }
     
     public static byte[] buildHttpResponseBlock(String payload) throws IOException {
         return buildHttpResponseBlock("text/plain", payload.getBytes());

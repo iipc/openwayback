@@ -23,11 +23,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Level;
@@ -38,7 +36,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.archive.format.gzip.zipnum.ZipNumBlockLoader;
-import org.archive.util.ArchiveUtils;
 import org.archive.wayback.ExceptionRenderer;
 import org.archive.wayback.QueryRenderer;
 import org.archive.wayback.ReplayDispatcher;
@@ -73,7 +70,6 @@ import org.archive.wayback.memento.MementoHandler;
 import org.archive.wayback.memento.MementoUtils;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.resourceindex.filters.WARCRevisitAnnotationFilter;
-import org.archive.wayback.resourcestore.resourcefile.WarcResource;
 import org.archive.wayback.util.Timestamp;
 import org.archive.wayback.util.operator.BooleanOperator;
 import org.archive.wayback.util.url.UrlOperations;
@@ -963,16 +959,8 @@ implements ShutdownListener {
 		}
 	}
 
-	protected boolean isWarcRevisitNotModified(Resource warcRevisitResource) {
-		if (!(warcRevisitResource instanceof WarcResource)) {
-			return false;
-		}
-		WarcResource wr = (WarcResource) warcRevisitResource;
-		Map<String,Object> warcHeaders = wr.getWarcHeaders().getHeaderFields();
-		String warcProfile = (String) warcHeaders.get("WARC-Profile");
-		return warcProfile != null
-				&& warcProfile.equals("http://netpreserve.org/warc/1.0/revisit/server-not-modified");
-	}
+	// method isWarcRevisitNotModified(Resource) method has been moved to
+	// WarcResource#isRevisitNotModified().
 
 	/**
 	 * If closest 
@@ -1013,28 +1001,28 @@ implements ShutdownListener {
 
 		// Url Agnostic Revisit with target-uri and refers-to-date
 		
-		Map<String, Object> warcHeaders = null;
+//		Map<String, Object> warcHeaders = null;
 
-		String payloadUri = null; 
-		String payloadTimestamp = null;
+		String payloadUri = revisitRecord.getRefersToTargetURI();
+		String payloadTimestamp = revisitRecord.getRefersToDate();
 		
-		if (warcHeaders == null) {
-			WarcResource wr = (WarcResource) revisitRecord;
-			warcHeaders = wr.getWarcHeaders().getHeaderFields();
-		}
-		
-		if (warcHeaders != null) {
-			payloadUri = (String) warcHeaders.get("WARC-Refers-To-Target-URI");
-			
-			String dateString = (String)warcHeaders.get("WARC-Refers-To-Date");
-			
-			if (dateString != null) {
-				Date date = ArchiveUtils.parse14DigitISODate(dateString, null);
-				if (date != null) {
-					payloadTimestamp = ArchiveUtils.get14DigitDate(date);
-				}
-			}
-		}
+//		if (warcHeaders == null) {
+//			WarcResource wr = (WarcResource) revisitRecord;
+//			warcHeaders = wr.getWarcHeaders().getHeaderFields();
+//		}
+//		
+//		if (warcHeaders != null) {
+//			payloadUri = (String) warcHeaders.get("WARC-Refers-To-Target-URI");
+//			
+//			String dateString = (String)warcHeaders.get("WARC-Refers-To-Date");
+//			
+//			if (dateString != null) {
+//				Date date = ArchiveUtils.parse14DigitISODate(dateString, null);
+//				if (date != null) {
+//					payloadTimestamp = ArchiveUtils.get14DigitDate(date);
+//				}
+//			}
+//		}
 		
 		if (payloadUri != null && payloadTimestamp != null) {
 			WaybackRequest wbr = currRequest.clone();
