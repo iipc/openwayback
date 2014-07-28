@@ -1,37 +1,22 @@
-/**
- *
- */
 package org.archive.wayback.resourcestore.jwat;
 
 import org.archive.io.warc.TestWARCReader;
-import org.archive.io.warc.TestWARCRecordInfo;
 import org.archive.io.warc.WARCRecordInfo;
 import org.archive.wayback.core.Resource;
-
-import junit.framework.TestCase;
+import org.archive.wayback.resourcestore.resourcefile.WarcResourceTest;
 
 /**
- * test for {@link JWATResource}.
+ * tests for {@link JWATResource}.
+ * <p>Borrowing test methods from {@link WarcResourceTest}.</p>
  */
-public class JWATResourceTest extends TestCase {
+public class JWATResourceTest extends WarcResourceTest {
 
-	/* (non-Javadoc)
-	 * @see junit.framework.TestCase#setUp()
-	 */
 	protected void setUp() throws Exception {
-		super.setUp();
 	}
 
-	// TODO: more tests
-
-	public void testUrlAgnosticRevisitRecord() throws Exception {
-		final String ctype = "text/html";
-		WARCRecordInfo recinfo = TestWARCRecordInfo
-			.createUrlAgnosticRevisitHttpResponse(ctype, 1345);
-		Resource res = JWATResource.getResource(
-			TestWARCReader.buildRecordContent(recinfo), 0);
-
-		assertEquals("http://example.com/", res.getRefersToTargetURI());
-		assertEquals("20140101101010", res.getRefersToDate());
+	@Override
+	protected Resource createResource(WARCRecordInfo recinfo)
+			throws Exception {
+		return JWATResource.getResource(TestWARCReader.buildRecordContent(recinfo), 0);
 	}
 }
