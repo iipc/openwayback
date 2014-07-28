@@ -260,9 +260,7 @@ public class WarcResourceTest extends TestCase {
 		final String ctype = "text/html";
 		WARCRecordInfo recinfo = TestWARCRecordInfo
 			.createUrlAgnosticRevisitHttpResponse(ctype, 1345);
-        TestWARCReader ar = new TestWARCReader(recinfo);
-        WARCRecord rec = ar.get(0);
-        WarcResource res = new WarcResource(rec, ar);
+        Resource res = createResource(recinfo);
         res.parseHeaders();
 
 		// these are from this record.
