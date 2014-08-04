@@ -151,19 +151,9 @@ public class ReplayParseContext extends ParseContext {
 		if (url.startsWith(DATA_PREFIX) || url.startsWith(MAILTO_PREFIX)) {
 	    	return url;
 	    }
-		
-		String absurl = null;
-		
-		//don't rewrite relative anchors (href)
-		if (url.startsWith("#")) {
-		    absurl = url;
-		}
-		else {
-		    // first make url into absolute, taking BASE into account.
-			// (this also removes escaping: ex. "https:\/\/" -> "https://")
-			absurl = super.contextualizeUrl(url);
-		}
-		
+	    // first make url into absolute, taking BASE into account.
+		// (this also removes escaping: ex. "https:\/\/" -> "https://")
+	    String absurl = super.contextualizeUrl(url);
 	    if (!isRewriteSupported(absurl)) {
 	    	return url;
 	    }
