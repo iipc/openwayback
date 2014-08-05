@@ -14,6 +14,112 @@
         to release 1.2.0.
       </p>
     </section>
+    <!-- 
+    <section name="Release 2.x.x">
+      <subsection name="Major Features">
+        <ul>
+          <li>
+           </li>
+        </ul>
+      </subsection>
+      <subsection name="Major Bug Fixes">
+        <ul>
+          <li>
+          </li>
+        </ul>
+      </subsection>
+      <subsection name="Minor Features">
+        <ul>
+          <li>
+          </li>
+        </ul>
+      </subsection>
+      <subsection name="Minor Bug Fixes">
+        <ul>
+          <li>
+          </li>
+        </ul>
+      </subsection>
+    </section>
+    -->
+    <section name="Release 2.0.0 BETA 3">
+      <subsection name="Major Features">
+        <ul>
+          <li>
+           </li>
+        </ul>
+      </subsection>
+      <subsection name="Major Bug Fixes">
+        <ul>
+          <li>
+          </li>
+        </ul>
+      </subsection>
+      <subsection name="Minor Features">
+        <ul>
+          <li>
+          </li>
+        </ul>
+      </subsection>
+      <subsection name="Minor Bug Fixes">
+        <ul>
+          <li>
+          </li>
+        </ul>
+      </subsection>
+    </section>
+    <section name="Release 2.0.0 BETA 2">
+      <subsection name="Major Features">
+        <ul>
+          <li>
+           </li>
+        </ul>
+      </subsection>
+      <subsection name="Major Bug Fixes">
+        <ul>
+          <li>
+          </li>
+        </ul>
+      </subsection>
+      <subsection name="Minor Features">
+        <ul>
+          <li>
+          </li>
+        </ul>
+      </subsection>
+      <subsection name="Minor Bug Fixes">
+        <ul>
+          <li>
+          </li>
+        </ul>
+      </subsection>
+    </section>
+    <section name="Release 2.0.0 BETA 1">
+      <subsection name="Major Features">
+        <ul>
+          <li>
+           </li>
+        </ul>
+      </subsection>
+      <subsection name="Major Bug Fixes">
+        <ul>
+          <li>
+          </li>
+        </ul>
+      </subsection>
+      <subsection name="Minor Features">
+        <ul>
+          <li>
+          </li>
+        </ul>
+      </subsection>
+      <subsection name="Minor Bug Fixes">
+        <ul>
+          <li>
+          </li>
+        </ul>
+      </subsection>
+    </section>
     <section name="Release 1.6.0">
       <subsection name="Major Features">
         <ul>
