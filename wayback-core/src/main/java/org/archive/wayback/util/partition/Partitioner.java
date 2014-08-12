@@ -25,6 +25,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.TimeZone;
 import java.util.logging.Logger;
 
@@ -143,7 +144,7 @@ public class Partitioner<T> {
 	}
 	
 	private void logDates(String message, Date date1, Date date2) {
-		SimpleDateFormat f = new SimpleDateFormat("H:mm:ss:SSS MMM d, yyyy");
+		SimpleDateFormat f = new SimpleDateFormat("H:mm:ss:SSS MMM d, yyyy", Locale.ENGLISH);
 		f.setTimeZone(TZ_UTC);
 		String pd1 = f.format(date1);
 		String pd2 = f.format(date2);

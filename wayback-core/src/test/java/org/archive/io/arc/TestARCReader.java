@@ -18,6 +18,7 @@ import org.archive.io.warc.WARCRecordInfo;
 import org.archive.util.DateUtils;
 
 import com.google.common.io.CountingInputStream;
+import java.util.Locale;
 
 /**
  * Fixture ARCReader.
@@ -55,7 +56,7 @@ public class TestARCReader extends ARCReader {
     
     private String isozToDateTime14(String isoz) {
         try {
-            Date d = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'").parse(isoz);
+            Date d = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.ENGLISH).parse(isoz);
             return DateUtils.get14DigitDate(d);
         } catch (ParseException ex) {
             throw new RuntimeException("bad ISOZ: " + isoz, ex);
