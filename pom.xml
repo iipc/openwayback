@@ -36,6 +36,7 @@
 		<website.url>http://github.com/iipc/openwayback</website.url>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<org.springframework.version>3.0.6.RELEASE</org.springframework.version>
+        <teamlist.showAvatarImages>false</teamlist.showAvatarImages>
 	</properties>
 
 	<description>
@@ -281,29 +282,84 @@
 	<developers>
 		<developer>
 			<name>Brad Tofel</name>
-			<id>bradtofel</id>
-			<email>brad at archive dot org</email>
 			<organization>Internet Archive</organization>
-			<url>http://www.archive.org</url>
-			<timezone>-8</timezone>
+			<organizationUrl>http://www.archive.org</organizationUrl>
+			<roles>
+			    <role>(inactive)</role>
+			</roles>
 		</developer>
 		<developer>
 			<name>Ilya Kreymer</name>
-			<id>ikreymer</id>
-			<email>ilya at archive dot org</email>
+			<url>https://github.com/ikreymer</url>
 			<organization>Internet Archive</organization>
-			<url>http://www.archive.org</url>
-			<timezone>-8</timezone>
+			<organizationUrl>http://www.archive.org</organizationUrl>
+			<roles>
+			    <role>Developer</role>
+			</roles>
 		</developer>
 		<developer>
 			<name>Andy Jackson</name>
-			<id>anjackson</id>
-			<email>andrew dot jackson at bl dot uk</email>
+			<url>https://github.com/anjackson</url>
 			<organization>The UK Web Archive</organization>
-			<url>http://www.webarchive.org.uk</url>
-			<timezone>0</timezone>
+			<organizationUrl>http://www.webarchive.org.uk</organizationUrl>
+			<roles>
+			    <role>Core developer</role>
+			</roles>
+		</developer>
+		<developer>
+			<name>Kristinn Sigur&eth;sson</name>
+			<url>https://github.com/kris-sigur</url>
+			<organization>National and University Library of Iceland</organization>
+			<organizationUrl>http://landsbokasafn.is</organizationUrl>
+			<roles>
+				<role>Developer</role>
+			</roles>
+		</developer>
+		<developer>
+			<name>Erik Hetzner</name>
+			<organization>California Digital Library</organization>
+			<organizationUrl>http://www.cdlib.org/</organizationUrl>
+			<roles>
+				<role>(inactive)</role>
+			</roles>
+		</developer>
+		<developer>
+			<name>Roger G. Coram</name>
+			<url>https://github.com/PsypherPunk</url>
+			<organization>The UK Web Archive</organization>
+			<organizationUrl>http://www.webarchive.org.uk</organizationUrl>
+			<roles>
+				<role>Developer</role>
+			</roles>
+		</developer>
+		<developer>
+			<name>Ulrich Karstoft-Have</name>
+			<url>https://github.com/ulrichhave</url>
+			<organization>State and University Library</organization>
+			<organizationUrl>http://statsbiblioteket.dk/</organizationUrl>
+			<roles>
+				<role>Documentation</role>
+			</roles>
+		</developer>
+		<developer>
+			<name>Youssef Eldakar</name>
+			<url>https://github.com/youssefeldakar</url>
+			<organization>The New Library of Alexandria</organization>
+			<organizationUrl>http://bibalex.org/</organizationUrl>
+			<roles>
+				<role>Developer</role>
+			</roles>
 		</developer>
 	</developers>
+	
+	<contributors>
+		<contributor>
+			<name>John Erik Halse</name>
+			<url>https://github.com/johnerikhalse</url>
+			<organization>National Library of Norway</organization>
+			<organizationUrl>http://nb.no/</organizationUrl>
+		</contributor>
+	</contributors>
 
 	<reporting>
 		<plugins>
