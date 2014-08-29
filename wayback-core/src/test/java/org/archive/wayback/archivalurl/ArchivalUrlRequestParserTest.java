@@ -362,6 +362,15 @@ public class ArchivalUrlRequestParserTest extends TestCase {
 			assertEquals("20100531235959", wbr.getEndTimestamp());
 			assertEquals("http://www.yahoo.com/", wbr.getRequestUrl());
 		}
+		{
+			// URL part shall not be URL-decoded
+			WaybackRequest wbr = parse("/web/20100101%2D20100531%2A/http%3a//www.yahoo.com/%2A");
+			assertNotNull(wbr);
+			assertTrue(wbr.isCaptureQueryRequest());
+			assertEquals("20100101000000", wbr.getStartTimestamp());
+			assertEquals("20100531235959", wbr.getEndTimestamp());
+			assertEquals("http://www.yahoo.com/%2A", wbr.getRequestUrl());
+		}
 	}
 
 	protected void checkPathDateless(WaybackRequest wbr, String requestUrl) {
