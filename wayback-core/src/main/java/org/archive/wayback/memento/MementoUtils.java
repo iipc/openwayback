@@ -27,9 +27,9 @@ public class MementoUtils implements MementoConstants {
 	public final static SimpleDateFormat DATE_FORMAT_14_FORMATTER;
 
 	static {
-		HTTP_LINK_DATE_FORMATTER = new SimpleDateFormat(HTTP_LINK_DATE_FORMAT, Locale.US);
+		HTTP_LINK_DATE_FORMATTER = new SimpleDateFormat(HTTP_LINK_DATE_FORMAT, Locale.ENGLISH);
 		HTTP_LINK_DATE_FORMATTER.setTimeZone(GMT_TZ);
-		DATE_FORMAT_14_FORMATTER = new SimpleDateFormat(DATE_FORMAT_14, Locale.US);
+		DATE_FORMAT_14_FORMATTER = new SimpleDateFormat(DATE_FORMAT_14, Locale.ENGLISH);
 		DATE_FORMAT_14_FORMATTER.setTimeZone(GMT_TZ);
 	}
 	
@@ -271,9 +271,9 @@ public class MementoUtils implements MementoConstants {
 //	}
 
 	public static final SimpleDateFormat ACCEPT_DATE_FORMATS[] = {
-			new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss Z", Locale.US),
-			new SimpleDateFormat("E, dd MMM yyyy Z", Locale.US),
-			new SimpleDateFormat("E, dd MMM yyyy", Locale.US) };
+			new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH),
+			new SimpleDateFormat("E, dd MMM yyyy Z", Locale.ENGLISH),
+			new SimpleDateFormat("E, dd MMM yyyy", Locale.ENGLISH) };
 
 	public static Date parseAcceptDateTimeHeader(String datespec) {
 		for (SimpleDateFormat format : ACCEPT_DATE_FORMATS) {

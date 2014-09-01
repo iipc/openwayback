@@ -3,6 +3,7 @@ package org.archive.cdxserver.writer;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 import java.util.TimeZone;
 
 import javax.servlet.http.HttpServletRequest;
@@ -103,7 +104,7 @@ public class MementoLinkWriter extends HttpCDXWriter {
 	public final static TimeZone GMT_TZ = TimeZone.getTimeZone("GMT");
 
 	static {
-		HTTP_LINK_DATE_FORMATTER = new SimpleDateFormat(HTTP_LINK_DATE_FORMAT);
+		HTTP_LINK_DATE_FORMATTER = new SimpleDateFormat(HTTP_LINK_DATE_FORMAT, Locale.ENGLISH);
 		HTTP_LINK_DATE_FORMATTER.setTimeZone(GMT_TZ);
 	}
 	
