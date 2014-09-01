@@ -21,9 +21,11 @@ package org.archive.wayback.resourcestore.resourcefile;
 
 import java.io.IOException;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Locale;
 import java.util.Map;
 
 import org.apache.commons.httpclient.Header;
@@ -35,7 +37,6 @@ import org.archive.io.ArchiveReader;
 import org.archive.io.ArchiveRecordHeader;
 import org.archive.io.RecoverableIOException;
 import org.archive.io.warc.WARCRecord;
-import org.archive.util.DateUtils;
 import org.archive.util.LaxHttpParser;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.replay.HttpHeaderOperation;
@@ -132,7 +133,9 @@ public class WarcResource extends Resource {
 		    if (date != null) {
 		        try {
 		            Date d = org.apache.commons.lang.time.DateUtils.parseDate(date, new String[] { "yyyy-MM-dd'T'HH:mm:ss'Z'"});
-		            String httpDate = DateUtils.getRFC1123Date(d);
+		            // The DateUtils method for this doesn't explicitly set the locale. Once that is fixed, change it back
+		            //String httpDate = DateUtils.getRFC1123Date(d);
+		            String httpDate = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.ENGLISH).format(d);
 		            headers.put("Date", httpDate);
 		        } catch (ParseException ex) {
 		            //
