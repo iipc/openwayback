@@ -4,122 +4,73 @@
   <properties>
     <title>Release Notes</title>
     <author email="brad at archive dot org">Brad Tofel</author>
+    <authour email="Helen Hockx-Yu at bl dot uk">Helen Hockx-Yu </authour>
     <revision>$Id: index.xml 2040 2007-10-12 23:21:40Z bradtofel $</revision>
+    <revision> 03-09-2014</revision>
   </properties>
 
   <body>
-    <section name="Releases">
+  
+    <section name="Release notes">
       <p>
-        Full listing of changes and bug fixes are not currently available prior
-        to release 1.2.0.
+        Full listing of changes and bug fixes are not available prior to release 1.2.0 and between release 1.6.0 and OpeWayback 2.0.0 BETA 1 release. 
       </p>
     </section>
-    <!-- 
-    <section name="Release 2.x.x">
-      <subsection name="Major Features">
+    
+      <section name="OpenWayback 2.0.0 Release">
+        <p>Issues resolved for OpenWayback 2.0.0 Release (forthcoming September 2014)</p> 
         <ul>
-          <li>
+          <li>Fixed URL resolution in ServerRelativeArchivalRedirect in non-ROOT context. #92
            </li>
+           <li>Deprecated use of bean name in spring to provide configuration. #94</li>
+           <li>Updated and improved documentation. #125 #121 #133</li>
+           <li>Reviewed and updated mailing lists. #126 #127</li>
+           <li>Added Java cross-reference and updated site generation with dependencies. #128 #130</li>
+           <li>Fixed Javadoc output in Java8. #136</li>
+           <li>Updated 'developers' and 'contributors' lists in POM. #137</li>
         </ul>
-      </subsection>
-      <subsection name="Major Bug Fixes">
+    </section>
+    <section name="OpenWayback 2.0.0 BEAT 2 release">
+      <subsection name="Features">
         <ul>
-          <li>
-          </li>
-        </ul>
+          <li>Added PrefixFieldCollapser and RegexFieldMatcher to CDX server. #7
+           </li>
+          <li>Added support for WARC metadata records. #23</li> 
+          <li>Added support for WARC resource records. #24</li>
+          <li>Removed Internet Archive defaults and branding. #45</li>
+          <li>Integrated JWAT ResorceStore. #54</li>
+          <li>Provided an OpenWayback Sample Overlay.</li>
+          <li>Carried out and documented manual testing. #80</li>
+          <li>Updated and improved documentation (as on the wiki). </li>
+          <li>Renamed artefacts and repositories “webarchive-commons” and updated POMs. #90 </li>
       </subsection>
-      <subsection name="Minor Features">
+      <subsection name="Bug Fixes">
         <ul>
-          <li>
+          <li>Query string being stripped from Memento queries. #106
           </li>
-        </ul>
-      </subsection>
-      <subsection name="Minor Bug Fixes">
-        <ul>
-          <li>
-          </li>
+          <li>Support for uncompressed ARC files. #101</li>
         </ul>
       </subsection>
     </section>
-    -->
-    <section name="Release 2.0.0 BETA 3">
-      <subsection name="Major Features">
+    <section name="OpenWayback 2.0.0 BETA 1 Release">
+      <subsection name="Features">
         <ul>
-          <li>
-           </li>
+          <li>Added livewebPrefix to wayback.xml. #3</li>
+          <li>Removed dependencies on Internet Archive’s Maven artefacts, enabling Tarvis CI builds and clean releases. #10 </li>
+          <li>Moved critical code for OpenWayback from the heritrix-commons codebase into webarchive-commons. #4/li>
+          <li></li>
         </ul>
       </subsection>
-      <subsection name="Major Bug Fixes">
+      <subsection name="Bug Fixes">
         <ul>
-          <li>
+          <li>Dependency on heritrix-commons SNAPSHOT release. #11 
           </li>
         </ul>
       </subsection>
-      <subsection name="Minor Features">
-        <ul>
-          <li>
-          </li>
-        </ul>
-      </subsection>
-      <subsection name="Minor Bug Fixes">
-        <ul>
-          <li>
-          </li>
-        </ul>
-      </subsection>
-    </section>
-    <section name="Release 2.0.0 BETA 2">
-      <subsection name="Major Features">
-        <ul>
-          <li>
-           </li>
-        </ul>
-      </subsection>
-      <subsection name="Major Bug Fixes">
-        <ul>
-          <li>
-          </li>
-        </ul>
-      </subsection>
-      <subsection name="Minor Features">
-        <ul>
-          <li>
-          </li>
-        </ul>
-      </subsection>
-      <subsection name="Minor Bug Fixes">
-        <ul>
-          <li>
-          </li>
-        </ul>
-      </subsection>
-    </section>
-    <section name="Release 2.0.0 BETA 1">
-      <subsection name="Major Features">
-        <ul>
-          <li>
-           </li>
-        </ul>
-      </subsection>
-      <subsection name="Major Bug Fixes">
-        <ul>
-          <li>
-          </li>
-        </ul>
-      </subsection>
-      <subsection name="Minor Features">
-        <ul>
-          <li>
-          </li>
-        </ul>
-      </subsection>
-      <subsection name="Minor Bug Fixes">
-        <ul>
-          <li>
-          </li>
-        </ul>
-      </subsection>
-    </section>
+   </section>    
+<p>The following releases of the Open Source Wayback Machine (OSWM) were made by the Internet Archive. The on-going development of Wayback was handed over to the International Internet Preservation Consortium (IIPC) in October 2013. For more details please see General overview. </p>    
+   
+    
     <section name="Release 1.6.0">
       <subsection name="Major Features">
         <ul>
