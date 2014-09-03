@@ -55,15 +55,15 @@
     <section name="OpenWayback 2.0.0 BETA 1 Release">
       <subsection name="Features">
         <ul>
-          <li>Added livewebPrefix to wayback.xml. #3</li>
-          <li>Removed dependencies on Internet Archive’s Maven artefacts, enabling Tarvis CI builds and clean releases. #10 </li>
-          <li>Moved critical code for OpenWayback from the heritrix-commons codebase into webarchive-commons. #4/li>
+          <li>Added livewebPrefix to wayback.xml. <a href="https://github.com/iipc/openwayback/issues/3">#3</a></li>
+          <li>Removed dependencies on Internet Archive’s Maven artefacts, enabling Tarvis CI builds and clean releases. <a href="https://github.com/iipc/openwayback/issues/10">#10</a></li>
+          <li>Moved critical code for OpenWayback from the heritrix-commons codebase into webarchive-commons. <a href="https://github.com/iipc/openwayback/issues/4">#4</a></li>
           <li></li>
         </ul>
       </subsection>
       <subsection name="Bug Fixes">
         <ul>
-          <li>Dependency on heritrix-commons SNAPSHOT release. #11 
+          <li>Dependency on heritrix-commons SNAPSHOT release. <a href="https://github.com/iipc/openwayback/issues/11">#11</a> 
           </li>
         </ul>
       </subsection>
