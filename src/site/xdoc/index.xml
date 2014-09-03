@@ -2,102 +2,38 @@
 
 <document>
   <properties>
-    <title>Home Page</title>
+    <title>Release Hisotry</title>
     <author email="brad at archive dot org">Brad Tofel</author>
-    <revision>$Id$</revision>
+    <author email="helen hockx-yu at bl dot uk">Helen Hockx-Yu</author>
+    <revision>$ID:03-09-2014$</revision>
   </properties>
 
   <body>
-    <section name="Introduction">
-        <p><b>WARNING: This information is somewhat out of date and is being reviewed as the OpenWayback collaboration proceeds.</b></p>
-        <p><b>wayback</b> is an open source java implementation of the
-        <a href="http://www.archive.org/web/web.php">The Internet Archive
-        Wayback Machine</a>.
+        <p><b>OpenWayback is supported the International Internet Preservation Consortium (IIPC) and the member institutions with which the contributors of the project are affiliated.</b>
         </p>
-        <p>
-        The current production version of the Wayback Machine is implemented in
-        perl, and lacks in maintainability and extensibility. Also, the code is
-        not open source. Primary motivation for the new version is to address 
-        these three issues, enabling public distribution of the application, and
-        easy experimentation with new features and access technologies.
-        </p>
-        <p>
-        The current Java version of the Wayback Machine supports three access,
-        or Replay modes of operation: "Archival Url" mode "Proxy" mode, and
-        "Domain Prefix" mode.
-        </p>
-        <p>
-        Archival URL mode provides a user experience very close to the current
-        production Wayback Machine. All query and replay access requests can be 
-        expressed as URLs. In Archival Url replay mode, archived content is 
-        modified as it is returned to users, attempting to make links and
-        embedded content refer back to the Wayback Machine by rewriting them as
-        Archival URLs.
-        </p>
-        <p>
-        Proxy URL mode allows replaying of archived documents within a client
-        browser by configuring the browser to proxy all HTTP requests through
-        the Wayback Machine. This has the strong advantage that no Javascript 
-        or server side page markup is required to coerce the client browser to 
-        request additional URLs and embedded content from the Wayback Machine
-        -- content just works as-is. When used with the Firefox plugin
-        extension, available
-        <a href="http://archive-access.sourceforge.net/projects/waxtoolbar/">
-          here
-        </a>, client browsers can navigate between versions of the current 
-        document, and the Wayback Machine server will attempt to display images
-        from the same time period as pages being viewed. The Proxy URL mode 
-        requires special configuration of the client web browser to access the 
-        Wayback Service. This browser configuration is not complex, but it 
-        means that content cannot be accessed as a global URL.
-        </p>
-        <p>
-          DomainPrefix mode is similar to ArchivalUrl mode, but uses a wildcard
-          DNS scheme to rewrite URLs, allowing all URL substitution to occur on
-          the server. This mode is considered experimental.
-        </p>
-        <p>See the <a href="administrator_manual.html">Administrator Manual</a>
-        to learn more about access modes.
-        </p>
-        <p>
-        The current Java version can operate in several deployment modes, 
-        ranging from a stand alone application on a single host holding all
-        archived documents and indexes, up to a highly distributed system where
-        indexes and archived content is spread across hundreds of machines.
-        </p>
-        <p>
-        In the local, standalone mode, this software includes the capability to
-        scan for new archived content in a specified location, and to
-        automatically index and serve the new content as it appears. Directing
-        the Wayback to look for W/ARC files in the directory where an instance of
-        the Heritrix web crawler is writing W/ARC output should provide the 
-        capability to browse content archived by Heritrix as it is crawled.
-        </p>
-    </section>
-    <section name="News">
-        <subsection name="New Release - 2.0.0 BETA 3, ??/??/???">
+    <section name="Releases">
+        <subsection name="OpenWayback 2.0.0 Release">
           <p>
-            The 2.0.0 BETA 3 release is now available, with XXX.
-            See the <a href="release_notes.html">release notes</a> page for details.
-            Upgrading to this version will require changes to Wayback Spring XML
-            configuration.
+            Forhcoming September 2014.
           </p>
         </subsection>
-        <subsection name="New Release - 2.0.0 BETA 2, ??/??/???">
+        <subsection name="OpenWayback 2.0.0 BETA 2 Release - 14th May 2014">
           <p>
-            The 2.0.0 BETA 3 release is now available, with XXX.
-            See the <a href="release_notes.html">release notes</a> page for details.
-            Upgrading to this version will require changes to Wayback Spring XML
-            configuration.
+            OpenWayback 2.0.0 BETA 2 release includes bug fixes and a number of enhancements, including better support for WARCs and integration of JWAT ResourceStore. A consistent naming scheme has been applied to the artifactId, the github project name, and the jar name. In addition, documentation has been improved, manual testing experience documented and a sample overlay provided, allowing easier customisations of the standard wayback-webapp.
+           </p>
+          <p><a href="https://github.com/iipc/openwayback/tree/openwayback-2.0.0.BETA.2">https://github.com/iipc/openwayback/tree/openwayback-2.0.0.BETA.2</a>  
           </p>
         </subsection>
-        <subsection name="New Release - 2.0.0 BETA 1, ??/??/???">
+        <subsection name="OpenWayback 2.0.0.BETA 1 Release - 10th January 2014">
           <p>
-            The 2.0.0 BETA 3 release is now available, with XXX.
-            See the <a href="release_notes.html">release notes</a> page for details.
-            Upgrading to this version will require changes to Wayback Spring XML
-            configuration.
+            OpenWayback 2.0.0 BETA 1 release mainly reflects the move of ownership of the lead repository from the Internet Archive to the IIPC. This includes a set of changes to the IA codebase to make it more independent of their build server and some non-public artefacts. Moreover, it includes updates from the internetarchive/wayback fork, corresponding to the move of critical code from internetarchive/heritrix3 to iipc/iipc-web-commons.
           </p>
+          <p><a href="https://github.com/iipc/openwayback/tree/openwayback-2.0.0.BETA.1">https://github.com/iipc/openwayback/tree/openwayback-2.0.0.BETA.1</a>
+          </p>
+<p><b>The following releases of the Open Source Wayback Machine (OSWM) were made by the Internet Archive, who led its development since 2005. The on-going development of Wayback was handed over to the International Internet Preservation Consortium (IIPC) in October 2013, when the OpenWayback project was launched. For more details please see <a href="https://github.com/iipc/openwayback/wiki/General-Overview">General Overview</a></b>
+	
+</p>          
+          
         </subsection>
         <subsection name="New Release - 1.6.0, 1/3/2011">
           <p>
