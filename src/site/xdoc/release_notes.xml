@@ -6,7 +6,7 @@
     <author email="brad at archive dot org">Brad Tofel</author>
     <authour email="Helen Hockx-Yu at bl dot uk">Helen Hockx-Yu </authour>
     <revision>$Id: index.xml 2040 2007-10-12 23:21:40Z bradtofel $</revision>
-    <revision> 03-09-2014</revision>
+    <revision>$ID:03-09-2014$</revision>
   </properties>
 
   <body>
@@ -20,29 +20,29 @@
       <section name="OpenWayback 2.0.0 Release">
         <p>Issues resolved for OpenWayback 2.0.0 Release (forthcoming September 2014)</p> 
         <ul>
-          <li>Fixed URL resolution in ServerRelativeArchivalRedirect in non-ROOT context. #92
+          <li>Fixed URL resolution in ServerRelativeArchivalRedirect in non-ROOT context. <a href="https://github.com/iipc/openwayback/issues/92">#92</a>
            </li>
-           <li>Deprecated use of bean name in spring to provide configuration. #94</li>
-           <li>Updated and improved documentation. #125 #121 #133</li>
-           <li>Reviewed and updated mailing lists. #126 #127</li>
-           <li>Added Java cross-reference and updated site generation with dependencies. #128 #130</li>
-           <li>Fixed Javadoc output in Java8. #136</li>
-           <li>Updated 'developers' and 'contributors' lists in POM. #137</li>
+           <li>Deprecated use of bean name in spring to provide configuration. <a href="https://github.com/iipc/openwayback/issues/94">#94</a></li>
+           <li>Updated and improved documentation. <a href="https://github.com/iipc/openwayback/issues/125">#125</a> <a href="https://github.com/iipc/openwayback/issues/121">#121</a> <a href="https://github.com/iipc/openwayback/issues/133">#133</a></li>
+           <li>Reviewed and updated mailing lists. <a href="https://github.com/iipc/openwayback/issues/126">#126</a> <a href="https://github.com/iipc/openwayback/issues/127">#127</a></li>
+           <li>Added Java cross-reference and updated site generation with dependencies. <a href="https://github.com/iipc/openwayback/issues/128">#128</a> <a href="https://github.com/iipc/openwayback/issues/130">#30</a></li>
+           <li>Fixed Javadoc output in Java8. <a href="https://github.com/iipc/openwayback/issues/136">#136</a></li>
+           <li>Updated 'developers' and 'contributors' lists in POM. <a href="https://github.com/iipc/openwayback/issues/137">#137</a></li>
         </ul>
     </section>
     <section name="OpenWayback 2.0.0 BEAT 2 release">
       <subsection name="Features">
         <ul>
-          <li>Added PrefixFieldCollapser and RegexFieldMatcher to CDX server. #7
+          <li>Added PrefixFieldCollapser and RegexFieldMatcher to CDX server. <a href="https://github.com/iipc/openwayback/issues/7">#7</a>
            </li>
-          <li>Added support for WARC metadata records. #23</li> 
-          <li>Added support for WARC resource records. #24</li>
-          <li>Removed Internet Archive defaults and branding. #45</li>
-          <li>Integrated JWAT ResorceStore. #54</li>
-          <li>Provided an OpenWayback Sample Overlay.</li>
-          <li>Carried out and documented manual testing. #80</li>
-          <li>Updated and improved documentation (as on the wiki). </li>
-          <li>Renamed artefacts and repositories “webarchive-commons” and updated POMs. #90 </li>
+          <li>Added support for WARC metadata records. <a href="https://github.com/iipc/openwayback/issues/23">#23</a></li> 
+          <li>Added support for WARC resource records. <a href="https://github.com/iipc/openwayback/issues/24">#24</a></li>
+          <li>Removed Internet Archive defaults and branding. <a href="https://github.com/iipc/openwayback/issues/45">#45</a></li>
+          <li>Integrated JWAT ResorceStore. <a href="https://github.com/iipc/openwayback/issues/54">#54</a></li>
+          <li>Provided an <a href="https://github.com/iipc/openwayback-sample-overlay">OpenWayback Sample Overlay</a>.</li>
+          <li>Carried out and documented manual testing. <a href="https://github.com/iipc/openwayback/issues/80">#80</a></li>
+          <li>Updated and improved documentation (as on the <a href="https://github.com/iipc/openwayback/wiki">wiki</a>. </li>
+          <li>Renamed artefacts and repositories “webarchive-commons” and updated POMs. <a href="https://github.com/iipc/openwayback/issues/90">#90</a></li>
       </subsection>
       <subsection name="Bug Fixes">
         <ul>
