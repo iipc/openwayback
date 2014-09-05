@@ -162,6 +162,7 @@
     <property name="serveStatic" value="true" />
     <property name="bounceToReplayPrefix" value="false" />
     <property name="bounceToQueryPrefix" value="false" />
+    <property name="enableMemento" value="true" />
 
 	<!--
 	  These properties enable customized handling of query, replay, and static
@@ -228,75 +229,6 @@
 			===========================================================
 -->
 
-
-<!--
-  The following import and two bean definitions enable Memento access to
-  content in your collections.
--->
-<!--
-  <import resource="MementoReplay.xml"/>
-  <bean name="mementoaccesspoint" parent="standardaccesspoint">
-    <property name="accessPointPath" value="${wayback.url.prefix}/memento/"/>
-    <property name="internalPort" value="${wayback.url.host}"/>
-    <property name="replayPrefix" value="$${wayback.url.prefix}/memento/" />
-    <property name="queryPrefix" value="${wayback.url.prefix}/list/" />
-	<property name="configs">
-      <props>
-	    <prop key="aggregationPrefix">http://localhost:8080/list/</prop>
-      </props>
-	</property>
-
-    <property name="replay" ref="mementoreplay" />
-    <property name="query">
-      <bean class="org.archive.wayback.query.Renderer">
-        <property name="captureJsp" value="/WEB-INF/query/Memento.jsp" />
-      </bean>
-    </property>
-
-    <property name="uriConverter">
-      <bean class="org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter">
-        <property name="replayURIPrefix" value="${wayback.url.prefix}/memento/"/>
-      </bean>
-    </property>
-    <property name="parser">
-      <bean class="org.archive.wayback.memento.MementoRequestParser">
-        <property name="maxRecords" value="10000" />
-        <property name="earliestTimestamp" value="1996" />
-      </bean>
-    </property>
-    <property name="exception">
-      <bean class="org.archive.wayback.exception.BaseExceptionRenderer">
-        <property name="errorJsp" value="/WEB-INF/exception/TimegateError.jsp" />
-      </bean>
-    </property>
-  </bean>
-
-
-  <bean name="list" parent="mementoaccesspoint">
-    <property name="replayPrefix" value="${wayback.url.prefix}/memento/" />
-    <property name="queryPrefix" value="${wayback.url.prefix}/list/" />
-    <property name="staticPrefix" value="${wayback.url.prefix}/list/" />
-    <property name="internalPort" value="${wayback.url.host}"/>
-	<property name="configs">
-	  <props>
-	    <prop key="Prefix">${wayback.url.scheme}://${wayback.url.host}:${wayback.url.port}/memento/</prop>
-	  </props>
-	</property>
-
-    <property name="replay" ref="archivalurlreplay" />
-    <property name="query">
-      <bean class="org.archive.wayback.query.Renderer">
-        <property name="captureJsp" value="/WEB-INF/query/ORE.jsp" />
-      </bean>
-    </property>
-
-    <property name="uriConverter">
-      <bean class="org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter">
-        <property name="replayURIPrefix" value="http://memento.localhost:8080/list/"/>
-      </bean>
-    </property>
-  </bean>
--->
 
 <!--
     The following AccessPoint inherits all configuration from the standardaccesspoint
