@@ -19,6 +19,7 @@ import org.archive.cdxserver.processor.BaseProcessor;
 import org.archive.cdxserver.processor.ClosestTimestampSorted;
 import org.archive.cdxserver.processor.DupeCountProcessor;
 import org.archive.cdxserver.processor.DupeTimestampBestStatusFilter;
+import org.archive.cdxserver.processor.DupeTimestampLastBestStatusFilter;
 import org.archive.cdxserver.processor.ForwardRevisitResolver;
 import org.archive.cdxserver.processor.GroupCountProcessor;
 import org.archive.cdxserver.processor.LastNLineProcessor;
@@ -79,6 +80,7 @@ public class CDXServer extends BaseCDXServer {
 	protected int queryMaxLimit = Integer.MAX_VALUE;
 
 	protected String[] noCollapsePrefix = null;
+	protected boolean collapseToLast = false;
 
 	protected ZipNumParams defaultParams;
 
@@ -128,6 +130,24 @@ public class CDXServer extends BaseCDXServer {
 
 	public void setNoCollapsePrefix(String[] noCollapsePrefix) {
 		this.noCollapsePrefix = noCollapsePrefix;
+	}
+
+	/**
+	 * @return the collapseToLast
+	 */
+	public boolean isCollapseToLast() {
+		return collapseToLast;
+	}
+
+	/**
+	 * If set to {@code true}, timestamp-collapsing writes out the last best
+	 * capture in the collapse group, instead of the first.
+	 * <p>Initial value is false.</p>
+	 * @param collapseToLast the collapseToLast to set
+	 * @see DupeTimestampLastBestStatusFilter
+	 */
+	public void setCollapseToLast(boolean collapseToLast) {
+		this.collapseToLast = collapseToLast;
 	}
 
 	public CDXInputSource getCdxSource() {
@@ -439,8 +459,13 @@ public class CDXServer extends BaseCDXServer {
 		}
 
 		if (query.collapseTime > 0) {
-			outputProcessor = new DupeTimestampBestStatusFilter(
+			if (collapseToLast) {
+				outputProcessor = new DupeTimestampLastBestStatusFilter(
 					outputProcessor, query.collapseTime, noCollapsePrefix);
+			} else {
+				outputProcessor = new DupeTimestampBestStatusFilter(
+					outputProcessor, query.collapseTime, noCollapsePrefix);
+			}
 		}
 
 		FieldSplitFormat parseFormat = outputProcessor

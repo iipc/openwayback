@@ -2,8 +2,8 @@
  *  This file is part of the Wayback archival access software
  *   (http://archive-access.sourceforge.net/projects/wayback/).
  *
- *  Licensed to the Internet Archive (IA) by one or more individual 
- *  contributors. 
+ *  Licensed to the Internet Archive (IA) by one or more individual
+ *  contributors.
  *
  *  The IA licenses this file to You under the Apache License, Version 2.0
  *  (the "License"); you may not use this file except in compliance with
@@ -26,7 +26,8 @@ import org.archive.format.cdx.FieldSplitFormat;
 import org.easymock.EasyMock;
 
 /**
- * Test for {@link DupeTimestampBestStatusFilter}
+ * Test for {@link DupeTimestampBestStatusFilter} and
+ * {@link DupeTimestampLastBestStatusFilter}.
  *
  */
 public class DupeTimestampBestStatusFilterTest extends TestCase {
@@ -41,14 +42,17 @@ public class DupeTimestampBestStatusFilterTest extends TestCase {
 	}
 
 	static class TestCDXLine extends CDXLine {
-		static final FieldSplitFormat format = new FieldSplitFormat("timestamp,status");
+		static final FieldSplitFormat format = new FieldSplitFormat("timestamp,statuscode,filename");
 		public TestCDXLine(String timestamp, int status) {
-			super(timestamp + " " + status, format);
+			this(timestamp, status, "NA");
+		}
+		public TestCDXLine(String timestamp, int status, String filename) {
+			super(timestamp + " " + status + " " + filename, format);
 		}
 	}
 
-	protected BaseProcessor setupOutputMock(CDXLine[] cdxlines, int... expected) {
-		BaseProcessor output = EasyMock.createMock(BaseProcessor.class);
+	protected final BaseProcessor setupOutputMock(CDXLine[] cdxlines, int... expected) {
+		BaseProcessor output = EasyMock.createStrictMock(BaseProcessor.class);
 		output.begin();
 		EasyMock.expectLastCall().once();
 		for (int i : expected) {
@@ -57,6 +61,16 @@ public class DupeTimestampBestStatusFilterTest extends TestCase {
 		output.end();
 		EasyMock.expectLastCall().once();
 		return output;
+	}
+	protected final void process(CDXLine[] cdxlines) {
+		// simplified sequence - actual code also calls trackLine()
+		// and modifyOutputFormat, which are irrelevant to the class
+		// under test.
+		cut.begin();
+		for (CDXLine l : cdxlines) {
+			cut.writeLine(l);
+		}
+		cut.end();
 	}
 
 	static final CDXLine[] TEST_CASE_1 = {
@@ -73,9 +87,7 @@ public class DupeTimestampBestStatusFilterTest extends TestCase {
 
 		EasyMock.replay(output);
 
-		for (CDXLine l : TEST_CASE_1) {
-			cut.writeLine(l);
-		}
+		process(TEST_CASE_1);
 
 		EasyMock.verify();
 	}
@@ -87,9 +99,7 @@ public class DupeTimestampBestStatusFilterTest extends TestCase {
 
 		EasyMock.replay(output);
 
-		for (CDXLine l : TEST_CASE_1) {
-			cut.writeLine(l);
-		}
+		process(TEST_CASE_1);
 
 		EasyMock.verify();
 	}
@@ -105,20 +115,18 @@ public class DupeTimestampBestStatusFilterTest extends TestCase {
 
 		EasyMock.replay(output);
 
-		for (CDXLine l : TEST_CASE_1) {
-			cut.writeLine(l);
-		}
+		process(TEST_CASE_1);
 
 		EasyMock.verify();
 	}
 
 	static final CDXLine[] TEST_CASE_2 = {
-		new TestCDXLine("20140902201508", 200),
-		new TestCDXLine("20140903012025", 200),
-		new TestCDXLine("20140903020020", 301),
-		new TestCDXLine("20140903182258", 200),
-		new TestCDXLine("20140903192521", 200),
-		new TestCDXLine("20140903192732", 301)
+		new TestCDXLine("20140902201508", 200, "A"),
+		new TestCDXLine("20140903012025", 200, "A"),
+		new TestCDXLine("20140903020020", 301, "A"),
+		new TestCDXLine("20140903182258", 200, "L"),
+		new TestCDXLine("20140903192521", 200, "A"),
+		new TestCDXLine("20140903192732", 301, "L")
 	};
 
 	/**
@@ -132,9 +140,37 @@ public class DupeTimestampBestStatusFilterTest extends TestCase {
 
 		EasyMock.replay(output);
 
-		for (CDXLine l : TEST_CASE_2) {
-			cut.writeLine(l);
-		}
+		process(TEST_CASE_2);
+
+		EasyMock.verify();
+	}
+
+	// DupeTimestampLastBestStatusFilter
+
+	/**
+	 * Picks the last CDX line with the best (smallest) {@code statuscode}
+	 * within each group.
+	 */
+	public void testLastBestStatus() {
+		BaseProcessor output = setupOutputMock(TEST_CASE_2, 0, 4);
+
+		cut = new DupeTimestampLastBestStatusFilter(output, 8, null);
+
+		EasyMock.replay(output);
+
+		process(TEST_CASE_2);
+
+		EasyMock.verify();
+	}
+
+	public void testLastBestStatus_withNoCollapse() {
+		BaseProcessor output = setupOutputMock(TEST_CASE_2, 0, 3, 4, 5);
+
+		cut = new DupeTimestampLastBestStatusFilter(output, 8, new String[] { "L" });
+
+		EasyMock.replay(output);
+
+		process(TEST_CASE_2);
 
 		EasyMock.verify();
 	}
