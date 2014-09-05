@@ -369,7 +369,9 @@ public class ArchivalUrlRequestParserTest extends TestCase {
 			assertTrue(wbr.isCaptureQueryRequest());
 			assertEquals("20100101000000", wbr.getStartTimestamp());
 			assertEquals("20100531235959", wbr.getEndTimestamp());
-			assertEquals("http://www.yahoo.com/%2A", wbr.getRequestUrl());
+			// WaybackRequet#setRequestUrl() prepends "http://" if urlStr does
+			// not begin with http://
+			assertEquals("http://http%3a//www.yahoo.com/%2A", wbr.getRequestUrl());
 		}
 	}
 
