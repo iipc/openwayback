@@ -34,7 +34,7 @@ public class ReplayParseContext extends ParseContext {
 	private static final String MAILTO_PREFIX = "mailto:";
 	public static final String JAVASCRIPT_PREFIX = "javascript:";
 	public static final String DATA_PREFIX = "data:";
-
+	public static final String ANCHOR_PREFIX = "#";
 
 	private ContextResultURIConverterFactory uriConverterFactory = null;
 	private String datespec = null;
@@ -144,7 +144,8 @@ public class ReplayParseContext extends ParseContext {
 		if (url.length() == 0) {
 			return url;
 		}
-		if (url.startsWith(JAVASCRIPT_PREFIX) || url.startsWith(MAILTO_PREFIX)) {
+		
+		if (url.startsWith(JAVASCRIPT_PREFIX) || url.startsWith(MAILTO_PREFIX) || url.startsWith(ANCHOR_PREFIX)) {
 	    	return url;
 	    }
 	    // XXX duplicated check for MAILTO_PREFIX??
