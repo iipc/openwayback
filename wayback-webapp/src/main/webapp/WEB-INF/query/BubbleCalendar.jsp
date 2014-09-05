@@ -210,7 +210,7 @@ $().ready(function(){
     <div id="wbSearch">
     
         <div id="logo">
-            <a href="/index.jsp"><img src="<%= staticPrefix %>images/logo_WM.png" alt="logo: OpenWayback" width="183" height="65" /></a>
+            <a href="/index.jsp"><img src="<%= staticPrefix %>images/OpenWayback-banner.png" alt="logo: OpenWayback" /></a>
         </div>
 
         <div id="form">

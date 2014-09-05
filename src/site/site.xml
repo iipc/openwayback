@@ -2,11 +2,13 @@
 <project name="OpenWayback">
   <bannerLeft>
     <name>${project.name}</name>
-    <src>images/iipc_logo.png</src>
-    <href>http://netpreserve.org/</href>
+    <src>images/OpenWayback-banner100.png</src>
+    <href>/</href>
   </bannerLeft>
   <bannerRight>
-    <name>${project.name}</name>
+    <name>International Internet Preservation Consortium</name>
+    <src>images/iipc_logo.png</src>
+    <href>http://netpreserve.org/</href>
   </bannerRight>
   <skin>
     <groupId>org.apache.maven.skins</groupId>
@@ -33,6 +35,7 @@
       <item name="Release Notes" href="release_notes.html"/>
       <item name="FAQ" href="/faq.html"/>
       <item name="API" href="./apidocs/index.html"/>
+      <item name="Branding and logos" href="logos.html"/>
       <item name="Browse/Submit a Bug"
         href="https://github.com/iipc/openwayback/issues"/>
     </menu>
