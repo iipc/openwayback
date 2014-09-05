@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<document>
+	<properties>
+		<title>OpenWayback logos and branding</title>
+	</properties>
+	<meta name="keyword" content="wayback machine, heritrix, java"/>
+	<body>
+		<section name="Project name">
+			<p>
+				The project's name is <em>OpenWayback</em>. No space between the words and each word captialized.
+			</p>
+		</section>
+		<section name="Project logos">
+			<p>
+				The OpenWayback logo is available in two forms as seen below.   		
+			</p>
+			<p>
+				<img src="images/OpenWayback-banner100.png" /><br />
+				<a href="images/openwayback-banner.eps">Download as an EPS file</a>			
+			</p>
+			<p>
+				<img src="images/OpenWayback-logo100.png" /><br />
+				<a href="images/openwayback-logo.eps">Download as an EPS file</a>			
+			</p>
+		</section>			
+	</body>
+</document>

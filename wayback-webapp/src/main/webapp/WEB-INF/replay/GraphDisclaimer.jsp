@@ -177,7 +177,7 @@ var wbCurrentUrl = "<%= searchUrlJS %>";
 	<table width="100%" border="0" cellpadding="0" cellspacing="3">
 		<tr>
 			<!-- OPENWAYBACK LOGO -->
-			<td rowspan="2" valign="top" align="left"><a href="<%= queryPrefix %>"><img style="padding-right:15px;" src="<%= staticPrefix %>images/wayback_logo_tr.gif" width="153" height="54" border="0"></a></td>
+			<td rowspan="2" valign="top" align="left"><a href="<%= queryPrefix %>"><img style="padding-right:15px;" src="<%= staticPrefix %>images/OpenWayback-banner.png" border="0"></a></td>
 			<!-- /OPENWAYBACK LOGO -->
 			<td width="99%">
 				<table width="100%" border="0" cellpadding="0" cellspacing="0">

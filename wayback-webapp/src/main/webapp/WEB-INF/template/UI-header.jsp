@@ -36,7 +36,7 @@ String replayPrefix = results.getReplayPrefix();
 
 				<!-- OPENWAYBACK LOGO -->
 				
-				<td width="26%"><a href="<%= staticPrefix %>"><img src="<%= staticPrefix %>images/wayback_logo_tr.gif" width="153" height="54" border="0"></a></td>
+				<td width="26%"><a href="<%= staticPrefix %>"><img src="<%= staticPrefix %>images/OpenWayback-banner.png" border="0"></a></td>
 
 				<!-- /OPENWAYBACK LOGO -->
 			
