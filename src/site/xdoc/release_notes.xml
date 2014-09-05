@@ -28,6 +28,8 @@
            <li>Added Java cross-reference and updated site generation with dependencies. <a href="https://github.com/iipc/openwayback/issues/128">#128</a> <a href="https://github.com/iipc/openwayback/issues/130">#30</a></li>
            <li>Fixed Javadoc output in Java8. <a href="https://github.com/iipc/openwayback/issues/136">#136</a></li>
            <li>Updated 'developers' and 'contributors' lists in POM. <a href="https://github.com/iipc/openwayback/issues/137">#137</a></li>
+           <li>Cleaned up the Memento configuration. <a href="https://github.com/iipc/openwayback/issues/150">#150</a></li>
+           <li>Added new logos to project. <a href="https://github.com/iipc/openwayback/issues/100">#100</a></li>
         </ul>
     </section>
     <section name="OpenWayback 2.0.0 BETA 2 release">
