@@ -30,33 +30,85 @@ import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BetterRequestException;
 import org.archive.wayback.memento.MementoConstants;
 import org.archive.wayback.memento.MementoUtils;
+import org.archive.wayback.replay.mimetype.MimeTypeDetector;
+import org.archive.wayback.webapp.AccessPoint;
 
 /**
  * ReplayDispatcher instance which uses a configurable ClosestResultSelector
  * to find the best result to show from a given set, and a list of 
  * ReplayRendererSelector to determine how best to replay that result to a user.
  *
+ * <p>Optionally it can be configured with {@link MimeTypeDetector}s used for
+ * overriding unknown ({@code "unk"}) or often-misused ({@code "text/html"})
+ * value of {@link CaptureSearchResult#getMimeType()}.</p>
+ *
  * @author brad
- * @version $Date$, $Revision$
  */
 public class SelectorReplayDispatcher implements ReplayDispatcher {
 	private List<ReplayRendererSelector> selectors = null;
+	private List<MimeTypeDetector> mimeTypeDetectors = null;
 	private ClosestResultSelector closestSelector = null;
 	
+	/**
+	 * check if mime-type detection is suggested for mimeType.
+	 * @param mimeType mime-type to test (must not be null/empty/"unk")
+	 * @return {@code true} if mime-type should be determined
+	 * by looking into Resource.
+	 */
+	protected boolean shouldDetectMimeType(String mimeType) {
+		// TODO: want to make this configurable?
+		if (mimeType.startsWith("text/html"))
+			return true;
+		return false;
+	}
+
 	@Override
 	public ReplayRenderer getRenderer(WaybackRequest wbRequest,
 			CaptureSearchResult result, Resource resource) {
-		return getRenderer(wbRequest, result, resource, resource);
-	}
-	
-	@Override
-	public ReplayRenderer getRenderer(WaybackRequest wbRequest,
-			CaptureSearchResult result, Resource httpHeadersResource,
-			Resource payloadResource) {
+		// if content-type is already specified, don't override it.
+		if (wbRequest.getForcedContentType() == null) {
+			String mimeType = result.getMimeType();
+			// TODO: this code should be encapsulated in CaptureSearchResult.getMimeType()
+			if (AccessPoint.REVISIT_STR.equals(mimeType)) {
+				if (result.getDuplicatePayload() != null) {
+					mimeType = result.getDuplicatePayload().getMimeType();
+				} else {
+					// let following code get it from resource
+					mimeType = null;
+				}
+			}
+			// Many old ARCs have "unk" or "no-type" in ARC header even though
+			// HTTP response has valid Content-Type header. CDX writer does not fix
+			// it (although it's capable of fixing it internally). If CaptureSearchResult
+			// says mimeType is "unk", try reading Content-Type header from the resource.
+			if (mimeType == null || mimeType.isEmpty() || "unk".equals(mimeType)) {
+				mimeType = resource.getHeader("Content-Type");
+			}
+			// "unk" and "" are changed to Content-Type header value (or null if in fact missing)
+			// so null test is enough.
+			if (mimeType == null || shouldDetectMimeType(mimeType)) {
+				if (mimeTypeDetectors != null) {
+					for (MimeTypeDetector detector : mimeTypeDetectors) {
+						String detected = detector.sniff(resource);
+						if (detected != null) {
+							// detected mimeType is communicated to Selectors
+							// through forcedContentType. better way? replace
+							// CaptureSearchResult.mimeType?
+							wbRequest.setForcedContentType(detected);
+						}
+					}
+				}
+			} else {
+				// hmm, now CaptureSearchResult.mimeType can be set to
+				// forcedContentType - it should work, but this may
+				// be a bad design.
+				wbRequest.setForcedContentType(mimeType);
+			}
+		}
+
 		if (selectors != null) {
 			for (ReplayRendererSelector selector : selectors) {
-				if (selector.canHandle(wbRequest, result, httpHeadersResource,
-						payloadResource)) {
+				if (selector.canHandle(wbRequest, result, resource, resource)) {
 					return selector.getRenderer();
 				}
 			}
@@ -64,6 +116,18 @@ public class SelectorReplayDispatcher implements ReplayDispatcher {
 		return null;
 	}
 	
+	@Override
+	public ReplayRenderer getRenderer(WaybackRequest wbRequest,
+			CaptureSearchResult result, Resource httpHeadersResource,
+			Resource payloadResource) {
+		if (httpHeadersResource == payloadResource)
+			return getRenderer(wbRequest, result, httpHeadersResource);
+		else {
+			Resource resource = new CompositeResource(httpHeadersResource, payloadResource);
+			return getRenderer(wbRequest, result, resource);
+		}
+	}
+
 	public CaptureSearchResult getClosest(WaybackRequest wbRequest,
 			CaptureSearchResults results) throws BetterRequestException {
 		
@@ -91,12 +155,22 @@ public class SelectorReplayDispatcher implements ReplayDispatcher {
 	public List<ReplayRendererSelector> getSelectors() {
 		return selectors;
 	}
+
 	/**
 	 * @param selectors the List of ReplayRendererSelector to use
 	 */
 	public void setSelectors(List<ReplayRendererSelector> selectors) {
 		this.selectors = selectors;
 	}
+
+	public List<MimeTypeDetector> getMimeTypeDetectors() {
+		return mimeTypeDetectors;
+	}
+
+	public void setMimeTypeDetectors(List<MimeTypeDetector> sniffers) {
+		this.mimeTypeDetectors = sniffers;
+	}
+
 	/**
 	 * @param closestSelector the closestSelector to set
 	 */
