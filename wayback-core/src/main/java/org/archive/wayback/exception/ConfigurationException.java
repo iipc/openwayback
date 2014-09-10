@@ -2,8 +2,8 @@
  *  This file is part of the Wayback archival access software
  *   (http://archive-access.sourceforge.net/projects/wayback/).
  *
- *  Licensed to the Internet Archive (IA) by one or more individual 
- *  contributors. 
+ *  Licensed to the Internet Archive (IA) by one or more individual
+ *  contributors.
  *
  *  The IA licenses this file to You under the Apache License, Version 2.0
  *  (the "License"); you may not use this file except in compliance with
@@ -25,12 +25,9 @@ import javax.servlet.http.HttpServletResponse;
  * Exception class for configuration-related problems
  *
  * @author brad
- * @version $Date$, $Revision$
  */
 public class ConfigurationException extends WaybackException {
-	/**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 1L;
 	protected static final String ID = "configuration";
 
@@ -40,9 +37,10 @@ public class ConfigurationException extends WaybackException {
 	 * @param message
 	 */
 	public ConfigurationException(String message) {
-		super(message,"Configuration Error");
+		super(message, "Configuration Error");
 		id = ID;
 	}
+
 	/**
 	 * Constructor with message and details
 	 * 
@@ -50,9 +48,10 @@ public class ConfigurationException extends WaybackException {
 	 * @param details
 	 */
 	public ConfigurationException(String message, String details) {
-		super(message,"Configuration Error",details);
+		super(message, "Configuration Error", details);
 		id = ID;
 	}
+
 	/**
 	 * @return the HTTP status code appropriate to this exception class.
 	 */
