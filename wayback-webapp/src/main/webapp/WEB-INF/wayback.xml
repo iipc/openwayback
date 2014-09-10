@@ -308,6 +308,7 @@
     <property name="bounceToReplayPrefix" value="false" />
     <property name="bounceToQueryPrefix" value="false" />
     <property name="refererAuth" value="" />
+    <property name="accessPointPath" value="8090"/>
 
     <property name="staticPrefix" value="http://localhost:8090/" />
     <property name="replayPrefix" value="http://localhost:8090/" />
