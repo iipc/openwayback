@@ -27,3 +27,6 @@ target/
 
 # PDT-specific
 .buildpath
+
+# Locally stored Netbeans configurations
+nb-configuration.xml

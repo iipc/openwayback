@@ -30,6 +30,7 @@
            <li>Updated 'developers' and 'contributors' lists in POM. <a href="https://github.com/iipc/openwayback/issues/137">#137</a></li>
            <li>Cleaned up the Memento configuration. <a href="https://github.com/iipc/openwayback/issues/150">#150</a></li>
            <li>Added new logos to project. <a href="https://github.com/iipc/openwayback/issues/100">#100</a></li>
+           <li>All dates should be independent of users locale settings. <a href="https://github.com/iipc/openwayback/issues/148">#148</a></li>
         </ul>
     </section>
     <section name="OpenWayback 2.0.0 BETA 2 release">
