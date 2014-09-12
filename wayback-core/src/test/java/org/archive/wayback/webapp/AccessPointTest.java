@@ -4,7 +4,6 @@
 package org.archive.wayback.webapp;
 
 import java.io.IOException;
-import java.security.AccessControlException;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
@@ -36,11 +35,8 @@ import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.UrlSearchResults;
 import org.archive.wayback.core.WaybackRequest;
-import org.archive.wayback.exception.BadQueryException;
-import org.archive.wayback.exception.ResourceIndexNotAvailableException;
-import org.archive.wayback.exception.ResourceNotInArchiveException;
-import org.archive.wayback.exception.WaybackException;
 import org.archive.wayback.exception.ResourceNotAvailableException;
+import org.archive.wayback.memento.MementoHandler;
 import org.archive.wayback.memento.MementoUtils;
 import org.archive.wayback.resourcestore.resourcefile.ArcResource;
 import org.archive.wayback.resourcestore.resourcefile.WarcResource;
@@ -169,7 +165,11 @@ public class AccessPointTest extends TestCase {
         
         // behavior returning null are commented out because EasyMock provides them by default.
         httpRequest = EasyMock.createNiceMock(HttpServletRequest.class);
-        httpResponse = EasyMock.createNiceMock(HttpServletResponse.class);
+        httpResponse = EasyMock.createMock(HttpServletResponse.class);
+        // AccessPoint calls getWriter() just for committing response headers. Return value
+        // does not matter.
+        EasyMock.expect(httpResponse.getWriter()).andStubReturn(null);
+
         // RequestDispatcher - setup expectations, call replay() and verify() if
         // method calls are expected.
         requestDispatcher = EasyMock.createMock(RequestDispatcher.class);
@@ -403,7 +403,8 @@ public class AccessPointTest extends TestCase {
 //        closest.setCaptureTimestamp("20100601000000");
         // Resource below has originalUrl="http://test.example.com/", which is different from
         // wbRequest.requestUrl above. originalUrl shall be reflected to resultant redirect URL.
-        CaptureSearchResults results = setupCaptures(
+        @SuppressWarnings("unused")
+		CaptureSearchResults results = setupCaptures(
                 0,
                 createTestHtmlResource("20100601000000", "hogheogehoge\n".getBytes("UTF-8"))
                 );
@@ -877,12 +878,14 @@ public class AccessPointTest extends TestCase {
 			throws Exception {
 		cut.setQueryCollapseTime(10);
 		// query parameters and CaptureSeachResults details are irrelevant to
-// this test.
-		setReplayRequest("http://www.example.com/", "20100601123456");
+		// this test.
+		setReplayRequest("http://test.example.com/", "20100601123456");
 		setupCaptures(
 			0,
 			createTestHtmlResource("20100601000000",
 				"hogheogehoge\n".getBytes("UTF-8")));
+		httpResponse.setStatus(302);
+		httpResponse.setHeader("Location", "/web/20100601000000/http://test.example.com/");
 		EasyMock.replay(httpRequest, httpResponse, query, resourceIndex,
 			resourceStore, replay);
 
@@ -1002,6 +1005,16 @@ public class AccessPointTest extends TestCase {
     // as decorator of replay renderer. because of this possibility, I separated out tests for
     // memento headers here.
 
+    /**
+     * test of Memento-furnished response to URL-M (Memento).
+     * Memento Specification states that URL-M response
+     * <ul>
+     * <li>MUST NOT have "Vary: accept-datetime"</li>
+     * <li>MUST have "Memento-Datetime"</li>
+     * <li>MUST have "Link" header with at least a URI-R as "original" relation.</li>
+     * </ul>
+     * @throws Exception
+     */
     public void testMemento_replay_exactCapture() throws Exception {
         final String AGGREGATION_PREFIX = "http://web.archive.org";
         
@@ -1030,10 +1043,13 @@ public class AccessPointTest extends TestCase {
         
         // key expectations of this test
         // called through MementoUtils.addMementoHeaders(...)
+        // NO Vary: accept-datetime header.
         final String expectedMementoDateTime = "Tue, 01 Jun 2010 00:00:00 GMT";
         httpResponse.setHeader(MementoUtils.MEMENTO_DATETIME, expectedMementoDateTime);
-        // MementoUtils.generateMementoLinkHeaders(...)
+        // Wayback include timemap, timegate, first and last memento links in addition to
+        // mandatory "original" link.
         // TODO: actually it is acceptable to have various rels in different order.
+        // It'd take custom argument matcher.
         final String expectedMementoLink = String.format(
                 "<%1$s>; rel=\"original\", " +
                 "<%2$s%3$stimemap/link/%1$s>; rel=\"timemap\"; type=\"application/link-format\", " +
@@ -1041,7 +1057,7 @@ public class AccessPointTest extends TestCase {
                 "<%2$s%3$s%4$s/%1$s>; rel=\"first last memento\"; datetime=\"%5$s\"",
                 "http://www.example.com/", AGGREGATION_PREFIX, WEB_PREFIX, "20100601000000", expectedMementoDateTime);
         httpResponse.setHeader(MementoUtils.LINK, expectedMementoLink);
-        
+
         EasyMock.replay(httpRequest, httpResponse, resourceIndex, resourceStore, replay);
         
         cut.init();
@@ -1052,14 +1068,29 @@ public class AccessPointTest extends TestCase {
         assertTrue("handleRequest return value", r);
     }
 
+    /**
+     * Test of Memento-furnished response to replay request for non-archived timestamp.
+     * This is not strictly a URL-M (as far as I understand). Wayback returns <i>intermediate
+     * resource</i> to URI-M. Memento Specification states the response
+     * <ul>
+     * <li>MUST NOT have "Vary: accept-datetime" header (this is the key difference from
+     * redirect from URI-G; see below)</li>
+	 * <li>MUST NOT have "Memento-Datetime" header</li>
+	 * <li>MUST have "Link" header, which MUST have at least "original" relation link.
+	 * "timeate", "timemap" and "memento" relation type links MAY be provided.</li>
+	 * </ul>
+     * @throws Exception
+     */
     public void testMemento_replay_nearbyCapture() throws Exception {
         cut.setEnableMemento(true);
         // make sure wbRequesat.requestUrl, replayTimestamp are set up.
+        // As this is a URI-M, not URI-G, mementoTimegate flag must be false.
         setReplayRequest("http://www.example.com/", "20100601123456");
         assertFalse(wbRequest.isMementoTimegate());
         
         Resource payloadResource = createTestHtmlResource("20100601000000", "hogehogehogehoge\n".getBytes("UTF-8"));
-        CaptureSearchResults results = setupCaptures(0, payloadResource);
+        @SuppressWarnings("unused")
+		CaptureSearchResults results = setupCaptures(0, payloadResource);
         // handleRequest()
         // calls handleReplay()
         // - calls checkInterstitialRedirect()
@@ -1067,7 +1098,7 @@ public class AccessPointTest extends TestCase {
         // - calls queryIndex(), which calls collection.resourceIndex.query(wbRequest)
         
         // redirects to URL for closest capture.
-        // also has Link header.
+        // also has Link header with just "original" relation.
         httpResponse.setHeader("Link", String.format("<%s>; rel=\"original\"", "http://test.example.com/"));
         httpResponse.setStatus(302);
         httpResponse.setHeader("Location", "/web/20100601000000/http://test.example.com/");
@@ -1083,44 +1114,86 @@ public class AccessPointTest extends TestCase {
     }
 
     /**
-     * Timemap == Memento rendering of capture query (CaptureSearchResult).
+     * Test of Memento-furnished response to Timegate (URI-G).
+     * Memento Specification states the response
+     * <ul>
+     * <li>MUST have "Vary: accept-datetime" header</li>
+	 * <li>MUST NOT have "Memento-Datetime" header</li>
+	 * <li>MUST have "Link" header, which MUST have at least "original" relation link.
+	 * "timeate", "timemap" and "memento" relation type links MAY be provided.</li>
+	 * </ul>
+     * @throws Exception
      */
-    public void testMementoTimemap() throws Exception {
-        cut.setEnableMemento(true);
-        setCaptureQueryRequest("http://www.example.com/", "20100601000000");
-        wbRequest.setMementoTimegate();
+    public void testMementoTimegate() throws Exception {
+        final String AGGREGATION_PREFIX = "http://web.archive.org";
+    	cut.setEnableMemento(true);
+        cut.setConfigs(new Properties());
+        cut.getConfigs().setProperty(MementoUtils.AGGREGATION_PREFIX_CONFIG, AGGREGATION_PREFIX);
+
+        // Wayback Timegate is mapped to date-less replay URL (/web/<URI-R>) with
+    	// Accept-Datetime header, but it is irrelevant here (it's a RequestParser
+    	// matter.) What's relevant here is that WaybackRequest is a replay request
+    	// with mementoTimegate property set to true.
+    	setReplayRequest("http://test.example.com/", "20100601123456");
+    	wbRequest.setMementoTimegate();
+    	
+        Resource payloadResource = createTestHtmlResource("20100601000000", "hogehogehogehoge\n".getBytes("UTF-8"));
+        @SuppressWarnings("unused")
+		CaptureSearchResults results = setupCaptures(0, payloadResource);
+
+        final String expectedMementoDateTime = "Tue, 01 Jun 2010 00:00:00 GMT";
+        // redirects to URL for closest capture.
+        httpResponse.setStatus(302);
+        httpResponse.setHeader("Location", "/web/20100601000000/http://test.example.com/");
+        // MUST have "Vary: accept-datetime" header
+        httpResponse.setHeader("Vary", "accept-datetime");
+        // also has Link header with mandatory "original" link and optional "timemap", and
+        // "first/last memento" (combined here). It also includes "prev/next memento" link as well
+        // which is not applicable here.
+        final String expectedMementoLink = String.format(
+            "<%1$s>; rel=\"original\", " +
+            "<%2$s%3$stimemap/link/%1$s>; rel=\"timemap\"; type=\"application/link-format\", " +
+            "<%2$s%3$s%4$s/%1$s>; rel=\"first last memento\"; datetime=\"%5$s\"",
+            "http://test.example.com/", AGGREGATION_PREFIX, WEB_PREFIX, "20100601000000", expectedMementoDateTime);
+        httpResponse.setHeader(MementoUtils.LINK, expectedMementoLink);
         
-        // handleRequest()
-        // redirect to queryPrefix + translateRequestPathQuery(httpRequest)
-        //   if bounceToQueryPrefix is true (not tested here)
-        // copies exactHostMatch to wbRequest.exactHost (TODO: should be done by parser?)
-        // calls handleQuery()
-        // - calls queryIndex(), which calls collection.resourceIndex.query(),
-        //     which returns CaptureSearchResults
-        //   (unexpected object from queryIndex() results in WaybackException("Unknown index format").
-        //    this is considered to be a programming/configuration error. not tested.)
-        CaptureSearchResults results = new CaptureSearchResults();
-        CaptureSearchResult result = new CaptureSearchResult();
-        results.setClosest(result);
-        EasyMock.expect(resourceIndex.query(wbRequest)).andReturn(results);
-        // - calls MementoUtils.printTimemapResponse(results, wbRequest, httpResponse) instead
-        //     if wbRequst.isMementoTimemapRequest() (N/A here) (TODO: can we move this to
-        //     QueryRenderer implementation?)
-        // - calls query.renderCaptureResults(...)
-        query.renderCaptureResults(httpRequest, httpResponse, wbRequest, results, cut.getUriConverter());
-        
-        EasyMock.replay(httpRequest, httpResponse, resourceIndex, query);
+        EasyMock.replay(httpRequest, httpResponse, resourceIndex, resourceStore, replay);
         
         cut.init();
         boolean r = cut.handleRequest(httpRequest, httpResponse);
         
-        EasyMock.verify(query);
+        EasyMock.verify(httpResponse, resourceIndex, resourceStore, replay);
         
-        // result shall have closest flag set (FIrefox proxy plugin expects this)
-        assertTrue("closest flag", result.isClosest());
+        assertTrue("handleRequest return value", r); 
+    }
+    
+    /**
+     * test of Memento Timemap request.
+     * <p>Actual rendering is done by a separate bean implementing {@link MementoHandler}.
+     * So what we test here is that AccessPoint is correctly routing Timemap request to
+     * MementoHandler.
+     */
+    public void testMementoTimemap() throws Exception {
+        cut.setEnableMemento(true);
+        setCaptureQueryRequest("http://www.example.com/", "20100601000000");
+        // this make WaybackRequest.isMementoTimemapRequest() return true,
+        // which shall direct AccessPoint to call MementHandler.renderMementoTimemap().
+        wbRequest.setMementoTimemapFormat("link");
+        
+        MementoHandler mementoHandler = EasyMock.createMock(MementoHandler.class);
+		EasyMock.expect(
+			mementoHandler.renderMementoTimemap(wbRequest, httpRequest,
+				httpResponse)).andReturn(true);
+		cut.setMementoHandler(mementoHandler);
+
+        EasyMock.replay(httpRequest, httpResponse, mementoHandler);
+        
+        cut.init();
+        boolean r = cut.handleRequest(httpRequest, httpResponse);
+        
+        EasyMock.verify(mementoHandler);
         
         assertTrue("handleRequest return value", r);
-        
     }
     
     /**
@@ -1172,7 +1245,7 @@ public class AccessPointTest extends TestCase {
         EasyMock.verify(parser, requestDispatcher);
 
         assertTrue("handleRequest return value", r);
-        
     }
     
+    // TODO: tests of live-web redirector
 }
