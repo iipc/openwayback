@@ -155,7 +155,7 @@
 		<site>
 			<id>github-pages-site</id>
 			<name>Deployment through GitHub's site deployment plugin</name>
-			<url>http://iipc.github.io/openwayback/${project.version}/</url>
+			<url>${project.version}</url>
 		</site>
 	</distributionManagement>
 
