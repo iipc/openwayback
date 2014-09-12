@@ -11,7 +11,7 @@
   <body>
         <p><b>OpenWayback is supported the International Internet Preservation Consortium (IIPC) and the member institutions with which the contributors of the project are affiliated.</b>
         </p>
-        <p>A detailed list of changes (per release) can be found in the <a href="https://github.com/iipc/openwayback/wiki/Release-notes">Release Notes</a>.</p>
+        <p>A detailed list of changes (per release) can be found in the <a href="release_notes.html">Release Notes</a>.</p>
     <section name="Releases">
         <subsection name="OpenWayback 2.0.0 Release - 12th September 2014">
           <p>
