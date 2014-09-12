@@ -350,15 +350,27 @@
 				<role>Developer</role>
 			</roles>
 		</developer>
-	</developers>
-	
-	<contributors>
-		<contributor>
+        <developer>
 			<name>John Erik Halse</name>
 			<url>https://github.com/johnerikhalse</url>
 			<organization>National Library of Norway</organization>
 			<organizationUrl>http://nb.no/</organizationUrl>
-		</contributor>
+			<roles>
+				<role>Developer</role>
+			</roles>
+        </developer>
+		<developer>
+			<name>Helen Hockx-Yu</name>
+			<url>https://github.com/hhockx</url>
+			<organization>The UK Web Archive</organization>
+			<organizationUrl>http://www.webarchive.org.uk</organizationUrl>
+			<roles>
+				<role>Documentation</role>
+			</roles>
+		</developer>
+	</developers>
+	
+	<contributors>
 	</contributors>
 
 	<reporting>
