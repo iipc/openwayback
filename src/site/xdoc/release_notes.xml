@@ -45,8 +45,7 @@
        <ul>
           <li>Fixed the date locale issue. Creations of java.text.SimpleDateFormat now independent of local setting. <a href="https://github.com/iipc/openwayback/pull/157">#157</a> <a href="https://github.com/iipc/openwayback/issues/148">#148</a> <a href="https://github.com/iipc/openwayback/pull/154">#154</a>
           </li>
-          
-        <li>Fixed support for uncompressed ARCs files <a href="https://github.com/iipc/openwayback/issues/101">#101</a>
+          <li>Fixed support for uncompressed ARCs files <a href="https://github.com/iipc/openwayback/issues/101">#101</a>
         </li>
        </ul>
        </subsection>
