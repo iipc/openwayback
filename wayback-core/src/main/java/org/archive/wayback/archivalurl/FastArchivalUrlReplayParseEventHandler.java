@@ -255,10 +255,12 @@ public class FastArchivalUrlReplayParseEventHandler implements
 				return;
 			}
 			// If we're at the beginning of any tag, other than <html>,
+			// <!DOCTYPE ...>, <?xml ... ?> (tagName is "?" for it),
 			// (including <body>) and haven't inserted yet,
 			// insert right BEFORE the next tag, also continue other default processing
 			// of the tag
-			if (!tagName.equals("HTML") && !tagName.equals("!DOCTYPE")) {
+			if (!tagName.equals("HTML") && !tagName.equals("!DOCTYPE") &&
+					!tagName.equals("?")) {
 				emitHeadInsert(context, null, false);
 				// Don't return continue to further processing
 			}
