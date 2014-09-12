@@ -876,6 +876,37 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
         assertEquals(expected, out);
 	}
 
+	public void testXHTML() throws Exception {
+		delegator.setHeadInsertJsp("head.jsp");
+		delegator.setJspInsertPath("body-insert.jsp");
+		delegator.setEndJsp("end.jsp");
+		jspExec = new TestJSPExecutor();
+
+		final String input = "<!-- comment -->" +
+				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+				"<html xml:lang=\"en\" xmlns=\"http://www.w3.org/1999/xhtml\">" +
+				"  <head>" +
+				"    <title>homepage</title>" +
+				"  </head>" +
+				"  <body id=\"home\">" +
+				"  body body" +
+				"  </body>" +
+				"</html>";
+		final String expected = "<!-- comment -->" +
+				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+				"<html xml:lang=\"en\" xmlns=\"http://www.w3.org/1999/xhtml\">" +
+				"  <head>[[[JSP-INSERT:head.jsp]]]" +
+				"    <title>homepage</title>" +
+				"  </head>" +
+				"  <body id=\"home\">[[[JSP-INSERT:body-insert.jsp]]]" +
+				"  body body" +
+				"  </body>" +
+				"</html>[[[JSP-INSERT:end.jsp]]]";
+		String out = doEndToEnd(input);
+		System.out.println(out);
+		assertEquals(expected, out);
+	}
+
 	public String doEndToEnd(String input) throws Exception {
 		final String baseUrl = "http://www.example.com/";
 		final String timestamp = "2001";
