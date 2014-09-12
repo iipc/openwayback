@@ -12,21 +12,27 @@
         <p><b>OpenWayback is supported the International Internet Preservation Consortium (IIPC) and the member institutions with which the contributors of the project are affiliated.</b>
         </p>
     <section name="Releases">
-        <subsection name="OpenWayback 2.0.0 Release">
+        <subsection name="OpenWayback 2.0.0 Release - 12th September 2014">
           <p>
-            Forhcoming September 2014.
+          OpenWayback 2.0.0 release is a culmination of the two previous beta releases. It includes bug fixes and significant improvement of documentation. Existing documentation has been identified, reorganised and updated. A set of essential documentation is included in the release.<br></br>
+            Please see <a href="release_notes.html">release notes</a> for a detailed list of changes. 
           </p>
         </subsection>
         <subsection name="OpenWayback 2.0.0 BETA 2 Release - 14th May 2014">
           <p>
             OpenWayback 2.0.0 BETA 2 release includes bug fixes and a number of enhancements, including better support for WARCs and integration of JWAT ResourceStore. A consistent naming scheme has been applied to the artifactId, the github project name, and the jar name. In addition, documentation has been improved, manual testing experience documented and a sample overlay provided, allowing easier customisations of the standard wayback-webapp.
+            <br></br>
+            Please see <a href="release_notes.html">release notes</a> for a detailed list of changes. 
            </p>
           <p><a href="https://github.com/iipc/openwayback/tree/openwayback-2.0.0.BETA.2">https://github.com/iipc/openwayback/tree/openwayback-2.0.0.BETA.2</a>  
           </p>
         </subsection>
+        
+        
         <subsection name="OpenWayback 2.0.0.BETA 1 Release - 10th January 2014">
           <p>
-            OpenWayback 2.0.0 BETA 1 release mainly reflects the move of ownership of the lead repository from the Internet Archive to the IIPC. This includes a set of changes to the IA codebase to make it more independent of their build server and some non-public artefacts. Moreover, it includes updates from the internetarchive/wayback fork, corresponding to the move of critical code from internetarchive/heritrix3 to iipc/iipc-web-commons.
+            OpenWayback 2.0.0 BETA 1 release mainly reflects the move of ownership of the lead repository from the Internet Archive to the IIPC. This includes a set of changes to the IA codebase to make it more independent of their build server and some non-public artefacts. Moreover, it includes updates from the internetarchive/wayback fork, corresponding to the move of critical code from internetarchive/heritrix3 to iipc/iipc-web-commons. <br></br>
+            Please see <a href="release_notes.html">release notes</a> for a detailed list of changes. 
           </p>
           <p><a href="https://github.com/iipc/openwayback/tree/openwayback-2.0.0.BETA.1">https://github.com/iipc/openwayback/tree/openwayback-2.0.0.BETA.1</a>
           </p>
@@ -35,6 +41,22 @@
 </p>          
           
         </subsection>
+        
+        <subsection name="New Release - 1.8.0, 18/12/2013">
+        <p>Release notes not available. Among other features, the <a href="https://github.com/iipc/openwayback/tree/master/wayback-cdx-server">wayback-cdx-server</a> was introduced, which is a standalone HTTP servlet that serves the index that the wayback machine uses to lookup captures.
+        	</p>
+        </subsection> 
+        <subsection name="New Release - 1.7.0, 09/02/2013">
+        <p>Release notes not available.</p>
+        	
+        </subsection>
+        New Release – 1.8.0, 18/12/2013
+
+
+
+New Release – 1.7.0, 09/02/2013
+
+
         <subsection name="New Release - 1.6.0, 1/3/2011">
           <p>
             The 1.6.0 release is now available, with improved
