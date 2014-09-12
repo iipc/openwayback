@@ -6,7 +6,7 @@
     <author email="brad at archive dot org">Brad Tofel</author>
     <authour email="Helen Hockx-Yu at bl dot uk">Helen Hockx-Yu </authour>
     <revision>$Id: index.xml 2040 2007-10-12 23:21:40Z bradtofel $</revision>
-    <revision>$ID:03-09-2014$</revision>
+    <revision>$ID:12-09-2014$</revision>
   </properties>
 
   <body>
@@ -18,8 +18,8 @@
     </section>
     
       <section name="OpenWayback 2.0.0 Release">
-        <p>Issues resolved for OpenWayback 2.0.0 Release (forthcoming September 2014)</p> 
-        <ul>
+      <subsection name="Features">
+       <ul>
           <li>Fixed URL resolution in ServerRelativeArchivalRedirect in non-ROOT context. <a href="https://github.com/iipc/openwayback/issues/92">#92</a>
            </li>
            <li>Deprecated use of bean name in spring to provide configuration. <a href="https://github.com/iipc/openwayback/issues/94">#94</a></li>
@@ -30,8 +30,26 @@
            <li>Updated 'developers' and 'contributors' lists in POM. <a href="https://github.com/iipc/openwayback/issues/137">#137</a></li>
            <li>Cleaned up the Memento configuration. <a href="https://github.com/iipc/openwayback/issues/150">#150</a></li>
            <li>Added new logos to project. <a href="https://github.com/iipc/openwayback/issues/100">#100</a></li>
-           <li>All dates should be independent of users locale settings. <a href="https://github.com/iipc/openwayback/issues/148">#148</a></li>
-        </ul>
+           <li>Cleaned up default config file. <a href="https://github.com/iipc/openwayback/pull/144">#144</a>
+           </li>
+          <li>Updated and improved <a href="https://github.com/iipc/openwayback/issues?q=is%3Aissue+is%3Aclosed+label%3Adocumentation">documentation</a>.
+          </li>
+          <li>Updated dependency on Webarchive-commons 1.1.4. <a href="https://github.com/iipc/openwayback/pull/157">#157</a>
+          </li>
+          <li>Added 'accessPointPath' to default proxy config. <a href="https://github.com/iipc/openwayback/pull/158">#158</a>
+          </li>
+      </ul>
+      </subsection>
+      
+      <subsection name="Bug Fixes">
+       <ul>
+          <li>Fixed the date locale issue. Creations of java.text.SimpleDateFormat now independent of local setting. <a href="https://github.com/iipc/openwayback/pull/157">#157</a> <a href="https://github.com/iipc/openwayback/issues/148">#148</a> <a href="https://github.com/iipc/openwayback/pull/154">#154</a>
+          </li>
+          
+        <li>Fixed support for uncompressed ARCs files <a href="https://github.com/iipc/openwayback/issues/101">#101</a>
+        </li>
+       </ul>
+       </subsection>
     </section>
     <section name="OpenWayback 2.0.0 BETA 2 release">
       <subsection name="Features">
@@ -73,6 +91,21 @@
    </section>    
 <p>The following releases of the Open Source Wayback Machine (OSWM) were made by the Internet Archive. The on-going development of Wayback was handed over to the International Internet Preservation Consortium (IIPC) in October 2013. For more details please see General overview. </p>    
    
+    <section name="release 1.8.0">
+    <subsection name="Features">
+      <ul>
+          <li>Introduced the wayback-cdx-server.
+          </li>
+        </ul>
+        <p>No further release notes available.</p>
+    </Features>
+    </subsection>
+    </section>
+    
+    <section name="Release 1.7.0">
+    <p>Release notes not available.</p>
+    </section>
+    
     
     <section name="Release 1.6.0">
       <subsection name="Major Features">
