@@ -11,11 +11,12 @@
   <body>
         <p><b>OpenWayback is supported the International Internet Preservation Consortium (IIPC) and the member institutions with which the contributors of the project are affiliated.</b>
         </p>
+        <p>A detailed list of changes (per release) can be found in the <a href="https://github.com/iipc/openwayback/wiki/Release-notes">Release Notes</a>.</p>
     <section name="Releases">
         <subsection name="OpenWayback 2.0.0 Release - 12th September 2014">
           <p>
-          OpenWayback 2.0.0 release is a culmination of the two previous beta releases. It includes bug fixes and significant improvement of documentation. Existing documentation has been identified, reorganised and updated. A set of essential documentation is included in the release.<br></br>
-            Please see <a href="release_notes.html">release notes</a> for a detailed list of changes. 
+          OpenWayback 2.0.0 release is a culmination of the two previous beta releases. It includes bug fixes and significant improvement of documentation. Existing documentation has been identified, reorganised and updated. A set of essential documentation is included in the release.
+           
           </p>
           <p><a href="https://github.com/iipc/openwayback/tree/openwayback-2.0.0">https://github.com/iipc/openwayback/tree/openwayback-2.0.0</a>  
          </p>
@@ -23,8 +24,7 @@
         <subsection name="OpenWayback 2.0.0 BETA 2 Release - 14th May 2014">
           <p>
             OpenWayback 2.0.0 BETA 2 release includes bug fixes and a number of enhancements, including better support for WARCs and integration of JWAT ResourceStore. A consistent naming scheme has been applied to the artifactId, the github project name, and the jar name. In addition, documentation has been improved, manual testing experience documented and a sample overlay provided, allowing easier customisations of the standard wayback-webapp.
-            <br></br>
-            Please see <a href="release_notes.html">release notes</a> for a detailed list of changes. 
+           
            </p>
           <p><a href="https://github.com/iipc/openwayback/tree/openwayback-2.0.0.BETA.2">https://github.com/iipc/openwayback/tree/openwayback-2.0.0.BETA.2</a>  
           </p>
@@ -33,14 +33,12 @@
         
         <subsection name="OpenWayback 2.0.0.BETA 1 Release - 10th January 2014">
           <p>
-            OpenWayback 2.0.0 BETA 1 release mainly reflects the move of ownership of the lead repository from the Internet Archive to the IIPC. This includes a set of changes to the IA codebase to make it more independent of their build server and some non-public artefacts. Moreover, it includes updates from the internetarchive/wayback fork, corresponding to the move of critical code from internetarchive/heritrix3 to iipc/iipc-web-commons. <br></br>
-            Please see <a href="release_notes.html">release notes</a> for a detailed list of changes. 
+            OpenWayback 2.0.0 BETA 1 release mainly reflects the move of ownership of the lead repository from the Internet Archive to the IIPC. This includes a set of changes to the IA codebase to make it more independent of their build server and some non-public artefacts. Moreover, it includes updates from the internetarchive/wayback fork, corresponding to the move of critical code from internetarchive/heritrix3 to iipc/iipc-web-commons.
           </p>
           <p><a href="https://github.com/iipc/openwayback/tree/openwayback-2.0.0.BETA.1">https://github.com/iipc/openwayback/tree/openwayback-2.0.0.BETA.1</a>
           </p>
-<p><b>The following releases of the Open Source Wayback Machine (OSWM) were made by the Internet Archive, who led its development since 2005. The on-going development of Wayback was handed over to the International Internet Preservation Consortium (IIPC) in October 2013, when the OpenWayback project was launched. For more details please see <a href="https://github.com/iipc/openwayback/wiki/General-Overview">General Overview</a></b>
-	
-</p>          
+	  <p><b>The following releases of the Open Source Wayback Machine (OSWM) were made by the Internet Archive, who led its development since 2005. The on-going development of Wayback was handed over to the International Internet Preservation Consortium (IIPC) in October 2013, when the OpenWayback project was launched. For more details please see <a href="https://github.com/iipc/openwayback/wiki/General-Overview">General Overview</a></b>
+         </p>          
           
         </subsection>
         
