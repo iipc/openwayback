@@ -5,7 +5,7 @@
 <%
 UIResults results = UIResults.getGeneric(request);
 StringFormatter fmt = results.getWbRequest().getFormatter();
-String url = "https://github.com/iipc/openwayback/wiki/General-Overview";
+String url = fmt.format("UIGlobal.helpUrl");
 %>
 <%= fmt.format("UIGlobal.helpPage",url) %>
 <jsp:include page="/WEB-INF/template/UI-footer.jsp" flush="true" />
