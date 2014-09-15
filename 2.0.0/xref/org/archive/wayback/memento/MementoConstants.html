@@ -1,0 +1,96 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>MementoConstants xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../apidocs/org/archive/wayback/memento/MementoConstants.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.archive.wayback.memento;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> java.util.TimeZone;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <strong class="jxr_keyword">import</strong> org.archive.wayback.util.StringFormatter;
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">interface</strong> <a href="../../../../org/archive/wayback/memento/MementoConstants.html">MementoConstants</a> {	
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> String AGGREGATION_PREFIX_CONFIG = <span class="jxr_string">"aggregationPrefix"</span>;
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> String TIMEGATE_PREFIX_CONFIG = <span class="jxr_string">"aggregationPrefix"</span>;
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> String PAGE_MAXRECORDS_CONFIG = <span class="jxr_string">"aggregationMaxRecord"</span>;
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> String GMT_TIMEZONE_STRING = <span class="jxr_string">"GMT"</span>;
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> TimeZone GMT_TZ = 
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  		TimeZone.getTimeZone(GMT_TIMEZONE_STRING);
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  	
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> String DATE_FORMAT_14 = <span class="jxr_string">"yyyyMMddHHmmss"</span>;
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> String HTTP_LINK_DATE_FORMAT = 
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  		<span class="jxr_string">"E, dd MMM yyyy HH:mm:ss z"</span>;	
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  	
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  	
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> String APPLICATION_LINK_FORMAT = 
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  		<span class="jxr_string">"application/link-format"</span>;
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> String APPLICATION_RDF_XML_FORMAT = 
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  		<span class="jxr_string">"application/rdf+xml"</span>;
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> String RDF_XML_SERIALIZER = 
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  		<span class="jxr_string">"RDF/XML"</span>;
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  	
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  	
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  	
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> String TIMEBUNDLE = <span class="jxr_string">"timebundle"</span>;
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">int</strong> TIMEBUNDLE_RESPONSE_CODE = 303;
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> String TIMEGATE = <span class="jxr_string">"timegate"</span>;
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> String TIMEMAP = <span class="jxr_string">"timemap"</span>;
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> String LINK_PATH = <span class="jxr_string">"LINK"</span>;
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> String LINK = <span class="jxr_string">"Link"</span>;
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> String VARY = <span class="jxr_string">"Vary"</span>;
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> String NEGOTIATE_DATETIME = <span class="jxr_string">"accept-datetime"</span>;
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> String PAGE_STARTS = <span class="jxr_string">"page_starts"</span>;
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>  	
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> String ACCEPT_DATETIME = <span class="jxr_string">"Accept-Datetime"</span>;
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> String MEMENTO_DATETIME = <span class="jxr_string">"Memento-Datetime"</span>;
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> String MEMENTO = <span class="jxr_string">"memento"</span>;
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> String DATETIME = <span class="jxr_string">"datetime"</span>;
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> String FIRST = <span class="jxr_string">"first"</span>;
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> String PREV = <span class="jxr_string">"prev"</span>;
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> String NEXT = <span class="jxr_string">"next"</span>;
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> String LAST = <span class="jxr_string">"last"</span>;
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> String FROM = <span class="jxr_string">"from"</span>;
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> String UNTIL = <span class="jxr_string">"until"</span>;
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>  	
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> String FIRST_MEMENTO = 
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>  		StringFormatter.join(<span class="jxr_string">" "</span>, FIRST, MEMENTO);
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>  
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> String PREV_MEMENTO = 
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>  		StringFormatter.join(<span class="jxr_string">" "</span>, PREV, MEMENTO);
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>  	
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> String PREV_FIRST_MEMENTO =
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>  		StringFormatter.join(<span class="jxr_string">" "</span>, PREV, FIRST, MEMENTO);
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>  	
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> String LAST_MEMENTO = 
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>  		StringFormatter.join(<span class="jxr_string">" "</span>, LAST, MEMENTO);
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>  
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> String NEXT_MEMENTO = 
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>  		StringFormatter.join(<span class="jxr_string">" "</span>, NEXT, MEMENTO);
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>  	
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> String NEXT_LAST_MEMENTO =
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>  		StringFormatter.join(<span class="jxr_string">" "</span>, NEXT, LAST, MEMENTO);
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>  	
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> String FIRST_LAST_MEMENTO =
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>  		StringFormatter.join(<span class="jxr_string">" "</span>, FIRST, LAST, MEMENTO);
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>  	
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> String ORIGINAL = <span class="jxr_string">"original"</span>;
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> String REL = <span class="jxr_string">"rel"</span>;
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>  	
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> String WBR_FORMAT_KEY = <span class="jxr_string">"TIMEMAP_FORMAT"</span>;
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> String WBR_TIMEGATE_KEY = <span class="jxr_string">"TIMEGATE_REQUEST"</span>;
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> String WBR_TIMEGATE_VALUE = <span class="jxr_string">"yes"</span>;
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>  
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> String FORMAT_RDF = <span class="jxr_string">"rdf"</span>;
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> String FORMAT_LINK = <span class="jxr_string">"link"</span>;
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>  
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> String TIMEGATE_JSP_HANDLER = <span class="jxr_string">"timegateJsp"</span>;
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>  }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2005&#x2013;2014 <a href="http://netpreserve.org/">IIPC</a>. All rights reserved.</div>
+</body>
+</html>
