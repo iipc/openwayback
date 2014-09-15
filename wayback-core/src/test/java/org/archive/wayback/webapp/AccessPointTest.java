@@ -1085,7 +1085,7 @@ public class AccessPointTest extends TestCase {
         cut.setEnableMemento(true);
         // make sure wbRequesat.requestUrl, replayTimestamp are set up.
         // As this is a URI-M, not URI-G, mementoTimegate flag must be false.
-        setReplayRequest("http://www.example.com/", "20100601123456");
+        setReplayRequest("http://test.example.com/", "20100601123456");
         assertFalse(wbRequest.isMementoTimegate());
         
         Resource payloadResource = createTestHtmlResource("20100601000000", "hogehogehogehoge\n".getBytes("UTF-8"));

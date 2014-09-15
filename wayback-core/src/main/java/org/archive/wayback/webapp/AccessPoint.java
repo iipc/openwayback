@@ -58,6 +58,7 @@ import org.archive.wayback.exception.AnchorWindowTooSmallException;
 import org.archive.wayback.exception.AuthenticationControlException;
 import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.exception.BaseExceptionRenderer;
+import org.archive.wayback.exception.BetterReplayRequestException;
 import org.archive.wayback.exception.BetterRequestException;
 import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
@@ -66,7 +67,6 @@ import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.exception.SpecificCaptureReplayException;
 import org.archive.wayback.exception.WaybackException;
 import org.archive.wayback.memento.DefaultMementoHandler;
-import org.archive.wayback.memento.MementoConstants;
 import org.archive.wayback.memento.MementoHandler;
 import org.archive.wayback.memento.MementoUtils;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
@@ -319,29 +319,10 @@ implements ShutdownListener {
 				handled = dispatchLocal(httpRequest, httpResponse);
 			}
 		} catch (BetterRequestException e) {
-			// want to move Memento header generation for redirect here. We need to
-			// define a sub-class of BetterRequestException for capture redirect,
-			// carrying CaptureSearchResults necessary for generating Memento header.
-			/*
-			if (wbRequest.isMementoEnabled()) {
-				// Issue either a Memento URL-G response, or "intermediate resource" response
-				if (wbRequest.isMementoTimegate()) {
-					MementoUtils.addTimegateHeaders(httpResponse, results, wbRequest, true);
-				} else {
-					// redirecting to a Memento (aka "intermediate resource).
-					// NO Vary, NO Memento-Datetime. Link MUST be provided
-					// with "original" relation type. Other relation types ("timegate", "timemap"
-					// and "memento") are optional.
-					MementoUtils.addOrigHeader(httpResponse, wbRequest.getRequestUrl());
-				}
-			}
-			 */
 			e.generateResponse(httpResponse, wbRequest);
 			httpResponse.getWriter(); // cause perf headers to be committed
 			handled = true;
-
 		} catch (WaybackException e) {
-
 			if (httpResponse.isCommitted()) {
 				return true;
 			}
@@ -636,6 +617,9 @@ implements ShutdownListener {
 		String datespec = ArchivalUrl.getDateSpec(wbRequest, closest.getCaptureTimestamp());
 		String betterURI = getUriConverter().makeReplayURI(datespec, closest.getOriginalUrl());
 
+		// if spare-redirect-for-embeds is on, render embedded resource in-place with Content-Location header pointing
+		// exact replay URL (it is disabled for timegate requests)
+		// XXX set Content-Location header somewhere else.
 		if (fixedEmbeds && !wbRequest.isMementoTimegate() && isWaybackReferer(wbRequest, this.getReplayPrefix())) {
 			httpResponse.setHeader("Content-Location", betterURI);
 			return;
@@ -643,20 +627,8 @@ implements ShutdownListener {
 
 		boolean isNonRedirectProxy = !betterURI.contains(closest.getCaptureTimestamp());
 
-		// there's same code in SelectorReplayDispatcher.getClosest().
-		// redirect-related code needs to be consolidated.
-		if (this.isEnableMemento()) {
-			// Issue either a Memento URL-G response, or "intermediate resource" response
-			if (wbRequest.isMementoTimegate() && this.getMementoHandler() != null) {
-				this.getMementoHandler().addTimegateHeaders(httpResponse, captureResults, wbRequest, !isNonRedirectProxy);
-			} else {
-				// Redirect as "intermediate resource"
-				MementoUtils.addOrigHeader(httpResponse, closest.getOriginalUrl());
-			}
-		}
-
 		if (!isNonRedirectProxy) {
-			throw new BetterRequestException(betterURI);
+			throw new BetterReplayRequestException(closest, captureResults);
 		}
 	}
 
@@ -726,42 +698,6 @@ implements ShutdownListener {
 		// replay-able (ex. self-redirect) and results in another redirect.
 		CaptureSearchResult closest = getReplay().getClosest(wbRequest,
 			captureResults);
-		// code moved from ArchivalUrlDateRedirectingClosestResultSelector
-		// if we want to do capture-redirect here, we need to add code that
-		// checks if this AccessPoint is in proxy mode, where we don't do
-		// redirect.
-		// capture-redirect will be handled just the same way by handleReplayRedirect()
-		// below, without this code - I think it's safe to remove this code
-		// altogether.
-		if (false) {
-			// Request is first redirected to closest capture, even when it is NOT
-			// replay-able (ex. self-redirect) and results in another redirect.
-			if (!timestampMatch(closest, wbRequest)) {
-				String url = closest.getOriginalUrl();
-				String captureDate = closest.getCaptureTimestamp();
-				// ArchivalUrlDateRedirectingClosestResultSelector builds URL
-				// differently:
-				// ArchivalUrl aUrl = new ArchivalUrl(wbRequest);
-				// String replayURI = getReplayPrefix() + aUrl.toString(captureDate, url);
-				String replayURI = getUriConverter().makeReplayURI(
-					ArchivalUrl.getDateSpec(wbRequest, captureDate), url);
-				
-				BetterRequestException e = new BetterRequestException(replayURI);
-				if (wbRequest.isMementoEnabled()) {
-					// Issue either a Memento URL-G response, or "intermediate resource" response
-					if (wbRequest.isMementoTimegate()) {
-						// (this is exactly the same as MementoUtils.addTimegateHeaders(), but works
-						// on BetterReuquestException.
-						e.addHeader(MementoConstants.VARY, MementoConstants.NEGOTIATE_DATETIME);
-						e.addHeader(MementoConstants.LINK, MementoUtils.generateMementoLinkHeaders(captureResults, wbRequest, false, true));
-					} else {
-						// similary
-						e.addHeader(MementoConstants.LINK, MementoUtils.makeOrigHeader(wbRequest.getRequestUrl()));
-					}
-				}
-				throw e;
-			}
-		}
 
 		int counter = 0;
 
@@ -770,7 +706,6 @@ implements ShutdownListener {
 		//int maxMissingRevisits = 2;
 
 		Set<String> skipFiles = null;
-		//boolean isRevisit = false;
 
 		while (true) {
 			// Support for redirect from the CDX redirectUrl field
@@ -915,9 +850,25 @@ implements ShutdownListener {
 					}
 				}
 
-				// Memento URL-M response
 				if (this.isEnableMemento()) {
-					MementoUtils.addMementoHeaders(httpResponse, captureResults, closest, wbRequest);
+					MementoUtils.addMementoDatetimeHeader(httpResponse, closest);
+					if (wbRequest.isMementoTimegate()) {
+						// URL-G in non-rediect proxy mode (archival-url URL-G
+						// always redirects in handleReplayRedirect()).
+						if (getMementoHandler() != null) {
+							getMementoHandler().addTimegateHeaders(
+								httpResponse, captureResults, wbRequest, true);
+						} else {
+							// bare minimum required for URL-G response [sic]
+							// XXX this lacks Vary: accept-datetime header required for URL-G
+							MementoUtils.addOrigHeader(httpResponse, closest.getOriginalUrl());
+							// Probably this is better - same as DefaultMementoHandler
+							//MementoUtils.addTimegateHeaders(httpResponse, captureResults, wbRequest, true);
+						}
+					} else {
+						// Memento URL-M response (can't be an intermediate resource)
+						MementoUtils.addLinkHeader(httpResponse, captureResults, wbRequest, true, true);
+					}
 				}
 
 				renderer.renderResource(httpRequest, httpResponse, wbRequest,
@@ -1097,30 +1048,10 @@ implements ShutdownListener {
 		}
 
 		// Url Agnostic Revisit with target-uri and refers-to-date
-		
-//		Map<String, Object> warcHeaders = null;
 
 		String payloadUri = revisitRecord.getRefersToTargetURI();
 		String payloadTimestamp = revisitRecord.getRefersToDate();
-		
-//		if (warcHeaders == null) {
-//			WarcResource wr = (WarcResource) revisitRecord;
-//			warcHeaders = wr.getWarcHeaders().getHeaderFields();
-//		}
-//		
-//		if (warcHeaders != null) {
-//			payloadUri = (String) warcHeaders.get("WARC-Refers-To-Target-URI");
-//			
-//			String dateString = (String)warcHeaders.get("WARC-Refers-To-Date");
-//			
-//			if (dateString != null) {
-//				Date date = ArchiveUtils.parse14DigitISODate(dateString, null);
-//				if (date != null) {
-//					payloadTimestamp = ArchiveUtils.get14DigitDate(date);
-//				}
-//			}
-//		}
-		
+
 		if (payloadUri != null && payloadTimestamp != null) {
 			WaybackRequest wbr = currRequest.clone();
 			wbr.setReplayTimestamp(payloadTimestamp);
