@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<document>
+  <properties>
+    <title>Downloads</title>
+    <author email="brad at archive dot org">Brad</author>
+    <revision>$Id$</revision>
+  </properties>
+
+  <body>
+  <section name="Downloads">
+
+    <subsection name="Releases">
+        <p>All releases of OpenWayback are available from <a href="http://repo1.maven.org/maven2/org/netpreserve/openwayback/openwayback-dist/">Maven Central</a></p>
+        <p>The latest stable release can be found here <a href="http://repo1.maven.org/maven2/org/netpreserve/openwayback/openwayback-dist/${project.version}/">OpenWayback ${project.version}</a></p>
+	</subsection>
+   
+    <subsection name="Old releases">
+        <p>The on-going development of Wayback was handed over to the International Internet Preservation Consortium (IIPC) in October 2013.
+            For more details please see General overview.
+            The releases of the Open Source Wayback Machine (OSWM) made by the Internet Archive can be found at
+            <a href="http://sourceforge.net/project/showfiles.php?group_id=118427">Sourceforge Downloads</a> page.</p>
+    </subsection>
+
+    <subsection name="Release notes">
+        <p>Full <a href="release_notes.html">Release notes</a> are available for releases beyond 1.2.0.</p>
+    </subsection>
+
+    <subsection name="Continuous build">
+        <p>The latest builds can be found under
+            <a href="https://oss.sonatype.org/content/repositories/snapshots/org/netpreserve/openwayback/openwayback-dist/">
+                SonaTypes snapshot repository</a> Be aware that this distribution has been made from HEAD and HEAD builds are not guaranteed stable.
+        </p>
+    </subsection>
+    
+  </section>
+
+  </body>
+</document>
