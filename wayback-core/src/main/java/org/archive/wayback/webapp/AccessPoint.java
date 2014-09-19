@@ -69,9 +69,10 @@ import org.archive.wayback.exception.WaybackException;
 import org.archive.wayback.memento.DefaultMementoHandler;
 import org.archive.wayback.memento.MementoHandler;
 import org.archive.wayback.memento.MementoUtils;
+import org.archive.wayback.replay.DefaultReplayCaptureSelector;
+import org.archive.wayback.replay.ReplayCaptureSelector;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.resourceindex.filters.WARCRevisitAnnotationFilter;
-import org.archive.wayback.util.Timestamp;
 import org.archive.wayback.util.operator.BooleanOperator;
 import org.archive.wayback.util.url.UrlOperations;
 import org.archive.wayback.util.webapp.AbstractRequestHandler;
@@ -673,7 +674,7 @@ implements ShutdownListener {
 			}
 		}
 
-		long requestMS = Timestamp.parseBefore(wbRequest.getReplayTimestamp()).getDate().getTime();
+		//long requestMS = Timestamp.parseBefore(wbRequest.getReplayTimestamp()).getDate().getTime();
 
 		PerformanceLogger p = new PerformanceLogger("replay");
 
@@ -692,12 +693,13 @@ implements ShutdownListener {
 		}
 		CaptureSearchResults captureResults = (CaptureSearchResults)results;
 
-		// typically throws BetterRequestException if timestamp of closest
-		// capture and requested timestamp are different. That is, request
-		// is first redirected to closest capture, even when it is NOT
-		// replay-able (ex. self-redirect) and results in another redirect.
-		CaptureSearchResult closest = getReplay().getClosest(wbRequest,
-			captureResults);
+		ReplayCaptureSelector captureSelector = new DefaultReplayCaptureSelector(getReplay());
+		captureSelector.setRequest(wbRequest);
+		captureSelector.setCaptures(captureResults);
+//		CaptureSearchResult closest = getReplay().getClosest(wbRequest,
+//			captureResults);
+
+		CaptureSearchResult closest = captureSelector.next();
 
 		int counter = 0;
 
@@ -731,25 +733,25 @@ implements ShutdownListener {
 				}
 
 				closest.setClosest(true);
-				checkAnchorWindow(wbRequest,closest);
+				checkAnchorWindow(wbRequest, closest);
 
 				// Attempt to resolve any not-found embedded content with next-best
 				// For "best last" capture, skip not-founds and redirects, hoping to find the best 200 response.
-				if ((wbRequest.isAnyEmbeddedContext() && closest.isHttpError()) ||
-						(wbRequest.isBestLatestReplayRequest() && !closest.isHttpSuccess())) {
-					CaptureSearchResult nextClosest = closest;
-
-					while ((nextClosest = findNextClosest(nextClosest, captureResults, requestMS)) != null) {
-						// If redirect, save but keep looking -- if no better match, will use the redirect
-						if (nextClosest.isHttpRedirect()) {
-							closest = nextClosest;
-							// If success, pick that one!
-						} else if (nextClosest.isHttpSuccess()) {
-							closest = nextClosest;
-							break;
-						}
-					}
-				}
+//				if ((wbRequest.isAnyEmbeddedContext() && closest.isHttpError()) ||
+//						(wbRequest.isBestLatestReplayRequest() && !closest.isHttpSuccess())) {
+//					CaptureSearchResult nextClosest = closest;
+//
+//					while ((nextClosest = findNextClosest(nextClosest, captureResults, requestMS)) != null) {
+//						// If redirect, save but keep looking -- if no better match, will use the redirect
+//						if (nextClosest.isHttpRedirect()) {
+//							closest = nextClosest;
+//							// If success, pick that one!
+//						} else if (nextClosest.isHttpSuccess()) {
+//							closest = nextClosest;
+//							break;
+//						}
+//					}
+//				}
 
 				// Redirect to url for the actual closest capture, if not a retry
 				if (counter == 1) {
@@ -774,10 +776,11 @@ implements ShutdownListener {
 						wbRequest.setTimestampSearchKey(false);
 
 						results = queryIndex(wbRequest);
-
 						captureResults = (CaptureSearchResults)results;
 
-						closest = getReplay().getClosest(wbRequest, captureResults);
+//						closest = getReplay().getClosest(wbRequest, captureResults);
+						captureSelector.setCaptures(captureResults);
+						closest = captureSelector.next();
 						//originalClosest = closest;
 						//maxTimeouts *= 2;
 						//maxMissingRevisits *= 2;
@@ -829,7 +832,8 @@ implements ShutdownListener {
 				// This chain is unlikely to go past one previous capture, but is possible
 				if (isSelfRedirect(httpHeadersResource, closest, wbRequest, requestURL)) {
 					LOGGER.info("Self-Redirect: Skipping " + closest.getCaptureTimestamp() + "/" + closest.getOriginalUrl());
-					closest = findNextClosest(closest, captureResults, requestMS);
+					//closest = findNextClosest(closest, captureResults, requestMS);
+					closest = captureSelector.next();
 					continue;
 				}
 
@@ -890,7 +894,8 @@ implements ShutdownListener {
 				if ((counter > maxRedirectAttempts) && ((this.getLiveWebPrefix() == null) || !isWaybackReferer(wbRequest, this.getLiveWebPrefix()))) {
 					LOGGER.info("LOADFAIL: Timeout: Too many retries, limited to " + maxRedirectAttempts);
 				} else if ((closest != null) && !wbRequest.isIdentityContext()) {
-					nextClosest = findNextClosest(closest, captureResults, requestMS);
+					//nextClosest = findNextClosest(closest, captureResults, requestMS);
+					nextClosest = captureSelector.next();
 				}
 
 				// Skip any nextClosest that has the same exact filename?
@@ -934,7 +939,10 @@ implements ShutdownListener {
 
 					captureResults = (CaptureSearchResults)results;
 
-					closest = getReplay().getClosest(wbRequest, captureResults);
+					//closest = getReplay().getClosest(wbRequest, captureResults);
+					captureSelector.setCaptures(captureResults);
+					closest = captureSelector.next();
+
 					//originalClosest = closest;
 
 					//maxTimeouts *= 2;
@@ -952,57 +960,57 @@ implements ShutdownListener {
 		}
 	}
 
-	protected CaptureSearchResult findNextClosest(
-			CaptureSearchResult currentClosest, CaptureSearchResults results,
-			long requestMS) {
-		CaptureSearchResult prev = currentClosest.getPrevResult();
-		CaptureSearchResult next = currentClosest.getNextResult();
-
-		currentClosest.removeFromList();
-
-		if (prev == null) {
-			return next;
-		} else if (next == null) {
-			return prev;
-		}
-
-		long prevMS = prev.getCaptureDate().getTime();
-		long nextMS = next.getCaptureDate().getTime();
-		long prevDiff = Math.abs(prevMS - requestMS);
-		long nextDiff = Math.abs(requestMS - nextMS);
-
-		if (prevDiff == 0) {
-			return prev;
-		} else if (nextDiff == 0) {
-			return next;
-		}
-
-		String currHash = currentClosest.getDigest();
-		String prevHash = prev.getDigest();
-		String nextHash = next.getDigest();
-		boolean prevSameHash = (prevHash.equals(currHash));
-		boolean nextSameHash = (nextHash.equals(currHash));
-
-		if (prevSameHash != nextSameHash) {
-			return prevSameHash ? prev : next;
-		}
-
-		String prevStatus = prev.getHttpCode();
-		String nextStatus = next.getHttpCode();
-		boolean prev200 = (prevStatus != null) && prevStatus.equals("200");
-		boolean next200 = (nextStatus != null) && nextStatus.equals("200");
-
-		// If only one is a 200, prefer the entry with the 200
-		if (prev200 != next200) {
-			return (prev200 ? prev : next);
-		}
-
-		if (prevDiff < nextDiff) {
-			return prev;
-		} else {
-			return next;
-		}
-	}
+//	protected CaptureSearchResult findNextClosest(
+//			CaptureSearchResult currentClosest, CaptureSearchResults results,
+//			long requestMS) {
+//		CaptureSearchResult prev = currentClosest.getPrevResult();
+//		CaptureSearchResult next = currentClosest.getNextResult();
+//
+//		currentClosest.removeFromList();
+//
+//		if (prev == null) {
+//			return next;
+//		} else if (next == null) {
+//			return prev;
+//		}
+//
+//		long prevMS = prev.getCaptureDate().getTime();
+//		long nextMS = next.getCaptureDate().getTime();
+//		long prevDiff = Math.abs(prevMS - requestMS);
+//		long nextDiff = Math.abs(requestMS - nextMS);
+//
+//		if (prevDiff == 0) {
+//			return prev;
+//		} else if (nextDiff == 0) {
+//			return next;
+//		}
+//
+//		String currHash = currentClosest.getDigest();
+//		String prevHash = prev.getDigest();
+//		String nextHash = next.getDigest();
+//		boolean prevSameHash = (prevHash.equals(currHash));
+//		boolean nextSameHash = (nextHash.equals(currHash));
+//
+//		if (prevSameHash != nextSameHash) {
+//			return prevSameHash ? prev : next;
+//		}
+//
+//		String prevStatus = prev.getHttpCode();
+//		String nextStatus = next.getHttpCode();
+//		boolean prev200 = (prevStatus != null) && prevStatus.equals("200");
+//		boolean next200 = (nextStatus != null) && nextStatus.equals("200");
+//
+//		// If only one is a 200, prefer the entry with the 200
+//		if (prev200 != next200) {
+//			return (prev200 ? prev : next);
+//		}
+//
+//		if (prevDiff < nextDiff) {
+//			return prev;
+//		} else {
+//			return next;
+//		}
+//	}
 
 	// method isWarcRevisitNotModified(Resource) method has been moved to
 	// WarcResource#isRevisitNotModified().
@@ -1037,7 +1045,7 @@ implements ShutdownListener {
 
 		CaptureSearchResult payloadLocation = null;
 
-		// Revisit from same url -- shold have been found by the loader
+		// Revisit from same url -- should have been found by the loader
 
 		if (closest.getDuplicatePayloadFile() != null && closest.getDuplicatePayloadOffset() != null) {
 			payloadLocation = new CaptureSearchResult();

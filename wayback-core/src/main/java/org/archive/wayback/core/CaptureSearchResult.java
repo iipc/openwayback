@@ -491,12 +491,32 @@ public class CaptureSearchResult extends SearchResult {
 		setRobotFlags(flags);
 	}
 
+	/**
+	 * test if {@code robotflags} field has flag {@code flag} set.
+	 * <p>
+	 * Caveat: if {@code flag} has more than once character,
+	 * {@code robotflags} must have {@code flag} as its substring
+	 * for this method to return {@code true} (not really useful).
+	 * </p>
+	 * @param flag flag to test
+	 * @return {@code true} if {@code flag} is set.
+	 */
 	public boolean isRobotFlagSet(String flag) {
 		String flags = getRobotFlags();
 		if (flags == null) {
 			return false;
 		}
 		return flags.contains(flag);
+	}
+
+	/**
+	 * test if {@code robotflags} field has flag {@code flag} set.
+	 * @param flag one flag to test
+	 * @return {@code true} if {@code flag} is set.
+	 */
+	public boolean isRobotFlagSet(char flag) {
+		String flags = getRobotFlags();
+		return flags != null && flags.indexOf(flag) >= 0;
 	}
 
 	public boolean isRobotNoArchive() {
