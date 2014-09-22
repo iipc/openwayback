@@ -71,20 +71,28 @@ public class SimpleMimeTypeDetector implements MimeTypeDetector {
 			// Windows PE
 			return "application/octet-stream";
 		} else if (bytes[0] == 'M' && bytes[1] == 'Z' && bytes[2] == (byte)0x90 && bytes[3] == 0x00) {
-			// Windows Executable
+			// Windows Executable (also 'M' 'Z' 0x00 0x01, "MZ" 0x95 0x01?)
 			return "application/octet-stream";
-		} else if (bytes[0] == 'M' && bytes[1] == 'T' && bytes[3] == 'h' && bytes[3] == 'd') {
+		} else if (bytes[0] == 'M' && bytes[1] == 'T' && bytes[2] == 'h' && bytes[3] == 'd') {
 			// MIDI
 			return "audio/midi"; // or "application/x-midi"
 		} else if (bytes[0] == 0x1F && bytes[1] == (byte)0x8B) {
 			return "application/x-gzip";
+		} else if (bytes[0] == 0x1F && bytes[1] == (byte)0x9D) {
+			// followed by 0x90
+			return "application/x-compress";
 		} else if (bytes[0] == 'B' && bytes[1] == 'Z' && bytes[2] == 'h') {
 			return "application/x-bzip2";
+		} else if (/*bytes[0] == ')' && bytes[1] == (byte)0xB4 &&*/ bytes[2] == '-' && bytes[3] == 'l' && bytes[4] == 'h' && bytes[5] == '5' && bytes[6] == '-') {
+			// LZH archive
+			return "application/octet-stream";
 		} else if (bytes[0] == 'F' && bytes[1] == 'W' && bytes[2] == 'S') {
 			return "application/x-shockwave-flash";
 		} else if (bytes[0] == '%' && bytes[1] == '!' && bytes[2] == 'P' && bytes[3] == 'S' && bytes[4] == '-') {
 			// application/postscript, Type 1 font.
 			return "application/postscript";
+		} else if (bytes[0] == 'F' && bytes[1] == 'L' && bytes[2] == 'V' && bytes[3] == 0x01) {
+			return "video/x-flv";
 		} else if (bytes[0] == 0x01) {
 			if (bytes[1] == (byte)0xB3 || bytes[1] == (byte)0xBA) {
 				return "video/mpeg";
@@ -95,8 +103,29 @@ public class SimpleMimeTypeDetector implements MimeTypeDetector {
 			// application/java (class files)
 			return "application/java";
 		}
+		// OTHER
+		// "{\rtf1" richtext
+		// "RIFF" 0x92 c 0x00 0x00 "WAVEfmt"
 		return null;
 	}
+
+	private static final Pattern RE_XML_PROLOGUE = Pattern
+		.compile("\\s*<\\?xml\\s+version=\"[.\\d]+\"\\s+.*\\?>");
+	private static final Pattern RE_CSS_IMPORT = Pattern.compile("\\s*@import");
+	private static final Pattern RE_CSS_SELECTOR = Pattern
+		.compile("(?i)\\s*[-a-z]*([a-z]|[.#][-a-z0-9]+)\\s*\\{");
+	private static final Pattern RE_CSS_ATTRIBUTES = Pattern
+		.compile("(?i)(font-family|font-size|margin|padding|text-align|text-decoration):[^}]+;");
+	private static final Pattern RE_JSON_HEAD = Pattern
+		.compile("\\s*\\{\\s*\"");
+	private static final Pattern RE_JS_VAR = Pattern
+		.compile("(?m)^var\\s+[_a-zA-Z$][_a-zA-Z$0-9]+");
+	private static final Pattern RE_HTML_ELEMENTS = Pattern
+		.compile("(?i)\\s*<(HTML|HEAD|STYLE|SCRIPT|META)(\\s|>)");
+	private static final Pattern RE_DOCTYPE_HTML = Pattern
+		.compile("\\s*<!DOCTYPE\\s+(html|HTML)");
+	private static final Pattern RE_SGML_COMMENT = Pattern
+		.compile("(?s)\\s*<!--.*?-->");
 
 	@Override
 	public String sniff(Resource resource) {
@@ -135,7 +164,7 @@ public class SimpleMimeTypeDetector implements MimeTypeDetector {
 			// TODO: log
 			return null;
 		}
-		System.err.println("detected encoding: " + encoding);
+		//System.err.println("detected encoding: " + encoding);
 		String text;
 		try {
 			text = new String(bbuffer, encoding);
@@ -144,34 +173,34 @@ public class SimpleMimeTypeDetector implements MimeTypeDetector {
 			return null;
 		}
 		{
-			Matcher m = Pattern.compile("\\s*<\\?xml\\s+version=\"[.\\d]+\"\\s+.*\\?>").matcher(text);
+			Matcher m = RE_XML_PROLOGUE.matcher(text);
 			if (m.lookingAt()) {
 				text = text.substring(m.end());
 			}
 		}
 		{
-			Matcher m = Pattern.compile("(?s)\\s*<!--.*?-->").matcher(text);
+			Matcher m = RE_SGML_COMMENT.matcher(text);
 			if (m.lookingAt()) {
 				text = text.substring(m.end());
 			}
 		}
 		{
-			Matcher m = Pattern.compile("\\s*<!DOCTYPE\\s+(html|HTML)").matcher(text);
+			Matcher m = RE_DOCTYPE_HTML.matcher(text);
 			if (m.lookingAt())
 				return "text/html";
 		}
 		{
-			Matcher m = Pattern.compile("(?i)\\s*<(HTML|HEAD|STYLE|SCRIPT|META)(\\s|>)").matcher(text);
+			Matcher m = RE_HTML_ELEMENTS.matcher(text);
 			if (m.lookingAt())
 				return "text/html";
 		}
 		{
-			Matcher m = Pattern.compile("(?m)^var\\s+[_a-zA-Z$][_a-zA-Z$0-9]+").matcher(text);
+			Matcher m = RE_JS_VAR.matcher(text);
 			if (m.find())
 				return "text/javascript";
 		}
 		{
-			Matcher m = Pattern.compile("\\s*\\{\\s*\"").matcher(text);
+			Matcher m = RE_JSON_HEAD.matcher(text);
 			if (m.lookingAt()) {
 				// TODO: if resource has content-type "text/javascript", just use it.
 				return "application/json";
@@ -179,19 +208,19 @@ public class SimpleMimeTypeDetector implements MimeTypeDetector {
 		}
 		// CSS (they are rarely returned with mimetype "unk" or "text/html")
 		{
-			Matcher m = Pattern.compile("(?i)(font-family|font-size|margin|padding|text-align|text-decoration):[^}]+;").matcher(text);
+			Matcher m = RE_CSS_ATTRIBUTES.matcher(text);
 			if (m.find()) {
 				return "text/css";
 			}
 		}
 		{
-			Matcher m = Pattern.compile("(?i)\\s*[-a-z]*([a-z]|[.#][-a-z0-9]+)\\s*\\{").matcher(text);
+			Matcher m = RE_CSS_SELECTOR.matcher(text);
 			if (m.lookingAt()) {
 				return "text/css";
 			}
 		}
 		{
-			Matcher m = Pattern.compile("\\s*@import").matcher(text);
+			Matcher m = RE_CSS_IMPORT.matcher(text);
 			if (m.lookingAt()) {
 				return "text/css";
 			}

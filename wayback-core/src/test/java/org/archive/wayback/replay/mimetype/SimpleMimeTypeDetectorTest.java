@@ -1,6 +1,9 @@
 package org.archive.wayback.replay.mimetype;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -11,6 +14,8 @@ import org.archive.io.warc.TestWARCRecordInfo;
 import org.archive.io.warc.WARCRecord;
 import org.archive.io.warc.WARCRecordInfo;
 import org.archive.wayback.core.Resource;
+import org.archive.wayback.replay.GzipDecodingResource;
+import org.archive.wayback.resourcestore.jwat.JWATResource;
 import org.archive.wayback.resourcestore.resourcefile.WarcResource;
 
 /**
@@ -96,5 +101,68 @@ public class SimpleMimeTypeDetectorTest extends TestCase {
 	public void testContentSniffing_Binary() throws Exception {
 		assertEquals("application/pdf", detectMimeType("bin/1.pdf", "unk"));
 		assertEquals("image/png", detectMimeType("bin/2.png", "text/html"));
+	}
+
+	/**
+	 * Main entry point for testing against real-world samples.
+	 * <p>
+	 * Needs following JARs to run:
+	 * <ul>
+	 * <li>wayback-core</li>
+	 * <li>junit 3</li>
+	 * <li>commons-httpclient 3.1</li>
+	 * <li>juniversalchardet</li>
+	 * <li>jwat-{arc,warc,gzip,common}</li>
+	 * </ul>
+	 */
+	public static void main(String[] args) {
+		if (args.length < 1) {
+			System.err.println("Arguments: INPUT-FILE");
+			System.err.println("  INPUT-FILE is a file containing just one gzip-ed W/ARC record,");
+			System.err.println("  or a directory containing such files (must have .gz suffix)");
+			System.exit(1);
+		}
+		File input = new File(args[0]);
+
+		SimpleMimeTypeDetector detector = new SimpleMimeTypeDetector();
+
+		if (input.isDirectory()) {
+			File[] inputFiles = input.listFiles(new FileFilter() {
+				@Override
+				public boolean accept(File pathname) {
+					return pathname.isFile() && pathname.getName().endsWith(".gz");
+				}
+			});
+			for (File f : inputFiles) {
+				detectFile(detector, f);
+			}
+		} else {
+			detectFile(detector, input);
+		}
+	}
+
+	public static void detectFile(MimeTypeDetector detector, File file) {
+		try {
+			InputStream is = new FileInputStream(file);
+			Resource resource = JWATResource.getResource(is, 0);
+			String encoding = resource.getHeader("content-encoding");
+			if ("gzip".equalsIgnoreCase(encoding) || "x-gzip".equalsIgnoreCase(encoding)) {
+				resource = new GzipDecodingResource(resource);
+			}
+			String contentType = resource.getHeader("content-type");
+			if (contentType == null)
+				contentType = "-";
+			else {
+				int p = contentType.indexOf(';');
+				if (p >= 0) {
+					contentType = contentType.substring(0, p).trim();
+				}
+			}
+			String mimeType = detector.sniff(resource);
+			if (mimeType == null) mimeType = "-";
+			System.out.println(file.getPath() + "\t" + contentType + "\t" + mimeType);
+		} catch (Exception ex) {
+			System.out.println(file.getPath() + "\t" + "-" + "\tERROR " + ex.getMessage());
+		}
 	}
 }
