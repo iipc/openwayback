@@ -89,4 +89,9 @@ public class RangeMember implements ResourceIndex {
 	public void shutdown() throws IOException {
 		index.shutdown();
 	}
+    
+    @Override
+    public String toString() {
+        return "RangeMember{urlBase=" + getUrlBase() + ", activeConnections=" + activeConnections + ", weight=" + getWeight() + '}';
+    }
 }
