@@ -174,7 +174,8 @@ public class AlphaPartitionedIndexTest extends TestCase {
 		b2.noteConnectionStart();
 		// b1 => 6
 		// b2 => 6
-//		assertEquals(g.findBestMember().getUrlBase(),"b1");
+        assertEquals(6, b1.getWeight());
+        assertEquals(6, b2.getWeight());
 	}
 
 	private void testFindRange(final AlphaPartitionedIndex apIndex,
