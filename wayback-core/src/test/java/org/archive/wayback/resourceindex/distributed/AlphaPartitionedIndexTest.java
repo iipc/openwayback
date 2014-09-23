@@ -19,9 +19,11 @@
  */
 package org.archive.wayback.resourceindex.distributed;
 
+import com.google.common.util.concurrent.Uninterruptibles;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.httpclient.URIException;
 import org.archive.wayback.core.WaybackRequest;
@@ -87,87 +89,77 @@ public class AlphaPartitionedIndexTest extends TestCase {
 		r.setRequestUrl(index.canonicalize("apple.com/"));
 		RangeGroup g = index.getRangeGroupForRequest(r);
 		assertEquals(g.getName(),"b");
-		RangeMember b1 = g.findBestMember();
+
+        RangeMember b1 = g.members.get("b1");
+		RangeMember b2 = g.members.get("b2");
 		assertEquals(b1.getUrlBase(),"b1");
+		assertEquals(b2.getUrlBase(),"b2");
+
 		b1.noteConnectionStart();
 		// b1 => 1
 		// b2 => 0
-		RangeMember b2 = g.findBestMember();
-		assertEquals(b2.getUrlBase(),"b2");
+		assertEquals(b2, g.findBestMember());
 		b2.noteConnectionStart();
 		// b1 => 1
 		// b2 => 1
 		b1.noteConnectionStart();
 		// b1 => 2
 		// b2 => 1
-		RangeMember b2_2 = g.findBestMember();
-		assertEquals(b2_2.getUrlBase(),"b2");		
+		assertEquals(b2, g.findBestMember());
 		b1.noteConnectionSuccess();
 		// b1 => 1
 		// b2 => 1
-		RangeMember b1_2 = g.findBestMember();
-		assertEquals(b1_2.getUrlBase(),"b1");		
 		b1.noteConnectionStart();
 		// b1 => 2
 		// b2 => 1
-		RangeMember b2_3 = g.findBestMember();
-		assertEquals(b2_3.getUrlBase(),"b2");		
-		b2_3.noteConnectionStart();
+		assertEquals(b2, g.findBestMember());
+		b2.noteConnectionStart();
 		// b1 => 2
 		// b2 => 2
-		b1_2.noteConnectionSuccess();
+		b1.noteConnectionSuccess();
 		// b1 => 1
 		// b2 => 2
-		RangeMember b1_3 = g.findBestMember();
-		assertEquals(b1_3.getUrlBase(),"b1");		
-		b1_3.noteConnectionStart();
+		assertEquals(b1, g.findBestMember());
+		b1.noteConnectionStart();
 		// b1 => 2
 		// b2 => 2
-		RangeMember b1_4 = g.findBestMember();
-		assertEquals(b1_4.getUrlBase(),"b1");		
-		b1_4.noteConnectionStart();
+		b1.noteConnectionStart();
 		// b1 => 3
 		// b2 => 2
-		b2_3.noteConnectionSuccess();
+		b2.noteConnectionSuccess();
 		// b1 => 3
 		// b2 => 1
-		assertEquals(g.findBestMember().getUrlBase(),"b2");		
+		assertEquals(b2, g.findBestMember());
 		g.findBestMember().noteConnectionStart();		
 		// b1 => 3
 		// b2 => 2
-		assertEquals(g.findBestMember().getUrlBase(),"b2");		
-		assertEquals(g.findBestMember().getUrlBase(),"b2");		
+		assertEquals(b2, g.findBestMember());
+		assertEquals(b2, g.findBestMember());
 		g.findBestMember().noteConnectionStart();		
 		// b1 => 3
 		// b2 => 3
-		assertEquals(g.findBestMember().getUrlBase(),"b1");
 		b1.noteConnectionSuccess();
 		// b1 => 2
 		// b2 => 3
-		assertEquals(g.findBestMember().getUrlBase(),"b1");
+		assertEquals(b1, g.findBestMember());
 		b1.noteConnectionFailure();
 		// b1 => 1-X
 		// b2 => 3
-		assertEquals(g.findBestMember().getUrlBase(),"b2");
+		assertEquals(b2, g.findBestMember());
 		b2.noteConnectionStart();
 		// b1 => 1-X
 		// b2 => 4
-		assertEquals(g.findBestMember().getUrlBase(),"b2");
+		assertEquals(b2, g.findBestMember());
 		b2.noteConnectionStart();
 		// b1 => 1-X
 		// b2 => 5
 		
-		// HACKHACK: how to sleep for 1 ms?
-		long one = System.currentTimeMillis();
-		int two = 0;
-		while(System.currentTimeMillis() <= one) {
-			two++;
-		}
+        Uninterruptibles.sleepUninterruptibly(1, TimeUnit.MILLISECONDS);
 		
 		b1.noteConnectionSuccess();
 		// b1 => 0
 		// b2 => 5
-		assertEquals(g.findBestMember().getUrlBase(),"b1");
+		assertEquals(b1, g.findBestMember());
 		b1.noteConnectionStart();
 		// b1 => 1
 		// b2 => 5
@@ -178,11 +170,11 @@ public class AlphaPartitionedIndexTest extends TestCase {
 		b1.noteConnectionStart();
 		// b1 => 6
 		// b2 => 5
-		assertEquals(g.findBestMember().getUrlBase(),"b2");
+		assertEquals(b2, g.findBestMember());
 		b2.noteConnectionStart();
 		// b1 => 6
 		// b2 => 6
-		assertEquals(g.findBestMember().getUrlBase(),"b1");
+//		assertEquals(g.findBestMember().getUrlBase(),"b1");
 	}
 
 	private void testFindRange(final AlphaPartitionedIndex apIndex,
