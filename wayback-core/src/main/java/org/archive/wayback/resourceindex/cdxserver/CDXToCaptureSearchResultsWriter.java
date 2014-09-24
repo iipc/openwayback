@@ -15,6 +15,10 @@ import org.archive.wayback.util.ObjectFilter;
 import org.archive.wayback.util.Timestamp;
 import org.archive.wayback.util.url.UrlOperations;
 
+/**
+ * {@link CDXToSearchResultWriter} for producing {@link CaptureSearchResults}.
+ * <p>Also resolves revisits and sets closest.</p>
+ */
 public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 	
 	public final static String REVISIT_VALUE = "warc/revisit";
@@ -39,33 +43,41 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 	protected boolean isReverse = false;
 
 	protected String preferContains = null;
-	
+
+	/**
+	 * Initialize with CDXQuery and other options.
+	 * @param query CDXQuery
+	 * @param resolveRevisits Whether to resolve revisit captures
+	 * @param seekSingleCapture Whether just one capture is wanted.
+	 * (Only effective when {@code resolveRevisits} is also {@code true}.)
+	 * @param preferContains Preferred archive filename substring. If
+	 * non-{@code null}, It picks capture in the archive with a given substring
+	 * in its filename, out of multiple captures of the same timestamp, original
+	 * URL, length and offset (if any).
+	 */
 	public CDXToCaptureSearchResultsWriter(CDXQuery query,
-										   boolean resolveRevisits, 
-										   boolean seekSingleCapture,
-										   String preferContains)
-	{
+			boolean resolveRevisits, boolean seekSingleCapture,
+			String preferContains) {
 		super(query);
-		
+
 		this.resolveRevisits = resolveRevisits;
 		this.seekSingleCapture = seekSingleCapture;
 		this.isReverse = query.isReverse();
 		this.preferContains = preferContains;
 	}
-	
-	public void setTargetTimestamp(String timestamp)
-	{		
+
+	public void setTargetTimestamp(String timestamp) {
 		targetTimestamp = timestamp;
-		
+
 		if (isReverse) {
 			flip = -1;
 		}
 	}
 
 	@Override
-    public void begin() {
+	public void begin() {
 		results = new CaptureSearchResults();
-		
+
 		if (resolveRevisits) {
 			if (isReverse) {
 				digestToRevisits = new HashMap<String, LinkedList<CaptureSearchResult>>();
@@ -73,72 +85,75 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 				digestToOriginal = new HashMap<String, CaptureSearchResult>();
 			}
 		}
-    }
+	}
 
 	@Override
-    public int writeLine(CDXLine line) {
+	public int writeLine(CDXLine line) {
 		FastCaptureSearchResult result = new FastCaptureSearchResult();
-		
+
 		String timestamp = line.getTimestamp();
 		String originalUrl = line.getOriginalUrl();
-		
-		if ((prevResult != null) && (preferContains != null) && 
-			 prevResult.getCaptureTimestamp().equals(timestamp) && 
-			 prevResult.getOriginalUrl().equals(originalUrl) &&
-			 prevLine.getLength().equals(line.getLength()) &&
-			 prevLine.getOffset().equals(line.getOffset())) {
-			
+
+		if ((prevResult != null) && (preferContains != null) &&
+				prevResult.getCaptureTimestamp().equals(timestamp) &&
+				prevResult.getOriginalUrl().equals(originalUrl) &&
+				prevLine.getLength().equals(line.getLength()) &&
+				prevLine.getOffset().equals(line.getOffset())) {
+
 			String currFile = line.getFilename();
 			String prevFile = prevLine.getFilename();
-			
-			if (currFile.contains(preferContains) && !prevFile.contains(preferContains)) {
+
+			if (currFile.contains(preferContains) &&
+					!prevFile.contains(preferContains)) {
 				prevResult.setFile(currFile);
 			}
-			
+
 			return 0;
 		}
-				
+
 		result.setUrlKey(line.getUrlKey());
 		result.setCaptureTimestamp(timestamp);
 		result.setOriginalUrl(originalUrl);
-		
+
 		// Special case: filter out captures that have userinfo
-		boolean hasUserInfo = (UrlOperations.urlToUserInfo(result.getOriginalUrl()) != null);
-		
+		boolean hasUserInfo = (UrlOperations.urlToUserInfo(result
+			.getOriginalUrl()) != null);
+
 		if (hasUserInfo) {
 			return 0;
 		}
-		
+
 		result.setRedirectUrl(line.getRedirect());
 		result.setHttpCode(line.getStatusCode());
-		
-		if (selfRedirFilter != null && !result.getRedirectUrl().equals(CDXLine.EMPTY_VALUE)) {
+
+		if (selfRedirFilter != null &&
+				!result.getRedirectUrl().equals(CDXLine.EMPTY_VALUE)) {
 			if (selfRedirFilter.filterObject(result) != ObjectFilter.FILTER_INCLUDE) {
 				return 0;
 			}
 		}
-		
+
 		if (exclusionFilter != null) {
 			if (exclusionFilter.filterObject(result) != ObjectFilter.FILTER_INCLUDE) {
 				return 0;
 			}
 		}
-		
+
 		result.setMimeType(line.getMimeType());
 		result.setDigest(line.getDigest());
 		result.setOffset(NumberUtils.toLong(line.getOffset(), -1));
 		result.setCompressedLength(NumberUtils.toLong(line.getLength(), -1));
 		result.setFile(line.getFilename());
 		result.setRobotFlags(line.getRobotFlags());
-		
+
 		boolean isRevisit = false;
-		
+
 		if (resolveRevisits) {
 			isRevisit = result.getFile().equals(CDXLine.EMPTY_VALUE) ||
-						result.getMimeType().equals(REVISIT_VALUE);
-			
+					result.getMimeType().equals(REVISIT_VALUE);
+
 			String digest = result.getDigest();
-			
+
 			if (isRevisit) {
 				if (!isReverse) {
 					CaptureSearchResult payload = digestToOriginal.get(digest);
@@ -148,7 +163,8 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 						result.flagDuplicateDigest();
 					}
 				} else {
-					LinkedList<CaptureSearchResult> revisits = digestToRevisits.get(digest);
+					LinkedList<CaptureSearchResult> revisits = digestToRevisits
+						.get(digest);
 					if (revisits == null) {
 						revisits = new LinkedList<CaptureSearchResult>();
 						digestToRevisits.put(digest, revisits);
@@ -159,7 +175,8 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 				if (!isReverse) {
 					digestToOriginal.put(digest, result);
 				} else {
-					LinkedList<CaptureSearchResult> revisits = digestToRevisits.remove(digest);
+					LinkedList<CaptureSearchResult> revisits = digestToRevisits
+						.remove(digest);
 					if (revisits != null) {
 						for (CaptureSearchResult revisit : revisits) {
 							revisit.flagDuplicateDigest(result);
@@ -168,7 +185,7 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 				}
 			}
 		}
-		
+
 //		String payloadFile = line.getField(RevisitResolver.origfilename);
 //		
 //		if (!payloadFile.equals(CDXLine.EMPTY_VALUE)) {
@@ -178,7 +195,7 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 //			payload.setCompressedLength(NumberUtils.toLong(line.getField(RevisitResolver.origlength), -1));
 //			result.flagDuplicateDigest(payload);
 //		}
-		
+
 		if ((targetTimestamp != null) && (closest == null)) {
 			closest = determineClosest(result);
 		}
@@ -204,36 +221,36 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
     }
 	
 	@Override
-	public boolean isAborted()
-	{
+	public boolean isAborted() {
 		return done;
 	}
 	
-	protected CaptureSearchResult determineClosest(CaptureSearchResult nextResult)
-	{		
-		int compare = targetTimestamp.compareTo(nextResult.getCaptureTimestamp()) * flip;
-		
+	protected CaptureSearchResult determineClosest(
+			CaptureSearchResult nextResult) {
+		int compare = targetTimestamp.compareTo(nextResult
+			.getCaptureTimestamp()) * flip;
+
 		if (compare == 0) {
 			return nextResult;
 		} else if (compare > 0) {
 			// Too early to tell
 			return null;
 		}
-		
+
 		// First result that is greater/less than target
 		if (results.isEmpty()) {
 			return nextResult;
 		}
-		
+
 		CaptureSearchResult lastResult = getLastAdded();
-		
-		
+
 		// Now compare date diff
 		long nextTime = nextResult.getCaptureDate().getTime();
 		long lastTime = lastResult.getCaptureDate().getTime();
-		
-		long targetTime = Timestamp.parseAfter(targetTimestamp).getDate().getTime();
-		
+
+		long targetTime = Timestamp.parseAfter(targetTimestamp).getDate()
+			.getTime();
+
 		if (Math.abs(nextTime - targetTime) < Math.abs(lastTime - targetTime)) {
 			return nextResult;
 		} else {
@@ -241,44 +258,42 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 		}
 	}
 
-    public void end() {
+	public void end() {
 		results.setClosest(this.getClosest());
 		results.setReturnedCount(results.getResults().size());
 		results.setMatchingCount(results.getResults().size());
-    }
-    
-    public CaptureSearchResult getClosest()
-    {
-    	if (closest != null) {
-    		return closest;
-    	}
-    	
-    	if (!results.isEmpty()) {
-    		// If no target timestamp, always return the latest capture, otherwise first or last based on reverse state
-    		if (targetTimestamp != null) {
-    			return getLastAdded();
-    		} else {
-    			return results.getResults().getLast();
-    		}
-    	}
-    	
-    	return null;
-    }
-    
-    protected CaptureSearchResult getLastAdded()
-    {
+	}
+
+	public CaptureSearchResult getClosest() {
+		if (closest != null) {
+			return closest;
+		}
+
+		if (!results.isEmpty()) {
+			// If no target timestamp, always return the latest capture,
+			// otherwise first or last based on reverse state
+			if (targetTimestamp != null) {
+				return getLastAdded();
+			} else {
+				return results.getResults().getLast();
+			}
+		}
+
+		return null;
+	}
+
+	protected CaptureSearchResult getLastAdded() {
 		if (!isReverse) {
 			return results.getResults().getLast();
 		} else {
 			return results.getResults().getFirst();
 		}
-    }
-    
-    @Override
-    public CaptureSearchResults getSearchResults()
-    {
-    	return results;
-    }
+	}
+
+	@Override
+	public CaptureSearchResults getSearchResults() {
+		return results;
+	}
 
 	public SelfRedirectFilter getSelfRedirFilter() {
 		return selfRedirFilter;
