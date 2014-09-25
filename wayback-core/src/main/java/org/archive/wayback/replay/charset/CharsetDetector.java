@@ -157,7 +157,7 @@ public abstract class CharsetDetector {
 	 * @throws IOException
 	 */
 	protected String getCharsetFromBytes(InputStream resource) throws IOException {
-		String charsetName = null;
+		String charsetName;
 
 		byte[] bbuffer = new byte[MAX_CHARSET_READAHEAD];
 		// (1)
@@ -189,8 +189,7 @@ public abstract class CharsetDetector {
 	/**
 	 * @param httpHeadersResource resource with http headers to consider 
 	 * @param payloadResource resource with payload to consider (presumably text)
-	 * @param request WaybackRequest which may contain additional hints to
-	 *        processing
+         * @param wbRequest WaybackRequest which may contain additional hints to processing
 	 * @return String charset name for the Resource
 	 * @throws IOException if there are problems reading the Resource
 	 */

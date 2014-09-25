@@ -74,7 +74,7 @@ public class WarcIndexer {
 		}
 	}
 	/**
-	 * @param arc
+         * @param reader The reader for the arc file to search.
 	 * @return Iterator of SearchResults for input arc File
 	 * @throws IOException
 	 */
@@ -111,6 +111,7 @@ public class WarcIndexer {
 		/* (non-Javadoc)
 		 * @see org.archive.wayback.util.Adapter#adapt(java.lang.Object)
 		 */
+                @Override
 		public WARCRecord adapt(ArchiveRecord o) {
 			WARCRecord rec = null;
 			if (o instanceof WARCRecord) {

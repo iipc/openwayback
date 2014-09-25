@@ -38,45 +38,66 @@ public class StringHttpServletResponseWrapper extends HttpServletResponseWrapper
 	private StringWriter sw = new StringWriter();
 	private String origEncoding = null;
 	private static final ServletOutputStream FAKE_OUT = new ServletOutputStream() {
+                @Override
 		public void write(int b) throws IOException {
 		}
 	}; 
 	
 	/**
-	 * @param response
+	 * @param response The HttpServletResponse to use as a base to this wrapper.
 	 */
 	public StringHttpServletResponseWrapper(HttpServletResponse response) {
 		super(response);
 		origEncoding = getCharacterEncoding();
 		setCharacterEncoding(WRAPPED_CHAR_ENCODING);
 	}
-	
-	@Override
+
+    /**
+     *
+     * @return A ServletOutputStream that does nothing, ie. has an empty write() method.
+     * @throws IOException
+     */
+    @Override
 	public ServletOutputStream getOutputStream() throws IOException {
 		return FAKE_OUT; 
 	}
 
-	@Override
+    /**
+     * This method overrides the default behaviour, and does nothing.
+     */
+    @Override
 	public void reset()
 	{
 		//do nothing
 	}
-	
-	@Override
+
+    /**
+     * This method overrides the default behaviour, and does nothing.
+     * @throws IOException
+     */
+    @Override
 	public void flushBuffer() throws IOException {
 		//do nothing
 	}
 
-	@Override
+    /**
+     * This method overrides the default behaviour, and does nothing.
+     */
+    @Override
 	public void resetBuffer() {
 		//do nothing
 	}
 
+    /**
+     *
+     * @return A PrintWriter for the underlying StringWriter. 
+     */
+    @Override
 	public PrintWriter getWriter() {
 		return new PrintWriter(sw);
 	}
 	/**
-	 * @return
+	 * @return the underlying StringWriter converted to a String.
 	 */
 	public String getStringResponse() {
 		setCharacterEncoding(origEncoding);

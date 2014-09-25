@@ -47,15 +47,17 @@ public class ZiplinedBlock {
 	public final static String RANGE_HEADER = "Range";
 	public final static String BYTES_HEADER = "bytes=";
 	public final static String BYTES_MINUS = "-";
+        
 	/**
-	 * @param urlOrPath URL where this file can be downloaded
+         * @param urlOrPaths Array of URLs where this file can be downloaded.
 	 * @param offset start of 128K block boundary.
 	 */
 	public ZiplinedBlock(String urlOrPaths[], long offset) {
 		this(urlOrPaths,offset,BLOCK_SIZE);
 	}
+        
 	/**
-	 * @param urlOrPath URL where this file can be downloaded
+	 * @param urlOrPaths Array of URLs where this file can be downloaded.
 	 * @param offset start of 128K block boundary.
 	 * @param count number of records in this block
 	 */
@@ -64,12 +66,14 @@ public class ZiplinedBlock {
 		this.offset = offset;
 		this.count = count;
 	}
+        
 	/**
 	 * @param loader the RemoteHttp11BlockLoader to use when fetching this block
 	 */
 	public void setLoader(BlockLoader loader) {
 		this.loader = loader;
 	}
+        
 	/**
 	 * @return a BufferedReader of the underlying compressed data in this block
 	 * @throws IOException for usual reasons
@@ -80,6 +84,7 @@ public class ZiplinedBlock {
 		}
 		return readBlockInefficiently();
 	}
+        
 	protected byte[] attemptBlockLoad(BlockLoader remote) {
 		for(String urlOrPath : urlOrPaths) {
 			try {
@@ -105,6 +110,7 @@ public class ZiplinedBlock {
 //				new GZIPInputStream(new ByteArrayInputStream(bytes)),
 //				ByteOp.UTF8));
 	}
+        
 	protected BufferedReader readBlockInefficiently() throws IOException {
 		StringBuilder sb = new StringBuilder(16);
 		sb.append(BYTES_HEADER).append(offset).append(BYTES_MINUS);

@@ -40,7 +40,7 @@ public interface UrlCanonicalizer {
 	
 	/** 
 	 * Returns true if this Canonicalizer returns SURTs, false is URLs
-	 * @return
+	 * @return <b>true</b> if SURTs are returned <b>false</b> otherwise.
 	 */
 	public boolean isSurtForm();
 }

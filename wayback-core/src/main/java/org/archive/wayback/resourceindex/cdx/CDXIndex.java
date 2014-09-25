@@ -54,6 +54,7 @@ public class CDXIndex extends FlatFile implements SearchResultSource {
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.resourceindex.SearchResultSource#getPrefixIterator(java.lang.String)
 	 */
+        @Override
 	public CloseableIterator<CaptureSearchResult> getPrefixIterator(String prefix)
 		throws ResourceIndexNotAvailableException {
 		try {
@@ -66,6 +67,7 @@ public class CDXIndex extends FlatFile implements SearchResultSource {
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.resourceindex.SearchResultSource#getPrefixReverseIterator(java.lang.String)
 	 */
+        @Override
 	public CloseableIterator<CaptureSearchResult> getPrefixReverseIterator(String prefix)
 		throws ResourceIndexNotAvailableException {
 		try {
@@ -87,8 +89,8 @@ public class CDXIndex extends FlatFile implements SearchResultSource {
 	
 	/**
 	 * @param prefix
-	 * @param wantTS
-	 * @return Iterator of results in closest order to wantTS
+         * @param wantDate
+	 * @return Iterator of results in closest order to wantDate
 	 * @throws IOException
 	 */
 	public Iterator<CaptureSearchResult> getClosestIterator(final String prefix, 
@@ -118,6 +120,7 @@ public class CDXIndex extends FlatFile implements SearchResultSource {
 		/* (non-Javadoc)
 		 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
 		 */
+                @Override
 		public int compare(CaptureSearchResult o1, CaptureSearchResult o2) {
 			long d1 = searchResultToDistance(o1);
 			long d2 = searchResultToDistance(o2);
@@ -133,10 +136,12 @@ public class CDXIndex extends FlatFile implements SearchResultSource {
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.resourceindex.SearchResultSource#cleanup(org.archive.wayback.util.CleanableIterator)
 	 */
+        @Override
 	public void cleanup(CloseableIterator<CaptureSearchResult> c) throws IOException {
 		c.close();
 	}
 
+        @Override
 	public void shutdown() throws IOException {
 		// no-op
 	}

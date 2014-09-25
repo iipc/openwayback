@@ -33,22 +33,48 @@ public class FlatFileResourceFileLocationDB implements ResourceFileLocationDB  {
 	private String path = null;
 	private FlatFile flatFile = null;
 	private String delimiter = "\t";
-	
 
+        /**
+         * This method currently does nothing.
+         * @param name
+         * @param url
+         * @throws IOException
+         */
+        @Override
 	public void addNameUrl(String name, String url) throws IOException {
 		// NO-OP
 	}
 
+        /**
+         * @return Allways returns 0
+         * @throws IOException
+         */
+        @Override
 	public long getCurrentMark() throws IOException {
 		return 0;
 	}
 
+        /**
+         *
+         * @param start
+         * @param end
+         * @return Allways returns null
+         * @throws IOException
+         */
+        @Override
 	public CloseableIterator<String> getNamesBetweenMarks(long start, long end)
 			throws IOException {
 		return null;
 	}
 
-	@SuppressWarnings("unchecked")
+        /**
+         *
+         * @param name
+         * @return Return a String array with all urls that this resouce has for the given name parameter.
+         * @throws IOException
+         */
+        @SuppressWarnings("unchecked")
+        @Override
 	public String[] nameToUrls(String name) throws IOException {
 		ArrayList<String> urls = new ArrayList<String>();
 		String prefix = name + delimiter;
@@ -75,10 +101,22 @@ public class FlatFileResourceFileLocationDB implements ResourceFileLocationDB  {
 		return a;
 	}
 
+        /**
+         * This method currently does nothing.
+         * @param name
+         * @param url
+         * @throws IOException
+         */
+        @Override
 	public void removeNameUrl(String name, String url) throws IOException {
 		// NO-OP
 	}
 
+        /**
+         * This method currently does nothing.
+         * @throws IOException
+         */
+        @Override
 	public void shutdown() throws IOException {
 		// NO-OP
 	}
@@ -99,7 +137,7 @@ public class FlatFileResourceFileLocationDB implements ResourceFileLocationDB  {
 	}
 
 	/**
-	 * @param delimter the delimiter to set
+         * @param delimiter
 	 */
 	public void setDelimiter(String delimiter) {
 		this.delimiter = delimiter;

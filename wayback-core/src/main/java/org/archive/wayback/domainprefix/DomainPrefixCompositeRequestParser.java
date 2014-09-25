@@ -32,6 +32,12 @@ import org.archive.wayback.requestparser.OpenSearchRequestParser;
  */
 public class DomainPrefixCompositeRequestParser extends CompositeRequestParser {
 	DomainPrefixRequestParser dprp = new DomainPrefixRequestParser(this);
+
+    /**
+     *
+     * @return An array of all available {@link RequestParser}s.
+     */
+    @Override
 	protected RequestParser[] getRequestParsers() {
 		RequestParser[] theParsers = {
 				dprp,
@@ -41,13 +47,13 @@ public class DomainPrefixCompositeRequestParser extends CompositeRequestParser {
 		return theParsers;
 	}
 	/**
-	 * @param hostPort
+	 * @param hostPort The host port to use.
 	 */
 	public void setHostPort(String hostPort) {
 		dprp.setHostPort(hostPort);
 	}
 	/**
-	 * @return
+	 * @return The host port used.
 	 */
 	public String getHostPort() {
 		return dprp.getHostPort();
