@@ -19,13 +19,10 @@ import javax.servlet.http.HttpServletResponse;
 
 import junit.framework.TestCase;
 
-import org.apache.commons.collections.iterators.ArrayIterator;
 import org.archive.cdxserver.CDXQuery;
 import org.archive.cdxserver.CDXServer;
-import org.archive.cdxserver.auth.AuthChecker;
 import org.archive.cdxserver.auth.AuthToken;
 import org.archive.cdxserver.auth.PrivTokenAuthChecker;
-import org.archive.cdxserver.filter.CDXAccessFilter;
 import org.archive.cdxserver.writer.CDXWriter;
 import org.archive.cdxserver.writer.HttpCDXWriter;
 import org.archive.format.cdx.CDXFieldConstants;
@@ -36,6 +33,7 @@ import org.archive.format.gzip.zipnum.ZipNumParams;
 import org.archive.util.iterator.CloseableIterator;
 import org.archive.wayback.accesscontrol.robotstxt.redis.RedisRobotExclusionFilterFactory;
 import org.archive.wayback.core.CaptureSearchResult;
+import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
@@ -153,6 +151,92 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 		
 		AuthToken authToken = (AuthToken)args[1];
 		assertFalse(authToken.isIgnoreRobots());
+	}
+	/**
+	 * {@link EmbeddedCDXServerIndex} resolves revisits for replay requests.
+	 * (This is actually a test of {@link CDXToCaptureSearchResultsWriter}.)
+	 * @throws Exception
+	 */
+	public void testRevisitResolution() throws Exception {
+		WaybackRequest wbr = WaybackRequest.createReplayRequest(
+			"http://example.com/", "20101125000000", null, null);
+		setCdxLines(
+			"com,example)/ 20101124000000 http://example.com/ text/html 200" +
+					" XXXX - - 2000 0 /a/a.warc.gz",
+			"com,example)/ 20101125000000 http://example.com/ warc/revisit 200" +
+					" XXXX - - 2000 0 /a/b.warc.gz",
+			"com,example)/ 20101126000000 http://example.com/ text/html 200" +
+					" XXXX - - 2000 0 /a/c.warc.gz"
+				);
+		SearchResults sr = cut.query(wbr);
+
+		assertEquals(3, sr.getReturnedCount());
+
+		CaptureSearchResults results = (CaptureSearchResults)sr;
+		List<CaptureSearchResult> list = results.getResults();
+		CaptureSearchResult capture2 = list.get(1);
+		assertEquals("20101125000000", capture2.getCaptureTimestamp());
+		assertEquals("20101124000000", capture2.getDuplicateDigestStoredTimestamp());
+		assertEquals("/a/a.warc.gz", capture2.getDuplicatePayloadFile());
+		assertEquals(0, (long)capture2.getDuplicatePayloadOffset());
+		assertEquals(2000, capture2.getDuplicatePayloadCompressedLength());
+
+		assertSame(list.get(0), capture2.getDuplicatePayload());
+	}
+
+	/**
+	 * {@link CDXToCaptureSearchResultsWriter} resolves revisits for replay requests
+	 * (reverse order input mdoe) (Test of {@link CDXToCaptureSearchResultsWriter}.)
+	 * <p>Since there's no way to put {@code CDXToCaptureSearchResultsWriter}'s in reverse
+	 * mode, this test calls {@code CDXToCaptureSearchResultWriter} directly.</p>
+	 * <p>In other words, its reverse mode is never used in practice.</p>
+	 * @throws Exception
+	 */
+	public void testRevisitResolutionReverse() throws Exception {
+		WaybackRequest wbr = WaybackRequest.createReplayRequest(
+			"http://example.com/", "20101125000000", null, null);
+		final String[] CDXLINES = {
+			"com,example)/ 20101124000000 http://example.com/ text/html 200" +
+					" XXXX - - 2000 0 /a/a.warc.gz",
+			"com,example)/ 20101125000000 http://example.com/ warc/revisit 200" +
+					" XXXX - - 2000 0 /a/b.warc.gz",
+			"com,example)/ 20101126000000 http://example.com/ text/html 200" +
+					" XXXX - - 2000 0 /a/c.warc.gz"
+		};
+		CDXQuery query = new CDXQuery(wbr.getRequestUrl());
+		query.setSort(CDXQuery.SortType.reverse);
+		assertTrue(query.isReverse());
+		CDXToCaptureSearchResultsWriter cdxw = new CDXToCaptureSearchResultsWriter(query, true, false, null);
+
+		final FieldSplitFormat fmt = CDXFieldConstants.CDX_ALL_NAMES;
+		cdxw.begin();
+		// feed in reverse order
+		for (int i = CDXLINES.length; i > 0; i--) {
+			CDXLine line = new CDXLine(CDXLINES[i - 1], fmt);
+			cdxw.trackLine(line);
+			cdxw.writeLine(line);
+		}
+		cdxw.end();
+
+		CaptureSearchResults results = cdxw.getSearchResults();
+
+		assertEquals(3, results.getReturnedCount());
+
+		List<CaptureSearchResult> list = results.getResults();
+
+		CaptureSearchResult capture1 = list.get(0);
+		// CDXToCaptureSearchResultWriter returns CaptureSearchResult's in chronological
+		// order (oldest to newer), even when query.isReverse() == true.
+		assertEquals("20101124000000", capture1.getCaptureTimestamp());
+
+		CaptureSearchResult capture2 = list.get(1);
+		assertEquals("20101125000000", capture2.getCaptureTimestamp());
+		assertEquals("20101124000000", capture2.getDuplicateDigestStoredTimestamp());
+		assertEquals("/a/a.warc.gz", capture2.getDuplicatePayloadFile());
+		assertEquals(0, (long)capture2.getDuplicatePayloadOffset());
+		assertEquals(2000, capture2.getDuplicatePayloadCompressedLength());
+
+		assertSame(capture1, capture2.getDuplicatePayload());
 	}
 	/**
 	 * quick test of {@link EmbeddedCDXServerIndex#buildStatusFilter(String)}
