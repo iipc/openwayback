@@ -169,6 +169,7 @@ public class Robotstxt implements Serializable {
                     }
                     current.addAllow(path);
                     hasDirectivesYet = true;
+                    continue;
                 }
                 // unknown line; do nothing for now
             }
