@@ -186,7 +186,7 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 
 	/**
 	 * {@link CDXToCaptureSearchResultsWriter} resolves revisits for replay requests
-	 * (reverse order input mdoe) (Test of {@link CDXToCaptureSearchResultsWriter}.)
+	 * (reverse order input mode) (Test of {@link CDXToCaptureSearchResultsWriter}.)
 	 * <p>Since there's no way to put {@code CDXToCaptureSearchResultsWriter}'s in reverse
 	 * mode, this test calls {@code CDXToCaptureSearchResultWriter} directly.</p>
 	 * <p>In other words, its reverse mode is never used in practice.</p>
@@ -238,6 +238,75 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 
 		assertSame(capture1, capture2.getDuplicatePayload());
 	}
+
+	/**
+	 * Test of soft-block feature (regular replay).
+	 * capture with "X" in {@code robotflags} field does not make its way
+	 * into {@code CaptureSearchResults}, but still available as payload
+	 * capture for revisits.
+	 * @throws Exception
+	 */
+	public void testSoftBlock() throws Exception {
+		WaybackRequest wbr = WaybackRequest.createReplayRequest(
+			"http://example.com/", "20101125000000", null, null);
+		setCdxLines(
+			"com,example)/ 20101124000000 http://example.com/ text/html 200" +
+					" XXXX - X 2000 0 /a/a.warc.gz",
+			"com,example)/ 20101125000000 http://example.com/ warc/revisit 200" +
+					" XXXX - - 2000 0 /a/b.warc.gz",
+			"com,example)/ 20101126000000 http://example.com/ text/html 200" +
+					" XXXX - - 2000 0 /a/c.warc.gz"
+				);
+		CaptureSearchResults results = (CaptureSearchResults)cut.query(wbr);
+
+		assertEquals(2, results.getReturnedCount());
+
+		// first line is excluded
+		List<CaptureSearchResult> list = results.getResults();
+		assertEquals(2, list.size());
+
+		CaptureSearchResult capture1 = list.get(0);
+		assertEquals("20101125000000", capture1.getCaptureTimestamp());
+
+		CaptureSearchResult capture2 = list.get(1);
+		assertEquals("20101126000000", capture2.getCaptureTimestamp());
+
+		// but revisit is resolved to the first line.
+		assertEquals("20101124000000", capture1.getDuplicateDigestStoredTimestamp());
+		assertEquals("/a/a.warc.gz", capture1.getDuplicatePayloadFile());
+		assertEquals(0, (long)capture1.getDuplicatePayloadOffset());
+		assertEquals(2000, capture1.getDuplicatePayloadCompressedLength());
+
+		// payload capture is available via duplicatePayload
+		CaptureSearchResult captureX = capture1.getDuplicatePayload();
+		assertNotNull(captureX);
+		assertEquals("20101124000000", captureX.getCaptureTimestamp());
+	}
+
+	/**
+	 * Test of soft-block feature (URL-agnostic revisit payload lookup).
+	 * In revisit payload lookup mode, capture with "X" is returned.
+	 * @throws Exception
+	 */
+	public void testSoftBlock_revisitPayloadLookup() throws Exception {
+		WaybackRequest wbr = WaybackRequest.createReplayRequest(
+			"http://example.com/", "20101124000000", null, null);
+		wbr.put(EmbeddedCDXServerIndex.REQUEST_REVISIT_LOOKUP, "true");
+		setCdxLines(
+			"com,example)/ 20101124000000 http://example.com/ text/html 200" +
+					" XXXX - X 2000 0 /a/a.warc.gz",
+			"com,example)/ 20101125000000 http://example.com/ warc/revisit 200" +
+					" XXXX - - 2000 0 /a/b.warc.gz",
+			"com,example)/ 20101126000000 http://example.com/ text/html 200" +
+					" XXXX - - 2000 0 /a/c.warc.gz"
+				);
+		CaptureSearchResults results = (CaptureSearchResults)cut.query(wbr);
+
+		CaptureSearchResult capture1 = results.getResults().get(0);
+		assertEquals("20101124000000", capture1.getCaptureTimestamp());
+		assertSame(capture1, results.getClosest());
+	}
+
 	/**
 	 * quick test of {@link EmbeddedCDXServerIndex#buildStatusFilter(String)}
 	 */

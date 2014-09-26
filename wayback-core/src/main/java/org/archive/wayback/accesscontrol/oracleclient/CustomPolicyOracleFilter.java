@@ -82,7 +82,9 @@ public class CustomPolicyOracleFilter extends OracleExclusionFilter {
 
 			// Block page but silently, as if it wasn't found
 			if (Policy.BLOCK_HIDDEN.matches(policy)) {
-				return FILTER_EXCLUDE;
+				o.setRobotFlag(CaptureSearchResult.CAPTURE_ROBOT_BLOCKED);
+				//return FILTER_EXCLUDE;
+				return FILTER_INCLUDE;
 			}
 
 			// Block page bit and display "access blocked" message

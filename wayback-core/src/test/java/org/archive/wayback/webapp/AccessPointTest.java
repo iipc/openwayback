@@ -1272,51 +1272,51 @@ public class AccessPointTest extends TestCase {
 
     // Tests for "soft-block" feature
 
-    /**
-     * <i>soft-blocked</i> records appears in the capture query result (in contrast to those hard-blocked,
-     * that are completely excluded from the result), but marked as "excluded". Wayback ignores them as if
-     * they don't exist when requested directly.
-     */
-	public void testSoftBlock_unavailableForDirectReplay() throws Exception {
-		setReplayRequest("http://test.example.com/", "20100601000000");
-
-		CaptureSearchResults results = setupCaptures(
-			0,
-			createTestHtmlResource("20100601000000",
-				"content\n".getBytes("UTF-8")));
-		CaptureSearchResult xcap = results.getResults().get(0);
-		xcap.setRobotFlag("X");
-
-		// Setup mock ExceptionHandler to capture ResourceNotAvailableException thrown from
-		// handleReplay(). Default BaseExceptionRenderer is hard-wired to run JSP through
-		// UIResults - it's hard to tap in. Not using EasyMock because it'd require more
-		// boilerplate than implementing just one method to forward the call to httpResponse
-		// mock.
-		// liveWebRedirector must be null to ensure ExceptionRenderer#renderException() is called.
-		ExceptionRenderer exceptionRenderer = new ExceptionRenderer() {
-			public void renderException(HttpServletRequest httpRequest,
-					HttpServletResponse httpResponse, WaybackRequest wbRequest,
-					WaybackException exception,
-					ResultURIConverter uriConverter) {
-				assertTrue(exception instanceof ResourceNotAvailableException);
-				// supposed to be 404 - see below
-				httpResponse.setStatus(exception.getStatus());
-			};
-		};
-		cut.setException(exceptionRenderer);
-
-		// EXPECTATIONS: returns 404 as there's no captures that can be replayed.
-		httpResponse.setStatus(404);
-		EasyMock.expect(httpResponse.isCommitted()).andReturn(false);
-
-		// replay.getReplay() will not be called, as there's no capture
-		EasyMock.replay(httpRequest, httpResponse, resourceIndex, resourceStore, replay);
-
-		cut.init();
-		boolean r = cut.handleRequest(httpRequest, httpResponse);
-
-		EasyMock.verify(httpResponse);
-	}
+//    /**
+//     * <i>soft-blocked</i> records appears in the capture query result (in contrast to those hard-blocked,
+//     * that are completely excluded from the result), but marked as "excluded". Wayback ignores them as if
+//     * they don't exist when requested directly.
+//     */
+//	public void testSoftBlock_unavailableForDirectReplay() throws Exception {
+//		setReplayRequest("http://test.example.com/", "20100601000000");
+//
+//		CaptureSearchResults results = setupCaptures(
+//			0,
+//			createTestHtmlResource("20100601000000",
+//				"content\n".getBytes("UTF-8")));
+//		CaptureSearchResult xcap = results.getResults().get(0);
+//		xcap.setRobotFlag("X");
+//
+//		// Setup mock ExceptionHandler to capture ResourceNotAvailableException thrown from
+//		// handleReplay(). Default BaseExceptionRenderer is hard-wired to run JSP through
+//		// UIResults - it's hard to tap in. Not using EasyMock because it'd require more
+//		// boilerplate than implementing just one method to forward the call to httpResponse
+//		// mock.
+//		// liveWebRedirector must be null to ensure ExceptionRenderer#renderException() is called.
+//		ExceptionRenderer exceptionRenderer = new ExceptionRenderer() {
+//			public void renderException(HttpServletRequest httpRequest,
+//					HttpServletResponse httpResponse, WaybackRequest wbRequest,
+//					WaybackException exception,
+//					ResultURIConverter uriConverter) {
+//				assertTrue(exception instanceof ResourceNotAvailableException);
+//				// supposed to be 404 - see below
+//				httpResponse.setStatus(exception.getStatus());
+//			};
+//		};
+//		cut.setException(exceptionRenderer);
+//
+//		// EXPECTATIONS: returns 404 as there's no captures that can be replayed.
+//		httpResponse.setStatus(404);
+//		EasyMock.expect(httpResponse.isCommitted()).andReturn(false);
+//
+//		// replay.getReplay() will not be called, as there's no capture
+//		EasyMock.replay(httpRequest, httpResponse, resourceIndex, resourceStore, replay);
+//
+//		cut.init();
+//		boolean r = cut.handleRequest(httpRequest, httpResponse);
+//
+//		EasyMock.verify(httpResponse);
+//	}
 
 	/**
 	 * But <i>soft-blocked</i> captures are available as the original of later revisits.

@@ -109,7 +109,15 @@ public class CaptureSearchResult extends SearchResult {
 	public static final String CAPTURE_ROBOT_NOARCHIVE = "A";
 	public static final String CAPTURE_ROBOT_NOFOLLOW = "F";
 	public static final String CAPTURE_ROBOT_NOINDEX = "I";
+
 	public static final String CAPTURE_ROBOT_IGNORE = "G";
+
+	/**
+	 * non-standard robot-flag indicating the capture is <i>soft-blocked</i>
+	 * (not available for direct replay, but available as the original for
+	 * a revisits.)
+	 */
+	public static final char CAPTURE_ROBOT_BLOCKED = 'X';
 
 	/**
 	 * Result: flag within a SearchResult that indicates this is the closest to
@@ -473,13 +481,19 @@ public class CaptureSearchResult extends SearchResult {
 	}
 
 	/**
-	 * set <i>robot flags</i> field value as a whole.
-	 * @param robotFlags
+	 * Set <i>robot flags</i> field value as a whole.
+	 * For adding a flag, use {@link #setRobotFlag(char)} or
+	 * {@link #setRobotFlag(String)}. 
+	 * @param robotFlags new field value
 	 */
 	public void setRobotFlags(String robotFlags) {
 		put(CAPTURE_ROBOT_FLAGS, robotFlags);
 	}
-
+	/**
+	 * Add a flag to {@code robotflags} field.
+	 * If {@code flag} is already set, this is a no-op.
+	 * @param flag a flag to add (don't put multiple flags).
+	 */
 	public void setRobotFlag(String flag) {
 		String flags = getRobotFlags();
 		if (flags == null) {
@@ -489,6 +503,22 @@ public class CaptureSearchResult extends SearchResult {
 			flags = flags + flag;
 		}
 		setRobotFlags(flags);
+	}
+
+	/**
+	 * Add a flag to {@code robotflags} field.
+	 * If {@code flag} is already set, this is a no-op.
+	 * @param flag a flag to add
+	 */
+	public void setRobotFlag(char flag) {
+		String flags = getRobotFlags();
+		if (flags == null) {
+			setRobotFlags(Character.toString(flag));
+		} else {
+			if (flags.indexOf(flag) < 0) {
+				setRobotFlags(flags + flag);
+			}
+		}
 	}
 
 	/**

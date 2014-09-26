@@ -71,6 +71,7 @@ import org.archive.wayback.memento.MementoHandler;
 import org.archive.wayback.memento.MementoUtils;
 import org.archive.wayback.replay.DefaultReplayCaptureSelector;
 import org.archive.wayback.replay.ReplayCaptureSelector;
+import org.archive.wayback.resourceindex.cdxserver.EmbeddedCDXServerIndex;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.resourceindex.filters.WARCRevisitAnnotationFilter;
 import org.archive.wayback.util.operator.BooleanOperator;
@@ -685,19 +686,16 @@ implements ShutdownListener {
 			}
 		}
 
-		SearchResults results = queryIndex(wbRequest);
-		p.queried();
-
-		if (!(results instanceof CaptureSearchResults)) {
-			throw new ResourceNotAvailableException("Bad results...");
+		CaptureSearchResults captureResults;
+		try {
+			captureResults = searchCaptures(wbRequest);
+		} finally {
+			p.queried();
 		}
-		CaptureSearchResults captureResults = (CaptureSearchResults)results;
 
 		ReplayCaptureSelector captureSelector = new DefaultReplayCaptureSelector(getReplay());
 		captureSelector.setRequest(wbRequest);
 		captureSelector.setCaptures(captureResults);
-//		CaptureSearchResult closest = getReplay().getClosest(wbRequest,
-//			captureResults);
 
 		CaptureSearchResult closest = captureSelector.next();
 
@@ -775,11 +773,8 @@ implements ShutdownListener {
 
 						wbRequest.setTimestampSearchKey(false);
 
-						results = queryIndex(wbRequest);
-						captureResults = (CaptureSearchResults)results;
+						captureResults = searchCaptures(wbRequest);
 
-//						closest = getReplay().getClosest(wbRequest, captureResults);
-						captureSelector.setCaptures(captureResults);
 						closest = captureSelector.next();
 						//originalClosest = closest;
 						//maxTimeouts *= 2;
@@ -935,11 +930,8 @@ implements ShutdownListener {
 				} else if (wbRequest.isTimestampSearchKey()) {
 					wbRequest.setTimestampSearchKey(false);
 
-					results = queryIndex(wbRequest);
+					captureResults = searchCaptures(wbRequest);
 
-					captureResults = (CaptureSearchResults)results;
-
-					//closest = getReplay().getClosest(wbRequest, captureResults);
 					captureSelector.setCaptures(captureResults);
 					closest = captureSelector.next();
 
@@ -1012,6 +1004,19 @@ implements ShutdownListener {
 //		}
 //	}
 
+	protected CaptureSearchResults searchCaptures(WaybackRequest wbr)
+			throws ResourceIndexNotAvailableException,
+			ResourceNotInArchiveException, BadQueryException,
+			AccessControlException, ConfigurationException, ResourceNotAvailableException {
+		SearchResults results = queryIndex(wbr);
+		if (!(results instanceof CaptureSearchResults)) {
+			throw new ResourceNotAvailableException(
+				"Bad results looking up " + wbr.getReplayTimestamp() + " " +
+						wbr.getRequestUrl());
+		}
+		return (CaptureSearchResults)results;
+	}
+
 	// method isWarcRevisitNotModified(Resource) method has been moved to
 	// WarcResource#isRevisitNotModified().
 
@@ -1066,20 +1071,18 @@ implements ShutdownListener {
 			wbr.setAnchorTimestamp(payloadTimestamp);
 			wbr.setTimestampSearchKey(true);
 			wbr.setRequestUrl(payloadUri);
+			// experimental parameter to tell EmbeddedCDXServerIndex
+			// that it's looking up the payload of URL-agnostic revisit.
+			// EmbeddedCDXServerIndex will include soft-blocked captures
+			// in the result.
+			wbr.put(EmbeddedCDXServerIndex.REQUEST_REVISIT_LOOKUP, "true");
 
-			SearchResults results = queryIndex(wbr);
-
-			if (!(results instanceof CaptureSearchResults)) {
-				throw new ResourceNotAvailableException(
-					"Bad results looking up " + payloadTimestamp + " " +
-							payloadUri);
-			}
-			CaptureSearchResults payloadCaptureResults = (CaptureSearchResults)results;
+			CaptureSearchResults payloadCaptureResults = searchCaptures(wbr);
 			// closest may not be the one pointed by payloadTimestamp
-			// FIXME 	can throw BetterRequestException - it can be back to the original
-			// capture if revisited capture is missing in the index, and results
-			// in redirect loop.
-			payloadLocation = getReplay().getClosest(wbr, payloadCaptureResults);
+			ReplayCaptureSelector captureSelector = new DefaultReplayCaptureSelector(getReplay());
+			captureSelector.setRequest(wbr);
+			captureSelector.setCaptures(payloadCaptureResults);
+			payloadLocation = captureSelector.next();
 			// closest will not be the one pointed by payloadTimestamp if revisited
 			// capture is missing (can happen for many reasons; not indexed yet, archive
 			// has gone missing, for example).

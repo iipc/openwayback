@@ -20,32 +20,50 @@ import org.archive.wayback.util.url.UrlOperations;
  * <p>Also resolves revisits and sets closest.</p>
  */
 public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
-	
+
 	public final static String REVISIT_VALUE = "warc/revisit";
-	
+
 	protected CaptureSearchResults results = null;
-	
+
 	protected String targetTimestamp;
 	protected int flip = 1;
 	protected boolean done = false;
 	protected CaptureSearchResult closest = null;
 	protected SelfRedirectFilter selfRedirFilter = null;
 	protected ExclusionFilter exclusionFilter = null;
-	
+
 	protected CaptureSearchResult prevResult = null;
 	protected CDXLine prevLine = null;
-	
+
 	protected HashMap<String, CaptureSearchResult> digestToOriginal;
 	protected HashMap<String, LinkedList<CaptureSearchResult>> digestToRevisits;
-	
+
 	protected boolean resolveRevisits = false;
 	protected boolean seekSingleCapture = false;
 	protected boolean isReverse = false;
 
 	protected String preferContains = null;
 
+	// tentative
+	protected boolean includeBlockedCaptures = false;
+
 	/**
 	 * Initialize with CDXQuery and other options.
+	 * <p>
+	 * This class generates {@link CaptureSearchResult} in chronological
+	 * order, even when {@link CDXQuery#isReverse()} is {@code true}.
+	 * </p>
+	 * <p>
+	 * Note: {@code preferContains} parameter is specifically intended for
+	 * choosing one out of two copies of the identical capture record in different
+	 * storage locations.  For example, If WARCs in staging area are made available
+	 * for replay through secondary index, there may be a period where one capture
+	 * is indexed in both main and secondary index, with different {@code filename}
+	 * field. If {@code preferContains} is set, CDX line that has {@code preferContains}
+	 * as substring in {@code filename} will be picked over others that does not.
+	 * It can be used, for example, to put higher preference on the archive in primary
+	 * storage area.
+	 * </p>
 	 * @param query CDXQuery
 	 * @param resolveRevisits Whether to resolve revisit captures
 	 * @param seekSingleCapture Whether just one capture is wanted.
@@ -164,7 +182,7 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 					}
 				} else {
 					LinkedList<CaptureSearchResult> revisits = digestToRevisits
-						.get(digest);
+							.get(digest);
 					if (revisits == null) {
 						revisits = new LinkedList<CaptureSearchResult>();
 						digestToRevisits.put(digest, revisits);
@@ -176,7 +194,7 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 					digestToOriginal.put(digest, result);
 				} else {
 					LinkedList<CaptureSearchResult> revisits = digestToRevisits
-						.remove(digest);
+							.remove(digest);
 					if (revisits != null) {
 						for (CaptureSearchResult revisit : revisits) {
 							revisit.flagDuplicateDigest(result);
@@ -187,7 +205,7 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 		}
 
 //		String payloadFile = line.getField(RevisitResolver.origfilename);
-//		
+//
 //		if (!payloadFile.equals(CDXLine.EMPTY_VALUE)) {
 //			FastCaptureSearchResult payload = new FastCaptureSearchResult();
 //			payload.setFile(payloadFile);
@@ -196,35 +214,43 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 //			result.flagDuplicateDigest(payload);
 //		}
 
+		// Drop soft-blocked captures after resolving revisits. They are excluded
+		// from regular replay, but available as the original of revisits.
+		// It is disabled when AccessPoint is looking up the original for a
+		// URL-agnostic revisit (indicated by includeBlockedCaptures flag).
+		if (!includeBlockedCaptures && result.isRobotFlagSet(CaptureSearchResult.CAPTURE_ROBOT_BLOCKED)) {
+			return 0;
+		}
+
 		if ((targetTimestamp != null) && (closest == null)) {
 			closest = determineClosest(result);
 		}
-		
+
 		results.addSearchResult(result, !isReverse);
 		prevResult = result;
 		prevLine = line;
-		
+
 		// Short circuit the load if seeking single capture
 		if (seekSingleCapture && resolveRevisits) {
 			if (closest != null) {
 				// If not a revisit, we're done
 				if (!isRevisit) {
 					done = true;
-				// Else make sure the revisit is resolved
+					// Else make sure the revisit is resolved
 				} else if (result.getDuplicatePayload() != null) {
 					done = true;
 				}
 			}
 		}
-		
+
 		return 1;
-    }
-	
+	}
+
 	@Override
 	public boolean isAborted() {
 		return done;
 	}
-	
+
 	protected CaptureSearchResult determineClosest(
 			CaptureSearchResult nextResult) {
 		int compare = targetTimestamp.compareTo(nextResult
@@ -249,7 +275,7 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 		long lastTime = lastResult.getCaptureDate().getTime();
 
 		long targetTime = Timestamp.parseAfter(targetTimestamp).getDate()
-			.getTime();
+				.getTime();
 
 		if (Math.abs(nextTime - targetTime) < Math.abs(lastTime - targetTime)) {
 			return nextResult;
@@ -310,4 +336,20 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 	public void setExclusionFilter(ExclusionFilter exclusionFilter) {
 		this.exclusionFilter = exclusionFilter;
 	}
+
+	public boolean isIncludeBlockedCaptures() {
+		return includeBlockedCaptures;
+	}
+	/**
+	 * set to {@code true} if blocked captures are to be included
+	 * in the result.
+	 * <p>This is a tentative property and specifically intended for
+	 * looking up revisit original for URL-agnostic revisits. May change
+	 * in the future.</p>
+	 * @param includeBlockedCaptures
+	 */
+	public void setIncludeBlockedCaptures(boolean includeBlockedCaptures) {
+		this.includeBlockedCaptures = includeBlockedCaptures;
+	}
+
 }
