@@ -5,10 +5,14 @@ import java.util.LinkedList;
 
 import org.apache.commons.lang.math.NumberUtils;
 import org.archive.cdxserver.CDXQuery;
+import org.archive.cdxserver.CDXServer;
+import org.archive.cdxserver.auth.AuthChecker;
 import org.archive.format.cdx.CDXLine;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.FastCaptureSearchResult;
+import org.archive.wayback.resourceindex.LocalResourceIndex;
+import org.archive.wayback.resourceindex.filterfactory.ExclusionCaptureFilterGroup;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.resourceindex.filters.SelfRedirectFilter;
 import org.archive.wayback.util.ObjectFilter;
@@ -107,8 +111,6 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 
 	@Override
 	public int writeLine(CDXLine line) {
-		FastCaptureSearchResult result = new FastCaptureSearchResult();
-
 		String timestamp = line.getTimestamp();
 		String originalUrl = line.getOriginalUrl();
 
@@ -128,6 +130,8 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 
 			return 0;
 		}
+
+		FastCaptureSearchResult result = new FastCaptureSearchResult();
 
 		result.setUrlKey(line.getUrlKey());
 		result.setCaptureTimestamp(timestamp);
@@ -151,18 +155,23 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 			}
 		}
 
+		// make these fields available to exclusionFilter. it may also modify some fields
+		// (typically robotflags field).
+		result.setMimeType(line.getMimeType());
+		result.setDigest(line.getDigest());
+		result.setFile(line.getFilename());
+		// ugly - move this check to FastCaptureSearchResult#setRobotFlags
+		if (!"-".equals(line.getRobotFlags()))
+			result.setRobotFlags(line.getRobotFlags());
+
 		if (exclusionFilter != null) {
 			if (exclusionFilter.filterObject(result) != ObjectFilter.FILTER_INCLUDE) {
 				return 0;
 			}
 		}
 
-		result.setMimeType(line.getMimeType());
-		result.setDigest(line.getDigest());
 		result.setOffset(NumberUtils.toLong(line.getOffset(), -1));
 		result.setCompressedLength(NumberUtils.toLong(line.getLength(), -1));
-		result.setFile(line.getFilename());
-		result.setRobotFlags(line.getRobotFlags());
 
 		boolean isRevisit = false;
 
@@ -332,7 +341,20 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 	public ExclusionFilter getExclusionFilter() {
 		return exclusionFilter;
 	}
-
+	/**
+	 * If non-{@code null}, the filter will be applied before revisit
+	 * resolution.
+	 * <p>Note: there is no class using this property in baseline Wayback.
+	 * You need to write a custom class to utilize this property.
+	 * See {@link CDXServer} and {@link LocalResourceIndex}
+	 * for other ways of configuring exclusion filters.
+	 * </p>
+	 * @param exclusionFilter
+	 * @see CDXServer
+	 * @see LocalResourceIndex
+	 * @see AuthChecker#createAccessFilter(org.archive.cdxserver.auth.AuthToken)
+	 * @see ExclusionCaptureFilterGroup#ExclusionCaptureFilterGroup(org.archive.wayback.core.WaybackRequest, org.archive.wayback.UrlCanonicalizer)
+	 */
 	public void setExclusionFilter(ExclusionFilter exclusionFilter) {
 		this.exclusionFilter = exclusionFilter;
 	}

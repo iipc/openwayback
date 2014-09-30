@@ -8,6 +8,7 @@ import org.archive.accesscontrol.RuleOracleUnavailableException;
 import org.archive.util.ArchiveUtils;
 import org.archive.wayback.accesspoint.AccessPointAdapter;
 import org.archive.wayback.core.CaptureSearchResult;
+import org.archive.wayback.util.ObjectFilter;
 
 /**
  * Oracle Filter Implementation that supports custom policies in addition to
@@ -16,10 +17,18 @@ import org.archive.wayback.core.CaptureSearchResult;
  * The policy is stored in the CaptureSearchResult
  *
  * <p>
- * Note: it's not clear how this class helps support custom policies.
- * {@code allow}, {@code block}, and {@code robots} are supported by base-class
- * and handled in the same way. Perhaps it's about {@code block-message}? This
- * class issues no message for {@code block}.
+ * Note: this class is being re-designed to allow for run-time customization
+ * (i.e. with Spring config):
+ * <ul>
+ * <li>Redefine {@code Policy} as an interface + abstract implementation.</li>
+ * <li>Define concrete instances for well-known policies like {@code block},
+ * {@code allow} and {@code robots}.</li>
+ * <li>Add a property for configurable list of {@code Policy}s, in a class
+ * instantiating this object (factory?)</li>
+ * </ul>
+ * {@code Policy} enum below is re-designed toward in this direction.
+ * The second argument of {@link Policy#apply(CaptureSearchResult, OracleExclusionFilter)}
+ * is very likely to be changed to more abstract interface.
  * </p>
  * <p>
  * Although there's a factory for this class,
@@ -32,13 +41,35 @@ import org.archive.wayback.core.CaptureSearchResult;
 public class CustomPolicyOracleFilter extends OracleExclusionFilter {
 
 	private static final Logger LOGGER = Logger
-		.getLogger(CustomPolicyOracleFilter.class.getName());
+			.getLogger(CustomPolicyOracleFilter.class.getName());
 
+	// TODO: redefine this enum as ordinary base class with well-known
+	// instalces to make CustomPolicyOracleFilter runtime-configurable.
 	enum Policy {
 		ALLOW("allow"),
-		BLOCK_HIDDEN("block"),
-		BLOCK_MESSAGE("block-message"),
-		ROBOTS("robots");
+		BLOCK_HIDDEN("block") {
+			@Override
+			int apply(CaptureSearchResult capture, OracleExclusionFilter filter) {
+				// mark capture blocked, and include in the result (see ARI-3879).
+				// no message is given to user.
+				capture.setRobotFlag(CaptureSearchResult.CAPTURE_ROBOT_BLOCKED);
+				//return FILTER_EXCLUDE;
+				return FILTER_INCLUDE;
+			}
+		},
+		BLOCK_MESSAGE("block-message") {
+			@Override
+			int apply(CaptureSearchResult capture, OracleExclusionFilter filter) {
+				return filter.handleBlock();
+			}
+		},
+		ROBOTS("robots") {
+			@Override
+			int apply(CaptureSearchResult capture, OracleExclusionFilter filter) {
+				return filter.handleRobots();
+			}
+		}
+		;
 
 		Policy(String policy) {
 			this.policy = policy;
@@ -48,10 +79,26 @@ public class CustomPolicyOracleFilter extends OracleExclusionFilter {
 			return (other.equals(this.policy));
 		}
 
-		String policy;
+		final String policy;
+
+		/**
+		 * Apply policy. Bare minimum required is to return one of {@link ObjectFilter}
+		 * result code. It may call {@code handle*} methods on {@code filter} for
+		 * common policy handling, and/or modify {@code capture}.
+		 * <p>TODO: define abstract interface for allow/block notifications defined
+		 * in {@code OracleExclusionFilter}.</p>
+		 * @param capture CaptureSearchResult
+		 * @param filter OracleExclusionFilter object calling this method.
+		 * @return one of {@link ObjectFilter} result codes.
+		 */
+		int apply(CaptureSearchResult capture, OracleExclusionFilter filter) {
+			return filter.handleAllow();
+		}
 	}
 
 	protected int defaultFilter = FILTER_INCLUDE;
+
+
 
 	public CustomPolicyOracleFilter(String oracleUrl, String accessGroup,
 			String proxyHostPort) {
@@ -75,26 +122,13 @@ public class CustomPolicyOracleFilter extends OracleExclusionFilter {
 			if (policy == null) {
 				return defaultFilter;
 			}
-
-			if (Policy.ALLOW.matches(policy)) {
-				return handleAllow();
+			for (Policy handler : Policy.values()) {
+				if (handler.matches(policy)) {
+					return handler.apply(o, this);
+				}
 			}
-
-			// Block page but silently, as if it wasn't found
-			if (Policy.BLOCK_HIDDEN.matches(policy)) {
-				o.setRobotFlag(CaptureSearchResult.CAPTURE_ROBOT_BLOCKED);
-				//return FILTER_EXCLUDE;
-				return FILTER_INCLUDE;
-			}
-
-			// Block page bit and display "access blocked" message
-			if (Policy.BLOCK_MESSAGE.matches(policy)) {
-				return handleBlock();
-			}
-
-			if (Policy.ROBOTS.matches(policy)) {
-				return handleRobots();
-			}
+			// unhandled policy is okay. it's just passed to upper-level
+			// through CaptureSearchResult#oraclePolicy.
 		} catch (RobotsUnavailableException e) {
 			e.printStackTrace();
 		} catch (RuleOracleUnavailableException e) {

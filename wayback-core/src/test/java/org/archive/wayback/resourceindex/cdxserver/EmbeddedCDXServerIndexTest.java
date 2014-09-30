@@ -284,6 +284,67 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 	}
 
 	/**
+	 * Supplementary test for soft-block feature.
+	 * Modification to {@code robotflags} made by {@code exclusionFilter} must be
+	 * properly recognized. As baseline {@code EmbeddedCDXServerIndex} does not have
+	 * setting up {@code exclusionFilter}, this test deals with
+	 * {@link CDXToCaptureSearchResultsWriter} directly.
+	 * @throws Exception
+	 */
+	public void testSoftBlock_fieldModificationRecognized() throws Exception {
+		WaybackRequest wbr = WaybackRequest.createReplayRequest(
+			"http://example.com/", "20101125000000", null, null);
+		final String[] CDXLINES = {
+			// note this line has no "X" in robotflags field (compare with test above)
+			"com,example)/ 20101124000000 http://example.com/ text/html 200" +
+					" XXXX - - 2000 0 /a/a.warc.gz",
+			"com,example)/ 20101125000000 http://example.com/ warc/revisit 200" +
+					" XXXX - - 2000 0 /a/b.warc.gz",
+			"com,example)/ 20101126000000 http://example.com/ text/html 200" +
+					" XXXX - - 2000 0 /a/c.warc.gz"
+		};
+		CDXQuery query = new CDXQuery(wbr.getRequestUrl());
+		ExclusionFilter exclusionFilter = new ExclusionFilter() {
+			@Override
+			public int filterObject(CaptureSearchResult o) {
+				if (o.getCaptureTimestamp().startsWith("20101124")) {
+					o.setRobotFlag(CaptureSearchResult.CAPTURE_ROBOT_BLOCKED);
+				}
+				return FILTER_INCLUDE;
+			}
+		};
+		CDXToCaptureSearchResultsWriter cdxw = new CDXToCaptureSearchResultsWriter(query, true, false, null);
+		cdxw.setExclusionFilter(exclusionFilter);
+
+		final FieldSplitFormat fmt = CDXFieldConstants.CDX_ALL_NAMES;
+		cdxw.begin();
+		for (String l : CDXLINES) {
+			CDXLine line = new CDXLine(l, fmt);
+			cdxw.trackLine(line);
+			cdxw.writeLine(line);
+		}
+		cdxw.end();
+
+		CaptureSearchResults results = cdxw.getSearchResults();
+
+		// first capture will be removed from the result.
+		assertEquals(2, results.getReturnedCount());
+
+		List<CaptureSearchResult> list = results.getResults();
+
+		CaptureSearchResult capture1 = list.get(0);
+
+		assertEquals("20101125000000", capture1.getCaptureTimestamp());
+
+		CaptureSearchResult captureX = capture1.getDuplicatePayload();
+		assertNotNull(captureX);
+		assertEquals("20101124000000", captureX.getCaptureTimestamp());
+		// modification to robotflags field made by ExclusionFilter must be reflected
+		// in capture1.
+		assertEquals("X", captureX.getRobotFlags());
+	}
+
+	/**
 	 * Test of soft-block feature (URL-agnostic revisit payload lookup).
 	 * In revisit payload lookup mode, capture with "X" is returned.
 	 * @throws Exception
@@ -339,6 +400,7 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 		
 		cut.setBaseStatusRegexp("");
 		{
+			@SuppressWarnings("unused")
 			SearchResults sr = cut.query(wbr);
 
 			assertEquals(1, testCDXServer.capturedArgs.size());
@@ -352,6 +414,7 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 		testCDXServer.clearCapturedArgs();
 		cut.setBaseStatusRegexp("!500");
 		{
+			@SuppressWarnings("unused")
 			SearchResults sr = cut.query(wbr);
 
 			assertEquals(1, testCDXServer.capturedArgs.size());
@@ -379,6 +442,7 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 		// length, offset, filename.
 		setCdxLines(CDXLINE2);
 		
+		@SuppressWarnings("unused")
 		SearchResults sr = cut.query(wbr);
 		
 		assertEquals(1, testCDXServer.capturedArgs.size());
@@ -404,6 +468,7 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 
 		{
 			cut.setTimestampDedupLength(10);
+			@SuppressWarnings("unused")
 			SearchResults sr = cut.query(wbr);
 
 			Object[] args = testCDXServer.capturedArgs.get(0);
@@ -412,6 +477,7 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 		testCDXServer.clearCapturedArgs();
 		{
 			wbr.setCollapseTime(8);
+			@SuppressWarnings("unused")
 			SearchResults sr = cut.query(wbr);
 
 			Object[] args = testCDXServer.capturedArgs.get(0);
