@@ -30,7 +30,7 @@ import javax.servlet.http.HttpServletResponse;
  * user interface. Probably we should revise class hierarchy and
  * add more sub-classes - that would eliminate ad-hoc branching
  * found in many places.</p>
- * 
+ *
  * @author Brad Tofel
  */
 public class WaybackException extends Exception {
@@ -139,7 +139,7 @@ public class WaybackException extends Exception {
 	 * user to archive the live web.</p>
 	 * <p>TODO: I believe this is specific to not-in-archive situation,
 	 * not WaybackException in general which covers broader type of failures.</p>
-	 * @param isLiveWebAvailable {@code true} if available 
+	 * @param isLiveWebAvailable {@code true} if available
 	 */
 	public void setLiveWebAvailable(boolean isLiveWebAvailable) {
 		this.isLiveWebAvailable = isLiveWebAvailable;

@@ -14,7 +14,6 @@ import java.util.zip.GZIPOutputStream;
 
 import org.archive.format.ArchiveFileConstants;
 import org.archive.format.warc.WARCConstants;
-import org.archive.format.warc.WARCConstants.WARCRecordType;
 import org.archive.util.DateUtils;
 
 /**
@@ -213,7 +212,7 @@ public class TestWARCRecordInfo extends WARCRecordInfo implements WARCConstants,
     }
     
     public static byte[] buildHttpRedirectResponseBlock(String location) throws IOException {
-    	return buildHttpRedirectResponseBlock("302 Moved Temporarily", location);
+		return buildHttpRedirectResponseBlock("302 Moved Temporarily", location);
     }
 
 	public static byte[] buildHttpRedirectResponseBlock(String statusline,
@@ -272,32 +271,32 @@ public class TestWARCRecordInfo extends WARCRecordInfo implements WARCConstants,
      * @return record content as byte array
      * @throws IOException
      */
-    public static byte[] buildRevisitHttpResponseBlock(String ctype, int len,
-            boolean withHeader, boolean gzipContent) throws IOException {
-        ByteArrayOutputStream blockbuf = new ByteArrayOutputStream();
-        Writer bw = new OutputStreamWriter(blockbuf);
-        if (withHeader) {
-            bw.write("HTTP/1.0 200 OK" + CRLF);
-            if (len >= 0) {
-            	bw.write("Content-Length: " + len + CRLF);
-            }
-            bw.write("Content-Type: " + ctype + CRLF);
-            if (gzipContent)
-                bw.write("Content-Encoding: gzip" + CRLF);
-            bw.write(CRLF);
-            bw.flush();
-            bw.close();
-        }
-        return blockbuf.toByteArray();
-    }
+	public static byte[] buildRevisitHttpResponseBlock(String ctype, int len,
+			boolean withHeader, boolean gzipContent) throws IOException {
+		ByteArrayOutputStream blockbuf = new ByteArrayOutputStream();
+		Writer bw = new OutputStreamWriter(blockbuf);
+		if (withHeader) {
+			bw.write("HTTP/1.0 200 OK" + CRLF);
+			if (len >= 0) {
+				bw.write("Content-Length: " + len + CRLF);
+			}
+			bw.write("Content-Type: " + ctype + CRLF);
+			if (gzipContent)
+				bw.write("Content-Encoding: gzip" + CRLF);
+			bw.write(CRLF);
+			bw.flush();
+			bw.close();
+		}
+		return blockbuf.toByteArray();
+	}
 
     // POPULAR PAYLOAD SAMPLES
     
     // ubiquitous 1-pixel transparent GIF, if you wonder.
     public static final byte[] PAYLOAD_GIF = new byte[] {
-            71, 73, 70, 56, 57, 97, 1, 0, 1, 0, -128, 0, 0, -64, -64, -64,
-            0, 0, 0, 33, -7, 4, 1, 0, 0, 0, 0, 44, 0, 0, 0, 0,
-            1, 0, 1, 0, 0, 2, 2, 68, 1, 0, 59, 13, 10, 13, 10
+		71, 73, 70, 56, 57, 97, 1, 0, 1, 0, -128, 0, 0, -64, -64, -64,
+		0, 0, 0, 33, -7, 4, 1, 0, 0, 0, 0, 44, 0, 0, 0, 0,
+		1, 0, 1, 0, 0, 2, 2, 68, 1, 0, 59, 13, 10, 13, 10
     };
 
 }

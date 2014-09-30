@@ -1,6 +1,3 @@
-/**
- * 
- */
 package org.archive.wayback.exception;
 
 import javax.servlet.http.HttpServletResponse;
@@ -22,7 +19,7 @@ import org.archive.wayback.webapp.AccessPoint;
 public class BetterReplayRequestException extends BetterRequestException {
 
 	private static final long serialVersionUID = -873414298713087775L;
-	
+
 	private String targetURI;
 	private String timestamp;
 	private CaptureSearchResults captures;
@@ -46,7 +43,7 @@ public class BetterReplayRequestException extends BetterRequestException {
 		this.timestamp = timestamp;
 		this.captures = captures;
 	}
-	
+
 	/**
 	 * Initializes with {@code originalUrl} and {@code captureTimestamp} from {@link CaptureSearchResult}.
 	 * @param capture Capture to redirect to.
@@ -64,7 +61,7 @@ public class BetterReplayRequestException extends BetterRequestException {
 			ArchivalUrl.getDateSpec(wbRequest, timestamp), targetURI);
 		response.setStatus(HttpServletResponse.SC_FOUND);
 		response.setHeader("Location", replayURL);
-		
+
 		if (wbRequest.isMementoEnabled()) {
 			// both URI-G redirect response and intermediate resource response
 			// MUST NOT have Memento-Datetime header.

@@ -33,7 +33,7 @@ import org.archive.wayback.ResourceIndex;
  * TODO: should receive root-cause Exception. Code throwing this exception often
  * does {@code printStackTrace()} - not a desirable practice.
  * </p>
- * 
+ *
  * @author brad
  */
 public class ResourceIndexNotAvailableException extends WaybackException {

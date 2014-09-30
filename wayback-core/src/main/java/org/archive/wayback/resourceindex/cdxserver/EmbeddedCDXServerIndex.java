@@ -711,7 +711,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 	}
 	/**
 	 * substring of {@code filename} field identifying preferred
-	 * archive among multiple copies of the same capture. 
+	 * archive among multiple copies of the same capture.
 	 * @param preferContains
 	 * @see CDXToCaptureSearchResultsWriter
 	 */

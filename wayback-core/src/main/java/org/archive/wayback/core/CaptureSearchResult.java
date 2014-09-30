@@ -483,7 +483,7 @@ public class CaptureSearchResult extends SearchResult {
 	/**
 	 * Set <i>robot flags</i> field value as a whole.
 	 * For adding a flag, use {@link #setRobotFlag(char)} or
-	 * {@link #setRobotFlag(String)}. 
+	 * {@link #setRobotFlag(String)}.
 	 * @param robotFlags new field value
 	 */
 	public void setRobotFlags(String robotFlags) {

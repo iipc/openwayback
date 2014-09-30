@@ -30,7 +30,7 @@ import javax.servlet.http.HttpServletResponse;
  * and no exception will be throwsn (unless there's no captures
  * at all as a result, in which case {@link ResourceNotInArchiveException}
  * will be thrown).</p>
- * 
+ *
  * @author brad
  */
 public class AccessControlException extends WaybackException {

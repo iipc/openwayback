@@ -25,7 +25,7 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  * Exception class for queries which result in no index matches
- * 
+ *
  * @author brad
  */
 public class ResourceNotInArchiveException extends WaybackException {

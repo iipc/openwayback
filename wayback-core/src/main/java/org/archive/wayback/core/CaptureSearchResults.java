@@ -65,7 +65,7 @@ public class CaptureSearchResults extends SearchResults implements
 	}
 
 	/**
-	 * Return the textual timestamp of the last capture 
+	 * Return the textual timestamp of the last capture
 	 * @return 14-digit String Timestamp
 	 */
 	public String getLastResultTimestamp() {

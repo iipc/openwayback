@@ -472,23 +472,6 @@ implements ShutdownListener {
 		}
 	}
 
-//	protected void addCustomHeaders(HttpServletResponse httpResponse, CaptureSearchResult closest)
-//	{
-//		Map<String, String> resultData = closest.toCanonicalStringMap();
-//
-//		for (Entry<String, String> entry : resultData.entrySet()) {
-//			String key = entry.getKey();
-//
-//			if ((key != null) && key.startsWith(CaptureSearchResult.CUSTOM_HEADER_PREFIX)) {
-//				key = key.substring(CaptureSearchResult.CUSTOM_HEADER_PREFIX.length());
-//				String value = entry.getValue();
-//				if (!key.isEmpty() && (value != null)) {
-//					httpResponse.addHeader(key, value);
-//				}
-//			}
-//		}
-//	}
-
 	protected boolean isSelfRedirect(Resource resource,
 			CaptureSearchResult closest, WaybackRequest wbRequest,
 			String canonRequestURL) {
@@ -675,8 +658,6 @@ implements ShutdownListener {
 			}
 		}
 
-		//long requestMS = Timestamp.parseBefore(wbRequest.getReplayTimestamp()).getDate().getTime();
-
 		PerformanceLogger p = new PerformanceLogger("replay");
 
 		// If optimized url+timestamp search is supported, mark the request
@@ -732,24 +713,6 @@ implements ShutdownListener {
 
 				closest.setClosest(true);
 				checkAnchorWindow(wbRequest, closest);
-
-				// Attempt to resolve any not-found embedded content with next-best
-				// For "best last" capture, skip not-founds and redirects, hoping to find the best 200 response.
-//				if ((wbRequest.isAnyEmbeddedContext() && closest.isHttpError()) ||
-//						(wbRequest.isBestLatestReplayRequest() && !closest.isHttpSuccess())) {
-//					CaptureSearchResult nextClosest = closest;
-//
-//					while ((nextClosest = findNextClosest(nextClosest, captureResults, requestMS)) != null) {
-//						// If redirect, save but keep looking -- if no better match, will use the redirect
-//						if (nextClosest.isHttpRedirect()) {
-//							closest = nextClosest;
-//							// If success, pick that one!
-//						} else if (nextClosest.isHttpSuccess()) {
-//							closest = nextClosest;
-//							break;
-//						}
-//					}
-//				}
 
 				// Redirect to url for the actual closest capture, if not a retry
 				if (counter == 1) {
@@ -852,7 +815,7 @@ implements ShutdownListener {
 				if (this.isEnableMemento()) {
 					MementoUtils.addMementoDatetimeHeader(httpResponse, closest);
 					if (wbRequest.isMementoTimegate()) {
-						// URL-G in non-rediect proxy mode (archival-url URL-G
+						// URL-G in non-redirect proxy mode (archival-url URL-G
 						// always redirects in handleReplayRedirect()).
 						if (getMementoHandler() != null) {
 							getMementoHandler().addTimegateHeaders(
@@ -951,58 +914,6 @@ implements ShutdownListener {
 			}
 		}
 	}
-
-//	protected CaptureSearchResult findNextClosest(
-//			CaptureSearchResult currentClosest, CaptureSearchResults results,
-//			long requestMS) {
-//		CaptureSearchResult prev = currentClosest.getPrevResult();
-//		CaptureSearchResult next = currentClosest.getNextResult();
-//
-//		currentClosest.removeFromList();
-//
-//		if (prev == null) {
-//			return next;
-//		} else if (next == null) {
-//			return prev;
-//		}
-//
-//		long prevMS = prev.getCaptureDate().getTime();
-//		long nextMS = next.getCaptureDate().getTime();
-//		long prevDiff = Math.abs(prevMS - requestMS);
-//		long nextDiff = Math.abs(requestMS - nextMS);
-//
-//		if (prevDiff == 0) {
-//			return prev;
-//		} else if (nextDiff == 0) {
-//			return next;
-//		}
-//
-//		String currHash = currentClosest.getDigest();
-//		String prevHash = prev.getDigest();
-//		String nextHash = next.getDigest();
-//		boolean prevSameHash = (prevHash.equals(currHash));
-//		boolean nextSameHash = (nextHash.equals(currHash));
-//
-//		if (prevSameHash != nextSameHash) {
-//			return prevSameHash ? prev : next;
-//		}
-//
-//		String prevStatus = prev.getHttpCode();
-//		String nextStatus = next.getHttpCode();
-//		boolean prev200 = (prevStatus != null) && prevStatus.equals("200");
-//		boolean next200 = (nextStatus != null) && nextStatus.equals("200");
-//
-//		// If only one is a 200, prefer the entry with the 200
-//		if (prev200 != next200) {
-//			return (prev200 ? prev : next);
-//		}
-//
-//		if (prevDiff < nextDiff) {
-//			return prev;
-//		} else {
-//			return next;
-//		}
-//	}
 
 	protected CaptureSearchResults searchCaptures(WaybackRequest wbr)
 			throws ResourceIndexNotAvailableException,

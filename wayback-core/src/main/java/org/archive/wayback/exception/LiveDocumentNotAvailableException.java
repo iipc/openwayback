@@ -27,7 +27,7 @@ import javax.servlet.http.HttpServletResponse;
  * An error indicating Wayback has failed to load a resource from live Web.
  * <p>Commonly thrown by user-facing live-web-proxy implementations, but also
  * used by internal robots.txt access service.</p>
- * 
+ *
  * @author brad
  */
 public class LiveDocumentNotAvailableException extends WaybackException {

@@ -39,7 +39,7 @@ import org.archive.wayback.core.WaybackRequest;
  * just one interface covering the two. It'll open up a possibility of unifying
  * {@link ReplayRenderer} and {@code QueryRendere} into one interface to simplify
  * {@code AccessPoint}.
- * </p> 
+ * </p>
  * @author brad
  * @see ReplayRenderer
  */

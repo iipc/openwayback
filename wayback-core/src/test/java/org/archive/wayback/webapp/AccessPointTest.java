@@ -304,8 +304,8 @@ public class AccessPointTest extends TestCase {
         for (Resource res : resources) {
             CaptureSearchResult result = new CaptureSearchResult();
             if (prev != null) {
-            	prev.setNextResult(result);
-            	result.setPrevResult(prev);
+				prev.setNextResult(result);
+				result.setPrevResult(prev);
             }
             // TODO: Resource should have methods for accessing URI and date
             if (res instanceof WarcResource) {
@@ -552,32 +552,42 @@ public class AccessPointTest extends TestCase {
     }
 
     public static class CaptureSearchMatcher implements IArgumentMatcher {
-    	private String url;
-    	private String replayTimestamp;
-    	public CaptureSearchMatcher(String url, String replayTimestamp) {
-    		this.url = url;
-    		this.replayTimestamp = replayTimestamp;
-    	}
-    	@Override
-    	public boolean matches(Object actual) {
-    		if (!(actual instanceof WaybackRequest)) return false;
-    		WaybackRequest wbRequest = (WaybackRequest)actual;
-    		String replayTimestamp = wbRequest.getReplayTimestamp();
-    		String url = wbRequest.getRequestUrl();
-    		if (url == null || replayTimestamp == null) return false;
-    		if (this.url == null || this.replayTimestamp == null) return false;
-    		// Only exact match is supported. i.e. http://example.com/ and http://example.com
-    		// are different even though they typically get canonicalized into the same string.
-    		// Also not checking if wbRequest is in fact a capture search request.
-    		return this.url.equals(url) && this.replayTimestamp.equals(replayTimestamp);
-    	}
-    	@Override
-    	public void appendTo(StringBuffer buffer) {
-    		buffer.append("eqCaptureSearchRequest(");
-    		buffer.append(url).append(",").append(replayTimestamp);
-    		buffer.append(")");
-    	}
-    }
+		private String url;
+		private String replayTimestamp;
+
+		public CaptureSearchMatcher(String url, String replayTimestamp) {
+			this.url = url;
+			this.replayTimestamp = replayTimestamp;
+		}
+
+		@Override
+		public boolean matches(Object actual) {
+			if (!(actual instanceof WaybackRequest))
+				return false;
+			WaybackRequest wbRequest = (WaybackRequest)actual;
+			String replayTimestamp = wbRequest.getReplayTimestamp();
+			String url = wbRequest.getRequestUrl();
+			if (url == null || replayTimestamp == null)
+				return false;
+			if (this.url == null || this.replayTimestamp == null)
+				return false;
+			// Only exact match is supported. i.e. http://example.com/ and
+			// http://example.com are different even though they typically
+			// get canonicalized into the same string.
+			// Also not checking if wbRequest is in fact a capture search
+			// request.
+			return this.url.equals(url) &&
+					this.replayTimestamp.equals(replayTimestamp);
+		}
+
+		@Override
+		public void appendTo(StringBuffer buffer) {
+			buffer.append("eqCaptureSearchRequest(");
+			buffer.append(url).append(",").append(replayTimestamp);
+			buffer.append(")");
+		}
+	}
+
 	public static WaybackRequest eqCaptureSearchRequest(String url,
 			String replayTimestamp) {
 		EasyMock.reportMatcher(new CaptureSearchMatcher(url, replayTimestamp));
@@ -624,9 +634,9 @@ public class AccessPointTest extends TestCase {
     }
 
     public static Resource createSelfRedirectResource(String url, String timestamp) throws IOException {
-    	assert !url.endsWith("/");
-    	// typical redirect: http://example.com to http://example.com/
-    	String location = url + "/";
+		assert !url.endsWith("/");
+		// typical redirect: http://example.com to http://example.com/
+		String location = url + "/";
 		TestWARCRecordInfo recinfo = new TestWARCRecordInfo(
 			TestWARCRecordInfo.buildHttpRedirectResponseBlock("301 Moved Permanently", location));
 		recinfo.setUrl(url);
@@ -648,9 +658,10 @@ public class AccessPointTest extends TestCase {
 	 * @throws Exception
 	 */
     public void testHandleRequest_MissingRevisitPayload() throws Exception {
-    	setReplayRequest("http://example.com", "20140619004054");
-    	// resource revisited, but missing in capture search result
-    	Resource revisited = createSelfRedirectResource("http://example.com", "20140619015411");
+		setReplayRequest("http://example.com", "20140619004054");
+		// resource revisited, but missing in capture search result
+		Resource revisited = createSelfRedirectResource("http://example.com",
+			"20140619015411");
         CaptureSearchResults results = setupCaptures(
             0,
             createSelfRedirectResource("http://example.com", "20140619004054"),
@@ -683,12 +694,12 @@ public class AccessPointTest extends TestCase {
         EasyMock.replay(httpRequest, httpResponse, resourceIndex, resourceStore, replay);
 
         cut.init();
-        try {
-        	cut.handleReplay(wbRequest, httpRequest, httpResponse);
-        	fail("handleReplay did not throw ResourceNotAvailableException");
-        } catch (ResourceNotAvailableException ex) {
-        	// expected.
-        }
+		try {
+			cut.handleReplay(wbRequest, httpRequest, httpResponse);
+			fail("handleReplay did not throw ResourceNotAvailableException");
+		} catch (ResourceNotAvailableException ex) {
+			// expected.
+		}
 
         EasyMock.verify(resourceIndex, resourceStore, replay);
     }
@@ -1136,56 +1147,56 @@ public class AccessPointTest extends TestCase {
     }
 
     /**
-     * Test of Memento-furnished response to Timegate (URI-G).
-     * Memento Specification states the response
-     * <ul>
-     * <li>MUST have "Vary: accept-datetime" header</li>
-	 * <li>MUST NOT have "Memento-Datetime" header</li>
-	 * <li>MUST have "Link" header, which MUST have at least "original" relation link.
-	 * "timegate", "timemap" and "memento" relation type links MAY be provided.</li>
-	 * </ul>
-     * @throws Exception
-     */
-    public void testMementoTimegate() throws Exception {
-        final String AGGREGATION_PREFIX = "http://web.archive.org";
-    	cut.setEnableMemento(true);
-        cut.setConfigs(new Properties());
-        cut.getConfigs().setProperty(MementoUtils.AGGREGATION_PREFIX_CONFIG, AGGREGATION_PREFIX);
+	 * Test of Memento-furnished response to Timegate (URI-G).
+	 * Memento Specification states the response
+	 * <ul>
+	 * <li>MUST have "Vary: accept-datetime" header</li>
+     * <li>MUST NOT have "Memento-Datetime" header</li>
+     * <li>MUST have "Link" header, which MUST have at least "original" relation link.
+     * "timegate", "timemap" and "memento" relation type links MAY be provided.</li>
+     * </ul>
+	 * @throws Exception
+	 */
+	public void testMementoTimegate() throws Exception {
+		final String AGGREGATION_PREFIX = "http://web.archive.org";
+		cut.setEnableMemento(true);
+		cut.setConfigs(new Properties());
+		cut.getConfigs().setProperty(MementoUtils.AGGREGATION_PREFIX_CONFIG, AGGREGATION_PREFIX);
 
-        // Wayback Timegate is mapped to date-less replay URL (/web/<URI-R>) with
-    	// Accept-Datetime header, but it is irrelevant here (it's a RequestParser
-    	// matter.) What's relevant here is that WaybackRequest is a replay request
-    	// with mementoTimegate property set to true.
-    	setReplayRequest("http://test.example.com/", "20100601123456");
-    	wbRequest.setMementoTimegate();
+		// Wayback Timegate is mapped to date-less replay URL (/web/<URI-R>) with
+		// Accept-Datetime header, but it is irrelevant here (it's a RequestParser
+		// matter.) What's relevant here is that WaybackRequest is a replay request
+		// with mementoTimegate property set to true.
+		setReplayRequest("http://test.example.com/", "20100601123456");
+		wbRequest.setMementoTimegate();
 
-        Resource payloadResource = createTestHtmlResource("20100601000000", "hogehogehogehoge\n".getBytes("UTF-8"));
-        @SuppressWarnings("unused")
+		Resource payloadResource = createTestHtmlResource("20100601000000", "hogehogehogehoge\n".getBytes("UTF-8"));
+		@SuppressWarnings("unused")
 		CaptureSearchResults results = setupCaptures(0, payloadResource);
 
-        final String expectedMementoDateTime = "Tue, 01 Jun 2010 00:00:00 GMT";
-        // redirects to URL for closest capture.
-        expectRedirect("/web/20100601000000/http://test.example.com/");
-        // MUST have "Vary: accept-datetime" header
-        httpResponse.setHeader("Vary", "accept-datetime");
-        // also has Link header with mandatory "original" link, optional "timemap", and
-        // "first/last memento" (combined here) links. It can also include "prev/next memento" links,
-        // which is not applicable here.
-        final String expectedMementoLink = String.format(
-            "<%1$s>; rel=\"original\", " +
-            "<%2$s%3$stimemap/link/%1$s>; rel=\"timemap\"; type=\"application/link-format\", " +
-            "<%2$s%3$s%4$s/%1$s>; rel=\"first last memento\"; datetime=\"%5$s\"",
-            "http://test.example.com/", AGGREGATION_PREFIX, WEB_PREFIX, "20100601000000", expectedMementoDateTime);
-        httpResponse.setHeader(MementoUtils.LINK, expectedMementoLink);
+		final String expectedMementoDateTime = "Tue, 01 Jun 2010 00:00:00 GMT";
+		// redirects to URL for closest capture.
+		expectRedirect("/web/20100601000000/http://test.example.com/");
+		// MUST have "Vary: accept-datetime" header
+		httpResponse.setHeader("Vary", "accept-datetime");
+		// also has Link header with mandatory "original" link, optional "timemap", and
+		// "first/last memento" (combined here) links. It can also include "prev/next memento" links,
+		// which is not applicable here.
+		final String expectedMementoLink = String.format(
+			"<%1$s>; rel=\"original\", " +
+			"<%2$s%3$stimemap/link/%1$s>; rel=\"timemap\"; type=\"application/link-format\", " +
+			"<%2$s%3$s%4$s/%1$s>; rel=\"first last memento\"; datetime=\"%5$s\"",
+			"http://test.example.com/", AGGREGATION_PREFIX, WEB_PREFIX, "20100601000000", expectedMementoDateTime);
+		httpResponse.setHeader(MementoUtils.LINK, expectedMementoLink);
 
-        EasyMock.replay(httpRequest, httpResponse, resourceIndex, resourceStore, replay);
+		EasyMock.replay(httpRequest, httpResponse, resourceIndex, resourceStore, replay);
 
-        cut.init();
-        boolean r = cut.handleRequest(httpRequest, httpResponse);
+		cut.init();
+		boolean r = cut.handleRequest(httpRequest, httpResponse);
 
-        EasyMock.verify(httpResponse, resourceIndex, resourceStore, replay);
+		EasyMock.verify(httpResponse, resourceIndex, resourceStore, replay);
 
-        assertTrue("handleRequest return value", r);
+		assertTrue("handleRequest return value", r);
     }
 
     /**
@@ -1269,81 +1280,4 @@ public class AccessPointTest extends TestCase {
     }
 
     // TODO: tests of live-web redirector
-
-    // Tests for "soft-block" feature
-
-//    /**
-//     * <i>soft-blocked</i> records appears in the capture query result (in contrast to those hard-blocked,
-//     * that are completely excluded from the result), but marked as "excluded". Wayback ignores them as if
-//     * they don't exist when requested directly.
-//     */
-//	public void testSoftBlock_unavailableForDirectReplay() throws Exception {
-//		setReplayRequest("http://test.example.com/", "20100601000000");
-//
-//		CaptureSearchResults results = setupCaptures(
-//			0,
-//			createTestHtmlResource("20100601000000",
-//				"content\n".getBytes("UTF-8")));
-//		CaptureSearchResult xcap = results.getResults().get(0);
-//		xcap.setRobotFlag("X");
-//
-//		// Setup mock ExceptionHandler to capture ResourceNotAvailableException thrown from
-//		// handleReplay(). Default BaseExceptionRenderer is hard-wired to run JSP through
-//		// UIResults - it's hard to tap in. Not using EasyMock because it'd require more
-//		// boilerplate than implementing just one method to forward the call to httpResponse
-//		// mock.
-//		// liveWebRedirector must be null to ensure ExceptionRenderer#renderException() is called.
-//		ExceptionRenderer exceptionRenderer = new ExceptionRenderer() {
-//			public void renderException(HttpServletRequest httpRequest,
-//					HttpServletResponse httpResponse, WaybackRequest wbRequest,
-//					WaybackException exception,
-//					ResultURIConverter uriConverter) {
-//				assertTrue(exception instanceof ResourceNotAvailableException);
-//				// supposed to be 404 - see below
-//				httpResponse.setStatus(exception.getStatus());
-//			};
-//		};
-//		cut.setException(exceptionRenderer);
-//
-//		// EXPECTATIONS: returns 404 as there's no captures that can be replayed.
-//		httpResponse.setStatus(404);
-//		EasyMock.expect(httpResponse.isCommitted()).andReturn(false);
-//
-//		// replay.getReplay() will not be called, as there's no capture
-//		EasyMock.replay(httpRequest, httpResponse, resourceIndex, resourceStore, replay);
-//
-//		cut.init();
-//		boolean r = cut.handleRequest(httpRequest, httpResponse);
-//
-//		EasyMock.verify(httpResponse);
-//	}
-
-	/**
-	 * But <i>soft-blocked</i> captures are available as the original of later revisits.
-	 */
-	public void testSoftBlock_availableForRevisits() throws Exception {
-		// requesting the timestamp of the second, soft-blocked, capture.
-		setReplayRequest("http://test.example.com/", "20100630000000");
-
-		Resource revisited = createTestHtmlResource("20100601000000", "content\n".getBytes("UTF-8"));
-		Resource revisit = createTestRevisitResource("20100630000000", revisited, true);
-		CaptureSearchResults results = setupCaptures(1, revisited, revisit);
-
-		// revisited capture is soft-blocked
-		CaptureSearchResult xcap = results.getResults().get(0);
-		xcap.setRobotFlag("X");
-		CaptureSearchResult rcap = results.getResults().get(1);
-		rcap.flagDuplicateDigest(xcap);
-
-		// EXPECTATIONS: revisit capture on 2010-06-30 00:00:00 is replayed.
-
-		expectRendering(rcap, revisit, revisited, results);
-
-		EasyMock.replay(httpRequest, httpResponse, resourceIndex, resourceStore, replay);
-
-		cut.init();
-		boolean r = cut.handleRequest(httpRequest, httpResponse);
-
-		EasyMock.verify(replay);
-	}
 }

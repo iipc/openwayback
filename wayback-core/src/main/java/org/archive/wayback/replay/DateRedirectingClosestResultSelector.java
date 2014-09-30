@@ -39,38 +39,6 @@ public class DateRedirectingClosestResultSelector implements
 			CaptureSearchResults results) {
 
 		CaptureSearchResult closest = results.getClosest();
-//		String reqDateStr = wbRequest.getReplayTimestamp();
-//		String resDateStr = closest.getCaptureTimestamp();
-//		
-//		boolean doRedirect = false;
-//		
-//		// if the request date is shorter than the result date, always redirect:
-//		if(reqDateStr.length() < resDateStr.length()) {
-//			doRedirect = true;
-//		} else {
-//			// if the result is not for the exact date requested, redirect to the
-//			// exact date. some capture dates are not 14 digits, only compare as
-//			// many digits as are in the result date:
-//			if(!resDateStr.equals(reqDateStr.substring(0,resDateStr.length()))) {
-//				// If looking for latest date, don't redirect until after checking for errors later
-//				if (!wbRequest.isBestLatestReplayRequest()) {
-//					doRedirect = true;
-//				}
-//			}
-//		}
-//		if(doRedirect) {
-//			doRedirection(wbRequest,closest);
-//		}
 		return closest;
 	}
-//	protected void doRedirection(WaybackRequest wbRequest,
-//			CaptureSearchResult closest) throws BetterRequestException {
-//		// redirect to the better version:
-//		String url = closest.getOriginalUrl();
-//		String captureDate = closest.getCaptureTimestamp();
-//		ResultURIConverter uriConverter =
-//			wbRequest.getAccessPoint().getUriConverter();
-//		String betterURI = uriConverter.makeReplayURI(captureDate,url);
-//		throw new BetterRequestException(betterURI);
-//	}
 }

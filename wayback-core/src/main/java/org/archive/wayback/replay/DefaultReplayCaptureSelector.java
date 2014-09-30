@@ -120,10 +120,6 @@ public class DefaultReplayCaptureSelector implements ReplayCaptureSelector {
 					}
 				}
 			}
-//			if (hasAnyRobotFlags(currentClosest, ROBOT_FLAGS_SKIPPED)) {
-//				currentClosest = findNextClosest();
-//				continue;
-//			}
 			break;
 		}
 		return currentClosest;
