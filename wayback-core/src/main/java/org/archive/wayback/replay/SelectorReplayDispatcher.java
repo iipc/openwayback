@@ -2,8 +2,8 @@
  *  This file is part of the Wayback archival access software
  *   (http://archive-access.sourceforge.net/projects/wayback/).
  *
- *  Licensed to the Internet Archive (IA) by one or more individual 
- *  contributors. 
+ *  Licensed to the Internet Archive (IA) by one or more individual
+ *  contributors.
  *
  *  The IA licenses this file to You under the Apache License, Version 2.0
  *  (the "License"); you may not use this file except in compliance with
@@ -35,7 +35,7 @@ import org.archive.wayback.webapp.AccessPoint;
 
 /**
  * ReplayDispatcher instance which uses a configurable ClosestResultSelector
- * to find the best result to show from a given set, and a list of 
+ * to find the best result to show from a given set, and a list of
  * ReplayRendererSelector to determine how best to replay that result to a user.
  *
  * <p>Optionally it can be configured with {@link MimeTypeDetector}s used for
@@ -48,7 +48,36 @@ public class SelectorReplayDispatcher implements ReplayDispatcher {
 	private List<ReplayRendererSelector> selectors = null;
 	private List<MimeTypeDetector> mimeTypeDetectors = null;
 	private ClosestResultSelector closestSelector = null;
-	
+
+	/**
+	 * default value for {@link #untrustfulMimeTypes}
+	 */
+	public static final String[] DEFAULT_UNTRUSTFUL_MIMETYPES = {
+		// Found many occurrence of "www/unknown" and "*/*" in IA's archive.
+		"text/html", "www/unknown", "*/"
+	};
+	private String[] untrustfulMimeTypes = DEFAULT_UNTRUSTFUL_MIMETYPES;
+
+	/**
+	 * A list of {@code mimetype} values that cannot be fully trusted.
+	 * For captures whose {@code mimetype} prefix-matches any of these,
+	 * SelectorReplayDispatcher will attempt to detect actual mime-type
+	 * with {@code mimeTypeDetector} (if configured).
+	 * <p>{@code unk} is always considered <i>untrustful</i>. You don't
+	 * need to include it in this list.</p>
+	 * <p>If passed {@code null}, default {@link #DEFAULT_UNTRUSTFUL_MIMETYPES}
+	 * will be used. If set to an empty array, detection is applied only to
+	 * captures without {@code Content-Type} header.</p>
+	 * @param untrustfulMimeTypes list of mime-type prefixes
+	 */
+	public void setUntrustfulMimeTypes(List<String> untrustfulMimeTypes) {
+		if (untrustfulMimeTypes == null)
+			this.untrustfulMimeTypes = DEFAULT_UNTRUSTFUL_MIMETYPES;
+		else
+			this.untrustfulMimeTypes = untrustfulMimeTypes
+				.toArray(new String[untrustfulMimeTypes.size()]);
+	}
+
 	/**
 	 * check if mime-type detection is suggested for mimeType.
 	 * @param mimeType mime-type to test (must not be null/empty/"unk")
@@ -56,9 +85,9 @@ public class SelectorReplayDispatcher implements ReplayDispatcher {
 	 * by looking into Resource.
 	 */
 	protected boolean shouldDetectMimeType(String mimeType) {
-		// TODO: want to make this configurable?
-		if (mimeType.startsWith("text/html"))
-			return true;
+		for (String prefix : untrustfulMimeTypes) {
+			if (mimeType.startsWith(prefix)) return true;
+		}
 		return false;
 	}
 
@@ -115,7 +144,7 @@ public class SelectorReplayDispatcher implements ReplayDispatcher {
 		}
 		return null;
 	}
-	
+
 	@Override
 	public ReplayRenderer getRenderer(WaybackRequest wbRequest,
 			CaptureSearchResult result, Resource httpHeadersResource,
@@ -130,11 +159,11 @@ public class SelectorReplayDispatcher implements ReplayDispatcher {
 
 	public CaptureSearchResult getClosest(WaybackRequest wbRequest,
 			CaptureSearchResults results) throws BetterRequestException {
-		
+
 		try {
 			return closestSelector.getClosest(wbRequest, results);
 		} catch (BetterRequestException e) {
-			
+
 			if (wbRequest.isMementoEnabled()) {
 				// Issue either a Memento URL-G response, or "intermediate resource" response
 				if (wbRequest.isMementoTimegate()) {
@@ -144,11 +173,11 @@ public class SelectorReplayDispatcher implements ReplayDispatcher {
 					e.addHeader(MementoConstants.LINK, MementoUtils.makeOrigHeader(wbRequest.getRequestUrl()));
 				}
 			}
-			
+
 			throw e;
 		}
 	}
-	
+
 	/**
 	 * @return the List of ReplayRendererSelector objects configured
 	 */

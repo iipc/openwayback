@@ -2,10 +2,12 @@ package org.archive.wayback.replay.mimetype;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.archive.wayback.core.Resource;
+import org.archive.wayback.replay.GzipDecodingResource;
 import org.archive.wayback.replay.charset.CharsetDetector;
 import org.archive.wayback.replay.charset.StandardCharsetDetector;
 
@@ -14,6 +16,8 @@ import org.archive.wayback.replay.charset.StandardCharsetDetector;
  * It's ad-hoc and not customizable, just tested against many samples.
  */
 public class SimpleMimeTypeDetector implements MimeTypeDetector {
+	private static final Logger logger = Logger.getLogger(SimpleMimeTypeDetector.class.getName());
+
 	/**
 	 * default value for {@code sniffLength}.
 	 */
@@ -23,7 +27,7 @@ public class SimpleMimeTypeDetector implements MimeTypeDetector {
 	 * prevent {@code ArrayIndexOutOfBoundsException}.)
 	 */
 	protected static final int MINIMUM_SNIFF_BUFFER_SIZE = 10;
-	
+
 	private int sniffLength = DEFAULT_SNIFF_LENGTH;
 	private CharsetDetector charsetDetector = new StandardCharsetDetector();
 
@@ -213,8 +217,32 @@ public class SimpleMimeTypeDetector implements MimeTypeDetector {
 		// Other formats we may want to add
 		// "RIFF" <?><?><?><?> "WAVEfmt " - "audio/wav"
 		// <DB><A5><2D><00> - commonly with suffix .doc. files command doesn't know this format.
-		// <C5><D0><D3><C6><1E><00><00><00> - EPS
+		// <C5><D0><D3><C6><1E><00><00><00> - some EPS has a binary header starting with this, before "%!PS-"
 		return null;
+	}
+
+	/**
+	 * Read first {@code sniffLength} bytes of {@code resource}'s payload,
+	 * decoding {@code Content-Encoding} if any. Reset {@code resource}'s
+	 * read position back to zero.
+	 * @param resource Resource to load bytes from
+	 * @return bytes, zero-padded if payload is shorter.
+	 * @throws IOException
+	 */
+	protected byte[] peekContent(Resource resource) throws IOException {
+		byte[] bbuffer = new byte[Math.max(sniffLength, MINIMUM_SNIFF_BUFFER_SIZE)];
+		String encoding = resource.getHeader("content-encoding");
+		if ("gzip".equalsIgnoreCase(encoding) || "x-gzip".equalsIgnoreCase(encoding)) {
+			resource = new GzipDecodingResource(resource);
+			// use larger readlimit, because gzip-ed data can be larger than the original
+			// at low compression level.
+			resource.mark(sniffLength + 100);
+		} else {
+			resource.mark(sniffLength);
+		}
+		resource.read(bbuffer, 0, sniffLength);
+		resource.reset();
+		return bbuffer;
 	}
 
 	@Override
@@ -222,13 +250,13 @@ public class SimpleMimeTypeDetector implements MimeTypeDetector {
 		// This sniffer only works with HTTP response record.
 		// TODO: check record type.
 
-		byte[] bbuffer = new byte[Math.max(sniffLength, MINIMUM_SNIFF_BUFFER_SIZE)];
-		resource.mark(sniffLength);
+		byte[] bbuffer;
 		try {
-			resource.read(bbuffer, 0, sniffLength);
-			resource.reset();
+			bbuffer = peekContent(resource);
 		} catch (IOException ex) {
-			// TODO: log
+			// Caveat: IOException from reset() (i.e. mark got invalidated) will have major
+			// consequences. Should we re-throw some runtime exception?
+			logger.warning("error reading " + sniffLength + " from resource: " + ex.getMessage());
 			return null;
 		}
 
@@ -285,25 +313,29 @@ public class SimpleMimeTypeDetector implements MimeTypeDetector {
 			.compile("(?s)\\s*<!--.*?-->");
 
 	protected String detectHTML(String text) {
+		int pos = 0;
 		{
 			Matcher m = RE_XML_PROLOGUE.matcher(text);
 			if (m.lookingAt()) {
-				text = text.substring(m.end());
+				pos = m.end();
 			}
 		}
 		{
 			Matcher m = RE_SGML_COMMENT.matcher(text);
-			if (m.lookingAt()) {
-				text = text.substring(m.end());
+			m.region(pos, text.length());
+			while (m.lookingAt()) {
+				m.region(pos = m.end(), text.length());
 			}
 		}
 		{
 			Matcher m = RE_DOCTYPE_HTML.matcher(text);
+			m.region(pos, text.length());
 			if (m.lookingAt())
 				return "text/html";
 		}
 		{
 			Matcher m = RE_HTML_ELEMENTS.matcher(text);
+			m.region(pos, text.length());
 			if (m.lookingAt())
 				return "text/html";
 		}

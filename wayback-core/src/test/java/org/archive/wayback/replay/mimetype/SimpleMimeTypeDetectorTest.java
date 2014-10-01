@@ -14,7 +14,6 @@ import org.archive.io.warc.TestWARCRecordInfo;
 import org.archive.io.warc.WARCRecord;
 import org.archive.io.warc.WARCRecordInfo;
 import org.archive.wayback.core.Resource;
-import org.archive.wayback.replay.GzipDecodingResource;
 import org.archive.wayback.resourcestore.jwat.JWATResource;
 import org.archive.wayback.resourcestore.resourcefile.WarcResource;
 
@@ -33,10 +32,11 @@ public class SimpleMimeTypeDetectorTest extends TestCase {
 		cut = new SimpleMimeTypeDetector();
 	}
 
-	public static Resource createTestResource(String ctype, byte[] payloadBytes)
+	public static Resource createTestResource(String ctype, byte[] payloadBytes, boolean compressed)
 			throws IOException {
-		WARCRecordInfo recinfo = TestWARCRecordInfo.createHttpResponse(ctype,
-			payloadBytes);
+		WARCRecordInfo recinfo = compressed ? TestWARCRecordInfo
+				.createCompressedHttpResponse(ctype, payloadBytes)
+					: TestWARCRecordInfo.createHttpResponse(ctype, payloadBytes);
 		TestWARCReader ar = new TestWARCReader(recinfo);
 		WARCRecord rec = ar.get(0);
 		WarcResource resource = new WarcResource(rec, ar);
@@ -62,7 +62,7 @@ public class SimpleMimeTypeDetectorTest extends TestCase {
 		//CaptureSearchResult result = new CaptureSearchResult();
 		//result.setMimeType(indexContentType);
 		Resource resource = createTestResource(recordContentType,
-			getTestContent(filename));
+			getTestContent(filename), false);
 		String mimetype = cut.sniff(resource);
 		return mimetype;
 	}
@@ -85,6 +85,13 @@ public class SimpleMimeTypeDetectorTest extends TestCase {
 
 	public void testContentSniffing_JavaScript() throws Exception {
 		assertEquals("text/javascript", detectMimeType("js/1.js", "text/html"));
+	}
+
+	public void testContentSniffing_JavaScript_compressed() throws Exception {
+		Resource resource = createTestResource("text/html", getTestContent("js/1.js"), true);
+		String mimetype = cut.sniff(resource);
+
+		assertEquals("text/javascript", mimetype);
 	}
 
 	public void testContentSniffing_JSON() throws Exception {
@@ -145,10 +152,6 @@ public class SimpleMimeTypeDetectorTest extends TestCase {
 		try {
 			InputStream is = new FileInputStream(file);
 			Resource resource = JWATResource.getResource(is, 0);
-			String encoding = resource.getHeader("content-encoding");
-			if ("gzip".equalsIgnoreCase(encoding) || "x-gzip".equalsIgnoreCase(encoding)) {
-				resource = new GzipDecodingResource(resource);
-			}
 			String contentType = resource.getHeader("content-type");
 			if (contentType == null)
 				contentType = "-";
