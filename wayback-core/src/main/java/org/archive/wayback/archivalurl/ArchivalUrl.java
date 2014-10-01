@@ -36,6 +36,11 @@ public class ArchivalUrl {
 		this.wbRequest = wbRequest;
 	}
 
+        /**
+         *
+         * @return A string representation of this object.
+         */
+        @Override
 	public String toString() {
 		if(wbRequest.isReplayRequest()) {
 			return toReplayString(wbRequest.getRequestUrl());
@@ -61,10 +66,25 @@ public class ArchivalUrl {
 	public String toReplayString(String url) {
 		return toString(wbRequest.getReplayTimestamp(),url);
 	}
+        
+        /**
+	 * Create a new datespec + flags which represent the same options 
+         * as requested by the instances own WaybackRequest, using the constant WaybackRequest.REQUEST_DATE constant as
+         * a prefix.
+	 * @return a String representing the flags on the WaybackRequest.
+	 */
 	public String getDateSpec() {
 		return getDateSpec(wbRequest.getReplayTimestamp());
 	}
 	
+        
+        /**
+	 * Given a date, create a new datespec + flags which represent the same options 
+         * as requested by the instances own WaybackRequest.
+         * @param datespec The date specification prefix.
+	 * @return a String representing the flags on the WaybackRequest for the
+	 * specified date
+	 */
 	public String getDateSpec(String datespec) {
 		return getDateSpec(wbRequest, datespec);
 	}
@@ -72,7 +92,8 @@ public class ArchivalUrl {
 	/**
 	 * Given a date, create a new datespec + flags
 	 * which represent the same options as requested by the WaybackRequest
-	 * @param timestamp the 14-digit timestamp to use
+         * @param wbRequest
+         * @param datespec The date specification prefix.
 	 * @return a String representing the flags on the WaybackRequest for the
 	 * specified date
 	 */

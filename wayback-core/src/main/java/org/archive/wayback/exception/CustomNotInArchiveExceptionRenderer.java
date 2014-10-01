@@ -22,9 +22,6 @@ package org.archive.wayback.exception;
 import java.util.HashMap;
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.util.url.UrlOperations;
 
@@ -52,11 +49,6 @@ public class CustomNotInArchiveExceptionRenderer extends BaseExceptionRenderer  
 //	}
 
 
-	/**
-	 * @param exception
-	 * @param wbRequest
-	 * @return
-	 */
 	private String getCustomHandler(WaybackException exception,
 			WaybackRequest wbRequest) {
 		if((exception instanceof ResourceNotInArchiveException)
@@ -70,19 +62,35 @@ public class CustomNotInArchiveExceptionRenderer extends BaseExceptionRenderer  
 		return null;
 	}
 
-
-	public String getJspHandler() {
+    /**
+     *
+     * @return The JSP handler being used.
+     */
+    public String getJspHandler() {
 		return jspHandler;
 	}
 
-
-	public void setJspHandler(String jspHandler) {
+    /**
+     *
+     * @param jspHandler The JSP handler to use.
+     */
+    public void setJspHandler(String jspHandler) {
 		this.jspHandler = jspHandler;
 	}
-	public List<String> getHosts() {
+
+    /**
+     *
+     * @return This method currently always returns <b>null</b>.
+     */
+    public List<String> getHosts() {
 		return null;
 	}
-	public void setHosts(List<String> hosts) {
+
+    /**
+     *
+     * @param hosts
+     */
+    public void setHosts(List<String> hosts) {
 		this.hosts = new HashMap<String,Object>();
 		for(String host : hosts) {
 			this.hosts.put(host, null);

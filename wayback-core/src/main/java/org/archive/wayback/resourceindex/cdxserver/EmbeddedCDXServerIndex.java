@@ -109,11 +109,13 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 	}
 	
 	/**
-	 * return {@link AuthToken} representing user's privileges on {@code urlkey}.
 	 * <ul>
 	 * <li>robots.txt may be ignored for embedded resources (CSS, images, javascripts)</li>
 	 * <li>robots.txt may be ignored if {@code urlkey} starts with any of {@code ignoreRobotPaths}</li>
 	 * </ul>
+         * @param wbRequest
+         * @param urlkey
+         * @return {@link AuthToken} representing user's privileges on {@code urlkey}. 
 	 */
 	protected AuthToken createAuthToken(WaybackRequest wbRequest, String urlkey)
 	{
@@ -263,7 +265,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 	 *
 	 * @param wbRequest {@link WaybackRequest} either replay or capture-query
 	 * @param isFuzzy unused (?)
-	 * @return
+	 * @return A {@link CDXQuery} object for the supplied request.
 	 */
 	protected CDXQuery createQuery(WaybackRequest wbRequest, boolean isFuzzy) {
 		CDXQuery query = new CDXQuery(wbRequest.getRequestUrl());

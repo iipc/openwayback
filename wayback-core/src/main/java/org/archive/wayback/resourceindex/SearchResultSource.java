@@ -59,7 +59,6 @@ public interface SearchResultSource {
 	public void cleanup(CloseableIterator<CaptureSearchResult> c) throws IOException;
 
 	/**
-	 * @param c
 	 * @throws IOException 
 	 */
 	public void shutdown() throws IOException;

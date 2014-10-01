@@ -20,7 +20,6 @@
 package org.archive.wayback.replay;
 
 import java.io.IOException;
-import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -32,9 +31,7 @@ import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.WaybackRequest;
-import org.archive.wayback.exception.BadContentException;
 import org.archive.wayback.exception.WaybackException;
-import org.archive.wayback.replay.charset.CharsetDetector;
 
 /**
  * @author brad
@@ -46,7 +43,7 @@ public abstract class ReplayRendererDecorator implements ReplayRenderer {
 	public ReplayRendererDecorator() {
 	}
 	/**
-	 * @param httpHeaderProcessor
+         * @param decorated
 	 */
 	public ReplayRendererDecorator(ReplayRenderer decorated) {
 		this.decorated = decorated;
@@ -64,6 +61,7 @@ public abstract class ReplayRendererDecorator implements ReplayRenderer {
 		this.decorated = decorated;
 	}
 
+        @Override
 	public abstract void renderResource(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
 			CaptureSearchResult result, Resource resource,

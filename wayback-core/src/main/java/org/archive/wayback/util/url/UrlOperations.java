@@ -148,11 +148,13 @@ public class UrlOperations {
 	
 	/** Resolve URL, but return a minimally escaped version in case of
 	 *  error
-	 * @param baseUrl
-	 * @param url
-	 * @return
+	 * @param baseUrl the base URL against which the url should be resolved
+	 * @param url the URL, possibly relative, to make absolute.
+	 * @return url resolved against baseUrl, unless it is absolute already, and
+	 * further transformed by whatever escaping normally takes place with a 
+	 * UsableURI.
+	 * In case of error, return URL.
 	 */
-	
 	public static String resolveUrl(String baseUrl, String url) {
 		String resolvedUrl = resolveUrl(baseUrl, url, null);
 		if (resolvedUrl == null) {
@@ -166,6 +168,7 @@ public class UrlOperations {
 	 * Resolve a possibly relative url argument against a base URL.
 	 * @param baseUrl the base URL against which the url should be resolved
 	 * @param url the URL, possibly relative, to make absolute.
+         * @param defaultValue The default value to return if the supplied values can't be resolved.
 	 * @return url resolved against baseUrl, unless it is absolute already, and
 	 * further transformed by whatever escaping normally takes place with a 
 	 * UsableURI.
@@ -327,7 +330,7 @@ public class UrlOperations {
 	 * {@code mms}. For example fixing {@code http:/} to {@code https://}</p>
 	 * @param url URL to be checked and fixed
 	 * @return new String, or {@code url} if not fix is required.
-	 * @version 1.8.1
+	 * @since 1.8.1
 	 */
 	public static String fixupScheme(String url) {
 		final String[] SCHEMES = {

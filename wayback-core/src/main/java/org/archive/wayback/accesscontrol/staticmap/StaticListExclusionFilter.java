@@ -1,6 +1,5 @@
 package org.archive.wayback.accesscontrol.staticmap;
 
-import java.util.Map;
 import java.util.TreeSet;
 import java.util.logging.Logger;
 
@@ -9,7 +8,6 @@ import org.archive.util.SURT;
 import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
-import org.archive.wayback.surt.SURTTokenizer;
 import org.archive.wayback.util.ObjectFilter;
 import org.archive.wayback.util.url.AggressiveUrlCanonicalizer;
 
@@ -23,8 +21,10 @@ public class StaticListExclusionFilter extends ExclusionFilter {
 	private boolean notifiedPassed = false;
 	TreeSet<String> exclusions = null;
 	UrlCanonicalizer canonicalizer = new AggressiveUrlCanonicalizer();
+        
 	/**
-	 * @param map where each String key is a SURT that is blocked.
+         * @param exclusions
+         * @param canonicalizer
 	 */
 	public StaticListExclusionFilter(TreeSet<String> exclusions, UrlCanonicalizer canonicalizer) {
 		this.exclusions = exclusions;
@@ -39,6 +39,7 @@ public class StaticListExclusionFilter extends ExclusionFilter {
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.resourceindex.SearchResultFilter#filterSearchResult(org.archive.wayback.core.SearchResult)
 	 */
+        @Override
 	public int filterObject(CaptureSearchResult r) {
 		if(!notifiedSeen) { 
 			if(filterGroup != null) {

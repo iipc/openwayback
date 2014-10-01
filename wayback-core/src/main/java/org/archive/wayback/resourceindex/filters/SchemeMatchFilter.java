@@ -38,13 +38,15 @@ public class SchemeMatchFilter implements ObjectFilter<CaptureSearchResult> {
 	private QueryCaptureFilterGroup annotationTarget = null;
 
 	/**
-	 * @param hostname String of original host to match
+         * @param scheme The scheme to use as match filter.
 	 */
 	public SchemeMatchFilter(final String scheme) {
 		this.scheme = scheme;
 	}
+        
 	/**
-	 * @param hostname String of original host to match
+         * @param scheme The scheme to use as match filter.
+         * @param annotationTarget
 	 */
 	public SchemeMatchFilter(final String scheme, 
 			QueryCaptureFilterGroup annotationTarget) {
@@ -55,6 +57,7 @@ public class SchemeMatchFilter implements ObjectFilter<CaptureSearchResult> {
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.util.ObjectFilter#filterObject(java.lang.Object)
 	 */
+        @Override
 	public int filterObject(CaptureSearchResult r) {
 		String captureScheme = UrlOperations.urlToScheme(r.getOriginalUrl());
 		if(scheme == null) {
