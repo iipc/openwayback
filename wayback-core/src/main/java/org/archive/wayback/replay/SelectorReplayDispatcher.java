@@ -31,6 +31,7 @@ import org.archive.wayback.exception.BetterRequestException;
 import org.archive.wayback.memento.MementoConstants;
 import org.archive.wayback.memento.MementoUtils;
 import org.archive.wayback.replay.mimetype.MimeTypeDetector;
+import org.archive.wayback.resourcestore.indexer.IndexWorker;
 import org.archive.wayback.webapp.AccessPoint;
 
 /**
@@ -49,6 +50,9 @@ public class SelectorReplayDispatcher implements ReplayDispatcher {
 	private List<MimeTypeDetector> mimeTypeDetectors = null;
 	private ClosestResultSelector closestSelector = null;
 
+	public static final String DEFAULT_MISSING_MIMETYPE = "unk";
+	private String missingMimeType = DEFAULT_MISSING_MIMETYPE;
+
 	/**
 	 * default value for {@link #untrustfulMimeTypes}
 	 */
@@ -63,8 +67,8 @@ public class SelectorReplayDispatcher implements ReplayDispatcher {
 	 * For captures whose {@code mimetype} prefix-matches any of these,
 	 * SelectorReplayDispatcher will attempt to detect actual mime-type
 	 * with {@code mimeTypeDetector} (if configured).
-	 * <p>{@code unk} is always considered <i>untrustful</i>. You don't
-	 * need to include it in this list.</p>
+	 * <p>Value set to {@link #missingMimeType} is always considered
+	 * <i>untrustful</i>. You don't need to include it in this list.</p>
 	 * <p>If passed {@code null}, default {@link #DEFAULT_UNTRUSTFUL_MIMETYPES}
 	 * will be used. If set to an empty array, detection is applied only to
 	 * captures without {@code Content-Type} header.</p>
@@ -76,6 +80,24 @@ public class SelectorReplayDispatcher implements ReplayDispatcher {
 		else
 			this.untrustfulMimeTypes = untrustfulMimeTypes
 				.toArray(new String[untrustfulMimeTypes.size()]);
+	}
+
+	/**
+	 * Value of {@code mimetype} field indicating {@code Content-Type}
+	 * is unavailable in the response.
+	 * Default is {@code unk} (compatible with CDX-Writer).
+	 * {@link IndexWorker} puts {@code application/http}, apparently.
+	 * @param missingMimeType
+	 */
+	public void setMissingMimeType(String missingMimeType) {
+		if (missingMimeType == null || missingMimeType.isEmpty())
+			this.missingMimeType = DEFAULT_MISSING_MIMETYPE;
+		else
+			this.missingMimeType = missingMimeType;
+	}
+
+	public String getMissingMimeType() {
+		return missingMimeType;
 	}
 
 	/**
@@ -110,7 +132,7 @@ public class SelectorReplayDispatcher implements ReplayDispatcher {
 			// HTTP response has valid Content-Type header. CDX writer does not fix
 			// it (although it's capable of fixing it internally). If CaptureSearchResult
 			// says mimeType is "unk", try reading Content-Type header from the resource.
-			if (mimeType == null || mimeType.isEmpty() || "unk".equals(mimeType)) {
+			if (mimeType == null || mimeType.isEmpty() || missingMimeType.equals(mimeType)) {
 				mimeType = resource.getHeader("Content-Type");
 			}
 			// "unk" and "" are changed to Content-Type header value (or null if in fact missing)

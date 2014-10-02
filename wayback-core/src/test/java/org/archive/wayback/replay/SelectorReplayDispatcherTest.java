@@ -191,6 +191,33 @@ public class SelectorReplayDispatcherTest extends TestCase {
 		EasyMock.verify(detector);
 	}
 
+	/**
+	 * Test of non-default {@code missingMimeType}.
+	 * @throws Exception
+	 */
+	public void testMissingMimeType() throws Exception {
+		final String MISSING_MIMETYPE = "application/http";
+
+		WaybackRequest wbRequest = new WaybackRequest();
+		CaptureSearchResult result = new CaptureSearchResult();
+		result.setMimeType(MISSING_MIMETYPE);
+		Resource resource = createTestResource(null,
+			"var k = 1;".getBytes("UTF-8"));
+
+		MimeTypeDetector detector = EasyMock.createMock(MimeTypeDetector.class);
+		EasyMock.expect(detector.sniff(resource)).andReturn("text/javascript");
+		cut.setMimeTypeDetectors(Collections.singletonList(detector));
+		cut.setMissingMimeType(MISSING_MIMETYPE);
+
+		EasyMock.replay(detector);
+
+		ReplayRenderer rr = cut.getRenderer(wbRequest, result, resource);
+
+		assertEquals("js", ((TestReplayRenderer)rr).name);
+		EasyMock.verify(detector);
+
+	}
+
 	// TODO: want another test for REVISIT case?
 
 }
