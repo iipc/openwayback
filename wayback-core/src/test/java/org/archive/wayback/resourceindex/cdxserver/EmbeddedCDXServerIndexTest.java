@@ -281,7 +281,12 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 		CaptureSearchResult captureX = capture1.getDuplicatePayload();
 		assertNotNull(captureX);
 		assertEquals("20101124000000", captureX.getCaptureTimestamp());
-	}
+
+		// test if capture1 pretends to be an ordinary capture.
+		// we want to hide the fact that it's content is coming from
+		// blocked capture (this is actually a test of CaptereSearchResult.)
+		assertFalse(capture1.isDuplicateDigest());
+}
 
 	/**
 	 * Supplementary test for soft-block feature.

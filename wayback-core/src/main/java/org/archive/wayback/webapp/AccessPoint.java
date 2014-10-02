@@ -41,6 +41,7 @@ import org.archive.wayback.QueryRenderer;
 import org.archive.wayback.ReplayDispatcher;
 import org.archive.wayback.ReplayRenderer;
 import org.archive.wayback.RequestParser;
+import org.archive.wayback.ResourceStore;
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.accesscontrol.ExclusionFilterFactory;
@@ -539,20 +540,58 @@ implements ShutdownListener {
 		}
 	}
 
-	protected Resource getResource(CaptureSearchResult closest,
-			Set<String> skipFiles) throws ResourceNotAvailableException,
-			ConfigurationException {
-		try {
-			PerfStats.timeStart(PerfStat.WArcResource);
+	/**
+	 * Per-request, decorating ResourceStore that throws
+	 * {@link ResourceNotAvailableException} if retrieval of the
+	 * archive has failed previously within the session.
+	 * It helps AccessPoint quickly scan through {@code CaptureSearchResult}s
+	 * pointing the same archive as their revisit original.
+	 * It also collects performance stats. 
+	 */
+	protected static class SingleLoadResourceStore implements ResourceStore {
+		private Set<String> skipFiles;
+		private ResourceStore resourceStore;
+		public SingleLoadResourceStore(ResourceStore realResourceStore) {
+			this.resourceStore = realResourceStore;
+		}
 
-			if ((skipFiles != null) && skipFiles.contains(closest.getFile())) {
-				throw new ResourceNotAvailableException(
-					"Revisit: Skipping already failed " + closest.getFile());
-			}
+		protected void addSkip(String filename) {
+			if (filename == null) return;
+			if (skipFiles == null)
+				skipFiles = new HashSet<String>();
+			skipFiles.add(filename);
+		}
+		protected boolean isSkipped(String filename) {
+			return filename != null && skipFiles != null && skipFiles.contains(filename);
+		}
 
-			return getCollection().getResourceStore().retrieveResource(closest);
-		} finally {
-			PerfStats.timeEnd(PerfStat.WArcResource);
+		@Override
+		public Resource retrieveResource(CaptureSearchResult result)
+				throws ResourceNotAvailableException {
+			try {
+				PerfStats.timeStart(PerfStat.WArcResource);
+				if (isSkipped(result.getFile())) {
+					throw new ResourceNotAvailableException(
+						"Revisit: Skipping already failed " + result.getFile());
+				}
+				try {
+					return resourceStore.retrieveResource(result);
+				} catch (ResourceNotAvailableException ex) {
+					// Old code obtained archive filename via getDtails() method of
+					// exception object, in the code handling SepcificCaptureReplayException.
+					// Of two subclasses of SpecificCaptureReplayException, BadContentException
+					// (only thrown from HttpHeaderOperation.copyHTTPMessageHeader()) never had
+					// non-null details. So, this covers all cases, and more robust.
+					addSkip(result.getFile());
+					throw ex;
+				}
+ 			} finally {
+ 				PerfStats.timeEnd(PerfStat.WArcResource);
+ 			}
+		}
+
+		@Override
+		public void shutdown() throws IOException {
 		}
 	}
 
@@ -686,7 +725,8 @@ implements ShutdownListener {
 		//int maxTimeouts = 2;
 		//int maxMissingRevisits = 2;
 
-		Set<String> skipFiles = null;
+		SingleLoadResourceStore resourceStore = new SingleLoadResourceStore(getCollection().getResourceStore());
+		//Set<String> skipFiles = null;
 
 		while (true) {
 			// Support for redirect from the CDX redirectUrl field
@@ -720,18 +760,20 @@ implements ShutdownListener {
 				}
 
 				// If revisit, may load two resources separately
-				if (closest.isDuplicateDigest()) {
+				if (closest.isRevisitDigest()) {
 					isRevisit = true;
 
 					// If the payload record is known and it failed before with this payload, don't try
 					// loading the header resource even.. outcome will likely be same
-					if ((closest.getDuplicatePayloadFile() != null) &&
-							(skipFiles != null) && skipFiles.contains(closest.getDuplicatePayloadFile())) {
+					if (resourceStore.isSkipped(closest.getDuplicatePayloadFile())) {
+						// (XXX cannot simply call SessionResourceStore#retrieveResource() because of this
+						// counter thing - is there a better way?)
 						counter--; //don't really count this as we're not even checking the file anymore
 						throw new ResourceNotAvailableException(
 							"Revisit: Skipping already failed " +
 									closest.getDuplicatePayloadFile());
-					} else if ((closest.getDuplicatePayloadFile() == null) && wbRequest.isTimestampSearchKey()) {
+					}
+					if ((closest.getDuplicatePayloadFile() == null) && wbRequest.isTimestampSearchKey()) {
 						// If a missing revisit and loaded optimized, try loading the entire timeline again
 
 						wbRequest.setTimestampSearchKey(false);
@@ -753,7 +795,7 @@ implements ShutdownListener {
 						closest.setOffset(closest.getDuplicatePayloadOffset());
 
 						// See that this is successful
-						httpHeadersResource = getResource(closest, skipFiles);
+						httpHeadersResource = resourceStore.retrieveResource(closest);
 
 						// Hmm, since this is a revisit it should not redirect -- was: if both headers and payload are from a different timestamp, redirect to that timestamp
 //						if (!closest.getCaptureTimestamp().equals(closest.getDuplicateDigestStoredTimestamp())) {
@@ -763,7 +805,7 @@ implements ShutdownListener {
 						payloadResource = httpHeadersResource;
 
 					} else {
-						httpHeadersResource = getResource(closest, skipFiles);
+						httpHeadersResource = resourceStore.retrieveResource(closest);
 
 						CaptureSearchResult payloadLocation = retrievePayloadForIdenticalContentRevisit(wbRequest, httpHeadersResource, closest);
 
@@ -771,7 +813,7 @@ implements ShutdownListener {
 							throw new ResourceNotAvailableException("Revisit: Missing original for revisit record " + closest.toString(), 404);
 						}
 
-						payloadResource = getResource(payloadLocation, skipFiles);
+						payloadResource = resourceStore.retrieveResource(payloadLocation);
 
 						// If zero length old-style revisit with no headers, then must use payloadResource as headersResource
 						if (httpHeadersResource.getRecordLength() <= 0) {
@@ -780,7 +822,7 @@ implements ShutdownListener {
 						}
 					}
 				} else {
-					httpHeadersResource = getResource(closest, skipFiles);
+					httpHeadersResource = resourceStore.retrieveResource(closest);
 					payloadResource = httpHeadersResource;
 				}
 
@@ -843,6 +885,9 @@ implements ShutdownListener {
 				break;
 
 			} catch (SpecificCaptureReplayException scre) {
+				// Primarily ResourceNotAvailableException from ResourceStore,
+				// but renderer.renderResource(...) above can throw
+				// BadContentException (very rare).
 
 				//final String SOCKET_TIMEOUT_MSG = "java.net.SocketTimeoutException: Read timed out";
 
@@ -871,18 +916,6 @@ implements ShutdownListener {
 				}
 
 				if (nextClosest != null) {
-
-					// Store failed filename for revisits, as they may be repeated
-					if (isRevisit) {
-						if (scre.getDetails() != null) {
-							if (skipFiles == null) {
-								skipFiles = new HashSet<String>();
-							}
-							// Details should contain the failed filename from the ResourceStore
-							skipFiles.add(scre.getDetails());
-						}
-					}
-
 					if (msg.startsWith("Self-Redirect")) {
 						LOGGER.info("(" + counter + ")LOADFAIL-> " + msg + " -> " + nextClosest.getCaptureTimestamp());
 					} else {
@@ -954,7 +987,7 @@ implements ShutdownListener {
 			AccessControlException, ConfigurationException,
 			ResourceNotAvailableException {
 
-		if (!closest.isDuplicateDigest()) {
+		if (!closest.isRevisitDigest()) {
 			LOGGER.warning("Revisit: record is not a revisit by identical content digest " + closest.getCaptureTimestamp() + " " + closest.getOriginalUrl());
 			return null;
 		}

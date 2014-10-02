@@ -411,16 +411,36 @@ public class CaptureSearchResult extends SearchResult {
 
 	/**
 	 * whether this capture is a re-fetch of previously archived capture
-	 * (<i>revisit</i>), detected by content's digest.
+	 * (<i>revisit</i>), detected by content's digest, and replay of
+	 * that previous capture is not blocked.
+	 * <p>1.8.1 2014-10-02 behavior change. This method now returns
+	 * {@code false} even for revisits, if the original capture
+	 * is blocked. Use #isRevisitDigest() for old behavior.</p>
 	 * @return {@code true} if revisit
 	 */
 	public boolean isDuplicateDigest() {
+		if (!isRevisitDigest()) return false;
+		CaptureSearchResult orig = getDuplicatePayload();
+		if (orig != null && orig.isRobotFlagSet(CaptureSearchResult.CAPTURE_ROBOT_BLOCKED))
+			return false;
+		return true;
+	}
+
+	/**
+	 * whether this capture is a re-fetch of previously archived capture
+	 * (<i>revisit</i>), detected by content's digest.
+	 * <p>This method is meant for use by replay processing. For use in
+	 * user interface / web API code, consider {@link #isDuplicateDigest()}
+	 * is more appropriate.</p>
+	 * @return {@code true} if revisit
+	 */
+	public boolean isRevisitDigest() {
 		String dupeType = get(CAPTURE_DUPLICATE_ANNOTATION);
 		return (dupeType != null && dupeType.equals(CAPTURE_DUPLICATE_DIGEST));
 	}
 
 	public Date getDuplicateDigestStoredDate() {
-		if (isDuplicateDigest() && get(CAPTURE_DUPLICATE_STORED_TS) != null) {
+		if (isRevisitDigest() && get(CAPTURE_DUPLICATE_STORED_TS) != null) {
 			return tsToDate(get(CAPTURE_DUPLICATE_STORED_TS));
 		}
 		return null;
@@ -432,7 +452,7 @@ public class CaptureSearchResult extends SearchResult {
 	 * @return string representing timestamp.
 	 */
 	public String getDuplicateDigestStoredTimestamp() {
-		if (isDuplicateDigest()) {
+		if (isRevisitDigest()) {
 			return get(CAPTURE_DUPLICATE_STORED_TS);
 		}
 		return null;
@@ -627,7 +647,7 @@ public class CaptureSearchResult extends SearchResult {
 	 * @return
 	 */
 	public boolean isHttpError() {
-		if (isDuplicateDigest() && (getDuplicatePayload() != null)) {
+		if (isRevisitDigest() && (getDuplicatePayload() != null)) {
 			return getDuplicatePayload().isHttpError();
 		}
 		String httpCode = getHttpCode();
@@ -639,7 +659,7 @@ public class CaptureSearchResult extends SearchResult {
 	 * @return
 	 */
 	public boolean isHttpRedirect() {
-		if (isDuplicateDigest() && (getDuplicatePayload() != null)) {
+		if (isRevisitDigest() && (getDuplicatePayload() != null)) {
 			return getDuplicatePayload().isHttpRedirect();
 		}
 		String httpCode = getHttpCode();
@@ -651,7 +671,7 @@ public class CaptureSearchResult extends SearchResult {
 	 * @return
 	 */
 	public boolean isHttpSuccess() {
-		if (isDuplicateDigest() && (getDuplicatePayload() != null)) {
+		if (isRevisitDigest() && (getDuplicatePayload() != null)) {
 			return getDuplicatePayload().isHttpSuccess();
 		}
 		String httpCode = getHttpCode();
