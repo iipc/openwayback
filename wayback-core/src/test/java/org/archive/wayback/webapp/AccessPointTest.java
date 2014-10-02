@@ -4,6 +4,7 @@
 package org.archive.wayback.webapp;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
@@ -24,14 +25,12 @@ import org.archive.io.ArchiveRecordHeader;
 import org.archive.io.warc.TestWARCReader;
 import org.archive.io.warc.TestWARCRecordInfo;
 import org.archive.io.warc.WARCRecord;
-import org.archive.wayback.ExceptionRenderer;
 import org.archive.wayback.QueryRenderer;
 import org.archive.wayback.ReplayDispatcher;
 import org.archive.wayback.ReplayRenderer;
 import org.archive.wayback.RequestParser;
 import org.archive.wayback.ResourceIndex;
 import org.archive.wayback.ResourceStore;
-import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
@@ -46,7 +45,6 @@ import org.archive.wayback.resourcestore.resourcefile.ArcResource;
 import org.archive.wayback.resourcestore.resourcefile.WarcResource;
 import org.archive.wayback.util.url.KeyMakerUrlCanonicalizer;
 import org.archive.wayback.util.webapp.RequestMapper;
-import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
 import org.easymock.IArgumentMatcher;
@@ -631,6 +629,51 @@ public class AccessPointTest extends TestCase {
         // TODO: failure case: self-redirecting -> calls finxNextClosest() and fails if there's no more closest.
         // wbRequest.timestampSearchKey == true -> calls queryIndex() once again.
 
+    }
+
+    /**
+     * Test of internal behavior. If loading recording from an archive failed,
+     * AccessPoint shall not attempt to load the same archive again within the request
+     * for performance reasons.
+     * @throws Exception
+     */
+    public void testHandleReplay_noMultipleErrors() throws Exception {
+    	setReplayRequest("http://www.example.com/", "20100601000000");
+    	byte[] payload = "payload".getBytes("UTF-8");
+    	Resource resource0 = createTestHtmlResource("20100428000000", payload);
+    	Resource resource1 = createTestHtmlResource("20100501000000", payload);
+    	Resource revisit1 = createTestRevisitResource("20100515000000", resource1, true);
+    	Resource revisit2 = createTestRevisitResource("20100601000000", resource1, true);
+    	CaptureSearchResults results = setupCaptures(3, resource0, resource1, revisit1, revisit2);
+    	List<CaptureSearchResult> captures = results.getResults();
+    	// replace ResourceStore mock with a strict one that throws exception for 20100501000000 capture.
+    	collection.setResourceStore(resourceStore = EasyMock.createMock(ResourceStore.class));
+    	CaptureSearchResult capture1 = captures.get(1);
+    	// details == filename is a requirement of old code.
+    	ResourceNotAvailableException rnae = new ResourceNotAvailableException("load failed", capture1.getFile());
+    	// point is, retrieveResource() shall not be called while checking captures 20100515 and 20100501
+    	EasyMock.expect(resourceStore.retrieveResource(eqCaptureSearchResult(capture1))).andThrow(rnae).once();
+    	EasyMock.expect(resourceStore.retrieveResource(eqCaptureSearchResult(captures.get(0)))).andReturn(resource0);
+    	// whether retrieveResource() is called for these revisit captures are non-essential (they will be,
+    	// but it may change)
+    	captures.get(2).flagDuplicateDigest(capture1);
+    	EasyMock.expect(resourceStore.retrieveResource(eqCaptureSearchResult(captures.get(2)))).andStubReturn(revisit1);
+    	captures.get(3).flagDuplicateDigest(capture1);
+    	EasyMock.expect(resourceStore.retrieveResource(eqCaptureSearchResult(captures.get(3)))).andStubReturn(revisit2);
+
+        final String expectedRedirectURI = "/web/20100428000000/http://test.example.com/";
+    	expectRedirect(expectedRedirectURI);
+
+    	EasyMock.replay(httpRequest, httpResponse, resourceIndex, resourceStore, replay);
+    	// default 0 makes AccessPoint give up on the first ResourceNotAvailableException on
+    	// 20100501000000 capture. here we want it to try 20100428000000 and succeed.
+    	cut.setMaxRedirectAttempts(10);
+    	cut.init();
+    	boolean r = cut.handleRequest(httpRequest, httpResponse);
+
+    	EasyMock.verify(resourceIndex, resourceStore, replay);
+
+    	assertTrue("handleRequest return value", r);
     }
 
     public static Resource createSelfRedirectResource(String url, String timestamp) throws IOException {
