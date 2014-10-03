@@ -423,8 +423,16 @@ public class UrlOperations {
 		return null;
 	}
 	
-	public static String computeIdentityUrl(WaybackRequest wbRequest)
-	{
+	/**
+	 * build replay Archival-URL for the same capture as request
+	 * {@code wbRequest}, with identity-context ({@code id_}) flag on.
+	 * <p>
+	 * REFACTOR: move this method to {@link ArchivalUrl}.
+	 * </p>
+	 * @param wbRequest requested capture and URL scheme info.
+	 * @return URL string
+	 */
+	public static String computeIdentityUrl(WaybackRequest wbRequest) {
 		AccessPoint accessPoint = wbRequest.getAccessPoint();
 
 		boolean origIdentity = wbRequest.isIdentityContext();

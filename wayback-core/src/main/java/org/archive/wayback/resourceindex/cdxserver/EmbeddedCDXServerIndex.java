@@ -94,6 +94,17 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 		IndexLoad;
 	}
 
+	/**
+	 * {@link WaybackRequest} parameter name for telling
+	 * {@code EmbeddedCDXServerIndex} that it's looking up a specific single
+	 * capture needed for replaying URL-agnostic revisit.
+	 * <p>
+	 * Defined here, without setter/getter, because this is an experimental
+	 * parameter supporting soft-block feature. It's very likely to change.
+	 * </p>
+	 */
+	public final static String REQUEST_REVISIT_LOOKUP = "EmbeddedCDXServerIndex.revisit-lookup";
+
 	@Override
     public SearchResults query(WaybackRequest wbRequest)
             throws ResourceIndexNotAvailableException,
@@ -473,6 +484,10 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 
 		captureWriter.setSelfRedirFilter(selfRedirFilter);
 
+		if ("true".equals(wbRequest.get(REQUEST_REVISIT_LOOKUP))) {
+			captureWriter.setIncludeBlockedCaptures(true);
+		}
+
 		return captureWriter;
 	}
 	
@@ -694,7 +709,12 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 	public String getPreferContains() {
 		return preferContains;
 	}
-
+	/**
+	 * substring of {@code filename} field identifying preferred
+	 * archive among multiple copies of the same capture.
+	 * @param preferContains
+	 * @see CDXToCaptureSearchResultsWriter
+	 */
 	public void setPreferContains(String preferContains) {
 		this.preferContains = preferContains;
 	}

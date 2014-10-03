@@ -14,7 +14,6 @@ import java.util.zip.GZIPOutputStream;
 
 import org.archive.format.ArchiveFileConstants;
 import org.archive.format.warc.WARCConstants;
-import org.archive.format.warc.WARCConstants.WARCRecordType;
 import org.archive.util.DateUtils;
 
 /**
@@ -93,6 +92,19 @@ public class TestWARCRecordInfo extends WARCRecordInfo implements WARCConstants,
             throws IOException {
         return new TestWARCRecordInfo(buildHttpResponseBlock(ctype, payloadBytes));
     }
+    /**
+     * return TestWARCRecordInfo for HTTP Response with response status line {@code status},
+     * entity {@code payload} of content-type {@code ctype}.
+     * @param status status line, such as {@code "200 OK"}
+     * @param ctype content-type
+     * @param payloadBytes payload bytes
+     * @return TestWARCRecordInfo
+     * @throws IOException
+     */
+	public static TestWARCRecordInfo createHttpResponse(String status,
+			String ctype, byte[] payloadBytes) throws IOException {
+		return new TestWARCRecordInfo(buildHttpResponseBlock(status, ctype, payloadBytes));
+	}
     public static TestWARCRecordInfo createCompressedHttpResponse(String ctype,
             byte[] payloadBytes) throws IOException {
         return new TestWARCRecordInfo(buildCompressedHttpResponseBlock(ctype, payloadBytes));
@@ -202,10 +214,15 @@ public class TestWARCRecordInfo extends WARCRecordInfo implements WARCConstants,
     }
     
     public static byte[] buildHttpRedirectResponseBlock(String location) throws IOException {
+		return buildHttpRedirectResponseBlock("302 Moved Temporarily", location);
+    }
+
+	public static byte[] buildHttpRedirectResponseBlock(String statusline,
+			String location) throws IOException {
+		assert statusline.startsWith("3");
         ByteArrayOutputStream blockbuf = new ByteArrayOutputStream();
         Writer bw = new OutputStreamWriter(blockbuf);
-        String status = "302 Moved Temporarily";
-        bw.write("HTTP/1.0 " + status + CRLF);
+        bw.write("HTTP/1.0 " + statusline + CRLF);
         bw.write("Content-Length: " + 0 + CRLF);
         bw.write("Content-Type: text/html" + CRLF);
         bw.write("Location: " + location + CRLF);
@@ -256,30 +273,32 @@ public class TestWARCRecordInfo extends WARCRecordInfo implements WARCConstants,
      * @return record content as byte array
      * @throws IOException
      */
-    public static byte[] buildRevisitHttpResponseBlock(String ctype, int len,
-            boolean withHeader, boolean gzipContent) throws IOException {
-        ByteArrayOutputStream blockbuf = new ByteArrayOutputStream();
-        Writer bw = new OutputStreamWriter(blockbuf);
-        if (withHeader) {
-            bw.write("HTTP/1.0 200 OK" + CRLF);
-            bw.write("Content-Length: " + len + CRLF);
-            bw.write("Content-Type: " + ctype + CRLF);
-            if (gzipContent)
-                bw.write("Content-Encoding: gzip" + CRLF);
-            bw.write(CRLF);
-            bw.flush();
-            bw.close();
-        }
-        return blockbuf.toByteArray();
-    }
+	public static byte[] buildRevisitHttpResponseBlock(String ctype, int len,
+			boolean withHeader, boolean gzipContent) throws IOException {
+		ByteArrayOutputStream blockbuf = new ByteArrayOutputStream();
+		Writer bw = new OutputStreamWriter(blockbuf);
+		if (withHeader) {
+			bw.write("HTTP/1.0 200 OK" + CRLF);
+			if (len >= 0) {
+				bw.write("Content-Length: " + len + CRLF);
+			}
+			bw.write("Content-Type: " + ctype + CRLF);
+			if (gzipContent)
+				bw.write("Content-Encoding: gzip" + CRLF);
+			bw.write(CRLF);
+			bw.flush();
+			bw.close();
+		}
+		return blockbuf.toByteArray();
+	}
 
     // POPULAR PAYLOAD SAMPLES
     
     // ubiquitous 1-pixel transparent GIF, if you wonder.
     public static final byte[] PAYLOAD_GIF = new byte[] {
-            71, 73, 70, 56, 57, 97, 1, 0, 1, 0, -128, 0, 0, -64, -64, -64,
-            0, 0, 0, 33, -7, 4, 1, 0, 0, 0, 0, 44, 0, 0, 0, 0,
-            1, 0, 1, 0, 0, 2, 2, 68, 1, 0, 59, 13, 10, 13, 10
+		71, 73, 70, 56, 57, 97, 1, 0, 1, 0, -128, 0, 0, -64, -64, -64,
+		0, 0, 0, 33, -7, 4, 1, 0, 0, 0, 0, 44, 0, 0, 0, 0,
+		1, 0, 1, 0, 0, 2, 2, 68, 1, 0, 59, 13, 10, 13, 10
     };
 
 }

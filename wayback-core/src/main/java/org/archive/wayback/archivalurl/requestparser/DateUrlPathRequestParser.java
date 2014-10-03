@@ -23,8 +23,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 
 import org.archive.wayback.core.WaybackRequest;
-import org.archive.wayback.exception.BadQueryException;
-import org.archive.wayback.exception.BetterRequestException;
 import org.archive.wayback.requestparser.BaseRequestParser;
 import org.archive.wayback.requestparser.PathRequestParser;
 import org.archive.wayback.webapp.AccessPoint;
@@ -53,8 +51,7 @@ public abstract class DateUrlPathRequestParser extends PathRequestParser {
 	 * @see org.archive.wayback.requestparser.PathRequestParser#parse(java.lang.String, org.archive.wayback.webapp.AccessPoint)
 	 */
 	@Override
-	public WaybackRequest parse(String requestPath, AccessPoint accessPoint)
-			throws BetterRequestException, BadQueryException {
+	public WaybackRequest parse(String requestPath, AccessPoint accessPoint) {
 		int p = requestPath.indexOf('/');
 		if (p < 1)
 			return null;
@@ -71,6 +68,5 @@ public abstract class DateUrlPathRequestParser extends PathRequestParser {
 	 * @return {@code WaybackRequest} with parse result, or {@code null} if either
 	 *   {@code dateStr} or {@code urlStr} does not match expected syntax. 
 	 */
-	protected abstract WaybackRequest parseDateUrl(String dateStr, String urlStr)
-			throws BetterRequestException, BadQueryException;
+	protected abstract WaybackRequest parseDateUrl(String dateStr, String urlStr);
 }

@@ -115,6 +115,13 @@ public class MementoUtils implements MementoConstants {
 		pw.flush();
 	}
 
+	/**
+	 * Add {@code Link} header value.
+	 * Includes: {@code first}, {@code prev}, {@code next}, {@code last}, {@code original}
+	 * (if {@code includeOriginal} is {@code true}), and {@code timegate} (if {@code includeTimegateLink}
+	 * is {@code true}).
+	 *
+	 */
 	public static String generateMementoLinkHeaders(
 			CaptureSearchResults results, WaybackRequest wbr, boolean includeTimegateLink, boolean includeOriginalLink) {
 		NotableResultExtractor nre = getNotableResults(results);
@@ -216,6 +223,11 @@ public class MementoUtils implements MementoConstants {
 		return response.containsHeader(LINK);
 	}
 
+	/**
+	 * Add {@code Link} header with just {@code original} relation link {@code url}.
+	 * @param response
+	 * @param url
+	 */
 	public static void addOrigHeader(HttpServletResponse response, String url) {
 		response.setHeader(LINK, makeLink(url, ORIGINAL));
 	}
@@ -236,6 +248,16 @@ public class MementoUtils implements MementoConstants {
 		return makeLink(url, ORIGINAL);
 	}
 
+	/**
+	 * Add {@code Memento-Datetime} header, and full {@code Link} header if
+	 * {@code wbr} is not a Memento Timegate request.
+	 * @param response
+	 * @param results
+	 * @param result
+	 * @param wbr
+	 * @deprecated 1.8.1 2014-09-12 use {@link #addMementoDatetimeHeader(HttpServletResponse, CaptureSearchResult)}
+	 * and {@link #addLinkHeader(HttpServletResponse, CaptureSearchResults, WaybackRequest, boolean, boolean)}
+	 */
 	public static void addMementoHeaders(HttpServletResponse response,
 			CaptureSearchResults results, CaptureSearchResult result, WaybackRequest wbr) {
 		response.setHeader(MEMENTO_DATETIME, HTTP_LINK_DATE_FORMATTER
@@ -245,12 +267,47 @@ public class MementoUtils implements MementoConstants {
 		    response.setHeader(LINK, generateMementoLinkHeaders(results, wbr, true, true));
 		}
 	}
-
+	/**
+	 * Add {@code Memento-Datetime} header.
+	 * @param response HttpServletResponse
+	 * @param result Capture whose timestamp is used
+	 */
+	public static void addMementoDatetimeHeader(HttpServletResponse response, CaptureSearchResult result) {
+		response.setHeader(MEMENTO_DATETIME, HTTP_LINK_DATE_FORMATTER
+			.format(result.getCaptureDate()));
+	}
+	/**
+	 * Add {@code Link} header.
+	 * @param response HttpServletResponse
+	 * @param results CaptureSearchResults for generating first/last and prev/next relation links
+	 * @param wbr WaybackRequest for accessing {@link AccessPoint}
+	 * @param includeTimegateLink whether {@code timegate} relation link is included
+	 * ({@code false} for Timegate response, {@code true} for Memento response)
+	 * @param includeOriginalLink whether {@code original} relation link is included
+	 * (usually {@code true})
+	 */
+	public static void addLinkHeader(HttpServletResponse response,
+			CaptureSearchResults results, WaybackRequest wbr,
+			boolean includeTimegateLink, boolean includeOriginalLink) {
+		response.setHeader(
+			LINK,
+			generateMementoLinkHeaders(results, wbr, includeTimegateLink,
+				includeOriginalLink));
+	}
+	/**
+	 * Add {@code Vary: accept-datetime} header and {@code Link} header for timegate
+	 * response.
+	 * See {@link #generateMementoLinkHeaders(CaptureSearchResults, WaybackRequest, boolean, boolean)}
+	 * for details of {@code Link} header.
+	 * @param response
+	 * @param results
+	 * @param wbr
+	 * @param includeOriginal
+	 */
 	public static void addTimegateHeaders(HttpServletResponse response,
 			CaptureSearchResults results, WaybackRequest wbr, boolean includeOriginal) {
 		addVaryHeader(response);
-
-		response.setHeader(LINK, generateMementoLinkHeaders(results, wbr, false, includeOriginal));
+		addLinkHeader(response, results, wbr, false, includeOriginal);
 	}
 
 //	private static String getTimegatePrefix(AccessPoint ap) {
