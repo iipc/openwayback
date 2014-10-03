@@ -51,8 +51,8 @@ public class StandardCharsetDetector extends CharsetDetector {
 	@Override
 	public String getCharset(Resource httpHeadersResource,
 			Resource payloadResource, WaybackRequest wbRequest) throws IOException {
-		Resource resource = new CompositeResource(httpHeadersResource,
-			payloadResource);
+		Resource resource = httpHeadersResource != payloadResource ? new CompositeResource(
+			httpHeadersResource, payloadResource) : payloadResource;
 		for (EncodingSniffer sniffer : SNIFFERS) {
 			String charset = sniffer.sniff(resource);
 			if (charset != null)

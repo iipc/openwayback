@@ -184,7 +184,9 @@ public class TestWARCRecordInfo extends WARCRecordInfo implements WARCConstants,
         } else {
             bw.write("Content-Length: " + payloadBytes.length + CRLF);
         }
-        bw.write("Content-Type: " + ctype + CRLF);
+		if (ctype != null) {
+			bw.write("Content-Type: " + ctype + CRLF);
+		}
         bw.write(CRLF);
         bw.flush();
         if (chunked) {

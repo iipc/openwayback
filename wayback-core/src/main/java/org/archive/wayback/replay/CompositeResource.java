@@ -20,7 +20,7 @@ public class CompositeResource extends Resource {
 	private final Resource payloadResource;
 	/**
 	 * constructor.
-	 * @param headersResource Resource providing HTTP heeaders
+	 * @param headersResource Resource providing HTTP headers
 	 * (revisit record).
 	 * @param payloadResource Resource providing HTTP response entity
 	 * (revisited original record).
@@ -51,6 +51,8 @@ public class CompositeResource extends Resource {
 	 */
 	@Override
 	public long getRecordLength() {
+		// mmm, is this right?? maybe this method should not be
+		// part of public interface of Resource.
 		return payloadResource.getRecordLength();
 	}
 
@@ -59,18 +61,27 @@ public class CompositeResource extends Resource {
 	 */
 	@Override
 	public Map<String, String> getHttpHeaders() {
-		// TODO: if headerResource has no HTTP headers (old
-		// revisit WARC record), get it from payloadResource.
-		return headersResource.getHttpHeaders();
+		// revisit record had no HTTP headers in early days.
+		if (headersResource.getRecordLength() == 0)
+			return payloadResource.getHttpHeaders();
+		else
+			return headersResource.getHttpHeaders();
 	}
 	@Override
 	public void parseHeaders() throws IOException {
+		// currently this is not supposed to be used.
+		// it is assumed parseHeaders() is already
+		// called on each Resource.
 		headersResource.parseHeaders();
 		payloadResource.parseHeaders();
 	}
 	@Override
 	public String getHeader(String headerName) {
-		return headersResource.getHeader(headerName);
+		// revisit record had no HTTP headers in early days.
+		if (headersResource.getRecordLength() == 0)
+			return payloadResource.getHeader(headerName);
+		else
+			return headersResource.getHeader(headerName);
 	}
 	@Override
 	public void setChunkedEncoding() throws IOException {
