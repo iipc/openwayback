@@ -230,30 +230,53 @@ public class BubbleCalendarData {
 
 	int month;
 
+	/**
+	 * Set month for {@link #getCaptureCalendar()}
+	 * @param month integer 0 (January) through 11 (December)
+	 */
 	public void setMonth(int month) {
 		this.month = month;
 	}
 
-	public List<Partition<CaptureSearchResult>> getCaptureCalendar() {
-		if (month < 1 || month > 12)
+	/**
+	 * return {@code CaptureSearchResult} partitions for the month grouped
+	 * by week.
+	 * Call this method after designating desired month with {@link #setMonth(int)}.
+	 * Each week group has exactly seven elements, where out-of-month slots are
+	 * {@code null}.
+	 * @return Weekly list of {@code Partition}s
+	 * @exception IllegalStateException if {@code month} is not in 0..11 range.
+	 */
+	public List<List<Partition<CaptureSearchResult>>> getCaptureCalendar() {
+		if (month < 0 || month > 11)
 			throw new IllegalStateException("invalid month");
 		Partition<Partition<CaptureSearchResult>> curMonth = monthsByDay.get(month);
 		List<Partition<CaptureSearchResult>> monthDays = curMonth.list();
 
 		Calendar cal = Calendar.getInstance();
 		cal.setTime(curMonth.getStart());
+		// DAY_OF_WEEK field has 1 for SUNDAY. Hence this makes week start Sunday.
 		int skipDays = cal.get(Calendar.DAY_OF_WEEK) - 1;
-		int daysInMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
-		int len = (skipDays + daysInMonth + 6) / 7;
 
-		List<Partition<CaptureSearchResult>> cells = new ArrayList<Partition<CaptureSearchResult>>(len);
+		List<List<Partition<CaptureSearchResult>>> weeks = new ArrayList<List<Partition<CaptureSearchResult>>>();
+		List<Partition<CaptureSearchResult>> week = new ArrayList<Partition<CaptureSearchResult>>(7);
 		for (int i = 0; i < skipDays; i++) {
-			cells.add(null);
+			week.add(null);
 		}
-		cells.addAll(monthDays);
-		while (cells.size() < len) {
-			cells.add(null);
+		for (Partition<CaptureSearchResult> p : monthDays) {
+			if (week == null)
+				week = new ArrayList<Partition<CaptureSearchResult>>(7);
+			week.add(p);
+			if (week.size() == 7) {
+				weeks.add(week);
+				week = null;
+			}
 		}
-		return cells;
+		if (week != null) {
+			while (week.size() < 7)
+				week.add(null);
+			weeks.add(week);
+		}
+		return weeks;
 	}
  }
