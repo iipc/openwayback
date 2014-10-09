@@ -308,7 +308,7 @@ public class SimpleMimeTypeDetector implements MimeTypeDetector {
 	private static final Pattern RE_HTML_ELEMENTS = Pattern
 			.compile("(?i)\\s*<(HTML|HEAD|STYLE|SCRIPT|META|BODY)(\\s|>)");
 		private static final Pattern RE_DOCTYPE_HTML = Pattern
-			.compile("(?i)\\s*<!DOCTYPE\\s+(html|HTML)");
+			.compile("(?i)\\s*<!DOCTYPE\\s+(html)");
 		private static final Pattern RE_SGML_COMMENT = Pattern
 			.compile("(?s)\\s*<!--.*?-->");
 
