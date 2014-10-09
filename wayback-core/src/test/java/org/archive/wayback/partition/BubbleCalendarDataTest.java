@@ -58,14 +58,15 @@ public class BubbleCalendarDataTest extends TestCase {
 
 		// Jan 1, 2013 is Tuesday.
 		List<Partition<CaptureSearchResult>> w1 = cal.get(0);
-		assertNull(w1.get(0));
-		Partition<CaptureSearchResult> d1 = w1.get(1);
+		assertNull(w1.get(0)); // Sunday
+		assertNull(w1.get(1)); // Monday
+		Partition<CaptureSearchResult> d1 = w1.get(2);
 		assertEquals("20130101000000", df.format(d1.getStart()));
 
 		List<Partition<CaptureSearchResult>> w5 = cal.get(4);
-		assertNull(w5.get(6));
-		assertNull(w5.get(5));
-		Partition<CaptureSearchResult> d31 = w5.get(3);
+		assertNull(w5.get(6)); // Saturday
+		assertNull(w5.get(5)); // Friday
+		Partition<CaptureSearchResult> d31 = w5.get(4);
 		assertEquals("20130131000000", df.format(d31.getStart()));
 	}
 }

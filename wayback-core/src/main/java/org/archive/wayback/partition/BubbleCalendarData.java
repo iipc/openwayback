@@ -225,7 +225,7 @@ public class BubbleCalendarData {
 	}
 
 	public int getThisYear() {
-		return Calendar.getInstance().get(Calendar.YEAR);
+		return Calendar.getInstance(calendarTimeZone).get(Calendar.YEAR);
 	}
 
 	int month;
@@ -253,7 +253,7 @@ public class BubbleCalendarData {
 		Partition<Partition<CaptureSearchResult>> curMonth = monthsByDay.get(month);
 		List<Partition<CaptureSearchResult>> monthDays = curMonth.list();
 
-		Calendar cal = Calendar.getInstance();
+		Calendar cal = Calendar.getInstance(calendarTimeZone);
 		cal.setTime(curMonth.getStart());
 		// DAY_OF_WEEK field has 1 for SUNDAY. Hence this makes week start Sunday.
 		int skipDays = cal.get(Calendar.DAY_OF_WEEK) - 1;
