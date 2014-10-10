@@ -238,6 +238,18 @@ public class BubbleCalendarData {
 		this.month = month;
 	}
 
+	public Partition<Partition<CaptureSearchResult>> getMonthPartition() {
+		return monthsByDay.get(month);
+	}
+
+	/**
+	 * @return beginning of the month as {@code Date}
+	 * for {@code month}
+	 */
+	public Date getMonthDate() {
+		return monthsByDay.get(month).getStart();
+	}
+
 	/**
 	 * return {@code CaptureSearchResult} partitions for the month grouped
 	 * by week.
