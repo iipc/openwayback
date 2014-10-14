@@ -47,7 +47,6 @@ import org.archive.wayback.webapp.AccessPoint;
  * Machine.
  * 
  * @author Brad Tofel
- * @version $Date$, $Revision$
  */
 public class WaybackRequest {
 
@@ -95,6 +94,7 @@ public class WaybackRequest {
 	 * StringFormatter object set up with the users specific Locale, and the
 	 * Wayback UI ResourceBundle prepared for use, simplifying UI generation
 	 * somewhat.
+	 * @deprecated 2014-05-06 moved to UIResults
 	 */
 	private StringFormatter formatter = null;
 	/**
@@ -102,6 +102,7 @@ public class WaybackRequest {
 	 * information. See constants below for keys & values.
 	 */
 	private HashMap<String,String> filters = new HashMap<String,String>();
+	private Locale locale;
 	
 
 	/*
@@ -424,13 +425,6 @@ public class WaybackRequest {
 	 * hour resolution (TimeLine mode)
 	 */
 	public static final String REQUEST_RESOLUTION_HOURS = "hours";
-	/*
-	 * ***********************
-	 * /TIMELINE MODE CONSTANTS 
-	 * ***********************
-	 */
-	
-	private static String UI_RESOURCE_BUNDLE_NAME = "WaybackUI";
 
 	private static String STD_LOGGED_IN_VER = "logged-in-ver";
 	private static String STD_LOGGED_IN_NAME = "logged-in-name";
@@ -543,8 +537,8 @@ public class WaybackRequest {
 
 	/**
 	 * @param prefix
-	 * @deprecated use getAccessPoint.getStaticPrefix() or
-	 * getAccessPoint.getReplayPrefix()
+	 * @deprecated use getAccessPoint.setStaticPrefix() or
+	 * getAccessPoint.setReplayPrefix()
 	 */
 	public void setContextPrefix(String prefix) {
 		contextPrefix = prefix;
@@ -556,7 +550,7 @@ public class WaybackRequest {
 	 * 
 	 * @return String absolute URL pointing to the Context root where the
 	 *         request was received.
-	 * @deprecated use AccessPoint.setReplayPrefix or setQueryPrefix
+	 * @deprecated use AccessPoint.getReplayPrefix or getQueryPrefix
 	 */
 	public String getContextPrefix() {
 		if(accessPoint == null) {
@@ -621,12 +615,26 @@ public class WaybackRequest {
 	
 	/**
 	 * @return StringFormatter based on user request info
+	 * @deprecated 1.8.1 use {@link UIResults#getFormatter()}.
 	 */
 	public StringFormatter getFormatter() {
-		if(formatter == null) {
-			setLocale(Locale.getAvailableLocales()[0]);
+		if (formatter == null) {
+			Locale l = locale;
+			if (l == null) {
+				l = Locale.getAvailableLocales()[0];
+			}
+			ResourceBundle b = ResourceBundle.getBundle(UIResults.UI_RESOURCE_BUNDLE_NAME);
+			formatter = new StringFormatter(b, l);
 		}
 		return formatter;
+	}
+	/**
+	 * return locale for this request.
+	 * @return {@code Locale}
+	 * @version 1.8.1
+	 */
+	public Locale getLocale() {
+		return locale;
 	}
 
 	/**
@@ -1061,11 +1069,14 @@ public class WaybackRequest {
 	
 	/**
 	 * Set the Locale for the request, which impacts UI Strings
+	 * <p>2014-05-06 no longer initializes {@code StringFormatter}.</p>
 	 * @param l
+	 * @see UIResults
 	 */
-	public void setLocale(Locale l) {
-		ResourceBundle b = ResourceBundle.getBundle(UI_RESOURCE_BUNDLE_NAME,l);
-		formatter = new StringFormatter(b,l);
+	public void setLocale(Locale locale) {
+		this.locale = locale;
+//		ResourceBundle b = ResourceBundle.getBundle(UI_RESOURCE_BUNDLE_NAME,l);
+//		formatter = new StringFormatter(b,l);
 	}
 	
 	/**
@@ -1114,13 +1125,15 @@ public class WaybackRequest {
 		putUnlessNull(REQUEST_WAYBACK_CONTEXT, httpRequest.getContextPath());
 
 		Locale l = null;
-		if(accessPoint != null) {
+		if (accessPoint != null) {
 			l = accessPoint.getLocale();
 		}
-		if(l == null) {
+		if (l == null) {
 			l = httpRequest.getLocale();
 		}
-		setLocale(l);
+		//setLocale(l);
+		this.locale = l;
+
 		putUnlessNull(REQUEST_LOCALE_LANG,l.getDisplayLanguage());
 
 		Cookie[] cookies = httpRequest.getCookies();
@@ -1170,8 +1183,8 @@ public class WaybackRequest {
 				if (queryString.length() > 0) {
 					queryString.append(" ");
 				}
-                                key = URLEncoder.encode(key,"UTF-8");
-                                val = URLEncoder.encode(val,"UTF-8");
+				key = URLEncoder.encode(key, "UTF-8");
+				val = URLEncoder.encode(val, "UTF-8");
 				queryString.append(key + ":" + val);
 			}
 			String escapedQuery = queryString.toString();

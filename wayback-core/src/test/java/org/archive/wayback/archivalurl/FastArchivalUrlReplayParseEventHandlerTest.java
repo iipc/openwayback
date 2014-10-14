@@ -2,21 +2,20 @@ package org.archive.wayback.archivalurl;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.StringWriter;
-import java.net.URL;
 import java.util.Properties;
-import java.util.regex.Pattern;
 
 import javax.servlet.ServletException;
 
 import junit.framework.TestCase;
 
+import org.archive.wayback.core.CaptureSearchResult;
+import org.archive.wayback.core.UIResults;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.replay.JSPExecutor;
 import org.archive.wayback.replay.html.ReplayParseContext;
 import org.archive.wayback.replay.html.StringTransformer;
+import org.archive.wayback.replay.html.transformer.JSStringTransformer;
 import org.archive.wayback.util.htmllex.ContextAwareLexer;
 import org.htmlparser.Node;
 import org.htmlparser.Tag;
@@ -33,10 +32,34 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 
 	FastArchivalUrlReplayParseEventHandler delegator;
 
+	final String baseUrl = "http://www.example.com/";
+	final String timestamp = "2001";
+	final String outputCharset = "UTF-8";
+	final String charSet = "UTF-8";
+
+    ArchivalUrlResultURIConverter uriConverter;
+    ArchivalUrlContextResultURIConverterFactory fact;
+    ReplayParseContext context;
 	JSPExecutor jspExec = null;
 
 	@Override
 	protected void setUp() throws Exception {
+		uriConverter = new ArchivalUrlResultURIConverter();
+		uriConverter.setReplayURIPrefix("http://replay.archive.org/");
+
+		fact = new ArchivalUrlContextResultURIConverterFactory(
+			(ArchivalUrlResultURIConverter)uriConverter);
+
+		// The URL of the page, for resolving in-page relative URLs:
+		CaptureSearchResult capture = new CaptureSearchResult();
+		capture.setCaptureTimestamp(timestamp);
+		capture.setOriginalUrl(baseUrl);
+		// urlKey is not set as it is unused
+
+		// set up the context:
+		context = new ReplayParseContext(fact, capture);
+		context.setOutputCharset(outputCharset);
+
 		delegator = new FastArchivalUrlReplayParseEventHandler();
 		delegator.setEndJsp(null);
 		delegator.setJspInsertPath(null);
@@ -411,11 +434,13 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 		public TestJSPExecutor() {
 			// we cannot pass null WaybackRequest to JSPExecutor constructor,
 			// because it accesses WaybackRequst.isAjaxRequest() method.
-			super(null, null, null, stubWaybackRequest(), null, null, null);
+			//super(null, null, null, stubWaybackRequest(), null, null, null);
+			super(null, null, new UIResults(stubWaybackRequest(), null));
 		}
 		// for testing with context flags (ex. fw_)
 		public TestJSPExecutor(WaybackRequest wbRequest) {
-			super(null, null, null, wbRequest, null, null, null);
+			//super(null, null, null, wbRequest, null, null, null);
+			super(null, null, new UIResults(wbRequest, null));
 		}
 		@Override
 		public String jspToString(String jspPath) throws ServletException,
@@ -818,7 +843,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 		assertEquals(expected, output);
 	}
 
-	/**
+    /**
 	 * Pathological case:
 	 * content-bearing tags before FRAMESET, even before HEAD.
 	 * currently {@link FastArchivalUrlReplayParseEventHandler} alone cannot
@@ -907,50 +932,73 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 		assertEquals(expected, out);
 	}
 
-	public String doEndToEnd(String input) throws Exception {
-		final String baseUrl = "http://www.example.com/";
-		final String timestamp = "2001";
-		final String outputCharset = "UTF-8";
-		final String charSet = "UTF-8";
+	/**
+	 * test of rewriting URLs in DOM event handler attributes.
+	 * <p>only limited set of attributes are supported currently.</p>
+	 * @throws Exception
+	 */
+	public void testDOMEventHandlers() throws Exception {
+		// Need a local test instance because changing jsBlockTrans after calling init()
+		// has no effect currently.
+		delegator = new FastArchivalUrlReplayParseEventHandler();
+		delegator.setEndJsp(null);
+		delegator.setJspInsertPath(null);
+		// sample input below has two backslashes - use custom jsBlockTrans
+		JSStringTransformer jsBlockTrans = new JSStringTransformer();
+		jsBlockTrans.setRegex("['\"](https?:\\\\{0,2}/\\\\{0,2}/[a-zA-Z0-9_@.-]+)");
+		delegator.setJsBlockTrans(jsBlockTrans);
+		delegator.init();
 		
+		// test sample from Facebook timeline
+		final String input = "<html><body>" +
+				"<a class=\"_1xw shareLink _1y0\" href=\"http://www.facebook.com/l.php?" +
+				"u=http%3A%2F%2Fwww.ncadv.org%2F&amp;h=PAQH&amp;" +
+				"enc=AZPB&amp;" +
+				"s=1\" target=\"_blank\" rel=\"nofollow\" " +
+				"onmouseover=\"LinkshimAsyncLink.swap(this, &quot;http:\\\\/\\\\/www.ncadv.org\\\\/&quot;);\" " +
+				"onclick=\"LinkshimAsyncLink.swap(this, &quot;http:\\\\/\\\\/www.facebook.com\\\\/l.php?" +
+				"u=http\\\\u00253A\\\\u00252F\\\\u00252Fwww.ncadv.org\\\\u00252F&amp;h=PAQH&amp;enc=AZPB&amp;s=1&quot;);\">" +
+				"</body></html>";
+		// Note: onmouseover attribute is NOT rewritten currently.
+		// Note: URL is first normalized by ParseContext.resolve(), in which backslash escapes are
+		//   removed. so "http:\\/\\/www.facebook.com" becomes "http://www.facebook.com"
+		final String expected = "<html><body>" +
+				"<a class=\"_1xw shareLink _1y0\" href=\"http://replay.archive.org/2001/http://www.facebook.com/l.php?" +
+				"u=http%3A%2F%2Fwww.ncadv.org%2F&amp;h=PAQH&amp;" +
+				"enc=AZPB&amp;" +
+				"s=1\" target=\"_blank\" rel=\"nofollow\" " +
+				"onmouseover=\"LinkshimAsyncLink.swap(this, &quot;http:\\\\/\\\\/www.ncadv.org\\\\/&quot;);\" " +
+				"onclick=\"LinkshimAsyncLink.swap(this, &quot;http://replay.archive.org/2001/http://www.facebook.com\\\\/l.php?" +
+				"u=http\\\\u00253A\\\\u00252F\\\\u00252Fwww.ncadv.org\\\\u00252F&amp;h=PAQH&amp;enc=AZPB&amp;s=1&quot;);\">" +
+				"</body></html>";
+		String output = doEndToEnd(input);
+		System.out.println(output);
+		assertEquals(expected, output);
+	}
+
+    public String doEndToEnd(String input) throws Exception {
 		ByteArrayInputStream bais = new ByteArrayInputStream(input.getBytes(charSet));
 		
-		ArchivalUrlResultURIConverter uriConverter = new ArchivalUrlResultURIConverter();
-		uriConverter.setReplayURIPrefix("http://replay.archive.org/");
-		
-		ArchivalUrlContextResultURIConverterFactory fact = 
-			new ArchivalUrlContextResultURIConverterFactory(
-					(ArchivalUrlResultURIConverter) uriConverter);
-
-		// The URL of the page, for resolving in-page relative URLs: 
-    	URL url = new URL(baseUrl);
-
 		// To make sure we get the length, we have to buffer it all up...
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-
-		// set up the context:
-        ReplayParseContext context = new ReplayParseContext(fact, url,
-                timestamp);
-		context.setOutputCharset(outputCharset);
 		context.setOutputStream(baos);
-		// jspExec is null for attribute rewrite tests.
 		context.setJspExec(jspExec);
-		
+
 		// and finally, parse, using the special lexer that knows how to
 		// handle javascript blocks containing unescaped HTML entities:
 		Page lexPage = new Page(bais,charSet);
 		Lexer lexer = new Lexer(lexPage);
 		Lexer.STRICT_REMARKS = false;
-    	ContextAwareLexer lex = new ContextAwareLexer(lexer, context);
+		ContextAwareLexer lex = new ContextAwareLexer(lexer, context);
 
-    	Node node;
-    	while ((node = lex.nextNode()) != null) {
-    	    delegator.handleNode(context, node);
-    	}
-    	delegator.handleParseComplete(context);
+		Node node;
+		while ((node = lex.nextNode()) != null) {
+			delegator.handleNode(context, node);
+		}
+		delegator.handleParseComplete(context);
 
 		// At this point, baos contains the utf-8 encoded bytes of our result:
-		return new String(baos.toByteArray(),outputCharset);
+		return new String(baos.toByteArray(), outputCharset);
 	}
 
 	// The followings checks expected (quirky) behaviors of HTMLParser.
@@ -986,7 +1034,8 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
     			}
     		}
     	}
-    }
+	}
+
     /**
      * test expected behavior of {@code HTMLParser} - handling of CDATA.
      * {@code HTMLParser} gives out {@code <![CDATA[ ... ]]>} as single
