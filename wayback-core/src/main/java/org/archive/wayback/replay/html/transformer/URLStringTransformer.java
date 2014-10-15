@@ -64,6 +64,7 @@ public class URLStringTransformer implements StringTransformer {
 	}
 	
 	public String transform(ReplayParseContext context, String url) {
+        url = url.trim();
 		if (url.startsWith(ReplayParseContext.JAVASCRIPT_PREFIX)) {
 			if (jsTransformer == null) {
 				return url;
