@@ -16,8 +16,18 @@
         Full listing of changes and bug fixes are not available prior to release 1.2.0 and between release 1.6.0 and OpeWayback 2.0.0 BETA 1 release. 
       </p>
     </section>
-    
-      <section name="OpenWayback 2.0.0 Release">
+    <section name="OpenWayback 2.0.1 Release">
+      <subsection name="Features">
+       <ul>
+       </ul>
+      </subsection>
+      <subsection name="Bug Fixes">
+        <ul>
+          <li>Fixed building with JDK 8. <a href="https://github.com/iipc/openwayback/pull/141">#141</a></li>
+        </ul>
+      </subsection>
+    </section>
+    <section name="OpenWayback 2.0.0 Release">
       <subsection name="Features">
        <ul>
           <li>Fixed URL resolution in ServerRelativeArchivalRedirect in non-ROOT context. <a href="https://github.com/iipc/openwayback/issues/92">#92</a>
@@ -48,7 +58,7 @@
           <li>Fixed support for uncompressed ARCs files <a href="https://github.com/iipc/openwayback/issues/101">#101</a>
         </li>
        </ul>
-       </subsection>
+      </subsection>
     </section>
     <section name="OpenWayback 2.0.0 BETA 2 release">
       <subsection name="Features">
