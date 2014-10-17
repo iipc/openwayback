@@ -75,7 +75,7 @@ public class SimpleMimeTypeDetector implements MimeTypeDetector {
 		switch (bytes[0]) {
 		case (byte)0xFF:
 			if (bytes[1] == (byte)0xFE) {
-				// UTF-16BE BOM
+				// UTF-16LE BOM
 				return null;
 			} else if ((bytes[1] & 0xFE) == (byte)0xFA) {
 				// audio/mp3
@@ -89,7 +89,7 @@ public class SimpleMimeTypeDetector implements MimeTypeDetector {
 			return BINARY_FILE;
 		case (byte)0xFE:
 			if (bytes[1] == (byte)0xFF) {
-				// UTF-16LE BOM
+				// UTF-16BE BOM
 				return null;
 			}
 			break;
@@ -289,6 +289,10 @@ public class SimpleMimeTypeDetector implements MimeTypeDetector {
 		} catch (UnsupportedEncodingException ex) {
 			// likely to happen, already checked by CharsetDetector.
 			return null;
+		}
+		// strip off BOM - all variants are decoded into \ufeff.
+		if (text.length() > 0 && text.charAt(0) == '\ufeff') {
+			text = text.substring(1);
 		}
 
 		ctype = detectHTML(text);
