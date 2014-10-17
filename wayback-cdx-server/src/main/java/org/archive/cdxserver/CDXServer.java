@@ -24,10 +24,12 @@ import org.archive.cdxserver.processor.ForwardRevisitResolver;
 import org.archive.cdxserver.processor.GroupCountProcessor;
 import org.archive.cdxserver.processor.LastNLineProcessor;
 import org.archive.cdxserver.processor.ReverseRevisitResolver;
+import org.archive.cdxserver.writer.CDXListWriter;
 import org.archive.cdxserver.writer.CDXWriter;
 import org.archive.cdxserver.writer.JsonWriter;
 import org.archive.cdxserver.writer.MementoLinkWriter;
 import org.archive.cdxserver.writer.PlainTextWriter;
+import org.archive.format.cdx.CDXFieldConstants;
 import org.archive.format.cdx.CDXInputSource;
 import org.archive.format.cdx.CDXLine;
 import org.archive.format.cdx.CDXLineFactory;
@@ -617,4 +619,64 @@ public class CDXServer extends BaseCDXServer {
 		outputProcessor.end();
 	}
 
+	/**
+	 * Look up the latest (non-revisit) capture of {@code url} in the
+	 * CDX database.
+	 * If {@code digest} is non-{@code null}, return only a capture with
+	 * identical digest.
+	 * @param url URL (in regular form) to look for
+	 * @param digest content digest in the same format as CDX database,
+	 * or {@code null} if any version qualifies.
+	 * @param ignoreRobots whether robots.txt-excluded captures qualify
+	 * @return CDXLine found
+	 */
+	public CDXLine findLastCapture(String url, String digest, boolean ignoreRobots) {
+		final String WARC_REVISIT = "warc/revisit";
+		final String REVISIT_FILTER = "!mimetype:" + WARC_REVISIT;
+
+		CDXListWriter listWriter = new CDXListWriter();
+
+		CDXQuery query = new CDXQuery(url);
+		query.setFilter(new String[] {
+			CDXFieldConstants.digest + ":" + digest,
+			REVISIT_FILTER
+		});
+		query.setLimit(-1);
+
+		AuthToken auth = new AuthToken();
+		auth.setIgnoreRobots(ignoreRobots);
+
+		try {
+			getCdx(query, auth, listWriter);
+		} catch (IOException e) {
+			// No dedup info
+			return null;
+		} catch (RuntimeException re) {
+			// Keeping the original code as comment.
+			// Cannot throw AccessControlException from CDXServer
+			// because it is currently defined in wayback-core, on
+			// which wayback-cdxserver cannot depend.
+			// As AccessControlException is thrown when entire url
+			// is excluded (by robots.txt exclusion or some other rules),
+			// it should be okay to consider it as"non-existent".
+//			Throwable cause = re.getCause();
+//
+//			// Propagate AccessControlException
+//			if (cause instanceof AccessControlException) {
+//				throw (AccessControlException)cause;
+//			}
+
+			return null;
+		}
+
+		if (!listWriter.getCDXLines().isEmpty()) {
+			CDXLine line = listWriter.getCDXLines().get(0);
+			// Just check the last line for the digest
+			if (digest == null || line.getDigest().equals(digest)) {
+				return line;
+			}
+		}
+
+		return null;
+	}
 }
