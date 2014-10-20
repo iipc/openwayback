@@ -61,6 +61,13 @@
           <groupId>org.archive.heritrix</groupId>
           <artifactId>commons</artifactId>
         </exclusion>
+        <!-- access-control and its dependency has "compile"
+             dependency on junit, which screw up downstream
+		     projects. Exclude it until it's fixed. -->
+        <exclusion>
+          <artifactId>junit</artifactId>
+          <groupId>junit</groupId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
