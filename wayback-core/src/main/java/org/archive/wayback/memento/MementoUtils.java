@@ -20,25 +20,36 @@ import org.archive.wayback.partition.NotableResultExtractor;
 import org.archive.wayback.util.ObjectFilterIterator;
 import org.archive.wayback.util.StringFormatter;
 import org.archive.wayback.webapp.AccessPoint;
+//import org.archive.util.ArchiveUtils; //threadlocalDateFormat private class  and DATE_FORMAT_14 eqvivalent TIMESTAMP14, HTTP_LINK_DATE_FORMAT missing 
 
 public class MementoUtils implements MementoConstants {
 
-	public final static SimpleDateFormat HTTP_LINK_DATE_FORMATTER;
-	public final static SimpleDateFormat DATE_FORMAT_14_FORMATTER;
+	public final static ThreadLocal<SimpleDateFormat> HTTP_LINK_DATE_FORMATTER;
+	public final static ThreadLocal<SimpleDateFormat> DATE_FORMAT_14_FORMATTER;
 
 	static {
-		HTTP_LINK_DATE_FORMATTER = new SimpleDateFormat(HTTP_LINK_DATE_FORMAT, Locale.ENGLISH);
-		HTTP_LINK_DATE_FORMATTER.setTimeZone(GMT_TZ);
-		DATE_FORMAT_14_FORMATTER = new SimpleDateFormat(DATE_FORMAT_14, Locale.ENGLISH);
-		DATE_FORMAT_14_FORMATTER.setTimeZone(GMT_TZ);
+		HTTP_LINK_DATE_FORMATTER =  threadLocalDateFormat(HTTP_LINK_DATE_FORMAT);
+		//HTTP_LINK_DATE_FORMATTER.setTimeZone(GMT_TZ);
+		DATE_FORMAT_14_FORMATTER =  threadLocalDateFormat(DATE_FORMAT_14);
+		//DATE_FORMAT_14_FORMATTER.setTimeZone(GMT_TZ);
 	}
 	
 	public static void printTimemapResponse(CaptureSearchResults results, WaybackRequest wbRequest, HttpServletResponse response) throws IOException
-    {
+        {
 		response.setContentType("application/link-format");
 		printLinkTimemap(results, wbRequest, response.getWriter());
 	}
-
+        private static ThreadLocal<SimpleDateFormat> threadLocalDateFormat(final String pattern) {
+             ThreadLocal<SimpleDateFormat> tl = new ThreadLocal<SimpleDateFormat>() {
+             protected SimpleDateFormat initialValue() {
+                SimpleDateFormat df = new SimpleDateFormat(pattern, Locale.ENGLISH);
+                df.setTimeZone(GMT_TZ);
+                return df;
+            }
+        };
+        return tl;
+        }
+    
 	public static void printLinkTimemap(CaptureSearchResults results,
 			WaybackRequest wbr, PrintWriter pw) {
 		Date first = results.getFirstResultDate();
@@ -66,10 +77,10 @@ public class MementoUtils implements MementoConstants {
 				getTimemapDateUrl(ap, FORMAT_LINK, pagedate, requestUrl),
 				"self", APPLICATION_LINK_FORMAT)
 				+ "; from=\""
-				+ HTTP_LINK_DATE_FORMATTER.format(first)
+			 + HTTP_LINK_DATE_FORMATTER.get().format(first)
 				+ "\""
 				+ "; until=\""
-				+ HTTP_LINK_DATE_FORMATTER.format(last) + "\"");
+			 + HTTP_LINK_DATE_FORMATTER.get().format(last) + "\"");
 		// end
 		pw.println(",");
 		pw.print(makeLink(getTimegateUrl(ap, requestUrl), TIMEGATE));
@@ -105,10 +116,10 @@ public class MementoUtils implements MementoConstants {
 			pw.println(",");
 			pw.print(makeLink(
 					getTimemapDateUrl(ap, FORMAT_LINK,
-							DATE_FORMAT_14_FORMATTER.format(last) + "/",
+							  DATE_FORMAT_14_FORMATTER.get().format(last) + "/",
 							requestUrl), TIMEMAP, APPLICATION_LINK_FORMAT)
 					+ "; from=\""
-					+ HTTP_LINK_DATE_FORMATTER.format(last)
+				 + HTTP_LINK_DATE_FORMATTER.get().format(last)
 					+ "\"");
 		}
 		// end
@@ -239,7 +250,7 @@ public class MementoUtils implements MementoConstants {
 
 	public static void addMementoHeaders(HttpServletResponse response,
 			CaptureSearchResults results, CaptureSearchResult result, WaybackRequest wbr) {
-		response.setHeader(MEMENTO_DATETIME, HTTP_LINK_DATE_FORMATTER
+	    response.setHeader(MEMENTO_DATETIME, HTTP_LINK_DATE_FORMATTER.get()
 				.format(results.getClosest().getCaptureDate()));
 		
 		if (!wbr.isMementoTimegate()) {
@@ -364,10 +375,10 @@ public class MementoUtils implements MementoConstants {
 	private static String makeLink(AccessPoint ap, String url, String rel, CaptureSearchResult result) {
 
 		Date date = result.getCaptureDate();
-		String timestamp = DATE_FORMAT_14_FORMATTER.format(date);
+		String timestamp = DATE_FORMAT_14_FORMATTER.get().format(date);
 		String replayURI = ap.getUriConverter().makeReplayURI(timestamp, url);
 		String prefix = getMementoPrefix(ap);
-		String httpTime = HTTP_LINK_DATE_FORMATTER.format(date);
+		String httpTime = HTTP_LINK_DATE_FORMATTER.get().format(date);
 
 //		return String.format("<%s%s>; rel=\"%s\"; datetime=\"%s\"; status=\"%s\"", prefix, replayURI,
 //				rel, httpTime, result.getHttpCode());
