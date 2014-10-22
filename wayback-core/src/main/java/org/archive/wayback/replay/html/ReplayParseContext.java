@@ -25,11 +25,13 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.httpclient.util.URIUtil;
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.replay.JSPExecutor;
 import org.archive.wayback.util.htmllex.ParseContext;
+import org.springframework.web.util.UriUtils;
 
 /**
  * {@code ReplayParseContext} holds context information shared among
@@ -198,12 +200,25 @@ public class ReplayParseContext extends ParseContext {
 		if (url.startsWith(DATA_PREFIX) || url.startsWith(MAILTO_PREFIX)) {
 	    	return url;
 	    }
-		
-	    //don't rewrite path-relative urls. For https://webarchive.jira.com/browse/ARI-3985
-	    if (!url.startsWith("http://") && !url.startsWith("https://") && !url.startsWith("//") && !url.startsWith("/")) {
-		    return url;
-	    }
-		
+
+		// don't rewrite path-relative urls. For
+		// https://webarchive.jira.com/browse/ARI-3985
+		String trimmedUrl = url.trim();
+
+		if (!trimmedUrl.startsWith("http://") &&
+				!trimmedUrl.startsWith("https://") &&
+				!trimmedUrl.startsWith("//") &&
+				!trimmedUrl.startsWith("http:\\\\/\\\\/") &&
+				!trimmedUrl.startsWith("http\\\\u00253A\\\\u00252F\\\\u00252F") &&
+				!trimmedUrl.startsWith("https:\\\\/\\\\/") &&
+				!trimmedUrl
+					.startsWith("https\\\\u00253A\\\\u00252F\\\\u00252F") &&
+				!trimmedUrl.startsWith("http:\\/\\/") &&
+				!trimmedUrl.startsWith("https:\\/\\/") &&
+				!trimmedUrl.startsWith("/") && !trimmedUrl.startsWith("&#32;")) {
+			return url;
+		}
+
 	    // first make url into absolute, taking BASE into account.
 		// (this also removes escaping: ex. "https:\/\/" -> "https://")
 	    String absurl = super.contextualizeUrl(url);

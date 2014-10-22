@@ -81,7 +81,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 				"<a href=\"foo.html\">foo</a>" +
 				"</html>";
 		final String expected = "<html>" +
-				"<a href=\"http://replay.archive.org/2001/http://www.example.com/foo.html\">foo</a>" +
+				"<a href=\"foo.html\">foo</a>" +
 				"</html>";
 		assertEquals(expected, doEndToEnd(input));
 	}
@@ -159,8 +159,8 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
         final String expected = "<html>" +
                 "<head>" +
                 "<style type=\"text/css\">" +
-                "@import \"http://replay.archive.org/2001cs_/http://www.example.com/style1.css\";\n" +
-                "@import 'http://replay.archive.org/2001cs_/http://www.example.com/style2.css\';\n" +
+                "@import \"style1.css\";\n" +
+                "@import 'style2.css\';\n" +
                 "@import 'http://replay.archive.org/2001cs_/http://archive.org/common.css';\n" +
                 "}" +
                 "</style>" +
@@ -278,8 +278,8 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 				"</body>";
 		final String expected = "<html>" +
 				"<head>" +
-				"  <link rel=\"stylesheet\" href=\"http://replay.archive.org/2001cs_/http://www.example.com/basic.css?v=1.0&amp;l=en\">" +
-				"  <link rel=\"shortcut icon\" href=\"http://replay.archive.org/2001im_/http://www.example.com/icon.png?v=1.0&amp;rg=en\">" +
+				"  <link rel=\"stylesheet\" href=\"basic.css?v=1.0&amp;l=en\">" +
+				"  <link rel=\"shortcut icon\" href=\"icon.png?v=1.0&amp;rg=en\">" +
 				"</head>" +
 				"<body>" +
 				"</body>";
@@ -296,7 +296,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 				"</html>";
 		final String expected = "<html>" +
 				"<body>" +
-				"<div style=\"background-image:url(http://replay.archive.org/2001im_/http://www.example.com/genbg?a=1&amp;b=2);\">" +
+				"<div style=\"background-image:url(genbg?a=1&amp;b=2);\">" +
 				"blah" +
 				"</div>" +
 				"</body>" +
@@ -330,7 +330,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 				"</html>";
 		final String expected = "<html>" +
 				"<head>" +
-				"<script src=\"http://replay.archive.org/2001js_/http://www.example.com/rewrite.js\"></script>" +
+				"<script src=\"rewrite.js\"></script>" +
 				"<script src=\"\"></script>" +
 				"</head>" +
 				"<body>" +
@@ -354,7 +354,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 		final String expected = "<html>" +
 				"<base href='http://replay.archive.org/2001/http://othersite.com/'>" +
 				"<body>" +
-				"<a href='http://replay.archive.org/2001/http://othersite.com/nextpage.html'>next page</a>" +
+				"<a href='nextpage.html'>next page</a>" +
 				"<base href='http://replay.archive.org/2001/http://anothersite.com/'>" +
 				"</body>" +
 				"</html>";
@@ -385,11 +385,11 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 				"</html>";
 		final String expected = "<html>" +
 				"<head>" +
-				"<link rel='stylesheet' type='text/javascript' href='http://replay.archive.org/2001js_/http://www.example.com/styles.js'>" +
+				"<link rel='stylesheet' type='text/javascript' href='styles.js'>" +
 				"</head>" +
 				"<body>" +
 				"<span data-uri='http://replay.archive.org/2001/http://datasource.example.com/data1'></span>" +
-				"<a href='http://replay.archive.org/2001im_/http://www.example.com/logo.png' role='logo.download'>download logo</a>" +
+				"<a href='logo.png' role='logo.download'>download logo</a>" +
 				"</body>" +
 				"</html>";
 
@@ -419,7 +419,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 		final String expected ="<html>" +
 				"<body>" +
 				"<a href=\"ignore.html\">ignore this</a>" +
-				"<a href=\"http://replay.archive.org/2001/http://www.example.com/rewrite.html\" rewrite=\"true\">rewrite this</a>" +
+				"<a href=\"rewrite.html\" rewrite=\"true\">rewrite this</a>" +
 				"</body>" +
 				"</html>";
 
@@ -500,13 +500,13 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 				"<head>" +
 				"[[[JSP-INSERT:head.jsp]]]" +
 				"<title>BarBar</title>" +
-				"<script src=\"http://replay.archive.org/2001js_/http://www.example.com/a.js\"></script>" +
-				"<link rel=\"stylesheet\" type=\"text/css\" href=\"http://replay.archive.org/2001cs_/http://www.example.com/style.css\">" +
+				"<script src=\"a.js\"></script>" +
+				"<link rel=\"stylesheet\" type=\"text/css\" href=\"style.css\">" +
 				"</head>" +
 				"<body>" +
 				"[[[JSP-INSERT:body-insert.jsp]]]" +
 				"<p align=\"center\">" +
-				"<img src=\"http://replay.archive.org/2001im_/http://www.example.com/map.gif\">" +
+				"<img src=\"map.gif\">" +
 				"</p>" +
 				"</body>" +
 				"</html>";
@@ -564,11 +564,11 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 				"<head>" +
 				"[[[JSP-INSERT:head.jsp]]]" +
 				"<title>BarBar</title>" +
-				"<script src=\"http://replay.archive.org/2001js_/http://www.example.com/a.js\"></script>" +
+				"<script src=\"a.js\"></script>" +
 				"</head>" +
 				"[[[JSP-INSERT:body-insert.jsp]]]" +
 				"<p align=\"center\">" +
-				"<img src=\"http://replay.archive.org/2001im_/http://www.example.com/map.gif\">" +
+				"<img src=\"map.gif\">" +
 				"</p>" +
 				"</body>" +
 				"</html>";
@@ -601,12 +601,12 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 				"<head>" +
 				"[[[JSP-INSERT:head.jsp]]]" +
 				"<title>BarBar</title>" +
-				"<script src=\"http://replay.archive.org/2001js_/http://www.example.com/a.js\"></script>" +
+				"<script src=\"a.js\"></script>" +
 				"</head>" +
 				"<body>" +
 				"[[[JSP-INSERT:body-insert.jsp]]]" +
 				"<p align=\"center\">" +
-				"<img src=\"http://replay.archive.org/2001im_/http://www.example.com/map.gif\">" +
+				"<img src=\"map.gif\">" +
 				"</p>" +
 				"</body>" +
 				"</html>";
@@ -638,10 +638,10 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 				"<head>" +
 				"[[[JSP-INSERT:head.jsp]]]" +
 				"<title>BarBar</title>" +
-				"<script src=\"http://replay.archive.org/2001js_/http://www.example.com/a.js\"></script>" +
+				"<script src=\"a.js\"></script>" +
 				"[[[JSP-INSERT:body-insert.jsp]]]" +
 				"<p align=\"center\">" +
-				"<img src=\"http://replay.archive.org/2001im_/http://www.example.com/map.gif\">" +
+				"<img src=\"map.gif\">" +
 				"</p>" +
 				"</body>" +
 				"</html>";
@@ -669,10 +669,10 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 		final String expected =
 				"[[[JSP-INSERT:head.jsp]]]" +
 				"<title>BarBar</title>" +
-				"<script src=\"http://replay.archive.org/2001js_/http://www.example.com/a.js\"></script>" +
+				"<script src=\"a.js\"></script>" +
 				"[[[JSP-INSERT:body-insert.jsp]]]" +
 				"<p align=\"center\">" +
-				"<img src=\"http://replay.archive.org/2001im_/http://www.example.com/map.gif\">" +
+				"<img src=\"map.gif\">" +
 				"</p>";
 		String output = doEndToEnd(input);
 		System.out.println(output);
@@ -697,7 +697,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 				"[[[JSP-INSERT:head.jsp]]]" +
 				"[[[JSP-INSERT:body-insert.jsp]]]" +
 				"<p align=\"center\">" +
-				"<img src=\"http://replay.archive.org/2001im_/http://www.example.com/map.gif\">" +
+				"<img src=\"map.gif\">" +
 				"</p>";
 		String output = doEndToEnd(input);
 		System.out.println(output);
@@ -728,12 +728,12 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 		final String expected = "<html>" +
 				"[[[JSP-INSERT:head.jsp]]]" +
 				"<title>BarBar</title>" +
-				"<script src=\"http://replay.archive.org/2001js_/http://www.example.com/a.js\"></script>" +
+				"<script src=\"a.js\"></script>" +
 				"[[[JSP-INSERT:body-insert.jsp]]]" +
 				"<div>TEXT</div>" +
 				"<body>" +
 				"<p align=\"center\">" +
-				"<img src=\"http://replay.archive.org/2001im_/http://www.example.com/map.gif\">" +
+				"<img src=\"map.gif\">" +
 				"</p>" +
 				"</body>" +
 				"</html>";
