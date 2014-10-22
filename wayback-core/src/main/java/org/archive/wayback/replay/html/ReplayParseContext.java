@@ -25,13 +25,11 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.httpclient.util.URIUtil;
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.replay.JSPExecutor;
 import org.archive.wayback.util.htmllex.ParseContext;
-import org.springframework.web.util.UriUtils;
 
 /**
  * {@code ReplayParseContext} holds context information shared among
