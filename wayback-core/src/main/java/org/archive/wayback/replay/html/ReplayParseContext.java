@@ -213,7 +213,7 @@ public class ReplayParseContext extends ParseContext {
 					.startsWith("https\\\\u00253A\\\\u00252F\\\\u00252F") &&
 				!trimmedUrl.startsWith("http:\\/\\/") &&
 				!trimmedUrl.startsWith("https:\\/\\/") &&
-				!trimmedUrl.startsWith("/") && !trimmedUrl.startsWith("&#32;")) {
+				!trimmedUrl.startsWith("/")) {
 			return url;
 		}
 
