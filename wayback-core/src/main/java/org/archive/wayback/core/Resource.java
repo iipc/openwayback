@@ -2,8 +2,8 @@
  *  This file is part of the Wayback archival access software
  *   (http://archive-access.sourceforge.net/projects/wayback/).
  *
- *  Licensed to the Internet Archive (IA) by one or more individual 
- *  contributors. 
+ *  Licensed to the Internet Archive (IA) by one or more individual
+ *  contributors.
  *
  *  The IA licenses this file to You under the Apache License, Version 2.0
  *  (the "License"); you may not use this file except in compliance with
@@ -29,14 +29,14 @@ import org.apache.commons.httpclient.ChunkedInputStream;
 
 /**
  * Abstraction on top of a document stored in a WaybackCollection.
- * 
+ *
  * TODO: This implementation needs some pretty drastic refactoring.. May have to wait
- * for 2.0. This should be a byte-oriented record, and allow wrapping the 
- * interior byte-stream in on the more full featured HTTP libraries 
+ * for 2.0. This should be a byte-oriented record, and allow wrapping the
+ * interior byte-stream in on the more full featured HTTP libraries
  * (jetty/apache-http-client/w3c-http-reference).
- * 
+ *
  * For now, it is a system-wide assumption that all resources are HTTP based.
- * 
+ *
  * TODO: Some code downcasts Resource to its sub-classes to gain access to
  * methods only available in specific implementation.  Consider adding more methods
  * to make downcast unnecessary.  More sub-classes are expected, for encapsulating
@@ -47,7 +47,7 @@ import org.apache.commons.httpclient.ChunkedInputStream;
  * @author Brad Tofel
  */
 public abstract class Resource extends InputStream {
-	
+
 	private InputStream is;
 
     public abstract void close() throws IOException;
@@ -63,10 +63,10 @@ public abstract class Resource extends InputStream {
 	/**
 	 * Assumes an HTTP response - return the HTTP headers, not including the
 	 * HTTP Message header
-	 * @return key-value Map of HTTP headers 
+	 * @return key-value Map of HTTP headers
 	 */
 	public abstract Map<String,String> getHttpHeaders();
-	
+
 	// URL-Agnostic Revisit Support
 
 	/**
@@ -78,41 +78,40 @@ public abstract class Resource extends InputStream {
 	public String getRefersToTargetURI() {
 		return null;
 	}
+
 	/**
-	 * return {@code WARC-Refer-To-Date} WARC record header value or
+	 * return {@code WARC-Refers-To-Date} WARC record header value or
 	 * equivalent.
 	 * Default implementation returns {@code null}
-	 * @return String 14-digit timestamp
+	 * @return 14-digit timestamp string ({@code yyyyMMddHHmmss})
 	 */
 	public String getRefersToDate() {
 		return null;
 	}
 
-	public void parseHeaders() throws IOException
-	{
+	public void parseHeaders() throws IOException {
 		//Implemented in warc/arc reader
 	}
-	
-	public String getHeader(String headerName)
-	{
-		Map<String,String> httpHeaders = getHttpHeaders();
-		
+
+	public String getHeader(String headerName) {
+		Map<String, String> httpHeaders = getHttpHeaders();
+
 		if (httpHeaders == null) {
 			return null;
 		}
-		
+
 		Iterator<String> keys = httpHeaders.keySet().iterator();
 
 		String headerUp = headerName.toUpperCase();
-		
+
 		while (keys.hasNext()) {
 			String key = keys.next();
-			
+
 			if (key.toUpperCase().equals(headerUp)) {
 				return httpHeaders.get(key);
 			}
 		}
-		
+
 		return null;
 	}
 
@@ -141,32 +140,32 @@ public abstract class Resource extends InputStream {
 		validate();
 		// peek ahead and make sure we have a line with hex numbers:
 		int max = 50;
-		is.mark(max+2);
+		is.mark(max + 2);
 		int cur = 0;
 		int hexFound = 0;
 		boolean isChunked = false;
-		while(cur < max) {
+		while (cur < max) {
 			int nextC = is.read();
 			// allow CRLF and plain ole LF:
-			if((nextC == 13) || (nextC == 10)) {
+			if ((nextC == 13) || (nextC == 10)) {
 				// must have read at least 1 hex char:
-				if(hexFound > 0) {
-					if(nextC == 10) {
+				if (hexFound > 0) {
+					if (nextC == 10) {
 						isChunked = true;
 						break;
 					}
 					nextC = is.read();
-					if(nextC == 10) {
+					if (nextC == 10) {
 						isChunked = true;
 						break;
 					}
 				}
-				// keep looking to allow some blank lines. 
+				// keep looking to allow some blank lines.
 			} else {
 				// better be a hex character:
-				if(isHex(nextC)) {
+				if (isHex(nextC)) {
 					hexFound++;
-				} else if(nextC != ' ') {
+				} else if (nextC != ' ') {
 					// allow whitespace before or after chunk...
 					// not a hex digit: not a chunked stream.
 					break;
@@ -175,19 +174,19 @@ public abstract class Resource extends InputStream {
 			cur++;
 		}
 		is.reset();
-		if(isChunked) {
+		if (isChunked) {
 			setInputStream(new ChunkedInputStream(is));
 		}
 	}
-	
+
 	private boolean isHex(int c) {
-		if((c >= '0') && (c <= '9')) {
+		if ((c >= '0') && (c <= '9')) {
 			return true;
 		}
-		if((c >= 'a') && (c <= 'f')) {
+		if ((c >= 'a') && (c <= 'f')) {
 			return true;
 		}
-		if((c >= 'A') && (c <= 'F')) {
+		if ((c >= 'A') && (c <= 'F')) {
 			return true;
 		}
 		return false;
@@ -199,13 +198,13 @@ public abstract class Resource extends InputStream {
 	}
 
 	public void mark(int readlimit) {
-		if(is != null) {
+		if (is != null) {
 			is.mark(readlimit);
 		}
 	}
 
 	public boolean markSupported() {
-		if(is == null) {
+		if (is == null) {
 			return false;
 		}
 		return is.markSupported();
