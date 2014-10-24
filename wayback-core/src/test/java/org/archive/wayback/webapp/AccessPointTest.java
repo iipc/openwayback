@@ -34,6 +34,7 @@ import org.archive.wayback.ResourceStore;
 import org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
+import org.archive.wayback.core.FastCaptureSearchResult;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.UrlSearchResults;
 import org.archive.wayback.core.WaybackRequest;
@@ -235,8 +236,16 @@ public class AccessPointTest extends TestCase {
 
 	public static Resource createTestHtmlResource(String uri, String timestamp,
 			byte[] payloadBytes) throws IOException {
-		TestWARCRecordInfo recinfo = TestWARCRecordInfo
-			.createCompressedHttpResponse("text/html", payloadBytes);
+		// default compresssed=true - it often reveals bugs.
+		return createTestHtmlResource(uri, timestamp, payloadBytes, true);
+	}
+
+	public static Resource createTestHtmlResource(String uri, String timestamp,
+			byte[] payloadBytes, boolean compressed) throws IOException {
+		TestWARCRecordInfo recinfo = compressed ? TestWARCRecordInfo
+			.createCompressedHttpResponse("text/html", payloadBytes)
+				: TestWARCRecordInfo.createHttpResponse("text/html",
+					payloadBytes);
 		recinfo.setCreate14DigitDateFromDT14(timestamp);
 		if (uri != null)
 			recinfo.setUrl(uri);
@@ -254,6 +263,17 @@ public class AccessPointTest extends TestCase {
 		return createTestHtmlResource(null, timestamp, payloadBytes);
 	}
 
+	/**
+	 * Create a test revisit record referring unknown capture of content-length
+	 * {@code len}. This is meant for pathological case. Use
+	 * {@link #createTestRevisitResource(String, int, boolean)} for regular case.
+	 * @param timestamp 14-digit timestamp of capture
+	 * @param len original content-length
+	 * @param withHeader {@code false} for omitting HTTP header (simulates old
+	 * revisit record).
+	 * @return new Resource object.
+	 * @throws IOException for unexpected I/O failure while buiding payload
+	 */
 	public static Resource createTestRevisitResource(String timestamp, int len,
 			boolean withHeader) throws IOException {
 		TestWARCRecordInfo recinfo = TestWARCRecordInfo
@@ -266,6 +286,16 @@ public class AccessPointTest extends TestCase {
 		return resource;
 	}
 
+	/**
+	 * Create a test revisit record referring Resource {@code revisited}.
+	 * @param timestamp CDX-style 14digit timestamp
+	 * @param revisited Capture being revisited (must be a {@link WarcResource}
+	 * or {@code ClassCastException} will be the result)
+	 * @param withHeader {@code true} unless you want to emulate old implementation
+	 * where revisit record had no HTTP headers.
+	 * @return new Resource object
+	 * @throws IOException for unexpected I/O error building payload
+	 */
 	public static Resource createTestRevisitResource(String timestamp,
 			Resource revisited, boolean withHeader) throws IOException {
 		String clen = revisited.getHttpHeaders().get("Content-Length");
@@ -273,10 +303,12 @@ public class AccessPointTest extends TestCase {
 		TestWARCRecordInfo recinfo = TestWARCRecordInfo
 			.createRevisitHttpResponse("text/html", len, withHeader);
 		recinfo.setCreate14DigitDateFromDT14(timestamp);
+		ArchiveRecordHeader warcHeader = ((WarcResource)revisited).getWarcHeaders();
 		recinfo.addExtraHeader("WARC-Refers-To-Target-URI",
-			((WarcResource)revisited).getWarcHeaders().getUrl());
-		recinfo.addExtraHeader("WARC-Refers-To-Date", ((WarcResource)revisited)
-			.getWarcHeaders().getDate());
+			warcHeader.getUrl());
+		recinfo.addExtraHeader("WARC-Refers-To-Date",
+			warcHeader.getDate());
+		recinfo.setUrl(warcHeader.getUrl());
 		TestWARCReader ar = new TestWARCReader(recinfo);
 		WARCRecord rec = ar.get(0);
 		WarcResource resource = new WarcResource(rec, ar);
@@ -310,6 +342,32 @@ public class AccessPointTest extends TestCase {
 		output.append(input.substring(17, 19));
 		return output.toString();
 	}
+	/**
+	 * setup mocks with {@code resources}.
+	 * <ul>
+	 * <li>Call {@link #setupCaptures(ResourceIndex, ResourceStore, int, Resource...)}</li>
+	 * <li>Set up {@code replay} so as to return closest from {@code getClosest}.</li>
+	 * <li>Set up {@code resourceIndex} so as to return results from {@code query(wbRequest)}</li>
+	 * </ul>
+	 * <p>
+	 * Note: {@link #wbRequest} must be set up before calling this method, or
+	 * {@code ResourceIndex} will not return expected search result set.
+	 * </p>
+	 * @param closestIndex zero-based index into {@code resources}
+	 * @param resources resources
+	 * @return CaptureSearchResults populated with CaptureSearchResult objects.
+	 * @throws Exception
+	 */
+	protected CaptureSearchResults setupCaptures(int closestIndex,
+			Resource... resources) throws Exception {
+		CaptureSearchResults results = setupCaptures(resourceIndex, resourceStore, closestIndex, resources);
+		CaptureSearchResult closest = results.getClosest();
+		if (closest != null) {
+			EasyMock.expect(replay.getClosest(wbRequest, results)).andReturn(closest);
+		}
+		EasyMock.expect(resourceIndex.query(wbRequest)).andReturn(results);
+		return results;
+	}
 
 	/**
 	 * given a sequence of {@link WarcResource}s,
@@ -320,26 +378,28 @@ public class AccessPointTest extends TestCase {
 	 * <li>setup ResourceStore mock to return Resource for each
 	 * CaptureSearchResult.
 	 * <li>
-	 * <li>setup ResourceIndex mock to return CaptureSearchResults.</li>
 	 * <li>if {@code closestIndex} {@code >= 0}, set corresponding
-	 * CaptureSearchResult's closest flag, and also set up
-	 * ReplayDispatcher.getClosest() mock to return it.</li>
+	 * CaptureSearchResult's closest flag.</li>
 	 * </ul>
 	 * <p>
-	 * Note: {@link #wbRequest} must be set up before calling this method, or
-	 * {@code ResourceIndex} will not return expected search result set.
-	 * </p>
+	 * It's left as caller's responsibility to setup {@link ResourceIndex#query(WaybackRequest)} mock
+	 * to return {@code CaptureSearchResults} returned by this method.
+	 * </p> 
+	 * @param resourceIndex ResourceIndex mock
+	 * @param resourceStore ResourceStore mock, can be {@code null}
 	 * @param closestIndex 0-based index of resource to be marked as
 	 *        <i>closest</i>
 	 * @param resources sequence of WarcResources
-	 * @return CaptureSearchResults built
+	 * @return CaptureSearchResults populated with CaptureSearchResult objects.
+	 * @throws Exception
 	 */
-	protected CaptureSearchResults setupCaptures(int closestIndex,
-			Resource... resources) throws Exception {
+	public static CaptureSearchResults setupCaptures(
+			ResourceIndex resourceIndex, ResourceStore resourceStore,
+			int closestIndex, Resource... resources) throws Exception {
 		CaptureSearchResults results = new CaptureSearchResults();
 		CaptureSearchResult prev = null;
 		for (Resource res : resources) {
-			CaptureSearchResult result = new CaptureSearchResult();
+			CaptureSearchResult result = new FastCaptureSearchResult();
 			if (prev != null) {
 				prev.setNextResult(result);
 				result.setPrevResult(prev);
@@ -361,6 +421,21 @@ public class AccessPointTest extends TestCase {
 				// DT14 timestamp as pseudo filename (.warc.gz suffix is not
 				// essential).
 				result.setFile(ts + ".warc.gz");
+				if (res.getRefersToDate() != null) {
+					// getRefersToDate() is supposed to return "yyyyMMddHHmmss"
+					String refTimestamp = res.getRefersToDate();
+					for (CaptureSearchResult r : results.getResults()) {
+						if (r.getCaptureTimestamp().equals(refTimestamp)) {
+							result.flagDuplicateDigest(r);
+							refTimestamp = null;
+							break;
+						}
+					}
+					if (refTimestamp != null) {
+						// no original capture found - just flag it
+						result.flagDuplicateDigest();
+					}
+				}
 			} else if (res instanceof ArcResource) {
 				// TODO: should use ARCRecordToSearchResultAdapter? ArcResource
 				// has getArcRecord() methods whose result may be cast to ARCRecord.
@@ -384,24 +459,22 @@ public class AccessPointTest extends TestCase {
 			if (closestIndex == 0) {
 				result.setClosest(true);
 				results.setClosest(result);
-				EasyMock.expect(replay.getClosest(wbRequest, results))
-					.andReturn(result);
 			}
 
-			// Note AccessPoint passes a copy of CaptureSearchResult in some
-			// case (ex. Replay_Revisit() test).
-			// so we need to use custom argument matcher.
-			EasyMock
-				.expect(
-					resourceStore
-						.retrieveResource(eqCaptureSearchResult(result)))
-				.andReturn(res).anyTimes();
+			if (resourceStore != null) {
+				// Note AccessPoint passes a copy of CaptureSearchResult in some
+				// case (ex. Replay_Revisit() test).
+				// so we need to use custom argument matcher.
+				EasyMock
+					.expect(
+						resourceStore
+							.retrieveResource(eqCaptureSearchResult(result)))
+					.andReturn(res).anyTimes();
+			}
 
 			results.addSearchResult(result);
 			--closestIndex;
 		}
-		EasyMock.expect(resourceIndex.query(wbRequest)).andReturn(results);
-
 		return results;
 	}
 
@@ -672,15 +745,12 @@ public class AccessPointTest extends TestCase {
 		Resource payloadResource = createTestHtmlResource("20100501000001",
 			payload);
 		Resource headerResource = createTestRevisitResource("20100601000000",
-			payload.length, true);
+			payloadResource, true);
 		CaptureSearchResults results = setupCaptures(1, payloadResource,
 			headerResource);
 
 		CaptureSearchResult previous = results.getResults().get(0);
 		CaptureSearchResult closest = results.getClosest();
-		// previous.setFile("aaa.warc.gz");
-		// previous.setOffset(0);
-		closest.flagDuplicateDigest(previous); // right? TODO: could be done in setupCaptures()
 		assertTrue(closest.isDuplicateDigest());
 		assertTrue(closest.getDuplicatePayloadFile() != null);
 		assertTrue(closest.getDuplicatePayloadOffset() != null);
