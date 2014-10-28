@@ -2,6 +2,7 @@ package org.archive.wayback.webapp;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.logging.Logger;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.Cookie;
@@ -47,7 +48,13 @@ public class PerfWritingHttpServletResponse extends HttpServletResponseWrapper {
 			cookie.setMaxAge(expireTimeout);
 			//cookie.setDomain(domainName);
 			cookie.setPath(requestURI);
-			httpResponse.addCookie(cookie);
+			try {
+				httpResponse.addCookie(cookie);
+			} catch (IllegalArgumentException ex) {
+				Logger logger = Logger.getLogger(getClass().getName());
+				logger.warning("addCookie failed for " + cookie + " (path=\"" +
+						requestURI + "\"): " + ex.getMessage());
+			}
 		}
 
 		hasWritten = true;
