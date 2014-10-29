@@ -94,6 +94,12 @@ public class SimpleMimeTypeDetectorTest extends TestCase {
 		String mimetype = cut.sniff(resource);
 
 		assertEquals("text/javascript", mimetype);
+		// resource's payload stream must be positioned at the beginning,
+		// which is confirmed by testing if the first two bytes are GZIP MAGIC.
+		byte[] bytes = new byte[2];
+		resource.read(bytes);
+		assertTrue("resource is properly reset to position 0",
+			bytes[0] == (byte)0x1f && bytes[1] == (byte)0x8b);
 	}
 
 	public void testContentSniffing_JSON() throws Exception {
