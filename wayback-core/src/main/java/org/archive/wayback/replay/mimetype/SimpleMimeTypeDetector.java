@@ -233,15 +233,18 @@ public class SimpleMimeTypeDetector implements MimeTypeDetector {
 		byte[] bbuffer = new byte[Math.max(sniffLength, MINIMUM_SNIFF_BUFFER_SIZE)];
 		String encoding = resource.getHeader("content-encoding");
 		if ("gzip".equalsIgnoreCase(encoding) || "x-gzip".equalsIgnoreCase(encoding)) {
-			resource = new GzipDecodingResource(resource);
 			// use larger readlimit, because gzip-ed data can be larger than the original
 			// at low compression level.
 			resource.mark(sniffLength + 100);
+			@SuppressWarnings("resource")
+			Resource z = new GzipDecodingResource(resource);
+			z.read(bbuffer, 0, sniffLength);
+			resource.reset();
 		} else {
 			resource.mark(sniffLength);
+			resource.read(bbuffer, 0, sniffLength);
+			resource.reset();
 		}
-		resource.read(bbuffer, 0, sniffLength);
-		resource.reset();
 		return bbuffer;
 	}
 
