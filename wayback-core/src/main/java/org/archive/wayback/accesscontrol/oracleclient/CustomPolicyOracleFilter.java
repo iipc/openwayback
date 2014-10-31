@@ -44,7 +44,7 @@ public class CustomPolicyOracleFilter extends OracleExclusionFilter {
 			.getLogger(CustomPolicyOracleFilter.class.getName());
 
 	// TODO: redefine this enum as ordinary base class with well-known
-	// instalces to make CustomPolicyOracleFilter runtime-configurable.
+	// instances to make CustomPolicyOracleFilter runtime-configurable.
 	enum Policy {
 		ALLOW("allow"),
 		BLOCK_HIDDEN("block") {
