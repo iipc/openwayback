@@ -141,7 +141,6 @@ public class AccessPointAuthChecker extends PrivTokenAuthChecker {
 						setRobotFlags(robotFlags + flag);
 					}
 				}
-				cdxLine.setField(CDXLine.robotflags, robotFlags);
 			}
 
 			@Override
