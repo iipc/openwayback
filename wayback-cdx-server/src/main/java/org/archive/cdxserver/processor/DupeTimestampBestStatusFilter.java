@@ -36,6 +36,35 @@ public class DupeTimestampBestStatusFilter extends WrappedProcessor {
 		this.noCollapsePrefix = noCollapsePrefix;
 	}
 
+	/**
+	 * Return {@code true} if {@code line} is to be passed through,
+	 * as specified by {@code noCollapsePrefix}.
+	 * <p>Soft-blocked captures are also passed-through.</p>
+	 * @param line CDX line
+	 * @return boolean
+	 */
+	protected final boolean passThrough(CDXLine line) {
+		return isBlocked(line) || noCollapse(line);
+	}
+
+	protected final boolean isBlocked(CDXLine line) {
+		String robotflags = line.getRobotFlags();
+		// TODO: give 'X' a constant symbol - CaptureSearchResult.CAPTURE_ROBOT_BLOCKED
+		// is exactly that, but wayback-cdx-server cannot use it.
+		return robotflags != null && robotflags.indexOf('X') >= 0;
+	}
+
+	protected final boolean noCollapse(CDXLine line) {
+		if (noCollapsePrefix != null) {
+			for (String prefix : noCollapsePrefix) {
+				if (line.getFilename().startsWith(prefix)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
 	@Override
 	public int writeLine(CDXLine line) {
 		if (include(line)) {
@@ -45,20 +74,14 @@ public class DupeTimestampBestStatusFilter extends WrappedProcessor {
 		}
 	}
 
-	public boolean include(CDXLine line) {
+	protected boolean include(CDXLine line) {
 
 		if (timestampDedupLength <= 0) {
 			return true;
 		}
 
 		// If starts with special no collapse prefix, then always include
-		if (noCollapsePrefix != null) {
-			for (String prefix : noCollapsePrefix) {
-				if (line.getFilename().startsWith(prefix)) {
-					return true;
-				}
-			}
-		}
+		if (passThrough(line)) return true;
 
 		String timestamp = line.getTimestamp();
 		timestamp = timestamp.substring(0, Math.min(timestampDedupLength, timestamp.length()));

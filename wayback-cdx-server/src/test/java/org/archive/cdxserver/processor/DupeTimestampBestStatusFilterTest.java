@@ -42,12 +42,15 @@ public class DupeTimestampBestStatusFilterTest extends TestCase {
 	}
 
 	static class TestCDXLine extends CDXLine {
-		static final FieldSplitFormat format = new FieldSplitFormat("timestamp,statuscode,filename");
+		static final FieldSplitFormat format = new FieldSplitFormat("timestamp,statuscode,robotflags,filename");
 		public TestCDXLine(String timestamp, int status) {
-			this(timestamp, status, "NA");
+			this(timestamp, status, "-", "NA");
 		}
 		public TestCDXLine(String timestamp, int status, String filename) {
-			super(timestamp + " " + status + " " + filename, format);
+			this(timestamp, status, "-", filename);
+		}
+		public TestCDXLine(String timestamp, int status, String robotflags, String filename) {
+			super(timestamp + " " + status + " " + robotflags + " " + filename, format);
 		}
 	}
 
@@ -141,6 +144,33 @@ public class DupeTimestampBestStatusFilterTest extends TestCase {
 		EasyMock.replay(output);
 
 		process(TEST_CASE_2);
+
+		EasyMock.verify();
+	}
+
+	/**
+	 * soft-blocked captures are passed-through (they are supposed to be
+	 * removed later).
+	 */
+	public void testBlockedPassesThrough() {
+		final CDXLine[] TEST_CASE = {
+			new TestCDXLine("20140902201508", 200, "-", "A"),
+			new TestCDXLine("20140903012025", 200, "X", "A"),
+			new TestCDXLine("20140903020020", 200, "-", "A"),
+			new TestCDXLine("20140903182258", 200, "-", "L"),
+			new TestCDXLine("20140903192521", 200, "-", "A"),
+			new TestCDXLine("20140903192732", 200, "-", "L")
+		};
+		// 20140903012025 capture is passed through. The next one
+		// 20140903020020 is picked up by the filter for 20140903
+		// period, and the rest is dropped.
+		BaseProcessor output = setupOutputMock(TEST_CASE, 0, 1, 2);
+
+		cut = new DupeTimestampBestStatusFilter(output, 8, null);
+
+		EasyMock.replay(output);
+
+		process(TEST_CASE);
 
 		EasyMock.verify();
 	}
