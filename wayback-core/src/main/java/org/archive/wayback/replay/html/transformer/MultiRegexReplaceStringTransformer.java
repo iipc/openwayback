@@ -2,8 +2,8 @@
  *  This file is part of the Wayback archival access software
  *   (http://archive-access.sourceforge.net/projects/wayback/).
  *
- *  Licensed to the Internet Archive (IA) by one or more individual 
- *  contributors. 
+ *  Licensed to the Internet Archive (IA) by one or more individual
+ *  contributors.
  *
  *  The IA licenses this file to You under the Apache License, Version 2.0
  *  (the "License"); you may not use this file except in compliance with
@@ -32,9 +32,9 @@ import org.archive.wayback.replay.html.rewrite.RewriteRule;
  * sub-StringTransformers can be any <code>StringTransformer</code> regardless of
  * being regular-expression base or not.</p>
  */
-public class MultiRegexReplaceStringTransformer extends RewriteRule 
+public class MultiRegexReplaceStringTransformer extends RewriteRule
 		implements StringTransformer {
-	
+
 	List<StringTransformer> transformers;
 	public String transform(ReplayParseContext context, String input) {
 		if(transformers == null) {
@@ -57,12 +57,12 @@ public class MultiRegexReplaceStringTransformer extends RewriteRule
 	public void setTransformers(List<StringTransformer> transformers) {
 		this.transformers = transformers;
 	}
-	
+
 	@Override
 	public String rewrite(ReplayParseContext context, String policy,
 			String input) {
-		
+
 		return transform(context, input);
-	}	
+	}
 
 }

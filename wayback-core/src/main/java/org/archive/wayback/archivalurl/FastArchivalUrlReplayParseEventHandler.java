@@ -33,6 +33,7 @@ import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.replay.JSPExecutor;
 import org.archive.wayback.replay.html.ReplayParseContext;
 import org.archive.wayback.replay.html.StringTransformer;
+import org.archive.wayback.replay.html.rewrite.DisableJSIncludeRewriteRule;
 import org.archive.wayback.replay.html.transformer.BlockCSSStringTransformer;
 import org.archive.wayback.replay.html.transformer.JSStringTransformer;
 import org.archive.wayback.replay.html.transformer.URLStringTransformer;
@@ -211,14 +212,12 @@ public class FastArchivalUrlReplayParseEventHandler implements
 	 * <p>
 	 * If {@code jsBlockTrans.transform} returns {@code null} or empty for
 	 * {@code SCRIPT/@SRC}, {@code SCRIPT} element is disabled by replacing
-	 * {@code SRC} attribute with empty value.
+	 * {@code SRC} attribute with empty value. {@link DisableJSIncludeRewriteRule}
+	 * provides one implementation to make use of this behavior.
 	 * </p>
-	 * <p>TODO: I believe this feature is no longer used;
-	 * {@link org.archive.wayback.replay.html.rewrite.DisableJSIncludeRewriteRule}
-	 * provides alternative method currently in use.</p>
-	 *
 	 * @param context {@link ReplayParseContext}
 	 * @param tagNode {@code SCRIPT} tag.
+	 * @see DisableJSIncludeRewriteRule
 	 */
 	private void handleJSIncludeNode(ReplayParseContext context, TagNode tagNode) {
 		String file = tagNode.getAttribute("SRC");
