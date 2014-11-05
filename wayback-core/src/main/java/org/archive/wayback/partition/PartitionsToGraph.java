@@ -21,16 +21,12 @@ package org.archive.wayback.partition;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 import java.util.TimeZone;
 
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.core.CaptureSearchResult;
-import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.util.StringFormatter;
-import org.archive.wayback.util.Timestamp;
 import org.archive.wayback.util.graph.Graph;
 import org.archive.wayback.util.graph.GraphConfiguration;
 import org.archive.wayback.util.graph.RegionData;
@@ -530,7 +526,7 @@ public class PartitionsToGraph {
 
 	/**
 	 * @param list
-	 * @return
+	 * @return The input lis split into day intervals.
 	 */
 	private static List<Partition<CaptureSearchResult>> splitToDays(
 			Partition<CaptureSearchResult> month) {

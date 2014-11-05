@@ -64,7 +64,7 @@ import org.archive.wayback.util.flatfile.FlatFile;
  * @author brad
  * 
  * 
- * @ deprecated Note, this implementation is now superceded by the one in archive-commons
+ * @deprecated Note, this implementation is now superceded by the one in archive-commons
  * @see org.archive.format.gzip.zipnum.ZipNumCluster
  * That implementation provides support for stream loading of blocks, as well as summary files
  * from http and hdfs as well as local filesystem
@@ -135,6 +135,7 @@ public class ZiplinesSearchResultSource implements SearchResultSource {
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.resourceindex.SearchResultSource#cleanup(org.archive.wayback.util.CloseableIterator)
 	 */
+        @Override
 	public void cleanup(CloseableIterator<CaptureSearchResult> c)
 			throws IOException {
 		c.close();
@@ -143,6 +144,7 @@ public class ZiplinesSearchResultSource implements SearchResultSource {
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.resourceindex.SearchResultSource#getPrefixIterator(java.lang.String)
 	 */
+        @Override
 	public CloseableIterator<CaptureSearchResult> getPrefixIterator(
 			String prefix) throws ResourceIndexNotAvailableException {
 		try {
@@ -300,6 +302,7 @@ public class ZiplinesSearchResultSource implements SearchResultSource {
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.resourceindex.SearchResultSource#getPrefixReverseIterator(java.lang.String)
 	 */
+        @Override
 	public CloseableIterator<CaptureSearchResult> getPrefixReverseIterator(
 			String prefix) throws ResourceIndexNotAvailableException {
 		throw new ResourceIndexNotAvailableException("unsupported op");
@@ -308,6 +311,7 @@ public class ZiplinesSearchResultSource implements SearchResultSource {
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.resourceindex.SearchResultSource#shutdown()
 	 */
+        @Override
 	public void shutdown() throws IOException {
 		// no-op..
 	}

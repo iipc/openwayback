@@ -37,7 +37,12 @@ public class AttributeModifyingRule implements ReplayParseEventDelegatorVisitor,
 	private String whereAttributeValue = null;
 	private String modifyAttributeName = null;
 	private StringTransformer transformer;
-	
+
+        /**
+         *
+         * @param rules The ReplayParseEventDelegator that should have this instance added to its tag handlers.
+         */
+        @Override
 	public void visit(ReplayParseEventDelegator rules) {
 		if(modifyAttributeName == null) {
 			throw new RuntimeException("Need modifyAttributeName");
@@ -49,6 +54,13 @@ public class AttributeModifyingRule implements ReplayParseEventDelegatorVisitor,
 		}
 	}
 
+        /**
+         *
+         * @param context
+         * @param node
+         * @throws IOException
+         */
+        @Override
 	public void handleOpenTagNode(ParseContext context, TagNode node)
 			throws IOException {
 		if(whereAttributeName != null) {
@@ -127,7 +139,7 @@ public class AttributeModifyingRule implements ReplayParseEventDelegatorVisitor,
 	}
 
 	/**
-	 * @param modifyAttribute the modifyAttribute to set
+         * @param modifyAttributeName The name of the modify attribute.
 	 */
 	public void setModifyAttributeName(String modifyAttributeName) {
 		this.modifyAttributeName = modifyAttributeName.toUpperCase();

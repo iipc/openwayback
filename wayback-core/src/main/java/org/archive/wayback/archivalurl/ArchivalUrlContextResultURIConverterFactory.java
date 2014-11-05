@@ -52,7 +52,6 @@ public class ArchivalUrlContextResultURIConverterFactory
 		private String context;
 
 		/**
-		 * @param converter ArchivalUrlResultURIConverter to wrap
 		 * @param context flags indicating the context of URLs created by this
 		 * 				object
 		 */
@@ -63,6 +62,7 @@ public class ArchivalUrlContextResultURIConverterFactory
 		/* (non-Javadoc)
 		 * @see org.archive.wayback.ResultURIConverter#makeReplayURI(java.lang.String, java.lang.String)
 		 */
+                @Override
 		public String makeReplayURI(String datespec, String url) {
 			String suffix = datespec + context + "/" + url;
 			String prefix = converter.getReplayURIPrefix();
@@ -88,6 +88,7 @@ public class ArchivalUrlContextResultURIConverterFactory
 	/* (non-Javadoc)
 	 * @see org.archive.wayback.replay.html.ContextResultURIConverterFactory#getContextConverter(java.lang.String)
 	 */
+        @Override
 	public ResultURIConverter getContextConverter(String flags) {
 		if (flags == null) {
 			return converter;

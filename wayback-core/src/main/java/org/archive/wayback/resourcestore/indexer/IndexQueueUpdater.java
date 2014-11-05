@@ -53,14 +53,18 @@ public class IndexQueueUpdater implements Shutdownable {
 	private UpdateThread thread = null;
 	private MarkMemoryFile lastMark = null;
 	private long interval = 120000;
-	
-	public void init() {
+
+    /**
+     * The init method for this class.
+     */
+    public void init() {
 		if(interval > 0) {
 			thread = new UpdateThread(this,interval);
 			thread.start();
 		}
 	}
 
+        @Override
 	public void shutdown() {
 		if(thread != null) {
 			thread.interrupt();
@@ -72,7 +76,12 @@ public class IndexQueueUpdater implements Shutdownable {
 		}
 	}
 
-	public int updateQueue() throws IOException {
+    /**
+     * Add new names to the IndexQueue.
+     * @return The number of items added to the queue.
+     * @throws IOException
+     */
+    public int updateQueue() throws IOException {
 		int added = 0;
 		long lastMarkPoint = lastMark.getLastMark();
 		long currentMarkPoint = db.getCurrentMark();
@@ -136,6 +145,7 @@ public class IndexQueueUpdater implements Shutdownable {
 			this.runInterval = runInterval;
 		}
 
+                @Override
 		public void run() {
 			LOGGER.info("alive");
 			long sleepInterval = runInterval;
@@ -197,7 +207,7 @@ public class IndexQueueUpdater implements Shutdownable {
 	}
 
 	/**
-	 * @param stateFile the stateFile to set
+         * @param path The filepath to use as mark.
 	 * @throws IOException 
 	 */
 	public void setLastMark(String path) throws IOException {

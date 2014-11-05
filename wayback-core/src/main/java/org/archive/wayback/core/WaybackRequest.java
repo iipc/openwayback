@@ -574,7 +574,6 @@ public class WaybackRequest {
 	}
 
 	/**
-	 * @param prefix
 	 * @return an absolute String URL that will point to the root of the
 	 * server that is handling the request. 
 	 * @deprecated use AccessPoint.get*Prefix
@@ -1214,7 +1213,7 @@ public class WaybackRequest {
 
 	/**
 	 * 
-	 * @return
+	 * @return A set containing all the keys in the request filter HashMap.
 	 * @deprecated
 	 */
 	public Set<String> keySet() {

@@ -217,11 +217,10 @@ public abstract class TextReplayRenderer implements ReplayRenderer {
 	 * @param headersResource Resource to read HTTP headers from.
 	 * @param payloadResource Resource to read content from (same as {@code headerResource} for regular captures,
 	 * 	different Resource if headersResource is a revisit record.)
-	 * @return
+	 * @return The decoded Resource.
 	 * @throws IOException
 	 */
-	public static Resource decodeResource(Resource headersResource,
-			Resource payloadResource) throws IOException {
+	public static Resource decodeResource(Resource headersResource, Resource payloadResource) throws IOException {
 		Map<String, String> headers = headersResource.getHttpHeaders();
 
 		if (headers != null) {
@@ -254,10 +253,9 @@ public abstract class TextReplayRenderer implements ReplayRenderer {
 	 * If set to non-{@code null}, its {@code getContextConverter} method will be called
 	 * with {@code replayURIPrefix}. If the method returns non-{@code null}, it will be
 	 * passed to {@link #updatePage} instead of the original.
-	 * @param baseConverterFactory {@link ContextResultURIConverterFactory}
+         * @param pageConverterFactory {@link ContextResultURIConverterFactory}
 	 */
-	public void setPageURIConverterFactory(
-			ContextResultURIConverterFactory pageConverterFactory) {
+	public void setPageURIConverterFactory(ContextResultURIConverterFactory pageConverterFactory) {
 		this.pageConverterFactory = pageConverterFactory;
 	}
 }

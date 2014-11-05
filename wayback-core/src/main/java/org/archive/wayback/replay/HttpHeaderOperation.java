@@ -71,7 +71,7 @@ public class HttpHeaderOperation {
 	 * @param result
 	 * @param uriConverter
 	 * @param filter 
-	 * @return
+	 * @return A HashMap containing the HTTP headers extracted from the Resource.
 	 */
 	public static Map<String,String> processHeaders(Resource resource, 
 			CaptureSearchResult result, ResultURIConverter uriConverter, 

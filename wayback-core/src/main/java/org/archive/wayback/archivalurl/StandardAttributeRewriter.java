@@ -265,7 +265,7 @@ public class StandardAttributeRewriter implements AttributeRewriter {
 	 * tree is in essence a linked list of {@code TransformAttr} grouped by attribute name. In each
 	 * group, {@code TransformAttr}s are sorted by their <em>specificity</em>. Within the same
 	 * specificity, the {@code TransformAttr} added last comes on top (so that rules added through
-	 * {@configProperties} override default rules.). As the order of keys in a single {@code Properties}
+	 * {@code Properties} override default rules.). As the order of keys in a single {@code Properties}
 	 * is unspecified, there's no guarantee later line overrides former lines with the same key.
 	 * @param p Properties with rewrite rules.
 	 */

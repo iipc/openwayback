@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
-import java.text.ParseException;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -312,17 +311,20 @@ public class TextDocument {
 			insertPoint = 0;
 		}
 		sb.insert(insertPoint,toInsert);
-	}	
+	}
+        
 	/**
 	 * @param jspPath
 	 * @param httpRequest
 	 * @param httpResponse
 	 * @param wbRequest
 	 * @param results
+         * @param result
+         * @param resource
 	 * @return
+         * 
 	 * @throws IOException 
 	 * @throws ServletException 
-	 * @throws ParseException 
 	 */
 	public String includeJspString(String jspPath, 
 			HttpServletRequest httpRequest, HttpServletResponse httpResponse,
@@ -344,8 +346,8 @@ public class TextDocument {
 	}
 	
 	/**
-	 * @param jsUrl
-	 * @return
+	 * @param jsUrl The javascript URL to be wrapped
+	 * @return A <code>&ltscript&gt</code> tag containing the provided javascript URL.
 	 */
 	public String getJSIncludeString(final String jsUrl) {
 		return "<script type=\"text/javascript\" src=\"" 
@@ -370,9 +372,12 @@ public class TextDocument {
 		private static final String EMAIL_PROTOCOL_PREFIX = "mailto:";
 		private static final String JAVASCRIPT_PROTOCOL_PREFIX = "javascript:";
 		private ResultURIConverter base = null;
+                
 		public SpecialResultURIConverter(ResultURIConverter base) {
 			this.base = base;
 		}
+                
+                @Override
 		public String makeReplayURI(String datespec, String url) {
 			if(url.startsWith(EMAIL_PROTOCOL_PREFIX)) {
 				return url;
@@ -388,9 +393,12 @@ public class TextDocument {
 		private static final String MMS_PROTOCOL_PREFIX = "mms://";
 		private static final String HTTP_PROTOCOL_PREFIX = "http://";
 		private ResultURIConverter base = null;
-		public MMSToHTTPResultURIConverter(ResultURIConverter base) {
+
+                public MMSToHTTPResultURIConverter(ResultURIConverter base) {
 			this.base = base;
 		}
+                
+                @Override
 		public String makeReplayURI(String datespec, String url) {
 			if(url.startsWith(MMS_PROTOCOL_PREFIX)) {
 				url = HTTP_PROTOCOL_PREFIX + 

@@ -22,7 +22,6 @@ package org.archive.wayback.util;
 import java.text.DateFormat;
 import java.text.Format;
 import java.text.MessageFormat;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -53,11 +52,11 @@ public class StringFormatter {
 	 * Construct a StringFormatter...
 	 * @param bundle ResourceBundle to lookup patterns for MessageFormat 
 	 * objects.
-	 * @param locale to use, where applicable with MessageFormat objects
 	 */
 	public StringFormatter(ResourceBundle bundle) {
 		this(null,Locale.getDefault());
 	}
+        
 	/**
 	 * Construct a StringFormatter...
 	 * @param bundle ResourceBundle to lookup patterns for MessageFormat 
