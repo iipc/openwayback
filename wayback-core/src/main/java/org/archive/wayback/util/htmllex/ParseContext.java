@@ -84,16 +84,26 @@ public class ParseContext {
 	public Map<String,String> getMap() {
 		return data;
 	}
+
+	/**
+	 * @param baseURL an base URL for relative URLs
+	 */
+	public void setBaseUrl(String baseURL) {
+		try {
+			baseUrl = UsableURIFactory.getInstance(baseURL);
+		} catch (URIException ex) {
+			// XXX
+			ex.printStackTrace();
+		}
+	}
+
 	/**
 	 * @param url against which relative URLs should be resolved for this parse
 	 */
 	public void setBaseUrl(URL url) {
-		try {
-			baseUrl = UsableURIFactory.getInstance(url.toExternalForm());
-		} catch (URIException e) {
-			e.printStackTrace();
-		}
+		setBaseUrl(url.toExternalForm());
 	}
+
 	/**
 	 * Resolve possibly-relative {@code url} with {@code baseUrl} set to
 	 * this object. 

@@ -74,7 +74,7 @@ public class ReplayParseContext extends ParseContext {
 			CaptureSearchResult result) throws IOException {
 		this.uriConverterFactory = uriConverterFactory;
 		this.result = result;
-		super.setBaseUrl(new URL(result.getOriginalUrl()));
+		setBaseUrl(result.getOriginalUrl());
 		this.datespec = result.getCaptureTimestamp();
 
 		this.converters = new HashMap<String, ResultURIConverter>();
@@ -92,7 +92,7 @@ public class ReplayParseContext extends ParseContext {
 			URL baseUrl, String datespec) {
 
 		this.uriConverterFactory = uriConverterFactory;
-		super.setBaseUrl(baseUrl);
+		setBaseUrl(baseUrl.toExternalForm());
 		this.datespec = datespec;
 		this.converters = new HashMap<String,ResultURIConverter>();
 	}

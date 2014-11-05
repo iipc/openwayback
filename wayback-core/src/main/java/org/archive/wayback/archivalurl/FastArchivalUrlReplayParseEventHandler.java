@@ -21,8 +21,6 @@ package org.archive.wayback.archivalurl;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -292,11 +290,7 @@ public class FastArchivalUrlReplayParseEventHandler implements
 		if (tagName.equals("BASE")) {
 			String baseURL = tagNode.getAttribute("HREF");
 			if (baseURL != null) {
-				try {
-					context.setBaseUrl(new URL(baseURL));
-				} catch (MalformedURLException ex) {
-					LOGGER.warning("malformed BASE/@HREF \"" + baseURL + "\" ignored (" + ex.getMessage() + ")");
-				}
+				context.setBaseUrl(baseURL);
 			}
 		} else if (tagName.equals("SCRIPT")) {
 			// hacky disable-SCRIPT feature.

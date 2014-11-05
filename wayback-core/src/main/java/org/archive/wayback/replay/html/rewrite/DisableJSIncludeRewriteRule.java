@@ -27,7 +27,7 @@ public class DisableJSIncludeRewriteRule extends RewriteRule {
 	public String rewrite(ReplayParseContext context, String policy,
 			String inputSrc) {
 
-		int index = policy.indexOf('=', getBeanName().length());
+		int index = policy.indexOf('=', getName().length());
 
 		if (index >= 0) {
 			String filename = policy.substring(index + 1);

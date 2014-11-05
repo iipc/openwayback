@@ -39,7 +39,7 @@ public class DisableJSBlocksRewriteRule extends RewriteRule {
 
 		// Test against all params specified, ex. disable-script(0,1)
 		// will test to see if script block is 0 or 1 and if so, perform rewrite
-		int index = policy.indexOf('[', getBeanName().length());
+		int index = policy.indexOf('[', getName().length());
 
 		if (index >= 0) {
 			StringTokenizer tokens = new StringTokenizer(

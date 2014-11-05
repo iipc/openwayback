@@ -26,6 +26,7 @@ import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.replay.html.ReplayParseContext;
 import org.archive.wayback.replay.html.StringTransformer;
 import org.archive.wayback.replay.html.rewrite.RewriteRule;
+import org.archive.wayback.replay.html.rewrite.RewritingStringTransformer;
 
 /**
  * Replaces all occurrence of regular expression {@code regex} in {@code input}
@@ -38,20 +39,22 @@ public class RegexReplaceStringTransformer extends RewriteRule implements
 	private String regex = "";
 	private String replacement = "";
 	private Pattern pattern = null;
+	// being removed
 	private String urlScope = null;
 
 	public String transform(ReplayParseContext context, String input) {
 
-		if (getBeanName() != null) {
+		if (getName() != null) {
 			String policy = context.getOraclePolicy();
 
 			// TODO: move this mechanism to MultiRegexReplaceStringTransformer
 			if (policy != null &&
-					policy.contains("disable-rewrite-" + getBeanName())) {
+					policy.contains("disable-rewrite-" + getName())) {
 				return input;
 			}
 		}
 
+		// being removed
 		if (urlScope != null) {
 			CaptureSearchResult result = context.getCaptureSearchResult();
 			if (result != null && !result.getUrlKey().contains(urlScope)) {
@@ -106,6 +109,15 @@ public class RegexReplaceStringTransformer extends RewriteRule implements
 		return urlScope;
 	}
 
+	/**
+	 * {@code urlkey} substring for conditional application of
+	 * this transformation. If specified, transformation is applied
+	 * only when {@code urlkey} contains {@code urlScope}.
+	 * <p>Caveat: this functionality is being removed in favor of
+	 * more flexible and scalable {@link RewritingStringTransformer}
+	 * framework.
+	 * @param urlScope
+	 */
 	public void setUrlScope(String urlScope) {
 		this.urlScope = urlScope;
 	}

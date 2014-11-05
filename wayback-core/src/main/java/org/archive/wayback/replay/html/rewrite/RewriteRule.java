@@ -17,15 +17,26 @@ import org.springframework.beans.factory.BeanNameAware;
  */
 public abstract class RewriteRule implements BeanNameAware {
 
-	String beanName;
+	String name;
 
 	@Override
 	public void setBeanName(String beanName) {
-		this.beanName = beanName;
+		// This method will be called after properties are set.
+		// Name set explicitly shall take precedence over bean name.
+		if (name == null)
+			name = beanName;
 	}
 
-	public String getBeanName() {
-		return beanName;
+	public String getName() {
+		return name;
+	}
+
+	/**
+	 * Set name explicitly. Takes precedence over bean name.
+	 * @param name rule name
+	 */
+	public void setName(String name) {
+		this.name = name;
 	}
 
 	public abstract String rewrite(ReplayParseContext context, String policy,

@@ -59,7 +59,7 @@ public class RewritingStringTransformer implements StringTransformer {
 			String policy = tokens.nextToken();
 
 			for (RewriteRule rule : policyRules) {
-				if (policy.startsWith(rule.getBeanName())) {
+				if (policy.startsWith(rule.getName())) {
 					input = rule.rewrite(rpContext, policy, input);
 				}
 			}
