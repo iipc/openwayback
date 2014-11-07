@@ -293,6 +293,11 @@ public class CDXServer extends BaseCDXServer {
 				// Non-Paged Merged query
 				iter = createBoundedCdxIterator(startEndUrl, query, null, null);
 
+				// TODO: apply collection-view filtering here. It should happen separately
+				// from exclusion check. We'd need to parse CDX lines into CDXLine object
+				// before passing it to writeCdxResponse(). Pass CDXFilter to getCdx()?
+				// Pass CDX source object that escapsulates collection-view filtering?
+
 				maxLimit = this.queryMaxLimit;
 			}
 
