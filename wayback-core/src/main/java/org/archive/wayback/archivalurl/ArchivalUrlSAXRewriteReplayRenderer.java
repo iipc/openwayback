@@ -45,8 +45,10 @@ import org.archive.wayback.replay.charset.StandardCharsetDetector;
 import org.archive.wayback.replay.html.ContextResultURIConverterFactory;
 import org.archive.wayback.replay.html.IdentityResultURIConverterFactory;
 import org.archive.wayback.replay.html.ReplayParseContext;
+import org.archive.wayback.replay.html.RewriteDirector;
 import org.archive.wayback.util.htmllex.ContextAwareLexer;
 import org.archive.wayback.util.htmllex.ParseEventHandler;
+import org.archive.wayback.webapp.AccessPoint;
 import org.htmlparser.Node;
 import org.htmlparser.lexer.Lexer;
 import org.htmlparser.lexer.Page;
@@ -124,6 +126,16 @@ public class ArchivalUrlSAXRewriteReplayRenderer implements ReplayRenderer {
 				new ReplayParseContext(fact, result);
 		
 		context.setRewriteHttpsOnly(rewriteHttpsOnly);
+
+		// <-- delete this line when migration to RewriteDirector completes
+		context.setOraclePolicy(result.getOraclePolicy());
+		// -->
+		AccessPoint accessPoint = wbRequest.getAccessPoint();
+		if (accessPoint != null) {
+			RewriteDirector rewriteDirector = accessPoint.getRewriteDirector();
+			if (rewriteDirector != null)
+				context.setOraclePolicy(rewriteDirector.getRewriteDirective(accessPoint, result));
+		}
 
 		if (!wbRequest.isFrameWrapperContext()) {
 			// in case this is an HTML page with FRAMEs, peek ahead an look:

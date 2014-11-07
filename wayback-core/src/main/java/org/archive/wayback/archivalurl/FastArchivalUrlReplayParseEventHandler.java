@@ -368,11 +368,12 @@ public class FastArchivalUrlReplayParseEventHandler implements
 		
 		ReplayParseContext context = (ReplayParseContext) pContext;
 		
-		String policy = context.getJspExec().getUiResults().getResult().getOraclePolicy();
-		
-		if (policy != null) {
-			context.setOraclePolicy(policy);
-		}
+		// Now done in ArchivalUrlSAXRewriteReplayRenderer
+//		String policy = context.getJspExec().getUiResults().getResult().getOraclePolicy();
+//		
+//		if (policy != null) {
+//			context.setOraclePolicy(policy);
+//		}
 		
 		if (startJsp != null) {
 			OutputStream out = context.getOutputStream();

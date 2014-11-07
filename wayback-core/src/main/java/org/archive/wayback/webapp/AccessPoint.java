@@ -44,6 +44,8 @@ import org.archive.wayback.RequestParser;
 import org.archive.wayback.ResourceStore;
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.UrlCanonicalizer;
+import org.archive.wayback.accesscontrol.ContextExclusionFilterFactory;
+import org.archive.wayback.accesscontrol.CollectionContext;
 import org.archive.wayback.accesscontrol.ExclusionFilterFactory;
 import org.archive.wayback.archivalurl.ArchivalUrl;
 import org.archive.wayback.core.CaptureSearchResult;
@@ -72,6 +74,7 @@ import org.archive.wayback.memento.MementoHandler;
 import org.archive.wayback.memento.MementoUtils;
 import org.archive.wayback.replay.DefaultReplayCaptureSelector;
 import org.archive.wayback.replay.ReplayCaptureSelector;
+import org.archive.wayback.replay.html.RewriteDirector;
 import org.archive.wayback.resourceindex.cdxserver.EmbeddedCDXServerIndex;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.resourceindex.filters.WARCRevisitAnnotationFilter;
@@ -97,8 +100,8 @@ import org.archive.wayback.webapp.LiveWebRedirector.LiveWebState;
  *
  * @author brad
  */
-public class AccessPoint extends AbstractRequestHandler
-implements ShutdownListener {
+public class AccessPoint extends AbstractRequestHandler implements
+		ShutdownListener, CollectionContext {
 	/** webapp relative location of Interstitial.jsp */
 	public final static String INTERSTITIAL_JSP = "jsp/Interstitial.jsp";
 	/** argument for Interstitial.jsp target URL */
@@ -176,6 +179,8 @@ implements ShutdownListener {
 	private MementoHandler mementoHandler = new DefaultMementoHandler();
 
 	private ExclusionFilterFactory exclusionFactory = null;
+	private RewriteDirector rewriteDirector;
+
 	private BooleanOperator<WaybackRequest> authentication = null;
 	private boolean requestAuth = true;
 
@@ -282,14 +287,10 @@ implements ShutdownListener {
 					}
 				}
 
-				if (getExclusionFactory() != null) {
-					ExclusionFilter exclusionFilter = getExclusionFactory().get();
-					if (exclusionFilter == null) {
-						throw new AdministrativeAccessControlException(
-							"AccessControl list unavailable");
-					}
-					wbRequest.setExclusionFilter(exclusionFilter);
-				}
+				// remove this line by having all call AccessPoint.createExclusionFilter()
+				// directly.
+				wbRequest.setExclusionFilter(createExclusionFilter());
+
 				// TODO: refactor this into RequestParser implementations, so a
 				// user could alter requests to change the behavior within a
 				// single AccessPoint. For now, this is a simple way to expose
@@ -360,6 +361,42 @@ implements ShutdownListener {
 		}
 
 		return handled;
+	}
+
+	/**
+	 * Return new instance of {@link ExclusionFilter} instance for this AccessPoint.
+	 * @throws AccessControlException If it cannot instantiate ExclusionFilter when
+	 * it's supposed to (i.e. configured but failed to complete because of network
+	 * error etc.)
+	 */
+	public ExclusionFilter createExclusionFilter() throws AccessControlException {
+		ExclusionFilterFactory factory = getExclusionFactory();
+		if (factory != null) {
+			ExclusionFilter exclusionFilter = null;
+			if (factory instanceof ContextExclusionFilterFactory) {
+				exclusionFilter = ((ContextExclusionFilterFactory)factory).getExclusionFilter(this);
+			} else {
+				exclusionFilter = factory.get();
+			}
+			if (exclusionFilter == null) {
+				throw new AdministrativeAccessControlException(
+						"AccessControl list unavailable");
+			}
+			return exclusionFilter;
+		}
+		return null;
+	}
+
+	public RewriteDirector getRewriteDirector() {
+		return rewriteDirector;
+	}
+
+	/**
+	 * Default implementation returns {@code null}.
+	 */
+	@Override
+	public String getCollectionContextName() {
+		return null;
 	}
 
 	public void logError(HttpServletResponse httpResponse, String header,
