@@ -342,12 +342,12 @@ public class AccessPointAdapter extends AccessPoint {
 				(composite.getOracleUrl() != null);
 	}
 
-	// drop this override when migration is complete.
 	@SuppressWarnings("deprecation")
 	@Override
 	public ExclusionFilterFactory getExclusionFactory() {
 		// if deprecated properties are not set, forward to new method.
-		ExclusionFilterFactory factory = getExclusionFactory();
+		ExclusionFilterFactory factory = composite.getExclusionFactory();
+		// drop following if ... section when migration completes
 		if (factory == null && hasExclusions()) {
 			// emulate old behavior
 			OraclePolicyService oracleFilterFactory = new OraclePolicyService();
