@@ -8,10 +8,13 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Properties;
+import java.util.TimeZone;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.archive.util.ArchiveUtils;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.WaybackRequest;
@@ -22,14 +25,25 @@ import org.archive.wayback.webapp.AccessPoint;
 
 public class MementoUtils implements MementoConstants {
 
-	public final static SimpleDateFormat HTTP_LINK_DATE_FORMATTER;
-	public final static SimpleDateFormat DATE_FORMAT_14_FORMATTER;
-
-	static {
-		HTTP_LINK_DATE_FORMATTER = new SimpleDateFormat(HTTP_LINK_DATE_FORMAT);
-		HTTP_LINK_DATE_FORMATTER.setTimeZone(GMT_TZ);
-		DATE_FORMAT_14_FORMATTER = new SimpleDateFormat(DATE_FORMAT_14);
-		DATE_FORMAT_14_FORMATTER.setTimeZone(GMT_TZ);
+	private static final ThreadLocal<SimpleDateFormat> TL_LINK_DATE_FORMAT = new ThreadLocal<SimpleDateFormat>() {
+		protected SimpleDateFormat initialValue() {
+			SimpleDateFormat df = new SimpleDateFormat(HTTP_LINK_DATE_FORMAT, Locale.ENGLISH);
+			df.setTimeZone(TimeZone.getTimeZone("GMT"));
+			return df;
+		}
+	};
+	
+	protected static String formatLinkDate(Date date) {
+		return TL_LINK_DATE_FORMAT.get().format(date);
+	}
+	
+	/**
+	 * format <i>label</i>{@code ="}<i>date in HTTP date format</i>{@code "}.
+	 * @param label text representing type of date, ex: {@code "from"}.
+	 * @param date date
+	 */
+	protected static String captureDate(String label, Date date) {
+		return label + "=\"" + formatLinkDate(date) + "\"";
 	}
 
 	public static void printTimemapResponse(CaptureSearchResults results,
@@ -64,12 +78,7 @@ public class MementoUtils implements MementoConstants {
 		// TIMEMAP,APPLICATION_LINK_FORMAT));
 		pw.print(makeLink(
 			getTimemapDateUrl(ap, FORMAT_LINK, pagedate, requestUrl), "self",
-			APPLICATION_LINK_FORMAT) +
-				"; from=\"" +
-				HTTP_LINK_DATE_FORMATTER.format(first) +
-				"\"" +
-				"; until=\"" +
-				HTTP_LINK_DATE_FORMATTER.format(last) + "\"");
+			APPLICATION_LINK_FORMAT) + "; " + captureDate("from", first) + "; " + captureDate("until", last));
 		// end
 		pw.println(",");
 		pw.print(makeLink(getTimegateUrl(ap, requestUrl), TIMEGATE));
@@ -105,9 +114,9 @@ public class MementoUtils implements MementoConstants {
 			pw.println(",");
 			pw.print(makeLink(
 				getTimemapDateUrl(ap, FORMAT_LINK,
-					DATE_FORMAT_14_FORMATTER.format(last) + "/", requestUrl),
+					ArchiveUtils.get14DigitDate(last) + "/", requestUrl),
 				TIMEMAP, APPLICATION_LINK_FORMAT) +
-					"; from=\"" + HTTP_LINK_DATE_FORMATTER.format(last) + "\"");
+				"; " + captureDate("from", last));
 		}
 		// end
 
@@ -248,8 +257,7 @@ public class MementoUtils implements MementoConstants {
 	public static void addMementoHeaders(HttpServletResponse response,
 			CaptureSearchResults results, CaptureSearchResult result,
 			WaybackRequest wbr) {
-		response.setHeader(MEMENTO_DATETIME, HTTP_LINK_DATE_FORMATTER
-			.format(results.getClosest().getCaptureDate()));
+		response.setHeader(MEMENTO_DATETIME, formatLinkDate(results.getClosest().getCaptureDate()));
 
 		if (!wbr.isMementoTimegate()) {
 			response.setHeader(LINK,
@@ -264,8 +272,7 @@ public class MementoUtils implements MementoConstants {
 	 */
 	public static void addMementoDatetimeHeader(HttpServletResponse response,
 			CaptureSearchResult result) {
-		response.setHeader(MEMENTO_DATETIME,
-			HTTP_LINK_DATE_FORMATTER.format(result.getCaptureDate()));
+		response.setHeader(MEMENTO_DATETIME, formatLinkDate(result.getCaptureDate()));
 	}
 
 	/**
@@ -417,10 +424,10 @@ public class MementoUtils implements MementoConstants {
 			CaptureSearchResult result) {
 
 		Date date = result.getCaptureDate();
-		String timestamp = DATE_FORMAT_14_FORMATTER.format(date);
+		String timestamp = ArchiveUtils.get14DigitDate(date);
 		String replayURI = ap.getUriConverter().makeReplayURI(timestamp, url);
 		String prefix = getMementoPrefix(ap);
-		String httpTime = HTTP_LINK_DATE_FORMATTER.format(date);
+		String httpTime = formatLinkDate(date);
 
 //		return String.format("<%s%s>; rel=\"%s\"; datetime=\"%s\"; status=\"%s\"", prefix, replayURI,
 //				rel, httpTime, result.getHttpCode());
