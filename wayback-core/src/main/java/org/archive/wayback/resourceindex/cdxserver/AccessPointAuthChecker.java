@@ -14,7 +14,6 @@ import org.archive.cdxserver.filter.CDXAccessFilter;
 import org.archive.cdxserver.filter.CDXFilter;
 import org.archive.cdxserver.filter.FilenamePrefixFilter;
 import org.archive.format.cdx.CDXLine;
-import org.archive.wayback.accesscontrol.ExclusionFilterFactory;
 import org.archive.wayback.accesscontrol.oracleclient.CustomPolicyOracleFilter;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.webapp.AccessPoint;
@@ -74,10 +73,24 @@ public class AccessPointAuthChecker extends PrivTokenAuthChecker {
 			CDXFilter prefixFilter = new CombinedFilenamePrefixFilter(
 				ap.getFileIncludePrefixes(), ap.getFileExcludePrefixes());
 
-			ExclusionFilterFactory filterFactory = ap.getExclusionFactory();
-			ExclusionFilter apFilter = filterFactory != null ? filterFactory
-				.get() : null;
-
+			ExclusionFilter apFilter = null;
+			try {
+				apFilter = ap.createExclusionFilter();
+			} catch (Exception ex) {
+				// FIXME: createExclusionFilter throws a sub-class of 
+				// AccessControlException when it fails to initialize
+				// the exclusion component. Unfortunately it cannot be
+				// thrown from this method because AuthChecker interface
+				// is part of cdx-server project which cannot depend on
+				// wayback-core, where AccessControlException is defined.
+				// Yet, we should not just ignore this error because
+				// exclusion system failure can be highly risky.
+				// For now, we throw AccessControlException wrapped in
+				// RuntimeException, assuming caller is catching it.
+				// (See EmbeddedCDXServerIndex#doQuery(WaybackRequest))
+				// Probably we should define a new exception in cdx-server.
+				throw new RuntimeException(ex);
+			}
 			return new AccessCheckFilter(token, apFilter, null, prefixFilter);
 		} else {
 			logger.severe(String.format(
