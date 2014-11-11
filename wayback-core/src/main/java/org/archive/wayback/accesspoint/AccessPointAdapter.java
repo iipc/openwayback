@@ -39,6 +39,7 @@ import org.archive.wayback.accesscontrol.oracleclient.OraclePolicyService;
 import org.archive.wayback.accesspoint.proxy.ProxyAccessPoint;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.replay.html.ContextResultURIConverterFactory;
+import org.archive.wayback.replay.html.RewriteDirector;
 import org.archive.wayback.util.operator.BooleanOperator;
 import org.archive.wayback.webapp.AccessPoint;
 import org.archive.wayback.webapp.CustomResultFilterFactory;
@@ -372,5 +373,10 @@ public class AccessPointAdapter extends AccessPoint {
 			setExclusionFactory(factory);
 		}
 		return factory;
+	}
+
+	@Override
+	public RewriteDirector getRewriteDirector() {
+		return composite.getRewriteDirector();
 	}
 }
