@@ -137,6 +137,13 @@ public class AccessPointAdapter extends AccessPoint {
 		return config.getBeanName();
 	}
 
+	@Override
+	public String getCollectionContextName() {
+		// TODO: we may want to return collId property
+		// in config.getConfigs(). Using beanName for
+		// collection identity may be too brittle.
+		return config.getBeanName();
+	}
 
 	protected String getPrefix(String basePrefix) {
 		if (isProxyMode()) {
