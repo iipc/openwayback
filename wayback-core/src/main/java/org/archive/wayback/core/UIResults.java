@@ -35,13 +35,10 @@ import javax.servlet.http.HttpServletResponse;
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.exception.WaybackException;
 import org.archive.wayback.util.StringFormatter;
-import org.archive.wayback.util.webapp.SpringReader;
 import org.archive.wayback.webapp.AccessPoint;
-import org.archive.wayback.webapp.CustomUserResourceIndex;
 import org.archive.wayback.webapp.PerfStats;
 import org.archive.wayback.webapp.PerfStats.PerfStatEntry;
 import org.archive.wayback.webapp.PerfWritingHttpServletResponse;
-import org.springframework.beans.BeansException;
 
 /**
  * Simple class which acts as the go-between between Java request handling code
@@ -726,63 +723,6 @@ public class UIResults {
 		return uriConverter.makeReplayURI(timestamp, url);
 	}
 	
-	public CustomUserResourceIndex getCustomResourceIndex(String indexKey) {
-		try {
-			String indexBeanName = null;
-			
-			// First look up bean name in the props			
-			if (getWbRequest().getAccessPoint() != null) {
-				Properties props = getWbRequest().getAccessPoint().getConfigs();
-				
-				if (props != null) {
-					indexBeanName = props.getProperty(indexKey);
-				}
-			}
-			
-			//If not found, attempt the key itself
-			
-			if (indexBeanName == null) {
-				indexBeanName = indexKey;	
-			}
-						
-			CustomUserResourceIndex index = 
-					(CustomUserResourceIndex)SpringReader.getCurrentContext().getBean(indexBeanName, CustomUserResourceIndex.class);
-			
-			return index;
-		} catch (BeansException e) {
-			return null;
-		}
-		
-//		AccessPoint ap = this.getWbRequest().getAccessPoint();
-//		
-//		if (ap == null) {
-//			return null;
-//		}
-//		
-//		Map<String, Object> map = ap.getUserProps();
-//		
-//		if (map == null) {
-//			return null;
-//		}private
-//		
-//		Object object = map.get(indexName);
-//		
-//		
-//		if (object == null || !(object instanceof CustomUserResourceIndex)) {
-//			return null;
-//		}
-//		
-//		return (CustomUserResourceIndex)object;
-	}
-	
-	public String getCustomResourcePaths(String indexName, int fieldNum) {
-		CustomUserResourceIndex cri = getCustomResourceIndex(indexName);
-		if (cri == null) {
-			return "";
-		}
-		return cri.getCustomResourcesPathsAsJSON(getWbRequest(), getReplayPrefix(), fieldNum);
-	}
-
 	/**
 	 * return hostname of this server.
 	 * @return String
