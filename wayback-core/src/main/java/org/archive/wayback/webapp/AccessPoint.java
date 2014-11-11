@@ -148,6 +148,8 @@ implements ShutdownListener {
 	private boolean enableWarcFileHeader = false;
 	private boolean enableMemento = true;
 
+	private PerfStats.OutputFormat perfStatsHeaderFormat = PerfStats.OutputFormat.BRACKET;
+
 	private LiveWebRedirector liveWebRedirector;
 
 	private String staticPrefix = null;
@@ -1830,5 +1832,15 @@ implements ShutdownListener {
 
 	public void setMementoHandler(MementoHandler mementoHandler) {
 		this.mementoHandler = mementoHandler;
+	}
+
+	/**
+	 * Format of profiling header field.
+	 * @param perfStatsHeaderFormat
+	 * @see PerfStats.OutputFormat
+	 */
+	public void setPerfStatsHeaderFormat(
+			PerfStats.OutputFormat perfStatsHeaderFormat) {
+		this.perfStatsHeaderFormat = perfStatsHeaderFormat;
 	}
 }

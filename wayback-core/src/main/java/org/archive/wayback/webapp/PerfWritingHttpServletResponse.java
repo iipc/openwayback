@@ -10,26 +10,40 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
 
+import org.archive.wayback.webapp.PerfStats.OutputFormat;
+
 public class PerfWritingHttpServletResponse extends HttpServletResponseWrapper {
 
-	protected Enum<?> perfStat;
-	protected String perfStatsHeader;
+	protected final Enum<?> perfStat;
+	protected final String perfStatsHeader;
 	protected boolean hasWritten;
-	protected HttpServletResponse httpResponse;
+	protected final HttpServletResponse httpResponse;
+	protected OutputFormat outputFormat;
 
 	protected int expireTimeout = 60;
 
-	protected String requestURI;
+	protected final String requestURI;
 	protected boolean perfCookie = false;
 
+	/**
+	 * Initialize with default output format.
+	 * @param request
+	 * @param response
+	 * @param stat
+	 * @param perfStatsHeader
+	 */
 	public PerfWritingHttpServletResponse(HttpServletRequest request,
 			HttpServletResponse response, Enum<?> stat, String perfStatsHeader) {
-		super(response);
+		this(request, response, stat, perfStatsHeader, OutputFormat.BRACKET);
+	}
 
+	public PerfWritingHttpServletResponse(HttpServletRequest request, HttpServletResponse response, Enum<?> stat, String perfStatsHeader, OutputFormat format) {
+		super(response);
 		this.httpResponse = response;
 		this.requestURI = request.getRequestURI();
 		this.perfStat = stat;
 		this.perfStatsHeader = perfStatsHeader;
+		this.outputFormat = format;
 	}
 
 	public void writePerfStats() {
@@ -40,10 +54,10 @@ public class PerfWritingHttpServletResponse extends HttpServletResponseWrapper {
 		long elapsed = PerfStats.timeEnd(perfStat);
 
 		if (perfStatsHeader != null) {
-			httpResponse.setHeader(perfStatsHeader, PerfStats.getAllStats());
+			httpResponse.setHeader(perfStatsHeader, PerfStats.getAllStats(outputFormat));
 		}
 
-		if (requestURI != null) {
+		if (perfCookie && requestURI != null) {
 			Cookie cookie = new Cookie("wb_total_perf", String.valueOf(elapsed));
 			cookie.setMaxAge(expireTimeout);
 			//cookie.setDomain(domainName);
@@ -95,5 +109,15 @@ public class PerfWritingHttpServletResponse extends HttpServletResponseWrapper {
 	 */
 	public void enablePerfCookie() {
 		this.perfCookie = true;
+	}
+
+	/**
+	 * Set to {@code true} if {@code wb_total_perf} cookie should be set
+	 * in the response. In general this is a bad idea because it'll defeat
+	 * front-end caching. As such, this is off by default.
+	 * @param perfCookie {@code true} for sending out the cookie
+	 */
+	public void setPerfCookie(boolean perfCookie) {
+		this.perfCookie = perfCookie;
 	}
 }
