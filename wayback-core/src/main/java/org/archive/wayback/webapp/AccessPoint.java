@@ -391,6 +391,10 @@ public class AccessPoint extends AbstractRequestHandler implements
 		return rewriteDirector;
 	}
 
+	public void setRewriteDirector(RewriteDirector rewriteDirector) {
+		this.rewriteDirector = rewriteDirector;
+	}
+
 	/**
 	 * Default implementation returns {@code null}.
 	 */
