@@ -50,6 +50,10 @@ public class WatchedCDXSource extends CompositeSearchResultSource {
 	}
     }
 
+    public String getPath(){
+	return this.path.toString();
+    }
+
     /**
      * adds already-existing SearchResultSource in the watched directory
      * 
@@ -61,8 +65,19 @@ public class WatchedCDXSource extends CompositeSearchResultSource {
 	for (Path file : directoryStream) {
 	    CDXIndex index = new CDXIndex();
 	    index.setPath(file.toString());
+	    LOGGER.info("Adding CDX: " + index.getPath());
 	    addSource(index);
 	}
+    }
+
+    /**
+     * removes a SearchResultSource upon from the list of sources.
+     * 
+     * @param deleted
+     * @return
+     */
+    public boolean removeSource(SearchResultSource deleted) {
+	return sources.remove(deleted);
     }
 
     /**
@@ -101,7 +116,20 @@ public class WatchedCDXSource extends CompositeSearchResultSource {
 			LOGGER.info("Adding new CDX " + cdx);
 			CDXIndex index = new CDXIndex();
 			index.setPath(cdx.toString());
+			LOGGER.info("Adding CDX: " + index.getPath());
 			addSource(index);
+		    }
+
+		    if (kind == ENTRY_DELETE) {
+			WatchEvent<Path> ev = (WatchEvent<Path>) event;
+			Path cdx = dir.resolve(ev.context());
+			LOGGER.info("Removing CDX " + cdx);
+			CDXIndex index = new CDXIndex();
+			index.setPath(cdx.toString());
+			if (!removeSource(index)) {
+			    LOGGER.info("CDX " + cdx
+				    + " not found in list of sources.");
+			}
 		    }
 		}
 
