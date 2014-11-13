@@ -185,6 +185,11 @@ public class AccessCheckFilter implements CDXAccessFilter {
 		}
 
 		@Override
+		public String getUrlKey() {
+			return cdxLine.getUrlKey();
+		}
+
+		@Override
 		public final String getOriginalUrl() {
 			return cdxLine.getOriginalUrl();
 		}
