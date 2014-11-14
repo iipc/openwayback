@@ -218,6 +218,28 @@ public class SelectorReplayDispatcherTest extends TestCase {
 
 	}
 
+	/**
+	 * Use mime-type in CaptureSearchResult if MimeTypeDetector returns {@code null}.
+	 * @throws Exception
+	 */
+	public void testMimeTypeDetector_useIndexMimeTypeIfDetectionFailed() throws Exception {
+		WaybackRequest wbRequest = new WaybackRequest();
+		CaptureSearchResult result = new CaptureSearchResult();
+		result.setMimeType("text/html");
+		Resource resource = createTestResource("text/html; charset=UTF-8", "<TR><TD>A</TD></TR>".getBytes("UTF-8"));
+
+		MimeTypeDetector detector = EasyMock.createMock(MimeTypeDetector.class);
+		EasyMock.expect(detector.sniff(resource)).andReturn(null);
+		cut.setMimeTypeDetectors(Collections.singletonList(detector));
+
+		EasyMock.replay(detector);
+
+		ReplayRenderer rr = cut.getRenderer(wbRequest, result, resource);
+
+		assertEquals("html", ((TestReplayRenderer)rr).name);
+		EasyMock.verify(detector);
+	}
+
 	// TODO: want another test for REVISIT case?
 
 }
