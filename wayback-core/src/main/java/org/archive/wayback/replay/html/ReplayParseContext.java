@@ -198,6 +198,25 @@ public class ReplayParseContext extends ParseContext {
 		if (url.startsWith(DATA_PREFIX) || url.startsWith(MAILTO_PREFIX)) {
 	    	return url;
 	    }
+
+		// don't rewrite path-relative urls. For
+		// https://webarchive.jira.com/browse/ARI-3985
+		String trimmedUrl = url.trim();
+
+		if (!trimmedUrl.startsWith("http://") &&
+				!trimmedUrl.startsWith("https://") &&
+				!trimmedUrl.startsWith("//") &&
+				!trimmedUrl.startsWith("http:\\\\/\\\\/") &&
+				!trimmedUrl.startsWith("http\\\\u00253A\\\\u00252F\\\\u00252F") &&
+				!trimmedUrl.startsWith("https:\\\\/\\\\/") &&
+				!trimmedUrl
+					.startsWith("https\\\\u00253A\\\\u00252F\\\\u00252F") &&
+				!trimmedUrl.startsWith("http:\\/\\/") &&
+				!trimmedUrl.startsWith("https:\\/\\/") &&
+				!trimmedUrl.startsWith("/")) {
+			return url;
+		}
+
 	    // first make url into absolute, taking BASE into account.
 		// (this also removes escaping: ex. "https:\/\/" -> "https://")
 	    String absurl = super.contextualizeUrl(url);

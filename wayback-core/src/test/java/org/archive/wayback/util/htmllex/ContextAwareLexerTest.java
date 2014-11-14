@@ -81,11 +81,10 @@ public class ContextAwareLexerTest extends TestCase {
 		assertEquals("wrong number of rewrites",1,ca.ops.size());
 		assertEquals("wrong URL","http://foo.com/p/s-w-%E2%80%9Ctext%E2%80%9D",ca.ops.get(0).url);
 
-		// path relative stays in same directory:
+		// path relative doesn't get contextualized:
 		String url2 = "http://foo.com/bar/baz.html";
 		ca = accumulate(url2,date,"<a href=\"kay\">key</a>");
-		assertEquals("wrong number of rewrites",1,ca.ops.size());
-		assertEquals("wrong URL","http://foo.com/bar/kay",ca.ops.get(0).url);
+		assertEquals("wrong number of rewrites",0,ca.ops.size());
 
 		// server relative jumps to root directory:
 		ca = accumulate(url2,date,"<a href=\"/kay\">key</a>");
@@ -97,11 +96,10 @@ public class ContextAwareLexerTest extends TestCase {
 //			"documents/Tennessee State Plan 2009 - 2013 signed.pdf"
 
 		
-// this is the one to make work...		
+// no contextualize for path-relative		
 		String url3 = "http://foo.com/bar/";
 		ca = accumulate(url3,date,"<a href=\"doc/foo bar.pdf\">key</a>");
-		assertEquals("wrong number of rewrites",1,ca.ops.size());
-		assertEquals("wrong URL","http://foo.com/bar/doc/foo%20bar.pdf",ca.ops.get(0).url);
+		assertEquals("wrong number of rewrites",0,ca.ops.size());
 		
 	}
 	
