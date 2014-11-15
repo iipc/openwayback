@@ -126,6 +126,11 @@ public class PerfStats
 		lastEntry.set(entry);
 		return entry;
 	}
+
+	public static long getTotal(String statName) {
+		PerfStatEntry entry = get(statName);
+		return entry != null ? entry.getTotal() : 0;
+	}
 	
 	public static void clearAll()
 	{
