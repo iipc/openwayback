@@ -165,7 +165,7 @@ public class RotatingCharsetDetectorTest extends TestCase {
 			WarcResource resource = createResource("text/html; charset=i so-8859-1", payload, "iso-8859-1");
 			String enc = cut.sniff(resource);
 			// sniffer maps "iso-8859-1" to "cp1252";
-			assertEquals("cp1252", enc);
+			assertEquals("windows-1252", enc);
 		}
 	}
 	// more tests?

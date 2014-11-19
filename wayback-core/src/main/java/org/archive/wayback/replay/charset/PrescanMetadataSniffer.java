@@ -40,8 +40,6 @@ public class PrescanMetadataSniffer extends BaseEncodingSniffer {
 					String upped = charsetName.toUpperCase();
 					if (upped.startsWith("UTF-16"))
 						charsetName = "UTF-8";
-					else if (upped.startsWith("X-"))
-						charsetName = "Windows-1252";
 				}
 			}
 			return charsetName;
