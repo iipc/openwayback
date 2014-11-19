@@ -14,7 +14,7 @@ public class PerfStats
 	/**
 	 * output format constants.
 	 */
-	enum OutputFormat {
+	public enum OutputFormat {
 		BRACKET,
 		JSON
 	};
@@ -127,6 +127,10 @@ public class PerfStats
 		return entry;
 	}
 
+	public static long getTotal(Enum<?> stat) {
+		return getTotal(stat.toString());
+	}
+
 	public static long getTotal(String statName) {
 		PerfStatEntry entry = get(statName);
 		return entry != null ? entry.getTotal() : 0;
@@ -207,8 +211,11 @@ public class PerfStats
 					} else {
 						sb.append(',');
 					}
-					sb.append('"').append(entry.name).append("\":")
-						.append(entry.count);
+					sb.append('"').append(entry.name).append("\":");
+					if (entry.isErr)
+						sb.append("null");
+					else
+						sb.append(entry.total);
 				}
 			}
 			sb.append('}');

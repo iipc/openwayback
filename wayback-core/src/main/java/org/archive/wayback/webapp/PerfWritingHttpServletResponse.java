@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
 
 import org.archive.wayback.webapp.PerfStats.OutputFormat;
+import org.archive.wayback.webapp.PerfStats.PerfStatEntry;
 
 public class PerfWritingHttpServletResponse extends HttpServletResponseWrapper {
 
@@ -37,7 +38,17 @@ public class PerfWritingHttpServletResponse extends HttpServletResponseWrapper {
 		this(request, response, stat, perfStatsHeader, OutputFormat.BRACKET);
 	}
 
-	public PerfWritingHttpServletResponse(HttpServletRequest request, HttpServletResponse response, Enum<?> stat, String perfStatsHeader, OutputFormat format) {
+	/**
+	 * Initialize with all parameters.
+	 * @param request {@code requestURI} is used as cookie path
+	 * @param response wrapped response
+	 * @param stat names stat for <i>total</i> elapsed time.
+	 * @param perfStatsHeader names HTTP header field for dumping all stats.
+	 * @param format format of {@code perfStatsHeader}
+	 */
+	public PerfWritingHttpServletResponse(HttpServletRequest request,
+			HttpServletResponse response, Enum<?> stat, String perfStatsHeader,
+			OutputFormat format) {
 		super(response);
 		this.httpResponse = response;
 		this.requestURI = request.getRequestURI();
@@ -46,12 +57,25 @@ public class PerfWritingHttpServletResponse extends HttpServletResponseWrapper {
 		this.outputFormat = format;
 	}
 
+	/**
+	 * Write performance metrics to HTTP header field and Cookie.
+	 * You don't need to call this method explicitly. It is called
+	 * implicitly by calls to {@link #sendError(int)}, {@link #sendRedirect(String)},
+	 * {@link #getWriter()} or {@link #getOutputStream()}.
+	 * 2014-11-17 Now it doesn't call {@code timeEnd} for
+	 * {@code perfStat}. Be sure to call {@code endNow()} explicitly.
+	 */
 	public void writePerfStats() {
 		if (hasWritten) {
 			return;
 		}
 
-		long elapsed = PerfStats.timeEnd(perfStat);
+		// call timeEnd only if it's not already called, so as
+		// not to change its value. 
+		long elapsed = PerfStats.getTotal(perfStat);
+		if (elapsed <= 0) {
+			elapsed = PerfStats.timeEnd(perfStat);
+		}
 
 		if (perfStatsHeader != null) {
 			httpResponse.setHeader(perfStatsHeader, PerfStats.getAllStats(outputFormat));
