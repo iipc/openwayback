@@ -57,6 +57,55 @@ public class RotatingCharsetDetectorTest extends TestCase {
 	}
 
 	/**
+	 * test of {@code x-} charset names.
+	 * @throws Exception
+	 */
+	public void testXCharsetName() throws Exception {
+		final String payload = "<html xmlns=\"http://www.w3.org/1999/xhtml\">" +
+				"<head>" +
+				"  <meta http-equiv=\"Content-Type\" content=\"text/html; charset=x-sjis\" />" +
+				"  <title>Test Document</title>" +
+				"  <link rel=\"stylesheet\" type=\"text/css\" href=\"styles.css\" />" +
+				"</head>" +
+				"<body>" +
+				"</body>" +
+				"</html>";
+		WarcResource resource = createResource(payload, "x-sjis");
+		WaybackRequest wbRequest = new WaybackRequest();
+
+		RotatingCharsetDetector cut = new RotatingCharsetDetector();
+
+		String charset = cut.getCharset(resource, wbRequest);
+
+		assertEquals("x-sjis", charset);
+	}
+
+	/**
+	 * test of {@code x-user-defined} charset name.
+	 * mapped to {@code windows-1252}.
+	 * @throws Exception
+	 */
+	public void testXUserDefined() throws Exception {
+		final String payload = "<html xmlns=\"http://www.w3.org/1999/xhtml\">" +
+				"<head>" +
+				"  <meta http-equiv=\"Content-Type\" content=\"text/html; charset=x-user-defined\" />" +
+				"  <title>Test Document</title>" +
+				"  <link rel=\"stylesheet\" type=\"text/css\" href=\"styles.css\" />" +
+				"</head>" +
+				"<body>" +
+				"</body>" +
+				"</html>";
+		WarcResource resource = createResource(payload, "windows-1252");
+		WaybackRequest wbRequest = new WaybackRequest();
+
+		RotatingCharsetDetector cut = new RotatingCharsetDetector();
+
+		String charset = cut.getCharset(resource, wbRequest);
+
+		assertEquals("windows-1252", charset);
+	}
+
+	/**
 	 * content is UTF-16 encoded, but META tag says it's UTF-8.
 	 * {@link PrescanMetadataSniffer} shall fail because it's UTF-16 encoded,
 	 * and {@link UniversalChardetSniffer} should detect UTF-16.
@@ -116,7 +165,7 @@ public class RotatingCharsetDetectorTest extends TestCase {
 			WarcResource resource = createResource("text/html; charset=i so-8859-1", payload, "iso-8859-1");
 			String enc = cut.sniff(resource);
 			// sniffer maps "iso-8859-1" to "cp1252";
-			assertEquals("cp1252", enc);
+			assertEquals("windows-1252", enc);
 		}
 	}
 	// more tests?

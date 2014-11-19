@@ -45,6 +45,9 @@ public abstract class BaseEncodingSniffer implements EncodingSniffer {
 		if (offset != -1) {
 			String cs = contentType.substring(offset +
 					CHARSET_TOKEN.length());
+			if (cs.equalsIgnoreCase("x-user-defined")) {
+				cs = "windows-1252";
+			}
 			if (isCharsetSupported(cs)) {
 				return mapCharset(cs);
 			}
@@ -65,7 +68,7 @@ public abstract class BaseEncodingSniffer implements EncodingSniffer {
 	protected String mapCharset(String orig) {
 		String lc = orig.toLowerCase();
 		if (lc.contains("iso8859-1") || lc.contains("iso-8859-1")) {
-			return "cp1252";
+			return "windows-1252";
 		}
 		if (lc.contains("unicode")) {
 			return CharsetDetector.DEFAULT_CHARSET;
