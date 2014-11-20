@@ -40,6 +40,7 @@ import org.archive.wayback.accesspoint.proxy.ProxyAccessPoint;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.replay.html.ContextResultURIConverterFactory;
 import org.archive.wayback.replay.html.RewriteDirector;
+import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.util.operator.BooleanOperator;
 import org.archive.wayback.webapp.AccessPoint;
 import org.archive.wayback.webapp.CustomResultFilterFactory;
@@ -358,19 +359,31 @@ public class AccessPointAdapter extends AccessPoint {
 		// drop following if ... section when migration completes
 		if (factory == null && hasExclusions()) {
 			// emulate old behavior
-			OraclePolicyService oracleFilterFactory = new OraclePolicyService();
+			final OraclePolicyService oracleFilterFactory = new OraclePolicyService();
 			oracleFilterFactory.setOracleUrl(composite.getOracleUrl());
+			oracleFilterFactory.init();
+			// wrap oracleFilterFactory with ExclusionFilterFactory impl that
+			// passes context
+			ExclusionFilterFactory compatFactory = new ExclusionFilterFactory() {
+				@Override
+				public ExclusionFilter get() {
+					return oracleFilterFactory.getExclusionFilter(AccessPointAdapter.this);
+				}
+				@Override
+				public void shutdown() {
+				}
+			};
 			ArrayList<ExclusionFilterFactory> staticExclusions = composite.getStaticExclusions();
 			if (staticExclusions == null) {
-				factory = oracleFilterFactory;
+				factory = compatFactory;
 			} else {
 				CompositeExclusionFilterFactory compFactory = new CompositeExclusionFilterFactory();
 				ArrayList<ExclusionFilterFactory> members = new ArrayList<ExclusionFilterFactory>(staticExclusions);
-				members.add(oracleFilterFactory);
+				members.add(compatFactory);
 				compFactory.setFactories(members);
 				factory = compFactory;
 			}
-			setExclusionFactory(factory);
+			composite.setExclusionFactory(factory);
 		}
 		return factory;
 	}
