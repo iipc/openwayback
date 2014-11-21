@@ -764,6 +764,11 @@ public class UIResults {
 		return localHostName;
 	}
 	
+	/**
+	 * Total elapsed time for {@code Total}.
+	 * @return
+	 * @deprecated 1.8.1, use {@code PerfStats.getTotal("Total")}.
+	 */
 	public static long getTotalCount() {
 		PerfStatEntry entry = PerfStats.get("Total");
 		return ((entry != null) ? entry.getTotal() : 0);
