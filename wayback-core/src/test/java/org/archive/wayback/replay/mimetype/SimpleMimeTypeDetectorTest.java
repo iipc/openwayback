@@ -83,6 +83,7 @@ public class SimpleMimeTypeDetectorTest extends TestCase {
 		assertEquals("text/html", detectMimeType("html/3.html", "unk"));
 		assertEquals("text/html", detectMimeType("html/4.html", "text/html"));
 		assertEquals("text/html", detectMimeType("html/5.html", "text/html"));
+		assertEquals("text/html", detectMimeType("html/6.html", "text/html"));
 	}
 
 	public void testContentSniffing_JavaScript() throws Exception {

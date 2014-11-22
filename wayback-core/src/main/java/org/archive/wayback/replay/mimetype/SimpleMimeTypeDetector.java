@@ -314,10 +314,12 @@ public class SimpleMimeTypeDetector implements MimeTypeDetector {
 			.compile("\\s*<\\?xml\\s+version=\"[.\\d]+\"\\s+.*\\?>");
 	private static final Pattern RE_HTML_ELEMENTS = Pattern
 			.compile("(?i)\\s*<(HTML|HEAD|STYLE|SCRIPT|META|BODY)(\\s|>)");
-		private static final Pattern RE_DOCTYPE_HTML = Pattern
+	private static final Pattern RE_DOCTYPE_HTML = Pattern
 			.compile("(?i)\\s*<!DOCTYPE\\s+HTML");
-		private static final Pattern RE_SGML_COMMENT = Pattern
+	private static final Pattern RE_SGML_COMMENT = Pattern
 			.compile("(?s)\\s*<!--.*?-->");
+	private static final Pattern RE_END_TAG = Pattern
+			.compile("(?i)</[a-z][a-z0-9]*>");
 
 	protected String detectHTML(String text) {
 		int pos = 0;
@@ -344,6 +346,12 @@ public class SimpleMimeTypeDetector implements MimeTypeDetector {
 			Matcher m = RE_HTML_ELEMENTS.matcher(text);
 			m.region(pos, text.length());
 			if (m.lookingAt())
+				return "text/html";
+		}
+		{
+			Matcher m = RE_END_TAG.matcher(text);
+			m.region(pos, text.length());
+			if (m.find())
 				return "text/html";
 		}
 		return null;
@@ -378,30 +386,43 @@ public class SimpleMimeTypeDetector implements MimeTypeDetector {
 		return null;
 	}
 
-	private static final Pattern RE_CSS_IMPORT = Pattern.compile("\\s*@import");
-	private static final Pattern RE_CSS_SELECTOR = Pattern
-		.compile("(?i)\\s*[-a-z]*([a-z]|[.#][-a-z0-9]+)\\s*\\{");
-	private static final Pattern RE_CSS_ATTRIBUTES = Pattern
-		.compile("(?i)(font-family|font-size|margin|padding|text-align|text-decoration):[^}]+;");
+	private static final Pattern RE_CSS_COMMENT = Pattern.compile("\\s*/\\*.*?\\*/");
+	private static final Pattern RE_CSS_AT_RULE = Pattern.compile("\\s*@(import|media|document|charset|font-face|keyframes|namespace|supports)\\s+");
+	private static final Pattern RE_CSS_RULESET_START = Pattern
+		.compile("(?i)\\s*[-a-z0-9]*([.#:][-_a-z0-9]+)*(\\[.+?\\])*((\\s+|\\s*,\\s*)[-a-z0-9]*([.#:][-_a-z0-9]+)*(\\[.+?\\])*)*\\s*\\{");
+	private static final Pattern RE_CSS_DECLARATION = Pattern
+		.compile("(?i)\\s*[-a-z]+\\s*:\\s*[^;}]+[;}]");
 
 	protected String detectCSS(String text) {
 		// CSS (they are rarely returned with mimetype "unk" or "text/html")
+		int pos = 0;
+		Matcher cm = RE_CSS_COMMENT.matcher(text);
 		{
-			Matcher m = RE_CSS_ATTRIBUTES.matcher(text);
-			if (m.find()) {
-				return "text/css";
+			cm.region(pos, text.length());
+			while (cm.lookingAt()) {
+				cm.region(pos = cm.end(), text.length());
 			}
 		}
 		{
-			Matcher m = RE_CSS_SELECTOR.matcher(text);
+			Matcher m = RE_CSS_AT_RULE.matcher(text);
+			m.region(pos,  text.length());
 			if (m.lookingAt()) {
 				return "text/css";
 			}
 		}
 		{
-			Matcher m = RE_CSS_IMPORT.matcher(text);
+			Matcher m = RE_CSS_RULESET_START.matcher(text);
+			m.region(pos,  text.length());
 			if (m.lookingAt()) {
-				return "text/css";
+				cm.region(pos = m.end(), text.length());
+				while (cm.lookingAt()) {
+					cm.region(pos = cm.end(), text.length());
+				}
+				Matcher sm = RE_CSS_DECLARATION.matcher(text);
+				sm.region(pos, text.length());
+				if (sm.lookingAt()) {
+					return "text/css";
+				}
 			}
 		}
 		return null;
