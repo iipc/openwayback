@@ -61,6 +61,7 @@ public class RedirectRewritingHttpHeaderProcessor extends PreservingHttpHeaderPr
 		passThroughHeaders = new HashSet<String>();
 		passThroughHeaders.add(HTTP_CONTENT_TYPE_HEADER_UP);
 		passThroughHeaders.add(HTTP_CONTENT_DISP_HEADER_UP);
+		passThroughHeaders.add(HTTP_CONTENT_RANGE_HEADER_UP);
 		
 		rewriteHeaders = new HashSet<String>();
 		rewriteHeaders.add(HTTP_LOCATION_HEADER_UP);
