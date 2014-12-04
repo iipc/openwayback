@@ -6,6 +6,12 @@ import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import junit.framework.TestCase;
 
@@ -84,6 +90,29 @@ public class SimpleMimeTypeDetectorTest extends TestCase {
 		assertEquals("text/html", detectMimeType("html/4.html", "text/html"));
 		assertEquals("text/html", detectMimeType("html/5.html", "text/html"));
 		assertEquals("text/html", detectMimeType("html/6.html", "text/html"));
+	}
+
+	/**
+	 * Detect pattern explosion caused by overly flexible regular
+	 * expression.
+	 * @throws Exception
+	 */
+	public void testContentSniffing_runawayRegexp() throws Exception {
+		// 7.html has a sequence of TABs and LFs. One example found in production.
+		ExecutorService exec = Executors.newSingleThreadExecutor();
+		Future<String> future = exec.submit(new Callable<String>() {
+			@Override
+			public String call() throws Exception {
+				return detectMimeType("html/7.html", "text/html");
+			}
+		});
+		try {
+			String result = future.get(10, TimeUnit.SECONDS);
+			assertEquals(null, result);
+		} catch (TimeoutException ex) {
+			fail("sniff did not finish within 10 seconds");
+			future.cancel(true);
+		}
 	}
 
 	public void testContentSniffing_JavaScript() throws Exception {

@@ -388,8 +388,9 @@ public class SimpleMimeTypeDetector implements MimeTypeDetector {
 
 	private static final Pattern RE_CSS_COMMENT = Pattern.compile("\\s*/\\*.*?\\*/");
 	private static final Pattern RE_CSS_AT_RULE = Pattern.compile("\\s*@(import|media|document|charset|font-face|keyframes|namespace|supports)\\s+");
+	private static final String RE_CSS_SIMPLE_SELECTOR = "(?:(?:[-a-z0-9]+|\\*)(?:[.#:][-_a-z0-9]+|\\[.+?\\])*|(?:[.#:][-_a-z0-9]+|\\[.+?\\])+)";
 	private static final Pattern RE_CSS_RULESET_START = Pattern
-		.compile("(?i)\\s*[-a-z0-9]*([.#:][-_a-z0-9]+)*(\\[.+?\\])*((\\s+|\\s*,\\s*)[-a-z0-9]*([.#:][-_a-z0-9]+)*(\\[.+?\\])*)*\\s*\\{");
+		.compile("(?i)\\s*" + RE_CSS_SIMPLE_SELECTOR + "(?:[\\s,+>]+" + RE_CSS_SIMPLE_SELECTOR + ")*\\s*\\{");
 	private static final Pattern RE_CSS_DECLARATION = Pattern
 		.compile("(?i)\\s*[-a-z]+\\s*:\\s*[^;}]+[;}]");
 
