@@ -21,6 +21,7 @@ import org.archive.wayback.replay.html.ContextResultURIConverterFactory;
 import org.archive.wayback.replay.html.IdentityResultURIConverterFactory;
 import org.archive.wayback.replay.html.ReplayParseContext;
 import org.archive.wayback.replay.html.StringTransformer;
+import org.archive.wayback.webapp.AccessPoint;
 
 /**
  * {@link TextReplayRenderer} that uses {@link StringTransformer} as an underlining
@@ -106,10 +107,19 @@ public class ArchivalURLJSStringTransformerReplayRenderer extends TextReplayRend
 		context.setJspExec(jspExec);
 		context.setInJS(true); //for https://webarchive.jira.com/browse/ARI-3762
 		
+		// XXX same code in ArchivalUrlSAXReplayRenderer, and probably other
+		// custom Archival-URL ReplayRenderers needs this, too.
+		// We should move this code somewhere reusable (ReplayParseContext? -
+		// which would push us to define new interface for rewriting).
 		String policy = result.getOraclePolicy();
-		
+		if (policy == null) {
+			AccessPoint accessPoint = wbRequest.getAccessPoint();
+			if (accessPoint != null) {
+				policy = accessPoint.getRewriteDirective(result);
+			}
+		}
 		if (policy != null) {
-			context.putData(CaptureSearchResult.CAPTURE_ORACLE_POLICY, policy);
+			context.setOraclePolicy(policy);
 		}
 		
 		//RewriteReplayParseEventHandler.addRewriteParseContext(context);

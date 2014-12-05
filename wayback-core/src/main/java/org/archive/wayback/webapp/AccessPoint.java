@@ -396,6 +396,21 @@ public class AccessPoint extends AbstractRequestHandler implements
 	}
 
 	/**
+	 * Return rewrite directive for {@code capture}.
+	 * @param capture
+	 * @return string representing rewrite rules
+	 */
+	public String getRewriteDirective(CaptureSearchResult capture) {
+		String directive = null;
+		// use getter, as it may be overridden in sub-classes.
+		RewriteDirector rd = getRewriteDirector();
+		if (rd != null) {
+			directive = rd.getRewriteDirective(this, capture);
+		}
+		return directive;
+	}
+
+	/**
 	 * Default implementation returns {@code null}.
 	 */
 	@Override

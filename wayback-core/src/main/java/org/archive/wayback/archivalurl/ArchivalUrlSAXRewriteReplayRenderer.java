@@ -127,14 +127,16 @@ public class ArchivalUrlSAXRewriteReplayRenderer implements ReplayRenderer {
 		
 		context.setRewriteHttpsOnly(rewriteHttpsOnly);
 
-		// <-- delete this line when migration to RewriteDirector completes
-		context.setOraclePolicy(result.getOraclePolicy());
-		// -->
-		AccessPoint accessPoint = wbRequest.getAccessPoint();
-		if (accessPoint != null) {
-			RewriteDirector rewriteDirector = accessPoint.getRewriteDirector();
-			if (rewriteDirector != null)
-				context.setOraclePolicy(rewriteDirector.getRewriteDirective(accessPoint, result));
+		// XXX same code in ArchivalUrlJSStringReplayRenderer
+		String policy = result.getOraclePolicy();
+		if (policy == null) {
+			AccessPoint accessPoint = wbRequest.getAccessPoint();
+			if (accessPoint != null) {
+				policy = accessPoint.getRewriteDirective(result);
+			}
+		}
+		if (policy != null) {
+			context.setOraclePolicy(policy);
 		}
 
 		if (!wbRequest.isFrameWrapperContext()) {
