@@ -37,23 +37,6 @@ public class DupeTimestampLastBestStatusFilter extends DupeTimestampBestStatusFi
 	}
 
 	/**
-	 * Return {@code true} if {@code line} is to be passed through,
-	 * as specified by {@code noCollapsePrefix}.
-	 * @param line CDX line
-	 * @return boolean
-	 */
-	protected final boolean passThrough(CDXLine line) {
-		if (noCollapsePrefix != null) {
-			for (String prefix : noCollapsePrefix) {
-				if (line.getFilename().startsWith(prefix)) {
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
-	/**
 	 * Write out all pending pass-throughs, and
 	 * clear pass-through buffer.
 	 */

@@ -9,29 +9,29 @@ import org.archive.wayback.accesscontrol.robotstxt.redis.RedisRobotExclusionFilt
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 
 public class WaybackAuthChecker extends PrivTokenAuthChecker {
-	
+
 	protected ExclusionFilterFactory adminExclusions;
 	protected RedisRobotExclusionFilterFactory robotsExclusions;
-	
+
 	protected CDXFilter prefixFilter = null;
-	
-	public CDXAccessFilter createAccessFilter(AuthToken token)
-	{
+
+	public CDXAccessFilter createAccessFilter(AuthToken token) {
 		ExclusionFilter adminFilter = null;
 		if (adminExclusions != null) {
 			adminFilter = adminExclusions.get();
 		}
-		
+
 		ExclusionFilter robotsFilter = null;
 		if (robotsExclusions != null &&
 				!isAllowed(token, ignoreRobotsAccessTokens) &&
 				!token.isIgnoreRobots()) {
 			robotsFilter = robotsExclusions.get();
 		}
-		
-		return new AccessCheckFilter(token, adminFilter, robotsFilter, prefixFilter, null);
+
+		return new AccessCheckFilter(token, adminFilter, robotsFilter,
+			prefixFilter, null);
 	}
-	
+
 	public ExclusionFilterFactory getAdminExclusions() {
 		return adminExclusions;
 	}
@@ -45,7 +45,7 @@ public class WaybackAuthChecker extends PrivTokenAuthChecker {
 	}
 
 	public void setRobotsExclusions(
-	        RedisRobotExclusionFilterFactory robotsExclusions) {
+			RedisRobotExclusionFilterFactory robotsExclusions) {
 		this.robotsExclusions = robotsExclusions;
 	}
 
@@ -56,17 +56,4 @@ public class WaybackAuthChecker extends PrivTokenAuthChecker {
 	public void setPrefixFilter(CDXFilter prefixFilter) {
 		this.prefixFilter = prefixFilter;
 	}
-
-//	@Override
-//    public boolean isCaptureAllowed(CDXLine line, AuthToken auth) {		
-//	    if (prefixFilter == null) {
-//	    	return true;
-//	    }
-//	    
-//		if (this.isAllUrlAccessAllowed(auth)) {
-//			return true;
-//		}
-//	    
-//	    return prefixFilter.include(line);
-//    }
 }

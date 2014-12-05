@@ -1,8 +1,8 @@
 /*  This file is part of the Wayback archival access software
  *   (http://archive-access.sourceforge.net/projects/wayback/).
  *
- *  Licensed to the Internet Archive (IA) by one or more individual 
- *  contributors. 
+ *  Licensed to the Internet Archive (IA) by one or more individual
+ *  contributors.
  *
  *  The IA licenses this file to You under the Apache License, Version 2.0
  *  (the "License"); you may not use this file except in compliance with
@@ -30,14 +30,15 @@ import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import com.sleepycat.je.tree.SearchResult;
 
 /**
- * {@link ExclusionFilter} implementation that queries remote
- * "Exclusion Oracle" with {@link AccessControlClient} to
- * determine which {@link SearchResult}s can be exposed.
+ * {@link ExclusionFilter} implementation that queries remote "Exclusion Oracle"
+ * with {@link AccessControlClient} to determine which {@link SearchResult}s can
+ * be exposed.
  * @author brad
  * @see OracleExclusionFilterFactory
  * @see AccessControlClient
  */
 public class OracleExclusionFilter extends ExclusionFilter {
+
 	protected AccessControlClient client = null;
 	protected String accessGroup = null;
 
@@ -63,6 +64,21 @@ public class OracleExclusionFilter extends ExclusionFilter {
 	 */
 	public OracleExclusionFilter(String oracleUrl, String accessGroup,
 			String proxyHostPort) {
+		initializeClient(oracleUrl, proxyHostPort);
+		this.accessGroup = accessGroup;
+	}
+
+	/**
+	 * Initialize with AccessControlClient and access group.
+	 * @param AccessControlClient pre-initialized access control client
+	 * @param accessGroup access group
+	 */
+	public OracleExclusionFilter(AccessControlClient client, String accessGroup) {
+		this.accessGroup = accessGroup;
+		this.client = client;
+	}
+
+	protected void initializeClient(String oracleUrl, String proxyHostPort) {
 		client = new AccessControlClient(oracleUrl);
 		if (proxyHostPort != null) {
 			int colonIdx = proxyHostPort.indexOf(':');
@@ -73,7 +89,6 @@ public class OracleExclusionFilter extends ExclusionFilter {
 				client.setRobotProxy(host, port);
 			}
 		}
-		this.accessGroup = accessGroup;
 	}
 
 	protected int handleAllow() {

@@ -2,8 +2,8 @@
  *  This file is part of the Wayback archival access software
  *   (http://archive-access.sourceforge.net/projects/wayback/).
  *
- *  Licensed to the Internet Archive (IA) by one or more individual 
- *  contributors. 
+ *  Licensed to the Internet Archive (IA) by one or more individual
+ *  contributors.
  *
  *  The IA licenses this file to You under the Apache License, Version 2.0
  *  (the "License"); you may not use this file except in compliance with
@@ -35,10 +35,11 @@ import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.accesscontrol.CompositeExclusionFilterFactory;
 import org.archive.wayback.accesscontrol.ExclusionFilterFactory;
-import org.archive.wayback.accesscontrol.oracleclient.CustomPolicyOracleFilter;
+import org.archive.wayback.accesscontrol.oracleclient.OraclePolicyService;
 import org.archive.wayback.accesspoint.proxy.ProxyAccessPoint;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.replay.html.ContextResultURIConverterFactory;
+import org.archive.wayback.replay.html.RewriteDirector;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.util.operator.BooleanOperator;
 import org.archive.wayback.webapp.AccessPoint;
@@ -55,45 +56,35 @@ import org.archive.wayback.webapp.WaybackCollection;
  *
  */
 public class AccessPointAdapter extends AccessPoint {
-	
+
 	private CompositeAccessPoint composite;
 	private AccessPointConfig config;
-	private ExclusionFilterFactory exclusionFactory;
+//	private ExclusionFilterFactory exclusionFactory;
 	private ResultURIConverter cacheUriConverter;
 	private Properties props = null;
-	
-	private boolean switchable = false;
-	
-	private class DynamicExclusionFactory implements ExclusionFilterFactory {
-		public ExclusionFilter get() {
-			return new CustomPolicyOracleFilter(composite.getOracleUrl(),
-					config.getBeanName(), null);
-		}
 
-		public void shutdown() {
-		}
-	}
-	
+	private boolean switchable = false;
+
 	public AccessPointAdapter(CompositeAccessPoint baseAccessPoint,
 			AccessPointConfig config) {
 		this.composite = baseAccessPoint;
 		this.config = config;
-		this.exclusionFactory = null;
-		
+//		this.exclusionFactory = null;
+
 		this.switchable = true;
 		initMergedProps();
 	}
-	
+
 	public AccessPointAdapter(String accessPointName,
 			CompositeAccessPoint baseAccessPoint) {
 		this.composite = baseAccessPoint;
-		this.exclusionFactory = null;
+//		this.exclusionFactory = null;
 		this.config = baseAccessPoint.getAccessPointConfigs().getAccessPointConfigs().get(accessPointName);
-		
+
 		this.switchable = false;
 		initMergedProps();
 	}
-	
+
 	protected void initMergedProps() {
 		this.props = new Properties();
 
@@ -107,7 +98,7 @@ public class AccessPointAdapter extends AccessPoint {
 			props.putAll(config.getConfigs());
 		}
 	}
-	
+
 	public CompositeAccessPoint getBaseAccessPoint() {
 		return composite;
 	}
@@ -148,41 +139,12 @@ public class AccessPointAdapter extends AccessPoint {
 		return config.getBeanName();
 	}
 
-	public boolean hasExclusions() {
-		return (composite.getStaticExclusions() != null) ||
-				(composite.getOracleUrl() != null);
-	}
-
 	@Override
-	public ExclusionFilterFactory getExclusionFactory() {
-
-		if (!hasExclusions()) {
-			return null;
-		}
-
-		if (exclusionFactory == null) {
-			exclusionFactory = buildExclusionFactory();
-		}
-
-		return exclusionFactory;
-	}
-
-	protected ExclusionFilterFactory buildExclusionFactory() {
-		ArrayList<ExclusionFilterFactory> staticExclusions = composite
-				.getStaticExclusions();
-
-		if (staticExclusions == null) {
-			return new DynamicExclusionFactory();
-		} else {
-			CompositeExclusionFilterFactory factory = new CompositeExclusionFilterFactory();
-			ArrayList<ExclusionFilterFactory> allExclusions = new ArrayList<ExclusionFilterFactory>();
-			allExclusions.addAll(staticExclusions);
-			if (composite.getOracleUrl() != null) {
-				allExclusions.add(new DynamicExclusionFactory());
-			}
-			factory.setFactories(allExclusions);
-			return factory;
-		}
+	public String getCollectionContextName() {
+		// TODO: we may want to return collId property
+		// in config.getConfigs(). Using beanName for
+		// collection identity may be too brittle.
+		return config.getBeanName();
 	}
 
 	protected String getPrefix(String basePrefix) {
@@ -295,17 +257,17 @@ public class AccessPointAdapter extends AccessPoint {
 
 	@Override
 	public ResultURIConverter getUriConverter() {
-		
-		if (cacheUriConverter == null) {		
+
+		if (cacheUriConverter == null) {
 			ContextResultURIConverterFactory factory = composite.getUriConverterFactory();
-			
+
 			if (factory != null) {
 				cacheUriConverter = factory.getContextConverter(getReplayPrefix());
 			} else {
 				cacheUriConverter = composite.getUriConverter();
 			}
 		}
-		
+
 		return cacheUriConverter;
 	}
 
@@ -379,5 +341,55 @@ public class AccessPointAdapter extends AccessPoint {
 	@Override
 	public int getQueryCollapseTime() {
 		return composite.getQueryCollapseTime();
+	}
+	
+	// deprecated members
+
+	@Deprecated
+	public boolean hasExclusions() {
+		return (composite.getStaticExclusions() != null) ||
+				(composite.getOracleUrl() != null);
+	}
+
+	@SuppressWarnings("deprecation")
+	@Override
+	public ExclusionFilterFactory getExclusionFactory() {
+		// if deprecated properties are not set, forward to new method.
+		ExclusionFilterFactory factory = composite.getExclusionFactory();
+		// drop following if ... section when migration completes
+		if (factory == null && hasExclusions()) {
+			// emulate old behavior
+			final OraclePolicyService oracleFilterFactory = new OraclePolicyService();
+			oracleFilterFactory.setOracleUrl(composite.getOracleUrl());
+			oracleFilterFactory.init();
+			// wrap oracleFilterFactory with ExclusionFilterFactory impl that
+			// passes context
+			ExclusionFilterFactory compatFactory = new ExclusionFilterFactory() {
+				@Override
+				public ExclusionFilter get() {
+					return oracleFilterFactory.getExclusionFilter(AccessPointAdapter.this);
+				}
+				@Override
+				public void shutdown() {
+				}
+			};
+			ArrayList<ExclusionFilterFactory> staticExclusions = composite.getStaticExclusions();
+			if (staticExclusions == null) {
+				factory = compatFactory;
+			} else {
+				CompositeExclusionFilterFactory compFactory = new CompositeExclusionFilterFactory();
+				ArrayList<ExclusionFilterFactory> members = new ArrayList<ExclusionFilterFactory>(staticExclusions);
+				members.add(compatFactory);
+				compFactory.setFactories(members);
+				factory = compFactory;
+			}
+			composite.setExclusionFactory(factory);
+		}
+		return factory;
+	}
+
+	@Override
+	public RewriteDirector getRewriteDirector() {
+		return composite.getRewriteDirector();
 	}
 }

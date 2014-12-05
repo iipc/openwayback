@@ -74,7 +74,7 @@ public class ReplayParseContext extends ParseContext {
 			CaptureSearchResult result) throws IOException {
 		this.uriConverterFactory = uriConverterFactory;
 		this.result = result;
-		super.setBaseUrl(new URL(result.getOriginalUrl()));
+		setBaseUrl(result.getOriginalUrl());
 		this.datespec = result.getCaptureTimestamp();
 
 		this.converters = new HashMap<String, ResultURIConverter>();
@@ -92,7 +92,7 @@ public class ReplayParseContext extends ParseContext {
 			URL baseUrl, String datespec) {
 
 		this.uriConverterFactory = uriConverterFactory;
-		super.setBaseUrl(baseUrl);
+		setBaseUrl(baseUrl.toExternalForm());
 		this.datespec = datespec;
 		this.converters = new HashMap<String,ResultURIConverter>();
 	}
@@ -142,6 +142,11 @@ public class ReplayParseContext extends ParseContext {
 	public CaptureSearchResult getCaptureSearchResult() {
 		return result;
 	}
+	/**
+	 * Set capture being rendered.
+	 * @param result
+	 * @deprecated 2014-11-05 Pass it to constructor
+	 */
 	public void setCaptureSearchResult(CaptureSearchResult result) {
 		this.result = result;
 	}
@@ -270,11 +275,6 @@ public class ReplayParseContext extends ParseContext {
 	 */
 	public void setJspExec(JSPExecutor jspExec) {
 		this.jspExec = jspExec;
-		// TODO: remove this obscure code and let Renderer set result
-		// explicitly.
-//		if (jspExec != null && jspExec.getUiResults() != null) {
-//			result = jspExec.getUiResults().getResult();
-//		}
 	}
 
 	/**

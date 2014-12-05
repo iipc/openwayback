@@ -2,8 +2,8 @@
  *  This file is part of the Wayback archival access software
  *   (http://archive-access.sourceforge.net/projects/wayback/).
  *
- *  Licensed to the Internet Archive (IA) by one or more individual 
- *  contributors. 
+ *  Licensed to the Internet Archive (IA) by one or more individual
+ *  contributors.
  *
  *  The IA licenses this file to You under the Apache License, Version 2.0
  *  (the "License"); you may not use this file except in compliance with
@@ -30,10 +30,10 @@ import org.archive.wayback.replay.html.StringTransformer;
  * <p>Looks for http/https absolute URLs in JavaScript code and translates
  * them with {@link ReplayParseContext#contextualizeUrl(String)}.</p>
  * <p>You can customize the pattern for finding URLs with {@code regex} property.
- * Regular expression must have at least one <em>capturing</em>, and the first
- * capturing group encloses URL to be rewritten.
+ * Regular expression must have at least one <em>capturing group</em>, and the first
+ * capturing group is assumed to enclose URL to be rewritten.
  * (new feature 2014-04-22) Any matching text preceding and
- * following the first group will be preserved.</p>
+ * following the first group will be preserved in the output.</p>
  * <p>For example: if you want to replace protocol-relative URL in addition to
  * regular full URL in JavaScript, you could use conservative regex like:
  * <pre>
@@ -54,9 +54,9 @@ import org.archive.wayback.replay.html.StringTransformer;
 public class JSStringTransformer implements StringTransformer {
 	private final static Pattern defaultHttpPattern = Pattern
 	.compile("(https?:\\\\?/\\\\?/[A-Za-z0-9:_@.-]+)");
-	
+
 	private Pattern pattern = defaultHttpPattern;
-	
+
 	/**
 	 * a regular expression for searching URLs in the target resource.
 	 * @param regex
@@ -64,7 +64,7 @@ public class JSStringTransformer implements StringTransformer {
 	public void setRegex(String regex) {
 		pattern = Pattern.compile(regex);
 	}
-	
+
 	public String getRegex() {
 		return pattern.pattern();
 	}

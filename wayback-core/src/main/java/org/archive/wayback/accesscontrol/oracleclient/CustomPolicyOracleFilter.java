@@ -3,6 +3,7 @@ package org.archive.wayback.accesscontrol.oracleclient;
 import java.util.Date;
 import java.util.logging.Logger;
 
+import org.archive.accesscontrol.AccessControlClient;
 import org.archive.accesscontrol.RobotsUnavailableException;
 import org.archive.accesscontrol.RuleOracleUnavailableException;
 import org.archive.util.ArchiveUtils;
@@ -30,11 +31,6 @@ import org.archive.wayback.util.ObjectFilter;
  * The second argument of {@link Policy#apply(CaptureSearchResult, OracleExclusionFilter)}
  * is very likely to be changed to more abstract interface.
  * </p>
- * <p>
- * Although there's a factory for this class,
- * {@link CustomPolicyOracleFilterFactory}, creation is hard-coded in
- * {@link AccessPointAdapter} currently.
- * </p>
  * @see CustomPolicyOracleFilterFactory
  * @see AccessPointAdapter
  */
@@ -44,7 +40,7 @@ public class CustomPolicyOracleFilter extends OracleExclusionFilter {
 			.getLogger(CustomPolicyOracleFilter.class.getName());
 
 	// TODO: redefine this enum as ordinary base class with well-known
-	// instalces to make CustomPolicyOracleFilter runtime-configurable.
+	// instances to make CustomPolicyOracleFilter runtime-configurable.
 	enum Policy {
 		ALLOW("allow"),
 		BLOCK_HIDDEN("block") {
@@ -105,18 +101,29 @@ public class CustomPolicyOracleFilter extends OracleExclusionFilter {
 		super(oracleUrl, accessGroup, proxyHostPort);
 	}
 
-	@Override
-	public int filterObject(CaptureSearchResult o) {
-		String url = o.getOriginalUrl();
-		Date captureDate = o.getCaptureDate();
+	public CustomPolicyOracleFilter(AccessControlClient client, String accessGroup) {
+		super(client, accessGroup);
+	}
+
+	protected String getRawPolicy(CaptureSearchResult capture) throws RobotsUnavailableException, RuleOracleUnavailableException {
+		String url = capture.getOriginalUrl();
+		Date captureDate = capture.getCaptureDate();
 		Date retrievalDate = new Date();
 
-		String policy;
-		try {
-			policy = client.getPolicy(
-				ArchiveUtils.addImpliedHttpIfNecessary(url), captureDate,
-				retrievalDate, accessGroup);
+		return client.getPolicy(ArchiveUtils.addImpliedHttpIfNecessary(url),
+			captureDate, retrievalDate, accessGroup);
+	}
 
+	@Override
+	public int filterObject(CaptureSearchResult o) {
+		try {
+			String policy = getRawPolicy(o);
+
+			// Setting policy to CaptureSearchResult has no effect with new approach
+			// in which CustomPolicyOracle is called through CDXAccessFilter, because
+			// o is just a transient wrapper around CDXLine object; CDXLine has no place
+			// to store extra information. Wayback makes separate call to getRewriteDirective()
+			// above. This line will be removed when migration completes.
 			o.setOraclePolicy(policy);
 
 			if (policy == null) {
@@ -127,8 +134,8 @@ public class CustomPolicyOracleFilter extends OracleExclusionFilter {
 					return handler.apply(o, this);
 				}
 			}
-			// unhandled policy is okay. it's just passed to upper-level
-			// through CaptureSearchResult#oraclePolicy.
+			// unhandled policy is okay. Oracle also returns rewrite directives
+			// as policy. Just ignore them.
 		} catch (RobotsUnavailableException e) {
 			e.printStackTrace();
 		} catch (RuleOracleUnavailableException e) {

@@ -21,8 +21,6 @@ package org.archive.wayback.archivalurl;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -33,6 +31,7 @@ import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.replay.JSPExecutor;
 import org.archive.wayback.replay.html.ReplayParseContext;
 import org.archive.wayback.replay.html.StringTransformer;
+import org.archive.wayback.replay.html.rewrite.DisableJSIncludeRewriteRule;
 import org.archive.wayback.replay.html.transformer.BlockCSSStringTransformer;
 import org.archive.wayback.replay.html.transformer.JSStringTransformer;
 import org.archive.wayback.replay.html.transformer.URLStringTransformer;
@@ -211,14 +210,12 @@ public class FastArchivalUrlReplayParseEventHandler implements
 	 * <p>
 	 * If {@code jsBlockTrans.transform} returns {@code null} or empty for
 	 * {@code SCRIPT/@SRC}, {@code SCRIPT} element is disabled by replacing
-	 * {@code SRC} attribute with empty value.
+	 * {@code SRC} attribute with empty value. {@link DisableJSIncludeRewriteRule}
+	 * provides one implementation to make use of this behavior.
 	 * </p>
-	 * <p>TODO: I believe this feature is no longer used;
-	 * {@link org.archive.wayback.replay.html.rewrite.DisableJSIncludeRewriteRule}
-	 * provides alternative method currently in use.</p>
-	 *
 	 * @param context {@link ReplayParseContext}
 	 * @param tagNode {@code SCRIPT} tag.
+	 * @see DisableJSIncludeRewriteRule
 	 */
 	private void handleJSIncludeNode(ReplayParseContext context, TagNode tagNode) {
 		String file = tagNode.getAttribute("SRC");
@@ -293,11 +290,7 @@ public class FastArchivalUrlReplayParseEventHandler implements
 		if (tagName.equals("BASE")) {
 			String baseURL = tagNode.getAttribute("HREF");
 			if (baseURL != null) {
-				try {
-					context.setBaseUrl(new URL(baseURL));
-				} catch (MalformedURLException ex) {
-					LOGGER.warning("malformed BASE/@HREF \"" + baseURL + "\" ignored (" + ex.getMessage() + ")");
-				}
+				context.setBaseUrl(baseURL);
 			}
 		} else if (tagName.equals("SCRIPT")) {
 			// hacky disable-SCRIPT feature.
@@ -375,11 +368,12 @@ public class FastArchivalUrlReplayParseEventHandler implements
 		
 		ReplayParseContext context = (ReplayParseContext) pContext;
 		
-		String policy = context.getJspExec().getUiResults().getResult().getOraclePolicy();
-		
-		if (policy != null) {
-			context.setOraclePolicy(policy);
-		}
+		// Now done in ArchivalUrlSAXRewriteReplayRenderer
+//		String policy = context.getJspExec().getUiResults().getResult().getOraclePolicy();
+//		
+//		if (policy != null) {
+//			context.setOraclePolicy(policy);
+//		}
 		
 		if (startJsp != null) {
 			OutputStream out = context.getOutputStream();

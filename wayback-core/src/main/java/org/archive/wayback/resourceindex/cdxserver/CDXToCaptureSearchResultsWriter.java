@@ -18,6 +18,7 @@ import org.archive.wayback.resourceindex.filters.SelfRedirectFilter;
 import org.archive.wayback.util.ObjectFilter;
 import org.archive.wayback.util.Timestamp;
 import org.archive.wayback.util.url.UrlOperations;
+import org.archive.wayback.webapp.AccessPoint;
 
 /**
  * {@link CDXToSearchResultWriter} for producing {@link CaptureSearchResults}.
@@ -338,6 +339,7 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 		this.selfRedirFilter = selfRedirFilter;
 	}
 
+	@Deprecated
 	public ExclusionFilter getExclusionFilter() {
 		return exclusionFilter;
 	}
@@ -349,11 +351,20 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 	 * See {@link CDXServer} and {@link LocalResourceIndex}
 	 * for other ways of configuring exclusion filters.
 	 * </p>
+	 * <p>
+	 * This method is deprecated because this can run exclusion after
+	 * timestamp deduplication, which results in undesirable capture
+	 * search results. Exclusion should happen in regular CDXServer
+	 * pipeline. This method was necessary to implement collection sensitive
+	 * exclusion filter. New exclusion filter factory addresses such needs
+	 * in ordinary CDX filtering pipeline.
+	 * </p>
 	 * @param exclusionFilter
 	 * @see CDXServer
 	 * @see LocalResourceIndex
 	 * @see AuthChecker#createAccessFilter(org.archive.cdxserver.auth.AuthToken)
 	 * @see ExclusionCaptureFilterGroup#ExclusionCaptureFilterGroup(org.archive.wayback.core.WaybackRequest, org.archive.wayback.UrlCanonicalizer)
+	 * @deprecated 2014-11-10 Use new implementation {@link AccessPoint#setExclusionFactory(org.archive.wayback.accesscontrol.ExclusionFilterFactory)}
 	 */
 	public void setExclusionFilter(ExclusionFilter exclusionFilter) {
 		this.exclusionFilter = exclusionFilter;
