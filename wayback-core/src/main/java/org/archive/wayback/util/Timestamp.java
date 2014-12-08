@@ -22,8 +22,8 @@ package org.archive.wayback.util;
 import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.SimpleTimeZone;
+import java.util.Locale;
+import java.util.Map;
 import java.util.TimeZone;
 
 import org.archive.util.ArchiveUtils;
@@ -39,9 +39,8 @@ public class Timestamp {
 
 	private final static String LOWER_TIMESTAMP_LIMIT = "10000000000000";
 	private final static String UPPER_TIMESTAMP_LIMIT = "29991939295959";
-	private final static String YEAR_LOWER_LIMIT      = "1996";
-	private final static String YEAR_UPPER_LIMIT      = 
-		String.valueOf(Calendar.getInstance(TimeZone.getTimeZone("GMT")).get(Calendar.YEAR));
+	private final static String YEAR_DEFAULT_LOWER_LIMIT      = "1996";
+        private final static String YEAR_LOWER_LIMIT;
 	private final static String MONTH_LOWER_LIMIT     = "01";
 	private final static String MONTH_UPPER_LIMIT     = "12";
 	private final static String DAY_LOWER_LIMIT       = "01";
@@ -52,37 +51,27 @@ public class Timestamp {
 	private final static String SECOND_UPPER_LIMIT    = "59";
 	private final static String SECOND_LOWER_LIMIT    = "00";
 	
-	private final static int SSE_1996                 = 820454400;
+        // This variable holds the seconds since Epoch (January 1, 1970 00:00:00 GMT) 
+        // to the start of the selected YEAR_LOWER_LIMIT.
+	private final static int SSE_YEAR_LOWER_LIMIT;
 
-	private final static String[] months = { "Jan", "Feb", "Mar", "Apr", "May",
-			"Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+        private final static String[] months = new String[12];
 
-	private final static String DAYS_IN_MONTH[][];
-	private final static int DIM_START_YEAR = 1972;
-	private final static int DIM_END_YEAR = 2032;
 	static {
-		Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
-		cal.clear();
-		int years = DIM_END_YEAR - DIM_START_YEAR;
-		DAYS_IN_MONTH = new String[years][12];
-		for(int y = 0; y < years; y++) {
-			for(int m = 0; m < 12; m++) {
-				cal.set(Calendar.YEAR,DIM_START_YEAR + y);
-				cal.set(Calendar.MONTH,m);
-				cal.set(Calendar.DAY_OF_MONTH,1);
-				int calV = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
-				String maxDayOfMonth = String.valueOf(calV);
-				if(maxDayOfMonth.length() == 1) {
-					maxDayOfMonth = "0" + maxDayOfMonth;
-				}
-				DAYS_IN_MONTH[y][m] = maxDayOfMonth;
-			}
-		}
+            // Set up the starting year.
+            YEAR_LOWER_LIMIT = System.getProperty("wayback.timestamp.startyear", YEAR_DEFAULT_LOWER_LIMIT);
+            
+            Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+            cal.set(Integer.parseInt(YEAR_LOWER_LIMIT), 0, 1, 0, 0, 0);
+            SSE_YEAR_LOWER_LIMIT = (int)(cal.getTimeInMillis() / 1000);
+                
+            // Set up the array of shorthanded month names.
+            Map <String, Integer> month = cal.getDisplayNames(Calendar.MONTH, Calendar.SHORT, Locale.getDefault());
+            for (String s:month.keySet()) {
+                months[month.get(s)] = s;
+            }
 	}
-	private static String getDaysInMonthBound(int year, int month) {
-		return DAYS_IN_MONTH[year - DIM_START_YEAR][month];
-	}
-	
+        	
 	private String dateStr = null;
 	private Date date = null;
 
@@ -123,7 +112,7 @@ public class Timestamp {
 	 * set internal structure using Date argument
 	 * @param date from which date should be set
 	 */
-	public void setDate(final Date date) {
+	public final void setDate(final Date date) {
 		this.date = (Date) date.clone();
 		dateStr = ArchiveUtils.get14DigitDate(date);
 	}
@@ -140,7 +129,7 @@ public class Timestamp {
 	 * set internal structure using seconds since the epoch integer argument
 	 * @param sse SecondsSinceEpoch
 	 */
-	public void setSse(final int sse) {
+	public final void setSse(final int sse) {
 		setDate(new Date(((long)sse) * 1000));
 	}
 	
@@ -257,17 +246,13 @@ public class Timestamp {
 	 * =============================
 	 * 
 	 */
-	
-	
-	private static Calendar getCalendar() {
-		String[] ids = TimeZone.getAvailableIDs(0);
-		if (ids.length < 1) {
-			return null;
-		}
-		TimeZone gmt = new SimpleTimeZone(0, ids[0]);
-		return new GregorianCalendar(gmt);		
+	private static String getDaysInMonthBound(int year, int month) {
+	    Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+            cal.set(Calendar.YEAR, year);
+	    cal.set(Calendar.MONTH, month);
+            return new Integer(cal.getActualMaximum(Calendar.DAY_OF_MONTH)).toString();
 	}
-
+        
 	/**
 	 * @param dateStr up to 14 digit String representing date
 	 * @return a GMT Calendar object, set to the date represented
@@ -293,6 +278,7 @@ public class Timestamp {
 		
 		return cal;
 	}
+        
 	/**
 	 * cleanup the dateStr argument assuming earliest values, and return a
 	 * GMT calendar set to the time described by the dateStr.
@@ -309,10 +295,9 @@ public class Timestamp {
 			e.printStackTrace();
 			// TODO: This is certainly not the right thing, but padStartDateStr
 			// should ensure we *never* get here..
-			return new Date(SSE_1996);
+			return new Date((long)SSE_YEAR_LOWER_LIMIT * 1000);
 		}
 	}
-	
 
 	private static String padDigits(String input, String min, String max, 
 			String missing) {
@@ -361,7 +346,8 @@ public class Timestamp {
 		}
 		// MAKE SURE THE YEAR IS WITHIN LEGAL BOUNDARIES:
 		boundTimestamp.append(boundDigits(input.substring(0,4),
-				YEAR_LOWER_LIMIT,YEAR_UPPER_LIMIT));
+				YEAR_LOWER_LIMIT, 
+                                String.valueOf(Calendar.getInstance(TimeZone.getTimeZone("GMT")).get(Calendar.YEAR) )));
 
 		// MAKE SURE THE MONTH IS WITHIN LEGAL BOUNDARIES:
 		boundTimestamp.append(boundDigits(input.substring(4,6),
@@ -458,6 +444,6 @@ public class Timestamp {
 	 * @return Timestamp object representing the earliest possible date.
 	 */
 	public static Timestamp earliestTimestamp() {
-		return new Timestamp(SSE_1996);
+		return new Timestamp(SSE_YEAR_LOWER_LIMIT);
 	}
 }
