@@ -333,4 +333,11 @@
   </bean>
 -->
 
+<!--
+    Set the minimum year that is handled by this server
+  -->
+  <bean name="minimumYearAlloved" class="org.archive.wayback.util.Timestamp">
+    <property name="startYear" value="1998" />
+  </bean>
+
 </beans>
