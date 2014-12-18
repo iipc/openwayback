@@ -14,6 +14,7 @@ import org.archive.cdxserver.filter.CDXAccessFilter;
 import org.archive.cdxserver.filter.CDXFilter;
 import org.archive.cdxserver.filter.FilenamePrefixFilter;
 import org.archive.format.cdx.CDXLine;
+import org.archive.wayback.accesscontrol.ExclusionFilterFactory;
 import org.archive.wayback.accesscontrol.oracleclient.CustomPolicyOracleFilter;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.webapp.AccessPoint;
@@ -34,6 +35,23 @@ public class AccessPointAuthChecker extends PrivTokenAuthChecker {
 
 	private static final Logger logger = Logger
 		.getLogger(AccessPointAuthChecker.class.getName());
+
+	protected ExclusionFilterFactory fallbackExclusionFactory;
+
+	/**
+	 * {@link ExclusionFilterFactory} used if token passed to
+	 * {@link #createAccessFilter(AuthToken)} is not an instance of
+	 * {@link APContextAuthToken} (CDX server query, for example).
+	 * @param fallbackExclusionFactory
+	 */
+	public void setFallbackExclusionFactory(
+			ExclusionFilterFactory fallbackExclusionFactory) {
+		this.fallbackExclusionFactory = fallbackExclusionFactory;
+	}
+
+	public ExclusionFilterFactory getFallbackExclusionFactory() {
+		return fallbackExclusionFactory;
+	}
 
 	/**
 	 * {@link CDXFilter} on prefix of filename field.
@@ -77,7 +95,7 @@ public class AccessPointAuthChecker extends PrivTokenAuthChecker {
 			try {
 				apFilter = ap.createExclusionFilter();
 			} catch (Exception ex) {
-				// FIXME: createExclusionFilter throws a sub-class of 
+				// FIXME: createExclusionFilter throws a sub-class of
 				// AccessControlException when it fails to initialize
 				// the exclusion component. Unfortunately it cannot be
 				// thrown from this method because AuthChecker interface
@@ -93,12 +111,11 @@ public class AccessPointAuthChecker extends PrivTokenAuthChecker {
 			}
 			return new AccessCheckFilter(token, apFilter, null, prefixFilter);
 		} else {
-			logger.severe(String.format(
-				"token is not of type APContextAuthToken, but %s."
-						+ " AccessPoint-specific exclusion is not applied. Check %s.createAuthToken()",
-						token.getClass().getName(),
-						EmbeddedCDXServerIndex.class.getSimpleName()));
-			return new AccessCheckFilter(token, null, null, null);
+			ExclusionFilter apFilter = null;
+			if (fallbackExclusionFactory != null) {
+				apFilter = fallbackExclusionFactory.get();
+			}
+			return new AccessCheckFilter(token, apFilter, null, null);
 		}
 	}
 }
