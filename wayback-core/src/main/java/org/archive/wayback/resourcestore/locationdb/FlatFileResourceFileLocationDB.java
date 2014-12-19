@@ -77,6 +77,23 @@ public class FlatFileResourceFileLocationDB implements ResourceFileLocationDB  {
 					break;
 				}
 			}
+		} else if (name.indexOf("?") == -1 && name.endsWith("/")) {
+		    // if url ends with trailing slash, do a search without the trailing
+		    // slash since video may have been captured from no-slash page even
+		    // though user is requesting the page with slash.
+		    // canonicalizer will not remove trailing slash
+		    prefix = name.substring(0, name.length() - 1) + delimiter;
+
+		    itr = flatFile.getRecordIterator(prefix + "");
+
+		    while (itr.hasNext()) {
+		        String line = itr.next();
+		        if (line.startsWith(prefix)) {
+		            urls.add(line.substring(prefix.length()));
+		        } else {
+		            break;
+		        }
+		    }
 		}
 		
 		if(itr instanceof CloseableIterator) {
