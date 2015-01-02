@@ -32,6 +32,10 @@ public class ClosestTrackingCaptureFilterGroup implements CaptureFilterGroup {
 		return chain.getFilters();
 	}
 
+	public ClosestResultTrackingFilter getFilter() {
+		return closestTracker;
+	}
+
 	public void annotateResults(SearchResults results)
 			throws ResourceNotInArchiveException, BadQueryException,
 			AccessControlException {
