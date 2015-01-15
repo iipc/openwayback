@@ -13,8 +13,7 @@ import org.archive.format.cdx.FieldSplitFormat;
  * @author ilya
  * 
  */
-public abstract class PrivTokenAuthChecker implements AuthChecker 
-{	
+public abstract class PrivTokenAuthChecker implements AuthChecker {
 	protected String publicCdxFields = null;
 	protected FieldSplitFormat publicCdxFormat = null;
 
@@ -22,7 +21,7 @@ public abstract class PrivTokenAuthChecker implements AuthChecker
 	protected List<String> ignoreRobotsAccessTokens;
 	protected List<String> allCdxFieldsAccessTokens;
 
-	boolean isAllowed(AuthToken auth, List<String> allowVector) {
+	protected boolean isAllowed(AuthToken auth, List<String> allowVector) {
 		if (auth == null || auth.authToken == null || allowVector == null) {
 			return false;
 		}
@@ -38,8 +37,6 @@ public abstract class PrivTokenAuthChecker implements AuthChecker
 	public boolean isAllUrlAccessAllowed(AuthToken auth) {
 		if (auth.cachedAllUrlAllow == null) {
 			auth.cachedAllUrlAllow = isAllowed(auth, allUrlAccessTokens);
-			
-			auth.setIgnoreRobots(isAllowed(auth, ignoreRobotsAccessTokens));
 		}
 		return auth.cachedAllUrlAllow;
 	}
@@ -56,10 +53,9 @@ public abstract class PrivTokenAuthChecker implements AuthChecker
 	public String getPublicCdxFields() {
 		return publicCdxFields;
 	}
-	
+
 	@Override
-	public FieldSplitFormat getPublicCdxFormat()
-	{
+	public FieldSplitFormat getPublicCdxFormat() {
 		return publicCdxFormat;
 	}
 
@@ -80,7 +76,8 @@ public abstract class PrivTokenAuthChecker implements AuthChecker
 		return allCdxFieldsAccessTokens;
 	}
 
-	public void setAllCdxFieldsAccessTokens(List<String> allCdxFieldsAccessTokens) {
+	public void setAllCdxFieldsAccessTokens(
+			List<String> allCdxFieldsAccessTokens) {
 		this.allCdxFieldsAccessTokens = allCdxFieldsAccessTokens;
 	}
 
@@ -88,7 +85,8 @@ public abstract class PrivTokenAuthChecker implements AuthChecker
 		return ignoreRobotsAccessTokens;
 	}
 
-	public void setIgnoreRobotsAccessTokens(List<String> ignoreRobotsAccessTokens) {
+	public void setIgnoreRobotsAccessTokens(
+			List<String> ignoreRobotsAccessTokens) {
 		this.ignoreRobotsAccessTokens = ignoreRobotsAccessTokens;
 	}
 }

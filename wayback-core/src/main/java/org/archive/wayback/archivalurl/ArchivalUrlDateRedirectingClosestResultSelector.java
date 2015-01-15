@@ -23,10 +23,16 @@ import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BetterRequestException;
 import org.archive.wayback.replay.DateRedirectingClosestResultSelector;
+import org.archive.wayback.replay.DefaultClosestResultSelector;
 
 /**
+ * ClosestResultSelector that redirects to Archival-URL replay URL
+ * for the capture given if its timestamp is different from the request.
+ * <p>This class preserves context flag upon redirect, but can cause
+ * redirect loop.</p>
  * @author brad
- *
+ * @deprecated 1.8.1 2014-07-2 no replacement.
+ * use {@link DefaultClosestResultSelector}.
  */
 public class ArchivalUrlDateRedirectingClosestResultSelector 
 extends DateRedirectingClosestResultSelector {

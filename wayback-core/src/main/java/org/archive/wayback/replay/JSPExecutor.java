@@ -51,17 +51,32 @@ public class JSPExecutor {
 	
 	private boolean isAjax = false;
 	
+	public JSPExecutor(HttpServletRequest httpRequest,
+			HttpServletResponse httpResponse, UIResults uiResults) {
+		this.isAjax = uiResults.getWbRequest().isAjaxRequest();
+		this.httpRequest = httpRequest;
+		this.httpResponse = httpResponse;
+		this.uiResults = uiResults;
+	}
+
+	/**
+	 * initializes JSPExecutor with new {@code UIResults} object.
+	 * @param uriConverter ResultURIConverter, passed to {@code UIResults}
+	 * @param httpRequest HttpServletRequest
+	 * @param httpResponse HttpServletResponse
+	 * @param wbRequest WaybackRequest, passed to {@code UIResults}
+	 * @param results CaptureSearchResults, passed to {@code UIResults}
+	 * @param result CaptureSearchResult being rendered, passed to {@code UIResults}
+	 * @param resource Resource being rendered, passed to {@code UIResults}
+	 * @deprecated 2014-05-02 use {@link #JSPExecutor(HttpServletRequest, HttpServletResponse, UIResults)}
+	 *   passing explicitly created {@code UIResults}
+	 */
 	public JSPExecutor(ResultURIConverter uriConverter,
 			HttpServletRequest httpRequest, HttpServletResponse httpResponse,
 			WaybackRequest wbRequest, CaptureSearchResults results, 
 			CaptureSearchResult result, Resource resource) {
-		
-		this.isAjax = wbRequest.isAjaxRequest();
-
-		this.httpRequest = httpRequest;
-		this.httpResponse = httpResponse; 
-		uiResults = 
-			new UIResults(wbRequest, uriConverter, results, result, resource);
+		this(httpRequest, httpResponse, new UIResults(wbRequest, uriConverter,
+				results, result, resource));
 	}
 	
 	

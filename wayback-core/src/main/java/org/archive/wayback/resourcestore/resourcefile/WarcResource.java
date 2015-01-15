@@ -2,8 +2,8 @@
  *  This file is part of the Wayback archival access software
  *   (http://archive-access.sourceforge.net/projects/wayback/).
  *
- *  Licensed to the Internet Archive (IA) by one or more individual 
- *  contributors. 
+ *  Licensed to the Internet Archive (IA) by one or more individual
+ *  contributors.
  *
  *  The IA licenses this file to You under the Apache License, Version 2.0
  *  (the "License"); you may not use this file except in compliance with
@@ -35,6 +35,7 @@ import org.archive.io.ArchiveReader;
 import org.archive.io.ArchiveRecordHeader;
 import org.archive.io.RecoverableIOException;
 import org.archive.io.warc.WARCRecord;
+import org.archive.util.ArchiveUtils;
 import org.archive.util.DateUtils;
 import org.archive.util.LaxHttpParser;
 import org.archive.wayback.core.Resource;
@@ -72,14 +73,14 @@ public class WarcResource extends Resource {
 		if(parsedHeaders) {
 			return;
 		}
-		
+
 		// If warc or arc record is 0 length, don't do any more parsing!
 		// Hopefully caller code will check this before proceeding as well
 		if (getRecordLength() <= 0) {
 			parsedHeaders = true;
 			return;
 		}
-		
+
 		// WARCRecord should have getRecordType() method returning WARCRecordType.
 		String rectypeStr = (String)rec.getHeader().getHeaderValue("WARC-Type");
 		WARCRecordType rectype;
@@ -88,7 +89,7 @@ public class WarcResource extends Resource {
 		} catch (IllegalArgumentException ex) {
 		    throw new RecoverableIOException("unrecognized WARC-Type \"" + rectypeStr + "\"");
 		}
-		
+
 		if (rectype == WARCRecordType.response || rectype == WARCRecordType.revisit) {
 		    byte [] statusBytes = LaxHttpParser.readRawLine(rec);
 		    int eolCharCount = getEolCharsCount(statusBytes);
@@ -143,7 +144,6 @@ public class WarcResource extends Resource {
 		parsedHeaders = true;
 	}
 
-
 	@Override
 	public Map<String, String> getHttpHeaders() {
 		return headers;
@@ -170,5 +170,37 @@ public class WarcResource extends Resource {
 	public void close() throws IOException {
 		rec.close();
 		reader.close();
+	}
+
+	public String getRefersToTargetURI() {
+		return (String)getWarcHeaders().getHeaderFields().get(
+			"WARC-Refers-To-Target-URI");
+	}
+
+	public String getRefersToDate() {
+		String dateString = (String)getWarcHeaders().getHeaderFields().get(
+			"WARC-Refers-To-Date");
+		if (dateString != null) {
+			Date date = ArchiveUtils.parse14DigitISODate(dateString, null);
+			if (date != null) {
+				return ArchiveUtils.get14DigitDate(date);
+			}
+		}
+		return null;
+	}
+
+	public static final String PROFILE_REVISIT_SERVER_NOT_MODIFIED =
+			"http://netpreserve.org/warc/1.0/revisit/server-not-modified";
+
+	/**
+	 * whether this Resource is {@code server-not-modified} revisit.
+	 * (this method used to be {@code AccessPoint#isWarcRevisitNotModified(Resource)}.
+	 * Not made a part of {@code Resource} interface because it was unused.)
+	 * @return {@code true} if it is
+	 */
+	public boolean isRevisitNotModified() {
+		Map<String, Object> warcHeaders = getWarcHeaders().getHeaderFields();
+		String warcProfile = (String)warcHeaders.get("WARC-Profile");
+		return PROFILE_REVISIT_SERVER_NOT_MODIFIED.equals(warcProfile);
 	}
 }

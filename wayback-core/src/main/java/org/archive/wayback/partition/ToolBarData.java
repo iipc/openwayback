@@ -24,6 +24,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.UIResults;
@@ -85,7 +86,7 @@ public class ToolBarData {
 	 */
 	public ToolBarData(UIResults uiResults) {
 		this.uiResults = uiResults;
-		fmt = uiResults.getWbRequest().getFormatter();
+		fmt = uiResults.getFormatter();
 		results = uiResults.getCaptureResults();
 		curResult = uiResults.getResult();
 		findRelativeLinks();
@@ -124,7 +125,7 @@ public class ToolBarData {
 	 * @return String absolute URL that will replay result
 	 */
 	public String makeReplayURL(CaptureSearchResult result) {
-		return fmt.escapeHtml(uiResults.getURIConverter().makeReplayURI(
+		return StringEscapeUtils.escapeHtml(uiResults.getURIConverter().makeReplayURI(
 				result.getCaptureTimestamp(), result.getOriginalUrl()));
 	}
 	

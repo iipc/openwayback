@@ -23,22 +23,41 @@ import java.io.IOException;
 
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.WaybackRequest;
+import org.archive.wayback.replay.CompositeResource;
 
+/**
+ * {@link CharsetDetector} that roughly follows steps prescribed by
+ * <a href="http://www.whatwg.org/specs/web-apps/current-work/multipage/parsing.html#encoding-sniffing-algorithm">WHAT-WG recommendation:</a>,
+ * with following simplifications:
+ * <ul>
+ * <li>no support for inheriting parent browsing context's character encoding
+ * (information is not readily available to Wayback)</li>
+ * <li>default is fixed to {@code UTF-8}, regardless of user's locale (a crawler's
+ * locale information is not readily available to Wayback)</li>
+ * <li>does not support <em>confidence</em>, thus does not support
+ * <em>encoding switching</em> (this is more about {@code CharsetDetector}'s
+ * design)</ul>
+ * </ul>
+ * <p>CHANGE 1.8.1 2014-07-07: added BOM detection as the first step.</p>
+ */
 public class StandardCharsetDetector extends CharsetDetector {
+	private final static EncodingSniffer[] SNIFFERS = {
+		new ByteOrderMarkSniffer(),
+		new ContentTypeHeaderSniffer(),
+		new PrescanMetadataSniffer(),
+		new UniversalChardetSniffer()
+	};
 
 	@Override
 	public String getCharset(Resource httpHeadersResource,
 			Resource payloadResource, WaybackRequest wbRequest) throws IOException {
-		String charSet = getCharsetFromHeaders(httpHeadersResource);
-		if(charSet == null) {
-			charSet = getCharsetFromMeta(payloadResource);
-			if(charSet == null) {
-				charSet = getCharsetFromBytes(payloadResource);
-				if(charSet == null) {
-					charSet = DEFAULT_CHARSET;
-				}
-			}
+		Resource resource = httpHeadersResource != payloadResource ? new CompositeResource(
+			httpHeadersResource, payloadResource) : payloadResource;
+		for (EncodingSniffer sniffer : SNIFFERS) {
+			String charset = sniffer.sniff(resource);
+			if (charset != null)
+				return charset;
 		}
-		return charSet;
+		return DEFAULT_CHARSET;
 	}
 }
