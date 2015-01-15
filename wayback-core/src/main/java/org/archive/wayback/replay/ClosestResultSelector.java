@@ -19,16 +19,19 @@
  */
 package org.archive.wayback.replay;
 
+import org.archive.wayback.ResourceIndex;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.WaybackRequest;
-import org.archive.wayback.exception.BetterRequestException;
 
 /**
  * New interface component on Replay to allow customized selection of the 
  * "best" particular search result from a set to return for a particular 
  * request. Also allows specific Replay instances to optionally bounce the user
  * to a better URL, via a BetterRequestException.
+ * <p>REFACTORING NOTE: now closest capture is located by {@link ResourceIndex},
+ * and {@link ClosestResultSelector} implementation simply returns it. This class
+ * will be removed unless we find a good use case for it.</p>
  * 
  * @author brad
  *
@@ -37,13 +40,14 @@ public interface ClosestResultSelector {
 	/**
 	 * Locate and return the best matching search result from a set for a given
 	 * request.
+	 * <p>INTERFACE CHANGE: 1.8.1 2014-07-2 now getClosest() is not allowed
+	 * to throw {@code BetterRequestException}, as it can cause redirect
+	 * loop triggered by revisits resolution. See ARI-3934.</p>
 	 * @param wbRequest The WaybackRequest being handled
 	 * @param results the CaptureSeachResults found matching the request
 	 * @return the best CaptureSearchResult, which should be replayed to the
 	 * 		user.
-	 * @throws BetterRequestException if the user should be redirected to a
-	 * 		different, better URL to make this request.
 	 */
 	public CaptureSearchResult getClosest(WaybackRequest wbRequest, 
-			CaptureSearchResults results) throws BetterRequestException;
+			CaptureSearchResults results);
 }

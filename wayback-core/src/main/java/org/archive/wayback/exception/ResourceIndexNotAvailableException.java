@@ -2,8 +2,8 @@
  *  This file is part of the Wayback archival access software
  *   (http://archive-access.sourceforge.net/projects/wayback/).
  *
- *  Licensed to the Internet Archive (IA) by one or more individual 
- *  contributors. 
+ *  Licensed to the Internet Archive (IA) by one or more individual
+ *  contributors.
  *
  *  The IA licenses this file to You under the Apache License, Version 2.0
  *  (the "License"); you may not use this file except in compliance with
@@ -21,18 +21,23 @@ package org.archive.wayback.exception;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.archive.wayback.ResourceIndex;
 
 /**
- * Exception class for queries which fail because the ResourceIndex is
- * presently inaccessible
+ * Exception thrown from {@link ResourceIndex} implementations upon failures
+ * while reading underlining index data.
+ * <p>
+ * As such, default status is {@code SC_SERVICE_UNAVAILABLE}.
+ * </p>
+ * <p>
+ * TODO: should receive root-cause Exception. Code throwing this exception often
+ * does {@code printStackTrace()} - not a desirable practice.
+ * </p>
  *
  * @author brad
- * @version $Date$, $Revision$
  */
 public class ResourceIndexNotAvailableException extends WaybackException {
-	/**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 1L;
 	protected static final String ID = "resourceIndexNotAvailable";
 
@@ -42,9 +47,10 @@ public class ResourceIndexNotAvailableException extends WaybackException {
 	 * @param message
 	 */
 	public ResourceIndexNotAvailableException(String message) {
-		super(message,"Index not available");
+		super(message, "Index not available");
 		id = ID;
 	}
+
 	/**
 	 * Constructor with message and details
 	 * 
@@ -52,9 +58,10 @@ public class ResourceIndexNotAvailableException extends WaybackException {
 	 * @param details
 	 */
 	public ResourceIndexNotAvailableException(String message, String details) {
-		super(message,"Index not available",details);
+		super(message, "Index not available", details);
 		id = ID;
 	}
+
 	/**
 	 * @return the HTTP status code appropriate to this exception class.
 	 */

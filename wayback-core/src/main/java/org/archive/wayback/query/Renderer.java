@@ -2,8 +2,8 @@
  *  This file is part of the Wayback archival access software
  *   (http://archive-access.sourceforge.net/projects/wayback/).
  *
- *  Licensed to the Internet Archive (IA) by one or more individual 
- *  contributors. 
+ *  Licensed to the Internet Archive (IA) by one or more individual
+ *  contributors.
  *
  *  The IA licenses this file to You under the Apache License, Version 2.0
  *  (the "License"); you may not use this file except in compliance with
@@ -35,10 +35,9 @@ import org.archive.wayback.core.WaybackRequest;
 /**
  * Brain-dead simple QueryRenderer implementation, which shunts all the work off
  * to a .jsp file as defined by administrators. Also has basic logic to switch
- * to a different .jsp to format request asking for XML data. 
+ * to a different .jsp to format request asking for XML data.
  *
  * @author brad
- * @version $Date$, $Revision$
  */
 public class Renderer implements QueryRenderer {
 
@@ -46,32 +45,43 @@ public class Renderer implements QueryRenderer {
 	private String urlJsp = "/WEB-INF/query/HTMLUrlResults.jsp";
 	private String xmlCaptureJsp = "/WEB-INF/query/XMLCaptureResults.jsp";
 	private String xmlUrlJsp = "/WEB-INF/query/XMLUrlResults.jsp";
-	
+
 	protected ResultURIConverter queryUriConverter = null;
-	
+
 	public void renderCaptureResults(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
 			CaptureSearchResults results, ResultURIConverter uriConverter)
 			throws ServletException, IOException {
 
-		UIResults uiResults = new UIResults(wbRequest,(queryUriConverter != null ? queryUriConverter : uriConverter),results);
-		if(wbRequest.isXMLMode()) {
+		UIResults uiResults = new UIResults(wbRequest,
+			(queryUriConverter != null ? queryUriConverter : uriConverter),
+			results);
+		if (wbRequest.isXMLMode()) {
 			uiResults.forward(httpRequest, httpResponse, xmlCaptureJsp);
 		} else {
 			uiResults.forward(httpRequest, httpResponse, captureJsp);
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.archive.wayback.QueryRenderer#renderUrlPrefixResults(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.archive.wayback.core.WaybackRequest, org.archive.wayback.core.SearchResults, org.archive.wayback.ResultURIConverter)
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see
+	 * org.archive.wayback.QueryRenderer#renderUrlPrefixResults(javax.servlet
+	 * .http.HttpServletRequest, javax.servlet.http.HttpServletResponse,
+	 * org.archive.wayback.core.WaybackRequest,
+	 * org.archive.wayback.core.SearchResults,
+	 * org.archive.wayback.ResultURIConverter)
 	 */
 	public void renderUrlResults(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
 			UrlSearchResults results, ResultURIConverter uriConverter)
 			throws ServletException, IOException {
 
-		UIResults uiResults = new UIResults(wbRequest,(queryUriConverter != null ? queryUriConverter : uriConverter),results);
-		if(wbRequest.isXMLMode()) {
+		UIResults uiResults = new UIResults(wbRequest,
+			(queryUriConverter != null ? queryUriConverter : uriConverter),
+			results);
+		if (wbRequest.isXMLMode()) {
 			uiResults.forward(httpRequest, httpResponse, xmlUrlJsp);
 		} else {
 			uiResults.forward(httpRequest, httpResponse, urlJsp);
@@ -119,6 +129,7 @@ public class Renderer implements QueryRenderer {
 	public void setXmlCaptureJsp(String xmlCaptureJsp) {
 		this.xmlCaptureJsp = xmlCaptureJsp;
 	}
+
 	/**
 	 * @return the xmlUrlJsp
 	 */

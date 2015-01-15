@@ -73,4 +73,14 @@ public class GzipDecodingResource extends Resource {
 	public int getStatusCode() {
 		return source.getStatusCode();
 	}
+
+	@Override
+	public String getRefersToTargetURI() {
+		return source.getRefersToTargetURI();
+	}
+
+	@Override
+	public String getRefersToDate() {
+		return source.getRefersToDate();
+	}
 }

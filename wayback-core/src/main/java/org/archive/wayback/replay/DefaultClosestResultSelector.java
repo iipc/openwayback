@@ -22,7 +22,6 @@ package org.archive.wayback.replay;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.WaybackRequest;
-import org.archive.wayback.exception.BetterRequestException;
 
 /**
  * @author brad
@@ -31,7 +30,7 @@ import org.archive.wayback.exception.BetterRequestException;
 public class DefaultClosestResultSelector implements ClosestResultSelector {
 
 	public CaptureSearchResult getClosest(WaybackRequest wbRequest,
-			CaptureSearchResults results) throws BetterRequestException {
+			CaptureSearchResults results) {
 		return results.getClosest();
 	}
 

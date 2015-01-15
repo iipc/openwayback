@@ -58,6 +58,10 @@ public interface HttpHeaderProcessor {
 	public final static String HTTP_CONTENT_DISP_HEADER_UP = 
 		HTTP_CONTENT_DISP_HEADER.toUpperCase();
 
+	public final static String HTTP_CONTENT_RANGE_HEADER = "Content-Range";
+	public final static String HTTP_CONTENT_RANGE_HEADER_UP =
+			HTTP_CONTENT_RANGE_HEADER.toUpperCase();
+
 	public final static String HTTP_TRANSFER_ENCODING_HEADER = "Transfer-Encoding";
 	/**
 	 * Transfer-Encoding in all-uppercase
