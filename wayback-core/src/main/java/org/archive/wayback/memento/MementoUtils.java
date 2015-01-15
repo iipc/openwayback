@@ -22,6 +22,7 @@ import org.archive.wayback.partition.NotableResultExtractor;
 import org.archive.wayback.util.ObjectFilterIterator;
 import org.archive.wayback.util.StringFormatter;
 import org.archive.wayback.webapp.AccessPoint;
+//import org.archive.util.ArchiveUtils; //threadlocalDateFormat private class  and DATE_FORMAT_14 eqvivalent TIMESTAMP14, HTTP_LINK_DATE_FORMAT missing 
 
 public class MementoUtils implements MementoConstants {
 
@@ -52,7 +53,17 @@ public class MementoUtils implements MementoConstants {
 		response.setContentType("application/link-format");
 		printLinkTimemap(results, wbRequest, response.getWriter());
 	}
-
+        private static ThreadLocal<SimpleDateFormat> threadLocalDateFormat(final String pattern) {
+             ThreadLocal<SimpleDateFormat> tl = new ThreadLocal<SimpleDateFormat>() {
+             protected SimpleDateFormat initialValue() {
+                SimpleDateFormat df = new SimpleDateFormat(pattern, Locale.ENGLISH);
+                df.setTimeZone(GMT_TZ);
+                return df;
+            }
+        };
+        return tl;
+        }
+    
 	public static void printLinkTimemap(CaptureSearchResults results,
 			WaybackRequest wbr, PrintWriter pw) {
 		Date first = results.getFirstResultDate();
@@ -258,7 +269,6 @@ public class MementoUtils implements MementoConstants {
 			CaptureSearchResults results, CaptureSearchResult result,
 			WaybackRequest wbr) {
 		response.setHeader(MEMENTO_DATETIME, formatLinkDate(results.getClosest().getCaptureDate()));
-
 		if (!wbr.isMementoTimegate()) {
 			response.setHeader(LINK,
 				generateMementoLinkHeaders(results, wbr, true, true));
