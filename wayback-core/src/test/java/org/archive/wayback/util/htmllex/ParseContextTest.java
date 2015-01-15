@@ -59,7 +59,7 @@ public class ParseContextTest extends TestCase {
 		tmp = new URI("http://base.com/foo.html");
 		assertNull(tmp.getFragment());
 
-		pc.setBaseUrl(new URL("http://base.com/"));
+		pc.setBaseUrl("http://base.com/");
 		assertEquals("http://base.com/images.gif",
 				pc.contextualizeUrl("/images.gif"));
 		assertEquals("http://base.com/images.gif",
@@ -86,9 +86,7 @@ public class ParseContextTest extends TestCase {
 	public void testResolve() throws Exception {
 
 		ParseContext pc = new ParseContext();
-		URL base = new URL("http://foo.com/dir/bar.html#REF");
-			
-		pc.setBaseUrl(base);
+		pc.setBaseUrl("http://foo.com/dir/bar.html#REF");
 		checkRes(pc,"http://foo.com/images.gif","/images.gif");
 		checkRes(pc,"http://foo.com/dir/images.gif","images.gif");
 		checkRes(pc,"http://foo.com/dir/images.gif","./images.gif");

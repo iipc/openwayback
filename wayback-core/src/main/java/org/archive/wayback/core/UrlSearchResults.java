@@ -2,8 +2,8 @@
  *  This file is part of the Wayback archival access software
  *   (http://archive-access.sourceforge.net/projects/wayback/).
  *
- *  Licensed to the Internet Archive (IA) by one or more individual 
- *  contributors. 
+ *  Licensed to the Internet Archive (IA) by one or more individual
+ *  contributors.
  *
  *  The IA licenses this file to You under the Apache License, Version 2.0
  *  (the "License"); you may not use this file except in compliance with
@@ -23,27 +23,25 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
- *
+ * Output of URL query.
  *
  * @author brad
- * @version $Date$, $Revision$
  */
-public class UrlSearchResults extends SearchResults {
+public class UrlSearchResults extends SearchResults implements Iterable<UrlSearchResult> {
 	/**
 	 * List of UrlSearchResult objects for index records matching a query
 	 */
-	private ArrayList<UrlSearchResult> results = 
-		new ArrayList<UrlSearchResult>();
+	private ArrayList<UrlSearchResult> results = new ArrayList<UrlSearchResult>();
 
 	public void addSearchResult(UrlSearchResult result) {
-		addSearchResult(result,true);
+		addSearchResult(result, true);
 	}
 
 	public void addSearchResult(UrlSearchResult result, boolean append) {
-		if(append) {
+		if (append) {
 			results.add(result);
 		} else {
-			results.add(0,result);
+			results.add(0, result);
 		}
 	}
 

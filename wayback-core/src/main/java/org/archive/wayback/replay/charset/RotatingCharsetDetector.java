@@ -23,6 +23,7 @@ import java.io.IOException;
 
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.WaybackRequest;
+import org.archive.wayback.replay.CompositeResource;
 
 /**
  * @author brad
@@ -30,6 +31,11 @@ import org.archive.wayback.core.WaybackRequest;
  * Provides a way to rotate through several detection schemes 
  */
 public class RotatingCharsetDetector extends CharsetDetector {
+	private static final EncodingSniffer[] SNIFFERS = {
+		new ContentTypeHeaderSniffer(),
+		new PrescanMetadataSniffer(),
+		new UniversalChardetSniffer()
+	};
 	public final static int MODES[][] = {
 		{0,1,2},
 		{0,2,1},
@@ -38,59 +44,38 @@ public class RotatingCharsetDetector extends CharsetDetector {
 		{2,1,0},
 		{2,0,1}
 	};
-	public final static int MODE_COUNT = 6;
-	public final static int GUESS_TYPES = 3;
+	public final static int MODE_COUNT = MODES.length;
+	public final static int GUESS_TYPES = SNIFFERS.length;
 
 	public int nextMode(int curMode) {
-		if(curMode >= MODE_COUNT - 1) {
-			return 0;
+		if (++curMode >= MODES.length) {
+			curMode = 0;
 		}
-		return curMode + 1;
-	}
-
-	public String getCharsetType(Resource resource, int type) throws IOException {
-		return getCharsetType(resource, resource, type);
-	}
-
-	public String getCharsetType(Resource httpHeadersResource,
-			Resource payloadResource, int type) throws IOException {
-		if(type == 0) {
-			return getCharsetFromHeaders(httpHeadersResource);
-		} else if(type == 1) {
-			return getCharsetFromMeta(payloadResource);
-		} else if(type == 2) {
-			return getCharsetFromBytes(payloadResource);
-		}
-		return null;
-	}
-
-	public String getCharset(Resource resource, int mode) throws IOException {
-		return getCharset(resource, resource, mode);
+		return curMode;
 	}
 
 	public String getCharset(Resource httpHeadersResource,
 			Resource payloadResource, int mode) throws IOException {
-		String charset = null;
-		if(mode >= MODE_COUNT) {
+		return getCharset(new CompositeResource(httpHeadersResource, payloadResource), mode);
+	}
+
+	public String getCharset(Resource resource, int mode) throws IOException {
+		if (mode >= MODES.length) {
 			mode = 0;
 		}
-		for(int type = 0; type < GUESS_TYPES; type++) {
-			charset = getCharsetType(httpHeadersResource, payloadResource,
-					MODES[mode][type]);
-			if(charset != null) {
-				break;
-			}
+		int[] indexes = MODES[mode];
+		for (int index : indexes) {
+			String charset = SNIFFERS[index].sniff(resource);
+			if (charset != null)
+				return charset;
 		}
-		if(charset == null) {
-			charset = DEFAULT_CHARSET;
-		}
-		return charset;
+		return DEFAULT_CHARSET;
 	}
 
 	@Override
 	public String getCharset(Resource httpHeadersResource,
 			Resource payloadResource, WaybackRequest request)
-					throws IOException {
+			throws IOException {
 		int mode = request.getCharsetMode();
 		return getCharset(httpHeadersResource, payloadResource, mode);
 	}

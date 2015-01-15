@@ -19,20 +19,13 @@
  */
 package org.archive.wayback.replay.html.transformer;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-
 import org.archive.wayback.replay.html.ReplayParseContext;
 import org.archive.wayback.replay.html.StringTransformer;
 
 public class BaseHrefStringTransformer implements StringTransformer {
 
 	public String transform(ReplayParseContext context, String input) {
-		try {
-			context.setBaseUrl(new URL(input));
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-		}
+		context.setBaseUrl(input);
 		return input;
 	}
 }

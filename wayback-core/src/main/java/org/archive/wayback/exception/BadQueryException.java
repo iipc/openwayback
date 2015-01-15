@@ -2,8 +2,8 @@
  *  This file is part of the Wayback archival access software
  *   (http://archive-access.sourceforge.net/projects/wayback/).
  *
- *  Licensed to the Internet Archive (IA) by one or more individual 
- *  contributors. 
+ *  Licensed to the Internet Archive (IA) by one or more individual
+ *  contributors.
  *
  *  The IA licenses this file to You under the Apache License, Version 2.0
  *  (the "License"); you may not use this file except in compliance with
@@ -25,13 +25,9 @@ import javax.servlet.http.HttpServletResponse;
  * Exception class for malformed user query.
  * 
  * @author Brad Tofel
- * @version $Date$, $Revision$
  */
 public class BadQueryException extends WaybackException {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 	protected static final String ID = "badQuery";
 
@@ -41,19 +37,21 @@ public class BadQueryException extends WaybackException {
 	 * @param message
 	 */
 	public BadQueryException(String message) {
-		super(message,"Bad Query");
+		super(message, "Bad Query");
 		id = ID;
 	}
-	/** 
+
+	/**
 	 * Constructor with message and details
 	 * 
 	 * @param message
 	 * @param details
 	 */
 	public BadQueryException(String message, String details) {
-		super(message,"Bad Query",details);
+		super(message, "Bad Query", details);
 		id = ID;
 	}
+
 	/**
 	 * @return the HTTP status code appropriate to this exception class.
 	 */
