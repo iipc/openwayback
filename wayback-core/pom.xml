@@ -12,6 +12,22 @@
   <name>OpenWayback Core Java Classes</name>
   <packaging>jar</packaging>
 
+  <build>
+    <plugins>
+      <plugin>
+	<groupId>org.apache.maven.plugins</groupId>
+	<artifactId>maven-jar-plugin</artifactId>
+	<version>2.2</version>
+	<executions>
+	  <execution>
+	    <goals>
+	      <goal>test-jar</goal>
+	    </goals>
+	  </execution>
+	</executions>
+      </plugin>
+    </plugins>
+  </build>
 
   <dependencies>
     <dependency>
@@ -57,6 +73,13 @@
           <groupId>org.netpreserve.heritrix</groupId>
           <artifactId>commons</artifactId>
         </exclusion>
+        <!-- access-control and its dependency has "compile"
+             dependency on junit, which screw up downstream
+		     projects. Exclude it until it's fixed. -->
+        <exclusion>
+          <artifactId>junit</artifactId>
+          <groupId>junit</groupId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -70,6 +93,10 @@
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-beans</artifactId>
+    </dependency>
+    <dependency>
+		<groupId>org.springframework</groupId>
+		<artifactId>spring-web</artifactId>
     </dependency>
     <dependency>
       <groupId>org.beanshell</groupId>

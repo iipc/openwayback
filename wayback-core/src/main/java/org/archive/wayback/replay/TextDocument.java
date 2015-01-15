@@ -29,9 +29,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.archive.wayback.ResultURIConverter;
-import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
+import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.UIResults;
 import org.archive.wayback.core.WaybackRequest;
 
@@ -265,23 +265,24 @@ public class TextDocument {
 	}
 
 	/**
+	 * insert {@code toInsert} at the beginning of this text.
 	 * @param toInsert
 	 */	
-	public void insertAtStartOfDocument(String toInsert) {
+	public final void insertAtStartOfDocument(CharSequence toInsert) {
 		sb.insert(0,toInsert);
 	}
 
 	/**
-	 * @param toInsert
+	 * @param charSequence
 	 */	
-	public void insertAtEndOfDocument( String toInsert ) {
-		sb.append( "\n" + toInsert );
+	public void insertAtEndOfDocument(CharSequence charSequence) {
+		sb.append("\n" + charSequence);
 	}
 
 	/**
 	 * @param toInsert
 	 */	
-	public void insertAtStartOfHead(String toInsert) {
+	public void insertAtStartOfHead(CharSequence toInsert) {
 		int insertPoint = TagMagix.getEndOfFirstTag(sb,"head");
 		if (-1 == insertPoint) {
 			insertPoint = 0;
@@ -292,7 +293,7 @@ public class TextDocument {
 	/**
 	 * @param toInsert
 	 */
-	public void insertAtEndOfBody(String toInsert) {
+	public void insertAtEndOfBody(CharSequence toInsert) {
 		int insertPoint = sb.lastIndexOf("</body>");
 		if (-1 == insertPoint) {
 			insertPoint = sb.lastIndexOf("</BODY>");
@@ -305,7 +306,7 @@ public class TextDocument {
 	/**
 	 * @param toInsert
 	 */
-	public void insertAtStartOfBody(String toInsert) {
+	public void insertAtStartOfBody(CharSequence toInsert) {
 		int insertPoint = TagMagix.getEndOfFirstTag(sb,"body");
 		if (-1 == insertPoint) {
 			insertPoint = 0;

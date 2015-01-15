@@ -31,7 +31,7 @@ public abstract class PreservingHttpHeaderProcessor implements HttpHeaderProcess
 	 */
 	public void setPrefix(String prefix) {
 		this.prefix = prefix;
-		if (this.prefix.isEmpty())
+		if (this.prefix != null && this.prefix.isEmpty())
 			this.prefix = null;
 	}
 

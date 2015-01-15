@@ -16,81 +16,97 @@ import org.archive.util.binsearch.SeekableLineReaderFactory;
 import org.archive.util.binsearch.SeekableLineReaderIterator;
 
 public class FilenamePrefixFilter implements CDXFilter {
-	
-	private static final Logger LOGGER =
-        Logger.getLogger(FilenamePrefixFilter.class.getName());
-	
+
+	private static final Logger LOGGER = Logger
+		.getLogger(FilenamePrefixFilter.class.getName());
+
 	protected String paramFile;
 	protected int paramIndex = 1;
 	protected boolean isExclusion = true;
 	protected char delim = '\t';
-	
+
 	protected String containsMatch;
-	
+
 	protected Set<String> paramSet = null;
 	protected Pattern patterns[] = null;
-	
+
 	protected List<String> prefixList = null;
-	
+
+	/**
+	 * Default constructor. Call setters to configure.
+	 */
+	public FilenamePrefixFilter() {
+	}
+
+	/**
+	 * Initialize with essential configuration parameters.
+	 * @param prefixList List of filename prefixes
+	 * @param exclusion disposition: {@code true} for exclusion
+	 */
+	public FilenamePrefixFilter(List<String> prefixList, boolean exclusion) {
+		this.prefixList = prefixList;
+		this.isExclusion = exclusion;
+	}
+
 	// This method should be set as the init-method in the spring config
 	// init-method="loadParamFile" when using this Filter
-	public void loadParamFile() throws IOException
-	{
+	public void loadParamFile() throws IOException {
 		SeekableLineReaderFactory fact = null;
 		SeekableLineReaderIterator iter = null;
-		
-		try {	
-			fact = GeneralURIStreamFactory.createSeekableStreamFactory(paramFile, false);
+
+		try {
+			fact = GeneralURIStreamFactory.createSeekableStreamFactory(
+				paramFile, false);
 			iter = new SeekableLineReaderIterator(fact.get());
-			
+
 			paramSet = new HashSet<String>();
-	
+
 			while (iter.hasNext()) {
 				String param = iter.next();
 				param = param.trim();
-				
+
 				if (param.isEmpty() || param.startsWith("#")) {
 					continue;
 				}
-				
+
 				// Use only the first word, ignore the rest
 				int wordEnd = param.indexOf(delim);
-				
+
 				if (wordEnd > 0) {
 					param = param.substring(0, wordEnd);
 				}
-				
+
 				paramSet.add(param);
 			}
 		} finally {
 			if (iter != null) {
 				iter.close();
 			}
-			
+
 			if (fact != null) {
 				fact.close();
 			}
 		}
 	}
-	
+
 	public boolean include(CDXLine line) {
 		final String file = line.getFilename();
 		boolean matched = false;
-		
+
 		if (containsMatch != null) {
 			if (!file.contains(containsMatch)) {
 				return (isExclusion ? true : false);
 			}
 		}
-		
-		if (prefixList != null) {	
+
+		if (prefixList != null) {
 			for (String prefix : prefixList) {
 				if (file.startsWith(prefix)) {
 					return (isExclusion ? false : true);
 				}
 			}
 		}
-		
+
 		if (patterns != null) {
 			for (Pattern pattern : patterns) {
 				Matcher matcher = pattern.matcher(file);
@@ -106,16 +122,16 @@ public class FilenamePrefixFilter implements CDXFilter {
 				}
 			}
 		}
-		
+
 		if (isExclusion) {
-			return (matched ? false : true);	
+			return (matched ? false : true);
 		} else {
 			return (matched ? true : false);
 		}
 	}
-	
+
 	//Getters/Setters
-	
+
 	public String getParamFile() {
 		return paramFile;
 	}
@@ -123,7 +139,7 @@ public class FilenamePrefixFilter implements CDXFilter {
 	public void setParamFile(String paramFile) {
 		this.paramFile = paramFile;
 	}
-	
+
 	public int getParamIndex() {
 		return paramIndex;
 	}
@@ -131,7 +147,7 @@ public class FilenamePrefixFilter implements CDXFilter {
 	public void setParamIndex(int paramIndex) {
 		this.paramIndex = paramIndex;
 	}
-	
+
 	public boolean isExclusion() {
 		return isExclusion;
 	}
@@ -155,10 +171,10 @@ public class FilenamePrefixFilter implements CDXFilter {
 	public void setContainsMatch(String containsMatch) {
 		this.containsMatch = containsMatch;
 	}
-	
+
 	public List<String> getPatterns() {
 		ArrayList<String> s = new ArrayList<String>();
-		for(Pattern p : patterns) {
+		for (Pattern p : patterns) {
 			s.add(p.pattern());
 		}
 		return s;
@@ -167,7 +183,7 @@ public class FilenamePrefixFilter implements CDXFilter {
 	public void setPatterns(List<String> patternStrings) {
 		int size = patternStrings.size();
 		patterns = new Pattern[size];
-		for(int i = 0; i < size; i++) {
+		for (int i = 0; i < size; i++) {
 			patterns[i] = Pattern.compile(patternStrings.get(i));
 		}
 	}

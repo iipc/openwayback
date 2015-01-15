@@ -20,8 +20,6 @@
 package org.archive.wayback.archivalurl;
 
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -29,13 +27,13 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.archive.wayback.ReplayRenderer;
 import org.archive.wayback.ResultURIConverter;
-import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
+import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.WaybackRequest;
+import org.archive.wayback.replay.HttpHeaderProcessor;
 import org.archive.wayback.replay.TextDocument;
 import org.archive.wayback.replay.TextReplayRenderer;
-import org.archive.wayback.replay.HttpHeaderProcessor;
 
 /**
  * {@link ReplayRenderer} that rewrites URLs found in CSS resource and inserts
@@ -77,19 +75,9 @@ public class ArchivalUrlCSSReplayRenderer extends TextReplayRenderer {
 
 		page.resolveCSSUrls();
 		// if any CSS-specific jsp inserts are configured, run and insert...
-		List<String> jspInserts = getJspInserts();
-
-		StringBuilder toInsert = new StringBuilder(300);
-
-		if (jspInserts != null) {
-			Iterator<String> itr = jspInserts.iterator();
-			while (itr.hasNext()) {
-				toInsert.append(page.includeJspString(itr.next(), httpRequest,
-						httpResponse, wbRequest, results, result, resource));
-			}
-		}
-
-//		page.insertAtStartOfDocument(toInsert.toString());
-		page.insertAtEndOfDocument( toInsert.toString() );
+		// Switch to end of document, resolving issue with @import CSS syntax which must be at the start of the file.
+		// See #91 (https://github.com/iipc/openwayback/pull/91)
+		page.insertAtEndOfDocument(buildInsertText(page, httpRequest,
+				httpResponse, wbRequest, results, result, resource));
 	}
 }

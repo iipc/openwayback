@@ -20,8 +20,6 @@
 package org.archive.wayback.archivalurl;
 
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -32,9 +30,9 @@ import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.WaybackRequest;
+import org.archive.wayback.replay.HttpHeaderProcessor;
 import org.archive.wayback.replay.TextDocument;
 import org.archive.wayback.replay.TextReplayRenderer;
-import org.archive.wayback.replay.HttpHeaderProcessor;
 
 /**
  * ArchivalUrl ReplayRenderer which uses a series of RegEx's to rewrite embedded
@@ -61,20 +59,9 @@ public class ServerSideHTMLReplayRenderer extends TextReplayRenderer {
 			ResultURIConverter uriConverter, CaptureSearchResults results) 
 		throws ServletException, IOException {
 
-		List<String> jspInserts = getJspInserts();
-
-		StringBuilder toInsert = new StringBuilder(300);
-
 		page.resolveAllPageUrls();
-		if(jspInserts != null) {
-			Iterator<String> itr = jspInserts.iterator();
-			while(itr.hasNext()) {
-				toInsert.append(page.includeJspString(itr.next(), httpRequest, 
-						httpResponse, wbRequest, results, result, resource));
-			}
-		}
-
 		// insert the new content:
-		page.insertAtStartOfBody(toInsert.toString());
+		page.insertAtStartOfBody(buildInsertText(page, httpRequest,
+				httpResponse, wbRequest, results, result, resource));
 	}
 }

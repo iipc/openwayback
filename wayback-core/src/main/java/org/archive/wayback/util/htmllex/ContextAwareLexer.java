@@ -53,21 +53,26 @@ public class ContextAwareLexer extends NodeUtils {
 	}
 	public Node nextNode() throws ParserException {
 		Node node = null;
-		if(context.isInJS()) {
+		if (context.isInJS()) {
 			node = lexer.parseCDATA(true);
-			if(node != null) {
+			if (node != null) {
 				context.setInScriptText(true);
 				context.setInJS(false);
 				return node;
 			}
+		} else if (context.isInScriptText()) {
+			node = lexer.parseCDATA(true);
+			if (node != null) {
+				return node;
+			}
 		}
-		context.setInScriptText(false);
 		node = lexer.nextNode(context.isInJS());
 		if(node != null) {
 			if(isNonEmptyOpenTagNodeNamed(node, SCRIPT_TAG_NAME)) {
 				context.setInJS(true);
 			} else if(isCloseTagNodeNamed(node, SCRIPT_TAG_NAME)) {
 				context.setInJS(false);
+				context.setInScriptText(false);
 			} else if(isNonEmptyOpenTagNodeNamed(node, STYLE_TAG_NAME)) {
 				context.setInCSS(true);
 			} else if(isCloseTagNodeNamed(node, STYLE_TAG_NAME)) {

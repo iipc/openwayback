@@ -40,7 +40,7 @@ import java.util.List;
  *
  * @param <T> Generic type which this partition holds.
  */
-public class Partition<T> {
+public class Partition<T> implements Iterable<T> {
 
 	private Date start = null;
 	private Date end = null;
@@ -94,6 +94,9 @@ public class Partition<T> {
 		return list.size();
 	}
 
+	public int getCount() {
+		return list.size();
+	}
 	/**
 	 * @param o element to be added to this partition.
 	 */
@@ -112,6 +115,14 @@ public class Partition<T> {
 	 * @return a List of the elements held in this Partition.
 	 */
 	public List<T> list() {
+		return list;
+	}
+
+	/**
+	 * Same as {@link #list()}, Bean property compatible.
+	 * @return a List of the elements held in this Partition.
+         */
+	public List<T> getList() {
 		return list;
 	}
 

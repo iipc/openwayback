@@ -20,8 +20,12 @@
 package org.archive.wayback.core;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.UnknownHostException;
+import java.util.Locale;
 import java.util.Properties;
+import java.util.ResourceBundle;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -31,13 +35,10 @@ import javax.servlet.http.HttpServletResponse;
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.exception.WaybackException;
 import org.archive.wayback.util.StringFormatter;
-import org.archive.wayback.util.webapp.SpringReader;
 import org.archive.wayback.webapp.AccessPoint;
-import org.archive.wayback.webapp.CustomUserResourceIndex;
 import org.archive.wayback.webapp.PerfStats;
 import org.archive.wayback.webapp.PerfStats.PerfStatEntry;
 import org.archive.wayback.webapp.PerfWritingHttpServletResponse;
-import org.springframework.beans.BeansException;
 
 /**
  * Simple class which acts as the go-between between Java request handling code
@@ -66,10 +67,15 @@ import org.springframework.beans.BeansException;
  * 
  *
  * @author brad
- * @version $Date$, $Revision$
  */
 public class UIResults {
 	public final static String FERRET_NAME = "ui-results";
+	public static String UI_RESOURCE_BUNDLE_NAME = "WaybackUI";
+	/**
+	 * name of request scope attribute holding {@code UIResults} instance.
+	 */
+	public final static String UIRESULTS_ATTRIBUTE = "results";
+
 	// usually present
 	private WaybackRequest wbRequest;
 	// usually present	
@@ -90,6 +96,7 @@ public class UIResults {
 	// Present for... requests that resulted in an expected Exception.
 	private WaybackException exception = null;
 	private PerfWritingHttpServletResponse perfResponse;
+	private StringFormatter formatter;
 	
 	private final static String localHostName;
 	
@@ -115,7 +122,7 @@ public class UIResults {
 	 * @param uriConverter the ResultURIConveter to use with the AccessPoint
 	 * handling the request.
 	 */
-	public UIResults(WaybackRequest wbRequest,ResultURIConverter uriConverter) {
+	public UIResults(WaybackRequest wbRequest, ResultURIConverter uriConverter) {
 		this.wbRequest = wbRequest;
 		this.uriConverter = uriConverter;
 	}
@@ -255,6 +262,11 @@ public class UIResults {
 	/**
 	 * Create a self-referencing URL that will perform a query for all copies
 	 * of the given URL.
+	 * <p>This method builds URL that passes target URL in CGI parameter,
+	 * along with other parameters unnecessary for making simple capture
+	 * query request. It is not suitable for simple links.
+	 * {@link #makePlainCaptureQueryUrl(String)} generates clean and
+	 * plain URL.</p>
 	 * @param url to search for copies of
 	 * @return String url that will make a query for all captures of an URL.
 	 */
@@ -265,6 +277,19 @@ public class UIResults {
 		newWBR.setRequestUrl(url);
 		return newWBR.getAccessPoint().getQueryPrefix() + "query?" +
 			newWBR.getQueryArguments(1);
+	}
+
+	/**
+	 * Build a self-referencing URL that will perform a query for all copies
+	 * of the given URL (plain, clean URL version).
+	 * @param url URL to search for copies of
+	 * @return String URL for querying captures of
+	 * @version 1.8.1
+	 */
+	public String makePlainCaptureQueryUrl(String url) {
+		// TOOD: want "2014*" instead of "20140101000000-20141231115959*"
+		return wbRequest.getAccessPoint().makeCaptureQueryUrl(url,
+			wbRequest.getStartTimestamp(), wbRequest.getEndTimestamp());
 	}
 
 	/**
@@ -317,8 +342,8 @@ public class UIResults {
 	 * @return the defined staticPrefix for the AccessPoint%><%@ page import="org.archive.wayback.webapp.PerfWritingHttpServletResponse"
 	 */
 	public String getStaticPrefix() {
-		if(wbRequest != null) {
-			if(wbRequest.getAccessPoint() != null) {
+		if (wbRequest != null) {
+			if (wbRequest.getAccessPoint() != null) {
 				return wbRequest.getAccessPoint().getStaticPrefix();
 			}
 		}
@@ -329,8 +354,8 @@ public class UIResults {
 	 * @return the defined queryPrefix for the AccessPoint
 	 */
 	public String getQueryPrefix() {
-		if(wbRequest != null) {
-			if(wbRequest.getAccessPoint() != null) {
+		if (wbRequest != null) {
+			if (wbRequest.getAccessPoint() != null) {
 				return wbRequest.getAccessPoint().getQueryPrefix();
 			}
 		}
@@ -341,8 +366,8 @@ public class UIResults {
 	 * @return the defined replayPrefix for the AccessPoint
 	 */
 	public String getReplayPrefix() {
-		if(wbRequest != null) {
-			if(wbRequest.getAccessPoint() != null) {
+		if (wbRequest != null) {
+			if (wbRequest.getAccessPoint() != null) {
 				return wbRequest.getAccessPoint().getReplayPrefix();
 			}
 		}
@@ -404,12 +429,39 @@ public class UIResults {
 	 */
 	public static UIResults getGeneric(HttpServletRequest httpRequest) {
 		UIResults results = (UIResults) httpRequest.getAttribute(FERRET_NAME);
-		if(results == null) {
-			WaybackRequest wbRequest = new WaybackRequest();
-			wbRequest.extractHttpRequestInfo(httpRequest);
-			results = new UIResults(wbRequest, null);
+		if (results == null) {
+			results = new UIResults(httpRequest);
 		}
 		return results;
+	}
+
+	/**
+	 * construct bare minimum UIResults.
+	 * @param httpRequest
+	 */
+	public UIResults(HttpServletRequest httpRequest) {
+		WaybackRequest wbRequest = new WaybackRequest();
+		wbRequest.extractHttpRequestInfo(httpRequest);
+		this.wbRequest = wbRequest;
+		this.uriConverter = null;
+	}
+
+	/**
+	 * constructor for JSP.
+	 * <p>be sure to set required objects through setter.</p>
+	 */
+	public UIResults() {
+	}
+
+	/**
+	 * initializes WaybackRequest from HttpServletRequest.
+	 * <p>for rendering top page only.</p>
+	 * @param request
+	 */
+	public void setRequest(HttpServletRequest request) {
+		WaybackRequest wbRequest = new WaybackRequest();
+		wbRequest.extractHttpRequestInfo(request);
+		this.wbRequest = wbRequest;
 	}
 
 	/**
@@ -425,16 +477,16 @@ public class UIResults {
 		throws ServletException {
 		
 		UIResults results = (UIResults) httpRequest.getAttribute(FERRET_NAME);
-		if(results == null) {
+		if (results == null) {
 			throw new ServletException("No attribute..");
 		}
-		if(results.exception == null) {
+		if (results.exception == null) {
 			throw new ServletException("No WaybackException..");
 		}
-		if(results.wbRequest == null) {
+		if (results.wbRequest == null) {
 			throw new ServletException("No WaybackRequest..");
 		}
-		if(results.uriConverter == null) {
+		if (results.uriConverter == null) {
 			throw new ServletException("No ResultURIConverter..");
 		}
 		return results;
@@ -453,16 +505,16 @@ public class UIResults {
 		throws ServletException {
 		
 		UIResults results = (UIResults) httpRequest.getAttribute(FERRET_NAME);
-		if(results == null) {
+		if (results == null) {
 			throw new ServletException("No attribute..");
 		}
-		if(results.wbRequest == null) {
+		if (results.wbRequest == null) {
 			throw new ServletException("No WaybackRequest..");
 		}
-		if(results.uriConverter == null) {
+		if (results.uriConverter == null) {
 			throw new ServletException("No ResultURIConverter..");
 		}
-		if(results.captureResults == null) {
+		if (results.captureResults == null) {
 			throw new ServletException("No CaptureSearchResults..");
 		}
 		return results;
@@ -481,16 +533,16 @@ public class UIResults {
 		throws ServletException {
 		
 		UIResults results = (UIResults) httpRequest.getAttribute(FERRET_NAME);
-		if(results == null) {
+		if (results == null) {
 			throw new ServletException("No attribute..");
 		}
-		if(results.wbRequest == null) {
+		if (results.wbRequest == null) {
 			throw new ServletException("No WaybackRequest..");
 		}
-		if(results.uriConverter == null) {
+		if (results.uriConverter == null) {
 			throw new ServletException("No ResultURIConverter..");
 		}
-		if(results.urlResults == null) {
+		if (results.urlResults == null) {
 			throw new ServletException("No UrlSearchResults..");
 		}
 		return results;
@@ -509,31 +561,26 @@ public class UIResults {
 		throws ServletException {
 		
 		UIResults results = (UIResults) httpRequest.getAttribute(FERRET_NAME);
-		if(results == null) {
+		if (results == null) {
 			throw new ServletException("No attribute..");
 		}
-		if(results.wbRequest == null) {
+		if (results.wbRequest == null) {
 			throw new ServletException("No WaybackRequest..");
 		}
-		if(results.uriConverter == null) {
+		if (results.uriConverter == null) {
 			throw new ServletException("No ResultURIConverter..");
 		}
-		if(results.captureResults == null) {
+		if (results.captureResults == null) {
 			throw new ServletException("No CaptureSearchResults..");
 		}
-		if(results.result == null) {
+		if (results.result == null) {
 			throw new ServletException("No CaptureSearchResult..");
 		}
-		if(results.resource == null) {
+		if (results.resource == null) {
 			throw new ServletException("No Resource..");
 		}
 		return results;
 	}
-	
-
-	/*
-	 * STATIC CONVENIENCE METHODS
-	 */
 	
 	/**
 	 * @return the uriConverter
@@ -542,13 +589,17 @@ public class UIResults {
 	public ResultURIConverter getUriConverter() {
 		return uriConverter;
 	}
-	
+
+	/*
+	 * STATIC CONVENIENCE METHODS
+	 */
+
 	private static void replaceAll(StringBuffer s,
 			final String o, final String n) {
 		int olen = o.length();
 		int nlen = n.length();
 		int found = s.indexOf(o);
-		while(found >= 0) {
+		while (found >= 0) {
 			s.replace(found,found + olen,n);
 			found = s.indexOf(o,found + nlen);
 		}
@@ -615,13 +666,31 @@ public class UIResults {
 	public String getContextPrefix() {
 		return getWbRequest().getContextPrefix();
 	}
-	
 	/**
+	 * return {@code Locale} for request being processed.
+	 * @return Locale, never {@code null}
+	 * @see WaybackRequest#getLocale()
+	 * @see AccessPoint#getLocale()
+	 */
+	public Locale getLocale() {
+		Locale l = wbRequest.getLocale();
+		if (l == null) {
+			l = Locale.getAvailableLocales()[0];
+		}
+		return l;
+	}
+	/**
+	 * return StringFormatter set-up for locale of request being
+	 * processed.
+	 * <p>deprecation recalled 2014-05-06.</p>
 	 * @return StringFormatter localized to user request
-	 * @deprecated use getWbRequest().getFormatter()
 	 */
 	public StringFormatter getFormatter() {
-		return getWbRequest().getFormatter();
+		if (formatter == null) {
+			ResourceBundle b = ResourceBundle.getBundle(UI_RESOURCE_BUNDLE_NAME);
+			formatter = new StringFormatter(b, getLocale());
+		}
+		return formatter;
 	}
 
 	/**
@@ -654,72 +723,40 @@ public class UIResults {
 		return uriConverter.makeReplayURI(timestamp, url);
 	}
 	
-	public CustomUserResourceIndex getCustomResourceIndex(String indexKey)
-	{
-		try {
-			String indexBeanName = null;
-			
-			// First look up bean name in the props			
-			if (getWbRequest().getAccessPoint() != null) {
-				Properties props = getWbRequest().getAccessPoint().getConfigs();
-				
-				if (props != null) {
-					indexBeanName = props.getProperty(indexKey);
-				}
-			}
-			
-			//If not found, attempt the key itself
-			
-			if (indexBeanName == null) {
-				indexBeanName = indexKey;	
-			}
-						
-			CustomUserResourceIndex index = 
-					(CustomUserResourceIndex)SpringReader.getCurrentContext().getBean(indexBeanName, CustomUserResourceIndex.class);
-			
-			return index;
-		} catch (BeansException e) {
-			return null;
-		}
-		
-//		AccessPoint ap = this.getWbRequest().getAccessPoint();
-//		
-//		if (ap == null) {
-//			return null;
-//		}
-//		
-//		Map<String, Object> map = ap.getUserProps();
-//		
-//		if (map == null) {
-//			return null;
-//		}private
-//		
-//		Object object = map.get(indexName);
-//		
-//		
-//		if (object == null || !(object instanceof CustomUserResourceIndex)) {
-//			return null;
-//		}
-//		
-//		return (CustomUserResourceIndex)object;
-	}
-	
-	public String getCustomResourcePaths(String indexName, int fieldNum)
-	{
-		CustomUserResourceIndex cri = getCustomResourceIndex(indexName);
-		if (cri == null) {
-			return "";
-		}
-		return cri.getCustomResourcesPathsAsJSON(getWbRequest(), getReplayPrefix(), fieldNum);
-	}
-	
-	public static String getLocalHostName()
-	{
+	/**
+	 * return hostname of this server.
+	 * @return String
+	 */
+	public String getServerName() {
 		return localHostName;
 	}
 	
-	public String enableAnalytics()
-	{
+	public static String getLocalHostName() {
+		return localHostName;
+	}
+	
+	/**
+	 * return hostname portion of request URL.
+	 * @return String
+	 */
+	public String getTargetSite() {
+		try {
+			String urlstr = wbRequest.getRequestUrl();
+			if (urlstr == null) return null;
+			URL url = new URL(urlstr);
+			return url.getHost();
+		} catch (MalformedURLException ex) {
+			return null;
+		}
+	}
+
+	/**
+	 *
+	 * @return local hostname.
+	 * @deprecated 1.8.1, use {@link #getServerName()}.
+	 *   this method is nothing more than that.
+	 */
+	public String enableAnalytics() {
 		if (perfResponse != null) {
 			perfResponse.enablePerfCookie();
 		}
@@ -727,12 +764,21 @@ public class UIResults {
 		return localHostName;
 	}
 	
-	public static long getTotalCount()
-	{
+	/**
+	 * Total elapsed time for {@code Total}.
+	 * @return
+	 * @deprecated 1.8.1, use {@code PerfStats.getTotal("Total")}.
+	 */
+	public static long getTotalCount() {
 		PerfStatEntry entry = PerfStats.get("Total");
 		return ((entry != null) ? entry.getTotal() : 0);
 	}
 
+	/**
+	 *
+	 * @param perfResponse
+	 * @deprecated 1.8.1, no replacement. this method has no real effect.
+	 */
 	public void setPerfResponse(PerfWritingHttpServletResponse perfResponse) {
 		this.perfResponse = perfResponse;
     }

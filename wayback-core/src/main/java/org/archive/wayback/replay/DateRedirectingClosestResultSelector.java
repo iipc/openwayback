@@ -19,55 +19,26 @@
  */
 package org.archive.wayback.replay;
 
-import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.WaybackRequest;
-import org.archive.wayback.exception.BetterRequestException;
 
 /**
+ * ClosestResultSelector that redirects to Archival-URL replay URL
+ * for the capture given if its timestamp is different from the request.
+ * <p>This class is deprecated because 1) it does not preserve context
+ * flags upon redirect. 2) can cause redirect loop.</p>
  * @author brad
- *
+ * @deprecated 1.8.1 2014-07-02 now this class is identical to
+ * {@link DefaultClosestResultSelector} in behavior.
  */
-public class DateRedirectingClosestResultSelector 
-implements ClosestResultSelector {
+public class DateRedirectingClosestResultSelector implements
+		ClosestResultSelector {
 
 	public CaptureSearchResult getClosest(WaybackRequest wbRequest,
-			CaptureSearchResults results) throws BetterRequestException {
+			CaptureSearchResults results) {
 
 		CaptureSearchResult closest = results.getClosest();
-		String reqDateStr = wbRequest.getReplayTimestamp();
-		String resDateStr = closest.getCaptureTimestamp();
-		
-		boolean doRedirect = false;
-		
-		// if the request date is shorter than the result date, always redirect:
-		if(reqDateStr.length() < resDateStr.length()) {
-			doRedirect = true;
-		} else {
-			// if the result is not for the exact date requested, redirect to the
-			// exact date. some capture dates are not 14 digits, only compare as 
-			// many digits as are in the result date:
-			if(!resDateStr.equals(reqDateStr.substring(0,resDateStr.length()))) {
-				// If looking for latest date, don't redirect until after checking for errors later
-				if (!wbRequest.isBestLatestReplayRequest()) {
-					doRedirect = true;
-				}
-			}
-		}
-		if(doRedirect) {
-			doRedirection(wbRequest,closest);
-		}
 		return closest;
-	}
-	protected void doRedirection(WaybackRequest wbRequest, 
-			CaptureSearchResult closest) throws BetterRequestException {
-		// redirect to the better version:
-		String url = closest.getOriginalUrl();
-		String captureDate = closest.getCaptureTimestamp();
-		ResultURIConverter uriConverter = 
-			wbRequest.getAccessPoint().getUriConverter();
-		String betterURI = uriConverter.makeReplayURI(captureDate,url);
-		throw new BetterRequestException(betterURI);
 	}
 }

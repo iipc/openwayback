@@ -58,7 +58,12 @@ public class RequestMapper {
 	private RequestHandler globalPreRequestHandler = null;
 	private RequestHandler globalPostRequestHandler = null;
 	
-	private final static String REQUEST_CONTEXT_PREFIX = 
+	/**
+	 * The name of an attribute for storing the prefix of URL
+	 * path corresponding to the {@link RequestHandler} processing
+	 * the request.
+	 */
+	public static final String REQUEST_CONTEXT_PREFIX =
 		"webapp-request-context-path-prefix";
 	
 	/**

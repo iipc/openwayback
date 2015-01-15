@@ -20,7 +20,6 @@
 package org.archive.wayback.domainprefix;
 
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -34,9 +33,9 @@ import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.WaybackRequest;
+import org.archive.wayback.replay.HttpHeaderProcessor;
 import org.archive.wayback.replay.TextDocument;
 import org.archive.wayback.replay.TextReplayRenderer;
-import org.archive.wayback.replay.HttpHeaderProcessor;
 import org.archive.wayback.util.Timestamp;
 
 /**
@@ -81,19 +80,7 @@ public class DomainPrefixTextReplayRenderer extends TextReplayRenderer {
 		page.sb.ensureCapacity(replaced.length());
 		page.sb.append(replaced);
 
-		List<String> jspInserts = getJspInserts();
-
-		StringBuilder toInsert = new StringBuilder(300);
-
-		if(jspInserts != null) {
-			Iterator<String> itr = jspInserts.iterator();
-			while(itr.hasNext()) {
-				toInsert.append(page.includeJspString(itr.next(), httpRequest, 
-						httpResponse, wbRequest, results, result, resource));
-			}
-		}
-
-		page.insertAtEndOfBody(toInsert.toString());
-
+		page.insertAtEndOfBody(buildInsertText(page, httpRequest, httpResponse,
+				wbRequest, results, result, resource));
 	}
 }
