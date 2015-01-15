@@ -70,7 +70,7 @@ public class URLtoARCCacher {
 	private static String CONTENT_TYPE_HEADER = "Content-Type".toLowerCase();
 	private static String GET_METHOD_NAME = "GET";
 	
-	private static String DEFAULT_RECORDER_DIR = "/var/tmp/brad/recorder"; 
+	private static String DEFAULT_RECORDER_DIR = System.getProperty("java.io.tmpdir"); 
 	private File recorderCacheDir = new File(DEFAULT_RECORDER_DIR);
 	
 	private static String DEFAULT_BACKING_FILE_BASE = "recorder-tmp"; 

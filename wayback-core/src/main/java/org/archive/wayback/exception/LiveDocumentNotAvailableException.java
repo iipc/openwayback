@@ -2,8 +2,8 @@
  *  This file is part of the Wayback archival access software
  *   (http://archive-access.sourceforge.net/projects/wayback/).
  *
- *  Licensed to the Internet Archive (IA) by one or more individual 
- *  contributors. 
+ *  Licensed to the Internet Archive (IA) by one or more individual
+ *  contributors.
  *
  *  The IA licenses this file to You under the Apache License, Version 2.0
  *  (the "License"); you may not use this file except in compliance with
@@ -24,47 +24,49 @@ import java.net.URL;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- *
+ * An error indicating Wayback has failed to load a resource from live Web.
+ * <p>Commonly thrown by user-facing live-web-proxy implementations, but also
+ * used by internal robots.txt access service.</p>
  *
  * @author brad
- * @version $Date$, $Revision$
  */
 public class LiveDocumentNotAvailableException extends WaybackException {
-	/**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 1L;
 	protected static final String ID = "liveDocumentNotAvailable";
 	protected static final String defaultMessage = "Live document unavailable";
+
 	/**
 	 * Constructor
-	 * @param url 
-	 * @param code 
+	 * @param url
+	 * @param code
 	 */
 	public LiveDocumentNotAvailableException(URL url, int code) {
 		super("The URL " + url.toString() + " is not available(HTTP " + code +
-				" returned)",defaultMessage);
+				" returned)", defaultMessage);
 		id = ID;
 	}
+
 	/**
 	 * Constructor with message and details
-	 * @param url 
-	 * @param code 
+	 * @param url
+	 * @param code
 	 * @param details
 	 */
-	public LiveDocumentNotAvailableException(URL url, int code, String details){
+	public LiveDocumentNotAvailableException(URL url, int code, String details) {
 		super("The URL " + url.toString() + " is not available(HTTP " + code +
-				" returned)",defaultMessage,details);
+				" returned)", defaultMessage, details);
 		id = ID;
 	}
+
 	/**
 	 * @param url
 	 */
-	public LiveDocumentNotAvailableException(String url){
-		super("The URL " + url + " is not available",defaultMessage);
+	public LiveDocumentNotAvailableException(String url) {
+		super("The URL " + url + " is not available", defaultMessage);
 		id = ID;
 	}
-	
+
 	/**
 	 * @return the HTTP status code appropriate to this exception class.
 	 */

@@ -2,8 +2,8 @@
  *  This file is part of the Wayback archival access software
  *   (http://archive-access.sourceforge.net/projects/wayback/).
  *
- *  Licensed to the Internet Archive (IA) by one or more individual 
- *  contributors. 
+ *  Licensed to the Internet Archive (IA) by one or more individual
+ *  contributors.
  *
  *  The IA licenses this file to You under the Apache License, Version 2.0
  *  (the "License"); you may not use this file except in compliance with
@@ -22,10 +22,16 @@ package org.archive.wayback.exception;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * Exception class for content blocked by robots.txt, etc.
+ * Exception indicating no captures can be replayed because
+ * entire URL is blocked by robots.txt or other type of exclusion
+ * rules.
+ * <p>This exception will not be thrown for individual captures.
+ * Per-capture exclusion will just make such captures invisible,
+ * and no exception will be throwsn (unless there's no captures
+ * at all as a result, in which case {@link ResourceNotInArchiveException}
+ * will be thrown).</p>
  *
  * @author brad
- * @version $Date$, $Revision$
  */
 public class AccessControlException extends WaybackException {
 	private static final long serialVersionUID = 1L;
@@ -37,19 +43,21 @@ public class AccessControlException extends WaybackException {
 	 * @param message
 	 */
 	public AccessControlException(String message) {
-		super(message,"Access Problem");
+		super(message, "Access Problem");
 		id = ID;
 	}
-	/** 
+
+	/**
 	 * Constructor with message and details
 	 * 
 	 * @param message
 	 * @param details
 	 */
 	public AccessControlException(String message, String details) {
-		super(message,"Access Problem",details);
+		super(message, "Access Problem", details);
 		id = ID;
 	}
+
 	/**
 	 * @return the HTTP status code appropriate to this exception class.
 	 */

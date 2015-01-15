@@ -1,5 +1,6 @@
 package org.archive.wayback.webapp;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Level;
@@ -10,7 +11,14 @@ public class PerfStats
 {	
 	private static final Logger LOGGER = Logger.getLogger(
 			PerfStats.class.getName());
-		
+	/**
+	 * output format constants.
+	 */
+	public enum OutputFormat {
+		BRACKET,
+		JSON
+	};
+
 	public static class PerfStatEntry
 	{
 		String name;
@@ -118,6 +126,15 @@ public class PerfStats
 		lastEntry.set(entry);
 		return entry;
 	}
+
+	public static long getTotal(Enum<?> stat) {
+		return getTotal(stat.toString());
+	}
+
+	public static long getTotal(String statName) {
+		PerfStatEntry entry = get(statName);
+		return entry != null ? entry.getTotal() : 0;
+	}
 	
 	public static void clearAll()
 	{
@@ -169,25 +186,55 @@ public class PerfStats
 		return elapsed;
 	}
 	
-	public static String getAllStats()
-	{
-		StringBuilder sb = new StringBuilder("[");
+	public static String getAllStats() {
+		return getAllStats(OutputFormat.BRACKET);
+	}
+
+	/**
+	 * Format all stats in the format specified.
+	 * @param format serialization format
+	 * @return serialized stats
+	 */
+	public static String getAllStats(OutputFormat format) {
+		StringBuilder sb = new StringBuilder();
 		boolean first = true;
 		
-		for (PerfStatEntry entry : perfStats.get().values()) {
-			if (entry.count == 0) {
-				continue;
-			}
-			
-			if (first) {
-				first = false;
-			} else {
-				sb.append(", ");
-			}
-			sb.append(entry.toString());
-		}
+		Collection<PerfStatEntry> stats = perfStats.get().values();
 		
-		sb.append("]");
+		switch (format) {
+		case JSON:
+			sb.append('{');
+			for (PerfStatEntry entry : stats) {
+				if (entry.count > 0) {
+					if (first) {
+						first = false;
+					} else {
+						sb.append(',');
+					}
+					sb.append('"').append(entry.name).append("\":");
+					if (entry.isErr)
+						sb.append("null");
+					else
+						sb.append(entry.total);
+				}
+			}
+			sb.append('}');
+			break;
+		default:
+			sb.append("[");
+			for (PerfStatEntry entry : stats) {
+				if (entry.count > 0) {
+					if (first) {
+						first = false;
+					} else {
+						sb.append(", ");
+					}
+					sb.append(entry.toString());
+				}
+			}			
+			sb.append("]");
+			break;
+		}
 		return sb.toString();
 	}
 }

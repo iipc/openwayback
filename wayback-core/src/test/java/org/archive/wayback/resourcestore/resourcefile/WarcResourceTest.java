@@ -10,7 +10,6 @@ import java.util.Map;
 import junit.framework.TestCase;
 
 import org.archive.format.warc.WARCConstants.WARCRecordType;
-import org.archive.io.ArchiveReader;
 import org.archive.io.warc.TestWARCReader;
 import org.archive.io.warc.TestWARCRecordInfo;
 import org.archive.io.warc.WARCRecord;
@@ -20,6 +19,7 @@ import org.archive.wayback.replay.GzipDecodingResource;
 import org.archive.wayback.replay.TextReplayRenderer;
 import org.archive.wayback.replay.charset.CharsetDetector;
 import org.archive.wayback.replay.charset.StandardCharsetDetector;
+import org.archive.wayback.resourcestore.jwat.JWATResourceTest;
 
 
 /**
@@ -39,15 +39,28 @@ public class WarcResourceTest extends TestCase {
     }
 
     /**
+     * create a test {@link Resource} from {@link WARCRecordInfo} {@code recinfo}.
+     * <p>Override this method to run tests on different implementations of
+     * Resource.</p>
+     * @param recinfo
+     * @return Resource
+     * @see JWATResourceTest
+     */
+    protected Resource createResource(WARCRecordInfo recinfo) throws Exception {
+    	TestWARCReader ar = new TestWARCReader(recinfo);
+    	WARCRecord rec = ar.get(0);
+    	WarcResource res = new WarcResource(rec, ar);
+    	return res;
+    }
+
+    /**
      * plain HTTP response (without any transfer/content-encoding)
      * @throws Exception
      */
     public void testPlainHttpRecord() throws Exception {
         String payload = "hogehogehogehogehoge";
         WARCRecordInfo recinfo = TestWARCRecordInfo.createHttpResponse(payload);
-        TestWARCReader ar = new TestWARCReader(recinfo);
-        WARCRecord rec = ar.get(0);
-        WarcResource res = new WarcResource(rec, ar);
+        Resource res = createResource(recinfo);
         res.parseHeaders();
         
         assertEquals("statusCode", 200, res.getStatusCode());
@@ -67,9 +80,7 @@ public class WarcResourceTest extends TestCase {
         WARCRecordInfo recinfo = new TestWARCRecordInfo(
                 TestWARCRecordInfo.buildHttpResponseBlock("200 OK",
                         "text/plain", payload.getBytes("UTF-8"), true));
-        TestWARCReader ar = new TestWARCReader(recinfo);
-        WARCRecord rec = ar.get(0);
-        WarcResource res = new WarcResource(rec, ar);
+        Resource res = createResource(recinfo);
         res.parseHeaders();
         
         assertEquals("statusCode", 200, res.getStatusCode());
@@ -91,9 +102,7 @@ public class WarcResourceTest extends TestCase {
         WARCRecordInfo recinfo = new TestWARCRecordInfo(
                 TestWARCRecordInfo.buildCompressedHttpResponseBlock(ctype,
                         payload.getBytes()));
-        TestWARCReader ar = new TestWARCReader(recinfo);
-        WARCRecord rec = ar.get(0);
-        WarcResource res = new WarcResource(rec, ar);
+        Resource res = createResource(recinfo);
         res.parseHeaders();
         
         assertEquals("statusCode", 200, res.getStatusCode());
@@ -119,9 +128,7 @@ public class WarcResourceTest extends TestCase {
         WARCRecordInfo recinfo = new TestWARCRecordInfo(
                 TestWARCRecordInfo.buildCompressedHttpResponseBlock(ctype,
                         payload.getBytes(), true));
-        TestWARCReader ar = new TestWARCReader(recinfo);
-        WARCRecord rec = ar.get(0);
-        WarcResource res = new WarcResource(rec, ar);
+        Resource res = createResource(recinfo);
         res.parseHeaders();
         
         assertEquals("statusCode", 200, res.getStatusCode());
@@ -158,9 +165,7 @@ public class WarcResourceTest extends TestCase {
         WARCRecordInfo recinfo = new TestWARCRecordInfo(block);
         recinfo.setType(WARCRecordType.metadata);
         recinfo.setMimetype(ct);
-        TestWARCReader ar = new TestWARCReader(recinfo);
-        WARCRecord rec = ar.get(0);
-        WarcResource res = new WarcResource(rec, ar);
+        Resource res = createResource(recinfo);
         // must not fail
         res.parseHeaders();
         
@@ -201,9 +206,7 @@ public class WarcResourceTest extends TestCase {
     public void testRevisitRecord() throws Exception {
         final String ct = "text/html";
         WARCRecordInfo recinfo = TestWARCRecordInfo.createRevisitHttpResponse(ct, 1345);
-        TestWARCReader ar = new TestWARCReader(recinfo);
-        WARCRecord rec = ar.get(0);
-        WarcResource res = new WarcResource(rec, ar);
+        Resource res = createResource(recinfo);
         res.parseHeaders();
         
         // these are from this record.
@@ -240,9 +243,7 @@ public class WarcResourceTest extends TestCase {
     public void testOldRevisitRecord() throws Exception {
         final String ct = "text/html";
         WARCRecordInfo recinfo = TestWARCRecordInfo.createRevisitHttpResponse(ct, 1345, false);
-        TestWARCReader ar = new TestWARCReader(recinfo);
-        WARCRecord rec = ar.get(0);
-        WarcResource res = new WarcResource(rec, ar);
+        Resource res = createResource(recinfo);
         res.parseHeaders();
         
         // should either return special value or throw appropriate exception (TBD)
@@ -255,6 +256,28 @@ public class WarcResourceTest extends TestCase {
         
         res.close();
     }
+
+    public void testUrlAgnosticRevisitRecord() throws Exception {
+		final String ctype = "text/html";
+		WARCRecordInfo recinfo = TestWARCRecordInfo
+			.createUrlAgnosticRevisitHttpResponse(ctype, 1345);
+        Resource res = createResource(recinfo);
+        res.parseHeaders();
+
+		// these are from this record.
+		assertEquals("statusCode", 200, res.getStatusCode());
+		assertEquals("content-type", ctype, res.getHeader("Content-Type"));
+
+        assertEquals("http://example.com/", res.getRefersToTargetURI());
+        assertEquals("20140101101010", res.getRefersToDate());
+
+        StandardCharsetDetector csd = new StandardCharsetDetector();
+        // assuming WaybackRequest (3rd parameter) is not used in getCharset()
+        csd.getCharset(res, res, null);
+
+        res.close();
+    }
+
     /**
      * resource record, typically used for archiving ftp fetches.
      * @throws Exception
@@ -266,9 +289,7 @@ public class WarcResourceTest extends TestCase {
         recinfo.setType(WARCRecordType.resource);
         recinfo.setUrl("ftp://ftp.example.com/afile.txt");
         recinfo.setMimetype(ct);
-        ArchiveReader ar = new TestWARCReader(recinfo);
-        WARCRecord rec = (WARCRecord)ar.get(0);
-        WarcResource res = new WarcResource(rec, ar);
+        Resource res = createResource(recinfo);
         res.parseHeaders();
                 
         int scode = res.getStatusCode();

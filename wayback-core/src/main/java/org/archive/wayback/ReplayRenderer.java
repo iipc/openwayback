@@ -2,8 +2,8 @@
  *  This file is part of the Wayback archival access software
  *   (http://archive-access.sourceforge.net/projects/wayback/).
  *
- *  Licensed to the Internet Archive (IA) by one or more individual 
- *  contributors. 
+ *  Licensed to the Internet Archive (IA) by one or more individual
+ *  contributors.
  *
  *  The IA licenses this file to You under the Apache License, Version 2.0
  *  (the "License"); you may not use this file except in compliance with
@@ -32,55 +32,64 @@ import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.WaybackException;
 
 /**
- *
- *
+ * {@code ReplayRenderer} generates response that replays archived content.
+ * It may apply some transformations (often called <em>rewrite</em>) to the content
+ * so that:
+ * <ul>
+ * <li>replay page has navigation user interface etc.</li>
+ * <li>clicking hyperlinks makes another replay requests rather than jumping to
+ * the live web.</li>
+ * </ul>
  * @author brad
- * @version $Date$, $Revision$
+ * @see QueryRenderer
  */
 public interface ReplayRenderer {
 
 	/**
-	 * return a resource to the user.
+	 * Generate response that replays capture archive {@code resource}.
 	 * 
 	 * @param httpRequest the HttpServletRequest
 	 * @param httpResponse the HttpServletResponse
 	 * @param wbRequest the WaybackRequest that returned the results
-	 * @param result actual CaptureSearchResult that maps to resource to replay
+	 * @param result actual {@code CaptureSearchResult} that maps to resource to replay
 	 * @param resource resource to replay
 	 * @param uriConverter the URI converter to use to translate matching
-	 *                      results into replayable URLs
-	 * @param results all CaptureSearchResults that were returned from the 
-	 * 						ResourceIndex, probably including other capture
-	 * 						dates of the same URL.
+	 *        results into replayable URLs
+	 * @param results all CaptureSearchResults that were returned from the
+	 *        {@link ResourceIndex}, probably including other capture dates of the same
+	 *        URL.
 	 * @throws ServletException per usual
 	 * @throws IOException per usual
 	 * @throws WaybackException if Wayback data specific, anticipated exceptions
-	 *                          occur
+	 *         occur
 	 */
 	public void renderResource(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
-			CaptureSearchResult result, Resource resource, 
+			CaptureSearchResult result, Resource resource,
 			ResultURIConverter uriConverter, CaptureSearchResults results)
 					throws ServletException, IOException, WaybackException;
 
 	/**
-	 * return a resource to the user.
+	 * Generate response that replays capture archive
+	 * {@code httpHeadersResource}, reading archived content (HTTP entity) from
+	 * {@code payloadResource}.
 	 * 
 	 * @param httpRequest the HttpServletRequest
 	 * @param httpResponse the HttpServletResponse
 	 * @param wbRequest the WaybackRequest that returned the results
-	 * @param result actual CaptureSearchResult that maps to resource to replay
-	 * @param httpHeadersResource resource with http headers to replay
+	 * @param result {@code CaptureSearchResult} that maps to resource to replay
+	 * @param httpHeadersResource resource with HTTP headers to replay
+	 *        (typically a <em>revisit</em> record.)
 	 * @param payloadResource resource with payload to replay
 	 * @param uriConverter the URI converter to use to translate matching
-	 *                      results into replayable URLs
-	 * @param results all CaptureSearchResults that were returned from the 
-	 *                      ResourceIndex, probably including other capture
-	 *                      dates of the same URL.
+	 *        results into replayable URLs
+	 * @param results all CaptureSearchResults that were returned from the
+	 *        {@link ResourceIndex}, probably including other capture dates of
+	 *        the same URL.
 	 * @throws ServletException per usual
 	 * @throws IOException per usual
 	 * @throws WaybackException if Wayback data specific, anticipated exceptions
-	 *                          occur
+	 *         occur
 	 */
 	public void renderResource(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,

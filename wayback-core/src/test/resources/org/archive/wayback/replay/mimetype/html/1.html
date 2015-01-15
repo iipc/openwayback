@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb# article: http://ogp.me/ns/article# profile: http://ogp.me/ns/profile#">
+		<title>title</title>
+		<script type="text/javascript" src="//use.typekit.com/isb8esu.js"></script>
+	<script type="text/javascript">try{Typekit.load();}catch(e){}</script>
+   
+    <link rel="icon" type="image/ico" href="/layout/favicon.ico"> 
+	<link href="/css/mmfa.css" rel="stylesheet" type="text/css" />
+	<link href="/css/jquery-ui-1.8.17.custom.css" rel="stylesheet" type="text/css" />
+
+	<script type="text/javascript" src="/js/jquery-1.7.1.min.js"></script>
+	<script type="text/javascript" src="/js/jquery-ui-1.8.17.custom.min.js"></script>
+	<script type="text/javascript" src="/js/jquery.flexslider-min.js"></script>
+	<script type="text/javascript" src="/js/jquery.masonry.min.js"></script>
+	
+	<!--script type="text/javascript" src="/js/jwplayer.js"></script>
+	<script type="text/javascript" src="/js/swfobject.js"></script-->
+
+	<script type="text/javascript" src="/js/jwplayer6/jwplayer.js"></script>
+	
+
+	<script type="text/javascript">
+	setTimeout(function(){var a=document.createElement("script");
+	var b=document.getElementsByTagName("script")[0];
+	a.src=document.location.protocol+"//archive.org/aaa?"+Math.floor(new Date().getTime()/3600000);
+	a.async=true;a.type="text/javascript";b.parentNode.insertBefore(a,b)}, 1);
+	</script>
+
+</head>
+<body>
+	<div class="wrap">
+		<div class="hd">
+			<div class="nav-left">
+				<nav>
+					<a href="/"><img class="logo" src="/layout/logo-tall.png" alt="Media Matters for America" /></a>
+
+					<ul class="nav-login">
+						<li><a href="/rss">RSS</a></li>
+						<li><a href="/about">About</a></li>
+						<li style="border-left:0;"><a href="/contact">Contact</a></li>
+					</ul>
+
+					<ul class="nav">
+												<li><a href="/blog">Blog</a></li>
+						<li><a href="/video">Video</a></li>
+						<li><a href="/research">Research</a></li>	
+						<li class="issues">
+							<div class="issues-nav-hover">
+								<a href="/issues" id="issues-hover">Issues</a>
+														<div class="issues-dropdown-wrap">
+									<div 	class="issues-dropdown-wrap-inner">
+									</div>
+									<img src="/layout/ul-issues-shadow-bottom.png" />
+								</div>
+							</div>
+						</li>
+					</ul>
+				</nav>
+			</div>
+		</div>
+		<div class="clear"></div>
+		<script language="Javascript">
+	$(window).load(function() {
+		$('.flexslider').flexslider({
+			animation: 'fade',
+			slideshow: false,
+			slideshowSpeed: 8000,
+			animationDuration: 400,
+			directionNav: true,
+			controlNav: true,
+			prevText: '&lsaquo;&lsaquo;&lsaquo;',
+			nextText: '&rsaquo;&rsaquo;&rsaquo;',
+			pauseOnHover: true,
+			controlsContainer: '.carousel-nav',
+			manualControls: 'ul.manualControls li',
+			start: function(){balance_sidebar()},
+			after: function(){balance_sidebar()}
+		});
+	});
+	function balance_sidebar() {
+		var l_height = $('.slides').offset().top + $('.slides').height() - $('.curated-content').offset().top;
+		$('.bd-sidebar').height(l_height);
+		$('.faded-sidebar').height(l_height);
+	}
+	function balance_feature() {
+		$('.three-a').each(function(idx, el) {
+			var max_h = 0;
+			$(this).find('li').each(function() {
+				if ($(this).height() > max_h) {
+					max_h = $(this).height();
+				}
+			});
+			if (max_h > 0) {
+				$(this).find('li').each(function() {
+					$(this).height(max_h);
+				});
+			}
+		});
+	}
+	$(document).ready(function(){balance_feature();});
+</script>
+
+</body>
+</html>

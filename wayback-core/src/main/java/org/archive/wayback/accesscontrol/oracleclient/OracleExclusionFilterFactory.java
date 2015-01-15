@@ -23,20 +23,19 @@ import org.archive.wayback.accesscontrol.ExclusionFilterFactory;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 
 /**
- * ExclusionFilterFactory implementation which connects to an Exclusion Oracle
- * via HTTP to determine which SearchResults can be exposed
+ * ExclusionFilterFactory for {@link OracleExclusionFilter}.
  * @author brad
- *
+ * @see OracleExclusionFilter
  */
 public class OracleExclusionFilterFactory implements ExclusionFilterFactory {
 
 	private String oracleUrl = null;
 	private String accessGroup = null;
 	private String proxyHostPort = null;
-	
+
 	public ExclusionFilter get() {
 		OracleExclusionFilter filter = new OracleExclusionFilter(oracleUrl,
-				accessGroup, proxyHostPort);
+			accessGroup, proxyHostPort);
 		return filter;
 	}
 

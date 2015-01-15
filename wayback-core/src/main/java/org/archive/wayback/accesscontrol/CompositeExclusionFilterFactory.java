@@ -2,8 +2,8 @@
  *  This file is part of the Wayback archival access software
  *   (http://archive-access.sourceforge.net/projects/wayback/).
  *
- *  Licensed to the Internet Archive (IA) by one or more individual 
- *  contributors. 
+ *  Licensed to the Internet Archive (IA) by one or more individual
+ *  contributors.
  *
  *  The IA licenses this file to You under the Apache License, Version 2.0
  *  (the "License"); you may not use this file except in compliance with
@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.logging.Logger;
 
-import org.archive.wayback.accesscontrol.staticmap.StaticMapExclusionFilterFactory;
 import org.archive.wayback.resourceindex.filters.CompositeExclusionFilter;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 
@@ -33,41 +32,51 @@ import org.archive.wayback.resourceindex.filters.ExclusionFilter;
  * SearchResultFilter based on the results of each ExclusionFilter.
  *
  * @author brad
- * @version $Date$, $Revision$
  */
-public class CompositeExclusionFilterFactory implements ExclusionFilterFactory {
+public class CompositeExclusionFilterFactory implements ContextExclusionFilterFactory {
 
-	private static final Logger LOGGER =
-        Logger.getLogger(CompositeExclusionFilterFactory.class.getName());
-	
-	private ArrayList<ExclusionFilterFactory> factories = 
-		new ArrayList<ExclusionFilterFactory>();
-	
+	private static final Logger LOGGER = Logger
+		.getLogger(CompositeExclusionFilterFactory.class.getName());
+
+	private ArrayList<ExclusionFilterFactory> factories = new ArrayList<ExclusionFilterFactory>();
+
 	/**
 	 * @param factory to be added to the composite
 	 */
 	public void addFactory(ExclusionFilterFactory factory) {
 		factories.add(factory);
 	}
-	
-	/* (non-Javadoc)
-	 * @see org.archive.wayback.resourceindex.ExclusionFilterFactory#get()
-	 */
-	public ExclusionFilter get() {
-		Iterator<ExclusionFilterFactory> itr = factories.iterator();
+
+	protected static ExclusionFilter getInstance(ExclusionFilterFactory factory, CollectionContext context) {
+		if (factory instanceof ContextExclusionFilterFactory) {
+			return ((ContextExclusionFilterFactory)factory).getExclusionFilter(context);
+		} else {
+			return factory.get();
+		}
+	}
+
+	@Override
+	public ExclusionFilter getExclusionFilter(CollectionContext context) {
 		CompositeExclusionFilter filter = new CompositeExclusionFilter();
-		while(itr.hasNext()) {
-			ExclusionFilterFactory factory = itr.next();
-			ExclusionFilter filterEntry = factory.get();
-			if (filterEntry != null) {
-				filter.addComponent(filterEntry);
+		for (ExclusionFilterFactory factory : factories) {
+			ExclusionFilter memberFilter = getInstance(factory, context);
+			if (memberFilter != null) {
+				filter.addComponent(memberFilter);
 			} else {
-				LOGGER.warning("Skipping null filter returned from factory: " + factory.getClass().toString());
+				LOGGER.warning("Skipping null filter returned from factory: " + factory);
 			}
 		}
 		return filter;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see org.archive.wayback.resourceindex.ExclusionFilterFactory#get()
+	 */
+	public ExclusionFilter get() {
+		return getExclusionFilter(null);
+	}
 
 	/**
 	 * @return the factories
@@ -76,7 +85,6 @@ public class CompositeExclusionFilterFactory implements ExclusionFilterFactory {
 		return factories;
 	}
 
-
 	/**
 	 * @param factories the factories to set
 	 */
@@ -84,12 +92,14 @@ public class CompositeExclusionFilterFactory implements ExclusionFilterFactory {
 		this.factories = factories;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 *
 	 * @see org.archive.wayback.accesscontrol.ExclusionFilterFactory#shutdown()
 	 */
 	public void shutdown() {
 		Iterator<ExclusionFilterFactory> itr = factories.iterator();
-		while(itr.hasNext()) {
+		while (itr.hasNext()) {
 			ExclusionFilterFactory i = itr.next();
 			i.shutdown();
 		}
