@@ -19,6 +19,7 @@
     <section name="OpenWayback 2.0.1 Release">
       <subsection name="Features">
        <ul>
+          <li>Synchronised with latest changes from the Internet Archive fork. <a href="https://github.com/iipc/openwayback/pull/195">#195</a></li>
        </ul>
       </subsection>
       <subsection name="Bug Fixes">
