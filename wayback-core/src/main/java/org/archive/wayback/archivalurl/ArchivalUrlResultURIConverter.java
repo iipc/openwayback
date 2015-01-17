@@ -2,8 +2,8 @@
  *  This file is part of the Wayback archival access software
  *   (http://archive-access.sourceforge.net/projects/wayback/).
  *
- *  Licensed to the Internet Archive (IA) by one or more individual 
- *  contributors. 
+ *  Licensed to the Internet Archive (IA) by one or more individual
+ *  contributors.
  *
  *  The IA licenses this file to You under the Apache License, Version 2.0
  *  (the "License"); you may not use this file except in compliance with
@@ -22,40 +22,46 @@ package org.archive.wayback.archivalurl;
 import java.util.logging.Logger;
 
 import org.archive.wayback.ResultURIConverter;
+import org.archive.wayback.replay.html.ContextResultURIConverterFactory;
 import org.archive.wayback.util.url.UrlOperations;
 import org.archive.wayback.webapp.AccessPoint;
 import org.archive.wayback.webapp.AccessPointAware;
 
 /**
- *
+ * ResultURIConverter for Archival-URL replay scheme.
+ * <p>
+ * Replay URL is <i>replayURIPrefix</i>+<i>datespec</i>[<i>context</i>]+{@code "/"}+<i>URL</i>.
  *
  * @author brad
- * @version $Date$, $Revision$
  */
-public class ArchivalUrlResultURIConverter implements ResultURIConverter, 
-	AccessPointAware {
-	private static final Logger LOGGER =
-		Logger.getLogger(ArchivalUrlResultURIConverter.class.getName());
-	
+public class ArchivalUrlResultURIConverter implements ResultURIConverter,
+		AccessPointAware, ContextResultURIConverterFactory {
+	private static final Logger LOGGER = Logger
+		.getLogger(ArchivalUrlResultURIConverter.class.getName());
+
 	/**
 	 * configuration name for URL prefix of replay server
 	 */
 	private String replayURIPrefix = null;
-	
-	/* (non-Javadoc)
-	 * @see org.archive.wayback.ResultURIConverter#makeReplayURI(java.lang.String, java.lang.String)
+
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see
+	 * org.archive.wayback.ResultURIConverter#makeReplayURI(java.lang.String,
+	 * java.lang.String)
 	 */
 	public String makeReplayURI(String datespec, String url) {
 		StringBuilder sb = null;
 
-		if(replayURIPrefix == null) {
+		if (replayURIPrefix == null) {
 			sb = new StringBuilder(url.length() + datespec.length());
 			sb.append(datespec);
 			sb.append("/");
 			sb.append(UrlOperations.stripDefaultPortFromUrl(url));
 			return sb.toString();
 		}
-		if(url.startsWith(replayURIPrefix)) {
+		if (url.startsWith(replayURIPrefix)) {
 			return url;
 		}
 		sb = new StringBuilder(url.length() + datespec.length());
@@ -81,13 +87,42 @@ public class ArchivalUrlResultURIConverter implements ResultURIConverter,
 	}
 
 	public void setAccessPoint(AccessPoint accessPoint) {
-		if(replayURIPrefix == null) {
-			String apReplayPrefix = accessPoint.getReplayPrefix(); 
-			LOGGER.warning("No replayURIPrefix configured - using accessPoint:"
-					+ apReplayPrefix);
+		if (replayURIPrefix == null) {
+			String apReplayPrefix = accessPoint.getReplayPrefix();
+			LOGGER.warning(
+				"No replayURIPrefix configured - using accessPoint:" +
+						apReplayPrefix);
 			replayURIPrefix = apReplayPrefix;
 		} else {
 			LOGGER.info("replayURIPrefix is configured: " + replayURIPrefix);
 		}
+	}
+
+	protected class ArchivalUrlSpecialContextResultURIConverter
+	implements ResultURIConverter {
+		private String context;
+
+		/**
+		 * @param converter ArchivalUrlResultURIConverter to wrap
+		 * @param context flags indicating the context of URLs created by this
+		 * 				object
+		 */
+		public ArchivalUrlSpecialContextResultURIConverter(String context) {
+			this.context = context;
+		}
+
+		/* (non-Javadoc)
+		 * @see org.archive.wayback.ResultURIConverter#makeReplayURI(java.lang.String, java.lang.String)
+		 */
+		public String makeReplayURI(String datespec, String url) {
+			return ArchivalUrlResultURIConverter.this.makeReplayURI(datespec + context, url);
+		}
+	}
+
+	@Override
+	public ResultURIConverter getContextConverter(String flags) {
+		if (flags == null || flags.isEmpty())
+			return this;
+		return new ArchivalUrlSpecialContextResultURIConverter(flags);
 	}
 }

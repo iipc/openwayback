@@ -81,11 +81,12 @@ public class ArchivalURLJSStringTransformerReplayRenderer extends TextReplayRend
 		// same code in ArchivalUrlSAXRewriteReplayRenderer
 		ContextResultURIConverterFactory fact = null;
 		
-		if (uriConverter instanceof ArchivalUrlResultURIConverter) {
-			fact = new ArchivalUrlContextResultURIConverterFactory(
-					(ArchivalUrlResultURIConverter) uriConverter);
-		} else if (converterFactory != null) {
+		// this uriConverter implementing factory should address all cases currently
+		// known.
+		if (converterFactory != null) {
 			fact = converterFactory;
+		} else if (uriConverter instanceof ContextResultURIConverterFactory) {
+			fact = (ContextResultURIConverterFactory)uriConverter;
 		} else {
 			fact = new IdentityResultURIConverterFactory(uriConverter);			
 		}		
@@ -141,7 +142,18 @@ public class ArchivalURLJSStringTransformerReplayRenderer extends TextReplayRend
 		return converterFactory;
 	}
 
-
+	/**
+	 * Set a factory to be used for constructing contextualized
+	 * {@link ResultURIConverter}.
+	 * <p>
+	 * If set, it will be used even when
+	 * base ResultURIConverter implements {@link ContextResultURIConverterFactory}
+	 * interface. Usually ResultURIConverter's own factory implementation is
+	 * sufficient, and slightly more efficient. This property may be dropped in the
+	 * near future.
+	 * </p>
+	 * @param converterFactory factory object
+	 */
 	public void setConverterFactory(
 			ContextResultURIConverterFactory converterFactory) {
 		this.converterFactory = converterFactory;
