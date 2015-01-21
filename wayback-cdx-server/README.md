@@ -139,7 +139,7 @@ The matchType may also be set implicitly by using wildcard '*' at end or beginni
 ### Field Order ###
 
 It is possible to customize the fields returned from the cdx server using the **fl=** param.
-Simply pass in a comma seperate list of fields and only those fields will be returned:
+Simply pass in a comma separated list of fields and only those fields will be returned:
 
 * The following returns only the timestamp and mimetype fields with the header `["timestamp","mimetype"]` http://web.archive.org/cdx/search/cdx?url=archive.org&fl=timestamp,mimetype&output=json
 
