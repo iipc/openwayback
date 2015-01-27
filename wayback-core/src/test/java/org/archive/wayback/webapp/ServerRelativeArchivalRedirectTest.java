@@ -6,6 +6,7 @@ import javax.servlet.http.HttpServletResponse;
 import junit.framework.TestCase;
 
 import org.archive.wayback.core.WaybackRequest;
+import org.archive.wayback.webapp.ServerRelativeArchivalRedirect.ArchivalUrlRef;
 import org.easymock.EasyMock;
 
 /**
@@ -95,6 +96,59 @@ public class ServerRelativeArchivalRedirectTest extends TestCase {
 
 		HttpServletResponse response = EasyMock
 			.createMock(HttpServletResponse.class);
+		response.addHeader("Vary", "Referer");
+		EasyMock.expectLastCall().once();
+		response.sendRedirect(EXPECTED_REDIRECT_URL);
+		EasyMock.expectLastCall().once();
+
+		EasyMock.replay(request, response);
+
+		boolean handled = cut.handleRequest(request, response);
+
+		EasyMock.verify(response);
+		assertTrue(handled);
+	}
+
+	public static class Extended extends ServerRelativeArchivalRedirect {
+		ArchivalUrlRef ref;
+		public Extended(ArchivalUrlRef ref) {
+			this.ref = ref;
+		}
+		protected ArchivalUrlRef getOrigin(HttpServletRequest httpRequest) {
+			ArchivalUrlRef ref = super.getOrigin(httpRequest);
+			if (ref == null) {
+				// imaging getting this value from somewhere...
+				ref = this.ref;
+			}
+			return ref;
+		};
+	}
+
+	/**
+	 * Test customization by sub-classing.
+	 * @throws Exception
+	 */
+	public void testCustomOrigin() throws Exception {
+		final String ROOT = "http://web.archive.org";
+		final String COLLECTION = "/web";
+		final String DATESPEC = "20010203040506";
+		final String TARGET_BASE = "http://example.com";
+		final String REQUEST_URI = "/js/s_code.js";
+
+		final String EXPECTED_REDIRECT_URL = ROOT + COLLECTION + "/" +
+				DATESPEC + "/" + TARGET_BASE + REQUEST_URI;
+
+		// Replace cut
+		cut = new Extended(new ArchivalUrlRef(ROOT, COLLECTION,
+			DATESPEC, TARGET_BASE + "/index.html"));
+		// in current deployment matchHost is not set (=null)
+		cut.setMatchPort(80);
+		cut.setUseCollection(true);
+
+		// mocks - no Referer
+		setUpRequest(REQUEST_URI, null);
+
+		HttpServletResponse response = EasyMock.createMock(HttpServletResponse.class);
 		response.addHeader("Vary", "Referer");
 		EasyMock.expectLastCall().once();
 		response.sendRedirect(EXPECTED_REDIRECT_URL);
