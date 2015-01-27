@@ -19,6 +19,7 @@
     <section name="OpenWayback 2.0.1 Release">
       <subsection name="Features">
        <ul>
+         <li>Made start date configurable (defaults to old value of 1996), end date dynamic to current year.<a href="https://github.com/iipc/openwayback/issues/51">#51</a></li>
        </ul>
       </subsection>
       <subsection name="Bug Fixes">
@@ -48,7 +49,6 @@
           </li>
           <li>Added 'accessPointPath' to default proxy config. <a href="https://github.com/iipc/openwayback/pull/158">#158</a>
           </li>
-          <li>Made start date configurable (defaults to old value of 1996), end date dynamic to current year.<a href="https://github.com/iipc/openwayback/issues/51">#51</a></li>
       </ul>
       </subsection>
       
