@@ -166,6 +166,7 @@ public class ServerRelativeArchivalRedirect extends AbstractRequestHandler {
 			HttpServletResponse httpResponse) throws ServletException,
 			IOException {
 		ArchivalUrlRef ref = getOrigin(httpRequest);
+		if (ref == null) return null;
 
 		String thisPath = httpRequest.getRequestURI();
 		String queryString = httpRequest.getQueryString();
@@ -204,6 +205,7 @@ public class ServerRelativeArchivalRedirect extends AbstractRequestHandler {
 			throws ServletException, IOException {
 
 		ArchivalUrlRef ref = getOrigin(httpRequest);
+		if (ref == null) return null;
 
 		String thisPath = httpRequest.getRequestURI();
 		String queryString = httpRequest.getQueryString();

@@ -162,4 +162,26 @@ public class ServerRelativeArchivalRedirectTest extends TestCase {
 		assertTrue(handled);
 	}
 
+	/**
+	 * Test of non-ArchivalUrl requests.
+	 * ServerRelativeArchivalRedirect is setup as catch-all handler ("{@code +"}).
+	 * It must handle non-replay URLs like {@code /} and {@code /favicon.ico}, with
+	 * non-ArchivalUrl Referer. It must not fail, and return {@code false}.
+	 * @throws Exception
+	 */
+	public void testNonArchivalUrl() throws Exception {
+		final String REQUEST_URI = "/";
+		final String REFERER = "http://www.example.com/index.html";
+
+		setUpRequest(REQUEST_URI, REFERER);
+
+		HttpServletResponse response = EasyMock.createMock(HttpServletResponse.class);
+		// no actions on response
+		EasyMock.replay(request, response);
+
+		boolean handled = cut.handleRequest(request, response);
+
+		EasyMock.verify(response);
+		assertFalse(handled);
+	}
 }
