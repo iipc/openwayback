@@ -68,6 +68,7 @@ String starLink = fmt.escapeHtml(queryPrefix + wbRequest.getReplayTimestamp() +
 <script type="text/javascript" src="<%= staticPrefix %>js/graph-calc.js" ></script>
 <script type="text/javascript" src="<%= staticPrefix %>jflot/jquery.min.js" ></script>
 <script type="text/javascript">
+//<![CDATA[
 var firstDate = <%= firstYearDate.getTime() %>;
 var lastDate = <%= lastYearDate.getTime() %>;
 var wbPrefix = "<%= replayPrefix %>";
@@ -165,21 +166,27 @@ function trackMouseMove(event,element) {
        curMonth = month;
    }
 }
+//]]>
 </script>
 
 <style type="text/css">body{margin-top:0!important;padding-top:0!important;min-width:800px!important;}#wm-ipp a:hover{text-decoration:underline!important;}</style>
 <div id="wm-ipp" style="display:none; position:relative;padding:0 5px;min-height:70px;min-width:800px; z-index:9000;">
 <div id="wm-ipp-inside" style="position:fixed;padding:0!important;margin:0!important;width:97%;min-width:780px;border:5px solid #000;border-top:none;background-image:url(<%= staticPrefix %>images/toolbar/wm_tb_bk_trns.png);text-align:center;-moz-box-shadow:1px 1px 3px #333;-webkit-box-shadow:1px 1px 3px #333;box-shadow:1px 1px 3px #333;font-size:11px!important;font-family:'Lucida Grande','Arial',sans-serif!important;">
-   <table style="border-collapse:collapse;margin:0;padding:0;width:100%;"><tbody><tr>
-   <td style="padding:10px;vertical-align:top;min-width:110px;">
-   <a href="<%= queryPrefix %>" title="Wayback Machine home page" style="background-color:transparent;border:none;"><img src="<%= staticPrefix %>images/toolbar/wayback-toolbar-logo.png" alt="Wayback Machine" width="110" height="39" border="0"/></a>
-   </td>
-   <td style="padding:0!important;text-align:center;vertical-align:top;width:100%;">
+    <table style="border-collapse:collapse;margin:0;padding:0;width:100%;"><tbody><tr>
+        <td style="padding:10px;vertical-align:top;min-width:110px;">
+            <a href="<%= queryPrefix %>" title="Wayback Machine home page" style="background-color:transparent;border:none;"><img src="<%= staticPrefix %>images/toolbar/wayback-toolbar-logo.png" alt="Wayback Machine" width="110" height="39" border="0"/></a>
+        </td>
+        <td style="padding:0!important;text-align:center;vertical-align:top;width:100%;">
 
-       <table style="border-collapse:collapse;margin:0 auto;padding:0;width:570px;"><tbody><tr>
-       <td style="padding:3px 0;" colspan="2">
-           <form target="_top" method="get" action="<%= queryPrefix %>query" name="wmtb" id="wmtb" style="margin:0!important;padding:0!important;"><input type="text" name="<%= WaybackRequest.REQUEST_URL %>" id="wmtbURL" value="<%= searchUrlSafe %>" maxlength="256" style="width:400px;font-size:11px;font-family:'Lucida Grande','Arial',sans-serif;"/><input type="hidden" name="<%= WaybackRequest.REQUEST_TYPE %>" value="<%= WaybackRequest.REQUEST_REPLAY_QUERY %>"><input type="hidden" name="<%= WaybackRequest.REQUEST_DATE %>" value="<%= data.curResult.getCaptureTimestamp() %>"><input type="submit" value="Go" style="font-size:11px;font-family:'Lucida Grande','Arial',sans-serif;margin-left:5px;"/><span id="wm_tb_options" style="display:block;"></span></form>
-       </td>
+            <table style="border-collapse:collapse;margin:0 auto;padding:0;width:570px;"><tbody><tr>
+                <td style="padding:3px 0;" colspan="2">
+                    <form target="_top" method="get" action="<%= queryPrefix %>query" name="wmtb" id="wmtb" style="margin:0!important;padding:0!important;">
+                        <input type="text" name="<%= WaybackRequest.REQUEST_URL %>" id="wmtbURL" value="<%= searchUrlSafe %>" maxlength="256" style="width:400px;font-size:11px;font-family:'Lucida Grande','Arial',sans-serif;"/>
+                        <input type="hidden" name="<%= WaybackRequest.REQUEST_TYPE %>" value="<%= WaybackRequest.REQUEST_REPLAY_QUERY %>"><input type="hidden" name="<%= WaybackRequest.REQUEST_DATE %>" value="<%= data.curResult.getCaptureTimestamp() %>"/>
+                        <input type="submit" value="Go" style="font-size:11px;font-family:'Lucida Grande','Arial',sans-serif;margin-left:5px;"/>
+                        <span id="wm_tb_options" style="display:block;"/>
+                    </form>
+                </td>
        <td style="vertical-align:bottom;padding:5px 0 0 0!important;" rowspan="2">
            <table style="border-collapse:collapse;width:110px;color:#99a;font-family:'Helvetica','Lucida Grande','Arial',sans-serif;"><tbody>
 			
