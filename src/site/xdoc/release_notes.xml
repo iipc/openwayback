@@ -27,6 +27,7 @@
           <li>Fixed building with JDK 8. <a href="https://github.com/iipc/openwayback/pull/141">#141</a></li>
           <li>Removed direct references to Unix spesific TMP paths /tmp and /var/tmp. <a href="https://github.com/iipc/openwayback/issues/172">#172</a></li>
           <li>Initial thread-safety fix for Memento from Luda. <a href="https://github.com/iipc/openwayback/issues/180">#180</a></li>
+          <li>Refactored CDX Server into a war and jar module. <a href="https://github.com/iipc/openwayback/issues/164">#164</a></li>
         </ul>
       </subsection>
     </section>
