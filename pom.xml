@@ -14,6 +14,7 @@
 	<name>OpenWayback</name>
 
 	<modules>
+        <module>wayback-cdx-server-core</module>
 		<module>wayback-cdx-server</module>
 		<module>wayback-core</module>
 		<module>wayback-webapp</module>
@@ -459,13 +460,11 @@
 
 			<!-- Link all Wayback child module version dependencies to the parent 
 				POM version. -->
-			<dependency>
-				<groupId>${project.groupId}</groupId>
-				<artifactId>openwayback-cdx-server</artifactId>
-				<version>${project.version}</version>
-				<type>jar</type>
-				<classifier>classes</classifier>
-			</dependency>
+            <dependency>
+                <groupId>org.netpreserve.openwayback</groupId>
+                <artifactId>openwayback-cdx-server-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 			<dependency>
 				<groupId>${project.groupId}</groupId>
 				<artifactId>openwayback-core</artifactId>
@@ -514,6 +513,22 @@
                 <artifactId>spring-web</artifactId>
                 <version>${org.springframework.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-webmvc</artifactId>
+                <version>${org.springframework.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-context</artifactId>
+                <version>${org.springframework.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
 			<dependency>
 				<groupId>org.beanshell</groupId>
 				<artifactId>bsh</artifactId>
@@ -542,6 +557,12 @@
 				<version>3.8.1</version>
 				<scope>test</scope>
 			</dependency>
+            <dependency>
+                <groupId>org.easymock</groupId>
+                <artifactId>easymock</artifactId>
+                <version>2.5.1</version>
+                <scope>test</scope>
+            </dependency>
 
 		</dependencies>
 	</dependencyManagement>
