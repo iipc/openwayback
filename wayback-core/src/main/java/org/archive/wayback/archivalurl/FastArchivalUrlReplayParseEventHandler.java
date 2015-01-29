@@ -123,9 +123,16 @@ public class FastArchivalUrlReplayParseEventHandler implements
 	public void handleNode(ParseContext pContext, Node node) throws IOException {
 		ReplayParseContext context = (ReplayParseContext)pContext;
 		if (NodeUtils.isRemarkNode(node)) {
+			// HTML Comment - often used in JAVASCRIPT/STYLE element
+			// to hide its content on old browsers.
 			RemarkNode remarkNode = (RemarkNode)node;
-			remarkNode.setText(jsBlockTrans.transform(context,
-				remarkNode.getText()));
+			if (context.isInCSS()) {
+				remarkNode.setText(cssBlockTrans.transform(context,
+					remarkNode.getText()));
+			} else {
+				remarkNode.setText(jsBlockTrans.transform(context,
+					remarkNode.getText()));
+			}
 			emit(context, null, node, null);
 
 		} else if (NodeUtils.isTextNode(node)) {
