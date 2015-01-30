@@ -38,7 +38,6 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 	final String charSet = "UTF-8";
 
     ArchivalUrlResultURIConverter uriConverter;
-    ArchivalUrlContextResultURIConverterFactory fact;
     ReplayParseContext context;
 	JSPExecutor jspExec = null;
 
@@ -47,9 +46,6 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 		uriConverter = new ArchivalUrlResultURIConverter();
 		uriConverter.setReplayURIPrefix("http://replay.archive.org/");
 
-		fact = new ArchivalUrlContextResultURIConverterFactory(
-			(ArchivalUrlResultURIConverter)uriConverter);
-
 		// The URL of the page, for resolving in-page relative URLs:
 		CaptureSearchResult capture = new CaptureSearchResult();
 		capture.setCaptureTimestamp(timestamp);
@@ -57,7 +53,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 		// urlKey is not set as it is unused
 
 		// set up the context:
-		context = new ReplayParseContext(fact, capture);
+		context = new ReplayParseContext(uriConverter, capture);
 		context.setOutputCharset(outputCharset);
 
 		delegator = new FastArchivalUrlReplayParseEventHandler();
