@@ -188,6 +188,30 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
         assertEquals(expected, out);
 	}
 
+	/**
+	 * Some people enclose in-line STYLE content with HTML Comment
+	 * for better support for stone age browsers.
+	 * @throws Exception
+	 */
+	public void testStyleElmeentImportUrlInsideHTMLComment() throws Exception {
+        final String input = "<html>" +
+                "<head>" +
+                "<style type=\"text/css\">\n" +
+				"<!-- @import '/shared.css'; -->\n" +
+				"</style>" +
+                "</head>" +
+                "</html>";
+        final String expected = "<html>" +
+                "<head>" +
+                "<style type=\"text/css\">\n" +
+				"<!-- @import 'http://replay.archive.org/2001cs_/http://www.example.com/shared.css'; -->\n" + 
+				"</style>" +
+                "</head>" +
+                "</html>";
+        String out = doEndToEnd(input);
+        assertEquals(expected, out);
+	}
+
     public void testStyleElementFontfaceSrcUrl() throws Exception {
         // font data is not an image technically, but it'd require more elaborate
         // pattern match to differentiate a context of url function. use im_ for
