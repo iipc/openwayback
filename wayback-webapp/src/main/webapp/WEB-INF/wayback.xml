@@ -334,10 +334,10 @@
 -->
 
 <!--
-    Set the minimum year that is handled by this server
+    Set the minimum year that is handled by this server. If commented out the vaule of the
+    start year will default to 1996.
   -->
-  <bean name="minimumYearAlloved" class="org.archive.wayback.util.Timestamp">
-    <property name="startYear" value="1998" />
+  <bean name="minimumYearAllowed" class="org.archive.wayback.util.Timestamp">
+    <property name="startYear" value="1996" />
   </bean>
-
 </beans>
