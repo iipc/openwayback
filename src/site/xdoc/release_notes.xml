@@ -24,6 +24,7 @@
       </subsection>
       <subsection name="Bug Fixes">
         <ul>
+	  <li>Fixed <a href="https://github.com/iipc/openwayback/issues/196">issue #196</a> to allow running under Tomcat 8. <a href="https://github.com/iipc/openwayback/pull/198">#198</a></li>
           <li>Fixed building with JDK 8. <a href="https://github.com/iipc/openwayback/pull/141">#141</a></li>
           <li>NullPointerException for RemoteResourceIndex <a href="https://github.com/iipc/openwayback/issues/193">#193</a></li>
           <li>Removed direct references to Unix specific TMP paths /tmp and /var/tmp. <a href="https://github.com/iipc/openwayback/issues/172">#172</a></li>
