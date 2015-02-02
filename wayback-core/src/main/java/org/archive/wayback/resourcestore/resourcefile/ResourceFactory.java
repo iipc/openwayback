@@ -85,7 +85,7 @@ public class ResourceFactory {
 		try {
 			if(urlOrPath.startsWith("http://")) {
 				return getResource(new URL(urlOrPath), offset);
-            } else if(urlOrPath.startsWith("hdfs://")) {           	
+            } else if(urlOrPath.startsWith("hdfs://") || urlOrPath.startsWith("s3://")) {           	
                 try {
                   return getResource(new URI(urlOrPath), offset);
                   
@@ -108,33 +108,51 @@ public class ResourceFactory {
 	}
 	
 	protected static FileSystem hdfsSys = null;
+    protected static FileSystem s3Sys = null;
 
   public static Resource getResource( URI uri, long offset)
     throws IOException, ResourceNotAvailableException, URISyntaxException {
     
     Resource r = null;
-    
+    FSDataInputStream is = null;
+    Path path = null; 
     // FIXME: Put this into static initialization?  or require
     //        explicit init during startup?  Or just create it each
     //        time?
     // 
     
     // Attempt at fix: Only initializing file system once    
-    if (hdfsSys == null)
-    {
-        Configuration conf = new Configuration();
+    if (uri.toString().startsWith("s3://")) {
+      path = new Path(uri.toString());
+      
+      if (s3Sys == null)
+      {
+          Configuration conf = new Configuration();
+          s3Sys = path.getFileSystem(conf);
+      }
+      
+      // Assume that keys for Amazon S3 are already set in 
+      // $HADOOP_CONF/core-site.xml
+      // Refer to https://wiki.apache.org/hadoop/AmazonS3 for more details
+       
+      is = s3Sys.open(path);
+    } else {
+      if (hdfsSys == null)
+      {
+          Configuration conf = new Configuration();
 
-        // Assume that the URL is a fully-qualified HDFS url, like:
-        //   hdfs://namenode:6100/collections/foo/some.arc.gz
-        // create fs with just the default URL
-        
-        URI defaultURI = new URI(uri.getScheme() + "://" + uri.getHost() + ":"+ uri.getPort() + "/");
-        hdfsSys = FileSystem.get(defaultURI, conf);
+          // Assume that the URL is a fully-qualified HDFS url, like:
+          //   hdfs://namenode:6100/collections/foo/some.arc.gz
+          // create fs with just the default URL
+          
+          URI defaultURI = new URI(uri.getScheme() + "://" + uri.getHost() + ":"+ uri.getPort() + "/");
+          hdfsSys = FileSystem.get(defaultURI, conf);
+      }
+          
+      path = new Path( uri.getPath() );
+
+      is = hdfsSys.open( path );
     }
-        
-    Path path = new Path( uri.getPath() );
-
-    FSDataInputStream is = hdfsSys.open( path );
     is.seek( offset );
 
     if (isArc(path.getName()))
