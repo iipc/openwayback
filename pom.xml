@@ -15,7 +15,7 @@
 
 	<modules>
         <module>wayback-cdx-server-core</module>
-		<module>wayback-cdx-server</module>
+		<module>wayback-cdx-server-webapp</module>
 		<module>wayback-core</module>
 		<module>wayback-webapp</module>
 		<module>dist</module>
@@ -462,7 +462,7 @@
 				POM version. -->
             <dependency>
                 <groupId>org.netpreserve.openwayback</groupId>
-                <artifactId>openwayback-cdx-server-core</artifactId>
+                <artifactId>openwayback-cdx-server</artifactId>
                 <version>${project.version}</version>
             </dependency>
 			<dependency>

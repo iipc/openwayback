@@ -7,9 +7,13 @@
     <version>2.0.1-SNAPSHOT</version>
   </parent>
 
-  <artifactId>openwayback-cdx-server</artifactId>
+  <artifactId>openwayback-cdx-server-webapp</artifactId>
   <packaging>war</packaging>
-  <name>Wayback CDX Server</name>
+  <name>Wayback CDX Server Web Application</name>
+
+  <build>
+      <finalName>openwayback-cdx-server-${project.version}</finalName>
+  </build>
 
   <properties>
     <wayback.port>9000</wayback.port>
@@ -18,7 +22,7 @@
   <dependencies>
       <dependency>
           <groupId>${project.groupId}</groupId>
-          <artifactId>openwayback-cdx-server-core</artifactId>
+          <artifactId>openwayback-cdx-server</artifactId>
       </dependency>
   </dependencies>
 

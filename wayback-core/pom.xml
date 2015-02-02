@@ -32,7 +32,7 @@
   <dependencies>
       <dependency>
           <groupId>${project.groupId}</groupId>
-          <artifactId>openwayback-cdx-server-core</artifactId>
+          <artifactId>openwayback-cdx-server</artifactId>
       </dependency>
     <dependency>
       <groupId>junit</groupId>

@@ -7,7 +7,7 @@
         <version>2.0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>openwayback-cdx-server-core</artifactId>
+    <artifactId>openwayback-cdx-server</artifactId>
     <packaging>jar</packaging>
     <name>Wayback CDX Server Core Java Classes</name>
 
