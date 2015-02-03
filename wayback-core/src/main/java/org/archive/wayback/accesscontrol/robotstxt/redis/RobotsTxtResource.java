@@ -10,8 +10,7 @@ public class RobotsTxtResource extends Resource {
 	
 	protected String contents;
 	
-	public RobotsTxtResource(String contents)
-	{
+	public RobotsTxtResource(String contents) {
 		this.contents = contents;
 		
 		// Skip BOM
@@ -24,13 +23,10 @@ public class RobotsTxtResource extends Resource {
 	
 	@Override
 	public void close() throws IOException {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
 	public int getStatusCode() {
-		// TODO Auto-generated method stub
 		return 200;
 	}
 
@@ -46,8 +42,7 @@ public class RobotsTxtResource extends Resource {
 		return null;
 	}
 	
-	public String getContents()
-	{
+	public String getContents() {
 		return contents;
 	}
 }

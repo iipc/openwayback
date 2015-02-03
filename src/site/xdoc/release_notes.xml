@@ -19,12 +19,37 @@
     <section name="OpenWayback 2.0.1 Release">
       <subsection name="Features">
        <ul>
-         <li>Made start date configurable (defaults to old value of 1996), end date dynamic to current year.<a href="https://github.com/iipc/openwayback/issues/51">#51</a></li>
+          <li>Synchronised with latest changes from the Internet Archive fork. <a href="https://github.com/iipc/openwayback/pull/195">#195</a></li>
+          <li>URL-decode timestamp segment of replay URL. <a href="https://github.com/iipc/openwayback/pull/195">#195</a>, <a href="https://github.com/internetarchive/wayback/issues/23">internetarchive#23</a></li>
+          <li>Revisits can be resolved with excluded capture <a href="https://github.com/iipc/openwayback/pull/195">#195</a>, <a href="https://github.com/internetarchive/wayback/issues/65">internetarchive#65</a></li>
+          <li>Added rudimentary mime-type sniffing (work in progress). <a href="https://github.com/iipc/openwayback/pull/195">#195</a>, <a href="https://github.com/internetarchive/wayback/issues/46">internetarchive#46</a></li>
+          <li>Timestamp-collapsing can be configured to return the last best capture in eacho collapse group. <a href="https://github.com/iipc/openwayback/pull/195">#195</a>, <a href="https://github.com/internetarchive/wayback/issues/64">internetarchive#64</a></li>
+          <li>UIResults now has makePlainCaptureQueryUrl() method for generating clean, short URL for capture query links. <a href="https://github.com/iipc/openwayback/pull/195">#195</a>, <a href="https://github.com/internetarchive/wayback/issues/60">internetarchive#60</a></li>
+          <li>MultipleRegexReplaceStringTransformer may also be used as RewriteRule. <a href="https://github.com/iipc/openwayback/pull/195">#195</a>, <a href="https://github.com/internetarchive/wayback/issues/54">internetarchive#54</a></li>
+          <li>Allow for using different collapseTime for replay and capture search <a href="https://github.com/iipc/openwayback/pull/195">#195</a>, <a href="https://github.com/internetarchive/wayback/issues/49">internetarchive#49</a></li>
+          <li>Make collection-dependent exclusion configurable. <a href="https://github.com/iipc/openwayback/pull/195">#195</a>, <a href="https://github.com/internetarchive/wayback/issues/48">internetarchive#48</a></li>
+          <li>Removed CustomUserResourceIndex class, which does not appear to have broad utility. <a href="https://github.com/iipc/openwayback/pull/195">#195</a></li>
+          <li>Performance information in response header can now be in JSON format. <a href="https://github.com/iipc/openwayback/pull/195">#195</a>, <a href="https://github.com/internetarchive/wayback/issues/69">internetarchive#69</a></li>
+          <li>FastArchivalUrlReplayParseEventHandler no longer rewrite relative URLs for better replay quality. <a href="https://github.com/iipc/openwayback/pull/195">#195</a></li> 
+          <li>Made start date configurable (defaults to old value of 1996), end date dynamic to current year.<a href="https://github.com/iipc/openwayback/issues/51">#51</a></li>
        </ul>
       </subsection>
       <subsection name="Bug Fixes">
         <ul>
+	      <li>Fixed <a href="https://github.com/iipc/openwayback/issues/196">issue #196</a> to allow running under Tomcat 8. <a href="https://github.com/iipc/openwayback/pull/198">#198</a></li>
+          <li>Fixed incorrect Content-Type in replay of resource record with JWATFlexResource <a href="https://github.com/iipc/openwayback/pull/195">#195</a>, <a href="https://github.com/internetarchive/wayback/issues/68">internetarchive#68</a></li>
+          <li>Fixed ClassCastException when JWATFlexResourceStore is in use <a href="https://github.com/iipc/openwayback/pull/195">#195</a>, <a href="https://github.com/internetarchive/wayback/issues/67">internetarchive#67</a></li>
+          <li>Pass-through Content-Range header field for audio playback to work <a href="https://github.com/iipc/openwayback/pull/195">#195</a>, <a href="https://github.com/internetarchive/wayback/issues/66"></li>
+          <li>Fixed undesirable rewrite of in-page (fragment-only) links. <a href="https://github.com/iipc/openwayback/pull/195">#195</a>, <a href="https://github.com/internetarchive/wayback/issues/63"></li>
+          <li>Fixed XHTML parse error due to banner insert before XML declaration. <a href="https://github.com/iipc/openwayback/pull/195">#195</a>, <a href="https://github.com/internetarchive/wayback/issues/61">internetarchive#61</a></li>
+          <li>Fixed PrivTokenAuthChecker resetting ignoreRobots. <a href="https://github.com/iipc/openwayback/pull/195">#195</a>, <a href="https://github.com/internetarchive/wayback/issues/51">internetarchive#51</a></li>
+          <li>Made CharsetDetector adher to WHAT-NG recommendation. <a href="https://github.com/iipc/openwayback/pull/195">#195</a>, <a href="https://github.com/internetarchive/wayback/issues/47">internetarchive#47</a></li>
           <li>Fixed building with JDK 8. <a href="https://github.com/iipc/openwayback/pull/141">#141</a></li>
+          <li>NullPointerException for RemoteResourceIndex <a href="https://github.com/iipc/openwayback/issues/193">#193</a></li>
+          <li>Removed direct references to Unix specific TMP paths /tmp and /var/tmp. <a href="https://github.com/iipc/openwayback/issues/172">#172</a></li>
+          <li>Initial thread-safety fix for Memento from Luda. <a href="https://github.com/iipc/openwayback/issues/180">#180</a></li>
+          <li>Fixed xml-markup in Toolbar.jsp which caused probelsm on some sites. <a href="https://github.com/iipc/openwayback/issues/171">#171</a>, <a href="https://github.com/iipc/openwayback/issues/60">#60</a></li>
+          <li>Fixed some @import url's in &lt;style&gt; section of html are not rewritten. <a href="https://github.com/iipc/openwayback/issues/131">#131</a></li>
         </ul>
       </subsection>
     </section>

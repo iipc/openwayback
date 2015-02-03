@@ -2,8 +2,8 @@
  *  This file is part of the Wayback archival access software
  *   (http://archive-access.sourceforge.net/projects/wayback/).
  *
- *  Licensed to the Internet Archive (IA) by one or more individual 
- *  contributors. 
+ *  Licensed to the Internet Archive (IA) by one or more individual
+ *  contributors.
  *
  *  The IA licenses this file to You under the Apache License, Version 2.0
  *  (the "License"); you may not use this file except in compliance with
@@ -27,49 +27,51 @@ import javax.servlet.http.HttpServletResponse;
  * Exception class for queries which result in no index matches
  *
  * @author brad
- * @version $Date$, $Revision$
  */
 public class ResourceNotInArchiveException extends WaybackException {
-	/**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 1L;
 	protected static final String ID = "resourceNotInArchive";
 	/**
 	 * List of alternate string URLs that might get the user what they want.
 	 */
 	private List<String> closeMatches = null;
+
 	/**
 	 * Constructor
 	 * 
 	 * @param message
 	 */
 	public ResourceNotInArchiveException(String message) {
-		super(message,"Not in Archive");
+		super(message, "Not in Archive");
 		id = ID;
 	}
+
 	/**
 	 * Constructor with message and details
 	 * 
 	 * @param message
 	 * @param details
 	 */
-	public ResourceNotInArchiveException(String message,String details) {
-		super(message,"Not in Archive",details);
+	public ResourceNotInArchiveException(String message, String details) {
+		super(message, "Not in Archive", details);
 		id = ID;
 	}
+
 	/**
 	 * @return the HTTP status code appropriate to this exception class.
 	 */
 	public int getStatus() {
 		return HttpServletResponse.SC_NOT_FOUND;
 	}
+
 	/**
 	 * @return the closeMatches
 	 */
 	public List<String> getCloseMatches() {
 		return closeMatches;
 	}
+
 	/**
 	 * @param closeMatches the closeMatches to set
 	 */

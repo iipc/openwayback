@@ -22,6 +22,7 @@ package org.archive.wayback.accesscontrol;
 //import java.io.File;
 //import java.io.IOException;
 
+import java.io.File;
 import junit.framework.TestCase;
 
 /**
@@ -31,7 +32,7 @@ import junit.framework.TestCase;
  * @version $Date$, $Revision$
  */
 public class ExternalExcluderTest extends TestCase {
-	String configPath = "/tmp/external.xml";
+	String configPath = System.getProperty("java.io.tmpdir") + File.separator + "external.xml";
 	/**
 	 * 
 	 */

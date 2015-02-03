@@ -23,6 +23,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.apache.commons.httpclient.URIException;
 import org.archive.wayback.UrlCanonicalizer;
@@ -51,6 +53,10 @@ public class StaticMapExclusionFilterTest extends TestCase {
 //		Properties p = new Properties();
 //		p.put("resourceindex.exclusionpath", tmpFile.getAbsolutePath());
 //		factory.init(p);
+
+		// disable INFO-level logging from StaticMapExclusionFilter, not useful for
+		// automated test.
+		Logger.getLogger(StaticMapExclusionFilter.class.getName()).setLevel(Level.WARNING);
 	}
 
 	/*

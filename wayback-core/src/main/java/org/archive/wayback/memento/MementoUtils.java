@@ -10,9 +10,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
+import java.util.TimeZone;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.archive.util.ArchiveUtils;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.WaybackRequest;
@@ -20,25 +22,48 @@ import org.archive.wayback.partition.NotableResultExtractor;
 import org.archive.wayback.util.ObjectFilterIterator;
 import org.archive.wayback.util.StringFormatter;
 import org.archive.wayback.webapp.AccessPoint;
+//import org.archive.util.ArchiveUtils; //threadlocalDateFormat private class  and DATE_FORMAT_14 eqvivalent TIMESTAMP14, HTTP_LINK_DATE_FORMAT missing 
 
 public class MementoUtils implements MementoConstants {
 
-	public final static SimpleDateFormat HTTP_LINK_DATE_FORMATTER;
-	public final static SimpleDateFormat DATE_FORMAT_14_FORMATTER;
-
-	static {
-		HTTP_LINK_DATE_FORMATTER = new SimpleDateFormat(HTTP_LINK_DATE_FORMAT, Locale.ENGLISH);
-		HTTP_LINK_DATE_FORMATTER.setTimeZone(GMT_TZ);
-		DATE_FORMAT_14_FORMATTER = new SimpleDateFormat(DATE_FORMAT_14, Locale.ENGLISH);
-		DATE_FORMAT_14_FORMATTER.setTimeZone(GMT_TZ);
+	private static final ThreadLocal<SimpleDateFormat> TL_LINK_DATE_FORMAT = new ThreadLocal<SimpleDateFormat>() {
+		protected SimpleDateFormat initialValue() {
+			SimpleDateFormat df = new SimpleDateFormat(HTTP_LINK_DATE_FORMAT, Locale.ENGLISH);
+			df.setTimeZone(TimeZone.getTimeZone("GMT"));
+			return df;
+		}
+	};
+	
+	protected static String formatLinkDate(Date date) {
+		return TL_LINK_DATE_FORMAT.get().format(date);
 	}
 	
-	public static void printTimemapResponse(CaptureSearchResults results, WaybackRequest wbRequest, HttpServletResponse response) throws IOException
-    {
+	/**
+	 * format <i>label</i>{@code ="}<i>date in HTTP date format</i>{@code "}.
+	 * @param label text representing type of date, ex: {@code "from"}.
+	 * @param date date
+	 */
+	protected static String captureDate(String label, Date date) {
+		return label + "=\"" + formatLinkDate(date) + "\"";
+	}
+
+	public static void printTimemapResponse(CaptureSearchResults results,
+			WaybackRequest wbRequest, HttpServletResponse response)
+			throws IOException {
 		response.setContentType("application/link-format");
 		printLinkTimemap(results, wbRequest, response.getWriter());
 	}
-
+        private static ThreadLocal<SimpleDateFormat> threadLocalDateFormat(final String pattern) {
+             ThreadLocal<SimpleDateFormat> tl = new ThreadLocal<SimpleDateFormat>() {
+             protected SimpleDateFormat initialValue() {
+                SimpleDateFormat df = new SimpleDateFormat(pattern, Locale.ENGLISH);
+                df.setTimeZone(GMT_TZ);
+                return df;
+            }
+        };
+        return tl;
+        }
+    
 	public static void printLinkTimemap(CaptureSearchResults results,
 			WaybackRequest wbr, PrintWriter pw) {
 		Date first = results.getFirstResultDate();
@@ -63,13 +88,8 @@ public class MementoUtils implements MementoConstants {
 		// pw.print(makeLink(getTimemapUrl(ap,FORMAT_LINK,requestUrl),
 		// TIMEMAP,APPLICATION_LINK_FORMAT));
 		pw.print(makeLink(
-				getTimemapDateUrl(ap, FORMAT_LINK, pagedate, requestUrl),
-				"self", APPLICATION_LINK_FORMAT)
-				+ "; from=\""
-				+ HTTP_LINK_DATE_FORMATTER.format(first)
-				+ "\""
-				+ "; until=\""
-				+ HTTP_LINK_DATE_FORMATTER.format(last) + "\"");
+			getTimemapDateUrl(ap, FORMAT_LINK, pagedate, requestUrl), "self",
+			APPLICATION_LINK_FORMAT) + "; " + captureDate("from", first) + "; " + captureDate("until", last));
 		// end
 		pw.println(",");
 		pw.print(makeLink(getTimegateUrl(ap, requestUrl), TIMEGATE));
@@ -78,7 +98,8 @@ public class MementoUtils implements MementoConstants {
 		if (first.compareTo(last) == 0) {
 			// special handling of single result:
 			CaptureSearchResult result = results.getResults().get(0);
-			pw.print(makeLink(ap, result.getOriginalUrl(), FIRST_LAST_MEMENTO, result));
+			pw.print(makeLink(ap, result.getOriginalUrl(), FIRST_LAST_MEMENTO,
+				result));
 		} else {
 			List<CaptureSearchResult> lr = results.getResults();
 			int count = lr.size();
@@ -94,8 +115,7 @@ public class MementoUtils implements MementoConstants {
 					pw.println(",");
 					rel = MEMENTO;
 				}
-				pw.print(makeLink(ap, result.getOriginalUrl(), rel,
-						result));
+				pw.print(makeLink(ap, result.getOriginalUrl(), rel, result));
 			}
 		}
 		// ludab nov 30 2012
@@ -104,20 +124,26 @@ public class MementoUtils implements MementoConstants {
 			last.setSeconds(sec);
 			pw.println(",");
 			pw.print(makeLink(
-					getTimemapDateUrl(ap, FORMAT_LINK,
-							DATE_FORMAT_14_FORMATTER.format(last) + "/",
-							requestUrl), TIMEMAP, APPLICATION_LINK_FORMAT)
-					+ "; from=\""
-					+ HTTP_LINK_DATE_FORMATTER.format(last)
-					+ "\"");
+				getTimemapDateUrl(ap, FORMAT_LINK,
+					ArchiveUtils.get14DigitDate(last) + "/", requestUrl),
+				TIMEMAP, APPLICATION_LINK_FORMAT) +
+				"; " + captureDate("from", last));
 		}
 		// end
 
 		pw.flush();
 	}
 
+	/**
+	 * Add {@code Link} header value. Includes: {@code first}, {@code prev},
+	 * {@code next}, {@code last}, {@code original} (if {@code includeOriginal}
+	 * is {@code true}), and {@code timegate} (if {@code includeTimegateLink} is
+	 * {@code true}).
+	 * 
+	 */
 	public static String generateMementoLinkHeaders(
-			CaptureSearchResults results, WaybackRequest wbr, boolean includeTimegateLink, boolean includeOriginalLink) {
+			CaptureSearchResults results, WaybackRequest wbr,
+			boolean includeTimegateLink, boolean includeOriginalLink) {
 		NotableResultExtractor nre = getNotableResults(results);
 		CaptureSearchResult first = nre.getFirst();
 		CaptureSearchResult prev = nre.getPrev();
@@ -133,12 +159,12 @@ public class MementoUtils implements MementoConstants {
 		// add generics:
 		// rels.add(makeLink(getTimebundleUrl(ap, requestUrl), TIMEBUNDLE));
 		if (includeOriginalLink) {
-		    rels.add(makeLink(requestUrl, ORIGINAL));
+			rels.add(makeLink(requestUrl, ORIGINAL));
 		}
 
 		rels.add(makeLink(getTimemapUrl(ap, FORMAT_LINK, requestUrl), TIMEMAP,
-				APPLICATION_LINK_FORMAT));
-		
+			APPLICATION_LINK_FORMAT));
+
 		// Spec says not to include timegate link for timegate
 		if (includeTimegateLink) {
 			rels.add(makeLink(getTimegateUrl(ap, requestUrl), TIMEGATE));
@@ -147,59 +173,43 @@ public class MementoUtils implements MementoConstants {
 		// add first/prev/next/last:
 		if (first == last) {
 			// only one capture.. are we sure we want the "actual" memento here?
-			rels.add(makeLink(ap, requestUrl, FIRST_LAST_MEMENTO,
-					first));
+			rels.add(makeLink(ap, requestUrl, FIRST_LAST_MEMENTO, first));
 		} else {
 			if (first == closest) {
 				// no previous:
-				rels.add(makeLink(ap, requestUrl, FIRST_MEMENTO,
-						first));
+				rels.add(makeLink(ap, requestUrl, FIRST_MEMENTO, first));
 				if (next == last) {
-					rels.add(makeLink(ap, requestUrl, NEXT_LAST_MEMENTO,
-							last));
+					rels.add(makeLink(ap, requestUrl, NEXT_LAST_MEMENTO, last));
 				} else {
-					rels.add(makeLink(ap, requestUrl, NEXT_MEMENTO,
-							next));
-					rels.add(makeLink(ap, requestUrl, LAST_MEMENTO,
-							last));
+					rels.add(makeLink(ap, requestUrl, NEXT_MEMENTO, next));
+					rels.add(makeLink(ap, requestUrl, LAST_MEMENTO, last));
 				}
 			} else if (last == closest) {
 				// no next:
-				rels.add(makeLink(ap, requestUrl, LAST_MEMENTO,
-						last));
+				rels.add(makeLink(ap, requestUrl, LAST_MEMENTO, last));
 				if (prev == first) {
-					rels.add(makeLink(ap, requestUrl, PREV_FIRST_MEMENTO,
-							first));
+					rels.add(makeLink(ap, requestUrl, PREV_FIRST_MEMENTO, first));
 				} else {
-					rels.add(makeLink(ap, requestUrl, FIRST_MEMENTO,
-							first));
-					rels.add(makeLink(ap, requestUrl, PREV_MEMENTO,
-							prev));
+					rels.add(makeLink(ap, requestUrl, FIRST_MEMENTO, first));
+					rels.add(makeLink(ap, requestUrl, PREV_MEMENTO, prev));
 				}
 			} else {
 				// somewhere in the middle:
 
 				if (prev == first) {
-					rels.add(makeLink(ap, requestUrl, PREV_FIRST_MEMENTO,
-							first));
+					rels.add(makeLink(ap, requestUrl, PREV_FIRST_MEMENTO, first));
 				} else {
 					// add both prev and first:
-					rels.add(makeLink(ap, requestUrl, FIRST_MEMENTO,
-							first));
-					rels.add(makeLink(ap, requestUrl, PREV_MEMENTO,
-							prev));
+					rels.add(makeLink(ap, requestUrl, FIRST_MEMENTO, first));
+					rels.add(makeLink(ap, requestUrl, PREV_MEMENTO, prev));
 				}
 				// add "actual" memento:
-				rels.add(makeLink(ap, requestUrl, MEMENTO,
-						closest));
+				rels.add(makeLink(ap, requestUrl, MEMENTO, closest));
 				if (next == last) {
-					rels.add(makeLink(ap, requestUrl, NEXT_LAST_MEMENTO,
-							last));
+					rels.add(makeLink(ap, requestUrl, NEXT_LAST_MEMENTO, last));
 				} else {
-					rels.add(makeLink(ap, requestUrl, NEXT_MEMENTO,
-							next));
-					rels.add(makeLink(ap, requestUrl, LAST_MEMENTO,
-							last));
+					rels.add(makeLink(ap, requestUrl, NEXT_MEMENTO, next));
+					rels.add(makeLink(ap, requestUrl, LAST_MEMENTO, last));
 				}
 			}
 		}
@@ -217,41 +227,100 @@ public class MementoUtils implements MementoConstants {
 		return response.containsHeader(LINK);
 	}
 
+	/**
+	 * Add {@code Link} header with just {@code original} relation link
+	 * {@code url}.
+	 * @param response
+	 * @param url
+	 */
 	public static void addOrigHeader(HttpServletResponse response, String url) {
 		response.setHeader(LINK, makeLink(url, ORIGINAL));
 	}
-	
+
 	public static void addDoNotNegotiateHeader(HttpServletResponse response) {
 		// New Non-Negotiate header
 		// Link: <http://mementoweb.org/terms/donotnegotiate">; rel="type" 
-		response.setHeader(LINK, makeLink("http://mementoweb.org/terms/donotnegotiate", "type"));
+		response.setHeader(LINK,
+			makeLink("http://mementoweb.org/terms/donotnegotiate", "type"));
 	}
 
 	public static void addOrigHeader(HttpServletResponse response,
 			WaybackRequest wbr) {
 		addOrigHeader(response, wbr.getRequestUrl());
 	}
-	
-	public static String makeOrigHeader(String url)
-	{
+
+	public static String makeOrigHeader(String url) {
 		return makeLink(url, ORIGINAL);
 	}
 
+	/**
+	 * Add {@code Memento-Datetime} header, and full {@code Link} header if
+	 * {@code wbr} is not a Memento Timegate request.
+	 * @param response
+	 * @param results
+	 * @param result
+	 * @param wbr
+	 * @deprecated 1.8.1 2014-09-12 use
+	 *             {@link #addMementoDatetimeHeader(HttpServletResponse, CaptureSearchResult)}
+	 *             and
+	 *             {@link #addLinkHeader(HttpServletResponse, CaptureSearchResults, WaybackRequest, boolean, boolean)}
+	 */
 	public static void addMementoHeaders(HttpServletResponse response,
-			CaptureSearchResults results, CaptureSearchResult result, WaybackRequest wbr) {
-		response.setHeader(MEMENTO_DATETIME, HTTP_LINK_DATE_FORMATTER
-				.format(results.getClosest().getCaptureDate()));
-		
+			CaptureSearchResults results, CaptureSearchResult result,
+			WaybackRequest wbr) {
+		response.setHeader(MEMENTO_DATETIME, formatLinkDate(results.getClosest().getCaptureDate()));
 		if (!wbr.isMementoTimegate()) {
-		    response.setHeader(LINK, generateMementoLinkHeaders(results, wbr, true, true));
+			response.setHeader(LINK,
+				generateMementoLinkHeaders(results, wbr, true, true));
 		}
 	}
 
-	public static void addTimegateHeaders(HttpServletResponse response,
-			CaptureSearchResults results, WaybackRequest wbr, boolean includeOriginal) {
-		addVaryHeader(response);
+	/**
+	 * Add {@code Memento-Datetime} header.
+	 * @param response HttpServletResponse
+	 * @param result Capture whose timestamp is used
+	 */
+	public static void addMementoDatetimeHeader(HttpServletResponse response,
+			CaptureSearchResult result) {
+		response.setHeader(MEMENTO_DATETIME, formatLinkDate(result.getCaptureDate()));
+	}
 
-		response.setHeader(LINK, generateMementoLinkHeaders(results, wbr, false, includeOriginal));
+	/**
+	 * Add {@code Link} header.
+	 * @param response HttpServletResponse
+	 * @param results CaptureSearchResults for generating first/last and
+	 *        prev/next relation links
+	 * @param wbr WaybackRequest for accessing {@link AccessPoint}
+	 * @param includeTimegateLink whether {@code timegate} relation link is
+	 *        included ({@code false} for Timegate response, {@code true} for
+	 *        Memento response)
+	 * @param includeOriginalLink whether {@code original} relation link is
+	 *        included (usually {@code true})
+	 */
+	public static void addLinkHeader(HttpServletResponse response,
+			CaptureSearchResults results, WaybackRequest wbr,
+			boolean includeTimegateLink, boolean includeOriginalLink) {
+		response.setHeader(
+			LINK,
+			generateMementoLinkHeaders(results, wbr, includeTimegateLink,
+				includeOriginalLink));
+	}
+
+	/**
+	 * Add {@code Vary: accept-datetime} header and {@code Link} header for
+	 * timegate response. See
+	 * {@link #generateMementoLinkHeaders(CaptureSearchResults, WaybackRequest, boolean, boolean)}
+	 * for details of {@code Link} header.
+	 * @param response
+	 * @param results
+	 * @param wbr
+	 * @param includeOriginal
+	 */
+	public static void addTimegateHeaders(HttpServletResponse response,
+			CaptureSearchResults results, WaybackRequest wbr,
+			boolean includeOriginal) {
+		addVaryHeader(response);
+		addLinkHeader(response, results, wbr, false, includeOriginal);
 	}
 
 //	private static String getTimegatePrefix(AccessPoint ap) {
@@ -283,7 +352,7 @@ public class MementoUtils implements MementoConstants {
 				// ignore and move on..
 			}
 		}
-		
+
 		return null;
 	}
 
@@ -322,7 +391,7 @@ public class MementoUtils implements MementoConstants {
 
 	public static String getMementoPrefix(AccessPoint ap) {
 		return getProp(ap.getConfigs(), AGGREGATION_PREFIX_CONFIG, "");
-		
+
 //		String prefix = null;
 //		if (ap instanceof MementoAccessPoint) {
 //			prefix = ((MementoAccessPoint) ap).getTimegatePrefix();
@@ -361,17 +430,19 @@ public class MementoUtils implements MementoConstants {
 		return String.format("<%s>; rel=\"%s\"; type=\"%s\"", url, rel, type);
 	}
 
-	private static String makeLink(AccessPoint ap, String url, String rel, CaptureSearchResult result) {
+	private static String makeLink(AccessPoint ap, String url, String rel,
+			CaptureSearchResult result) {
 
 		Date date = result.getCaptureDate();
-		String timestamp = DATE_FORMAT_14_FORMATTER.format(date);
+		String timestamp = ArchiveUtils.get14DigitDate(date);
 		String replayURI = ap.getUriConverter().makeReplayURI(timestamp, url);
 		String prefix = getMementoPrefix(ap);
-		String httpTime = HTTP_LINK_DATE_FORMATTER.format(date);
+		String httpTime = formatLinkDate(date);
 
 //		return String.format("<%s%s>; rel=\"%s\"; datetime=\"%s\"; status=\"%s\"", prefix, replayURI,
 //				rel, httpTime, result.getHttpCode());
-		return String.format("<%s%s>; rel=\"%s\"; datetime=\"%s\"", prefix, replayURI, rel, httpTime);
+		return String.format("<%s%s>; rel=\"%s\"; datetime=\"%s\"", prefix,
+			replayURI, rel, httpTime);
 	}
 
 	private static NotableResultExtractor getNotableResults(
@@ -385,7 +456,7 @@ public class MementoUtils implements MementoConstants {
 		NotableResultExtractor nre = new NotableResultExtractor(want);
 
 		ObjectFilterIterator<CaptureSearchResult> ofi = new ObjectFilterIterator<CaptureSearchResult>(
-				itr, nre);
+			itr, nre);
 		while (ofi.hasNext()) {
 			ofi.next();
 		}

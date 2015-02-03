@@ -1,6 +1,10 @@
 package org.archive.wayback.liveweb;
 
 
+import java.net.SocketTimeoutException;
+
+import junit.framework.TestCase;
+
 import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethod;
@@ -8,8 +12,6 @@ import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.archive.wayback.exception.LiveDocumentNotAvailableException;
 import org.archive.wayback.util.ByteOp;
-
-import junit.framework.TestCase;
 
 public class URLtoARCCacherTest extends TestCase {
 	public void testSocketTimeout() throws Exception {
@@ -37,6 +39,8 @@ public class URLtoARCCacherTest extends TestCase {
 	    	int status = http.executeMethod(method);
 	    	System.out.println("Got response code: " + status);
 	    	ByteOp.copyStream(method.getResponseBodyAsStream(), System.out);
+	    } catch (SocketTimeoutException e) {
+	    	// OK
 	    } catch (Exception e) {
 	    	e.printStackTrace();
 	    }

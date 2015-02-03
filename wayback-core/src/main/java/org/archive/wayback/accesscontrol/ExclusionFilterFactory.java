@@ -2,8 +2,8 @@
  *  This file is part of the Wayback archival access software
  *   (http://archive-access.sourceforge.net/projects/wayback/).
  *
- *  Licensed to the Internet Archive (IA) by one or more individual 
- *  contributors. 
+ *  Licensed to the Internet Archive (IA) by one or more individual
+ *  contributors.
  *
  *  The IA licenses this file to You under the Apache License, Version 2.0
  *  (the "License"); you may not use this file except in compliance with
@@ -21,10 +21,13 @@ package org.archive.wayback.accesscontrol;
 
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 /**
- *
- *
- * @author brad
- * @version $Date$, $Revision$
+ * The factory for {@link ExclusionFilter} object.
+ * Life cycle of ExclusionFilter is one replay session request. This interface is used
+ * for creating an ExclusionFilter instance for each replay session.
+ * <p>
+ * Migrating to more flexible and easier-to-implement {@link ContextExclusionFilterFactory}.
+ * Please consider implementing it instead.
+ * </p>
  */
 public interface ExclusionFilterFactory {
 	/**

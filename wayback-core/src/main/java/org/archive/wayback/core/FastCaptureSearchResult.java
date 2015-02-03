@@ -131,7 +131,7 @@ public class FastCaptureSearchResult extends CaptureSearchResult {
 	}
 
 	@Override
-	public boolean isDuplicateDigest() {
+	public boolean isRevisitDigest() {
 		return duplicateDigest;
 	}
 

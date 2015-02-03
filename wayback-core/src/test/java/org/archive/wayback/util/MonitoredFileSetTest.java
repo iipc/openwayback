@@ -10,8 +10,8 @@ import junit.framework.TestCase;
 public class MonitoredFileSetTest extends TestCase {
 
 	public void testIsChanged() throws IOException, InterruptedException {
-		File f1 = new File("/tmp/file-set-1.tmp");
-		File f2 = new File("/tmp/file-set-2.tmp");
+		File f1 = new File(System.getProperty("java.io.tmpdir"), "file-set-1.tmp");
+		File f2 = new File(System.getProperty("java.io.tmpdir"), "file-set-2.tmp");
 		writeFile(f1,"one");
 		writeFile(f2,"two");
 		ArrayList<String> l = new ArrayList<String>();

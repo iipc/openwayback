@@ -3,17 +3,19 @@ package org.archive.wayback.archivalurl;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.net.URL;
 import java.util.Properties;
 
 import javax.servlet.ServletException;
 
 import junit.framework.TestCase;
 
+import org.archive.wayback.core.CaptureSearchResult;
+import org.archive.wayback.core.UIResults;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.replay.JSPExecutor;
 import org.archive.wayback.replay.html.ReplayParseContext;
 import org.archive.wayback.replay.html.StringTransformer;
+import org.archive.wayback.replay.html.transformer.JSStringTransformer;
 import org.archive.wayback.util.htmllex.ContextAwareLexer;
 import org.htmlparser.Node;
 import org.htmlparser.Tag;
@@ -30,10 +32,34 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 
 	FastArchivalUrlReplayParseEventHandler delegator;
 
+	final String baseUrl = "http://www.example.com/";
+	final String timestamp = "2001";
+	final String outputCharset = "UTF-8";
+	final String charSet = "UTF-8";
+
+    ArchivalUrlResultURIConverter uriConverter;
+    ArchivalUrlContextResultURIConverterFactory fact;
+    ReplayParseContext context;
 	JSPExecutor jspExec = null;
 
 	@Override
 	protected void setUp() throws Exception {
+		uriConverter = new ArchivalUrlResultURIConverter();
+		uriConverter.setReplayURIPrefix("http://replay.archive.org/");
+
+		fact = new ArchivalUrlContextResultURIConverterFactory(
+			(ArchivalUrlResultURIConverter)uriConverter);
+
+		// The URL of the page, for resolving in-page relative URLs:
+		CaptureSearchResult capture = new CaptureSearchResult();
+		capture.setCaptureTimestamp(timestamp);
+		capture.setOriginalUrl(baseUrl);
+		// urlKey is not set as it is unused
+
+		// set up the context:
+		context = new ReplayParseContext(fact, capture);
+		context.setOutputCharset(outputCharset);
+
 		delegator = new FastArchivalUrlReplayParseEventHandler();
 		delegator.setEndJsp(null);
 		delegator.setJspInsertPath(null);
@@ -55,7 +81,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 				"<a href=\"foo.html\">foo</a>" +
 				"</html>";
 		final String expected = "<html>" +
-				"<a href=\"http://replay.archive.org/2001/http://www.example.com/foo.html\">foo</a>" +
+				"<a href=\"foo.html\">foo</a>" +
 				"</html>";
 		assertEquals(expected, doEndToEnd(input));
 	}
@@ -133,8 +159,8 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
         final String expected = "<html>" +
                 "<head>" +
                 "<style type=\"text/css\">" +
-                "@import \"http://replay.archive.org/2001cs_/http://www.example.com/style1.css\";\n" +
-                "@import 'http://replay.archive.org/2001cs_/http://www.example.com/style2.css\';\n" +
+                "@import \"style1.css\";\n" +
+                "@import 'style2.css\';\n" +
                 "@import 'http://replay.archive.org/2001cs_/http://archive.org/common.css';\n" +
                 "}" +
                 "</style>" +
@@ -156,6 +182,30 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
                 "<style type=\"text/css\">/*<![CDATA[*/\n" +
 				"    @import \"http://replay.archive.org/2001cs_/http://www.example.com/shared.css\";\n" + 
 				"/*]]>*/</style>" +
+                "</head>" +
+                "</html>";
+        String out = doEndToEnd(input);
+        assertEquals(expected, out);
+	}
+
+	/**
+	 * Some people enclose in-line STYLE content with HTML Comment
+	 * for better support for stone age browsers.
+	 * @throws Exception
+	 */
+	public void testStyleElmeentImportUrlInsideHTMLComment() throws Exception {
+        final String input = "<html>" +
+                "<head>" +
+                "<style type=\"text/css\">\n" +
+				"<!-- @import '/shared.css'; -->\n" +
+				"</style>" +
+                "</head>" +
+                "</html>";
+        final String expected = "<html>" +
+                "<head>" +
+                "<style type=\"text/css\">\n" +
+				"<!-- @import 'http://replay.archive.org/2001cs_/http://www.example.com/shared.css'; -->\n" + 
+				"</style>" +
                 "</head>" +
                 "</html>";
         String out = doEndToEnd(input);
@@ -252,8 +302,8 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 				"</body>";
 		final String expected = "<html>" +
 				"<head>" +
-				"  <link rel=\"stylesheet\" href=\"http://replay.archive.org/2001cs_/http://www.example.com/basic.css?v=1.0&amp;l=en\">" +
-				"  <link rel=\"shortcut icon\" href=\"http://replay.archive.org/2001im_/http://www.example.com/icon.png?v=1.0&amp;rg=en\">" +
+				"  <link rel=\"stylesheet\" href=\"basic.css?v=1.0&amp;l=en\">" +
+				"  <link rel=\"shortcut icon\" href=\"icon.png?v=1.0&amp;rg=en\">" +
 				"</head>" +
 				"<body>" +
 				"</body>";
@@ -270,7 +320,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 				"</html>";
 		final String expected = "<html>" +
 				"<body>" +
-				"<div style=\"background-image:url(http://replay.archive.org/2001im_/http://www.example.com/genbg?a=1&amp;b=2);\">" +
+				"<div style=\"background-image:url(genbg?a=1&amp;b=2);\">" +
 				"blah" +
 				"</div>" +
 				"</body>" +
@@ -304,7 +354,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 				"</html>";
 		final String expected = "<html>" +
 				"<head>" +
-				"<script src=\"http://replay.archive.org/2001js_/http://www.example.com/rewrite.js\"></script>" +
+				"<script src=\"rewrite.js\"></script>" +
 				"<script src=\"\"></script>" +
 				"</head>" +
 				"<body>" +
@@ -328,7 +378,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 		final String expected = "<html>" +
 				"<base href='http://replay.archive.org/2001/http://othersite.com/'>" +
 				"<body>" +
-				"<a href='http://replay.archive.org/2001/http://othersite.com/nextpage.html'>next page</a>" +
+				"<a href='nextpage.html'>next page</a>" +
 				"<base href='http://replay.archive.org/2001/http://anothersite.com/'>" +
 				"</body>" +
 				"</html>";
@@ -359,11 +409,11 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 				"</html>";
 		final String expected = "<html>" +
 				"<head>" +
-				"<link rel='stylesheet' type='text/javascript' href='http://replay.archive.org/2001js_/http://www.example.com/styles.js'>" +
+				"<link rel='stylesheet' type='text/javascript' href='styles.js'>" +
 				"</head>" +
 				"<body>" +
 				"<span data-uri='http://replay.archive.org/2001/http://datasource.example.com/data1'></span>" +
-				"<a href='http://replay.archive.org/2001im_/http://www.example.com/logo.png' role='logo.download'>download logo</a>" +
+				"<a href='logo.png' role='logo.download'>download logo</a>" +
 				"</body>" +
 				"</html>";
 
@@ -393,7 +443,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 		final String expected ="<html>" +
 				"<body>" +
 				"<a href=\"ignore.html\">ignore this</a>" +
-				"<a href=\"http://replay.archive.org/2001/http://www.example.com/rewrite.html\" rewrite=\"true\">rewrite this</a>" +
+				"<a href=\"rewrite.html\" rewrite=\"true\">rewrite this</a>" +
 				"</body>" +
 				"</html>";
 
@@ -408,11 +458,13 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 		public TestJSPExecutor() {
 			// we cannot pass null WaybackRequest to JSPExecutor constructor,
 			// because it accesses WaybackRequst.isAjaxRequest() method.
-			super(null, null, null, stubWaybackRequest(), null, null, null);
+			//super(null, null, null, stubWaybackRequest(), null, null, null);
+			super(null, null, new UIResults(stubWaybackRequest(), null));
 		}
 		// for testing with context flags (ex. fw_)
 		public TestJSPExecutor(WaybackRequest wbRequest) {
-			super(null, null, null, wbRequest, null, null, null);
+			//super(null, null, null, wbRequest, null, null, null);
+			super(null, null, new UIResults(wbRequest, null));
 		}
 		@Override
 		public String jspToString(String jspPath) throws ServletException,
@@ -472,13 +524,13 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 				"<head>" +
 				"[[[JSP-INSERT:head.jsp]]]" +
 				"<title>BarBar</title>" +
-				"<script src=\"http://replay.archive.org/2001js_/http://www.example.com/a.js\"></script>" +
-				"<link rel=\"stylesheet\" type=\"text/css\" href=\"http://replay.archive.org/2001cs_/http://www.example.com/style.css\">" +
+				"<script src=\"a.js\"></script>" +
+				"<link rel=\"stylesheet\" type=\"text/css\" href=\"style.css\">" +
 				"</head>" +
 				"<body>" +
 				"[[[JSP-INSERT:body-insert.jsp]]]" +
 				"<p align=\"center\">" +
-				"<img src=\"http://replay.archive.org/2001im_/http://www.example.com/map.gif\">" +
+				"<img src=\"map.gif\">" +
 				"</p>" +
 				"</body>" +
 				"</html>";
@@ -536,11 +588,11 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 				"<head>" +
 				"[[[JSP-INSERT:head.jsp]]]" +
 				"<title>BarBar</title>" +
-				"<script src=\"http://replay.archive.org/2001js_/http://www.example.com/a.js\"></script>" +
+				"<script src=\"a.js\"></script>" +
 				"</head>" +
 				"[[[JSP-INSERT:body-insert.jsp]]]" +
 				"<p align=\"center\">" +
-				"<img src=\"http://replay.archive.org/2001im_/http://www.example.com/map.gif\">" +
+				"<img src=\"map.gif\">" +
 				"</p>" +
 				"</body>" +
 				"</html>";
@@ -573,12 +625,12 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 				"<head>" +
 				"[[[JSP-INSERT:head.jsp]]]" +
 				"<title>BarBar</title>" +
-				"<script src=\"http://replay.archive.org/2001js_/http://www.example.com/a.js\"></script>" +
+				"<script src=\"a.js\"></script>" +
 				"</head>" +
 				"<body>" +
 				"[[[JSP-INSERT:body-insert.jsp]]]" +
 				"<p align=\"center\">" +
-				"<img src=\"http://replay.archive.org/2001im_/http://www.example.com/map.gif\">" +
+				"<img src=\"map.gif\">" +
 				"</p>" +
 				"</body>" +
 				"</html>";
@@ -610,10 +662,10 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 				"<head>" +
 				"[[[JSP-INSERT:head.jsp]]]" +
 				"<title>BarBar</title>" +
-				"<script src=\"http://replay.archive.org/2001js_/http://www.example.com/a.js\"></script>" +
+				"<script src=\"a.js\"></script>" +
 				"[[[JSP-INSERT:body-insert.jsp]]]" +
 				"<p align=\"center\">" +
-				"<img src=\"http://replay.archive.org/2001im_/http://www.example.com/map.gif\">" +
+				"<img src=\"map.gif\">" +
 				"</p>" +
 				"</body>" +
 				"</html>";
@@ -641,10 +693,10 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 		final String expected =
 				"[[[JSP-INSERT:head.jsp]]]" +
 				"<title>BarBar</title>" +
-				"<script src=\"http://replay.archive.org/2001js_/http://www.example.com/a.js\"></script>" +
+				"<script src=\"a.js\"></script>" +
 				"[[[JSP-INSERT:body-insert.jsp]]]" +
 				"<p align=\"center\">" +
-				"<img src=\"http://replay.archive.org/2001im_/http://www.example.com/map.gif\">" +
+				"<img src=\"map.gif\">" +
 				"</p>";
 		String output = doEndToEnd(input);
 		System.out.println(output);
@@ -669,7 +721,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 				"[[[JSP-INSERT:head.jsp]]]" +
 				"[[[JSP-INSERT:body-insert.jsp]]]" +
 				"<p align=\"center\">" +
-				"<img src=\"http://replay.archive.org/2001im_/http://www.example.com/map.gif\">" +
+				"<img src=\"map.gif\">" +
 				"</p>";
 		String output = doEndToEnd(input);
 		System.out.println(output);
@@ -700,12 +752,12 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 		final String expected = "<html>" +
 				"[[[JSP-INSERT:head.jsp]]]" +
 				"<title>BarBar</title>" +
-				"<script src=\"http://replay.archive.org/2001js_/http://www.example.com/a.js\"></script>" +
+				"<script src=\"a.js\"></script>" +
 				"[[[JSP-INSERT:body-insert.jsp]]]" +
 				"<div>TEXT</div>" +
 				"<body>" +
 				"<p align=\"center\">" +
-				"<img src=\"http://replay.archive.org/2001im_/http://www.example.com/map.gif\">" +
+				"<img src=\"map.gif\">" +
 				"</p>" +
 				"</body>" +
 				"</html>";
@@ -815,7 +867,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 		assertEquals(expected, output);
 	}
 
-	/**
+    /**
 	 * Pathological case:
 	 * content-bearing tags before FRAMESET, even before HEAD.
 	 * currently {@link FastArchivalUrlReplayParseEventHandler} alone cannot
@@ -852,50 +904,125 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 		assertEquals(expected, output);
 	}
 
-	public String doEndToEnd(String input) throws Exception {
-		final String baseUrl = "http://www.example.com/";
-		final String timestamp = "2001";
-		final String outputCharset = "UTF-8";
-		final String charSet = "UTF-8";
+	/**
+	 * HTMLParser appears to parse the content of {@code <SCRIPT>} element
+	 * as HTML.
+	 * @throws Exception
+	 */
+	public void testElementLookAlikeInScript() throws Exception {
+		delegator.setHeadInsertJsp("head.jsp");
+		delegator.setJspInsertPath("body-insert.jsp");
+		jspExec = new TestJSPExecutor();
+
+		final String input = "<html><head><script>/</g;900>a;a<k;</script></head>" +
+				"<body></body></html>";
+		final String expected = "<html><head>[[[JSP-INSERT:head.jsp]]]<script>/</g;900>a;a<k;</script></head>" +
+				"<body>[[[JSP-INSERT:body-insert.jsp]]]</body></html>";
+
+        String out = doEndToEnd(input);
+        System.out.println(out);
+
+        assertEquals(expected, out);
+	}
+
+	public void testXHTML() throws Exception {
+		delegator.setHeadInsertJsp("head.jsp");
+		delegator.setJspInsertPath("body-insert.jsp");
+		delegator.setEndJsp("end.jsp");
+		jspExec = new TestJSPExecutor();
+
+		final String input = "<!-- comment -->" +
+				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+				"<html xml:lang=\"en\" xmlns=\"http://www.w3.org/1999/xhtml\">" +
+				"  <head>" +
+				"    <title>homepage</title>" +
+				"  </head>" +
+				"  <body id=\"home\">" +
+				"  body body" +
+				"  </body>" +
+				"</html>";
+		final String expected = "<!-- comment -->" +
+				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+				"<html xml:lang=\"en\" xmlns=\"http://www.w3.org/1999/xhtml\">" +
+				"  <head>[[[JSP-INSERT:head.jsp]]]" +
+				"    <title>homepage</title>" +
+				"  </head>" +
+				"  <body id=\"home\">[[[JSP-INSERT:body-insert.jsp]]]" +
+				"  body body" +
+				"  </body>" +
+				"</html>[[[JSP-INSERT:end.jsp]]]";
+		String out = doEndToEnd(input);
+		System.out.println(out);
+		assertEquals(expected, out);
+	}
+
+	/**
+	 * test of rewriting URLs in DOM event handler attributes.
+	 * <p>only limited set of attributes are supported currently.</p>
+	 * @throws Exception
+	 */
+	public void testDOMEventHandlers() throws Exception {
+		// Need a local test instance because changing jsBlockTrans after calling init()
+		// has no effect currently.
+		delegator = new FastArchivalUrlReplayParseEventHandler();
+		delegator.setEndJsp(null);
+		delegator.setJspInsertPath(null);
+		// sample input below has two backslashes - use custom jsBlockTrans
+		JSStringTransformer jsBlockTrans = new JSStringTransformer();
+		jsBlockTrans.setRegex("['\"](https?:\\\\{0,2}/\\\\{0,2}/[a-zA-Z0-9_@.-]+)");
+		delegator.setJsBlockTrans(jsBlockTrans);
+		delegator.init();
 		
+		// test sample from Facebook timeline
+		final String input = "<html><body>" +
+				"<a class=\"_1xw shareLink _1y0\" href=\"http://www.facebook.com/l.php?" +
+				"u=http%3A%2F%2Fwww.ncadv.org%2F&amp;h=PAQH&amp;" +
+				"enc=AZPB&amp;" +
+				"s=1\" target=\"_blank\" rel=\"nofollow\" " +
+				"onmouseover=\"LinkshimAsyncLink.swap(this, &quot;http:\\\\/\\\\/www.ncadv.org\\\\/&quot;);\" " +
+				"onclick=\"LinkshimAsyncLink.swap(this, &quot;http:\\\\/\\\\/www.facebook.com\\\\/l.php?" +
+				"u=http\\\\u00253A\\\\u00252F\\\\u00252Fwww.ncadv.org\\\\u00252F&amp;h=PAQH&amp;enc=AZPB&amp;s=1&quot;);\">" +
+				"</body></html>";
+		// Note: onmouseover attribute is NOT rewritten currently.
+		// Note: URL is first normalized by ParseContext.resolve(), in which backslash escapes are
+		//   removed. so "http:\\/\\/www.facebook.com" becomes "http://www.facebook.com"
+		final String expected = "<html><body>" +
+				"<a class=\"_1xw shareLink _1y0\" href=\"http://replay.archive.org/2001/http://www.facebook.com/l.php?" +
+				"u=http%3A%2F%2Fwww.ncadv.org%2F&amp;h=PAQH&amp;" +
+				"enc=AZPB&amp;" +
+				"s=1\" target=\"_blank\" rel=\"nofollow\" " +
+				"onmouseover=\"LinkshimAsyncLink.swap(this, &quot;http:\\\\/\\\\/www.ncadv.org\\\\/&quot;);\" " +
+				"onclick=\"LinkshimAsyncLink.swap(this, &quot;http://replay.archive.org/2001/http://www.facebook.com\\\\/l.php?" +
+				"u=http\\\\u00253A\\\\u00252F\\\\u00252Fwww.ncadv.org\\\\u00252F&amp;h=PAQH&amp;enc=AZPB&amp;s=1&quot;);\">" +
+				"</body></html>";
+		String output = doEndToEnd(input);
+		System.out.println(output);
+		assertEquals(expected, output);
+	}
+
+    public String doEndToEnd(String input) throws Exception {
 		ByteArrayInputStream bais = new ByteArrayInputStream(input.getBytes(charSet));
 		
-		ArchivalUrlResultURIConverter uriConverter = new ArchivalUrlResultURIConverter();
-		uriConverter.setReplayURIPrefix("http://replay.archive.org/");
-		
-		ArchivalUrlContextResultURIConverterFactory fact = 
-			new ArchivalUrlContextResultURIConverterFactory(
-					(ArchivalUrlResultURIConverter) uriConverter);
-
-		// The URL of the page, for resolving in-page relative URLs: 
-    	URL url = new URL(baseUrl);
-
 		// To make sure we get the length, we have to buffer it all up...
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-
-		// set up the context:
-        ReplayParseContext context = new ReplayParseContext(fact, url,
-                timestamp);
-		context.setOutputCharset(outputCharset);
 		context.setOutputStream(baos);
-		// jspExec is null for attribute rewrite tests.
 		context.setJspExec(jspExec);
-		
+
 		// and finally, parse, using the special lexer that knows how to
 		// handle javascript blocks containing unescaped HTML entities:
 		Page lexPage = new Page(bais,charSet);
 		Lexer lexer = new Lexer(lexPage);
 		Lexer.STRICT_REMARKS = false;
-    	ContextAwareLexer lex = new ContextAwareLexer(lexer, context);
+		ContextAwareLexer lex = new ContextAwareLexer(lexer, context);
 
-    	Node node;
-    	while ((node = lex.nextNode()) != null) {
-    	    delegator.handleNode(context, node);
-    	}
-    	delegator.handleParseComplete(context);
+		Node node;
+		while ((node = lex.nextNode()) != null) {
+			delegator.handleNode(context, node);
+		}
+		delegator.handleParseComplete(context);
 
 		// At this point, baos contains the utf-8 encoded bytes of our result:
-		return new String(baos.toByteArray(),outputCharset);
+		return new String(baos.toByteArray(), outputCharset);
 	}
 
 	// The followings checks expected (quirky) behaviors of HTMLParser.
@@ -931,7 +1058,8 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
     			}
     		}
     	}
-    }
+	}
+
     /**
      * test expected behavior of {@code HTMLParser} - handling of CDATA.
      * {@code HTMLParser} gives out {@code <![CDATA[ ... ]]>} as single

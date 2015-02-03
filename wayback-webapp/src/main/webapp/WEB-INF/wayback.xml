@@ -303,6 +303,8 @@
 <!--
   <import resource="ProxyReplay.xml"/>
   <bean name="proxyaccesspoint" parent="standardaccesspoint">
+    <property name="accessPointPath" value="8090"/>
+
     <property name="internalPort" value="8090"/>
     <property name="serveStatic" value="true" />
     <property name="bounceToReplayPrefix" value="false" />

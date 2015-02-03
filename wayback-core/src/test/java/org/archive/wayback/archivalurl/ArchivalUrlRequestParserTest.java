@@ -1,9 +1,17 @@
 package org.archive.wayback.archivalurl;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -20,8 +28,10 @@ import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.exception.BetterRequestException;
 import org.archive.wayback.memento.MementoConstants;
 import org.archive.wayback.memento.TimeGateBadQueryException;
+import org.archive.wayback.memento.TimeMapRequestParser;
 import org.archive.wayback.webapp.AccessPoint;
 import org.easymock.EasyMock;
+import org.easymock.IAnswer;
 
 /**
  * Test case for {@link ArchivalUrlRequestParser}.
@@ -35,128 +45,175 @@ import org.easymock.EasyMock;
  *
  */
 public class ArchivalUrlRequestParserTest extends TestCase {
-    ArchivalUrlRequestParser cut;
-    AccessPoint accessPoint;
-    
-    // must set before calling parse().
-    String acceptTimestampHeader = null;
-    String acceptDatetimeHeader = null;
-    
-    final String EARLIEST_TIMESTAMP = "1996";
-    final String EXPECTED_START_TIMESTAMP = "19960101000000";
-    final String EXPECTED_END_TIMESTAMP = null;
-    
-    protected void setUp() throws Exception {
-        super.setUp();
-        cut = new ArchivalUrlRequestParser();
-        // this affects what WaybackRequest.getStartTimestamp() returns.
-        // here we leave lastestTimestamp null.
-        cut.setEarliestTimestamp(EARLIEST_TIMESTAMP);
-        // this needs to be called before use (but I don't see it called in
-        // Spring config.)
-        cut.init();
-        // refactoring note: RequestParser#parser takes AccessPoint as an argument.
-        // it is bad because AccessPoint is not mock-able and it is a big class.
-        // it'd be great if we can cut out an interface required for RequestParser
-        // and use it in RequestParser instead.
-        // (partial) list of AccessPoint methods used by RequestParser:
-        // - translateRequestPathQuery(HttpServletRequest) (defined in RequestHandler)
-        // - getMapParam(Map, String) (static)
-        // - isEnableMemento()
-        accessPoint = new AccessPoint();
-    }
-    
-    protected HttpServletRequest getRequestMock(String requestURI, String query) {
-        HttpServletRequest mock = EasyMock.createNiceMock(HttpServletRequest.class);
-        // DatelessReplayRequestParser checks out Accept-Datetime HTTP header. If we
-        // want to test it, we need to setup return value for getHeader() method.
-        // RequestMapper accesses HttpServletequest.getAttribute(RequestMapper.REQUEST_CONTEXT_PREFIX)
-        // which can be null. so we leave it null.
-        // prefix must end with "/" (see RequestMapper#handleRequest(HttpServletRequest, HttpServletResponse)
-        EasyMock.expect(mock.getAttribute(EasyMock.eq("webapp-request-context-path-prefix"))).andStubReturn("/web/");
-        EasyMock.expect(mock.getRequestURI()).andStubReturn(requestURI);
-        EasyMock.expect(mock.getQueryString()).andStubReturn(query);
-        EasyMock.expect(mock.getHeader(MementoConstants.ACCEPT_DATETIME)).andStubReturn(acceptDatetimeHeader);
-        EasyMock.expect(mock.getHeader("Accept-Timestamp")).andStubReturn(acceptTimestampHeader);
-        // used by OpenSearchRequestParser
-        EasyMock.expect(mock.getParameterMap()).andStubReturn(Collections.EMPTY_MAP);
-        return mock;
-    }
+	ArchivalUrlRequestParser cut;
+	AccessPoint accessPoint;
 
-    protected WaybackRequest parse(String url) throws BadQueryException, BetterRequestException {
-	    // note: url is set to HttpServletRequest's requestURI property. it should NOT contain
+	// must set before calling parse().
+	String acceptTimestampHeader = null;
+	String acceptDatetimeHeader = null;
+
+	final String EARLIEST_TIMESTAMP = "1996";
+	final String EXPECTED_START_TIMESTAMP = "19960101000000";
+	final String EXPECTED_END_TIMESTAMP = null;
+
+	protected void setUp() throws Exception {
+		super.setUp();
+		cut = new ArchivalUrlRequestParser();
+		// this affects what WaybackRequest.getStartTimestamp() returns.
+		// here we leave lastestTimestamp null.
+		cut.setEarliestTimestamp(EARLIEST_TIMESTAMP);
+		// this needs to be called before use (but I don't see it called in
+		// Spring config.)
+		cut.init();
+		// refactoring note: RequestParser#parser takes AccessPoint as an argument.
+		// it is bad because AccessPoint is not mock-able and it is a big class.
+		// it'd be great if we can cut out an interface required for RequestParser
+		// and use it in RequestParser instead.
+		// (partial) list of AccessPoint methods used by RequestParser:
+		// - translateRequestPathQuery(HttpServletRequest) (defined in RequestHandler)
+		// - getMapParam(Map, String) (static)
+		// - isEnableMemento()
+		accessPoint = new AccessPoint();
+	}
+	// lame query parameter parser just sufficient for testing.
+	// FIXME: replace this with exiting well-tested library if there's one.
+	private Map<String, String[]> parseParameters(String url) {
+		int iq = url.indexOf("?");
+		if (iq < 0)
+			return Collections.emptyMap();
+
+		Map<String, List<String>> map = new HashMap<String, List<String>>();
+		String query = url.substring(iq + 1);
+		String[] params = query.split("&");
+		for (String kv : params) {
+			int ieq = kv.indexOf("=");
+			String k, v;
+			if (ieq >= 0) {
+				k = kv.substring(0, ieq);
+				try {
+					v = URLDecoder.decode(kv.substring(ieq + 1), "UTF-8");
+				} catch (UnsupportedEncodingException ex) {
+					v = kv.substring(ieq + 1);
+				}
+			} else {
+				k = kv;
+				v = "";
+			}
+			List<String> va = map.get(k);
+			if (va == null) {
+				map.put(k, va = new ArrayList<String>());
+			}
+			va.add(v);
+		}
+		Map<String, String[]> parameterMap = new HashMap<String, String[]>();
+		for (Entry<String, List<String>> e : map.entrySet()) {
+			List<String> va = e.getValue();
+			parameterMap.put(e.getKey(), va.toArray(new String[va.size()]));
+		}
+		return parameterMap;
+	}
+
+	protected HttpServletRequest getRequestMock(String requestURI, String query) {
+		HttpServletRequest mock = EasyMock.createNiceMock(HttpServletRequest.class);
+		// DatelessReplayRequestParser checks out Accept-Datetime HTTP header. If we
+		// want to test it, we need to setup return value for getHeader() method.
+		// RequestMapper accesses HttpServletequest.getAttribute(RequestMapper.REQUEST_CONTEXT_PREFIX)
+		// which can be null. so we leave it null.
+		// prefix must end with "/" (see RequestMapper#handleRequest(HttpServletRequest, HttpServletResponse)
+		EasyMock.expect(mock.getAttribute(EasyMock.eq("webapp-request-context-path-prefix"))).andStubReturn("/web/");
+		EasyMock.expect(mock.getRequestURI()).andStubReturn(requestURI);
+		EasyMock.expect(mock.getQueryString()).andStubReturn(query);
+		EasyMock.expect(mock.getHeader(MementoConstants.ACCEPT_DATETIME)).andStubReturn(acceptDatetimeHeader);
+		EasyMock.expect(mock.getHeader("Accept-Timestamp")).andStubReturn(acceptTimestampHeader);
+		// used by OpenSearchRequestParser, TimeMapRequestParser
+		final Map<String, String[]> parameterMap = parseParameters(requestURI);
+		EasyMock.expect(mock.getParameterMap()).andStubReturn(parameterMap);
+		EasyMock.expect(mock.getParameter(EasyMock.<String>notNull()))
+		.andStubAnswer(new IAnswer<String>() {
+			@Override
+			public String answer() throws Throwable {
+				String name = (String)EasyMock.getCurrentArguments()[0];
+				String[] va = parameterMap.get(name);
+				return va != null ? va[0] : null;
+			}
+		});
+		return mock;
+	}
+
+	protected WaybackRequest parse(String url) throws BadQueryException, BetterRequestException {
+		// note: url is set to HttpServletRequest's requestURI property. it should NOT contain
 		// query part. RequestParser will receive value translated by RequestMapper.getRequestContextPath()
 		// (i.e. "/web/" part removed.)
 		HttpServletRequest req = getRequestMock(url, null);
 		EasyMock.replay(req);
 		return cut.parse(req, accessPoint);
-    }
-    
-    public void testReplayRequest() throws Exception {
-        WaybackRequest wbr = parse("/web/20100101000000/http://www.yahoo.com/");
-        assertNotNull(wbr);
-        assertTrue(wbr.isReplayRequest());
-        assertEquals("20100101000000", wbr.getReplayTimestamp());
-        assertEquals("http://www.yahoo.com/", wbr.getRequestUrl());
-    }
-    
-    /**
-     * timestamp without "*", path ending with "*".
-     * <p>this is interpreted as replay request for the URL including trailing "*".
-     * That sounds inconsistent with other cases. (BTW, resultant time-redirect URL
-     * has no trailing "*" - there's a special handling happening somewhere.)
-     * Should this be interpreted as URL-query for the specific date?</p>
-     * @throws Exception
-     */
-    public void testDatePathPrefix() throws Exception {
-    	WaybackRequest wbr = parse("/web/20100101000000/http://www.yahoo.com/*");
-    	assertNotNull(wbr);
-    	assertTrue(wbr.isReplayRequest());
-    	assertEquals("20100101000000", wbr.getReplayTimestamp());
-    	// ReplayRequestParser does not strip trailing "*" off.
-    	assertEquals("http://www.yahoo.com/*", wbr.getRequestUrl());
-    }
-    
-    /**
-     * test of {@link PathDatePreofixQueryRequestParser}.
-     */ 
-    public void testDatePrefix() throws Exception {
-    	// less-than-14-digit timestamp with "*": narrowed time range, highlight
-    	// the latest within the range.
-    	WaybackRequest wbr1 = parse("/web/20100101*/http://www.yahoo.com/?p=2");
-    	assertNotNull(wbr1);
-    	assertTrue(wbr1.isCaptureQueryRequest());
-    	assertEquals("20100101000000", wbr1.getStartTimestamp());
-    	assertEquals("20100101235959", wbr1.getEndTimestamp());
-    	assertEquals("20100101235959", wbr1.getReplayTimestamp());
-    	assertEquals("http://www.yahoo.com/?p=2", wbr1.getRequestUrl());
-    	
-    	// just "*": entire time range, replay the latest.
-    	WaybackRequest wbr2 = parse("/web/*/http://www.yahoo.com/");
-    	assertNotNull(wbr2);
-    	assertTrue(wbr2.isCaptureQueryRequest());
-    	assertEquals(EXPECTED_START_TIMESTAMP, wbr2.getStartTimestamp());
-    	assertEquals(EXPECTED_END_TIMESTAMP, wbr2.getEndTimestamp());
-    	assertEquals(null, wbr2.getReplayTimestamp());
-    	
-    	// full 14-digit timestamp with "*": entire time range, highlight the 
-    	// closest to the specified date.
-    	WaybackRequest wbr3 = parse("/web/20100101000000*/http://www.yahoo.com/");
-    	assertNotNull(wbr3);
-    	assertTrue(wbr3.isCaptureQueryRequest());
-    	assertEquals(EXPECTED_START_TIMESTAMP, wbr3.getStartTimestamp());
-    	assertEquals(EXPECTED_END_TIMESTAMP, wbr3.getEndTimestamp());
-    	assertEquals("20100101000000", wbr3.getReplayTimestamp());
-    }
-    
-    /**
-     * Another test of {@link PathDatePrefixQueryRequestParser}:
-     * URL is recognized even when "{@code *}" is %-encoded.
-     * <p>this is a desired behavior to be implemented (assertion is disabled).
-     * see issue <a href="https://webarchive.jira.com/browse/WWM-110">WWM-110</a></p>
-     * @throws Exception
-     */
-    public void testDatePrefixEncoded() throws Exception {
+	}
+
+	public void testReplayRequest() throws Exception {
+		WaybackRequest wbr = parse("/web/20100101000000/http://www.yahoo.com/");
+		assertNotNull(wbr);
+		assertTrue(wbr.isReplayRequest());
+		assertEquals("20100101000000", wbr.getReplayTimestamp());
+		assertEquals("http://www.yahoo.com/", wbr.getRequestUrl());
+	}
+
+	/**
+	 * timestamp without "*", path ending with "*".
+	 * <p>this is interpreted as replay request for the URL including trailing "*".
+	 * That sounds inconsistent with other cases. (BTW, resultant time-redirect URL
+	 * has no trailing "*" - there's a special handling happening somewhere.)
+	 * Should this be interpreted as URL-query for the specific date?</p>
+	 * @throws Exception
+	 */
+	public void testDatePathPrefix() throws Exception {
+		WaybackRequest wbr = parse("/web/20100101000000/http://www.yahoo.com/*");
+		assertNotNull(wbr);
+		assertTrue(wbr.isReplayRequest());
+		assertEquals("20100101000000", wbr.getReplayTimestamp());
+		// ReplayRequestParser does not strip trailing "*" off.
+		assertEquals("http://www.yahoo.com/*", wbr.getRequestUrl());
+	}
+
+	/**
+	 * test of {@link PathDatePreofixQueryRequestParser}.
+	 */
+	public void testDatePrefix() throws Exception {
+		// less-than-14-digit timestamp with "*": narrowed time range, highlight
+		// the latest within the range.
+		WaybackRequest wbr1 = parse("/web/20100101*/http://www.yahoo.com/?p=2");
+		assertNotNull(wbr1);
+		assertTrue(wbr1.isCaptureQueryRequest());
+		assertEquals("20100101000000", wbr1.getStartTimestamp());
+		assertEquals("20100101235959", wbr1.getEndTimestamp());
+		assertEquals("20100101235959", wbr1.getReplayTimestamp());
+		assertEquals("http://www.yahoo.com/?p=2", wbr1.getRequestUrl());
+
+		// just "*": entire time range, replay the latest.
+		WaybackRequest wbr2 = parse("/web/*/http://www.yahoo.com/");
+		assertNotNull(wbr2);
+		assertTrue(wbr2.isCaptureQueryRequest());
+		assertEquals(EXPECTED_START_TIMESTAMP, wbr2.getStartTimestamp());
+		assertEquals(EXPECTED_END_TIMESTAMP, wbr2.getEndTimestamp());
+		assertEquals(null, wbr2.getReplayTimestamp());
+
+		// full 14-digit timestamp with "*": entire time range, highlight the
+		// closest to the specified date.
+		WaybackRequest wbr3 = parse("/web/20100101000000*/http://www.yahoo.com/");
+		assertNotNull(wbr3);
+		assertTrue(wbr3.isCaptureQueryRequest());
+		assertEquals(EXPECTED_START_TIMESTAMP, wbr3.getStartTimestamp());
+		assertEquals(EXPECTED_END_TIMESTAMP, wbr3.getEndTimestamp());
+		assertEquals("20100101000000", wbr3.getReplayTimestamp());
+	}
+
+	/**
+	 * Another test of {@link PathDatePrefixQueryRequestParser}:
+	 * URL is recognized even when "{@code *}" is %-encoded.
+	 * <p>this is a desired behavior to be implemented (assertion is disabled).
+	 * see issue <a href="https://webarchive.jira.com/browse/WWM-110">WWM-110</a></p>
+	 * @throws Exception
+	 */
+	public void testDatePrefixEncoded() throws Exception {
 		WaybackRequest wbr1 = parse("/web/20100101%2A/http://www.yahoo.com/?p=%2A");
 		assertNotNull(wbr1);
 		assertTrue(wbr1.isCaptureQueryRequest());
@@ -164,23 +221,23 @@ public class ArchivalUrlRequestParserTest extends TestCase {
 		assertEquals("20100101235959", wbr1.getEndTimestamp());
 		assertEquals("20100101235959", wbr1.getReplayTimestamp());
 		assertEquals("http://www.yahoo.com/?p=%2A", wbr1.getRequestUrl());
-    	
+
 		WaybackRequest wbr2 = parse("/web/%2A/http://www.yahoo.com/");
 		assertNotNull(wbr2);
 		assertTrue(wbr2.isCaptureQueryRequest());
 		assertEquals(EXPECTED_START_TIMESTAMP, wbr2.getStartTimestamp());
 		assertEquals(EXPECTED_END_TIMESTAMP, wbr2.getEndTimestamp());
 		assertEquals(null, wbr2.getReplayTimestamp());
-    }
-    
-    /**
-     * test for {@link PathDateRangeQueryRequestParser}.
-     * <p>date range and specific path.
-     * date range becomes start and end timestamps. but it doesn't
-     * set replayTimestamp (it should, for consistency?)
-     */
-    public void testPathDateRange() throws Exception {
-    	// range with full-length timestamps
+	}
+
+	/**
+	 * test for {@link PathDateRangeQueryRequestParser}.
+	 * <p>date range and specific path.
+	 * date range becomes start and end timestamps. but it doesn't
+	 * set replayTimestamp (it should, for consistency?)
+	 */
+	public void testPathDateRange() throws Exception {
+		// range with full-length timestamps
 		WaybackRequest wbr1 = parse("/web/20100101000000-20100630235959*/http://www.yahoo.com/");
 		assertNotNull(wbr1);
 		assertTrue(wbr1.isCaptureQueryRequest());
@@ -189,7 +246,7 @@ public class ArchivalUrlRequestParserTest extends TestCase {
 //		assertEquals("20100630235959", wbr1.getReplayTimestamp());
 		assertEquals(null, wbr1.getReplayTimestamp());
 		assertEquals("http://www.yahoo.com/", wbr1.getRequestUrl());
-    	
+
 		WaybackRequest wbr2 = parse("/web/2010-2014*/http://www.yahoo.com/?p=2");
 		assertNotNull(wbr2);
 		assertTrue(wbr1.isCaptureQueryRequest());
@@ -198,17 +255,17 @@ public class ArchivalUrlRequestParserTest extends TestCase {
 //		assertEquals("20141231235959", wbr2.getReplayTimestamp());
 		assertEquals(null, wbr2.getReplayTimestamp());
 		assertEquals("http://www.yahoo.com/?p=2", wbr2.getRequestUrl());
-		
+
 		// Date range without "*" results in 404. We could make it work.
 		WaybackRequest wbr3 = parse("/web/2010-2014/http://www.yahoo.com/");
 		assertNull(wbr3);
-    }
+	}
 
-    /**
-     * test for {@link PathDateRangeQueryRequestParser}, %-encoded version.
-     * @throws Exception
-     */
-    public void testPathDateRangeEncoded() throws Exception {
+	/**
+	 * test for {@link PathDateRangeQueryRequestParser}, %-encoded version.
+	 * @throws Exception
+	 */
+	public void testPathDateRangeEncoded() throws Exception {
 		WaybackRequest wbr1 = parse("/web/20100101000000-20100630235959%2A/http://www.yahoo.com/");
 		assertNotNull(wbr1);
 		assertTrue(wbr1.isCaptureQueryRequest());
@@ -217,42 +274,42 @@ public class ArchivalUrlRequestParserTest extends TestCase {
 //		assertEquals("20100630235959", wbr1.getReplayTimestamp());
 		assertEquals(null, wbr1.getReplayTimestamp());
 		assertEquals("http://www.yahoo.com/", wbr1.getRequestUrl());
-    }
+	}
 
-    /**
-     * test of {@link PathPrefixDatePrefixQueryRequestParser}.
-     * <p>this is a URL query with (optional) single timestamp date range.
-     * timestamp, if non-empty, becomes start and end.
-     * </p>
-     */
-    public void testPathPrefixDatePrefix() throws Exception {
-    	WaybackRequest wbr1 = parse("/web/2010*/http://www.yahoo.com/*");
-    	assertNotNull(wbr1);
-    	assertTrue(wbr1.isUrlQueryRequest());
-    	assertEquals("20100101000000", wbr1.getStartTimestamp());
-    	assertEquals("20101231235959", wbr1.getEndTimestamp());
-    	// does not set replayTimestamp, but it is not a required behavior.
-    	assertEquals("http://www.yahoo.com/", wbr1.getRequestUrl());
-    	
-    	WaybackRequest wbr2 = parse("/web/*/http://www.yahoo.com/*");
-    	assertNotNull(wbr2);
-    	assertTrue(wbr2.isUrlQueryRequest());
-    	assertEquals(EXPECTED_START_TIMESTAMP, wbr2.getStartTimestamp());
-    	assertEquals(null, wbr2.getEndTimestamp());
-    	// does not set replayTimestamp, but it is not a required behavior.
-    	assertEquals("http://www.yahoo.com/", wbr2.getRequestUrl());
-    	
-    	// timestamp is up to 13 digits. 14-digit timestamp results in null (-> 404).
-    	// TODO: there'd be a nicer way.
-    	WaybackRequest wbr3 = parse("/web/20130101000000*/http://www.yahoo.com/*");
-    	assertNull(wbr3);
-    }
-    /**
-     * test of {@link PathPrefixDatePrefixQueryRequestParser}.
-     * <p>%-encoded timestamp.</p>
-     * @throws Exception
-     */
-    public void testPathPrefixDatePrefixEncoded() throws Exception {
+	/**
+	 * test of {@link PathPrefixDatePrefixQueryRequestParser}.
+	 * <p>this is a URL query with (optional) single timestamp date range.
+	 * timestamp, if non-empty, becomes start and end.
+	 * </p>
+	 */
+	public void testPathPrefixDatePrefix() throws Exception {
+		WaybackRequest wbr1 = parse("/web/2010*/http://www.yahoo.com/*");
+		assertNotNull(wbr1);
+		assertTrue(wbr1.isUrlQueryRequest());
+		assertEquals("20100101000000", wbr1.getStartTimestamp());
+		assertEquals("20101231235959", wbr1.getEndTimestamp());
+		// does not set replayTimestamp, but it is not a required behavior.
+		assertEquals("http://www.yahoo.com/", wbr1.getRequestUrl());
+
+		WaybackRequest wbr2 = parse("/web/*/http://www.yahoo.com/*");
+		assertNotNull(wbr2);
+		assertTrue(wbr2.isUrlQueryRequest());
+		assertEquals(EXPECTED_START_TIMESTAMP, wbr2.getStartTimestamp());
+		assertEquals(null, wbr2.getEndTimestamp());
+		// does not set replayTimestamp, but it is not a required behavior.
+		assertEquals("http://www.yahoo.com/", wbr2.getRequestUrl());
+
+		// timestamp is up to 13 digits. 14-digit timestamp results in null (-> 404).
+		// TODO: there'd be a nicer way.
+		WaybackRequest wbr3 = parse("/web/20130101000000*/http://www.yahoo.com/*");
+		assertNull(wbr3);
+	}
+	/**
+	 * test of {@link PathPrefixDatePrefixQueryRequestParser}.
+	 * <p>%-encoded timestamp.</p>
+	 * @throws Exception
+	 */
+	public void testPathPrefixDatePrefixEncoded() throws Exception {
 		{
 			WaybackRequest wbr = parse("/web/2010%2A/http://www.yahoo.com/*");
 			assertNotNull(wbr);
@@ -270,15 +327,15 @@ public class ArchivalUrlRequestParserTest extends TestCase {
 			assertEquals("20101231235959", wbr.getEndTimestamp());
 			assertEquals("http://www.yahoo.com/%2A", wbr.getRequestUrl());
 		}
-    }
+	}
 
 	/**
-     * test of {@link PathPrefixDateRangeQueryRequestParser}.
-     * <p>explicit timestamp range and trailing "*" in URL.
-     * this is a URL-query request, timestamp range becomes 
-     * start and end timestamp.</p>
-     * <p>timerange without "*" is not recognized. it could be.</p> 
-     */
+	 * test of {@link PathPrefixDateRangeQueryRequestParser}.
+	 * <p>explicit timestamp range and trailing "*" in URL.
+	 * this is a URL-query request, timestamp range becomes
+	 * start and end timestamp.</p>
+	 * <p>timerange without "*" is not recognized. it could be.</p>
+	 */
 	public void testPathPrefixDateRange() throws Exception {
 		{
 			WaybackRequest wbr1 = parse("/web/20100101-20100531*/http://www.yahoo.com/*");
@@ -306,8 +363,19 @@ public class ArchivalUrlRequestParserTest extends TestCase {
 			assertEquals("20100531235959", wbr.getEndTimestamp());
 			assertEquals("http://www.yahoo.com/", wbr.getRequestUrl());
 		}
+		{
+			// URL part shall not be URL-decoded
+			WaybackRequest wbr = parse("/web/20100101%2D20100531%2A/http%3a//www.yahoo.com/%2A");
+			assertNotNull(wbr);
+			assertTrue(wbr.isCaptureQueryRequest());
+			assertEquals("20100101000000", wbr.getStartTimestamp());
+			assertEquals("20100531235959", wbr.getEndTimestamp());
+			// WaybackRequet#setRequestUrl() prepends "http://" if urlStr does
+			// not begin with http://
+			assertEquals("http://http%3a//www.yahoo.com/%2A", wbr.getRequestUrl());
+		}
 	}
-	
+
 	protected void checkPathDateless(WaybackRequest wbr, String requestUrl) {
 		assertNotNull(wbr);
 		assertTrue(wbr.isReplayRequest());
@@ -421,7 +489,7 @@ public class ArchivalUrlRequestParserTest extends TestCase {
 			checkPathDateless(wbr, "http://www.yahoo.com/*");
 		}
 	}
-	
+
 	public void testPathDatelessWithDateHeader() throws Exception {
 		final String dateHeader = "Thu, 24 Apr 2014 21:15:51 UTC+00:00";
 		final Date date = (new SimpleDateFormat("EEE, dd MMM yyyy hh:mm:ss z", Locale.ENGLISH)).parse(dateHeader);
@@ -430,6 +498,7 @@ public class ArchivalUrlRequestParserTest extends TestCase {
 			WaybackRequest wbr = parse("/web/http://www.yahoo.com/");
 			assertNotNull(wbr);
 			assertTrue(wbr.isReplayRequest());
+			assertTrue(wbr.isMementoTimegate());
 			assertFalse(wbr.isBestLatestReplayRequest());
 			assertEquals(EXPECTED_START_TIMESTAMP, wbr.getStartTimestamp());
 			assertEquals(EXPECTED_END_TIMESTAMP, wbr.getEndTimestamp());
@@ -447,7 +516,7 @@ public class ArchivalUrlRequestParserTest extends TestCase {
 				// expected
 			}
 		}
-		// alternate Accept-Timestamp header. as long as it is valid,
+		// alternative Accept-Timestamp header. as long as it is valid,
 		// invalid value in Accept-Datetime header doesn't cause exception.
 		{
 			acceptDatetimeHeader = "invalid date";
@@ -462,7 +531,7 @@ public class ArchivalUrlRequestParserTest extends TestCase {
 			assertEquals(date, wbr.getAnchorDate());
 		}
 		// invalid value in Accept-Timestamp header is silently ignored,
-		// unless Accept-Datetime also has an invalid value. 
+		// unless Accept-Datetime also has an invalid value.
 		{
 			acceptDatetimeHeader = null;
 			acceptTimestampHeader = "*INVALID*";
@@ -479,7 +548,7 @@ public class ArchivalUrlRequestParserTest extends TestCase {
 	 * some pathological cases.
 	 * @throws Exception
 	 */
-    public void testPathological() throws Exception {
+	public void testPathological() throws Exception {
 		{
 			WaybackRequest wbr = parse("/web/20100101*30/http://www.yahoo.com/?p=*");
 			assertNull(wbr);
@@ -497,5 +566,103 @@ public class ArchivalUrlRequestParserTest extends TestCase {
 			WaybackRequest wbr = parse("/web//20100101*/http://www.yahoo.com/");
 			assertNull(wbr);
 		}
-    }
+	}
+
+	/**
+	 * tests for {@link TimeMapRequestParser}
+	 * @throws Exception
+	 */
+	public void testTimeMapRequest() throws Exception {
+		{
+			WaybackRequest wbr = parse("/web/timemap/link/http://www.yahoo.com/");
+			assertNotNull(wbr);
+			assertTrue(wbr.isMementoTimemapRequest());
+			assertTrue(wbr.isCaptureQueryRequest());
+			assertEquals("format", "link", wbr.getMementoTimemapFormat());
+			assertEquals("requestUrl", "http://www.yahoo.com/", wbr.getRequestUrl());
+		}
+		{
+			WaybackRequest wbr = parse("/web/timemap/link/www.yahoo.com");
+			assertNotNull(wbr);
+			assertTrue(wbr.isMementoTimemapRequest());
+			assertTrue(wbr.isCaptureQueryRequest());
+			assertEquals("format", "link", wbr.getMementoTimemapFormat());
+			// WaybackRequest.setRequestUrl() adds missing "http://". Similarly
+			// http:/www.yahoo.com will be fixed to "http://www.yahoo.com".
+			assertEquals("requestUrl", "http://www.yahoo.com", wbr.getRequestUrl());
+		}
+		{
+			String url = "http://www.yahoo.com";
+			String urlp = URLEncoder.encode(url, "UTF-8");
+			WaybackRequest wbr = parse("/web/timemap/link?url=" + urlp);
+			assertNotNull(wbr);
+			assertTrue(wbr.isMementoTimemapRequest());
+			assertTrue(wbr.isCaptureQueryRequest());
+			// FIXME: this is current behavior. shouldn't this be "link"?
+			assertEquals("format", "link?url=" + urlp, wbr.getMementoTimemapFormat());
+			assertEquals("requestUrl", url, wbr.getRequestUrl());
+		}
+		{
+			String url = "http://www.yahoo.com/";
+			String urlp = URLEncoder.encode(url, "UTF-8");
+			WaybackRequest wbr = parse("/web/timemap/?url=" + urlp);
+			assertNotNull(wbr);
+			assertTrue(wbr.isMementoTimemapRequest());
+			assertTrue(wbr.isCaptureQueryRequest());
+			// FIXME: again, this is current behavior. value should be "", which shall be
+			// interpreted as default value.
+			assertEquals("format", "?url=" + urlp, wbr.getMementoTimemapFormat());
+			assertEquals("requestUrl", url, wbr.getRequestUrl());
+		}
+		{
+			WaybackRequest wbr = parse("/web/timemap?url=" + URLEncoder.encode("http://www.yahoo.com/", "UTF-8"));
+			assertNotNull(wbr);
+			// FIXME: This is current behavior. As format is null, isMementoTimemapRequest() returns false,
+			// renders calendar view. This looks inconsistent with /web/timemap/?url=... pattern above.
+			assertFalse(wbr.isMementoTimemapRequest());
+			assertTrue(wbr.isCaptureQueryRequest());
+			assertEquals("format", null, wbr.getMementoTimemapFormat());
+			assertEquals("requestUrl", "http://www.yahoo.com/", wbr.getRequestUrl());
+		}
+		{
+			String url = "http://www.yahoo.com";
+			String urlp = URLEncoder.encode(url, "UTF-8");
+			WaybackRequest wbr = parse("/web/timemap/link/?url=" + urlp);
+			assertNotNull(wbr);
+			assertTrue(wbr.isMementoTimemapRequest());
+			assertTrue(wbr.isCaptureQueryRequest());
+			assertEquals("format", "link", wbr.getMementoTimemapFormat());
+			// FIXME: this is current behavior. requestUrl gets bad value, url
+			// parameter gets ignored. most likely results in empty results.
+			// Note WaybackRequest.setRequestURI() prepends "http://".
+			assertEquals("requestUrl", "http://?url=" + urlp, wbr.getRequestUrl());
+			//assertEquals("requestUrl", url, wbr.getRequestUrl());
+		}
+		{
+			WaybackRequest wbr = parse("/web/timemap?url=" + URLEncoder.encode("http://www.yahoo.com/", "UTF-8") +
+					"&output=link");
+			assertNotNull(wbr);
+			assertTrue(wbr.isMementoTimemapRequest());
+			assertTrue(wbr.isCaptureQueryRequest());
+			assertEquals("format", "link", wbr.getMementoTimemapFormat());
+			assertEquals("requestUrl", "http://www.yahoo.com/", wbr.getRequestUrl());
+		}
+		{
+			String url = "http://www.yahoo.com";
+			String urlp = URLEncoder.encode(url, "UTF-8");
+			WaybackRequest wbr = parse("/web/timemap/?url=" + urlp + "&output=link");
+			assertNotNull(wbr);
+			assertTrue(wbr.isMementoTimemapRequest());
+			assertTrue(wbr.isCaptureQueryRequest());
+			// FIXME: this is current behavior. output parameter gets ignored, format gets
+			// unexpected value. url parameter works.
+			assertEquals("format", "?url=" + urlp + "&output=link", wbr.getMementoTimemapFormat());
+			//assertEquals("format", "link", wbr.getMementoTimemapFormat());
+			assertEquals("requestUrl", url, wbr.getRequestUrl());
+		}
+		{
+			WaybackRequest wbr = parse("/web/timemap");
+			assertNull(wbr);
+		}
+	}
 }
