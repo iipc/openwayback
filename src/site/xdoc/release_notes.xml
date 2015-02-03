@@ -51,6 +51,7 @@
           <li>Fixed xml-markup in Toolbar.jsp which caused probelsm on some sites. <a href="https://github.com/iipc/openwayback/issues/171">#171</a>, <a href="https://github.com/iipc/openwayback/issues/60">#60</a></li>
           <li>Fixed some @import url's in &lt;style&gt; section of html are not rewritten. <a href="https://github.com/iipc/openwayback/issues/131">#131</a></li>
           <li>Fixed issue <a href="https://github.com/iipc/openwayback/issues/48">#48</a> jQuery getting stomped on.</li>
+          <li>Support for loading resources from S3 buckets. <a href="https://github.com/iipc/openwayback/issues/189">#189</a></li>
         </ul>
       </subsection>
     </section>
