@@ -35,11 +35,11 @@
      -->
     <context-param>
         <param-name>logging-config-path</param-name>
-        <param-value>WEB-INF/classes/logging.properties</param-value>
+        <param-value>/WEB-INF/classes/logging.properties</param-value>
     </context-param>
     <context-param>
         <param-name>config-path</param-name>
-        <param-value>WEB-INF/wayback.xml</param-value>
+        <param-value>/WEB-INF/wayback.xml</param-value>
     </context-param>
     <filter>
         <filter-name>RequestFilter</filter-name>

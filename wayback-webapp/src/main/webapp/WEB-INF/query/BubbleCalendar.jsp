@@ -11,6 +11,7 @@
 <%@ page import="org.archive.wayback.core.UIResults" %>
 <%@ page import="org.archive.wayback.core.WaybackRequest" %>
 <%@ page import="org.archive.wayback.partition.BubbleCalendarData" %>
+<%@ page import="org.archive.wayback.util.Timestamp" %>
 <%@ page import="org.archive.wayback.util.partition.Partition" %>
 <%@ page import="org.archive.wayback.util.StringFormatter" %>
 <jsp:include page="/WEB-INF/template/CookieJS.jsp" flush="true" />
@@ -37,8 +38,9 @@ int imgWidth = 0;
 int imgHeight = 75;
 int yearWidth = 49;
 int monthWidth = 5;
+int startYear = Timestamp.getStartYear();
 
-for (int year = 1996; year <= Calendar.getInstance().get(Calendar.YEAR); year++)
+for (int year = startYear; year <= Calendar.getInstance().get(Calendar.YEAR); year++)
     imgWidth += yearWidth;
 
 BubbleCalendarData data = new BubbleCalendarData(results);
@@ -67,11 +69,11 @@ var lastDate = <%= data.dataEndMSSE %>;
 var wbPrefix = "<%= replayPrefix %>";
 var wbCurrentUrl = "<%= data.searchUrlForJS %>";
 
-var curYear = <%= data.yearNum - 1996 %>;
+var curYear = <%= data.yearNum - startYear %>;
 var curMonth = -1;
 var yearCount = 15;
-var firstYear = 1996;
-var startYear = <%= data.yearNum - 1996 %>;
+var firstYear = <%= startYear %>;
+var startYear = <%= data.yearNum - startYear %>;
 var imgWidth = <%= imgWidth %>;
 var yearImgWidth = <%= yearWidth %>;
 var monthImgWidth = <%= monthWidth %>;
@@ -260,7 +262,7 @@ $().ready(function(){
         </div>
         </a>
         	<%
-        	for(int i = 1996; i <= Calendar.getInstance().get(Calendar.YEAR); i++) {
+        	for(int i = startYear; i <= Calendar.getInstance().get(Calendar.YEAR); i++) {
         		String curClass = "inactiveHighlight";
         		if(data.yearNum == i) {
             		curClass = "activeHighlight";
@@ -269,8 +271,8 @@ $().ready(function(){
 	            <div class="wbChartThisContainer">
 	                <a style="text-decoration: none;" href="<%= queryPrefix + i + "0201000000*/" + data.searchUrlForHTML %>">
 	                
-	                	<div id="highlight-<%= i - 1996 %>"
-						onmouseover="showTrackers('inline'); setActiveYear(<%= i - 1996 %>)" 
+	                	<div id="highlight-<%= i - startYear %>"
+						onmouseover="showTrackers('inline'); setActiveYear(<%= i - startYear %>)" 
 	                	class="<%= curClass %>"><%= i %></div>
 	                </a>
 	            </div>
