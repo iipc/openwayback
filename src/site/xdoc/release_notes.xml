@@ -53,6 +53,7 @@
           <li>Fixed issue <a href="https://github.com/iipc/openwayback/issues/48">#48</a> jQuery getting stomped on.</li>
           <li>Support for loading resources from S3 buckets. <a href="https://github.com/iipc/openwayback/issues/189">#189</a></li>
           <li>Refactored CDX Server into a war and jar module. <a href="https://github.com/iipc/openwayback/issues/164">#164</a></li>
+          <li>Fixed ARCRecordingProxy times out. <a href="https://github.com/iipc/openwayback/issues/116">#116</a></li>
         </ul>
       </subsection>
     </section>
