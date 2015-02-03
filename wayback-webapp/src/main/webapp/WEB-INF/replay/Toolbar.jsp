@@ -68,7 +68,6 @@ String starLink = fmt.escapeHtml(queryPrefix + wbRequest.getReplayTimestamp() +
 
 <script type="text/javascript" src="<%= staticPrefix %>js/disclaim-element.js" ></script>
 <script type="text/javascript" src="<%= staticPrefix %>js/graph-calc.js" ></script>
-<script type="text/javascript" src="<%= staticPrefix %>jflot/jquery.min.js" ></script>
 <script type="text/javascript">
 //<![CDATA[
 var firstDate = <%= firstYearDate.getTime() %>;
@@ -109,19 +108,10 @@ function showTrackers(val) {
    document.getElementById("wbMouseTrackMonthImg").style.display = val;
    trackerVal = val;
 }
-function getElementX2(obj) {
-	var thing = jQuery(obj);
-	if((thing == undefined) 
-			|| (typeof thing == "undefined") 
-			|| (typeof thing.offset == "undefined")) {
-		return getElementX(obj);
-	}
-	return Math.round(thing.offset().left);
-}
 function trackMouseMove(event,element) {
 
    var eventX = getEventX(event);
-   var elementX = getElementX2(element);
+   var elementX = getElementX(element);
    var xOff = eventX - elementX;
 	if(xOff < 0) {
 		xOff = 0;
