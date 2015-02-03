@@ -31,6 +31,7 @@
           <li>Removed CustomUserResourceIndex class, which does not appear to have broad utility. <a href="https://github.com/iipc/openwayback/pull/195">#195</a></li>
           <li>Performance information in response header can now be in JSON format. <a href="https://github.com/iipc/openwayback/pull/195">#195</a>, <a href="https://github.com/internetarchive/wayback/issues/69">internetarchive#69</a></li>
           <li>FastArchivalUrlReplayParseEventHandler no longer rewrite relative URLs for better replay quality. <a href="https://github.com/iipc/openwayback/pull/195">#195</a></li> 
+          <li>Made start date configurable (defaults to old value of 1996), end date dynamic to current year.<a href="https://github.com/iipc/openwayback/issues/51">#51</a></li>
        </ul>
       </subsection>
       <subsection name="Bug Fixes">

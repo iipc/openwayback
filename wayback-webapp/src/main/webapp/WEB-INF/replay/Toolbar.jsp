@@ -15,6 +15,7 @@
 %><%@ page import="org.archive.wayback.partition.PartitionPartitionMap"
 %><%@ page import="org.archive.wayback.partition.PartitionsToGraph"
 %><%@ page import="org.archive.wayback.partition.ToolBarData"
+%><%@ page import="org.archive.wayback.util.Timestamp"
 %><%@ page import="org.archive.wayback.util.graph.Graph"
 %><%@ page import="org.archive.wayback.util.graph.GraphEncoder"
 %><%@ page import="org.archive.wayback.util.graph.GraphRenderer"
@@ -51,8 +52,9 @@ int imgWidth = 0;
 int imgHeight = 27;
 int monthWidth = 2;
 int yearWidth = 25;
+int startYear = Timestamp.getStartYear();
 
-for (int year = 1996; year <= Calendar.getInstance().get(Calendar.YEAR); year++)
+for (int year = startYear; year <= Calendar.getInstance().get(Calendar.YEAR); year++)
     imgWidth += yearWidth;
 
 String yearFormatKey = "PartitionSize.dateHeader.yearGraphLabel";
@@ -77,7 +79,7 @@ var wbCurrentUrl = "<%= searchUrlJS %>";
 var curYear = -1;
 var curMonth = -1;
 var yearCount = 15;
-var firstYear = 1996;
+var firstYear = <%= startYear %>;
 var imgWidth=<%= imgWidth %>;
 var yearImgWidth = <%= yearWidth %>;
 var monthImgWidth = <%= monthWidth %>;
@@ -129,7 +131,6 @@ function trackMouseMove(event,element) {
    var monthOff = xOff % yearImgWidth;
 
    var year = Math.floor(xOff / yearImgWidth);
-	var yearStart = year * yearImgWidth;
    var monthOfYear = Math.floor(monthOff / monthImgWidth);
    if(monthOfYear > 11) {
        monthOfYear = 11;
@@ -146,7 +147,7 @@ function trackMouseMove(event,element) {
 		zeroPad(day,2) + "000000";
 
 	var monthString = prettyMonths[monthOfYear];
-	document.getElementById("displayYearEl").innerHTML = year + 1996;
+	document.getElementById("displayYearEl").innerHTML = year + <%= startYear %>;
 	document.getElementById("displayMonthEl").innerHTML = monthString;
 	// looks too jarring when it changes..
 	//document.getElementById("displayDayEl").innerHTML = zeroPad(day,2);
