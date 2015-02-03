@@ -30,11 +30,10 @@
   </build>
 
   <dependencies>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>openwayback-cdx-server</artifactId>
-      <classifier>classes</classifier>
-    </dependency>
+      <dependency>
+          <groupId>${project.groupId}</groupId>
+          <artifactId>openwayback-cdx-server</artifactId>
+      </dependency>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
