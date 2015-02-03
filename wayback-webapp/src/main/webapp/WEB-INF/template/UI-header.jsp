@@ -3,6 +3,7 @@
 <%@ page import="org.archive.wayback.core.WaybackRequest" %>
 <%@ page import="org.archive.wayback.core.UIResults" %>
 <%@ page import="org.archive.wayback.util.StringFormatter" %>
+<%@ page import="org.archive.wayback.util.Timestamp" %>
 <%@ page language="java" pageEncoding="utf-8" contentType="text/html;charset=utf-8"%>
 <%
 UIResults results = UIResults.getGeneric(request);
@@ -74,22 +75,10 @@ String replayPrefix = results.getReplayPrefix();
 													&nbsp;
 												</b> 
 												<select name="<%= WaybackRequest.REQUEST_DATE %>" size="1">
-													<option value="" selected><%= fmt.format("UIGlobal.selectYearAll") %></option>
-													<option>2010</option>
-													<option>2009</option>
-													<option>2008</option>
-													<option>2007</option>
-													<option>2006</option>
-													<option>2005</option>
-													<option>2004</option>
-													<option>2003</option>
-													<option>2002</option>
-													<option>2001</option>
-													<option>2000</option>
-													<option>1999</option>
-													<option>1998</option>
-													<option>1997</option>
-													<option>1996</option>
+												    <option value="" selected><%= fmt.format("UIGlobal.selectYearAll") %></option>
+												    <% for(int i = Timestamp.getEndYear(); i >= Timestamp.getStartYear(); i-=1) { %>
+                                                                                                        <option><%= i %></option>
+                                                                                                    <% } %>
 												</select>
 												&nbsp;
 												<input type="submit" name="Submit" value="<%= fmt.format("UIGlobal.urlSearchButton") %>" align="absMiddle">
