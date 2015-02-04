@@ -8,7 +8,7 @@ Please note that the recommended operating environment for OpenWayback is UNIX/L
 OpenWayback is packaged as a web application file (.war file). You can choose to download the binary distribution or build from source.
 
 ### Downloading the Binary Distribution
-All OpenWayback releases are hosted on [Maven Central](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22org.netpreserve.openwayback%22). You can find the latest binary release [here](http://search.maven.org/#browse%7C951206516), currently [openwayback-2.0.0](http://search.maven.org/remotecontent?filepath=org/netpreserve/openwayback/openwayback-dist/2.0.0/openwayback-dist-2.0.0-2.0.0.tar.gz).
+All OpenWayback releases are hosted on [Maven Central](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22org.netpreserve.openwayback%22). You can find the latest binary release [here](http://search.maven.org/#browse%7C951206516), currently [openwayback-2.1.0](http://search.maven.org/remotecontent?filepath=org/netpreserve/openwayback/openwayback-dist/2.1.0/openwayback-dist-2.1.0.tar.gz).
 
 Extract the .tar.gz file containing the webapp (.war) file:
 `tar -xzvf <filename>.tar.gz`
