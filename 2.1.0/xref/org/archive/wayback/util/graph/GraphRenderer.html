@@ -1,0 +1,110 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>GraphRenderer xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../../apidocs/org/archive/wayback/util/graph/GraphRenderer.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <em class="jxr_comment">/*</em>
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   <em class="jxr_comment"> *  This file is part of the Wayback archival access software</em>
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <em class="jxr_comment"> *   (<a href="http://archive-access.sourceforge.net/projects/wayback/)" target="alexandria_uri">http://archive-access.sourceforge.net/projects/wayback/)</a>.</em>
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <em class="jxr_comment"> *</em>
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <em class="jxr_comment"> *  Licensed to the Internet Archive (IA) by one or more individual </em>
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <em class="jxr_comment"> *  contributors. </em>
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <em class="jxr_comment"> *</em>
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <em class="jxr_comment"> *  The IA licenses this file to You under the Apache License, Version 2.0</em>
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <em class="jxr_comment"> *  (the "License"); you may not use this file except in compliance with</em>
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <em class="jxr_comment"> *  the License.  You may obtain a copy of the License at</em>
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <em class="jxr_comment"> *</em>
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <em class="jxr_comment"> *      <a href="http://www.apache.org/licenses/LICENSE-2." target="alexandria_uri">http://www.apache.org/licenses/LICENSE-2.</a>0</em>
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  <em class="jxr_comment"> *</em>
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <em class="jxr_comment"> *  Unless required by applicable law or agreed to in writing, software</em>
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  <em class="jxr_comment"> *  distributed under the License is distributed on an "AS IS" BASIS,</em>
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <em class="jxr_comment"> *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</em>
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <em class="jxr_comment"> *  See the License for the specific language governing permissions and</em>
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <em class="jxr_comment"> *  limitations under the License.</em>
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <em class="jxr_comment"> */</em>
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <strong class="jxr_keyword">package</strong> org.archive.wayback.util.graph;
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">import</strong> java.awt.Graphics2D;
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">import</strong> java.awt.Rectangle;
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">import</strong> java.awt.image.BufferedImage;
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">import</strong> java.io.IOException;
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <strong class="jxr_keyword">import</strong> java.io.OutputStream;
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <strong class="jxr_keyword">import</strong> javax.imageio.ImageIO;
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <em class="jxr_javadoccomment"> * @author brad</em>
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <em class="jxr_javadoccomment"> *</em>
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../../org/archive/wayback/util/graph/GraphRenderer.html">GraphRenderer</a> {
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <em class="jxr_javadoccomment">	 * appropriate Content-Type HTTP header value for graph image content</em>
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <em class="jxr_javadoccomment">	 * produced by render(OutputStream,Graph)</em>
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> String RENDERED_IMAGE_MIME = <span class="jxr_string">"image/png"</span>; 
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>  <em class="jxr_javadoccomment">	 * Create both an HTML AREA map and an HTML IMG for a graph, using provided</em>
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>  <em class="jxr_javadoccomment">	 * href targets, and titles within the AREA map.</em>
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>  <em class="jxr_javadoccomment">	 * @param graph Graph to draw</em>
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>  <em class="jxr_javadoccomment">	 * @param mapName name of HTML AREA map</em>
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>  <em class="jxr_javadoccomment">	 * @param imgUrl URL to rendered Graph, see GraphEncoder.encode()</em>
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>  <em class="jxr_javadoccomment">	 * @param targets URL href targets for the years in the Graph</em>
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>  <em class="jxr_javadoccomment">	 * @param titles titles for the years in the graph.</em>
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>  <em class="jxr_javadoccomment">	 * @return HTML String for the resulting AREA and IMG</em>
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>  <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> String renderHTML(<a href="../../../../../org/archive/wayback/util/graph/Graph.html">Graph</a> graph, String mapName, String imgUrl, 
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>  			String targets[], String titles[]) {
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>  
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>  		StringBuilder sb = <strong class="jxr_keyword">new</strong> StringBuilder();
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>  		sb.append(<span class="jxr_string">"&lt;map name=\&quot;"</span>).append(mapName).append(<span class="jxr_string">"\&quot;&gt;"</span>);
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>  		RegionGraphElement rge[] = graph.getRegions();
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>  		<strong class="jxr_keyword">int</strong> count = rge.length;
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>  		<strong class="jxr_keyword">for</strong>(<strong class="jxr_keyword">int</strong> i = 0; i &lt; count; i++) {
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>  			<strong class="jxr_keyword">if</strong>(targets[i] != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>  				Rectangle r = rge[i].getBoundingRectangle();
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>  				sb.append(<span class="jxr_string">"&lt;area href=\&quot;"</span>).append(targets[i]).append(<span class="jxr_string">"\&quot;"</span>);
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>  				<strong class="jxr_keyword">if</strong>(titles[i] != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>  					sb.append(<span class="jxr_string">" title=\&quot;"</span>).append(titles[i]).append(<span class="jxr_string">"\&quot;"</span>);
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>  				}
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>  				sb.append(<span class="jxr_string">" shape=\&quot;rect\&quot; coords=\&quot;"</span>);
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>  				sb.append(r.x).append(<span class="jxr_string">","</span>);
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>  				sb.append(r.y).append(<span class="jxr_string">","</span>);
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>  				sb.append(r.x+r.width).append(<span class="jxr_string">","</span>);
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>  				sb.append(r.y+r.height).append(<span class="jxr_string">"\&quot; border=\&quot;1\&quot; /&gt;"</span>);
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>  			}
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>  		}
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>  		sb.append(<span class="jxr_string">"&lt;/map&gt;"</span>);
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>  		sb.append(<span class="jxr_string">"&lt;image src=\&quot;"</span>).append(imgUrl).append(<span class="jxr_string">"\&quot;"</span>);
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>  		sb.append(<span class="jxr_string">" border=\&quot;0\&quot; width=\&quot;"</span>).append(graph.width).append(<span class="jxr_string">"\&quot;"</span>);
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>  		sb.append(<span class="jxr_string">" height=\&quot;"</span>).append(graph.height).append(<span class="jxr_string">"\&quot;"</span>);
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>  		sb.append(<span class="jxr_string">" usemap=\&quot;#"</span>).append(mapName).append(<span class="jxr_string">"\&quot; /&gt;"</span>);
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>  
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>  		<strong class="jxr_keyword">return</strong> sb.toString();
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>  	}
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>  		
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>  	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>  <em class="jxr_javadoccomment">	 * Send a PNG format byte stream for the argument Graph to the provided</em>
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>  <em class="jxr_javadoccomment">	 * OutputStream  </em>
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>  <em class="jxr_javadoccomment">	 * @param target OutputStream to write PNG format bytes</em>
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>  <em class="jxr_javadoccomment">	 * @param graph Graph to send to the target</em>
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>  <em class="jxr_javadoccomment">	 * @throws IOException for usual reasons.</em>
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>  <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> render(OutputStream target, <a href="../../../../../org/archive/wayback/util/graph/Graph.html">Graph</a> graph) <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>  		
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>  		BufferedImage bi = 
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>  			<strong class="jxr_keyword">new</strong> BufferedImage(graph.width, graph.height, 
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>  					GraphConfiguration.imageType);
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>  		Graphics2D g2d = bi.createGraphics();
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>  		graph.draw(g2d);
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>  	    ImageIO.write(bi, <span class="jxr_string">"png"</span>, target);
+<a class="jxr_linenumber" name="L95" href="#L95">95</a>  	}
+<a class="jxr_linenumber" name="L96" href="#L96">96</a>  
+<a class="jxr_linenumber" name="L97" href="#L97">97</a>  }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2005&#x2013;2015 <a href="http://netpreserve.org/">IIPC</a>. All rights reserved.</div>
+</body>
+</html>
