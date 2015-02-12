@@ -70,6 +70,53 @@ public class ArchivalUrl {
 	}
 
 	/**
+	 * Return string rendition of context flags.
+	 * @param wbRequest wayback request object providing context flags
+	 * @return string with textual notation of context flags, possibly empty.
+	 */
+	public static String getFlags(WaybackRequest wbRequest) {
+		StringBuilder sb = new StringBuilder();
+		appendFlags(sb, wbRequest);
+		return sb.toString();
+	}
+
+	/**
+	 * Apped textual notation of context flags to StringBuffer given.
+	 * @param sb receives output
+	 * @param wbRequest provides context flags information
+	 */
+	protected static void appendFlags(StringBuilder sb, WaybackRequest wbRequest) {
+		if (wbRequest.isCSSContext()) {
+			sb.append(ArchivalUrlRequestParser.CSS_CONTEXT);
+			sb.append(ArchivalUrlRequestParser.FLAG_DELIM);
+		}
+		if (wbRequest.isJSContext()) {
+			sb.append(ArchivalUrlRequestParser.JS_CONTEXT);
+			sb.append(ArchivalUrlRequestParser.FLAG_DELIM);
+		}
+		if (wbRequest.isIMGContext()) {
+			sb.append(ArchivalUrlRequestParser.IMG_CONTEXT);
+			sb.append(ArchivalUrlRequestParser.FLAG_DELIM);
+		}
+		if (wbRequest.isObjectEmbedContext()) {
+			sb.append(ArchivalUrlRequestParser.OBJECT_EMBED_WRAPPED_CONTEXT);
+			sb.append(ArchivalUrlRequestParser.FLAG_DELIM);
+		}
+		if (wbRequest.isIdentityContext()) {
+			sb.append(ArchivalUrlRequestParser.IDENTITY_CONTEXT);
+			sb.append(ArchivalUrlRequestParser.FLAG_DELIM);
+		}
+		if (wbRequest.isIFrameWrapperContext()) {
+			sb.append(ArchivalUrlRequestParser.IFRAME_WRAPPED_CONTEXT);
+			sb.append(ArchivalUrlRequestParser.FLAG_DELIM);
+		}
+		if (wbRequest.isFrameWrapperContext()) {
+			sb.append(ArchivalUrlRequestParser.FRAME_WRAPPED_CONTEXT);
+			sb.append(ArchivalUrlRequestParser.FLAG_DELIM);
+		}
+	}
+
+	/**
 	 * Given a date, create a new datespec + flags
 	 * which represent the same options as requested by the WaybackRequest
 	 * @param timestamp the 14-digit timestamp to use
@@ -78,50 +125,14 @@ public class ArchivalUrl {
 	 */
 	public static String getDateSpec(WaybackRequest wbRequest, String datespec) {
 		int dateLen = 0;
-		if(datespec != null) {
+		if (datespec != null) {
 			dateLen = datespec.length();
 		}
-		StringBuilder sb = 
-			new StringBuilder(dateLen +10);
-		if(dateLen > 0) {
+		StringBuilder sb = new StringBuilder(dateLen + 10);
+		if (dateLen > 0) {
 			sb.append(datespec);
 		}
-
-		if(wbRequest.isCSSContext()) {
-			sb.append(ArchivalUrlRequestParser.CSS_CONTEXT);
-			sb.append(ArchivalUrlRequestParser.FLAG_DELIM);
-			dateLen++;
-		}
-		if(wbRequest.isJSContext()) {
-			sb.append(ArchivalUrlRequestParser.JS_CONTEXT);
-			sb.append(ArchivalUrlRequestParser.FLAG_DELIM);
-			dateLen++;
-		}
-		if(wbRequest.isIMGContext()) {
-			sb.append(ArchivalUrlRequestParser.IMG_CONTEXT);
-			sb.append(ArchivalUrlRequestParser.FLAG_DELIM);
-			dateLen++;
-		}
-		if(wbRequest.isObjectEmbedContext()) {
-			sb.append(ArchivalUrlRequestParser.OBJECT_EMBED_WRAPPED_CONTEXT);
-			sb.append(ArchivalUrlRequestParser.FLAG_DELIM);
-			dateLen++;
-		}
-		if(wbRequest.isIdentityContext()) {
-			sb.append(ArchivalUrlRequestParser.IDENTITY_CONTEXT);
-			sb.append(ArchivalUrlRequestParser.FLAG_DELIM);
-			dateLen++;
-		}
-		if(wbRequest.isIFrameWrapperContext()) {
-			sb.append(ArchivalUrlRequestParser.IFRAME_WRAPPED_CONTEXT);
-			sb.append(ArchivalUrlRequestParser.FLAG_DELIM);
-			dateLen++;
-		}
-		if(wbRequest.isFrameWrapperContext()) {
-			sb.append(ArchivalUrlRequestParser.FRAME_WRAPPED_CONTEXT);
-			sb.append(ArchivalUrlRequestParser.FLAG_DELIM);
-			dateLen++;
-		}
+		appendFlags(sb, wbRequest);
 		return sb.toString();
 	}
 	

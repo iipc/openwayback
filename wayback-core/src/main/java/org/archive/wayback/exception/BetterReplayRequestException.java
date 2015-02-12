@@ -2,6 +2,7 @@ package org.archive.wayback.exception;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.archive.wayback.ReplayURIConverter.URLStyle;
 import org.archive.wayback.archivalurl.ArchivalUrl;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
@@ -57,8 +58,10 @@ public class BetterReplayRequestException extends BetterRequestException {
 	public void generateResponse(HttpServletResponse response,
 			WaybackRequest wbRequest) {
 		AccessPoint accessPoint = wbRequest.getAccessPoint();
-		String replayURL = accessPoint.getUriConverter().makeReplayURI(
-			ArchivalUrl.getDateSpec(wbRequest, timestamp), targetURI);
+		String flags = ArchivalUrl.getFlags(wbRequest);
+		// XXX there's no strong reason for URLStyle.SERVER_RELATIVE. It's been a common form because
+		// replayURIPrefix is often configured with server-relative URL.
+		String replayURL = accessPoint.makeReplayURI(timestamp, targetURI, flags, URLStyle.SERVER_RELATIVE);
 		response.setStatus(HttpServletResponse.SC_FOUND);
 		response.setHeader("Location", replayURL);
 

@@ -18,6 +18,7 @@ import org.archive.wayback.proxy.ProxyHttpsResultURIConverter;
  * This class is better called <em>Context Independent</em> rather than
  * <em>Identity</em>. Perhaps this class may be dropped in the near future.
  * </p>
+ * @deprecated 2015-02-10 no replacement.
  */
 public class IdentityResultURIConverterFactory implements
 		ContextResultURIConverterFactory {

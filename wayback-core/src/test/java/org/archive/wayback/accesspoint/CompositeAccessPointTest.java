@@ -23,7 +23,7 @@ import org.archive.wayback.ResourceStore;
 import org.archive.wayback.accesscontrol.CollectionContext;
 import org.archive.wayback.accesscontrol.ContextExclusionFilterFactory;
 import org.archive.wayback.archivalurl.ArchivalUrlRequestParser;
-import org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter;
+import org.archive.wayback.archivalurl.ArchivalUrlReplayURIConverter;
 import org.archive.wayback.archivalurl.ArchivalUrlResultURIConverterFactory;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
@@ -116,7 +116,7 @@ public class CompositeAccessPointTest extends TestCase {
 
 		// This ResultURIConverter shall be ignored.
 		{
-			ArchivalUrlResultURIConverter uc = new ArchivalUrlResultURIConverter();
+			ArchivalUrlReplayURIConverter uc = new ArchivalUrlReplayURIConverter();
 			uc.setReplayURIPrefix("/web/");
 			cut.setUriConverter(uc);
 		}

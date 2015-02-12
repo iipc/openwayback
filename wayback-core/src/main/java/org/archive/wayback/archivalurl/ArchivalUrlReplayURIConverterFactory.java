@@ -21,24 +21,27 @@
 package org.archive.wayback.archivalurl;
 
 import org.archive.wayback.ResultURIConverter;
+import org.archive.wayback.accesspoint.AccessPointAdapter;
 import org.archive.wayback.accesspoint.CompositeAccessPoint;
 import org.archive.wayback.replay.html.ContextResultURIConverterFactory;
 
 /**
- * The {@link ArchivalUrlResultURIConverterFactory} creates new
- * {@link ArchivalUrlResultURIConverter}.
+ * The {@link ArchivalUrlReplayURIConverterFactory} creates new
+ * {@link ArchivalUrlReplayURIConverter} for {@link AccessPointAdapter} serving {@code replayURIPrefix}.
+ * Typically set to {@link CompositeAccessPoint#setUriConverterFactory(ContextResultURIConverterFactory)}.
  * <p>
  * {@link #getContextConverter(String)} method expects {@code replayURIPrefix} as argument,
- * which is set to {@code ArchivalUrlResultURIConverter} returned. This class is used as a
- * bootstrapping factory for {@link CompositeAccessPoint}.
+ * which is what {@link AccessPointAdapter#getReplayPrefix()} returns.
  * </p>
- * @deprecated 2015-02-10 replaced by ArchivalUrlReplayURIConverterFactory
+ * <p>
+ * Replaces ArchivalUrlResultURIConverterFactory.
+ * </p>
  */
-public class ArchivalUrlResultURIConverterFactory implements
+public class ArchivalUrlReplayURIConverterFactory implements
 		ContextResultURIConverterFactory {
 
 	public ResultURIConverter getContextConverter(String replayURIPrefix) {
-		ArchivalUrlResultURIConverter converter = new ArchivalUrlResultURIConverter();
+		ArchivalUrlReplayURIConverter converter = new ArchivalUrlReplayURIConverter();
 		converter.setReplayURIPrefix(replayURIPrefix);
 		return converter;
 	}

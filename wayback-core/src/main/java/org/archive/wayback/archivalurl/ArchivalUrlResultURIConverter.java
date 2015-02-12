@@ -33,6 +33,7 @@ import org.archive.wayback.webapp.AccessPointAware;
  * Replay URL is <i>replayURIPrefix</i>+<i>datespec</i>[<i>context</i>]+{@code "/"}+<i>URL</i>.
  *
  * @author brad
+ * @deprecated 2015-02-10 use {@link ArchivalUrlReplayURIConverter}.
  */
 public class ArchivalUrlResultURIConverter implements ResultURIConverter,
 		AccessPointAware, ContextResultURIConverterFactory {
