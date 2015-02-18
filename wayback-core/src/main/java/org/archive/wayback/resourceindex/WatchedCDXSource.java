@@ -40,7 +40,7 @@ import org.archive.wayback.resourceindex.cdx.CDXIndex;
  * <property name="source">
  *   <bean class="org.archive.wayback.resourceindex.WatchedCDXSource">
  *     <property name="recursive" value="false" />
- *     <property name="filepatterns">
+ *     <property name="filters">
  *       <list>
  *         <value>^.+\.cdx$</value>
  *       </list>
@@ -61,6 +61,7 @@ public class WatchedCDXSource extends CompositeSearchResultSource {
     private Thread watcherThread;
     private Path path;
     private boolean recursive = false;
+    private List<String> filters;
     private ArrayList<Pattern> includePatterns = new ArrayList<Pattern>();
     private final Set<FileVisitOption> visitOptions = EnumSet
             .noneOf(FileVisitOption.class);
@@ -77,10 +78,11 @@ public class WatchedCDXSource extends CompositeSearchResultSource {
         for (String filter : filters) {
             includePatterns.add(Pattern.compile(filter));
         }
+        this.filters = filters;
     }
 
-    public ArrayList<Pattern> getFilters() {
-        return this.includePatterns;
+    public List<String> getFilters() {
+        return this.filters;
     }
 
     public void setRecursive(boolean recursive) {
