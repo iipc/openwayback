@@ -20,6 +20,7 @@
       <subsection name="Features">
        <ul>
           <li>WatchedCDXSource now monitors directories for new CDX files. <a href="https://github.com/iipc/openwayback/pull/181">#181</a></li>
+          <li>WatchedCDXSource now optionally recurses and filters on filenames. <a href="https://github.com/iipc/openwayback/pull/219">#219</a></li>
        </ul>
       </subsection>
     </section>
