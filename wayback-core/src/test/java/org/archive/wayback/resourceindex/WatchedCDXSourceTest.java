@@ -142,6 +142,25 @@ public class WatchedCDXSourceTest extends TestCase {
         }
     }
 
+    /**
+     * Test method for non-recursive ENTRY_CREATE in
+     * {@link org.archive.wayback.resourceindex.WatchedCDXSource.WatcherThread)}
+     * .
+     * 
+     * @throws InterruptedException
+     * 
+     */
+    public void testSubdirectoryAddSourcesNonRecursive() throws InterruptedException {
+        cdxSource.setRecursive(false);
+        cdxSource.setPath(cdxDir.toString());
+        Path newDir = addSubdirectory();
+        for (int i = 0; i < 10; i++) {
+            addCdx(newDir);
+            Thread.sleep(100L);
+            assertEquals(0, cdxSource.getSources().size());
+        }
+    }
+
     @Override
     protected void tearDown() {
         try {

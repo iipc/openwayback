@@ -3,6 +3,7 @@ package org.archive.wayback.resourceindex;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.FileVisitResult.CONTINUE;
+import static java.nio.file.FileVisitResult.SKIP_SUBTREE;
 
 import java.io.IOException;
 import java.nio.file.FileSystems;
@@ -195,20 +196,17 @@ public class WatchedCDXSource extends CompositeSearchResultSource {
             @Override
             public FileVisitResult preVisitDirectory(Path dir,
                     BasicFileAttributes attrs) throws IOException {
-                LOGGER.info("Watching: " + dir.toString());
-                WatchKey key = dir
-                        .register(watcher, ENTRY_CREATE, ENTRY_DELETE);
-                keys.put(key, dir);
-                return CONTINUE;
+                if (keys.keySet().size() < depth) {
+                    WatchKey key = dir
+                            .register(watcher, ENTRY_CREATE, ENTRY_DELETE);
+                    LOGGER.info("Watching: " + dir.toString());
+                    keys.put(key, dir);
+                    return CONTINUE;
+                } else {
+                    return SKIP_SUBTREE;
+                }
+                
             }
         }
-    }
-
-    public static void main(String[] args) {
-        CDXIndex index0 = new CDXIndex();
-        index0.setPath("C:/Test");
-        CDXIndex index1 = new CDXIndex();
-        index1.setPath("C:/Test");
-        System.out.println(index0.equals(index1));
     }
 }
