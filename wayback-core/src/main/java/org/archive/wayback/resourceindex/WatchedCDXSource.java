@@ -18,11 +18,16 @@ import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.archive.wayback.resourceindex.cdx.CDXIndex;
 
@@ -56,11 +61,26 @@ public class WatchedCDXSource extends CompositeSearchResultSource {
     private Thread watcherThread;
     private Path path;
     private boolean recursive = false;
+    private ArrayList<Pattern> includePatterns = new ArrayList<Pattern>();
     private final Set<FileVisitOption> visitOptions = EnumSet
             .noneOf(FileVisitOption.class);
 
     public WatchedCDXSource() {
         visitOptions.add(FileVisitOption.FOLLOW_LINKS);
+    }
+
+    {
+        setFilters(Arrays.asList("^.+\\.cdx$"));
+    }
+
+    public void setFilters(List<String> filters) {
+        for (String filter : filters) {
+            includePatterns.add(Pattern.compile(filter));
+        }
+    }
+
+    public ArrayList<Pattern> getFilters() {
+        return this.includePatterns;
     }
 
     public void setRecursive(boolean recursive) {
@@ -183,11 +203,19 @@ public class WatchedCDXSource extends CompositeSearchResultSource {
             public FileVisitResult visitFile(Path path,
                     BasicFileAttributes attrs) {
                 if (attrs.isRegularFile()) {
-                    CDXIndex index = new CDXIndex();
-                    index.setPath(path.toString());
-                    if (!sources.contains(index)) {
-                        LOGGER.info("Adding CDX: " + index.getPath());
-                        addSource(index);
+                    String spath = path.toString();
+                    Matcher matcher;
+                    for (Pattern pattern : includePatterns) {
+                        matcher = pattern.matcher(spath);
+                        if (matcher.matches()) {
+                            CDXIndex index = new CDXIndex();
+                            index.setPath(spath);
+                            if (!sources.contains(index)) {
+                                LOGGER.info("Adding CDX: " + index.getPath());
+                                addSource(index);
+                            }
+                        }
+                        break;
                     }
                 }
                 return CONTINUE;
@@ -197,15 +225,15 @@ public class WatchedCDXSource extends CompositeSearchResultSource {
             public FileVisitResult preVisitDirectory(Path dir,
                     BasicFileAttributes attrs) throws IOException {
                 if (keys.keySet().size() < depth) {
-                    WatchKey key = dir
-                            .register(watcher, ENTRY_CREATE, ENTRY_DELETE);
+                    WatchKey key = dir.register(watcher, ENTRY_CREATE,
+                            ENTRY_DELETE);
                     LOGGER.info("Watching: " + dir.toString());
                     keys.put(key, dir);
                     return CONTINUE;
                 } else {
                     return SKIP_SUBTREE;
                 }
-                
+
             }
         }
     }

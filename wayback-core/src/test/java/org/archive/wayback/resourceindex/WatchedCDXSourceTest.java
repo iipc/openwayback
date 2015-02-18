@@ -50,6 +50,17 @@ public class WatchedCDXSourceTest extends TestCase {
         return newPath;
     }
 
+    private Path addNonCdx(Path dir) {
+        Path newPath = null;
+        try {
+            newPath = Files.createTempFile(dir,
+                    Long.toString(System.nanoTime()), ".tmp");
+        } catch (IOException e) {
+            fail("Error creating temp. file: " + e.getMessage());
+        }
+        return newPath;
+    }
+
     protected Path addSubdirectory() {
         Path newDir = null;
         try {
@@ -92,6 +103,24 @@ public class WatchedCDXSourceTest extends TestCase {
             Thread.sleep(100L);
             assertEquals(cdxCount, cdxSource.getSources().size());
         }
+    }
+
+    /**
+     * Test method for non-CDX ENTRY_CREATE in
+     * {@link org.archive.wayback.resourceindex.WatchedCDXSource.WatcherThread)}
+     * .
+     * 
+     * @throws InterruptedException
+     * 
+     */
+    public void testAddNonCDXSources() throws InterruptedException {
+        cdxSource.setRecursive(false);
+        cdxSource.setPath(cdxDir.toString());
+        addCdx(cdxDir);
+        Thread.sleep(100L);
+        addNonCdx(cdxDir);
+        Thread.sleep(100L);
+        assertEquals(1, cdxSource.getSources().size());
     }
 
     /**
