@@ -14,14 +14,14 @@
   <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
     <property name="properties">
       <value>
-        wayback.basedir=/tmp/openwayback
-        
+        wayback.basedir=#{systemEnvironment['WAYBACK_BASEDIR']?:'/tmp/openwayback'}
+
         wayback.archivedir.1=${wayback.basedir}/files1/
         wayback.archivedir.2=${wayback.basedir}/files2/
-        
-        wayback.url.scheme=http
-        wayback.url.host=localhost
-        wayback.url.port=8080
+
+        wayback.url.scheme=#{systemEnvironment['WAYBACK_URL_SCHEME']?:'http'}
+        wayback.url.host=#{systemEnvironment['WAYBACK_URL_HOST']?:'localhost'}
+        wayback.url.port=#{systemEnvironment['WAYBACK_URL_PORT']?:'8080'}
         wayback.url.prefix=${wayback.url.scheme}://${wayback.url.host}:${wayback.url.port}
       </value>
     </property>
