@@ -63,7 +63,7 @@ public class FlatFileResourceFileLocationDB implements ResourceFileLocationDB  {
 		}
 		
 		//if user has requested url without slash at end, check if any videos for url with slash at end
-		if (urls.size() == 0 && name.indexOf("?") == -1 && !name.endsWith("/")) {
+		if (name.indexOf("?") == -1 && !name.endsWith("/")) {
 
 			prefix = name + "/" + delimiter;
 
