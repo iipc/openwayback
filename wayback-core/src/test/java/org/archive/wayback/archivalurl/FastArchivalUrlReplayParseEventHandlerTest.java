@@ -53,7 +53,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 		// urlKey is not set as it is unused
 
 		// set up the context:
-		context = new ReplayParseContext(uriConverter, capture);
+		context = new ReplayParseContext(uriConverter, uriConverter, capture);
 		context.setOutputCharset(outputCharset);
 
 		delegator = new FastArchivalUrlReplayParseEventHandler();

@@ -28,6 +28,7 @@ import org.archive.io.warc.WARCRecord;
 import org.archive.wayback.QueryRenderer;
 import org.archive.wayback.ReplayDispatcher;
 import org.archive.wayback.ReplayRenderer;
+import org.archive.wayback.ReplayURIConverter;
 import org.archive.wayback.RequestParser;
 import org.archive.wayback.ResourceIndex;
 import org.archive.wayback.ResourceStore;
@@ -161,6 +162,10 @@ public class AccessPointTest extends TestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
 		cut = new AccessPoint();
+		setUpAccessPoint();
+	}
+
+	protected void setUpAccessPoint() throws Exception {
 		cut.setEnablePerfStatsHeader(false);
 		cut.setEnableMemento(false);
 		cut.setExclusionFactory(null);
@@ -388,7 +393,7 @@ public class AccessPointTest extends TestCase {
 	 * <p>
 	 * It's left as caller's responsibility to setup {@link ResourceIndex#query(WaybackRequest)} mock
 	 * to return {@code CaptureSearchResults} returned by this method.
-	 * </p> 
+	 * </p>
 	 * @param resourceIndex ResourceIndex mock
 	 * @param resourceStore ResourceStore mock, can be {@code null}
 	 * @param closestIndex 0-based index of resource to be marked as
@@ -1358,6 +1363,48 @@ public class AccessPointTest extends TestCase {
 		EasyMock.verify(resourceIndex, resourceStore, replay);
 
 		assertTrue("handleRequest return value", r);
+	}
+
+	/**
+	 * Test of custom request-sensitive replay URL construction.
+	 * {@code decorateURIConverter} method is overridden in AccessPoint subclass,
+	 * whose return value is passed to {@code renderResource}.
+	 * @throws Exception
+	 */
+	public void testDecorateURIConverter() throws Exception {
+		// No method will be invoked as ReplayRenderer is mocked. We just check if
+		// replayRendeer.renderResource method is called with this instance as uriConverter.
+		final ReplayURIConverter decorated = EasyMock.createMock(ReplayURIConverter.class);
+		cut = new AccessPoint() {
+			@Override
+			public ReplayURIConverter decorateURIConverter(
+					ReplayURIConverter uriConverter,
+					HttpServletRequest httpRequest, WaybackRequest wbRequest) {
+				return decorated;
+			}
+		};
+		setUpAccessPoint();
+		final String timestamp = "20140505101010";
+		setReplayRequest("http://example.com/", timestamp);
+
+		Resource payloadResource = createTestHtmlResource(timestamp,
+			"hogehogehogehoge\n".getBytes("UTF-8"));
+		CaptureSearchResults results = setupCaptures(0, payloadResource);
+		CaptureSearchResult closest = results.getClosest();
+
+		//expectRendering(closest, payloadResource, payloadResource, results);
+		EasyMock.expect(
+			replay.getRenderer(wbRequest, closest, payloadResource,
+				payloadResource)).andReturn(replayRenderer);
+		replayRenderer.renderResource(httpRequest, httpResponse, wbRequest,
+			closest, payloadResource, payloadResource, decorated, results);
+
+		EasyMock.replay(httpRequest, httpResponse, resourceIndex,
+			resourceStore, replay, replayRenderer, decorated);
+
+		cut.handleRequest(httpRequest, httpResponse);
+
+		EasyMock.verify(replayRenderer);
 	}
 
 	/**

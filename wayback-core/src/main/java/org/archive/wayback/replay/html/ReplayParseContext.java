@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.archive.wayback.ReplayURIConverter;
+import org.archive.wayback.ReplayURIConverter.URLStyle;
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.WaybackConstants;
 import org.archive.wayback.core.Capture;
@@ -63,6 +64,8 @@ public class ReplayParseContext extends ParseContext implements ReplayContext {
 
 	private ReplayURLTransformer replayUrlTransformer;
 
+	private ReplayURIConverter uriConverter;
+
 	/**
 	 * {@link ReplayURLTransformer} implementation that uses old
 	 * {@link ContextResultURIConverterFactory} and {@link ResultURIConverter}
@@ -78,14 +81,9 @@ public class ReplayParseContext extends ParseContext implements ReplayContext {
 		public static final String DATA_PREFIX = "data:";
 		public static final String ANCHOR_PREFIX = "#";
 
-		private ContextResultURIConverterFactory uriConverterFactory;
-		protected Map<String, ResultURIConverter> converters;
 		protected boolean rewriteHttpsOnly;
 
-		public CompatReplayURLTransformer(
-				ContextResultURIConverterFactory uriConverterFactory) {
-			this.uriConverterFactory = uriConverterFactory;
-			this.converters = new HashMap<String, ResultURIConverter>();
+		public CompatReplayURLTransformer() {
 		}
 
 		private static boolean isProtocolRelative(String url) {
@@ -149,8 +147,36 @@ public class ReplayParseContext extends ParseContext implements ReplayContext {
 			if (!isRewriteSupported(absurl)) {
 				return url;
 			}
+			return replayContext.makeReplayURI(absurl, flags, URLStyle.ABSOLUTE);
+		}
+
+		public boolean isRewriteSupported(String url) {
+			if (rewriteHttpsOnly)
+				return url.startsWith(WaybackConstants.HTTPS_URL_PREFIX);
+			return true;
+		}
+	}
+
+	protected static class CompatReplayURIConverter implements ReplayURIConverter {
+		//private ResultURIConverter uriConverter;
+		private ContextResultURIConverterFactory uriConverterFactory;
+		protected Map<String, ResultURIConverter> converters;
+		public CompatReplayURIConverter(
+				ContextResultURIConverterFactory uriConverterFactory) {
+			this.uriConverterFactory = uriConverterFactory;
+			this.converters = new HashMap<String, ResultURIConverter>();
+		}
+
+		@Override
+		public String makeReplayURI(String datespec, String url, String flags,
+				URLStyle urlStyle) {
 			ResultURIConverter converter = getConverter(flags);
-			return converter.makeReplayURI(replayContext.getDatespec(), absurl);
+			return converter.makeReplayURI(datespec, url);
+		}
+
+		@Override
+		public String makeReplayURI(String datespec, String url) {
+			return makeReplayURI(datespec, url, "", URLStyle.ABSOLUTE);
 		}
 
 		protected ResultURIConverter getConverter(String flags) {
@@ -165,48 +191,27 @@ public class ReplayParseContext extends ParseContext implements ReplayContext {
 			}
 			return converter;
 		}
-
-		public boolean isRewriteSupported(String url) {
-			if (rewriteHttpsOnly)
-				return url.startsWith(WaybackConstants.HTTPS_URL_PREFIX);
-			return true;
-		}
-	}
-
-	protected static class CompatReplayURIConverter implements ReplayURIConverter {
-		private ResultURIConverter uriConverter;
-		public CompatReplayURIConverter(ResultURIConverter uriConverter) {
-			this.uriConverter = uriConverter;
-		}
-		@Override
-		public String makeReplayURI(String datespec, String url, String flags,
-				URLStyle urlStyle) {
-			return uriConverter.makeReplayURI(datespec, url);
-		}
-
-		@Override
-		public String makeReplayURI(String datespec, String url) {
-			return uriConverter.makeReplayURI(datespec, url);
-		}
 	}
 
 	/**
 	 * Initialize {@code ReplayParseContext} with URL translator object and
 	 * reference to target capture.
+	 * @param uriConverter TODO
 	 * @param replayUrlTransformer URL translator
 	 * @param result capture reference (originalUrl and captureTimestamp)
 	 */
-	public ReplayParseContext(ReplayURLTransformer replayUrlTransformer,
-			CaptureSearchResult result) {
+	public ReplayParseContext(ReplayURIConverter uriConverter,
+			ReplayURLTransformer replayUrlTransformer, CaptureSearchResult result) {
 		this.result = result;
 		setBaseUrl(result.getOriginalUrl());
 		this.datespec = result.getCaptureTimestamp();
 		this.replayUrlTransformer = replayUrlTransformer;
+		this.uriConverter = uriConverter;
 	}
 
 	/**
 	 * Transitional constructor method, for use by wayback-core code.
-	 * Calls {@link #ReplayParseContext(ReplayURLTransformer, CaptureSearchResult)}
+	 * Calls {@link #ReplayParseContext(ReplayURIConverter, ReplayURLTransformer, CaptureSearchResult)}
 	 * if {@code uriConverter} implements {@link ReplayURLTransformer}, and Calls
 	 * {@link #ReplayParseContext(ContextResultURIConverterFactory, URL, String)}
 	 * otherwise.
@@ -219,7 +224,15 @@ public class ReplayParseContext extends ParseContext implements ReplayContext {
 			ContextResultURIConverterFactory converterFactory,
 			CaptureSearchResult result, boolean rewriteHttpsOnly) {
 		if (uriConverter instanceof ReplayURLTransformer) {
-			return new ReplayParseContext((ReplayURLTransformer)uriConverter, result);
+			// We know every standard ReplayURITransformer implements ReplayURIConverter,
+			// but just in case.
+			final ReplayURIConverter rConverter;
+			if (uriConverter instanceof ReplayURIConverter) {
+				rConverter = (ReplayURIConverter)uriConverter;
+			} else {
+				rConverter = new CompatReplayURIConverter(converterFactory);
+			}
+			return new ReplayParseContext(rConverter, (ReplayURLTransformer)uriConverter, result);
 		}
 		// backward-compatibility mode
 		final ContextResultURIConverterFactory fact;
@@ -246,7 +259,7 @@ public class ReplayParseContext extends ParseContext implements ReplayContext {
 	 * @param uriConverterFactory contextualized URI converter factory, must not be {@code null}.
 	 * @param result capture being replayed
 	 * @deprecated 2015-02-04 use
-	 *             {@link #ReplayParseContext(ReplayURLTransformer, CaptureSearchResult)}
+	 *             {@link #ReplayParseContext(ReplayURIConverter, ReplayURLTransformer, CaptureSearchResult)}
 	 *             .
 	 */
 	public ReplayParseContext(
@@ -255,7 +268,8 @@ public class ReplayParseContext extends ParseContext implements ReplayContext {
 		this.result = result;
 		setBaseUrl(result.getOriginalUrl());
 		this.datespec = result.getCaptureTimestamp();
-		this.replayUrlTransformer = new CompatReplayURLTransformer(uriConverterFactory);
+		this.replayUrlTransformer = new CompatReplayURLTransformer();
+		this.uriConverter = new CompatReplayURIConverter(uriConverterFactory);
 	}
 
 	/**
@@ -272,8 +286,8 @@ public class ReplayParseContext extends ParseContext implements ReplayContext {
 			String datespec) {
 		setBaseUrl(baseUrl.toExternalForm());
 		this.datespec = datespec;
-		this.replayUrlTransformer = new CompatReplayURLTransformer(
-			uriConverterFactory);
+		this.replayUrlTransformer = new CompatReplayURLTransformer();
+		this.uriConverter = new CompatReplayURIConverter(uriConverterFactory);
 	}
 
 	public void setPhase(int phase) {
@@ -321,19 +335,11 @@ public class ReplayParseContext extends ParseContext implements ReplayContext {
 	 * @deprecated 2015-01-14 no replacement.
 	 */
 	public Map<String, ResultURIConverter> getConverters() {
-		if (replayUrlTransformer instanceof CompatReplayURLTransformer) {
-			return ((CompatReplayURLTransformer)replayUrlTransformer).converters;
+		if (uriConverter instanceof CompatReplayURIConverter) {
+			return ((CompatReplayURIConverter)uriConverter).converters;
 		} else {
 			return null;
 		}
-	}
-
-	/**
-	 * Return capture being rendered.
-	 */
-	@Override
-	public Capture getCapture() {
-		return result;
 	}
 
 	/**
@@ -366,8 +372,8 @@ public class ReplayParseContext extends ParseContext implements ReplayContext {
 	 * @deprecated 2015-01-14 no replacement
 	 */
 	public void setConverters(Map<String, ResultURIConverter> converters) {
-		if (replayUrlTransformer instanceof CompatReplayURLTransformer) {
-			((CompatReplayURLTransformer)replayUrlTransformer).converters = converters;
+		if (uriConverter instanceof CompatReplayURIConverter) {
+			((CompatReplayURIConverter)uriConverter).converters = converters;
 		}
 	}
 
@@ -377,8 +383,8 @@ public class ReplayParseContext extends ParseContext implements ReplayContext {
 	 * @deprecated 2015-01-14 no replacement
 	 */
 	public void addConverter(String flag, ResultURIConverter converter) {
-		if (replayUrlTransformer instanceof CompatReplayURLTransformer) {
-			((CompatReplayURLTransformer)replayUrlTransformer).converters.put(
+		if (uriConverter instanceof CompatReplayURIConverter) {
+			((CompatReplayURIConverter)uriConverter).converters.put(
 				flag, converter);
 		}
 	}
@@ -393,8 +399,8 @@ public class ReplayParseContext extends ParseContext implements ReplayContext {
 	 * @deprecated 2015-02-10 no direct replacement. See {@link ReplayURLTransformer}
 	 */
 	public ResultURIConverter getConverter(String flags) {
-		if (replayUrlTransformer instanceof CompatReplayURLTransformer) {
-			return ((CompatReplayURLTransformer)replayUrlTransformer).getConverter(flags);
+		if (uriConverter instanceof CompatReplayURIConverter) {
+			return ((CompatReplayURIConverter)uriConverter).getConverter(flags);
 		} else {
 			return null;
 		}
@@ -423,6 +429,11 @@ public class ReplayParseContext extends ParseContext implements ReplayContext {
 		if (replayUrlTransformer == null)
 			return url;
 		return replayUrlTransformer.transform(this, url, flags);
+	}
+
+	@Override
+	public String makeReplayURI(String url, String flags, URLStyle urlStyle) {
+		return uriConverter.makeReplayURI(getDatespec(), url, flags, urlStyle);
 	}
 
 	/**
@@ -467,10 +478,6 @@ public class ReplayParseContext extends ParseContext implements ReplayContext {
 		this.jspExec = jspExec;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.archive.wayback.replay.html.ReplayContext#getDatespec()
-	 */
-	@Override
 	public String getDatespec() {
 		return datespec;
 	}

@@ -26,10 +26,12 @@ import java.util.Locale;
 import java.util.Properties;
 
 import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
 
 import org.archive.wayback.ExceptionRenderer;
 import org.archive.wayback.QueryRenderer;
 import org.archive.wayback.ReplayDispatcher;
+import org.archive.wayback.ReplayURIConverter;
 import org.archive.wayback.RequestParser;
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.UrlCanonicalizer;
@@ -391,5 +393,14 @@ public class AccessPointAdapter extends AccessPoint {
 	@Override
 	public RewriteDirector getRewriteDirector() {
 		return composite.getRewriteDirector();
+	}
+
+	@Override
+	public ReplayURIConverter decorateURIConverter(
+			ReplayURIConverter uriConverter, HttpServletRequest httpRequest,
+			WaybackRequest wbRequest) {
+		// delegate to composite for easy customization (decorateURIConverter is
+		// public to allow this.)
+		return composite.decorateURIConverter(uriConverter, httpRequest, wbRequest);
 	}
 }

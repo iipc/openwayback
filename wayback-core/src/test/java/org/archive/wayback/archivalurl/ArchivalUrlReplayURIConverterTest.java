@@ -22,6 +22,8 @@ package org.archive.wayback.archivalurl;
 
 import java.net.URISyntaxException;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import junit.framework.TestCase;
 
@@ -29,7 +31,10 @@ import org.archive.url.HandyURL;
 import org.archive.url.URLParser;
 import org.archive.wayback.ReplayURIConverter.URLStyle;
 import org.archive.wayback.memento.MementoUtils;
+import org.archive.wayback.replay.ReplayContext;
 import org.archive.wayback.webapp.AccessPoint;
+import org.easymock.EasyMock;
+import org.easymock.IAnswer;
 
 /**
  * Test for {@link ArchivalUrlReplayURIConverter}
@@ -85,13 +90,40 @@ public class ArchivalUrlReplayURIConverterTest extends TestCase {
 			assertEquals("//web.archive.org/web/" + TIMESTAMP + "/" + URL, url);
 		}
 	}
-	
+
+	/**
+	 * {@code transform} method must call {@link ReplayContext#makeReplayURI(String, String, URLStyle)}
+	 * for replay URL construction, must not call {@code makeReplayURI} in the same class directly.
+	 * @throws Exception
+	 */
+	public void testTransformBuildsURLThroughReplayContext() throws Exception {
+		final ArchivalUrlReplayURIConverter cut = new ArchivalUrlReplayURIConverter();
+		cut.setReplayURIPrefix("http://web.archive.org/web/");
+
+		final ReplayContext replayContext = EasyMock.createMock(ReplayContext.class);
+
+		final String url = "http://example.com/";
+		final String datespec = "20100505101010";
+		EasyMock.expect(replayContext.resolve(url)).andReturn(url);
+		EasyMock.expect(replayContext.makeReplayURI(url, "", URLStyle.ABSOLUTE))
+			.andReturn(cut.getReplayURIPrefix() + datespec + "/" + url);
+
+		EasyMock.replay(replayContext);
+
+		cut.transform(replayContext, url, "");
+
+		EasyMock.verify(replayContext);
+	}
+
 	/**
 	 * For backward compatibility, ArchivalUrlReplayURIConverter complements
 	 * relative {@code replayPrefix} with {@code aggregationPrefix} config parameter.
 	 * @throws Exception
 	 */
 	public void testBackwardCompatibibility() throws Exception {
+		// suppress compatibility warning:
+		Logger.getLogger(ArchivalUrlReplayURIConverter.class.getName()).setLevel(Level.SEVERE);
+
 		final String AGGREGATION_PREFIX = "http://web.archive.org";
 
 		ArchivalUrlReplayURIConverter cut = new ArchivalUrlReplayURIConverter();
@@ -99,9 +131,9 @@ public class ArchivalUrlReplayURIConverterTest extends TestCase {
 		ap.setReplayPrefix("/web/");
 		ap.setConfigs(new Properties());
 		ap.getConfigs().setProperty(MementoUtils.AGGREGATION_PREFIX_CONFIG, AGGREGATION_PREFIX);
-		
+
 		cut.setAccessPoint(ap);
-		
+
 		assertEquals(AGGREGATION_PREFIX + "/web/", cut.getReplayURIPrefix());
 	}
 

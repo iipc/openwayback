@@ -2,7 +2,7 @@ package org.archive.wayback.replay;
 
 import java.net.URISyntaxException;
 
-import org.archive.wayback.core.Capture;
+import org.archive.wayback.ReplayURIConverter.URLStyle;
 
 /**
  * {@code ReplayContext} provides {@link ReplayURLTransformer} with information
@@ -10,16 +10,6 @@ import org.archive.wayback.core.Capture;
  * scheme of access point through which the resource is replayed.
  */
 public interface ReplayContext {
-	/**
-	 * @return capture being replayed
-	 */
-	public Capture getCapture();
-
-	/**
-	 * @return the datespec
-	 */
-	public abstract String getDatespec();
-
 	/**
 	 * Resolve non-full URL by the URL of resource being replayed.
 	 * <p>
@@ -32,4 +22,14 @@ public interface ReplayContext {
 	 * @throws URISyntaxException if {@code url} is not valid URI
 	 */
 	public String resolve(String url) throws URISyntaxException;
+
+	/**
+	 * Build a URL for replaying {@code url} in replay context {@code flags},
+	 * in URL style {@code urlStyle}.
+	 * @param url URL of resource to be replayed (absolute URL)
+	 * @param flags replay context flags (may be {@code null})
+	 * @param urlStyle desired style of URL to be constructed
+	 * @return projected replay URL
+	 */
+	public String makeReplayURI(String url, String flags, URLStyle urlStyle);
 }

@@ -70,6 +70,6 @@ public class ProxyHttpsReplayURIConverter implements ReplayURIConverter, ReplayU
 				// not a valid absolute URL - let it go
 			}
 		}
-		return makeReplayURI(replayContext.getDatespec(), url, null, URLStyle.ABSOLUTE);
+		return replayContext.makeReplayURI(url, null, URLStyle.ABSOLUTE);
 	}
 }

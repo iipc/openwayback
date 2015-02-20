@@ -22,7 +22,8 @@ public class ProxyHttpsReplayURIConverterTest extends TestCase {
 
 	public void testMakeReplayURI() {
 		final String input = "http://home.archive.org/index.html";
-		assertEquals(input, cut.makeReplayURI("20140404102345", input, null, URLStyle.ABSOLUTE));
+		assertEquals(input,
+			cut.makeReplayURI("20140404102345", input, null, URLStyle.ABSOLUTE));
 	}
 
 	public void testMakeReplayURI_https() {
@@ -30,7 +31,7 @@ public class ProxyHttpsReplayURIConverterTest extends TestCase {
 		assertEquals(input.replaceFirst("https:", "http:"),
 			cut.makeReplayURI("20140404102345", input, null, URLStyle.ABSOLUTE));
 	}
-	
+
 	public void testMakeReplayURI_https_rewriteHttpsOff() {
 		cut.setRewriteHttps(false);
 		final String input = "https://home.archive.org/index.html";
@@ -40,36 +41,36 @@ public class ProxyHttpsReplayURIConverterTest extends TestCase {
 
 	// Test of default ReplayURLTransformer impl
 
-	public void testTranslate_justHostAndPath() {
-		final String input = "home.archive.org/index.html";
-		replayContext = EasyMock.createNiceMock(ReplayContext.class);
-		EasyMock.expect(replayContext.getDatespec()).andStubReturn("20140404102345");
-
-		assertEquals(input, cut.transform(replayContext, input, null));
+	public void testTransform_escapedHttps() {
+		// ReplayURLTransformer shall remove backslash escapes before
+		// passing it to makeReplayURI().
+		final String input = "https:\\/\\/home.example.org/index.html";
+		replayContext = EasyMock.createMock(ReplayContext.class);
+		EasyMock.expect(replayContext.makeReplayURI(
+			EasyMock.eq("https://home.example.org/index.html"),
+			EasyMock.or(EasyMock.<String>isNull(), EasyMock.eq("")),
+			EasyMock.<URLStyle>anyObject())).andReturn(input);
+		EasyMock.replay(replayContext);
+		cut.transform(replayContext, input, null);
+		EasyMock.verify(replayContext);
 	}
 
-	public void testTranslate_justPath() {
-		final String input = "/index.html";
-		replayContext = EasyMock.createNiceMock(ReplayContext.class);
-		EasyMock.expect(replayContext.getDatespec()).andStubReturn("20140404102345");
+	/**
+	 * {@code transform} method must call {@link ReplayContext#makeReplayURI(String, String, URLStyle)}
+	 * for replay URL construction, must not call {@code makeReplayURI} in the same class directly.
+	 * @throws Exception
+	 */
+	public void testTransformBuildsURLThroughReplayContext() throws Exception {
+		final ReplayContext replayContext = EasyMock.createMock(ReplayContext.class);
 
-		assertEquals(input, cut.transform(replayContext, input, null));
+		final String url = "http://example.com/";
+		EasyMock.expect(replayContext.makeReplayURI(url, null, URLStyle.ABSOLUTE))
+			.andReturn(url);
+
+		EasyMock.replay(replayContext);
+
+		cut.transform(replayContext, url, null);
+
+		EasyMock.verify(replayContext);
 	}
-
-	public void testTranslate_relativePath() {
-		final String input = "index.html";
-		replayContext = EasyMock.createNiceMock(ReplayContext.class);
-		EasyMock.expect(replayContext.getDatespec()).andStubReturn("20140404102345");
-
-		assertEquals(input, cut.transform(replayContext, input, null));
-	}
-
-	public void testTranslate_noScheme() {
-		final String input = "//home.archive.org/";
-		replayContext = EasyMock.createNiceMock(ReplayContext.class);
-		EasyMock.expect(replayContext.getDatespec()).andStubReturn("20140404102345");
-
-		assertEquals(input, cut.transform(replayContext, input, null));
-	}
-
 }

@@ -24,6 +24,7 @@ import java.util.ArrayList;
 
 import junit.framework.TestCase;
 
+import org.archive.wayback.ReplayURIConverter;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.proxy.ProxyHttpsReplayURIConverter;
 import org.archive.wayback.replay.ReplayURLTransformer;
@@ -46,7 +47,7 @@ public class JSStringTransformerTest extends TestCase {
 	@Override
 	protected void setUp() throws Exception {
 		baseURL = "http://foo.com";
-		rc = new RecordingReplayParseContext((ReplayURLTransformer)null, baseURL, null);
+		rc = new RecordingReplayParseContext(null, (ReplayURLTransformer)null, baseURL, null);
 		jst = new JSStringTransformer();
 	}
 
@@ -93,7 +94,7 @@ public class JSStringTransformerTest extends TestCase {
 		// setup for proxy-mode (IdentityResultURIConverterFactory returns ProxyHttpsResultURIConverter.)
 		ProxyHttpsReplayURIConverter urlTransformer = new ProxyHttpsReplayURIConverter();
 		urlTransformer.setRewriteHttps(true);
-		rc = new RecordingReplayParseContext(urlTransformer, baseURL, null);
+		rc = new RecordingReplayParseContext(urlTransformer, urlTransformer, baseURL, null);
 
 		// Note: ParseContext.resolve(String) uses UsableURIFactory.getInstance() for
 		// making URL absolute. It not only prepends baseURL but also removes escaping
@@ -218,16 +219,17 @@ public class JSStringTransformerTest extends TestCase {
 		}
 
 		public RecordingReplayParseContext(String baseUrl, String datespec) {
-			this((ReplayURLTransformer)null, baseUrl, datespec);
+			this((ReplayURIConverter)null, (ReplayURLTransformer)null, baseUrl, datespec);
 		}
 
 		/**
+		 * @param uriConverter
 		 * @param urlTransformer
 		 * @param baseUrl
 		 * @param datespec
 		 */
-		public RecordingReplayParseContext(ReplayURLTransformer urlTransformer, String baseUrl, String datespec) {
-			super(urlTransformer, capture(baseUrl, datespec));
+		public RecordingReplayParseContext(ReplayURIConverter uriConverter, ReplayURLTransformer urlTransformer, String baseUrl, String datespec) {
+			super(uriConverter, urlTransformer, capture(baseUrl, datespec));
 			got = new ArrayList<String>();
 			stub = (urlTransformer == null);
 		}

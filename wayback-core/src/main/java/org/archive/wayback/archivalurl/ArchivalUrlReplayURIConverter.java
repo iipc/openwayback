@@ -43,7 +43,6 @@ import org.archive.wayback.webapp.AccessPointAware;
  * <p>
  * Replay URL is <i>replayURIPrefix</i>+<i>datespec</i>[<i>context</i>]+{@code "/"}+<i>URL</i>.
  * </p>
- * @author brad
  */
 public class ArchivalUrlReplayURIConverter implements ReplayURIConverter, ReplayURLTransformer,
 		AccessPointAware /*, ContextResultURIConverterFactory*/ {
@@ -182,7 +181,10 @@ public class ArchivalUrlReplayURIConverter implements ReplayURIConverter, Replay
 		} catch (URISyntaxException ex) {
 			return url;
 		}
-		return makeReplayURI(replayContext.getDatespec(), absurl, flags, urlStyle);
+		// IMPORTANT: call makeReplayURI through replayContext.
+		// This is to allow for decorating ReplayURIConverter with
+		// custom per-request behavior. See AccessPoint#decorateURIConverter.
+		return replayContext.makeReplayURI(absurl, flags, urlStyle);
 	}
 
 	/*

@@ -937,8 +937,14 @@ public class AccessPoint extends AbstractRequestHandler implements
 					}
 				}
 
+				ResultURIConverter uriConverter = getUriConverter();
+				// allow sub-class to add custom request-sensitive behavior to base ReplayURIConverter.
+				if (uriConverter instanceof ReplayURIConverter) {
+					uriConverter = decorateURIConverter((ReplayURIConverter)uriConverter, httpRequest, wbRequest);
+				}
+
 				renderer.renderResource(httpRequest, httpResponse, wbRequest,
-					closest, httpHeadersResource, payloadResource, getUriConverter(), captureResults);
+					closest, httpHeadersResource, payloadResource, uriConverter, captureResults);
 
 				p.rendered();
 				p.write(wbRequest.getReplayTimestamp() + " " +
@@ -1659,6 +1665,21 @@ public class AccessPoint extends AbstractRequestHandler implements
 	 */
 	public void setUriConverter(ResultURIConverter uriConverter) {
 		this.uriConverter = uriConverter;
+	}
+
+	/**
+	 * Return replay URL builder decorated with request-sensitive behavior if necessary.
+	 * Base implementation returns {@code uriConverter} as it is.
+	 * @param uriConverter base, request-agnostic, replay URL builder (return value of
+	 * {@link #getUriConverter()}.
+	 * @param httpRequest current servlet request
+	 * @param wbRequest current wayback request
+	 * @return possibly decorated replay URL builder
+	 */
+	public ReplayURIConverter decorateURIConverter(
+			ReplayURIConverter uriConverter, HttpServletRequest httpRequest,
+			WaybackRequest wbRequest) {
+		return uriConverter;
 	}
 
 	/**

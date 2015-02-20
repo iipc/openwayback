@@ -33,7 +33,6 @@ import org.archive.wayback.replay.ReplayURLTransformer;
  * <p>
  * This class also provides default {@link ReplayURLTransformer} for Domain Prefix mode.
  * </p>
- * @author brad
  */
 public class DomainPrefixReplayURIConverter implements ReplayURIConverter, ReplayURLTransformer {
 
@@ -84,7 +83,7 @@ public class DomainPrefixReplayURIConverter implements ReplayURIConverter, Repla
 		}
 		// TODO: should support URLStyle.PROTOCOL_RELATIVE? SERVER_RELATIVE should
 		// work as well.
-		return makeReplayURI(replayContext.getDatespec(), absurl, null, URLStyle.ABSOLUTE);
+		return replayContext.makeReplayURI(absurl, null, URLStyle.ABSOLUTE);
 	}
 
 	/**
