@@ -139,7 +139,9 @@ public class RobotRules {
 						continue;
 					}
 					String path = disallowMatcher.group(1).trim();
-					current.add(path);
+					// Disallow: without path is just ignored.
+					if (!path.isEmpty())
+						current.add(path);
 					continue;
 				}
 				Matcher allowMatcher = ALLOW_PATTERN.matcher(read);
