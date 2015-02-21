@@ -158,31 +158,14 @@ public class RobotRules {
 	}
 
 	private boolean blocksPath(String path, String curUA, List<String> uaRules) {
-
-		Iterator<String> disItr = uaRules.iterator();
-		while (disItr.hasNext()) {
-			String disallowedPath = disItr.next();
-			if (disallowedPath.length() == 0) {
-
-				if (LOGGER.isLoggable(Level.INFO)) {
-					LOGGER.info("UA(" + curUA +
-							") has empty disallow: Go for it!");
-				}
-				return false;
-
-			} else {
-				if (LOGGER.isLoggable(Level.FINE)) {
-					LOGGER.fine("UA(" + curUA + ") has (" + disallowedPath +
-							") blocked...(" + disallowedPath.length() + ")");
-				}
-				if (disallowedPath.equals("/") ||
-						path.startsWith(disallowedPath)) {
-					if (LOGGER.isLoggable(Level.INFO)) {
-						LOGGER.info("Rule(" + disallowedPath +
-								") applies to (" + path + ")");
-					}
-					return true;
-				}
+		for (String disallowedPath : uaRules) {
+			if (disallowedPath.isEmpty()) {
+				// This is for extra caution. Empty path shouldn't be added
+				// to uaRules in the first place.
+				continue;
+			}
+			if (disallowedPath.equals("/") || path.startsWith(disallowedPath)) {
+				return true;
 			}
 		}
 		return false;
@@ -197,13 +180,11 @@ public class RobotRules {
 	 * @return boolean value where true indicates the path is blocked for ua
 	 */
 	public boolean blocksPathForUA(String path, String ua) {
-
-		if (rules.containsKey(ua.toLowerCase())) {
-
-			return blocksPath(path, ua, rules.get(ua.toLowerCase()));
-
-		} else if (rules.containsKey(GLOBAL_USER_AGENT)) {
-
+		final String lcua = ua.toLowerCase();
+		if (rules.containsKey(lcua)) {
+			return blocksPath(path, ua, rules.get(lcua));
+		}
+		if (rules.containsKey(GLOBAL_USER_AGENT)) {
 			return blocksPath(path, GLOBAL_USER_AGENT,
 				rules.get(GLOBAL_USER_AGENT));
 		}
