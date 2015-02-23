@@ -22,8 +22,6 @@ package org.archive.wayback.archivalurl;
 
 import java.net.URISyntaxException;
 import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import junit.framework.TestCase;
 
@@ -34,7 +32,6 @@ import org.archive.wayback.memento.MementoUtils;
 import org.archive.wayback.replay.ReplayContext;
 import org.archive.wayback.webapp.AccessPoint;
 import org.easymock.EasyMock;
-import org.easymock.IAnswer;
 
 /**
  * Test for {@link ArchivalUrlReplayURIConverter}
@@ -121,9 +118,6 @@ public class ArchivalUrlReplayURIConverterTest extends TestCase {
 	 * @throws Exception
 	 */
 	public void testBackwardCompatibibility() throws Exception {
-		// suppress compatibility warning:
-		Logger.getLogger(ArchivalUrlReplayURIConverter.class.getName()).setLevel(Level.SEVERE);
-
 		final String AGGREGATION_PREFIX = "http://web.archive.org";
 
 		ArchivalUrlReplayURIConverter cut = new ArchivalUrlReplayURIConverter();
@@ -135,6 +129,28 @@ public class ArchivalUrlReplayURIConverterTest extends TestCase {
 		cut.setAccessPoint(ap);
 
 		assertEquals(AGGREGATION_PREFIX + "/web/", cut.getReplayURIPrefix());
+	}
+
+	public void testProtocolRelativeReplayPrefix() throws Exception {
+		// Backward compatibility test 2:
+		// replayPrefix is protocol relative, no aggregation prefix
+		ArchivalUrlReplayURIConverter cut = new ArchivalUrlReplayURIConverter();
+		AccessPoint ap = new AccessPoint();
+		ap.setReplayPrefix("//web.archive.org/web/");
+		ap.setConfigs(new Properties());
+
+		cut.setAccessPoint(ap);
+
+		final String url = "http://example.com/index.html";
+		final String datespec = "20100505010203";
+
+		String result1 = cut.makeReplayURI(datespec, url, "",
+			URLStyle.SERVER_RELATIVE);
+		assertEquals("/web/" + datespec + "/" + url, result1);
+
+		String result2 = cut.makeReplayURI(datespec, url, "", URLStyle.ABSOLUTE);
+		assertEquals("http://web.archive.org/web/" + datespec + "/" + url,
+			result2);
 	}
 
 	/**

@@ -237,6 +237,13 @@ public class ArchivalUrlReplayURIConverter implements ReplayURIConverter, Replay
 						replayURIPrefix +
 						" for backward-compatibility. Please configure replayURIPrefix with absolute URL");
 			}
+		} else if (replayURIPrefix.startsWith("//")) {
+			// replayURIPrefix is protocol relative, and no mementpPrefix.
+			// It was combined with custom code building absolute URL with
+			// the protocol of incoming request.
+			replayURIPrefix = "http:" + replayURIPrefix;
+			LOGGER.warning("Prepended \"http:\" to replayURIPrefix for backward-compatibility. " +
+					"Please configure replayURLPrefix with absolute URL");
 		}
 	}
 }
