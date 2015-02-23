@@ -200,7 +200,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
         final String expected = "<html>" +
                 "<head>" +
                 "<style type=\"text/css\">\n" +
-				"<!-- @import 'http://replay.archive.org/2001cs_/http://www.example.com/shared.css'; -->\n" + 
+				"<!-- @import '/2001cs_/http://www.example.com/shared.css'; -->\n" + 
 				"</style>" +
                 "</head>" +
                 "</html>";
