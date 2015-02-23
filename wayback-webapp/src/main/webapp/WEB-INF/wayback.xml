@@ -152,7 +152,7 @@
     get them back on track.
   -->
   <bean name="+" class="org.archive.wayback.webapp.ServerRelativeArchivalRedirect">
-    <property name="matchPort" value="8080" />
+    <property name="matchPort" value="${wayback.url.port}" />
     <property name="useCollection" value="true" />
   </bean>
 
