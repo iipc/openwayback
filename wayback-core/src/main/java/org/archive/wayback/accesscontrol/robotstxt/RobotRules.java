@@ -2,8 +2,8 @@
  *  This file is part of the Wayback archival access software
  *   (http://archive-access.sourceforge.net/projects/wayback/).
  *
- *  Licensed to the Internet Archive (IA) by one or more individual 
- *  contributors. 
+ *  Licensed to the Internet Archive (IA) by one or more individual
+ *  contributors.
  *
  *  The IA licenses this file to You under the Apache License, Version 2.0
  *  (the "License"); you may not use this file except in compliance with
@@ -44,161 +44,149 @@ import org.archive.wayback.util.ByteOp;
  * @version $Date$, $Revision$
  */
 public class RobotRules {
-	
+
 	private static final long serialVersionUID = 2917420727021840982L;
 	private static final Logger LOGGER = Logger.getLogger(RobotRules.class
-			.getName());
+		.getName());
 	/**
 	 * Special name for User-agent which matches all values
 	 */
 	public static final String GLOBAL_USER_AGENT = "*";
-	
-	protected static final Pattern USER_AGENT_PATTERN = Pattern.compile("(?i)^User-agent\\s*:(.*)");
-	protected static final Pattern DISALLOW_PATTERN = Pattern.compile("(?i)Disallow\\s*:(.*)");
-	protected static final Pattern ALLOW_PATTERN = Pattern.compile("(?i)Allow\\s*:(.*)");
-	
+
+	protected static final Pattern USER_AGENT_PATTERN = Pattern
+		.compile("(?i)^User-agent\\s*:(.*)");
+	protected static final Pattern DISALLOW_PATTERN = Pattern
+		.compile("(?i)Disallow\\s*:(.*)");
+	protected static final Pattern ALLOW_PATTERN = Pattern
+		.compile("(?i)Allow\\s*:(.*)");
+
 	private boolean bSyntaxErrors = false;
-	private HashMap<String, ArrayList<String>> rules = 
-		new HashMap<String, ArrayList<String>>();
+	private HashMap<String, ArrayList<String>> rules = new HashMap<String, ArrayList<String>>();
 
 	private LinkedList<String> userAgents = new LinkedList<String>();
 
 	/**
 	 * @return true if the robots.txt file looked suspicious, currently meaning
-	 * we found a Disallow rule that was not preceded by a "User-agent:" line
+	 *         we found a Disallow rule that was not preceded by a "User-agent:"
+	 *         line
 	 */
 	public boolean hasSyntaxErrors() {
 		return bSyntaxErrors;
 	}
-	
+
 	/**
 	 * @return a List of all UserAgents Found in the Robots.txt document
 	 */
 	public List<String> getUserAgentsFound() {
 		return userAgents;
 	}
-	
+
 	/**
-	 * Read rules from InputStream argument into this RobotRules, as a 
+	 * Read rules from InputStream argument into this RobotRules, as a
 	 * side-effect, sets the bSyntaxErrors property.
-	 * 
+	 *
 	 * @param is InputStream containing the robots.txt document
 	 * @throws IOException for usual reasons
 	 */
 	public void parse(InputStream is) throws IOException {
-		
+
 		BufferedReader br = new BufferedReader(new InputStreamReader(
-				(InputStream) is,ByteOp.UTF8));
-        String read;
-        boolean allowRuleFound = false;
-        // true if curr or last line read was a User-agent line 
-        boolean currLineUA = false; 
-        boolean lastLineUA = false;
-        ArrayList<String> current = null;
-        while (br != null) {
-            lastLineUA = currLineUA;
-            do {
-                read = br.readLine();
-                // Skip comments & blanks
-            } while ((read != null) && ((read = read.trim()).startsWith("#") ||
-                read.length() == 0));
-            if (read == null) {
-            	br.close();
-            	br = null;
-            } else {
-                currLineUA = false;
-                int commentIndex = read.indexOf("#");
-                if (commentIndex > -1) {
-                    // Strip trailing comment
-                    read = read.substring(0, commentIndex);
-                }
-                read = read.trim();
-                Matcher uaMatcher = USER_AGENT_PATTERN.matcher(read);
-                if (uaMatcher.matches()) {
-                    String ua = uaMatcher.group(1).trim().toLowerCase();
-                    if (current == null || current.size() != 0 || allowRuleFound || !lastLineUA) {
-                        // only create new rules-list if necessary
-                        // otherwise share with previous user-agent
-                        current = new ArrayList<String>();
-                    }
-                    rules.put(ua, current);
-                    allowRuleFound = false;
-                    currLineUA = true;
-                    LOGGER.fine("Found User-agent(" + ua + ") rules...");
-                    continue;
-                }
-                Matcher disallowMatcher = DISALLOW_PATTERN.matcher(read);
-                if (disallowMatcher.matches()) {
-                	if (current == null) {
-                        // buggy robots.txt
-                    	bSyntaxErrors = true;
-                        continue;
-                    }
-                    String path = disallowMatcher.group(1).trim();
-                    current.add(path);
-                    continue;
-                }
-                Matcher allowMatcher = ALLOW_PATTERN.matcher(read);
-                if (allowMatcher.matches()) {
-                	// Mark that there was an allow rule to clear the current list for next user-agent
-                	allowRuleFound = true;
-                }
-                // unknown line; do nothing for now
-                
-                // TODO: check for "Allow" lines, and flag a syntax error if 
-                //       we encounter any unknown lines?
-            }
-        }
-    }
-	
-	private boolean blocksPath(String path, String curUA, List<String> uaRules) {
-		
-		Iterator<String> disItr = uaRules.iterator();
-		while (disItr.hasNext()) {
-			String disallowedPath = disItr.next();
-			if (disallowedPath.length() == 0) {
-
-				if (LOGGER.isLoggable(Level.INFO)) {
-					LOGGER.info("UA(" + curUA
-							+ ") has empty disallow: Go for it!");
-				}
-				return false;
-
+			(InputStream)is, ByteOp.UTF8));
+		String read;
+		boolean allowRuleFound = false;
+		// true if curr or last line read was a User-agent line
+		boolean currLineUA = false;
+		boolean lastLineUA = false;
+		ArrayList<String> current = null;
+		while (br != null) {
+			lastLineUA = currLineUA;
+			do {
+				read = br.readLine();
+				// Skip comments & blanks
+			} while ((read != null) &&
+					((read = read.trim()).startsWith("#") || read.length() == 0));
+			if (read == null) {
+				br.close();
+				br = null;
 			} else {
-				if (LOGGER.isLoggable(Level.FINE)) {
-					LOGGER.fine("UA(" + curUA + ") has (" + disallowedPath
-							+ ") blocked...(" + disallowedPath.length() + ")");
+				currLineUA = false;
+				int commentIndex = read.indexOf("#");
+				if (commentIndex > -1) {
+					// Strip trailing comment
+					read = read.substring(0, commentIndex);
 				}
-				if (disallowedPath.equals("/") || path.startsWith(disallowedPath)) {
-					if (LOGGER.isLoggable(Level.INFO)) {
-						LOGGER.info("Rule(" + disallowedPath + ") applies to (" +
-								path + ")");
+				read = read.trim();
+				Matcher uaMatcher = USER_AGENT_PATTERN.matcher(read);
+				if (uaMatcher.matches()) {
+					String ua = uaMatcher.group(1).trim().toLowerCase();
+					if (current == null || current.size() != 0 ||
+							allowRuleFound || !lastLineUA) {
+						// only create new rules-list if necessary
+						// otherwise share with previous user-agent
+						current = new ArrayList<String>();
 					}
-					return true;
+					rules.put(ua, current);
+					allowRuleFound = false;
+					currLineUA = true;
+					LOGGER.fine("Found User-agent(" + ua + ") rules...");
+					continue;
 				}
+				Matcher disallowMatcher = DISALLOW_PATTERN.matcher(read);
+				if (disallowMatcher.matches()) {
+					if (current == null) {
+						// buggy robots.txt
+						bSyntaxErrors = true;
+						continue;
+					}
+					String path = disallowMatcher.group(1).trim();
+					// Disallow: without path is just ignored.
+					if (!path.isEmpty())
+						current.add(path);
+					continue;
+				}
+				Matcher allowMatcher = ALLOW_PATTERN.matcher(read);
+				if (allowMatcher.matches()) {
+					// Mark that there was an allow rule to clear the current list for next user-agent
+					allowRuleFound = true;
+				}
+				// unknown line; do nothing for now
+
+				// TODO: check for "Allow" lines, and flag a syntax error if
+				//       we encounter any unknown lines?
+			}
+		}
+	}
+
+	private boolean blocksPath(String path, String curUA, List<String> uaRules) {
+		for (String disallowedPath : uaRules) {
+			if (disallowedPath.isEmpty()) {
+				// This is for extra caution. Empty path shouldn't be added
+				// to uaRules in the first place.
+				continue;
+			}
+			if (disallowedPath.equals("/") || path.startsWith(disallowedPath)) {
+				return true;
 			}
 		}
 		return false;
 	}
-	
+
 	/**
-	 * Checks first the specified ua UserAgent, if rules are present for it,
-	 * and then falls back to using rules for the '*' UserAgent.
-	 * 
+	 * Checks first the specified ua UserAgent, if rules are present for it, and
+	 * then falls back to using rules for the '*' UserAgent.
+	 *
 	 * @param path String server relative path to check for access
 	 * @param ua String user agent to check for access
 	 * @return boolean value where true indicates the path is blocked for ua
 	 */
 	public boolean blocksPathForUA(String path, String ua) {
-
-		if(rules.containsKey(ua.toLowerCase())) {
-
-			return blocksPath(path,ua,rules.get(ua.toLowerCase()));
-
-		} else if(rules.containsKey(GLOBAL_USER_AGENT)) {
-
-			return blocksPath(path,GLOBAL_USER_AGENT,
-					rules.get(GLOBAL_USER_AGENT));			
+		final String lcua = ua.toLowerCase();
+		if (rules.containsKey(lcua)) {
+			return blocksPath(path, ua, rules.get(lcua));
+		}
+		if (rules.containsKey(GLOBAL_USER_AGENT)) {
+			return blocksPath(path, GLOBAL_USER_AGENT,
+				rules.get(GLOBAL_USER_AGENT));
 		}
 		return false;
 	}
