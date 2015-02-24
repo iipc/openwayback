@@ -269,7 +269,7 @@ public class ArchivalUrlSAXRewriteReplayRenderer implements ReplayRenderer {
 
 	/**
 	 * @return ResultURIConverter factory object
-	 * @deprecated 2015-02-0¥10 See {@link ReplayURLTransformer}
+	 * @deprecated 2015-02-10 See {@link ReplayURLTransformer}
 	 */
 	public ContextResultURIConverterFactory getConverterFactory() {
 		return converterFactory;
