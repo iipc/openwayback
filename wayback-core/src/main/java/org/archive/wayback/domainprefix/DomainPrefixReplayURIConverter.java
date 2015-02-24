@@ -74,6 +74,11 @@ public class DomainPrefixReplayURIConverter implements ReplayURIConverter, Repla
 	}
 
 	@Override
+	public ReplayURLTransformer getURLTransformer() {
+		return this;
+	}
+
+	@Override
 	public String transform(ReplayContext replayContext, String url,
 			String contextFlags) {
 		String absurl = url;

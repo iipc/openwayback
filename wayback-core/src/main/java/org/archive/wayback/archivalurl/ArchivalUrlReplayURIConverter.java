@@ -123,6 +123,11 @@ public class ArchivalUrlReplayURIConverter implements ReplayURIConverter, Replay
 				UrlOperations.stripDefaultPortFromUrl(url);
 	}
 
+	@Override
+	public ReplayURLTransformer getURLTransformer() {
+		return this;
+	}
+
 	public static boolean isProtocolRelative(String url) {
 		if (url.startsWith("//")) return true;
 		if (url.startsWith("\\/\\/")) return true;

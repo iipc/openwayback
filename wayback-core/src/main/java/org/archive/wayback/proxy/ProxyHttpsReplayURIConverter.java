@@ -55,6 +55,11 @@ public class ProxyHttpsReplayURIConverter implements ReplayURIConverter, ReplayU
 		return url;
 	}
 
+	@Override
+	public ReplayURLTransformer getURLTransformer() {
+		return this;
+	}
+
 	/**
 	 * Rewrites {@code https://} to {@code http://} if {@link #isRewriteHttps()}.
 	 */

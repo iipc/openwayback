@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package org.archive.wayback;
 
@@ -64,4 +64,10 @@ public interface ReplayURIConverter extends ResultURIConverter {
 	 */
 	public String makeReplayURI(String datespec, String url, String flags,
 			URLStyle urlStyle);
+
+	/**
+	 * Return URL-rewrite service for this replay projection scheme.
+	 * @return ReplayURLTransformer implementation, or {@code null}.
+	 */
+	public ReplayURLTransformer getURLTransformer();
 }

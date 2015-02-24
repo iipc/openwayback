@@ -29,7 +29,6 @@ import org.archive.wayback.ReplayURIConverter;
 import org.archive.wayback.ReplayURIConverter.URLStyle;
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.WaybackConstants;
-import org.archive.wayback.core.Capture;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.replay.JSPExecutor;
 import org.archive.wayback.replay.ReplayContext;
@@ -67,24 +66,60 @@ public class ReplayParseContext extends ParseContext implements ReplayContext {
 	private ReplayURIConverter uriConverter;
 
 	/**
-	 * {@link ReplayURLTransformer} implementation that uses old
+	 * {@link ReplayURIConverter} and {@link ReplayURLTransformer} implementation that uses old
 	 * {@link ContextResultURIConverterFactory} and {@link ResultURIConverter}
 	 * for backward compatibility, when ReplayParseContext is initialized with old
 	 * constructor
 	 * {@link ReplayParseContext#ReplayParseContext(ContextResultURIConverterFactory, CaptureSearchResult)}
-	 * .
 	 */
-	protected static class CompatReplayURLTransformer implements
-			ReplayURLTransformer {
+	protected static class CompatReplayURIConverter implements ReplayURIConverter, ReplayURLTransformer {
+		//private ResultURIConverter uriConverter;
+		private ContextResultURIConverterFactory uriConverterFactory;
+		protected Map<String, ResultURIConverter> converters;
+		public CompatReplayURIConverter(
+				ContextResultURIConverterFactory uriConverterFactory) {
+			this.uriConverterFactory = uriConverterFactory;
+			this.converters = new HashMap<String, ResultURIConverter>();
+		}
+
+		@Override
+		public String makeReplayURI(String datespec, String url, String flags,
+				URLStyle urlStyle) {
+			ResultURIConverter converter = getConverter(flags);
+			return converter.makeReplayURI(datespec, url);
+		}
+
+		@Override
+		public String makeReplayURI(String datespec, String url) {
+			return makeReplayURI(datespec, url, "", URLStyle.ABSOLUTE);
+		}
+
+		protected ResultURIConverter getConverter(String flags) {
+			if (flags == null)
+				flags = "";
+			// TODO: caching should be a responsibility of ContextResultURIConverterFactory.
+			// but it's a API-breaking change as converters is exposed through getter.
+			ResultURIConverter converter = converters.get(flags);
+			if (converter == null) {
+				converter = uriConverterFactory.getContextConverter(flags);
+				converters.put(flags, converter);
+			}
+			return converter;
+		}
+
+		@Override
+		public ReplayURLTransformer getURLTransformer() {
+			return this;
+		}
+		
+		// ReplayURLTransformer implementation
+
 		private static final String MAILTO_PREFIX = "mailto:";
 		public static final String JAVASCRIPT_PREFIX = "javascript:";
 		public static final String DATA_PREFIX = "data:";
 		public static final String ANCHOR_PREFIX = "#";
 
 		protected boolean rewriteHttpsOnly;
-
-		public CompatReplayURLTransformer() {
-		}
 
 		private static boolean isProtocolRelative(String url) {
 			if (url.startsWith("//"))
@@ -114,6 +149,9 @@ public class ReplayParseContext extends ParseContext implements ReplayContext {
 		@Override
 		public String transform(ReplayContext replayContext, String url,
 				String flags) {
+			// TODO: this is identical to ArchivalUrlReplayURLTransformer.transform
+			// except for "isRewriteSupported" line.
+
 			// if we get an empty string, just return it:
 			if (url.length() == 0) {
 				return url;
@@ -157,42 +195,6 @@ public class ReplayParseContext extends ParseContext implements ReplayContext {
 		}
 	}
 
-	protected static class CompatReplayURIConverter implements ReplayURIConverter {
-		//private ResultURIConverter uriConverter;
-		private ContextResultURIConverterFactory uriConverterFactory;
-		protected Map<String, ResultURIConverter> converters;
-		public CompatReplayURIConverter(
-				ContextResultURIConverterFactory uriConverterFactory) {
-			this.uriConverterFactory = uriConverterFactory;
-			this.converters = new HashMap<String, ResultURIConverter>();
-		}
-
-		@Override
-		public String makeReplayURI(String datespec, String url, String flags,
-				URLStyle urlStyle) {
-			ResultURIConverter converter = getConverter(flags);
-			return converter.makeReplayURI(datespec, url);
-		}
-
-		@Override
-		public String makeReplayURI(String datespec, String url) {
-			return makeReplayURI(datespec, url, "", URLStyle.ABSOLUTE);
-		}
-
-		protected ResultURIConverter getConverter(String flags) {
-			if (flags == null)
-				flags = "";
-			// TODO: caching should be a responsibility of ContextResultURIConverterFactory.
-			// but it's a API-breaking change as converters is exposed through getter.
-			ResultURIConverter converter = converters.get(flags);
-			if (converter == null) {
-				converter = uriConverterFactory.getContextConverter(flags);
-				converters.put(flags, converter);
-			}
-			return converter;
-		}
-	}
-
 	/**
 	 * Initialize {@code ReplayParseContext} with URL translator object and
 	 * reference to target capture.
@@ -201,11 +203,14 @@ public class ReplayParseContext extends ParseContext implements ReplayContext {
 	 * @param result capture reference (originalUrl and captureTimestamp)
 	 */
 	public ReplayParseContext(ReplayURIConverter uriConverter,
-			ReplayURLTransformer replayUrlTransformer, CaptureSearchResult result) {
+			CaptureSearchResult result) {
 		this.result = result;
 		setBaseUrl(result.getOriginalUrl());
 		this.datespec = result.getCaptureTimestamp();
-		this.replayUrlTransformer = replayUrlTransformer;
+		this.replayUrlTransformer = uriConverter.getURLTransformer();
+		if (this.replayUrlTransformer == null) {
+			// TODO: default?
+		}
 		this.uriConverter = uriConverter;
 	}
 
@@ -220,19 +225,12 @@ public class ReplayParseContext extends ParseContext implements ReplayContext {
 	 * @param result capture being replayed
 	 * @param rewriteHttpsOnly HTTPS rewrite flag
 	 */
+	@SuppressWarnings("deprecation")
 	public static ReplayParseContext create(ResultURIConverter uriConverter,
 			ContextResultURIConverterFactory converterFactory,
 			CaptureSearchResult result, boolean rewriteHttpsOnly) {
-		if (uriConverter instanceof ReplayURLTransformer) {
-			// We know every standard ReplayURITransformer implements ReplayURIConverter,
-			// but just in case.
-			final ReplayURIConverter rConverter;
-			if (uriConverter instanceof ReplayURIConverter) {
-				rConverter = (ReplayURIConverter)uriConverter;
-			} else {
-				rConverter = new CompatReplayURIConverter(converterFactory);
-			}
-			return new ReplayParseContext(rConverter, (ReplayURLTransformer)uriConverter, result);
+		if (uriConverter instanceof ReplayURIConverter) {
+			return new ReplayParseContext((ReplayURIConverter)uriConverter, result);
 		}
 		// backward-compatibility mode
 		final ContextResultURIConverterFactory fact;
@@ -259,17 +257,13 @@ public class ReplayParseContext extends ParseContext implements ReplayContext {
 	 * @param uriConverterFactory contextualized URI converter factory, must not be {@code null}.
 	 * @param result capture being replayed
 	 * @deprecated 2015-02-04 use
-	 *             {@link #ReplayParseContext(ReplayURIConverter, ReplayURLTransformer, CaptureSearchResult)}
+	 *             {@link #ReplayParseContext(ReplayURIConverter, CaptureSearchResult)}
 	 *             .
 	 */
 	public ReplayParseContext(
 			ContextResultURIConverterFactory uriConverterFactory,
 			CaptureSearchResult result) {
-		this.result = result;
-		setBaseUrl(result.getOriginalUrl());
-		this.datespec = result.getCaptureTimestamp();
-		this.replayUrlTransformer = new CompatReplayURLTransformer();
-		this.uriConverter = new CompatReplayURIConverter(uriConverterFactory);
+		this(new CompatReplayURIConverter(uriConverterFactory), result);
 	}
 
 	/**
@@ -286,8 +280,8 @@ public class ReplayParseContext extends ParseContext implements ReplayContext {
 			String datespec) {
 		setBaseUrl(baseUrl.toExternalForm());
 		this.datespec = datespec;
-		this.replayUrlTransformer = new CompatReplayURLTransformer();
 		this.uriConverter = new CompatReplayURIConverter(uriConverterFactory);
+		this.replayUrlTransformer = this.uriConverter.getURLTransformer();
 	}
 
 	public void setPhase(int phase) {
@@ -303,8 +297,8 @@ public class ReplayParseContext extends ParseContext implements ReplayContext {
 	 * @deprecated See ProxyHttpsResultURIConverter
 	 */
 	public void setRewriteHttpsOnly(boolean rewriteHttpsOnly) {
-		if (replayUrlTransformer instanceof CompatReplayURLTransformer) {
-			((CompatReplayURLTransformer)replayUrlTransformer).rewriteHttpsOnly = rewriteHttpsOnly;
+		if (replayUrlTransformer instanceof CompatReplayURIConverter) {
+			((CompatReplayURIConverter)replayUrlTransformer).rewriteHttpsOnly = rewriteHttpsOnly;
 		}
 	}
 
@@ -321,8 +315,8 @@ public class ReplayParseContext extends ParseContext implements ReplayContext {
 	 * @deprecated See ProxyHttpsResultURIConverter
 	 */
 	public boolean isRewriteSupported(String url) {
-		if (replayUrlTransformer instanceof CompatReplayURLTransformer) {
-			return ((CompatReplayURLTransformer)replayUrlTransformer).isRewriteSupported(url);
+		if (replayUrlTransformer instanceof CompatReplayURIConverter) {
+			return ((CompatReplayURIConverter)replayUrlTransformer).isRewriteSupported(url);
 		}
 		// Return value does not matter because this method is not supposed to be used in
 		// new ReplayURLTransformer implementations. If it ever is, returning true does less

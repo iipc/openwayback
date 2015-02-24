@@ -2,8 +2,8 @@
  *  This file is part of the Wayback archival access software
  *   (http://archive-access.sourceforge.net/projects/wayback/).
  *
- *  Licensed to the Internet Archive (IA) by one or more individual 
- *  contributors. 
+ *  Licensed to the Internet Archive (IA) by one or more individual
+ *  contributors.
  *
  *  The IA licenses this file to You under the Apache License, Version 2.0
  *  (the "License"); you may not use this file except in compliance with
@@ -25,8 +25,10 @@ import java.util.ArrayList;
 import junit.framework.TestCase;
 
 import org.archive.wayback.ReplayURIConverter;
+import org.archive.wayback.ReplayURIConverter.URLStyle;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.proxy.ProxyHttpsReplayURIConverter;
+import org.archive.wayback.replay.ReplayContext;
 import org.archive.wayback.replay.ReplayURLTransformer;
 import org.archive.wayback.replay.html.ContextResultURIConverterFactory;
 import org.archive.wayback.replay.html.IdentityResultURIConverterFactory;
@@ -47,13 +49,13 @@ public class JSStringTransformerTest extends TestCase {
 	@Override
 	protected void setUp() throws Exception {
 		baseURL = "http://foo.com";
-		rc = new RecordingReplayParseContext(null, (ReplayURLTransformer)null, baseURL, null);
+		rc = new RecordingReplayParseContext(baseURL, null);
 		jst = new JSStringTransformer();
 	}
 
 	/**
 	 * Test method for {@link org.archive.wayback.replay.html.transformer.JSStringTransformer#transform(org.archive.wayback.replay.html.ReplayParseContext, java.lang.String)}.
-	 * @throws MalformedURLException 
+	 * @throws MalformedURLException
 	 */
 	public void testTransform_HostOnly() throws MalformedURLException {
 		String input = "'<a href=\'http://www.gavelgrab.org\' target=\'_blank\'>Learn more in Gavel Grab</a>'";
@@ -94,7 +96,7 @@ public class JSStringTransformerTest extends TestCase {
 		// setup for proxy-mode (IdentityResultURIConverterFactory returns ProxyHttpsResultURIConverter.)
 		ProxyHttpsReplayURIConverter urlTransformer = new ProxyHttpsReplayURIConverter();
 		urlTransformer.setRewriteHttps(true);
-		rc = new RecordingReplayParseContext(urlTransformer, urlTransformer, baseURL, null);
+		rc = new RecordingReplayParseContext(urlTransformer, baseURL, null);
 
 		// Note: ParseContext.resolve(String) uses UsableURIFactory.getInstance() for
 		// making URL absolute. It not only prepends baseURL but also removes escaping
@@ -203,6 +205,34 @@ public class JSStringTransformerTest extends TestCase {
 		assertEquals(expected, output);
 	}
 
+	public static class StubReplayURIConverter implements ReplayURIConverter,
+			ReplayURLTransformer {
+
+		@Override
+		public String makeReplayURI(String datespec, String url) {
+			return url;
+		}
+
+		@Override
+		public String makeReplayURI(String datespec, String url, String flags,
+				URLStyle urlStyle) {
+			return url;
+		}
+
+		@Override
+		public ReplayURLTransformer getURLTransformer() {
+			return this;
+		}
+
+		@Override
+		public String transform(ReplayContext replayContext, String url,
+				String contextFlags) {
+			// prepend chars to signify it's rewritten.
+			return "###" + url;
+		}
+
+	}
+
 	/**
 	 * ReplayParseContext mock
 	 * TODO: move to package-level as this is useful for testing other
@@ -210,7 +240,6 @@ public class JSStringTransformerTest extends TestCase {
 	 */
 	public static class RecordingReplayParseContext extends ReplayParseContext {
 		ArrayList<String> got = null;
-		boolean stub = true;
 		private static CaptureSearchResult capture(String baseUrl, String datespec) {
 			CaptureSearchResult r = new CaptureSearchResult();
 			r.setCaptureTimestamp(datespec);
@@ -219,24 +248,22 @@ public class JSStringTransformerTest extends TestCase {
 		}
 
 		public RecordingReplayParseContext(String baseUrl, String datespec) {
-			this((ReplayURIConverter)null, (ReplayURLTransformer)null, baseUrl, datespec);
+			this(new StubReplayURIConverter(), baseUrl, datespec);
 		}
 
 		/**
 		 * @param uriConverter
-		 * @param urlTransformer
 		 * @param baseUrl
 		 * @param datespec
 		 */
-		public RecordingReplayParseContext(ReplayURIConverter uriConverter, ReplayURLTransformer urlTransformer, String baseUrl, String datespec) {
-			super(uriConverter, urlTransformer, capture(baseUrl, datespec));
+		public RecordingReplayParseContext(ReplayURIConverter uriConverter, String baseUrl, String datespec) {
+			super(uriConverter, capture(baseUrl, datespec));
 			got = new ArrayList<String>();
-			stub = (urlTransformer == null);
 		}
 
 		/**
 		 * Compatibility mode constructor
-		 * @param uriConverterFactory
+		 * @param uriConverterFactory must not be {@code null}
 		 * @param baseUrl
 		 * @param datespec
 		 */
@@ -245,16 +272,12 @@ public class JSStringTransformerTest extends TestCase {
 				String baseUrl, String datespec) {
 			super(uriConverterFactory, capture(baseUrl, datespec));
 			got = new ArrayList<String>();
-			stub = (uriConverterFactory == null);
 		}
 		@Override
 		public String contextualizeUrl(String url, String flags) {
 			// TODO record flags, too
 			got.add(url);
-			if (stub)
-				return "###" + url;
-			else
-				return super.contextualizeUrl(url, flags);
+			return super.contextualizeUrl(url, flags);
 		}
 	}
 }
