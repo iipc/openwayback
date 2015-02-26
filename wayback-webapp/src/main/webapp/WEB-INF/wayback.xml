@@ -14,15 +14,29 @@
   <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
     <property name="properties">
       <value>
-        wayback.basedir=#{systemEnvironment['WAYBACK_BASEDIR']?:'/tmp/openwayback'}
+        <!-- Customize these basic placeholders. -->
+        wayback.basedir.default=/tmp/openwayback
+        wayback.url.scheme.default=http
+        wayback.url.host.default=localhost
+        wayback.url.port.default=8080
 
+        <!-- Environment variables (if present) override defaults. No need to customize these. -->
+        wayback.basedir=#{ systemEnvironment['WAYBACK_BASEDIR'] ?: '${wayback.basedir.default}' }
+        wayback.url.scheme=#{ systemEnvironment['WAYBACK_URL_SCHEME'] ?: '${wayback.url.scheme.default}' }
+        wayback.url.host=#{ systemEnvironment['WAYBACK_URL_HOST'] ?: '${wayback.url.host.default}' }
+        wayback.url.port=#{ systemEnvironment['WAYBACK_URL_PORT'] ?: '${wayback.url.port.default}' }
+
+        <!-- No need to edit this setting unless deploying in a non-ROOT context
+             or using a load balancer, in which case configure it with the frontend URL prefix. -->
+        wayback.url.prefix.default=${wayback.url.scheme}://${wayback.url.host}:${wayback.url.port}
+
+        <!-- Environment variable (if present) overrides default. No need to customize this. -->
+        wayback.url.prefix=#{ systemEnvironment['WAYBACK_URL_PREFIX'] ?: '${wayback.url.prefix.default}' }
+
+        <!-- Customize or add additional placeholders if needed to use elsewhere.
+             Check BDBCollection.xml for following placeholders being used. -->
         wayback.archivedir.1=${wayback.basedir}/files1/
         wayback.archivedir.2=${wayback.basedir}/files2/
-
-        wayback.url.scheme=#{systemEnvironment['WAYBACK_URL_SCHEME']?:'http'}
-        wayback.url.host=#{systemEnvironment['WAYBACK_URL_HOST']?:'localhost'}
-        wayback.url.port=#{systemEnvironment['WAYBACK_URL_PORT']?:'8080'}
-        wayback.url.prefix=${wayback.url.scheme}://${wayback.url.host}:${wayback.url.port}
       </value>
     </property>
   </bean>
