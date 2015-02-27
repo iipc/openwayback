@@ -1,0 +1,21 @@
+/* CSS begins withcomment */
+
+html,body,div,ul,ol,li,dl,dt,dd,h1,h2,h3,h4,h5,h6,pre,form,p,blockquote,fieldset,input { margin: 0; padding: 0; }
+
+
+h1, h2, h3, h4, h5 { line-height: normal; }
+h1 { font-size: 1.25em; } h2 { font-size: 1.2em; } h3 { font-size: 1.15em; } h4 { font-size: 1.1em; } h5 { font-size: 1em; }
+
+a { color: #398dd8; text-decoration: none; }
+a:hover { text-decoration: underline; }
+a img  { border: 0 none; }
+
+input, textarea, select, button, body { font: 12px/16px Arial, Helvetica, sans-serif; }
+input, textarea, select, button, a { outline: none; }
+
+p { margin-bottom: 0.4em; }
+hr { border: 0 none; border-top: 1px solid #dbe8ed; height: 1px; }
+ul { margin: 0 0 18px 2em; list-style: disc outside; }
+ol { margin: 0 0 18px 2.1em; list-style: decimal; }
+
+.reset, .reset li { list-style: none; padding: 0; margin: 0; }

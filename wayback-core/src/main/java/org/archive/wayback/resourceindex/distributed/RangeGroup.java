@@ -40,7 +40,7 @@ import org.archive.wayback.exception.ResourceNotInArchiveException;
  */
 public class RangeGroup implements ResourceIndex {
 
-	private HashMap<String,RangeMember> members = null;
+	HashMap<String,RangeMember> members = null;
 	private String name;
 	private String start;
 	private String end;

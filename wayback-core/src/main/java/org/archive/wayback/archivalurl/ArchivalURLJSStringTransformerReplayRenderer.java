@@ -2,10 +2,6 @@ package org.archive.wayback.archivalurl;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.Iterator;
-import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -15,6 +11,7 @@ import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.Resource;
+import org.archive.wayback.core.UIResults;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.replay.HttpHeaderProcessor;
 import org.archive.wayback.replay.JSPExecutor;
@@ -24,6 +21,7 @@ import org.archive.wayback.replay.html.ContextResultURIConverterFactory;
 import org.archive.wayback.replay.html.IdentityResultURIConverterFactory;
 import org.archive.wayback.replay.html.ReplayParseContext;
 import org.archive.wayback.replay.html.StringTransformer;
+import org.archive.wayback.webapp.AccessPoint;
 
 /**
  * {@link TextReplayRenderer} that uses {@link StringTransformer} as an underlining
@@ -80,17 +78,6 @@ public class ArchivalURLJSStringTransformerReplayRenderer extends TextReplayRend
 			Resource resource, ResultURIConverter uriConverter,
 			CaptureSearchResults results) throws ServletException, IOException {
 		
-		
-		// The URL of the page, for resolving in-page relative URLs: 
-    	URL url = null;
-		try {
-			url = new URL(result.getOriginalUrl());
-		} catch (MalformedURLException e1) {
-			// TODO: this shouldn't happen...
-			e1.printStackTrace();
-			throw new IOException(e1.getMessage());
-		}
-
 		// same code in ArchivalUrlSAXRewriteReplayRenderer
 		ContextResultURIConverterFactory fact = null;
 		
@@ -104,13 +91,12 @@ public class ArchivalURLJSStringTransformerReplayRenderer extends TextReplayRend
 		}		
 		
 		// set up the context:
-		ReplayParseContext context = 
-			new ReplayParseContext(fact,url,result.getCaptureTimestamp());
+		ReplayParseContext context = new ReplayParseContext(fact, result);
 		
 		context.setRewriteHttpsOnly(rewriteHttpsOnly);
 		
-		JSPExecutor jspExec = new JSPExecutor(uriConverter, httpRequest, 
-				httpResponse, wbRequest, results, result, resource);
+		UIResults uiResults = new UIResults(wbRequest, uriConverter, results, result, resource);
+		JSPExecutor jspExec = new JSPExecutor(httpRequest, httpResponse, uiResults);
 		
 
 		// To make sure we get the length, we have to buffer it all up...
@@ -121,10 +107,19 @@ public class ArchivalURLJSStringTransformerReplayRenderer extends TextReplayRend
 		context.setJspExec(jspExec);
 		context.setInJS(true); //for https://webarchive.jira.com/browse/ARI-3762
 		
+		// XXX same code in ArchivalUrlSAXReplayRenderer, and probably other
+		// custom Archival-URL ReplayRenderers needs this, too.
+		// We should move this code somewhere reusable (ReplayParseContext? -
+		// which would push us to define new interface for rewriting).
 		String policy = result.getOraclePolicy();
-		
+		if (policy == null) {
+			AccessPoint accessPoint = wbRequest.getAccessPoint();
+			if (accessPoint != null) {
+				policy = accessPoint.getRewriteDirective(result);
+			}
+		}
 		if (policy != null) {
-			context.putData(CaptureSearchResult.CAPTURE_ORACLE_POLICY, policy);
+			context.setOraclePolicy(policy);
 		}
 		
 		//RewriteReplayParseEventHandler.addRewriteParseContext(context);
@@ -137,19 +132,8 @@ public class ArchivalURLJSStringTransformerReplayRenderer extends TextReplayRend
 		page.sb.append(replaced);
 		
 		// if any JS-specific jsp inserts are configured, run and insert...
-		List<String> jspInserts = getJspInserts();
-
-		StringBuilder toInsert = new StringBuilder(300);
-
-		if (jspInserts != null) {
-			Iterator<String> itr = jspInserts.iterator();
-			while (itr.hasNext()) {
-				toInsert.append(page.includeJspString(itr.next(), httpRequest,
-						httpResponse, wbRequest, results, result, resource));
-			}
-		}
-
-		page.insertAtStartOfDocument(toInsert.toString());
+		page.insertAtStartOfDocument(buildInsertText(page, httpRequest,
+				httpResponse, wbRequest, results, result, resource));
 	}
 
 

@@ -36,7 +36,7 @@ StringFormatter fmt = results.getWbRequest().getFormatter();
             <div id="error">
 
                 <h2><%= fmt.format(e.getTitleKey()) %></h2>
-                <p><%= fmt.format(e.getMessageKey(),e.getMessage()) %></p>
+                <p><%=fmt.escapeHtml( fmt.format(e.getMessageKey(),e.getMessage()) )%></p>
 <%
 if(e instanceof ResourceNotInArchiveException) {
 	ResourceNotInArchiveException niae = (ResourceNotInArchiveException) e;

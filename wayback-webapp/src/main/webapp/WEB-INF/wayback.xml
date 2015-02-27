@@ -303,6 +303,8 @@
 <!--
   <import resource="ProxyReplay.xml"/>
   <bean name="proxyaccesspoint" parent="standardaccesspoint">
+    <property name="accessPointPath" value="8090"/>
+
     <property name="internalPort" value="8090"/>
     <property name="serveStatic" value="true" />
     <property name="bounceToReplayPrefix" value="false" />
@@ -333,4 +335,11 @@
   </bean>
 -->
 
+<!--
+    Set the minimum year that is handled by this server. If commented out the vaule of the
+    start year will default to 1996.
+  -->
+  <bean name="minimumYearAllowed" class="org.archive.wayback.util.Timestamp">
+    <property name="startYear" value="1996" />
+  </bean>
 </beans>

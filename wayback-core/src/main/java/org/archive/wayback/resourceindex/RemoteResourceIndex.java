@@ -43,6 +43,7 @@ import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
+import org.archive.wayback.resourceindex.filterfactory.ClosestTrackingCaptureFilterGroup;
 import org.archive.wayback.resourceindex.filters.SelfRedirectFilter;
 import org.archive.wayback.util.ObjectFilter;
 import org.archive.wayback.util.ObjectFilterChain;
@@ -73,6 +74,8 @@ public class RemoteResourceIndex implements ResourceIndex {
 	
 	
 	private DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+
+    private ClosestTrackingCaptureFilterGroup closestGroup;
 
 	private static final String WB_XML_REQUEST_TAGNAME = "request";
 
@@ -124,8 +127,11 @@ public class RemoteResourceIndex implements ResourceIndex {
 		ResourceNotInArchiveException, BadQueryException,
 		AccessControlException {
 //		throw new ResourceIndexNotAvailableException("oops");
-		return urlToSearchResults(getRequestUrl(wbRequest),
+        closestGroup = new ClosestTrackingCaptureFilterGroup(wbRequest, canonicalizer);
+		SearchResults results = urlToSearchResults(getRequestUrl(wbRequest),
 				getSearchResultFilters(wbRequest));
+        closestGroup.annotateResults(results);
+        return results;
 	}
 
 	protected SearchResults urlToSearchResults(String requestUrl,
@@ -207,6 +213,8 @@ public class RemoteResourceIndex implements ResourceIndex {
 			SelfRedirectFilter selfRedirectFilter = new SelfRedirectFilter();
 			selfRedirectFilter.setCanonicalizer(canonicalizer);
 			filters.addFilter(selfRedirectFilter);
+
+            filters.addFilter(closestGroup.getFilter());
 		} else {
 			// no filters for now
 			filters = null;

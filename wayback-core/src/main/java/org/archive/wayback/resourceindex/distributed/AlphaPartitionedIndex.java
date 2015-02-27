@@ -41,10 +41,26 @@ import org.archive.wayback.util.flatfile.FlatFile;
 import org.archive.wayback.util.url.AggressiveUrlCanonicalizer;
 
 /**
- *
- *
+ * ResourceIndex which delegates queries to multiple partitioned remote indexes.
+ * <p>
+ * The remote index can be duplicated for failover and load balancing.
+ * Configuration is done with a map file which contains the range for each
+ * remote index partition and the urls to all instances of the partition.
+ * <p>
+ * <em>Format of mapfile:</em>
+ * <pre>
+ * &lt;partition name&gt; &lt;range start&gt; &lt;range end&gt; &lt;url to index partition&gt; [&lt;url to alternative index partition&gt; ...]
+ * </pre>
+ * <em>Example:</em>
+ * <pre>
+ * part_a  apple.com/ http://part_a1.foo.com http://part_a2.foo.com
+ * part_b apple.com/ banana.com/ http://part_b1.foo.com http://part_b2.foo.com
+ * part_c banana.com/ cups.com/ http://part_c1.foo.com http://part_c2.foo.com
+ * part_d cups.com/ zorro.com/ http://part_d1.foo.com http://part_d2.foo.com
+ * </pre>
+ * 
  * @author brad
- * @version $Date$, $Revision$
+ * @see org.archive.wayback.resourceindex.RemoteResourceIndex
  */
 public class AlphaPartitionedIndex implements ResourceIndex {
 	private static final Logger LOGGER =

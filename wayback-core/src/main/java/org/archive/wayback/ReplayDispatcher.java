@@ -74,5 +74,5 @@ public interface ReplayDispatcher {
 	 * 	different URL, with the exact timestamp, for example.
 	 */
 	public CaptureSearchResult getClosest(WaybackRequest wbRequest, 
-			CaptureSearchResults results) throws BetterRequestException;
+			CaptureSearchResults results);
 }
