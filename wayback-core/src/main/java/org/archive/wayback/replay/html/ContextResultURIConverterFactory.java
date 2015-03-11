@@ -46,7 +46,10 @@ import org.archive.wayback.archivalurl.ArchivalUrlSAXRewriteReplayRenderer;
  * a lot of confusion and awkward code. Redesign is highly desired.
  * Current plan is to do away with usage 2, and design better interface for
  * usage 1.</p>
- *
+ * <p>
+ * {@link ReplayURLTransformer} replaces use #2 of this interface. It is much simpler
+ * to implement and configure. #2 use of this interface is deprecated.
+ * </p>
  * @author brad
  * @see ReplayParseContext#makeConverter
  * @see AccessPointAdapter#getUriConverter

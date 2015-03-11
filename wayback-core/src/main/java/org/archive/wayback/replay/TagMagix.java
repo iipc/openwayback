@@ -201,7 +201,7 @@ public class TagMagix {
 					urlStart += 2;
 				}
 				int urlLength = url.length();
-				if (url.startsWith(ReplayParseContext.DATA_PREFIX)) {
+				if (url.startsWith(UrlOperations.DATA_PREFIX)) {
 					continue;
 				}
 				String finalUrl = UrlOperations.resolveUrl(baseUrl,url);
@@ -269,7 +269,7 @@ public class TagMagix {
 				idx = attrEnd;
 				continue;
 			}
-			if (url.startsWith(ReplayParseContext.DATA_PREFIX)) {
+			if (url.startsWith(UrlOperations.DATA_PREFIX)) {
 				idx = attrEnd;
 				continue;
 			}

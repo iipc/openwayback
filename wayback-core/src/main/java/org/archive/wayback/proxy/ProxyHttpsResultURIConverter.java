@@ -11,6 +11,7 @@ import org.archive.wayback.replay.html.IdentityResultURIConverterFactory;
  *
  * This class also implements {@link ContextResultURIConverterFactory} to save wrapping
  * this object with {@link IdentityResultURIConverterFactory}.
+ * @deprecated 2015-02-10 Use {@link ProxyHttpsReplayURIConverter}
  */
 public class ProxyHttpsResultURIConverter implements ResultURIConverter, ContextResultURIConverterFactory {
 

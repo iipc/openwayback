@@ -10,7 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import junit.framework.TestCase;
 
-import org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter;
+import org.archive.wayback.archivalurl.ArchivalUrlReplayURIConverter;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.FastCaptureSearchResult;
@@ -38,7 +38,7 @@ public class MementoUtilsTest extends TestCase {
 		accessPoint.setConfigs(configs);
 		accessPoint.setReplayPrefix("/web/");
 		accessPoint.setQueryPrefix("/web/");
-		ArchivalUrlResultURIConverter uriConverter = new ArchivalUrlResultURIConverter();
+		ArchivalUrlReplayURIConverter uriConverter = new ArchivalUrlReplayURIConverter();
 		uriConverter.setReplayURIPrefix("/web/");
 		accessPoint.setUriConverter(uriConverter);
 	}

@@ -21,6 +21,7 @@ package org.archive.wayback.replay.html.transformer;
 
 import org.archive.wayback.replay.html.ReplayParseContext;
 import org.archive.wayback.replay.html.StringTransformer;
+import org.archive.wayback.util.url.UrlOperations;
 
 /**
  * StringTransformer for translating URLs.
@@ -64,14 +65,14 @@ public class URLStringTransformer implements StringTransformer {
 	}
 	
 	public String transform(ReplayParseContext context, String url) {
-		if (url.startsWith(ReplayParseContext.JAVASCRIPT_PREFIX)) {
+		if (url.startsWith(UrlOperations.JAVASCRIPT_PREFIX)) {
 			if (jsTransformer == null) {
 				return url;
 			}
 			StringBuilder sb = new StringBuilder(url.length());
-			sb.append(ReplayParseContext.JAVASCRIPT_PREFIX);
+			sb.append(UrlOperations.JAVASCRIPT_PREFIX);
 			String jsFragment = url.substring(
-					ReplayParseContext.JAVASCRIPT_PREFIX.length());
+					UrlOperations.JAVASCRIPT_PREFIX.length());
 			sb.append(jsTransformer.transform(context, jsFragment));
 			return sb.toString();
 		}

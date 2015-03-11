@@ -22,15 +22,20 @@ package org.archive.wayback;
 /**
  * Interface for implementations that convert a string datespec and URL into
  * an absolute URL that will replay the specified URL at the specified date.
- * 
+ * <p>
+ * This interface has also been used for URL-rewriting. It lead to
+ * confusion and convoluted code. Now it has been refactored into two
+ * interfaces: ReplayURIConverter and ReplayURLTransformer.
  * @author brad
- * @version $Date$, $Revision$
+ * @see ReplayURIConverter
+ * @see ReplayURLTransformer
  */
 public interface ResultURIConverter {
 	/**
 	 * return an absolute URL that will replay URL url at time datespec.
 	 * 
 	 * @param datespec 14-digit timestamp for the desired Resource
+	 * (also often include context flags such as "{@code cs_}")
 	 * @param url for the desired Resource
 	 * @return absolute replay URL
 	 */

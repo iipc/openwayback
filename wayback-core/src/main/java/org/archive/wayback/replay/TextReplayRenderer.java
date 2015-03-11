@@ -76,6 +76,7 @@ public abstract class TextReplayRenderer implements ReplayRenderer {
 	private HttpHeaderProcessor httpHeaderProcessor;
 	private CharsetDetector charsetDetector = new StandardCharsetDetector();
 
+	@Deprecated
 	private ContextResultURIConverterFactory pageConverterFactory = null;
 
 	public TextReplayRenderer(HttpHeaderProcessor httpHeaderProcessor) {
@@ -118,6 +119,8 @@ public abstract class TextReplayRenderer implements ReplayRenderer {
 				decodedResource, wbRequest);
 
 		ResultURIConverter pageConverter = uriConverter;
+		// this feature was meant for using special ResultURIConverter for rewriting XML, but
+		// turned out to be not useful. drop this unless we find other uses.
 		if (pageConverterFactory != null) {
 			// XXX: ad-hoc code - ContextResultURIConverterFactory should take ResultURIConverter
 			// as argument, so that it can simply wrap the original.
@@ -255,6 +258,7 @@ public abstract class TextReplayRenderer implements ReplayRenderer {
 	 * with {@code replayURIPrefix}. If the method returns non-{@code null}, it will be
 	 * passed to {@link #updatePage} instead of the original.
 	 * @param baseConverterFactory {@link ContextResultURIConverterFactory}
+	 * @deprecated 2015-02-10 no replacement
 	 */
 	public void setPageURIConverterFactory(
 			ContextResultURIConverterFactory pageConverterFactory) {

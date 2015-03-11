@@ -15,6 +15,9 @@ import java.util.TimeZone;
 import javax.servlet.http.HttpServletResponse;
 
 import org.archive.util.ArchiveUtils;
+import org.archive.wayback.ReplayURIConverter;
+import org.archive.wayback.ReplayURIConverter.URLStyle;
+import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.WaybackRequest;
@@ -425,14 +428,20 @@ public class MementoUtils implements MementoConstants {
 
 		Date date = result.getCaptureDate();
 		String timestamp = ArchiveUtils.get14DigitDate(date);
-		String replayURI = ap.getUriConverter().makeReplayURI(timestamp, url);
-		String prefix = getMementoPrefix(ap);
+		ResultURIConverter uriConverter = ap.getUriConverter();
+		final String replayURI;
+		if (uriConverter instanceof ReplayURIConverter) {
+			// leverage new interface.
+			replayURI = ((ReplayURIConverter)uriConverter).makeReplayURI(timestamp, url, null, URLStyle.ABSOLUTE);
+		} else {
+			replayURI = getMementoPrefix(ap) + uriConverter.makeReplayURI(timestamp, url);
+		}
 		String httpTime = formatLinkDate(date);
 
 //		return String.format("<%s%s>; rel=\"%s\"; datetime=\"%s\"; status=\"%s\"", prefix, replayURI,
 //				rel, httpTime, result.getHttpCode());
-		return String.format("<%s%s>; rel=\"%s\"; datetime=\"%s\"", prefix,
-			replayURI, rel, httpTime);
+		return String.format("<%s>; rel=\"%s\"; datetime=\"%s\"", replayURI,
+			rel, httpTime);
 	}
 
 	private static NotableResultExtractor getNotableResults(

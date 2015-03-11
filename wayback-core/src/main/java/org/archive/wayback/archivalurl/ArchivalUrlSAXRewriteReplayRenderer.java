@@ -35,9 +35,11 @@ import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.UIResults;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.WaybackException;
+import org.archive.wayback.proxy.ProxyHttpsResultURIConverter;
 import org.archive.wayback.replay.HttpHeaderOperation;
 import org.archive.wayback.replay.HttpHeaderProcessor;
 import org.archive.wayback.replay.JSPExecutor;
+import org.archive.wayback.replay.ReplayURLTransformer;
 import org.archive.wayback.replay.TagMagix;
 import org.archive.wayback.replay.TextReplayRenderer;
 import org.archive.wayback.replay.charset.CharsetDetector;
@@ -45,7 +47,6 @@ import org.archive.wayback.replay.charset.StandardCharsetDetector;
 import org.archive.wayback.replay.html.ContextResultURIConverterFactory;
 import org.archive.wayback.replay.html.IdentityResultURIConverterFactory;
 import org.archive.wayback.replay.html.ReplayParseContext;
-import org.archive.wayback.replay.html.RewriteDirector;
 import org.archive.wayback.util.htmllex.ContextAwareLexer;
 import org.archive.wayback.util.htmllex.ParseEventHandler;
 import org.archive.wayback.webapp.AccessPoint;
@@ -65,7 +66,9 @@ public class ArchivalUrlSAXRewriteReplayRenderer implements ReplayRenderer {
 	private ParseEventHandler delegator = null;
 	private HttpHeaderProcessor httpHeaderProcessor;
 	private CharsetDetector charsetDetector = new StandardCharsetDetector();
+	@Deprecated
 	private ContextResultURIConverterFactory converterFactory = null;
+	@Deprecated
 	private boolean rewriteHttpsOnly;
 	
 	private final static String OUTPUT_CHARSET = "utf-8";
@@ -117,15 +120,12 @@ public class ArchivalUrlSAXRewriteReplayRenderer implements ReplayRenderer {
 //		}
 		// determine the character set used to encode the document bytes:
 		String charSet = charsetDetector.getCharset(httpHeadersResource, decodedResource, wbRequest);
-
-		ContextResultURIConverterFactory fact = createConverterFactory(uriConverter, httpRequest, wbRequest);
 		
 		// set up the context:
-		ReplayParseContext context = 
-//				new ReplayParseContext(fact,url,result.getCaptureTimestamp());
-				new ReplayParseContext(fact, result);
-		
-		context.setRewriteHttpsOnly(rewriteHttpsOnly);
+		final ReplayParseContext context = ReplayParseContext.create(
+			uriConverter,
+			createConverterFactory(uriConverter, httpRequest, wbRequest),
+			result, rewriteHttpsOnly);
 
 		// XXX same code in ArchivalUrlJSStringReplayRenderer
 		String policy = result.getOraclePolicy();
@@ -223,24 +223,20 @@ public class ArchivalUrlSAXRewriteReplayRenderer implements ReplayRenderer {
 		httpResponse.setCharacterEncoding(OUTPUT_CHARSET);
 		httpResponse.getOutputStream().write(utf8Bytes);
 	}
-	
+
+	// Cannot get rid of this method for backward-compatibility. There's at least
+	// one class known to override this method. Wait until next major release.
+	/**
+	 * @param uriConverter
+	 * @param httpRequest
+	 * @param wbRequest
+	 * @return ContextResultURIConverterFactory
+	 * @deprecated 2015-02-10 no replacement
+	 */
 	protected ContextResultURIConverterFactory createConverterFactory(
 			ResultURIConverter uriConverter, HttpServletRequest httpRequest,
 			WaybackRequest wbRequest) {
-		// same code in ArchivalURLJSStringTransformerReplayRenderer
-		ContextResultURIConverterFactory fact = null;
-		
-		// this uriConverter implementing factory should address all cases currently
-		// known.
-		if (converterFactory != null) {
-			fact = converterFactory;
-		} else if (uriConverter instanceof ContextResultURIConverterFactory) {
-			fact = (ContextResultURIConverterFactory)uriConverter;
-		} else {
-			fact = new IdentityResultURIConverterFactory(uriConverter);			
-		}
-		
-		return fact;
+		return converterFactory;
 	}
 
 	/**
@@ -271,6 +267,10 @@ public class ArchivalUrlSAXRewriteReplayRenderer implements ReplayRenderer {
 		this.delegator = delegator;
 	}
 
+	/**
+	 * @return ResultURIConverter factory object
+	 * @deprecated 2015-02-10 See {@link ReplayURLTransformer}
+	 */
 	public ContextResultURIConverterFactory getConverterFactory() {
 		return converterFactory;
 	}
@@ -286,16 +286,26 @@ public class ArchivalUrlSAXRewriteReplayRenderer implements ReplayRenderer {
 	 * near future.
 	 * </p>
 	 * @param converterFactory factory object
+	 * @deprecated 2015-02-10 See {@link ReplayURLTransformer}
 	 */
 	public void setConverterFactory(
 			ContextResultURIConverterFactory converterFactory) {
 		this.converterFactory = converterFactory;
 	}
 
+	/**
+	 * @return HTTPS rewriting flag
+	 * @deprecated 2015-02-09 Use {@link ProxyHttpsReplayURIConverter#isRewriteHttps}
+	 */
 	public boolean isRewriteHttpsOnly() {
 		return rewriteHttpsOnly;
 	}
 
+	/**
+	 * Turn on/off HTTPS rewriting.
+	 * @param rewriteHttpsOnly {@code true} for rewriting {@code https://}
+	 * @deprecated 2015-02-09 Use {@link ProxyHttpsReplayURIConverter#setRewriteHttps}
+	 */
 	public void setRewriteHttpsOnly(boolean rewriteHttpsOnly) {
 		this.rewriteHttpsOnly = rewriteHttpsOnly;
 	}

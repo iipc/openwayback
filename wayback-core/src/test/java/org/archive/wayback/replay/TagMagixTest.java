@@ -20,7 +20,7 @@
 package org.archive.wayback.replay;
 
 import org.archive.wayback.replay.TagMagix;
-import org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter;
+import org.archive.wayback.archivalurl.ArchivalUrlReplayURIConverter;
 
 import junit.framework.TestCase;
 
@@ -458,7 +458,7 @@ public class TagMagixTest extends TestCase {
 	
 	private void checkCSSMarkup(String orig, String want,String prefix, String ts, String url) {
 		StringBuilder buf = new StringBuilder(orig);
-		ArchivalUrlResultURIConverter uriC = new ArchivalUrlResultURIConverter();
+		ArchivalUrlReplayURIConverter uriC = new ArchivalUrlReplayURIConverter();
 		uriC.setReplayURIPrefix(prefix);
 		TagMagix.markupCSSImports(buf, uriC, ts, url);
 		TagMagix.markupStyleUrls(buf,uriC,ts,url);
@@ -468,7 +468,7 @@ public class TagMagixTest extends TestCase {
 	
 	private void checkStyleOnlyUrlMarkup(String orig, String want, String prefix, String ts, String url) {
 		StringBuilder buf = new StringBuilder(orig);
-		ArchivalUrlResultURIConverter uriC = new ArchivalUrlResultURIConverter();
+		ArchivalUrlReplayURIConverter uriC = new ArchivalUrlReplayURIConverter();
 		uriC.setReplayURIPrefix(prefix);
 		TagMagix.markupStyleUrls(buf,uriC,ts,url);
 		String marked = buf.toString();
@@ -477,7 +477,7 @@ public class TagMagixTest extends TestCase {
 
 	private void checkStyleUrlMarkup(String orig, String want,String prefix, String ts, String url) {
 		StringBuilder buf = new StringBuilder(orig);
-		ArchivalUrlResultURIConverter uriC = new ArchivalUrlResultURIConverter();
+		ArchivalUrlReplayURIConverter uriC = new ArchivalUrlReplayURIConverter();
 		uriC.setReplayURIPrefix(prefix);
 		TagMagix.markupCSSImports(buf, uriC, ts, url);
 		TagMagix.markupStyleUrls(buf, uriC, ts, url);
@@ -487,7 +487,7 @@ public class TagMagixTest extends TestCase {
 	
 	private void checkMarkup(String orig, String want, String tag, String attr, String prefix, String ts, String url) {
 		StringBuilder buf = new StringBuilder(orig);
-		ArchivalUrlResultURIConverter uriC = new ArchivalUrlResultURIConverter();
+		ArchivalUrlReplayURIConverter uriC = new ArchivalUrlReplayURIConverter();
 		uriC.setReplayURIPrefix(prefix);
 		TagMagix.markupTagREURIC(buf,uriC,ts,url,tag,attr);
 		String marked = buf.toString();

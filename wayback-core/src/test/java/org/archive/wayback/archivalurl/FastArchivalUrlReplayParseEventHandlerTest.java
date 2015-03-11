@@ -37,18 +37,14 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 	final String outputCharset = "UTF-8";
 	final String charSet = "UTF-8";
 
-    ArchivalUrlResultURIConverter uriConverter;
-    ArchivalUrlContextResultURIConverterFactory fact;
+    ArchivalUrlReplayURIConverter uriConverter;
     ReplayParseContext context;
 	JSPExecutor jspExec = null;
 
 	@Override
 	protected void setUp() throws Exception {
-		uriConverter = new ArchivalUrlResultURIConverter();
+		uriConverter = new ArchivalUrlReplayURIConverter();
 		uriConverter.setReplayURIPrefix("http://replay.archive.org/");
-
-		fact = new ArchivalUrlContextResultURIConverterFactory(
-			(ArchivalUrlResultURIConverter)uriConverter);
 
 		// The URL of the page, for resolving in-page relative URLs:
 		CaptureSearchResult capture = new CaptureSearchResult();
@@ -57,7 +53,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 		// urlKey is not set as it is unused
 
 		// set up the context:
-		context = new ReplayParseContext(fact, capture);
+		context = new ReplayParseContext(uriConverter, capture);
 		context.setOutputCharset(outputCharset);
 
 		delegator = new FastArchivalUrlReplayParseEventHandler();
@@ -71,7 +67,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 				"<a href=\"/foo.html\">foo</a>" +
 				"</html>";
 		final String expected = "<html>" +
-				"<a href=\"http://replay.archive.org/2001/http://www.example.com/foo.html\">" +
+				"<a href=\"/2001/http://www.example.com/foo.html\">" +
 				"foo</a></html>";
 		assertEquals(expected, doEndToEnd(input));
 	}
@@ -110,7 +106,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
                 "<head>" +
                 "<style type=\"text/css\">" +
                 "#head{" +
-                "background:transparent url(http://replay.archive.org/2001im_/http://www.example.com/images/logo.jpg);" +
+                "background:transparent url(/2001im_/http://www.example.com/images/logo.jpg);" +
                 "}" +
                 "</style>" +
                 "</head>" +
@@ -136,7 +132,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
                 "<head>" +
                 "<style type=\"text/css\">" +
                 "#head{" +
-                "background-image:url(http://replay.archive.org/2001im_" +
+                "background-image:url(/2001im_" +
                 "/http://www.example.com/genbg?a=2&amp;b=1);" +
                 "}" +
                 "</style>" +
@@ -180,7 +176,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
         final String expected = "<html>" +
                 "<head>" +
                 "<style type=\"text/css\">/*<![CDATA[*/\n" +
-				"    @import \"http://replay.archive.org/2001cs_/http://www.example.com/shared.css\";\n" + 
+				"    @import \"/2001cs_/http://www.example.com/shared.css\";\n" +
 				"/*]]>*/</style>" +
                 "</head>" +
                 "</html>";
@@ -204,7 +200,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
         final String expected = "<html>" +
                 "<head>" +
                 "<style type=\"text/css\">\n" +
-				"<!-- @import 'http://replay.archive.org/2001cs_/http://www.example.com/shared.css'; -->\n" + 
+				"<!-- @import '/2001cs_/http://www.example.com/shared.css'; -->\n" + 
 				"</style>" +
                 "</head>" +
                 "</html>";
@@ -233,7 +229,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
                 "@font-face {" +
                 "font-family: 'TestFont" +
                 "src: local('TestFont')" +
-                "src: url(http://replay.archive.org/2001im_/http://www.example.com/fonts/TestFont.otf)" +
+                "src: url(/2001im_/http://www.example.com/fonts/TestFont.otf)" +
                 "}" +
                 "</style>" +
                 "</head>" +
@@ -495,7 +491,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 		final String expected = "{\"a\": 1}";
 
 		String output = doEndToEnd(input);
-		System.out.println(output);
+		//System.out.println(output);
 		assertEquals(expected, output);
 	}
 	
@@ -535,7 +531,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 				"</body>" +
 				"</html>";
 		String output = doEndToEnd(input);
-		System.out.println(output);
+		//System.out.println(output);
 		assertEquals(expected, output);		
 	}
 
@@ -597,7 +593,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 				"</body>" +
 				"</html>";
 		String output = doEndToEnd(input);
-		System.out.println(output);
+		//System.out.println(output);
 		assertEquals(expected, output);
 	}
 
@@ -635,7 +631,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 				"</body>" +
 				"</html>";
 		String output = doEndToEnd(input);
-		System.out.println(output);
+		//System.out.println(output);
 		assertEquals(expected, output);
 	}
 
@@ -670,7 +666,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 				"</body>" +
 				"</html>";
 		String output = doEndToEnd(input);
-		System.out.println(output);
+		//System.out.println(output);
 		assertEquals(expected, output);
 	}
 
@@ -699,7 +695,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 				"<img src=\"map.gif\">" +
 				"</p>";
 		String output = doEndToEnd(input);
-		System.out.println(output);
+		//System.out.println(output);
 		assertEquals(expected, output);
 	}
 
@@ -724,7 +720,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 				"<img src=\"map.gif\">" +
 				"</p>";
 		String output = doEndToEnd(input);
-		System.out.println(output);
+		//System.out.println(output);
 		assertEquals(expected, output);
 	}
 
@@ -762,7 +758,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 				"</body>" +
 				"</html>";
 		String output = doEndToEnd(input);
-		System.out.println(output);
+		//System.out.println(output);
 		assertEquals(expected, output);
 	}
 
@@ -828,7 +824,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 				"</body>" +
 				"</html>";
 		String output = doEndToEnd(input);
-		System.out.println(output);
+		//System.out.println(output);
 		assertEquals(expected, output);
 	}
 
@@ -863,7 +859,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 				"</body>" +
 				"</html>";
 		String output = doEndToEnd(input);
-		System.out.println(output);
+		//System.out.println(output);
 		assertEquals(expected, output);
 	}
 
@@ -900,7 +896,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 				"</frameset>" +
 				"</span>";
 		String output = doEndToEnd(input);
-		System.out.println(output);
+		//System.out.println(output);
 		assertEquals(expected, output);
 	}
 
@@ -920,7 +916,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 				"<body>[[[JSP-INSERT:body-insert.jsp]]]</body></html>";
 
         String out = doEndToEnd(input);
-        System.out.println(out);
+        //System.out.println(out);
 
         assertEquals(expected, out);
 	}
@@ -952,7 +948,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 				"  </body>" +
 				"</html>[[[JSP-INSERT:end.jsp]]]";
 		String out = doEndToEnd(input);
-		System.out.println(out);
+		//System.out.println(out);
 		assertEquals(expected, out);
 	}
 
@@ -996,7 +992,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 				"u=http\\\\u00253A\\\\u00252F\\\\u00252Fwww.ncadv.org\\\\u00252F&amp;h=PAQH&amp;enc=AZPB&amp;s=1&quot;);\">" +
 				"</body></html>";
 		String output = doEndToEnd(input);
-		System.out.println(output);
+		//System.out.println(output);
 		assertEquals(expected, output);
 	}
 
@@ -1088,7 +1084,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
     	// Fortunately, getText() returns entire CDATA section, including
     	// leading "!CDATA[" and trailing "]]" (no < and >), unmodified.
     	String text = tag.getText();
-    	System.out.println("text=\"" + text + "\" (" + text.length() + " chars)");
+    	//System.out.println("text=\"" + text + "\" (" + text.length() + " chars)");
     	assertEquals("![CDATA[aaaa\nbbbb]]", text);
     	// but setText() results in ClassCastException
     	try {

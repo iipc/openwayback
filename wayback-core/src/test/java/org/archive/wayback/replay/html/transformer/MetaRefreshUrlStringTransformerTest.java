@@ -19,11 +19,9 @@
  */
 package org.archive.wayback.replay.html.transformer;
 
-import java.net.URL;
+import junit.framework.TestCase;
 
 import org.archive.wayback.replay.html.transformer.JSStringTransformerTest.RecordingReplayParseContext;
-
-import junit.framework.TestCase;
 
 /**
  * @author brad
@@ -31,14 +29,14 @@ import junit.framework.TestCase;
  */
 public class MetaRefreshUrlStringTransformerTest extends TestCase {
 
-	URL baseURL;
+	String baseURL;
 	RecordingReplayParseContext rc;
 	MetaRefreshUrlStringTransformer st;
 
 	@Override
 	protected void setUp() throws Exception {
-		baseURL = new URL("http://foo.com/");
-		rc = new RecordingReplayParseContext(null, baseURL, null);
+		baseURL = "http://foo.com/";
+		rc = new RecordingReplayParseContext(baseURL, null);
 		st = new MetaRefreshUrlStringTransformer();
 	}
 
@@ -60,20 +58,10 @@ public class MetaRefreshUrlStringTransformerTest extends TestCase {
 				{ "0; URL=/bar", "/bar" },
 		};
 		for (String[] c : cases) {
-			rc = new RecordingReplayParseContext(null, baseURL, null);
+			rc = new RecordingReplayParseContext(baseURL, null);
 			st.transform(rc, c[0]);
 			assertEquals(c[0], 1, rc.got.size());
 			assertEquals(c[0], c[1], rc.got.get(0));
 		}
-	}
-
-	public void testRewriteHttpsOnly() throws Exception {
-		rc.setRewriteHttpsOnly(true);
-
-		final String input = "0; URL=https://www.example.com/content";
-		st.transform(rc, input);
-
-		assertEquals(1, rc.got.size());
-		assertEquals("https://www.example.com/content", rc.got.get(0));
 	}
 }

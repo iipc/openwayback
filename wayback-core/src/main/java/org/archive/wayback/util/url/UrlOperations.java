@@ -77,6 +77,13 @@ public class UrlOperations {
 	public final static String WAIS_SCHEME = "wais://";
 	
 	/**
+	 * (I know these are URIs...)
+	 */
+	public static final String DATA_PREFIX = "data:";
+
+	public static final String JAVASCRIPT_PREFIX = "javascript:";
+
+	/**
 	 * array of static Strings for all "known" schemes
 	 */
 	public final static String ALL_SCHEMES[] = { 

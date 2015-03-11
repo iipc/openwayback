@@ -18,7 +18,7 @@ import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.WaybackRequest;
-import org.archive.wayback.proxy.ProxyHttpsResultURIConverter;
+import org.archive.wayback.proxy.ProxyHttpsReplayURIConverter;
 import org.archive.wayback.replay.HttpHeaderProcessor;
 import org.archive.wayback.replay.IdentityHttpHeaderProcessor;
 import org.archive.wayback.replay.RedirectRewritingHttpHeaderProcessor;
@@ -99,7 +99,7 @@ public class ArchivalURLJSStringTransformerReplayRendererTest extends TestCase {
 		CaptureSearchResult result = new CaptureSearchResult();
 		result.setOriginalUrl("http://example.com/");
 
-		ResultURIConverter uriConverter = new ArchivalUrlResultURIConverter();
+		ResultURIConverter uriConverter = new ArchivalUrlReplayURIConverter();
 
 		EasyMock.replay(response);
 
@@ -126,11 +126,8 @@ public class ArchivalURLJSStringTransformerReplayRendererTest extends TestCase {
 		JSStringTransformer transformer = new JSStringTransformer();
 		renderer.setTransformer(transformer);
 		
-		ResultURIConverter proxyURIConverter = new ProxyHttpsResultURIConverter();
-		ContextResultURIConverterFactory converterFactory =
-				new IdentityResultURIConverterFactory(proxyURIConverter);
-		renderer.setConverterFactory(converterFactory);
-		renderer.setRewriteHttpsOnly(true);
+		ProxyHttpsReplayURIConverter proxyURIConverter = new ProxyHttpsReplayURIConverter();
+		proxyURIConverter.setRewriteHttps(true);
 		
 		final String payload =
 				"var img1 = 'https://home.archive.org/~hstern/ARI-3745/happy_face.jpg';\n" +

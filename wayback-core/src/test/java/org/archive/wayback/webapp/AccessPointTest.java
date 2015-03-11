@@ -28,10 +28,11 @@ import org.archive.io.warc.WARCRecord;
 import org.archive.wayback.QueryRenderer;
 import org.archive.wayback.ReplayDispatcher;
 import org.archive.wayback.ReplayRenderer;
+import org.archive.wayback.ReplayURIConverter;
 import org.archive.wayback.RequestParser;
 import org.archive.wayback.ResourceIndex;
 import org.archive.wayback.ResourceStore;
-import org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter;
+import org.archive.wayback.archivalurl.ArchivalUrlReplayURIConverter;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.FastCaptureSearchResult;
@@ -150,7 +151,7 @@ public class AccessPointTest extends TestCase {
 	}
 
 	// values used in global wayback configuration.
-	public static final String WEB_PREFIX = "/web/";
+	public static final String WEB_PREFIX = "http://web.archive.org/web/";
 	public static final String STATIC_PREFIX = "/static/";
 
 	/*
@@ -161,6 +162,10 @@ public class AccessPointTest extends TestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
 		cut = new AccessPoint();
+		setUpAccessPoint();
+	}
+
+	protected void setUpAccessPoint() throws Exception {
 		cut.setEnablePerfStatsHeader(false);
 		cut.setEnableMemento(false);
 		cut.setExclusionFactory(null);
@@ -223,13 +228,17 @@ public class AccessPointTest extends TestCase {
 		replayRenderer = EasyMock.createMock(ReplayRenderer.class);
 
 		{
-			ArchivalUrlResultURIConverter uc = new ArchivalUrlResultURIConverter();
-			uc.setReplayURIPrefix("/web/");
+			ArchivalUrlReplayURIConverter uc = new ArchivalUrlReplayURIConverter();
+			//uc.setReplayURIPrefix("/web/");
 			cut.setUriConverter(uc);
+			// let it configure uriConverter.
+			// assuming init() has no other side effects.
+			cut.init();
+			assertEquals(WEB_PREFIX, uc.getReplayURIPrefix());
 		}
 
 		// disable logging
-		Logger.getLogger(ArchivalUrlResultURIConverter.class.getName())
+		Logger.getLogger(ArchivalUrlReplayURIConverter.class.getName())
 			.setLevel(Level.WARNING);
 		Logger.getLogger(PerfStats.class.getName()).setLevel(Level.WARNING);
 	}
@@ -384,7 +393,7 @@ public class AccessPointTest extends TestCase {
 	 * <p>
 	 * It's left as caller's responsibility to setup {@link ResourceIndex#query(WaybackRequest)} mock
 	 * to return {@code CaptureSearchResults} returned by this method.
-	 * </p> 
+	 * </p>
 	 * @param resourceIndex ResourceIndex mock
 	 * @param resourceStore ResourceStore mock, can be {@code null}
 	 * @param closestIndex 0-based index of resource to be marked as
@@ -1303,12 +1312,12 @@ public class AccessPointTest extends TestCase {
 	 * @throws Exception
 	 */
 	public void testMemento_replay_exactCapture() throws Exception {
-		final String AGGREGATION_PREFIX = "http://web.archive.org";
+		final String AGGREGATION_PREFIX = "";//"http://web.archive.org";
 
 		cut.setEnableMemento(true);
 		cut.setConfigs(new Properties());
-		cut.getConfigs().setProperty(MementoUtils.AGGREGATION_PREFIX_CONFIG,
-			AGGREGATION_PREFIX);
+//		cut.getConfigs().setProperty(MementoUtils.AGGREGATION_PREFIX_CONFIG,
+//			AGGREGATION_PREFIX);
 
 		// make sure wbRequesat.requestUrl, replayTimestamp are set up.
 		setReplayRequest("http://www.example.com/", "20100601000000");
@@ -1354,6 +1363,48 @@ public class AccessPointTest extends TestCase {
 		EasyMock.verify(resourceIndex, resourceStore, replay);
 
 		assertTrue("handleRequest return value", r);
+	}
+
+	/**
+	 * Test of custom request-sensitive replay URL construction.
+	 * {@code decorateURIConverter} method is overridden in AccessPoint subclass,
+	 * whose return value is passed to {@code renderResource}.
+	 * @throws Exception
+	 */
+	public void testDecorateURIConverter() throws Exception {
+		// No method will be invoked as ReplayRenderer is mocked. We just check if
+		// replayRendeer.renderResource method is called with this instance as uriConverter.
+		final ReplayURIConverter decorated = EasyMock.createMock(ReplayURIConverter.class);
+		cut = new AccessPoint() {
+			@Override
+			public ReplayURIConverter decorateURIConverter(
+					ReplayURIConverter uriConverter,
+					HttpServletRequest httpRequest, WaybackRequest wbRequest) {
+				return decorated;
+			}
+		};
+		setUpAccessPoint();
+		final String timestamp = "20140505101010";
+		setReplayRequest("http://example.com/", timestamp);
+
+		Resource payloadResource = createTestHtmlResource(timestamp,
+			"hogehogehogehoge\n".getBytes("UTF-8"));
+		CaptureSearchResults results = setupCaptures(0, payloadResource);
+		CaptureSearchResult closest = results.getClosest();
+
+		//expectRendering(closest, payloadResource, payloadResource, results);
+		EasyMock.expect(
+			replay.getRenderer(wbRequest, closest, payloadResource,
+				payloadResource)).andReturn(replayRenderer);
+		replayRenderer.renderResource(httpRequest, httpResponse, wbRequest,
+			closest, payloadResource, payloadResource, decorated, results);
+
+		EasyMock.replay(httpRequest, httpResponse, resourceIndex,
+			resourceStore, replay, replayRenderer, decorated);
+
+		cut.handleRequest(httpRequest, httpResponse);
+
+		EasyMock.verify(replayRenderer);
 	}
 
 	/**
@@ -1420,11 +1471,11 @@ public class AccessPointTest extends TestCase {
 	 * @throws Exception
 	 */
 	public void testMementoTimegate() throws Exception {
-		final String AGGREGATION_PREFIX = "http://web.archive.org";
+		final String AGGREGATION_PREFIX = "";//"http://web.archive.org";
 		cut.setEnableMemento(true);
 		cut.setConfigs(new Properties());
-		cut.getConfigs().setProperty(MementoUtils.AGGREGATION_PREFIX_CONFIG,
-			AGGREGATION_PREFIX);
+//		cut.getConfigs().setProperty(MementoUtils.AGGREGATION_PREFIX_CONFIG,
+//			AGGREGATION_PREFIX);
 
 		// Wayback Timegate is mapped to date-less replay URL (/web/<URI-R>)
 		// with Accept-Datetime header, but it is irrelevant here (it's a
