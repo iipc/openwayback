@@ -19,11 +19,18 @@
  */
 package org.archive.wayback.accesscontrol.robotstxt;
 
+import java.net.URL;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import junit.framework.TestCase;
+
+import org.archive.wayback.accesscontrol.robotstxt.redis.RobotsTxtResource;
+import org.archive.wayback.core.CaptureSearchResult;
+import org.archive.wayback.exception.LiveDocumentNotAvailableException;
+import org.archive.wayback.liveweb.LiveWebCache;
+import org.easymock.EasyMock;
 
 /**
  *
@@ -79,4 +86,60 @@ public class RobotExclusionFilterTest extends TestCase {
 			assertEquals(listS, arrayS);
 		}
 	}
+
+	public void testGetRules_403() throws Exception {
+		CaptureSearchResult result = new CaptureSearchResult();
+		result.setOriginalUrl("http://example.com/index.html");
+
+		final URL rturl = new URL("http://example.com/robots.txt");
+		final int STATUSCODE = 403;
+		// non essential
+		final long MAX_CACHE_MS = 1000;
+		final String USER_AGENT = "ia_archiver";
+		LiveWebCache cache = EasyMock.createMock(LiveWebCache.class);
+		EasyMock.expect(cache.getCachedResource(rturl, MAX_CACHE_MS, true))
+			.andThrow(new LiveDocumentNotAvailableException(rturl, STATUSCODE));
+		// shall make no other getCachedResource calls,
+		// specifically for "http://www.example.com/index.html"
+		RobotExclusionFilter cut = new RobotExclusionFilter(cache, USER_AGENT,
+			MAX_CACHE_MS);
+
+		EasyMock.replay(cache);
+
+		RobotRules rules = cut.getRules(result);
+
+		assertNotNull(rules);
+
+		assertTrue("rules is empty", rules.getUserAgentsFound().isEmpty());
+
+		EasyMock.verify(cache);
+	}
+
+	public void testGetRules_502() throws Exception {
+		CaptureSearchResult result = new CaptureSearchResult();
+		result.setOriginalUrl("http://example.com/index.html");
+
+		final URL rturl = new URL("http://example.com/robots.txt");
+		final int STATUSCODE = 502;
+		// non essential
+		final long MAX_CACHE_MS = 1000;
+		final String USER_AGENT = "ia_archiver";
+		LiveWebCache cache = EasyMock.createMock(LiveWebCache.class);
+		EasyMock.expect(cache.getCachedResource(rturl, MAX_CACHE_MS, true))
+			.andThrow(new LiveDocumentNotAvailableException(rturl, STATUSCODE));
+		// shall make no other getCachedResource calls,
+		// specifically for "http://www.example.com/index.html"
+		RobotExclusionFilter cut = new RobotExclusionFilter(cache, USER_AGENT,
+			MAX_CACHE_MS);
+
+		EasyMock.replay(cache);
+
+		RobotRules rules = cut.getRules(result);
+
+		// null means full-disallow.
+		assertNull(rules);
+
+		EasyMock.verify(cache);
+	}
+
 }

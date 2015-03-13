@@ -89,7 +89,7 @@ public class SimpleRedisRobotsCache implements LiveWebCache {
 			PerfStats.timeEnd(PerfStat.RobotsRedis);
 			
 			if (result == null || result.status != STATUS_OK) {
-				throw new LiveDocumentNotAvailableException("Error Loading Live Robots");	
+				throw new LiveDocumentNotAvailableException(urlURL, result.status);
 			}
 			
 			return new RobotsTxtResource(result.robots);
@@ -105,7 +105,13 @@ public class SimpleRedisRobotsCache implements LiveWebCache {
 			String currentRobots = value.value;
 			
 			if (currentRobots.startsWith(ROBOTS_TOKEN_ERROR)) {
-				throw new LiveDocumentNotAvailableException("Robots Error: " + currentRobots);	
+				int status;
+				try {
+					status = Integer.parseInt(currentRobots.substring(ROBOTS_TOKEN_ERROR.length()));
+				} catch (NumberFormatException ex) {
+					status = 0;
+				}
+				throw new LiveDocumentNotAvailableException(urlURL, status);
 			} else if (value.equals(ROBOTS_TOKEN_EMPTY)) {
 				currentRobots = "";
 			}
@@ -222,7 +228,12 @@ public class SimpleRedisRobotsCache implements LiveWebCache {
 					contents = IOUtils.toString(ByteStreams.limit(origResource, MAX_ROBOTS_SIZE), "UTF-8");
 				}
 			}
+		} catch (LiveDocumentNotAvailableException ex) {
+			status = ex.getOriginalStatuscode();
+			if (status == 0)
+				status = STATUS_ERROR;
 		} catch (Exception e) {
+			LOGGER.log(Level.INFO, "Liveweb fetch failed for " + urlURL, e);
 			status = STATUS_ERROR;
 		} finally {
 			if (origResource != null) {
@@ -349,6 +360,10 @@ public class SimpleRedisRobotsCache implements LiveWebCache {
 		this.redisCmds = new RedisRobotsLogic(redisConn);
 	}
 
+	public void setRedisCmds(RedisRobotsLogic redisCmds) {
+		this.redisCmds = redisCmds;
+	}
+
 	public LiveWebCache getLiveweb() {
 		return liveweb;
 	}
@@ -363,5 +378,22 @@ public class SimpleRedisRobotsCache implements LiveWebCache {
 
 	public void setGzipRobots(boolean gzipRobots) {
 		this.gzipRobots = gzipRobots;
-	}	
+	}
+
+	public int getTotalTTL() {
+		return totalTTL;
+	}
+
+	public void setTotalTTL(int totalTTL) {
+		this.totalTTL = totalTTL;
+	}
+
+	public int getNotAvailTotalTTL() {
+		return notAvailTotalTTL;
+	}
+
+	public void setNotAvailTotalTTL(int notAvailTotalTTL) {
+		this.notAvailTotalTTL = notAvailTotalTTL;
+	}
+
 }

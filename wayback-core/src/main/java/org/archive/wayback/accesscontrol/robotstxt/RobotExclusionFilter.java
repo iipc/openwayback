@@ -185,9 +185,7 @@ public class RobotExclusionFilter extends ExclusionFilter {
 //		return list;
 //	}
 	
-	private RobotRules getRules(CaptureSearchResult result) {
-		RobotRules rules = null;
-		RobotRules tmpRules = null;
+	protected RobotRules getRules(CaptureSearchResult result) {
 		String host;
 		try {
 			host = result.getOriginalHost();
@@ -205,6 +203,7 @@ public class RobotExclusionFilter extends ExclusionFilter {
 		// If we get no responses for any of the robot URLs, use "empty" rules,
 		// and record that in the cache, too.
 		
+		RobotRules rules = null;
 		while(rules == null && itr.hasNext()) {
 			String urlString = (String) itr.next();
 			if(firstUrlString == null) {
@@ -227,7 +226,7 @@ public class RobotExclusionFilter extends ExclusionFilter {
 						LOGGER.fine("ROBOT: NotCached - Downloading("+urlString+")");
 					}
 				
-					tmpRules = new RobotRules();					
+					RobotRules tmpRules = new RobotRules();
 					resource = webCache.getCachedResource(new URL(urlString),
 							maxCacheMS,true);
 					//long elapsed = System.currentTimeMillis() - start;
@@ -246,8 +245,22 @@ public class RobotExclusionFilter extends ExclusionFilter {
 					}
 
 				} catch (LiveDocumentNotAvailableException e) {
-					LOGGER.info("ROBOT: LiveDocumentNotAvailableException("+urlString+")");
-
+					// 4xx failures are assumed that no valid robots.txt exists. This includes
+					// 401 "Unauthorized" and 403 "Forbidden" as well as obvious 404. Exit loop
+					// now so that alternative hosts are not checked.
+					// (see https://github.com/internetarchive/wayback/issues/74)
+					int status = e.getOriginalStatuscode();
+					if (status >= 400 && status < 500) {
+						LOGGER.fine("ROBOT: status=" + status + " = no robots.txt: " + urlString);
+						rulesCache.put(firstUrlString, rules = emptyRules);
+					} else if (status > 0) {
+						// other HTTP failures are taken as "full disallow".
+						LOGGER.fine("ROBOT: stauts=" + status + " = full disallow: " + urlString);
+						return null;
+					} else {
+						// non HTTP failures are disregarded.
+						LOGGER.info("ROBOT: LiveDocumentNotAvailableException("+urlString+")");
+					}
 				} catch (MalformedURLException e) {
 //					e.printStackTrace();
 					LOGGER.warning("ROBOT: MalformedURLException("+urlString+")");
