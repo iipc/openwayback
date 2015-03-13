@@ -200,9 +200,26 @@ public class SimpleRedisRobotsCache implements LiveWebCache {
 			this.status = status;
 		}
 		
-		boolean isSameRobots()
-		{
-			return (robots == null) || (oldRobots == null) || robots.equals(oldRobots);			
+		boolean isSameRobots() {
+			// Note: oldRobots is ROBOTS_TOKEN_ERROR + <status> if failure was
+			// cached, whereas robots == null if status != 200.
+			if (robots == null) {
+				// new robots.txt is a failure. compare status.
+				if (oldRobots != null && oldRobots.startsWith(ROBOTS_TOKEN_ERROR)) {
+					int oldStatus;
+					try {
+						oldStatus = Integer.parseInt(oldRobots
+							.substring(ROBOTS_TOKEN_ERROR.length()));
+					} catch (NumberFormatException ex) {
+						oldStatus = 0;
+					}
+					return status == oldStatus;
+				}
+				// no cached robots.txt or 200 -> different.
+				return false;
+			} else {
+				return robots.equals(oldRobots);
+			}
 		}
 	}
 	
@@ -339,8 +356,9 @@ public class SimpleRedisRobotsCache implements LiveWebCache {
 		} catch (MalformedURLException e) {
 			return new RobotsResult(current);
 		}
-		
-		if ((result.status == STATUS_OK) || cacheFails) {
+		result.oldRobots = current;
+
+		if (result.status == STATUS_OK || !result.isSameRobots() || cacheFails) {
 			this.updateCache(result.robots, url, current, result.status, cacheFails);
 			
 //			if (LOGGER.isLoggable(Level.INFO)) {
@@ -348,7 +366,6 @@ public class SimpleRedisRobotsCache implements LiveWebCache {
 //			}
 		}
 		
-		result.oldRobots = current;
 		return result;
 	}
 

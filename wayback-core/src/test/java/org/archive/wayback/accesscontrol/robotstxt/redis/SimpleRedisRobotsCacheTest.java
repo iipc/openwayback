@@ -223,6 +223,156 @@ public class SimpleRedisRobotsCacheTest extends TestCase {
 		assertEquals(OLD_CONTENT, result.oldRobots);
 		assertEquals(NEW_CONTENT, result.robots);
 		assertEquals(200, result.status);
+		assertFalse(result.isSameRobots());
+
+		EasyMock.verify(redisRobotsLogic, liveweb);
+	}
+
+	public void testForceUpdateSuccessToFailure() throws Exception {
+		final String OLD_CONTENT = "/* robots.txt */";
+		final int NEW_STATUS = 403;
+		final String NEW_CONTENT = SimpleRedisRobotsCache.ROBOTS_TOKEN_ERROR + NEW_STATUS;
+		setupCached("http://example.com/robots.txt", OLD_CONTENT);
+		final URL url = new URL("http://example.com/robots.txt");
+		EasyMock.expect(liveweb.getCachedResource(url, 0, false)).andThrow(
+			new LiveDocumentNotAvailableException(url, NEW_STATUS));
+		expectCacheUpdate(url.toString(), NEW_CONTENT, cut.getTotalTTL());
+
+		EasyMock.replay(redisRobotsLogic, liveweb);
+
+		// Even though cacheFails is false, 403 status is saved because it differs
+		// from previous value.
+		RobotsResult result = cut.forceUpdate(url.toString(), 0, false);
+
+		assertNotNull(result);
+		assertEquals(OLD_CONTENT, result.oldRobots);
+		assertEquals(null, result.robots);
+		assertEquals(NEW_STATUS, result.status);
+		assertFalse(result.isSameRobots());
+
+		EasyMock.verify(redisRobotsLogic, liveweb);
+	}
+
+	public void testForceUpdateNoneToSuccess() throws Exception {
+		final String OLD_CONTENT = null;
+		final String NEW_CONTENT = "/* robots.txt */";
+		setupCached("http://example.com/robots.txt", OLD_CONTENT);
+		final URL url = new URL("http://example.com/robots.txt");
+		final RobotsTxtResource resource = new RobotsTxtResource(NEW_CONTENT);
+		EasyMock.expect(liveweb.getCachedResource(url, 0, false)).andReturn(
+			resource);
+		expectCacheUpdate(url.toString(), NEW_CONTENT, cut.getTotalTTL());
+
+		EasyMock.replay(redisRobotsLogic, liveweb);
+
+		// Even though cacheFails is false, 403 status is saved because it differs
+		// from previous value.
+		RobotsResult result = cut.forceUpdate(url.toString(), 0, false);
+
+		assertNotNull(result);
+		assertEquals(OLD_CONTENT, result.oldRobots);
+		assertEquals(NEW_CONTENT, result.robots);
+		assertEquals(200, result.status);
+		assertFalse(result.isSameRobots());
+
+		EasyMock.verify(redisRobotsLogic, liveweb);
+	}
+
+	public void testForceUpdateNoneToFailure() throws Exception {
+		final String OLD_CONTENT = null;
+		final int NEW_STATUS = 403;
+		final String NEW_CONTENT = SimpleRedisRobotsCache.ROBOTS_TOKEN_ERROR + NEW_STATUS;
+		setupCached("http://example.com/robots.txt", OLD_CONTENT);
+		final URL url = new URL("http://example.com/robots.txt");
+		EasyMock.expect(liveweb.getCachedResource(url, 0, false)).andThrow(
+			new LiveDocumentNotAvailableException(url, NEW_STATUS));
+		expectCacheUpdate(url.toString(), NEW_CONTENT, cut.getTotalTTL());
+
+		EasyMock.replay(redisRobotsLogic, liveweb);
+
+		// Even though cacheFails is false, 403 status is saved because it differs
+		// from previous value.
+		RobotsResult result = cut.forceUpdate(url.toString(), 0, false);
+
+		assertNotNull(result);
+		assertEquals(OLD_CONTENT, result.oldRobots);
+		assertEquals(null, result.robots);
+		assertEquals(NEW_STATUS, result.status);
+		assertFalse(result.isSameRobots());
+
+		EasyMock.verify(redisRobotsLogic, liveweb);
+	}
+
+	public void testForceUpdateFailureToSuccess() throws Exception {
+		final String OLD_CONTENT = SimpleRedisRobotsCache.ROBOTS_TOKEN_ERROR + "502";
+		final String NEW_CONTENT = "/* robots.txt */";
+		setupCached("http://example.com/robots.txt", OLD_CONTENT);
+		final URL url = new URL("http://example.com/robots.txt");
+		final RobotsTxtResource resource = new RobotsTxtResource(NEW_CONTENT);
+		EasyMock.expect(liveweb.getCachedResource(url, 0, false)).andReturn(
+			resource);
+		expectCacheUpdate(url.toString(), NEW_CONTENT, cut.getTotalTTL());
+
+		EasyMock.replay(redisRobotsLogic, liveweb);
+
+		// Even though cacheFails is false, 403 status is saved because it differs
+		// from previous value.
+		RobotsResult result = cut.forceUpdate(url.toString(), 0, false);
+
+		assertNotNull(result);
+		assertEquals(OLD_CONTENT, result.oldRobots);
+		assertEquals(NEW_CONTENT, result.robots);
+		assertEquals(200, result.status);
+		assertFalse(result.isSameRobots());
+
+		EasyMock.verify(redisRobotsLogic, liveweb);
+	}
+
+	public void testForceUpdateSameFailures() throws Exception {
+		final String OLD_CONTENT = SimpleRedisRobotsCache.ROBOTS_TOKEN_ERROR + "502";
+		final int NEW_STATUS = 502;
+		setupCached("http://example.com/robots.txt", OLD_CONTENT);
+		final URL url = new URL("http://example.com/robots.txt");
+		EasyMock.expect(liveweb.getCachedResource(url, 0, false)).andThrow(
+			new LiveDocumentNotAvailableException(url, NEW_STATUS));
+		// expects no cache update
+
+		EasyMock.replay(redisRobotsLogic, liveweb);
+
+		// Even though cacheFails is false, 403 status is saved because it differs
+		// from previous value.
+		RobotsResult result = cut.forceUpdate(url.toString(), 0, false);
+
+		assertNotNull(result);
+		assertEquals(OLD_CONTENT, result.oldRobots);
+		assertEquals(null, result.robots);
+		assertEquals(NEW_STATUS, result.status);
+		assertTrue(result.isSameRobots());
+
+		EasyMock.verify(redisRobotsLogic, liveweb);
+	}
+
+	public void testForceUpdateDifferentFailures() throws Exception {
+		final String OLD_CONTENT = SimpleRedisRobotsCache.ROBOTS_TOKEN_ERROR + "502";
+		final int NEW_STATUS = 403;
+		final String NEW_CONTENT = SimpleRedisRobotsCache.ROBOTS_TOKEN_ERROR + NEW_STATUS;
+		setupCached("http://example.com/robots.txt", OLD_CONTENT);
+		final URL url = new URL("http://example.com/robots.txt");
+		EasyMock.expect(liveweb.getCachedResource(url, 0, false)).andThrow(
+			new LiveDocumentNotAvailableException(url, NEW_STATUS));
+		expectCacheUpdate(url.toString(), NEW_CONTENT, cut.getTotalTTL());
+
+		EasyMock.replay(redisRobotsLogic, liveweb);
+
+		// Even though cacheFails is false, 403 status is saved because it differs
+		// from previous value.
+		RobotsResult result = cut.forceUpdate(url.toString(), 0, false);
+
+		assertNotNull(result);
+		assertEquals(OLD_CONTENT, result.oldRobots);
+		assertEquals(null, result.robots);
+		assertEquals(NEW_STATUS, result.status);
+		assertFalse(result.isSameRobots());
 
 		EasyMock.verify(redisRobotsLogic, liveweb);
 	}
