@@ -19,11 +19,14 @@
  */
 package org.archive.wayback.requestparser;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
+import org.apache.commons.httpclient.URIException;
+import org.archive.url.UsableURIFactory;
 
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BetterRequestException;
@@ -86,6 +89,14 @@ public class FormRequestParser extends WrappedRequestParser {
 				// just jam everything else in:
 				String val = AccessPoint.getMapParam(queryMap, key);
 				if (key.equals(WaybackRequest.REQUEST_URL)) {
+                    try {
+                        val = new String(val.getBytes("ISO-8859-1"), "UTF-8");
+                        val = UsableURIFactory.getInstance(val, "UTF-8").toString();
+                    } catch (UnsupportedEncodingException ex) {
+                        throw new RuntimeException(ex);
+                    } catch (URIException ex) {
+                        throw new RuntimeException(ex);
+                    }
 					String scheme = UrlOperations.urlToScheme(val);
 					if (scheme == null) {
 						val = UrlOperations.HTTP_SCHEME + val;
