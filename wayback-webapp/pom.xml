@@ -11,6 +11,10 @@
   <name>OpenWayback Web Application</name>
   <packaging>war</packaging>
 
+   <properties>
+      <jetty.version>9.2.10.v20150310</jetty.version>
+   </properties>
+   
   <build>
     <finalName>openwayback-${project.version}</finalName>
     <plugins>
@@ -25,14 +29,85 @@
         </configuration>
       </plugin>
       <plugin>
-        <groupId>org.mortbay.jetty</groupId>
-        <artifactId>maven-jetty-plugin</artifactId>
-        <configuration>
-          <webAppConfig>
-            <contextPath>/</contextPath>
-          </webAppConfig>
-        </configuration>
-      </plugin>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-maven-plugin</artifactId>
+            <version>${jetty.version}</version>
+            <configuration>
+               <jettyXml>${project.basedir}/src/test/resources/jetty.xml</jettyXml>
+               <stopPort>1999</stopPort>
+               <stopKey>HALT</stopKey>
+               <webApp>
+                   <descriptor>${project.basedir}/src/test/webapp/WEB-INF/web.xml</descriptor>
+               </webApp>
+               <useTestScope>true</useTestScope>
+               <systemProperties>
+                  <systemProperty>
+                     <name>wayback.warc.dir</name>
+                     <value>${basedir}/src/test/resources/warcs</value>
+                  </systemProperty>
+                  <systemProperty>
+                     <name>wayback.work.dir</name>
+                     <value>${basedir}/target/wayback-work</value>
+                  </systemProperty>
+                  <systemProperty>
+                     <name>wayback.host</name>
+                     <value>localhost</value>
+                  </systemProperty>
+               </systemProperties>
+               <includePluginDependencies>true</includePluginDependencies>
+            </configuration>
+            <executions>
+               <execution>
+                  <id>start-jetty</id>
+                  <phase>pre-integration-test</phase>
+                  <goals>
+                     <goal>start</goal>
+                  </goals>
+                  <!-- Run in the background so tests can execute:  -->
+                  <configuration>
+                     <daemon>true</daemon>
+                  </configuration>
+               </execution>
+               <execution>
+                  <id>stop-jetty</id>
+                  <phase>post-integration-test</phase>
+                  <goals>
+                     <goal>stop</goal>
+                  </goals>
+               </execution>
+            </executions>
+         </plugin>
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>2.16</version>
+            <configuration>
+               <excludes>
+                  <exclude>**/integration/*Test.java
+                  </exclude>
+               </excludes>
+               <includePluginDependencies>true</includePluginDependencies>
+            </configuration>
+            <executions>
+               <execution>
+                  <id>integration-tests</id>
+                  <phase>integration-test</phase>
+                  <goals>
+                     <goal>test</goal>
+                  </goals>
+                  <configuration>
+                     <skip>false</skip>
+                     <excludes>
+                        <exclude>none</exclude>
+                     </excludes>
+                     <includes>
+                        <include>**/integration/*Test.java
+                        </include>
+                     </includes>
+                  </configuration>
+               </execution>
+            </executions>
+         </plugin>
     </plugins>
   </build>
 
@@ -47,6 +122,18 @@
       <artifactId>foresite</artifactId>
       <version>0.9</version>
     </dependency>
+      <dependency>
+         <groupId>junit</groupId>
+         <artifactId>junit</artifactId>
+         <version>4.4</version>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <groupId>org.apache.httpcomponents</groupId>
+         <artifactId>httpclient</artifactId>
+         <version>4.4</version>
+         <scope>test</scope>
+      </dependency>
   </dependencies>
 
 </project>
