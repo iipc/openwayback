@@ -20,6 +20,7 @@
 package org.archive.wayback.core;
 
 import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.Date;
 import java.util.HashMap;
@@ -30,6 +31,8 @@ import java.util.Set;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import org.apache.commons.httpclient.URIException;
+import org.archive.url.UsableURIFactory;
 
 import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.memento.MementoUtils;
@@ -766,6 +769,17 @@ public class WaybackRequest {
 	    		}
 	    	}
 	    }
+
+        try {
+            urlStr = URLDecoder.decode(urlStr, "UTF-8");
+            urlStr = UsableURIFactory.getInstance(urlStr, "UTF-8").toString();
+        } catch (UnsupportedEncodingException ex) {
+            // Should never happen as UTF-8 is required to be present
+            throw new RuntimeException(ex);
+        } catch (URIException ex) {
+            throw new RuntimeException(ex);
+        }
+
         put(REQUEST_URL, urlStr);
 	}
 	
