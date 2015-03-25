@@ -306,7 +306,7 @@
         <groupId>org.netpreserve.commons</groupId>
         <artifactId>webarchive-commons</artifactId>
         <version>1.1.5-SNAPSHOT</version>
-	  </dependency>
+      </dependency>
       
       <dependency>
         <groupId>org.archive.access-control</groupId>
