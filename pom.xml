@@ -303,10 +303,11 @@
       </dependency>
            
       <dependency>
-        <groupId>org.netpreserve.commons</groupId>
-        <artifactId>webarchive-commons</artifactId>
-        <version>1.1.1-IA-SNAPSHOT</version>
-      </dependency>
+		<groupId>org.netpreserve.commons</groupId>
+		<artifactId>webarchive-commons</artifactId>
+		<version>1.1.5-SNAPSHOT</version>
+	  </dependency>
+      
       <dependency>
         <groupId>org.archive.access-control</groupId>
         <artifactId>access-control</artifactId>
