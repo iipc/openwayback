@@ -23,6 +23,12 @@
           <li>Minor fixes to replace hardcoded port numbers aun URL prefixes with placeholders. <a href="https://github.com/iipc/openwayback/pull/223">#223</a></li>
        </ul>
       </subsection>
+      <subsection name="Bug Fixes">
+       <ul>
+          <li>Removed duplicate accessPointPath property in proxy replay section of wayback.xml <a href="https://github.com/iipc/openwayback/issues/229">#229</a>
+          </li>
+       </ul>
+      </subsection>
     </section>
     <section name="OpenWayback 2.1.0 Release">
       <subsection name="Features">
