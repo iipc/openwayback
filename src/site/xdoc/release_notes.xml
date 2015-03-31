@@ -25,8 +25,8 @@
       </subsection>
       <subsection name="Bug Fixes">
        <ul>
-          <li>Removed duplicate accessPointPath property in proxy replay section of wayback.xml <a href="https://github.com/iipc/openwayback/issues/229">#229</a>
-          </li>
+          <li>Removed duplicate accessPointPath property in proxy replay section of wayback.xml <a href="https://github.com/iipc/openwayback/issues/229">#229</a></li>
+          <li>Failing test: testPadDateStr(org.archive.wayback.util.TimestampTest) <a href="https://github.com/iipc/openwayback/issues/231">#231</a></li>
        </ul>
       </subsection>
     </section>
