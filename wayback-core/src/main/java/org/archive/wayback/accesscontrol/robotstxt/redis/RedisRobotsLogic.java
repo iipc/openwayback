@@ -69,8 +69,7 @@ public class RedisRobotsLogic {
 		}
 	}
 	
-	static class RedisValue
-	{
+	protected static class RedisValue {
 		String value;
 		long ttl;
 		
@@ -79,9 +78,22 @@ public class RedisRobotsLogic {
 			this.value = value;
 			this.ttl = ttl;
 		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (!(obj instanceof RedisValue)) return false;
+			RedisValue rv = (RedisValue)obj;
+			return (ttl == rv.ttl &&
+					(value != null && value.equals(rv.value) || rv.value == null));
+		}
+
+		public String toString() {
+			return String.format("RedisValue(%s, %d)", value == null ? "null"
+					: "\"" + value + "\"", ttl);
+		}
 	}
 	
-	static class KeyRedisValue extends RedisValue
+	protected static class KeyRedisValue extends RedisValue
 	{
 		String key;
 		

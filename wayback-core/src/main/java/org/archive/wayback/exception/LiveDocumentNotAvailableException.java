@@ -36,6 +36,8 @@ public class LiveDocumentNotAvailableException extends WaybackException {
 	protected static final String ID = "liveDocumentNotAvailable";
 	protected static final String defaultMessage = "Live document unavailable";
 
+	private int statuscode = 0;
+
 	/**
 	 * Constructor
 	 * @param url
@@ -45,6 +47,7 @@ public class LiveDocumentNotAvailableException extends WaybackException {
 		super("The URL " + url.toString() + " is not available(HTTP " + code +
 				" returned)", defaultMessage);
 		id = ID;
+		this.statuscode = code;
 	}
 
 	/**
@@ -57,6 +60,7 @@ public class LiveDocumentNotAvailableException extends WaybackException {
 		super("The URL " + url.toString() + " is not available(HTTP " + code +
 				" returned)", defaultMessage, details);
 		id = ID;
+		this.statuscode = code;
 	}
 
 	/**
@@ -72,5 +76,14 @@ public class LiveDocumentNotAvailableException extends WaybackException {
 	 */
 	public int getStatus() {
 		return HttpServletResponse.SC_BAD_GATEWAY;
+	}
+
+	/**
+	 * Return the original HTTP status code that resulted in this
+	 * exception.
+	 * @return HTTP status code, or 0 if not applicable.
+	 */
+	public int getOriginalStatuscode() {
+		return statuscode;
 	}
 }
