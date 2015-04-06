@@ -168,7 +168,7 @@ public class SimpleRedisRobotsCache implements LiveWebCache {
 	
 	static boolean isFailedError(int status)
 	{
-		return (status == 0) || ((status >= 500)) || status == STATUS_OLD_ERROR;
+		return (status == 0) || ((status >= 500));
 	}
 	
 	static boolean isRedirect(int status)

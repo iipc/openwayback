@@ -238,8 +238,8 @@ public class SimpleRedisRobotsCacheTest extends TestCase {
 		// cache shall be updated with 4xx error.
 		assertTrue(redisValueCapture.getValue().value
 			.startsWith(SimpleRedisRobotsCache.ROBOTS_TOKEN_ERROR + "4"));
-		// notAvailTotalTTL shall be used as TTL for errors.
-		assertEquals(cut.getNotAvailTotalTTL(), redisValueCapture.getValue().ttl);
+		// totalTTL shall be used as TTL for 4xx errors.
+		assertEquals(cut.getTotalTTL(), redisValueCapture.getValue().ttl);
 
 		EasyMock.verify(redisRobotsLogic, liveweb);
 	}
