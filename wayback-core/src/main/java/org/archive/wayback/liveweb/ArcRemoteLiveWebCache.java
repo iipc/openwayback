@@ -46,7 +46,12 @@ import org.archive.wayback.resourcestore.resourcefile.ArcResource;
 import org.archive.wayback.resourcestore.resourcefile.ResourceFactory;
 
 /**
+ * This class fetches resource from live web. 
+ * It works with ArcRecordingProxy not standard proxy server
+ * 
  * @author brad
+ * @see LiveWebCache
+ * @see StdRemoteLiveWebCache
  *
  */
 public class RemoteLiveWebCache implements LiveWebCache {
