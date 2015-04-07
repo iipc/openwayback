@@ -30,14 +30,14 @@
 
 
   <bean id="proxylivewebcache"
-      class="org.archive.wayback.liveweb.RemoteLiveWebCache">
+      class="org.archive.wayback.liveweb.ArcRemoteLiveWebCache">
     <property name="proxyHostPort" value="localhost:8099" />
 <!--
 	If you've set up a local squid/varnish to cache requests to the above
-	ARCRecordingProxy, it is preferable to use RemoteLiveWebCache2 instead of
-	RemoteLiveWebCache and you should use the port for that e.g. 3128, instead of 8099:
+	ARCRecordingProxy, it is preferable to use StdRemoteLiveWebCache instead of
+	ArcRemoteLiveWebCache and you should use the port for that e.g. 3128, instead of 8099:
  <bean id="proxylivewebcache"
-     class="org.archive.wayback.liveweb.RemoteLiveWebCache2">
+     class="org.archive.wayback.liveweb.StdRemoteLiveWebCache">
    <property name="proxyHostPort" value="localhost:3128" />
 -->
   </bean>
