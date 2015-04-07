@@ -54,9 +54,9 @@ import org.archive.wayback.resourcestore.resourcefile.ResourceFactory;
  * @see StdRemoteLiveWebCache
  *
  */
-public class RemoteLiveWebCache implements LiveWebCache {
+public class ArcRemoteLiveWebCache implements LiveWebCache {
 	private static final Logger LOGGER = Logger.getLogger(
-			RemoteLiveWebCache.class.getName());
+			ArcRemoteLiveWebCache.class.getName());
 
     protected MultiThreadedHttpConnectionManager connectionManager = null;
     protected HostConfiguration hostConfiguration = null;
@@ -66,7 +66,7 @@ public class RemoteLiveWebCache implements LiveWebCache {
     /**
      * 
      */
-    public RemoteLiveWebCache() {
+    public ArcRemoteLiveWebCache() {
     	connectionManager = new MultiThreadedHttpConnectionManager();
     	hostConfiguration = new HostConfiguration();
 		HttpClientParams params = new HttpClientParams();
