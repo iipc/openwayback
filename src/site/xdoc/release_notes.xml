@@ -16,6 +16,21 @@
         Full listing of changes and bug fixes are not available prior to release 1.2.0 and between release 1.6.0 and OpeWayback 2.0.0 BETA 1 release. 
       </p>
     </section>
+    <section name="OpenWayback 2.2.0 Release">
+      <subsection name="Features">
+       <ul>
+          <li>WatchedCDXSource now monitors directories for new CDX files. <a href="https://github.com/iipc/openwayback/pull/181">#181</a></li>
+          <li>Minor fixes to replace hardcoded port numbers aun URL prefixes with placeholders. <a href="https://github.com/iipc/openwayback/pull/223">#223</a></li>
+          <li>Require Java 7.<a href="https://github.com/iipc/openwayback/pull/178">#178</a></li>
+       </ul>
+      </subsection>
+      <subsection name="Bug Fixes">
+       <ul>
+          <li>Removed duplicate accessPointPath property in proxy replay section of wayback.xml <a href="https://github.com/iipc/openwayback/issues/229">#229</a></li>
+          <li>Failing test: testPadDateStr(org.archive.wayback.util.TimestampTest) <a href="https://github.com/iipc/openwayback/issues/231">#231</a></li>
+       </ul>
+      </subsection>
+    </section>
     <section name="OpenWayback 2.1.0 Release">
       <subsection name="Features">
        <ul>

@@ -13,8 +13,8 @@
 -->
 
   <bean name="standardaccesspoint" class="org.archive.wayback.webapp.AccessPoint">
-    <property name="accessPointPath" value="http://localhost:8080/wayback/"/>
-    <property name="internalPort" value="8080"/>
+    <property name="accessPointPath" value="${wayback.url.prefix}/wayback/"/>
+    <property name="internalPort" value="${wayback.url.port}"/>
     <property name="collection" ref="localbdbcollection" />
     <property name="replay" ref="archivalurlreplay" />
     <property name="query">
@@ -25,7 +25,7 @@
 
     <property name="uriConverter">
       <bean class="org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter">
-        <property name="replayURIPrefix" value="http://localhost:8080/wayback/"/>
+        <property name="replayURIPrefix" value="${wayback.url.prefix}/wayback/"/>
       </bean>
     </property>
 
@@ -79,7 +79,7 @@
         </property>
         <property name="factory">
           <bean class="org.archive.wayback.accesscontrol.oracleclient.OracleExclusionFilterFactory">
-            <property name="oracleUrl" value="http://localhost:8180/oracle/" />
+            <property name="oracleUrl" value="${wayback.url.scheme}://${wayback.url.host}:8180/oracle/" />
             <property name="accessGroup" value="ia_archiver" />
           </bean>
         </property>

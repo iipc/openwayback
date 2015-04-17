@@ -10,7 +10,7 @@
 	<groupId>org.netpreserve.openwayback</groupId>
 	<artifactId>openwayback</artifactId>
 	<packaging>pom</packaging>
-	<version>2.1.0-SNAPSHOT</version>
+	<version>2.2.0-SNAPSHOT</version>
 	<name>OpenWayback</name>
 
 	<modules>
@@ -144,7 +144,8 @@
 		<connection>scm:git:git@github.com:iipc/openwayback.git</connection>
 		<developerConnection>scm:git:git@github.com:iipc/openwayback.git</developerConnection>
 		<url>git@github.com:iipc/openwayback.git</url>
-	</scm>
+	  <tag>HEAD</tag>
+  </scm>
 
 	<prerequisites>
 		<maven>2.1</maven>
@@ -238,8 +239,8 @@
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-compiler-plugin</artifactId>
 					<configuration>
-						<source>1.6</source>
-						<target>1.6</target>
+						<source>1.7</source>
+						<target>1.7</target>
 					</configuration>
 				</plugin>
 				<plugin>
@@ -279,6 +280,17 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-source-plugin</artifactId>
                     <version>2.1.2</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-release-plugin</artifactId>
+                    <version>2.5.1</version>
+                    <configuration>
+                        <autoVersionSubmodules>true</autoVersionSubmodules>
+                        <mavenExecutorId>forked-path</mavenExecutorId>
+                        <useReleaseProfile>false</useReleaseProfile>
+                        <arguments>-Psonatype-oss-release</arguments>
+                        <goals>deploy</goals>
+                    </configuration>
                 </plugin>
 			</plugins>
 		</pluginManagement>
