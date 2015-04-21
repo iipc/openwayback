@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.springframework.org/schema/beans
@@ -5,7 +6,7 @@
         default-init-method="init">
 
     <!-- SWF Rewriting, highly experimental -->
-    <bean class="org.archive.wayback.replay.selector.MimeTypeSelector">
+    <bean id="swfreplay" class="org.archive.wayback.replay.selector.MimeTypeSelector">
       <property name="mimeContains">
         <list>
           <value>application/x-shockwave-flash</value>
