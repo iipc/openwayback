@@ -10,6 +10,7 @@ import org.archive.wayback.core.Resource;
 import org.archive.wayback.exception.LiveDocumentNotAvailableException;
 import org.archive.wayback.exception.LiveWebCacheUnavailableException;
 import org.archive.wayback.liveweb.LiveWebCache;
+import org.easymock.Capture;
 import org.easymock.EasyMock;
 
 /**
@@ -201,6 +202,44 @@ public class SimpleRedisRobotsCacheTest extends TestCase {
 			// expected, and ex must have the same status code.
 			assertEquals(STATUSCODE, ex.getOriginalStatuscode());
 		}
+
+		EasyMock.verify(redisRobotsLogic, liveweb);
+	}
+
+	/**
+	 * test of backward-compatibility with code using old interface
+	 * of LiveDocumentNotAvailableException.
+	 * @throws Exception
+	 */
+	public void testLiveFailureUnknown() throws Exception {
+		final int STATUSCODE = 404;
+		setupCached("http://example.com/robots.txt", null);
+		URL url = new URL("http://example.com/robots.txt");
+		//RobotsTxtResource resource = new RobotsTxtResource("/* robots.txt */");
+		//assert resource.getStatusCode() == 200;
+		EasyMock.expect(liveweb.getCachedResource(url, 0, false)).andThrow(
+			new LiveDocumentNotAvailableException("Invalid Status: " + STATUSCODE));
+		Capture<RedisValue> redisValueCapture = new Capture<RedisRobotsLogic.RedisValue>();
+		redisRobotsLogic.updateValue(EasyMock.eq(url.toString()),
+			EasyMock.capture(redisValueCapture),
+			EasyMock.eq(cut.isGzipRobots()));
+
+		EasyMock.replay(redisRobotsLogic, liveweb);
+
+		// Note r is not the same as resource
+		try {
+			cut.getCachedResource(url, 0, false);
+			fail();
+		} catch (LiveDocumentNotAvailableException ex) {
+			// expected, and ex shall have status code 4xx
+			int statuscode = ex.getOriginalStatuscode();
+			assertTrue(statuscode >= 400 && statuscode < 500);
+		}
+		// cache shall be updated with 4xx error.
+		assertTrue(redisValueCapture.getValue().value
+			.startsWith(SimpleRedisRobotsCache.ROBOTS_TOKEN_ERROR + "4"));
+		// totalTTL shall be used as TTL for 4xx errors.
+		assertEquals(cut.getTotalTTL(), redisValueCapture.getValue().ttl);
 
 		EasyMock.verify(redisRobotsLogic, liveweb);
 	}

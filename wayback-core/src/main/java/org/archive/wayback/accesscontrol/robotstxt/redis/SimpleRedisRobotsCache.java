@@ -38,6 +38,14 @@ public class SimpleRedisRobotsCache implements LiveWebCache {
 	
 	final static int STATUS_OK = 200;
 	final static int STATUS_ERROR = 502;
+	/**
+	 * old LiveWebCache did not communicate the specific statuscode
+	 * of live-web fetch. All HTTP failures were marked as 502, and
+	 * interpreted as "all allowed". Now that 5xx are "all disallow",
+	 * this non-standard 4xx status code is used for backward
+	 * compatibility.
+	 */
+	final static int STATUS_OLD_ERROR = 499;
 	
 	final static int MAX_ROBOTS_SIZE = 500000;
 	
@@ -57,7 +65,24 @@ public class SimpleRedisRobotsCache implements LiveWebCache {
 	final static String UPDATE_QUEUE_KEY = "robots_update_queue";
 	final static int MAX_UPDATE_QUEUE_SIZE = 50000;
 
+	// migration hack. until refreshTTL is elapsed since startup,
+	// 502 errors in cache are not trusted and refreshed immediately.
+	private final long startupTime;
+	private boolean inMigrationPeriod = false;
+	private static int MIN_UPDATE_INTERVAL = 30 * 60;
+	private final static String ROBOTS_OLD_TOKEN_ERROR = ROBOTS_TOKEN_ERROR + STATUS_ERROR;
+
+	public void setInMigrationPeriod(boolean inMigrationPeriod) {
+		this.inMigrationPeriod = inMigrationPeriod;
+	}
+	public boolean isInMigrationPeriod() {
+		return inMigrationPeriod;
+	}
 	
+	public SimpleRedisRobotsCache() {
+		this.startupTime = System.currentTimeMillis();
+	}
+
 	@Override
 	public Resource getCachedResource(URL urlURL, long maxCacheMS,
 				boolean bUseOlder) throws LiveDocumentNotAvailableException,
@@ -79,7 +104,20 @@ public class SimpleRedisRobotsCache implements LiveWebCache {
 		} finally {
 			PerfStats.timeEnd(PerfStat.RobotsRedis);
 		}
-		
+
+		// migration hack - don't trust cached 502 during migration period.
+		// old code records 404 as 502, which results in false blockage with
+		// new code. prevent too frequent updates.
+		if (value != null && inMigrationPeriod) {
+			if (ROBOTS_OLD_TOKEN_ERROR.equals(value.value) &&
+					(notAvailTotalTTL - value.ttl) > MIN_UPDATE_INTERVAL) {
+				long elapsedSec = (System.currentTimeMillis() - startupTime) / 1000;
+				if (elapsedSec < refreshTTL) {
+					value = null;
+				}
+			}
+		}
+
 		// Use the old liveweb cache, if provided
 		if (value == null) {
 			RobotsResult result = loadExternal(urlURL, maxCacheMS, bUseOlder);
@@ -247,8 +285,9 @@ public class SimpleRedisRobotsCache implements LiveWebCache {
 			}
 		} catch (LiveDocumentNotAvailableException ex) {
 			status = ex.getOriginalStatuscode();
+			// leave status == 0 as it is - for backward compatibility.
 			if (status == 0)
-				status = STATUS_ERROR;
+				status = STATUS_OLD_ERROR;
 		} catch (Exception e) {
 			LOGGER.log(Level.INFO, "Liveweb fetch failed for " + urlURL, e);
 			status = STATUS_ERROR;
