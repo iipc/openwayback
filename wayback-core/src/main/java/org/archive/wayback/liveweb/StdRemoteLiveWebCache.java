@@ -127,38 +127,43 @@ public class StdRemoteLiveWebCache implements LiveWebCache
         CloseableHttpClient httpclient = HttpClients.custom().
                 setDefaultRequestConfig(reqConf).build();
         HttpGet httpGet = new HttpGet( urlStr );
-
+        
         try 
         {
-            // If record is not null, then check status code
-            if ( ar != null )
-            {
-                /* If it fails to get robots.txt, then display contents and 
-                   don't throw exception (socketTimeOutException or 
-                   connectTimeOutException)
-                */
-                if ( response.getStatusLine().getStatusCode() == 404 )
-                    return ar;
-            }
-            
             // The following line gets robots.txt from live web
             response= httpclient.execute( httpGet );
             
-            // Get Http Header and store complete http header in httpHeaderStr 
-            String httpHeaderStr = String.format( "%s %d %s\n", 
-                    response.getStatusLine().getProtocolVersion(),
-                    response.getStatusLine().getStatusCode(),
-                    response.getStatusLine().getReasonPhrase() );
+            String httpHeaderStr = "";
+            String bodyStr = "";
             
+            /* If it fails to get robots.txt (http status code is 404),
+               then display contents and don't throw exception
+               (socketTimeOutException or connectTimeOutException)
+            */
+            if ( response.getStatusLine().getStatusCode() == 404 )
+            {
+                httpHeaderStr = "HTTP/1.0 200 OK\n";
+                bodyStr = String.format( "%s\n%s\n",
+                        "User-agent: *", "Allow: /" );
+            }
+            else if ( response.getStatusLine().getStatusCode() == 200 )
+            {
+                // The following line represents first line in http header
+                httpHeaderStr = String.format( "%s %d %s\n", 
+                       response.getStatusLine().getProtocolVersion(),
+                       response.getStatusLine().getStatusCode(),
+                       response.getStatusLine().getReasonPhrase() );
+
+                // Get robots.txt contents and store it into bodyStr
+               HttpEntity entity = response.getEntity();
+               bodyStr = EntityUtils.toString(entity);
+            }
+            
+            // Get Http Header and store complete http header in httpHeaderStr
             for ( Header header : response.getAllHeaders() )
                 httpHeaderStr += header.toString() + "\n";
             
             httpHeaderStr += "\n";
-            
-            // Get robots.txt contents and store it into bodyStr
-            HttpEntity entity = response.getEntity();
-            String bodyStr = EntityUtils.toString(entity);
-
             int length = httpHeaderStr.length() + bodyStr.length();
             
             /*
@@ -188,7 +193,6 @@ public class StdRemoteLiveWebCache implements LiveWebCache
                     throw new LiveWebTimeoutException( "Timeout:" + urlStr );
             }
 
-            EntityUtils.consume(entity);
             return ar;
         }
         catch( ResourceNotAvailableException e ) 
