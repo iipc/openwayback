@@ -306,6 +306,10 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 			if (wbRequest.isTimestampSearchKey()) {
 				query.setClosest(wbRequest.getReplayTimestamp());
 			}
+
+			// set explicit matchType, or CDXServer will run prefix
+			// query when URL ends with "*".
+			query.setMatchType(MatchType.exact);
 		} else if (wbRequest.isCaptureQueryRequest()) {
 			// Add support for range calendar queries:
 			// eg: /2005-2007*/
