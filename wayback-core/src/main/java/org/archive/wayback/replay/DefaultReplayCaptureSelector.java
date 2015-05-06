@@ -163,8 +163,8 @@ public class DefaultReplayCaptureSelector implements ReplayCaptureSelector {
 		boolean prev200 = (prevStatus != null) && prevStatus.equals("200");
 		boolean next200 = (nextStatus != null) && nextStatus.equals("200");
 
-		// If only one is a 200 and neither are revisits, prefer the entry with the 200
-		if (prev200 != next200 && (!("-").equals(prevStatus) && !("-").equals(nextStatus))) {
+		// If only one is a 200, prefer the entry with the 200
+		if (prev200 != next200) {
 			return (prev200 ? prev : next);
 		}
 
