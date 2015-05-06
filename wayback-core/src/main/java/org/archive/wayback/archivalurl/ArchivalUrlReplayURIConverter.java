@@ -175,8 +175,13 @@ public class ArchivalUrlReplayURIConverter implements ReplayURIConverter, Replay
 			urlStyle = URLStyle.PROTOCOL_RELATIVE;
 		else if (trimmedUrl.startsWith("/"))
 			urlStyle = URLStyle.SERVER_RELATIVE;
-		else
-			return url;
+        	else if (trimmedUrl.startsWith("../")) // if path-relative looking backward,
+                                               // rewrite as server relative so we
+                                               // don't inadvertantly erase the
+                                               // hostname from an archival url
+            		urlStyle = URLStyle.SERVER_RELATIVE;
+        	else
+            		return url;
 
 		// first make url into absolute, taking BASE into account.
 		// (this also removes escaping: ex. "https:\/\/" -> "https://")
