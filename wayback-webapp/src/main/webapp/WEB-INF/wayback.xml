@@ -27,9 +27,17 @@
                 wayback.url.host=#{ systemEnvironment['WAYBACK_URL_HOST'] ?: '${WAYBACK_URL_HOST}' }
                 wayback.url.port=#{ systemEnvironment['WAYBACK_URL_PORT'] ?: '${WAYBACK_URL_PORT}' }
         
+                <!-- No need to edit this setting unless deploying in a non-ROOT context
+                     or using a load balancer, in which case configure it with the front end URL prefix. -->
+                wayback.url.prefix.default=${wayback.url.scheme}://${wayback.url.host}:${wayback.url.port}
+                
+                <!-- Environment variable (if present) overrides default. No need to customize this. -->
+                wayback.url.prefix=#{ systemEnvironment['WAYBACK_URL_PREFIX'] ?: '${wayback.url.prefix.default}' }
+
+                <!-- Customize or add additional place holders if needed to use elsewhere.
+                     Check BDBCollection.xml for following place holders being used. -->        
                 wayback.archivedir.1=${wayback.basedir}/files1/
                 wayback.archivedir.2=${wayback.basedir}/files2/
-                wayback.url.prefix=${wayback.url.scheme}://${wayback.url.host}:${wayback.url.port}
             </value>
         </property>
     </bean>
