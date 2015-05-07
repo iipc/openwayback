@@ -125,6 +125,12 @@
       <version>2.5.1</version>
       <scope>test</scope>
     </dependency>
+    <dependency>  
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+      <version>4.3.5</version>
+      <type>jar</type>
+    </dependency>
   </dependencies>
 
 </project>
