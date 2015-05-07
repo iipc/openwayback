@@ -11,28 +11,21 @@
 		                 locationdb storage.
 -->
 
-    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
-        <property name="properties">
-            <value>
-          
-                <!-- Customize these basic placeholders. -->
-                WAYBACK_BASEDIR=/tmp/openwayback
-                WAYBACK_URL_SCHEME=http
-                WAYBACK_URL_HOST=localhost
-                WAYBACK_URL_PORT=8080
-                
-                <!-- Environment variable overrides (only if present). No need to customize these. -->
-                wayback.basedir=#{ systemEnvironment['WAYBACK_BASEDIR'] ?: '${WAYBACK_BASEDIR}' }
-                wayback.url.scheme=#{ systemEnvironment['WAYBACK_URL_SCHEME'] ?: '${WAYBACK_URL_SCHEME}' }
-                wayback.url.host=#{ systemEnvironment['WAYBACK_URL_HOST'] ?: '${WAYBACK_URL_HOST}' }
-                wayback.url.port=#{ systemEnvironment['WAYBACK_URL_PORT'] ?: '${WAYBACK_URL_PORT}' }
+  <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+    <property name="properties">
+      <value>
+        wayback.basedir=/tmp/openwayback
         
-                wayback.archivedir.1=${wayback.basedir}/files1/
-                wayback.archivedir.2=${wayback.basedir}/files2/
-                wayback.url.prefix=${wayback.url.scheme}://${wayback.url.host}:${wayback.url.port}
-            </value>
-        </property>
-    </bean>
+        wayback.archivedir.1=${wayback.basedir}/files1/
+        wayback.archivedir.2=${wayback.basedir}/files2/
+        
+        wayback.url.scheme=http
+        wayback.url.host=localhost
+        wayback.url.port=8080
+        wayback.url.prefix=${wayback.url.scheme}://${wayback.url.host}:${wayback.url.port}
+      </value>
+    </property>
+  </bean>
 
   <bean id="waybackCanonicalizer" class="org.archive.wayback.util.url.AggressiveUrlCanonicalizer" />
 
