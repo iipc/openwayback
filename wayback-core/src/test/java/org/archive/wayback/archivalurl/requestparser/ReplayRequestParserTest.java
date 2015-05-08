@@ -56,7 +56,7 @@ public class ReplayRequestParserTest extends TestCase {
 		assertEquals("parsed request Url, maintaining trailing slash",
 				"http://foo.com/",r.getRequestUrl());
 
-		r = p.parse("20070101000000/øx.com/",ap);
+		r = p.parse("20070101000000/%C3%B8x.com/",ap);
 		assertEquals("parsed request Url with non-ascii characters",
 				"http://xn--x-4ga.com/",r.getRequestUrl());
 

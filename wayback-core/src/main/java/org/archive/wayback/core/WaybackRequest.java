@@ -778,7 +778,7 @@ public class WaybackRequest {
             
             if (idnEncodedHost != null) {
                 // If url is absolute, replace host with IDN-encoded host.
-                String unicodeEncodedHost = IDNA.toUnicode(idnEncodedHost);
+                String unicodeEncodedHost = URLEncoder.encode(IDNA.toUnicode(idnEncodedHost), "UTF-8");
                 urlStr = urlStr.replace(unicodeEncodedHost, idnEncodedHost);
             }
         } catch (UnsupportedEncodingException ex) {
