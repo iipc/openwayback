@@ -367,15 +367,6 @@
 				<role>Developer</role>
 			</roles>
 		</developer>
-		<developer>
-			<name>Mohamed Elsayed</name>
-			<url>https://github.com/MohammedElsayyed</url>
-			<organization>The New Library of Alexandria</organization>
-			<organizationUrl>http://bibalex.org/</organizationUrl>
-			<roles>
-				<role>Developer</role>
-			</roles>
-		</developer>
         <developer>
 			<name>John Erik Halse</name>
 			<url>https://github.com/johnerikhalse</url>
@@ -397,6 +388,12 @@
 	</developers>
 	
 	<contributors>
+		<contributor>
+			<name>Mohamed Elsayed</name>
+			<url>https://github.com/MohammedElsayyed</url>
+			<organization>The New Library of Alexandria</organization>
+			<organizationUrl>http://bibalex.org/</organizationUrl>
+		</contributor>
 	</contributors>
 
 	<reporting>
