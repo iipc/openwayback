@@ -249,9 +249,10 @@ public class Timestamp {
 	 */
 	private static String getDaysInMonthBound(int year, int month) {
 	    Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
-            cal.set(Calendar.YEAR, year);
+		cal.set(Calendar.YEAR, year);
 	    cal.set(Calendar.MONTH, month);
-            return new Integer(cal.getActualMaximum(Calendar.DAY_OF_MONTH)).toString();
+		cal.set(Calendar.DAY_OF_MONTH, 1);
+		return new Integer(cal.getActualMaximum(Calendar.DAY_OF_MONTH)).toString();
 	}
         
 	/**
