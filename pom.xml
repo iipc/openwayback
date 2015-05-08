@@ -388,6 +388,12 @@
 	</developers>
 	
 	<contributors>
+		<contributor>
+			<name>Mohamed Elsayed</name>
+			<url>https://github.com/MohammedElsayyed</url>
+			<organization>The New Library of Alexandria</organization>
+			<organizationUrl>http://bibalex.org/</organizationUrl>
+		</contributor>
 	</contributors>
 
 	<reporting>
