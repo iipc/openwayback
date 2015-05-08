@@ -22,6 +22,7 @@
           <li>WatchedCDXSource now monitors directories for new CDX files. <a href="https://github.com/iipc/openwayback/pull/181">#181</a></li>
           <li>Minor fixes to replace hardcoded port numbers aun URL prefixes with placeholders. <a href="https://github.com/iipc/openwayback/pull/223">#223</a></li>
           <li>Require Java 7.<a href="https://github.com/iipc/openwayback/pull/178">#178</a></li>
+          <li>Support for Internationalized Domain Name (IDN) <a href="https://github.com/iipc/openwayback/pull/27">#27</a></li>
        </ul>
       </subsection>
       <subsection name="Bug Fixes">
