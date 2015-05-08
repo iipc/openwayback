@@ -19,6 +19,7 @@
  */
 package org.archive.wayback.core;
 
+import gnu.inet.encoding.IDNA;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -771,8 +772,15 @@ public class WaybackRequest {
 	    }
 
         try {
-            urlStr = URLDecoder.decode(urlStr, "UTF-8");
-            urlStr = UsableURIFactory.getInstance(urlStr, "UTF-8").toString();
+            String decodedUrlStr = URLDecoder.decode(urlStr, "UTF-8");
+
+            String idnEncodedHost = UsableURIFactory.getInstance(decodedUrlStr, "UTF-8").getHost();
+            
+            if (idnEncodedHost != null) {
+                // If url is absolute, replace host with IDN-encoded host.
+                String unicodeEncodedHost = IDNA.toUnicode(idnEncodedHost);
+                urlStr = urlStr.replace(unicodeEncodedHost, idnEncodedHost);
+            }
         } catch (UnsupportedEncodingException ex) {
             // Should never happen as UTF-8 is required to be present
             throw new RuntimeException(ex);
