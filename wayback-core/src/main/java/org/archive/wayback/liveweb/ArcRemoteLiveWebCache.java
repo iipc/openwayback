@@ -47,7 +47,7 @@ import org.archive.wayback.resourcestore.resourcefile.ResourceFactory;
 
 /**
  * This class fetches resource from live web. 
- * It works with ArcRecordingProxy not standard proxy server
+ * It works with {@link ARCRecordingProxy} not standard proxy servers.
  * 
  * @author brad
  * @see LiveWebCache
