@@ -139,6 +139,7 @@ public class FastCaptureSearchResult extends CaptureSearchResult {
 	public void flagDuplicateDigest(CaptureSearchResult payload) {
 		duplicateDigest = true;
 		revisitPayload = payload;
+		httpCode = payload.getHttpCode();
 	}
 	
 	public CaptureSearchResult getDuplicatePayload()
