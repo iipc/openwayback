@@ -24,6 +24,7 @@
           <li>Minor fixes to replace hardcoded port numbers aun URL prefixes with placeholders. <a href="https://github.com/iipc/openwayback/pull/223">#223</a></li>
           <li>Require Java 7.<a href="https://github.com/iipc/openwayback/pull/178">#178</a></li>
           <li>Enable use of standard proxy servers (e.g. Squid) <a href="https://github.com/iipc/openwayback/issue/250">#250</a></li>
+          <li>WatchedCDXSource now optionally recurses and filters on filenames. <a href="https://github.com/iipc/openwayback/pull/219">#219</a></li>
        </ul>
       </subsection>
       <subsection name="Bug Fixes">
@@ -32,7 +33,7 @@
           <li>Failing test: testPadDateStr(org.archive.wayback.util.TimestampTest) <a href="https://github.com/iipc/openwayback/issues/231">#231</a></li>
           <li>Replace current (IA) favicon with one matching OpenWayback logo. <a href="https://github.com/iipc/openwayback/issues/247">#247</a></li>
           <li>Fixed ARCRecordingProxy times out. <a href="https://github.com/iipc/openwayback/issues/116">#116</a></li>       
-        </ul>
+       </ul>
       </subsection>
     </section>
     <section name="OpenWayback 2.1.0 Release">
