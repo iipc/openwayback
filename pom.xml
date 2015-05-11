@@ -288,6 +288,8 @@
                         <autoVersionSubmodules>true</autoVersionSubmodules>
                         <mavenExecutorId>forked-path</mavenExecutorId>
                         <useReleaseProfile>false</useReleaseProfile>
+                        <pushChanges>false</pushChanges>
+                        <localCheckout>true</localCheckout>
                         <arguments>-Psonatype-oss-release</arguments>
                         <goals>deploy</goals>
                     </configuration>
