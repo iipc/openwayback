@@ -25,6 +25,7 @@
           <li>Require Java 7.<a href="https://github.com/iipc/openwayback/pull/178">#178</a></li>
           <li>Enable use of standard proxy servers (e.g. Squid) <a href="https://github.com/iipc/openwayback/issue/250">#250</a></li>
           <li>WatchedCDXSource now optionally recurses and filters on filenames. <a href="https://github.com/iipc/openwayback/pull/219">#219</a></li>
+          <li>Support for Internationalized Domain Name (IDN) <a href="https://github.com/iipc/openwayback/pull/27">#27</a></li>
        </ul>
       </subsection>
       <subsection name="Bug Fixes">
