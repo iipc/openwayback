@@ -52,7 +52,7 @@ if(arr != null && arr.length > 1) {
       xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/"
       xmlns:atom="http://www.w3.org/2005/Atom">
    <channel>
-     <title>Wayback OpenSearch Results</title>
+     <title><%= fmt.format("PathQuery.rssResultsTitle") %></title>
      <link><%= queryPrefix %>></link>
      <description><%= fmt.format("PathQueryClassic.searchedFor",searchString) %></description>
      <opensearch:totalResults><%= resultCount %></opensearch:totalResults>

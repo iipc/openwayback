@@ -43,7 +43,7 @@ if(e instanceof ResourceNotInArchiveException) {
 	List<String> closeMatches = niae.getCloseMatches();
 	if(closeMatches != null && !closeMatches.isEmpty()) {
 %>
-		        <p>Other possible close matches to try:</p>
+		        <p><%= fmt.format("HTMLError.tryMatches") %></p>
 		        <p>
 <%
 		WaybackRequest tmp = wbr.clone();
@@ -67,8 +67,8 @@ if(e instanceof ResourceNotInArchiveException) {
 		String escapedParentUrl = fmt.escapeHtml(parentUrl);
 		%>
 		        </p>
-		        <p>More options:</p>
-			    <p>Try Searching all pages under <a href="<%= escapedLink %>"><%= escapedParentUrl %></a></p>
+		        <p><%= fmt.format("HTMLError.moreOptions") %></p>
+			    <p><%= fmt.format("HTMLError.trySearching") %> <a href="<%= escapedLink %>"><%= escapedParentUrl %></a></p>
 		<%
 	}
 } else if(e instanceof SpecificCaptureReplayException) {
@@ -85,18 +85,18 @@ if(e instanceof ResourceNotInArchiveException) {
 	                String safePrevReplay = fmt.escapeHtml(conv.makeReplayURI(prev.getCaptureTimestamp(),prev.getOriginalUrl()));
 	                String safeNextReplay = fmt.escapeHtml(conv.makeReplayURI(next.getCaptureTimestamp(),next.getOriginalUrl()));
 	                %>
-	                Would you like to try the <a href="<%= safePrevReplay %>">previous</a> or <a href="<%= safeNextReplay %>">next</a> date?
+	                <%= fmt.format("HTMLError.likeToTry") %> <a href="<%= safePrevReplay %>"><%= fmt.format("UIGlobal.previous") %></a> or <a href="<%= safeNextReplay %>"><%= fmt.format("UIGlobal.next") %></a> <%= fmt.format("HTMLError.date") %>
 	                <%
 	        } else if (prev != null) {
 	                String safePrevReplay = fmt.escapeHtml(conv.makeReplayURI(prev.getCaptureTimestamp(),prev.getOriginalUrl()));
 	                %>
-	                Would you like to try the <a href="<%= safePrevReplay %>">previous</a> date?
+	                <%= fmt.format("HTMLError.likeToTry") %><a href="<%= safePrevReplay %>"><%= fmt.format("UIGlobal.previous") %></a> <%= fmt.format("HTMLError.date") %>
 	                <%
 
 	        } else if (next != null) {
 	                String safeNextReplay = fmt.escapeHtml(conv.makeReplayURI(next.getCaptureTimestamp(),next.getOriginalUrl()));
 	                %>
-	                Would you like to try the <a href="<%= safeNextReplay %>">next</a> date?
+	                <%= fmt.format("HTMLError.likeToTry") %><a href="<%= safeNextReplay %>"><%= fmt.format("UIGlobal.next") %></a> <%= fmt.format("HTMLError.date") %>
 	                <%
 	        }
 	        %>
