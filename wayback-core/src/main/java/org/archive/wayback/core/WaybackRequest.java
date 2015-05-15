@@ -626,7 +626,7 @@ public class WaybackRequest {
 			if (l == null) {
 				l = Locale.getAvailableLocales()[0];
 			}
-			ResourceBundle b = ResourceBundle.getBundle(UIResults.UI_RESOURCE_BUNDLE_NAME);
+                        ResourceBundle b = ResourceBundle.getBundle(UIResults.UI_RESOURCE_BUNDLE_NAME, new UTF8Control());
 			formatter = new StringFormatter(b, l);
 		}
 		return formatter;
