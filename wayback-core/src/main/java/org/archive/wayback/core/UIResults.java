@@ -687,7 +687,7 @@ public class UIResults {
 	 */
 	public StringFormatter getFormatter() {
 		if (formatter == null) {
-			ResourceBundle b = ResourceBundle.getBundle(UI_RESOURCE_BUNDLE_NAME);
+                    ResourceBundle b = ResourceBundle.getBundle(UI_RESOURCE_BUNDLE_NAME, new UTF8Control());
 			formatter = new StringFormatter(b, getLocale());
 		}
 		return formatter;
