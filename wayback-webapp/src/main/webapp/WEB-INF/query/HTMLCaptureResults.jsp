@@ -27,7 +27,7 @@ Iterator<CaptureSearchResult> itr = cResults.iterator();
   <%= fmt.format("PathQuery.resultsSummary",resultCount,searchString) %>
   <br></br>
   <%= fmt.format("PathQuery.resultRange",searchStartDate,searchEndDate) %>
-  Set Anchor Window:
+  <%= fmt.format("PathQuery.anchorWindowText") %>
   <jsp:include page="/WEB-INF/template/AnchorWindow.jsp" flush="true" />
   <hr></hr>
   <%

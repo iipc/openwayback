@@ -53,7 +53,7 @@ int numPartitions = partitions.size();
             <%= fmt.format("PathQueryClassic.searchedFor",searchString) %>
       </td>
       <td align="right">
-            Set Anchor Window:
+            <%= fmt.format("PathQuery.anchorWindowText") %>
             <jsp:include page="/WEB-INF/template/AnchorWindow.jsp" flush="true" />
             <%= fmt.format("PathQueryClassic.resultsSummary",resultCount) %>
       </td>
@@ -93,7 +93,7 @@ int numPartitions = partitions.size();
 	  Partition<CaptureSearchResult> partition = partitions.get(i);
 %>
       <td align="center" class="mainBigBody">
-         <%= fmt.format("Partition.columnSummary",partition.count()) %>
+          <%= fmt.format("Partition.columnSummary",partition.count()) %>
       </td>
 <%
   }

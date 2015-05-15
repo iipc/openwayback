@@ -26,6 +26,7 @@
  page import="org.archive.wayback.util.html.SelectHTML"
 %><jsp:include page="/WEB-INF/template/CookieJS.jsp" flush="true" /><%
 UIResults results = UIResults.extractReplay(request);
+StringFormatter fmt = results.getWbRequest().getFormatter();
 WaybackRequest wbr = results.getWbRequest();
 Set<String> keys = wbr.keySet();
 Iterator<String> keysItr = keys.iterator();
@@ -70,7 +71,7 @@ function showHide(id,val) {
 }
 </script>
 <div id="wm-debug-banner" style="display:none; position:relative; z-index:99999; background-color:#ffffff; font-size:10px; text-align:center; width:100%;">
-  <button onmouseover="showHide('requestDiv','block');" onmouseout="showHide('requestDiv','none');">Request Parameters</button>
+  <button onmouseover="showHide('requestDiv','block');" onmouseout="showHide('requestDiv','none');"><%= fmt.format("ReplayView.debugBannerRequest") %></button>
   <div id="requestDiv" style="display:none; position:absolute; background-color:white; border:line;">
   <table style="border:0px solid #000000; margin:0px; padding:0px; border-spacing:0px; color:black; width:100%;">
 <%
@@ -91,7 +92,7 @@ while(keysItr.hasNext()) {
 %>
   </table>
   </div>
-  <button  onmouseover="showHide('resultDiv','block');" onmouseout="showHide('resultDiv','none');">Result Data</button>
+  <button  onmouseover="showHide('resultDiv','block');" onmouseout="showHide('resultDiv','none');"><%= fmt.format("ReplayView.debugBannerResult") %></button>
   <div id="resultDiv" style="display:none; position:absolute; background-color:white; border:line;" class="fdfdfd">
   <table style="border:0px solid #000000; margin:0px; padding:0px; border-spacing:0px; color:black; width:100%;">
 <%
@@ -115,28 +116,28 @@ while(keysItr.hasNext()) {
 %>
     </table>
   </div> 
-  Set Anchor Window:
+  <%= fmt.format("PathQuery.anchorWindowText") %>
   <jsp:include page="/WEB-INF/template/AnchorWindow.jsp" flush="true" />
-  <button onclick="toggleID('cookieDiv');">CookieForm</button>
+  <button onclick="toggleID('cookieDiv');"><%= fmt.format("ReplayView.debugBannerCookieForm") %></button>
    <div id="cookieDiv" style="position:absolute; display:none; background-color:white; color:black;">
   <form name="setCookie">
     <table border=0 cellpadding=3 cellspacing=3>
       <tr>
-        <td>Cookie Name:&nbsp;</td>
+        <td><%= fmt.format("ReplayView.debugBannerCookieName") %>&nbsp;</td>
         <td><input name=t1 type=text size=20 value="cookieName"></td>
       </tr>
       <tr>
-        <td>Cookie Value:&nbsp;</td>
+        <td><%= fmt.format("ReplayView.debugBannerCookieValue") %>&nbsp;</td>
         <td><input name=t2 type=text size=20 value="cookieValue"></td>
       </tr>
       <tr>
-        <td>Must expire in:&nbsp;</td>
-        <td><input name=t3 type=text size=3 value="5"> days from today</td>
+        <td><%= fmt.format("ReplayView.debugBannerCookieExpire") %>&nbsp;</td>
+        <td><input name=t3 type=text size=3 value="5"><%= fmt.format("ReplayView.debugBannerCookieDays") %></td>
       </tr>
       <tr>
         <td></td>
         <td>
-          <input name=b1 type=button value="Set Cookie" 
+          <input name=b1 type=button value="<%= fmt.format("ReplayView.debugBannerCookieSet") %>" 
             onClick="SetCookie(this.form.t1.value,this.form.t2.value,this.form.t3.value);">
         </td>
       </tr>
