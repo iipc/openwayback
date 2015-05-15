@@ -34,6 +34,7 @@
           <li>Failing test: testPadDateStr(org.archive.wayback.util.TimestampTest) <a href="https://github.com/iipc/openwayback/issues/231">#231</a></li>
           <li>Replace current (IA) favicon with one matching OpenWayback logo. <a href="https://github.com/iipc/openwayback/issues/247">#247</a></li>
           <li>Fixed ARCRecordingProxy times out. <a href="https://github.com/iipc/openwayback/issues/116">#116</a></li>       
+          <li>Moved 'SWFReplayRenderer' to external file; imported to maintain functionality. <a href="https://github.com/iipc/openwayback/issues/176">#176</a></li>
        </ul>
       </subsection>
     </section>

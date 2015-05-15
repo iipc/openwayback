@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"
+        default-init-method="init">
+
+    <!-- SWF Rewriting, highly experimental -->
+    <bean id="swfreplay" class="org.archive.wayback.replay.selector.MimeTypeSelector">
+      <property name="mimeContains">
+        <list>
+          <value>application/x-shockwave-flash</value>
+        </list>
+      </property>
+      <property name="renderer">
+        <bean class="org.archive.wayback.replay.swf.SWFReplayRenderer">
+          <constructor-arg><ref bean="archivalurlhttpheaderprocessor"/></constructor-arg>
+        </bean>
+      </property>
+    </bean>
+</beans>
+
