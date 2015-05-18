@@ -16,7 +16,7 @@ import org.archive.wayback.exception.LiveWebTimeoutException;
 
 import com.google.common.io.ByteStreams;
 
-public class LiveRobotsNoCache extends RemoteLiveWebCache {
+public class LiveRobotsNoCache extends ArcRemoteLiveWebCache {
 
 	protected int maxRobotsSize = 512000;
 

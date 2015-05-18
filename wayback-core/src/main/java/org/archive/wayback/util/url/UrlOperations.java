@@ -404,7 +404,6 @@ public class UrlOperations {
 	 * invalid, or if the url is the root of the authority.
 	 */
 	public static String getUrlParentDir(String url) {
-		
 		try {
 			UsableURI uri = UsableURIFactory.getInstance(url);
 			String path = uri.getPath();
@@ -417,7 +416,7 @@ public class UrlOperations {
 				if(idx >= 0) {
 					uri.setPath(path.substring(0,idx+1));
 					uri.setQuery(null);
-					return uri.toString();
+                    return uri.toUnicodeHostString();
 				}
 			}
 		} catch (URIException e) {

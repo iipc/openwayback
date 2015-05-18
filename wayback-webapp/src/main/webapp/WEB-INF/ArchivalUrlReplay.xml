@@ -96,6 +96,9 @@
     <property name="delegator" ref="fastArchivalSAXDelegator"/>
   </bean>
 
+  <!-- SWF Rewriting, highly experimental -->
+  <import resource="SWFReplayRenderer.xml"/>
+
 <!-- 
 	The main Archival URL replay dispatcher. It uses a list of Selectors to
 	determine which ReplayRenderer should be used for each document.
@@ -150,21 +153,10 @@
           </property>
           <property name="renderer" ref="archivalsaxreplayrenderer"/>
         </bean>
-        
-        <!-- SWF Rewriting, highly experimental -->
-        <bean class="org.archive.wayback.replay.selector.MimeTypeSelector">
-          <property name="mimeContains">
-            <list>
-              <value>application/x-shockwave-flash</value>
-            </list>
-          </property>
-          <property name="renderer">
-            <bean class="org.archive.wayback.replay.swf.SWFReplayRenderer">
- 	          <constructor-arg><ref bean="archivalurlhttpheaderprocessor"/></constructor-arg>
-            </bean>
-          </property>
-        </bean>
 
+        <!-- SWF Rewriting, highly experimental -->
+        <ref bean="swfreplay" />
+        
         <!-- CSS REPLAY -->
         <bean class="org.archive.wayback.replay.selector.MimeTypeSelector">
           <property name="mimeContains">

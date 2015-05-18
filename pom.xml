@@ -288,6 +288,8 @@
                         <autoVersionSubmodules>true</autoVersionSubmodules>
                         <mavenExecutorId>forked-path</mavenExecutorId>
                         <useReleaseProfile>false</useReleaseProfile>
+                        <pushChanges>false</pushChanges>
+                        <localCheckout>true</localCheckout>
                         <arguments>-Psonatype-oss-release</arguments>
                         <goals>deploy</goals>
                     </configuration>
@@ -388,6 +390,12 @@
 	</developers>
 	
 	<contributors>
+		<contributor>
+			<name>Mohamed Elsayed</name>
+			<url>https://github.com/MohammedElsayyed</url>
+			<organization>The New Library of Alexandria</organization>
+			<organizationUrl>http://bibalex.org/</organizationUrl>
+		</contributor>
 	</contributors>
 
 	<reporting>
@@ -498,7 +506,7 @@
 			<dependency>
 				<groupId>org.netpreserve.commons</groupId>
 				<artifactId>webarchive-commons</artifactId>
-				<version>1.1.4</version>
+				<version>1.1.5</version>
 			</dependency>
 			<dependency>
 				<groupId>org.netpreserve.openwayback</groupId>
