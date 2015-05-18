@@ -1,17 +1,18 @@
-<%@ page language="java" pageEncoding="utf-8" contentType="text/html;charset=utf-8"
-%><%@ page import="java.util.Date"
-%><%@ page import="java.util.Map"
-%><%@ page import="java.util.Iterator"
-%><%@ page import="java.lang.StringBuffer"
-%><%@ page import="org.archive.wayback.archivalurl.ArchivalUrlDateRedirectReplayRenderer"
-%><%@ page import="org.archive.wayback.ResultURIConverter"
-%><%@ page import="org.archive.wayback.archivalurl.ArchivalUrl"
-%><%@ page import="org.archive.wayback.core.UIResults"
-%><%@ page import="org.archive.wayback.core.WaybackRequest"
-%><%@ page import="org.archive.wayback.core.CaptureSearchResult"
-%><%@ page import="org.archive.wayback.util.StringFormatter"
-%><%@ page import="org.archive.wayback.util.url.UrlOperations"
-%><%
+<%@ page language="java" pageEncoding="utf-8" contentType="text/html;charset=utf-8"%>
+<%@ page import="java.util.Date"%>
+<%@ page import="java.util.Map"%>
+<%@ page import="java.util.Iterator"%>
+<%@ page import="java.lang.StringBuffer"%>
+<%@ page import="org.archive.wayback.archivalurl.ArchivalUrlDateRedirectReplayRenderer"%>
+<%@ page import="org.archive.wayback.ResultURIConverter"%>
+<%@ page import="org.archive.wayback.archivalurl.ArchivalUrl"%>
+<%@ page import="org.archive.wayback.core.UIResults"%>
+<%@ page import="org.archive.wayback.core.WaybackRequest"%>
+<%@ page import="org.archive.wayback.core.CaptureSearchResult"%>
+<%@ page import="org.archive.wayback.util.StringFormatter"%>
+<%@ page import="org.archive.wayback.util.url.UrlOperations"%>
+
+<%
 UIResults results = UIResults.extractReplay(request);
 
 WaybackRequest wbr = results.getWbRequest();
@@ -69,12 +70,12 @@ int secs = 5;
 	}
 	window.setTimeout("go()",<%= secs * 1000 %>);
 	</script>
-		<p class="code">Loading...</p>
+		<p class="code"><%= fmt.format("UIGlobal.loading") %></p>
 		<p class="code shift target"><%= safeSource %> | <%= prettyDate %></p>
-		<p class="code shift red">Got an HTTP 302 response at crawl time</p>
-		<p class="code">Redirecting to...</p>
+		<p class="code shift red"><%= fmt.format("UrlRedirectNotice.302response") %></p>
+		<p class="code"><%= fmt.format("UrlRedirectNotice.redirect") %></p>
 		<p class="code shift target"><%= safeTarget %></p>
-        <p class="impatient"><a href="<%= safeTargetReplayUrl %>">Impatient?</a></p>
+        <p class="impatient"><a href="<%= safeTargetReplayUrl %>"><%= fmt.format("UIGlobal.impatient") %></a></p>
             </div>
             </section>
             <div id="errorBorder"></div>

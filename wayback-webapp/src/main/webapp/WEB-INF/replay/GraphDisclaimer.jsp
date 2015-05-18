@@ -240,7 +240,7 @@ var wbCurrentUrl = "<%= searchUrlJS %>";
 									</td>
 									<td width="%1" align="right" valign="bottom">
 										<div id="wm-disclaim-hide" onclick="document.getElementById('wm-disclaim').style.display='none'">
-										hide
+										<%= fmt.format("GraphTimeline.hideButton") %>
 										</div>
 									</td>
 								</tr>
