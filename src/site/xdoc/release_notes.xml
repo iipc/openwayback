@@ -20,8 +20,12 @@
       <subsection name="Features">
        <ul>
           <li>WatchedCDXSource now monitors directories for new CDX files. <a href="https://github.com/iipc/openwayback/pull/181">#181</a></li>
+          <li>System environment variables can be used to override some basic configurations without chaging the XML. <a href="https://github.com/iipc/openwayback/pull/220">#220</a> and <a href="https://github.com/iipc/openwayback/issues/217">#217</a></li>
           <li>Minor fixes to replace hardcoded port numbers aun URL prefixes with placeholders. <a href="https://github.com/iipc/openwayback/pull/223">#223</a></li>
           <li>Require Java 7.<a href="https://github.com/iipc/openwayback/pull/178">#178</a></li>
+          <li>Enable use of standard proxy servers (e.g. Squid) <a href="https://github.com/iipc/openwayback/issue/250">#250</a></li>
+          <li>WatchedCDXSource now optionally recurses and filters on filenames. <a href="https://github.com/iipc/openwayback/pull/219">#219</a></li>
+          <li>Support for Internationalized Domain Name (IDN) <a href="https://github.com/iipc/openwayback/pull/27">#27</a></li>
           <li>UI Localisation.<a href="https://github.com/iipc/openwayback/pull/46">#46</a></li>
        </ul>
       </subsection>
@@ -29,6 +33,9 @@
        <ul>
           <li>Removed duplicate accessPointPath property in proxy replay section of wayback.xml <a href="https://github.com/iipc/openwayback/issues/229">#229</a></li>
           <li>Failing test: testPadDateStr(org.archive.wayback.util.TimestampTest) <a href="https://github.com/iipc/openwayback/issues/231">#231</a></li>
+          <li>Replace current (IA) favicon with one matching OpenWayback logo. <a href="https://github.com/iipc/openwayback/issues/247">#247</a></li>
+          <li>Fixed ARCRecordingProxy times out. <a href="https://github.com/iipc/openwayback/issues/116">#116</a></li>       
+          <li>Moved 'SWFReplayRenderer' to external file; imported to maintain functionality. <a href="https://github.com/iipc/openwayback/issues/176">#176</a></li>
        </ul>
       </subsection>
     </section>
