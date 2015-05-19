@@ -759,7 +759,7 @@ public class WaybackRequest {
 		// to be a scheme..
 		// TODO: make the default "http://" configurable.
 		if (!urlStr.startsWith(UrlOperations.HTTP_SCHEME)) {
-	    	if(urlStr.startsWith("http:/")) {
+	    	if(urlStr.startsWith("http:/") || urlStr.startsWith("https:/")) {
 	    		urlStr = UrlOperations.HTTP_SCHEME + urlStr.substring(6);
 	    	} else {
 	    		if(UrlOperations.urlToScheme(urlStr) == null) {
