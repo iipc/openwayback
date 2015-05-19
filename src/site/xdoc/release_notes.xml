@@ -27,6 +27,7 @@
           <li>WatchedCDXSource now optionally recurses and filters on filenames. <a href="https://github.com/iipc/openwayback/pull/219">#219</a></li>
           <li>Support for Internationalized Domain Name (IDN) <a href="https://github.com/iipc/openwayback/pull/27">#27</a></li>
           <li>UI localization.<a href="https://github.com/iipc/openwayback/pull/46">#46</a></li>
+          <li>Display # of snapshots of a selected year in BubbleCalendar.<a href="https://github.com/iipc/openwayback/pull/256">#256</a></li>
        </ul>
       </subsection>
       <subsection name="Bug Fixes">
