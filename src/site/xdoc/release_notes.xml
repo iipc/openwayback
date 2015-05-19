@@ -24,6 +24,9 @@
           <li>Minor fixes to replace hardcoded port numbers aun URL prefixes with placeholders. <a href="https://github.com/iipc/openwayback/pull/223">#223</a></li>
           <li>Require Java 7.<a href="https://github.com/iipc/openwayback/pull/178">#178</a></li>
           <li>Enable use of standard proxy servers (e.g. Squid) <a href="https://github.com/iipc/openwayback/issue/250">#250</a></li>
+          <li>WatchedCDXSource now optionally recurses and filters on filenames. <a href="https://github.com/iipc/openwayback/pull/219">#219</a></li>
+          <li>Support for Internationalized Domain Name (IDN) <a href="https://github.com/iipc/openwayback/pull/27">#27</a></li>
+          <li>UI localization.<a href="https://github.com/iipc/openwayback/pull/46">#46</a></li>
        </ul>
       </subsection>
       <subsection name="Bug Fixes">
@@ -32,7 +35,8 @@
           <li>Failing test: testPadDateStr(org.archive.wayback.util.TimestampTest) <a href="https://github.com/iipc/openwayback/issues/231">#231</a></li>
           <li>Replace current (IA) favicon with one matching OpenWayback logo. <a href="https://github.com/iipc/openwayback/issues/247">#247</a></li>
           <li>Fixed ARCRecordingProxy times out. <a href="https://github.com/iipc/openwayback/issues/116">#116</a></li>       
-        </ul>
+          <li>Moved 'SWFReplayRenderer' to external file; imported to maintain functionality. <a href="https://github.com/iipc/openwayback/issues/176">#176</a></li>
+       </ul>
       </subsection>
     </section>
     <section name="OpenWayback 2.1.0 Release">
@@ -72,7 +76,6 @@
           <li>Fixed issue <a href="https://github.com/iipc/openwayback/issues/48">#48</a> jQuery getting stomped on.</li>
           <li>Support for loading resources from S3 buckets. <a href="https://github.com/iipc/openwayback/issues/189">#189</a></li>
           <li>Refactored CDX Server into a war and jar module. <a href="https://github.com/iipc/openwayback/issues/164">#164</a></li>
-          <li>Fixed ARCRecordingProxy times out. <a href="https://github.com/iipc/openwayback/issues/116">#116</a></li>
         </ul>
       </subsection>
     </section>

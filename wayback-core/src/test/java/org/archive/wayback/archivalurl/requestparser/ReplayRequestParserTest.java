@@ -49,12 +49,16 @@ public class ReplayRequestParserTest extends TestCase {
 		assertNull("Should not parse empty string", r);
 		r = p.parse("20070101000000/foo.com",ap);
 		assertNotNull("Should parse legit request sans scheme", r);
-		assertEquals("parsed request Url",r.getRequestUrl(),"http://foo.com");
+		assertEquals("parsed request Url", "http://foo.com", r.getRequestUrl());
 		assertEquals("Parsed timestamp","20070101000000",r.getReplayTimestamp());
 
 		r = p.parse("20070101000000/foo.com/",ap);
 		assertEquals("parsed request Url, maintaining trailing slash",
 				"http://foo.com/",r.getRequestUrl());
+
+		r = p.parse("20070101000000/%C3%B8x.com/",ap);
+		assertEquals("parsed request Url with non-ascii characters",
+				"http://xn--x-4ga.com/",r.getRequestUrl());
 
 		r = p.parse("200701010000/foo.com",ap);
 		assertEquals("parsed partial date",

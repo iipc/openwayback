@@ -19,7 +19,9 @@
  */
 package org.archive.wayback.core;
 
+import gnu.inet.encoding.IDNA;
 import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.Date;
 import java.util.HashMap;
@@ -30,6 +32,8 @@ import java.util.Set;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import org.apache.commons.httpclient.URIException;
+import org.archive.url.UsableURIFactory;
 
 import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.memento.MementoUtils;
@@ -622,7 +626,7 @@ public class WaybackRequest {
 			if (l == null) {
 				l = Locale.getAvailableLocales()[0];
 			}
-			ResourceBundle b = ResourceBundle.getBundle(UIResults.UI_RESOURCE_BUNDLE_NAME);
+                        ResourceBundle b = ResourceBundle.getBundle(UIResults.UI_RESOURCE_BUNDLE_NAME, new UTF8Control());
 			formatter = new StringFormatter(b, l);
 		}
 		return formatter;
@@ -766,6 +770,24 @@ public class WaybackRequest {
 	    		}
 	    	}
 	    }
+
+        try {
+            String decodedUrlStr = URLDecoder.decode(urlStr, "UTF-8");
+
+            String idnEncodedHost = UsableURIFactory.getInstance(decodedUrlStr, "UTF-8").getHost();
+            
+            if (idnEncodedHost != null) {
+                // If url is absolute, replace host with IDN-encoded host.
+                String unicodeEncodedHost = URLEncoder.encode(IDNA.toUnicode(idnEncodedHost), "UTF-8");
+                urlStr = urlStr.replace(unicodeEncodedHost, idnEncodedHost);
+            }
+        } catch (UnsupportedEncodingException ex) {
+            // Should never happen as UTF-8 is required to be present
+            throw new RuntimeException(ex);
+        } catch (URIException ex) {
+            throw new RuntimeException(ex);
+        }
+
         put(REQUEST_URL, urlStr);
 	}
 	
