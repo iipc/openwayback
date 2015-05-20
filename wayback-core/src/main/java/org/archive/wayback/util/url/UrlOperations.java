@@ -332,11 +332,13 @@ public class UrlOperations {
 	 * <p>currently supports fixing missing second slash for protocols
 	 * {@code http}, {@code https}, {@code ftp}, {@code rtsp} and
 	 * {@code mms}. For example fixing {@code http:/} to {@code https://}</p>
+	 * <p>also supplies missing scheme part (if {@code defaultScheme} is given).</p>
 	 * @param url URL to be checked and fixed
+	 * @param if non-{@code null}, prepended to {@code url} if scheme is missing.
+	 * (should include {@code ://})
 	 * @return new String, or {@code url} if not fix is required.
-	 * @version 1.8.1
 	 */
-	public static String fixupScheme(String url) {
+	public static String fixupScheme(String url, String defaultScheme) {
 		final String[] SCHEMES = {
 			"http:/", "https:/", "ftp:/", "rtsp:/", "mms:/"
 		};
@@ -347,7 +349,21 @@ public class UrlOperations {
 				return scheme + "/" + url.substring(sl);
 			}
 		}
+		if (defaultScheme != null && urlToScheme(url) == null) {
+			url = defaultScheme + url;
+		}
 		return url;
+	}
+
+	/**
+	 * fixes up malformed scheme part.
+	 * Same as {@code fixupScheme(url, null)}.
+	 * @param url URL to be checked and fixed
+	 * @return new String, or {@code url} if not fix is required.
+	 * @version 1.8.1
+	 */
+	public static String fixupScheme(String url) {
+		return fixupScheme(url, null);
 	}
 
 	/**
