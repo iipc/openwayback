@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.netpreserve.openwayback</groupId>
         <artifactId>openwayback</artifactId>
-        <version>2.2.0.RC.1</version>
+        <version>2.3.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>openwayback-cdx-server</artifactId>
