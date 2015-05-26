@@ -13,7 +13,16 @@
         </p>
         <p>A detailed list of changes (per release) can be found in the <a href="release_notes.html">Release Notes</a>.</p>
     <section name="Releases">
-        <subsection name="OpenWayback 2.1.0 Release - 11th February 2014">
+    	<subsection name="OpenWayback 2.2.0 Release - 27th May 2015">
+          <p>
+          OpenWayback 2.2.0 release is a minor release. It includes bug fixes and some modest new features. See <a href="release_notes.html">release notes</a> for full details. 
+           
+          </p>
+          <p>
+          	<a href="https://github.com/iipc/openwayback/tree/openwayback-2.2.0">https://github.com/iipc/openwayback/tree/openwayback-2.1.0</a>
+          </p>
+        </subsection>
+        <subsection name="OpenWayback 2.1.0 Release - 11th February 2015">
           <p>
           OpenWayback 2.1.0 release is a minor releases. It includes bug fixes and some modest new features. See <a href="release_notes.html">release notes</a> for full details. 
            
