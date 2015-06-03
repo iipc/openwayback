@@ -19,6 +19,7 @@ script:
 branches:
   only:
     - master
+    - 3.0.0-DEV
 
 env:
   global:
