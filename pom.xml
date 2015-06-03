@@ -10,7 +10,7 @@
 	<groupId>org.netpreserve.openwayback</groupId>
 	<artifactId>openwayback</artifactId>
 	<packaging>pom</packaging>
-	<version>2.3.0-SNAPSHOT</version>
+	<version>3.0.0-SNAPSHOT</version>
 	<name>OpenWayback</name>
 
 	<modules>
