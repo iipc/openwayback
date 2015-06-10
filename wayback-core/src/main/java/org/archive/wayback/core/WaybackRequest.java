@@ -746,33 +746,8 @@ public class WaybackRequest {
      * @param urlStr Request URL.
      */
 	public void setRequestUrl(String urlStr) {
-
-		// This looks a little confusing: We're trying to fixup an incoming
-		// request URL that starts with: 
-		//       "http:/www.archive.org"
-		// so it becomes:
-		//       "http://www.archive.org"
-		// (note the missing second "/" in the first)
-		// 
-		// if that is not the case, then see if the incoming scheme
-		// is known, adding an implied "http://" scheme if there doesn't appear
-		// to be a scheme..
-		// TODO: make the default "http://" configurable.
-		if (!urlStr.startsWith(UrlOperations.HTTP_SCHEME) && !urlStr.startsWith(UrlOperations.HTTPS_SCHEME)) {
-	    		if(urlStr.startsWith("http:/")) {
-	    			urlStr = UrlOperations.HTTP_SCHEME + urlStr.substring(6);
-	    		} 
-	    		else if (urlStr.startsWith("https:/")) {
-	    			urlStr = UrlOperations.HTTPS_SCHEME + urlStr.substring(7);
-	    		}
-	    		else {
-	    			if(UrlOperations.urlToScheme(urlStr) == null) {
-	    				urlStr = UrlOperations.HTTP_SCHEME + urlStr;
-	    			}
-	    		}
-	    	}
-        
-		put(REQUEST_URL, urlStr);
+		put(REQUEST_URL,
+			UrlOperations.fixupScheme(urlStr, UrlOperations.HTTP_SCHEME));
 	}
 	
 	public String getEndTimestamp() {

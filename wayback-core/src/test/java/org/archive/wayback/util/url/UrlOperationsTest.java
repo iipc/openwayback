@@ -68,6 +68,16 @@ public class UrlOperationsTest extends TestCase {
 		final String url = "http://example.com/well/formed.html";
 		assertTrue(url == UrlOperations.fixupScheme(url));
 	}
+	
+	/**
+	 * Test of {@link UrlOperations#fixupScheme(String, String)}
+	 */
+	public void testFixupScheme2() {
+		assertEquals("http://one.com/foo.html", UrlOperations.fixupScheme("one.com/foo.html", "http://"));
+		assertEquals("https://one.com/foo.html", UrlOperations.fixupScheme("one.com/foo.html", "https://"));
+		assertEquals("ftp://one.com/foo.html", UrlOperations.fixupScheme("ftp://one.com/foo.html", "http://"));
+		assertEquals("one.com/foo.html", UrlOperations.fixupScheme("one.com/foo.html", null));
+	}
 
 	public void testIsAuthority() {
 		checkAuthority("foo.com",true);
