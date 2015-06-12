@@ -110,6 +110,20 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 		}
 	}
 
+	/**
+	 * perform exclusion filtering
+	 * @param result true if result should be excluded, false otherwise
+	 * @return
+	 */
+	protected boolean performExclusionFiltering(CaptureSearchResult result) {
+		if (exclusionFilter != null) {
+			if (exclusionFilter.filterObject(result) != ObjectFilter.FILTER_INCLUDE) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	@Override
 	public int writeLine(CDXLine line) {
 		String timestamp = line.getTimestamp();
@@ -165,12 +179,10 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 		if (!"-".equals(line.getRobotFlags()))
 			result.setRobotFlags(line.getRobotFlags());
 
-		if (exclusionFilter != null) {
-			if (exclusionFilter.filterObject(result) != ObjectFilter.FILTER_INCLUDE) {
-				return 0;
-			}
+		if (performExclusionFiltering(result)) {
+			return 0;
 		}
-
+		
 		result.setOffset(NumberUtils.toLong(line.getOffset(), -1));
 		result.setCompressedLength(NumberUtils.toLong(line.getLength(), -1));
 
