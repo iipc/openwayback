@@ -18,6 +18,7 @@ import junit.framework.TestCase;
 public class WatchedCDXSourceTest extends TestCase {
     private static final Logger LOGGER = Logger
             .getLogger(WatchedCDXSourceTest.class.getName());
+    private static final long WAIT = 2500L;
     WatchedCDXSource cdxSource;
     Path cdxDir;
     int cdxCount;
@@ -100,7 +101,7 @@ public class WatchedCDXSourceTest extends TestCase {
         cdxSource.setPath(cdxDir.toString());
         for (int i = 0; i < 10; i++) {
             addCdx(cdxDir);
-            Thread.sleep(100L);
+            Thread.sleep(WAIT);
             assertEquals(cdxCount, cdxSource.getSources().size());
         }
     }
@@ -117,9 +118,9 @@ public class WatchedCDXSourceTest extends TestCase {
         cdxSource.setRecursive(false);
         cdxSource.setPath(cdxDir.toString());
         addCdx(cdxDir);
-        Thread.sleep(100L);
+        Thread.sleep(WAIT);
         addNonCdx(cdxDir);
-        Thread.sleep(100L);
+        Thread.sleep(WAIT);
         assertEquals(1, cdxSource.getSources().size());
     }
 
@@ -137,14 +138,14 @@ public class WatchedCDXSourceTest extends TestCase {
         ArrayList<Path> paths = new ArrayList<Path>();
         for (int i = 0; i < 10; i++) {
             paths.add(addCdx(cdxDir));
-            Thread.sleep(100L);
+            Thread.sleep(WAIT);
             assertEquals(cdxCount, cdxSource.getSources().size());
         }
         try {
             for (Path p : paths) {
                 Files.delete(p);
                 cdxCount--;
-                Thread.sleep(100L);
+                Thread.sleep(WAIT);
                 assertEquals(cdxCount, cdxSource.sources.size());
             }
         } catch (IOException e) {
@@ -166,7 +167,7 @@ public class WatchedCDXSourceTest extends TestCase {
         Path newDir = addSubdirectory();
         for (int i = 0; i < 10; i++) {
             addCdx(newDir);
-            Thread.sleep(100L);
+            Thread.sleep(WAIT);
             assertEquals(cdxCount, cdxSource.getSources().size());
         }
     }
@@ -185,7 +186,7 @@ public class WatchedCDXSourceTest extends TestCase {
         Path newDir = addSubdirectory();
         for (int i = 0; i < 10; i++) {
             addCdx(newDir);
-            Thread.sleep(100L);
+            Thread.sleep(WAIT);
             assertEquals(0, cdxSource.getSources().size());
         }
     }
@@ -199,7 +200,7 @@ public class WatchedCDXSourceTest extends TestCase {
                         BasicFileAttributes attrs) throws IOException {
                     Files.delete(file);
                     try {
-                        Thread.sleep(100L);
+                        Thread.sleep(WAIT);
                     } catch (InterruptedException e) {
                         fail("Error deleting CDX file: " + e.getMessage());
                     }
@@ -211,7 +212,7 @@ public class WatchedCDXSourceTest extends TestCase {
                         IOException exc) {
                     try {
                         Files.delete(dir);
-                        Thread.sleep(100L);
+                        Thread.sleep(WAIT);
                     } catch (IOException e) {
                         fail("Error deleting CDX dir.: " + e.getMessage());
                     } catch (InterruptedException e) {
