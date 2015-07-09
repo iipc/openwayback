@@ -17,7 +17,8 @@ import junit.framework.TestCase;
 
 public class WatchedCDXSourceTest extends TestCase {
 	private static final Logger LOGGER = Logger.getLogger(WatchedCDXSourceTest.class.getName());
-	private static long WAIT = 100L;
+	private long WAIT = 100L;
+	private int NUM_TESTS = 10; 
 	WatchedCDXSource cdxSource;
 	Path cdxDir;
 	int cdxCount;
@@ -27,6 +28,7 @@ public class WatchedCDXSourceTest extends TestCase {
 		if (System.getProperty("os.name").toLowerCase().indexOf("mac") >= 0) {
 			isMac = true;
 			WAIT = 10500L;
+			NUM_TESTS = 1;
 		}
 	}
 
@@ -102,12 +104,10 @@ public class WatchedCDXSourceTest extends TestCase {
 	public void testAddSources() throws InterruptedException {
 		cdxSource.setRecursive(false);
 		cdxSource.setPath(cdxDir.toString());
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < NUM_TESTS; i++) {
 			addCdx(cdxDir);
 			Thread.sleep(WAIT);
 			assertEquals(cdxCount, cdxSource.getSources().size());
-			if (isMac)
-				break;
 		}
 	}
 
@@ -141,12 +141,10 @@ public class WatchedCDXSourceTest extends TestCase {
 		cdxSource.setRecursive(false);
 		cdxSource.setPath(cdxDir.toString());
 		ArrayList<Path> paths = new ArrayList<Path>();
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < NUM_TESTS; i++) {
 			paths.add(addCdx(cdxDir));
 			Thread.sleep(WAIT);
 			assertEquals(cdxCount, cdxSource.getSources().size());
-			if (isMac)
-				break;
 		}
 		try {
 			for (Path p : paths) {
@@ -172,12 +170,10 @@ public class WatchedCDXSourceTest extends TestCase {
 		cdxSource.setRecursive(true);
 		cdxSource.setPath(cdxDir.toString());
 		Path newDir = addSubdirectory();
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < NUM_TESTS; i++) {
 			addCdx(newDir);
 			Thread.sleep(WAIT);
 			assertEquals(cdxCount, cdxSource.getSources().size());
-			if (isMac)
-				break;
 		}
 	}
 
@@ -193,12 +189,10 @@ public class WatchedCDXSourceTest extends TestCase {
 		cdxSource.setRecursive(false);
 		cdxSource.setPath(cdxDir.toString());
 		Path newDir = addSubdirectory();
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < NUM_TESTS; i++) {
 			addCdx(newDir);
 			Thread.sleep(WAIT);
 			assertEquals(0, cdxSource.getSources().size());
-			if (isMac)
-				break;
 		}
 	}
 
