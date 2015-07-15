@@ -22,6 +22,7 @@ package org.archive.wayback.util.flatfile;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -29,9 +30,9 @@ import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.logging.Logger;
 
 import org.archive.util.iterator.CloseableIterator;
-import org.archive.wayback.resourceindex.cdx.CDXIndex;
 import org.archive.wayback.util.ByteOp;
 import org.archive.wayback.util.CompositeSortedIterator;
 
@@ -45,9 +46,13 @@ import org.archive.wayback.util.CompositeSortedIterator;
  */
 public class FlatFile {
 
+	private static final Logger LOGGER = Logger.getLogger(FlatFile.class
+			.getName());
+
     private static final long serialVersionUID = 6174187801001601557L;
     private long lastMatchOffset;
     protected File file = null;
+	private static ThreadLocal<RandomAccessFile> raf = null;
 
     /**
 	 * 
@@ -57,26 +62,45 @@ public class FlatFile {
     }
 
     /**
-     * @param parent
-     * @param child
-     */
-    public FlatFile(File parent, String child) {
+	 * @param parent
+	 * @param child
+	 * @throws FileNotFoundException
+	 */
+	public FlatFile(File parent, String child) {
         file = new File(parent, child);
+		setupRandomAccessFile();
     }
 
     /**
-     * @param path
-     */
-    public FlatFile(String path) {
+	 * @param path
+	 * @throws FileNotFoundException
+	 */
+	public FlatFile(String path) {
         file = new File(path);
+		setupRandomAccessFile();
     }
 
     /**
-     * @param path
-     *            to set
-     */
-    public void setPath(String path) {
+	 * @param path
+	 *            to set
+	 * @throws FileNotFoundException
+	 */
+	public void setPath(String path) {
         file = new File(path);
+		setupRandomAccessFile();
+    }
+
+	private void setupRandomAccessFile() {
+    	raf = new ThreadLocal<RandomAccessFile>() {
+            @Override protected RandomAccessFile initialValue() {
+				try {
+					LOGGER.info("Setting up RandomAccessFile for " + file);
+					return new RandomAccessFile(file, "r");
+				} catch (FileNotFoundException e) {
+					throw new RuntimeException(e);
+				}
+			}
+		};
     }
 
     /**
@@ -231,15 +255,14 @@ public class FlatFile {
             throws IOException {
 
         ReverseRecordIterator itr = null;
-        RandomAccessFile raf = new RandomAccessFile(file, "r");
-        long offset = findKeyOffset(raf, prefix);
+		long offset = findKeyOffset(raf.get(), prefix);
         if (offset < 1) {
-            raf.close();
+			raf.get().close();
             return new ReverseRecordIterator(null);
         }
-        raf.seek(raf.getFilePointer() - 1);
+		raf.get().seek(raf.get().getFilePointer() - 1);
         lastMatchOffset = offset - 1;
-        itr = new ReverseRecordIterator(new ReverseBufferedReader(raf));
+		itr = new ReverseRecordIterator(new ReverseBufferedReader(raf.get()));
         return itr;
     }
 
