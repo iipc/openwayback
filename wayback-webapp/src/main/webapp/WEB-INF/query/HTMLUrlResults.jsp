@@ -93,7 +93,7 @@ int curPage = uResults.getCurPageNum();
 if(curPage > uResults.getNumPages()) {
   %>
   <hr></hr>
-  <a href="<%= results.urlForPage(1) %>">First results</a>
+  <a href="<%= results.urlForPage(1) %>"><%= fmt.format("PathQuery.firstResults") %></a>
   <%
 } else if(uResults.getNumPages() > 1) {
   %>

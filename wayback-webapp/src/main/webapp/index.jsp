@@ -12,7 +12,7 @@ if(names != null) {
 		ArrayList<String> accessPoints = (ArrayList<String>) names;
 		if(accessPoints.size() > 0) {
 			%>
-			 You seem to be accessing this OpenWayback via an incorrect URL. Please try one of the following AccessPoints:<br></br>
+                            <%= fmt.format("UIGlobal.wrongAccesspoint") %>
 			<%
 		}
 		for(String accessPoint : accessPoints) {
