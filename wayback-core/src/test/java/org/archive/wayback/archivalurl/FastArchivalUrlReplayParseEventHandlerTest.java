@@ -921,20 +921,38 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
         assertEquals(expected, out);
 	}
 
-	public void testElementLookAlikeInScript_2() throws Exception {
+	public void testCommentQuotesAndTagText() throws Exception {
 		// Currently there's a bug that JavaScript rewrite does not happen if headInsertJsp is null.
 		delegator.setHeadInsertJsp("head.jsp");
 		jspExec = new TestJSPExecutor();
 		// Note: existence of line comment and single quotes is important in this test - HTMLParser does some elaborate
-		// processing with them that fails to recognize close tag </script>.
-		final String input = "<html><head><script>\na=\"http://example.com/\";\n" +
-				"//p.append('<div class=\"sign\">+/-</div>');</script></head><body>http://example.com/</body></html>";
+		// processing with them that results in a failure to recognize close tag </script>.
+		final String input = "<html>\n" +
+				"<head>\n" +
+				"<script>\n" +
+				"a=\"http://example.com/\";\n" +
+				"// '</div>'\n" +
+				"</script>\n" +
+				"</head>\n" +
+				"<body>\n" +
+				"http://example.com/\n" +
+				"</body>\n" +
+				"</html>\n";
 		// URL in <body> must not be rewritten. If parser fails to recognize </script>, then it'll be rewritten by JavaScript transformer.
-		final String expected = "<html><head>[[[JSP-INSERT:head.jsp]]]<script>\na=\"http://replay.archive.org/2001/http://example.com/\";\n" +
-				"//p.append('<div class=\"sign\">+/-</div>');</script></head><body>http://example.com/</body></html>";
+		final String expected = "<html>\n" +
+				"<head>[[[JSP-INSERT:head.jsp]]]\n" +
+				"<script>\n" +
+				"a=\"http://replay.archive.org/2001/http://example.com/\";\n" +
+				"// '</div>'\n" +
+				"</script>\n" +
+				"</head>\n" +
+				"<body>\n" +
+				"http://example.com/\n" +
+				"</body>\n" +
+				"</html>\n";
 
 		String out = doEndToEnd(input);
-		System.out.println(out);
+		//System.out.println(out);
 
 		assertEquals(expected, out);
 	}
