@@ -544,6 +544,22 @@ public class CDXServer extends BaseCDXServer {
 			if (line.getMimeType().equals("alexa/dat")) {
 				continue;
 			}
+            
+            		// Timestamp Range Filtering
+            		String timestamp = line.getTimestamp();
+            
+            		if (!query.from.isEmpty() && (timestamp.compareTo(query.from) < 0)) {
+                		continue;
+            		}
+            
+            		if (!query.to.isEmpty() && (timestamp.compareTo(query.to) > 0)
+                    		&& !timestamp.startsWith(query.to)) {
+                		if (query.matchType == MatchType.exact) {
+                    			break;
+                		} else {
+                    			continue;
+                		}
+            		}
 
 			// Additional access check, per capture
 			if (accessChecker != null) {
@@ -568,21 +584,6 @@ public class CDXServer extends BaseCDXServer {
 //			
 			outputProcessor.trackLine(line);
 
-			// Timestamp Range Filtering
-			String timestamp = line.getTimestamp();
-
-			if (!query.from.isEmpty() && (timestamp.compareTo(query.from) < 0)) {
-				continue;
-			}
-
-			if (!query.to.isEmpty() && (timestamp.compareTo(query.to) > 0) &&
-					!timestamp.startsWith(query.to)) {
-				if (query.matchType == MatchType.exact) {
-					break;
-				} else {
-					continue;
-				}
-			}
 
 			// Check regex matcher if it exists
 			if ((filterMatcher != null) && !filterMatcher.include(line)) {
