@@ -921,6 +921,70 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
         assertEquals(expected, out);
 	}
 
+	/**
+	 * {@code </script>} in string literal shall not end script element.
+	 * Maybe this is too much to ask. It is a common practice to escape tag-look-alike
+	 * text in such a way as {@code '<' + '/script>'}.
+	 * @throws Exception
+	 */
+	public void testQuotedEndScriptTag() throws Exception {
+		delegator.setHeadInsertJsp("head.jsp");
+		delegator.setJspInsertPath("body-insert.jsp");
+		jspExec = new TestJSPExecutor();
+
+		final String input = "<html><head><script>a = '</script>';b='http://example.com/';</script></head>" +
+				"<body></body></html>";
+		final String expected = "<html><head>[[[JSP-INSERT:head.jsp]]]<script>a = '</script>';b='http://replay.archive.org/2001/http://example.com/';</script></head>" +
+				"<body>[[[JSP-INSERT:body-insert.jsp]]]</body></html>";
+
+        String out = doEndToEnd(input);
+        //System.out.println(out);
+
+        assertEquals(expected, out);
+	}
+
+	/**
+	 * Similarly to the test above, other close tag text in string literal
+	 * shall not end script element.
+	 * @throws Exception
+	 */
+	public void testQuotedEndOtherTag() throws Exception {
+		delegator.setHeadInsertJsp("head.jsp");
+		delegator.setJspInsertPath("body-insert.jsp");
+		jspExec = new TestJSPExecutor();
+
+		final String input = "<html><head><script>a = '</div>';b='http://example.com/';</script></head>" +
+				"<body></body></html>";
+		final String expected = "<html><head>[[[JSP-INSERT:head.jsp]]]<script>a = '</div>';b='http://replay.archive.org/2001/http://example.com/';</script></head>" +
+				"<body>[[[JSP-INSERT:body-insert.jsp]]]</body></html>";
+
+        String out = doEndToEnd(input);
+
+        assertEquals(expected, out);
+	}
+
+	/**
+	 * {@code </script>} in string literal shall not end script element.
+	 * Maybe this is too much to ask. It is a common practice to escape tag-look-alike
+	 * text in such a way as {@code '<' + '/script>'}.
+	 * @throws Exception
+	 */
+	public void testCommentedOutEndScriptTag() throws Exception {
+		delegator.setHeadInsertJsp("head.jsp");
+		delegator.setJspInsertPath("body-insert.jsp");
+		jspExec = new TestJSPExecutor();
+
+		final String input = "<html><head><script>// </script>\nb='http://example.com/';</script></head>" +
+				"<body></body></html>";
+		final String expected = "<html><head>[[[JSP-INSERT:head.jsp]]]<script>// </script>\nb='http://replay.archive.org/2001/http://example.com/';</script></head>" +
+				"<body>[[[JSP-INSERT:body-insert.jsp]]]</body></html>";
+
+        String out = doEndToEnd(input);
+        //System.out.println(out);
+
+        assertEquals(expected, out);
+	}
+
 	public void testCommentQuotesAndTagText() throws Exception {
 		// Currently there's a bug that JavaScript rewrite does not happen if headInsertJsp is null.
 		delegator.setHeadInsertJsp("head.jsp");

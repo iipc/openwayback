@@ -54,14 +54,14 @@ public class ContextAwareLexer extends NodeUtils {
 	public Node nextNode() throws ParserException {
 		Node node = null;
 		if (context.isInJS()) {
-			node = lexer.parseCDATA(true);
+			node = lexer.parseCDATA(false);
 			if (node != null) {
 				context.setInScriptText(true);
 				context.setInJS(false);
 				return node;
 			}
 		} else if (context.isInScriptText()) {
-			node = lexer.parseCDATA(true);
+			node = lexer.parseCDATA(false);
 			if (node != null) {
 				return node;
 			}
