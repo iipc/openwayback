@@ -22,11 +22,11 @@ public class ByteOrderMarkSniffer extends BaseEncodingSniffer {
 		} catch (IOException ex) {
 			return null;
 		}
-		if (bbuffer[0] == 0xFE && bbuffer[1] == 0xFF)
+		if (bbuffer[0] == (byte)0xFE && bbuffer[1] == (byte)0xFF)
 			return "UTF-16BE";
-		if (bbuffer[0] == 0xFF && bbuffer[1] == 0xFE)
+		if (bbuffer[0] == (byte)0xFF && bbuffer[1] == (byte)0xFE)
 			return "UTF-16LE";
-		if (bbuffer[0] == 0xEF && bbuffer[1] == 0xBB && bbuffer[1] == 0xBF)
+		if (bbuffer[0] == (byte)0xEF && bbuffer[1] == (byte)0xBB && bbuffer[2] == (byte)0xBF)
 			return "UTF-8";
 		return null;
 	}
