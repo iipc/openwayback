@@ -16,6 +16,13 @@
         Full listing of changes and bug fixes are not available prior to release 1.2.0 and between release 1.6.0 and OpeWayback 2.0.0 BETA 1 release. 
       </p>
     </section>
+    <section name="OpenWayback 2.3.0 Release">
+      <subsection name="Bug Fixes">
+       <ul>
+          <li>Fix for WatchedCDXSourceTest on MaxOSX. <a href="https://github.com/iipc/openwayback/pull/271">#271</a></li>
+       </ul>
+      </subsection>
+    </section>
     <section name="OpenWayback 2.2.0 Release">
       <subsection name="Features">
        <ul>
