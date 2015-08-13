@@ -178,7 +178,7 @@ Simply pass in a comma separated list of fields and only those fields will be re
 ### Collapsing ###
 
 A new form of filtering is the option to 'collapse' results based on a field, or a substring of a field.
-Collapsing is done on adjacent cdx lines where all captures after the first one that are duplicate are filtered ut.
+Collapsing is done on adjacent cdx lines where all captures after the first one that are duplicate are filtered out.
 This is useful for filtering out captures that are 'too dense' or when looking for unique captures.
 
 To use collapsing, add one or more **collapse=field** or **collapse=field:N** where N is the first N characters of *field* to test.
