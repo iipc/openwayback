@@ -1,3 +1,5 @@
+<head><title>Release History</title></head>
+
 **OpenWayback is enabled and supported by the International Internet Preservation Consortium (IIPC) and the member institutions with which the contributors of the project are affiliated.**
 
 A detailed list of changes (per release) can be found in the [Release Notes](release_notes.html).
