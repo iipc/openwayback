@@ -432,14 +432,11 @@ public class ArchivalUrlRequestParserTest extends TestCase {
 			WaybackRequest wbr = parse("/web/ftp:/www.yahoo.com/afile");
 			assertNull(wbr);
 		}
-		// scheme-relative - results in NullPointerException FIXME
+		// scheme-relative
 		{
-			try {
-				WaybackRequest wbr = parse("/web///www.yahoo.com/");
-				assertNull(wbr);
-			} catch (NullPointerException ex) {
-				// current behavior - FIXME.
-			}
+			WaybackRequest wbr = parse("/web///www.yahoo.com/");
+			assertNotNull(wbr);
+			assertEquals("http://www.yahoo.com/", wbr.getRequestUrl());
 		}
 		// regular case.
 		{

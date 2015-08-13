@@ -140,33 +140,31 @@ public class DatelessReplayRequestParser extends PathRequestParser {
 			// (some client canonicalizes "//" in path into "/".)
 			if (requestPath.startsWith("http:/")) {
 				requestPath = "http://" + requestPath.substring(6);
-				scheme = "http://";
+			} else if (requestPath.startsWith("//")) {
+				// "//example.com/..." -> prepend "http:"
+				requestPath = UrlOperations.HTTP_SCHEME + requestPath.substring(2);
+			} else {
+				// other -> prepend "http://"
+				requestPath = UrlOperations.HTTP_SCHEME + requestPath;
 			}
-		}
-		if (scheme == null) {
 			try {
-				URL u = new URL(UrlOperations.HTTP_SCHEME + requestPath);
+				URL u = new URL(requestPath);
 				// does the authority look legit?
 				if (u.getUserInfo() != null) {
 					throw new BadQueryException(
 						"Unable to handle URLs with user information");
 				}
-
-				if (UrlOperations.isAuthority(u.getAuthority())) {
-					// ok, we're going to assume this is good:
-					return handleDatelessRequest(accessPoint, requestPath,
-						mementoDate);
+				if (!UrlOperations.isAuthority(u.getAuthority())) {
+					return null;
 				}
-
 			} catch (MalformedURLException e) {
-				// eat it silently
+				// requestPath does not look like a URL
+				return null;
 			}
-		} else {
-			// OK, we're going to assume this is a replay request, sans timestamp,
-			// ALWAYS redirect:
-			return handleDatelessRequest(accessPoint, requestPath, mementoDate);
 		}
-		return null;
+		// OK, we're going to assume this is a replay request, sans timestamp,
+		// ALWAYS redirect:
+		return handleDatelessRequest(accessPoint, requestPath, mementoDate);
 	}
 
 	protected WaybackRequest handleDatelessRequest(AccessPoint accessPoint,
