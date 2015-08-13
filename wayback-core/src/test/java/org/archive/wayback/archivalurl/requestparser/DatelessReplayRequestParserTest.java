@@ -187,7 +187,7 @@ public class DatelessReplayRequestParserTest extends TestCase {
 		assertEquals("http://example.com/", wbr.getRequestUrl());
 	}
 
-	public void testUrlWithUserInfo() throws Exception {
+	public void testProtocolRelativeWithUserInfo() throws Exception {
 		setupRequest("//archive@example.com/");
 		EasyMock.replay(request);
 		try {
@@ -195,10 +195,6 @@ public class DatelessReplayRequestParserTest extends TestCase {
 			fail();
 		} catch (BadQueryException ex) {
 			// expected
-		} catch (NullPointerException ex) {
-			// results in this error currently.
-			System.err.println("needs fix");
-			ex.printStackTrace();
 		}
 	}
 

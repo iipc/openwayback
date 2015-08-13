@@ -148,6 +148,8 @@ public class UrlOperations {
 	 * @return boolean indicating whether urlPart might be an Authority.
 	 */
 	public static boolean isAuthority(String authString) {
+		if (authString == null) return false;
+
 		Matcher m = AUTHORITY_REGEX.matcher(authString);
 		
 		return (m != null) && m.matches();
