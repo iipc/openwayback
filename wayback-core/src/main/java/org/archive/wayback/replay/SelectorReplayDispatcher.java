@@ -110,49 +110,65 @@ public class SelectorReplayDispatcher implements ReplayDispatcher {
 		return false;
 	}
 
+	private String getCaptureMimeType(CaptureSearchResult result, Resource resource) {
+		String mimeType = result.getMimeType();
+		// TODO: this code should be encapsulated in CaptureSearchResult.getMimeType()
+		if (AccessPoint.REVISIT_STR.equals(mimeType)) {
+			if (result.getDuplicatePayload() != null) {
+				mimeType = result.getDuplicatePayload().getMimeType();
+			} else {
+				// let following code get it from resource
+				mimeType = null;
+			}
+		}
+		// Many old ARCs have "unk" or "no-type" in ARC header even though
+		// HTTP response has valid Content-Type header. CDX writer does not fix
+		// it (although it's capable of fixing it internally). If CaptureSearchResult
+		// says mimeType is "unk", try reading Content-Type header from the resource.
+		if (mimeType == null || mimeType.isEmpty() || missingMimeType.equals(mimeType)) {
+			mimeType = resource.getHeader("Content-Type");
+		}
+		if (mimeType != null && shouldDetectMimeType(mimeType)) {
+			mimeType = null;
+		}
+		return mimeType;
+	}
+
 	@Override
 	public ReplayRenderer getRenderer(WaybackRequest wbRequest,
 			CaptureSearchResult result, Resource resource) {
-		// if content-type is already specified, don't override it.
-		if (wbRequest.getForcedContentType() == null) {
-			String mimeType = result.getMimeType();
-			// TODO: this code should be encapsulated in CaptureSearchResult.getMimeType()
-			if (AccessPoint.REVISIT_STR.equals(mimeType)) {
-				if (result.getDuplicatePayload() != null) {
-					mimeType = result.getDuplicatePayload().getMimeType();
-				} else {
-					// let following code get it from resource
-					mimeType = null;
-				}
-			}
-			// Many old ARCs have "unk" or "no-type" in ARC header even though
-			// HTTP response has valid Content-Type header. CDX writer does not fix
-			// it (although it's capable of fixing it internally). If CaptureSearchResult
-			// says mimeType is "unk", try reading Content-Type header from the resource.
-			if (mimeType == null || mimeType.isEmpty() || missingMimeType.equals(mimeType)) {
-				mimeType = resource.getHeader("Content-Type");
-			}
-			// "unk" and "" are changed to Content-Type header value (or null if in fact missing)
-			// so null test is enough.
-			if (mimeType == null || shouldDetectMimeType(mimeType)) {
-				if (mimeTypeDetectors != null) {
-					for (MimeTypeDetector detector : mimeTypeDetectors) {
-						String detected = detector.sniff(resource);
-						if (detected != null) {
-							// detected mimeType is communicated to Selectors
-							// through forcedContentType. better way? replace
-							// CaptureSearchResult.mimeType?
-							wbRequest.setForcedContentType(detected);
-						}
-					}
-				}
-			} else {
-				// hmm, now CaptureSearchResult.mimeType can be set to
-				// forcedContentType - it should work, but this may
-				// be a bad design.
-				wbRequest.setForcedContentType(mimeType);
+		// Revised logic: forcedContentType is set for cs_ and js_ flags. While this is
+		// useful for the most cases, it is still possible to convey false information if,
+		// for example, JavaScript constructs image URL from style/@src value.
+		String suggestedMimeType = wbRequest.getForcedContentType();
+		String mimeType = getCaptureMimeType(result, resource);
+		if (mimeType == null) {
+			mimeType = suggestedMimeType;
+		} else {
+			if (suggestedMimeType != null && !mimeType.equals(suggestedMimeType)) {
+				// mimeType from context flags disagree, run detection.
+				mimeType = null;
 			}
 		}
+		if (mimeType == null) {
+			if (mimeTypeDetectors != null) {
+				for (MimeTypeDetector detector : mimeTypeDetectors) {
+					String detected = detector.sniff(resource);
+					if (detected != null) {
+						// detected mimeType is communicated to Selectors
+						// through forcedContentType. better way? replace
+						// CaptureSearchResult.mimeType?
+						mimeType = detected;
+						break;
+					}
+				}
+			}
+		}
+		// hmm, now CaptureSearchResult.mimeType can be set to
+		// forcedContentType - it should work, but this may
+		// be a bad design.
+		if (mimeType != null)
+			wbRequest.setForcedContentType(mimeType);
 
 		if (selectors != null) {
 			for (ReplayRendererSelector selector : selectors) {
