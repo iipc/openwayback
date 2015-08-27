@@ -40,6 +40,7 @@ import org.archive.wayback.accesscontrol.ExclusionFilterFactory;
 import org.archive.wayback.accesscontrol.oracleclient.OraclePolicyService;
 import org.archive.wayback.accesspoint.proxy.ProxyAccessPoint;
 import org.archive.wayback.core.WaybackRequest;
+import org.archive.wayback.memento.MementoHandler;
 import org.archive.wayback.replay.html.ContextResultURIConverterFactory;
 import org.archive.wayback.replay.html.RewriteDirector;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
@@ -402,5 +403,10 @@ public class AccessPointAdapter extends AccessPoint {
 		// delegate to composite for easy customization (decorateURIConverter is
 		// public to allow this.)
 		return composite.decorateURIConverter(uriConverter, httpRequest, wbRequest);
+	}
+
+	@Override
+	public MementoHandler getMementoHandler() {
+		return composite.getMementoHandler();
 	}
 }
