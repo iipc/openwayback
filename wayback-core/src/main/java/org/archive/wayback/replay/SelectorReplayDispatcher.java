@@ -156,7 +156,6 @@ public class SelectorReplayDispatcher implements ReplayDispatcher {
 		// Revised logic: forcedContentType is set for cs_ and js_ flags. While this is
 		// useful for the most cases, it is still possible to convey false information if,
 		// for example, JavaScript constructs image URL from style/@src value.
-		ReplayRenderer renderer = null;
 		String suggestedMimeType = wbRequest.getForcedContentType();
 		String mimeType = getCaptureMimeType(result, resource);
 		if (mimeType == null) {
@@ -164,8 +163,8 @@ public class SelectorReplayDispatcher implements ReplayDispatcher {
 		} else {
 			if (suggestedMimeType != null && !mimeType.equals(suggestedMimeType)) {
 				// if suggestedMimeType and mimeType selects different renderer, run detection.
-				// mimeType != suggestedMimeType check is not enough, because there are
-				// cases like "text/html" and "application/javascript". This is ugly.
+				// mimeType != suggestedMimeType check is not enough, because there are aliasing
+				// cases like "text/javascript" and "application/javascript". This is ugly.
 				ReplayRenderer suggestedRenderer = getReplayRendererInternal(wbRequest, result, resource);
 				wbRequest.setForcedContentType(mimeType);
 				ReplayRenderer contentTypeRenderer = getReplayRendererInternal(wbRequest, result, resource);
