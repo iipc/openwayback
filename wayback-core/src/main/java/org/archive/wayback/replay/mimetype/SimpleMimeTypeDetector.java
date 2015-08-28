@@ -203,6 +203,11 @@ public class SimpleMimeTypeDetector implements MimeTypeDetector {
 				return "video/quicktime";
 			}
 			break;
+		case 'w':
+			if (bytes[1] == 'O' && bytes[2] == 'F' && (bytes[3] == 'F' || bytes[3] == '2')) {
+				return "application/font-woff";
+			}
+			break;
 		case '{':
 			if (bytes[1] == '\\' && bytes[2] == 'r' && bytes[3] == 't' && bytes[4] == 'f' && bytes[5] == '1') {
 				return "application/rtf";
