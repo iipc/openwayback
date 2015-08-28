@@ -137,19 +137,42 @@ public class SelectorReplayDispatcher implements ReplayDispatcher {
 		return mimeType;
 	}
 
+	protected ReplayRenderer getReplayRendererInternal(
+			WaybackRequest wbRequest, CaptureSearchResult result,
+			Resource resource) {
+		if (selectors != null) {
+			for (ReplayRendererSelector selector : selectors) {
+				if (selector.canHandle(wbRequest, result, resource, resource)) {
+					return selector.getRenderer();
+				}
+			}
+		}
+		return null;
+	}
+
 	@Override
 	public ReplayRenderer getRenderer(WaybackRequest wbRequest,
 			CaptureSearchResult result, Resource resource) {
 		// Revised logic: forcedContentType is set for cs_ and js_ flags. While this is
 		// useful for the most cases, it is still possible to convey false information if,
 		// for example, JavaScript constructs image URL from style/@src value.
+		ReplayRenderer renderer = null;
 		String suggestedMimeType = wbRequest.getForcedContentType();
 		String mimeType = getCaptureMimeType(result, resource);
 		if (mimeType == null) {
 			mimeType = suggestedMimeType;
 		} else {
 			if (suggestedMimeType != null && !mimeType.equals(suggestedMimeType)) {
-				// mimeType from context flags disagree, run detection.
+				// if suggestedMimeType and mimeType selects different renderer, run detection.
+				// mimeType != suggestedMimeType check is not enough, because there are
+				// cases like "text/html" and "application/javascript". This is ugly.
+				ReplayRenderer suggestedRenderer = getReplayRendererInternal(wbRequest, result, resource);
+				wbRequest.setForcedContentType(mimeType);
+				ReplayRenderer contentTypeRenderer = getReplayRendererInternal(wbRequest, result, resource);
+				wbRequest.setForcedContentType(suggestedMimeType);
+				if (suggestedRenderer == contentTypeRenderer) {
+					return suggestedRenderer;
+				}
 				mimeType = null;
 			}
 		}
@@ -172,15 +195,7 @@ public class SelectorReplayDispatcher implements ReplayDispatcher {
 		// be a bad design.
 		if (mimeType != null)
 			wbRequest.setForcedContentType(mimeType);
-
-		if (selectors != null) {
-			for (ReplayRendererSelector selector : selectors) {
-				if (selector.canHandle(wbRequest, result, resource, resource)) {
-					return selector.getRenderer();
-				}
-			}
-		}
-		return null;
+		return getReplayRendererInternal(wbRequest, result, resource);
 	}
 
 	@Override
