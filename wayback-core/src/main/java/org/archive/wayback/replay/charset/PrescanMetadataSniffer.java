@@ -31,16 +31,23 @@ public class PrescanMetadataSniffer extends BaseEncodingSniffer {
 			// characters we're interested in...
 			StringBuilder sb = new StringBuilder(new String(bbuffer,
 					"UTF-8"));
-			String metaContentType = TagMagix.getTagAttrWhere(sb, "META",
-				"content", "http-equiv", "Content-Type");
-			if (metaContentType != null) {
-				charsetName = contentTypeToCharset(metaContentType);
-				// override
-				if (charsetName != null) {
-					String upped = charsetName.toUpperCase();
-					if (upped.startsWith("UTF-16"))
-						charsetName = "UTF-8";
+			// HTML5 charset declaration
+			String metaCharset = TagMagix.getTagAttr(sb, "META", "charset");
+			if (metaCharset != null) {
+				charsetName = checkCharset(metaCharset);
+			}
+			if (charsetName == null) {
+				String metaContentType = TagMagix.getTagAttrWhere(sb, "META",
+					"content", "http-equiv", "Content-Type");
+				if (metaContentType != null) {
+					charsetName = contentTypeToCharset(metaContentType);
 				}
+			}
+			// override - if META says UTF-16, it's definitely wrong.
+			if (charsetName != null) {
+				String upped = charsetName.toUpperCase();
+				if (upped.startsWith("UTF-16"))
+					charsetName = "UTF-8";
 			}
 			return charsetName;
 		} catch (IOException ex) {

@@ -45,22 +45,34 @@ public abstract class BaseEncodingSniffer implements EncodingSniffer {
 		if (offset != -1) {
 			String cs = contentType.substring(offset +
 					CHARSET_TOKEN.length());
-			if (cs.equalsIgnoreCase("x-user-defined")) {
-				cs = "windows-1252";
-			}
-			if (isCharsetSupported(cs)) {
-				return mapCharset(cs);
-			}
-			// test for extra spaces... there's at least one page out there
-			// that indicates it's charset with:
+			return checkCharset(cs);
+		}
+		return null;
+	}
 
-			// <meta http-equiv="Content-type"
-			// content="text/html; charset=i so-8859-1">
+	/**
+	 * Check if {@code cs} is a valid (Java-supported) character encoding,
+	 * and fix / replace if necessary.
+	 * @param cs
+	 * @return valid character encoding name, or {@code null} if invalid.
+	 */
+	protected String checkCharset(String cs) {
+		if (cs.equalsIgnoreCase("x-user-defined")) {
+			cs = "windows-1252";
+		}
+		if (isCharsetSupported(cs)) {
+			return mapCharset(cs);
+		}
+		// test for extra spaces... there's at least one page out there
+		// that indicates it's charset with:
 
-			// bad web page!
-			if (isCharsetSupported(cs.replace(" ", ""))) {
-				return mapCharset(cs.replace(" ", ""));
-			}
+		// <meta http-equiv="Content-type"
+		// content="text/html; charset=i so-8859-1">
+
+		// bad web page!
+		String fixed = cs.replace(" ", "");
+		if (isCharsetSupported(fixed)) {
+			return mapCharset(fixed);
 		}
 		return null;
 	}
