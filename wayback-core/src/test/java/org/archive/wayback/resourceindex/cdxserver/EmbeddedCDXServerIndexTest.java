@@ -1,12 +1,13 @@
 /**
- * 
+ *
  */
 package org.archive.wayback.resourceindex.cdxserver;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.ArrayList;
+import java.io.UnsupportedEncodingException;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -36,13 +37,13 @@ import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.WaybackRequest;
-import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.exception.RobotAccessControlException;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.util.ObjectFilter;
 import org.archive.wayback.util.WrappedCloseableIterator;
 import org.archive.wayback.util.url.KeyMakerUrlCanonicalizer;
 import org.archive.wayback.webapp.PerfStats;
+import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
 
@@ -52,70 +53,146 @@ import org.easymock.IAnswer;
  *
  */
 public class EmbeddedCDXServerIndexTest extends TestCase {
-	
 	/**
-	 * fixture CDXServer (unnecessary if CDServer was an interface).
-	 * <p>
-	 * Note: {@code testHandleRequest} and {@code testRenderMementoTimemap} uses
-	 * {@link CDXServer#getCdx(HttpServletRequest, HttpServletResponse, CDXQuery)},
-	 * which eventually calls {@link #getCdx(CDXQuery, AuthToken, CDXWriter)} here.
-	 * </p>
+	 * An interface for mocking CDXServer.
+	 * Combined with front-end CDXServer below, this allows
+	 * for mocking CDXServer.
+	 */
+	public interface ICDXServer {
+		public CDXLine findLastCapture(String url, String digest, boolean ignoreRobots);
+		public String canonicalize(String url, boolean surt) throws UnsupportedEncodingException, URISyntaxException;
+		public void getCdx(HttpServletRequest request, HttpServletResponse response, CDXQuery query);
+		public void getCdx(CDXQuery query, AuthToken authToken, CDXWriter responseWriter) throws IOException;
+	}
+
+	/**
+	 * fixture CDXServer (unnecessary if CDServer were an interface).
+	 * This class delegates all public method calls to underlining
+	 * ICDXServer implementation passed at initialization.
 	 */
 	public static class TestCDXServer extends CDXServer {
-		public List<Object[]> capturedArgs = new ArrayList<Object[]>();
-		public CDXLine[] cdxLines;
-		
+		private ICDXServer delegate;
+
+		public TestCDXServer(ICDXServer delegate) {
+			this.delegate = delegate;
+		}
+		@Override
+		public CDXLine findLastCapture(String url, String digest,
+				boolean ignoreRobots) {
+			return delegate.findLastCapture(url, digest, ignoreRobots);
+		}
+		@Override
+		public String canonicalize(String url, boolean surt)
+				throws UnsupportedEncodingException, URISyntaxException {
+			return delegate.canonicalize(url, surt);
+		}
 		@Override
 		public void getCdx(CDXQuery query, AuthToken authToken,
 				CDXWriter responseWriter) throws IOException {
-			capturedArgs.add(new Object[] { query, authToken, responseWriter });
-			
+			delegate.getCdx(query, authToken, responseWriter);
+		}
+		@Override
+		public void getCdx(HttpServletRequest request,
+				HttpServletResponse response, CDXQuery query) {
+			delegate.getCdx(request, response, query);
+		}
+	}
+
+	/**
+	 * Stub implementation for {@code delegateTo}.
+	 * This emulates critical behavior of CDXServer: EmbeddedCDXServerIndex#doQuery
+	 * assumes that {@link CDXToSearchResultWriter#getSearchResults()} is non-{@code null}
+	 * after {@link CDXServer#getCdx(CDXQuery, AuthToken, CDXWriter)} returns without an error.
+	 * CDXToCaptureSearchResultsWriter, for example, initializes {@code results} when CDXServer
+	 * calls its {@code begin()} method. Without that behavior, EmbeddedCDXServerIndex will fail
+	 * with NullPointerException.
+	 *
+	 * @see EmbeddedCDXServerIndexTest#expectGetCdx(CDXQuery, AuthToken, CDXWriter, String...)
+	 */
+	public static class StubCDXServer implements ICDXServer {
+		public CDXLine[] cdxLines;
+
+		public StubCDXServer(String... lines) {
+			final FieldSplitFormat fmt = CDXFieldConstants.CDX_ALL_NAMES;
+			cdxLines = new CDXLine[lines.length];
+			int i = 0;
+			for (String line : lines) {
+				cdxLines[i++] = new CDXLine(line, fmt);
+			}
+		}
+
+		@Override
+		public CDXLine findLastCapture(String url, String digest,
+				boolean ignoreRobots) {
+			return null;
+		}
+
+		@Override
+		public String canonicalize(String url, boolean surt)
+				throws UnsupportedEncodingException, URISyntaxException {
+			return null;
+		}
+
+		@Override
+		public void getCdx(HttpServletRequest request,
+				HttpServletResponse response, CDXQuery query) {
+			// not implemented - While real implementation eventually calls
+			// #getCdx(CDXQuery, AuthToken, CDXWriter), tests calling this
+			// method do not require CDXServer's behavior.
+		}
+
+		@Override
+		public void getCdx(CDXQuery query, AuthToken authToken,
+				CDXWriter responseWriter) throws IOException {
 			responseWriter.begin();
 			for (CDXLine cdxLine : cdxLines) {
 				responseWriter.writeLine(cdxLine);
 			}
 			responseWriter.end();
 		}
-		
-		public void clearCapturedArgs() {
-			capturedArgs.clear();
-		}
+
 	}
 
 	EmbeddedCDXServerIndex cut;
-	TestCDXServer testCDXServer;
-	
+	// CDXServer mock
+	ICDXServer cdxServer;
+
 	/* (non-Javadoc)
 	 * @see junit.framework.TestCase#setUp()
 	 */
 	protected void setUp() throws Exception {
 		cut = new EmbeddedCDXServerIndex();
 		cut.setCanonicalizer(new KeyMakerUrlCanonicalizer());
-		cut.setCdxServer(testCDXServer = new TestCDXServer());
+//		cut.setCdxServer(testCDXServer = new TestCDXServer());
+		cdxServer = EasyMock.createMock(ICDXServer.class);
+		cut.setCdxServer(new TestCDXServer(cdxServer));
 
 		Logger.getLogger(PerfStats.class.getName()).setLevel(Level.WARNING);
 	}
-	
+
 	/**
-	 * Set CDX lines TestCDXServer stub returns.
-	 * Lines are parsed with {@link CDXFieldConstants#CDX_ALL_NAMES}.
-	 * Note {@link EmbeddedCDXServerIndex#query} will throw {@link ResourceNotInArchiveException}
-	 * if {@code lines} is empty.
-	 * @param lines text CDX lines
+	 * Setup expectation {@link CDXServer#getCdx(CDXQuery, AuthToken, CDXWriter)} getting called,
+	 * and it makes proper calls to CDXWriter.
+	 * Because {@link EmbeddedCDXServerIndex#doQuery(WaybackRequest)} depends on such behavior, we need
+	 * this complex setup for tests involving a call to {@code doQuery}.
+	 * @param query EasyMock match
+	 * @param authToken EasyMock match
+	 * @param cdxWriter EasyMock match
+	 * @param cdxLines CDX lines to be generated
+	 * @throws IOException
 	 */
-	protected void setCdxLines(String... lines) {
-		// urlkey, timestamp, original, mimetype, statuscode, digest, redirect,
-		// robotflags, length, offset, filename.
-		final FieldSplitFormat fmt = CDXFieldConstants.CDX_ALL_NAMES;
-		testCDXServer.cdxLines = new CDXLine[lines.length];
-		int i = 0;
-		for (String line : lines) {
-			testCDXServer.cdxLines[i++] = new CDXLine(line, fmt);
+	protected void expectGetCdx(CDXQuery query, AuthToken authToken, CDXWriter cdxWriter, String... cdxLines) throws IOException {
+		cdxServer.getCdx(query, authToken, cdxWriter);
+		if (cdxLines.length > 0) {
+			final ICDXServer delegateTo = new StubCDXServer(cdxLines);
+			EasyMock.expectLastCall().andDelegateTo(delegateTo);
+		} else {
+			EasyMock.expectLastCall();
 		}
 	}
 
 	// === sample cdx lines ===
-	
+
 	final String CDXLINE1 = "com,example)/ 20101124000000 http://example.com/ text/html 200" +
 			" ABCDEFGHIJKLMNOPQRSTUVWXYZ012345 - - 2000 0 /a/a.warc.gz";
 	// for testing ignore-robots
@@ -129,38 +206,41 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 		WaybackRequest wbr = new WaybackRequest();
 		wbr.setRequestUrl("http://example.com/");
 		wbr.setCaptureQueryRequest();
-		
+
 		// urlkey, timestamp, original, mimetype, statuscode, digest, redirect, robotflags,
 		// length, offset, filename.
 		FieldSplitFormat fmt = CDXFieldConstants.CDX_ALL_NAMES;
-		testCDXServer.cdxLines = new CDXLine[] {
-				new CDXLine(CDXLINE1, fmt)
-		};
-		
+		Capture<CDXQuery> queryCapture = new Capture<CDXQuery>();
+		Capture<AuthToken> authTokenCapture = new Capture<AuthToken>();
+		expectGetCdx(EasyMock.capture(queryCapture), EasyMock.capture(authTokenCapture), EasyMock.<CDXWriter>anyObject(),
+			CDXLINE1);
+
+		EasyMock.replay(cdxServer);
+
 		SearchResults sr = cut.query(wbr);
-		
 		assertEquals(1,  sr.getReturnedCount());
-		
-		assertEquals(1, testCDXServer.capturedArgs.size());
-		
-		Object[] args = testCDXServer.capturedArgs.get(0);
-		CDXQuery query = (CDXQuery)args[0];
-		String[] filter = query.getFilter();
+
+		EasyMock.verify(cdxServer);
+
+		String[] filter = queryCapture.getValue().getFilter();
 		assertEquals(1, filter.length);
 		assertEquals("!statuscode:(500|502|504)", filter[0]);
-		
-		AuthToken authToken = (AuthToken)args[1];
+
+		AuthToken authToken = authTokenCapture.getValue();
 		assertFalse(authToken.isIgnoreRobots());
 	}
+
 	/**
 	 * {@link EmbeddedCDXServerIndex} resolves revisits for replay requests.
 	 * (This is actually a test of {@link CDXToCaptureSearchResultsWriter}.)
 	 * @throws Exception
 	 */
 	public void testRevisitResolution() throws Exception {
+		// TODO: test CDXToCaptureSearchResultsWriter directly
 		WaybackRequest wbr = WaybackRequest.createReplayRequest(
 			"http://example.com/", "20101125000000", null, null);
-		setCdxLines(
+		expectGetCdx(EasyMock.<CDXQuery>anyObject(),
+			EasyMock.<AuthToken>anyObject(), EasyMock.<CDXWriter>anyObject(),
 			"com,example)/ 20101124000000 http://example.com/ text/html 200" +
 					" XXXX - - 2000 0 /a/a.warc.gz",
 			"com,example)/ 20101125000000 http://example.com/ warc/revisit 200" +
@@ -168,9 +248,13 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 			"com,example)/ 20101126000000 http://example.com/ text/html 200" +
 					" XXXX - - 2000 0 /a/c.warc.gz"
 				);
+		EasyMock.replay(cdxServer);
+
 		SearchResults sr = cut.query(wbr);
 
 		assertEquals(3, sr.getReturnedCount());
+
+		EasyMock.verify(cdxServer);
 
 		CaptureSearchResults results = (CaptureSearchResults)sr;
 		List<CaptureSearchResult> list = results.getResults();
@@ -249,7 +333,8 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 	public void testSoftBlock() throws Exception {
 		WaybackRequest wbr = WaybackRequest.createReplayRequest(
 			"http://example.com/", "20101125000000", null, null);
-		setCdxLines(
+		expectGetCdx(EasyMock.<CDXQuery>anyObject(),
+			EasyMock.<AuthToken>anyObject(), EasyMock.<CDXWriter>anyObject(),
 			"com,example)/ 20101124000000 http://example.com/ text/html 200" +
 					" XXXX - X 2000 0 /a/a.warc.gz",
 			"com,example)/ 20101125000000 http://example.com/ warc/revisit 200" +
@@ -257,9 +342,12 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 			"com,example)/ 20101126000000 http://example.com/ text/html 200" +
 					" XXXX - - 2000 0 /a/c.warc.gz"
 				);
+		EasyMock.replay(cdxServer);
 		CaptureSearchResults results = (CaptureSearchResults)cut.query(wbr);
 
 		assertEquals(2, results.getReturnedCount());
+
+		EasyMock.verify(cdxServer);
 
 		// first line is excluded
 		List<CaptureSearchResult> list = results.getResults();
@@ -358,7 +446,9 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 		WaybackRequest wbr = WaybackRequest.createReplayRequest(
 			"http://example.com/", "20101124000000", null, null);
 		wbr.put(EmbeddedCDXServerIndex.REQUEST_REVISIT_LOOKUP, "true");
-		setCdxLines(
+
+		expectGetCdx(EasyMock.<CDXQuery>anyObject(),
+			EasyMock.<AuthToken>anyObject(), EasyMock.<CDXWriter>anyObject(),
 			"com,example)/ 20101124000000 http://example.com/ text/html 200" +
 					" XXXX - X 2000 0 /a/a.warc.gz",
 			"com,example)/ 20101125000000 http://example.com/ warc/revisit 200" +
@@ -366,7 +456,11 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 			"com,example)/ 20101126000000 http://example.com/ text/html 200" +
 					" XXXX - - 2000 0 /a/c.warc.gz"
 				);
+		EasyMock.replay(cdxServer);
+
 		CaptureSearchResults results = (CaptureSearchResults)cut.query(wbr);
+
+		EasyMock.verify(cdxServer);
 
 		CaptureSearchResult capture1 = results.getResults().get(0);
 		assertEquals("20101124000000", capture1.getCaptureTimestamp());
@@ -389,7 +483,7 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 			assertEquals(c[1], EmbeddedCDXServerIndex.buildStatusFilter(c[0]));
 		}
 	}
-	
+
 	/**
 	 * test of {@link EmbeddedCDXServerIndex#setBaseStatusRegexp(String)}
 	 * @throws Exception
@@ -398,42 +492,48 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 		WaybackRequest wbr = new WaybackRequest();
 		wbr.setRequestUrl("http://example.com/");
 		wbr.setCaptureQueryRequest();
-		
-		// urlkey, timestamp, original, mimetype, statuscode, digest, redirect, robotflags,
-		// length, offset, filename.
-		setCdxLines(CDXLINE1);
-		
+
 		cut.setBaseStatusRegexp("");
 		{
+			Capture<CDXQuery> queryCapture = new Capture<CDXQuery>();
+			expectGetCdx(EasyMock.capture(queryCapture),
+				EasyMock.<AuthToken>anyObject(),
+				EasyMock.<CDXWriter>anyObject(), CDXLINE1);
+			EasyMock.replay(cdxServer);
+
 			@SuppressWarnings("unused")
 			SearchResults sr = cut.query(wbr);
 
-			assertEquals(1, testCDXServer.capturedArgs.size());
+			EasyMock.verify(cdxServer);
 
-			Object[] args = testCDXServer.capturedArgs.get(0);
-			CDXQuery query = (CDXQuery)args[0];
+			CDXQuery query = queryCapture.getValue(); //(CDXQuery)args[0];
 			String[] filter = query.getFilter();
 			assertNull("there should be no filter", filter);
 		}
-		
-		testCDXServer.clearCapturedArgs();
+
+		EasyMock.reset(cdxServer);
 		cut.setBaseStatusRegexp("!500");
 		{
+			Capture<CDXQuery> queryCapture = new Capture<CDXQuery>();
+			expectGetCdx(EasyMock.capture(queryCapture),
+				EasyMock.<AuthToken>anyObject(),
+				EasyMock.<CDXWriter>anyObject(), CDXLINE1);
+			EasyMock.replay(cdxServer);
+
 			@SuppressWarnings("unused")
 			SearchResults sr = cut.query(wbr);
 
-			assertEquals(1, testCDXServer.capturedArgs.size());
-			
-			Object[] args = testCDXServer.capturedArgs.get(0);
-			CDXQuery query = (CDXQuery)args[0];
+			EasyMock.verify(cdxServer);
+
+			CDXQuery query = queryCapture.getValue(); //(CDXQuery)args[0];
 			String[] filter = query.getFilter();
 			assertEquals(1, filter.length);
 			assertEquals("!statuscode:500", filter[0]);
 		}
 	}
-	
+
 	/**
-	 * for those SURT prefixes in {@code ignoreRobotsPaths}, 
+	 * for those SURT prefixes in {@code ignoreRobotsPaths},
 	 * {@link AuthToken#isIgnoreRobots()} flag is set.
 	 * @throws Exception
 	 */
@@ -442,22 +542,24 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 		WaybackRequest wbr = new WaybackRequest();
 		wbr.setRequestUrl("http://norobots.com/");
 		wbr.setCaptureQueryRequest();
-		
-		// urlkey, timestamp, original, mimetype, statuscode, digest, redirect, robotflags,
-		// length, offset, filename.
-		setCdxLines(CDXLINE2);
-		
+
+		Capture<CDXQuery> queryCapture = new Capture<CDXQuery>();
+		Capture<AuthToken> authTokenCapture = new Capture<AuthToken>();
+		expectGetCdx(EasyMock.capture(queryCapture),
+			EasyMock.capture(authTokenCapture),
+			EasyMock.<CDXWriter>anyObject(), CDXLINE2);
+
+		EasyMock.replay(cdxServer);
+
 		@SuppressWarnings("unused")
 		SearchResults sr = cut.query(wbr);
-		
-		assertEquals(1, testCDXServer.capturedArgs.size());
-		
-		Object[] args = testCDXServer.capturedArgs.get(0);
-		//CDXQuery query = (CDXQuery)args[0];
-		AuthToken authToken = (AuthToken)args[1];
+
+		EasyMock.verify(cdxServer);
+
+		AuthToken authToken = authTokenCapture.getValue();
 		assertTrue(authToken.isIgnoreRobots());
 	}
-	
+
 	/**
 	 * test of timestamp-collapsing.
 	 * <p>Actual processing happens in {@link CDXServer}. {@link EmbeddedCDXServerIndex}
@@ -469,24 +571,40 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 	public void testCollapseTime() throws Exception {
 		WaybackRequest wbr = WaybackRequest.createCaptureQueryRequet(
 			"http://example.com/", null, null, null);
-		setCdxLines(CDXLINE1);
-
 		{
 			cut.setTimestampDedupLength(10);
+
+			Capture<CDXQuery> queryCapture = new Capture<CDXQuery>();
+			expectGetCdx(EasyMock.capture(queryCapture),
+				EasyMock.<AuthToken>anyObject(),
+				EasyMock.<CDXWriter>anyObject(), CDXLINE1);
+			EasyMock.replay(cdxServer);
+
 			@SuppressWarnings("unused")
 			SearchResults sr = cut.query(wbr);
 
-			Object[] args = testCDXServer.capturedArgs.get(0);
-			assertEquals(10, ((CDXQuery)args[0]).getCollapseTime());
+			EasyMock.verify(cdxServer);
+
+			CDXQuery query = queryCapture.getValue();
+			assertEquals(10, query.getCollapseTime());
 		}
-		testCDXServer.clearCapturedArgs();
+		EasyMock.reset(cdxServer);
 		{
 			wbr.setCollapseTime(8);
+
+			Capture<CDXQuery> queryCapture = new Capture<CDXQuery>();
+			expectGetCdx(EasyMock.capture(queryCapture),
+				EasyMock.<AuthToken>anyObject(),
+				EasyMock.<CDXWriter>anyObject(), CDXLINE1);
+			EasyMock.replay(cdxServer);
+
 			@SuppressWarnings("unused")
 			SearchResults sr = cut.query(wbr);
 
-			Object[] args = testCDXServer.capturedArgs.get(0);
-			assertEquals(8, ((CDXQuery)args[0]).getCollapseTime());
+			EasyMock.verify(cdxServer);
+
+			CDXQuery query = queryCapture.getValue();
+			assertEquals(8, query.getCollapseTime());
 		}
 	}
 
@@ -499,26 +617,23 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 	public void testHandleRequest() throws Exception {
 		HttpServletRequest request = EasyMock.createNiceMock(HttpServletRequest.class);
 		EasyMock.expect(request.getParameter("url")).andStubReturn("http://example.com/");
-		
-		HttpServletResponse response = EasyMock.createNiceMock(HttpServletResponse.class);
-		StringWriter sw = new StringWriter();
-		EasyMock.expect(response.getWriter()).andReturn(new PrintWriter(sw));
-		
-		FieldSplitFormat fmt = CDXFieldConstants.CDX_ALL_NAMES;
-		testCDXServer.cdxLines = new CDXLine[] {
-				new CDXLine(CDXLINE1, fmt)
-		};
 
-		EasyMock.replay(request, response);
+		HttpServletResponse response = EasyMock.createNiceMock(HttpServletResponse.class);
+
+		// handleRequest() makes no big assumption on CDXServer's behavior.
+		// we don't need to use #expectGetCdx
+		Capture<CDXQuery> queryCapture = new Capture<CDXQuery>();
+		cdxServer.getCdx(EasyMock.same(request), EasyMock.same(response), EasyMock.capture(queryCapture));
+
+		EasyMock.replay(request, response, cdxServer);
+
 		cut.handleRequest(request, response);
-		
-		assertEquals(1, testCDXServer.capturedArgs.size());
-		Object[] args = testCDXServer.capturedArgs.get(0);
-		
-		CDXQuery query = (CDXQuery)args[0];
+
+		EasyMock.verify(cdxServer);
+
+		CDXQuery query = queryCapture.getValue();
 		assertEquals("API query should not have filter by default", 0, query.getFilter().length);
-		
-		assertEquals(CDXLINE1+"\n", sw.toString());
+		assertEquals("http://example.com/", query.getUrl());
 	}
 
 	/**
@@ -538,8 +653,8 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 		HttpServletResponse response = EasyMock.createNiceMock(HttpServletResponse.class);
 		StringWriter sw = new StringWriter();
 		EasyMock.expect(response.getWriter()).andReturn(new PrintWriter(sw));
-		
-		// needs: 
+
+		// needs:
 		//   getMementoTimemapFormat() - passed to CDXQuery.output
 		//   getRequestUrl() - passed to CDXQuery
 		//   get(MementoConstants.PAGE_STARTS) (optional, passed to CDXQuery.from
@@ -548,27 +663,22 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 		WaybackRequest wbr = new WaybackRequest();
 		wbr.setRequestUrl("http://example.com/");
 		wbr.setMementoTimemapFormat("memento");
-		
-		FieldSplitFormat fmt = CDXFieldConstants.CDX_ALL_NAMES;
-		testCDXServer.cdxLines = new CDXLine[] {
-				new CDXLine(CDXLINE1, fmt)
-		};
-		
-		EasyMock.replay(request, response);
+
+		Capture<CDXQuery> queryCapture = new Capture<CDXQuery>();
+		cdxServer.getCdx(EasyMock.same(request), EasyMock.same(response), EasyMock.capture(queryCapture));
+		EasyMock.expectLastCall().once();
+
+		EasyMock.replay(request, response, cdxServer);
 		boolean r = cut.renderMementoTimemap(wbr, request, response);
-		
+
 		assertTrue("renderMementoTimemap returns true", r);
 
-		assertEquals(1, testCDXServer.capturedArgs.size());
-		Object[] args = testCDXServer.capturedArgs.get(0);
-		
-		CDXQuery query = (CDXQuery)args[0];
+		EasyMock.verify(cdxServer);
+
+		CDXQuery query = queryCapture.getValue();
 		assertEquals("API query should not have filter by default", 0, query.getFilter().length);
-		
-		// Here we only check if output *looks like* Memento format. Detailed tests
-		// shall be done by test case for MementoLinkWriter.
-		//System.out.println("response=" + sw.toString());
-		assertTrue(sw.toString().startsWith("<http://example.com/>;"));
+		assertEquals("memento", query.getOutput());
+		assertEquals("http://example.com/", query.getUrl());
 	}
 
 	// WaybackAuthChecker wants RedisRobotExclusionFilterFactory for
