@@ -11,7 +11,8 @@ Full listing of changes and bug fixes are not available prior to release 1.2.0 a
 ### Bug fixes
 * Fix for WatchedCDXSourceTest on MaxOSX. [#271] (https://github.com/iipc/openwayback/issues/271)
 * UTF BOM detection is not working at all [#283](https://github.com/iipc/openwayback/issues/283)
-* Failing test on Windows: EmbeddedCDXServerIndexTest.handleRequest() depends on plattform line ending. [#236]
+* Failing test on Windows: EmbeddedCDXServerIndexTest.handleRequest() depends on plattform line ending. [#236](https://github.com/iipc/openwayback/issues/236)
+* Remove "contrib/ia" directory [#264](https://github.com/iipc/openwayback/issues/264)
 
 ## OpenWayback 2.2.0 Release
 ### Features
