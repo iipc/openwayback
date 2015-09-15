@@ -14,6 +14,7 @@ import org.archive.cdxserver.filter.CDXAccessFilter;
 import org.archive.cdxserver.filter.CDXFilter;
 import org.archive.cdxserver.filter.FilenamePrefixFilter;
 import org.archive.format.cdx.CDXLine;
+import org.archive.wayback.accesscontrol.ContextExclusionFilterFactory;
 import org.archive.wayback.accesscontrol.ExclusionFilterFactory;
 import org.archive.wayback.accesscontrol.oracleclient.CustomPolicyOracleFilter;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
@@ -21,15 +22,18 @@ import org.archive.wayback.webapp.AccessPoint;
 
 /**
  * {@link AuthChecker} implementation that runs {@link ExclusionFilter} provided
- * through {@link AccessPoint#getExclusionFactory()} as well as the filtering
- * provided by {@link WaybackAPAuthChecker}.
+ * through {@link AccessPoint#getExclusionFactory()}.
  * <p>
  * This is primarily meant for running {@link CustomPolicyOracleFilter} in
  * {@link CDXServer} rather than in {@link EmbeddedCDXServerIndex}, making
  * {@link WaybackAPAuthChecker} obsolete. Current implementation is very
  * specific to this usage.
  * </p>
- * Needs {@link APContextAuthToken} as token.</p>
+ * <p>Needs {@link APContextAuthToken} as token.</p>
+ * <p>2015-09-14: Direct support for collection scoping filter
+ * (include/exclude prefixes) will be removed in the future. Please migrate to
+ * {@link ContextExclusionFilterFactory}-based implementation, and configure
+ * {@code collectionScopeSupportEnabled} property to {@code false}.</p>
  */
 public class AccessPointAuthChecker extends PrivTokenAuthChecker {
 
@@ -37,6 +41,8 @@ public class AccessPointAuthChecker extends PrivTokenAuthChecker {
 		.getLogger(AccessPointAuthChecker.class.getName());
 
 	protected ExclusionFilterFactory fallbackExclusionFactory;
+
+	private boolean collectionScopeSupportEnabled = true;
 
 	/**
 	 * {@link ExclusionFilterFactory} used if token passed to
@@ -53,6 +59,11 @@ public class AccessPointAuthChecker extends PrivTokenAuthChecker {
 		return fallbackExclusionFactory;
 	}
 
+	public void setCollectionScopeSupportEnabled(
+			boolean collectionScopeSupportEnabled) {
+		this.collectionScopeSupportEnabled = collectionScopeSupportEnabled;
+	}
+
 	/**
 	 * {@link CDXFilter} on prefix of filename field.
 	 * <p>
@@ -61,6 +72,7 @@ public class AccessPointAuthChecker extends PrivTokenAuthChecker {
 	 * {@code excludePrefixes}. If {@code includePrefixes} is {@code null} (as
 	 * opposed to empty), all captures are accepted.
 	 * </p>
+	 * <p>To be removed</p>
 	 */
 	protected class CombinedFilenamePrefixFilter implements CDXFilter {
 		FilenamePrefixFilter includeFilter;
@@ -88,8 +100,12 @@ public class AccessPointAuthChecker extends PrivTokenAuthChecker {
 		if (token instanceof APContextAuthToken) {
 			AccessPoint ap = ((APContextAuthToken)token).getAccessPoint();
 
-			CDXFilter prefixFilter = new CombinedFilenamePrefixFilter(
-				ap.getFileIncludePrefixes(), ap.getFileExcludePrefixes());
+			// to be removed
+			CDXFilter prefixFilter = null;
+			if (collectionScopeSupportEnabled) {
+				prefixFilter = new CombinedFilenamePrefixFilter(
+					ap.getFileIncludePrefixes(), ap.getFileExcludePrefixes());
+			}
 
 			ExclusionFilter apFilter = null;
 			try {

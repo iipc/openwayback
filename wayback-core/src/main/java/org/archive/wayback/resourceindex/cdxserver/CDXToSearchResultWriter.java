@@ -19,6 +19,12 @@ public abstract class CDXToSearchResultWriter extends CDXWriter {
 	protected CDXQuery query;
 	protected String msg = null;
 
+	public CDXToSearchResultWriter() {
+	}
+	/**
+	 * @param query
+	 * @deprecated 2015-09-04 use no-arg constructor. query member will be dropped. 
+	 */
 	public CDXToSearchResultWriter(CDXQuery query) {
 		this.query = query;
 	}
@@ -40,6 +46,10 @@ public abstract class CDXToSearchResultWriter extends CDXWriter {
 
 	public abstract SearchResults getSearchResults();
 
+	/**
+	 * @deprecated 2015-09-04 query member will be dropped
+	 * @return
+	 */
 	public CDXQuery getQuery() {
 		return query;
 	}

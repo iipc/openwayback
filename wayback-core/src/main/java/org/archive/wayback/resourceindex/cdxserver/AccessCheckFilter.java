@@ -185,7 +185,7 @@ public class AccessCheckFilter implements CDXAccessFilter {
 		}
 
 		@Override
-		public String getUrlKey() {
+		public final String getUrlKey() {
 			return cdxLine.getUrlKey();
 		}
 
@@ -220,6 +220,27 @@ public class AccessCheckFilter implements CDXAccessFilter {
 			// but setField method is available.
 			cdxLine.setField(CDXLine.robotflags, robotFlags);
 		}
+
+		@Override
+		public final String getMimeType() {
+			return cdxLine.getMimeType();
+		}
+
+		@Override
+		public final String getHttpCode() {
+			return cdxLine.getStatusCode();
+		}
+
+		@Override
+		public final String getFile() {
+			return cdxLine.getFilename();
+		}
+
+		@Override
+		public final String getRobotFlags() {
+			return cdxLine.getRobotFlags();
+		}
+
 	}
 
 

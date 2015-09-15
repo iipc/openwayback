@@ -9,9 +9,13 @@ import org.archive.wayback.core.UrlSearchResults;
 
 public class CDXToUrlSearchResultWriter extends CDXToSearchResultWriter {
 
+	public CDXToUrlSearchResultWriter() {
+	}
+
 	/**
 	 * Initialize with query parameters.
 	 * @param query CDXQuery
+	 * @deprecated 2015-09-04 Use no-arg constructor.
 	 */
 	public CDXToUrlSearchResultWriter(CDXQuery query) {
 		super(query);
