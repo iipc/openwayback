@@ -31,7 +31,9 @@ import org.archive.wayback.ReplayRenderer;
 import org.archive.wayback.RequestParser;
 import org.archive.wayback.ResourceIndex;
 import org.archive.wayback.ResourceStore;
+import org.archive.wayback.accesscontrol.ExclusionFilterFactory;
 import org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter;
+import org.archive.wayback.authenticationcontrol.AccessControlSettingOperation;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.FastCaptureSearchResult;
@@ -42,8 +44,10 @@ import org.archive.wayback.exception.ResourceNotAvailableException;
 import org.archive.wayback.exception.WaybackException;
 import org.archive.wayback.memento.MementoHandler;
 import org.archive.wayback.memento.MementoUtils;
+import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.resourcestore.resourcefile.ArcResource;
 import org.archive.wayback.resourcestore.resourcefile.WarcResource;
+import org.archive.wayback.util.operator.TrueBooleanOperator;
 import org.archive.wayback.util.url.KeyMakerUrlCanonicalizer;
 import org.archive.wayback.util.webapp.RequestMapper;
 import org.easymock.EasyMock;
@@ -1552,6 +1556,45 @@ public class AccessPointTest extends TestCase {
 		EasyMock.verify(parser, requestDispatcher);
 
 		assertTrue("handleRequest return value", r);
+	}
+
+	/**
+	 * {@code AccessPoint.authentication} is typically configured with {@link AccessControlSettingOperation},
+	 * which conditionally installs exclusion filter by calling {@code WaybackRequest.exclusionFilter} directly.
+	 * {@link AccessPoint#createExclusionFilter(WaybackRequest)} shall not overwrite it.
+	 *
+	 * <p>Issue: <a href="https://github.com/iipc/openwayback/issues/259">#259</a></p>
+	 *
+	 * @throws Exception
+	 */
+	public void testExclusionThroughAuthentication() throws Exception {
+		ExclusionFilterFactory accessControlFactory = EasyMock.createMock(ExclusionFilterFactory.class);
+		ExclusionFilter accessControlFilter = new ExclusionFilter() {
+			@Override
+			public int filterObject(CaptureSearchResult o) {
+				return FILTER_INCLUDE;
+			}
+		};
+		EasyMock.expect(accessControlFactory.get()).andReturn(accessControlFilter).once();
+
+		AccessControlSettingOperation acso = new AccessControlSettingOperation();
+		acso.setFactory(accessControlFactory);
+		acso.setOperator(new TrueBooleanOperator<WaybackRequest>());
+		cut.setAuthentication(acso);
+
+		// it is not essential to setup URL search query. It's just requires least setup.
+		// for this test.
+		setUrlQueryRequest("http://example.com/", "20100601123456");
+		expectUrlIndexQuery();
+
+		EasyMock.replay(accessControlFactory, httpRequest, httpResponse, resourceIndex, query);
+
+		boolean r = cut.handleRequest(httpRequest, httpResponse);
+
+		ExclusionFilter filter = wbRequest.getExclusionFilter();
+		if (filter != accessControlFilter) {
+			fail("Expected " + accessControlFilter + ", but got " + filter);
+		}
 	}
 
 	// TODO: tests of live-web redirector
