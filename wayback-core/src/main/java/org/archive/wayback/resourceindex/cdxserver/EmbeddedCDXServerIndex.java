@@ -642,9 +642,12 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 			// TODO: need to support the same access control as CDXServer API.
 			// (See BaseCDXServer#createAuthToken(). Further refactoring is necessary.
 			AuthToken authToken = new APContextAuthToken(wbRequest.getAccessPoint());
-
-			cdxServer.getCdx(query, authToken, cdxWriter);
-
+			try {
+				cdxServer.getCdx(query, authToken, cdxWriter);
+			} catch (Exception ex) {
+				cdxWriter.serverError(ex);
+			}
+			cdxWriter.close();
 		} finally {
 			PerfStats.timeEnd(PerfStat.IndexLoad);
 		}
