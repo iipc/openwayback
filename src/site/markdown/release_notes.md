@@ -13,12 +13,13 @@ Full listing of changes and bug fixes are not available prior to release 1.2.0 a
 * UTF BOM detection is not working at all [#283](https://github.com/iipc/openwayback/issues/283)
 * Failing test on Windows: EmbeddedCDXServerIndexTest.handleRequest() depends on plattform line ending. [#236](https://github.com/iipc/openwayback/issues/236)
 * Remove "contrib/ia" directory [#264](https://github.com/iipc/openwayback/issues/264)
+* Set exclusionFilter on wbRequest via AccessPoint only if not already set. [#259] (https://github.com/iipc/openwayback/issues/259)
 
 ## OpenWayback 2.2.0 Release
 ### Features
 
 * WatchedCDXSource now monitors directories for new CDX files. [#181] (https://github.com/iipc/openwayback/issues/181)
-* System environment variables can be used to override some basic configurations without chaging the XML. [#220] 
+* System environment variables can be used to override some basic configurations without changing the XML. [#220]
 (https://github.com/iipc/openwayback/pull/220) and [#217] (https://github.com/iipc/openwayback/issues/217)
 * Minor fixes to replace hardcoded port numbers aun URL prefixes with placeholders. [#223]
 (https://github.com/iipc/openwayback/pull/223)
@@ -55,7 +56,7 @@ Full listing of changes and bug fixes are not available prior to release 1.2.0 a
 (https://github.com/internetarchive/wayback/issues/65)
 * Added rudimentary mime-type sniffing (work in progress). [#195]
 (https://github.com/iipc/openwayback/pull/195), [internetarchive#46](https://github.com/internetarchive/wayback/issues/46)
-*Timestamp-collapsing can be configured to return the last best capture in eacho collapse group. [#195]
+*Timestamp-collapsing can be configured to return the last best capture in each collapse group. [#195]
 (https://github.com/iipc/openwayback/pull/195), [internetarchive#64] (https://github.com/internetarchive/wayback/issues/64)
 *UIResults now has makePlainCaptureQueryUrl() method for generating clean, short URL for capture query links. [#195]
 (https://github.com/iipc/openwayback/pull/195), [internetarchive#60](https://github.com/internetarchive/wayback/issues/60)
