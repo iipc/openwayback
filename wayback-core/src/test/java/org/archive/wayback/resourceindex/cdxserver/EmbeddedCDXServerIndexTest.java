@@ -517,8 +517,8 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 		
 		CDXQuery query = (CDXQuery)args[0];
 		assertEquals("API query should not have filter by default", 0, query.getFilter().length);
-		
-		assertEquals(CDXLINE1+"\n", sw.toString());
+
+		assertEquals(String.format("%1$s%n", CDXLINE1), sw.toString());
 	}
 
 	/**
