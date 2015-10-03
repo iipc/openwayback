@@ -6,6 +6,7 @@ import java.util.zip.GZIPOutputStream;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.archive.format.cdx.CDXLine;
 import org.archive.util.io.RuntimeIOException;
 
 public abstract class HttpCDXWriter extends CDXWriter {
@@ -18,6 +19,8 @@ public abstract class HttpCDXWriter extends CDXWriter {
 	
 	protected HttpServletResponse response;
 	protected PrintWriter writer;
+
+	protected boolean includeBlockedCaptures = false;
 	
 	public HttpCDXWriter(HttpServletResponse response, boolean gzip) throws IOException {
 	    this.response = response;
@@ -105,5 +108,11 @@ public abstract class HttpCDXWriter extends CDXWriter {
 		});
 		
 		return writer;
+    }
+
+    protected static boolean isBlocked(CDXLine line) {
+		String robotsFlags = line.getRobotFlags();
+		// XXX named constant for 'X' is defined in CaptureSearchResult
+		return robotsFlags.indexOf('X') >= 0;
     }
 }

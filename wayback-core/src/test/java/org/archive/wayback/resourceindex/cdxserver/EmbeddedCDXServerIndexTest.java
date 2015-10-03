@@ -26,6 +26,7 @@ import org.archive.cdxserver.auth.AuthToken;
 import org.archive.cdxserver.auth.PrivTokenAuthChecker;
 import org.archive.cdxserver.writer.CDXWriter;
 import org.archive.cdxserver.writer.HttpCDXWriter;
+import org.archive.cdxserver.writer.MementoLinkWriter;
 import org.archive.format.cdx.CDXFieldConstants;
 import org.archive.format.cdx.CDXLine;
 import org.archive.format.cdx.FieldSplitFormat;
@@ -665,7 +666,9 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 		wbr.setMementoTimemapFormat("memento");
 
 		Capture<CDXQuery> queryCapture = new Capture<CDXQuery>();
-		cdxServer.getCdx(EasyMock.same(request), EasyMock.same(response), EasyMock.capture(queryCapture));
+		Capture<AuthToken> authTokenCapture = new Capture<AuthToken>();
+		cdxServer.getCdx(EasyMock.capture(queryCapture), EasyMock.capture(authTokenCapture), EasyMock.isA(MementoLinkWriter.class));
+		//cdxServer.getCdx(EasyMock.same(request), EasyMock.same(response), EasyMock.capture(queryCapture));
 		EasyMock.expectLastCall().once();
 
 		EasyMock.replay(request, response, cdxServer);
@@ -677,8 +680,18 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 
 		CDXQuery query = queryCapture.getValue();
 		assertEquals("API query should not have filter by default", 0, query.getFilter().length);
-		assertEquals("memento", query.getOutput());
+		//assertEquals("memento", query.getOutput());
 		assertEquals("http://example.com/", query.getUrl());
+		//assertEquals(MatchType.exact, query.getMatchType());
+		assertNull(query.getMatchType());
+
+		AuthToken authToken = authTokenCapture.getValue();
+		// required for pulling scope and exclusion filters from AccessPoint
+		assertTrue(authToken instanceof APContextAuthToken);
+		assertFalse(authToken.isIgnoreRobots());
+		// AuthToken.cachedAllCdxAllow has no getter; Only accessible through
+		// PrivTokenAuthChecker. Weird design.
+		assertFalse(new WaybackAuthChecker().isAllCdxFieldAccessAllowed(authToken));
 	}
 
 	// WaybackAuthChecker wants RedisRobotExclusionFilterFactory for

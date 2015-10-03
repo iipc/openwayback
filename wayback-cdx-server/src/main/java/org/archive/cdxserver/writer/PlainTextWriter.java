@@ -21,6 +21,8 @@ public class PlainTextWriter extends HttpCDXWriter {
 
 	@Override
 	public int writeLine(CDXLine line) {
+		if (!includeBlockedCaptures && isBlocked(line))
+			return 0;
 		writer.println(line.toString());
 		return 1;
 	}

@@ -47,6 +47,8 @@ public class JsonWriter extends HttpCDXWriter {
 
     @Override
     public int writeLine(CDXLine line) {
+		if (!includeBlockedCaptures && isBlocked(line))
+			return 0;
         if (firstLine) {
             if (writeHeader) {
             	writeHeader(line.getNames());

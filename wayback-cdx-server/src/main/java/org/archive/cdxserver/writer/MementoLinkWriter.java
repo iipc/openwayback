@@ -157,6 +157,9 @@ public class MementoLinkWriter extends HttpCDXWriter {
 
 	@Override
     public int writeLine(CDXLine line) {
+		if (!includeBlockedCaptures && isBlocked(line))
+			return 0;
+
 		if (prevLine == null) {
 			prevLine = line;
 			return 1;

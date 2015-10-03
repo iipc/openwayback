@@ -53,13 +53,48 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 	protected boolean includeBlockedCaptures = false;
 
 	/**
-	 * Initialize with CDXQuery and other options.
+	 * Initialize with behavior options.
 	 * <p>
 	 * This class generates {@link CaptureSearchResult} in chronological
 	 * order, even when {@link CDXQuery#isReverse()} is {@code true}.
 	 * </p>
+	 */
+	public CDXToCaptureSearchResultsWriter() {
+	}
+
+	/**
+	 * Whether to resolve revisit captures
+	 * @param resolveRevisits
+	 */
+	public void setResolveRevisits(boolean resolveRevisits) {
+		this.resolveRevisits = resolveRevisits;
+	}
+
+	/**
+	 * Whether just one capture is wanted.
+	 * Only effective when {@code resolveRevisits} is also {@code true}.
+	 * @param seekSingleCapture
+	 */
+	public void setSeekSingleCapture(boolean seekSingleCapture) {
+		this.seekSingleCapture = seekSingleCapture;
+	}
+
+	/**
+	 * Whether CDXes are fed in reverse order.
+	 * @param isReverse
+	 * @see CDXQuery#isReverse()
+	 */
+	public void setReverse(boolean isReverse) {
+		this.isReverse = isReverse;
+	}
+
+	/**
+	 * Preferred archive filename substring. If
+	 * non-{@code null}, It picks capture in the archive with a given substring
+	 * in its filename, out of multiple captures of the same timestamp, original
+	 * URL, length and offset (if any).
 	 * <p>
-	 * Note: {@code preferContains} parameter is specifically intended for
+	 * Note: This is specifically intended for
 	 * choosing one out of two copies of the identical capture record in different
 	 * storage locations.  For example, If WARCs in staging area are made available
 	 * for replay through secondary index, there may be a period where one capture
@@ -69,14 +104,19 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 	 * It can be used, for example, to put higher preference on the archive in primary
 	 * storage area.
 	 * </p>
-	 * @param query CDXQuery
-	 * @param resolveRevisits Whether to resolve revisit captures
-	 * @param seekSingleCapture Whether just one capture is wanted.
-	 * (Only effective when {@code resolveRevisits} is also {@code true}.)
-	 * @param preferContains Preferred archive filename substring. If
-	 * non-{@code null}, It picks capture in the archive with a given substring
-	 * in its filename, out of multiple captures of the same timestamp, original
-	 * URL, length and offset (if any).
+	 * @param preferContains
+	 */
+	public void setPreferContains(String preferContains) {
+		this.preferContains = preferContains;
+	}
+
+	/**
+	 * Initialize with CDXQuery and behavior options.
+	 * @param query
+	 * @param resolveRevisits
+	 * @param seekSingleCapture
+	 * @param preferContains
+	 * @deprecated 2015-09-04 Use {@link #CDXToCaptureSearchResultsWriter(boolean, boolean, String)}
 	 */
 	public CDXToCaptureSearchResultsWriter(CDXQuery query,
 			boolean resolveRevisits, boolean seekSingleCapture,

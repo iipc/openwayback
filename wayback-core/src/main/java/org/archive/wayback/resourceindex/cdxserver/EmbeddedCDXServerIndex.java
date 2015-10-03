@@ -16,6 +16,9 @@ import org.archive.cdxserver.CDXServer;
 import org.archive.cdxserver.auth.AuthToken;
 import org.archive.cdxserver.writer.CDXWriter;
 import org.archive.cdxserver.writer.HttpCDXWriter;
+import org.archive.cdxserver.writer.JsonWriter;
+import org.archive.cdxserver.writer.MementoLinkWriter;
+import org.archive.cdxserver.writer.PlainTextWriter;
 import org.archive.format.cdx.CDXInputSource;
 import org.archive.format.cdx.CDXLine;
 import org.archive.format.cdx.MultiCDXInputSource;
@@ -94,6 +97,9 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 		IndexLoad;
 	}
 
+	// transitional - default impl sentinel
+	private static final CDXToCaptureSearchResultsWriter NOT_OVERRIDDEN = new CDXToCaptureSearchResultsWriter();
+
 	/**
 	 * {@link WaybackRequest} parameter name for telling
 	 * {@code EmbeddedCDXServerIndex} that it's looking up a specific single
@@ -121,7 +127,8 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 	}
 
 	/**
-	 * return {@link AuthToken} representing user's privileges on {@code urlkey}.
+	 * return {@link AuthToken}, representing user's privileges on {@code urlkey}, for
+	 * CDX query through Wayback UI. Not meant for CDX server API.
 	 * <ul>
 	 * <li>robots.txt may be ignored for embedded resources (CSS, images, javascripts)</li>
 	 * <li>robots.txt may be ignored if {@code urlkey} starts with any of {@code ignoreRobotPaths}</li>
@@ -150,12 +157,21 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 
 		return waybackAuthToken;
 	}
-
-    public SearchResults doQuery(WaybackRequest wbRequest)
-            throws ResourceIndexNotAvailableException,
-            ResourceNotInArchiveException, BadQueryException,
-            AccessControlException {
-
+	
+	/**
+	 * Common processing for AccessPoint-aware (i.e. passing AccessPoint-bearing
+	 * AuthToken to CDXServer so that AuthChecker implementations can pull
+	 * information from AccessPoint).
+	 * @param wbRequest request
+	 * @param resultWriter CDXWriter receiving query result
+	 * @param fuzzyMatch {@code fuzzy} flag for {@link #loadWaybackCdx(String, WaybackRequest, CDXQuery, AuthToken, CDXWriter, boolean)}
+	 * @throws BadQueryException
+	 * @throws IOException 
+	 * @throws AccessControlException 
+	 */
+	protected void doAccessPointAwareQuery(WaybackRequest wbRequest,
+			CDXQuery query, CDXWriter resultWriter, boolean fuzzyMatch)
+			throws BadQueryException, AccessControlException, IOException {
     	//Compute url key (surt)
 		String urlkey = null;
 
@@ -179,42 +195,60 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 			throw new BadQueryException(ue.toString());
 		}
 
-		//Do local access/url validation check		
-        //AuthToken waybackAuthToken = new AuthToken(wbRequest.get(CDXServer.CDX_AUTH_TOKEN));
 		AuthToken waybackAuthToken = createAuthToken(wbRequest, urlkey);
 
-		CDXToSearchResultWriter resultWriter = null;
-		SearchResults searchResults = null;
+		loadWaybackCdx(urlkey, wbRequest, query,
+			waybackAuthToken, resultWriter, fuzzyMatch);
+	}
 
+    public SearchResults doQuery(WaybackRequest wbRequest)
+            throws ResourceIndexNotAvailableException,
+            ResourceNotInArchiveException, BadQueryException,
+            AccessControlException {
+
+    	CDXQuery query;
+		CDXToSearchResultWriter resultWriter = null;
 		if (wbRequest.isReplayRequest() || wbRequest.isCaptureQueryRequest()) {
-			resultWriter = this.getCaptureSearchWriter(wbRequest,
-					waybackAuthToken, false);
+			// TRANSITIONAL - default getCaptureSearchWriter(WaybackRequest, AuthToken, boolean)
+			// returns sentinel NOT_OVERRIDDEN. If it returns different value, it is overridden.
+			// Note we no longer pass AuthToken.
+			resultWriter = getCaptureSearchWriter(wbRequest, null, false);
+			if (resultWriter != NOT_OVERRIDDEN) {
+				query = resultWriter != null ? resultWriter.getQuery() : null;
+			} else {
+				query = createQuery(wbRequest, false);
+				resultWriter = getCaptureSearchWriter(wbRequest);
+			}
 		} else if (wbRequest.isUrlQueryRequest()) {
-			resultWriter = this.getUrlSearchWriter(wbRequest);
+			query = createUrlSearchQuery(wbRequest);
+			resultWriter = new CDXToUrlSearchResultWriter(); //getUrlSearchWriter();
 		} else {
 			throw new BadQueryException("Unknown Query Type");
 		}
 
 		try {
-			loadWaybackCdx(urlkey, wbRequest, resultWriter.getQuery(),
-					waybackAuthToken, resultWriter, false);
-
+			doAccessPointAwareQuery(wbRequest, query, resultWriter, false);
 			if (resultWriter.getErrorMsg() != null) {
 				throw new BadQueryException(resultWriter.getErrorMsg());
 			}
 
-			searchResults = resultWriter.getSearchResults();
+			SearchResults searchResults = resultWriter.getSearchResults();
 
 			if ((searchResults.getReturnedCount() == 0) &&
 					(wbRequest.isReplayRequest() || wbRequest
 							.isCaptureQueryRequest()) && tryFuzzyMatch) {
-				resultWriter = this.getCaptureSearchWriter(wbRequest,
-						waybackAuthToken, true);
+				// transitional (see above) - no longer passing AuthToken
+				resultWriter = getCaptureSearchWriter(wbRequest, null, true);
+				if (resultWriter != NOT_OVERRIDDEN) {
+					if (resultWriter != null)
+						query = resultWriter.getQuery();
+				} else {
+					query = createQuery(wbRequest, true);
+					resultWriter = query != null ? getCaptureSearchWriter(wbRequest) : null;
+				}
 
 				if (resultWriter != null) {
-					loadWaybackCdx(urlkey, wbRequest, resultWriter.getQuery(),
-							waybackAuthToken, resultWriter, true);
-
+					doAccessPointAwareQuery(wbRequest, query, resultWriter, true);
 					searchResults = resultWriter.getSearchResults();
 				}
 			}
@@ -223,6 +257,8 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 				throw new ResourceNotInArchiveException(
 						wbRequest.getRequestUrl() + " was not found");
 			}
+
+			return searchResults;
 
 		} catch (IOException e) {
 			throw new ResourceIndexNotAvailableException(e.toString());
@@ -240,23 +276,20 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 			rte.printStackTrace(); // for now, for better debugging
 			throw new ResourceIndexNotAvailableException(rte.toString());
 		}
-
-		return searchResults;
 	}
 
 	protected void loadWaybackCdx(String urlkey, WaybackRequest wbRequest,
 			CDXQuery query, AuthToken waybackAuthToken,
-			CDXToSearchResultWriter resultWriter, boolean fuzzy)
+			CDXWriter resultWriter, boolean fuzzy)
 			throws IOException, AccessControlException {
 
 		if ((remoteCdxPath != null) && !wbRequest.isUrlQueryRequest()) {
 			try {
 				// Not supported for remote requests, caching the entire cdx
 				wbRequest.setTimestampSearchKey(false);
-				this.remoteCdxServerQuery(urlkey, resultWriter.getQuery(),
-						waybackAuthToken, resultWriter);
+				remoteCdxServerQuery(urlkey, query, waybackAuthToken,
+					(CDXToSearchResultWriter)resultWriter);
 				return;
-
 			} catch (IOException io) {
 				// Try again below
 			} catch (RuntimeIOException rte) {
@@ -270,8 +303,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 			}
 		}
 
-		cdxServer.getCdx(resultWriter.getQuery(), waybackAuthToken,
-				resultWriter);
+		cdxServer.getCdx(query, waybackAuthToken, resultWriter);
 	}
 
 	/**
@@ -294,7 +326,6 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 		CDXQuery query = new CDXQuery(wbRequest.getRequestUrl());
 
 		query.setLimit(limit);
-		// query.setSort(CDXQuery.SortType.reverse);
 
 		String statusFilter = baseStatusFilter;
 
@@ -461,19 +492,25 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 	 * </ul>
 	 * </p>
 	 * @param wbRequest {@link WaybackRequest} for configuring {@link CDXQuery}
-	 * @param waybackAuthToken unused
+	 * @param waybackAuthToken unused (always {@code null})
 	 * @param isFuzzy {@code true} to enable fuzzy query
 	 * @return CDXCaptureSearchResultWriter
+	 * @deprecated 2015-09-04 use {@link #getCaptureSearchWriter(WaybackRequest)}
 	 */
 	protected CDXToCaptureSearchResultsWriter getCaptureSearchWriter(
 			WaybackRequest wbRequest, AuthToken waybackAuthToken,
 			boolean isFuzzy) {
-		final CDXQuery query = createQuery(wbRequest, isFuzzy);
-
-		if (isFuzzy && query == null) {
-			return null;
-		}
-
+		// return a sentinel object that signifies this method is not overridden.
+		return NOT_OVERRIDDEN;
+	}
+	
+	/**
+	 * Create {@link CDXWriter} for capturing query result as CaptureSearchResults.
+	 * @param wbRequest Wayback request
+	 * @return initialized CDXToCaptureSearchResultsWriter
+	 */
+	protected CDXToCaptureSearchResultsWriter getCaptureSearchWriter(
+			WaybackRequest wbRequest) {
 		boolean resolveRevisits = wbRequest.isReplayRequest();
 
 		// For now, not using seek single capture to allow for run time checking of additional records  
@@ -481,8 +518,10 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 		boolean seekSingleCapture = false;
 		//boolean seekSingleCapture = resolveRevisits && (wbRequest.isTimestampSearchKey() || (wbRequest.isBestLatestReplayRequest() && !wbRequest.hasMementoAcceptDatetime()));
 
-		CDXToCaptureSearchResultsWriter captureWriter = new CDXToCaptureSearchResultsWriter(
-				query, resolveRevisits, seekSingleCapture, preferContains);
+		CDXToCaptureSearchResultsWriter captureWriter = new CDXToCaptureSearchResultsWriter();
+		captureWriter.setResolveRevisits(resolveRevisits);
+		captureWriter.setSeekSingleCapture(seekSingleCapture);
+		captureWriter.setPreferContains(preferContains);
 
 		captureWriter.setTargetTimestamp(wbRequest.getReplayTimestamp());
 
@@ -495,8 +534,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 		return captureWriter;
 	}
 	
-	protected CDXToSearchResultWriter getUrlSearchWriter(
-			WaybackRequest wbRequest) {
+	protected CDXQuery createUrlSearchQuery(WaybackRequest wbRequest) {
 		final CDXQuery query = new CDXQuery(wbRequest.getRequestUrl());
 
 		query.setCollapse(new String[] { CDXLine.urlkey });
@@ -506,7 +544,76 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 		query.setLastSkipTimestamp(true);
 		query.setFl("urlkey,original,timestamp,endtimestamp,groupcount,uniqcount");
 
+		return query;
+	}
+
+	@Deprecated
+	protected CDXToSearchResultWriter getUrlSearchWriter(
+			WaybackRequest wbRequest) {
+		CDXQuery query = createUrlSearchQuery(wbRequest);
 		return new CDXToUrlSearchResultWriter(query);
+	}
+	
+	protected static boolean determineGzip(HttpServletRequest request, CDXQuery query) {
+		Boolean isGzip = query.isGzip();
+		if (isGzip != null) {
+			return isGzip;
+		}
+		String encoding = request.getHeader("Accept-Encoding");
+		if (encoding == null) {
+			return false;
+		}
+		return encoding.contains("gzip");
+	}
+	
+	/**
+	 * Return CDXWriter for generating textual servlet response (i.e. CDXServer API).
+	 * This implementation supports following {@code output} names:
+	 * <ul>
+	 * <li>{@code link}</li>
+	 * <li>{@code memento} (same as {@code link}, but uses different code, currently).</li>
+	 * <li>{@code json}</li>
+	 * <li>other: generates CDX format response.</li>
+	 * </ul>
+	 * @param wbRequest Wayback request
+	 * @param query CDX query
+	 * @return CDXWriter
+	 */
+	protected CDXWriter getTextCDXWriter(final WaybackRequest wbRequest,
+			CDXQuery query, HttpServletRequest request,
+			final HttpServletResponse response) throws IOException {
+		String format = wbRequest.getMementoTimemapFormat();
+		boolean gzip = determineGzip(request, query);
+		if (MementoConstants.FORMAT_LINK.equals(format)) {
+			boolean resolveRevisits = wbRequest.isReplayRequest();
+			boolean seekSingleCapture = false;
+
+			CDXToCaptureSearchResultsWriter captureWriter = new CDXToCaptureSearchResultsWriter() {
+				public void end() {
+					try {
+						MementoUtils.printTimemapResponse(results, wbRequest, response);
+					} catch(IOException ex) {
+						// probably client hanging up. no need to warn.
+						LOGGER.log(Level.INFO, "Error writing memento response.", ex);
+					}
+				}
+			};
+			captureWriter.setResolveRevisits(resolveRevisits);
+			captureWriter.setSeekSingleCapture(seekSingleCapture);
+			captureWriter.setPreferContains(preferContains);
+			captureWriter.setTargetTimestamp(wbRequest.getReplayTimestamp());
+			captureWriter.setSelfRedirFilter(selfRedirFilter);
+			if ("true".equals(wbRequest.get(REQUEST_REVISIT_LOOKUP))) {
+				captureWriter.setIncludeBlockedCaptures(true);
+			}
+			return captureWriter;
+		} else if ("memento".equals(format)) {
+			return new MementoLinkWriter(request, response, query, gzip);
+		} else if ("json".equals(format)) {
+			return new JsonWriter(response, gzip);
+		} else {
+			return new PlainTextWriter(response, gzip);
+		}
 	}
 
 	@Override
@@ -516,24 +623,10 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 		try {
 			PerfStats.timeStart(PerfStat.IndexLoad);
 
-			String format = wbRequest.getMementoTimemapFormat();
-
-			if ((format != null) && format.equals(MementoConstants.FORMAT_LINK)) {
-				// TODO: have queryIndex() in this class, or move this method
-				// somewhere else.
-				SearchResults cResults = wbRequest.getAccessPoint().queryIndex(
-						wbRequest);
-				MementoUtils.printTimemapResponse(
-						(CaptureSearchResults)cResults, wbRequest, response);
-				return true;
-			}
-
 			CDXQuery query = new CDXQuery(wbRequest.getRequestUrl());
-
 			query.setOutput(wbRequest.getMementoTimemapFormat());
 
 			String from = wbRequest.get(MementoConstants.PAGE_STARTS);
-
 			if (from != null) {
 				query.setFrom(from);
 			}
@@ -544,8 +637,17 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 				// Ignore
 			}
 
-			cdxServer.getCdx(request, response, query);
+			CDXWriter cdxWriter = getTextCDXWriter(wbRequest, query, request, response);
 
+			// TODO: need to support the same access control as CDXServer API.
+			// (See BaseCDXServer#createAuthToken(). Further refactoring is necessary.
+			AuthToken authToken = new APContextAuthToken(wbRequest.getAccessPoint());
+			try {
+				cdxServer.getCdx(query, authToken, cdxWriter);
+			} catch (Exception ex) {
+				cdxWriter.serverError(ex);
+			}
+			cdxWriter.close();
 		} finally {
 			PerfStats.timeEnd(PerfStat.IndexLoad);
 		}
