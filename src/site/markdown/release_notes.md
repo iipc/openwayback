@@ -61,9 +61,9 @@ Full listing of changes and bug fixes are not available prior to release 1.2.0 a
 (https://github.com/internetarchive/wayback/issues/65)
 * Added rudimentary mime-type sniffing (work in progress). [#195]
 (https://github.com/iipc/openwayback/pull/195), [internetarchive#46](https://github.com/internetarchive/wayback/issues/46)
-*Timestamp-collapsing can be configured to return the last best capture in each collapse group. [#195]
+* Timestamp-collapsing can be configured to return the last best capture in each collapse group. [#195]
 (https://github.com/iipc/openwayback/pull/195), [internetarchive#64] (https://github.com/internetarchive/wayback/issues/64)
-*UIResults now has makePlainCaptureQueryUrl() method for generating clean, short URL for capture query links. [#195]
+* UIResults now has makePlainCaptureQueryUrl() method for generating clean, short URL for capture query links. [#195]
 (https://github.com/iipc/openwayback/pull/195), [internetarchive#60](https://github.com/internetarchive/wayback/issues/60)
 * MultipleRegexReplaceStringTransformer may also be used as RewriteRule. [#195]
 (https://github.com/iipc/openwayback/pull/195), [internetarchive#54] (https://github.com/internetarchive/wayback/issues/54)
