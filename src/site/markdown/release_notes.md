@@ -15,6 +15,8 @@ Full listing of changes and bug fixes are not available prior to release 1.2.0 a
 * Failing test on Windows: EmbeddedCDXServerIndexTest.handleRequest() depends on plattform line ending. [#236](https://github.com/iipc/openwayback/issues/236)
 * Remove "contrib/ia" directory [#264](https://github.com/iipc/openwayback/issues/264)
 * Set exclusionFilter on wbRequest via AccessPoint only if not already set. [#259] (https://github.com/iipc/openwayback/issues/259)
+* robots.txt exclusion: Disallow: rules after empty Disallow: get ignored. [#268] (https://github.com/iipc/openwayback/issues/268)
+* Fix closestGroup race condition in RemoteResourceIndex. [#239] (https://github.com/iipc/openwayback/pull/239)
 
 ## OpenWayback 2.2.0 Release
 ### Features
