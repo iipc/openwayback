@@ -46,10 +46,14 @@ public class ArchivalUrlFormRequestParser extends FormRequestParser {
 		if (wbRequest != null) {
 			String replayTimestamp = wbRequest.getReplayTimestamp();
 			if ((replayTimestamp == null) || replayTimestamp.length() == 0) {
-				// lets call it a star query:
-				// TODO: should we clone?
-				wbRequest.setStartTimestamp(null);
-				wbRequest.setEndTimestamp(null);
+				// If it's not a capture or URL query, let's call it a star
+				// query:
+				if (!(wbRequest.isCaptureQueryRequest() || wbRequest
+						.isUrlQueryRequest())) {
+					// TODO: should we clone?
+					wbRequest.setStartTimestamp(null);
+					wbRequest.setEndTimestamp(null);
+				}
 			}
 			String requestPath = 
 				accessPoint.translateRequestPathQuery(httpRequest);
