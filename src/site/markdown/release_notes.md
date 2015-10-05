@@ -8,6 +8,7 @@ Full listing of changes and bug fixes are not available prior to release 1.2.0 a
 ### Features
 *  Use Markdown for documentation. [#265](https://github.com/iipc/openwayback/issues/265)
 *  Display # of snapshots of a selected year in BubbleCalendar. [#256](https://github.com/iipc/openwayback/issues/256)
+*  New FilenameFilter to include or exclude files using regular expressions [#237](https://github.com/iipc/openwayback/issues/237)
 
 ### Bug fixes
 * Fix for WatchedCDXSourceTest on MaxOSX. [#271] (https://github.com/iipc/openwayback/issues/271)
