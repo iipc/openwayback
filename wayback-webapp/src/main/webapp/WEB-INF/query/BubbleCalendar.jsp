@@ -224,7 +224,13 @@ $().ready(function(){
             </form>
     
             <div id="wbMeta">
-                <p class="wbThis"><a href="<%= data.searchUrlForHTML %>"><%= data.searchUrlForHTML %></a> <%= fmt.format("BubbleCalendar.crawledInfo") %><strong><%= fmt.format("{0} times",data.numResults) %></strong> <%= fmt.format("BubbleCalendar.crawledInfo2") %><a href="<%= data.firstResultReplayUrl %>"><%= fmt.format("{0,date,MMMM d, yyyy}",data.firstResultDate) %></a>.<strong> (<%= fmt.format("{0} times", data.numYearResults)%> in <%= data.yearNum %>) </strong></p>
+                <p class="wbThis"><%= fmt.format("BubbleCalendar.crawledInfo",
+                                            data.searchUrlForHTML, 
+                                            data.numResults,
+                                            data.firstResultReplayUrl,
+                                            data.firstResultDate,
+                                            data.numYearResults,
+                                            data.yearNum) %></p>
                 <p class="wbNote"><%= fmt.format("BubbleCalendar.crawledInfoDuplicate") %><a href="<%= fmt.format("UIGlobal.helpUrl") %>"><%= fmt.format("BubbleCalendar.documentation") %></a></p>
             </div>
         </div>
