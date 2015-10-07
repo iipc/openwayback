@@ -81,7 +81,7 @@ public class FastArchivalUrlReplayParseEventHandler implements
 
 	private final String[] okHeadTags = { "![CDATA[*", "![CDATA[", "?",
 		"!DOCTYPE", "HTML", "HEAD", "BASE", "LINK", "META", "TITLE", "STYLE",
-		"SCRIPT", "BGSOUND" };
+		"SCRIPT", "BGSOUND", "NOSCRIPT" };
 	private HashMap<String, Object> okHeadTagMap = null;
 	private final static String FRAMESET_TAG = "FRAMESET";
 	private final static String BODY_TAG = "BODY";
