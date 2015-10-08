@@ -75,8 +75,6 @@ public class RemoteResourceIndex implements ResourceIndex {
 	
 	private DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 
-    private ClosestTrackingCaptureFilterGroup closestGroup;
-
 	private static final String WB_XML_REQUEST_TAGNAME = "request";
 
 
@@ -127,9 +125,9 @@ public class RemoteResourceIndex implements ResourceIndex {
 		ResourceNotInArchiveException, BadQueryException,
 		AccessControlException {
 //		throw new ResourceIndexNotAvailableException("oops");
-        closestGroup = new ClosestTrackingCaptureFilterGroup(wbRequest, canonicalizer);
+		ClosestTrackingCaptureFilterGroup closestGroup = new ClosestTrackingCaptureFilterGroup(wbRequest, canonicalizer);
 		SearchResults results = urlToSearchResults(getRequestUrl(wbRequest),
-				getSearchResultFilters(wbRequest));
+				getSearchResultFilters(wbRequest, closestGroup));
         closestGroup.annotateResults(results);
         return results;
 	}
@@ -206,7 +204,7 @@ public class RemoteResourceIndex implements ResourceIndex {
 	}
 	
 	protected ObjectFilter<CaptureSearchResult> getSearchResultFilters(
-			WaybackRequest wbRequest) {
+			WaybackRequest wbRequest, ClosestTrackingCaptureFilterGroup closestGroup) {
 		ObjectFilterChain<CaptureSearchResult> filters = null;
 		if (wbRequest.isReplayRequest()) {
 			filters = new ObjectFilterChain<CaptureSearchResult>();

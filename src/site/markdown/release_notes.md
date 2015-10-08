@@ -7,6 +7,9 @@ Full listing of changes and bug fixes are not available prior to release 1.2.0 a
 ## OpenWayback 2.3.0 Release
 ### Features
 *  Use Markdown for documentation. [#265](https://github.com/iipc/openwayback/issues/265)
+*  Display # of snapshots of a selected year in BubbleCalendar. [#256](https://github.com/iipc/openwayback/issues/256)
+*  New FilenameFilter to include or exclude files using regular expressions [#237](https://github.com/iipc/openwayback/issues/237)
+*  Add a system to manage specific rules for some URL [#182] (https://github.com/iipc/openwayback/pull/182)
 
 ### Bug fixes
 * Fix for WatchedCDXSourceTest on MaxOSX. [#271] (https://github.com/iipc/openwayback/issues/271)
@@ -14,6 +17,8 @@ Full listing of changes and bug fixes are not available prior to release 1.2.0 a
 * Failing test on Windows: EmbeddedCDXServerIndexTest.handleRequest() depends on plattform line ending. [#236](https://github.com/iipc/openwayback/issues/236)
 * Remove "contrib/ia" directory [#264](https://github.com/iipc/openwayback/issues/264)
 * Set exclusionFilter on wbRequest via AccessPoint only if not already set. [#259] (https://github.com/iipc/openwayback/issues/259)
+* robots.txt exclusion: Disallow: rules after empty Disallow: get ignored. [#268] (https://github.com/iipc/openwayback/issues/268)
+* Fix closestGroup race condition in RemoteResourceIndex. [#239] (https://github.com/iipc/openwayback/pull/239)
 
 ## OpenWayback 2.2.0 Release
 ### Features
@@ -56,9 +61,9 @@ Full listing of changes and bug fixes are not available prior to release 1.2.0 a
 (https://github.com/internetarchive/wayback/issues/65)
 * Added rudimentary mime-type sniffing (work in progress). [#195]
 (https://github.com/iipc/openwayback/pull/195), [internetarchive#46](https://github.com/internetarchive/wayback/issues/46)
-*Timestamp-collapsing can be configured to return the last best capture in each collapse group. [#195]
+* Timestamp-collapsing can be configured to return the last best capture in each collapse group. [#195]
 (https://github.com/iipc/openwayback/pull/195), [internetarchive#64] (https://github.com/internetarchive/wayback/issues/64)
-*UIResults now has makePlainCaptureQueryUrl() method for generating clean, short URL for capture query links. [#195]
+* UIResults now has makePlainCaptureQueryUrl() method for generating clean, short URL for capture query links. [#195]
 (https://github.com/iipc/openwayback/pull/195), [internetarchive#60](https://github.com/internetarchive/wayback/issues/60)
 * MultipleRegexReplaceStringTransformer may also be used as RewriteRule. [#195]
 (https://github.com/iipc/openwayback/pull/195), [internetarchive#54] (https://github.com/internetarchive/wayback/issues/54)
