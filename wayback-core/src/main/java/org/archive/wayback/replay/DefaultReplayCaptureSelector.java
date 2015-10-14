@@ -174,4 +174,12 @@ public class DefaultReplayCaptureSelector implements ReplayCaptureSelector {
 			return next;
 		}
 	}
+
+	public CaptureSearchResult getCurrentClosest() {
+		return currentClosest;
+	}
+
+	public void setCurrentClosest(CaptureSearchResult currentClosest) {
+		this.currentClosest = currentClosest;
+	}
 }

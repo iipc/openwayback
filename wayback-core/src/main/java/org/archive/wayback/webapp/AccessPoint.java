@@ -195,6 +195,8 @@ public class AccessPoint extends AbstractRequestHandler implements
 
 	private boolean fixedEmbeds = false;
 
+	private ReplayCaptureSelector captureSelector;
+
 	public void init() {
 		checkAccessPointAware(collection,exception,query,parser,replay,
 			uriConverter,exclusionFactory, authentication, filterFactory);
@@ -774,7 +776,11 @@ public class AccessPoint extends AbstractRequestHandler implements
 			p.queried();
 		}
 
-		ReplayCaptureSelector captureSelector = new DefaultReplayCaptureSelector(getReplay());
+		//is captureSelector is not declared in class in wayback.xml
+		if(captureSelector == null) {
+			captureSelector = new DefaultReplayCaptureSelector(getReplay());
+		}
+
 		captureSelector.setRequest(wbRequest);
 		captureSelector.setCaptures(captureResults);
 
@@ -1084,7 +1090,10 @@ public class AccessPoint extends AbstractRequestHandler implements
 
 			CaptureSearchResults payloadCaptureResults = searchCaptures(wbr);
 			// closest may not be the one pointed by payloadTimestamp
-			ReplayCaptureSelector captureSelector = new DefaultReplayCaptureSelector(getReplay());
+			//if captureSelector is not declared in class in wayback.xml
+			if(captureSelector == null) {
+				captureSelector = new DefaultReplayCaptureSelector(getReplay());
+			}
 			captureSelector.setRequest(wbr);
 			captureSelector.setCaptures(payloadCaptureResults);
 			payloadLocation = captureSelector.next();
@@ -1903,5 +1912,13 @@ public class AccessPoint extends AbstractRequestHandler implements
 	public void setPerfStatsHeaderFormat(
 			PerfStats.OutputFormat perfStatsHeaderFormat) {
 		this.perfStatsHeaderFormat = perfStatsHeaderFormat;
+	}
+
+	public ReplayCaptureSelector getCaptureSelector() {
+		return captureSelector;
+	}
+
+	public void setCaptureSelector(ReplayCaptureSelector captureSelector) {
+		this.captureSelector = captureSelector;
 	}
 }
