@@ -1,203 +1,203 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
 
-	<parent>
-		<groupId>org.sonatype.oss</groupId>
-		<artifactId>oss-parent</artifactId>
-		<version>7</version>
-	</parent>
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>7</version>
+    </parent>
 
-	<groupId>org.netpreserve.openwayback</groupId>
-	<artifactId>openwayback</artifactId>
-	<packaging>pom</packaging>
-	<version>3.0.0-SNAPSHOT</version>
-	<name>OpenWayback</name>
+    <groupId>org.netpreserve.openwayback</groupId>
+    <artifactId>openwayback</artifactId>
+    <packaging>pom</packaging>
+    <version>3.0.0-SNAPSHOT</version>
+    <name>OpenWayback</name>
 
-	<modules>
+    <modules>
         <module>wayback-cdx-server-core</module>
-		<module>wayback-cdx-server-webapp</module>
-		<module>wayback-core</module>
-		<module>wayback-webapp</module>
-		<module>dist</module>
-	</modules>
+        <module>wayback-cdx-server-webapp</module>
+        <module>wayback-core</module>
+        <module>wayback-webapp</module>
+        <module>dist</module>
+    </modules>
 
-	<profiles>
-          <profile>
+    <profiles>
+        <profile>
             <id>JDK 8 Build</id>
             <activation>
-              <jdk>[1.8,)</jdk>
+                <jdk>[1.8,)</jdk>
             </activation>
             <properties>
-              <additionalparam>-Xdoclint:none</additionalparam>
+                <additionalparam>-Xdoclint:none</additionalparam>
             </properties>
-          </profile>
-        </profiles>
+        </profile>
+    </profiles>
 
-	<properties>
-		<website.url>http://github.com/iipc/openwayback</website.url>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<org.springframework.version>3.0.6.RELEASE</org.springframework.version>
+    <properties>
+        <website.url>http://github.com/iipc/openwayback</website.url>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <org.springframework.version>3.0.6.RELEASE</org.springframework.version>
         <teamlist.showAvatarImages>false</teamlist.showAvatarImages>
-	</properties>
+    </properties>
 
-	<description>
-    OpenWayback is the open source project behind the Wayback Machine, and is supported by the members of the International Internet Preservation Consortium (IIPC).
-  </description>
+    <description>
+        OpenWayback is the open source project behind the Wayback Machine, and is supported by the members of the International Internet Preservation Consortium (IIPC).
+    </description>
 
-	<url>http://github.com/iipc/openwayback</url>
-	<inceptionYear>2005</inceptionYear>
+    <url>http://github.com/iipc/openwayback</url>
+    <inceptionYear>2005</inceptionYear>
 
-	<licenses>
-		<license>
-			<name>Apache License, Version 2.0</name>
-			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-			<distribution>repo</distribution>
-		</license>
-	</licenses>
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
 
-	<organization>
-		<name>IIPC</name>
-		<url>http://netpreserve.org/</url>
-	</organization>
+    <organization>
+        <name>IIPC</name>
+        <url>http://netpreserve.org/</url>
+    </organization>
 
-	<issueManagement>
-		<url>https://github.com/iipc/openwayback/issues</url>
-		<system>GitHub</system>
-	</issueManagement>
+    <issueManagement>
+        <url>https://github.com/iipc/openwayback/issues</url>
+        <system>GitHub</system>
+    </issueManagement>
 
-	<ciManagement>
-		<system>travis-ci</system>
-		<url>https://travis-ci.org/iipc/openwayback</url>
-	</ciManagement>
+    <ciManagement>
+        <system>travis-ci</system>
+        <url>https://travis-ci.org/iipc/openwayback</url>
+    </ciManagement>
 
-	<mailingLists>
-		<mailingList>
-			<name>Archive Access Tools Discussion List</name>
-			<subscribe>
-        http://lists.sourceforge.net/lists/listinfo/archive-access-discuss
-      </subscribe>
-			<unsubscribe>
-        http://lists.sourceforge.net/lists/listinfo/archive-access-discuss
-      </unsubscribe>
-			<post>archive-access-discuss</post>
-			<archive>
-        http://sourceforge.net/mailarchive/forum.php?forum_name=archive-access-discuss
-      </archive>
-		</mailingList>
-		<mailingList>
-			<name>OpenWayback Developers Mailing List</name>
-			<subscribe>
-        https://groups.google.com/forum/#!forum/openwayback-dev
-      </subscribe>
-			<unsubscribe>
-        https://groups.google.com/forum/#!forum/openwayback-dev
-      </unsubscribe>
-			<post>https://groups.google.com/forum/#!forum/openwayback-dev</post>
-			<archive>
-        https://groups.google.com/forum/#!forum/openwayback-dev
-      </archive>
-		</mailingList>
-	</mailingLists>
+    <mailingLists>
+        <mailingList>
+            <name>Archive Access Tools Discussion List</name>
+            <subscribe>
+                http://lists.sourceforge.net/lists/listinfo/archive-access-discuss
+            </subscribe>
+            <unsubscribe>
+                http://lists.sourceforge.net/lists/listinfo/archive-access-discuss
+            </unsubscribe>
+            <post>archive-access-discuss</post>
+            <archive>
+                http://sourceforge.net/mailarchive/forum.php?forum_name=archive-access-discuss
+            </archive>
+        </mailingList>
+        <mailingList>
+            <name>OpenWayback Developers Mailing List</name>
+            <subscribe>
+                https://groups.google.com/forum/#!forum/openwayback-dev
+            </subscribe>
+            <unsubscribe>
+                https://groups.google.com/forum/#!forum/openwayback-dev
+            </unsubscribe>
+            <post>https://groups.google.com/forum/#!forum/openwayback-dev</post>
+            <archive>
+                https://groups.google.com/forum/#!forum/openwayback-dev
+            </archive>
+        </mailingList>
+    </mailingLists>
 
-	<repositories>
+    <repositories>
 
-		<!-- For SleepyCat JE -->
-		<repository>
-			<id>oracleReleases</id>
-			<name>Oracle Released Java Packages</name>
-			<url>http://download.oracle.com/maven</url>
-			<layout>default</layout>
-		</repository>
+        <!-- For SleepyCat JE -->
+        <repository>
+            <id>oracleReleases</id>
+            <name>Oracle Released Java Packages</name>
+            <url>http://download.oracle.com/maven</url>
+            <layout>default</layout>
+        </repository>
 
-		<repository>
-			<id>oss.sonatype.org</id>
-			<name>OSS Sonatype</name>
-			<releases>
-				<enabled>true</enabled>
-			</releases>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-			<url>https://oss.sonatype.org/content/repositories/releases/</url>
-		</repository>
+        <repository>
+            <id>oss.sonatype.org</id>
+            <name>OSS Sonatype</name>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <url>https://oss.sonatype.org/content/repositories/releases/</url>
+        </repository>
 
-		<repository>
-			<id>cloudera</id>
-			<name>Cloudera Hadoop</name>
-			<url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
-			<layout>default</layout>
-			<releases>
-				<enabled>true</enabled>
-				<updatePolicy>daily</updatePolicy>
-				<checksumPolicy>warn</checksumPolicy>
-			</releases>
-			<snapshots>
-				<enabled>false</enabled>
-				<updatePolicy>daily</updatePolicy>
-				<checksumPolicy>warn</checksumPolicy>
-			</snapshots>
-		</repository>
+        <repository>
+            <id>cloudera</id>
+            <name>Cloudera Hadoop</name>
+            <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
+            <layout>default</layout>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>daily</updatePolicy>
+                <checksumPolicy>warn</checksumPolicy>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+                <updatePolicy>daily</updatePolicy>
+                <checksumPolicy>warn</checksumPolicy>
+            </snapshots>
+        </repository>
 
-	</repositories>
+    </repositories>
 
-	<scm>
-		<connection>scm:git:git@github.com:iipc/openwayback.git</connection>
-		<developerConnection>scm:git:git@github.com:iipc/openwayback.git</developerConnection>
-		<url>git@github.com:iipc/openwayback.git</url>
-	  <tag>HEAD</tag>
-  </scm>
+    <scm>
+        <connection>scm:git:git@github.com:iipc/openwayback.git</connection>
+        <developerConnection>scm:git:git@github.com:iipc/openwayback.git</developerConnection>
+        <url>git@github.com:iipc/openwayback.git</url>
+        <tag>HEAD</tag>
+    </scm>
 
-	<prerequisites>
-		<maven>2.1</maven>
-	</prerequisites>
+    <prerequisites>
+        <maven>2.1</maven>
+    </prerequisites>
 
-	<!-- Hack to ensure we can deploy a multi-module site under a prefix. See 
-		https://github.com/github/maven-plugins/issues/22#issuecomment-8421445 -->
-	<distributionManagement>
-		<site>
-			<id>github-pages-site</id>
-			<name>Deployment through GitHub's site deployment plugin</name>
-			<url>${project.version}</url>
-		</site>
-	</distributionManagement>
+    <!-- Hack to ensure we can deploy a multi-module site under a prefix. See
+    https://github.com/github/maven-plugins/issues/22#issuecomment-8421445 -->
+    <distributionManagement>
+        <site>
+            <id>github-pages-site</id>
+            <name>Deployment through GitHub's site deployment plugin</name>
+            <url>http://iipc.github.io/openwayback/${project.version}/</url>
+        </site>
+    </distributionManagement>
 
-	<build>
-		<plugins>
-			<plugin>
-				<!-- install source jars to maven repo http://maven.apache.org/plugins/maven-source-plugin/usage.html -->
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-source-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>attach-sources</id>
-						<phase>verify</phase>
-						<goals>
-							<goal>jar-no-fork</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-site-plugin</artifactId>
-				<configuration>
-					<skipDeploy>true</skipDeploy>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
+    <build>
+        <plugins>
+            <plugin>
+                <!-- install source jars to maven repo http://maven.apache.org/plugins/maven-source-plugin/usage.html -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-site-plugin</artifactId>
+                <configuration>
+                    <skipDeploy>true</skipDeploy>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
                 <version>2.9.1</version>
                 <configuration>
                     <maxmemory>512m</maxmemory>
                 </configuration>
-				<executions>
-					<execution>
-						<id>attach-javadocs</id>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-					</execution>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
                     <execution>
                         <id>aggregate</id>
                         <goals>
@@ -205,49 +205,69 @@
                         </goals>
                         <phase>site</phase>
                     </execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>com.github.github</groupId>
-				<artifactId>site-maven-plugin</artifactId>
-				<configuration>
-					<!-- must match the server's id -->
-					<server>github</server>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.github.github</groupId>
+                <artifactId>site-maven-plugin</artifactId>
+                <configuration>
+                    <!-- must match the server's id -->
+                    <server>github</server>
 
-					<!-- The commit message -->
-					<message>Creating site for ${project.version}</message>
-					<!-- The location where the site is uploaded -->
-					<!-- -->
-					<path>${project.distributionManagement.site.url}</path>
-					<!-- Use merge or override the content -->
-					<merge>true</merge>
-				</configuration>
+                    <!-- The commit message -->
+                    <message>Creating site for ${project.version}</message>
+                    <!-- The location where the site is uploaded -->
+                    <!-- -->
+                    <path>${project.distributionManagement.site.url}</path>
+                    <!-- Use merge or override the content -->
+                    <merge>true</merge>
+                </configuration>
 
-				<executions>
-					<execution>
-						<goals>
-							<goal>site</goal>
-						</goals>
-						<phase>site-deploy</phase>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
-		<pluginManagement>
-			<plugins>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-compiler-plugin</artifactId>
-					<configuration>
-						<source>1.7</source>
-						<target>1.7</target>
-					</configuration>
-				</plugin>
-				<plugin>
-					<groupId>org.mortbay.jetty</groupId>
-					<artifactId>maven-jetty-plugin</artifactId>
-					<version>6.1.22</version>
-				</plugin>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>site</goal>
+                        </goals>
+                        <phase>site-deploy</phase>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>validate</id>
+                        <phase>validate</phase>
+                        <configuration>
+                            <configLocation>iipc_checks.xml</configLocation>
+                            <consoleOutput>false</consoleOutput>
+                            <failsOnError>false</failsOnError>
+                            <failOnViolation>false</failOnViolation>
+                            <logViolationsToConsole>false</logViolationsToConsole>
+                        </configuration>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <configuration>
+                        <source>1.7</source>
+                        <target>1.7</target>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.mortbay.jetty</groupId>
+                    <artifactId>maven-jetty-plugin</artifactId>
+                    <version>6.1.22</version>
+                </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-site-plugin</artifactId>
@@ -258,14 +278,14 @@
                     <artifactId>site-maven-plugin</artifactId>
                     <version>0.11</version>
                 </plugin>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-javadoc-plugin</artifactId>
-					<version>2.9.1</version>
-					<configuration>
-						<maxmemory>512m</maxmemory>
-					</configuration>
-				</plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>2.9.1</version>
+                    <configuration>
+                        <maxmemory>512m</maxmemory>
+                    </configuration>
+                </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-project-info-reports-plugin</artifactId>
@@ -294,136 +314,123 @@
                         <goals>deploy</goals>
                     </configuration>
                 </plugin>
-			</plugins>
-		</pluginManagement>
-	</build>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-checkstyle-plugin</artifactId>
+                    <version>2.17</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
 
-	<developers>
-		<developer>
-			<name>Brad Tofel</name>
-			<organization>Internet Archive</organization>
-			<organizationUrl>http://www.archive.org</organizationUrl>
-			<roles>
-			    <role>(inactive)</role>
-			</roles>
-		</developer>
-		<developer>
-			<name>Ilya Kreymer</name>
-			<url>https://github.com/ikreymer</url>
-			<organization>Internet Archive</organization>
-			<organizationUrl>http://www.archive.org</organizationUrl>
-			<roles>
-			    <role>Developer</role>
-			</roles>
-		</developer>
-		<developer>
-			<name>Andy Jackson</name>
-			<url>https://github.com/anjackson</url>
-			<organization>The UK Web Archive</organization>
-			<organizationUrl>http://www.webarchive.org.uk</organizationUrl>
-			<roles>
-			    <role>Core developer</role>
-			</roles>
-		</developer>
-		<developer>
-			<name>Kristinn Sigurðsson</name>
-			<url>https://github.com/kris-sigur</url>
-			<organization>National and University Library of Iceland</organization>
-			<organizationUrl>http://landsbokasafn.is</organizationUrl>
-			<roles>
-				<role>Developer</role>
-			</roles>
-		</developer>
-		<developer>
-			<name>Erik Hetzner</name>
-			<organization>California Digital Library</organization>
-			<organizationUrl>http://www.cdlib.org/</organizationUrl>
-			<roles>
-				<role>(inactive)</role>
-			</roles>
-		</developer>
-		<developer>
-			<name>Roger G. Coram</name>
-			<url>https://github.com/PsypherPunk</url>
-			<organization>The UK Web Archive</organization>
-			<organizationUrl>http://www.webarchive.org.uk</organizationUrl>
-			<roles>
-				<role>Developer</role>
-			</roles>
-		</developer>
-		<developer>
-			<name>Ulrich Karstoft-Have</name>
-			<url>https://github.com/ulrichhave</url>
-			<organization>State and University Library</organization>
-			<organizationUrl>http://statsbiblioteket.dk/</organizationUrl>
-			<roles>
-				<role>Documentation</role>
-			</roles>
-		</developer>
-		<developer>
-			<name>Youssef Eldakar</name>
-			<url>https://github.com/youssefeldakar</url>
-			<organization>The New Library of Alexandria</organization>
-			<organizationUrl>http://bibalex.org/</organizationUrl>
-			<roles>
-				<role>Developer</role>
-			</roles>
-		</developer>
+    <developers>
         <developer>
-			<name>John Erik Halse</name>
-			<url>https://github.com/johnerikhalse</url>
-			<organization>National Library of Norway</organization>
-			<organizationUrl>http://nb.no/</organizationUrl>
-			<roles>
-				<role>Developer</role>
-			</roles>
+            <name>Brad Tofel</name>
+            <organization>Internet Archive</organization>
+            <organizationUrl>http://www.archive.org</organizationUrl>
+            <roles>
+                <role>(inactive)</role>
+            </roles>
         </developer>
-		<developer>
-			<name>Helen Hockx-Yu</name>
-			<url>https://github.com/hhockx</url>
-			<organization>The UK Web Archive</organization>
-			<organizationUrl>http://www.webarchive.org.uk</organizationUrl>
-			<roles>
-				<role>Documentation</role>
-			</roles>
-		</developer>
-	</developers>
-	
-	<contributors>
-		<contributor>
-			<name>Mohamed Elsayed</name>
-			<url>https://github.com/MohammedElsayyed</url>
-			<organization>The New Library of Alexandria</organization>
-			<organizationUrl>http://bibalex.org/</organizationUrl>
-		</contributor>
-	</contributors>
+        <developer>
+            <name>Ilya Kreymer</name>
+            <url>https://github.com/ikreymer</url>
+            <organization>Internet Archive</organization>
+            <organizationUrl>http://www.archive.org</organizationUrl>
+            <roles>
+                <role>Developer</role>
+            </roles>
+        </developer>
+        <developer>
+            <name>Andy Jackson</name>
+            <url>https://github.com/anjackson</url>
+            <organization>The UK Web Archive</organization>
+            <organizationUrl>http://www.webarchive.org.uk</organizationUrl>
+            <roles>
+                <role>Core developer</role>
+            </roles>
+        </developer>
+        <developer>
+            <name>Kristinn Sigurðsson</name>
+            <url>https://github.com/kris-sigur</url>
+            <organization>National and University Library of Iceland</organization>
+            <organizationUrl>http://landsbokasafn.is</organizationUrl>
+            <roles>
+                <role>Developer</role>
+            </roles>
+        </developer>
+        <developer>
+            <name>Erik Hetzner</name>
+            <organization>California Digital Library</organization>
+            <organizationUrl>http://www.cdlib.org/</organizationUrl>
+            <roles>
+                <role>(inactive)</role>
+            </roles>
+        </developer>
+        <developer>
+            <name>Roger G. Coram</name>
+            <url>https://github.com/PsypherPunk</url>
+            <organization>The UK Web Archive</organization>
+            <organizationUrl>http://www.webarchive.org.uk</organizationUrl>
+            <roles>
+                <role>Developer</role>
+            </roles>
+        </developer>
+        <developer>
+            <name>Ulrich Karstoft-Have</name>
+            <url>https://github.com/ulrichhave</url>
+            <organization>State and University Library</organization>
+            <organizationUrl>http://statsbiblioteket.dk/</organizationUrl>
+            <roles>
+                <role>Documentation</role>
+            </roles>
+        </developer>
+        <developer>
+            <name>Youssef Eldakar</name>
+            <url>https://github.com/youssefeldakar</url>
+            <organization>The New Library of Alexandria</organization>
+            <organizationUrl>http://bibalex.org/</organizationUrl>
+            <roles>
+                <role>Developer</role>
+            </roles>
+        </developer>
+        <developer>
+            <name>John Erik Halse</name>
+            <url>https://github.com/johnerikhalse</url>
+            <organization>National Library of Norway</organization>
+            <organizationUrl>http://nb.no/</organizationUrl>
+            <roles>
+                <role>Developer</role>
+            </roles>
+        </developer>
+        <developer>
+            <name>Helen Hockx-Yu</name>
+            <url>https://github.com/hhockx</url>
+            <organization>The UK Web Archive</organization>
+            <organizationUrl>http://www.webarchive.org.uk</organizationUrl>
+            <roles>
+                <role>Documentation</role>
+            </roles>
+        </developer>
+    </developers>
 
-	<reporting>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-                <reportSets>
-					<reportSet>
-						<reports>
-                        </reports>
-                    </reportSet>
-                    <reportSet>
-                        <id>aggregate</id>
-                        <inherited>false</inherited>
-                        <reports>
-                            <report>aggregate</report>
-                            <report>test-aggregate</report>
-                        </reports>
-                    </reportSet>
-                </reportSets>
-			</plugin>
+    <contributors>
+        <contributor>
+            <name>Mohamed Elsayed</name>
+            <url>https://github.com/MohammedElsayyed</url>
+            <organization>The New Library of Alexandria</organization>
+            <organizationUrl>http://bibalex.org/</organizationUrl>
+        </contributor>
+    </contributors>
+
+    <reporting>
+        <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jxr-plugin</artifactId>
+                <artifactId>maven-javadoc-plugin</artifactId>
                 <reportSets>
-					<reportSet>
-						<reports>
+                    <reportSet>
+                        <reports>
                         </reports>
                     </reportSet>
                     <reportSet>
@@ -436,93 +443,131 @@
                     </reportSet>
                 </reportSets>
             </plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-project-info-reports-plugin</artifactId>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jxr-plugin</artifactId>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                        </reports>
+                    </reportSet>
+                    <reportSet>
+                        <id>aggregate</id>
+                        <inherited>false</inherited>
+                        <reports>
+                            <report>aggregate</report>
+                            <report>test-aggregate</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <configuration>
+                    <configLocation>iipc_checks.xml</configLocation>
+                </configuration>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                        </reports>
+                    </reportSet>
+                    <reportSet>
+                        <id>aggregate</id>
+                        <inherited>false</inherited>
+                        <reports>
+                            <report>checkstyle-aggregate</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
                 <configuration>
                     <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
                     <dependencyDetailsEnabled>false</dependencyDetailsEnabled>
                 </configuration>
-				<reportSets>
-					<reportSet>
-						<reports>
-							<report>index</report>
-							<report>modules</report>
-							<report>issue-tracking</report>
-							<report>license</report>
-							<report>scm</report>
-							<report>dependencies</report>
-							<report>dependency-info</report>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>index</report>
+                            <report>modules</report>
+                            <report>issue-tracking</report>
+                            <report>license</report>
+                            <report>scm</report>
+                            <report>dependencies</report>
+                            <report>dependency-info</report>
                         </reports>
                     </reportSet>
                     <reportSet><!-- aggregate reportSet, to define in poms having modules -->
                         <id>aggregate</id>
                         <inherited>false</inherited><!-- don't run aggregate in child modules -->
                         <reports>
-							<report>dependency-management</report>
-							<report>dependency-convergence</report>
-							<report>project-team</report>
+                            <report>dependency-management</report>
+                            <report>dependency-convergence</report>
+                            <report>project-team</report>
                             <report>mailing-list</report>
-							<report>cim</report>
+                            <report>cim</report>
                         </reports>
                     </reportSet>
                 </reportSets>
-			</plugin>
-		</plugins>
-	</reporting>
+            </plugin>
+        </plugins>
+    </reporting>
 
-	<!-- Finally, the dependencyManagement - all version coordinates for all 
-		dependencies should be specified here, allowing child modules to specify 
-		only groupId and artifactId coordinates. -->
+    <!-- Finally, the dependencyManagement - all version coordinates for all
+    dependencies should be specified here, allowing child modules to specify
+    only groupId and artifactId coordinates. -->
 
-	<dependencyManagement>
-		<dependencies>
+    <dependencyManagement>
+        <dependencies>
 
-			<!-- Link all Wayback child module version dependencies to the parent 
-				POM version. -->
+            <!-- Link all Wayback child module version dependencies to the parent
+            POM version. -->
             <dependency>
                 <groupId>org.netpreserve.openwayback</groupId>
                 <artifactId>openwayback-cdx-server</artifactId>
                 <version>${project.version}</version>
             </dependency>
-			<dependency>
-				<groupId>${project.groupId}</groupId>
-				<artifactId>openwayback-core</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>${project.groupId}</groupId>
-				<artifactId>openwayback-webapp</artifactId>
-				<version>${project.version}</version>
-			</dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>openwayback-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>openwayback-webapp</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
-			<dependency>
-				<groupId>javax.servlet</groupId>
-				<artifactId>servlet-api</artifactId>
-				<version>2.5</version>
-				<scope>provided</scope>
-			</dependency>
+            <dependency>
+                <groupId>javax.servlet</groupId>
+                <artifactId>servlet-api</artifactId>
+                <version>2.5</version>
+                <scope>provided</scope>
+            </dependency>
 
-			<dependency>
-				<groupId>org.netpreserve.commons</groupId>
-				<artifactId>webarchive-commons</artifactId>
-				<version>1.1.5</version>
-			</dependency>
-			<dependency>
-				<groupId>org.netpreserve.openwayback</groupId>
-				<artifactId>openwayback-access-control-core</artifactId>
-				<version>1.0.2</version>
-			</dependency>
-			<dependency>
-				<groupId>com.googlecode.juniversalchardet</groupId>
-				<artifactId>juniversalchardet</artifactId>
-				<version>1.0.3</version>
-			</dependency>
-			<dependency>
+            <dependency>
+                <groupId>org.netpreserve.commons</groupId>
+                <artifactId>webarchive-commons</artifactId>
+                <version>1.1.5</version>
+            </dependency>
+            <dependency>
+                <groupId>org.netpreserve.openwayback</groupId>
+                <artifactId>openwayback-access-control-core</artifactId>
+                <version>1.0.2</version>
+            </dependency>
+            <dependency>
+                <groupId>com.googlecode.juniversalchardet</groupId>
+                <artifactId>juniversalchardet</artifactId>
+                <version>1.0.3</version>
+            </dependency>
+            <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-core</artifactId>
-				<version>${org.springframework.version}</version>
-			</dependency>
+                <version>${org.springframework.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-beans</artifactId>
@@ -549,34 +594,34 @@
                     </exclusion>
                 </exclusions>
             </dependency>
-			<dependency>
-				<groupId>org.beanshell</groupId>
-				<artifactId>bsh</artifactId>
-				<version>2.0b4</version>
-			</dependency>
-			<dependency>
-				<groupId>org.htmlparser</groupId>
-				<artifactId>htmlparser</artifactId>
-				<version>1.6</version>
-			</dependency>
-			<dependency>
-				<groupId>com.flagstone</groupId>
-				<artifactId>transform</artifactId>
-				<version>3.0.2</version>
-			</dependency>
-			<dependency>
-				<artifactId>hadoop-core</artifactId>
-				<groupId>org.apache.hadoop</groupId>
-				<version>0.20.2-cdh3u4</version>
-			</dependency>
+            <dependency>
+                <groupId>org.beanshell</groupId>
+                <artifactId>bsh</artifactId>
+                <version>2.0b4</version>
+            </dependency>
+            <dependency>
+                <groupId>org.htmlparser</groupId>
+                <artifactId>htmlparser</artifactId>
+                <version>1.6</version>
+            </dependency>
+            <dependency>
+                <groupId>com.flagstone</groupId>
+                <artifactId>transform</artifactId>
+                <version>3.0.2</version>
+            </dependency>
+            <dependency>
+                <artifactId>hadoop-core</artifactId>
+                <groupId>org.apache.hadoop</groupId>
+                <version>0.20.2-cdh3u4</version>
+            </dependency>
 
 
-			<dependency>
-				<groupId>junit</groupId>
-				<artifactId>junit</artifactId>
-				<version>3.8.1</version>
-				<scope>test</scope>
-			</dependency>
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>3.8.1</version>
+                <scope>test</scope>
+            </dependency>
             <dependency>
                 <groupId>org.easymock</groupId>
                 <artifactId>easymock</artifactId>
@@ -584,7 +629,7 @@
                 <scope>test</scope>
             </dependency>
 
-		</dependencies>
-	</dependencyManagement>
+        </dependencies>
+    </dependencyManagement>
 
 </project>

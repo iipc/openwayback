@@ -323,7 +323,6 @@ public class TextDocument {
          * @param result
          * @param resource
 	 * @return
-         * 
 	 * @throws IOException 
 	 * @throws ServletException 
 	 */
