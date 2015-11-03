@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package org.archive.wayback.resourceindex.cdxserver;
 
@@ -22,21 +22,21 @@ import junit.framework.TestCase;
 import org.archive.cdxserver.CDXQuery;
 import org.archive.cdxserver.CDXServer;
 import org.archive.cdxserver.auth.AuthToken;
-import org.archive.cdxserver.auth.PrivTokenAuthChecker;
+import org.archive.cdxserver.settings.CdxServerSettings;
+import org.archive.cdxserver.settings.SettableCdxServerSettings;
 import org.archive.cdxserver.writer.CDXWriter;
 import org.archive.cdxserver.writer.HttpCDXWriter;
 import org.archive.format.cdx.CDXFieldConstants;
+import org.archive.format.cdx.CDXInputSource;
 import org.archive.format.cdx.CDXLine;
 import org.archive.format.cdx.FieldSplitFormat;
-import org.archive.format.gzip.zipnum.ZipNumCluster;
 import org.archive.format.gzip.zipnum.ZipNumParams;
 import org.archive.util.iterator.CloseableIterator;
-import org.archive.wayback.accesscontrol.robotstxt.redis.RedisRobotExclusionFilterFactory;
+import org.archive.wayback.accesscontrol.ExclusionFilterFactory;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.SearchResults;
 import org.archive.wayback.core.WaybackRequest;
-import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.exception.RobotAccessControlException;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.util.ObjectFilter;
@@ -52,7 +52,7 @@ import org.easymock.IAnswer;
  *
  */
 public class EmbeddedCDXServerIndexTest extends TestCase {
-	
+
 	/**
 	 * fixture CDXServer (unnecessary if CDServer was an interface).
 	 * <p>
@@ -64,19 +64,23 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 	public static class TestCDXServer extends CDXServer {
 		public List<Object[]> capturedArgs = new ArrayList<Object[]>();
 		public CDXLine[] cdxLines;
-		
+
+        public TestCDXServer() {
+            super(new SettableCdxServerSettings());
+        }
+
 		@Override
 		public void getCdx(CDXQuery query, AuthToken authToken,
 				CDXWriter responseWriter) throws IOException {
 			capturedArgs.add(new Object[] { query, authToken, responseWriter });
-			
+
 			responseWriter.begin();
 			for (CDXLine cdxLine : cdxLines) {
 				responseWriter.writeLine(cdxLine);
 			}
 			responseWriter.end();
 		}
-		
+
 		public void clearCapturedArgs() {
 			capturedArgs.clear();
 		}
@@ -84,7 +88,7 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 
 	EmbeddedCDXServerIndex cut;
 	TestCDXServer testCDXServer;
-	
+
 	/* (non-Javadoc)
 	 * @see junit.framework.TestCase#setUp()
 	 */
@@ -95,7 +99,7 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 
 		Logger.getLogger(PerfStats.class.getName()).setLevel(Level.WARNING);
 	}
-	
+
 	/**
 	 * Set CDX lines TestCDXServer stub returns.
 	 * Lines are parsed with {@link CDXFieldConstants#CDX_ALL_NAMES}.
@@ -115,7 +119,7 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 	}
 
 	// === sample cdx lines ===
-	
+
 	final String CDXLINE1 = "com,example)/ 20101124000000 http://example.com/ text/html 200" +
 			" ABCDEFGHIJKLMNOPQRSTUVWXYZ012345 - - 2000 0 /a/a.warc.gz";
 	// for testing ignore-robots
@@ -129,26 +133,26 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 		WaybackRequest wbr = new WaybackRequest();
 		wbr.setRequestUrl("http://example.com/");
 		wbr.setCaptureQueryRequest();
-		
+
 		// urlkey, timestamp, original, mimetype, statuscode, digest, redirect, robotflags,
 		// length, offset, filename.
 		FieldSplitFormat fmt = CDXFieldConstants.CDX_ALL_NAMES;
 		testCDXServer.cdxLines = new CDXLine[] {
 				new CDXLine(CDXLINE1, fmt)
 		};
-		
+
 		SearchResults sr = cut.query(wbr);
-		
+
 		assertEquals(1,  sr.getReturnedCount());
-		
+
 		assertEquals(1, testCDXServer.capturedArgs.size());
-		
+
 		Object[] args = testCDXServer.capturedArgs.get(0);
 		CDXQuery query = (CDXQuery)args[0];
 		String[] filter = query.getFilter();
 		assertEquals(1, filter.length);
 		assertEquals("!statuscode:(500|502|504)", filter[0]);
-		
+
 		AuthToken authToken = (AuthToken)args[1];
 		assertFalse(authToken.isIgnoreRobots());
 	}
@@ -389,7 +393,7 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 			assertEquals(c[1], EmbeddedCDXServerIndex.buildStatusFilter(c[0]));
 		}
 	}
-	
+
 	/**
 	 * test of {@link EmbeddedCDXServerIndex#setBaseStatusRegexp(String)}
 	 * @throws Exception
@@ -398,11 +402,11 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 		WaybackRequest wbr = new WaybackRequest();
 		wbr.setRequestUrl("http://example.com/");
 		wbr.setCaptureQueryRequest();
-		
+
 		// urlkey, timestamp, original, mimetype, statuscode, digest, redirect, robotflags,
 		// length, offset, filename.
 		setCdxLines(CDXLINE1);
-		
+
 		cut.setBaseStatusRegexp("");
 		{
 			@SuppressWarnings("unused")
@@ -415,7 +419,7 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 			String[] filter = query.getFilter();
 			assertNull("there should be no filter", filter);
 		}
-		
+
 		testCDXServer.clearCapturedArgs();
 		cut.setBaseStatusRegexp("!500");
 		{
@@ -423,7 +427,7 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 			SearchResults sr = cut.query(wbr);
 
 			assertEquals(1, testCDXServer.capturedArgs.size());
-			
+
 			Object[] args = testCDXServer.capturedArgs.get(0);
 			CDXQuery query = (CDXQuery)args[0];
 			String[] filter = query.getFilter();
@@ -431,9 +435,9 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 			assertEquals("!statuscode:500", filter[0]);
 		}
 	}
-	
+
 	/**
-	 * for those SURT prefixes in {@code ignoreRobotsPaths}, 
+	 * for those SURT prefixes in {@code ignoreRobotsPaths},
 	 * {@link AuthToken#isIgnoreRobots()} flag is set.
 	 * @throws Exception
 	 */
@@ -442,22 +446,22 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 		WaybackRequest wbr = new WaybackRequest();
 		wbr.setRequestUrl("http://norobots.com/");
 		wbr.setCaptureQueryRequest();
-		
+
 		// urlkey, timestamp, original, mimetype, statuscode, digest, redirect, robotflags,
 		// length, offset, filename.
 		setCdxLines(CDXLINE2);
-		
+
 		@SuppressWarnings("unused")
 		SearchResults sr = cut.query(wbr);
-		
+
 		assertEquals(1, testCDXServer.capturedArgs.size());
-		
+
 		Object[] args = testCDXServer.capturedArgs.get(0);
 		//CDXQuery query = (CDXQuery)args[0];
 		AuthToken authToken = (AuthToken)args[1];
 		assertTrue(authToken.isIgnoreRobots());
 	}
-	
+
 	/**
 	 * test of timestamp-collapsing.
 	 * <p>Actual processing happens in {@link CDXServer}. {@link EmbeddedCDXServerIndex}
@@ -499,11 +503,11 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 	public void testHandleRequest() throws Exception {
 		HttpServletRequest request = EasyMock.createNiceMock(HttpServletRequest.class);
 		EasyMock.expect(request.getParameter("url")).andStubReturn("http://example.com/");
-		
+
 		HttpServletResponse response = EasyMock.createNiceMock(HttpServletResponse.class);
 		StringWriter sw = new StringWriter();
 		EasyMock.expect(response.getWriter()).andReturn(new PrintWriter(sw));
-		
+
 		FieldSplitFormat fmt = CDXFieldConstants.CDX_ALL_NAMES;
 		testCDXServer.cdxLines = new CDXLine[] {
 				new CDXLine(CDXLINE1, fmt)
@@ -511,10 +515,10 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 
 		EasyMock.replay(request, response);
 		cut.handleRequest(request, response);
-		
+
 		assertEquals(1, testCDXServer.capturedArgs.size());
 		Object[] args = testCDXServer.capturedArgs.get(0);
-		
+
 		CDXQuery query = (CDXQuery)args[0];
 		assertEquals("API query should not have filter by default", 0, query.getFilter().length);
 
@@ -538,8 +542,8 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 		HttpServletResponse response = EasyMock.createNiceMock(HttpServletResponse.class);
 		StringWriter sw = new StringWriter();
 		EasyMock.expect(response.getWriter()).andReturn(new PrintWriter(sw));
-		
-		// needs: 
+
+		// needs:
 		//   getMementoTimemapFormat() - passed to CDXQuery.output
 		//   getRequestUrl() - passed to CDXQuery
 		//   get(MementoConstants.PAGE_STARTS) (optional, passed to CDXQuery.from
@@ -548,32 +552,30 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 		WaybackRequest wbr = new WaybackRequest();
 		wbr.setRequestUrl("http://example.com/");
 		wbr.setMementoTimemapFormat("memento");
-		
+
 		FieldSplitFormat fmt = CDXFieldConstants.CDX_ALL_NAMES;
 		testCDXServer.cdxLines = new CDXLine[] {
 				new CDXLine(CDXLINE1, fmt)
 		};
-		
+
 		EasyMock.replay(request, response);
 		boolean r = cut.renderMementoTimemap(wbr, request, response);
-		
+
 		assertTrue("renderMementoTimemap returns true", r);
 
 		assertEquals(1, testCDXServer.capturedArgs.size());
 		Object[] args = testCDXServer.capturedArgs.get(0);
-		
+
 		CDXQuery query = (CDXQuery)args[0];
 		assertEquals("API query should not have filter by default", 0, query.getFilter().length);
-		
+
 		// Here we only check if output *looks like* Memento format. Detailed tests
 		// shall be done by test case for MementoLinkWriter.
 		//System.out.println("response=" + sw.toString());
 		assertTrue(sw.toString().startsWith("<http://example.com/>;"));
 	}
 
-	// WaybackAuthChecker wants RedisRobotExclusionFilterFactory for
-	// robotsExclusions. BAD, BAD, BAD!
-	public static class ExcludeAllFilterFactory extends RedisRobotExclusionFilterFactory {
+	public static class ExcludeAllFilterFactory implements ExclusionFilterFactory {
 		@Override
 		public ExclusionFilter get() {
 			return new ExclusionFilter() {
@@ -583,14 +585,18 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 				}
 			};
 		}
+        @Override
+        public void shutdown() {
+        }
 	}
-	// XXX CDXServer demands ZipNumCluster even though it doesn't
-	// call methods specific to it. BAD.
-	public static class StubZipNumCluster extends ZipNumCluster {
+
+	public static class StubCdxSource implements CDXInputSource {
 		List<String> cdxlines;
-		public StubZipNumCluster(String... cdxlines) {
+
+		public StubCdxSource(String... cdxlines) {
 			this.cdxlines = Arrays.asList(cdxlines);
 		}
+
 		// method called by EmbeddedCDXServer.query(WaybackRequest) for
 		// non-paged queries.
 		@Override
@@ -599,7 +605,18 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 				throws IOException {
 			return new WrappedCloseableIterator<String>(cdxlines.iterator());
 		}
+
+        @Override
+        public CloseableIterator<String> getCDXIterator(String key, String prefix, boolean exact, ZipNumParams params) throws IOException {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+
+        @Override
+        public long getTotalLines() {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
 	}
+
 	/**
 	 * robots.txt exclusion shall be disable for embeds.
 	 * <p>TODO: This is actually testing classes in {@code wayback-cdx-server}
@@ -610,19 +627,24 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 	 * @throws Exception
 	 */
 	public void testIgnoreRobotsForEmbeds() throws Exception {
-		CDXServer cdxServer = new CDXServer();
-		ZipNumCluster cdxSource = new StubZipNumCluster(
+		CDXInputSource cdxSource = new StubCdxSource(
 			"com,example)/style.css 20101124000000 http://example.com/style.css text/css 200"
 					+ " ABCDEFGHIJKLMNOPQRSTUVWXYZ012345 - - 2000 0 /a/a.warc.gz");
-		cdxServer.setZipnumSource(cdxSource);
+
+//		cdxServer.setZipnumSource(cdxSource);
 		// This is the class being tested here... so AuthChecker shall no be mocked.
 		// We cannot use PrivTokenAuthCheck class for this test, because it has no
 		// real support for robots.txt exclusion. This is the main reason why we
 		// cannot have this test in wayback-cdx-server project.
 		WaybackAuthChecker authChecker = new WaybackAuthChecker();
 		authChecker.setRobotsExclusions(new ExcludeAllFilterFactory());
-		cdxServer.setAuthChecker(authChecker);
-		cdxServer.afterPropertiesSet();
+
+        CdxServerSettings settings = new SettableCdxServerSettings()
+                .setCdxSource(cdxSource)
+                .setAuthChecker(authChecker);
+
+		CDXServer cdxServer = new CDXServer(settings);
+
 		cut.setCdxServer(cdxServer);
 
 		{

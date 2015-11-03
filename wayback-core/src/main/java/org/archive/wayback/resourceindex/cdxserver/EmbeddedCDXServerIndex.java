@@ -61,7 +61,9 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 	private static final Logger LOGGER = Logger.getLogger(
 			EmbeddedCDXServerIndex.class.getName());
 
-	protected CDXServer cdxServer;
+    public final static String CDX_AUTH_TOKEN = "cdx_auth_token";
+    
+    protected CDXServer cdxServer;
 	protected int timestampDedupLength = 0;
 	protected int limit = 0;
 
@@ -127,7 +129,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 	 * </ul>
          * @param wbRequest
          * @param urlkey
-         * @return {@link AuthToken} representing user's privileges on {@code urlkey}. 
+         * @return {@link AuthToken} representing user's privileges on {@code urlkey}.
 	 */
 	protected AuthToken createAuthToken(WaybackRequest wbRequest, String urlkey) {
 		AuthToken waybackAuthToken = new APContextAuthToken(
@@ -181,7 +183,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 			throw new BadQueryException(ue.toString());
 		}
 
-		//Do local access/url validation check		
+		//Do local access/url validation check
         //AuthToken waybackAuthToken = new AuthToken(wbRequest.get(CDXServer.CDX_AUTH_TOKEN));
 		AuthToken waybackAuthToken = createAuthToken(wbRequest, urlkey);
 
@@ -339,7 +341,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 
 		return query;
 	}
-	
+
 	// TODO: move this method to its own class for remote CDX server access.
 	protected void remoteCdxServerQuery(String urlkey, CDXQuery query,
 			AuthToken authToken, CDXToSearchResultWriter resultWriter)
@@ -392,7 +394,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 					cookie = remoteAuthCookie;
 				}
 
-				reader.setCookie(CDXServer.CDX_AUTH_TOKEN + "=" + cookie);
+				reader.setCookie(CDX_AUTH_TOKEN + "=" + cookie);
 			}
 
 			reader.setSaveErrHeader(HttpCDXWriter.RUNTIME_ERROR_HEADER);
@@ -474,7 +476,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 
 		boolean resolveRevisits = wbRequest.isReplayRequest();
 
-		// For now, not using seek single capture to allow for run time checking of additional records  
+		// For now, not using seek single capture to allow for run time checking of additional records
 		//boolean seekSingleCapture = resolveRevisits && wbRequest.isTimestampSearchKey();
 		boolean seekSingleCapture = false;
 		//boolean seekSingleCapture = resolveRevisits && (wbRequest.isTimestampSearchKey() || (wbRequest.isBestLatestReplayRequest() && !wbRequest.hasMementoAcceptDatetime()));
@@ -492,7 +494,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 
 		return captureWriter;
 	}
-	
+
 	protected CDXToSearchResultWriter getUrlSearchWriter(
 			WaybackRequest wbRequest) {
 		final CDXQuery query = new CDXQuery(wbRequest.getRequestUrl());
@@ -550,7 +552,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 
 		return true;
 	}
-	
+
 	// TODO: move this method to separate RequestHandler class
 	@Override
 	public boolean handleRequest(HttpServletRequest httpRequest,
@@ -560,7 +562,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 		cdxServer.getCdx(httpRequest, httpResponse, query);
 		return true;
 	}
-	
+
 	@Override
 	public void shutdown() throws IOException {
 		// TODO Auto-generated method stub
@@ -683,7 +685,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 	public void setRemoteAuthCookie(String remoteAuthCookie) {
 		this.remoteAuthCookie = remoteAuthCookie;
 	}
-	
+
 	public String getRemoteAuthCookieIgnoreRobots() {
 		return remoteAuthCookieIgnoreRobots;
 	}

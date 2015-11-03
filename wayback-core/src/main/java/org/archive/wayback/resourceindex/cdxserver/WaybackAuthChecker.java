@@ -5,13 +5,12 @@ import org.archive.cdxserver.auth.PrivTokenAuthChecker;
 import org.archive.cdxserver.filter.CDXAccessFilter;
 import org.archive.cdxserver.filter.CDXFilter;
 import org.archive.wayback.accesscontrol.ExclusionFilterFactory;
-import org.archive.wayback.accesscontrol.robotstxt.redis.RedisRobotExclusionFilterFactory;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 
 public class WaybackAuthChecker extends PrivTokenAuthChecker {
 
 	protected ExclusionFilterFactory adminExclusions;
-	protected RedisRobotExclusionFilterFactory robotsExclusions;
+	protected ExclusionFilterFactory robotsExclusions;
 
 	protected CDXFilter prefixFilter = null;
 
@@ -40,12 +39,11 @@ public class WaybackAuthChecker extends PrivTokenAuthChecker {
 		this.adminExclusions = adminExclusions;
 	}
 
-	public RedisRobotExclusionFilterFactory getRobotsExclusions() {
+	public ExclusionFilterFactory getRobotsExclusions() {
 		return robotsExclusions;
 	}
 
-	public void setRobotsExclusions(
-			RedisRobotExclusionFilterFactory robotsExclusions) {
+	public void setRobotsExclusions(ExclusionFilterFactory robotsExclusions) {
 		this.robotsExclusions = robotsExclusions;
 	}
 

@@ -22,7 +22,13 @@
             <artifactId>servlet-api</artifactId>
             <scope>provided</scope>
         </dependency>
-
+        
+        <!-- Configuration framework -->
+        <dependency>
+            <groupId>com.typesafe</groupId>
+            <artifactId>config</artifactId>
+        </dependency>
+        
         <!-- Spring framework -->
         <dependency>
             <groupId>org.springframework</groupId>

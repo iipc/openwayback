@@ -31,13 +31,6 @@ public class HowManyController extends BaseCDXServer {
     protected Map<String, ArrayList<ZipNumCluster>> allClusters;
 
     final static String PART_PREFIX = "part-a-";
-    
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        // This controller only works with SURT-sorted CDXs!
-        this.setSurtMode(true);
-        super.afterPropertiesSet();
-    }
 
     protected long countLines(ZipNumCluster cluster, String start, String end,
             String[] dates) throws IOException {
@@ -131,6 +124,7 @@ public class HowManyController extends BaseCDXServer {
     }
 
     public static class FormCommand {
+
         private MatchType matchType = MatchType.domain;
 
         public FormCommand() {
@@ -148,12 +142,13 @@ public class HowManyController extends BaseCDXServer {
         public void setMatchType(MatchType matchType) {
             this.matchType = matchType;
         }
+
     }
 
-    @RequestMapping(value = { "/howmany/{clusterId}" })
+    @RequestMapping(value = {"/howmany/{clusterId}"})
     public String getHowManyCluster(
             HttpServletRequest request,
-            HttpServletResponse response,            
+            HttpServletResponse response,
             @RequestParam(value = "url", defaultValue = "") String url,
             @RequestParam(value = "from", defaultValue = "") String from,
             @RequestParam(value = "to", defaultValue = "") String to,
@@ -165,7 +160,7 @@ public class HowManyController extends BaseCDXServer {
         return getHowMany(request, response, url, from, to, matchType, clusterId, format, model);
     }
 
-    @RequestMapping(value = { "/howmany" })
+    @RequestMapping(value = {"/howmany"})
     public String getHowMany(
             HttpServletRequest request,
             HttpServletResponse response,
@@ -180,7 +175,7 @@ public class HowManyController extends BaseCDXServer {
         String host;
         long numLines = 0;
         boolean restricted = false;
-        
+
         handleAjax(request, response);
 
         if (url.isEmpty()) {
@@ -189,21 +184,21 @@ public class HowManyController extends BaseCDXServer {
             host = "*";
         } else {
             AuthToken authToken = super.createAuthToken(request);
-            
+
             CDXAccessFilter accessChecker = null;
-            
-			if (!authChecker.isAllUrlAccessAllowed(authToken)) {
-				accessChecker = authChecker.createAccessFilter(authToken);
-			}
-            
+
+            if (!getAuthChecker().isAllUrlAccessAllowed(authToken)) {
+                accessChecker = getAuthChecker().createAccessFilter(authToken);
+            }
+
             String[] startEnd = urlSurtRangeComputer.determineRange(url, matchType, from, to);
             start = startEnd[0];
             end = startEnd[1];
             host = startEnd[2];
-            
+
             if (accessChecker != null && !accessChecker.includeUrl(start, url)) {
                 restricted = true;
-            } 
+            }
         }
 
         String[] firstLastDate = null;
@@ -211,14 +206,14 @@ public class HowManyController extends BaseCDXServer {
         if (matchType == MatchType.exact) {
             firstLastDate = new String[2];
         }
-        
+
         if (!restricted) {
             numLines = countAllClusters(clusterId, start, end, firstLastDate);
         }
-        
+
         model.addAttribute("count", Long.valueOf(numLines));
-        
-        if (format.equals("count")) {            
+
+        if (format.equals("count")) {
             return "count";
         }
 
@@ -285,4 +280,5 @@ public class HowManyController extends BaseCDXServer {
     public void setAllClusters(Map<String, ArrayList<ZipNumCluster>> allClusters) {
         this.allClusters = allClusters;
     }
+
 }
