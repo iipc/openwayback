@@ -39,9 +39,17 @@ public class OraclePolicyService implements ContextExclusionFilterFactory, Rewri
 	public void setOracleUrl(String oracleUrl) {
 		this.oracleUrl = oracleUrl;
 	}
+	
+	public String getOracleUrl() {
+		return this.oracleUrl;
+	}	
 
 	public void setProxyHostPort(String proxyHostPort) {
 		this.proxyHostPort = proxyHostPort;
+	}
+	
+	public String getProxyHostPort() {
+		return this.proxyHostPort;
 	}
 
 	/**
