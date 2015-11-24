@@ -65,9 +65,17 @@ public class ArchivalUrlTest extends TestCase {
 	    
 	    assertEquals("20100101000000-20101231235959*/http://www.yahoo.com/", au.toString());
 	    
-	    // same as "*" if either startTimestamp or endTimestamp is null
+	    // Open ended date ranges
 	    wbr.setEndTimestamp(null);
-	    assertEquals("*/http://www.yahoo.com/", au.toString());
+	    assertEquals("20100101000000-*/http://www.yahoo.com/", au.toString());
+        
+	    wbr.setStartTimestamp(null);
+	    wbr.setEndTimestamp("20101231235959");
+	    assertEquals("-20101231235959*/http://www.yahoo.com/", au.toString());
+        
+        // Query for exact date
+	    wbr.put(WaybackRequest.REQUEST_EXACT_DATE, "20100101000000");
+	    assertEquals("20100101000000*/http://www.yahoo.com/", au.toString());
 	}
 
     private WaybackRequest createReplayWaybackRequest() {

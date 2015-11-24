@@ -60,6 +60,7 @@ public class BubbleCalendarData {
 	public long dataStartMSSE;
 	public long dataEndMSSE;
 	public long numResults = 0;
+        public long numYearResults = 0;
 	public String firstResultReplayUrl;
 	public String lastResultReplayUrl;
 	
@@ -143,6 +144,7 @@ public class BubbleCalendarData {
 		Calendar cal = Calendar.getInstance(calendarTimeZone);
 		cal.setTime(activeYear.getStart());
 		yearNum = cal.get(Calendar.YEAR);
+                numYearResults = activeYear.getTotal();
 
 		// now unroll the months in the active year into day-sized partitions:
 		List<Partition<CaptureSearchResult>> days =

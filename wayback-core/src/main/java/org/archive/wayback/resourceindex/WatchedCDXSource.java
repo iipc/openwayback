@@ -2,6 +2,7 @@ package org.archive.wayback.resourceindex;
 
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
+import static com.sun.nio.file.SensitivityWatchEventModifier.HIGH;
 import static java.nio.file.FileVisitResult.CONTINUE;
 import static java.nio.file.FileVisitResult.SKIP_SUBTREE;
 
@@ -223,12 +224,12 @@ public class WatchedCDXSource extends CompositeSearchResultSource {
                 return CONTINUE;
             }
 
-            @Override
+            @SuppressWarnings("restriction")
+			@Override
             public FileVisitResult preVisitDirectory(Path dir,
                     BasicFileAttributes attrs) throws IOException {
                 if (keys.keySet().size() < depth) {
-                    WatchKey key = dir.register(watcher, ENTRY_CREATE,
-                            ENTRY_DELETE);
+                    WatchKey key = dir.register(watcher, new WatchEvent.Kind[]{ENTRY_CREATE, ENTRY_DELETE}, HIGH);
                     LOGGER.info("Watching: " + dir.toString());
                     keys.put(key, dir);
                     return CONTINUE;

@@ -291,9 +291,10 @@ public class AccessPoint extends AbstractRequestHandler implements
 					}
 				}
 
-				// remove this line by having all call AccessPoint.createExclusionFilter()
-				// directly.
-				wbRequest.setExclusionFilter(createExclusionFilter());
+				// set exclusionFilter on wbRequest only if not set externally
+				if (wbRequest.getExclusionFilter() == null) {
+					wbRequest.setExclusionFilter(createExclusionFilter());
+				}
 
 				// TODO: refactor this into RequestParser implementations, so a
 				// user could alter requests to change the behavior within a

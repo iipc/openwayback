@@ -49,19 +49,34 @@ public class ArchivalUrl {
 		}
 		return toPrefixQueryString(wbRequest.getRequestUrl()); 			
 	}
+    
 	public String toPrefixQueryString(String url) {
 		return toQueryString(url) + STAR;
 	}
+    
 	public String toQueryString(String url) {
 		String datespec = STAR;
-		if((wbRequest.getStartTimestamp() != null) && 
-				(wbRequest.getEndTimestamp() != null)) {
-			datespec = String.format("%s-%s%s",
-					wbRequest.getStartTimestamp(),wbRequest.getEndTimestamp(),
-					STAR);
-		}
-		return toString(datespec,url);
+        
+        String exactDateTimestamp = getEmptyStringIfNull(wbRequest.get(WaybackRequest.REQUEST_EXACT_DATE));
+        String startTimestamp = getEmptyStringIfNull(wbRequest.getStartTimestamp());
+        String endTimestamp = getEmptyStringIfNull(wbRequest.getEndTimestamp());
+        
+        if (!exactDateTimestamp.isEmpty()) {
+            datespec = exactDateTimestamp + STAR;
+        } else if (!startTimestamp.isEmpty() || !endTimestamp.isEmpty()) {
+            datespec = String.format("%s-%s%s", startTimestamp, endTimestamp, STAR);
+        }
+        
+		return toString(datespec, url);
 	}
+    
+    private String getEmptyStringIfNull(String string) {
+        if (string == null) {
+            return "";
+        } else {
+            return string;
+        }
+    }
 
 	public String toReplayString(String url) {
 		return toString(wbRequest.getReplayTimestamp(),url);
