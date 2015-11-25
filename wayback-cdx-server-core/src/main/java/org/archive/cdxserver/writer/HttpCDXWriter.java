@@ -60,6 +60,7 @@ public abstract class HttpCDXWriter extends CDXWriter {
 	    response.setStatus(status);
 	    response.setHeader(RUNTIME_ERROR_HEADER, io.toString());
 	    writer.println(io.toString());
+        io.printStackTrace(writer);
 	    writer.flush();
     }
 	

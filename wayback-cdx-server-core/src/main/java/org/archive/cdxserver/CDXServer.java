@@ -5,6 +5,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -45,6 +47,9 @@ import org.archive.util.iterator.CloseableIterator;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 public class CDXServer extends BaseCDXServer {
+
+    private static final Logger LOGGER = Logger
+            .getLogger(CDXServer.class.getName());
 
 	protected ZipNumCluster zipnumSource;
 	protected CDXInputSource cdxSource;
@@ -199,8 +204,10 @@ public class CDXServer extends BaseCDXServer {
 			getCdx(query, authToken, responseWriter);
 
 		} catch (IOException io) {
+            LOGGER.log(Level.SEVERE, "Exception on getCdx", io);
 			responseWriter.serverError(io);
 		} catch (RuntimeException rte) {
+            LOGGER.log(Level.SEVERE, "Exception on getCdx", rte);
 			responseWriter.serverError(rte);
 		} finally {
 			if (responseWriter != null) {
@@ -404,10 +411,14 @@ public class CDXServer extends BaseCDXServer {
         }
 
         if (pageResult != null) {
+            LOGGER.finer("Performing zipnumSource search for:" + searchKey);
             params.setTimestampDedupLength(0);
             return zipnumSource.getCDXIterator(idx, searchKey, startEndUrl[1],
                     query.page, pageResult.numPages, params);
         } else {
+            LOGGER.finer("Performing cdxSource search with: " + searchKey + " "
+                    + startEndUrl[0]
+                    + " " + startEndUrl[1] + " " + params);
             return cdxSource.getCDXIterator(searchKey, startEndUrl[0],
                     startEndUrl[1], params);
         }

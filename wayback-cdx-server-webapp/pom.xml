@@ -1,29 +1,117 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+   <modelVersion>4.0.0</modelVersion>
 
-  <parent>
-    <artifactId>openwayback</artifactId>
-    <groupId>org.netpreserve.openwayback</groupId>
-    <version>2.3.0-SNAPSHOT</version>
-  </parent>
+   <parent>
+      <artifactId>openwayback</artifactId>
+      <groupId>org.netpreserve.openwayback</groupId>
+      <version>2.3.0-SNAPSHOT</version>
+   </parent>
 
-  <artifactId>openwayback-cdx-server-webapp</artifactId>
-  <packaging>war</packaging>
-  <name>Wayback CDX Server Web Application</name>
+   <artifactId>openwayback-cdx-server-webapp</artifactId>
+   <packaging>war</packaging>
+   <name>Wayback CDX Server Web Application</name>
 
-  <build>
+   <build>
       <finalName>openwayback-cdx-server-${project.version}</finalName>
-  </build>
+      <plugins>
+         <plugin>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-maven-plugin</artifactId>
+            <version>9.3.6.v20151106</version>
+            <configuration>
+               <scanIntervalSeconds>10</scanIntervalSeconds>
+               <stopKey>foo</stopKey>
+               <stopPort>9999</stopPort>
+               <systemProperties>
+                  <systemProperty>
+                     <name>cdx.file</name>
+                     <value>${basedir}/src/test/resources/records-cdx9-pywb-unsurt-sorted.cdx</value>
+                  </systemProperty>
+               </systemProperties>
+            </configuration>
+            <executions>
+               <execution>
+                  <id>start-jetty</id>
+                  <phase>pre-integration-test</phase>
+                  <goals>
+                     <goal>start</goal>
+                  </goals>
+                  <configuration>
+                     <scanIntervalSeconds>0</scanIntervalSeconds>
+                  </configuration>
+               </execution>
+               <execution>
+                  <id>stop-jetty</id>
+                  <phase>post-integration-test</phase>
+                  <goals>
+                     <goal>stop</goal>
+                  </goals>
+               </execution>
+            </executions>
+         </plugin>
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <version>2.19</version>
+            <executions>
+               <execution>
+                  <id>integration-test</id>
+                  <goals>
+                     <goal>integration-test</goal>
+                  </goals>
+               </execution>
+               <execution>
+                  <id>verify</id>
+                  <goals>
+                     <goal>verify</goal>
+                  </goals>
+               </execution>
+            </executions>
+         </plugin>
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+               <excludes>
+                  <exclude>**/*IntegrationTest.java</exclude>
+               </excludes>
+            </configuration>
+            <executions>
+               <execution>
+                  <id>integration-test</id>
+                  <goals>
+                     <goal>test</goal>
+                  </goals>
+                  <phase>integration-test</phase>
+                  <configuration>
+                     <excludes>
+                        <exclude>none</exclude>
+                     </excludes>
+                     <includes>
+                        <include>**/*IntegrationTest.java</include>
+                     </includes>
+                  </configuration>
+               </execution>
+            </executions>
+         </plugin>
+      </plugins>
+   </build>
 
-  <properties>
-    <wayback.port>9000</wayback.port>
-  </properties>
+   <properties>
+      <wayback.port>9000</wayback.port>
+   </properties>
 
-  <dependencies>
+   <dependencies>
       <dependency>
-          <groupId>${project.groupId}</groupId>
-          <artifactId>openwayback-cdx-server</artifactId>
+         <groupId>${project.groupId}</groupId>
+         <artifactId>openwayback-cdx-server</artifactId>
       </dependency>
-  </dependencies>
+      <dependency>
+         <groupId>junit</groupId>
+         <artifactId>junit</artifactId>
+         <scope>test</scope>
+      </dependency>
+   </dependencies>
 
 </project>
