@@ -72,10 +72,14 @@ public class RobotRulesTest extends TestCase {
 	public void testEmptyDisallowHasNoEffect() throws Exception {
 		final String testString = 
 				"User-agent: *\n" +
-				"Disallow:\n";
+				"Disallow:\n" +
+				"Disallow: /wp-admin\n";
 		load(testString);
 
 		assertFalse(rr.blocksPathForUA("/", WB_UA));
+		// Path-less Disallow: should just be ignored. It shall not
+		// disable other non-empty Disallow's. ARI-4212.
+		assertTrue(rr.blocksPathForUA("/wp-admin/index.php", WB_UA));
 	}
 	
 	/**
