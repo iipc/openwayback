@@ -19,6 +19,7 @@
         <module>wayback-core</module>
         <module>wayback-webapp</module>
         <module>dist</module>
+        <module>cdxlib</module>
     </modules>
 
     <profiles>
