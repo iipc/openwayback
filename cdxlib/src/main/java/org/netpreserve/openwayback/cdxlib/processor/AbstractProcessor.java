@@ -18,7 +18,7 @@ package org.netpreserve.openwayback.cdxlib.processor;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.netpreserve.openwayback.cdxlib.functions.Filter;
+import org.netpreserve.openwayback.cdxlib.CdxLineFormatMapper;
 import org.netpreserve.openwayback.cdxlib.functions.Function;
 import org.netpreserve.openwayback.cdxlib.functions.FunctionProvider;
 
@@ -27,7 +27,7 @@ import org.netpreserve.openwayback.cdxlib.functions.FunctionProvider;
  */
 public abstract class AbstractProcessor<F extends Function> implements Processor<F> {
 
-    List<Object> functions;
+    private List<Object> functions;
 
     public AbstractProcessor() {
         this.functions = new ArrayList<>();

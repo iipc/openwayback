@@ -51,13 +51,13 @@ public class CdxFileDescriptor implements SourceDescriptor {
     public CdxFileDescriptor(Path path) throws IOException {
         this.channel = FileChannel.open(path, StandardOpenOption.READ);
         this.channelSize = channel.size();
-        int blockNum = (int) (this.channelSize / BLOCK_SIZE);
-        this.blocks = new ArrayList<>(blockNum);
+        int blockCount = Math.max((int) (this.channelSize / BLOCK_SIZE), 1);
+        this.blocks = new ArrayList<>(blockCount);
 
         ByteBuffer inBuf = ByteBuffer.allocate(1024 * 8);
         SourceBlock prevBlock = null;
 
-        for (int i = 0; i < blockNum; i++) {
+        for (int i = 0; i < blockCount; i++) {
             long bufferOffset = i * BLOCK_SIZE;
             inBuf.rewind();
             channel.read(inBuf, bufferOffset);

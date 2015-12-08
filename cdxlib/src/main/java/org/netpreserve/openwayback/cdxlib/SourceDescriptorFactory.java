@@ -22,17 +22,26 @@ import java.util.ServiceLoader;
 import org.netpreserve.openwayback.cdxlib.cdxsource.SourceDescriptor;
 
 /**
- *
+ * SourceDescriptorFactory using a ServiceLoader so that new SourceDescriptors could be plugged in
+ * by adding a jar file.
  */
 public abstract class SourceDescriptorFactory {
 
-    private static final ServiceLoader<SourceDescriptorFactory> sourceDescriptorLoader
+    private static final ServiceLoader<SourceDescriptorFactory> SERVICE_LOADER
             = ServiceLoader.load(SourceDescriptorFactory.class);
 
-    public static SourceDescriptor getDescriptor(String type, URI location,
+    /**
+     * Create a new SourceDescriptor.
+     *
+     * @param type a string describing the type of resource
+     * @param location where to find the resource
+     * @param params optional parameters needed for some SourceDescriptors
+     * @return a matching source descriptor or null if none could be found
+     */
+    public static final SourceDescriptor getDescriptor(String type, URI location,
             Map<String, Object> params) {
 
-        for (SourceDescriptorFactory sdf : sourceDescriptorLoader) {
+        for (SourceDescriptorFactory sdf : SERVICE_LOADER) {
             SourceDescriptor sd = sdf.createSourceDescriptor(type, location, params);
             if (sd != null) {
                 return sd;
@@ -41,6 +50,7 @@ public abstract class SourceDescriptorFactory {
         return null;
     }
 
-    public abstract SourceDescriptor createSourceDescriptor(String type, URI location, Map<String,
-            Object> params);
+    public abstract SourceDescriptor createSourceDescriptor(String type, URI location,
+            Map<String, Object> params);
+
 }

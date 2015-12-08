@@ -20,12 +20,17 @@ import org.netpreserve.openwayback.cdxlib.cdxsource.CdxIterator;
 /**
  * Represents a search result from a {@link CdxSource}.
  * <p>
- The SearchResult implements Iterable allowing it to be the target of a "for-each loop"
- statement.
+ * The SearchResult implements Iterable allowing it to be the target of a "for-each loop" statement.
  */
-public interface SearchResult extends Iterable<CdxLine> {
+public interface SearchResult extends Iterable<CdxLine>, AutoCloseable {
 
     @Override
     CdxIterator iterator();
+
+    /**
+     * Overridden from {@link AutoCloseable#close()} to disallow checked exceptions.
+     */
+    @Override
+    void close();
 
 }

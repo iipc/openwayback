@@ -22,15 +22,19 @@ import org.netpreserve.openwayback.cdxlib.cdxsource.CdxIterator;
 import org.netpreserve.openwayback.cdxlib.CdxLine;
 
 /**
- * Processor taking a set of {@link Filter}'s and returning only those CDX lines mathing all of the
+ * Processor taking a set of {@link Filter}'s and returning only those CDX lines matching all of the
  * filters.
  */
 public class FilterProcessor extends AbstractProcessor<Filter> {
 
     @Override
     public CdxIterator processorIterator(CdxIterator wrappedIterator) {
+        final List<Filter> filters = getInstanciatedFunctions();
+        if (filters.isEmpty()) {
+            return wrappedIterator;
+        }
+
         return new AbstractProcessorIterator<Filter>(wrappedIterator) {
-            private final List<Filter> filters = getInstanciatedFunctions();
 
             @Override
             protected CdxLine computeNext() {
@@ -38,7 +42,7 @@ public class FilterProcessor extends AbstractProcessor<Filter> {
                     CdxLine input = wrappedCdxIterator.next();
                     boolean include = true;
                     for (Filter filter : filters) {
-                        if (filter != null && !filter.include(input)) {
+                        if (!filter.include(input)) {
                             include = false;
                             break;
                         }

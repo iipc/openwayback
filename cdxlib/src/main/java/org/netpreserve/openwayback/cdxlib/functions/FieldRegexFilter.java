@@ -12,7 +12,7 @@ import org.netpreserve.openwayback.cdxlib.CdxLine;
  * <p>
  * Supports matching against individual fields if specified eg:
  * <p>
- * ~&lt;containsstr&gt; = look for containing string {@code &lt;containsstr&gt;} and not a regex
+ * ~&lt;containsstr&gt; = look for containing string {@code <containsstr>} and not a regex
  * <p>
  * &lt;regex&gt; = match whole line &lt;field&gt;:&lt;regex&gt; = match &lt;field&gt; in
  * FieldSplitLine, by name or number, and match only that field

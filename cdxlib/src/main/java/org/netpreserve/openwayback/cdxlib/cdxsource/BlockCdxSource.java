@@ -21,7 +21,6 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 import org.netpreserve.openwayback.cdxlib.SearchResult;
 import org.netpreserve.openwayback.cdxlib.CdxLine;
@@ -48,9 +47,9 @@ public class BlockCdxSource implements CdxSource {
         final CdxLineFormatMapper lineFormatMapper = new CdxLineFormatMapper(
                 sourceDescriptor.getInputFormat(), outputFormat);
 
-        return new SearchResult() {
+        return new AbstractSearchResult() {
             @Override
-            public CdxIterator iterator() {
+            public CdxIterator newIterator() {
                 CdxIterator iterator = new InternalIterator(sourceDescriptor, startUrl,
                         endUrl, lineFormatMapper);
 
@@ -151,17 +150,23 @@ public class BlockCdxSource implements CdxSource {
                 nextLine = null;
                 return line;
             } else {
-                throw new NoSuchElementException();
+                return null;
             }
         }
 
         @Override
         public CdxLine peek() {
-            if (nextLine != null || hasNext()) {
+            if (hasNext()) {
                 return nextLine;
             } else {
-                throw new NoSuchElementException();
+                return null;
             }
+        }
+
+        @Override
+        public void close() {
+            eof = true;
+            byteBuf = null;
         }
 
         @Override

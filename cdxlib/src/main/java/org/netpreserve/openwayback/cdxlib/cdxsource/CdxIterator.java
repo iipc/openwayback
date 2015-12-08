@@ -21,8 +21,27 @@ import org.netpreserve.openwayback.cdxlib.CdxLine;
 
 /**
  * An {@link Iterator} over CDX lines from a CdxSource.
+ * <p>
+ * The CdxIterator differs from the general contract of {@link Iterator} in two ways:
+ * <ul>
+ * <li>CdxIterator is not allowed to have null values.</li>
+ * <li>CdxIterator should never throw {@link java.util.NoSuchElementException}. Instead null is
+ * returned to indicate end of iteration.</li>
+ * </ul>
+ * <p>
+ * Even though this class implements a close method. Users of the class should normally not need to
+ * close i t(but it is harmless to do so,) because the Iterable creating the iterator should
+ * normally do it for you.
  */
-public interface CdxIterator extends Iterator<CdxLine> {
+public interface CdxIterator extends Iterator<CdxLine>, AutoCloseable {
+
+    /**
+     * Returns the next element in the iteration.
+     * <p>
+     * @return the next element in the iteration or null if the iteration has no more elements.
+     */
+    @Override
+    CdxLine next();
 
     /**
      * Returns the next element in the iteration, without advancing the iteration.
@@ -30,9 +49,12 @@ public interface CdxIterator extends Iterator<CdxLine> {
      * <p>
      * Calls to {@code peek()} does not change the state of the iteration.
      * <p>
-     * @throws NoSuchElementException if the iteration has no more elements according to
+     * @return the next element in the iteration or null if there are no more elements.
      * {@link #hasNext()}
      */
     CdxLine peek();
+
+    @Override
+    void close();
 
 }

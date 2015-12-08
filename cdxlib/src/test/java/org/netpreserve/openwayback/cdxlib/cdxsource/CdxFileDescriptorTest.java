@@ -55,6 +55,14 @@ public class CdxFileDescriptorTest {
         assertThat(blocks)
                 .hasSize(1)
                 .containsExactly(expectedBlock1);
+
+        // Test with small file
+        path = Paths.get(ClassLoader.getSystemResource("cdxfile3.cdx").toURI());
+        meta = new CdxFileDescriptor(path);
+        blocks = meta.calculateBlocks(null, null);
+        
+        assertThat(blocks)
+                .hasSize(1);
     }
 
     /**

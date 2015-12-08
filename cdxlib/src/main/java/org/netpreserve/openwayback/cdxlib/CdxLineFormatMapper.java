@@ -26,6 +26,8 @@ public class CdxLineFormatMapper {
 
     private final CdxLineSchema outputFormat;
 
+    private int missingFieldCount = 0;
+
     /**
      * Constructor taking an input format and an output format and creates a mapping between them.
      * <p>
@@ -43,6 +45,9 @@ public class CdxLineFormatMapper {
             outputFields = new int[this.outputFormat.getLength()];
             for (int i = 0; i < outputFields.length; i++) {
                 outputFields[i] = this.inputFormat.indexOf(this.outputFormat.getField(i));
+                if (outputFields[i] == CdxLineSchema.MISSING_FIELD) {
+                    outputFields[i] = - ++missingFieldCount;
+                }
             }
         } else {
             outputFields = null;
@@ -78,6 +83,14 @@ public class CdxLineFormatMapper {
         return (outputFields[outputFieldIndex]);
     }
 
+    public int getIndexOfOutputField(FieldDefinition outputField) {
+        return (outputFields[outputFormat.indexOf(outputField)]);
+    }
+
+    public int getIndexOfOutputField(String outputFieldName) {
+        return (outputFields[outputFormat.indexOf(outputFieldName)]);
+    }
+
     /**
      * Get an array representing the output fields. Each element in the array refers to a field in
      * the input format.
@@ -88,4 +101,7 @@ public class CdxLineFormatMapper {
         return outputFields;
     }
 
+    public int getMissingFieldCount() {
+        return missingFieldCount;
+    }
 }

@@ -77,7 +77,7 @@ public class BlockCdxSourceTest {
         Path path = Paths.get(ClassLoader.getSystemResource("cdxfile1.cdx").toURI());
         SourceDescriptor sourceDescriptor = new CdxFileDescriptor(path);
 
-        CdxFile cdxFile = new CdxFile(sourceDescriptor);
+        CdxSource cdxFile = new BlockCdxSource(sourceDescriptor);
 
         String startKey = "be,halten)";
         String toKey = "ch,";
@@ -100,7 +100,7 @@ public class BlockCdxSourceTest {
         Path path = Paths.get(ClassLoader.getSystemResource("cdxfile1.cdx").toURI());
         SourceDescriptor sourceDescriptor = new CdxFileDescriptor(path);
 
-        CdxFile cdxFile = new CdxFile(sourceDescriptor);
+        CdxSource cdxFile = new BlockCdxSource(sourceDescriptor);
 
         String startKey = "be,halten)";
         String toKey = "ch,";

@@ -23,6 +23,9 @@ import java.util.List;
  */
 public class CdxLineSchema {
 
+    /**
+     * Return value for fields not part of the schema.
+     */
     public static final int MISSING_FIELD = -1;
 
     private final FieldDefinition[] fields;
@@ -77,8 +80,8 @@ public class CdxLineSchema {
     /**
      * Constructor taking a list of {@link FieldDefinition} objects.
      * <p>
- A FieldDefinition object is a wrapper around {@link FieldType} to allow custom defined
-     * field types not part of the
+     * A FieldDefinition object is a wrapper around {@link FieldType} to allow custom defined field
+     * types not part of the
      * <a src="https://archive.org/web/researcher/cdx_file_format.php">CDX specification</a>. A
      * custom field can only be used in CDX formats other than the original line oriented format
      * e.g. CDXJ.
@@ -91,6 +94,12 @@ public class CdxLineSchema {
         this.fields = fields;
     }
 
+    /**
+     * Constructs a new CdxLineSchema from a Cdx-format as specified in
+     * <a href="http://iipc.github.io/warc-specifications/specifications/cdx-format/cdx-2015/">http://iipc.github.io/warc-specifications/specifications/cdx-format/cdx-2015/</a>.
+     * <p>
+     * @param formatString the format string
+     */
     public CdxLineSchema(final CharSequence formatString) {
         this.delimiter = formatString.charAt(0);
         List<FieldDefinition> fieldList = new ArrayList<>(11);
@@ -98,6 +107,40 @@ public class CdxLineSchema {
             fieldList.add(new FieldDefinition(FieldType.forCode(formatString.charAt(i))));
         }
         this.fields = fieldList.toArray(new FieldDefinition[0]);
+    }
+
+    /**
+     * Constructs a new CdxLineSchema from a list of field names.
+     * <p>
+     * The field names are allowed to be one letter codes, long name representation for those codes
+     * or user defined custom field names.
+     * <p>
+     * @param delimiter the delimiter between the fields used in CDX line representation
+     * @param fieldNames the field names
+     */
+    public CdxLineSchema(final char delimiter, final List<String> fieldNames) {
+        this(delimiter, fieldNames.toArray(new String[0]));
+    }
+
+    /**
+     * Constructs a new CdxLineSchema from an array of field names.
+     * <p>
+     * The field names are allowed to be one letter codes, long name representation for those codes
+     * or user defined custom field names.
+     * <p>
+     * @param delimiter the delimiter between the fields used in CDX line representation
+     * @param fieldNames the field names
+     */
+    public CdxLineSchema(final char delimiter, final String... fieldNames) {
+        this.delimiter = delimiter;
+        this.fields = new FieldDefinition[fieldNames.length];
+        for (int i = 0; i < fieldNames.length; i++) {
+            try {
+                this.fields[i] = new FieldDefinition(FieldType.forCodeOrValue(fieldNames[i]));
+            } catch (IllegalArgumentException e) {
+                this.fields[i] = new FieldDefinition(fieldNames[i]);
+            }
+        }
     }
 
     /**
@@ -122,7 +165,6 @@ public class CdxLineSchema {
             }
         }
         return MISSING_FIELD;
-//        throw new IllegalArgumentException("Found no field with name " + fieldName);
     }
 
     /**
@@ -138,7 +180,24 @@ public class CdxLineSchema {
             }
         }
         return MISSING_FIELD;
-//        throw new IllegalArgumentException("Found no field " + field);
+    }
+
+    /**
+     * Get the index of a field type.
+     * <p>
+     * If fieldType is custom, this method returns the first custom field without considering the
+     * name.
+     * <p>
+     * @param fieldType the field definition to get an index for.
+     * @return the index (zero based) or {@link #MISSING_FIELD} if not found.
+     */
+    public int indexOf(FieldType fieldType) {
+        for (int i = 0; i < fields.length; i++) {
+            if (fields[i].getType() == fieldType) {
+                return i;
+            }
+        }
+        return MISSING_FIELD;
     }
 
     /**

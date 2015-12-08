@@ -17,7 +17,6 @@ package org.netpreserve.openwayback.cdxlib.cdxsource;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 import org.netpreserve.openwayback.cdxlib.CdxLine;
 
@@ -56,7 +55,7 @@ public class MockCdxIterator implements CdxIterator {
         if (hasNext()) {
             return data.get(nextPosition);
         } else {
-            throw new NoSuchElementException();
+            return null;
         }
     }
 
@@ -70,8 +69,12 @@ public class MockCdxIterator implements CdxIterator {
         if (hasNext()) {
             return data.get(nextPosition++);
         } else {
-            throw new NoSuchElementException();
+            return null;
         }
+    }
+
+    @Override
+    public void close() {
     }
 
 }

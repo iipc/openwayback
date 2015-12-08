@@ -15,7 +15,6 @@
  */
 package org.netpreserve.openwayback.cdxlib.processor;
 
-import java.util.NoSuchElementException;
 
 import org.netpreserve.openwayback.cdxlib.functions.Function;
 import org.netpreserve.openwayback.cdxlib.cdxsource.CdxIterator;
@@ -60,7 +59,7 @@ public abstract class AbstractProcessorIterator<F extends Function> implements C
         }
 
         if (!hasNext()) {
-            throw new NoSuchElementException();
+            return null;
         }
 
         state = State.NOT_READY;
@@ -82,9 +81,15 @@ public abstract class AbstractProcessorIterator<F extends Function> implements C
         }
 
         if (!hasNext()) {
-            throw new NoSuchElementException();
+            return null;
         }
         return next;
+    }
+
+    @Override
+    public void close() {
+        state = State.FAILED;
+        wrappedCdxIterator.close();
     }
 
     protected void passtrough() {

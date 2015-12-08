@@ -24,13 +24,16 @@ import org.netpreserve.openwayback.cdxlib.functions.BiFunction;
 /**
  * Processor taking a set of {@link BiFunction}'s and returning the evaluation of those.
  */
-public class BiFunctionProcessor extends AbstractProcessor<BiFunction> {
+public class BiFunctionProcessor<F extends BiFunction> extends AbstractProcessor<F> {
 
     @Override
     public CdxIterator processorIterator(CdxIterator wrappedIterator) {
-        return new AbstractProcessorIterator<BiFunction>(wrappedIterator) {
-            private final List<BiFunction> functions = getInstanciatedFunctions();
+        final List<F> functions = getInstanciatedFunctions();
+        if (functions.isEmpty()) {
+            return wrappedIterator;
+        }
 
+        return new AbstractProcessorIterator<BiFunction>(wrappedIterator) {
             private CdxLine previousLine = null;
 
             @Override
@@ -38,9 +41,7 @@ public class BiFunctionProcessor extends AbstractProcessor<BiFunction> {
                 if (wrappedCdxIterator.hasNext()) {
                     CdxLine result = null;
                     for (BiFunction function : functions) {
-                        if (function != null) {
-                            result = computeNextForOneBiFunction(function);
-                        }
+                        result = computeNextForOneBiFunction(function);
                     }
                     return result;
                 } else {
