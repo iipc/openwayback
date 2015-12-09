@@ -86,14 +86,15 @@ public class AlphaPartitionedIndexTest extends TestCase {
 		WaybackRequest r = new WaybackRequest();
 		r.setRequestUrl(index.canonicalize("apple.com/"));
 		RangeGroup g = index.getRangeGroupForRequest(r);
-		assertEquals(g.getName(),"b");
+		assertEquals("b", g.getName());
+		// this is either "b1" or "b2", depending on the
+		// behavior of HashMap.
 		RangeMember b1 = g.findBestMember();
-		assertEquals(b1.getUrlBase(),"b1");
 		b1.noteConnectionStart();
 		// b1 => 1
 		// b2 => 0
 		RangeMember b2 = g.findBestMember();
-		assertEquals(b2.getUrlBase(),"b2");
+		assertNotSame(b1, b2);
 		b2.noteConnectionStart();
 		// b1 => 1
 		// b2 => 1
@@ -101,17 +102,17 @@ public class AlphaPartitionedIndexTest extends TestCase {
 		// b1 => 2
 		// b2 => 1
 		RangeMember b2_2 = g.findBestMember();
-		assertEquals(b2_2.getUrlBase(),"b2");		
+		assertSame(b2, b2_2);
 		b1.noteConnectionSuccess();
 		// b1 => 1
 		// b2 => 1
 		RangeMember b1_2 = g.findBestMember();
-		assertEquals(b1_2.getUrlBase(),"b1");		
+		assertSame(b1, b1_2);
 		b1.noteConnectionStart();
 		// b1 => 2
 		// b2 => 1
 		RangeMember b2_3 = g.findBestMember();
-		assertEquals(b2_3.getUrlBase(),"b2");		
+		assertSame(b2, b2_3);
 		b2_3.noteConnectionStart();
 		// b1 => 2
 		// b2 => 2
@@ -119,40 +120,40 @@ public class AlphaPartitionedIndexTest extends TestCase {
 		// b1 => 1
 		// b2 => 2
 		RangeMember b1_3 = g.findBestMember();
-		assertEquals(b1_3.getUrlBase(),"b1");		
+		assertSame(b1, b1_3);
 		b1_3.noteConnectionStart();
 		// b1 => 2
 		// b2 => 2
 		RangeMember b1_4 = g.findBestMember();
-		assertEquals(b1_4.getUrlBase(),"b1");		
+		assertSame(b1, b1_4);
 		b1_4.noteConnectionStart();
 		// b1 => 3
 		// b2 => 2
 		b2_3.noteConnectionSuccess();
 		// b1 => 3
 		// b2 => 1
-		assertEquals(g.findBestMember().getUrlBase(),"b2");		
+		assertSame(b2, g.findBestMember());
 		g.findBestMember().noteConnectionStart();		
 		// b1 => 3
 		// b2 => 2
-		assertEquals(g.findBestMember().getUrlBase(),"b2");		
-		assertEquals(g.findBestMember().getUrlBase(),"b2");		
+		assertSame(b2, g.findBestMember());
+		assertSame(b2, g.findBestMember());
 		g.findBestMember().noteConnectionStart();		
 		// b1 => 3
 		// b2 => 3
-		assertEquals(g.findBestMember().getUrlBase(),"b1");
+		assertSame(b1, g.findBestMember());
 		b1.noteConnectionSuccess();
 		// b1 => 2
 		// b2 => 3
-		assertEquals(g.findBestMember().getUrlBase(),"b1");
+		assertSame(b1, g.findBestMember());
 		b1.noteConnectionFailure();
 		// b1 => 1-X
 		// b2 => 3
-		assertEquals(g.findBestMember().getUrlBase(),"b2");
+		assertSame(b2, g.findBestMember());
 		b2.noteConnectionStart();
 		// b1 => 1-X
 		// b2 => 4
-		assertEquals(g.findBestMember().getUrlBase(),"b2");
+		assertSame(b2, g.findBestMember());
 		b2.noteConnectionStart();
 		// b1 => 1-X
 		// b2 => 5
@@ -167,7 +168,7 @@ public class AlphaPartitionedIndexTest extends TestCase {
 		b1.noteConnectionSuccess();
 		// b1 => 0
 		// b2 => 5
-		assertEquals(g.findBestMember().getUrlBase(),"b1");
+		assertSame(b1, g.findBestMember());
 		b1.noteConnectionStart();
 		// b1 => 1
 		// b2 => 5
@@ -178,11 +179,11 @@ public class AlphaPartitionedIndexTest extends TestCase {
 		b1.noteConnectionStart();
 		// b1 => 6
 		// b2 => 5
-		assertEquals(g.findBestMember().getUrlBase(),"b2");
+		assertSame(b2, g.findBestMember());
 		b2.noteConnectionStart();
 		// b1 => 6
 		// b2 => 6
-		assertEquals(g.findBestMember().getUrlBase(),"b1");
+		assertSame(b1, g.findBestMember());
 	}
 
 	private void testFindRange(final AlphaPartitionedIndex apIndex,
@@ -191,7 +192,7 @@ public class AlphaPartitionedIndexTest extends TestCase {
 		WaybackRequest r = new WaybackRequest();
 		r.setRequestUrl(apIndex.canonicalize(url));
 		RangeGroup g = apIndex.getRangeGroupForRequest(r);
-		assertEquals(g.getName(),wantGroup);		
+		assertEquals(wantGroup, g.getName());		
 	}
 
 	private void createRangeMapFile() throws IOException {

@@ -117,6 +117,8 @@ public class SimpleMimeTypeDetectorTest extends TestCase {
 
 	public void testContentSniffing_JavaScript() throws Exception {
 		assertEquals("text/javascript", detectMimeType("js/1.js", "text/html"));
+		assertEquals("text/javascript", detectMimeType("js/2.js", "text/html"));
+		assertEquals("text/javascript", detectMimeType("js/3.js", "text/html"));
 	}
 
 	public void testContentSniffing_JavaScript_compressed() throws Exception {
