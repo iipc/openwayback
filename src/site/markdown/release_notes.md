@@ -19,6 +19,7 @@ Full listing of changes and bug fixes are not available prior to release 1.2.0 a
 * Set exclusionFilter on wbRequest via AccessPoint only if not already set. [#259] (https://github.com/iipc/openwayback/issues/259)
 * robots.txt exclusion: Disallow: rules after empty Disallow: get ignored. [#268] (https://github.com/iipc/openwayback/issues/268)
 * Fix closestGroup race condition in RemoteResourceIndex. [#239] (https://github.com/iipc/openwayback/pull/239)
+* Minor clean up of typos and references to Wayback Machine in WaybackUI.properties. [#300] (https://github.com/iipc/openwayback/issues/300)
 
 ## OpenWayback 2.2.0 Release
 ### Features
