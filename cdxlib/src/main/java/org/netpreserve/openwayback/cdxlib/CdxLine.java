@@ -18,6 +18,7 @@ package org.netpreserve.openwayback.cdxlib;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Objects;
 
 /**
@@ -60,9 +61,55 @@ public class CdxLine implements Comparable<CdxLine> {
         parseFields();
     }
 
+    /**
+     * Get the first field with a certain name.
+     * <p>
+     * This method gets fields from the input. To get new mutable fields added during processing,
+     * use {@link #getMutableField(java.lang.String)}.
+     * <p>
+     * @param fieldName the name of the requested field
+     * @return the CharBuffer with the fields value
+     * @see #get(org.netpreserve.openwayback.cdxlib.FieldType)
+     * @see #get(int)
+     * @see #getMutableField(java.lang.String)
+     */
     public CharBuffer get(String fieldName) {
         int f = lineFormatMapper.getInputFormat().indexOf(fieldName);
-        return data.subSequence(fieldOffsets[f], fieldOffsets[f] + fieldLengths[f]);
+        return get(f);
+    }
+
+    /**
+     * Get the first field of certain type.
+     * <p>
+     * This method gets fields from the input. To get new mutable fields added during processing,
+     * use {@link #getMutableField(java.lang.String)}.
+     * <p>
+     * @param fieldType the type requested
+     * @return the CharBuffer with the fields value
+     * @see #get(java.lang.String)
+     * @see #get(int)
+     * @see #getMutableField(java.lang.String)
+     */
+    public CharBuffer get(FieldType fieldType) {
+        int f = lineFormatMapper.getInputFormat().indexOf(fieldType);
+        return get(f);
+    }
+
+    /**
+     * Get the field at a certain position in the input line.
+     * <p>
+     * This method gets fields from the input. To get new mutable fields added during processing,
+     * use {@link #getMutableField(java.lang.String)}.
+     * <p>
+     * @param fieldIndex the index of the field requested
+     * @return the CharBuffer with the fields value
+     * @see #get(java.lang.String)
+     * @see #get(org.netpreserve.openwayback.cdxlib.FieldType)
+     * @see #getMutableField(java.lang.String)
+     */
+    public CharBuffer get(int fieldIndex) {
+        return data.subSequence(fieldOffsets[fieldIndex],
+                fieldOffsets[fieldIndex] + fieldLengths[fieldIndex]);
     }
 
     public Object getMutableField(String fieldName) {
@@ -84,26 +131,25 @@ public class CdxLine implements Comparable<CdxLine> {
         return lineFormatMapper.getOutputFormat().indexOf(fieldName) != CdxLineSchema.MISSING_FIELD;
     }
 
-    /**
-     * Get the first field of certain type.
-     * <p>
-     * @param fieldType the type requested.
-     * @return the CharBuffer with the fields value.
-     */
-    public CharBuffer get(FieldType fieldType) {
-        int f = lineFormatMapper.getInputFormat().indexOf(fieldType);
-        return data.subSequence(fieldOffsets[f], fieldOffsets[f] + fieldLengths[f]);
-    }
-
     public CdxLineFormatMapper getFormatMapper() {
         return lineFormatMapper;
     }
 
+    /**
+     * Gets the data represented by this object after transforming it to the output format.
+     * <p>
+     * @return the output data
+     */
     @Override
     public String toString() {
         return String.valueOf(getOutputLine());
     }
 
+    /**
+     * Gets the data used to build this object as a String.
+     * <p>
+     * @return the source data as a String
+     */
     public String getInputString() {
         return String.valueOf(data);
     }
@@ -275,7 +321,7 @@ public class CdxLine implements Comparable<CdxLine> {
         int hash = 1;
         char[] array = data.array();
         int start = data.arrayOffset();
-        int limit = start + fieldLengths[0] + fieldLengths[1] + 1;
+        int limit = start + fieldLengths[0] + fieldLengths[1];
         for (int i = limit; i >= start; i--) {
             hash = 31 * hash + (int) array[i];
         }

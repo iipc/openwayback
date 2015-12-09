@@ -15,6 +15,7 @@
  */
 package org.netpreserve.openwayback.cdxlib.processor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.netpreserve.openwayback.cdxlib.cdxsource.CdxIterator;
@@ -28,42 +29,59 @@ public class BiFunctionProcessor<F extends BiFunction> extends AbstractProcessor
 
     @Override
     public CdxIterator processorIterator(CdxIterator wrappedIterator) {
-        final List<F> functions = getInstanciatedFunctions();
-        if (functions.isEmpty()) {
+        List<F> submittedFunctions = getInstanciatedFunctions();
+        if (submittedFunctions.isEmpty()) {
             return wrappedIterator;
         }
 
-        return new AbstractProcessorIterator<BiFunction>(wrappedIterator) {
-            private CdxLine previousLine = null;
+        final List<BiFunctionWrapper> functions = new ArrayList<>(submittedFunctions.size());
+        for (F sf : submittedFunctions) {
+            functions.add(new BiFunctionWrapper(sf));
+        }
 
+        return new AbstractProcessorIterator<BiFunction>(wrappedIterator) {
             @Override
             protected CdxLine computeNext() {
-                if (wrappedCdxIterator.hasNext()) {
-                    CdxLine result = null;
-                    for (BiFunction function : functions) {
-                        result = computeNextForOneBiFunction(function);
+                CdxLine result = null;
+                int functionIdx = 0;
+                BiFunctionWrapper function = functions.get(functionIdx);
+                while (wrappedCdxIterator.hasNext()) {
+                    result = applyFunction(0, wrappedCdxIterator.next());
+
+                    if (result != null) {
+                        return result;
                     }
-                    return result;
-                } else {
-                    return endOfData();
                 }
+                return endOfData();
             }
 
-            private CdxLine computeNextForOneBiFunction(BiFunction function) {
-                CdxLine result = null;
-                while (result == null && wrappedCdxIterator.hasNext()) {
-                    CdxLine input = wrappedCdxIterator.next();
-                    result = function.apply(previousLine, input);
-                    previousLine = input;
-                }
-                if (result != null) {
-                    return result;
+            private CdxLine applyFunction(int functionIdx, CdxLine currentLine) {
+                CdxLine result = functions.get(functionIdx).apply(currentLine);
+                if (result != null && functionIdx + 1 < functions.size()) {
+                    return applyFunction(functionIdx + 1, result);
                 } else {
-                    return endOfData();
+                    return result;
                 }
             }
 
         };
     }
 
+    private static class BiFunctionWrapper {
+
+        private final BiFunction function;
+
+        private CdxLine previousLine = null;
+
+        public BiFunctionWrapper(BiFunction function) {
+            this.function = function;
+        }
+
+        CdxLine apply(CdxLine currentLine) {
+            CdxLine result = function.apply(previousLine, currentLine);
+            previousLine = currentLine;
+            return result;
+        }
+
+    }
 }
