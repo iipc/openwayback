@@ -21,6 +21,7 @@ Full listing of changes and bug fixes are not available prior to release 1.2.0 a
 * Fix closestGroup race condition in RemoteResourceIndex. [#239] (https://github.com/iipc/openwayback/pull/239)
 * Minor clean up of typos and references to Wayback Machine in WaybackUI.properties. [#300] (https://github.com/iipc/openwayback/issues/300)
 * Use trimmed filename so readers can infer format. [#302] (https://github.com/iipc/openwayback/pull/302)
+* Fix for Date range queries. [#293] (https://github.com/iipc/openwayback/pull/293)
 
 ## OpenWayback 2.2.0 Release
 ### Features
