@@ -34,7 +34,7 @@ public class OraclePolicyService implements ContextExclusionFilterFactory, Rewri
 
 	// Now AccessControlClient is shared among multiple ExclusionFilter and RewriteDirector instances.
 	// Is AccessControlClient really thread-safe?
-	private AccessControlClient client;
+	protected AccessControlClient client;
 
 	public void setOracleUrl(String oracleUrl) {
 		this.oracleUrl = oracleUrl;
