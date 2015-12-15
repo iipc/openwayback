@@ -1,35 +1,41 @@
 /**
- * 
+ *
  */
 package org.archive.wayback.replay.html.transformer;
 
 import junit.framework.TestCase;
 
-import org.archive.wayback.replay.html.transformer.JSStringTransformerTest.RecordingReplayParseContext;
+import org.archive.wayback.replay.html.transformer.JSStringTransformerTest.ReplayParseContextMock;
+import org.easymock.EasyMock;
+import org.easymock.IAnswer;
 
 /**
  * unit test for {@link BlockCSSStringTransformer}.
- * 
+ *
  * @author kenji
  *
  */
 public class BlockCSSStringTransformerTest extends TestCase {
 
-	String baseURL;
-	RecordingReplayParseContext rc;
+	ReplayParseContextMock rpc;
 	BlockCSSStringTransformer st;
-	
+
 	/* (non-Javadoc)
 	 * @see junit.framework.TestCase#setUp()
 	 */
 	protected void setUp() throws Exception {
-		baseURL = "http://foo.com";
-		rc = new RecordingReplayParseContext(baseURL, null);
+		rpc = new ReplayParseContextMock();
 		st = new BlockCSSStringTransformer();
 	}
 
 	public void testTransform() throws Exception {
-        final String input = 
+		IAnswer<String> answer = new IAnswer<String>() {
+			@Override
+			public String answer() throws Throwable {
+				return (String)EasyMock.getCurrentArguments()[0];
+			}
+		};
+        final String input =
         		"@import \"style1.css\";\n" +
         		"@import 'style2.css';\n" +
         		"@import 'http://archive.org/common.css';\n" +
@@ -37,12 +43,15 @@ public class BlockCSSStringTransformerTest extends TestCase {
         		"  color: #fff;\n" +
         		"  background: transparent url(bg.gif);\n" +
         		"}\n";
-        st.transform(rc, input);
-        
-        assertEquals(4, rc.got.size());
-        assertTrue(rc.got.contains("style1.css"));
-        assertTrue(rc.got.contains("style2.css"));
-        assertTrue(rc.got.contains("http://archive.org/common.css"));
-        assertTrue(rc.got.contains("bg.gif"));
+        EasyMock.expect(rpc.mock.contextualizeUrl("style1.css", "cs_")).andAnswer(answer);
+        EasyMock.expect(rpc.mock.contextualizeUrl("style2.css", "cs_")).andAnswer(answer);
+        EasyMock.expect(rpc.mock.contextualizeUrl("http://archive.org/common.css", "cs_")).andAnswer(answer);
+        EasyMock.expect(rpc.mock.contextualizeUrl("bg.gif", "im_")).andAnswer(answer);
+
+        EasyMock.replay(rpc.mock);
+
+        st.transform(rpc, input);
+
+        EasyMock.verify(rpc.mock);
 	}
 }
