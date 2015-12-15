@@ -2,8 +2,8 @@
  *  This file is part of the Wayback archival access software
  *   (http://archive-access.sourceforge.net/projects/wayback/).
  *
- *  Licensed to the Internet Archive (IA) by one or more individual 
- *  contributors. 
+ *  Licensed to the Internet Archive (IA) by one or more individual
+ *  contributors.
  *
  *  The IA licenses this file to You under the Apache License, Version 2.0
  *  (the "License"); you may not use this file except in compliance with
@@ -21,7 +21,9 @@ package org.archive.wayback.replay.html.transformer;
 
 import junit.framework.TestCase;
 
-import org.archive.wayback.replay.html.transformer.JSStringTransformerTest.RecordingReplayParseContext;
+import org.archive.wayback.core.CaptureSearchResult;
+import org.archive.wayback.replay.html.transformer.JSStringTransformerTest.ReplayParseContextMock;
+import org.easymock.EasyMock;
 
 /**
  * @author brad
@@ -30,22 +32,26 @@ import org.archive.wayback.replay.html.transformer.JSStringTransformerTest.Recor
 public class MetaRefreshUrlStringTransformerTest extends TestCase {
 
 	String baseURL;
-	RecordingReplayParseContext rc;
+	ReplayParseContextMock rpc;
+	CaptureSearchResult result;
 	MetaRefreshUrlStringTransformer st;
 
 	@Override
 	protected void setUp() throws Exception {
 		baseURL = "http://foo.com/";
-		rc = new RecordingReplayParseContext(baseURL, null);
+		rpc = new ReplayParseContextMock();
+
 		st = new MetaRefreshUrlStringTransformer();
 	}
 
 	public void testTransformFull() throws Exception {
 		final String input = "0; URL=https://www.example.com/content";
-		st.transform(rc, input);
-		
-		assertEquals(1, rc.got.size());
-		assertEquals("https://www.example.com/content", rc.got.get(0));
+		EasyMock.expect(
+			rpc.mock.contextualizeUrl("https://www.example.com/content", ""))
+			.andReturn("https://www.example.com/content");
+		EasyMock.replay(rpc.mock);
+
+		st.transform(rpc, input);
 	}
 
 	public void testTransformVariations() throws Exception {
@@ -58,10 +64,11 @@ public class MetaRefreshUrlStringTransformerTest extends TestCase {
 				{ "0; URL=/bar", "/bar" },
 		};
 		for (String[] c : cases) {
-			rc = new RecordingReplayParseContext(baseURL, null);
-			st.transform(rc, c[0]);
-			assertEquals(c[0], 1, rc.got.size());
-			assertEquals(c[0], c[1], rc.got.get(0));
+			EasyMock.expect(rpc.mock.contextualizeUrl(c[1], "")).andReturn(c[1]);
+			EasyMock.replay(rpc.mock);
+			st.transform(rpc, c[0]);
+
+			EasyMock.reset(rpc.mock);
 		}
 	}
 }

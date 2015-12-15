@@ -1,30 +1,31 @@
 /**
- * 
+ *
  */
 package org.archive.wayback.replay.html.transformer;
 
 import junit.framework.TestCase;
 
-import org.archive.wayback.replay.html.transformer.JSStringTransformerTest.RecordingReplayParseContext;
+import org.archive.wayback.replay.html.transformer.JSStringTransformerTest.ReplayParseContextMock;
+import org.easymock.EasyMock;
 
 /**
  * unit test for {@link BlockCSSStringTransformer}.
- * 
+ *
  * @author kenji
  *
  */
 public class InlineCSSStringTransformerTest extends TestCase {
 
 	String baseURL;
-	RecordingReplayParseContext rc;
+	ReplayParseContextMock rpc;
 	InlineCSSStringTransformer st;
-	
+
 	/* (non-Javadoc)
 	 * @see junit.framework.TestCase#setUp()
 	 */
 	protected void setUp() throws Exception {
 		baseURL = "http://foo.com";
-		rc = new RecordingReplayParseContext(baseURL, null);
+		rpc = new ReplayParseContextMock();
 		st = new InlineCSSStringTransformer();
 	}
 
@@ -44,12 +45,14 @@ public class InlineCSSStringTransformerTest extends TestCase {
 					"//archive.org/sqred.gif"
 				}
 		};
-		
+
 		for (String[] c : cases) {
-			rc = new RecordingReplayParseContext(baseURL, null);
-			st.transform(rc, c[0]);
-			assertEquals(c[0], 1, rc.got.size());
-			assertEquals(c[0], c[1], rc.got.get(0));
+			EasyMock.expect(rpc.mock.contextualizeUrl(c[1], "im_")).andReturn(c[1]);
+			EasyMock.replay(rpc.mock);
+
+			st.transform(rpc, c[0]);
+
+			EasyMock.reset(rpc.mock);
 		}
 	}
 }

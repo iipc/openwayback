@@ -19,9 +19,12 @@
  */
 package org.archive.wayback.replay.html.transformer;
 
+import java.lang.reflect.Method;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.log4j.Logger;
 import org.archive.wayback.replay.html.ReplayParseContext;
 import org.archive.wayback.replay.html.StringTransformer;
 
@@ -52,10 +55,90 @@ import org.archive.wayback.replay.html.StringTransformer;
  *
  */
 public class JSStringTransformer implements StringTransformer {
+	private static final Logger LOGGER = Logger
+		.getLogger(JSStringTransformer.class.getName());
+
 	private final static Pattern defaultHttpPattern = Pattern
 	.compile("(https?:\\\\?/\\\\?/[A-Za-z0-9:_@.-]+)");
 
 	private Pattern pattern = defaultHttpPattern;
+	private String escaping;
+	// we could expose SourceEscaping interface and sourceEscaping for higher
+	// degree of customization
+	private SourceEscaping sourceEscaping;
+
+	public interface SourceEscaping {
+		public String unescape(String text);
+		public String escape(String text);
+	}
+	
+	/**
+	 * SourceEscaping implemented with commons-lang {@link StringEscapeUtils}
+	 */
+	public class CommonsLangEscaping implements SourceEscaping {
+		private Method escapeMethod;
+		private Method unescapeMethod;
+
+		/**
+		 * Initialize with escaping scheme name.
+		 * See {@code escape}... methods of {@link StringEscapeUtils} for supported
+		 * escaping scheme names. {@code null} or empty string are valid, and will
+		 * make a no-op escaping.
+		 * @param name escaping scheme name, ex. "JavaScript"
+		 */
+		public CommonsLangEscaping(String name) {
+			if (name == null || name.isEmpty()) {
+				escapeMethod = unescapeMethod = null;
+			} else {
+				if (name.equals("javascript")) {
+					name = "JavaScript";
+				} else {
+					if (Character.isLowerCase(name.charAt(0))) {
+						name = name.substring(0, 1).toUpperCase() +
+								name.substring(1);
+					}
+				}
+				try {
+					escapeMethod = StringEscapeUtils.class.getMethod("escape" +
+							name, String.class);
+				} catch (NoSuchMethodException ex) {
+					throw new IllegalArgumentException(
+						"StringEscapeUtils.escape" + name, ex);
+				}
+				try {
+					unescapeMethod = StringEscapeUtils.class.getMethod(
+						"unescape" + name, String.class);
+				} catch (NoSuchMethodException ex) {
+					throw new IllegalArgumentException(
+						"StringEscapeUtils.unescape" + name, ex);
+				}
+			}
+		}
+		
+		public String unescape(String text) {
+			if (unescapeMethod != null) {
+				try {
+					return (String)unescapeMethod.invoke(null, text);
+				} catch (Exception ex) {
+					LOGGER.warn("Error unescaping text \"" + text + "\" with " +
+							unescapeMethod, ex);
+				}
+			}
+			return text;
+		}
+
+		public String escape(String text) {
+			if (escapeMethod != null) {
+				try {
+					return (String)escapeMethod.invoke(null, text);
+				} catch (Exception ex) {
+					LOGGER.warn("Error escaping text \"" + text +
+							"\" with " + escapeMethod, ex);
+				}
+			}
+			return text;
+		}
+	}
 
 	/**
 	 * a regular expression for searching URLs in the target resource.
@@ -69,16 +152,31 @@ public class JSStringTransformer implements StringTransformer {
 		return pattern.pattern();
 	}
 
+	/**
+	 * Naming of escaping scheme applied to extracted text.
+	 * @param escaping escaping scheme name, such as {@code JavaScript},
+	 * {@code Xml}
+	 * @see StringEscapeUtils
+	 */
+	public void setEscaping(String escaping) {
+		this.sourceEscaping = new CommonsLangEscaping(escaping);
+		this.escaping = escaping;
+	}
+
+	public String getEscaping() {
+		return escaping;
+	}
+
 	public String transform(ReplayParseContext context, String input) {
 		StringBuffer replaced = new StringBuffer(input.length());
 		Matcher m = pattern.matcher(input);
 		while (m.find()) {
-			String url = m.group(1);
+			String rawUrl = m.group(1);
 			String pre = input.substring(m.start(), m.start(1));
 			String post = input.substring(m.end(1), m.end());
 
-			String origUrl = url;
-			url = context.contextualizeUrl(url);
+			String origUrl = sourceEscaping != null ? sourceEscaping.unescape(rawUrl) : rawUrl;
+			String url = context.contextualizeUrl(origUrl);
 
 			if (url != origUrl) {
 				// reverse some changes made to url by contextualizeUrl method, that
@@ -98,6 +196,13 @@ public class JSStringTransformer implements StringTransformer {
 				if (origUrl.endsWith(".") && !url.endsWith(".")) {
 					url = url + ".";
 				}
+				
+				if (sourceEscaping != null) {
+					url = sourceEscaping.escape(url);
+				}
+			} else {
+				// use the original rawUrl
+				url = rawUrl;
 			}
 			m.appendReplacement(replaced, Matcher.quoteReplacement(pre + url + post));
 		}
