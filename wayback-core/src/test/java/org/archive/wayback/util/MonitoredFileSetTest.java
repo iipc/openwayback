@@ -10,10 +10,12 @@ import junit.framework.TestCase;
 public class MonitoredFileSetTest extends TestCase {
 
 	public void testIsChanged() throws IOException, InterruptedException {
-		File f1 = new File("/tmp/file-set-1.tmp");
-		File f2 = new File("/tmp/file-set-2.tmp");
+		File f1 = File.createTempFile("file-set-", null);
+		File f2 = File.createTempFile("file-set-", null);
 		writeFile(f1,"one");
 		writeFile(f2,"two");
+		f1.deleteOnExit();
+		f2.deleteOnExit();
 		ArrayList<String> l = new ArrayList<String>();
 		l.add(f1.getAbsolutePath());
 		l.add(f2.getAbsolutePath());
@@ -33,9 +35,6 @@ public class MonitoredFileSetTest extends TestCase {
 		assertFalse(fs.isChanged(s3));
 	}
 	private void writeFile(File f, String stuff) throws IOException {
-		if(f.exists()) {
-			f.delete();
-		}
 		FileOutputStream fos = new FileOutputStream(f,false);
 		fos.write(stuff.getBytes());
 		fos.close();
