@@ -17,13 +17,15 @@
   <bean name="cdxSource" class="org.archive.format.cdx.MultiCDXInputSource">
     <property name="cdxUris">
     <list>
+        <value>#{systemProperties['cdx.file']}</value>
+        <!-- 
         <value>/tmp/mycdx1.cdx</value>
         <value>/tmp/mycdx2.cdx</value>
+         -->
     </list>
     </property>
   </bean>
-        
-
+  
   <!-- ZipNum Input Example - to use paging, the source must be a zipnum cluster -->
   <!-- 
   <bean name="zipnumCluster" class="org.archive.format.gzip.zipnum.ZipNumCluster" init-method="init">
@@ -57,6 +59,10 @@
     
     <!-- Main Input Source -->
     <property name="cdxSource" ref="cdxSource" />
+    <!-- 
+    <property name="surtMode" value="true"/>
+    <property name="cdxFormat" value="cdx11"/>
+     -->
     
     <!-- Optional: Add an auth checker to restrict access -->
     <!-- 
@@ -69,6 +75,7 @@
     <property name="zipnumSource" ref="zipnumCluster" />
     <property name="pageSize" value="50"/>
      -->
+     
   </bean>
   
 </beans>
