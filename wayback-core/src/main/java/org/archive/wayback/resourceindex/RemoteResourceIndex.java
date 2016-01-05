@@ -44,7 +44,9 @@ import org.archive.wayback.exception.ConfigurationException;
 import org.archive.wayback.exception.ResourceIndexNotAvailableException;
 import org.archive.wayback.exception.ResourceNotInArchiveException;
 import org.archive.wayback.resourceindex.filterfactory.ClosestTrackingCaptureFilterGroup;
+import org.archive.wayback.resourceindex.filters.ConditionalGetAnnotationFilter;
 import org.archive.wayback.resourceindex.filters.SelfRedirectFilter;
+import org.archive.wayback.resourceindex.filters.WARCRevisitAnnotationFilter;
 import org.archive.wayback.util.ObjectFilter;
 import org.archive.wayback.util.ObjectFilterChain;
 import org.archive.wayback.util.url.AggressiveUrlCanonicalizer;
@@ -211,6 +213,9 @@ public class RemoteResourceIndex implements ResourceIndex {
 			SelfRedirectFilter selfRedirectFilter = new SelfRedirectFilter();
 			selfRedirectFilter.setCanonicalizer(canonicalizer);
 			filters.addFilter(selfRedirectFilter);
+
+            filters.addFilter(new WARCRevisitAnnotationFilter());
+            filters.addFilter(new ConditionalGetAnnotationFilter());
 
             filters.addFilter(closestGroup.getFilter());
 		} else {
