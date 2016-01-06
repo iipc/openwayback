@@ -3,6 +3,7 @@ package org.archive.wayback.archivalurl;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
 
 import javax.servlet.ServletException;
@@ -1142,7 +1143,11 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 
     public String doEndToEnd(String input) throws Exception {
 		ByteArrayInputStream bais = new ByteArrayInputStream(input.getBytes(charSet));
-		
+		byte[] bytes = rewrite(bais);
+		return new String(bytes, outputCharset);
+    }
+    
+    public byte[] rewrite(InputStream is) throws Exception {
 		// To make sure we get the length, we have to buffer it all up...
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		context.setOutputStream(baos);
@@ -1150,7 +1155,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 
 		// and finally, parse, using the special lexer that knows how to
 		// handle javascript blocks containing unescaped HTML entities:
-		Page lexPage = new Page(bais,charSet);
+		Page lexPage = new Page(is, charSet);
 		Lexer lexer = new Lexer(lexPage);
 		Lexer.STRICT_REMARKS = false;
 		ContextAwareLexer lex = new ContextAwareLexer(lexer, context);
@@ -1162,7 +1167,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 		delegator.handleParseComplete(context);
 
 		// At this point, baos contains the utf-8 encoded bytes of our result:
-		return new String(baos.toByteArray(), outputCharset);
+		return baos.toByteArray();
 	}
 
 	// The followings checks expected (quirky) behaviors of HTMLParser.
