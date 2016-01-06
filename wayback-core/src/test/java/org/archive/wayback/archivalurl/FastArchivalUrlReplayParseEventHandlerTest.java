@@ -3,6 +3,7 @@ package org.archive.wayback.archivalurl;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
 
 import javax.servlet.ServletException;
@@ -921,6 +922,150 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
         assertEquals(expected, out);
 	}
 
+	/**
+	 * {@code </script>} in string literal will end {@code script} element.
+	 * This matches the behavior of major browsers, and it is a widely adopted practice not to write
+	 * {@code </script>} as it is.
+	 * While HTMLParser can disregard it as being inside string literal if <i>smart quote</i> feature
+	 * is turned on, it'll break other well-formed case instead. See {@link #testCommentQuotesAndTagText()}.
+	 * @throws Exception
+	 */
+	@SuppressWarnings("unused")
+	public void testQuotedEndScriptTag() throws Exception {
+		delegator.setHeadInsertJsp("head.jsp");
+		delegator.setJspInsertPath("body-insert.jsp");
+		jspExec = new TestJSPExecutor();
+
+		final String input = "<html><head>" +
+				"<script>a = '</script>';b='http://example.com/';</script></head>" +
+				"<body></body></html>";
+		final String expected = "<html><head>[[[JSP-INSERT:head.jsp]]]" +
+				"<script>a = '</script>';b='http://example.com/';</script></head>" +
+				"<body>[[[JSP-INSERT:body-insert.jsp]]]</body></html>";
+		final String expected_with_smartquote = "<html><head>[[[JSP-INSERT:head.jsp]]]" +
+				"<script>a = '</script>';b='http://replay.archive.org/2001/http://example.com/';</script></head>" +
+				"<body>[[[JSP-INSERT:body-insert.jsp]]]</body></html>";
+
+        String out = doEndToEnd(input);
+        //System.out.println(out);
+
+        assertEquals(expected, out);
+	}
+
+	/**
+	 * Non-{@code script} close tag in string literal. This shall not end {@code script} element.
+	 * Matches the behavior of major browsers.
+	 * @throws Exception
+	 */
+	public void testQuotedEndOtherTag() throws Exception {
+		delegator.setHeadInsertJsp("head.jsp");
+		delegator.setJspInsertPath("body-insert.jsp");
+		jspExec = new TestJSPExecutor();
+
+		final String input = "<html><head>" +
+				"<script>a = '</div>';b='http://example.com/';</script></head>" +
+				"<body></body></html>";
+		final String expected = "<html><head>[[[JSP-INSERT:head.jsp]]]" +
+				"<script>a = '</div>';b='http://replay.archive.org/2001/http://example.com/';</script></head>" +
+				"<body>[[[JSP-INSERT:body-insert.jsp]]]</body></html>";
+
+        String out = doEndToEnd(input);
+
+        assertEquals(expected, out);
+	}
+
+	/**
+	 * {@code </script>} in JavaScript comment will end {@code script} element.
+	 * This matches the behavior of major browsers.
+	 * Similarly to {@link #testQuotedEndScriptTag()}, while HTMLParser can disregard it as being inside JavaScript comment
+	 * if <i>smart quote</i> feature is turned on, it'll break other well-formed case instead. See {@link #testCommentQuotesAndTagText()}.
+	 * @throws Exception
+	 */
+	@SuppressWarnings("unused")
+	public void testCommentedOutEndScriptTag() throws Exception {
+		delegator.setHeadInsertJsp("head.jsp");
+		delegator.setJspInsertPath("body-insert.jsp");
+		jspExec = new TestJSPExecutor();
+
+		final String input = "<html><head>" +
+				"<script>// </script>\nb='http://example.com/';</script></head>" +
+				"<body></body></html>";
+		final String expected = "<html><head>[[[JSP-INSERT:head.jsp]]]" +
+				"<script>// </script>\nb='http://example.com/';</script></head>" +
+				"<body>[[[JSP-INSERT:body-insert.jsp]]]</body></html>";
+		final String expected_with_smartquote = "<html><head>[[[JSP-INSERT:head.jsp]]]" +
+				"<script>// </script>\nb='http://replay.archive.org/2001/http://example.com/';</script></head>" +
+				"<body>[[[JSP-INSERT:body-insert.jsp]]]</body></html>";
+
+        String out = doEndToEnd(input);
+        //System.out.println(out);
+
+        assertEquals(expected, out);
+	}
+
+	/**
+	 * {@code <script>} in string literal shall not end script element.
+	 * This matches behavior of major browsers.
+	 * @throws Exception
+	 */
+	public void testQuotedStartScriptTag() throws Exception {
+		delegator.setHeadInsertJsp("head.jsp");
+		delegator.setJspInsertPath("body-insert.jsp");
+		jspExec = new TestJSPExecutor();
+
+		final String input = "<html><head><script>a = '<script>';b='http://example.com/';</script></head>" +
+				"<body></body></html>";
+		final String expected = "<html><head>[[[JSP-INSERT:head.jsp]]]<script>a = '<script>';b='http://replay.archive.org/2001/http://example.com/';</script></head>" +
+				"<body>[[[JSP-INSERT:body-insert.jsp]]]</body></html>";
+
+        String out = doEndToEnd(input);
+        //System.out.println(out);
+
+        assertEquals(expected, out);
+		
+	}
+
+	/**
+	 * Test that fails if HTMLParser's <i>smart quote</i> feature is turned on.
+	 * There's a quoted non-{@code script} end tag in JavaScript comment line.
+	 * @throws Exception
+	 */
+	public void testCommentQuotesAndTagText() throws Exception {
+		// Currently there's a bug that JavaScript rewrite does not happen if headInsertJsp is null.
+		delegator.setHeadInsertJsp("head.jsp");
+		jspExec = new TestJSPExecutor();
+		// Note: existence of line comment and single quotes is important in this test - HTMLParser does some elaborate
+		// processing with them that results in a failure to recognize close tag </script>.
+		final String input = "<html>\n" +
+				"<head>\n" +
+				"<script>\n" +
+				"a=\"http://example.com/\";\n" +
+				"// '</div>'\n" +
+				"</script>\n" +
+				"</head>\n" +
+				"<body>\n" +
+				"http://example.com/\n" +
+				"</body>\n" +
+				"</html>\n";
+		// URL in <body> must not be rewritten. If parser fails to recognize </script>, then it'll be rewritten by JavaScript transformer.
+		final String expected = "<html>\n" +
+				"<head>[[[JSP-INSERT:head.jsp]]]\n" +
+				"<script>\n" +
+				"a=\"http://replay.archive.org/2001/http://example.com/\";\n" +
+				"// '</div>'\n" +
+				"</script>\n" +
+				"</head>\n" +
+				"<body>\n" +
+				"http://example.com/\n" +
+				"</body>\n" +
+				"</html>\n";
+
+		String out = doEndToEnd(input);
+		//System.out.println(out);
+
+		assertEquals(expected, out);
+	}
+
 	public void testXHTML() throws Exception {
 		delegator.setHeadInsertJsp("head.jsp");
 		delegator.setJspInsertPath("body-insert.jsp");
@@ -998,7 +1143,11 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 
     public String doEndToEnd(String input) throws Exception {
 		ByteArrayInputStream bais = new ByteArrayInputStream(input.getBytes(charSet));
-		
+		byte[] bytes = rewrite(bais);
+		return new String(bytes, outputCharset);
+    }
+    
+    public byte[] rewrite(InputStream is) throws Exception {
 		// To make sure we get the length, we have to buffer it all up...
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		context.setOutputStream(baos);
@@ -1006,7 +1155,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 
 		// and finally, parse, using the special lexer that knows how to
 		// handle javascript blocks containing unescaped HTML entities:
-		Page lexPage = new Page(bais,charSet);
+		Page lexPage = new Page(is, charSet);
 		Lexer lexer = new Lexer(lexPage);
 		Lexer.STRICT_REMARKS = false;
 		ContextAwareLexer lex = new ContextAwareLexer(lexer, context);
@@ -1018,7 +1167,7 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 		delegator.handleParseComplete(context);
 
 		// At this point, baos contains the utf-8 encoded bytes of our result:
-		return new String(baos.toByteArray(), outputCharset);
+		return baos.toByteArray();
 	}
 
 	// The followings checks expected (quirky) behaviors of HTMLParser.
