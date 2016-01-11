@@ -169,7 +169,7 @@ For example: http://web.archive.org/cdx/search/cdx?url=archive.org&output=json&l
 
 A new form of filtering is the option to 'collapse' results based on a field, or a substring of a field.
 Collapsing is done on adjacent cdx lines, causing all matching captures after the first one to be filtered out.
-This is useful for simplifying queries whose resultsare 'too dense' or when looking for unique captures.
+This is useful for simplifying queries whose results are 'too dense' or when looking for unique captures.
 
 To use collapsing, add one or more params of the form **collapse=field** or **collapse=field:N** where N is the first N characters of *field* to test.
 
