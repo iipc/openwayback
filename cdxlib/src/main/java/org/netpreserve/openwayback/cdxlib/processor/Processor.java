@@ -26,9 +26,9 @@ import java.util.List;
  * <p>
  * This could for example be filtering, collapsing, counting or reformatting lines.
  * <p>
- * @param <F> The type of functions this processor handles.
+ * @param <T> The type of functions this processor handles.
  */
-public interface Processor<F extends Function> {
+public interface Processor<T extends Function> {
 
     /**
      * Get the iterator for this processor. The Iterator wraps other processors, which finally wraps
@@ -49,24 +49,33 @@ public interface Processor<F extends Function> {
      * <p>
      * @param function the function to add
      * @return returns this processor for easy chaining of calls
+     * @see #addFunctionProvider(org.netpreserve.openwayback.cdxlib.functions.FunctionProvider)
      */
-    Processor<F> addFunction(F function);
+    Processor<T> addFunction(T function);
 
     /**
-     *
-     * @param functionProvider
-     * @return
+     * Add a function provider to this processor.
+     * <p>
+     * In cases where the function can't be made thread safe, a function provider should be used.
+     * The purpose of the function provider is to instantiate a new function for every iteration. If
+     * the function is stateless and thread safe, using
+     * {@link #addFunction(org.netpreserve.openwayback.cdxlib.functions.Function) would be better
+     * to avoid unnecessary object creation.
+     * <p>
+     * @param functionProvider the function provider to add
+     * @return returns this processor for easy chaining of calls
+     * @see #addFunction(org.netpreserve.openwayback.cdxlib.functions.Function)
      */
-    Processor<F> addFunctionProvider(FunctionProvider<F> functionProvider);
+    Processor<T> addFunctionProvider(FunctionProvider<T> functionProvider);
 
     /**
      * Gets a list of functions ready for use in one iteration.
      * <p>
-     * Functions are returned unaltered and functionproviders gets their
+     * Functions are returned unaltered and function providers gets their
      * {@link FunctionProvider#newCdxFunction()} called to create a new instance.
      * <p>
      * @return the list of functions.
      */
-    List<F> getInstanciatedFunctions();
+    List<T> getInstanciatedFunctions();
 
 }

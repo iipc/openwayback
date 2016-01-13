@@ -17,7 +17,7 @@
 package org.netpreserve.openwayback.cdxlib.functions;
 
 /**
- *
+ * Marker interface for functions.
  */
 public interface Function {
 

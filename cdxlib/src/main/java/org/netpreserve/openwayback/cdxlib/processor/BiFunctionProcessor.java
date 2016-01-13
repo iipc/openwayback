@@ -24,18 +24,21 @@ import org.netpreserve.openwayback.cdxlib.functions.BiFunction;
 
 /**
  * Processor taking a set of {@link BiFunction}'s and returning the evaluation of those.
+ * <p>
+ * @param <T> The type of {@link BiFunction} supported by this processor.
  */
-public class BiFunctionProcessor<F extends BiFunction> extends AbstractProcessor<F> {
+public class BiFunctionProcessor<T extends BiFunction> extends AbstractProcessor<T> {
+    public static final String COLLAPSE_COUNT_FIELD_NAME = "collapseCount";
 
     @Override
     public CdxIterator processorIterator(CdxIterator wrappedIterator) {
-        List<F> submittedFunctions = getInstanciatedFunctions();
+        List<T> submittedFunctions = getInstanciatedFunctions();
         if (submittedFunctions.isEmpty()) {
             return wrappedIterator;
         }
 
         final List<BiFunctionWrapper> functions = new ArrayList<>(submittedFunctions.size());
-        for (F sf : submittedFunctions) {
+        for (T sf : submittedFunctions) {
             functions.add(new BiFunctionWrapper(sf));
         }
 
@@ -43,8 +46,6 @@ public class BiFunctionProcessor<F extends BiFunction> extends AbstractProcessor
             @Override
             protected CdxLine computeNext() {
                 CdxLine result = null;
-                int functionIdx = 0;
-                BiFunctionWrapper function = functions.get(functionIdx);
                 while (wrappedCdxIterator.hasNext()) {
                     result = applyFunction(0, wrappedCdxIterator.next());
 
@@ -67,20 +68,69 @@ public class BiFunctionProcessor<F extends BiFunction> extends AbstractProcessor
         };
     }
 
+    /**
+     * Helper class to keep necessary state for each function during an iteration.
+     */
     private static class BiFunctionWrapper {
 
         private final BiFunction function;
 
         private CdxLine previousLine = null;
 
+        /**
+         * Construct a wrapper taking the function to wrap as the sole argument.
+         * <p>
+         * @param function the function to wrap
+         */
         public BiFunctionWrapper(BiFunction function) {
             this.function = function;
         }
 
+        /**
+         * Process the current line with the wrapped function.
+         * <p>
+         * @param currentLine the line to process
+         * @return the result of processing the line. Might be {@code null} indicating that the
+         * current line should be skipped or collapsed
+         */
         CdxLine apply(CdxLine currentLine) {
             CdxLine result = function.apply(previousLine, currentLine);
+
+            if (currentLine.hasMutableField(COLLAPSE_COUNT_FIELD_NAME)) {
+                updateCounter(currentLine, result);
+            }
+
             previousLine = currentLine;
             return result;
+        }
+
+        /**
+         * Update a counter telling how man lines was collapsed into the current one.
+         * <p>
+         * A line is considered collapsed when the result parameter is {@code null}
+         * <p>
+         * @param currentLine the current CDX line
+         * @param result the result of the functions processing the current line.
+         */
+        private void updateCounter(CdxLine currentLine, CdxLine result) {
+            if (previousLine == null) {
+                if (currentLine.getMutableField(COLLAPSE_COUNT_FIELD_NAME) == null) {
+                    currentLine.setMutableField(COLLAPSE_COUNT_FIELD_NAME, 1);
+                }
+            } else {
+                int prevCount;
+                if (result == null) {
+                    prevCount = (int) previousLine.getMutableField(COLLAPSE_COUNT_FIELD_NAME);
+                } else {
+                    prevCount = 0;
+                }
+
+                int curCount = 1;
+                if (currentLine.getMutableField(COLLAPSE_COUNT_FIELD_NAME) != null) {
+                    curCount = (int) currentLine.getMutableField(COLLAPSE_COUNT_FIELD_NAME);
+                }
+                currentLine.setMutableField(COLLAPSE_COUNT_FIELD_NAME, prevCount + curCount);
+            }
         }
 
     }

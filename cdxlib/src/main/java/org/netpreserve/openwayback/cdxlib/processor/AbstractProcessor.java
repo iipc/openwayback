@@ -18,23 +18,27 @@ package org.netpreserve.openwayback.cdxlib.processor;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.netpreserve.openwayback.cdxlib.CdxLineFormatMapper;
 import org.netpreserve.openwayback.cdxlib.functions.Function;
 import org.netpreserve.openwayback.cdxlib.functions.FunctionProvider;
 
 /**
- *
+ * Base implementation of {@link Processor}.
+ * <p>
+ * @param <T> The type of {@link Function} supported by this processor.
  */
-public abstract class AbstractProcessor<F extends Function> implements Processor<F> {
+public abstract class AbstractProcessor<T extends Function> implements Processor<T> {
 
-    private List<Object> functions;
+    private final List<Object> functions;
 
+    /**
+     * Default constructor.
+     */
     public AbstractProcessor() {
         this.functions = new ArrayList<>();
     }
 
     @Override
-    public Processor<F> addFunction(F function) {
+    public Processor<T> addFunction(T function) {
         if (function != null) {
             functions.add(function);
         }
@@ -42,7 +46,7 @@ public abstract class AbstractProcessor<F extends Function> implements Processor
     }
 
     @Override
-    public Processor<F> addFunctionProvider(FunctionProvider<F> functionProvider) {
+    public Processor<T> addFunctionProvider(FunctionProvider<T> functionProvider) {
         if (functionProvider != null) {
             functions.add(functionProvider);
         }
@@ -50,13 +54,13 @@ public abstract class AbstractProcessor<F extends Function> implements Processor
     }
 
     @Override
-    public List<F> getInstanciatedFunctions() {
-        List<F> instanciatedFunctions = new ArrayList<>(functions.size());
+    public List<T> getInstanciatedFunctions() {
+        List<T> instanciatedFunctions = new ArrayList<>(functions.size());
         for (Object f : functions) {
             if (f instanceof Function) {
-                instanciatedFunctions.add((F) f);
+                instanciatedFunctions.add((T) f);
             } else {
-                instanciatedFunctions.add(((FunctionProvider<F>) f).newCdxFunction());
+                instanciatedFunctions.add(((FunctionProvider<T>) f).newFunction());
             }
         }
         return instanciatedFunctions;

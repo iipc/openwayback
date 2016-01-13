@@ -20,7 +20,7 @@ import org.netpreserve.openwayback.cdxlib.functions.Function;
 import org.netpreserve.openwayback.cdxlib.cdxsource.CdxIterator;
 import org.netpreserve.openwayback.cdxlib.CdxLine;
 
-public abstract class AbstractProcessorIterator<F extends Function> implements CdxIterator {
+public abstract class AbstractProcessorIterator<T extends Function> implements CdxIterator {
 
     protected CdxIterator wrappedCdxIterator;
 
