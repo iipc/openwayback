@@ -30,13 +30,14 @@ public interface CdxSource extends Closeable {
     /**
      * Get a list of Cdx lines.
      *
-     * @param startUrl the lexiografically lowest url (inclusive) to get.
-     * @param endUrl the lexiografically highest url (exclusive) to get.
-     * @param outputFormat the format the line should be converted to.
-     * @param processors a list of processors for filtering the list.
-     * @return an {@link SearchResult} returning iterators over the requested list.
+     * @param startUrl the lexiografically lowest url (inclusive) to get
+     * @param endUrl the lexiografically highest url (exclusive) to get
+     * @param outputFormat the format the line should be converted to
+     * @param processors a list of processors for filtering the list
+     * @param reverse if true the result list will be sorted in descending order
+     * @return an {@link SearchResult} returning iterators over the requested list
      */
     SearchResult search(String startUrl, String endUrl, CdxLineSchema outputFormat,
-            List<Processor> processors);
+            List<Processor> processors, boolean reverse);
 
 }

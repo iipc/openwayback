@@ -40,14 +40,19 @@ public class MultiCdxIterator implements CdxIterator {
 
     int takeptr = 0;
 
+    Comparator<CdxIterator> iteratorComparator;
+
     /**
      * Constructs a new MultiCdxIterator from an array of CdxIterators.
      * <p>
      * @param parallel true if source iterators should be running in separate threads to achieve
      * parallel processing.
+     * @param reverse if true the result list will be sorted in descending order
      * @param iterators the CdxIterators to use as sources.
      */
-    public MultiCdxIterator(boolean parallel, final CdxIterator... iterators) {
+    public MultiCdxIterator(boolean parallel, boolean reverse, final CdxIterator... iterators) {
+        this.iteratorComparator = reverse ? new ReverseComparator() : new ForwardComparator();
+
         int len = iterators.length;
         this.iterators = new CdxIterator[len];
 
@@ -74,7 +79,8 @@ public class MultiCdxIterator implements CdxIterator {
                 }
             }
         }
-        Arrays.sort(this.iterators, new ForwardComparator());
+
+        Arrays.sort(this.iterators, iteratorComparator);
     }
 
     @Override
@@ -88,7 +94,7 @@ public class MultiCdxIterator implements CdxIterator {
                 current.close();
             } else {
                 for (int i = takeptr + 1; i < count; i++) {
-                    if (current.peek().compareTo(iterators[i].peek()) > 0) {
+                    if (iteratorComparator.compare(current, iterators[i]) > 0) {
                         iterators[i - 1] = iterators[i];
                     } else {
                         iterators[i - 1] = current;
@@ -230,6 +236,27 @@ public class MultiCdxIterator implements CdxIterator {
                 return -1;
             }
             return cdx1.peek().compareTo(cdx2.peek());
+        }
+
+    };
+
+    /**
+     * Comparator for initial sorting of iterators.
+     */
+    static class ReverseComparator implements Comparator<CdxIterator> {
+
+        @Override
+        public int compare(CdxIterator cdx1, CdxIterator cdx2) {
+            if (cdx1 == null && cdx2 == null) {
+                return 0;
+            }
+            if (cdx1 == null) {
+                return -1;
+            }
+            if (cdx2 == null) {
+                return 1;
+            }
+            return cdx2.peek().compareTo(cdx1.peek());
         }
 
     };

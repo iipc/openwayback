@@ -18,7 +18,6 @@ package org.netpreserve.openwayback.cdxlib;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.Objects;
 
 /**
@@ -294,14 +293,30 @@ public class CdxLine implements Comparable<CdxLine> {
         return -1;
     }
 
+    /**
+     * Compares this object with the specified CdxLine for order. Returns a negative integer, zero,
+     * or a positive integer as this CdxLine is less than, equal to, or greater than the specified
+     * CdxLine.
+     * <p>
+     * Note: This method uses only the first two fields in the CdxLine for determining the natural
+     * order. It is expected that those fields are the url key and timestamp which in general
+     * uniquely identifies the line. In contrast the {@link #equals(java.lang.Object)} method
+     * compares the whole line. It is then possible that (x.compareTo(y)==0) == (x.equals(y)) is not
+     * always true, but it usually is when comparing CdxLines with the same number of input fields.
+     * <p>
+     * @param other the CdxLine to be compared
+     * @return a negative integer, zero, or a positive integer as this object is less than, equal
+     * to, or greater than the specified object
+     * @throws NullPointerException if the specified object is null
+     */
     @Override
     public int compareTo(CdxLine other) {
         char[] data1 = data.array();
         int offset1 = data.arrayOffset();
         char[] data2 = other.data.array();
         int offset2 = other.data.arrayOffset();
-        int len1 = fieldLengths[0] + fieldLengths[1] + 1;
-        int len2 = other.fieldLengths[0] + other.fieldLengths[1] + 1;
+        int len1 = Math.min(fieldLengths[0] + fieldLengths[1] + 1, data1.length);
+        int len2 = Math.min(other.fieldLengths[0] + other.fieldLengths[1] + 1, data2.length);
         int lim = Math.min(len1, len2);
 
         int k = 0;

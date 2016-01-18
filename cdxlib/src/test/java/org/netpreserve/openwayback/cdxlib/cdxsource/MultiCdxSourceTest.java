@@ -19,10 +19,12 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import org.junit.Test;
+import org.netpreserve.openwayback.cdxlib.CdxLine;
 import org.netpreserve.openwayback.cdxlib.functions.Filter;
 import org.netpreserve.openwayback.cdxlib.CdxLineSchema;
 import org.netpreserve.openwayback.cdxlib.processor.Processor;
@@ -37,6 +39,7 @@ import static org.assertj.core.api.Assertions.*;
  * Test merging of more than one CDX source.
  */
 public class MultiCdxSourceTest {
+
     private final CdxLineSchema outputFormat = CdxLineSchema.CDX09LINE;
 
     /**
@@ -58,16 +61,26 @@ public class MultiCdxSourceTest {
         CdxSource cdxFile1 = new BlockCdxSource(sourceDescriptor1);
         CdxSource cdxFile2 = new BlockCdxSource(sourceDescriptor2);
 
-        SearchResult result1 = cdxFile1.search(null, null, outputFormat, null);
+        SearchResult result1 = cdxFile1.search(null, null, outputFormat, null, false);
         assertThat(result1).hasSize(1666);
 
-        SearchResult result2 = cdxFile2.search(null, null, outputFormat, null);
+        SearchResult result2 = cdxFile2.search(null, null, outputFormat, null, false);
         assertThat(result2).hasSize(1888);
 
         MultiCdxSource cdxSource = new MultiCdxSource(cdxFile1, cdxFile2);
 
-        SearchResult resultTotal = cdxSource.search(null, null, CdxLineSchema.CDX09LINE, null);
+        SearchResult resultTotal = cdxSource.search(null, null, outputFormat, null, false);
         assertThat(resultTotal).hasSize(1666 + 1888);
+
+        // Collect result and reverse the order for the reversed test
+        List<CdxLine> resultSet = new ArrayList<>();
+        for (CdxLine l : resultTotal) {
+            resultSet.add(l);
+        }
+        Collections.reverse(resultSet);
+
+        SearchResult resultTotalReverse = cdxSource.search(null, null, outputFormat, null, true);
+        assertThat(resultTotalReverse).hasSize(1666 + 1888).containsExactlyElementsOf(resultSet);
     }
 
     /**
@@ -92,16 +105,27 @@ public class MultiCdxSourceTest {
         String startKey = "be,halten)";
         String toKey = "ch,";
 
-        SearchResult result1 = cdxFile1.search(startKey, toKey, outputFormat, null);
+        SearchResult result1 = cdxFile1.search(startKey, toKey, outputFormat, null, false);
         assertThat(result1).hasSize(15);
 
-        SearchResult result2 = cdxFile2.search(startKey, toKey, outputFormat, null);
+        SearchResult result2 = cdxFile2.search(startKey, toKey, outputFormat, null, false);
         assertThat(result2).hasSize(37);
 
         MultiCdxSource cdxSource = new MultiCdxSource(cdxFile1, cdxFile2);
 
-        SearchResult resultTotal = cdxSource.search(startKey, toKey, outputFormat, null);
+        SearchResult resultTotal = cdxSource.search(startKey, toKey, outputFormat, null, false);
         assertThat(resultTotal).hasSize(15 + 37);
+
+        // Collect result and reverse the order for the reversed test
+        List<CdxLine> resultSet = new ArrayList<>();
+        for (CdxLine l : resultTotal) {
+            resultSet.add(l);
+        }
+        Collections.reverse(resultSet);
+
+        SearchResult resultTotalReverse = cdxSource.search(
+                startKey, toKey, outputFormat, null, true);
+        assertThat(resultTotalReverse).hasSize(15 + 37).containsExactlyElementsOf(resultSet);
     }
 
     /**
@@ -130,16 +154,27 @@ public class MultiCdxSourceTest {
         Processor<Filter> fp = new FilterProcessor().addFunction(f);
         List filters = Collections.singletonList(fp);
 
-        SearchResult result1 = cdxFile1.search(startKey, toKey, outputFormat, filters);
+        SearchResult result1 = cdxFile1.search(startKey, toKey, outputFormat, filters, false);
         assertThat(result1).hasSize(1);
 
-        SearchResult result2 = cdxFile2.search(startKey, toKey, outputFormat, filters);
+        SearchResult result2 = cdxFile2.search(startKey, toKey, outputFormat, filters, false);
         assertThat(result2).hasSize(4);
 
         MultiCdxSource cdxSource = new MultiCdxSource(cdxFile1, cdxFile2);
 
-        SearchResult resultTotal = cdxSource.search(startKey, toKey, outputFormat, filters);
+        SearchResult resultTotal = cdxSource.search(startKey, toKey, outputFormat, filters, false);
         assertThat(resultTotal).hasSize(1 + 4);
+
+        // Collect result and reverse the order for the reversed test
+        List<CdxLine> resultSet = new ArrayList<>();
+        for (CdxLine l : resultTotal) {
+            resultSet.add(l);
+        }
+        Collections.reverse(resultSet);
+
+        SearchResult resultTotalReverse = cdxSource.search(
+                startKey, toKey, outputFormat, filters, true);
+        assertThat(resultTotalReverse).hasSize(1 + 4).containsExactlyElementsOf(resultSet);
     }
 
 }

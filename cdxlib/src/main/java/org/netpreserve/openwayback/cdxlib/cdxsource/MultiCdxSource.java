@@ -71,14 +71,13 @@ public class MultiCdxSource implements CdxSource {
 
     @Override
     public SearchResult search(String startUrl, String endUrl, CdxLineSchema outputFormat,
-            List<Processor> processors) {
-        CdxIterator[] sourceIterators = new CdxIterator[sources.size()];
+            List<Processor> processors, boolean reverse) {
+        SearchResult[] sourceIterables = new SearchResult[sources.size()];
         for (int i = 0; i < sources.size(); i++) {
-            sourceIterators[i] = sources.get(i)
-//                    .search(startUrl, endUrl, outputFormat, null).iterator();
-                    .search(startUrl, endUrl, outputFormat, processors).iterator();
+            sourceIterables[i] = sources.get(i)
+                    .search(startUrl, endUrl, outputFormat, processors, reverse);
         }
-        return new MultiCdxIterable(sourceIterators, processors);
+        return new MultiCdxIterable(sourceIterables, processors, reverse);
     }
 
     @Override
@@ -90,18 +89,26 @@ public class MultiCdxSource implements CdxSource {
 
     private class MultiCdxIterable extends AbstractSearchResult {
 
-        CdxIterator[] sourceIterators;
+        SearchResult[] sourceIterables;
 
         List<Processor> processors;
 
-        public MultiCdxIterable(CdxIterator[] sourceIterators, List<Processor> processors) {
-            this.sourceIterators = sourceIterators;
+        boolean reverse;
+
+        public MultiCdxIterable(SearchResult[] sourceIterables, List<Processor> processors,
+                boolean reverse) {
+            this.sourceIterables = sourceIterables;
             this.processors = processors;
+            this.reverse = reverse;
         }
 
         @Override
         public CdxIterator newIterator() {
-            CdxIterator iter = new MultiCdxIterator(parallel, sourceIterators);
+            CdxIterator[] sourceIterators = new CdxIterator[sourceIterables.length];
+            for (int i = 0; i < sourceIterables.length; i++) {
+                sourceIterators[i] = sourceIterables[i].iterator();
+            }
+            CdxIterator iter = new MultiCdxIterator(parallel, reverse, sourceIterators);
 
             if (processors != null) {
                 for (Processor p : processors) {
