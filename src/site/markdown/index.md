@@ -6,9 +6,11 @@ A detailed list of changes (per release) can be found in the [Release Notes](rel
 
 ## Releases
 
-### OpenWayback 2.3.0 Release - TBD
+### OpenWayback 2.3.0 Release - 20 Jan 2016
 
 OpenWayback 2.3.0 release is a minor release. It includes bug fixes and some modest new features. See [release notes](release_notes.html) for full details.
+
+[https://github.com/iipc/openwayback/tree/openwayback-2.3.0](https://github.com/iipc/openwayback/tree/openwayback-2.3.0)
 
 ### OpenWayback 2.2.0 Release - 3 June 2015
 
