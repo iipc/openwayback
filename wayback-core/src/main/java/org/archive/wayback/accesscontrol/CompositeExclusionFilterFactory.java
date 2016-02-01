@@ -70,8 +70,6 @@ public class CompositeExclusionFilterFactory implements AuthContextExclusionFilt
 			ExclusionFilter memberFilter = getInstance(factory, context, subject);
 			if (memberFilter != null) {
 				filter.addComponent(memberFilter);
-			} else {
-				LOGGER.warning("Skipping null filter returned from factory: " + factory);
 			}
 		}
 		return filter;
