@@ -177,7 +177,7 @@ public class JSStringTransformerTest extends TestCase {
 		// they should be refactored into coherent, easier-to-test components.) this is a common
 		// setup for proxy-mode (IdentityResultURIConverterFactory returns ProxyHttpsResultURIConverter.)
 		ReplayURIConverter uriConverter = new ProxyHttpsReplayURIConverter();
-		ReplayParseContext rc = new ReplayParseContext(uriConverter, result);
+		ReplayParseContext rc = new ReplayParseContext(uriConverter, result, null);
 		// Note: ParseContext.resolve(String) uses UsableURIFactory.getInstance() for
 		// making URL absolute. It not only prepends baseURL but also removes escaping
 		// like "\/", "%3A". So, depending on the URL pattern, more "\/" may be replaced
@@ -207,7 +207,7 @@ public class JSStringTransformerTest extends TestCase {
 	 */
 	public void testRewriteHttpsOnlyEscapedSlashesUnescaping() throws Exception {
 		ReplayURIConverter uriConverter = new ProxyHttpsReplayURIConverter();
-		ReplayParseContext rc = new ReplayParseContext(uriConverter, result);
+		ReplayParseContext rc = new ReplayParseContext(uriConverter, result, null);
 
 		final String input = "var img1 = 'http:\\/\\/example.com\\/img\\/1.jpeg';\n" +
 				"var img2 = 'https:\\/\\/secure1.example.com\\/img\\/2.jpeg';\n" +
@@ -239,7 +239,7 @@ public class JSStringTransformerTest extends TestCase {
 		ArchivalUrlReplayURIConverter uriConverter = new ArchivalUrlReplayURIConverter();
 		uriConverter.setReplayURIPrefix("http://web.archive.org/web/");
 
-		ReplayParseContext rc = new ReplayParseContext(uriConverter, result);
+		ReplayParseContext rc = new ReplayParseContext(uriConverter, result, null);
 
 		final String input = "var img1 = 'http:\\/\\/example.com\\/img\\/1.jpeg';\n" +
 				"var img2 = 'https:\\/\\/secure1.example.com\\/img\\/2.jpeg';\n" +
@@ -408,7 +408,7 @@ public class JSStringTransformerTest extends TestCase {
 				ReplayURIConverter uriConverter, CaptureSearchResult result) {
 			// these values must be non-null, but unused in tests.
 			// passed just to keep ReplayParseContext constructor happy.
-			super(uriConverter, result);
+			super(uriConverter, result, null);
 			this.mock = mock;
 		}
 

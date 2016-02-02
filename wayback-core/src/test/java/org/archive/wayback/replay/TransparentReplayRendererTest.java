@@ -62,6 +62,9 @@ public class TransparentReplayRendererTest extends TestCase {
         // use test fixture version as we want to focus on TransparentReplayRenderer behavior.
         uriConverter = EasyMock.createMock(ResultURIConverter.class);
         // result is only used in HttpHeaderOperation.processHeaders()
+        result = new CaptureSearchResult();
+        result.setOriginalUrl("http://exmaple.com/");
+        // CaptureSearchResults argument is unused.
         results = new CaptureSearchResults();
         
         response = EasyMock.createMock(HttpServletResponse.class);

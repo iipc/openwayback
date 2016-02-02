@@ -7,6 +7,7 @@ import junit.framework.TestCase;
 
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.core.CaptureSearchResult;
+import org.easymock.EasyMock;
 
 /**
  * test of {@link RedirectRewritingHttpHeaderProcessor}.
@@ -17,6 +18,8 @@ public class RedirectRewritingHttpHeaderProcessorTest extends TestCase {
 	ResultURIConverter uriConverter;
 	CaptureSearchResult result;
 
+	final static String REPLAY_PREFIX = "http://web.archive.org/web/";
+
 	protected void setUp() throws Exception {
 		super.setUp();
 		cut = new RedirectRewritingHttpHeaderProcessor();
@@ -25,12 +28,56 @@ public class RedirectRewritingHttpHeaderProcessorTest extends TestCase {
 		uriConverter = new ResultURIConverter() {
 			@Override
 			public String makeReplayURI(String datespec, String url) {
-				return datespec + "/" + url;
+				return REPLAY_PREFIX + datespec + "/" + url;
 			}
 		};
 
 		result = new CaptureSearchResult();
 		result.setCaptureTimestamp("20140102030405");
+	}
+
+	public void testLocation() {
+		Map<String, String> output = EasyMock.createMock(Map.class);
+
+		EasyMock.expect(output.put(
+			"X-Archive-Orig-Location", "http://example.com/redirect/target.html"))
+			.andReturn(null).once();
+		EasyMock.expect(output.put(
+			"Location", REPLAY_PREFIX + "20140102030405/http://example.com/redirect/target.html"))
+			.andReturn(null).once();
+
+		EasyMock.replay(output);
+
+		cut.filter(output, "Location", "http://example.com/redirect/target.html", uriConverter, result);
+
+		EasyMock.verify(output);
+	}
+
+	/**
+	 * Test of new {@link HttpHeaderProcessor#filter(Map, String, String, ReplayRewriteContext)}
+	 * This version passes special context flag representing HTTP header.
+	 */
+	public void testLocation_FilterReplayRewriteContext() {
+		Map<String, String> output = EasyMock.createMock(Map.class);
+
+		EasyMock.expect(output.put(
+			"X-Archive-Orig-Location", "http://example.com/redirect/target.js"))
+			.andReturn(null).once();
+		EasyMock.expect(output.put(
+			"Location", REPLAY_PREFIX + "20140102030405/http://example.com/redirect/target.js"))
+			.andReturn(null).once();
+
+		ReplayRewriteContext context = EasyMock.createMock(ReplayRewriteContext.class);
+		EasyMock.expect(
+			context.contextualizeUrl("http://example.com/redirect/target.js", "hd_"))
+			.andReturn(REPLAY_PREFIX + "20140102030405/http://example.com/redirect/target.js")
+			.once();
+
+		EasyMock.replay(output, context);
+
+		cut.filter(output, "Location", "http://example.com/redirect/target.js", context);
+
+		EasyMock.verify(output);
 	}
 
 	public void testFilter_withPrefix() {

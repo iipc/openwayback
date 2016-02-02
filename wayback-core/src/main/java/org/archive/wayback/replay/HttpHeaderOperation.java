@@ -67,11 +67,39 @@ public class HttpHeaderOperation {
 	}
 	
 	/**
+	 * Build replay header fields by applying {@code filter} on each
+	 * HTTP header fields in {@code resource}.
+	 * @param resource source of original HTTP header fields
+	 * @param context provides URL rewrite service
+	 * @param filter HTTP header field filter
+	 * @return replay header fields
+	 */
+	public static Map<String, String> processHeaders(Resource resource,
+			ReplayRewriteContext context, HttpHeaderProcessor filter) {
+		HashMap<String,String> output = new HashMap<String,String>();
+
+		// copy all HTTP headers, as-is, sending "" instead of nulls.
+		Map<String,String> headers = resource.getHttpHeaders();
+		if (headers != null) {
+			Iterator<String> itr = headers.keySet().iterator();
+			while(itr.hasNext()) {
+				String key = itr.next();
+				String value = headers.get(key);
+				value = (value == null) ? "" : value;
+				filter.filter(output, key, value, context);
+			}
+		}
+		return output;
+	}
+
+	/**
 	 * @param resource
 	 * @param result
 	 * @param uriConverter
-	 * @param filter 
+	 * @param filter
 	 * @return
+	 * @deprecated 2016-01-30 use
+	 *             {@link #processHeaders(Resource, ReplayRewriteContext, HttpHeaderProcessor)}
 	 */
 	public static Map<String,String> processHeaders(Resource resource, 
 			CaptureSearchResult result, ResultURIConverter uriConverter, 

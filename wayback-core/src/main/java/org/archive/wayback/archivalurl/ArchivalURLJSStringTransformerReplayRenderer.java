@@ -92,7 +92,7 @@ public class ArchivalURLJSStringTransformerReplayRenderer extends TextReplayRend
 		
 		// set up the context:
 		final ReplayParseContext context = ReplayParseContext.create(
-			uriConverter, converterFactory, result, rewriteHttpsOnly);
+			uriConverter, wbRequest, converterFactory, result, rewriteHttpsOnly);
 		
 		UIResults uiResults = new UIResults(wbRequest, uriConverter, results, result, resource);
 		JSPExecutor jspExec = new JSPExecutor(httpRequest, httpResponse, uiResults);

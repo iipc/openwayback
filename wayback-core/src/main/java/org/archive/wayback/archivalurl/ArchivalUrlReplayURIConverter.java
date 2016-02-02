@@ -27,6 +27,7 @@ import org.archive.url.URLParser;
 import org.archive.wayback.ReplayURIConverter;
 import org.archive.wayback.memento.MementoUtils;
 import org.archive.wayback.replay.ReplayContext;
+import org.archive.wayback.replay.ReplayRewriteContext;
 import org.archive.wayback.replay.ReplayURLTransformer;
 import org.archive.wayback.util.url.UrlOperations;
 import org.archive.wayback.webapp.AccessPoint;
@@ -201,6 +202,13 @@ public class ArchivalUrlReplayURIConverter implements ReplayURIConverter, Replay
 			absurl = replayContext.resolve(url);
 		} catch (URISyntaxException ex) {
 			return url;
+		}
+		// if flags is a special value identifying HTTP header field
+		// context, replace flags with request context flags. This way,
+		// rewritten Location header field will inherit context flags
+		// from the request.
+		if (ReplayRewriteContext.HEADER_CONTEXT.equals(flags)) {
+			flags = replayContext.getContextFlags();
 		}
 		// IMPORTANT: call makeReplayURI through replayContext.
 		// This is to allow for decorating ReplayURIConverter with

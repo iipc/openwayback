@@ -70,14 +70,27 @@ public interface HttpHeaderProcessor {
 			HTTP_TRANSFER_ENCODING_HEADER.toUpperCase();
 	
 	/**
-	 * optionally add header key:value to output for later returning to client
-	 * 
+	 * optionally add header key:value to output for later returning to client.
+	 * <p>
+	 * Use {@link #filter(Map, String, String, ReplayRewriteContext)} instead.
+	 * This method will be deprecated.
+	 * </p>
 	 * @param output
 	 * @param key
 	 * @param value
-	 * @param uriConverter 
-	 * @param result 
+	 * @param uriConverter
+	 * @param result
 	 */
 	public void filter(Map<String,String> output, String key, String value,
 			final ResultURIConverter uriConverter, CaptureSearchResult result);
+
+	/**
+	 * Render HTTP header field {@code key}: {@code value} from Resource
+	 * @param output a map to save headers into
+	 * @param key header field name
+	 * @param value header field value
+	 * @param context provides access to projection scheme and capture information.
+	 */
+	public void filter(Map<String, String> output, String key, String value,
+			ReplayRewriteContext context);
 }

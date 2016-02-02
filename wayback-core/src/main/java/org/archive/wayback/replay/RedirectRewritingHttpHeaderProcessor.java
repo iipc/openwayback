@@ -19,13 +19,8 @@
  */
 package org.archive.wayback.replay;
 
+import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-import org.archive.wayback.ResultURIConverter;
-import org.archive.wayback.core.CaptureSearchResult;
-import org.archive.wayback.util.url.UrlOperations;
 
 /**
  * {@link HttpHeaderProcessor} that preserves all headers by prepending a prefix,
@@ -53,51 +48,22 @@ import org.archive.wayback.util.url.UrlOperations;
  */
 public class RedirectRewritingHttpHeaderProcessor extends PreservingHttpHeaderProcessor {
 
-	private Set<String> passThroughHeaders = null;
-	private Set<String> rewriteHeaders = null;
-	private Set<String> dropHeaders;
-	
+	public static final String[] DEFAULT_PASSTHROUGH_HEADERS = {
+		HTTP_CONTENT_TYPE_HEADER_UP, HTTP_CONTENT_DISP_HEADER_UP,
+		HTTP_CONTENT_RANGE_HEADER_UP
+	};
+	public static final String[] DEFAULT_REWRITE_HEADERS = {
+		HTTP_LOCATION_HEADER_UP, HTTP_CONTENT_LOCATION_HEADER_UP,
+		HTTP_CONTENT_BASE_HEADER_UP
+	};
+	public static final String[] DEFAULT_DROP_HEADERS = {
+		HTTP_LENGTH_HEADER_UP,
+		HTTP_TRANSFER_ENCODING_HEADER_UP
+	};
 	public RedirectRewritingHttpHeaderProcessor() {
-		passThroughHeaders = new HashSet<String>();
-		passThroughHeaders.add(HTTP_CONTENT_TYPE_HEADER_UP);
-		passThroughHeaders.add(HTTP_CONTENT_DISP_HEADER_UP);
-		passThroughHeaders.add(HTTP_CONTENT_RANGE_HEADER_UP);
-		
-		rewriteHeaders = new HashSet<String>();
-		rewriteHeaders.add(HTTP_LOCATION_HEADER_UP);
-		rewriteHeaders.add(HTTP_CONTENT_LOCATION_HEADER_UP);
-		rewriteHeaders.add(HTTP_CONTENT_BASE_HEADER_UP);
-
-		dropHeaders = new HashSet<String>();
-		dropHeaders.add(HTTP_LENGTH_HEADER_UP);
-		dropHeaders.add(HTTP_TRANSFER_ENCODING_HEADER_UP);
+		passThroughHeaders = new HashSet<String>(Arrays.asList(DEFAULT_PASSTHROUGH_HEADERS));
+		rewriteHeaders = new HashSet<String>(Arrays.asList(DEFAULT_REWRITE_HEADERS));
+		dropHeaders = new HashSet<String>(Arrays.asList(DEFAULT_DROP_HEADERS));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.archive.wayback.replay.HttpHeaderProcessor#filter(java.util.Map, java.lang.String, java.lang.String, org.archive.wayback.ResultURIConverter, org.archive.wayback.core.CaptureSearchResult)
-	 */
-	public void filter(Map<String, String> output, String key, String value,
-			ResultURIConverter uriConverter, CaptureSearchResult result) {
-
-		String keyUp = key.toUpperCase();
-
-		// first stick it in as-is, or with prefix, then maybe we'll overwrite
-		// with the later logic.
-		if (dropHeaders.contains(keyUp))
-			preserve(output, key, value);
-		else
-			preserveAlways(output, key, value);
-
-		// rewrite Location header URLs
-		if(rewriteHeaders.contains(keyUp)) {
-			String baseUrl = result.getOriginalUrl();
-			String cd = result.getCaptureTimestamp();
-			// by the spec, these should be absolute already, but just in case:
-			String u = UrlOperations.resolveUrl(baseUrl, value);
-			output.put(key, uriConverter.makeReplayURI(cd,u));
-		} else if(passThroughHeaders.contains(keyUp)) {
-			// let's leave this one as-is:
-			output.put(key,value);
-		}
-	}
 }

@@ -29,9 +29,12 @@ import org.archive.wayback.ReplayURIConverter;
 import org.archive.wayback.ReplayURIConverter.URLStyle;
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.WaybackConstants;
+import org.archive.wayback.archivalurl.ArchivalUrl;
 import org.archive.wayback.core.CaptureSearchResult;
+import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.replay.JSPExecutor;
 import org.archive.wayback.replay.ReplayContext;
+import org.archive.wayback.replay.ReplayRewriteContext;
 import org.archive.wayback.replay.ReplayURLTransformer;
 import org.archive.wayback.util.htmllex.ParseContext;
 
@@ -51,8 +54,9 @@ import org.archive.wayback.util.htmllex.ParseContext;
  * TODO: consider replacing {@code CaptureSearchResult} reference with
  * {@code Capture}.
  */
-public class ReplayParseContext extends ParseContext implements ReplayContext {
+public class ReplayParseContext extends ParseContext implements ReplayRewriteContext {
 
+	private WaybackRequest wbRequest;
 	private String datespec = null;
 	private JSPExecutor jspExec = null;
 	private OutputStream outputStream = null;
@@ -199,11 +203,12 @@ public class ReplayParseContext extends ParseContext implements ReplayContext {
 	 * Initialize {@code ReplayParseContext} with URL translator object and
 	 * reference to target capture.
 	 * @param uriConverter TODO
-	 * @param replayUrlTransformer URL translator
 	 * @param result capture reference (originalUrl and captureTimestamp)
+	 * @param wbRequest TODO
+	 * @param replayUrlTransformer URL translator
 	 */
 	public ReplayParseContext(ReplayURIConverter uriConverter,
-			CaptureSearchResult result) {
+			CaptureSearchResult result, WaybackRequest wbRequest) {
 		this.result = result;
 		setBaseUrl(result.getOriginalUrl());
 		this.datespec = result.getCaptureTimestamp();
@@ -221,16 +226,17 @@ public class ReplayParseContext extends ParseContext implements ReplayContext {
 	 * {@link #ReplayParseContext(ContextResultURIConverterFactory, URL, String)}
 	 * otherwise.
 	 * @param uriConverter ResultURIConverter passed from access point.
+	 * @param wbRequest TODO
 	 * @param converterFactory contextualizing URI converter factory configured for ReplayRenderer.
 	 * @param result capture being replayed
 	 * @param rewriteHttpsOnly HTTPS rewrite flag
 	 */
 	@SuppressWarnings("deprecation")
 	public static ReplayParseContext create(ResultURIConverter uriConverter,
-			ContextResultURIConverterFactory converterFactory,
-			CaptureSearchResult result, boolean rewriteHttpsOnly) {
+			WaybackRequest wbRequest,
+			ContextResultURIConverterFactory converterFactory, CaptureSearchResult result, boolean rewriteHttpsOnly) {
 		if (uriConverter instanceof ReplayURIConverter) {
-			return new ReplayParseContext((ReplayURIConverter)uriConverter, result);
+			return new ReplayParseContext((ReplayURIConverter)uriConverter, result, wbRequest);
 		}
 		// backward-compatibility mode
 		final ContextResultURIConverterFactory fact;
@@ -257,13 +263,13 @@ public class ReplayParseContext extends ParseContext implements ReplayContext {
 	 * @param uriConverterFactory contextualized URI converter factory, must not be {@code null}.
 	 * @param result capture being replayed
 	 * @deprecated 2015-02-04 use
-	 *             {@link #ReplayParseContext(ReplayURIConverter, CaptureSearchResult)}
+	 *             {@link #ReplayParseContext(ReplayURIConverter, CaptureSearchResult, WaybackRequest)}
 	 *             .
 	 */
 	public ReplayParseContext(
 			ContextResultURIConverterFactory uriConverterFactory,
 			CaptureSearchResult result) {
-		this(new CompatReplayURIConverter(uriConverterFactory), result);
+		this(new CompatReplayURIConverter(uriConverterFactory), result, null);
 	}
 
 	/**
@@ -428,6 +434,17 @@ public class ReplayParseContext extends ParseContext implements ReplayContext {
 	@Override
 	public String makeReplayURI(String url, String flags, URLStyle urlStyle) {
 		return uriConverter.makeReplayURI(getDatespec(), url, flags, urlStyle);
+	}
+
+	@Override
+	public String getContextFlags() {
+		// compatibility with old code that does not pass
+		// WaybackRequest to ReplayParseContextx
+		if (wbRequest == null)
+			return null;
+		// TODO: this breaks encapsulation. should
+		// delegate to ReplayURIConverter?
+		return ArchivalUrl.getFlags(wbRequest);
 	}
 
 	/**

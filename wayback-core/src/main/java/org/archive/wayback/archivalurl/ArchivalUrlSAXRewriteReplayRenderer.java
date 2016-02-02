@@ -123,9 +123,8 @@ public class ArchivalUrlSAXRewriteReplayRenderer implements ReplayRenderer {
 		
 		// set up the context:
 		final ReplayParseContext context = ReplayParseContext.create(
-			uriConverter,
-			createConverterFactory(uriConverter, httpRequest, wbRequest),
-			result, rewriteHttpsOnly);
+			uriConverter, wbRequest,
+			createConverterFactory(uriConverter, httpRequest, wbRequest), result, rewriteHttpsOnly);
 
 		// XXX same code in ArchivalUrlJSStringReplayRenderer
 		String policy = result.getOraclePolicy();
@@ -170,7 +169,7 @@ public class ArchivalUrlSAXRewriteReplayRenderer implements ReplayRenderer {
 
 		// transform the original headers according to our headerProcessor:
 		Map<String,String> headers = HttpHeaderOperation.processHeaders(
-				httpHeadersResource, result, uriConverter, httpHeaderProcessor);
+				httpHeadersResource, context, httpHeaderProcessor);
 
 		// prepare several objects for the parse:
 
