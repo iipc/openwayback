@@ -46,6 +46,7 @@ import org.archive.wayback.exception.BetterRequestException;
 import org.archive.wayback.exception.WaybackException;
 import org.archive.wayback.replay.HttpHeaderOperation;
 import org.archive.wayback.replay.HttpHeaderProcessor;
+import org.archive.wayback.replay.html.ReplayParseContext;
 import org.archive.wayback.util.url.UrlOperations;
 
 import com.flagstone.transform.DoAction;
@@ -99,9 +100,11 @@ public class SWFReplayRenderer implements ReplayRenderer {
 			// copy HTTP response code:
 			HttpHeaderOperation.copyHTTPMessageHeader(httpHeadersResource, httpResponse);
 
+			ReplayParseContext context = ReplayParseContext.create(uriConverter, wbRequest, null, result, false);
+
 			// load and process original headers:
 			Map<String, String> headers = HttpHeaderOperation.processHeaders(
-					httpHeadersResource, result, uriConverter, httpHeaderProcessor);
+					httpHeadersResource, context, httpHeaderProcessor);
 
 			// The URL of the resource, for resolving embedded relative URLs:
 			URL url = null;

@@ -30,6 +30,7 @@ import org.archive.url.URLParser;
 import org.archive.wayback.ReplayURIConverter.URLStyle;
 import org.archive.wayback.memento.MementoUtils;
 import org.archive.wayback.replay.ReplayContext;
+import org.archive.wayback.replay.ReplayRewriteContext;
 import org.archive.wayback.webapp.AccessPoint;
 import org.easymock.EasyMock;
 
@@ -108,6 +109,34 @@ public class ArchivalUrlReplayURIConverterTest extends TestCase {
 		EasyMock.replay(replayContext);
 
 		cut.transform(replayContext, url, "");
+
+		EasyMock.verify(replayContext);
+	}
+
+	/**
+	 * {@code transform} method inherit context flag from the request, if it is rewriting
+	 * URL in HTTP response header (ex. {@code Location}). This URL-rewriting context
+	 * is represented by special {@code flags} value.
+	 * @throws Excpetion
+	 */
+	public void testTransformUrlInHTTPHeader() throws Exception {
+		final ArchivalUrlReplayURIConverter cut = new ArchivalUrlReplayURIConverter();
+		cut.setReplayURIPrefix("http://web.archive.org/web/");
+
+		final ReplayContext replayContext = EasyMock
+			.createMock(ReplayContext.class);
+		final String url = "http://example.com/js/lib.js";
+		final String datespec = "20100505101010";
+		final String flags = "js_";
+		EasyMock.expect(replayContext.resolve(url)).andReturn(url);
+		EasyMock.expect(replayContext.getContextFlags()).andReturn(flags);
+		EasyMock.expect(
+			replayContext.makeReplayURI(url, flags, URLStyle.ABSOLUTE))
+			.andReturn(cut.getReplayURIPrefix() + datespec + flags + "/" + url);
+
+		EasyMock.replay(replayContext);
+
+		cut.transform(replayContext, url, ReplayRewriteContext.HEADER_CONTEXT);
 
 		EasyMock.verify(replayContext);
 	}

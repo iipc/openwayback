@@ -34,6 +34,7 @@ import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadContentException;
+import org.archive.wayback.replay.html.ReplayParseContext;
 
 /**
  * ReplayRenderer implementation which returns the archive document as 
@@ -78,8 +79,10 @@ public class TransparentReplayRenderer implements ReplayRenderer {
 
 		HttpHeaderOperation.copyHTTPMessageHeader(httpHeadersResource, httpResponse);
 
+		ReplayParseContext context = ReplayParseContext.create(uriConverter, wbRequest, null, result, false);
+
 		Map<String,String> headers = HttpHeaderOperation.processHeaders(
-				httpHeadersResource, result, uriConverter, httpHeaderProcessor);
+				httpHeadersResource, context, httpHeaderProcessor);
 
 		// HACKHACK: getContentLength() may not find the original content length
 		// if a HttpHeaderProcessor has mangled it too badly. Should this

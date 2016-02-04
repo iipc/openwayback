@@ -19,10 +19,8 @@
  */
 package org.archive.wayback.replay;
 
-import java.util.Map;
-
-import org.archive.wayback.ResultURIConverter;
-import org.archive.wayback.core.CaptureSearchResult;
+import java.util.Arrays;
+import java.util.HashSet;
 
 /**
  * HttpHeaderProcessor which passes through all headers as-is.
@@ -38,14 +36,12 @@ import org.archive.wayback.core.CaptureSearchResult;
  */
 public class IdentityHttpHeaderProcessor extends PreservingHttpHeaderProcessor {
 
-	/* (non-Javadoc)
-	 * @see org.archive.wayback.replay.HttpHeaderProcessor#filter(java.util.Map, java.lang.String, java.lang.String, org.archive.wayback.ResultURIConverter, org.archive.wayback.core.CaptureSearchResult)
-	 */
-	public void filter(Map<String, String> output, String key, String value,
-			ResultURIConverter uriConverter, CaptureSearchResult result) {
-		if (key.equalsIgnoreCase(HTTP_TRANSFER_ENCODING_HEADER_UP))
-			preserve(output, key, value);
-		else
-			output.put(key, value);
+	public static final String[] DEFAULT_DROP_HEADERS = {
+		HTTP_TRANSFER_ENCODING_HEADER_UP
+	};
+
+	public IdentityHttpHeaderProcessor() {
+		dropHeaders = new HashSet<String>(Arrays.asList(DEFAULT_DROP_HEADERS));
 	}
+
 }

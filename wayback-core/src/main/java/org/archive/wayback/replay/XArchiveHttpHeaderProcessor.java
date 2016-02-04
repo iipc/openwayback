@@ -19,12 +19,8 @@
  */
 package org.archive.wayback.replay;
 
+import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-import org.archive.wayback.ResultURIConverter;
-import org.archive.wayback.core.CaptureSearchResult;
 
 /**
  * {@link HttpHeaderProcessor} that renames all headers by prepending a prefix,
@@ -47,29 +43,19 @@ import org.archive.wayback.core.CaptureSearchResult;
  */
 public class XArchiveHttpHeaderProcessor extends PreservingHttpHeaderProcessor {
 
-	private static String DEFAULT_PREFIX = "X-Wayback-Orig-";
-	private Set<String> passThrough = null;
+	public static final String DEFAULT_PREFIX = "X-Wayback-Orig-";
+
+	public static final String[] DEFAULT_DROP_HEADERS = {
+		HTTP_TRANSFER_ENCODING_HEADER_UP
+	};
+	public static final String[] DEFAULT_PASSTHROUGH_HEADERS = {
+		HTTP_CONTENT_TYPE_HEADER_UP, HTTP_CONTENT_DISP_HEADER_UP,
+		HTTP_CONTENT_RANGE_HEADER_UP
+	};
 	
 	public XArchiveHttpHeaderProcessor() {
-		passThrough = new HashSet<String>();
-		passThrough.add(HTTP_CONTENT_TYPE_HEADER_UP);
-		passThrough.add(HTTP_CONTENT_DISP_HEADER_UP);
-		passThrough.add(HTTP_CONTENT_RANGE_HEADER_UP);
-
 		prefix = DEFAULT_PREFIX;
-	}
-	
-	public void filter(Map<String, String> output, String key, String value,
-			ResultURIConverter uriConverter, CaptureSearchResult result) {
-		String keyUp = key.toUpperCase();
-
-		if (key.equalsIgnoreCase(HTTP_TRANSFER_ENCODING_HEADER_UP))
-			preserve(output, key, value);
-		else
-			preserveAlways(output, key, value);
-		if (passThrough.contains(keyUp)) {
-			// add this one as-is, too.
-			output.put(key, value);
-		}
+		dropHeaders = new HashSet<String>(Arrays.asList(DEFAULT_DROP_HEADERS));
+		passThroughHeaders = new HashSet<String>(Arrays.asList(DEFAULT_PASSTHROUGH_HEADERS));
 	}
 }

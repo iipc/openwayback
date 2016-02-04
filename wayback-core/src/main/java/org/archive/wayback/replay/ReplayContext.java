@@ -32,4 +32,11 @@ public interface ReplayContext {
 	 * @return projected replay URL
 	 */
 	public String makeReplayURI(String url, String flags, URLStyle urlStyle);
+
+	/**
+	 * Return flags specified in current request.
+	 * @return string like {@code "js_"} or {@code null}
+	 * @see org.archive.wayback.archivalurl.ArchivalUrl#getFlags(org.archive.wayback.core.WaybackRequest)
+	 */
+	public String getContextFlags();
 }

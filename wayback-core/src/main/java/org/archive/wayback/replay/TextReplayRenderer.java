@@ -20,6 +20,7 @@
 package org.archive.wayback.replay;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
 
@@ -29,6 +30,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.archive.wayback.ReplayRenderer;
 import org.archive.wayback.ResultURIConverter;
+import org.archive.wayback.ReplayURIConverter.URLStyle;
 import org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
@@ -38,6 +40,7 @@ import org.archive.wayback.exception.BadContentException;
 import org.archive.wayback.replay.charset.CharsetDetector;
 import org.archive.wayback.replay.charset.StandardCharsetDetector;
 import org.archive.wayback.replay.html.ContextResultURIConverterFactory;
+import org.archive.wayback.replay.html.ReplayParseContext;
 
 /**
  * {@link ReplayRenderer} for rewriting textual resource with {@link TextDocument}.
@@ -112,10 +115,12 @@ public abstract class TextReplayRenderer implements ReplayRenderer {
 		// Decode resource (such as if gzip encoded)
 		Resource decodedResource = decodeResource(httpHeadersResource, payloadResource);
 		
+		ReplayParseContext context = ReplayParseContext.create(uriConverter, wbRequest, null, result, false);
+
 		HttpHeaderOperation.copyHTTPMessageHeader(httpHeadersResource, httpResponse);
 
 		Map<String,String> headers = HttpHeaderOperation.processHeaders(
-				httpHeadersResource, result, uriConverter, httpHeaderProcessor);
+				httpHeadersResource, context, httpHeaderProcessor);
 
 		String charSet = charsetDetector.getCharset(httpHeadersResource,
 				decodedResource, wbRequest);
