@@ -189,6 +189,13 @@ public class ReplayParseContext extends ParseContext implements ReplayRewriteCon
 			if (!isRewriteSupported(absurl)) {
 				return url;
 			}
+			// if flags is a special value identifying HTTP header field
+			// context, replace flags with request context flags. This way,
+			// rewritten Location header field will inherit context flags
+			// from the request.
+			if (ReplayRewriteContext.HEADER_CONTEXT.equals(flags)) {
+				flags = replayContext.getContextFlags();
+			}
 			return replayContext.makeReplayURI(absurl, flags, URLStyle.ABSOLUTE);
 		}
 
@@ -217,6 +224,7 @@ public class ReplayParseContext extends ParseContext implements ReplayRewriteCon
 			// TODO: default?
 		}
 		this.uriConverter = uriConverter;
+		this.wbRequest = wbRequest;
 	}
 
 	/**
@@ -247,7 +255,7 @@ public class ReplayParseContext extends ParseContext implements ReplayRewriteCon
 		} else {
 			fact = new IdentityResultURIConverterFactory(uriConverter);
 		}
-		return new ReplayParseContext(fact, result);
+		return new ReplayParseContext(new CompatReplayURIConverter(fact), result, wbRequest);
 	}
 
 	/**
