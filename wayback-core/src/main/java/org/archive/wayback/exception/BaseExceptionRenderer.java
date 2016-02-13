@@ -52,7 +52,12 @@ public class BaseExceptionRenderer implements ExceptionRenderer {
 	private String javascriptErrorJsp = "/WEB-INF/exception/JavaScriptError.jsp";
 	private String cssErrorJsp = "/WEB-INF/exception/CSSError.jsp";
 
-	protected final Pattern IMAGE_REGEX = Pattern
+	public static final int DEFAULT_MAX_ERR_HEADER_LEN = 300;
+
+	private String errorHeader;
+	private int maxErrorHeaderLength = DEFAULT_MAX_ERR_HEADER_LEN;
+
+	protected static final Pattern IMAGE_REGEX = Pattern
 			.compile(".*\\.(jpg|jpeg|gif|png|bmp|tiff|tif)$");
 
 	/* ERROR HANDLING RESPONSES: */
@@ -106,10 +111,43 @@ public class BaseExceptionRenderer implements ExceptionRenderer {
 		return (requestUrl != null) && requestUrl.endsWith(".css");
 	}
 
+	protected String buildErrorDescription(WaybackException e) {
+		if (e == null) return null;
+
+		String message = e.toString();
+		if (e == null) return null;
+
+		// Get substring from exception name if possible.
+		// This handles a common case of error message starting with class
+		// name followed by ":". Not sure why e.getClass().getName() does
+		// work. Perhaps some error text starts with 'real' error class
+		// different from e.getClass()?
+		final int classEnd = message.indexOf(':');
+		if (classEnd > 0) {
+			final int lastPeriod = message.lastIndexOf('.', classEnd);
+			if (lastPeriod > 0) {
+				message = message.substring(lastPeriod + 1);
+			}
+		}
+		if (message.length() > maxErrorHeaderLength) {
+			message = message.substring(0, maxErrorHeaderLength);
+		}
+		message = message.replace('\n', ' ');
+
+		return message;
+	}
+
 	public void renderException(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
 			WaybackException exception, ResultURIConverter uriConverter)
 		throws ServletException, IOException {
+
+		if (errorHeader != null) {
+			final String text = buildErrorDescription(exception);
+			if (text != null) {
+				httpResponse.setHeader(errorHeader, text);
+			}
+		}
 
 		httpRequest.setAttribute("exception", exception);
 		UIResults uiResults = new UIResults(wbRequest,uriConverter,exception);
@@ -195,4 +233,42 @@ public class BaseExceptionRenderer implements ExceptionRenderer {
 	public void setCssErrorJsp(String cssErrorJsp) {
 		this.cssErrorJsp = cssErrorJsp;
 	}
+
+	public String getErrorHeader() {
+		return errorHeader;
+	}
+
+	/**
+	 * Name of the response header field carrying short error description.
+	 * <p>
+	 * The header field may be captured by front-end HTTP server for
+	 * logging purposes.
+	 * If {@code null} (default), no header field will be added.
+	 * </p>
+	 * <p>Compatibility Note: when you use this feature, disable
+	 * error header output done in {@link AccessPoint#logError} by
+	 * setting its {@code enableErrorMsgHeader} property to {@code false}.
+	 * </p>
+	 * @param errorHeader response header field name
+	 */
+	public void setErrorHeader(String errorHeader) {
+		this.errorHeader = errorHeader;
+	}
+
+	public int getMaxErrorHeaderLength() {
+		return maxErrorHeaderLength;
+	}
+
+	/**
+	 * Maximum length of error message put into the error header.
+	 * <p>
+	 * Error message text exceeding this length will be truncated.
+	 * </p>
+	 * @param maxErrorHeaderLength
+	 * @see #errorHeader
+	 */
+	public void setMaxErrorHeaderLength(int maxErrorHeaderLength) {
+		this.maxErrorHeaderLength = maxErrorHeaderLength;
+	}
+
 }
