@@ -110,7 +110,7 @@ public abstract class PreservingHttpHeaderProcessor implements HttpHeaderProcess
 			preserveAlways(output, key, value);
 		// rewrite header fields with URL values
 		if (rewriteHeaders != null && rewriteHeaders.contains(ucKey)) {
-			String replayUrl = context.contextualizeUrl(value, "hd_");
+			String replayUrl = context.contextualizeUrl(value, ReplayRewriteContext.HEADER_CONTEXT);
 			output.put(key,  replayUrl);
 		} else if (passThroughHeaders != null && passThroughHeaders.contains(ucKey)) {
 			output.put(key, value);
