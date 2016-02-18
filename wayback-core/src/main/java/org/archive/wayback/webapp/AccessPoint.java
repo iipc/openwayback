@@ -146,6 +146,7 @@ public class AccessPoint extends AbstractRequestHandler implements
 		Total,
 	}
 
+	@Deprecated
 	private String errorMsgHeader = RUNTIME_ERROR_HEADER;
 	private String perfStatsHeader = "X-Archive-Wayback-Perf";
 	private String warcFileHeader = "x-archive-src";
@@ -455,7 +456,9 @@ public class AccessPoint extends AbstractRequestHandler implements
 			}
 		}
 
-		if (!this.isEnableErrorMsgHeader()) {
+		// this functionality has been moved to BaseExceptionRenderer
+		// left here only for backward compatibility.
+		if (!this.isEnableErrorMsgHeader() || header == null) {
 			return;
 		}
 
@@ -1897,18 +1900,27 @@ public class AccessPoint extends AbstractRequestHandler implements
 		this.warcFileHeader = warcFileHeader;
 	}
 
+	@Deprecated
 	public String getErrorMsgHeader() {
 		return errorMsgHeader;
 	}
 
+	@Deprecated
 	public void setErrorMsgHeader(String errorMsgHeader) {
 		this.errorMsgHeader = errorMsgHeader;
 	}
 
+	@Deprecated
 	public boolean isEnableErrorMsgHeader() {
 		return enableErrorMsgHeader;
 	}
 
+	/**
+	 * Set {@code true} if you want Wayback to write out short
+	 * error description in the response header field.
+	 * @param enableErrorMsgHeader
+	 * @deprecated replaced by {@link BaseExceptionRenderer#setErrorHeader(String)}
+	 */
 	public void setEnableErrorMsgHeader(boolean enableErrorMsgHeader) {
 		this.enableErrorMsgHeader = enableErrorMsgHeader;
 	}
