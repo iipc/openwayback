@@ -191,15 +191,6 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 		result.setUrlKey(line.getUrlKey());
 		result.setCaptureTimestamp(timestamp);
 		result.setOriginalUrl(originalUrl);
-
-		// Special case: filter out captures that have userinfo
-		boolean hasUserInfo = (UrlOperations.urlToUserInfo(result
-			.getOriginalUrl()) != null);
-
-		if (hasUserInfo) {
-			return 0;
-		}
-
 		result.setRedirectUrl(line.getRedirect());
 		result.setHttpCode(line.getStatusCode());
 
