@@ -855,7 +855,9 @@ public class AccessPoint extends AbstractRequestHandler implements
 
 						captureResults = searchCaptures(wbRequest);
 
+						captureSelector.setCaptures(captureResults);
 						closest = captureSelector.next();
+						counter = 0;
 						//originalClosest = closest;
 						//maxTimeouts *= 2;
 						//maxMissingRevisits *= 2;
@@ -1011,6 +1013,7 @@ public class AccessPoint extends AbstractRequestHandler implements
 
 					captureSelector.setCaptures(captureResults);
 					closest = captureSelector.next();
+					counter = 0;
 
 					//originalClosest = closest;
 
