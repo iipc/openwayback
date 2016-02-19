@@ -133,7 +133,7 @@ public class JWATResource extends Resource implements WARCConstants {
 					}
 					if (httpHeader != null) {
 						r.payloadStream = httpHeader.getPayloadInputStream();
-						r.length = httpHeader.payloadLength;
+						r.length = payload.getTotalLength();
 						r.status = httpHeader.statusCode;
 					} else if (payload != null) {
 						r.payloadStream = payload.getInputStreamComplete();

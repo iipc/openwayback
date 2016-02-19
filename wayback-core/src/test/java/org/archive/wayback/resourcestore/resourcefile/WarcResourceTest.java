@@ -211,6 +211,8 @@ public class WarcResourceTest extends TestCase {
         // these are from this record.
         assertEquals("statusCode", 200, res.getStatusCode());
         assertEquals("content-type", ct, res.getHeader("Content-Type"));
+        // used for distinguishing new-style revisit record from old-style ones.
+        assertTrue(res.getRecordLength() > 0);
         
         StandardCharsetDetector csd = new StandardCharsetDetector();
         // assuming WaybackRequest (3rd parameter) is not used in getCharset()
@@ -252,6 +254,9 @@ public class WarcResourceTest extends TestCase {
         Map<String, String> headers = res.getHttpHeaders();
         //assertNotNull("headers", headers);
         assertNull("headers", headers);
+        
+        // this is used for detecting old-style revisit records.
+        assertTrue(res.getRecordLength() == 0);
         
         res.close();
     }
