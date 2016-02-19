@@ -1,0 +1,4 @@
+com,example,www)/foo.html 20160101010100 http://www.example.com/foo.html text/html 200 123456789 2048 45634 myfile.warc.gz
+com,example,www)/bar.html 20160101010101 http://www.example.com/bar.html text/html 404 987654321 128 45999 myfile.warc.gz
+
+ResumptionUrl: http://example.com/cdx/main/query?resumptionKey=xyz

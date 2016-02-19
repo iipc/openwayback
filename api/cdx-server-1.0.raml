@@ -1,0 +1,397 @@
+#%RAML 1.0
+title: CDX-Server
+version: 1.0 (Proposal)
+description: |
+  The CDX Server is a standalone server that serves the index which Open Wayback uses to lookup captures.
+  The index format returned by the CDX Server is known as [CDX](http://iipc.github.io/warc-specifications/specifications/cdx-format/cdx-2015/).
+  The CDX Server can alternatively return captures in a line oriented json format called [cdxj](https://github.com/oduwsdl/ORS/wiki/CDXJ).
+protocols:
+  - HTTP
+baseUri: http://cdxserver.example.com/cdx
+
+types:
+  CdxLine:
+    type: string
+
+  CdxObject:
+    type: object
+    properties:
+      urlkey?: string
+      timestamp?: string
+      original?: string
+      mimetype?: string
+      statuscode?: integer
+      digest?: string
+      redirect?: string
+      robotflags?: string
+      length?: integer
+      offset?: integer
+      filename?: string
+
+  CdxList:
+    type: object
+    description: A list of CdxLines
+    properties:
+      cdx: CdxObject[]
+      resumptionUrl?: string
+
+traits:
+  DateRange:
+    queryParameters:
+      from:
+        description: |
+          Restrict to only return captures with a timestamp equal to or greater than the submitted *timestamp*.
+          * *timestamp* format is: `YYYYMMDDhhmmss`
+          * *Timestamp* is expected to be UTC
+          * *Timestamp* might have fewer than 14 digits and will then be treated as
+          if the missing numbers are zeroes
+        displayName: from=<timestamp>
+        type: string
+        minLength: 0
+        maxLength: 14
+        pattern: \d{0,14}
+        example: 20160214
+      to:
+        description: |
+          Restrict to only return captures with a timestamp smaller than the submitted *timestamp*.
+          * *timestamp* format is: `YYYYMMDDhhmmss`
+          * *Timestamp* is expected to be UTC
+          * *Timestamp* might have fewer than 14 digits and will then be treated as
+          if the missing numbers are zeroes
+        displayName: to=<timestamp>
+        type: string
+        minLength: 0
+        maxLength: 14
+        pattern: \d{0,14}
+        example: 20160214132400
+
+  Limit:
+    queryParameters:
+      limit:
+        description: |
+          Limit the maximum captures returned in the response.
+
+          If the returned list of captures is cut off by the limit parameter or
+          by a server side configured maximum limit, a resumption url will be
+          included in the result. This url could be used to resume the search
+          from the next result.
+
+          The resumption url will be included only if the query has more results.
+        displayName: limit
+        type: integer
+
+  Fields:
+    queryParameters:
+      fields:
+        description: |
+          Comma separated list of fields to return.
+
+          Allowed fieldnames are:
+          * **urlkey** - A normalized version of the uri in *surt* format
+          * **timestamp** - A 14 digit timestamp with format `YYYYMMDDhhmmss`
+          * **url** - The original url
+          * **mime** - The mime type
+          * **status** - The response code (for example 200 or 404)
+          * **digest** - A chcksum of the content of the capture excluding headers
+          * **length** - The length of the capture in bytes
+          * **offset**
+          * **filename**
+        type: array
+        items:
+          type: string
+        example: original,mimetype
+
+  Collapse:
+    queryParameters:
+      collapse:
+        description: |
+          Collapse the result on a field or a substring of a field.
+
+          To use collapsing, add one or more params of the form `collapse=field`
+          or `collapse=field:N` where `N` is the first `N` characters of the
+          *field* to test.
+        type: string
+        pattern: \w+(:\d+)?
+
+  Filter:
+    queryParameters:
+      filter:
+        displayName: filter=[<modifier>]<field>:<filter>
+        description: |
+          The `!` modifier before status indicates negation.
+          The `~` modifier can also be used to specify a regex instead of exact
+          filter match. For example: `filter=~mime:text/.*` will match any CDX
+          line where mime field matches the regex `text/.*`.
+          Negation and regex modifier may be combined, eg. `filter=!~text/.*`
+        type: string
+        pattern: |
+          [!~]?\w+:.+
+
+  WildcardUrl:
+    queryParameters:
+      url:
+        type: string
+        displayName: url
+        description: |
+          The url to query. The url is allowed to contain wildcards like this:
+          * `www.example.com*` or `www.example.com/*` - All captures for the host
+          * `www.example.com/paths/*` - All captures beginning with the specified path
+          * `*.example.com` - return all captures for the host and all subdomains
+          * With no wildcards the url is matched as it is
+        example: www.example.com/paths/*
+
+  Sort:
+    queryParameters:
+      sort:
+        type:
+          - string
+        displayName: sort
+        description: |
+          How to sort the result.
+          * **asc** - result is returned in increasing lexiographic order
+          * **desc** - result is returned in decreasing lexiographic order
+        enum:
+          - asc
+          - desc
+        example: desc
+
+  CdxResponse:
+    responses:
+        200:
+          body:
+            text/plain:
+              type: CdxLine[]
+              description: |
+                A list of CDX lines in the same format as in the CDX files with two exeptions:
+                * There is no format definition
+                * There might be a resumption url if there are more lines than the server could serve in one request
+              examples:
+                NonCompleteResult:
+                  displayName: Non complete resultpreceeding
+                  description: |
+                    This example shows a resultset which was cut off by a limit either
+                    caused by the user setting the limit parameter or by a server defined
+                    default. Thus the result contains a resumption url which could be used
+                    to get more results for this query.
+                  strict: false
+                  content: !include examples/txt_resumption.txt
+                CompleteResult:
+                  displayName: Complete result
+                  description: |
+                    An example of a result with no more captures to get. This could be a
+                    complete result or the last request for a result with resumption url.
+                  content: !include examples/txt_complete.txt
+            application/cdx:
+              type: CdxLine[]
+              examples:
+                NonCompleteResult:
+                  displayName: Non complete result
+                  description: |
+                    This example shows a resultset which was cut off by a limit either
+                    caused by the user setting the limit parameter or by a server defined
+                    default. Thus the result contains a resumption url which could be used
+                    to get more results for this query.
+                  strict: false
+                  content: !include examples/cdx_resumption.txt
+                CompleteResult:
+                  displayName: Complete result
+                  description: |
+                    An example of a result with no more captures to get. This could be a
+                    complete result or the last request for a result with resumption url.
+                  content: !include examples/cdx_complete.txt
+            application/json:
+              type: CdxList
+              examples:
+                NonCompleteResult:
+                  displayName: Non complete result
+                  description: |
+                    This example shows a resultset which was cut off by a limit either
+                    caused by the user setting the limit parameter or by a server defined
+                    default. Thus the result contains a resumption url which could be used
+                    to get more results for this query.
+                  content: !include examples/json_resumption.yaml
+                CompleteResult:
+                  displayName: Complete result
+                  description: |
+                    An example of a result with no more captures to get. This could be a
+                    complete result or the last request for a result with resumption url.
+                  content: !include examples/json_complete.yaml
+            application/cdxj+ors:
+              type: CdxLine[]
+              description: Cdxj is not implemented yet
+              examples:
+                NonCompleteResult:
+                  displayName: Non complete result
+                  description: |
+                    This example shows a resultset which was cut off by a limit either
+                    caused by the user setting the limit parameter or by a server defined
+                    default. Thus the result contains a resumption url which could be used
+                    to get more results for this query.
+                  content: !include examples/cdxj_resumption.txt
+                CompleteResult:
+                  displayName: Complete result
+                  description: |
+                    An example of a result with no more captures to get. This could be a
+                    complete result or the last request for a result with resumption url.
+                  content: !include examples/cdxj_complete.txt
+
+
+# Resources
+/:
+  description: List the collections
+  get:
+    description: |
+      The captures are organized in one or more collections. This query lists
+      the defined collections for this installation. The other paths of this api
+      requires the collection name to be part of the url.
+    responses:
+      200:
+        body:
+          application/json:
+            type: array
+            items:
+              type: object
+              properties:
+                name: string
+                description: string
+            example:
+              - name: collection1
+                description: Description of collection 1
+              - name: collection2
+                description: Description of collection 2
+
+/{collection}:
+  uriParameters:
+    collection:
+      type:
+        - string
+      required: true
+      description: Name of the collection to query
+
+  /query:
+    description: Request an exact url
+    get:
+      description: |
+        Get the closest capture(s) for an exact url.
+        The result will be sorted closest in time to the submitted timestamp.
+        If no timestamp is given, results will be sorted with newest capture first.
+      is:
+        - Limit
+        - Fields
+        - Filter
+        - CdxResponse
+      queryParameters:
+        url:
+          type: string
+          displayName: url
+          description: The url to query.
+          required: true
+        time:
+          type: string
+          description: |
+            Timestamp to get closest capture for.
+            * *timestamp* format is: `YYYYMMDDhhmmss`
+            * *Timestamp* is expected to be UTC
+            * *Timestamp* might have fewer than 14 digits and will then be treated as
+            if the missing numbers are zeroes
+          minLength: 0
+          maxLength: 14
+          pattern: \d{0,14}
+          example: 20160214132400
+        distance:
+          type: integer
+          displayName: distance
+          description: |
+            Limit the result to only contain captures with a timestamp no longer than away in seconds
+            from the requested timestamp than this number of seconds.
+          example: 3600
+      responses:
+        404:
+          body:
+            application/json:
+              type: object
+              properties:
+                msg:
+                  type: string
+              example:
+                msg: "Not found"
+
+  /search:
+    description: Search for captures based on a url or part thereof
+    get:
+      description: |
+        Get a list of captures for a url or a range of urls. Different methods
+        exist to filter, collapsing or in other ways limit the number of returned
+        results.
+
+        Filters are always applied before collapsing.
+      is:
+        - WildcardUrl
+        - DateRange
+        - Limit
+        - Sort
+        - Fields
+        - Filter
+        - Collapse
+        - CdxResponse
+      queryParameters:
+        url:
+          required: true
+
+  /bulk:
+    description: Request cdx records for consumption by processing tools outside OpenWayback
+    is:
+      - WildcardUrl
+      - DateRange
+      - Fields
+    get:
+      description: |
+        The bulk api is optimized for getting big portions of captures for use
+        by processing tools like map-reduce. The result is split into batches which
+        could be requested in paralell. To allow for high perfomance, the feature
+        set of the bulk api is somewhat limited compared to the search and query apis.
+        It is for example not possible to do collapsing since that requires to compare
+        captures which is not possible when processing different ranges of the captures
+        in paralell.
+
+        A typical workflow would be:
+        1. Submit a search to get a list of pages. *Example: `http://cdxserver.example.com/cdx/main/bulk?url=foo.com&from=2016&limit=1000`*
+        2. Sequentially or in paralell use the urls in the result to get each batch of data.
+        3. If a page has a resumption url, use the url to get more data from this batch.
+      responses:
+        200:
+          body:
+            application/json:
+              type: object
+              examples:
+                InitialRequest:
+                  displayName: Initial request
+                  description: |
+                    Example request for list of batches:
+                    `http://cdxserver.example.com/cdx/main/bulk?url=foo.com*&from=2016&limit=1000`
+                  content:
+                    count: 2
+                    batches:
+                      - batch: 1
+                        url: http://cdxserver.example.com/cdx/main/bulk/1?url=foo.com*&from=2016&limit=1000
+                      - batch: 2
+                        url: http://cdxserver.example.com/cdx/main/bulk/2?url=foo.com*&from=2016&limit=1000
+                FirstBatch:
+                  displayName: Requesting the first batch
+                  description: |
+                    Always use the urls returned by the initial request. The format of urls for each batch
+                    is not part of the specification and could differ between installations.
+
+                    Url #1 from batch list: `http://cdxserver.example.com/cdx/main/bulk/1?url=foo.com*&from=2016&limit=1000`
+                  content: !include examples/json_complete.yaml
+    # /{page}:
+    #   description: Get one page for a bulk request
+    #   uriParameters:
+    #     page:
+    #       type: integer
+    #       description: The page number to get
+    #   get:
+    #     is:
+    #       - DateRange
+    #       - Fields
+    #       - CdxResponse
