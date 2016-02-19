@@ -32,24 +32,40 @@ package org.archive.wayback.replay;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
 
 import org.archive.wayback.core.Resource;
 
 public class GzipDecodingResource extends Resource {
 	
+	private static final Logger LOGGER = Logger.getLogger(GzipDecodingResource.class.getName());
+
 	public static final String GZIP = "gzip";
 	
 	private Resource source;
 	
-	public GzipDecodingResource(Resource source)
-	{
+	public GzipDecodingResource(Resource source) {
 		this.source = source;
-	
+		// 2 for GZIP MAGIC bytes.
+		source.mark(2);
 		try {
 			this.setInputStream(new GZIPInputStream(source));
 		} catch (IOException io) {
 			// If can't read as gzip, might as well as send back raw data.
+			if (LOGGER.isLoggable(Level.FINE)) {
+				LOGGER.fine("GZIPInputStream failed on " + source + " (" +
+						io.getMessage() + ")");
+			}
+			try {
+				source.reset();
+			} catch (IOException ex) {
+				LOGGER.log(Level.WARNING,
+					"reset() failed after GZIPInputStream threw IOException (" +
+							io.getMessage() + ") on " + source +
+							" (likely to lose first few bytes)", ex);
+			}
 			this.setInputStream(source);
 		}
 	}
