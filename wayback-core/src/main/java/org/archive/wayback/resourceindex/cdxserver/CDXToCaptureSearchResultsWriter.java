@@ -52,6 +52,8 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 	// tentative
 	protected boolean includeBlockedCaptures = false;
 
+	protected boolean excludeCaptureWithUserInfo = true;
+	
 	/**
 	 * Initialize with behavior options.
 	 * <p>
@@ -62,6 +64,14 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 	public CDXToCaptureSearchResultsWriter() {
 	}
 
+	/**
+	 * Whether to block urls with personal info in them
+	 * @param excludeCaptureWithUserInfo
+	 */
+	public void setExcludeCaptureWithUserInfo(boolean excludeCaptureWithUserInfo) {
+		this.excludeCaptureWithUserInfo = excludeCaptureWithUserInfo;
+	}
+	
 	/**
 	 * Whether to resolve revisit captures
 	 * @param resolveRevisits
@@ -191,6 +201,17 @@ public class CDXToCaptureSearchResultsWriter extends CDXToSearchResultWriter {
 		result.setUrlKey(line.getUrlKey());
 		result.setCaptureTimestamp(timestamp);
 		result.setOriginalUrl(originalUrl);
+		
+		if (excludeCaptureWithUserInfo) {
+			// Special case: filter out captures that have userinfo
+	        boolean hasUserInfo = (UrlOperations.urlToUserInfo(result
+	                .getOriginalUrl()) != null);
+
+	        if (hasUserInfo) {
+	                return 0;
+	        }
+		}
+		
 		result.setRedirectUrl(line.getRedirect());
 		result.setHttpCode(line.getStatusCode());
 
