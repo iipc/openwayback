@@ -960,6 +960,7 @@ hr {
 
 pre {
   overflow: auto;
+  margin: 0px;
 }
 
 /**
@@ -974,9 +975,10 @@ samp {
   font-size: 1em;
 }
 
-code {
-  background-color: #e0efff;
+code, pre {
+  /*background-color: #e0efff;*/
   font-size: 14px;
+  color: #657b83;
 }
 
 /* Forms
@@ -2564,7 +2566,7 @@ a.raml-console-resource-path-active {
 
 .raml-console-resource-param-instructional {
   margin-left: 5px;
-  color: #777;
+  color: #657b83;
   font-size: 14px;
   font-style: italic;
   font-weight: 400;
@@ -2582,7 +2584,7 @@ a.raml-console-resource-path-active {
 
 .raml-console-resource-param-example b {
   margin-right: 3px;
-  color: #777;
+  color: #657b83;
   font-style: italic;
   font-weight: 400;
 }
@@ -2636,6 +2638,16 @@ a.raml-console-resource-path-active {
 
 .raml-console-resource-pre code pre {
   margin: 0;
+  font-size: 12px;
+}
+
+.raml-console-marked-content pre {
+  padding: 5px;
+  margin-left: 12px;
+  margin-right: 12px;
+}
+
+.raml-console-marked-content pre code {
   font-size: 12px;
 }
 
@@ -3348,7 +3360,7 @@ a.raml-console-resource-path-active {
 }
 
 .raml-console-sidebar-input-reset:hover {
-  color: #777;
+  color: #657b83;
 }
 
 .raml-console-sidebar-input-tooltip-container-enum {
@@ -3393,8 +3405,8 @@ a.raml-console-resource-path-active {
 }
 
 .raml-console-sidebar-input-tooltip-container:hover .raml-console-sidebar-input-tooltip {
-  color: #777;
-  border-color: #777;
+  color: #657b83;
+  border-color: #657b83;
 }
 
 @keyframes raml-console-flyout-slide {
@@ -3523,7 +3535,7 @@ a.raml-console-resource-path-active {
 }
 
 .raml-console-sidebar-input-delete:hover {
-  color: #777;
+  color: #657b83;
 }
 
 .raml-console-sidebar-url {
@@ -4640,9 +4652,9 @@ Orginal Style from ethanschoonover.com/solarized (c) Jeremy Hull <sourdrums@gmai
   -webkit-text-size-adjust: none;
 }
 
-.raml-console-hljs-string {
+/*.raml-console-hljs-string {
   color: #657b83 !important;
-}
+}*/
 
 .raml-console-hljs-comment,
 .raml-console-hljs-template_comment,
@@ -4699,6 +4711,7 @@ Orginal Style from ethanschoonover.com/solarized (c) Jeremy Hull <sourdrums@gmai
 
 /* Solarized Yellow */
 
+.raml-console-hljs-attr,
 .raml-console-hljs-attribute,
 .raml-console-hljs-variable,
 .raml-console-lisp .raml-console-hljs-body,

@@ -1,0 +1,4 @@
+ CDX N b a m s k r M S V g
+com,example,www)/foo.html 20160103010100 http://www.example.com/foo.html text/html 200 123456789 2048 45634 myfile.warc.gz
+com,example,www)/foo.html 20160102010100 http://www.example.com/foo.html text/html 200 987654321 128 43999 myfile.warc.gz
+com,example,www)/foo.html 20160108010100 http://www.example.com/foo.html text/html 200 123456789 2048 57633 myfile.warc.gz

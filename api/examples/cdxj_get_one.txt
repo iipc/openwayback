@@ -1,0 +1,2 @@
+@keys ["urlkey", "timestamp"]
+com,example)/?example=1 20140103030321 {"url": "http://example.com?example=1", "digest": "B2LTWWPUOYAH7UIPQ7ZUPQ4VMBSVC36A", "length": "1043", "offset": "333", "filename": "example.warc.gz"}

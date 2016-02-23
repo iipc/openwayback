@@ -1,0 +1,1 @@
+com,example,www)/foo.html 20160101010100 http://www.example.com/foo.html text/html 200 123456789 2048 45634 myfile.warc.gz

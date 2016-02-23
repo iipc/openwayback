@@ -1,18 +1,18 @@
 cdx:
   - urlkey: com,example,www)/foo.html
     timestamp: 20160101010100
-    original: http://www.example.com/foo.html
-    mimetype: text/html
-    statuscode: 200
+    url: http://www.example.com/foo.html
+    mime: text/html
+    status: 200
     digest: 123456789
     length: 2048
     offset: 45634
     filename: myfile.warc.gz
   - urlkey: com,example,www)/bar.html
     timestamp: 20160101010101
-    original: http://www.example.com/bar.html
-    mimetype: text/html
-    statuscode: 404
+    url: http://www.example.com/bar.html
+    mime: text/html
+    status: 404
     digest: 987654321
     length: 128
     offset: 45999

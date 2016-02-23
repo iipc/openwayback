@@ -70,12 +70,10 @@ traits:
       limit:
         description: |
           Limit the maximum captures returned in the response.
-
           If the returned list of captures is cut off by the limit parameter or
           by a server side configured maximum limit, a resumption url will be
           included in the result. This url could be used to resume the search
           from the next result.
-
           The resumption url will be included only if the query has more results.
         displayName: limit
         type: integer
@@ -92,7 +90,7 @@ traits:
           * **url** - The original url
           * **mime** - The mime type
           * **status** - The response code (for example 200 or 404)
-          * **digest** - A chcksum of the content of the capture excluding headers
+          * **digest** - A checksum of the content of the capture (excluding headers)
           * **length** - The length of the capture in bytes
           * **offset**
           * **filename**
@@ -104,28 +102,73 @@ traits:
   Collapse:
     queryParameters:
       collapse:
+        displayName: collapse=<field>[:<NUM>][,n]
         description: |
           Collapse the result on a field or a substring of a field.
 
           To use collapsing, add one or more params of the form `collapse=field`
-          or `collapse=field:N` where `N` is the first `N` characters of the
+          or `collapse=field:NUM` where `NUM` is the first `NUM` characters of the
           *field* to test.
+
+          Collapsing is done on the complete range of the request. You can collapse
+          based on more than one field to restrict this.
+
+          The collapse parameter could also be repeated. Then the second collapse
+          parameter is apllied on the result of the former and so on.
+
+          To illustrate this with examples, given the search for `url=example.com/*`
+          and the following cdx file (omitting some fields for simplicity):
+
+          ```nohighlight
+          com,example)/bar.png 20160215073503 image/png 200 digest1
+          com,example)/bar.png 20160215073504 image/png 200 digest1
+          com,example)/foo.html 20160215073500 text/html 200 digest2
+          com,example)/foo.html 20160215073501 text/html 200 digest3
+          com,example)/foo.html 20160215083502 application/json 404 digest4
+          com,example)/foo.html 20160215083505 text/html 200 digest2
+          com,example)/foo.png 20160215083504 image/png 200 digest5
+          ```
+          To find out what mime types where captured use `collapse=mime` which will
+          return the first line for each mime type:
+          ```
+          com,example)/bar.png 20160215073503 image/png 200 digest1
+          com,example)/foo.html 20160215073500 text/html 200 digest2
+          com,example)/foo.html 20160215073502 application/json 404 digest4
+          ```
+          To reduce the number of captures to only one per hour use: `collapse=timestamp:10`
+          (collapsing on the first 10 digits of the timestamp) which will return:
+          ```
+          com,example)/bar.png 20160215073503 image/png 200 digest1
+          com,example)/foo.html 20160215083502 application/json 404 digest4
+          ```
+          But usually you want this per url: `collapse=urlkey,timestamp:10` which gives:
+          ```
+          com,example)/bar.png 20160215073503 image/png 200 digest1
+          com,example)/foo.html 20160215073500 text/html 200 digest2
+          com,example)/foo.html 20160215083502 application/json 404 digest4
+          com,example)/foo.png 20160215073504 image/png 200 digest5
+          ```
+
         type: string
-        pattern: \w+(:\d+)?
+        pattern: \w+(:\d+)?(,\w+(:\d+)?)*
+        repeat: true
 
   Filter:
     queryParameters:
       filter:
         displayName: filter=[<modifier>]<field>:<filter>
         description: |
-          The `!` modifier before status indicates negation.
+          Filter out captures based on the value of a field.
+
+          The `!` modifier indicates negation.
           The `~` modifier can also be used to specify a regex instead of exact
-          filter match. For example: `filter=~mime:text/.*` will match any CDX
+          filter match. For example: `filter=~mimetype:text/.*` will match any CDX
           line where mime field matches the regex `text/.*`.
-          Negation and regex modifier may be combined, eg. `filter=!~text/.*`
+          Negation and regex modifier may be combined, eg. `filter=!~mimetype:text/.*`
         type: string
         pattern: |
           [!~]?\w+:.+
+        repeat: true
 
   WildcardUrl:
     queryParameters:
@@ -155,19 +198,19 @@ traits:
           - desc
         example: desc
 
-  CdxResponse:
+  CdxSearchResponse:
     responses:
         200:
           body:
             text/plain:
               type: CdxLine[]
               description: |
-                A list of CDX lines in the same format as in the CDX files with two exeptions:
+                A list of CDX lines in the same format as in the CDX files with two exceptions:
                 * There is no format definition
                 * There might be a resumption url if there are more lines than the server could serve in one request
               examples:
                 NonCompleteResult:
-                  displayName: Non complete resultpreceeding
+                  displayName: Non complete result
                   description: |
                     This example shows a resultset which was cut off by a limit either
                     caused by the user setting the limit parameter or by a server defined
@@ -218,7 +261,6 @@ traits:
                   content: !include examples/json_complete.yaml
             application/cdxj+ors:
               type: CdxLine[]
-              description: Cdxj is not implemented yet
               examples:
                 NonCompleteResult:
                   displayName: Non complete result
@@ -234,6 +276,73 @@ traits:
                     An example of a result with no more captures to get. This could be a
                     complete result or the last request for a result with resumption url.
                   content: !include examples/cdxj_complete.txt
+
+  CdxGetResponse:
+    responses:
+        200:
+          body:
+            text/plain:
+              type: CdxLine[]
+              description: |
+                A list of CDX lines in the same format as in the CDX files with the exception that there is no format definition
+              examples:
+                DefaultLimit:
+                  displayName: Result with default limit
+                  description: |
+                    An example of a result without setting limit or distance, using
+                    the default limit of `1`.
+                  content: !include examples/txt_get_one.txt
+                DistanceFiveDays:
+                  displayName: Query with distance
+                  description: |
+                    An example of a result with distance set to `distance=432000` (5 days)
+                    and `timestamp=20160104010100`.
+                  content: !include examples/txt_get_five_days.txt
+            application/cdx:
+              type: CdxLine[]
+              examples:
+                DefaultLimit:
+                  displayName: Result with default limit
+                  description: |
+                    An example of a result without setting limit or distance, using
+                    the default limit of `1`.
+                  content: !include examples/cdx_get_one.txt
+                DistanceFiveDays:
+                  displayName: Query with distance
+                  description: |
+                    An example of a result with distance set to `distance=432000` (5 days)
+                    and `timestamp=20160104010100`.
+                  content: !include examples/cdx_get_five_days.txt
+            application/json:
+              type: CdxList
+              examples:
+                DefaultLimit:
+                  displayName: Result with default limit
+                  description: |
+                    An example of a result without setting limit or distance, using
+                    the default limit of `1`.
+                  content: !include examples/json_get_one.yaml
+                DistanceFiveDays:
+                  displayName: Query with distance
+                  description: |
+                    An example of a result with distance set to `distance=432000` (5 days)
+                    and `timestamp=20160104010100`.
+                  content: !include examples/json_get_five_days.yaml
+            application/cdxj+ors:
+              type: CdxLine[]
+              examples:
+                DefaultLimit:
+                  displayName: Result with default limit
+                  description: |
+                    An example of a result without setting limit or distance, using
+                    the default limit of `1`.
+                  content: !include examples/cdxj_get_one.txt
+                DistanceFiveDays:
+                  displayName: Query with distance
+                  description: |
+                    An example of a result with distance set to `distance=432000` (5 days)
+                    and `timestamp=20160104010100`.
+                  content: !include examples/cdxj_get_five_days.txt
 
 
 # Resources
@@ -268,18 +377,28 @@ traits:
       required: true
       description: Name of the collection to query
 
-  /query:
+  /get:
     description: Request an exact url
     get:
       description: |
-        Get the closest capture(s) for an exact url.
+        This api is for locating an exact uri closest in time to a reference timestamp.
+        The primary usage is to get location information for a resource such as an html file.
+        To get embedded resources, submit get requests with the same timestamp as for the primary
+        resource.
+
+        A request gets the closest capture(s) for an exact url.
         The result will be sorted closest in time to the submitted timestamp.
         If no timestamp is given, results will be sorted with newest capture first.
+
+        The default is to only return one capture (the closest), but that can be changed
+        by using the distance or limit parameters. For performance reasons there might be a
+        server side limit to how many captures to return. To get a big number of captures use
+        either search or bulk api.
       is:
         - Limit
         - Fields
         - Filter
-        - CdxResponse
+        - CdxGetResponse
       queryParameters:
         url:
           type: string
@@ -305,6 +424,24 @@ traits:
             Limit the result to only contain captures with a timestamp no longer than away in seconds
             from the requested timestamp than this number of seconds.
           example: 3600
+        limit:
+          description:  |
+            Limit the maximum captures returned in the response.
+
+            Default value is `1` if neither `limit` nor `distance` parameters are set.
+          default: 1
+        filter:
+          description: |
+            Filter out captures based on the value of a field.
+
+            The `!` modifier indicates negation.
+            The `~` modifier can also be used to specify a regex instead of exact
+            filter match. For example: `filter=~mimetype:text/.*` will match any CDX
+            line where mime field matches the regex `text/.*`.
+            Negation and regex modifier may be combined, eg. `filter=!~mimetype:text/.*`
+
+            If no filter is given the default is to filter out all captures with status code other than 2xx.
+          default: status:~2\d\d
       responses:
         404:
           body:
@@ -320,11 +457,11 @@ traits:
     description: Search for captures based on a url or part thereof
     get:
       description: |
-        Get a list of captures for a url or a range of urls. Different methods
-        exist to filter, collapsing or in other ways limit the number of returned
-        results.
+        Get a list of captures for a url or a range of urls. This api is for getting enough information
+        to build a overview of a part of a collection, for example the calendar view of OpenWayback.
 
-        Filters are always applied before collapsing.
+        Different methods exist to filter, collapsing or in other ways limit the number of returned
+        results. Filters are always applied before collapsing.
       is:
         - WildcardUrl
         - DateRange
@@ -333,7 +470,7 @@ traits:
         - Fields
         - Filter
         - Collapse
-        - CdxResponse
+        - CdxSearchResponse
       queryParameters:
         url:
           required: true
@@ -368,30 +505,19 @@ traits:
                   displayName: Initial request
                   description: |
                     Example request for list of batches:
-                    `http://cdxserver.example.com/cdx/main/bulk?url=foo.com*&from=2016&limit=1000`
+                    `http://cdxserver.example.com/cdx/main/bulk?url=www.example.com*&from=2016&limit=1000`
                   content:
                     count: 2
                     batches:
                       - batch: 1
-                        url: http://cdxserver.example.com/cdx/main/bulk/1?url=foo.com*&from=2016&limit=1000
+                        href: http://cdxserver.example.com/cdx/main/bulk?from=www.example.com%2020160101000000&to=www.example.com/somepath%2020160302000000&limit=1000
                       - batch: 2
-                        url: http://cdxserver.example.com/cdx/main/bulk/2?url=foo.com*&from=2016&limit=1000
+                        href: http://cdxserver.example.com/cdx/main/bulk?from=www.example.com/somepath%2020160302000000&to=www.example.com/xyz.html%2020160315000000&limit=1000
                 FirstBatch:
                   displayName: Requesting the first batch
                   description: |
                     Always use the urls returned by the initial request. The format of urls for each batch
                     is not part of the specification and could differ between installations.
 
-                    Url #1 from batch list: `http://cdxserver.example.com/cdx/main/bulk/1?url=foo.com*&from=2016&limit=1000`
+                    Url #1 from batch list: `http://cdxserver.example.com/cdx/main/bulk?from=www.example.com%2020160101000000&to=www.example.com/somepath%2020160302000000&limit=1000`
                   content: !include examples/json_complete.yaml
-    # /{page}:
-    #   description: Get one page for a bulk request
-    #   uriParameters:
-    #     page:
-    #       type: integer
-    #       description: The page number to get
-    #   get:
-    #     is:
-    #       - DateRange
-    #       - Fields
-    #       - CdxResponse

@@ -1,0 +1,10 @@
+cdx:
+  - urlkey: com,example,www)/foo.html
+    timestamp: 20160101010100
+    url: http://www.example.com/foo.html
+    mime: text/html
+    status: 200
+    digest: 123456789
+    length: 2048
+    offset: 45634
+    filename: myfile.warc.gz
