@@ -6,10 +6,14 @@
 
   <bean id="identityhttpheaderprocessor" class="org.archive.wayback.replay.IdentityHttpHeaderProcessor" />
 
-  <bean id="httpsredirectrewriteproxytransparentreplayrenderer" class="org.archive.wayback.replay.HttpsRedirectRewriteReplayRendeder">
+  <!-- use org.archive.wayback.replay.HttpsRedirectRewriteReplayRendeder instead of
+  org.archive.wayback.replay.TransparentReplayRendeder to force https url rewrite -->
+  <bean id="proxytransparentreplayrenderer" class="org.archive.wayback.replay.TransparentReplayRendeder">
     <constructor-arg><ref bean="identityhttpheaderprocessor"/></constructor-arg>
   </bean>
-  <bean id="httpsredirectrewriteproxymarkupreplayrenderer" class="org.archive.wayback.proxy.HttpsRedirectAndLinksRewriteProxyHTMLMarkupReplayRenderer">
+  <!-- use org.archive.wayback.proxy.HttpsRedirectAndLinksRewriteProxyHTMLMarkupReplayRenderer instead of
+  org.archive.wayback.proxy.ProxyHTMLMarkupReplayRenderer to force https url rewrite -->
+  <bean id="proxymarkupreplayrenderer" class="org.archive.wayback.proxy.ProxyHTMLMarkupReplayRenderer">
     <constructor-arg><ref bean="identityhttpheaderprocessor"/></constructor-arg>
     <property name="jspInserts">
       <list>
@@ -37,12 +41,12 @@
               <value>application/xhtml</value>
             </list>
           </property>
-          <property name="renderer" ref="httpsredirectrewriteproxymarkupreplayrenderer"/>
+          <property name="renderer" ref="proxymarkupreplayrenderer"/>
         </bean>
 
         <!-- DEFAULT-TRANSPARENT REPLAY -->
         <bean class="org.archive.wayback.replay.selector.AlwaysMatchSelector">
-          <property name="renderer" ref="httpsredirectrewriteproxytransparentreplayrenderer"/>
+          <property name="renderer" ref="proxytransparentreplayrenderer"/>
         </bean>
 
       </list>
