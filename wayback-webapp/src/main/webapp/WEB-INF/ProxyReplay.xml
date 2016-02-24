@@ -6,10 +6,10 @@
 
   <bean id="identityhttpheaderprocessor" class="org.archive.wayback.replay.IdentityHttpHeaderProcessor" />
 
-  <bean id="proxytransparentreplayrenderer" class="org.archive.wayback.replay.TransparentReplayRenderer">
+  <bean id="httpsredirectrewriteproxytransparentreplayrenderer" class="org.archive.wayback.replay.HttpsRedirectRewriteReplayRendeder">
     <constructor-arg><ref bean="identityhttpheaderprocessor"/></constructor-arg>
   </bean>
-  <bean id="proxymarkupreplayrenderer" class="org.archive.wayback.proxy.ProxyHTMLMarkupReplayRenderer">
+  <bean id="httpsredirectrewriteproxymarkupreplayrenderer" class="org.archive.wayback.proxy.HttpsRedirectAndLinksRewriteProxyHTMLMarkupReplayRenderer">
     <constructor-arg><ref bean="identityhttpheaderprocessor"/></constructor-arg>
     <property name="jspInserts">
       <list>
@@ -37,12 +37,12 @@
               <value>application/xhtml</value>
             </list>
           </property>
-          <property name="renderer" ref="proxymarkupreplayrenderer"/>
+          <property name="renderer" ref="httpsredirectrewriteproxymarkupreplayrenderer"/>
         </bean>
 
         <!-- DEFAULT-TRANSPARENT REPLAY -->
         <bean class="org.archive.wayback.replay.selector.AlwaysMatchSelector">
-          <property name="renderer" ref="proxytransparentreplayrenderer"/>
+          <property name="renderer" ref="httpsredirectrewriteproxytransparentreplayrenderer"/>
         </bean>
 
       </list>
