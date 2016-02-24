@@ -480,21 +480,36 @@ traits:
     is:
       - WildcardUrl
       - DateRange
+      - Limit
       - Fields
+      - Filter
     get:
       description: |
         The bulk api is optimized for getting big portions of captures for use
         by processing tools like map-reduce. The result is split into batches which
-        could be requested in paralell. To allow for high perfomance, the feature
-        set of the bulk api is somewhat limited compared to the search and query apis.
+        could be requested in parallel. To allow for high perfomance, the feature
+        set of the bulk api is somewhat limited compared to the search and get apis.
         It is for example not possible to do collapsing since that requires to compare
         captures which is not possible when processing different ranges of the captures
-        in paralell.
+        in parallel.
+
+        Using the bulk api is a two step process. First submit a query for the dataset.
+        This query won't return any data, but a list of links to batches of data. Then you
+        need to submit each of those urls to actually get the data you want.
+
+        All of the parameters allowed for batch requests are added to the initial request,
+        but are only influencing the results of the secondary requests which
+        gets the actual data. The format of the url for secondary requests are implementation
+        specific and altering the secondary requests are not allowed.
+
+        Each batch result is required to be sorted internally, but results from different
+        batches might overlap. So if order of the total result is important, then sorting
+        must be applied by the client, for example a reduce operation in a map-reduce tool.
 
         A typical workflow would be:
         1. Submit a search to get a list of pages. *Example: `http://cdxserver.example.com/cdx/main/bulk?url=foo.com&from=2016&limit=1000`*
         2. Sequentially or in paralell use the urls in the result to get each batch of data.
-        3. If a page has a resumption url, use the url to get more data from this batch.
+        3. If a page has a resumption url, use the url to get more data from that batch.
       responses:
         200:
           body:
