@@ -1141,6 +1141,75 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 		assertEquals(expected, output);
 	}
 
+	/**
+	 * NOSCRIPT in HEAD can contain arbitrary element (we've seen IMG and IFRAME
+	 * occuring inside NOSCRIPT), and it shall not trigger injection of
+	 * body-inserts.
+	 * @throws Exception
+	 */
+	public void testNOSCRIPT() throws Exception {
+		delegator.setHeadInsertJsp("head.jsp");
+		delegator.setJspInsertPath("body-insert.jsp");
+		jspExec = new TestJSPExecutor();
+
+		final String input = "<!DOCTYPE html>\n" +
+				"<head>\n" +
+				"  <noscript>\n" +
+				"    <img height=\"1\" width=\"1\" style=\"display:none\" src=\"ping.gif\">\n" +
+				"  </noscript>\n" +
+				"</head>\n" +
+				"<body>\n" +
+				"  body body\n" +
+				"</body>\n" +
+				"</html>\n";
+		final String expected = "<!DOCTYPE html>\n" +
+				"<head>[[[JSP-INSERT:head.jsp]]]\n" +
+				"  <noscript>\n" +
+				"    <img height=\"1\" width=\"1\" style=\"display:none\" src=\"ping.gif\">\n" +
+				"  </noscript>\n" +
+				"</head>\n" +
+				"<body>[[[JSP-INSERT:body-insert.jsp]]]\n" +
+				"  body body\n" +
+				"</body>\n" +
+				"</html>\n";;
+		String out = doEndToEnd(input);
+		//System.out.println(out);
+		assertEquals(expected, out);
+	}
+
+	/**
+	 * pathological case of missing {@code </NOSCRIPT>}.
+	 * {@code </HEAD>} shall close </NOSCRIPT> as well.
+	 * @throws Exception
+	 */
+	public void testNOSCRIPT_missingCloseTag() throws Exception {
+		delegator.setHeadInsertJsp("head.jsp");
+		delegator.setJspInsertPath("body-insert.jsp");
+		jspExec = new TestJSPExecutor();
+
+		final String input = "<!DOCTYPE html>\n" +
+				"<head>\n" +
+				"  <noscript>\n" +
+				"    <img height=\"1\" width=\"1\" style=\"display:none\" src=\"ping.gif\">\n" +
+				"</head>\n" +
+				"<body>\n" +
+				"  body body\n" +
+				"</body>\n" +
+				"</html>\n";
+		final String expected = "<!DOCTYPE html>\n" +
+				"<head>[[[JSP-INSERT:head.jsp]]]\n" +
+				"  <noscript>\n" +
+				"    <img height=\"1\" width=\"1\" style=\"display:none\" src=\"ping.gif\">\n" +
+				"</head>\n" +
+				"<body>[[[JSP-INSERT:body-insert.jsp]]]\n" +
+				"  body body\n" +
+				"</body>\n" +
+				"</html>\n";;
+		String out = doEndToEnd(input);
+		//System.out.println(out);
+		assertEquals(expected, out);
+	}
+
     public String doEndToEnd(String input) throws Exception {
 		ByteArrayInputStream bais = new ByteArrayInputStream(input.getBytes(charSet));
 		byte[] bytes = rewrite(bais);
