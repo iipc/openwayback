@@ -7,8 +7,8 @@
   <bean id="identityhttpheaderprocessor" class="org.archive.wayback.replay.IdentityHttpHeaderProcessor" />
 
   <!-- use org.archive.wayback.replay.HttpsRedirectRewriteReplayRendeder instead of
-  org.archive.wayback.replay.TransparentReplayRendeder to force https url rewrite -->
-  <bean id="proxytransparentreplayrenderer" class="org.archive.wayback.replay.TransparentReplayRendeder">
+  org.archive.wayback.replay.TransparentReplayRenderer to force https url rewrite -->
+  <bean id="proxytransparentreplayrenderer" class="org.archive.wayback.replay.TransparentReplayRenderer">
     <constructor-arg><ref bean="identityhttpheaderprocessor"/></constructor-arg>
   </bean>
   <!-- use org.archive.wayback.proxy.HttpsRedirectAndLinksRewriteProxyHTMLMarkupReplayRenderer instead of
