@@ -85,7 +85,8 @@ public class DupeTimestampBestStatusFilter extends WrappedProcessor {
 
 		String timestamp = line.getTimestamp();
 		timestamp = timestamp.substring(0, Math.min(timestampDedupLength, timestamp.length()));
-		int httpCode = NumberUtils.toInt(line.getStatusCode(), WORST_HTTP_CODE);
+		final String statusCode = line.getStatusCode();
+		int httpCode = "-".equals(statusCode) ? WORST_HTTP_CODE : NumberUtils.toInt(statusCode, WORST_HTTP_CODE);
 
 		boolean isDupe = false;
 
