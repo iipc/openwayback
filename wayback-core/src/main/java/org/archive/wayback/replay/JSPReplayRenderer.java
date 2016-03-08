@@ -79,7 +79,9 @@ public class JSPReplayRenderer implements ReplayRenderer {
 			Resource payloadResource, ResultURIConverter uriConverter,
 			CaptureSearchResults results) throws ServletException, IOException,
 			WaybackException {
+		final Resource resource = payloadResource == httpHeadersResource ? payloadResource
+				: new CompositeResource(httpHeadersResource, payloadResource);
 		renderResource(httpRequest, httpResponse, wbRequest, result,
-				payloadResource, uriConverter, results);
+				resource, uriConverter, results);
 	}
 }
