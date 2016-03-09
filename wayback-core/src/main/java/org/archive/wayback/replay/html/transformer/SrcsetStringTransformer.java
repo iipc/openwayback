@@ -32,34 +32,34 @@ import org.archive.wayback.replay.html.StringTransformer;
  */
 public class SrcsetStringTransformer implements StringTransformer {
 
-	// this looks for "http://example.com/img/pic.jpg 150w,"
-	protected static String SRCSET_MEMBER = 
-		"\\s*(\\S+)(?:\\s*|\\s+(?:[-+]?[0-9]*\\.?[0-9]+x|[0-9]+w)\\s*)(?:,|$)";
+    // this looks for "http://example.com/img/pic.jpg 150w,"
+    protected static String SRCSET_MEMBER =
+        "\\s*(\\S+)(?:\\s*|\\s+(?:[-+]?[0-9]*\\.?[0-9]+x|[0-9]+w)\\s*)(?:,|$)";
 
-	protected static Pattern srcsetUrlPattern = Pattern.compile(SRCSET_MEMBER);
+    protected static Pattern srcsetUrlPattern = Pattern.compile(SRCSET_MEMBER);
 
-	protected void patternRewrite(ReplayParseContext context, StringBuilder sb,
-			Pattern pattern, String flags) {
-		int idx = 0;
-		Matcher srcsetMemberMatcher = pattern.matcher(sb);
-		while (srcsetMemberMatcher.find(idx)) {
-			String url = srcsetMemberMatcher.group(1);
-			int urlLength = url.length();
-			int urlStart = srcsetMemberMatcher.start(1);
-			idx = srcsetMemberMatcher.end();
-			String replayUrl = context.contextualizeUrl(url, flags);
-			if (replayUrl != url) {
-				int delta = replayUrl.length() - urlLength;
-				sb.replace(urlStart, urlStart + urlLength, replayUrl);
-				// adjust start of next match as URL extends
-				idx += delta;
-			}
-		}
-	}
-
-        public String transform(ReplayParseContext context, String srcset) {
-                StringBuilder sb = new StringBuilder(srcset);
-                patternRewrite(context, sb, srcsetUrlPattern, "im_");
-                return sb.toString();
+    protected void patternRewrite(ReplayParseContext context, StringBuilder sb,
+            Pattern pattern, String flags) {
+        int idx = 0;
+        Matcher srcsetMemberMatcher = pattern.matcher(sb);
+        while (srcsetMemberMatcher.find(idx)) {
+            String url = srcsetMemberMatcher.group(1);
+            int urlLength = url.length();
+            int urlStart = srcsetMemberMatcher.start(1);
+            idx = srcsetMemberMatcher.end();
+            String replayUrl = context.contextualizeUrl(url, flags);
+            if (replayUrl != url) {
+                int delta = replayUrl.length() - urlLength;
+                sb.replace(urlStart, urlStart + urlLength, replayUrl);
+                // adjust start of next match as URL extends
+                idx += delta;
+            }
         }
+    }
+
+    public String transform(ReplayParseContext context, String srcset) {
+        StringBuilder sb = new StringBuilder(srcset);
+        patternRewrite(context, sb, srcsetUrlPattern, "im_");
+        return sb.toString();
+    }
 }

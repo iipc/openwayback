@@ -224,7 +224,7 @@ public class StandardAttributeRewriter implements AttributeRewriter {
 		transformers.put("jb", jsBlockTrans);
 		transformers.put("ci", new InlineCSSStringTransformer());
 		transformers.put("mt", new MetaRefreshUrlStringTransformer());
-                transformers.put("ss", new SrcsetStringTransformer());
+		transformers.put("ss", new SrcsetStringTransformer());
 		
 		if (customTransformers != null) {
 			transformers.putAll(customTransformers);
