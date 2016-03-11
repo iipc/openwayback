@@ -2,7 +2,7 @@
 
 # Release Notes
 
-Full listing of changes and bug fixes are not available prior to release 1.2.0 and between release 1.6.0 and OpeWayback 2.0.0 BETA 1 release.
+Full listing of changes and bug fixes are not available prior to release 1.2.0 and between release 1.6.0 and OpenWayback 2.0.0 BETA 1 release.
 
 ## OpenWayback 2.3.1 Release
 ### Bug fixes
