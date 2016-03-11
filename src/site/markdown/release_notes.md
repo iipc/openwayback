@@ -7,6 +7,7 @@ Full listing of changes and bug fixes are not available prior to release 1.2.0 a
 ## OpenWayback 2.3.1 Release
 ### Bug fixes
 * Rewrite URLs in srcset attribute. [#310](https://github.com/iipc/openwayback/issues/310)
+* Add "noscript" as a valid Head tag for Toolbar insertion. [#306](https://github.com/iipc/openwayback/issues/306)
 
 ## OpenWayback 2.3.0 Release
 ### Features
