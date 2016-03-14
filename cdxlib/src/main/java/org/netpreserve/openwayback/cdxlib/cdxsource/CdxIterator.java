@@ -30,7 +30,7 @@ import org.netpreserve.openwayback.cdxlib.CdxLine;
  * </ul>
  * <p>
  * Even though this class implements a close method. Users of the class should normally not need to
- * close i t(but it is harmless to do so,) because the Iterable creating the iterator should
+ * close it (but it is harmless to do so,) because the Iterable creating the iterator should
  * normally do it for you.
  */
 public interface CdxIterator extends Iterator<CdxLine>, AutoCloseable {

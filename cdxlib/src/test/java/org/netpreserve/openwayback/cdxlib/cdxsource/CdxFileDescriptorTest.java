@@ -17,10 +17,8 @@ package org.netpreserve.openwayback.cdxlib.cdxsource;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.List;
 
 import org.junit.Test;
@@ -60,7 +58,7 @@ public class CdxFileDescriptorTest {
         path = Paths.get(ClassLoader.getSystemResource("cdxfile3.cdx").toURI());
         meta = new CdxFileDescriptor(path);
         blocks = meta.calculateBlocks(null, null);
-        
+
         assertThat(blocks)
                 .hasSize(1);
     }

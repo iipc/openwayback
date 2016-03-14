@@ -16,13 +16,15 @@
 package org.netpreserve.openwayback.cdxlib.cdxsource;
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 
-import org.netpreserve.openwayback.cdxlib.SearchResult;
 import org.netpreserve.openwayback.cdxlib.CdxLineFormatMapper;
 import org.netpreserve.openwayback.cdxlib.CdxLineSchema;
 import org.netpreserve.openwayback.cdxlib.processor.Processor;
 import org.netpreserve.openwayback.cdxlib.CdxSource;
+import org.netpreserve.openwayback.cdxlib.SearchResult;
 
 /**
  *
@@ -44,16 +46,19 @@ public class BlockCdxSource implements CdxSource {
                 sourceDescriptor.getInputFormat(), outputFormat);
 
         return new AbstractSearchResult() {
+            final List<SourceBlock> blocks = sourceDescriptor.calculateBlocks(startUrl, endUrl);
+
             @Override
             public CdxIterator newIterator() {
                 CdxIterator iterator;
 
                 if (reverse) {
-                    iterator = new BlockCdxSourceReverseIterator(sourceDescriptor, startUrl, endUrl,
-                            lineFormatMapper);
+                    iterator = new BlockCdxSourceReverseIterator(sourceDescriptor,
+                            reverseIterator(blocks),
+                            startUrl, endUrl, lineFormatMapper).init();
                 } else {
-                    iterator = new BlockCdxSourceIterator(sourceDescriptor, startUrl, endUrl,
-                            lineFormatMapper);
+                    iterator = new BlockCdxSourceIterator(sourceDescriptor, blocks.iterator(),
+                            startUrl, endUrl, lineFormatMapper).init();
                 }
 
                 if (processors != null) {
@@ -75,6 +80,35 @@ public class BlockCdxSource implements CdxSource {
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
+    }
+
+    private static <E> Iterator<E> reverseIterator(final List<E> list) {
+        return new Iterator<E>() {
+            ListIterator<E> src = list.listIterator(list.size());
+
+            @Override
+            public boolean hasNext() {
+                return src.hasPrevious();
+            }
+
+            @Override
+            public E next() {
+                return src.previous();
+            }
+        };
+    }
+
+    @Override
+    public long count(final String startUrl, final String endUrl) {
+        final CdxLineFormatMapper lineFormatMapper = new CdxLineFormatMapper(
+                sourceDescriptor.getInputFormat(), null);
+
+        final List<SourceBlock> blocks = sourceDescriptor.calculateBlocks(startUrl, endUrl);
+
+        BlockCdxSourceLineCounter counter = new BlockCdxSourceLineCounter(sourceDescriptor,
+                blocks.iterator(), startUrl, endUrl, lineFormatMapper).init();
+
+        return counter.count();
     }
 
 }

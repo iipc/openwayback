@@ -18,27 +18,31 @@ package org.netpreserve.openwayback.cdxlib.cdxsource;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
+import java.util.Iterator;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 import org.netpreserve.openwayback.cdxlib.CdxLine;
 import org.netpreserve.openwayback.cdxlib.CdxLineFormatMapper;
 
 /**
- *
+ * A {@link CdxIterator} which iterates over a block based cdx source.
+ * <p>
+ * Note: It is mandatory to call {@link #init()} on new instances of this class.
  */
 public class BlockCdxSourceIterator implements CdxIterator {
+
+    CdxBuffer cdxBuffer;
+
+    Future<ByteBuffer> nextBuffer;
+
+    final ExecutorService executorService = CdxSourceExecutorService.getInstance();
 
     final byte[] startFilter;
 
     final byte[] endFilter;
-
-    CdxLine nextLine = null;
-
-    ByteBuffer byteBuf;
-
-    final int delimiter;
 
     final CdxLineFormatMapper lineFormatMapper;
 
@@ -46,34 +50,113 @@ public class BlockCdxSourceIterator implements CdxIterator {
 
     final SourceDescriptor sourceDescriptor;
 
-    final List<SourceBlock> blocks;
+    final Iterator<SourceBlock> blockIterator;
 
-    public BlockCdxSourceIterator(final SourceDescriptor sourceDescriptor, final String startUrl,
-            final String endUrl, final CdxLineFormatMapper lineFormatMapper) {
+    CdxLine nextLine = null;
+
+    public BlockCdxSourceIterator(final SourceDescriptor sourceDescriptor,
+            final Iterator<SourceBlock> blockIterator,
+            final String startKey, final String endKey,
+            final CdxLineFormatMapper lineFormatMapper) {
 
         this.sourceDescriptor = sourceDescriptor;
 
-        if (startUrl == null || startUrl.isEmpty()) {
+        if (startKey == null || startKey.isEmpty()) {
             this.startFilter = null;
         } else {
-            this.startFilter = startUrl.getBytes();
+            this.startFilter = startKey.getBytes();
         }
 
-        if (endUrl == null || endUrl.isEmpty()) {
+        if (endKey == null || endKey.isEmpty()) {
             this.endFilter = null;
         } else {
-            this.endFilter = endUrl.getBytes();
+            this.endFilter = endKey.getBytes();
         }
 
         this.lineFormatMapper = lineFormatMapper;
 
-        blocks = sourceDescriptor.calculateBlocks(startUrl, endUrl);
+        this.blockIterator = blockIterator;
 
+    }
+
+    /**
+     * Initialize this iterator.
+     * <p>
+     * This method must be called before executing any other methods.
+     * <p>
+     * @return this iterator for easy chaining
+     */
+    BlockCdxSourceIterator init() {
+        cdxBuffer = new CdxBuffer(lineFormatMapper, startFilter, endFilter);
         fillBuffer();
-
-        delimiter = lineFormatMapper.getInputFormat().getDelimiter();
-
         skipLines();
+        return this;
+    }
+
+    /**
+     * Release resources.
+     */
+    @Override
+    public void close() {
+        eof = true;
+        cdxBuffer = null;
+    }
+
+    final boolean fillBuffer() {
+        if (nextBuffer == null && !blockIterator.hasNext()) {
+            return false;
+        }
+
+        ByteBuffer recycleableBuffer = null;
+
+        try {
+            if (cdxBuffer.getByteBuf() == null) {
+                cdxBuffer.setByteBuf(fillBuffer(blockIterator.next(), cdxBuffer.getByteBuf()).get());
+            } else if (nextBuffer != null) {
+                ByteBuffer next = nextBuffer.get();
+                nextBuffer = null;
+
+                recycleableBuffer = cdxBuffer.getByteBuf();
+                cdxBuffer.setByteBuf(next);
+            }
+        } catch (InterruptedException ex) {
+            return false;
+        } catch (ExecutionException ex) {
+            throw new RuntimeException(ex);
+        }
+
+        if (blockIterator.hasNext()) {
+            nextBuffer = fillBuffer(blockIterator.next(), recycleableBuffer);
+        }
+
+        return cdxBuffer != null;
+    }
+
+    Future<ByteBuffer> fillBuffer(final SourceBlock currentBlock, final ByteBuffer recycledBuffer) {
+        return executorService.submit(new Callable<ByteBuffer>() {
+            @Override
+            public ByteBuffer call() throws Exception {
+                try {
+                    return sourceDescriptor.read(currentBlock, recycledBuffer);
+                } catch (IOException ex) {
+                    throw new UncheckedIOException(ex);
+                }
+            }
+
+        });
+    }
+
+    /**
+     * If a start filter exist, skip lines not matching filter.
+     */
+    final void skipLines() {
+        do {
+            if (cdxBuffer.skipLines()) {
+                return;
+            }
+
+            eof = !fillBuffer();
+        } while (!eof);
     }
 
     @Override
@@ -83,8 +166,8 @@ public class BlockCdxSourceIterator implements CdxIterator {
         } else if (eof) {
             return false;
         } else {
-            if (endFilter != null && blocks.isEmpty()) {
-                nextLine = readLine(endFilter);
+            if (!blockIterator.hasNext()) {
+                nextLine = readLineCheckingFilter();
             } else {
                 nextLine = readLine();
             }
@@ -114,64 +197,23 @@ public class BlockCdxSourceIterator implements CdxIterator {
     }
 
     @Override
-    public void close() {
-        eof = true;
-        byteBuf = null;
-    }
-
-    @Override
     public void remove() {
         throw new UnsupportedOperationException("Iterator is read only.");
     }
 
-    boolean fillBuffer() {
-        try {
-            if (blocks.isEmpty()) {
-                return false;
-            }
-
-            SourceBlock block;
-            block = blocks.remove(0);
-
-            byteBuf = sourceDescriptor.read(block, byteBuf);
-            return byteBuf != null;
-
-        } catch (IOException ex) {
-            throw new UncheckedIOException(ex);
-        }
-    }
-
+    /**
+     * Read the next line of cdx data.
+     * <p>
+     * This method delegates to the buffer to read the next line. This method takes care of loading
+     * the next buffer if end of current buffer was reached.
+     * <p>
+     * @return the next line or null if end of result set
+     */
     CdxLine readLine() {
         do {
-            byteBuf.mark();
-
-            if (byteBuf.hasRemaining()) {
-                skipToEndOfLine();
-                int endOfLine = byteBuf.position();
-                byteBuf.reset();
-                CdxLine cdxLine = createCdxLine(byteBuf, endOfLine, lineFormatMapper);
-                skipLF();
-                return cdxLine;
-            }
-
-            eof = !fillBuffer();
-        } while (!eof);
-
-        return null;
-    }
-
-    CdxLine readLine(final byte[] endFilter) {
-        do {
-            byteBuf.mark();
-            if (byteBuf.hasRemaining()) {
-                if (compareToFilter(endFilter) < 0) {
-                    skipToEndOfLine();
-                    int endOfLine = byteBuf.position();
-                    byteBuf.reset();
-                    CdxLine cdxLine = createCdxLine(byteBuf, endOfLine, lineFormatMapper);
-                    skipLF();
-                    return cdxLine;
-                }
+            CdxLine cdx = cdxBuffer.readLine();
+            if (cdx != null) {
+                return cdx;
             }
 
             eof = !fillBuffer();
@@ -181,163 +223,24 @@ public class BlockCdxSourceIterator implements CdxIterator {
     }
 
     /**
-     * Check for newline chracters.
-     *
-     * @param c the character to check
-     * @return true if LF or CR
+     * Read the next line of cdx data ensuring the line is within the requested range.
+     * <p>
+     * This method delegates to the buffer to read the next line. This method takes care of loading
+     * the next buffer if end of current buffer was reached.
+     * <p>
+     * @return the next line or null if end of result set
      */
-    boolean isLf(int c) {
-        return c == '\n' || c == '\r';
-    }
-
-    int compareToFilter(final byte[] filter) {
-        int filterLength = filter.length;
-
-        int k = 0;
-
-        if (byteBuf.hasArray()) {
-            // When buffer is backed by an array, this runs faster than using ByteBuffer API
-            byte[] buf = byteBuf.array();
-            int offset = byteBuf.position();
-            int limit = byteBuf.limit();
-
-            for (int i = offset; i < limit && k < filterLength; i++) {
-                byte c = buf[i];
-                byte cf = filter[k];
-
-                if (c == delimiter) {
-                    byteBuf.position(i + 1);
-                    break;
-                }
-                if (c != cf) {
-                    byteBuf.position(i + 1);
-                    return c - cf;
-                }
-                k++;
-            }
-        } else {
-            while (k < filterLength && byteBuf.hasRemaining()) {
-                byte c = byteBuf.get();
-                byte cf = filter[k];
-
-                if (c == delimiter) {
-                    break;
-                }
-                if (c != cf) {
-                    return c - cf;
-                }
-                k++;
-            }
-        }
-
-        return k - filterLength;
-    }
-
-    void skipLines() {
-        if (startFilter == null) {
-            return;
-        }
-
+    CdxLine readLineCheckingFilter() {
         do {
-            while (byteBuf.hasRemaining()) {
-                byteBuf.mark();
-                if (compareToFilter(startFilter) < 0) {
-                    skipToEndOfLine();
-                    skipLF();
-                } else {
-                    byteBuf.reset();
-                    return;
-                }
+            CdxLine cdx = cdxBuffer.readLineCheckingFilter();
+            if (cdx != null) {
+                return cdx;
             }
 
             eof = !fillBuffer();
         } while (!eof);
-    }
 
-    void skipToEndOfLine() {
-        if (byteBuf.hasArray()) {
-            // When buffer is backed by an array, this runs faster than using ByteBuffer API
-            byte[] buf = byteBuf.array();
-            int offset = byteBuf.position();
-            int limit = byteBuf.limit();
-
-            for (int i = offset; i < limit; i++) {
-                if (isLf(buf[i])) {
-                    byteBuf.position(i);
-                    return;
-                }
-            }
-        } else {
-            while (byteBuf.hasRemaining()) {
-                if (isLf(byteBuf.get())) {
-                    byteBuf.position(byteBuf.position() - 1);
-                    return;
-                }
-            }
-        }
-    }
-
-    void skipLF() {
-        if (isLf(byteBuf.get())) {
-            // Check for extra line feed
-            if (byteBuf.hasRemaining() && byteBuf.get(byteBuf.position()) == '\n') {
-                byteBuf.get();
-            }
-            return;
-        }
-    }
-
-    static CdxLine createCdxLine(final ByteBuffer byteBuf, final int startOfNextLine,
-            final CdxLineFormatMapper outputFormat) {
-
-        try {
-            return new CdxLine(convertToCharBuffer(byteBuf, startOfNextLine), outputFormat);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
-    }
-
-    static CharBuffer convertToCharBuffer(final ByteBuffer byteBuf,
-            final int startOfNextLine) {
-
-        int lineLength = startOfNextLine - byteBuf.position();
-        char[] out = new char[lineLength];
-
-        if (byteBuf.hasArray()) {
-            // When buffer is backed by an array, this runs faster than using ByteBuffer API
-            byte[] buf = byteBuf.array();
-            int offset = byteBuf.position() + byteBuf.arrayOffset();
-
-            for (int i = 0; i < lineLength; i++) {
-                byte c = buf[i + offset];
-                if (c < 0) {
-                    // Line contains non ascii character, must decode line.
-                    return convertToCharBufferNonAscii(byteBuf, lineLength);
-                }
-                out[i] = (char) c;
-            }
-            byteBuf.position(startOfNextLine);
-        } else {
-            for (int i = 0; i < lineLength; i++) {
-                byte c = byteBuf.get();
-                if (c < 0) {
-                    // Line contains non ascii character, must decode line.
-                    byteBuf.reset();
-                    return convertToCharBufferNonAscii(byteBuf, lineLength);
-                }
-                out[i] = (char) c;
-            }
-        }
-        return CharBuffer.wrap(out);
-    }
-
-    static CharBuffer convertToCharBufferNonAscii(final ByteBuffer byteBuf,
-            final int lineLength) {
-
-        ByteBuffer line = byteBuf.slice();
-        line.limit(lineLength);
-        return StandardCharsets.UTF_8.decode(line);
+        return null;
     }
 
 }

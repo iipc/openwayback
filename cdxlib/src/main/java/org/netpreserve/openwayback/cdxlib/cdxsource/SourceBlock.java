@@ -30,16 +30,24 @@ public final class SourceBlock implements Cloneable {
 
     final String location;
 
+    int lineCount;
+
     public SourceBlock(final String key, final long offset, final int length) {
-        this(key, offset, length, null);
+        this(key, offset, length, null, -1);
     }
 
     public SourceBlock(final String key, final long offset, final int length,
             final String location) {
+        this(key, offset, length, location, -1);
+    }
+
+    public SourceBlock(final String key, final long offset, final int length,
+            final String location, final int lineCount) {
         this.key = key;
         this.offset = offset;
         this.length = length;
         this.location = location;
+        this.lineCount = lineCount;
     }
 
     @Override
@@ -63,13 +71,26 @@ public final class SourceBlock implements Cloneable {
         return length;
     }
 
+    public String getLocation() {
+        return location;
+    }
+
+    public int getLineCount() {
+        return lineCount;
+    }
+
+    public void setLineCount(int lineCount) {
+        this.lineCount = lineCount;
+    }
+
     public SourceBlock merge(SourceBlock nextBlock) {
         return new SourceBlock(key, offset, length + nextBlock.length);
     }
 
     @Override
     public String toString() {
-        return "Block{" + "key=" + key + ", offset=" + offset + ", length=" + length + '}';
+        return "Block{" + "key=" + key + ", offset=" + offset + ", length=" + length
+                + (lineCount != -1 ? ", lines=" + lineCount : "") + '}';
     }
 
     @Override

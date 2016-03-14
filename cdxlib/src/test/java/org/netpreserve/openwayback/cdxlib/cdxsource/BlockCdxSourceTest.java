@@ -211,19 +211,23 @@ public class BlockCdxSourceTest {
         }
     }
 
-    /**
-     * Comparator for CdxLines using compareTo instead of equals.
-     * <p>
-     * This is needed in these tests due to CdxLine not strictly following the equals() beeing
-     * consistent with compareTo(). For an explenation see {@link CdxLine#compareTo(CdxLine).
-     */
-    private static class CdxLineComparator implements Comparator<CdxLine> {
+    @Test
+    public void testCount() throws URISyntaxException, IOException {
+        Path path = Paths.get(ClassLoader.getSystemResource("cdxfile1.cdx").toURI());
+        SourceDescriptor sourceDescriptor = new CdxFileDescriptor(path);
 
-        @Override
-        public int compare(CdxLine o1, CdxLine o2) {
-            return o1.compareTo(o2);
+        try (CdxSource cdxSource = new BlockCdxSource(sourceDescriptor);) {
+
+            String startKey = "be,halten)";
+            String toKey = "ch,";
+
+            long count = cdxSource.count(startKey, toKey);
+            assertThat(count).isEqualTo(15);
+
+            // Count whole file
+            count = cdxSource.count(null, null);
+            assertThat(count).isEqualTo(1666);
         }
-
     }
 
     /**

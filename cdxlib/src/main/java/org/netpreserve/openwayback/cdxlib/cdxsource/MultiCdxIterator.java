@@ -19,11 +19,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.netpreserve.openwayback.cdxlib.CdxLine;
 
@@ -32,7 +28,7 @@ import org.netpreserve.openwayback.cdxlib.CdxLine;
  */
 public class MultiCdxIterator implements CdxIterator {
 
-    private static final CdxSourceExecutorService EXECUTOR_SERVICE = new CdxSourceExecutorService();
+    final CdxSourceExecutorService executorService = CdxSourceExecutorService.getInstance();
 
     CdxIterator[] iterators;
 
@@ -57,7 +53,7 @@ public class MultiCdxIterator implements CdxIterator {
         this.iterators = new CdxIterator[len];
 
         if (parallel) {
-            synchronized (EXECUTOR_SERVICE) {
+            synchronized (executorService) {
                 for (int i = 0; i < len; i++) {
                     CdxIterator iter = new IteratorTask(iterators[i]);
                     if (iter.peek() != null) {
@@ -159,7 +155,7 @@ public class MultiCdxIterator implements CdxIterator {
             this.iterator = iterator;
             this.queue = new ArrayBlockingQueue<>(8);
 
-            future = EXECUTOR_SERVICE.submit(new Runnable() {
+            future = executorService.submit(new Runnable() {
                 @Override
                 public void run() {
                     try {
@@ -260,60 +256,4 @@ public class MultiCdxIterator implements CdxIterator {
         }
 
     };
-
-    /**
-     * ThreadFactory used by the shared ExecutorService of MultiCdxIterator.
-     */
-    static class CdxSourceThreadFactory implements ThreadFactory {
-
-        private final ThreadGroup group;
-
-        private final AtomicInteger threadNumber = new AtomicInteger(1);
-
-        private final String namePrefix;
-
-        /**
-         * Constructs a ThreadFactory with its own thread group.
-         */
-        CdxSourceThreadFactory() {
-            group = new ThreadGroup("multicdxsource");
-            namePrefix = "multicdxsource-thread-";
-        }
-
-        @Override
-        public Thread newThread(Runnable r) {
-            Thread t = new Thread(group, r, namePrefix + threadNumber.getAndIncrement(), 0);
-            if (t.isDaemon()) {
-                t.setDaemon(false);
-            }
-            if (t.getPriority() != Thread.NORM_PRIORITY) {
-                t.setPriority(Thread.NORM_PRIORITY);
-            }
-            return t;
-        }
-
-    }
-
-    /**
-     * ExecutorService for MultiCdxIterator. This executor is shared between all instances of
-     * MultiCdxIterator.
-     */
-    static class CdxSourceExecutorService extends ThreadPoolExecutor {
-
-        private static final int MAX_POOL_SIZE
-                = (int) (Runtime.getRuntime().availableProcessors() * 1.5);
-
-        private static final int KEEP_ALIVE_TIME = 3;
-
-        /**
-         * Constructor creating a ExecutorService with reasonable default values.
-         */
-        public CdxSourceExecutorService() {
-            super(MAX_POOL_SIZE, MAX_POOL_SIZE, KEEP_ALIVE_TIME, TimeUnit.MINUTES,
-                    new LinkedBlockingQueue<Runnable>(), new CdxSourceThreadFactory());
-
-            allowCoreThreadTimeOut(true);
-        }
-
-    }
 }

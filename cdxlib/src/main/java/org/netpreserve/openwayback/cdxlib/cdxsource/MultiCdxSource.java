@@ -70,14 +70,23 @@ public class MultiCdxSource implements CdxSource {
     }
 
     @Override
-    public SearchResult search(String startUrl, String endUrl, CdxLineSchema outputFormat,
+    public SearchResult search(String startKey, String endKey, CdxLineSchema outputFormat,
             List<Processor> processors, boolean reverse) {
         SearchResult[] sourceIterables = new SearchResult[sources.size()];
         for (int i = 0; i < sources.size(); i++) {
             sourceIterables[i] = sources.get(i)
-                    .search(startUrl, endUrl, outputFormat, processors, reverse);
+                    .search(startKey, endKey, outputFormat, processors, reverse);
         }
         return new MultiCdxIterable(sourceIterables, processors, reverse);
+    }
+
+    @Override
+    public long count(String startKey, String endKey) {
+        long count = 0L;
+        for (int i = 0; i < sources.size(); i++) {
+            count += sources.get(i).count(startKey, endKey);
+        }
+        return count;
     }
 
     @Override
@@ -86,7 +95,6 @@ public class MultiCdxSource implements CdxSource {
             source.close();
         }
     }
-
     private class MultiCdxIterable extends AbstractSearchResult {
 
         SearchResult[] sourceIterables;

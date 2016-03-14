@@ -90,6 +90,31 @@ public class CdxFileDescriptor implements SourceDescriptor {
         }
 
         prevBlock.length = (int) (channelSize - prevBlock.offset);
+
+        populateBlockLineCount();
+    }
+
+    private void populateBlockLineCount() {
+        new Thread() {
+            @Override
+            public void run() {
+                long lines = 0L;
+                ByteBuffer buf = null;
+                for (SourceBlock block : blocks) {
+                    try {
+                        buf = read(block, buf);
+                        int count = 0;
+                        while (skipToNextLine(buf)) {
+                            count++;
+                        }
+                        block.setLineCount(count);
+                        lines += count;
+                    } catch (IOException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+            }
+        }.start();
     }
 
     @Override
@@ -106,8 +131,11 @@ public class CdxFileDescriptor implements SourceDescriptor {
 
         for (int i = firstIdx + 1; i < blocks.size(); i++) {
             SourceBlock nextBlock = blocks.get(i);
+
+            // Merge blocks if they are smaller than BUFFER_SIZE
             if (block.length + nextBlock.length < BUFFER_SIZE) {
                 block.length += nextBlock.length;
+                block.lineCount += nextBlock.lineCount;
             } else {
                 if (toKey != null && toKey.compareTo(nextBlock.key) < 0) {
                     break;
@@ -150,18 +178,20 @@ public class CdxFileDescriptor implements SourceDescriptor {
      * Move buffer position to beginning of next line.
      * <p>
      * @param inBuf the buffer to process.
+     * @return true if successful, false if eof was reached before any line ending.
      */
-    private void skipToNextLine(final ByteBuffer inBuf) {
+    private boolean skipToNextLine(final ByteBuffer inBuf) {
         while (inBuf.hasRemaining()) {
             byte c = inBuf.get();
 
             if (c == '\n' || c == '\r') {
-                if (inBuf.get(inBuf.position()) == '\n') {
+                if (inBuf.hasRemaining() && inBuf.get(inBuf.position()) == '\n') {
                     inBuf.get();
                 }
-                return;
+                return true;
             }
         }
+        return false;
     }
 
     /**
@@ -185,7 +215,7 @@ public class CdxFileDescriptor implements SourceDescriptor {
             return null;
         }
 
-        if (byteBuf == null || byteBuf.capacity() < (BLOCK_SIZE * 2)) {
+        if (byteBuf == null || byteBuf.isReadOnly() || byteBuf.capacity() < (BLOCK_SIZE * 2)) {
             byteBuf = ByteBuffer.allocate(BUFFER_SIZE);
         }
 

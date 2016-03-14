@@ -177,4 +177,26 @@ public class MultiCdxSourceTest {
         assertThat(resultTotalReverse).hasSize(1 + 4).containsExactlyElementsOf(resultSet);
     }
 
+    @Test
+    public void testCount() throws URISyntaxException, IOException {
+        Path path1 = Paths.get(ClassLoader.getSystemResource("cdxfile1.cdx").toURI());
+        Path path2 = Paths.get(ClassLoader.getSystemResource("cdxfile2.cdx").toURI());
+
+        SourceDescriptor sourceDescriptor1 = new CdxFileDescriptor(path1);
+        SourceDescriptor sourceDescriptor2 = new CdxFileDescriptor(path2);
+
+        CdxSource cdxFile1 = new BlockCdxSource(sourceDescriptor1);
+        CdxSource cdxFile2 = new BlockCdxSource(sourceDescriptor2);
+
+        long result1 = cdxFile1.count(null, null);
+        assertThat(result1).isEqualTo(1666);
+
+        long result2 = cdxFile2.count(null, null);
+        assertThat(result2).isEqualTo(1888);
+
+        MultiCdxSource cdxSource = new MultiCdxSource(cdxFile1, cdxFile2);
+
+        long resultTotal = cdxSource.count(null, null);
+        assertThat(resultTotal).isEqualTo(1666 + 1888);
+    }
 }
