@@ -16,7 +16,6 @@
 package org.netpreserve.openwayback.cdxlib.cdxsource;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.concurrent.Callable;
@@ -139,7 +138,7 @@ public class BlockCdxSourceIterator implements CdxIterator {
                 try {
                     return sourceDescriptor.read(currentBlock, recycledBuffer);
                 } catch (IOException ex) {
-                    throw new UncheckedIOException(ex);
+                    throw new RuntimeException(ex);
                 }
             }
 

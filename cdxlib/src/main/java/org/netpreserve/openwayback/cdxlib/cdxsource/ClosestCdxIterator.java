@@ -120,6 +120,11 @@ public class ClosestCdxIterator implements CdxIterator {
         backwardResult.close();
     }
 
+    @Override
+    public void remove() {
+        throw new UnsupportedOperationException();
+    }
+    
     private static long timestampStringToSeconds(String timestamp) {
         try {
             DateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss", Locale.ENGLISH);

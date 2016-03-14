@@ -131,6 +131,11 @@ public class MultiCdxIterator implements CdxIterator {
         return peek() != null;
     }
 
+    @Override
+    public void remove() {
+        throw new UnsupportedOperationException();
+    }
+
     /**
      * Class for wrapping an iterator in its own thread.
      */
@@ -197,6 +202,11 @@ public class MultiCdxIterator implements CdxIterator {
             future.cancel(true);
             iterator.close();
             queue.clear();
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException();
         }
 
         /**

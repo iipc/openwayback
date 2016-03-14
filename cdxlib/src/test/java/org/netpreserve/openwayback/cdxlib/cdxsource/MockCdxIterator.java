@@ -77,4 +77,9 @@ public class MockCdxIterator implements CdxIterator {
     public void close() {
     }
 
+    @Override
+    public void remove() {
+        throw new UnsupportedOperationException();
+    }
+
 }

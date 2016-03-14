@@ -95,6 +95,12 @@ public class BlockCdxSource implements CdxSource {
             public E next() {
                 return src.previous();
             }
+
+            @Override
+            public void remove() {
+                throw new UnsupportedOperationException();
+            }
+
         };
     }
 
