@@ -4,6 +4,14 @@
 
 Full listing of changes and bug fixes are not available prior to release 1.2.0 and between release 1.6.0 and OpeWayback 2.0.0 BETA 1 release.
 
+## OpenWayback 2.4.0 Release
+### Features
+* Allow for customization of the method to detect the source of Server-relative
+URL leak [internetarchive#57](https://github.com/internetarchive/wayback/issues/57)
+
+### Bug fixes
+
+
 ## OpenWayback 2.3.0 Release
 ### Features
 * Allow revisit records to be resolved when using a RemoteResourceIndex by adding WARCRevisitAnnotationFilter and ConditionalGetAnnotationFilter filters. [#304](https://github.com/iipc/openwayback/pull/304)
