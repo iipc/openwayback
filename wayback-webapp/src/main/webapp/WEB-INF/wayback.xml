@@ -41,7 +41,31 @@
     </property>
   </bean>
 
-  <bean id="waybackCanonicalizer" class="org.archive.wayback.util.url.AggressiveUrlCanonicalizer" />
+  <bean id="waybackCanonicalizer" class="org.archive.wayback.util.url.AggressiveUrlCanonicalizer">
+    <!-- some specific canonicalization rules to apply to URLS matching a particular pattern -->
+    <property name="processingRules">
+      <list>
+        <!-- Ouest France -->
+        <!--
+        <bean class="org.archive.wayback.util.url.CanonicalizationRule">
+          <property name="pattern" value="ouestfrance-enligne\.com" />
+          <property name="processors">
+            <list>
+              <bean class="org.archive.wayback.util.url.UriStripper">
+                <property name="pattern" value="(in_ses_id=[0-9]+)&amp;?" />
+              </bean>
+              <bean class="org.archive.wayback.util.url.UriTranscoder">
+                <property name="pattern" value="&amp;edi=(.+)&amp;" />
+                <property name="sourceEncoding" value="ISO-8859-1" />
+                <property name="targetEncoding" value="UTF-8" />
+              </bean>
+            </list>
+          </property>
+        </bean>
+        -->
+      </list>
+    </property>
+  </bean>
 
 
 <!--

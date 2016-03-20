@@ -188,12 +188,12 @@ public class ResourceFactory {
 		InputStream is = new FileInputStream(raf.getFD());
 		String fPath = file.getAbsolutePath();
 		if (isArc(name)) {
-			ArchiveReader reader = ARCReaderFactory.get(fPath, is, false);
+			ArchiveReader reader = ARCReaderFactory.get(name, is, false);
 			r = ARCArchiveRecordToResource(reader.get(), reader);
 
 		} else if (isWarc(name)) {
 
-			ArchiveReader reader = WARCReaderFactory.get(fPath, is, false);
+			ArchiveReader reader = WARCReaderFactory.get(name, is, false);
 			r = WARCArchiveRecordToResource(reader.get(), reader);
 
 		} else {

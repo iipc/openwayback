@@ -128,82 +128,17 @@ public class StringFormatter {
 		return key;
 	}
 	
-	// What gives? This works in the Junit test, but not in jsps...
-//	/**
-//	 * @param key String property name in UI.properties file to use as the 
-//	 * pattern for interpolation
-//	 * @param objects array of things to interpolate within the MessageFormat
-//	 * 	described by the pattern in UI.properties for key key
-//	 * @return Localized Formatted String for key, interpolated with args
-//	 */
-//	public String format(String key, Object...objects) {
-//		return formatInner(key,objects);
-//	}
 	/**
 	 * Localize a string key from the UI.properties file
-	 * @param key String property name in UI.properties file to use as the 
-	 * pattern for the MessageFormat
-	 * @return Localized String for key
-	 */
-	public String format(String key) {
-		Object args[] = {};
-		return formatInner(key,args);
-	}
-	/**
+     * 
 	 * @param key String property name in UI.properties file to use as the 
 	 * pattern for interpolation
-	 * @param o1 thing1 to interpolate within the MessageFormat
+	 * @param objects array of things to interpolate within the MessageFormat
 	 * 	described by the pattern in UI.properties for key key
 	 * @return Localized Formatted String for key, interpolated with argument objects
 	 */
-	public String format(String key,Object o1) {
-		Object args[] = {o1};
-		return formatInner(key,args);
-	}
-	/**
-	 * @param key String property name in UI.properties file to use as the 
-	 * pattern for interpolation
-	 * @param o1 thing1 to interpolate within the MessageFormat
-	 * 	described by the pattern in UI.properties for key key
-	 * @param o2 thing2 to interpolate within the MessageFormat
-	 * 	described by the pattern in UI.properties for key key
-	 * @return Localized Formatted String for key, interpolated with argument objects
-	 */
-	public String format(String key,Object o1,Object o2) {
-		Object args[] = {o1,o2};
-		return formatInner(key,args);
-	}
-	/**
-	 * @param key String property name in UI.properties file to use as the 
-	 * pattern for interpolation
-	 * @param o1 thing1 to interpolate within the MessageFormat
-	 * 	described by the pattern in UI.properties for key key
-	 * @param o2 thing2 to interpolate within the MessageFormat
-	 * 	described by the pattern in UI.properties for key key
-	 * @param o3 thing3 to interpolate within the MessageFormat
-	 * 	described by the pattern in UI.properties for key key
-	 * @return Localized Formatted String for key, interpolated with argument objects
-	 */
-	public String format(String key,Object o1,Object o2,Object o3) {
-		Object args[] = {o1,o2,o3};
-		return formatInner(key,args);
-	}
-	/**
-	 * @param key String property name in UI.properties file to use as the 
-	 * pattern for interpolation
-	 * @param o1 thing1 to interpolate within the MessageFormat
-	 * 	described by the pattern in UI.properties for key key
-	 * @param o2 thing2 to interpolate within the MessageFormat
-	 * 	described by the pattern in UI.properties for key key
-	 * @param o3 thing3 to interpolate within the MessageFormat
-	 * 	described by the pattern in UI.properties for key key
-	 * @param o4 thing4 to interpolate within the MessageFormat
-	 * 	described by the pattern in UI.properties for key key
-	 * @return Localized Formatted String for key, interpolated with argument objects
-	 */
-	public String format(String key,Object o1,Object o2,Object o3,Object o4) {
-		Object args[] = {o1,o2,o3,o4};
-		return formatInner(key,args);
+	public String format(String key, Object... objects) {
+		return formatInner(key, objects);
 	}
 
 	/**
