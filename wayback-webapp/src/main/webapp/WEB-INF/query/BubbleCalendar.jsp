@@ -55,11 +55,17 @@ Calendar cal = BubbleCalendarData.getUTCCalendar();
 <style type="text/css" src="<%= staticPrefix %>css/styles.css">
 @import url("<%= staticPrefix %>css/styles.css");
 </style>
+
+<style type="text/css" src="<%= staticPrefix %>css/jquery.mCustomScrollbar.css">
+@import url("<%= staticPrefix %>css/jquery.mCustomScrollbar.css");
+</style>
+
 <script type="text/javascript" src="<%= staticPrefix %>js/jquery-1.4.2.min.js"></script>
 <script type="text/javascript" src="<%= staticPrefix %>js/excanvas.compiled.js"></script>
 <script type="text/javascript" src="<%= staticPrefix %>js/jquery.bt.min.js" charset="utf-8"></script>
 <script type="text/javascript" src="<%= staticPrefix %>js/jquery.hoverintent.min.js" charset="utf-8"></script>
 <script type="text/javascript" src="<%= staticPrefix %>js/graph-calc.js" ></script>
+<script src="<%= staticPrefix %>js/jquery.mCustomScrollbar.concat.min.js" charset="utf-8"></script>
 <!-- More ugly JS to manage the highlight over the graph -->
 <script type="text/javascript">
 
@@ -239,7 +245,7 @@ $().ready(function(){
     
     <div class="clearfix"></div>
 
-    <div id="wbChart" onmouseout="showTrackers('none'); setActiveYear(startYear);">
+    <div id="wbChart" onmouseout="showTrackers('none'); setActiveYear(startYear);" style=" width: 920; height: 110px;" >
     
   <div id="wbChartThis">
         <a style="position:relative; white-space:nowrap; width:<%= imgWidth %>px;height:<%= imgHeight %>px;" href="<%= queryPrefix %>" id="wm-graph-anchor">
@@ -287,6 +293,19 @@ $().ready(function(){
             %>
   </div>
 </div>
+  
+<script>
+  $("#wbChart").mCustomScrollbar({
+      axis:"x" // horizontal scrollbar
+  });
+  
+  (function($){
+      $(window).load(function(){
+          $("#wbChart").mCustomScrollbar();
+      });
+  })(jQuery);
+</script>  
+  
 <div class="clearfix"></div>
 
 <div id="wbCalendar">
