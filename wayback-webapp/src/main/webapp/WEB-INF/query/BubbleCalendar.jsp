@@ -40,8 +40,7 @@ int yearWidth = 60;
 int monthWidth = 5;
 int startYear = Timestamp.getStartYear();
 
-for (int year = startYear; year <= Calendar.getInstance().get(Calendar.YEAR); year++)
-    imgWidth += yearWidth;
+imgWidth = yearWidth * ( Calendar.getInstance().get(Calendar.YEAR) - startYear + 1 );
 
 BubbleCalendarData data = new BubbleCalendarData(results);
 
