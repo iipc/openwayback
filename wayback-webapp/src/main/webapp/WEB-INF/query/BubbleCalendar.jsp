@@ -36,7 +36,7 @@ if(graphJspPrefix == null) {
 // graph size "constants": These are currently baked-in to the JS logic...
 int imgWidth = 0;
 int imgHeight = 75;
-int yearWidth = 49;
+int yearWidth = 60;
 int monthWidth = 5;
 int startYear = Timestamp.getStartYear();
 
