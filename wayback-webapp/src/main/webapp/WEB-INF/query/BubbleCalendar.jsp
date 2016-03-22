@@ -295,7 +295,8 @@ $().ready(function(){
   
 <script>
   $("#wbChart").mCustomScrollbar({
-      axis:"x" // horizontal scrollbar
+      axis:"x", // horizontal scrollbar
+      theme:"dark"
   });
   
   (function($){
