@@ -1,0 +1,85 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>BubbleCalendarDataTest xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../testapidocs/org/archive/wayback/partition/BubbleCalendarDataTest.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.archive.wayback.partition;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> java.io.BufferedReader;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">import</strong> java.io.IOException;
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <strong class="jxr_keyword">import</strong> java.io.InputStream;
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <strong class="jxr_keyword">import</strong> java.io.InputStreamReader;
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">import</strong> java.text.SimpleDateFormat;
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <strong class="jxr_keyword">import</strong> java.util.List;
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <strong class="jxr_keyword">import</strong> java.util.TimeZone;
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <strong class="jxr_keyword">import</strong> junit.framework.TestCase;
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  <strong class="jxr_keyword">import</strong> org.archive.wayback.core.CaptureSearchResult;
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <strong class="jxr_keyword">import</strong> org.archive.wayback.core.CaptureSearchResults;
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  <strong class="jxr_keyword">import</strong> org.archive.wayback.core.UIResults;
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <strong class="jxr_keyword">import</strong> org.archive.wayback.core.WaybackRequest;
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <strong class="jxr_keyword">import</strong> org.archive.wayback.resourceindex.cdx.CDXFormatToSearchResultAdapter;
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <strong class="jxr_keyword">import</strong> org.archive.wayback.resourceindex.cdx.format.CDXFlexFormat;
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <strong class="jxr_keyword">import</strong> org.archive.wayback.resourceindex.cdx.format.CDXFormat;
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <strong class="jxr_keyword">import</strong> org.archive.wayback.resourceindex.cdx.format.CDXFormatException;
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <strong class="jxr_keyword">import</strong> org.archive.wayback.util.partition.Partition;
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../org/archive/wayback/partition/BubbleCalendarDataTest.html">BubbleCalendarDataTest</a> <strong class="jxr_keyword">extends</strong> TestCase {
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  	<strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> setUp() <strong class="jxr_keyword">throws</strong> Exception {
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  		<strong class="jxr_keyword">super</strong>.setUp();
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  	}
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  	<strong class="jxr_keyword">protected</strong> CaptureSearchResults getSampleIndex() <strong class="jxr_keyword">throws</strong> IOException, CDXFormatException {
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  		CaptureSearchResults results = <strong class="jxr_keyword">new</strong> CaptureSearchResults();
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  		<em class="jxr_comment">// XXX CDXFormat has a constant for "n", but does #getField() does not recognize it.</em>
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  		<em class="jxr_comment">// It recognizes "S" instead. Field names doesn't matter anyway..</em>
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  		CDXFormat format = <strong class="jxr_keyword">new</strong> CDXFlexFormat(<span class="jxr_string">" CDX A b a m s k r M V S g"</span>);
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  		CDXFormatToSearchResultAdapter parser = <strong class="jxr_keyword">new</strong> CDXFormatToSearchResultAdapter(format);
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  		InputStream is = getClass().getResourceAsStream(<span class="jxr_string">"test-cdx.txt"</span>);
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  		assertNotNull(<span class="jxr_string">"classpath resource not found"</span>, is);
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  		BufferedReader br = <strong class="jxr_keyword">new</strong> BufferedReader(<strong class="jxr_keyword">new</strong> InputStreamReader(is, <span class="jxr_string">"UTF-8"</span>));
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  		String line;
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>  		<strong class="jxr_keyword">while</strong> ((line = br.readLine()) != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  			CaptureSearchResult csr = parser.adapt(line);
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>  			results.addSearchResult(csr);
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>  		}
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>  		<strong class="jxr_keyword">return</strong> results;
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>  	}
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>  
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testGetCaptureCalendar() <strong class="jxr_keyword">throws</strong> Exception {
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>  		WaybackRequest wbRequest = WaybackRequest.createReplayRequest(
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>  			<span class="jxr_string">"http://archive.org"</span>, <span class="jxr_string">"20130801000000"</span>, <span class="jxr_string">"20130101000000"</span>, <span class="jxr_string">"20131231115959"</span>);
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>  		UIResults uiResults = <strong class="jxr_keyword">new</strong> UIResults(wbRequest, <strong class="jxr_keyword">null</strong>, getSampleIndex());
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>  		BubbleCalendarData data = <strong class="jxr_keyword">new</strong> BubbleCalendarData(uiResults);
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>  
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>  		SimpleDateFormat df = <strong class="jxr_keyword">new</strong> SimpleDateFormat(<span class="jxr_string">"yyyyMMddHHmmss"</span>);
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>  		df.setTimeZone(TimeZone.getTimeZone(<span class="jxr_string">"UTC"</span>));
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>  
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>  		data.setMonth(0);
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>  		List&lt;List&lt;Partition&lt;CaptureSearchResult&gt;&gt;&gt; cal = data.getCaptureCalendar();
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>  		assertEquals(<span class="jxr_string">"Jan 2013 has five week rows"</span>, 5, cal.size());
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>  
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>  		<em class="jxr_comment">// Jan 1, 2013 is Tuesday.</em>
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>  		List&lt;Partition&lt;CaptureSearchResult&gt;&gt; w1 = cal.get(0);
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>  		assertNull(w1.get(0)); <em class="jxr_comment">// Sunday</em>
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>  		assertNull(w1.get(1)); <em class="jxr_comment">// Monday</em>
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>  		Partition&lt;CaptureSearchResult&gt; d1 = w1.get(2);
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>  		assertEquals(<span class="jxr_string">"20130101000000"</span>, df.format(d1.getStart()));
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>  
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>  		List&lt;Partition&lt;CaptureSearchResult&gt;&gt; w5 = cal.get(4);
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>  		assertNull(w5.get(6)); <em class="jxr_comment">// Saturday</em>
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>  		assertNull(w5.get(5)); <em class="jxr_comment">// Friday</em>
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>  		Partition&lt;CaptureSearchResult&gt; d31 = w5.get(4);
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>  		assertEquals(<span class="jxr_string">"20130131000000"</span>, df.format(d31.getStart()));
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>  	}
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>  }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2005&#x2013;2016 <a href="http://netpreserve.org/">IIPC</a>. All rights reserved.</div>
+</body>
+</html>
