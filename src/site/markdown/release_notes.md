@@ -8,6 +8,8 @@ Full listing of changes and bug fixes are not available prior to release 1.2.0 a
 ### Bug fixes
 * Rewrite URLs in srcset attribute. [#310](https://github.com/iipc/openwayback/issues/310)
 * Add "noscript" as a valid Head tag for Toolbar insertion. [#306](https://github.com/iipc/openwayback/issues/306)
+* Remove IA-specific extension code in FlatFileResourceFileLocationDB, make it extensible. [#313](https://github.com/iipc/openwayback/pull/313)
+* Updated webarchive-commons dependency to version 1.1.6
 
 ## OpenWayback 2.3.0 Release
 ### Features
