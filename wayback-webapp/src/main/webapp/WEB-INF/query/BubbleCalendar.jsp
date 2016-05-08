@@ -294,11 +294,6 @@ $().ready(function(){
 </div>
   
 <script>
-  $("#wbChart").mCustomScrollbar({
-      axis:"x", // horizontal scrollbar
-      theme:"dark"
-  });
-  
   (function($){
       $(window).load(function(){
           $("#wbChart").mCustomScrollbar();
