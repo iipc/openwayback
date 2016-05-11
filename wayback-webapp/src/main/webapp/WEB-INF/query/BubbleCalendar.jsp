@@ -296,7 +296,10 @@ $().ready(function(){
 <script>
   (function($){
       $(window).load(function(){
-          $("#wbChart").mCustomScrollbar();
+          $("#wbChart").mCustomScrollbar({
+              axis: "x",
+              theme:"rounded-dots-dark"
+          });
       });
   })(jQuery);
 </script>  
