@@ -18,7 +18,7 @@ package org.netpreserve.openwayback.cdxlib.processor;
 import org.junit.Test;
 import org.netpreserve.openwayback.cdxlib.CdxLine;
 import org.netpreserve.openwayback.cdxlib.cdxsource.CdxIterator;
-import org.netpreserve.openwayback.cdxlib.CdxLineSchema;
+import org.netpreserve.openwayback.cdxlib.CdxLineFormat;
 import org.netpreserve.openwayback.cdxlib.CdxRecord;
 import org.netpreserve.openwayback.cdxlib.cdxsource.MockCdxIterator;
 import org.netpreserve.openwayback.cdxlib.functions.Filter;
@@ -38,12 +38,12 @@ public class FilterProcessorTest {
         CdxRecord line1 = new CdxLine("no,dagbladet)/premier2000/spiller_2519.html 20070908002541 "
                 + "http://www.dagbladet.no/premier2000/spiller_2519.html text/html 404 "
                 + "4GYIEA43CYREJWAD2NSGSIWYVGXJNGB7 - - 1506 68224437 "
-                + "IAH-20070907235053-00459-heritrix2.nb.no.arc.gz", CdxLineSchema.CDX11LINE);
+                + "IAH-20070907235053-00459-heritrix2.nb.no.arc.gz", CdxLineFormat.CDX11LINE);
 
         CdxRecord line2 = new CdxLine("no,dagbladet)/premier2000/spiller_2520.html 20070908002532 "
                 + "http://www.dagbladet.no/premier2000/spiller_2520.html text/html 200 "
                 + "5RRATYEFXZV5V64KA6AP3KFDK7LGF7TT - - 4014 89051462 "
-                + "IAH-20070907231717-00457-heritrix2.nb.no.arc.gz", CdxLineSchema.CDX11LINE);
+                + "IAH-20070907231717-00457-heritrix2.nb.no.arc.gz", CdxLineFormat.CDX11LINE);
 
         FilterProcessor fp = new FilterProcessor();
         fp.addFunction(new Filter() {

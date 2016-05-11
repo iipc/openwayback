@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 
-import org.netpreserve.openwayback.cdxlib.CdxLineSchema;
+import org.netpreserve.openwayback.cdxlib.CdxFormat;
 
 /**
  * Interaction with a {@link CdxSource}'s underlying data.
@@ -43,7 +43,7 @@ public interface SourceDescriptor extends Closeable {
      * <p>
      * @return the input format.
      */
-    CdxLineSchema getInputFormat();
+    CdxFormat getInputFormat();
 
     /**
      * Read data from a block.

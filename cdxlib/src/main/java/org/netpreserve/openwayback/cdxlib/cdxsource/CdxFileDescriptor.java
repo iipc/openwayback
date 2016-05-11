@@ -23,7 +23,8 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.netpreserve.openwayback.cdxlib.CdxLineSchema;
+import org.netpreserve.openwayback.cdxlib.CdxFormat;
+import org.netpreserve.openwayback.cdxlib.CdxLineFormat;
 
 /**
  * Metadata for a local CDX file.
@@ -36,7 +37,7 @@ public class CdxFileDescriptor implements SourceDescriptor {
 
     final FileChannel channel;
 
-    CdxLineSchema inputFormat;
+    CdxFormat inputFormat;
 
     final long channelSize;
 
@@ -72,7 +73,11 @@ public class CdxFileDescriptor implements SourceDescriptor {
                         inBuf.arrayOffset(),
                         inBuf.arrayOffset() + inBuf.position());
 
-                inputFormat = new CdxLineSchema(formatLine);
+                if (formatLine.startsWith(" CDX")) {
+                    inputFormat = new CdxLineFormat(formatLine);
+                } else {
+                    throw new IllegalArgumentException(path + " is not a recognized CDX format");
+                }
             }
 
             int lineOffset = inBuf.position();
@@ -150,7 +155,7 @@ public class CdxFileDescriptor implements SourceDescriptor {
     }
 
     @Override
-    public CdxLineSchema getInputFormat() {
+    public CdxFormat getInputFormat() {
         return inputFormat;
     }
 

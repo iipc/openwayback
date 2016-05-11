@@ -19,9 +19,9 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
-import org.netpreserve.openwayback.cdxlib.CdxLine;
+import org.netpreserve.openwayback.cdxlib.BaseCdxRecord;
 import org.netpreserve.openwayback.cdxlib.CdxRecord;
-import org.netpreserve.openwayback.cdxlib.CdxLineSchema;
+import org.netpreserve.openwayback.cdxlib.CdxFormat;
 
 /**
  *
@@ -30,13 +30,13 @@ public class CdxBuffer {
 
     ByteBuffer byteBuf;
 
-    final CdxLineSchema lineFormat;
+    final CdxFormat lineFormat;
 
     final byte[] firstFilter;
 
     final byte[] secondFilter;
 
-    public CdxBuffer(final CdxLineSchema lineFormat,
+    public CdxBuffer(final CdxFormat lineFormat,
             final byte[] startFilter, final byte[] endFilter) {
 
         this.lineFormat = Objects.requireNonNull(lineFormat);
@@ -272,14 +272,9 @@ public class CdxBuffer {
     }
 
     static CdxRecord createCdxLine(final ByteBuffer byteBuf, final int startOfNextLine,
-            final CdxLineSchema lineFormat) {
+            final CdxFormat lineFormat) {
 
-        try {
-            return new CdxLine(convertToCharBuffer(byteBuf, startOfNextLine), lineFormat);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
+        return BaseCdxRecord.create(convertToCharBuffer(byteBuf, startOfNextLine), lineFormat);
     }
 
     static char[] convertToCharBuffer(final ByteBuffer byteBuf,

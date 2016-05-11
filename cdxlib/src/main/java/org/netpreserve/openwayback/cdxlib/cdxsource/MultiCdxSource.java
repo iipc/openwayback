@@ -21,7 +21,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.netpreserve.openwayback.cdxlib.SearchResult;
-import org.netpreserve.openwayback.cdxlib.CdxLineSchema;
+import org.netpreserve.openwayback.cdxlib.CdxFormat;
 import org.netpreserve.openwayback.cdxlib.processor.Processor;
 import org.netpreserve.openwayback.cdxlib.CdxSource;
 import org.netpreserve.openwayback.cdxlib.processor.BiFunctionProcessor;

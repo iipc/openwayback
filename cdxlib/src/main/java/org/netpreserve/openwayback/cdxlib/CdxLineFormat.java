@@ -22,7 +22,7 @@ import java.util.List;
 /**
  * A collection of CdxFieldTypes defining a CDX Line format.
  */
-public class CdxLineSchema {
+public class CdxLineFormat implements CdxFormat {
 
     /**
      * Return value for fields not part of the schema.
@@ -36,7 +36,7 @@ public class CdxLineSchema {
     /**
      * Matches space separated 11 column cdx format: ' CDX N b a m s k r M S V g'.
      */
-    public static final CdxLineSchema CDX11LINE = new CdxLineSchema(' ',
+    public static final CdxLineFormat CDX11LINE = new CdxLineFormat(' ',
             FieldName.URI_KEY,
             FieldName.TIMESTAMP,
             FieldName.ORIGINAL_URI,
@@ -52,7 +52,7 @@ public class CdxLineSchema {
     /**
      * Matches space separated 9 column cdx format: ' CDX N b a m s k r V g'.
      */
-    public static final CdxLineSchema CDX09LINE = new CdxLineSchema(' ',
+    public static final CdxLineFormat CDX09LINE = new CdxLineFormat(' ',
             FieldName.URI_KEY,
             FieldName.TIMESTAMP,
             FieldName.ORIGINAL_URI,
@@ -70,7 +70,7 @@ public class CdxLineSchema {
      * @param delimiter the delimiter between fields in a line oriented cdx format.
      * @param fields ordered list of fields defining the CDX line format.
      */
-    public CdxLineSchema(final char delimiter, final FieldName... fields) {
+    public CdxLineFormat(final char delimiter, final FieldName... fields) {
         this.delimiter = delimiter;
         this.fields = Arrays.copyOf(fields, fields.length);
     }
@@ -82,7 +82,7 @@ public class CdxLineSchema {
      * <p>
      * @param formatString the format string
      */
-    public CdxLineSchema(final CharSequence formatString) {
+    public CdxLineFormat(final CharSequence formatString) {
         this.delimiter = formatString.charAt(0);
         List<FieldName> fieldList = new ArrayList<>(11);
         for (int i = 5; i < formatString.length(); i += 2) {
@@ -100,7 +100,7 @@ public class CdxLineSchema {
      * @param delimiter the delimiter between the fields used in CDX line representation
      * @param fieldNames the field names
      */
-    public CdxLineSchema(final char delimiter, final List<String> fieldNames) {
+    public CdxLineFormat(final char delimiter, final List<String> fieldNames) {
         this(delimiter, fieldNames.toArray(new String[0]));
     }
 
@@ -110,7 +110,7 @@ public class CdxLineSchema {
      * @param delimiter the delimiter between the fields used in CDX line representation
      * @param fieldNames the field names
      */
-    public CdxLineSchema(final char delimiter, final String... fieldNames) {
+    public CdxLineFormat(final char delimiter, final String... fieldNames) {
         this.delimiter = delimiter;
         this.fields = new FieldName[fieldNames.length];
         for (int i = 0; i < fieldNames.length; i++) {

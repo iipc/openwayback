@@ -30,7 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 
-import org.netpreserve.openwayback.cdxlib.CdxLineSchema;
+import org.netpreserve.openwayback.cdxlib.CdxFormat;
 
 /**
  *
@@ -39,7 +39,7 @@ public class ZipnumDescriptor implements SourceDescriptor {
 
     private static final int BUFFER_SIZE = 1024 * 1024;
 
-    private final CdxLineSchema inputFormat;
+    private final CdxFormat inputFormat;
 
     private Path baseDirectory;
 
@@ -51,7 +51,7 @@ public class ZipnumDescriptor implements SourceDescriptor {
 
     private static final int MINIMUM_BUFFER_SIZE = 3000 * 256;
 
-    public ZipnumDescriptor(Path baseDirectory, CdxLineSchema inputFormat) {
+    public ZipnumDescriptor(Path baseDirectory, CdxFormat inputFormat) {
         this.inputFormat = inputFormat;
         this.blocks = new ArrayList<>(1024);
         this.baseDirectory = baseDirectory;
@@ -121,7 +121,7 @@ public class ZipnumDescriptor implements SourceDescriptor {
     }
 
     @Override
-    public CdxLineSchema getInputFormat() {
+    public CdxFormat getInputFormat() {
         return inputFormat;
     }
 

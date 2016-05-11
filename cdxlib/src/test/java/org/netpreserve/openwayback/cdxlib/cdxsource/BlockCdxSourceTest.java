@@ -28,7 +28,7 @@ import java.util.List;
 import org.junit.Test;
 import org.netpreserve.openwayback.cdxlib.CdxLine;
 import org.netpreserve.openwayback.cdxlib.functions.Filter;
-import org.netpreserve.openwayback.cdxlib.CdxLineSchema;
+import org.netpreserve.openwayback.cdxlib.CdxLineFormat;
 import org.netpreserve.openwayback.cdxlib.CdxRecord;
 import org.netpreserve.openwayback.cdxlib.processor.Processor;
 import org.netpreserve.openwayback.cdxlib.CdxSource;
@@ -43,7 +43,7 @@ import static org.assertj.core.api.Assertions.*;
  */
 public class BlockCdxSourceTest {
 
-    private final CdxLineSchema format = CdxLineSchema.CDX11LINE;
+    private final CdxLineFormat format = CdxLineFormat.CDX11LINE;
 
     private final Comparator<CdxRecord> comparator = new CdxLineComparator();
 

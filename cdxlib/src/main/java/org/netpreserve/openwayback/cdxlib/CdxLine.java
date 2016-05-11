@@ -30,13 +30,13 @@ public class CdxLine extends BaseCdxRecord {
 
     private int[] fieldLengths;
 
-    private final CdxLineSchema lineFormat;
+    private final CdxLineFormat lineFormat;
 
-    public CdxLine(final String line, final CdxLineSchema lineFormat) {
+    public CdxLine(final String line, final CdxLineFormat lineFormat) {
         this(line.toCharArray(), lineFormat);
     }
 
-    public CdxLine(final char[] line, final CdxLineSchema lineFormat) {
+    public CdxLine(final char[] line, final CdxLineFormat lineFormat) {
         super(getKeyFromLine(line));
         this.data = line;
         this.lineFormat = lineFormat;

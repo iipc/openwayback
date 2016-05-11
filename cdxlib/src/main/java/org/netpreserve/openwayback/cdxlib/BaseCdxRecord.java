@@ -15,21 +15,23 @@
  */
 package org.netpreserve.openwayback.cdxlib;
 
-import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
-import java.nio.charset.StandardCharsets;
-
 /**
  * Base class for implementations of CdxRecord.
  */
 public abstract class BaseCdxRecord implements CdxRecord {
 
-    private static final String EMPTY_FIELD_VALUE = "-";
-
     final CdxRecordKey key;
 
-    public final static CdxRecord create(final char[] key, final char[] value) {
-        return null;
+    public final static CdxRecord create(final char[] value, final CdxFormat format) {
+        if (format instanceof CdxLineFormat) {
+            return new CdxLine(value, (CdxLineFormat) format);
+        }
+
+        throw new IllegalArgumentException("Unknow CdxFormat: " + format.getClass());
+    }
+
+    public final static CdxRecord create(final String value, final CdxFormat format) {
+        return create(value.toCharArray(), format);
     }
 
     public BaseCdxRecord(final CdxRecordKey key) {
@@ -49,21 +51,5 @@ public abstract class BaseCdxRecord implements CdxRecord {
     @Override
     public int compareTo(CdxRecord other) {
         return key.compareTo(other.getKey());
-    }
-
-    static CharBuffer convertToChar(ByteBuffer line) {
-        byte[] in = line.array();
-        char[] out = new char[in.length];
-        for (int i = 0; i < in.length; i++) {
-            if (in[i] < 0) {
-                return convertToCharNonAscii(line);
-            }
-            out[i] = (char) in[i];
-        }
-        return CharBuffer.wrap(out);
-    }
-
-    static CharBuffer convertToCharNonAscii(ByteBuffer line) {
-        return StandardCharsets.UTF_8.decode(line);
     }
 }

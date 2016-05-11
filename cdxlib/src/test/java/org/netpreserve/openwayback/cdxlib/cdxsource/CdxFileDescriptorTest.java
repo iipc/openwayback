@@ -22,7 +22,7 @@ import java.nio.file.Paths;
 import java.util.List;
 
 import org.junit.Test;
-import org.netpreserve.openwayback.cdxlib.CdxLineSchema;
+import org.netpreserve.openwayback.cdxlib.CdxLineFormat;
 import org.netpreserve.openwayback.cdxlib.FieldName;
 
 import static org.assertj.core.api.Assertions.*;
@@ -75,7 +75,7 @@ public class CdxFileDescriptorTest {
 
         CdxFileDescriptor meta = new CdxFileDescriptor(path);
 
-        CdxLineSchema schema = meta.getInputFormat();
+        CdxLineFormat schema = (CdxLineFormat) meta.getInputFormat();
 
         assertThat(schema).isNotNull();
         assertThat(schema.getDelimiter()).isEqualTo(' ');

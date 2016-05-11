@@ -34,7 +34,7 @@ public class CdxLineTest {
                 + " https://www.terra.as/gfx/whitepixel.gif image/gif 200"
                 + " FQ2WDWANAVUTLNKHGLRCOG4HKQWKHLVQ - - 396 36942074"
                 + " IAH-20070821182921-00150.arc.gz";
-        CdxLine instance = new CdxLine(line, CdxLineSchema.CDX11LINE);
+        CdxLine instance = new CdxLine(line, CdxLineFormat.CDX11LINE);
 
         System.out.println("'" + instance.get(FieldName.URI_KEY) + "'");
         System.out.println("'" + instance.get(FieldName.TIMESTAMP) + "'");

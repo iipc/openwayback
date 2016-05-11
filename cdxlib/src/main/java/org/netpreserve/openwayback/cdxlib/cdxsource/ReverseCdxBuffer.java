@@ -17,7 +17,7 @@ package org.netpreserve.openwayback.cdxlib.cdxsource;
 
 import java.nio.ByteBuffer;
 
-import org.netpreserve.openwayback.cdxlib.CdxLineSchema;
+import org.netpreserve.openwayback.cdxlib.CdxFormat;
 
 /**
  *
@@ -31,7 +31,7 @@ public class ReverseCdxBuffer extends CdxBuffer {
 
     private int endOfLine;
 
-    public ReverseCdxBuffer(CdxLineSchema lineFormat,
+    public ReverseCdxBuffer(CdxFormat lineFormat,
             final byte[] startFilter, final byte[] endFilter) {
         super(lineFormat, endFilter, startFilter);
     }

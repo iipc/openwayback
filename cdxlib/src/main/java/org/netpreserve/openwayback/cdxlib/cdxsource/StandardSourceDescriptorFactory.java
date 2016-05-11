@@ -23,7 +23,7 @@ import java.net.URI;
 import java.nio.file.Paths;
 import java.util.Map;
 
-import org.netpreserve.openwayback.cdxlib.CdxLineSchema;
+import org.netpreserve.openwayback.cdxlib.CdxFormat;
 
 /**
  *
@@ -51,7 +51,7 @@ public class StandardSourceDescriptorFactory extends SourceDescriptorFactory {
             case "zipnum":
                 if (location.getScheme() == null || location.getScheme().equals("file")) {
                     return new ZipnumDescriptor(Paths.get(location),
-                            (CdxLineSchema) params.get("inputFormat"));
+                            (CdxFormat) params.get("inputFormat"));
                 }
                 break;
 
