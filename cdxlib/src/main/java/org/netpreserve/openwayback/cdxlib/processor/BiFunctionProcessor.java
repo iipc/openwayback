@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.netpreserve.openwayback.cdxlib.cdxsource.CdxIterator;
-import org.netpreserve.openwayback.cdxlib.CdxLine;
+import org.netpreserve.openwayback.cdxlib.CdxRecord;
 import org.netpreserve.openwayback.cdxlib.functions.BiFunction;
 
 /**
@@ -28,7 +28,6 @@ import org.netpreserve.openwayback.cdxlib.functions.BiFunction;
  * @param <T> The type of {@link BiFunction} supported by this processor.
  */
 public class BiFunctionProcessor<T extends BiFunction> extends AbstractProcessor<T> {
-    public static final String COLLAPSE_COUNT_FIELD_NAME = "collapseCount";
 
     @Override
     public CdxIterator processorIterator(CdxIterator wrappedIterator) {
@@ -44,8 +43,8 @@ public class BiFunctionProcessor<T extends BiFunction> extends AbstractProcessor
 
         return new AbstractProcessorIterator<BiFunction>(wrappedIterator) {
             @Override
-            protected CdxLine computeNext() {
-                CdxLine result = null;
+            protected CdxRecord computeNext() {
+                CdxRecord result = null;
                 while (wrappedCdxIterator.hasNext()) {
                     result = applyFunction(0, wrappedCdxIterator.next());
 
@@ -56,8 +55,8 @@ public class BiFunctionProcessor<T extends BiFunction> extends AbstractProcessor
                 return endOfData();
             }
 
-            private CdxLine applyFunction(int functionIdx, CdxLine currentLine) {
-                CdxLine result = functions.get(functionIdx).apply(currentLine);
+            private CdxRecord applyFunction(int functionIdx, CdxRecord currentLine) {
+                CdxRecord result = functions.get(functionIdx).apply(currentLine);
                 if (result != null && functionIdx + 1 < functions.size()) {
                     return applyFunction(functionIdx + 1, result);
                 } else {
@@ -75,7 +74,7 @@ public class BiFunctionProcessor<T extends BiFunction> extends AbstractProcessor
 
         private final BiFunction function;
 
-        private CdxLine previousLine = null;
+        private CdxRecord previousLine = null;
 
         /**
          * Construct a wrapper taking the function to wrap as the sole argument.
@@ -93,44 +92,11 @@ public class BiFunctionProcessor<T extends BiFunction> extends AbstractProcessor
          * @return the result of processing the line. Might be {@code null} indicating that the
          * current line should be skipped or collapsed
          */
-        CdxLine apply(CdxLine currentLine) {
-            CdxLine result = function.apply(previousLine, currentLine);
-
-            if (currentLine.hasMutableField(COLLAPSE_COUNT_FIELD_NAME)) {
-                updateCounter(currentLine, result);
-            }
+        CdxRecord apply(CdxRecord currentLine) {
+            CdxRecord result = function.apply(previousLine, currentLine);
 
             previousLine = currentLine;
             return result;
-        }
-
-        /**
-         * Update a counter telling how man lines was collapsed into the current one.
-         * <p>
-         * A line is considered collapsed when the result parameter is {@code null}
-         * <p>
-         * @param currentLine the current CDX line
-         * @param result the result of the functions processing the current line.
-         */
-        private void updateCounter(CdxLine currentLine, CdxLine result) {
-            if (previousLine == null) {
-                if (currentLine.getMutableField(COLLAPSE_COUNT_FIELD_NAME) == null) {
-                    currentLine.setMutableField(COLLAPSE_COUNT_FIELD_NAME, 1);
-                }
-            } else {
-                int prevCount;
-                if (result == null) {
-                    prevCount = (int) previousLine.getMutableField(COLLAPSE_COUNT_FIELD_NAME);
-                } else {
-                    prevCount = 0;
-                }
-
-                int curCount = 1;
-                if (currentLine.getMutableField(COLLAPSE_COUNT_FIELD_NAME) != null) {
-                    curCount = (int) currentLine.getMutableField(COLLAPSE_COUNT_FIELD_NAME);
-                }
-                currentLine.setMutableField(COLLAPSE_COUNT_FIELD_NAME, prevCount + curCount);
-            }
         }
 
     }

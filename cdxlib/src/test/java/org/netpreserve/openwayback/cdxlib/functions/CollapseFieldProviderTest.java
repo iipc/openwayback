@@ -21,8 +21,9 @@ import java.util.List;
 
 import org.junit.Test;
 import org.netpreserve.openwayback.cdxlib.CdxLine;
-import org.netpreserve.openwayback.cdxlib.CdxLineFormatMapper;
 import org.netpreserve.openwayback.cdxlib.CdxLineSchema;
+import org.netpreserve.openwayback.cdxlib.CdxRecord;
+import org.netpreserve.openwayback.cdxlib.FieldName;
 import org.netpreserve.openwayback.cdxlib.functions.CollapseFieldProvider.CollapseField;
 
 import static org.assertj.core.api.Assertions.*;
@@ -32,9 +33,7 @@ import static org.assertj.core.api.Assertions.*;
  */
 public class CollapseFieldProviderTest {
 
-    CdxLineSchema inFormat = new CdxLineSchema(' ', "urlkey", "timestamp");
-
-    CdxLineFormatMapper lineFormat = new CdxLineFormatMapper(inFormat, null);
+    private CdxLineSchema format = new CdxLineSchema(' ', FieldName.URI_KEY, FieldName.TIMESTAMP);
 
     /**
      * Test of apply method, of class CollapseField.
@@ -42,11 +41,11 @@ public class CollapseFieldProviderTest {
     @Test
     public void testApplySubpartOfField() {
         // test with 4 digit timestamp
-        CdxLine line1 = new CdxLine("no,dagbladet)/spiller_2519.html 20070908002541", lineFormat);
-        CdxLine line2 = new CdxLine("no,dagbladet)/spiller_2520.html 20070908002532", lineFormat);
-        CdxLine line3 = new CdxLine("no,dagbladet)/spiller_2520.html 20080908002532", lineFormat);
-        CollapseField cf = new CollapseFieldProvider(Collections.singletonList("timestamp:4"))
-                .newFunction();
+        CdxRecord line1 = new CdxLine("no,dagbladet)/spiller_2519.html 20070908002541", format);
+        CdxRecord line2 = new CdxLine("no,dagbladet)/spiller_2520.html 20070908002532", format);
+        CdxRecord line3 = new CdxLine("no,dagbladet)/spiller_2520.html 20080908002532", format);
+        CollapseField cf = new CollapseFieldProvider(
+                Collections.singletonList(FieldName.TIMESTAMP + ":4")).newFunction();
 
         assertThat(cf.apply(null, line1)).isNotNull()
                 .hasToString("no,dagbladet)/spiller_2519.html 20070908002541");
@@ -55,10 +54,11 @@ public class CollapseFieldProviderTest {
                 .hasToString("no,dagbladet)/spiller_2520.html 20080908002532");
 
         // test with 12 digit timestamp
-        line1 = new CdxLine("no,dagbladet)/spiller_2519.html 20070908002541", lineFormat);
-        line2 = new CdxLine("no,dagbladet)/spiller_2520.html 20070908002532", lineFormat);
-        line3 = new CdxLine("no,dagbladet)/spiller_2520.html 20080908002532", lineFormat);
-        cf = new CollapseFieldProvider(Collections.singletonList("timestamp:12")).newFunction();
+        line1 = new CdxLine("no,dagbladet)/spiller_2519.html 20070908002541", format);
+        line2 = new CdxLine("no,dagbladet)/spiller_2520.html 20070908002532", format);
+        line3 = new CdxLine("no,dagbladet)/spiller_2520.html 20080908002532", format);
+        cf = new CollapseFieldProvider(
+                Collections.singletonList(FieldName.TIMESTAMP + ":12")).newFunction();
 
         assertThat(cf.apply(null, line1)).isNotNull()
                 .hasToString("no,dagbladet)/spiller_2519.html 20070908002541");
@@ -67,10 +67,11 @@ public class CollapseFieldProviderTest {
                 .hasToString("no,dagbladet)/spiller_2520.html 20080908002532");
 
         // test with 13 digit timestamp
-        line1 = new CdxLine("no,dagbladet)/spiller_2519.html 20070908002541", lineFormat);
-        line2 = new CdxLine("no,dagbladet)/spiller_2520.html 20070908002532", lineFormat);
-        line3 = new CdxLine("no,dagbladet)/spiller_2520.html 20080908002532", lineFormat);
-        cf = new CollapseFieldProvider(Collections.singletonList("timestamp:13")).newFunction();
+        line1 = new CdxLine("no,dagbladet)/spiller_2519.html 20070908002541", format);
+        line2 = new CdxLine("no,dagbladet)/spiller_2520.html 20070908002532", format);
+        line3 = new CdxLine("no,dagbladet)/spiller_2520.html 20080908002532", format);
+        cf = new CollapseFieldProvider(
+                Collections.singletonList(FieldName.TIMESTAMP + ":13")).newFunction();
 
         assertThat(cf.apply(null, line1)).isNotNull()
                 .hasToString("no,dagbladet)/spiller_2519.html 20070908002541");
@@ -80,10 +81,11 @@ public class CollapseFieldProviderTest {
                 .hasToString("no,dagbladet)/spiller_2520.html 20080908002532");
 
         // test with 14 digit timestamp
-        line1 = new CdxLine("no,dagbladet)/spiller_2519.html 20070908002541", lineFormat);
-        line2 = new CdxLine("no,dagbladet)/spiller_2520.html 20070908002532", lineFormat);
-        line3 = new CdxLine("no,dagbladet)/spiller_2520.html 20080908002532", lineFormat);
-        cf = new CollapseFieldProvider(Collections.singletonList("timestamp:14")).newFunction();
+        line1 = new CdxLine("no,dagbladet)/spiller_2519.html 20070908002541", format);
+        line2 = new CdxLine("no,dagbladet)/spiller_2520.html 20070908002532", format);
+        line3 = new CdxLine("no,dagbladet)/spiller_2520.html 20080908002532", format);
+        cf = new CollapseFieldProvider(
+                Collections.singletonList(FieldName.TIMESTAMP + ":14")).newFunction();
 
         assertThat(cf.apply(null, line1)).isNotNull()
                 .hasToString("no,dagbladet)/spiller_2519.html 20070908002541");
@@ -93,10 +95,11 @@ public class CollapseFieldProviderTest {
                 .hasToString("no,dagbladet)/spiller_2520.html 20080908002532");
 
         // test with 18 digit timestamp (larger than timestamp field)
-        line1 = new CdxLine("no,dagbladet)/spiller_2519.html 20070908002541", lineFormat);
-        line2 = new CdxLine("no,dagbladet)/spiller_2520.html 20070908002532", lineFormat);
-        line3 = new CdxLine("no,dagbladet)/spiller_2520.html 20080908002532", lineFormat);
-        cf = new CollapseFieldProvider(Collections.singletonList("timestamp:18")).newFunction();
+        line1 = new CdxLine("no,dagbladet)/spiller_2519.html 20070908002541", format);
+        line2 = new CdxLine("no,dagbladet)/spiller_2520.html 20070908002532", format);
+        line3 = new CdxLine("no,dagbladet)/spiller_2520.html 20080908002532", format);
+        cf = new CollapseFieldProvider(
+                Collections.singletonList(FieldName.TIMESTAMP + ":18")).newFunction();
 
         assertThat(cf.apply(null, line1)).isNotNull()
                 .hasToString("no,dagbladet)/spiller_2519.html 20070908002541");
@@ -108,17 +111,17 @@ public class CollapseFieldProviderTest {
 
     @Test
     public void testApplyTwoFiles() {
-        CdxLine line11 = new CdxLine("no,dagbladet)/spiller_2519.html 20070908002541", lineFormat);
-        CdxLine line12 = new CdxLine("no,dagbladet)/spiller_2520.html 20070908002532", lineFormat);
-        CdxLine line13 = new CdxLine("no,dagbladet)/spiller_2521.html 20080908002533", lineFormat);
+        CdxRecord line11 = new CdxLine("no,dagbladet)/spiller_2519.html 20070908002541", format);
+        CdxRecord line12 = new CdxLine("no,dagbladet)/spiller_2520.html 20070908002532", format);
+        CdxRecord line13 = new CdxLine("no,dagbladet)/spiller_2521.html 20080908002533", format);
 
-        CdxLine line21 = new CdxLine("no,dagbladet)/spiller_2519.html 20070908002540", lineFormat);
-        CdxLine line22 = new CdxLine("no,dagbladet)/spiller_2520.html 20070908002533", lineFormat);
-        CdxLine line23 = new CdxLine("no,dagbladet)/spiller_2521.html 20080908002534", lineFormat);
-        CdxLine line24 = new CdxLine("no,dagbladet)/spiller_2522.html 20090908002534", lineFormat);
+        CdxRecord line21 = new CdxLine("no,dagbladet)/spiller_2519.html 20070908002540", format);
+        CdxRecord line22 = new CdxLine("no,dagbladet)/spiller_2520.html 20070908002533", format);
+        CdxRecord line23 = new CdxLine("no,dagbladet)/spiller_2521.html 20080908002534", format);
+        CdxRecord line24 = new CdxLine("no,dagbladet)/spiller_2522.html 20090908002534", format);
 
         CollapseFieldProvider cfp = new CollapseFieldProvider(Collections
-                .singletonList("timestamp:4"));
+                .singletonList(FieldName.TIMESTAMP + ":4"));
 
         // Simulate run of cdx source 1
         CollapseField cf = cfp.newFunction();
@@ -152,12 +155,13 @@ public class CollapseFieldProviderTest {
 
     @Test
     public void testApplyUrlkey() {
-        CdxLine line1 = new CdxLine("ab 00", lineFormat);
-        CdxLine line2 = new CdxLine("ab 01", lineFormat);
-        CdxLine line3 = new CdxLine("ac 00", lineFormat);
-        CdxLine line4 = new CdxLine("ac 01", lineFormat);
+        CdxRecord line1 = new CdxLine("ab 00", format);
+        CdxRecord line2 = new CdxLine("ab 01", format);
+        CdxRecord line3 = new CdxLine("ac 00", format);
+        CdxRecord line4 = new CdxLine("ac 01", format);
 
-        CollapseField cf = new CollapseFieldProvider(toCollapseList("urlkey")).newFunction();
+        CollapseField cf = new CollapseFieldProvider(toCollapseList(FieldName.URI_KEY.toString()))
+                .newFunction();
 
         assertThat(cf.apply(null, line1)).isNotNull().isSameAs(line1).hasToString("ab 00");
         assertThat(cf.apply(line1, line2)).isNull();
@@ -167,12 +171,13 @@ public class CollapseFieldProviderTest {
 
     @Test
     public void testApplyTimestamp() {
-        CdxLine line1 = new CdxLine("ab 00", lineFormat);
-        CdxLine line2 = new CdxLine("ab 01", lineFormat);
-        CdxLine line3 = new CdxLine("ac 00", lineFormat);
-        CdxLine line4 = new CdxLine("ac 01", lineFormat);
+        CdxRecord line1 = new CdxLine("ab 00", format);
+        CdxRecord line2 = new CdxLine("ab 01", format);
+        CdxRecord line3 = new CdxLine("ac 00", format);
+        CdxRecord line4 = new CdxLine("ac 01", format);
 
-        CollapseField cf = new CollapseFieldProvider(toCollapseList("timestamp")).newFunction();
+        CollapseField cf = new CollapseFieldProvider(toCollapseList(FieldName.TIMESTAMP.toString()))
+                .newFunction();
 
         assertThat(cf.apply(null, line1)).isNotNull().isSameAs(line1).hasToString("ab 00");
         assertThat(cf.apply(line1, line2)).isNotNull().isSameAs(line2).hasToString("ab 01");
@@ -182,13 +187,13 @@ public class CollapseFieldProviderTest {
 
     @Test
     public void testApplyUrlkeyAndTimestamp() {
-        CdxLine line1 = new CdxLine("ab 00", lineFormat);
-        CdxLine line2 = new CdxLine("ab 01", lineFormat);
-        CdxLine line3 = new CdxLine("ac 00", lineFormat);
-        CdxLine line4 = new CdxLine("ac 01", lineFormat);
+        CdxRecord line1 = new CdxLine("ab 00", format);
+        CdxRecord line2 = new CdxLine("ab 01", format);
+        CdxRecord line3 = new CdxLine("ac 00", format);
+        CdxRecord line4 = new CdxLine("ac 01", format);
 
-        CollapseField cf = new CollapseFieldProvider(toCollapseList("urlkey,timestamp"))
-                .newFunction();
+        CollapseField cf = new CollapseFieldProvider(
+                toCollapseList(FieldName.URI_KEY + "," + FieldName.TIMESTAMP)).newFunction();
 
         assertThat(cf.apply(null, line1)).isNotNull().isSameAs(line1).hasToString("ab 00");
         assertThat(cf.apply(line1, line2)).isNotNull().isSameAs(line2).hasToString("ab 01");
@@ -198,13 +203,13 @@ public class CollapseFieldProviderTest {
 
     @Test
     public void testApplyTimestampAndUrlkey() {
-        CdxLine line1 = new CdxLine("ab 00", lineFormat);
-        CdxLine line2 = new CdxLine("ab 01", lineFormat);
-        CdxLine line3 = new CdxLine("ac 00", lineFormat);
-        CdxLine line4 = new CdxLine("ac 01", lineFormat);
+        CdxRecord line1 = new CdxLine("ab 00", format);
+        CdxRecord line2 = new CdxLine("ab 01", format);
+        CdxRecord line3 = new CdxLine("ac 00", format);
+        CdxRecord line4 = new CdxLine("ac 01", format);
 
-        CollapseField cf = new CollapseFieldProvider(toCollapseList("timestamp,urlkey"))
-                .newFunction();
+        CollapseField cf = new CollapseFieldProvider(
+                toCollapseList(FieldName.TIMESTAMP + "," + FieldName.URI_KEY)).newFunction();
 
         assertThat(cf.apply(null, line1)).isNotNull().isSameAs(line1).hasToString("ab 00");
         assertThat(cf.apply(line1, line2)).isNotNull().isSameAs(line2).hasToString("ab 01");
@@ -214,57 +219,57 @@ public class CollapseFieldProviderTest {
 
     @Test
     public void testApplyUrlkeyAndTimestampSeparateCollapseFunction() {
-        CdxLine line1 = new CdxLine("ab 00", lineFormat);
-        CdxLine line2 = new CdxLine("ab 01", lineFormat);
-        CdxLine line3 = new CdxLine("ac 00", lineFormat);
-        CdxLine line4 = new CdxLine("ac 01", lineFormat);
+        CdxRecord line1 = new CdxLine("ab 00", format);
+        CdxRecord line2 = new CdxLine("ab 01", format);
+        CdxRecord line3 = new CdxLine("ac 00", format);
+        CdxRecord line4 = new CdxLine("ac 01", format);
 
-        CollapseField cf1 = new CollapseFieldProvider(toCollapseList("urlkey"))
+        CollapseField cf1 = new CollapseFieldProvider(toCollapseList(FieldName.URI_KEY.toString()))
                 .newFunction();
-        CollapseField cf2 = new CollapseFieldProvider(toCollapseList("timestamp"))
+        CollapseField cf2 = new CollapseFieldProvider(toCollapseList(FieldName.TIMESTAMP.toString()))
                 .newFunction();
 
-        CdxLine res11 = cf1.apply(null, line1);
+        CdxRecord res11 = cf1.apply(null, line1);
         assertThat(res11).isNotNull().isSameAs(line1).hasToString("ab 00");
-        CdxLine res21 = cf2.apply(null, res11);
+        CdxRecord res21 = cf2.apply(null, res11);
         assertThat(res21).isNotNull().isSameAs(line1).hasToString("ab 00");
 
-        CdxLine res12 = cf1.apply(line1, line2);
+        CdxRecord res12 = cf1.apply(line1, line2);
         assertThat(res12).isNull();
 
-        CdxLine res13 = cf1.apply(line2, line3);
+        CdxRecord res13 = cf1.apply(line2, line3);
         assertThat(res13).isNotNull().isSameAs(line3).hasToString("ac 00");
-        CdxLine res22 = cf2.apply(res21, res13);
+        CdxRecord res22 = cf2.apply(res21, res13);
         assertThat(res22).isNull();
 
-        CdxLine res14 = cf1.apply(line3, line4);
+        CdxRecord res14 = cf1.apply(line3, line4);
         assertThat(res14).isNull();
     }
 
     @Test
     public void testApplyTimestampAndUrlkeySeparateCollapseFunction() {
-        CdxLine line1 = new CdxLine("ab 00", lineFormat);
-        CdxLine line2 = new CdxLine("ab 01", lineFormat);
-        CdxLine line3 = new CdxLine("ac 00", lineFormat);
-        CdxLine line4 = new CdxLine("ac 01", lineFormat);
+        CdxRecord line1 = new CdxLine("ab 00", format);
+        CdxRecord line2 = new CdxLine("ab 01", format);
+        CdxRecord line3 = new CdxLine("ac 00", format);
+        CdxRecord line4 = new CdxLine("ac 01", format);
 
-        CollapseField cf1 = new CollapseFieldProvider(toCollapseList("timestamp"))
+        CollapseField cf1 = new CollapseFieldProvider(toCollapseList(FieldName.TIMESTAMP.toString()))
                 .newFunction();
-        CollapseField cf2 = new CollapseFieldProvider(toCollapseList("urlkey"))
+        CollapseField cf2 = new CollapseFieldProvider(toCollapseList(FieldName.URI_KEY.toString()))
                 .newFunction();
 
-        CdxLine res11 = cf1.apply(null, line1);
+        CdxRecord res11 = cf1.apply(null, line1);
         assertThat(res11).isNotNull().isSameAs(line1).hasToString("ab 00");
-        CdxLine res21 = cf2.apply(null, res11);
+        CdxRecord res21 = cf2.apply(null, res11);
         assertThat(res21).isNotNull().isSameAs(line1).hasToString("ab 00");
 
-        CdxLine res12 = cf1.apply(line1, line2);
+        CdxRecord res12 = cf1.apply(line1, line2);
         assertThat(res12).isNotNull().isSameAs(line2).hasToString("ab 01");
 
-        CdxLine res13 = cf1.apply(line2, line3);
+        CdxRecord res13 = cf1.apply(line2, line3);
         assertThat(res13).isNull();
 
-        CdxLine res14 = cf1.apply(line3, line4);
+        CdxRecord res14 = cf1.apply(line3, line4);
         assertThat(res14).isNull();
     }
 

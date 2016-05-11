@@ -23,8 +23,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
-import org.netpreserve.openwayback.cdxlib.CdxLine;
-import org.netpreserve.openwayback.cdxlib.CdxLineFormatMapper;
+import org.netpreserve.openwayback.cdxlib.CdxRecord;
 
 /**
  * A {@link CdxIterator} which iterates over a block based cdx source.
@@ -43,20 +42,16 @@ public class BlockCdxSourceIterator implements CdxIterator {
 
     final byte[] endFilter;
 
-    final CdxLineFormatMapper lineFormatMapper;
-
     boolean eof = false;
 
     final SourceDescriptor sourceDescriptor;
 
     final Iterator<SourceBlock> blockIterator;
 
-    CdxLine nextLine = null;
+    CdxRecord nextLine = null;
 
     public BlockCdxSourceIterator(final SourceDescriptor sourceDescriptor,
-            final Iterator<SourceBlock> blockIterator,
-            final String startKey, final String endKey,
-            final CdxLineFormatMapper lineFormatMapper) {
+            final Iterator<SourceBlock> blockIterator, final String startKey, final String endKey) {
 
         this.sourceDescriptor = sourceDescriptor;
 
@@ -72,8 +67,6 @@ public class BlockCdxSourceIterator implements CdxIterator {
             this.endFilter = endKey.getBytes();
         }
 
-        this.lineFormatMapper = lineFormatMapper;
-
         this.blockIterator = blockIterator;
 
     }
@@ -86,7 +79,7 @@ public class BlockCdxSourceIterator implements CdxIterator {
      * @return this iterator for easy chaining
      */
     BlockCdxSourceIterator init() {
-        cdxBuffer = new CdxBuffer(lineFormatMapper, startFilter, endFilter);
+        cdxBuffer = new CdxBuffer(sourceDescriptor.getInputFormat(), startFilter, endFilter);
         fillBuffer();
         skipLines();
         return this;
@@ -110,7 +103,8 @@ public class BlockCdxSourceIterator implements CdxIterator {
 
         try {
             if (cdxBuffer.getByteBuf() == null) {
-                cdxBuffer.setByteBuf(fillBuffer(blockIterator.next(), cdxBuffer.getByteBuf()).get());
+                cdxBuffer.setByteBuf(
+                        fillBuffer(blockIterator.next(), cdxBuffer.getByteBuf()).get());
             } else if (nextBuffer != null) {
                 ByteBuffer next = nextBuffer.get();
                 nextBuffer = null;
@@ -176,9 +170,9 @@ public class BlockCdxSourceIterator implements CdxIterator {
     }
 
     @Override
-    public CdxLine next() {
+    public CdxRecord next() {
         if (nextLine != null || hasNext()) {
-            CdxLine line = nextLine;
+            CdxRecord line = nextLine;
             nextLine = null;
             return line;
         } else {
@@ -187,7 +181,7 @@ public class BlockCdxSourceIterator implements CdxIterator {
     }
 
     @Override
-    public CdxLine peek() {
+    public CdxRecord peek() {
         if (hasNext()) {
             return nextLine;
         } else {
@@ -208,9 +202,9 @@ public class BlockCdxSourceIterator implements CdxIterator {
      * <p>
      * @return the next line or null if end of result set
      */
-    CdxLine readLine() {
+    CdxRecord readLine() {
         do {
-            CdxLine cdx = cdxBuffer.readLine();
+            CdxRecord cdx = cdxBuffer.readLine();
             if (cdx != null) {
                 return cdx;
             }
@@ -229,9 +223,9 @@ public class BlockCdxSourceIterator implements CdxIterator {
      * <p>
      * @return the next line or null if end of result set
      */
-    CdxLine readLineCheckingFilter() {
+    CdxRecord readLineCheckingFilter() {
         do {
-            CdxLine cdx = cdxBuffer.readLineCheckingFilter();
+            CdxRecord cdx = cdxBuffer.readLineCheckingFilter();
             if (cdx != null) {
                 return cdx;
             }

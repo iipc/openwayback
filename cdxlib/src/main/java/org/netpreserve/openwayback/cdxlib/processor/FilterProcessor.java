@@ -19,7 +19,7 @@ import java.util.List;
 
 import org.netpreserve.openwayback.cdxlib.functions.Filter;
 import org.netpreserve.openwayback.cdxlib.cdxsource.CdxIterator;
-import org.netpreserve.openwayback.cdxlib.CdxLine;
+import org.netpreserve.openwayback.cdxlib.CdxRecord;
 
 /**
  * Processor taking a set of {@link Filter}'s and returning only those CDX lines matching all of the
@@ -37,9 +37,9 @@ public class FilterProcessor extends AbstractProcessor<Filter> {
         return new AbstractProcessorIterator<Filter>(wrappedIterator) {
 
             @Override
-            protected CdxLine computeNext() {
+            protected CdxRecord computeNext() {
                 if (wrappedCdxIterator.hasNext()) {
-                    CdxLine input = wrappedCdxIterator.next();
+                    CdxRecord input = wrappedCdxIterator.next();
                     boolean include = true;
                     for (Filter filter : filters) {
                         if (!filter.include(input)) {

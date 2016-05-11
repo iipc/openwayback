@@ -17,8 +17,6 @@ package org.netpreserve.openwayback.cdxlib.cdxsource;
 
 import java.util.Iterator;
 
-import org.netpreserve.openwayback.cdxlib.CdxLineFormatMapper;
-
 /**
  * Iterator for searching backwards in cdx.
  */
@@ -31,17 +29,15 @@ public class BlockCdxSourceReverseIterator extends BlockCdxSourceIterator {
      * @param blockIterator an iterator over blocks which contain data within the requested range
      * @param startKey the range start (inclusive)
      * @param endKey the range end (exclusive)
-     * @param lineFormatMapper input and output format mapper
      */
     public BlockCdxSourceReverseIterator(final SourceDescriptor sourceDescriptor,
-            final Iterator<SourceBlock> blockIterator, final String startKey, final String endKey,
-            final CdxLineFormatMapper lineFormatMapper) {
-        super(sourceDescriptor, blockIterator, startKey, endKey, lineFormatMapper);
+            final Iterator<SourceBlock> blockIterator, final String startKey, final String endKey) {
+        super(sourceDescriptor, blockIterator, startKey, endKey);
     }
 
     @Override
     BlockCdxSourceIterator init() {
-        cdxBuffer = new ReverseCdxBuffer(lineFormatMapper, startFilter, endFilter);
+        cdxBuffer = new ReverseCdxBuffer(sourceDescriptor.getInputFormat(), startFilter, endFilter);
         fillBuffer();
         skipLines();
         return this;

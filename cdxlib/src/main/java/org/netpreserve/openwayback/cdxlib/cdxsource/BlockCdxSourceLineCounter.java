@@ -18,22 +18,19 @@ package org.netpreserve.openwayback.cdxlib.cdxsource;
 import java.util.Iterator;
 import java.util.concurrent.ExecutionException;
 
-import org.netpreserve.openwayback.cdxlib.CdxLineFormatMapper;
-
 /**
  *
  */
 public class BlockCdxSourceLineCounter extends BlockCdxSourceIterator {
 
     public BlockCdxSourceLineCounter(SourceDescriptor sourceDescriptor,
-            Iterator<SourceBlock> blockIterator, String startKey, String endKey,
-            CdxLineFormatMapper lineFormatMapper) {
-        super(sourceDescriptor, blockIterator, startKey, endKey, lineFormatMapper);
+            Iterator<SourceBlock> blockIterator, String startKey, String endKey) {
+        super(sourceDescriptor, blockIterator, startKey, endKey);
     }
 
     @Override
     BlockCdxSourceLineCounter init() {
-        cdxBuffer = new CdxBuffer(lineFormatMapper, startFilter, endFilter);
+        cdxBuffer = new CdxBuffer(sourceDescriptor.getInputFormat(), startFilter, endFilter);
         return this;
     }
 

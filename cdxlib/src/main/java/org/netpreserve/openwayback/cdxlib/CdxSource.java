@@ -34,13 +34,12 @@ public interface CdxSource extends Closeable {
      * <p>
      * @param startKey the lexiografically lowest key (inclusive) to get
      * @param endKey the lexiografically highest key (exclusive) to get
-     * @param outputFormat the format the line should be converted to
      * @param processors a list of processors for filtering the list
      * @param reverse if true the result list will be sorted in descending order
      * @return an {@link SearchResult} returning iterators over the requested list
      */
-    SearchResult search(String startKey, String endKey, CdxLineSchema outputFormat,
-            List<Processor> processors, boolean reverse);
+    SearchResult search(String startKey, String endKey, List<Processor> processors,
+            boolean reverse);
 
     /**
      * Get a count of Cdx lines within the submitted range.

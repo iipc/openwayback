@@ -21,7 +21,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import org.netpreserve.openwayback.cdxlib.CdxLine;
+import org.netpreserve.openwayback.cdxlib.CdxRecord;
 
 /**
  * A {@link CdxIterator} which iterates over a collection of iterators.
@@ -80,10 +80,10 @@ public class MultiCdxIterator implements CdxIterator {
     }
 
     @Override
-    public CdxLine next() {
+    public CdxRecord next() {
         if (count > 0) {
             CdxIterator current = iterators[takeptr];
-            CdxLine result = current.next();
+            CdxRecord result = current.next();
             if (current.peek() == null) {
                 count--;
                 takeptr++;
@@ -109,7 +109,7 @@ public class MultiCdxIterator implements CdxIterator {
     }
 
     @Override
-    public CdxLine peek() {
+    public CdxRecord peek() {
         if (count > 0) {
             return iterators[takeptr].peek();
         } else {
@@ -141,13 +141,13 @@ public class MultiCdxIterator implements CdxIterator {
      */
     private final class IteratorTask implements CdxIterator {
 
-        private final ArrayBlockingQueue<CdxLine> queue;
+        private final ArrayBlockingQueue<CdxRecord> queue;
 
         private final Future future;
 
         private final CdxIterator iterator;
 
-        private CdxLine next;
+        private CdxRecord next;
 
         private boolean hasMore = true;
 
@@ -177,14 +177,14 @@ public class MultiCdxIterator implements CdxIterator {
         }
 
         @Override
-        public CdxLine next() {
-            CdxLine result = peek();
+        public CdxRecord next() {
+            CdxRecord result = peek();
             next = null;
             return result;
         }
 
         @Override
-        public CdxLine peek() {
+        public CdxRecord peek() {
             if (next == null) {
                 getNext();
             }

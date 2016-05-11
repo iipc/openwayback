@@ -27,9 +27,9 @@ import java.util.List;
 
 import org.junit.Test;
 import org.netpreserve.openwayback.cdxlib.CdxLine;
-import org.netpreserve.openwayback.cdxlib.CdxLineFormatMapper;
 import org.netpreserve.openwayback.cdxlib.functions.Filter;
 import org.netpreserve.openwayback.cdxlib.CdxLineSchema;
+import org.netpreserve.openwayback.cdxlib.CdxRecord;
 import org.netpreserve.openwayback.cdxlib.processor.Processor;
 import org.netpreserve.openwayback.cdxlib.CdxSource;
 import org.netpreserve.openwayback.cdxlib.functions.FieldRegexFilter;
@@ -43,11 +43,9 @@ import static org.assertj.core.api.Assertions.*;
  */
 public class BlockCdxSourceTest {
 
-    private final CdxLineSchema outputFormat = new CdxLineSchema(' ', "urlkey", "timestamp");
+    private final CdxLineSchema format = CdxLineSchema.CDX11LINE;
 
-    private final CdxLineFormatMapper mapper = new CdxLineFormatMapper(outputFormat, null);
-
-    private final Comparator<CdxLine> comparator = new CdxLineComparator();
+    private final Comparator<CdxRecord> comparator = new CdxLineComparator();
 
     /**
      * Test of search method, of class CdxFile.
@@ -68,21 +66,21 @@ public class BlockCdxSourceTest {
 
             CdxSource cdxSource = new BlockCdxSource(sourceDescriptor);
 
-            SearchResult result = cdxSource.search(startKey, toKey, outputFormat, null, false);
+            SearchResult result = cdxSource.search(startKey, toKey, null, false);
             assertThat(result).hasSize(expectedSize).usingElementComparator(comparator)
-                    .startsWith(new CdxLine("as,hotel)/robots.txt 20070821143246", mapper))
+                    .startsWith(new CdxLine("as,hotel)/robots.txt 20070821143246", format))
                     .endsWith(new CdxLine("com,imrworldwide,server-no)/cgi-bin/count?http://www.nrk"
-                                    + ".no/kanal/nrk_mpetre/1386661.html 20070825090945", mapper));
+                                    + ".no/kanal/nrk_mpetre/1386661.html 20070825090945", format));
 
             // Collect result and reverse the order for the reversed test
-            List<CdxLine> resultSet = new ArrayList<>();
-            for (CdxLine l : result) {
+            List<CdxRecord> resultSet = new ArrayList<>();
+            for (CdxRecord l : result) {
                 resultSet.add(l);
             }
             Collections.reverse(resultSet);
 
-            // Check that revrse listing gives same number of records
-            result = cdxSource.search(startKey, toKey, outputFormat, null, true);
+            // Check that reverse listing gives same number of records
+            result = cdxSource.search(startKey, toKey, null, true);
             assertThat(result).hasSize(expectedSize).containsExactlyElementsOf(resultSet);
         }
     }
@@ -106,23 +104,22 @@ public class BlockCdxSourceTest {
 
             CdxSource cdxSource = new BlockCdxSource(sourceDescriptor);
 
-            SearchResult result = cdxSource.search(startKey, toKey, outputFormat, null, false);
+            SearchResult result = cdxSource.search(startKey, toKey, null, false);
             assertThat(result).hasSize(expectedSize).usingElementComparator(comparator)
-                    .startsWith(new CdxLine("as,hotel)/robots.txt 20070821143246", mapper))
+                    .startsWith(new CdxLine("as,hotel)/robots.txt 20070821143246", format))
                     .endsWith(new CdxLine("com,imrworldwide,server-no)/cgi-bin/count?http://www.nrk"
-                                    + ".no/kanal/nrk_mpetre/1386661.html 20070825090945", mapper));
+                                    + ".no/kanal/nrk_mpetre/1386661.html 20070825090945", format));
 
             // Collect result and reverse the order for the reversed test
-            List<CdxLine> resultSet = new ArrayList<>();
-            for (CdxLine l : result) {
+            List<CdxRecord> resultSet = new ArrayList<>();
+            for (CdxRecord l : result) {
                 resultSet.add(l);
             }
             Collections.reverse(resultSet);
 
-            // Check that revrse listing gives same records in oposite order
-            result = cdxSource.search(startKey, toKey, outputFormat, null, true);
-            assertThat(result).hasSize(expectedSize)
-                    .containsExactlyElementsOf(resultSet);
+            // Check that reverse listing gives same records in oposite order
+            result = cdxSource.search(startKey, toKey, null, true);
+            assertThat(result).hasSize(expectedSize).containsExactlyElementsOf(resultSet);
 
         }
     }
@@ -146,31 +143,31 @@ public class BlockCdxSourceTest {
             String toKey = "ch,";
 
             List<CdxLine> expectedResult = new ArrayList<>();
-            expectedResult.add(new CdxLine("be,halten) 20070821143342", mapper));
-            expectedResult.add(new CdxLine("be,your-counter)/robots.txt 20070821133445", mapper));
-            expectedResult.add(new CdxLine("biz,dataparty-mn,www) 20070821170230", mapper));
-            expectedResult.add(new CdxLine("biz,ggs)/ 20070821185057", mapper));
-            expectedResult.add(new CdxLine("biz,ggs)/images/1-2.png 20070823215132", mapper));
-            expectedResult.add(new CdxLine("biz,ggs)/images/2-1.png 20070823215138", mapper));
-            expectedResult.add(new CdxLine("biz,ggs)/images/3-2.png 20070823215152", mapper));
-            expectedResult.add(new CdxLine("biz,ggs)/images/4-1.png 20070823215148", mapper));
-            expectedResult.add(new CdxLine("biz,ggs)/images/left_blue.jpg 20070823215146", mapper));
-            expectedResult.add(new CdxLine("biz,ggs)/images/top_blue.jpg 20070823215136", mapper));
+            expectedResult.add(new CdxLine("be,halten) 20070821143342", format));
+            expectedResult.add(new CdxLine("be,your-counter)/robots.txt 20070821133445", format));
+            expectedResult.add(new CdxLine("biz,dataparty-mn,www) 20070821170230", format));
+            expectedResult.add(new CdxLine("biz,ggs)/ 20070821185057", format));
+            expectedResult.add(new CdxLine("biz,ggs)/images/1-2.png 20070823215132", format));
+            expectedResult.add(new CdxLine("biz,ggs)/images/2-1.png 20070823215138", format));
+            expectedResult.add(new CdxLine("biz,ggs)/images/3-2.png 20070823215152", format));
+            expectedResult.add(new CdxLine("biz,ggs)/images/4-1.png 20070823215148", format));
+            expectedResult.add(new CdxLine("biz,ggs)/images/left_blue.jpg 20070823215146", format));
+            expectedResult.add(new CdxLine("biz,ggs)/images/top_blue.jpg 20070823215136", format));
             expectedResult
-                    .add(new CdxLine("biz,ggs)/images/white_bullet.gif 20070823215134", mapper));
-            expectedResult.add(new CdxLine("biz,ggs)/images/white_tab.gif 20070823215150", mapper));
-            expectedResult.add(new CdxLine("biz,ggs)/menu.js 20070823215145", mapper));
-            expectedResult.add(new CdxLine("biz,ggs)/new.css 20070823215140", mapper));
-            expectedResult.add(new CdxLine("biz,ggs,www) 20070823215128", mapper));
+                    .add(new CdxLine("biz,ggs)/images/white_bullet.gif 20070823215134", format));
+            expectedResult.add(new CdxLine("biz,ggs)/images/white_tab.gif 20070823215150", format));
+            expectedResult.add(new CdxLine("biz,ggs)/menu.js 20070823215145", format));
+            expectedResult.add(new CdxLine("biz,ggs)/new.css 20070823215140", format));
+            expectedResult.add(new CdxLine("biz,ggs,www) 20070823215128", format));
 
-            SearchResult result = cdxSource.search(startKey, toKey, outputFormat, null, false);
+            SearchResult result = cdxSource.search(startKey, toKey, null, false);
             assertThat(result).hasSize(15)
                     .usingElementComparator(comparator)
                     .containsExactlyElementsOf(expectedResult);
 
             // Check that revrse listing gives same records
             Collections.reverse(expectedResult);
-            result = cdxSource.search(startKey, toKey, outputFormat, null, true);
+            result = cdxSource.search(startKey, toKey, null, true);
             assertThat(result).hasSize(15)
                     .usingElementComparator(comparator)
                     .containsExactlyElementsOf(expectedResult);
@@ -199,13 +196,13 @@ public class BlockCdxSourceTest {
             Processor<Filter> fp = new FilterProcessor().addFunction(f);
             List filters = Collections.singletonList(fp);
 
-            CdxLine expected = new CdxLine("be,your-counter)/robots.txt 20070821133445", mapper);
-            SearchResult result = cdxSource.search(startKey, toKey, outputFormat, filters, false);
+            CdxRecord expected = new CdxLine("be,your-counter)/robots.txt 20070821133445", format);
+            SearchResult result = cdxSource.search(startKey, toKey, filters, false);
             assertThat(result).hasSize(1)
                     .usingElementComparator(comparator).containsExactly(expected);
 
             // Check that revrse listing gives same number of records
-            result = cdxSource.search(startKey, toKey, outputFormat, filters, true);
+            result = cdxSource.search(startKey, toKey, filters, true);
             assertThat(result).hasSize(1)
                     .usingElementComparator(comparator).containsExactly(expected);
         }
@@ -231,7 +228,7 @@ public class BlockCdxSourceTest {
     }
 
     /**
-     * Wrapped CdxFileDescriptor which returns a read only ByteBuffe for the
+     * Wrapped CdxFileDescriptor which returns a read only ByteBuffer for the
      * {@link #read(SourceBlock, ByteBuffer)} method.
      * <p>
      * This class makes it possible to test that the BlockCdxSource works for ByteBuffers where
@@ -245,7 +242,7 @@ public class BlockCdxSourceTest {
          * @param path path to cdx file
          * @throws IOException is thrown if something went wrong while reading the file
          */
-        public ReadOnlyBufferSourceDescriptor(Path path) throws IOException {
+        ReadOnlyBufferSourceDescriptor(Path path) throws IOException {
             super(path);
         }
 

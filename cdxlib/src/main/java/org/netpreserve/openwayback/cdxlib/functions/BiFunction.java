@@ -15,7 +15,7 @@
  */
 package org.netpreserve.openwayback.cdxlib.functions;
 
-import org.netpreserve.openwayback.cdxlib.CdxLine;
+import org.netpreserve.openwayback.cdxlib.CdxRecord;
 
 /**
  * A function taking two arguments and produce a result.
@@ -37,7 +37,7 @@ public interface BiFunction extends Function {
      * <h3>Example</h3>
      * A simple deduplication filter could be implemented like this:
      * <pre>
-     * public CdxLine apply(CdxLine previousLine, CdxLine currentLine) {
+     * public CdxRecord apply(CdxRecord previousLine, CdxRecord currentLine) {
      *     if (previousLine == null || !currentLine.equals(previousLine)) {
      *         return currentLine;
      *     } else {
@@ -51,6 +51,6 @@ public interface BiFunction extends Function {
      * @param currentLine the current line to be processed or null if there are no more lines.
      * @return the result of the computation. Might be null.
      */
-    CdxLine apply(CdxLine previousLine, CdxLine currentLine);
+    CdxRecord apply(CdxRecord previousLine, CdxRecord currentLine);
 
 }

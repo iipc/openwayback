@@ -15,19 +15,17 @@
  */
 package org.netpreserve.openwayback.cdxlib.functions;
 
-import java.nio.CharBuffer;
-
-import org.netpreserve.openwayback.cdxlib.CdxLine;
-import org.netpreserve.openwayback.cdxlib.FieldType;
+import org.netpreserve.openwayback.cdxlib.CdxRecord;
+import org.netpreserve.openwayback.cdxlib.FieldName;
 
 /**
  * A filter restricting the date range for a result.
  */
 public class FromToFilter implements Filter {
 
-    final CharBuffer from;
+    final String from;
 
-    final CharBuffer to;
+    final String to;
 
     /**
      * Constructs a new date range filter.
@@ -35,14 +33,14 @@ public class FromToFilter implements Filter {
      * @param from the earliest date or null if starting from the beginning.
      * @param to the last date or null if getting to the end.
      */
-    public FromToFilter(final CharSequence from, final CharSequence to) {
-        this.from = CharBuffer.wrap(from);
-        this.to = CharBuffer.wrap(to);
+    public FromToFilter(final String from, final String to) {
+        this.from = from;
+        this.to = to;
     }
 
     @Override
-    public boolean include(CdxLine line) {
-        CharBuffer dateField = line.get(FieldType.b);
+    public boolean include(CdxRecord line) {
+        String dateField = line.get(FieldName.TIMESTAMP);
         return dateField.compareTo(from) >= 0 && dateField.compareTo(to) <= 0;
     }
 

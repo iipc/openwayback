@@ -16,11 +16,12 @@
 package org.netpreserve.openwayback.cdxlib.cdxsource;
 
 import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 import org.netpreserve.openwayback.cdxlib.CdxLine;
-import org.netpreserve.openwayback.cdxlib.CdxLineFormatMapper;
+import org.netpreserve.openwayback.cdxlib.CdxRecord;
+import org.netpreserve.openwayback.cdxlib.CdxLineSchema;
 
 /**
  *
@@ -29,16 +30,16 @@ public class CdxBuffer {
 
     ByteBuffer byteBuf;
 
-    final CdxLineFormatMapper lineFormatMapper;
+    final CdxLineSchema lineFormat;
 
     final byte[] firstFilter;
 
     final byte[] secondFilter;
 
-    public CdxBuffer(CdxLineFormatMapper lineFormatMapper,
+    public CdxBuffer(final CdxLineSchema lineFormat,
             final byte[] startFilter, final byte[] endFilter) {
 
-        this.lineFormatMapper = lineFormatMapper;
+        this.lineFormat = Objects.requireNonNull(lineFormat);
         this.firstFilter = startFilter;
         this.secondFilter = endFilter;
     }
@@ -129,11 +130,11 @@ public class CdxBuffer {
         }
     }
 
-    CdxLine readLine() {
+    CdxRecord readLine() {
         byteBuf.mark();
 
         if (hasRemaining()) {
-            CdxLine cdxLine = createCdxLine(byteBuf, getEndOfLinePosition(), lineFormatMapper);
+            CdxRecord cdxLine = createCdxLine(byteBuf, getEndOfLinePosition(), lineFormat);
             moveToNextLine();
             return cdxLine;
         }
@@ -141,11 +142,11 @@ public class CdxBuffer {
         return null;
     }
 
-    CdxLine readLineCheckingFilter() {
+    CdxRecord readLineCheckingFilter() {
         byteBuf.mark();
         if (hasRemaining()) {
             if (secondFilter == null || includableByFilter(secondFilter)) {
-                CdxLine cdxLine = createCdxLine(byteBuf, getEndOfLinePosition(), lineFormatMapper);
+                CdxRecord cdxLine = createCdxLine(byteBuf, getEndOfLinePosition(), lineFormat);
                 moveToNextLine();
                 return cdxLine;
             }
@@ -270,18 +271,18 @@ public class CdxBuffer {
         return count;
     }
 
-    static CdxLine createCdxLine(final ByteBuffer byteBuf, final int startOfNextLine,
-            final CdxLineFormatMapper outputFormat) {
+    static CdxRecord createCdxLine(final ByteBuffer byteBuf, final int startOfNextLine,
+            final CdxLineSchema lineFormat) {
 
         try {
-            return new CdxLine(convertToCharBuffer(byteBuf, startOfNextLine), outputFormat);
+            return new CdxLine(convertToCharBuffer(byteBuf, startOfNextLine), lineFormat);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
     }
 
-    static CharBuffer convertToCharBuffer(final ByteBuffer byteBuf,
+    static char[] convertToCharBuffer(final ByteBuffer byteBuf,
             final int startOfNextLine) {
 
         int lineLength = startOfNextLine - byteBuf.position();
@@ -312,15 +313,15 @@ public class CdxBuffer {
                 out[i] = (char) c;
             }
         }
-        return CharBuffer.wrap(out);
+        return out;
     }
 
-    static CharBuffer convertToCharBufferNonAscii(final ByteBuffer byteBuf,
+    static char[] convertToCharBufferNonAscii(final ByteBuffer byteBuf,
             final int lineLength) {
 
         ByteBuffer line = byteBuf.slice();
         line.limit(lineLength);
-        return StandardCharsets.UTF_8.decode(line);
+        return StandardCharsets.UTF_8.decode(line).array();
     }
 
 }

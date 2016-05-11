@@ -22,10 +22,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
-import org.netpreserve.openwayback.cdxlib.CdxLine;
-import org.netpreserve.openwayback.cdxlib.CdxLineSchema;
+import org.netpreserve.openwayback.cdxlib.CdxRecord;
 import org.netpreserve.openwayback.cdxlib.CdxSource;
-import org.netpreserve.openwayback.cdxlib.FieldType;
+import org.netpreserve.openwayback.cdxlib.FieldName;
 import org.netpreserve.openwayback.cdxlib.SearchResult;
 import org.netpreserve.openwayback.cdxlib.processor.Processor;
 
@@ -44,19 +43,19 @@ public class ClosestCdxIterator implements CdxIterator {
 
     final long timestamp;
 
-    CdxLine nextLine;
+    CdxRecord nextLine;
 
     Candidate nextForwardCandidate;
 
     Candidate nextBackwardCandidate;
 
     public ClosestCdxIterator(CdxSource source, String url, String timestamp,
-            CdxLineSchema outputFormat, List<Processor> processors) {
+            List<Processor> processors) {
 
         String closestKey = url + " " + timestamp;
 
-        forwardResult = source.search(closestKey, url + "~", outputFormat, processors, false);
-        backwardResult = source.search(url, closestKey, outputFormat, processors, true);
+        forwardResult = source.search(closestKey, url + "~", processors, false);
+        backwardResult = source.search(url, closestKey, processors, true);
 
         forwardIterator = forwardResult.iterator();
         backwardIterator = backwardResult.iterator();
@@ -64,9 +63,9 @@ public class ClosestCdxIterator implements CdxIterator {
     }
 
     @Override
-    public CdxLine next() {
+    public CdxRecord next() {
         if (nextLine != null || hasNext()) {
-            CdxLine line = nextLine;
+            CdxRecord line = nextLine;
             nextLine = null;
             return line;
         } else {
@@ -75,7 +74,7 @@ public class ClosestCdxIterator implements CdxIterator {
     }
 
     @Override
-    public CdxLine peek() {
+    public CdxRecord peek() {
         if (hasNext()) {
             return nextLine;
         } else {
@@ -124,7 +123,7 @@ public class ClosestCdxIterator implements CdxIterator {
     public void remove() {
         throw new UnsupportedOperationException();
     }
-    
+
     private static long timestampStringToSeconds(String timestamp) {
         try {
             DateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss", Locale.ENGLISH);
@@ -138,14 +137,14 @@ public class ClosestCdxIterator implements CdxIterator {
 
     private class Candidate {
 
-        final CdxLine line;
+        final CdxRecord line;
 
         final long distance;
 
-        public Candidate(CdxLine line) {
+        public Candidate(CdxRecord line) {
             this.line = line;
             this.distance = Math.abs(
-                    timestampStringToSeconds(String.valueOf(line.get(FieldType.b))) - timestamp);
+                    timestampStringToSeconds(line.get(FieldName.TIMESTAMP)) - timestamp);
         }
 
         public boolean greaterDistanceThan(Candidate o) {

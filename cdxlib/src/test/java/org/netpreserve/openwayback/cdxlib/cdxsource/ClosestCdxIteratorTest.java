@@ -23,8 +23,8 @@ import java.util.Comparator;
 
 import org.junit.Test;
 import org.netpreserve.openwayback.cdxlib.CdxLine;
-import org.netpreserve.openwayback.cdxlib.CdxLineFormatMapper;
 import org.netpreserve.openwayback.cdxlib.CdxLineSchema;
+import org.netpreserve.openwayback.cdxlib.CdxRecord;
 import org.netpreserve.openwayback.cdxlib.CdxSource;
 
 import static org.assertj.core.api.Assertions.*;
@@ -34,11 +34,9 @@ import static org.assertj.core.api.Assertions.*;
  */
 public class ClosestCdxIteratorTest {
 
-    private final CdxLineSchema outputFormat = new CdxLineSchema(' ', "urlkey", "timestamp");
+    private final CdxLineSchema format = CdxLineSchema.CDX11LINE;
 
-    private final CdxLineFormatMapper mapper = new CdxLineFormatMapper(outputFormat, null);
-
-    private final Comparator<CdxLine> comparator = new CdxLineComparator();
+    private final Comparator<CdxRecord> comparator = new CdxLineComparator();
 
     /**
      * Test of next method, of class ClosestCdxIterator.
@@ -55,33 +53,32 @@ public class ClosestCdxIteratorTest {
             CdxIterator it;
 
             // Test with url not in cdx
-            it = new ClosestCdxIterator(cdxSource, missingUrl, "20070905173550",
-                    outputFormat, null);
+            it = new ClosestCdxIterator(cdxSource, missingUrl, "20070905173550", null);
             assertThat(it).isEmpty();
 
             // Test with timestamp equal to one of the lines
-            it = new ClosestCdxIterator(cdxSource, url, "20070905173550", outputFormat, null);
+            it = new ClosestCdxIterator(cdxSource, url, "20070905173550", null);
             assertThat(it).hasSize(2).usingElementComparator(comparator).containsExactly(
-                    new CdxLine(url + " 20070905173550", mapper),
-                    new CdxLine(url + " 20070822103939", mapper));
+                    new CdxLine(url + " 20070905173550", format),
+                    new CdxLine(url + " 20070822103939", format));
 
             // Test with timestamp in between the lines
-            it = new ClosestCdxIterator(cdxSource, url, "20070823173549", outputFormat, null);
+            it = new ClosestCdxIterator(cdxSource, url, "20070823173549", null);
             assertThat(it).hasSize(2).usingElementComparator(comparator).containsExactly(
-                    new CdxLine(url + " 20070822103939", mapper),
-                    new CdxLine(url + " 20070905173550", mapper));
+                    new CdxLine(url + " 20070822103939", format),
+                    new CdxLine(url + " 20070905173550", format));
 
             // Test with timestamp earlier than all the lines
-            it = new ClosestCdxIterator(cdxSource, url, "20060823173549", outputFormat, null);
+            it = new ClosestCdxIterator(cdxSource, url, "20060823173549", null);
             assertThat(it).hasSize(2).usingElementComparator(comparator).containsExactly(
-                    new CdxLine(url + " 20070822103939", mapper),
-                    new CdxLine(url + " 20070905173550", mapper));
+                    new CdxLine(url + " 20070822103939", format),
+                    new CdxLine(url + " 20070905173550", format));
 
             // Test with timestamp later than all the lines
-            it = new ClosestCdxIterator(cdxSource, url, "20090823173549", outputFormat, null);
+            it = new ClosestCdxIterator(cdxSource, url, "20090823173549", null);
             assertThat(it).hasSize(2).usingElementComparator(comparator).containsExactly(
-                    new CdxLine(url + " 20070905173550", mapper),
-                    new CdxLine(url + " 20070822103939", mapper));
+                    new CdxLine(url + " 20070905173550", format),
+                    new CdxLine(url + " 20070822103939", format));
         }
     }
 
@@ -99,17 +96,16 @@ public class ClosestCdxIteratorTest {
             CdxSource cdxSource = new BlockCdxSource(sourceDescriptor);
             CdxIterator it;
 
-            it = new ClosestCdxIterator(cdxSource, missingUrl, "20070905173550",
-                    outputFormat, null);
+            it = new ClosestCdxIterator(cdxSource, missingUrl, "20070905173550", null);
             assertThat(it.peek()).isNull();
 
-            it = new ClosestCdxIterator(cdxSource, url, "20070905173550", outputFormat, null);
+            it = new ClosestCdxIterator(cdxSource, url, "20070905173550", null);
             assertThat(it.peek())
-                    .isEqualByComparingTo(new CdxLine(url + " 20070905173550", mapper));
+                    .isEqualByComparingTo(new CdxLine(url + " 20070905173550", format));
 
-            it = new ClosestCdxIterator(cdxSource, url, "20070823173549", outputFormat, null);
+            it = new ClosestCdxIterator(cdxSource, url, "20070823173549", null);
             assertThat(it.peek())
-                    .isEqualByComparingTo(new CdxLine(url + " 20070822103939", mapper));
+                    .isEqualByComparingTo(new CdxLine(url + " 20070822103939", format));
         }
     }
 
@@ -127,14 +123,13 @@ public class ClosestCdxIteratorTest {
             CdxSource cdxSource = new BlockCdxSource(sourceDescriptor);
             CdxIterator it;
 
-            it = new ClosestCdxIterator(cdxSource, missingUrl, "20070905173550",
-                    outputFormat, null);
+            it = new ClosestCdxIterator(cdxSource, missingUrl, "20070905173550", null);
             assertThat(it.hasNext()).isFalse();
 
-            it = new ClosestCdxIterator(cdxSource, url, "20070905173550", outputFormat, null);
+            it = new ClosestCdxIterator(cdxSource, url, "20070905173550", null);
             assertThat(it.hasNext()).isTrue();
 
-            it = new ClosestCdxIterator(cdxSource, url, "20070823173549", outputFormat, null);
+            it = new ClosestCdxIterator(cdxSource, url, "20070823173549", null);
             assertThat(it.hasNext()).isTrue();
         }
     }

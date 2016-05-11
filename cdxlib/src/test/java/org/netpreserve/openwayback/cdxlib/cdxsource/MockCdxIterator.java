@@ -18,14 +18,14 @@ package org.netpreserve.openwayback.cdxlib.cdxsource;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.netpreserve.openwayback.cdxlib.CdxLine;
+import org.netpreserve.openwayback.cdxlib.CdxRecord;
 
 /**
  * Mock implementation of CdxIterator for unit tests.
  */
 public class MockCdxIterator implements CdxIterator {
 
-    private final List<CdxLine> data = new ArrayList<>();
+    private final List<CdxRecord> data = new ArrayList<>();
 
     private int nextPosition = 0;
 
@@ -35,7 +35,7 @@ public class MockCdxIterator implements CdxIterator {
      * @param line the line to add.
      * @return returns this to allow chained method calls.
      */
-    public MockCdxIterator add(CdxLine line) {
+    public MockCdxIterator add(CdxRecord line) {
         data.add(line);
         return this;
     }
@@ -51,7 +51,7 @@ public class MockCdxIterator implements CdxIterator {
     }
 
     @Override
-    public CdxLine peek() {
+    public CdxRecord peek() {
         if (hasNext()) {
             return data.get(nextPosition);
         } else {
@@ -65,7 +65,7 @@ public class MockCdxIterator implements CdxIterator {
     }
 
     @Override
-    public CdxLine next() {
+    public CdxRecord next() {
         if (hasNext()) {
             return data.get(nextPosition++);
         } else {

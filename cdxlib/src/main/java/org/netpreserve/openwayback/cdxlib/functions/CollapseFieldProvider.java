@@ -15,13 +15,13 @@
  */
 package org.netpreserve.openwayback.cdxlib.functions;
 
-import java.nio.CharBuffer;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.netpreserve.openwayback.cdxlib.CdxLine;
+import org.netpreserve.openwayback.cdxlib.CdxRecord;
+import org.netpreserve.openwayback.cdxlib.FieldName;
 
 /**
  * Provider for constructing CollapseField functions.
@@ -65,7 +65,7 @@ public class CollapseFieldProvider implements
 
         List<CollapseFieldDef> collapseFields;
 
-        int[] fieldIndexes;
+        FieldName[] fieldIndexes;
 
         private boolean isCollapsing = false;
 
@@ -75,16 +75,15 @@ public class CollapseFieldProvider implements
 
         public CollapseField(List<CollapseFieldDef> collapseFields) {
             this.collapseFields = collapseFields;
-            this.fieldIndexes = new int[collapseFields.size()];
+            this.fieldIndexes = new FieldName[collapseFields.size()];
         }
 
         @Override
-        public CdxLine apply(CdxLine previousLine, CdxLine currentLine) {
+        public CdxRecord apply(CdxRecord previousLine, CdxRecord currentLine) {
             if (previousLine == null) {
                 for (int i = 0; i < this.collapseFields.size(); i++) {
-                    fieldIndexes[i] = currentLine.getFormatMapper().getInputFormat()
-                            .indexOf(collapseFields.get(i).fieldName);
-                    if (fieldIndexes[i] == 0) {
+                    fieldIndexes[i] = FieldName.forName(collapseFields.get(i).fieldName);
+                    if (fieldIndexes[i] == FieldName.URI_KEY) {
                         collapseOnKeyLength = collapseFields.get(i).matchLength;
                     }
                 }
@@ -96,13 +95,13 @@ public class CollapseFieldProvider implements
             String currMatchValue = getMatchValues(currentLine);
 
             if (collapseOnKeyLength != NOT_USED) {
-                CharBuffer prevValue = previousLine.get(0);
-                CharBuffer currValue = currentLine.get(0);
+                String prevValue = previousLine.get(FieldName.URI_KEY);
+                String currValue = currentLine.get(FieldName.URI_KEY);
                 if (collapseOnKeyLength > 0
                         && collapseOnKeyLength < prevValue.length()
                         && collapseOnKeyLength < currValue.length()) {
-                    prevValue = prevValue.subSequence(0, collapseOnKeyLength);
-                    currValue = currValue.subSequence(0, collapseOnKeyLength);
+                    prevValue = prevValue.substring(0, collapseOnKeyLength);
+                    currValue = currValue.substring(0, collapseOnKeyLength);
                 }
 
                 if (!currValue.equals(prevValue)) {
@@ -122,10 +121,10 @@ public class CollapseFieldProvider implements
             return null;
         }
 
-        private String getMatchValues(CdxLine cdxLine) {
+        private String getMatchValues(CdxRecord cdxLine) {
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < fieldIndexes.length; i++) {
-                if (fieldIndexes[i] == 0) {
+                if (fieldIndexes[i] == FieldName.URI_KEY) {
                     continue;
                 }
 
@@ -134,7 +133,7 @@ public class CollapseFieldProvider implements
                 if (fieldDef.matchLength == CollapseFieldDef.MATCH_WHOLE_FIELD) {
                     sb.append(cdxLine.get(fieldIndexes[i]));
                 } else {
-                    CharBuffer fieldValue = cdxLine.get(fieldIndexes[i]);
+                    String fieldValue = cdxLine.get(fieldIndexes[i]);
                     sb.append(fieldValue, 0, Math.min(fieldValue.length(), fieldDef.matchLength));
                 }
             }

@@ -15,7 +15,7 @@
  */
 package org.netpreserve.openwayback.cdxlib.functions;
 
-import org.netpreserve.openwayback.cdxlib.CdxLine;
+import org.netpreserve.openwayback.cdxlib.CdxRecord;
 
 /**
  * Function for deciding if a CDX line should be included in the result.
@@ -29,6 +29,6 @@ public interface Filter extends Function {
      * @param line the line to evaluate.
      * @return true if line should be included in the result.
      */
-    public boolean include(CdxLine line);
+    public boolean include(CdxRecord line);
 
 }

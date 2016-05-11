@@ -15,49 +15,48 @@
  */
 package org.netpreserve.openwayback.cdxlib;
 
-import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
-import java.nio.charset.StandardCharsets;
-import java.util.Objects;
+import java.util.Arrays;
 
 /**
- * A representation of a line in a CDX file.
+ * A representation of a line in a legacy CDX file.
  */
-public class CdxLine implements Comparable<CdxLine> {
+public class CdxLine extends BaseCdxRecord {
 
     private static final String EMPTY_FIELD_VALUE = "-";
 
-    final CharBuffer data;
+    final char[] data;
 
-    final int[] fieldOffsets;
+    private int[] fieldOffsets;
 
-    final int[] fieldLengths;
+    private int[] fieldLengths;
 
-    final CdxLineFormatMapper lineFormatMapper;
+    private final CdxLineSchema lineFormat;
 
-    CharBuffer outLine;
-
-    final Object[] mutableFields;
-
-    public CdxLine(final ByteBuffer line, final CdxLineFormatMapper lineFormat) {
-        this(convertToChar(line), lineFormat);
+    public CdxLine(final String line, final CdxLineSchema lineFormat) {
+        this(line.toCharArray(), lineFormat);
     }
 
-    public CdxLine(final String line, final CdxLineFormatMapper lineFormat) {
-        this(CharBuffer.wrap(line.toCharArray()), lineFormat);
-    }
-
-    public CdxLine(final CharBuffer line, final CdxLineFormatMapper lineFormat) {
+    public CdxLine(final char[] line, final CdxLineSchema lineFormat) {
+        super(getKeyFromLine(line));
         this.data = line;
-        this.lineFormatMapper = lineFormat;
-
-        final int inputFormatLength = this.lineFormatMapper.getInputFormat().getLength();
-        this.fieldOffsets = new int[inputFormatLength];
-        this.fieldLengths = new int[inputFormatLength];
-
-        this.mutableFields = new Object[this.lineFormatMapper.getMissingFieldCount()];
+        this.lineFormat = lineFormat;
 
         parseFields();
+    }
+
+    private static CdxRecordKey getKeyFromLine(final char[] line) {
+        int indexOfSecondField = indexOf(line, ' ', 0);
+        if (indexOfSecondField > 0) {
+            int indexOfThirdField = indexOf(line, ' ', indexOfSecondField + 1);
+            if (indexOfThirdField > 0) {
+                return new CdxRecordKey(Arrays.copyOf(line, indexOfThirdField));
+            } else if (line.length > indexOfSecondField + 1) {
+                return new CdxRecordKey(line);
+            }
+        }
+
+        throw new IllegalArgumentException("The CDX record '" + new String(line)
+                + "' cannot be parsed");
     }
 
     /**
@@ -72,25 +71,9 @@ public class CdxLine implements Comparable<CdxLine> {
      * @see #get(int)
      * @see #getMutableField(java.lang.String)
      */
-    public CharBuffer get(String fieldName) {
-        int f = lineFormatMapper.getInputFormat().indexOf(fieldName);
-        return get(f);
-    }
-
-    /**
-     * Get the first field of certain type.
-     * <p>
-     * This method gets fields from the input. To get new mutable fields added during processing,
-     * use {@link #getMutableField(java.lang.String)}.
-     * <p>
-     * @param fieldType the type requested
-     * @return the CharBuffer with the fields value
-     * @see #get(java.lang.String)
-     * @see #get(int)
-     * @see #getMutableField(java.lang.String)
-     */
-    public CharBuffer get(FieldType fieldType) {
-        int f = lineFormatMapper.getInputFormat().indexOf(fieldType);
+    @Override
+    public String get(FieldName fieldName) {
+        int f = lineFormat.indexOf(fieldName);
         return get(f);
     }
 
@@ -106,32 +89,11 @@ public class CdxLine implements Comparable<CdxLine> {
      * @see #get(org.netpreserve.openwayback.cdxlib.FieldType)
      * @see #getMutableField(java.lang.String)
      */
-    public CharBuffer get(int fieldIndex) {
-        return data.subSequence(fieldOffsets[fieldIndex],
-                fieldOffsets[fieldIndex] + fieldLengths[fieldIndex]);
-    }
-
-    public Object getMutableField(String fieldName) {
-        return mutableFields[-lineFormatMapper.getIndexOfOutputField(fieldName) - 1];
-    }
-
-    public CdxLine setMutableField(String fieldName, Object value) {
-        mutableFields[-lineFormatMapper.getIndexOfOutputField(fieldName) - 1] = value;
-
-        // Cached outputline must be discarded to ensure new value for this field is included.
-        outLine = null;
-        return this;
-    }
-
-    public boolean hasMutableField(String fieldName) {
-        if (lineFormatMapper.getOutputFormat() == null) {
-            return false;
+    private String get(int fieldIndex) {
+        if (fieldIndex < 0 || fieldIndex >= fieldOffsets.length) {
+            throw new IllegalArgumentException("No such field");
         }
-        return lineFormatMapper.getOutputFormat().indexOf(fieldName) != CdxLineSchema.MISSING_FIELD;
-    }
-
-    public CdxLineFormatMapper getFormatMapper() {
-        return lineFormatMapper;
+        return String.copyValueOf(data, fieldOffsets[fieldIndex], fieldLengths[fieldIndex]);
     }
 
     /**
@@ -141,132 +103,25 @@ public class CdxLine implements Comparable<CdxLine> {
      */
     @Override
     public String toString() {
-        return String.valueOf(getOutputLine());
-    }
-
-    /**
-     * Gets the data used to build this object as a String.
-     * <p>
-     * @return the source data as a String
-     */
-    public String getInputString() {
         return String.valueOf(data);
-    }
-
-    public CharBuffer getInputLine() {
-        return data;
-    }
-
-    public CharBuffer getOutputLine() {
-        if (lineFormatMapper.getOutputFormat() == null) {
-            return data;
-        }
-        if (mutableFields.length == 0) {
-            return getOutputLineNoMutableFields();
-        } else {
-            return getOutputLineWithMutableFields();
-        }
-    }
-
-    private CharBuffer getOutputLineNoMutableFields() {
-        char delimiter = lineFormatMapper.getOutputFormat().getDelimiter();
-        int[] outputFieldIndexes = lineFormatMapper.getOutputFieldsIndexes();
-
-        if (outLine == null) {
-            char[] dataArray = this.data.array();
-            char[] out = new char[outLength()];
-            int pos = 0;
-            for (int f : outputFieldIndexes) {
-                if (pos > 0) {
-                    out[pos++] = delimiter;
-                }
-
-                System.arraycopy(dataArray, fieldOffsets[f], out, pos, fieldLengths[f]);
-                pos += fieldLengths[f];
-            }
-            outLine = CharBuffer.wrap(out);
-        }
-
-        return outLine;
-    }
-
-    private CharBuffer getOutputLineWithMutableFields() {
-        char delimiter = lineFormatMapper.getOutputFormat().getDelimiter();
-        int[] outputFieldIndexes = lineFormatMapper.getOutputFieldsIndexes();
-
-        if (outLine == null) {
-            char[] dataArray = this.data.array();
-            StringBuilder out = new StringBuilder(256);
-            for (int f : outputFieldIndexes) {
-                if (out.length() > 0) {
-                    out.append(delimiter);
-                }
-
-                if (f <= CdxLineSchema.MISSING_FIELD) {
-                    // Field missing from input. Add mutable field.
-                    out.append(getMutableFieldString(f));
-                } else {
-                    out.append(dataArray, fieldOffsets[f], fieldLengths[f]);
-                }
-            }
-            outLine = CharBuffer.wrap(out);
-        }
-
-        return outLine;
-    }
-
-    private int outLength() {
-        // Calculate output array size
-        int[] outputFieldIndexes = lineFormatMapper.getOutputFieldsIndexes();
-        int outLength = outputFieldIndexes.length - 1;
-        for (int f : outputFieldIndexes) {
-            if (f == CdxLineSchema.MISSING_FIELD) {
-                // Field missing from input. Add room for '-'
-                outLength++;
-            }
-            outLength += fieldLengths[f];
-        }
-        return outLength;
-    }
-
-    private String getMutableFieldString(int mutableFieldIdx) {
-        Object value = mutableFields[-mutableFieldIdx - 1];
-        if (value == null) {
-            return EMPTY_FIELD_VALUE;
-        }
-        return value.toString();
-    }
-
-    private static CharBuffer convertToChar(ByteBuffer line) {
-        byte[] in = line.array();
-        char[] out = new char[in.length];
-        for (int i = 0; i < in.length; i++) {
-            if (in[i] < 0) {
-                return convertToCharNonAscii(line);
-            }
-            out[i] = (char) in[i];
-        }
-        return CharBuffer.wrap(out);
-    }
-
-    private static CharBuffer convertToCharNonAscii(ByteBuffer line) {
-        return StandardCharsets.UTF_8.decode(line);
     }
 
     private void parseFields() {
         int fieldCount = 0;
         int lastIndex = 0;
         int currIndex;
-        char delimiter = lineFormatMapper.getInputFormat().getDelimiter();
+        char delimiter = lineFormat.getDelimiter();
+        fieldOffsets = new int[lineFormat.getLength()];
+        fieldLengths = new int[lineFormat.getLength()];
 
         do {
-            currIndex = indexOf(delimiter, lastIndex);
+            currIndex = indexOf(data, delimiter, lastIndex);
             if (currIndex > 0) {
                 fieldOffsets[fieldCount] = lastIndex;
                 fieldLengths[fieldCount] = currIndex - lastIndex;
             } else {
                 fieldOffsets[fieldCount] = lastIndex;
-                fieldLengths[fieldCount] = data.length() - lastIndex;
+                fieldLengths[fieldCount] = data.length - lastIndex;
                 break;
             }
             lastIndex = currIndex + 1;
@@ -274,9 +129,8 @@ public class CdxLine implements Comparable<CdxLine> {
         } while (lastIndex > 0);
     }
 
-    private int indexOf(char ch, int fromIndex) {
-        final int max = data.length();
-        fromIndex += data.arrayOffset();
+    private static int indexOf(char[] src, char ch, int fromIndex) {
+        final int max = src.length;
         if (fromIndex < 0) {
             fromIndex = 0;
         } else if (fromIndex >= max) {
@@ -284,7 +138,7 @@ public class CdxLine implements Comparable<CdxLine> {
             return -1;
         }
 
-        final char[] value = this.data.array();
+        final char[] value = src;
         for (int i = fromIndex; i < max; i++) {
             if (value[i] == ch) {
                 return i;
@@ -293,51 +147,12 @@ public class CdxLine implements Comparable<CdxLine> {
         return -1;
     }
 
-    /**
-     * Compares this object with the specified CdxLine for order. Returns a negative integer, zero,
-     * or a positive integer as this CdxLine is less than, equal to, or greater than the specified
-     * CdxLine.
-     * <p>
-     * Note: This method uses only the first two fields in the CdxLine for determining the natural
-     * order. It is expected that those fields are the url key and timestamp which in general
-     * uniquely identifies the line. In contrast the {@link #equals(java.lang.Object)} method
-     * compares the whole line. It is then possible that (x.compareTo(y)==0) == (x.equals(y)) is not
-     * always true, but it usually is when comparing CdxLines with the same number of input fields.
-     * <p>
-     * @param other the CdxLine to be compared
-     * @return a negative integer, zero, or a positive integer as this object is less than, equal
-     * to, or greater than the specified object
-     * @throws NullPointerException if the specified object is null
-     */
-    @Override
-    public int compareTo(CdxLine other) {
-        char[] data1 = data.array();
-        int offset1 = data.arrayOffset();
-        char[] data2 = other.data.array();
-        int offset2 = other.data.arrayOffset();
-        int len1 = Math.min(fieldLengths[0] + fieldLengths[1] + 1, data1.length);
-        int len2 = Math.min(other.fieldLengths[0] + other.fieldLengths[1] + 1, data2.length);
-        int lim = Math.min(len1, len2);
-
-        int k = 0;
-        while (k < lim) {
-            char c1 = data1[k + offset1];
-            char c2 = data2[k + offset2];
-            if (c1 != c2) {
-                return c1 - c2;
-            }
-            k++;
-        }
-        return len1 - len2;
-    }
-
     @Override
     public int hashCode() {
         int hash = 1;
-        char[] array = data.array();
-        int start = data.arrayOffset();
-        int limit = start + fieldLengths[0] + fieldLengths[1];
-        for (int i = limit; i >= start; i--) {
+        char[] array = data;
+        int limit = fieldLengths[0] + fieldLengths[1];
+        for (int i = limit; i >= 0; i--) {
             hash = 31 * hash + (int) array[i];
         }
         return hash;
@@ -352,7 +167,7 @@ public class CdxLine implements Comparable<CdxLine> {
             return false;
         }
         final CdxLine other = (CdxLine) obj;
-        if (!Objects.equals(this.data, other.data)) {
+        if (!Arrays.equals(this.data, other.data)) {
             return false;
         }
         return true;

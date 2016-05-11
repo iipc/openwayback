@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import org.netpreserve.openwayback.cdxlib.CdxLine;
+import org.netpreserve.openwayback.cdxlib.CdxRecord;
 
 /**
  * Matches a FieldSplitLine against a string of regex.
@@ -83,14 +83,14 @@ public class FieldRegexFilter implements Filter {
             }
         }
 
-        boolean matches(CdxLine line) {
+        boolean matches(CdxRecord line) {
             boolean matched;
 
             if (field == null) {
                 if (containsStr != null) {
                     matched = String.valueOf(line).contains(containsStr);
                 } else {
-                    matched = regex.matcher(line.getInputLine()).matches();
+                    matched = regex.matcher(line.toString()).matches();
                 }
             } else {
                 if (containsStr != null) {
@@ -120,7 +120,7 @@ public class FieldRegexFilter implements Filter {
     }
 
     @Override
-    public boolean include(CdxLine line) {
+    public boolean include(CdxRecord line) {
         for (RegexMatch regexMatch : regexMatchers) {
             if (!regexMatch.matches(line)) {
                 return false;

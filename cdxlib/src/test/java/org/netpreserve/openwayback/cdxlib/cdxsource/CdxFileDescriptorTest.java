@@ -22,8 +22,8 @@ import java.nio.file.Paths;
 import java.util.List;
 
 import org.junit.Test;
-import org.netpreserve.openwayback.cdxlib.FieldType;
 import org.netpreserve.openwayback.cdxlib.CdxLineSchema;
+import org.netpreserve.openwayback.cdxlib.FieldName;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -80,7 +80,7 @@ public class CdxFileDescriptorTest {
         assertThat(schema).isNotNull();
         assertThat(schema.getDelimiter()).isEqualTo(' ');
         assertThat(schema.getLength()).isEqualTo(11);
-        assertThat(schema.getField(0).getType()).isEqualTo(FieldType.N);
+        assertThat(schema.getField(0)).isEqualTo(FieldName.URI_KEY);
     }
 
 }

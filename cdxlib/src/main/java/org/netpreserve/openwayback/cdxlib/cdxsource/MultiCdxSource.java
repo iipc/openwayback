@@ -70,12 +70,12 @@ public class MultiCdxSource implements CdxSource {
     }
 
     @Override
-    public SearchResult search(String startKey, String endKey, CdxLineSchema outputFormat,
+    public SearchResult search(String startKey, String endKey,
             List<Processor> processors, boolean reverse) {
+
         SearchResult[] sourceIterables = new SearchResult[sources.size()];
         for (int i = 0; i < sources.size(); i++) {
-            sourceIterables[i] = sources.get(i)
-                    .search(startKey, endKey, outputFormat, processors, reverse);
+            sourceIterables[i] = sources.get(i).search(startKey, endKey, processors, reverse);
         }
         return new MultiCdxIterable(sourceIterables, processors, reverse);
     }

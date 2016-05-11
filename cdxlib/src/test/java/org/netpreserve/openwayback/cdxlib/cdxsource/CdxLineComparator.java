@@ -18,17 +18,17 @@ package org.netpreserve.openwayback.cdxlib.cdxsource;
 
 import java.util.Comparator;
 
-import org.netpreserve.openwayback.cdxlib.CdxLine;
+import org.netpreserve.openwayback.cdxlib.CdxRecord;
 
 /**
  * Comparator for CdxLines using compareTo instead of equals.
  * <p>
- * This is needed in these tests due to CdxLine not strictly following the equals() beeing
- * consistent with compareTo(). For an explenation see {@link CdxLine#compareTo(CdxLine).
+ This is needed in these tests due to LegacyCdxLine not strictly following the equals() beeing
+ consistent with compareTo(). For an explenation see {@link CdxLine#compareTo(CdxLine).
  */
-public class CdxLineComparator implements Comparator<CdxLine> {
+public class CdxLineComparator implements Comparator<CdxRecord> {
     @Override
-    public int compare(CdxLine o1, CdxLine o2) {
+    public int compare(CdxRecord o1, CdxRecord o2) {
         return o1.compareTo(o2);
     }
 

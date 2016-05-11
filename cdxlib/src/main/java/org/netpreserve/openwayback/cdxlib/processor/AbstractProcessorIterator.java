@@ -18,7 +18,7 @@ package org.netpreserve.openwayback.cdxlib.processor;
 
 import org.netpreserve.openwayback.cdxlib.functions.Function;
 import org.netpreserve.openwayback.cdxlib.cdxsource.CdxIterator;
-import org.netpreserve.openwayback.cdxlib.CdxLine;
+import org.netpreserve.openwayback.cdxlib.CdxRecord;
 
 public abstract class AbstractProcessorIterator<T extends Function> implements CdxIterator {
 
@@ -28,7 +28,7 @@ public abstract class AbstractProcessorIterator<T extends Function> implements C
 
     private volatile boolean passtrough = false;
 
-    private volatile CdxLine next;
+    private volatile CdxRecord next;
 
     public AbstractProcessorIterator(CdxIterator iterator) {
         this.wrappedCdxIterator = iterator;
@@ -53,7 +53,7 @@ public abstract class AbstractProcessorIterator<T extends Function> implements C
     }
 
     @Override
-    public CdxLine next() {
+    public CdxRecord next() {
         if (passtrough) {
             return wrappedCdxIterator.next();
         }
@@ -63,7 +63,7 @@ public abstract class AbstractProcessorIterator<T extends Function> implements C
         }
 
         state = State.NOT_READY;
-        CdxLine result = next;
+        CdxRecord result = next;
         next = null;
         return result;
     }
@@ -75,7 +75,7 @@ public abstract class AbstractProcessorIterator<T extends Function> implements C
      * @return the next element
      */
     @Override
-    public CdxLine peek() {
+    public CdxRecord peek() {
         if (passtrough) {
             return wrappedCdxIterator.peek();
         }
@@ -113,7 +113,7 @@ public abstract class AbstractProcessorIterator<T extends Function> implements C
      * @return {@code null}; a convenience so your {@code computeNext} implementation can use the
      * simple statement {@code return endOfData();}
      */
-    protected final CdxLine endOfData() {
+    protected final CdxRecord endOfData() {
         state = State.DONE;
         return null;
     }
@@ -132,7 +132,7 @@ public abstract class AbstractProcessorIterator<T extends Function> implements C
         return false;
     }
 
-    protected abstract CdxLine computeNext();
+    protected abstract CdxRecord computeNext();
 
     private enum State {
 

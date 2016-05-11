@@ -17,7 +17,7 @@ package org.netpreserve.openwayback.cdxlib.cdxsource;
 
 import java.util.Iterator;
 
-import org.netpreserve.openwayback.cdxlib.CdxLine;
+import org.netpreserve.openwayback.cdxlib.CdxRecord;
 
 /**
  * An {@link Iterator} over CDX lines from a CdxSource.
@@ -33,7 +33,7 @@ import org.netpreserve.openwayback.cdxlib.CdxLine;
  * close it (but it is harmless to do so,) because the Iterable creating the iterator should
  * normally do it for you.
  */
-public interface CdxIterator extends Iterator<CdxLine>, AutoCloseable {
+public interface CdxIterator extends Iterator<CdxRecord>, AutoCloseable {
 
     /**
      * Returns the next element in the iteration.
@@ -41,7 +41,7 @@ public interface CdxIterator extends Iterator<CdxLine>, AutoCloseable {
      * @return the next element in the iteration or null if the iteration has no more elements.
      */
     @Override
-    CdxLine next();
+    CdxRecord next();
 
     /**
      * Returns the next element in the iteration, without advancing the iteration.
@@ -52,7 +52,7 @@ public interface CdxIterator extends Iterator<CdxLine>, AutoCloseable {
      * @return the next element in the iteration or null if there are no more elements.
      * {@link #hasNext()}
      */
-    CdxLine peek();
+    CdxRecord peek();
 
     @Override
     void close();
