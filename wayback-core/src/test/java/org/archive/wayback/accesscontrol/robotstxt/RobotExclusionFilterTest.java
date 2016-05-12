@@ -26,10 +26,10 @@ import java.util.regex.Pattern;
 
 import junit.framework.TestCase;
 
-import org.archive.wayback.accesscontrol.robotstxt.redis.RobotsTxtResource;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.exception.LiveDocumentNotAvailableException;
 import org.archive.wayback.liveweb.LiveWebCache;
+import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.easymock.EasyMock;
 
 /**
@@ -142,4 +142,27 @@ public class RobotExclusionFilterTest extends TestCase {
 		EasyMock.verify(cache);
 	}
 
+	/**
+	 * "/robots.txt" should never be excluded. RobotExclusionFilter is supposed
+	 * to make no attempt to consulting robots.txt rules.
+	 * @throws Exception
+	 */
+	public void testFilterObject_robotstxt() throws Exception {
+		CaptureSearchResult result = new CaptureSearchResult();
+		result.setOriginalUrl("http://example.com/robots.txt");
+
+		LiveWebCache cache = EasyMock.createMock(LiveWebCache.class);
+		// no call shall be made to cache
+
+		RobotExclusionFilter cut = new RobotExclusionFilter(cache,
+			"ia_archiver", 1000);
+
+		EasyMock.replay(cache);
+
+		int r = cut.filterObject(result);
+
+		assertEquals(r, ExclusionFilter.FILTER_INCLUDE);
+
+		EasyMock.verify(cache);
+	}
 }
