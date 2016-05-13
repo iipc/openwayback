@@ -15,10 +15,25 @@
  */
 package org.netpreserve.openwayback.cdxlib.json;
 
+import java.io.IOException;
+import java.io.Writer;
+import java.util.BitSet;
+
 /**
  *
  */
 public class StringValue implements Value {
+    private static final BitSet ILLEGAL_IN_JSON_STRING = new BitSet(256);
+
+    static {
+        ILLEGAL_IN_JSON_STRING.set('\"');
+        ILLEGAL_IN_JSON_STRING.set('\\');
+        ILLEGAL_IN_JSON_STRING.set('\b');
+        ILLEGAL_IN_JSON_STRING.set('\f');
+        ILLEGAL_IN_JSON_STRING.set('\n');
+        ILLEGAL_IN_JSON_STRING.set('\r');
+        ILLEGAL_IN_JSON_STRING.set('\t');
+    }
 
     private final String value;
 
@@ -37,6 +52,39 @@ public class StringValue implements Value {
     @Override
     public String toString() {
         return value;
+    }
+
+    @Override
+    public void toJson(Writer out) throws IOException {
+        out.write('\"');
+        char[] src = value.toCharArray();
+        for (char c : src) {
+            if (ILLEGAL_IN_JSON_STRING.get(c)) {
+                out.write('\\');
+                switch (c) {
+                    case '\b':
+                        out.write('b');
+                        break;
+                    case '\f':
+                        out.write('f');
+                        break;
+                    case '\n':
+                        out.write('n');
+                        break;
+                    case '\r':
+                        out.write('r');
+                        break;
+                    case '\t':
+                        out.write('t');
+                        break;
+                    default:
+                        out.write(c);
+                }
+            } else {
+                out.write(c);
+            }
+        }
+        out.write('\"');
     }
 
 }

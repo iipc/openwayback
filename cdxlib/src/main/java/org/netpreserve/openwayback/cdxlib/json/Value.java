@@ -16,9 +16,12 @@
 
 package org.netpreserve.openwayback.cdxlib.json;
 
+import java.io.IOException;
+import java.io.Writer;
+
 /**
  *
  */
 public interface Value {
-
+    void toJson(Writer out) throws IOException;
 }

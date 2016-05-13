@@ -15,6 +15,9 @@
  */
 package org.netpreserve.openwayback.cdxlib.json;
 
+import java.io.IOException;
+import java.io.Writer;
+
 /**
  *
  */
@@ -40,6 +43,11 @@ public class NumberValue implements Value {
     @Override
     public String toString() {
         return value.toString();
+    }
+
+    @Override
+    public void toJson(Writer out) throws IOException {
+        out.write(value.toString());
     }
 
 }

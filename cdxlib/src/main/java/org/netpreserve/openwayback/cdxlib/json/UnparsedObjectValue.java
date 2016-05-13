@@ -13,13 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.netpreserve.openwayback.cdxlib.json;
+
+import java.io.IOException;
+import java.io.Writer;
 
 /**
  *
  */
 public class UnparsedObjectValue implements Value {
+
     private final String value;
 
     private UnparsedObjectValue(String value) {
@@ -33,6 +36,11 @@ public class UnparsedObjectValue implements Value {
     @Override
     public String toString() {
         return value;
+    }
+
+    @Override
+    public void toJson(Writer out) throws IOException {
+        out.write(value);
     }
 
 }

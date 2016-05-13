@@ -182,7 +182,21 @@ public class SimpleJsonParser {
                         sb.append('\t');
                         break;
                     case 'u':
-                        sb.append('\u0000');
+                        int val = Integer.parseInt(String.copyValueOf(src, currentIdx + 1, 4), 16);
+
+                        // Check if the value is the first of a UTF-16 surrogate pair.
+                        if (Character.isHighSurrogate((char) val)
+                                && src[currentIdx + 5] == '\\'
+                                && src[currentIdx + 6] == 'u') {
+                            int val2 = Integer.parseInt(
+                                    String.copyValueOf(src, currentIdx + 7, 4), 16);
+
+                            sb.appendCodePoint(Character.toCodePoint((char) val, (char) val2));
+                            currentIdx += 10;
+                        } else {
+                            sb.append((char) val);
+                            currentIdx += 4;
+                        }
                         break;
                     default:
                         throw new IllegalArgumentException("Illegal escaped character in string");
@@ -218,7 +232,6 @@ public class SimpleJsonParser {
                     case 'n':
                     case 'r':
                     case 't':
-                        break;
                     case 'u':
                         break;
                     default:
