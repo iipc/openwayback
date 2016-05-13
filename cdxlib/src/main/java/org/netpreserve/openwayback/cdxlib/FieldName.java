@@ -23,6 +23,10 @@ import java.util.Objects;
  * Representation of a field name.
  */
 public final class FieldName {
+    public enum Type {
+        STRING,
+        NUMBER
+    }
 
     private static final Map<String, FieldName> FIELDS_BY_NAME = new HashMap<>();
 
@@ -50,13 +54,13 @@ public final class FieldName {
      * Length.
      * Code 'S' in legacy CDX format
      */
-    public static final FieldName LENGTH = forNameAndCode("length", 'S');
+    public static final FieldName LENGTH = forNameAndCode("length", 'S', Type.NUMBER);
 
     /**
      * Compressed arc file offset.
      * Code 'V' in legacy CDX format
      */
-    public static final FieldName OFFSET = forNameAndCode("offset", 'V');
+    public static final FieldName OFFSET = forNameAndCode("offset", 'V', Type.NUMBER);
 
     /**
      * Original Url.
@@ -68,7 +72,7 @@ public final class FieldName {
      * Date.
      * Code 'b' in legacy CDX format
      */
-    public static final FieldName TIMESTAMP = forNameAndCode("time", 'b');
+    public static final FieldName TIMESTAMP = forNameAndCode("timestamp", 'b');
 
     /**
      * File name.
@@ -119,9 +123,16 @@ public final class FieldName {
 
     private final char code;
 
-    private FieldName(String name, char code) {
-        this.name = Objects.requireNonNull(name).intern();
+    private final Type type;
+
+    private FieldName(String name, char code, Type type) {
+        this.name = Objects.requireNonNull(name);
         this.code = code;
+        this.type = Objects.requireNonNull(type);
+    }
+
+    private FieldName(String name, char code) {
+        this(name, code, Type.STRING);
     }
 
     private FieldName(String name) {
@@ -146,9 +157,13 @@ public final class FieldName {
     }
 
     private static FieldName forNameAndCode(String name, char code) {
+        return forNameAndCode(name, code, Type.STRING);
+    }
+
+    private static FieldName forNameAndCode(String name, char code, Type type) {
         FieldName field = FIELDS_BY_NAME.get(name);
         if (field == null) {
-            field = new FieldName(name, code);
+            field = new FieldName(name, code, type);
             FIELDS_BY_NAME.put(name, field);
             FIELDS_BY_CODE.put(code, field);
         }
@@ -161,6 +176,10 @@ public final class FieldName {
 
     public char getCode() {
         return code;
+    }
+
+    public Type getType() {
+        return type;
     }
 
     @Override
@@ -177,6 +196,10 @@ public final class FieldName {
 
     @Override
     public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+
         if (obj == null) {
             return false;
         }

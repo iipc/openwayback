@@ -95,8 +95,8 @@ public class CollapseFieldProvider implements
             String currMatchValue = getMatchValues(currentLine);
 
             if (collapseOnKeyLength != NOT_USED) {
-                String prevValue = previousLine.get(FieldName.URI_KEY);
-                String currValue = currentLine.get(FieldName.URI_KEY);
+                String prevValue = previousLine.getKey().getUriKey();
+                String currValue = currentLine.getKey().getUriKey();
                 if (collapseOnKeyLength > 0
                         && collapseOnKeyLength < prevValue.length()
                         && collapseOnKeyLength < currValue.length()) {
@@ -133,7 +133,7 @@ public class CollapseFieldProvider implements
                 if (fieldDef.matchLength == CollapseFieldDef.MATCH_WHOLE_FIELD) {
                     sb.append(cdxLine.get(fieldIndexes[i]));
                 } else {
-                    String fieldValue = cdxLine.get(fieldIndexes[i]);
+                    String fieldValue = cdxLine.get(fieldIndexes[i]).toString();
                     sb.append(fieldValue, 0, Math.min(fieldValue.length(), fieldDef.matchLength));
                 }
             }

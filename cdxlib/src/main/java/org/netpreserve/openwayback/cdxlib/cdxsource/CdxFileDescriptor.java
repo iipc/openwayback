@@ -25,6 +25,7 @@ import java.util.List;
 
 import org.netpreserve.openwayback.cdxlib.CdxFormat;
 import org.netpreserve.openwayback.cdxlib.CdxLineFormat;
+import org.netpreserve.openwayback.cdxlib.CdxjLineFormat;
 
 /**
  * Metadata for a local CDX file.
@@ -66,6 +67,7 @@ public class CdxFileDescriptor implements SourceDescriptor {
 
             // Find start of line
             skipToNextLine(inBuf);
+            inBuf.mark();
 
             if (i == 0) {
                 // First line contains CDX format string
@@ -73,8 +75,11 @@ public class CdxFileDescriptor implements SourceDescriptor {
                         inBuf.arrayOffset(),
                         inBuf.arrayOffset() + inBuf.position());
 
-                if (formatLine.startsWith(" CDX")) {
+                if (formatLine.startsWith("CDX", 1)) {
                     inputFormat = new CdxLineFormat(formatLine);
+                } else if (formatLine.startsWith("(")) {
+                    inputFormat = new CdxjLineFormat();
+                    inBuf.reset();
                 } else {
                     throw new IllegalArgumentException(path + " is not a recognized CDX format");
                 }

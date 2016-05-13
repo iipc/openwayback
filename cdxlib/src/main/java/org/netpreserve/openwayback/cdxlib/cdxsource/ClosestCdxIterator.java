@@ -26,6 +26,7 @@ import org.netpreserve.openwayback.cdxlib.CdxRecord;
 import org.netpreserve.openwayback.cdxlib.CdxSource;
 import org.netpreserve.openwayback.cdxlib.FieldName;
 import org.netpreserve.openwayback.cdxlib.SearchResult;
+import org.netpreserve.openwayback.cdxlib.json.StringValue;
 import org.netpreserve.openwayback.cdxlib.processor.Processor;
 
 /**
@@ -144,7 +145,7 @@ public class ClosestCdxIterator implements CdxIterator {
         public Candidate(CdxRecord line) {
             this.line = line;
             this.distance = Math.abs(
-                    timestampStringToSeconds(line.get(FieldName.TIMESTAMP)) - timestamp);
+                    timestampStringToSeconds(line.get(FieldName.TIMESTAMP).toString()) - timestamp);
         }
 
         public boolean greaterDistanceThan(Candidate o) {

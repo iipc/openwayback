@@ -40,7 +40,7 @@ public class FromToFilter implements Filter {
 
     @Override
     public boolean include(CdxRecord line) {
-        String dateField = line.get(FieldName.TIMESTAMP);
+        String dateField = line.get(FieldName.TIMESTAMP).toString();
         return dateField.compareTo(from) >= 0 && dateField.compareTo(to) <= 0;
     }
 

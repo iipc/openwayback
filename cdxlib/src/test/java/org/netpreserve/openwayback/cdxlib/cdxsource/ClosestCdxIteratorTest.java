@@ -98,14 +98,14 @@ public class ClosestCdxIteratorTest {
             CdxIterator it;
 
             it = new ClosestCdxIterator(cdxSource, missingUrl, "20070905173550", null);
-            assertThat(it.peek()).isNull();
+            assertThat((Comparable) it.peek()).isNull();
 
             it = new ClosestCdxIterator(cdxSource, url, "20070905173550", null);
-            assertThat(it.peek())
+            assertThat((Comparable) it.peek())
                     .isEqualByComparingTo(BaseCdxRecord.create(url + " 20070905173550", format));
 
             it = new ClosestCdxIterator(cdxSource, url, "20070823173549", null);
-            assertThat(it.peek())
+            assertThat((Comparable) it.peek())
                     .isEqualByComparingTo(BaseCdxRecord.create(url + " 20070822103939", format));
         }
     }

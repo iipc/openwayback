@@ -17,6 +17,8 @@ package org.netpreserve.openwayback.cdxlib;
 
 import java.util.Objects;
 
+import org.netpreserve.openwayback.cdxlib.json.Value;
+
 /**
  * Representation of the key used to lookup records in CDX files.
  * <p>
@@ -47,6 +49,11 @@ public class CdxRecordKey implements Comparable<CdxRecordKey> {
     public CdxRecordKey(final String uriKey, final String timeStamp) {
         this.uriKey = Objects.requireNonNull(uriKey);
         this.timeStamp = Objects.requireNonNull(timeStamp);
+    }
+
+    public CdxRecordKey(final Value uriKey, final Value timeStamp) {
+        this.uriKey = Objects.requireNonNull(uriKey).toString();
+        this.timeStamp = Objects.requireNonNull(timeStamp).toString();
     }
 
     public String getUriKey() {
@@ -113,6 +120,14 @@ public class CdxRecordKey implements Comparable<CdxRecordKey> {
             data = (uriKey + ' ' + timeStamp).toCharArray();
         }
         return data;
+    }
+
+    public int length() {
+        if (data == null) {
+            return uriKey.length() + timeStamp.length() + 1;
+        } else {
+            return data.length;
+        }
     }
 
     /**

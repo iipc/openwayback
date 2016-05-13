@@ -51,10 +51,10 @@ public class CollapseFieldProviderTest {
         CollapseField cf = new CollapseFieldProvider(
                 Collections.singletonList(FieldName.TIMESTAMP + ":4")).newFunction();
 
-        assertThat(cf.apply(null, line1)).isNotNull()
+        assertThat((Comparable) cf.apply(null, line1)).isNotNull()
                 .hasToString("no,dagbladet)/spiller_2519.html 20070908002541");
-        assertThat(cf.apply(line1, line2)).isNull();
-        assertThat(cf.apply(line2, line3)).isNotNull()
+        assertThat((Comparable) cf.apply(line1, line2)).isNull();
+        assertThat((Comparable) cf.apply(line2, line3)).isNotNull()
                 .hasToString("no,dagbladet)/spiller_2520.html 20080908002532");
 
         // test with 12 digit timestamp
@@ -64,10 +64,10 @@ public class CollapseFieldProviderTest {
         cf = new CollapseFieldProvider(
                 Collections.singletonList(FieldName.TIMESTAMP + ":12")).newFunction();
 
-        assertThat(cf.apply(null, line1)).isNotNull()
+        assertThat((Comparable) cf.apply(null, line1)).isNotNull()
                 .hasToString("no,dagbladet)/spiller_2519.html 20070908002541");
-        assertThat(cf.apply(line1, line2)).isNull();
-        assertThat(cf.apply(line2, line3)).isNotNull()
+        assertThat((Comparable) cf.apply(line1, line2)).isNull();
+        assertThat((Comparable) cf.apply(line2, line3)).isNotNull()
                 .hasToString("no,dagbladet)/spiller_2520.html 20080908002532");
 
         // test with 13 digit timestamp
@@ -77,11 +77,11 @@ public class CollapseFieldProviderTest {
         cf = new CollapseFieldProvider(
                 Collections.singletonList(FieldName.TIMESTAMP + ":13")).newFunction();
 
-        assertThat(cf.apply(null, line1)).isNotNull()
+        assertThat((Comparable) cf.apply(null, line1)).isNotNull()
                 .hasToString("no,dagbladet)/spiller_2519.html 20070908002541");
-        assertThat(cf.apply(line1, line2)).isNotNull()
+        assertThat((Comparable) cf.apply(line1, line2)).isNotNull()
                 .hasToString("no,dagbladet)/spiller_2520.html 20070908002532");
-        assertThat(cf.apply(line2, line3)).isNotNull()
+        assertThat((Comparable) cf.apply(line2, line3)).isNotNull()
                 .hasToString("no,dagbladet)/spiller_2520.html 20080908002532");
 
         // test with 14 digit timestamp
@@ -91,11 +91,11 @@ public class CollapseFieldProviderTest {
         cf = new CollapseFieldProvider(
                 Collections.singletonList(FieldName.TIMESTAMP + ":14")).newFunction();
 
-        assertThat(cf.apply(null, line1)).isNotNull()
+        assertThat((Comparable) cf.apply(null, line1)).isNotNull()
                 .hasToString("no,dagbladet)/spiller_2519.html 20070908002541");
-        assertThat(cf.apply(line1, line2)).isNotNull()
+        assertThat((Comparable) cf.apply(line1, line2)).isNotNull()
                 .hasToString("no,dagbladet)/spiller_2520.html 20070908002532");
-        assertThat(cf.apply(line2, line3)).isNotNull()
+        assertThat((Comparable) cf.apply(line2, line3)).isNotNull()
                 .hasToString("no,dagbladet)/spiller_2520.html 20080908002532");
 
         // test with 18 digit timestamp (larger than timestamp field)
@@ -105,11 +105,11 @@ public class CollapseFieldProviderTest {
         cf = new CollapseFieldProvider(
                 Collections.singletonList(FieldName.TIMESTAMP + ":18")).newFunction();
 
-        assertThat(cf.apply(null, line1)).isNotNull()
+        assertThat((Comparable) cf.apply(null, line1)).isNotNull()
                 .hasToString("no,dagbladet)/spiller_2519.html 20070908002541");
-        assertThat(cf.apply(line1, line2)).isNotNull()
+        assertThat((Comparable) cf.apply(line1, line2)).isNotNull()
                 .hasToString("no,dagbladet)/spiller_2520.html 20070908002532");
-        assertThat(cf.apply(line2, line3)).isNotNull()
+        assertThat((Comparable) cf.apply(line2, line3)).isNotNull()
                 .hasToString("no,dagbladet)/spiller_2520.html 20080908002532");
     }
 
@@ -136,31 +136,31 @@ public class CollapseFieldProviderTest {
 
         // Simulate run of cdx source 1
         CollapseField cf = cfp.newFunction();
-        assertThat(cf.apply(null, line11)).isNotNull()
+        assertThat((Comparable) cf.apply(null, line11)).isNotNull()
                 .hasToString("no,dagbladet)/spiller_2519.html 20070908002541");
-        assertThat(cf.apply(line11, line12)).isNull();
-        assertThat(cf.apply(line12, line13)).isNotNull()
+        assertThat((Comparable) cf.apply(line11, line12)).isNull();
+        assertThat((Comparable) cf.apply(line12, line13)).isNotNull()
                 .hasToString("no,dagbladet)/spiller_2521.html 20080908002533");
 
         // Simulate run of cdx source 2
         cf = cfp.newFunction();
-        assertThat(cf.apply(null, line21)).isNotNull()
+        assertThat((Comparable) cf.apply(null, line21)).isNotNull()
                 .hasToString("no,dagbladet)/spiller_2519.html 20070908002540");
-        assertThat(cf.apply(line21, line22)).isNull();
-        assertThat(cf.apply(line22, line23)).isNotNull()
+        assertThat((Comparable) cf.apply(line21, line22)).isNull();
+        assertThat((Comparable) cf.apply(line22, line23)).isNotNull()
                 .hasToString("no,dagbladet)/spiller_2521.html 20080908002534");
-        assertThat(cf.apply(line23, line24)).isNotNull()
+        assertThat((Comparable) cf.apply(line23, line24)).isNotNull()
                 .hasToString("no,dagbladet)/spiller_2522.html 20090908002534");
 
         // Simulate run of multi cdx source results from 1 and 2
         cf = cfp.newFunction();
-        assertThat(cf.apply(null, line21)).isNotNull()
+        assertThat((Comparable) cf.apply(null, line21)).isNotNull()
                 .hasToString("no,dagbladet)/spiller_2519.html 20070908002540");
-        assertThat(cf.apply(line21, line11)).isNull();
-        assertThat(cf.apply(line11, line13)).isNotNull()
+        assertThat((Comparable) cf.apply(line21, line11)).isNull();
+        assertThat((Comparable) cf.apply(line11, line13)).isNotNull()
                 .hasToString("no,dagbladet)/spiller_2521.html 20080908002533");
-        assertThat(cf.apply(line13, line23)).isNull();
-        assertThat(cf.apply(line23, line24))
+        assertThat((Comparable) cf.apply(line13, line23)).isNull();
+        assertThat((Comparable) cf.apply(line23, line24))
                 .hasToString("no,dagbladet)/spiller_2522.html 20090908002534");
     }
 
@@ -174,10 +174,12 @@ public class CollapseFieldProviderTest {
         CollapseField cf = new CollapseFieldProvider(toCollapseList(FieldName.URI_KEY.toString()))
                 .newFunction();
 
-        assertThat(cf.apply(null, line1)).isNotNull().isSameAs(line1).hasToString("ab 00");
-        assertThat(cf.apply(line1, line2)).isNull();
-        assertThat(cf.apply(line2, line3)).isNotNull().isSameAs(line3).hasToString("ac 00");
-        assertThat(cf.apply(line3, line4)).isNull();
+        assertThat((Comparable) cf.apply(null, line1))
+                .isNotNull().isSameAs(line1).hasToString("ab 00");
+        assertThat((Comparable) cf.apply(line1, line2)).isNull();
+        assertThat((Comparable) cf.apply(line2, line3))
+                .isNotNull().isSameAs(line3).hasToString("ac 00");
+        assertThat((Comparable) cf.apply(line3, line4)).isNull();
     }
 
     @Test
@@ -190,10 +192,12 @@ public class CollapseFieldProviderTest {
         CollapseField cf = new CollapseFieldProvider(toCollapseList(FieldName.TIMESTAMP.toString()))
                 .newFunction();
 
-        assertThat(cf.apply(null, line1)).isNotNull().isSameAs(line1).hasToString("ab 00");
-        assertThat(cf.apply(line1, line2)).isNotNull().isSameAs(line2).hasToString("ab 01");
-        assertThat(cf.apply(line2, line3)).isNull();
-        assertThat(cf.apply(line3, line4)).isNull();
+        assertThat((Comparable) cf.apply(null, line1))
+                .isNotNull().isSameAs(line1).hasToString("ab 00");
+        assertThat((Comparable) cf.apply(line1, line2))
+                .isNotNull().isSameAs(line2).hasToString("ab 01");
+        assertThat((Comparable) cf.apply(line2, line3)).isNull();
+        assertThat((Comparable) cf.apply(line3, line4)).isNull();
     }
 
     @Test
@@ -206,10 +210,14 @@ public class CollapseFieldProviderTest {
         CollapseField cf = new CollapseFieldProvider(
                 toCollapseList(FieldName.URI_KEY + "," + FieldName.TIMESTAMP)).newFunction();
 
-        assertThat(cf.apply(null, line1)).isNotNull().isSameAs(line1).hasToString("ab 00");
-        assertThat(cf.apply(line1, line2)).isNotNull().isSameAs(line2).hasToString("ab 01");
-        assertThat(cf.apply(line2, line3)).isNotNull().isSameAs(line3).hasToString("ac 00");
-        assertThat(cf.apply(line3, line4)).isNotNull().isSameAs(line4).hasToString("ac 01");
+        assertThat((Comparable) cf.apply(null, line1))
+                .isNotNull().isSameAs(line1).hasToString("ab 00");
+        assertThat((Comparable) cf.apply(line1, line2))
+                .isNotNull().isSameAs(line2).hasToString("ab 01");
+        assertThat((Comparable) cf.apply(line2, line3))
+                .isNotNull().isSameAs(line3).hasToString("ac 00");
+        assertThat((Comparable) cf.apply(line3, line4))
+                .isNotNull().isSameAs(line4).hasToString("ac 01");
     }
 
     @Test
@@ -222,10 +230,14 @@ public class CollapseFieldProviderTest {
         CollapseField cf = new CollapseFieldProvider(
                 toCollapseList(FieldName.TIMESTAMP + "," + FieldName.URI_KEY)).newFunction();
 
-        assertThat(cf.apply(null, line1)).isNotNull().isSameAs(line1).hasToString("ab 00");
-        assertThat(cf.apply(line1, line2)).isNotNull().isSameAs(line2).hasToString("ab 01");
-        assertThat(cf.apply(line2, line3)).isNotNull().isSameAs(line3).hasToString("ac 00");
-        assertThat(cf.apply(line3, line4)).isNotNull().isSameAs(line4).hasToString("ac 01");
+        assertThat((Comparable) cf.apply(null, line1))
+                .isNotNull().isSameAs(line1).hasToString("ab 00");
+        assertThat((Comparable) cf.apply(line1, line2))
+                .isNotNull().isSameAs(line2).hasToString("ab 01");
+        assertThat((Comparable) cf.apply(line2, line3))
+                .isNotNull().isSameAs(line3).hasToString("ac 00");
+        assertThat((Comparable) cf.apply(line3, line4))
+                .isNotNull().isSameAs(line4).hasToString("ac 01");
     }
 
     @Test
@@ -241,20 +253,20 @@ public class CollapseFieldProviderTest {
                 toCollapseList(FieldName.TIMESTAMP.toString())).newFunction();
 
         CdxRecord res11 = cf1.apply(null, line1);
-        assertThat(res11).isNotNull().isSameAs(line1).hasToString("ab 00");
+        assertThat((Comparable) res11).isNotNull().isSameAs(line1).hasToString("ab 00");
         CdxRecord res21 = cf2.apply(null, res11);
-        assertThat(res21).isNotNull().isSameAs(line1).hasToString("ab 00");
+        assertThat((Comparable) res21).isNotNull().isSameAs(line1).hasToString("ab 00");
 
         CdxRecord res12 = cf1.apply(line1, line2);
-        assertThat(res12).isNull();
+        assertThat((Comparable) res12).isNull();
 
         CdxRecord res13 = cf1.apply(line2, line3);
-        assertThat(res13).isNotNull().isSameAs(line3).hasToString("ac 00");
+        assertThat((Comparable) res13).isNotNull().isSameAs(line3).hasToString("ac 00");
         CdxRecord res22 = cf2.apply(res21, res13);
-        assertThat(res22).isNull();
+        assertThat((Comparable) res22).isNull();
 
         CdxRecord res14 = cf1.apply(line3, line4);
-        assertThat(res14).isNull();
+        assertThat((Comparable) res14).isNull();
     }
 
     @Test
@@ -270,18 +282,18 @@ public class CollapseFieldProviderTest {
                 .newFunction();
 
         CdxRecord res11 = cf1.apply(null, line1);
-        assertThat(res11).isNotNull().isSameAs(line1).hasToString("ab 00");
+        assertThat((Comparable) res11).isNotNull().isSameAs(line1).hasToString("ab 00");
         CdxRecord res21 = cf2.apply(null, res11);
-        assertThat(res21).isNotNull().isSameAs(line1).hasToString("ab 00");
+        assertThat((Comparable) res21).isNotNull().isSameAs(line1).hasToString("ab 00");
 
         CdxRecord res12 = cf1.apply(line1, line2);
-        assertThat(res12).isNotNull().isSameAs(line2).hasToString("ab 01");
+        assertThat((Comparable) res12).isNotNull().isSameAs(line2).hasToString("ab 01");
 
         CdxRecord res13 = cf1.apply(line2, line3);
-        assertThat(res13).isNull();
+        assertThat((Comparable) res13).isNull();
 
         CdxRecord res14 = cf1.apply(line3, line4);
-        assertThat(res14).isNull();
+        assertThat((Comparable) res14).isNull();
     }
 
     private List<String> toCollapseList(String collapseString) {

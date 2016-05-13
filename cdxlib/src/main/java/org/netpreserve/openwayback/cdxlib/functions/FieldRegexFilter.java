@@ -94,9 +94,9 @@ public class FieldRegexFilter implements Filter {
                 }
             } else {
                 if (containsStr != null) {
-                    matched = String.valueOf(line.get(field)).contains(containsStr);
+                    matched = line.get(field).toString().contains(containsStr);
                 } else {
-                    matched = regex.matcher(line.get(field)).matches();
+                    matched = regex.matcher(line.get(field).toString()).matches();
                 }
             }
 

@@ -16,13 +16,19 @@
 package org.netpreserve.openwayback.cdxlib;
 
 import java.util.Arrays;
+import java.util.Iterator;
+
+import org.netpreserve.openwayback.cdxlib.json.NullValue;
+import org.netpreserve.openwayback.cdxlib.json.NumberValue;
+import org.netpreserve.openwayback.cdxlib.json.StringValue;
+import org.netpreserve.openwayback.cdxlib.json.Value;
 
 /**
  * A representation of a line in a legacy CDX file.
  */
-public class CdxLine extends BaseCdxRecord {
+public class CdxLine extends BaseCdxRecord<CdxLineFormat> {
 
-    private static final String EMPTY_FIELD_VALUE = "-";
+    private static final char EMPTY_FIELD_VALUE = '-';
 
     final char[] data;
 
@@ -30,89 +36,144 @@ public class CdxLine extends BaseCdxRecord {
 
     private int[] fieldLengths;
 
-    private final CdxLineFormat lineFormat;
+    private transient Value[] fieldCache;
 
-    public CdxLine(final String line, final CdxLineFormat lineFormat) {
-        this(line.toCharArray(), lineFormat);
+    public CdxLine(final String line, final CdxLineFormat format) {
+        this(line.toCharArray(), format);
     }
 
-    public CdxLine(final char[] line, final CdxLineFormat lineFormat) {
-        super(getKeyFromLine(line));
+    public CdxLine(final char[] line, final CdxLineFormat format) {
+        super(getKeyFromLine(line), format);
         this.data = line;
-        this.lineFormat = lineFormat;
 
         parseFields();
     }
 
-    private static CdxRecordKey getKeyFromLine(final char[] line) {
-        int indexOfSecondField = indexOf(line, ' ', 0);
-        if (indexOfSecondField > 0) {
-            int indexOfThirdField = indexOf(line, ' ', indexOfSecondField + 1);
-            if (indexOfThirdField > 0) {
-                return new CdxRecordKey(Arrays.copyOf(line, indexOfThirdField));
-            } else if (line.length > indexOfSecondField + 1) {
-                return new CdxRecordKey(line);
-            }
-        }
-
-        throw new IllegalArgumentException("The CDX record '" + new String(line)
-                + "' cannot be parsed");
-    }
-
-    /**
-     * Get the first field with a certain name.
-     * <p>
-     * This method gets fields from the input. To get new mutable fields added during processing,
-     * use {@link #getMutableField(java.lang.String)}.
-     * <p>
-     * @param fieldName the name of the requested field
-     * @return the CharBuffer with the fields value
-     * @see #get(org.netpreserve.openwayback.cdxlib.FieldType)
-     * @see #get(int)
-     * @see #getMutableField(java.lang.String)
-     */
     @Override
-    public String get(FieldName fieldName) {
-        int f = lineFormat.indexOf(fieldName);
-        return get(f);
+    public Value get(FieldName fieldName) {
+        return getValue(fieldName, getCdxFormat().indexOf(fieldName));
     }
 
     /**
      * Get the field at a certain position in the input line.
      * <p>
-     * This method gets fields from the input. To get new mutable fields added during processing,
-     * use {@link #getMutableField(java.lang.String)}.
-     * <p>
      * @param fieldIndex the index of the field requested
-     * @return the CharBuffer with the fields value
-     * @see #get(java.lang.String)
-     * @see #get(org.netpreserve.openwayback.cdxlib.FieldType)
-     * @see #getMutableField(java.lang.String)
+     * @return the fields value
      */
-    private String get(int fieldIndex) {
+    public Value get(int fieldIndex) {
         if (fieldIndex < 0 || fieldIndex >= fieldOffsets.length) {
             throw new IllegalArgumentException("No such field");
         }
-        return String.copyValueOf(data, fieldOffsets[fieldIndex], fieldLengths[fieldIndex]);
+        return getValue(getCdxFormat().getField(fieldIndex), fieldIndex);
+//        return String.copyValueOf(data, fieldOffsets[fieldIndex], fieldLengths[fieldIndex]);
+    }
+
+    private Value getValue(FieldName name, int fieldIndex) {
+        if (fieldCache == null) {
+            fieldCache = new Value[getCdxFormat().getLength()];
+        }
+        if (fieldCache[fieldIndex] != null) {
+            return fieldCache[fieldIndex];
+        }
+
+        Value result;
+        if (data[fieldOffsets[fieldIndex]] == EMPTY_FIELD_VALUE) {
+            result = NullValue.NULL;
+        } else {
+            switch (name.getType()) {
+                case STRING:
+                    result = StringValue
+                            .valueOf(data, fieldOffsets[fieldIndex], fieldOffsets[fieldIndex] + fieldLengths[fieldIndex]);
+                    break;
+                case NUMBER:
+                    result = NumberValue
+                            .valueOf(data, fieldOffsets[fieldIndex], fieldOffsets[fieldIndex] + fieldLengths[fieldIndex]);
+                    break;
+                default:
+                    result = NullValue.NULL;
+                    break;
+            }
+        }
+        fieldCache[fieldIndex] = result;
+        return result;
+    }
+
+    @Override
+    public boolean hasField(FieldName fieldName) {
+        return getCdxFormat().indexOf(fieldName) != CdxLineFormat.MISSING_FIELD;
     }
 
     /**
-     * Gets the data represented by this object after transforming it to the output format.
+     * Gets the data represented by this object.
      * <p>
      * @return the output data
      */
     @Override
     public String toString() {
-        return String.valueOf(data);
+        if (modified) {
+            StringBuilder sb = new StringBuilder(data.length);
+            sb.append(getKey().toString());
+            for (int i = 2; i < getCdxFormat().getLength(); i++) {
+                sb.append(' ');
+                sb.append(get(i));
+            }
+            return sb.toString();
+        } else {
+            return String.valueOf(data);
+        }
+    }
+
+    @Override
+    public char[] toCharArray() {
+        if (modified) {
+            StringBuilder sb = new StringBuilder(data.length);
+            sb.append(getKey().toString());
+            for (int i = 2; i < getCdxFormat().getLength(); i++) {
+                sb.append(' ');
+                sb.append(get(i));
+            }
+            char[] result = new char[sb.length()];
+            sb.getChars(0, sb.length(), result, 0);
+            return result;
+        } else {
+            return data;
+        }
+    }
+
+    @Override
+    public Iterator<Field> iterator() {
+        return new FieldIterator() {
+            int fieldIdx = 0;
+
+            CdxLineFormat format = getCdxFormat();
+
+            int length = format.getLength();
+
+            @Override
+            protected Field getNext() {
+                while (fieldIdx < length) {
+                    Value value = get(fieldIdx);
+                    if (value != NullValue.NULL) {
+                        FieldName name = format.getField(fieldIdx);
+                        fieldIdx++;
+                        return new ImmutableField(name, value);
+                    } else {
+                        fieldIdx++;
+                    }
+                }
+                return null;
+            }
+
+        };
     }
 
     private void parseFields() {
         int fieldCount = 0;
         int lastIndex = 0;
         int currIndex;
-        char delimiter = lineFormat.getDelimiter();
-        fieldOffsets = new int[lineFormat.getLength()];
-        fieldLengths = new int[lineFormat.getLength()];
+        char delimiter = getCdxFormat().getDelimiter();
+        fieldOffsets = new int[getCdxFormat().getLength()];
+        fieldLengths = new int[getCdxFormat().getLength()];
 
         do {
             currIndex = indexOf(data, delimiter, lastIndex);
@@ -127,24 +188,6 @@ public class CdxLine extends BaseCdxRecord {
             lastIndex = currIndex + 1;
             fieldCount++;
         } while (lastIndex > 0);
-    }
-
-    private static int indexOf(char[] src, char ch, int fromIndex) {
-        final int max = src.length;
-        if (fromIndex < 0) {
-            fromIndex = 0;
-        } else if (fromIndex >= max) {
-            // Note: fromIndex might be near -1>>>1.
-            return -1;
-        }
-
-        final char[] value = src;
-        for (int i = fromIndex; i < max; i++) {
-            if (value[i] == ch) {
-                return i;
-            }
-        }
-        return -1;
     }
 
     @Override
