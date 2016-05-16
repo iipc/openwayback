@@ -244,7 +244,7 @@ $().ready(function(){
     
     <div class="clearfix"></div>
 
-    <div id="wbChart" onmouseout="showTrackers('none'); setActiveYear(startYear);" style=" width: 920; height: 110px;" >
+    <div id="wbChart" onmouseout="showTrackers('none'); setActiveYear(startYear);" style=" width: 963px; height: 118px;" >
     
   <div id="wbChartThis">
         <a style="position:relative; white-space:nowrap; width:<%= imgWidth %>px;height:<%= imgHeight %>px;" href="<%= queryPrefix %>" id="wm-graph-anchor">
