@@ -298,7 +298,8 @@ $().ready(function(){
       $(window).load(function(){
           $("#wbChart").mCustomScrollbar({
               axis: "x",
-              theme:"rounded-dots-dark"
+              theme:"rounded-dots-dark",
+              autoExpandScrollbar: true
           });
       });
   })(jQuery);
