@@ -299,7 +299,8 @@ $().ready(function(){
           $("#wbChart").mCustomScrollbar({
               axis: "x",
               theme:"rounded-dots-dark",
-              autoExpandScrollbar: true
+              autoExpandScrollbar: true,
+              scrollButtons:{ enable: true }
           });
       });
   })(jQuery);
