@@ -109,7 +109,10 @@
 
         <!-- Checks for imports                              -->
         <!-- See http://checkstyle.sf.net/config_import.html -->
-        <module name="AvoidStarImport"/>
+        <module name="AvoidStarImport">
+            <!-- Allow star import of static methods from test utilities -->
+            <property name="excludes" value="org.junit.Assert,org.assertj.core.api.Assertions,org.mockito.Mockito,org.easymock.EasyMock"/>
+        </module>
         <module name="IllegalImport"/> <!-- defaults to sun.* packages -->
         <module name="RedundantImport"/>
         <module name="UnusedImports"/>
