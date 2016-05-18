@@ -31,7 +31,7 @@ public class FlatFileResourceFileLocationDB implements ResourceFileLocationDB  {
 	private final static Logger LOGGER =
 		Logger.getLogger(FlatFileResourceFileLocationDB.class.getName());
 	private String path = null;
-	private FlatFile flatFile = null;
+	protected FlatFile flatFile = null;
 	private String delimiter = "\t";
 
         /**
@@ -86,40 +86,6 @@ public class FlatFileResourceFileLocationDB implements ResourceFileLocationDB  {
 			} else {
 				break;
 			}
-		}
-		
-		//if user has requested url without slash at end, check if any videos for url with slash at end
-		if (urls.size() == 0 && name.indexOf("?") == -1 && !name.endsWith("/")) {
-
-			prefix = name + "/" + delimiter;
-
-			itr = flatFile.getRecordIterator(prefix + "");
-
-			while (itr.hasNext()) {
-				String line = itr.next();
-				if (line.startsWith(prefix)) {
-					urls.add(line.substring(prefix.length()));
-				} else {
-					break;
-				}
-			}
-		} else if (name.indexOf("?") == -1 && name.endsWith("/")) {
-		    // if url ends with trailing slash, do a search without the trailing
-		    // slash since video may have been captured from no-slash page even
-		    // though user is requesting the page with slash.
-		    // canonicalizer will not remove trailing slash
-		    prefix = name.substring(0, name.length() - 1) + delimiter;
-
-		    itr = flatFile.getRecordIterator(prefix + "");
-
-		    while (itr.hasNext()) {
-		        String line = itr.next();
-		        if (line.startsWith(prefix)) {
-		            urls.add(line.substring(prefix.length()));
-		        } else {
-		            break;
-		        }
-		    }
 		}
 		
 		if(itr instanceof CloseableIterator) {

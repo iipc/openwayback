@@ -40,7 +40,7 @@ public class PathPrefixDateRangeQueryRequestParser extends DateUrlPathRequestPar
 		super(wrapped);
 	}
 
-	private final static Pattern TIMESTAMP_REGEX = Pattern.compile("(\\d{1,14})-(\\d{1,14})\\*");
+	private final static Pattern TIMESTAMP_REGEX = Pattern.compile("(\\d{0,14})-(\\d{0,14})\\*");
 
 	@Override
 	protected WaybackRequest parseDateUrl(String dateStr, String urlStr) {

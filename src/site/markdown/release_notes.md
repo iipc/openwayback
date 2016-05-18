@@ -1,15 +1,24 @@
-<head><title>Release Notes</title></head> 
+<head><title>Release Notes</title></head>
 
 # Release Notes
 
-Full listing of changes and bug fixes are not available prior to release 1.2.0 and between release 1.6.0 and OpeWayback 2.0.0 BETA 1 release.
+Full listing of changes and bug fixes are not available prior to release 1.2.0 and between release 1.6.0 and OpenWayback 2.0.0 BETA 1 release.
+
+## OpenWayback 2.3.1 Release
+### Bug fixes
+* Rewrite URLs in srcset attribute. [#310](https://github.com/iipc/openwayback/issues/310)
+* Add "noscript" as a valid Head tag for Toolbar insertion. [#306](https://github.com/iipc/openwayback/issues/306)
+* Remove IA-specific extension code in FlatFileResourceFileLocationDB, make it extensible. [#313](https://github.com/iipc/openwayback/pull/313)
+* Updated webarchive-commons dependency to version 1.1.6
 
 ## OpenWayback 2.3.0 Release
 ### Features
-*  Use Markdown for documentation. [#265](https://github.com/iipc/openwayback/issues/265)
-*  Display # of snapshots of a selected year in BubbleCalendar. [#256](https://github.com/iipc/openwayback/issues/256)
-*  New FilenameFilter to include or exclude files using regular expressions [#237](https://github.com/iipc/openwayback/issues/237)
-*  Add a system to manage specific rules for some URL [#182] (https://github.com/iipc/openwayback/pull/182)
+* Allow revisit records to be resolved when using a RemoteResourceIndex by adding WARCRevisitAnnotationFilter and ConditionalGetAnnotationFilter filters. [#304](https://github.com/iipc/openwayback/pull/304)
+* Use Markdown for documentation. [#265](https://github.com/iipc/openwayback/issues/265)
+* Display # of snapshots of a selected year in BubbleCalendar. [#256](https://github.com/iipc/openwayback/issues/256)
+* New FilenameFilter to include or exclude files using regular expressions [#237](https://github.com/iipc/openwayback/issues/237)
+* Add a system to manage specific rules for some URL [#182] (https://github.com/iipc/openwayback/pull/182)
+* TransparentReplayRenderer now has limited support for Range requests. [#179] (https://github.com/iipc/openwayback/issues/179)
 
 ### Bug fixes
 * Fix for WatchedCDXSourceTest on MaxOSX. [#271] (https://github.com/iipc/openwayback/issues/271)
@@ -19,6 +28,9 @@ Full listing of changes and bug fixes are not available prior to release 1.2.0 a
 * Set exclusionFilter on wbRequest via AccessPoint only if not already set. [#259] (https://github.com/iipc/openwayback/issues/259)
 * robots.txt exclusion: Disallow: rules after empty Disallow: get ignored. [#268] (https://github.com/iipc/openwayback/issues/268)
 * Fix closestGroup race condition in RemoteResourceIndex. [#239] (https://github.com/iipc/openwayback/pull/239)
+* Minor clean up of typos and references to Wayback Machine in WaybackUI.properties. [#300] (https://github.com/iipc/openwayback/issues/300)
+* Use trimmed filename so readers can infer format. [#302] (https://github.com/iipc/openwayback/pull/302)
+* Fix for Date range queries. [#293] (https://github.com/iipc/openwayback/pull/293)
 
 ## OpenWayback 2.2.0 Release
 ### Features
@@ -30,19 +42,19 @@ Full listing of changes and bug fixes are not available prior to release 1.2.0 a
 (https://github.com/iipc/openwayback/pull/223)
 * Require Java 7. [#178] (https://github.com/iipc/openwayback/pull/178)
 * Enable use of standard proxy servers (e.g. Squid) [#250] (https://github.com/iipc/openwayback/issue/250)
-* WatchedCDXSource now optionally recurses and filters on filenames. [#219] 
+* WatchedCDXSource now optionally recurses and filters on filenames. [#219]
 (https://github.com/iipc/openwayback/pull/219)
-* Support for Internationalized Domain Name (IDN) [#27] 
+* Support for Internationalized Domain Name (IDN) [#27]
 (https://github.com/iipc/openwayback/pull/27)
 * UI localization. [#46]
 (https://github.com/iipc/openwayback/pull/46)
-      
+
 ### Bug fixes
-* Removed duplicate accessPointPath property in proxy replay section of wayback.xml [#229] 
+* Removed duplicate accessPointPath property in proxy replay section of wayback.xml [#229]
 (https://github.com/iipc/openwayback/issues/229)
 * Failing test: testPadDateStr(org.archive.wayback.util.TimestampTest) [#231]
 (https://github.com/iipc/openwayback/issues/231)
-* Replace current (IA) favicon with one matching OpenWayback logo. [#247] 
+* Replace current (IA) favicon with one matching OpenWayback logo. [#247]
 (https://github.com/iipc/openwayback/issues/247)
 * Fixed ARCRecordingProxy times out. [#116]
 (https://github.com/iipc/openwayback/issues/116)
@@ -51,10 +63,10 @@ Full listing of changes and bug fixes are not available prior to release 1.2.0 a
 
 ## OpenWayback 2.1.0 Release
 ### Features
-* Synchronised with latest changes from the Internet Archive fork. [#195] 
+* Synchronised with latest changes from the Internet Archive fork. [#195]
 (https://github.com/iipc/openwayback/pull/195)
 * URL-decode timestamp segment of replay URL. [#195]
-(https://github.com/iipc/openwayback/pull/195), [internerarchive#23] 
+(https://github.com/iipc/openwayback/pull/195), [internerarchive#23]
 (https://github.com/internetarchive/wayback/issues/23)
 * Revisits can be resolved with excluded capture. [#195]
 (https://github.com/iipc/openwayback/pull/195), [internetarchive#65]
@@ -75,7 +87,7 @@ Full listing of changes and bug fixes are not available prior to release 1.2.0 a
 (https://github.com/internetarchive/wayback/issues/48)
 * Removed CustomUserResourceIndex class, which does not appear to have broad utility. [#195]
 (https://github.com/iipc/openwayback/pull/195)
-* Performance information in response header can now be in JSON format. [#195] 
+* Performance information in response header can now be in JSON format. [#195]
 (https://github.com/iipc/openwayback/pull/195), [internetarchive#69]
 (https://github.com/internetarchive/wayback/issues/69)
 * FastArchivalUrlReplayParseEventHandler no longer rewrite relative URLs for better replay quality. [#195]
@@ -115,7 +127,7 @@ Full listing of changes and bug fixes are not available prior to release 1.2.0 a
 * Initial thread-safety fix for Memento. [#188]
 (https://github.com/iipc/openwayback/issues/180)
 * Fixed xml-markup in Toolbar.jsp which caused probelsm on some sites. [#171] (https://github.com/iipc/openwayback/issues/171), [#60] (https://github.com/iipc/openwayback/issues/60
-* Fixed some @import url's in  &lt;style&gt; section of html are not rewritten. [#131] 
+* Fixed some @import url's in  &lt;style&gt; section of html are not rewritten. [#131]
 (https://github.com/iipc/openwayback/issues/131)
 * Fixed issue [#48] (https://github.com/iipc/openwayback/issues/48) jQuery getting stomped on.
 * Support for loading resources from S3 buckets. [#189]
@@ -125,14 +137,14 @@ Full listing of changes and bug fixes are not available prior to release 1.2.0 a
 
 ## OpenWayback 2.0.0 Release
 ### Features
-* Fixed URL resolution in ServerRelativeArchivalRedirect in non-ROOT context. [#92](https://github.com/iipc/openwayback/issues/92) 
-* Deprecated use of bean name in spring to provide configuration. [#94](https://github.com/iipc/openwayback/issues/94) 
-* Reviewed and updated mailing lists. [#126](https://github.com/iipc/openwayback/issues/126) [#127](https://github.com/iipc/openwayback/issues/127) 
-* Added Java cross-reference and updated site generation with dependencies. [#128](https://github.com/iipc/openwayback/issues/128) [#130](https://github.com/iipc/openwayback/issues/130) 
-* Fixed Javadoc output in Java8. [#136](https://github.com/iipc/openwayback/issues/136) 
-* Updated 'developers' and 'contributors' lists in POM. [#137](https://github.com/iipc/openwayback/issues/137) 
-* Cleaned up the Memento configuration. [#150](https://github.com/iipc/openwayback/issues/150) 
-* Added new logos to project. [#100](https://github.com/iipc/openwayback/issues/100) 
+* Fixed URL resolution in ServerRelativeArchivalRedirect in non-ROOT context. [#92](https://github.com/iipc/openwayback/issues/92)
+* Deprecated use of bean name in spring to provide configuration. [#94](https://github.com/iipc/openwayback/issues/94)
+* Reviewed and updated mailing lists. [#126](https://github.com/iipc/openwayback/issues/126) [#127](https://github.com/iipc/openwayback/issues/127)
+* Added Java cross-reference and updated site generation with dependencies. [#128](https://github.com/iipc/openwayback/issues/128) [#130](https://github.com/iipc/openwayback/issues/130)
+* Fixed Javadoc output in Java8. [#136](https://github.com/iipc/openwayback/issues/136)
+* Updated 'developers' and 'contributors' lists in POM. [#137](https://github.com/iipc/openwayback/issues/137)
+* Cleaned up the Memento configuration. [#150](https://github.com/iipc/openwayback/issues/150)
+* Added new logos to project. [#100](https://github.com/iipc/openwayback/issues/100)
 * Cleaned up default config file. [#144] (https://github.com/iipc/openwayback/pull/144)
 * Updated and improved [documentation] (https://github.com/iipc/openwayback/issues?q=is%3Aissue+is%3Aclosed+label%3Adocumentation).
 * Updated dependency on Webarchive-commons 1.1.4. [#157] (https://github.com/iipc/openwayback/pull/157)
@@ -142,10 +154,10 @@ Full listing of changes and bug fixes are not available prior to release 1.2.0 a
 * Fixed the date locale issue. Creations of java.text.SimpleDateFormat now independent of local setting.  [#157] (https://github.com/iipc/openwayback/pull/157) [#148] (https://github.com/iipc/openwayback/pull/148) [#154] (https://github.com/iipc/openwayback/pull/154)
 * Fixed support for uncompressed ARCs files [#101] (https://github.com/iipc/openwayback/issues/101)
 
-## OpenWayback 2.0.0 BETA 2 Release 
+## OpenWayback 2.0.0 BETA 2 Release
 ### Features
 
-* Added PrefixFieldCollapser and RegexFieldMatcher to CDX server. [#7](https://github.com/iipc/openwayback/issues/7) 
+* Added PrefixFieldCollapser and RegexFieldMatcher to CDX server. [#7](https://github.com/iipc/openwayback/issues/7)
 * Added support for WARC Revisit including URL-Agnostic. [#21]
 (https://github.com/iipc/openwayback/issues/21)
 * Added support for WARC metadata records. [#23]
@@ -155,35 +167,35 @@ Full listing of changes and bug fixes are not available prior to release 1.2.0 a
 * Removed Internet Archive defaults and branding. [#45]
 (https://github.com/iipc/openwayback/issues/45)
 * Integrated JWAT ResorceStore. [#54]
-(https://github.com/iipc/openwayback/issues/54) 
-* Provided an [OpenWayback Sample Overlay](https://github.com/iipc/openwayback-sample-overlay). 
+(https://github.com/iipc/openwayback/issues/54)
+* Provided an [OpenWayback Sample Overlay](https://github.com/iipc/openwayback-sample-overlay).
 * Carried out and documented manual testing. [#80]
-(https://github.com/iipc/openwayback/issues/80) 
-* Updated and improved documentation (as on the [wiki](https://github.com/iipc/openwayback/wiki)). 
-* Renamed artefacts and repositories “webarchive-commons” and updated POMs. [#90] (https://github.com/iipc/openwayback/issues/90) 
+(https://github.com/iipc/openwayback/issues/80)
+* Updated and improved documentation (as on the [wiki](https://github.com/iipc/openwayback/wiki)).
+* Renamed artefacts and repositories “webarchive-commons” and updated POMs. [#90] (https://github.com/iipc/openwayback/issues/90)
 
 ### Bug fixes
 
 * Query string being stripped from Memento queries. [#106]
 (https://github.com/iipc/openwayback/issues/106)
-* Support for uncompressed ARC files. [#101] 
+* Support for uncompressed ARC files. [#101]
 (https://github.com/iipc/openwayback/issues/101)
 
-## OpenWayback 2.0.0 BETA 1 Release 
+## OpenWayback 2.0.0 BETA 1 Release
 ### Features
 * Added livewebPrefix to wayback.xml. [#3]
-(https://github.com/iipc/openwayback/issues/3)  
-* Removed dependencies on Internet Archive’s Maven artefacts, enabling Tarvis CI builds and clean releases. [#10] (https://github.com/iipc/openwayback/issues/10) 
+(https://github.com/iipc/openwayback/issues/3)
+* Removed dependencies on Internet Archive’s Maven artefacts, enabling Tarvis CI builds and clean releases. [#10] (https://github.com/iipc/openwayback/issues/10)
 * Moved critical code for OpenWayback from the heritrix-commons codebase into webarchive-commons. [#4]
 (https://github.com/iipc/openwayback/issues/12 and https://github.com/iipc/webarchive-commons/issues/4)
 
 ### Bug fixes
-* Dependency on heritrix-commons SNAPSHOT release. [#11] (https://github.com/iipc/openwayback/issues/11) 
+* Dependency on heritrix-commons SNAPSHOT release. [#11] (https://github.com/iipc/openwayback/issues/11)
 
-_**The following releases of the Open Source Wayback Machine (OSWM) were made by the Internet Archive. The on-going development of Wayback was handed over to the International Internet Preservation Consortium (IIPC) in October 2013. For more details please see [General overview] (https://github.com/iipc/openwayback/wiki/General-Overview).**_ 
+_**The following releases of the Open Source Wayback Machine (OSWM) were made by the Internet Archive. The on-going development of Wayback was handed over to the International Internet Preservation Consortium (IIPC) in October 2013. For more details please see [General overview] (https://github.com/iipc/openwayback/wiki/General-Overview).**_
 
 ## New Release – 1.8.0
-* Introduced the wayback-cdx-server. 
+* Introduced the wayback-cdx-server.
 
 No further release notes available.
 
@@ -321,7 +333,7 @@ New features with the * mark indicate features that will directly impact customi
 
 * class name and package changes requiring import tag updates. Please see .jsps in new distribution for updated packages.
 * .jsp path changes due to webapp directory tree cleanup. Again, please see the current locations in the new distribution.
-* Java changes within .jsp files due to UIResults refactoring. Previously each type of response page had a unique class used to marshal context information to the .jsp files. These have all been refactored into a single class, **org.archive.wayback.core.UIResults** which has methods to access the appropriate data in each case. Additionally, many convenience methods that were present on the various UI\*Results classes have been removed, since convenience methods are now available on the core classes: **WaybackRequest**, **CaptureSearchResult**, **CaptureSearchResults** and **UrlSearchResult**  
+* Java changes within .jsp files due to UIResults refactoring. Previously each type of response page had a unique class used to marshal context information to the .jsp files. These have all been refactored into a single class, **org.archive.wayback.core.UIResults** which has methods to access the appropriate data in each case. Additionally, many convenience methods that were present on the various UI\*Results classes have been removed, since convenience methods are now available on the core classes: **WaybackRequest**, **CaptureSearchResult**, **CaptureSearchResults** and **UrlSearchResult**
 As an example, the Timestamp class is no longer used in the .jsp files, since all time information uses the Date class for localization. All of the above classes now have methods to directly return Dates.
 
 For specific examples, please see the reference .jsp files included with the new distribution.
