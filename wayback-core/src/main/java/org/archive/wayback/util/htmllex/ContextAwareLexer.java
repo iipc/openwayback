@@ -71,6 +71,8 @@ public class ContextAwareLexer extends NodeUtils {
 		if(node != null) {
 			if(isNonEmptyOpenTagNodeNamed(node, SCRIPT_TAG_NAME)) {
                 TagNode tagNode = (TagNode) node;
+                // If <script> is declared as text/html, do not treat as
+                // JavaScript. See https://github.com/iipc/openwayback/pull/315
                 if (!"text/html"
                         .equalsIgnoreCase(tagNode.getAttribute("type"))) {
                     context.setInJS(true);
