@@ -1,29 +1,29 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
 
-  <parent>
-    <artifactId>openwayback</artifactId>
-    <groupId>org.netpreserve.openwayback</groupId>
-    <version>3.0.0-SNAPSHOT</version>
-  </parent>
+    <parent>
+        <artifactId>openwayback</artifactId>
+        <groupId>org.netpreserve.openwayback</groupId>
+        <version>3.0.0-SNAPSHOT</version>
+    </parent>
 
-  <artifactId>openwayback-cdx-server-webapp</artifactId>
-  <packaging>war</packaging>
-  <name>Wayback CDX Server Web Application</name>
+    <artifactId>openwayback-cdx-server-webapp</artifactId>
+    <packaging>war</packaging>
+    <name>Wayback CDX Server Web Application</name>
 
-  <build>
-      <finalName>openwayback-cdx-server-${project.version}</finalName>
-  </build>
+    <build>
+        <finalName>openwayback-cdx-server-${project.version}</finalName>
+    </build>
 
-  <properties>
-    <wayback.port>9000</wayback.port>
-  </properties>
+    <properties>
+        <wayback.port>9000</wayback.port>
+    </properties>
 
-  <dependencies>
-      <dependency>
-          <groupId>${project.groupId}</groupId>
-          <artifactId>openwayback-cdx-server</artifactId>
-      </dependency>
-  </dependencies>
+    <dependencies>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>openwayback-cdx-server</artifactId>
+        </dependency>
+    </dependencies>
 
 </project>
