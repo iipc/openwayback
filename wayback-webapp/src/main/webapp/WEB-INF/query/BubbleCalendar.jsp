@@ -300,7 +300,8 @@ $().ready(function(){
               axis: "x",
               theme:"rounded-dots-dark",
               autoExpandScrollbar: true,
-              scrollButtons:{ enable: true }
+              scrollButtons:{ enable: true },
+              keyboard:{ enable: true }
           });
       });
   })(jQuery);
