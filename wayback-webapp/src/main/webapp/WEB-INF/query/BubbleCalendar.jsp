@@ -301,7 +301,8 @@ $().ready(function(){
               theme:"rounded-dots-dark",
               autoExpandScrollbar: true,
               scrollButtons:{ enable: true },
-              keyboard:{ enable: true }
+              keyboard:{ enable: true },
+              documentTouchScroll: true
           });
       });
   })(jQuery);
