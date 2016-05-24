@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.netpreserve</groupId>
         <artifactId>iipc-parent</artifactId>
-        <version>1.0</version>
+        <version>1.1</version>
     </parent>
 
     <groupId>org.netpreserve.openwayback</groupId>
@@ -34,10 +34,10 @@
     </profiles>
 
     <properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
         <website.url>http://github.com/iipc/openwayback</website.url>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <org.springframework.version>3.0.6.RELEASE</org.springframework.version>
-        <teamlist.showAvatarImages>false</teamlist.showAvatarImages>
         <github.name>openwayback</github.name>
     </properties>
 
@@ -52,6 +52,10 @@
         <system>travis-ci</system>
         <url>https://travis-ci.org/iipc/openwayback</url>
     </ciManagement>
+
+    <scm>
+        <tag>HEAD</tag>
+    </scm>
 
     <mailingLists>
         <mailingList>
@@ -138,11 +142,6 @@
                     <groupId>org.mortbay.jetty</groupId>
                     <artifactId>maven-jetty-plugin</artifactId>
                     <version>6.1.22</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-jxr-plugin</artifactId>
-                    <version>2.5</version>
                 </plugin>
             </plugins>
         </pluginManagement>
