@@ -19,15 +19,17 @@
  */
 package org.archive.wayback.replay;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 
 import org.archive.wayback.ResultURIConverter;
-import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.CaptureSearchResult;
+import org.archive.wayback.core.Resource;
 import org.archive.wayback.exception.BadContentException;
 
 /**
@@ -46,7 +48,13 @@ public class HttpHeaderOperation {
 		"chunked".toUpperCase();
 	public final static String HTTP_CONTENT_ENCODING = "Content-Encoding";
 
-	
+	public static final String HTTP_RANGE_HEADER = "Range";
+	public static final String HTTP_RANGE_HEADER_UP = HTTP_RANGE_HEADER
+		.toUpperCase();
+	public static final String HTTP_CONTENT_RANGE_HEADER = "Content-Range";
+	public static final String HTTP_CONTENT_RANGE_HEADER_UP = HTTP_CONTENT_RANGE_HEADER
+		.toUpperCase();
+
 	/**
 	 * @param resource
 	 * @param httpResponse
@@ -148,4 +156,147 @@ public class HttpHeaderOperation {
 		return false;
 	}
 
+	/**
+	 * Replace header field {@code name} value with {@code value}, or
+	 * add it if {@code headers} does not have {@code name}.
+	 * @param headers header fields
+	 * @param name header field name
+	 * @param value new value for the header field
+	 */
+	public static void replaceHeader(Map<String, String> headers, String name, String value) {
+		removeHeader(headers, name);
+		headers.put(name, value);
+	}
+
+	/**
+	 * Get {@code Range} header field, and return parsed ranges.
+	 * @param headers header fields.
+	 * @return array of long[2] or {@code null} if {@code Range} header
+	 * field is not present, or invalid.
+	 */
+	public static long[][] getRange(Map<String, String> headers) {
+		String rangeValue = getHeaderValue(headers, HTTP_RANGE_HEADER_UP);
+		if (rangeValue == null) return null;
+		rangeValue = rangeValue.trim();
+		return parseRanges(rangeValue);
+	}
+
+	/**
+	 * Parse {@code Range} header field value.
+	 * Only {@code bytes} unit is supported.
+	 * @param rangeValue {@code Range} header field value.
+	 * @return an array of long[2], or {@code null} if invalid.
+	 */
+	public static long[][] parseRanges(String rangeValue) {
+		if (!rangeValue.startsWith("bytes=")) return null;
+		int s = "bytes=".length();
+		int pcomma = rangeValue.indexOf(',', s);
+		if (pcomma < 0) {
+			long[] range = parseRange(rangeValue.substring(s));
+			return range != null ? new long[][] { range } : null;
+		}
+		int e = rangeValue.length();
+		List<long[]> ranges = new ArrayList<long[]>();
+		while (true) {
+			long[] range = parseRange(rangeValue.substring(s, pcomma));
+			// TODO: too strict? fails on double comma.
+			if (range == null) return null;
+			ranges.add(range);
+			if ((s = pcomma + 1) >= e) break;
+			pcomma = rangeValue.indexOf(',', s);
+			if (pcomma < 0) pcomma = e;
+		}
+		return ranges.toArray(new long[ranges.size()][]);
+	}
+
+	/**
+	 * Parse single byte-range-spec.
+	 * For suffix-byte-range-spec (-N), return [-N, -1].
+	 * For byte-range-spec without last-byte-pos (M-), return [M, -1].
+	 * For full-range-spec (M-N), return [M, N + 1].
+	 * @param rangeValue byte-range-spec
+	 * @return long[2], or {@code null} if invalid
+	 */
+	public static long[] parseRange(String rangeValue) {
+		int phyphen = rangeValue.indexOf('-');
+		if (phyphen == -1) {
+			// this is a syntax error.
+			return null;
+		}
+		try {
+			if (phyphen == 0) {
+				// -N (suffix-byte-range-spec)
+				long end = Long.parseLong(rangeValue.substring(1));
+				if (end <= 0) return null;
+				return new long[] { -end, -1 };
+			}
+			if (phyphen == rangeValue.length() - 1) {
+				// M- (byte-range-spec without last-byte-pos)
+				long start = Long.parseLong(rangeValue.substring(0, phyphen));
+				return new long[] { start, -1 };
+			}
+			// M-N (byte-range-spec)
+			long start = Long.parseLong(rangeValue.substring(0, phyphen));
+			long end = Long.parseLong(rangeValue.substring(phyphen + 1));
+			if (start > end) return null;
+			return new long[] { start, end + 1 };
+		} catch (NumberFormatException ex) {
+			return null;
+		}
+	}
+
+	/**
+	 * Return {@code Content-Range} response header field value.
+	 * @param headers response header fields.
+	 * @return Three element array with <em>first-byte-pos</em>, <em>last-byte-pos + 1</em>
+	 * and <em>instance-length</em>, or {@code null} if {@code value} is syntactically invalid.
+	 */
+	public static long[] getContentRange(Map<String, String> headers) {
+		String value = getHeaderValue(headers, HTTP_CONTENT_RANGE_HEADER_UP);
+		if (value == null) return null;
+		return parseContentRange(value.trim());
+	}
+
+	/**
+	 * Parse {@code value} as <em>byte-content-range-spec</em>.
+	 * <em>byte-range-resp-spec</em> is parsed with {@link #parseRange(String)}.
+	 * If <em>byte-range-resp-spec</em> is {@code *}, both <em>first-byte-pos</em> and
+	 * <em>last-byte-pos</em> will be {@code -1}.
+	 * @param value {@code Content-Range} header field value.
+	 * @return Three element array with <em>first-byte-pos</em>, <em>last-byte-pos + 1</em>
+	 * and <em>instance-length</em>, or {@code null} if {@code value} is syntactically invalid.
+	 * @see #parseRange
+	 */
+	public static long[] parseContentRange(String value) {
+		if (!value.startsWith("bytes ")) return null;
+		int s = "bytes ".length();
+		while (s < value.length() && value.charAt(s) == ' ')
+			s++;
+		int pslash = value.indexOf('/', s);
+		if (pslash < 0) return null;
+
+		final String rangeSpec = value.substring(s, pslash).trim();
+		long start, stop;
+		if (rangeSpec.equals("*"))
+			start = stop = -1;
+		else {
+			long[] range = parseRange(rangeSpec);
+			if (range == null) return null;
+			if (range[0] < 0 || range[1] < 0) return null;
+			start = range[0];
+			stop = range[1];
+		}
+		final String instanceLength = value.substring(pslash + 1).trim();
+		long length;
+		if (instanceLength.equals("*"))
+			length = -1;
+		else {
+			try {
+				length = Long.parseLong(instanceLength);
+			} catch (NumberFormatException ex) {
+				return null;
+			}
+		}
+		return new long[] { start, stop, length };
+	}
 }

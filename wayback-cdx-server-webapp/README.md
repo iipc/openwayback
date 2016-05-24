@@ -60,7 +60,7 @@ The server responds to GET queries and returns either the plain text CDX data, o
 
 The CDX server is deployed as part of the Wayback Machine at https://web.archive.org and the examples below reference this deployment.
 
-However, the CDX server software is freely available with the rest of the open-source Wayback Machine software in this repository.
+However, the CDX server software is freely available with the rest of the open-source Wayback software in this repository.
 
 Further documentation will focus on configuration and deployment in other environments.
 
@@ -169,7 +169,7 @@ For example: http://web.archive.org/cdx/search/cdx?url=archive.org&output=json&l
 
 A new form of filtering is the option to 'collapse' results based on a field, or a substring of a field.
 Collapsing is done on adjacent cdx lines, causing all matching captures after the first one to be filtered out.
-This is useful for simplifying queries whose resultsare 'too dense' or when looking for unique captures.
+This is useful for simplifying queries whose results are 'too dense' or when looking for unique captures.
 
 To use collapsing, add one or more params of the form **collapse=field** or **collapse=field:N** where N is the first N characters of *field* to test.
 
