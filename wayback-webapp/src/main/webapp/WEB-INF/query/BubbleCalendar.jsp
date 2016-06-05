@@ -294,18 +294,30 @@ $().ready(function(){
 </div>
   
 <script>
-  (function($){
-      $(window).load(function(){
-          $("#wbChart").mCustomScrollbar({
-              axis: "x",
-              theme:"rounded-dots-dark",
-              autoExpandScrollbar: true,
-              scrollButtons:{ enable: true },
-              keyboard:{ enable: true },
-              documentTouchScroll: true
-          });
-      });
-  })(jQuery);
+  
+    var x = sessionStorage.getItem( "scrollbarX" );
+    
+    (function($){
+        $(window).load(function(){
+            $("#wbChart").mCustomScrollbar({
+                axis: "x",
+                theme:"rounded-dots-dark",
+                autoExpandScrollbar: true,
+                scrollButtons:{ enable: true },
+                keyboard:{ enable: true },
+                documentTouchScroll: true,
+                setLeft: x,
+
+                callbacks:{
+                    whileScrolling:function()
+                    {
+                        leftAmount = $( "#mCSB_1_container" ).css( "left" );
+                        sessionStorage.setItem( "scrollbarX", leftAmount );
+                    }
+                }
+            });
+        });
+    })(jQuery);
 </script>  
   
 <div class="clearfix"></div>
