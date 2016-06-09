@@ -218,7 +218,7 @@ public class SimpleRedisRobotsCacheTest extends TestCase {
 		//RobotsTxtResource resource = new RobotsTxtResource("/* robots.txt */");
 		//assert resource.getStatusCode() == 200;
 		EasyMock.expect(liveweb.getCachedResource(url, 0, false)).andThrow(
-			new LiveDocumentNotAvailableException("Invalid Status: " + STATUSCODE));
+			new LiveDocumentNotAvailableException(url, STATUSCODE));
 		Capture<RedisValue> redisValueCapture = new Capture<RedisRobotsLogic.RedisValue>();
 		redisRobotsLogic.updateValue(EasyMock.eq(url.toString()),
 			EasyMock.capture(redisValueCapture),

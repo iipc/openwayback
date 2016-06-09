@@ -40,7 +40,6 @@ public class WaybackException extends Exception {
 	protected static final String KEY_PREFIX = "Exception.";
 	protected static final String KEY_TITLE_SUFFIX = ".title";
 	protected static final String KEY_MESSAGE_SUFFIX = ".message";
-	private String message = "";
 	private String title = "Wayback Exception";
 	private String details = "";
 	protected String id = GENERIC_ID;
@@ -54,7 +53,6 @@ public class WaybackException extends Exception {
 	 */
 	public WaybackException(String message) {
 		super(message);
-		this.message = message;
 	}
 
 	/**
@@ -65,7 +63,6 @@ public class WaybackException extends Exception {
 	 */
 	public WaybackException(String message, String title) {
 		super(message);
-		this.message = message;
 		this.title = title;
 	}
 
@@ -78,7 +75,6 @@ public class WaybackException extends Exception {
 	 */
 	public WaybackException(String message, String title, String details) {
 		super(message);
-		this.message = message;
 		this.title = title;
 		this.details = details;
 	}
@@ -88,13 +84,6 @@ public class WaybackException extends Exception {
 	 */
 	public String getTitle() {
 		return title;
-	}
-
-	/**
-	 * @return Returns the message.
-	 */
-	public String getMessage() {
-		return message;
 	}
 
 	/**

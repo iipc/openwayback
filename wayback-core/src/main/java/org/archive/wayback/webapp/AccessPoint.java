@@ -22,6 +22,7 @@ package org.archive.wayback.webapp;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.SocketException;
 import java.net.URLEncoder;
 import java.util.HashSet;
 import java.util.List;
@@ -363,7 +364,14 @@ public class AccessPoint extends AbstractRequestHandler implements
 			handled = true;
 
 		} catch (Exception other) {
-			logError(httpResponse, errorMsgHeader, other, wbRequest);
+			if (other instanceof IOException && other.getCause() instanceof SocketException) {
+				// very likely be a client abort - don't dump stack trace.
+				// (cannot do instanceof ClientAbortException, as the exception
+				// is Tomcat specific. It is a subclass of IOException).
+				LOGGER.info(other.getMessage());
+			} else {
+				logError(httpResponse, errorMsgHeader, other, wbRequest);
+			}
 		} finally {
 			//Slightly hacky, but ensures that all block loaders are closed
 			ZipNumBlockLoader.closeAllReaders();

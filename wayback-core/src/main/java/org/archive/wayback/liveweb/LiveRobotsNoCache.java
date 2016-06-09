@@ -46,14 +46,14 @@ public class LiveRobotsNoCache extends RemoteLiveWebCache {
 			int responseStatus = http.executeMethod(method);
 			
 			if (responseStatus >= 400 || responseStatus < 200) {
-				throw new LiveDocumentNotAvailableException("Invalid Status: " + responseStatus);
+				throw new LiveDocumentNotAvailableException(url, responseStatus);
 			}		
 			
 			in = ByteStreams.limit(method.getResponseBodyAsStream(), maxRobotsSize);
 			return new RobotsTxtResource(IOUtils.toString(in));
 			
 		} catch (IOException io) {
-			throw new LiveDocumentNotAvailableException(io.toString());
+			throw new LiveDocumentNotAvailableException(url, io);
 		} finally {
 			if (in != null) {
 				in.close();

@@ -87,8 +87,7 @@ public class RemoteLiveWebCache implements LiveWebCache {
 			method = new GetMethod(urlString);
 		} catch(IllegalArgumentException e) {
 			LOGGER.warning("Bad URL for live web fetch:" + urlString);
-			throw new LiveDocumentNotAvailableException("Url:" + urlString +
-					"does not look like an URL?");
+			throw new LiveDocumentNotAvailableException(url, e);
 		}
 		boolean success = false;
 	    try {
@@ -102,7 +101,7 @@ public class RemoteLiveWebCache implements LiveWebCache {
 	    		ArcResource ar = (ArcResource) 
 	    			ResourceFactory.ARCArchiveRecordToResource(r, null);
 	    		if(ar.getStatusCode() == 502) {
-	    			throw new LiveDocumentNotAvailableException(urlString);
+	    			throw new LiveDocumentNotAvailableException(url, ar.getStatusCode());
 	    		} else if(ar.getStatusCode() == 504) {
 	    			throw new LiveWebTimeoutException("Timeout:" + urlString);
 	    		}
@@ -114,7 +113,7 @@ public class RemoteLiveWebCache implements LiveWebCache {
 	    	}
 
 	    } catch (ResourceNotAvailableException e) {
-    		throw new LiveDocumentNotAvailableException(urlString);
+    		throw new LiveDocumentNotAvailableException(urlString, e);
 
 	    } catch (NoHttpResponseException e) {
 

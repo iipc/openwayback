@@ -32,8 +32,7 @@ public class URLtoARCCacherTest extends TestCase {
 		try {
 			method = new GetMethod(urlString);
 		} catch(IllegalArgumentException e) {
-			throw new LiveDocumentNotAvailableException("Url:" + urlString +
-					"does not look like an URL?");
+			throw new LiveDocumentNotAvailableException(urlString, e);
 		}
 	    try {
 	    	int status = http.executeMethod(method);

@@ -234,7 +234,7 @@ public class RobotExclusionFilter extends ExclusionFilter {
 
 					if(resource.getStatusCode() != 200) {
 						LOGGER.info("ROBOT: NotAvailable("+urlString+")");
-						throw new LiveDocumentNotAvailableException(urlString);
+						throw new LiveDocumentNotAvailableException(urlString, resource.getStatusCode());
 					}
 					tmpRules.parse(resource);					
 					rulesCache.put(firstUrlString,tmpRules);

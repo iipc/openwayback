@@ -114,16 +114,16 @@ public class LiveWebAccessPoint extends LiveWebRequestHandler {
 					httpResponse.sendRedirect(inner.getReplayPrefix() + urlString);
 					return true;
 				} catch (ResourceIndexNotAvailableException e) {
-					throw new LiveDocumentNotAvailableException(e.toString());
+					throw new LiveDocumentNotAvailableException(urlString, e);
 				} catch (ResourceNotInArchiveException e) {
 					//Continue
 				} catch (BadQueryException e) {
-					throw new LiveDocumentNotAvailableException(e.toString());
+					throw new LiveDocumentNotAvailableException(urlString, e);
 				} catch (AccessControlException e) {
 					//Continue
 					//throw new LiveDocumentNotAvailableException(e.toString());
 				} catch (ConfigurationException e) {
-					throw new LiveDocumentNotAvailableException(e.toString());
+					throw new LiveDocumentNotAvailableException(urlString, e);
 				}
 			}
 			
@@ -142,17 +142,13 @@ public class LiveWebAccessPoint extends LiveWebRequestHandler {
 			
 			r = this.getLiveWebResource(result, urlString);
 			
-			if (r != null) {				
-				CaptureSearchResults results = new CaptureSearchResults();
-				results.addSearchResult(result);
-			
-				wbRequest.setReplayTimestamp(result.getCaptureTimestamp());
-					
-				inner.getReplay().getRenderer(wbRequest, result, r).renderResource(httpRequest, httpResponse, wbRequest, result, r, 
-						inner.getUriConverter(), results);	
-			} else {
-				throw new LiveDocumentNotAvailableException(urlString);
-			}
+			CaptureSearchResults results = new CaptureSearchResults();
+			results.addSearchResult(result);
+
+			wbRequest.setReplayTimestamp(result.getCaptureTimestamp());
+
+			inner.getReplay().getRenderer(wbRequest, result, r).renderResource(httpRequest, httpResponse, wbRequest, result, r, 
+				inner.getUriConverter(), results);	
 
 		} catch(WaybackException e) {
 			inner.logError(httpResponse, LIVEWEB_RUNTIME_ERROR_HEADER, e, wbRequest);
@@ -193,11 +189,11 @@ public class LiveWebAccessPoint extends LiveWebRequestHandler {
 		}
 		
 		if ((skipHost != null) && skipHost.matcher(url.getHost()).find()) {
-			return null;
+			throw new LiveDocumentNotAvailableException(url, "host is excluded");
 		}
 		
 		if ((dnsCheckTimeout > 0) && !checkUrlDns(url, dnsCheckTimeout)) {
-			return null;
+			throw new LiveDocumentNotAvailableException(url, "failed to resolve host");
 		}
 
 		result.setOriginalUrl(urlString);
@@ -243,7 +239,7 @@ public class LiveWebAccessPoint extends LiveWebRequestHandler {
 			PerfStats.timeEnd(PerfStat.LiveWeb);
 		}
 
-		ARCRecord ar = (ARCRecord) r.getArcRecord();
+		ARCRecord ar = (ARCRecord)r.getArcRecord();
 		int status = ar.getStatusCode();
 		if ((status == 200) || ((status >= 300) && (status < 400))) {
 			result.setCaptureTimestamp(ar.getMetaData().getDate());
@@ -251,7 +247,7 @@ public class LiveWebAccessPoint extends LiveWebRequestHandler {
 			return r;
 		}
 		
-		return null;
+		throw new LiveDocumentNotAvailableException(url, status);
 	}
 	
 	@Override
