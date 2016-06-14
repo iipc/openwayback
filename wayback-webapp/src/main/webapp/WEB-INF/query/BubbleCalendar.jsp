@@ -319,7 +319,7 @@ $().ready(function(){
         });
     })(jQuery);
 </script>  
-  
+
 <div class="clearfix"></div>
 
 <div id="wbCalendar">
@@ -513,4 +513,16 @@ for(int moy = 0; moy < 12; moy++) {
   </div>
 </div>
   
+<script>
+    var body = document.body;
+    var html = document.documentElement;
+    body.scrollTop = sessionStorage.getItem( "top" );
+
+    window.onscroll = function() { setTop() };
+
+    function setTop() {
+        sessionStorage.setItem( "top", body.scrollTop );
+    }
+</script>
+    
 <jsp:include page="/WEB-INF/template/UI-footer.jsp" flush="true" />
