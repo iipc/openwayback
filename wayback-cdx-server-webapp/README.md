@@ -60,7 +60,7 @@ The server responds to GET queries and returns either the plain text CDX data, o
 
 The CDX server is deployed as part of the Wayback Machine at https://web.archive.org and the examples below reference this deployment.
 
-However, the CDX server software is freely available with the rest of the open-source Wayback Machine software in this repository.
+However, the CDX server software is freely available with the rest of the open-source Wayback software in this repository.
 
 Further documentation will focus on configuration and deployment in other environments.
 
