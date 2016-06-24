@@ -115,8 +115,12 @@ public class LiveDocumentNotAvailableException extends WaybackException {
 
 	/**
 	 * Return the original HTTP status code that resulted in this
-	 * exception.
-	 * @return HTTP status code, or 0 if not applicable.
+	 * exception. Note that this returns -1 if this exception is
+	 * initialized through constructor without code argument. Use
+	 * <code>cause</code> for failure details.
+	 * Value zero is reserved for compatibility with old LiveWebCache
+	 * implementations. Don't use it in the new code.
+	 * @return HTTP status code, or -1 if not applicable.
 	 */
 	public int getOriginalStatuscode() {
 		return statuscode;

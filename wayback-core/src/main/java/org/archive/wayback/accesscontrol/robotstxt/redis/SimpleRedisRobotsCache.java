@@ -3,6 +3,7 @@ package org.archive.wayback.accesscontrol.robotstxt.redis;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -37,6 +38,28 @@ public class SimpleRedisRobotsCache implements LiveWebCache {
 	protected boolean gzipRobots = false;
 	
 	final static int STATUS_OK = 200;
+	/**
+	 * RobotsResult status code representing "unknown host" (aka NXDOMAIN)
+	 * failure. While disposition is the same as HTTP 404 response, we
+	 * assigned a distinct value so that NXDOMAIN can be distinguished from
+	 * 404. (TODO: should have used a negative value? positive 4xx value is
+	 * convenient because exclusion filter treats all 4xx as "no robots.txt")
+	 * @see org.archive.wayback.accesscontrol.robotstxt.RobotExclusionFilter
+	 */
+	final static int STATUS_NXDOMAIN = 498;
+	/**
+	 * RobotsResult status code representing IOException while fetching robots.txt.
+	 * Disposition of this situation is policy-dependent, but choice of 5xx value
+	 * reflects commonly implemented behavior of search engines -- treat it
+	 * as BLOCK-ALL until it resolves.
+	 */
+	final static int STATUS_IOERROR = 599;
+	/**
+	 * RobotsResult status code representing an other types of
+	 * robots.txt fetch failure.
+	 * Note this value is indistinguishable from 502 HTTP response
+	 * from responsive target server. May want to revise this.
+	 */
 	final static int STATUS_ERROR = 502;
 	/**
 	 * old LiveWebCache did not communicate the specific statuscode
@@ -284,10 +307,34 @@ public class SimpleRedisRobotsCache implements LiveWebCache {
 				}
 			}
 		} catch (LiveDocumentNotAvailableException ex) {
+			// TODO: stack trace would be too much.
+			LOGGER.log(Level.INFO, "Failed to fetch " + urlURL, ex);
+			// InstaLiveWeb.getCachedResource() throws LDNAE when robots.txt resulted
+			// in either non-2xx responses or IOException from HTTP request (unknown host,
+			// connection refused/timeout, socket timeout/closed etc.) We need to translate
+			// it into different status codes. Better approach may be storing exception in
+			// RobotsResult, but RobotsResult cannot be passed to exclusion filters in
+			// current Wayback.
 			status = ex.getOriginalStatuscode();
-			// leave status == 0 as it is - for backward compatibility.
-			if (status == 0)
+			if (status == 0) {
+				// status == 0 is from old version of InstaLiveWeb. map it to
+				// a special status code for it.
 				status = STATUS_OLD_ERROR;
+			} else if (status > 0) {
+				// HTTP failure response - use status as is in RobotsResult
+			} else {
+				Throwable th = ex.getCause();
+				if (th instanceof UnknownHostException) {
+					// Host no longer exists. In robots.txt exclusion, disposition is
+					// different from other type of fetch errors. Use a special status
+					// code representing this situation.
+					status = STATUS_NXDOMAIN;
+				} else if (th instanceof IOException) {
+					status = STATUS_IOERROR;
+				} else {
+					status = STATUS_ERROR;
+				}
+			}
 		} catch (Exception e) {
 			LOGGER.log(Level.INFO, "Liveweb fetch failed for " + urlURL, e);
 			status = STATUS_ERROR;
