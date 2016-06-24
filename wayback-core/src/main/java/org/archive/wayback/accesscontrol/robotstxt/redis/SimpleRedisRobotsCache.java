@@ -307,8 +307,6 @@ public class SimpleRedisRobotsCache implements LiveWebCache {
 				}
 			}
 		} catch (LiveDocumentNotAvailableException ex) {
-			// TODO: stack trace would be too much.
-			LOGGER.log(Level.INFO, "Failed to fetch " + urlURL, ex);
 			// InstaLiveWeb.getCachedResource() throws LDNAE when robots.txt resulted
 			// in either non-2xx responses or IOException from HTTP request (unknown host,
 			// connection refused/timeout, socket timeout/closed etc.) We need to translate
@@ -319,11 +317,18 @@ public class SimpleRedisRobotsCache implements LiveWebCache {
 			if (status == 0) {
 				// status == 0 is from old version of InstaLiveWeb. map it to
 				// a special status code for it.
+				LOGGER.log(Level.WARNING, "Failed to fetch (old status value 0) " + urlURL, ex);
 				status = STATUS_OLD_ERROR;
 			} else if (status > 0) {
 				// HTTP failure response - use status as is in RobotsResult
+				LOGGER.log(Level.INFO, "Failed to fetch " + urlURL + ": " + ex);
 			} else {
 				Throwable th = ex.getCause();
+				if (th != null) {
+					LOGGER.info("Failed to fetch " + urlURL + ": " + th);
+				} else {
+					LOGGER.log(Level.WARNING, "Failed to fetch (cause unavailable) " + urlURL, ex);
+				}
 				if (th instanceof UnknownHostException) {
 					// Host no longer exists. In robots.txt exclusion, disposition is
 					// different from other type of fetch errors. Use a special status
