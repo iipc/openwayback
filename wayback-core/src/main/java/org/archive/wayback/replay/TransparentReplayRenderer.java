@@ -22,6 +22,7 @@ package org.archive.wayback.replay;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -45,6 +46,9 @@ import org.archive.wayback.replay.html.ReplayParseContext;
  * @version $Date$, $Revision$
  */
 public class TransparentReplayRenderer implements ReplayRenderer {
+	private static final Logger LOGGER = Logger
+		.getLogger(TransparentReplayRenderer.class.getName());
+
 	private HttpHeaderProcessor httpHeaderProcessor;
 	
 	// TODO: Figure out best way to generalize this, but probably good default
@@ -111,9 +115,14 @@ public class TransparentReplayRenderer implements ReplayRenderer {
 		OutputStream os = httpResponse.getOutputStream();
 		byte[] buffer = new byte[BUFFER_SIZE];
 		long total = 0;
-		for (int r = -1; (r = payloadResource.read(buffer, 0, BUFFER_SIZE)) != -1;) {
-			os.write(buffer, 0, r);
-			total += r;
+		try {
+			for (int r = -1; (r = payloadResource.read(buffer, 0, BUFFER_SIZE)) != -1;) {
+				os.write(buffer, 0, r);
+				total += r;
+			}
+		} catch (IOException ex) {
+			// probably client has closed connection
+			LOGGER.info("error writing response: " + ex);
 		}
 		if(total == 0) {
 			if(headers.size() == 0) {

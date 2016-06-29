@@ -22,6 +22,7 @@ package org.archive.wayback.archivalurl;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -35,7 +36,7 @@ import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.UIResults;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.WaybackException;
-import org.archive.wayback.proxy.ProxyHttpsResultURIConverter;
+import org.archive.wayback.proxy.ProxyHttpsReplayURIConverter;
 import org.archive.wayback.replay.HttpHeaderOperation;
 import org.archive.wayback.replay.HttpHeaderProcessor;
 import org.archive.wayback.replay.JSPExecutor;
@@ -45,7 +46,6 @@ import org.archive.wayback.replay.TextReplayRenderer;
 import org.archive.wayback.replay.charset.CharsetDetector;
 import org.archive.wayback.replay.charset.StandardCharsetDetector;
 import org.archive.wayback.replay.html.ContextResultURIConverterFactory;
-import org.archive.wayback.replay.html.IdentityResultURIConverterFactory;
 import org.archive.wayback.replay.html.ReplayParseContext;
 import org.archive.wayback.util.htmllex.ContextAwareLexer;
 import org.archive.wayback.util.htmllex.ParseEventHandler;
@@ -63,6 +63,9 @@ import org.htmlparser.util.ParserException;
  *
  */
 public class ArchivalUrlSAXRewriteReplayRenderer implements ReplayRenderer {
+	private static final Logger LOGGER =
+			Logger.getLogger(ArchivalUrlSAXRewriteReplayRenderer.class.getName());
+
 	private ParseEventHandler delegator = null;
 	private HttpHeaderProcessor httpHeaderProcessor;
 	private CharsetDetector charsetDetector = new StandardCharsetDetector();
@@ -220,7 +223,12 @@ public class ArchivalUrlSAXRewriteReplayRenderer implements ReplayRenderer {
 		// who knows what that is, or what that will do to the page..
 		// let's try explicitly setting it to what we used:
 		httpResponse.setCharacterEncoding(OUTPUT_CHARSET);
-		httpResponse.getOutputStream().write(utf8Bytes);
+		try {
+			httpResponse.getOutputStream().write(utf8Bytes);
+		} catch (IOException ex) {
+			// probably client has closed connection
+			LOGGER.info("error writing response: " + ex);
+		}
 	}
 
 	// Cannot get rid of this method for backward-compatibility. There's at least
