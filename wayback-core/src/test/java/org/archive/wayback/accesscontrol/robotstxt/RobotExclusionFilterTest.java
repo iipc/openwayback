@@ -136,8 +136,11 @@ public class RobotExclusionFilterTest extends TestCase {
 
 		RobotRules rules = cut.getRules(result);
 
-		// null means full-disallow.
-		assertNull(rules);
+//		// null means full-disallow.
+//		assertNull(rules);
+		// now 5xx are treated as "no robots.txt"
+		assertNotNull(rules);
+		assertTrue("rule is empty", rules.getUserAgentsFound().isEmpty());
 
 		EasyMock.verify(cache);
 	}

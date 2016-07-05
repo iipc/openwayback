@@ -253,6 +253,11 @@ public class RobotExclusionFilter extends ExclusionFilter {
 					if (status >= 400 && status < 500) {
 						LOGGER.fine("ROBOT: status=" + status + " = no robots.txt: " + urlString);
 						rulesCache.put(firstUrlString, rules = emptyRules);
+					} else if (status >= 500) {
+						// now we treat 5xx HTTP response and IO error (599)
+						// as allow-all.
+						LOGGER.fine("ROBOT: status=" + status + " = no robots.txt: " + urlString);
+						rulesCache.put(firstUrlString, rules=emptyRules);
 					} else if (status > 0) {
 						// other HTTP failures are taken as "full disallow".
 						LOGGER.fine("ROBOT: stauts=" + status + " = full disallow: " + urlString);
