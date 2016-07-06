@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -69,6 +70,9 @@ import org.archive.wayback.replay.html.ReplayParseContext;
  * @author brad
  */
 public abstract class TextReplayRenderer implements ReplayRenderer {
+
+	private static final Logger LOGGER = Logger
+			.getLogger(TextReplayRenderer.class.getName());
 
 	public static String GUESSED_CHARSET_HEADER = "X-Archive-Guessed-Charset";
 	
@@ -165,7 +169,13 @@ public abstract class TextReplayRenderer implements ReplayRenderer {
         if (overrideContentMimeType != null && !overrideContentMimeType.isEmpty()) {
             httpResponse.setContentType(overrideContentMimeType);
         }
-		page.writeToOutputStream(httpResponse.getOutputStream());
+        try {
+        	page.writeToOutputStream(httpResponse.getOutputStream());
+        } catch (IOException ex) {
+        	// probably client has closed connection - swallow it
+        	// so that it does not cause stack trace up somewhere.
+        	LOGGER.info("error writing response: " + ex);
+        }
 	}
 
 	/**
