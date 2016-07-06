@@ -34,7 +34,7 @@ public class LiveDocumentNotAvailableException extends WaybackException {
 
 	private static final long serialVersionUID = 1L;
 	protected static final String ID = "liveDocumentNotAvailable";
-	protected static final String defaultMessage = "Live document unavailable";
+	protected static final String DEFAULT_MESSAGE = "live document unavailable";
 
 	private String url;
 	private int statuscode = -1;
@@ -54,7 +54,7 @@ public class LiveDocumentNotAvailableException extends WaybackException {
 	}
 
 	public LiveDocumentNotAvailableException(String url, Throwable cause) {
-		this(url, "Live document unavailable", cause);
+		this(url, DEFAULT_MESSAGE, cause);
 	}
 	
 	/**
@@ -63,7 +63,7 @@ public class LiveDocumentNotAvailableException extends WaybackException {
 	 * @param code HTTP status code returned by target server
 	 */
 	public LiveDocumentNotAvailableException(String url, int code) {
-		this(url, "Live document unavailable (HTTP " + code + " returned", null);
+		this(url, DEFAULT_MESSAGE, null);
 		this.statuscode = code;
 	}
 
@@ -91,7 +91,7 @@ public class LiveDocumentNotAvailableException extends WaybackException {
 	 * @param cause an exception causing this error.
 	 */
 	public LiveDocumentNotAvailableException(URL url, Throwable cause) {
-		this(url.toString(), "Live document unavailable", cause);
+		this(url.toString(), cause);
 	}
 	
 	/**
@@ -102,7 +102,7 @@ public class LiveDocumentNotAvailableException extends WaybackException {
 	 * @deprecated 2016-06-09 use constructor with {@code cause} or {@code message}
 	 */
 	public LiveDocumentNotAvailableException(String url) {
-		super("The URL " + url + " is not available", defaultMessage);
+		super("The URL " + url + " is not available", DEFAULT_MESSAGE);
 		id = ID;
 	}
 
@@ -131,6 +131,18 @@ public class LiveDocumentNotAvailableException extends WaybackException {
 	 * @return details message
 	 */
 	public String getMessage() {
-		return (url != null ? url : "<unspecified url>") + ": " + super.getMessage();
+		StringBuilder sb = new StringBuilder();
+		sb.append(url != null ? url : "<unspecified url>");
+		String msg = super.getMessage();
+		if (msg != null) {
+			sb.append(": ").append(msg);
+		}
+		Throwable cause = getCause();
+		if (cause != null) {
+			sb.append(": ").append(cause.toString());
+		} else if (statuscode != -1) {
+			sb.append(": Status ").append(Integer.toString(statuscode));
+		}
+		return sb.toString();
 	}
 }
