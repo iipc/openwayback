@@ -111,30 +111,44 @@ public class BaseExceptionRenderer implements ExceptionRenderer {
 		return (requestUrl != null) && requestUrl.endsWith(".css");
 	}
 
-	protected String buildErrorDescription(WaybackException e) {
+	protected String buildErrorDescription(Throwable e) {
 		if (e == null) return null;
 
-		String message = e.toString();
-		if (e == null) return null;
-
-		// Get substring from exception name if possible.
-		// This handles a common case of error message starting with class
-		// name followed by ":". Not sure why e.getClass().getName() does
-		// work. Perhaps some error text starts with 'real' error class
-		// different from e.getClass()?
-		final int classEnd = message.indexOf(':');
-		if (classEnd > 0) {
-			final int lastPeriod = message.lastIndexOf('.', classEnd);
-			if (lastPeriod > 0) {
-				message = message.substring(lastPeriod + 1);
+		String message = null;
+		if (e instanceof WaybackException) {
+			message = e.toString();
+			if (message == null) return null;
+			// Get substring from exception name if possible.
+			// This handles a common case of error message starting with class
+			// name followed by ":". Not sure why e.getClass().getName() does
+			// work. Perhaps some error text starts with 'real' error class
+			// different from e.getClass()?
+			final int classEnd = message.indexOf(':');
+			if (classEnd > 0) {
+				final int lastPeriod = message.lastIndexOf('.', classEnd);
+				if (lastPeriod > 0) {
+					message = message.substring(lastPeriod + 1);
+				}
 			}
+			if (message.length() > maxErrorHeaderLength) {
+				message = message.substring(0, maxErrorHeaderLength);
+			}
+			message = message.replace('\n', ' ');
+		} else {
+			message = e.getClass().getName();
 		}
-		if (message.length() > maxErrorHeaderLength) {
-			message = message.substring(0, maxErrorHeaderLength);
-		}
-		message = message.replace('\n', ' ');
 
 		return message;
+	}
+
+	protected void emitErrorHeader(HttpServletResponse httpResponse,
+			Throwable exception) {
+		if (errorHeader != null) {
+			final String text = buildErrorDescription(exception);
+			if (text != null) {
+				httpResponse.setHeader(errorHeader, text);
+			}
+		}
 	}
 
 	public void renderException(HttpServletRequest httpRequest,
@@ -142,12 +156,7 @@ public class BaseExceptionRenderer implements ExceptionRenderer {
 			WaybackException exception, ResultURIConverter uriConverter)
 		throws ServletException, IOException {
 
-		if (errorHeader != null) {
-			final String text = buildErrorDescription(exception);
-			if (text != null) {
-				httpResponse.setHeader(errorHeader, text);
-			}
-		}
+		emitErrorHeader(httpResponse, exception);
 
 		httpRequest.setAttribute("exception", exception);
 		UIResults uiResults = new UIResults(wbRequest,uriConverter,exception);
