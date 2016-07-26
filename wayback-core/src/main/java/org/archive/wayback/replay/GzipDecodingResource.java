@@ -18,36 +18,30 @@
  *  limitations under the License.
  */
 
-/** 
- * 
- * Provide a wrapper for a Resource that is gzip encoded, that is,
- * Resources that have the header:
- * Content-Type: gzip
- * 
- * Used by TextReplayRenderers and other ReplayRenderers that add content to the resulting output
- * 
- */
-
 package org.archive.wayback.replay;
 
 import java.io.IOException;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
 
 import org.archive.wayback.core.Resource;
 
-public class GzipDecodingResource extends Resource {
+/**
+ * Provide a wrapper for a Resource that is gzip encoded, that is,
+ * Resources that have the header:
+ * Content-Type: gzip
+ *
+ * Used by TextReplayRenderers and other ReplayRenderers that add content to the resulting output
+ */
+public class GzipDecodingResource extends DecodingResource {
 	
 	private static final Logger LOGGER = Logger.getLogger(GzipDecodingResource.class.getName());
 
 	public static final String GZIP = "gzip";
 	
-	private Resource source;
-	
 	public GzipDecodingResource(Resource source) {
-		this.source = source;
+		super(source);
 		// 2 for GZIP MAGIC bytes.
 		source.mark(2);
 		try {
@@ -70,33 +64,4 @@ public class GzipDecodingResource extends Resource {
 		}
 	}
 
-	@Override
-	public long getRecordLength() {
-		return source.getRecordLength();
-	}
-
-	@Override
-	public Map<String, String> getHttpHeaders() {
-		return source.getHttpHeaders();
-	}
-
-	@Override
-	public void close() throws IOException {
-		source.close();		
-	}
-
-	@Override
-	public int getStatusCode() {
-		return source.getStatusCode();
-	}
-
-	@Override
-	public String getRefersToTargetURI() {
-		return source.getRefersToTargetURI();
-	}
-
-	@Override
-	public String getRefersToDate() {
-		return source.getRefersToDate();
-	}
 }
