@@ -79,6 +79,29 @@ public class StandardAttributeRewriter implements AttributeRewriter {
 	private Map<String, StringTransformer> customTransformers;
 	
 	/**
+	 * StringTransformer that wraps around jsBlockTrans to ensure {@code inScriptText}
+	 * is set before {@code jsBlockTrans.transform} is called.
+	 * <p>Some JavaScritp transformer, ex. RewritingStringTransformer, skips translation
+	 * if {@code inScriptText} is {@code false}. This class allows such transformer to
+	 * work on JavaScript in attribute.
+	 */
+	protected class ScriptBlockTransformerWrapper implements StringTransformer {
+		public ScriptBlockTransformerWrapper() {
+		}
+
+		public String transform(ReplayParseContext context, String input) {
+			if (jsBlockTrans == null) return input;
+			final boolean saveInScriptText = context.isInScriptText();
+			context.setInScriptText(true);
+			final String transformed = jsBlockTrans.transform(context, input);
+			context.setInScriptText(saveInScriptText);
+			return transformed;
+		}
+	}
+
+	private StringTransformer jsBlockTransWrapper = new ScriptBlockTransformerWrapper();
+
+	/**
 	 * set StringTransformer for rewriting JavaScript attribute values.
 	 * (event handler attributes and also {@code HREF="javascript:..."}.)
 	 * Note changing this property after bean initialization is not supported.
@@ -210,7 +233,7 @@ public class StandardAttributeRewriter implements AttributeRewriter {
 		if (jsBlockTrans == null)
 			jsBlockTrans = new JSStringTransformer();
 		URLStringTransformer anchorTrans = new URLStringTransformer();
-		anchorTrans.setJsTransformer(jsBlockTrans);
+		anchorTrans.setJsTransformer(jsBlockTransWrapper);
 
 		transformers = new HashMap<String, StringTransformer>();
 		transformers.put("fw", new URLStringTransformer("fw_"));
@@ -220,7 +243,7 @@ public class StandardAttributeRewriter implements AttributeRewriter {
 		transformers.put("im", new URLStringTransformer("im_"));
 		transformers.put("oe", new URLStringTransformer("oe_"));
 		transformers.put("an", anchorTrans);
-		transformers.put("jb", jsBlockTrans);
+		transformers.put("jb", jsBlockTransWrapper);
 		transformers.put("ci", new InlineCSSStringTransformer());
 		transformers.put("mt", new MetaRefreshUrlStringTransformer());
 		

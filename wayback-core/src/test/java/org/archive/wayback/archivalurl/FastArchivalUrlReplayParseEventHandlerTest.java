@@ -14,10 +14,13 @@ import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.UIResults;
 import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.replay.JSPExecutor;
+import org.archive.wayback.replay.ReplayRewriteContext;
 import org.archive.wayback.replay.html.ReplayParseContext;
 import org.archive.wayback.replay.html.StringTransformer;
 import org.archive.wayback.replay.html.transformer.JSStringTransformer;
 import org.archive.wayback.util.htmllex.ContextAwareLexer;
+import org.easymock.EasyMock;
+import org.easymock.IAnswer;
 import org.htmlparser.Node;
 import org.htmlparser.Tag;
 import org.htmlparser.lexer.Lexer;
@@ -444,6 +447,50 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 				"</body>" +
 				"</html>";
 
+		assertEquals(expected, doEndToEnd(input));
+	}
+
+	/**
+	 * Another StandardAttributeRewriter test.
+	 * Script block transformer ({@code jsBlockTrans} is called for translating
+	 * attributes carrying JavaScript (such as {@code ONLOAD}). {@code inScriptText}
+	 * flag shall be set so that StringTransformer checking the flag can work on
+	 * JavaScript attributes as well.
+	 * @throws Exception
+	 */
+	public void testInScriptTextFlagSetForScriptBlockTransformer() throws Exception {
+		StandardAttributeRewriter rewriter = new StandardAttributeRewriter();
+		StringTransformer jsBlockTrans = EasyMock
+			.createMock(StringTransformer.class);
+		EasyMock.expect(
+			jsBlockTrans.transform(EasyMock.<ReplayParseContext>anyObject(),
+				EasyMock.eq("onloadhandler"))).andAnswer(new IAnswer<String>() {
+			@Override
+			public String answer() throws Throwable {
+				ReplayParseContext context = (ReplayParseContext)EasyMock
+					.getCurrentArguments()[0];
+				assertTrue("inScriptText flag shall be set", context.isInScriptText());
+				return "transformed";
+			}
+		});
+		rewriter.setJsBlockTrans(jsBlockTrans);
+		rewriter.init();
+
+		delegator.setAttributeRewriter(rewriter);
+		
+		EasyMock.replay(jsBlockTrans);
+		
+		final String input = "<html>" +
+				"<body onload=\"onloadhandler\">" +
+				"</body>" +
+				"</html>";
+		final String expected = "<html>" +
+				"<body onload=\"transformed\">" +
+				"</body>" +
+				"</html>";
+		
+		// this check is not the primary interest of this test.
+		// assertTrue in IAnswer handler is.
 		assertEquals(expected, doEndToEnd(input));
 	}
 
