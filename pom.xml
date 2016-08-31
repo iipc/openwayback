@@ -18,6 +18,7 @@
         <module>wayback-cdx-server-webapp</module>
         <module>wayback-core</module>
         <module>wayback-webapp</module>
+        <module>openwayback-resource-resolver</module>
         <module>dist</module>
     </modules>
 
@@ -38,6 +39,9 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <website.url>http://github.com/iipc/openwayback</website.url>
         <org.springframework.version>3.0.6.RELEASE</org.springframework.version>
+        <org.glassfish.jersey.version>2.23.1</org.glassfish.jersey.version>
+        <org.apache.logging.log4j.version>2.6.2</org.apache.logging.log4j.version>
+        <webarchive.commons.version>2.0.0-SNAPSHOT</webarchive.commons.version>
         <github.name>openwayback</github.name>
     </properties>
 
@@ -340,6 +344,69 @@
                 <artifactId>openwayback-webapp</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.netpreserve.commons</groupId>
+                <artifactId>webarchive-commons-core</artifactId>
+                <version>${webarchive.commons.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.netpreserve.commons</groupId>
+                <artifactId>webarchive-commons-uri</artifactId>
+                <version>${webarchive.commons.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.netpreserve.commons</groupId>
+                <artifactId>webarchive-commons-cdx</artifactId>
+                <version>${webarchive.commons.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.typesafe</groupId>
+                <artifactId>config</artifactId>
+                <version>1.3.0</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>1.7.21</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-api</artifactId>
+                <version>${org.apache.logging.log4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-core</artifactId>
+                <version>${org.apache.logging.log4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-slf4j-impl</artifactId>
+                <version>${org.apache.logging.log4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-jul</artifactId>
+                <version>${org.apache.logging.log4j.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.glassfish.jersey.containers</groupId>
+                <artifactId>jersey-container-grizzly2-http</artifactId>
+                <version>${org.glassfish.jersey.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.jersey.containers</groupId>
+                <artifactId>jersey-container-grizzly2-servlet</artifactId>
+                <version>${org.glassfish.jersey.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.jersey.bundles.repackaged</groupId>
+                <artifactId>jersey-guava</artifactId>
+                <version>${org.glassfish.jersey.version}</version>
+            </dependency>
 
             <dependency>
                 <groupId>javax.servlet</groupId>
@@ -348,11 +415,6 @@
                 <scope>provided</scope>
             </dependency>
 
-            <dependency>
-                <groupId>org.netpreserve.commons</groupId>
-                <artifactId>webarchive-commons</artifactId>
-                <version>1.1.6</version>
-            </dependency>
             <dependency>
                 <groupId>org.netpreserve.openwayback</groupId>
                 <artifactId>openwayback-access-control-core</artifactId>
@@ -420,6 +482,12 @@
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
                 <version>4.12</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.assertj</groupId>
+                <artifactId>assertj-core</artifactId>
+                <version>3.5.2</version>
                 <scope>test</scope>
             </dependency>
             <dependency>

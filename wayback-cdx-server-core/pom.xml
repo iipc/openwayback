@@ -14,7 +14,7 @@
     <dependencies>
         <dependency>
             <groupId>org.netpreserve.commons</groupId>
-            <artifactId>webarchive-commons</artifactId>
+            <artifactId>webarchive-commons-core</artifactId>
         </dependency>
 
         <dependency>
