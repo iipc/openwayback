@@ -34,6 +34,7 @@ import org.netpreserve.commons.cdx.CdxSource;
 import org.netpreserve.resource.resolver.jaxrs.CdxSourceProvider;
 import org.netpreserve.resource.resolver.jaxrs.CdxjHtmlWriter;
 import org.netpreserve.resource.resolver.jaxrs.CdxjWriter;
+import org.netpreserve.resource.resolver.jaxrs.LegacyCdxWriter;
 import org.netpreserve.resource.resolver.jaxrs.VersionHeaderFilter;
 import org.netpreserve.resource.resolver.resources.ListResource;
 import org.netpreserve.resource.resolver.settings.Settings;
@@ -59,6 +60,7 @@ public class ApplicationConfig extends Application {
 
         resources.add(CdxjHtmlWriter.class);
         resources.add(CdxjWriter.class);
+        resources.add(LegacyCdxWriter.class);
         resources.add(LookupResource.class);
         resources.add(ListResource.class);
         resources.add(VersionHeaderFilter.class);
