@@ -50,6 +50,7 @@ public class ListResource {
     @GET
     @Path("{uri}")
     @Produces({"application/vnd.org.netpreserve.cdxj",
+        "application/vnd.org.netpreserve.cdx",
         MediaType.TEXT_PLAIN + "; charset=\"UTF-8\"",
         MediaType.TEXT_HTML})
     public SearchResult getCdxList(@BeanParam() ListQueryParameters params) {

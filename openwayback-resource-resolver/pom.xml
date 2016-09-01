@@ -48,15 +48,6 @@
             <groupId>org.glassfish.jersey.bundles.repackaged</groupId>
             <artifactId>jersey-guava</artifactId>
         </dependency>
-<!--        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>19.0</version>
-        </dependency>-->
-<!--        <dependency>
-            <groupId>com.fasterxml.jackson.jaxrs</groupId>
-            <artifactId>jackson-jaxrs-json-provider</artifactId>
-        </dependency>-->
 
         <!-- Do all logging thru Log4j -->
         <dependency>
@@ -124,10 +115,8 @@
                     <repositoryName>lib</repositoryName>
                     <repositoryLayout>flat</repositoryLayout>
                     <configurationDirectory>config</configurationDirectory>
-                    <configurationSourceDirectory>src/main/config</configurationSourceDirectory>
-                    <copyConfigurationDirectory>true</copyConfigurationDirectory>
                     <endorsedDir>plugins</endorsedDir>
-                    <logsDirectory>log</logsDirectory>
+                    <preAssembleDirectory>src/main/distfiles</preAssembleDirectory>
                     <extraJvmArguments>-Dconfig.file=@BASEDIR@/config/application.conf</extraJvmArguments>
                 </configuration>
                 <executions>
