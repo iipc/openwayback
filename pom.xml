@@ -147,6 +147,16 @@
                     <artifactId>maven-jetty-plugin</artifactId>
                     <version>6.1.22</version>
                 </plugin>
+
+                <!-- Disable logging of code style violations to console until it is reduced to a manageable number -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-checkstyle-plugin</artifactId>
+                    <version>${maven.checkstyle.plugin.version}</version>
+                    <configuration>
+                        <logViolationsToConsole>false</logViolationsToConsole>
+                    </configuration>
+                </plugin>
             </plugins>
         </pluginManagement>
     </build>
