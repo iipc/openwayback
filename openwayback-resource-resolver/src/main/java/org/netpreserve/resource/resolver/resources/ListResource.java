@@ -18,7 +18,6 @@ package org.netpreserve.resource.resolver.resources;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.inject.Singleton;
 import javax.ws.rs.BeanParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -30,6 +29,7 @@ import org.netpreserve.commons.cdx.CdxSource;
 import org.netpreserve.commons.cdx.SearchKey;
 import org.netpreserve.commons.cdx.SearchResult;
 import org.netpreserve.commons.cdx.functions.Filter;
+import org.netpreserve.commons.cdx.functions.FromToFilter;
 import org.netpreserve.commons.cdx.functions.RecordTypeFilter;
 import org.netpreserve.commons.cdx.processor.FilterProcessor;
 import org.netpreserve.commons.cdx.processor.Processor;
@@ -37,8 +37,7 @@ import org.netpreserve.commons.cdx.processor.Processor;
 /**
  *
  */
-@Path("resources")
-@Singleton
+@Path("resourcelist")
 public class ListResource {
 
     @Context
@@ -54,24 +53,25 @@ public class ListResource {
         MediaType.TEXT_PLAIN + "; charset=\"UTF-8\"",
         MediaType.TEXT_HTML})
     public SearchResult getCdxList(@BeanParam() ListQueryParameters params) {
-        SearchKey key = new SearchKey();
-        if (!params.getUri().isEmpty() && !params.getUri().equals("*")) {
-            key.uri(params.getUri());
-        }
+        SearchKey key = new SearchKey(params.getUri(), params.getUriMatchType(), params.getDateRange());
 
         List<Processor> processors = new ArrayList<>();
+        Processor<Filter> filterProcessor = new FilterProcessor();
+        processors.add(filterProcessor);
 
-        if (params.getType() != null) {
-            RecordTypeFilter rtf = new RecordTypeFilter(params.getType().split("\\s*,\\s*"));
-            Processor<Filter> fp = new FilterProcessor().addFunction(rtf);
-            processors.add(fp);
+        if (params.getRecordType() != null) {
+            RecordTypeFilter rtf = new RecordTypeFilter(params.getRecordType().split("\\s*,\\s*"));
+            filterProcessor.addFunction(rtf);
         }
-//                            FromToFilter fromToFilter = null;
-//                            if (query.from != null || query.to != null) {
-//                                fromToFilter = new FromToFilter(query.from, query.to);
-//                            }
-        return cdxSource.search(key, processors, params.getSort() != ListQueryParameters.SortType.ASCENDING)
-                .limit(params.getLimit());
+
+        // Since SearchKey only filters the outer bounds, we need to apply a FromToFilter if match type is not EXACT.
+        if (params.getUriMatchType() != SearchKey.UriMatchType.EXACT
+                && params.getDateRange().hasStartDateOrEndDate()) {
+            FromToFilter fromToFilter = new FromToFilter(params.getDateRange());
+            filterProcessor.addFunction(fromToFilter);
+        }
+
+        return cdxSource.search(key, processors, params.isReverseSort()).limit(params.getLimit());
     }
 
 }

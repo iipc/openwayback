@@ -18,9 +18,6 @@ package org.netpreserve.resource.resolver.resources;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Cookie;
-import javax.ws.rs.core.HttpHeaders;
 
 /**
  *
@@ -33,16 +30,13 @@ public class LookupQueryParameters {
     @PathParam("timestamp")
     private String timestamp;
 
-    @QueryParam("type")
-    @DefaultValue("response")
-    private String type;
+    @QueryParam("recordType")
+    @DefaultValue("response,revisit")
+    private String recordType;
 
     @QueryParam("limit")
     @DefaultValue("1")
     private int limit;
-
-    @Context
-    private HttpHeaders httpHeaders;
 
     public String getUri() {
         return uri;
@@ -52,21 +46,12 @@ public class LookupQueryParameters {
         return timestamp;
     }
 
-    public String getType() {
-        return type;
+    public String getRecordType() {
+        return recordType;
     }
 
     public int getLimit() {
         return limit;
-    }
-
-    public String getAuthToken(String authTokenName) {
-        Cookie authCookie = httpHeaders.getCookies().get(authTokenName);
-        if (authCookie != null) {
-            return authCookie.getValue();
-        } else {
-            return null;
-        }
     }
 
 }

@@ -15,14 +15,12 @@
  */
 package org.netpreserve.resource.resolver.resources;
 
-import java.util.List;
-
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Cookie;
-import javax.ws.rs.core.HttpHeaders;
+import org.netpreserve.commons.cdx.SearchKey;
+import org.netpreserve.commons.util.datetime.DateTimeRange;
 import org.netpreserve.resource.resolver.settings.Settings;
 
 /**
@@ -30,45 +28,31 @@ import org.netpreserve.resource.resolver.settings.Settings;
  */
 public class ListQueryParameters {
 
-    public enum SortType {
-
-        ASCENDING, DESCENDING
-
-    };
-
     @PathParam("uri")
     private String uri;
 
-    @QueryParam("type")
+    @QueryParam("recordType")
     @DefaultValue("response,revisit")
-    private String type;
+    private String recordType;
 
     @QueryParam("limit")
     @DefaultValue("-1")
     private int limit;
 
-    @QueryParam("from")
-    private String from;
-
-    @QueryParam("to")
-    private String to;
+    @QueryParam("date")
+    private DateTimeRange dateRange;
 
     @QueryParam("sort")
     @DefaultValue("ASCENDING")
-    private SortType sort;
+    private String sort;
 
-    @QueryParam("filter")
-    private List<String> filter;
-
-    @QueryParam("resolveRevisits")
-    private boolean resolveRevisits = false;
+    @QueryParam("matchType")
+    @DefaultValue("EXACT")
+    private SearchKey.UriMatchType uriMatchType;
 
     @QueryParam("fields")
     @DefaultValue("")
     private String fields;
-
-    @Context
-    private HttpHeaders httpHeaders;
 
     @Context
     private Settings settings;
@@ -77,25 +61,24 @@ public class ListQueryParameters {
         return uri;
     }
 
-    public String getType() {
-        return type;
+    public SearchKey.UriMatchType getUriMatchType() {
+        return uriMatchType;
     }
 
-    public SortType getSort() {
-        return sort;
+    public String getRecordType() {
+        return recordType;
+    }
+
+    public boolean isReverseSort() {
+        return sort.toLowerCase().startsWith("desc");
     }
 
     public int getLimit() {
         return limit > -1 ? limit : settings.getQueryMaxLimit();
     }
 
-    public String getAuthToken(String authTokenName) {
-        Cookie authCookie = httpHeaders.getCookies().get(authTokenName);
-        if (authCookie != null) {
-            return authCookie.getValue();
-        } else {
-            return null;
-        }
+    public DateTimeRange getDateRange() {
+        return dateRange;
     }
 
     public String getFieldList() {

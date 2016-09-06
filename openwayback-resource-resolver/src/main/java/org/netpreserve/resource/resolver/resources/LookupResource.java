@@ -57,13 +57,13 @@ public class LookupResource {
         MediaType.TEXT_PLAIN + "; charset=\"UTF-8\"",
         MediaType.TEXT_HTML})
     public SearchResult getCdx(@BeanParam LookupQueryParameters params) {
-        SearchKey key = new SearchKey().uri(params.getUri());
-        VariablePrecisionDateTime time = VariablePrecisionDateTime.of(params.getTimestamp());
+        SearchKey key = new SearchKey().uri(params.getUri(), SearchKey.UriMatchType.EXACT);
+        VariablePrecisionDateTime time = VariablePrecisionDateTime.valueOf(params.getTimestamp());
 
         List<Processor> processors = new ArrayList<>();
 
-        if (params.getType() != null) {
-            RecordTypeFilter rtf = new RecordTypeFilter(params.getType().split("\\s*,\\s*"));
+        if (params.getRecordType() != null) {
+            RecordTypeFilter rtf = new RecordTypeFilter(params.getRecordType().split("\\s*,\\s*"));
             Processor<Filter> fp = new FilterProcessor().addFunction(rtf);
             processors.add(fp);
         }

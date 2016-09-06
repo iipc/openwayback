@@ -28,6 +28,7 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.MessageBodyWriter;
+import javax.ws.rs.ext.Provider;
 import org.netpreserve.commons.cdx.CdxFormat;
 import org.netpreserve.commons.cdx.CdxRecord;
 import org.netpreserve.commons.cdx.SearchResult;
@@ -37,6 +38,7 @@ import org.netpreserve.commons.cdx.formatter.CdxRecordFormatter;
 /**
  *
  */
+@Provider
 @Produces({"application/vnd.org.netpreserve.cdxj", MediaType.TEXT_PLAIN + "; charset=\"UTF-8\""})
 public class CdxjWriter implements MessageBodyWriter<SearchResult> {
 

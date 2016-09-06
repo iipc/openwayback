@@ -41,7 +41,7 @@ public class HtmlFormatter implements CdxFormatter {
     private static final char[] FIELD_NAME_END = "</span>\":".toCharArray();
 
     @Override
-    public void format(Writer out, CdxRecord<? extends CdxFormat> record, CdxFormat outputFormat) throws IOException {
+    public void format(Writer out, CdxRecord record, CdxFormat outputFormat) throws IOException {
 
         CdxRecordKey key = record.getKey();
         out.write("<span class='uriKey'>");

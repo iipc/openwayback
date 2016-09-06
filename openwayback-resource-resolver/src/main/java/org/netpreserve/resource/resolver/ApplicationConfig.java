@@ -34,7 +34,9 @@ import org.netpreserve.commons.cdx.CdxSource;
 import org.netpreserve.resource.resolver.jaxrs.CdxSourceProvider;
 import org.netpreserve.resource.resolver.jaxrs.CdxjHtmlWriter;
 import org.netpreserve.resource.resolver.jaxrs.CdxjWriter;
+import org.netpreserve.resource.resolver.jaxrs.DateRangeParamConverterProvider;
 import org.netpreserve.resource.resolver.jaxrs.LegacyCdxWriter;
+import org.netpreserve.resource.resolver.jaxrs.UriMatchTypeParamConverterProvider;
 import org.netpreserve.resource.resolver.jaxrs.VersionHeaderFilter;
 import org.netpreserve.resource.resolver.resources.ListResource;
 import org.netpreserve.resource.resolver.settings.Settings;
@@ -58,6 +60,8 @@ public class ApplicationConfig extends Application {
     public Set<Class<?>> getClasses() {
         Set<Class<?>> resources = new java.util.HashSet<>();
 
+        resources.add(DateRangeParamConverterProvider.class);
+        resources.add(UriMatchTypeParamConverterProvider.class);
         resources.add(CdxjHtmlWriter.class);
         resources.add(CdxjWriter.class);
         resources.add(LegacyCdxWriter.class);
