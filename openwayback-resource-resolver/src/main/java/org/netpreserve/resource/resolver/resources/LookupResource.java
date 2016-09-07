@@ -56,7 +56,7 @@ public class LookupResource {
         "application/vnd.org.netpreserve.cdx",
         MediaType.TEXT_PLAIN + "; charset=\"UTF-8\"",
         MediaType.TEXT_HTML})
-    public SearchResult getCdx(@BeanParam LookupQueryParameters params) {
+    public SearchResult getResource(@BeanParam LookupQueryParameters params) {
         SearchKey key = new SearchKey().uri(params.getUri(), SearchKey.UriMatchType.EXACT);
         VariablePrecisionDateTime time = VariablePrecisionDateTime.valueOf(params.getTimestamp());
 

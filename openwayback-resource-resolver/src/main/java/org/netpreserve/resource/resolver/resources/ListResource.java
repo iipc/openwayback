@@ -52,7 +52,7 @@ public class ListResource {
         "application/vnd.org.netpreserve.cdx",
         MediaType.TEXT_PLAIN + "; charset=\"UTF-8\"",
         MediaType.TEXT_HTML})
-    public SearchResult getCdxList(@BeanParam() ListQueryParameters params) {
+    public SearchResult getResourceList(@BeanParam() ListQueryParameters params) {
         SearchKey key = new SearchKey(params.getUri(), params.getUriMatchType(), params.getDateRange());
 
         List<Processor> processors = new ArrayList<>();
