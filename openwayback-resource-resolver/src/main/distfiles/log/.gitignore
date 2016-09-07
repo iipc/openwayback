@@ -1,0 +1,7 @@
+# This file is to force git to not ignore the directory
+#
+#
+# Ignore everything in this directory
+*
+# Except this file
+!.gitignore
