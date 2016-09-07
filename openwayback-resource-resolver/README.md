@@ -17,13 +17,11 @@ Unpack it with: ```tar zxvf <filename>```
 
 You should now have a directory with a name like ```openwayback-resource-resolver-3.0.0-SNAPSHOT```.
 
-Now put some cdx files in ```openwayback-resource-resolver-3.0.0-SNAPSHOT/cdx/``` and start the Resource Resolver with:
-```openwayback-resource-resolver-3.0.0-SNAPSHOT/bin/warr```
+Now put some cdx files in ```openwayback-resource-resolver-3.0.0-SNAPSHOT/cdx/``` and start the Resource Resolver with: ```openwayback-resource-resolver-3.0.0-SNAPSHOT/bin/warr```
 
 ## Usage
 
-By default WARR listen on port 8080 on all interfaces. This can be changed by editing
-```openwayback-resource-resolver-3.0.0-SNAPSHOT/config/application.conf```.
+By default WARR listen on port 8080 on all interfaces. This can be changed by editing ```openwayback-resource-resolver-3.0.0-SNAPSHOT/config/application.conf```.
 
 Some options are common for the endpoints:
 
