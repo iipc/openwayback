@@ -73,6 +73,11 @@
                     <value>192.168.1.16/24</value>
                   </list>
                 </property>
+                <property name="proxyIPList">
+                  <list>
+                    <value>140.147.210.0/24</value>
+                  </list>
+                </property>
               </bean>
             </property>
           </bean>
@@ -161,7 +166,11 @@
         </property>
       </bean>
     </property>
-
+    <property name="proxyIPList">
+      <list>
+        <value>140.147.210.0/24</value>
+      </list>
+    </property>
     <property name="uriConverter">
       <bean class="org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter">
         <property name="replayURIPrefix" value="http://localhost:8080/netsecure/" />
