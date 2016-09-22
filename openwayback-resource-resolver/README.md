@@ -24,9 +24,7 @@ You should now have a directory with a name like `openwayback-resource-resolver-
 Now put some cdx files in `openwayback-resource-resolver-3.0.0-SNAPSHOT/cdx/` and start the Resource Resolver with:  
 `openwayback-resource-resolver-3.0.0-SNAPSHOT/bin/warr`
 
-Both traditional [CDX](http://iipc.github.io/warc-specifications/specifications/cdx-format/cdx-2015/) files and  
-the new [CDXJ](http://iipc.github.io/warc-specifications/specifications/cdx-format/openwayback-cdxj/) format  
-is supported, but in the former case the url key must be SURT encoded.
+Both traditional [CDX](http://iipc.github.io/warc-specifications/specifications/cdx-format/cdx-2015/) files and the new [CDXJ](http://iipc.github.io/warc-specifications/specifications/cdx-format/openwayback-cdxj/) format is supported, but in the former case the url key must be SURT encoded.
 
 ## Usage
 
