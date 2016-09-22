@@ -5,6 +5,9 @@ Uri, date and possibly other parameters into a information record which is used 
 
 As it is a Web Archive Resource Resolver it is called **WARR** for short.
 
+## Prerequisites
+
+WARR requires Java 8.
 
 ## Installation
 
@@ -18,12 +21,15 @@ Unpack it with: `tar zxvf <filename>`
 
 You should now have a directory with a name like `openwayback-resource-resolver-3.0.0-SNAPSHOT`.
 
-Now put some cdx files in `openwayback-resource-resolver-3.0.0-SNAPSHOT/cdx/` and start the Resource Resolver with: `openwayback-resource-resolver-3.0.0-SNAPSHOT/bin/warr`
+Now put some cdx files in `openwayback-resource-resolver-3.0.0-SNAPSHOT/cdx/` and start the Resource Resolver with:  
+`openwayback-resource-resolver-3.0.0-SNAPSHOT/bin/warr`
 
+Both traditional [CDX](http://iipc.github.io/warc-specifications/specifications/cdx-format/cdx-2015/) files and the new [CDXJ](http://iipc.github.io/warc-specifications/specifications/cdx-format/openwayback-cdxj/) format is supported, but in the former case the url key must be SURT encoded.
 
 ## Usage
 
-By default WARR listen on port 8080 on all interfaces. This can be changed by editing `openwayback-resource-resolver-3.0.0-SNAPSHOT/config/application.conf`.
+By default WARR listen on port 8080 on all interfaces. This can be changed by editing  
+`openwayback-resource-resolver-3.0.0-SNAPSHOT/config/application.conf`.
 
 Some options are common for the endpoints:
 
@@ -45,8 +51,8 @@ Some options are common for the endpoints:
 
 Format: `http://localhost:8080/resource/<Url-encoded Uri>/<time stamp>`
 
-The Uri to the resource you want to resolve must be url-encoded to be a legal path segment. The time stamp can be in either
-WARC-format (e.g. 2016-02-05T45:42:00Z) or Heritrix format (e.g. 20160205454200).
+The Uri to the resource you want to resolve must be url-encoded to be a legal path segment. The time stamp can be in either 
+WARC-format (e.g. 2016-02-05T14:42:00Z) or Heritrix format (e.g. 20160205144200).
 
 The returned resource is the one closest in time to the time stamp.
 
@@ -55,12 +61,12 @@ The returned resource is the one closest in time to the time stamp.
 
 ##### Record Type
 
-You can restrict what kind of records to return with the query parameter **recordType**. The value is a comma separated
+You can restrict what kind of records to return with the query parameter **recordType**. The value is a comma separated  
 list of desired record types supported by your index. Default is `recordType=response,revisit`
 
 #### Limit
 
-The limit parameter sets the maximum number of records returned. The default is `1` to return exactly the best
+The limit parameter sets the maximum number of records returned. The default is `1` to return exactly the best  
 resolution. If set higher, the returned list of resources will be sorted by distance in time to the requsted time stamp.
 
 
@@ -76,8 +82,8 @@ Lists all records matching the Uri. The Uri must be url-encoded to be a legal pa
 
 Limit the results to match a date/time range with `date=<date range expression>`.
 
-The date/time range expression consists of one or two dates separated by `,` or `;`. The dates can be in WARC or
-Heritrix format. An expression starting or ending with `,` or `;` is open ended. If there is only one date and no
+The date/time range expression consists of one or two dates separated by `,` or `;`. The dates can be in WARC or  
+Heritrix format. An expression starting or ending with `,` or `;` is open ended. If there is only one date and no  
 separators, it is treated as a range of all dates that can fit into the submitted date.
 
 Examples:
@@ -92,12 +98,12 @@ Examples:
 
 #### Record type
 
-You can restrict what kind of records to return with the query parameter **recordType**. The value is a comma separated
+You can restrict what kind of records to return with the query parameter **recordType**. The value is a comma separated  
 list of desired record types supported by your index. Default is `recordType=response,revisit`
 
 #### Uri Match Type
 
-The default behavior is to return exact uri matches. However, WARR can also return results matching a path
+The default behavior is to return exact uri matches. However, WARR can also return results matching a path  
 prefix or all subdomains by using the **matchType=** parameter.
 
 If given the uri: *netpreserve.org/about/*:
@@ -108,7 +114,7 @@ If given the uri: *netpreserve.org/about/*:
 
     Example: `http://localhost:8080/resourcelist/netpreserve.org%2Fabout?matchType=path`
 
-* **matchType=host** will return all the results where the host part matches, including subdomains. The path is not
+* **matchType=host** will return all the results where the host part matches, including subdomains. The path is not  
     taken into account for this match type.
 
     Example: `http://localhost:8080/resourcelist/netpreserve.org%2Fabout?matchType=host`
