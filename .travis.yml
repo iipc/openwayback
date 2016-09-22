@@ -11,7 +11,7 @@ before_install:
 before_script:
  - "export JAVA_OPTS=-Xmx1024m"
  - "export MAVEN_OPTS=-Xmx512m"
- - "ulimit -u 2048"
+ - "ulimit -u 4096"
 
 script: 
   - "target/travis/deploy-if.sh"
