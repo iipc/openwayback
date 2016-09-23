@@ -43,7 +43,7 @@ import org.archive.wayback.replay.html.ReplayParseContext;
 public class MetaRefreshUrlStringTransformer extends URLStringTransformer {
 
 	private final static Pattern refreshURLPattern = Pattern.compile(
-			"^[\\d.]+\\s*;\\s*url\\s*=\\s*\\'?(.+?)\\'?\\s*$", Pattern.CASE_INSENSITIVE
+			"^[\\d.]+\\s*;\\s*url\\s*=\\s*['\"]?(.+?)['\"]?\\s*$", Pattern.CASE_INSENSITIVE
 					| Pattern.MULTILINE);
 
 	/*
