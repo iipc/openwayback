@@ -63,7 +63,7 @@ public class MetaRefreshUrlStringTransformerTest extends TestCase {
 				//{ "; url=/bar", "/bar" },
 				{ "0; URL=/bar", "/bar" },
 				{ "0; url='/bar'", "/bar" },
-				{ '0; url="/bar"', '/bar' },
+				{ "0; url=\"/bar\"", "/bar" },
 		};
 		for (String[] c : cases) {
 			EasyMock.expect(rpc.mock.contextualizeUrl(c[1], "")).andReturn(c[1]);
