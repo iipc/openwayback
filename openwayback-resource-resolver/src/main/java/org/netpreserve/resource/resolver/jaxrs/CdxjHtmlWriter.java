@@ -63,7 +63,7 @@ public class CdxjHtmlWriter implements MessageBodyWriter<SearchResult> {
 
             for (CdxRecord record : searchResult) {
                 writer.write("<p>");
-                formatter.format(writer, record, false);
+                formatter.format(writer, record);
                 writer.write("</p>\n");
             }
 

@@ -65,7 +65,7 @@ public class CdxjWriter implements MessageBodyWriter<SearchResult> {
 
             Writer writer = new OutputStreamWriter(entityStream, StandardCharsets.UTF_8);
             for (CdxRecord record : searchResult) {
-                formatter.format(writer, record, false);
+                formatter.format(writer, record);
                 writer.write('\n');
             }
             writer.flush();
