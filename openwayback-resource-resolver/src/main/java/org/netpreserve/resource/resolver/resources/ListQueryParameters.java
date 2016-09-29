@@ -19,7 +19,7 @@ import javax.ws.rs.DefaultValue;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
-import org.netpreserve.commons.cdx.SearchKey;
+import org.netpreserve.commons.cdx.SearchKeyTemplate;
 import org.netpreserve.commons.util.datetime.DateTimeRange;
 import org.netpreserve.resource.resolver.settings.Settings;
 
@@ -48,7 +48,7 @@ public class ListQueryParameters {
 
     @QueryParam("matchType")
     @DefaultValue("EXACT")
-    private SearchKey.UriMatchType uriMatchType;
+    private SearchKeyTemplate.UriMatchType uriMatchType;
 
     @QueryParam("fields")
     @DefaultValue("")
@@ -61,7 +61,7 @@ public class ListQueryParameters {
         return uri;
     }
 
-    public SearchKey.UriMatchType getUriMatchType() {
+    public SearchKeyTemplate.UriMatchType getUriMatchType() {
         return uriMatchType;
     }
 
