@@ -28,7 +28,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import org.netpreserve.resource.resolver.settings.Settings;
 import org.netpreserve.commons.cdx.CdxSource;
-import org.netpreserve.commons.cdx.SearchKey;
+import org.netpreserve.commons.cdx.SearchKeyTemplate;
 import org.netpreserve.commons.cdx.SearchResult;
 import org.netpreserve.commons.cdx.cdxsource.ClosestSearchResult;
 import org.netpreserve.commons.cdx.functions.Filter;
@@ -57,7 +57,7 @@ public class LookupResource {
         MediaType.TEXT_PLAIN + "; charset=\"UTF-8\"",
         MediaType.TEXT_HTML})
     public SearchResult getResource(@BeanParam LookupQueryParameters params) {
-        SearchKey key = new SearchKey().uri(params.getUri(), SearchKey.UriMatchType.EXACT);
+        SearchKeyTemplate key = new SearchKeyTemplate().uri(params.getUri(), SearchKeyTemplate.UriMatchType.EXACT);
         VariablePrecisionDateTime time = VariablePrecisionDateTime.valueOf(params.getTimestamp());
 
         List<Processor> processors = new ArrayList<>();

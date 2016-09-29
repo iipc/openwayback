@@ -21,7 +21,7 @@ import java.lang.reflect.Type;
 import javax.ws.rs.ext.ParamConverter;
 import javax.ws.rs.ext.ParamConverterProvider;
 import javax.ws.rs.ext.Provider;
-import org.netpreserve.commons.cdx.SearchKey;
+import org.netpreserve.commons.cdx.SearchKeyTemplate;
 
 /**
  *
@@ -29,18 +29,18 @@ import org.netpreserve.commons.cdx.SearchKey;
 @Provider
 public class UriMatchTypeParamConverterProvider implements ParamConverterProvider {
 
-    private static final ParamConverter CONVERTER = new ParamConverter<SearchKey.UriMatchType>() {
+    private static final ParamConverter CONVERTER = new ParamConverter<SearchKeyTemplate.UriMatchType>() {
         @Override
-        public SearchKey.UriMatchType fromString(String value) {
+        public SearchKeyTemplate.UriMatchType fromString(String value) {
             if (value == null || value.isEmpty()) {
-                return SearchKey.UriMatchType.EXACT;
+                return SearchKeyTemplate.UriMatchType.EXACT;
             }
 
-            return SearchKey.UriMatchType.valueOf(value.toUpperCase());
+            return SearchKeyTemplate.UriMatchType.valueOf(value.toUpperCase());
         }
 
         @Override
-        public String toString(SearchKey.UriMatchType value) {
+        public String toString(SearchKeyTemplate.UriMatchType value) {
             throw new UnsupportedOperationException("Not supported yet.");
         }
 
@@ -48,7 +48,7 @@ public class UriMatchTypeParamConverterProvider implements ParamConverterProvide
 
     @Override
     public <T> ParamConverter<T> getConverter(Class<T> rawType, Type genericType, Annotation[] annotations) {
-        if (rawType != SearchKey.UriMatchType.class) {
+        if (rawType != SearchKeyTemplate.UriMatchType.class) {
             return null;
         }
 

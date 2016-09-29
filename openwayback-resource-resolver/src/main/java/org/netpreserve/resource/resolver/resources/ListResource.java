@@ -26,7 +26,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import org.netpreserve.resource.resolver.settings.Settings;
 import org.netpreserve.commons.cdx.CdxSource;
-import org.netpreserve.commons.cdx.SearchKey;
+import org.netpreserve.commons.cdx.SearchKeyTemplate;
 import org.netpreserve.commons.cdx.SearchResult;
 import org.netpreserve.commons.cdx.functions.Filter;
 import org.netpreserve.commons.cdx.functions.FromToFilter;
@@ -53,7 +53,7 @@ public class ListResource {
         MediaType.TEXT_PLAIN + "; charset=\"UTF-8\"",
         MediaType.TEXT_HTML})
     public SearchResult getResourceList(@BeanParam() ListQueryParameters params) {
-        SearchKey key = new SearchKey(params.getUri(), params.getUriMatchType(), params.getDateRange());
+        SearchKeyTemplate key = new SearchKeyTemplate(params.getUri(), params.getUriMatchType(), params.getDateRange());
 
         List<Processor> processors = new ArrayList<>();
         Processor<Filter> filterProcessor = new FilterProcessor();
@@ -65,7 +65,7 @@ public class ListResource {
         }
 
         // Since SearchKey only filters the outer bounds, we need to apply a FromToFilter if match type is not EXACT.
-        if (params.getUriMatchType() != SearchKey.UriMatchType.EXACT
+        if (params.getUriMatchType() != SearchKeyTemplate.UriMatchType.EXACT
                 && params.getDateRange().hasStartDateOrEndDate()) {
             FromToFilter fromToFilter = new FromToFilter(params.getDateRange());
             filterProcessor.addFunction(fromToFilter);
