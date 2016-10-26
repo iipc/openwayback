@@ -63,6 +63,23 @@ public class TransparentReplayRenderer implements ReplayRenderer {
 		this.httpHeaderProcessor = httpHeaderProcessor;
 	}
 
+	private long noCacheThreshold = NOCACHE_THRESHOLD;
+	
+	
+	public long getNoCacheThreshold() {
+		return noCacheThreshold;
+	}
+
+	/**
+	 * If this value is larger than zero, playback response for capture larger
+	 * than this size will be accompanied by {@code X-Accel-Buffering: no}
+	 * header that instructs front-end nginx not to cache the response.
+	 * @param noCacheThreshold
+	 */
+	public void setNoCacheThreshold(long noCacheThreshold) {
+		this.noCacheThreshold = noCacheThreshold;
+	}
+
 	@Override
 	public void renderResource(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
@@ -104,7 +121,8 @@ public class TransparentReplayRenderer implements ReplayRenderer {
 			}
 			
 			//TODO: Generalize? Don't buffer NOCACHE_THRESHOLD
-			if ((contentLength >= NOCACHE_THRESHOLD)) {
+			final long limit = getNoCacheThreshold();
+			if (limit > 0 && contentLength >= limit) {
 			    headers.put(NOCACHE_HEADER_NAME, NOCACHE_HEADER_VALUE);
 			}
 		}
