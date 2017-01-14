@@ -274,7 +274,7 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 				throw new ResourceIndexNotAvailableException(cause.toString());
 			}
 
-			rte.printStackTrace(); // for now, for better debugging
+			LOGGER.log(Level.SEVERE, "unexpected error executing CDX query", rte);
 			throw new ResourceIndexNotAvailableException(rte.toString());
 		}
 	}
