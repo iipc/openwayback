@@ -809,7 +809,6 @@ public class AccessPoint extends AbstractRequestHandler implements
 		//int maxMissingRevisits = 2;
 
 		SingleLoadResourceStore resourceStore = new SingleLoadResourceStore(getCollection().getResourceStore());
-		//Set<String> skipFiles = null;
 
 		while (true) {
 			// Support for redirect from the CDX redirectUrl field
@@ -823,17 +822,35 @@ public class AccessPoint extends AbstractRequestHandler implements
 			//  throw new BetterRequestException(fullRedirect, Integer.valueOf(closest.getHttpCode()));
 			//}
 
-			Resource httpHeadersResource = null;
-			Resource payloadResource = null;
-			boolean isRevisit = false;
+			counter++;
+			
+			if (closest == null) {
+				// if url+timestamp search is on, try again with it turned off.
+				if (wbRequest.isTimestampSearchKey()) {
+					wbRequest.setTimestampSearchKey(false);
 
-			try {
-				counter++;
+					captureResults = searchCaptures(wbRequest);
 
-				if (closest == null) {
-					throw new ResourceNotAvailableException("Self-Redirect: No Closest Match Found", 404);
+					captureSelector.setCaptures(captureResults);
+					closest = captureSelector.next();
+					counter = 0;
+					continue;
 				}
 
+				ResourceNotAvailableException scre = new ResourceNotAvailableException(
+					"Self-Redirect: No Closest Match Found", 404);
+				LOGGER.warning("(" + counter + ")LOADFAIL: " +
+						scre.getMessage() + " /" +
+						wbRequest.getReplayTimestamp() + "/" +
+						wbRequest.getRequestUrl());
+				scre.setCaptureContext(captureResults, closest);
+				throw scre;
+			}
+			
+			Resource httpHeadersResource = null;
+			Resource payloadResource = null;
+
+			try {
 				closest.setClosest(true);
 				checkAnchorWindow(wbRequest, closest);
 
@@ -842,6 +859,7 @@ public class AccessPoint extends AbstractRequestHandler implements
 					handleReplayRedirect(wbRequest, httpResponse, captureResults, closest);
 				}
 
+				boolean isRevisit = false;
 				// If revisit, may load two resources separately
 				if (closest.isRevisitDigest()) {
 					isRevisit = true;
@@ -982,57 +1000,27 @@ public class AccessPoint extends AbstractRequestHandler implements
 
 				//final String SOCKET_TIMEOUT_MSG = "java.net.SocketTimeoutException: Read timed out";
 
-				CaptureSearchResult nextClosest = null;
+				CaptureSearchResult lastClosest = closest;
+				closest = null;
 
 				// if exceed maxRedirectAttempts, stop
-				if ((counter > maxRedirectAttempts) && ((this.getLiveWebPrefix() == null) || !isWaybackReferer(wbRequest, this.getLiveWebPrefix()))) {
-					LOGGER.info("LOADFAIL: Timeout: Too many retries, limited to " + maxRedirectAttempts);
-				} else if ((closest != null) && !wbRequest.isIdentityContext()) {
-					//nextClosest = findNextClosest(closest, captureResults, requestMS);
-					nextClosest = captureSelector.next();
-				}
-
-				// Skip any nextClosest that has the same exact filename?
-				// Removing in case skip something that works..
-				// while ((nextClosest != null) && closest.getFile().equals(nextClosest.getFile())) {
-				//	nextClosest = findNextClosest(nextClosest, captureResults, requestMS);
-				//}
-
-				String msg = null;
-
-				if (closest != null) {
-					msg = scre.getMessage() + " /" + closest.getCaptureTimestamp() + "/" + closest.getOriginalUrl();
-				} else {
-					msg = scre.getMessage() + " /" + wbRequest.getReplayTimestamp() + "/" + wbRequest.getRequestUrl();
-				}
-
-				if (nextClosest != null) {
-					if (msg.startsWith("Self-Redirect")) {
-						LOGGER.info("(" + counter + ")LOADFAIL-> " + msg + " -> " + nextClosest.getCaptureTimestamp());
-					} else {
-						LOGGER.warning("(" + counter + ")LOADFAIL-> " + msg + " -> " + nextClosest.getCaptureTimestamp());
-					}
-
-					closest = nextClosest;
-				} else if (wbRequest.isTimestampSearchKey()) {
-					wbRequest.setTimestampSearchKey(false);
-
-					captureResults = searchCaptures(wbRequest);
-
-					captureSelector.setCaptures(captureResults);
-					closest = captureSelector.next();
-					counter = 0;
-
-					//originalClosest = closest;
-
-					//maxTimeouts *= 2;
-					//maxMissingRevisits *= 2;
-
+				if ((counter > maxRedirectAttempts) &&
+						((this.getLiveWebPrefix() == null) || !isWaybackReferer(
+							wbRequest, this.getLiveWebPrefix()))) {
+					LOGGER.info("LOADFAIL: Timeout: Too many retries, limited to " +
+								maxRedirectAttempts);
+					// pass control to "closest == null" code above.
 					continue;
-				} else {
-					LOGGER.warning("(" + counter + ")LOADFAIL: " + msg);
-					scre.setCaptureContext(captureResults, closest);
-					throw scre;
+				}
+				if (!wbRequest.isIdentityContext()) {
+					closest = captureSelector.next();
+				}
+				if (closest != null) {
+					String msg = scre.getMessage() + " /" +
+							lastClosest.getCaptureTimestamp() + "/" +
+							lastClosest.getOriginalUrl();
+					LOGGER.info("(" + counter + ")LOADFAIL-> " + msg + " -> " +
+							closest.getCaptureTimestamp());
 				}
 			} finally {
 				closeResources(payloadResource, httpHeadersResource);
