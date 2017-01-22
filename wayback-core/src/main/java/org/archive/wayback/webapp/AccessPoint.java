@@ -47,7 +47,6 @@ import org.archive.wayback.ReplayURIConverter.URLStyle;
 import org.archive.wayback.RequestParser;
 import org.archive.wayback.ResourceStore;
 import org.archive.wayback.ResultURIConverter;
-import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.accesscontrol.AuthContextExclusionFilterFactory;
 import org.archive.wayback.accesscontrol.CollectionContext;
 import org.archive.wayback.accesscontrol.ContextExclusionFilterFactory;
@@ -84,7 +83,6 @@ import org.archive.wayback.resourceindex.cdxserver.EmbeddedCDXServerIndex;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.resourceindex.filters.WARCRevisitAnnotationFilter;
 import org.archive.wayback.util.operator.BooleanOperator;
-import org.archive.wayback.util.url.UrlOperations;
 import org.archive.wayback.util.webapp.AbstractRequestHandler;
 import org.archive.wayback.util.webapp.ShutdownListener;
 import org.archive.wayback.webapp.LiveWebRedirector.LiveWebState;
@@ -105,7 +103,7 @@ import org.archive.wayback.webapp.LiveWebRedirector.LiveWebState;
  *
  * @author brad
  */
-public class AccessPoint extends AbstractRequestHandler implements
+public class AccessPoint extends AccessPointBase implements
 		ShutdownListener, CollectionContext {
 	/** webapp relative location of Interstitial.jsp */
 	public final static String INTERSTITIAL_JSP = "jsp/Interstitial.jsp";
@@ -131,7 +129,6 @@ public class AccessPoint extends AbstractRequestHandler implements
 		AccessPoint.class.getName());
 
 	private boolean exactHostMatch = false;
-	private boolean exactSchemeMatch = false;
 	private boolean useAnchorWindow = false;
 	private boolean useServerName = false;
 	private boolean serveStatic = true;
@@ -194,8 +191,6 @@ public class AccessPoint extends AbstractRequestHandler implements
 
 	private long embargoMS = 0;
 	private CustomResultFilterFactory filterFactory = null;
-
-	private UrlCanonicalizer selfRedirectCanonicalizer = null;
 
 	private int maxRedirectAttempts = 0;
 
@@ -556,61 +551,6 @@ public class AccessPoint extends AbstractRequestHandler implements
 		}
 	}
 
-	protected boolean isSelfRedirect(Resource resource,
-			CaptureSearchResult closest, WaybackRequest wbRequest,
-			String canonRequestURL) {
-		int status = resource.getStatusCode();
-
-		// Only applies to redirects
-		if ((status < 300) || (status >= 400)) {
-			return false;
-		}
-
-		String location = resource.getHeader("Location");
-
-		if (location == null) {
-			return false;
-		}
-
-//		if (!closest.getCaptureTimestamp().equals(wbRequest.getReplayTimestamp())) {
-//			return false;
-//		}
-
-		String redirScheme = UrlOperations.urlToScheme(location);
-
-		try {
-			if (redirScheme == null && isExactSchemeMatch()) {
-				location = UrlOperations.resolveUrl(closest.getOriginalUrl(), location);
-				redirScheme = UrlOperations.urlToScheme(location);
-			} else if (location.startsWith("/")) {
-				location = UrlOperations.resolveUrl(closest.getOriginalUrl(), location);
-			}
-
-			if (getSelfRedirectCanonicalizer() != null) {
-				location = getSelfRedirectCanonicalizer().urlStringToKey(location);
-			}
-		} catch (IOException e) {
-			return false;
-		}
-
-		if (location.equals(canonRequestURL)) {
-			// if not exact scheme, don't do scheme compare, must be equal
-			if (!isExactSchemeMatch()) {
-				return true;
-			}
-
-			String origScheme = UrlOperations.urlToScheme(wbRequest
-				.getRequestUrl());
-
-			if ((origScheme != null) && (redirScheme != null) &&
-					(origScheme.compareTo(redirScheme) == 0)) {
-				return true;
-			}
-		}
-
-		return false;
-	}
-
 	public SearchResults queryIndex(WaybackRequest wbRequest)
 			throws ResourceIndexNotAvailableException,
 			ResourceNotInArchiveException, BadQueryException,
@@ -770,15 +710,7 @@ public class AccessPoint extends AbstractRequestHandler implements
 
 		checkInterstitialRedirect(httpRequest,wbRequest);
 
-		String requestURL = wbRequest.getRequestUrl();
-
-		if (getSelfRedirectCanonicalizer() != null) {
-			try {
-				requestURL = getSelfRedirectCanonicalizer().urlStringToKey(requestURL);
-			} catch (IOException io) {
-
-			}
-		}
+		String requestURLKey = urlToKey(wbRequest.getRequestUrl());
 
 		PerformanceLogger p = new PerformanceLogger("replay");
 
@@ -933,7 +865,7 @@ public class AccessPoint extends AbstractRequestHandler implements
 				// If the status is a redirect, check that the location or url date's are different from the current request
 				// Otherwise, replay the previous matched capture.
 				// This chain is unlikely to go past one previous capture, but is possible
-				if (isSelfRedirect(httpHeadersResource, closest, wbRequest, requestURL)) {
+				if (isSelfRedirect(httpHeadersResource, closest, wbRequest, requestURLKey)) {
 					LOGGER.info("Self-Redirect: Skipping " + closest.getCaptureTimestamp() + "/" + closest.getOriginalUrl());
 					//closest = findNextClosest(closest, captureResults, requestMS);
 					closest = captureSelector.next();
@@ -1298,20 +1230,6 @@ public class AccessPoint extends AbstractRequestHandler implements
 	 */
 	public void setExactHostMatch(boolean exactHostMatch) {
 		this.exactHostMatch = exactHostMatch;
-	}
-
-	/**
-	 * @return the exactSchemeMatch
-	 */
-	public boolean isExactSchemeMatch() {
-		return exactSchemeMatch;
-	}
-
-	/**
-	 * @param exactSchemeMatch the exactSchemeMatch to set
-	 */
-	public void setExactSchemeMatch(boolean exactSchemeMatch) {
-		this.exactSchemeMatch = exactSchemeMatch;
 	}
 
 	/**
@@ -1840,23 +1758,6 @@ public class AccessPoint extends AbstractRequestHandler implements
 	 */
 	public CustomResultFilterFactory getFilterFactory() {
 		return filterFactory;
-	}
-
-	/**
-	 * Optional
-	 * @param selfRedirectCanonicalizer
-	 */
-	public void setSelfRedirectCanonicalizer(
-			UrlCanonicalizer selfRedirectCanonicalizer) {
-		this.selfRedirectCanonicalizer = selfRedirectCanonicalizer;
-	}
-
-	/**
-	 * URL canonicalizer for testing self-redirect.
-	 * @return UrlCanonicalizer
-	 */
-	public UrlCanonicalizer getSelfRedirectCanonicalizer() {
-		return this.selfRedirectCanonicalizer;
 	}
 
 	public int getMaxRedirectAttempts() {
