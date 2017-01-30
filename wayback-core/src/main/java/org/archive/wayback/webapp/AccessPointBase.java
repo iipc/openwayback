@@ -23,6 +23,7 @@ package org.archive.wayback.webapp;
 import java.io.IOException;
 
 import org.archive.wayback.UrlCanonicalizer;
+import org.archive.wayback.accesspoint.AccessPointAdapter;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.Resource;
 import org.archive.wayback.core.WaybackRequest;
@@ -33,11 +34,12 @@ import org.archive.wayback.util.webapp.AbstractRequestHandler;
  * AccessPointBase provides fields and methods common to AbstractRequestHandler
  * implementations for core wayback machine functionalities (playback, search,
  * live web archiving, etc.)
+ * 
+ * Note: this class should not have fields whose getter is overridden in {@link AccessPointAdapter}.
+ * If you need to access those fields, be sure to declare an abstract getter method, and access
+ * the value through it.
  */
 public abstract class AccessPointBase extends AbstractRequestHandler {
-
-	private boolean exactSchemeMatch = false;
-	private UrlCanonicalizer selfRedirectCanonicalizer = null;
 
 	protected boolean isSelfRedirect(Resource resource,
 			CaptureSearchResult closest, WaybackRequest wbRequest,
@@ -100,37 +102,21 @@ public abstract class AccessPointBase extends AbstractRequestHandler {
 	/**
 	 * @return the exactSchemeMatch
 	 */
-	public boolean isExactSchemeMatch() {
-		return exactSchemeMatch;
-	}
-
-	/**
-	 * @param exactSchemeMatch the exactSchemeMatch to set
-	 */
-	public void setExactSchemeMatch(boolean exactSchemeMatch) {
-		this.exactSchemeMatch = exactSchemeMatch;
-	}
-
-	/**
-	 * Optional
-	 * @param selfRedirectCanonicalizer
-	 */
-	public void setSelfRedirectCanonicalizer(UrlCanonicalizer selfRedirectCanonicalizer) {
-		this.selfRedirectCanonicalizer = selfRedirectCanonicalizer;
-	}
+	public abstract boolean isExactSchemeMatch();
 
 	/**
 	 * URL canonicalizer for testing self-redirect.
 	 * @return UrlCanonicalizer
 	 */
-	public UrlCanonicalizer getSelfRedirectCanonicalizer() {
-		return selfRedirectCanonicalizer;
-	}
+	public abstract UrlCanonicalizer getSelfRedirectCanonicalizer();
 
 	protected String urlToKey(String url) {
-		if (selfRedirectCanonicalizer != null) {
+		// getSelfRedirectCanonicalizer() can be overridden in a sub-class.
+		// Always access selfRedirectCanonicalizer through getter method.
+		UrlCanonicalizer canonicalizer = getSelfRedirectCanonicalizer();
+		if (canonicalizer != null) {
 			try {
-				return selfRedirectCanonicalizer.urlStringToKey(url);
+				return canonicalizer.urlStringToKey(url);
 			} catch (IOException ex) {
 			}
 		}
