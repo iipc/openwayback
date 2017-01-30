@@ -47,6 +47,7 @@ import org.archive.wayback.ReplayURIConverter.URLStyle;
 import org.archive.wayback.RequestParser;
 import org.archive.wayback.ResourceStore;
 import org.archive.wayback.ResultURIConverter;
+import org.archive.wayback.UrlCanonicalizer;
 import org.archive.wayback.accesscontrol.AuthContextExclusionFilterFactory;
 import org.archive.wayback.accesscontrol.CollectionContext;
 import org.archive.wayback.accesscontrol.ContextExclusionFilterFactory;
@@ -83,7 +84,6 @@ import org.archive.wayback.resourceindex.cdxserver.EmbeddedCDXServerIndex;
 import org.archive.wayback.resourceindex.filters.ExclusionFilter;
 import org.archive.wayback.resourceindex.filters.WARCRevisitAnnotationFilter;
 import org.archive.wayback.util.operator.BooleanOperator;
-import org.archive.wayback.util.webapp.AbstractRequestHandler;
 import org.archive.wayback.util.webapp.ShutdownListener;
 import org.archive.wayback.webapp.LiveWebRedirector.LiveWebState;
 
@@ -129,6 +129,7 @@ public class AccessPoint extends AccessPointBase implements
 		AccessPoint.class.getName());
 
 	private boolean exactHostMatch = false;
+	private boolean exactSchemeMatch = false;
 	private boolean useAnchorWindow = false;
 	private boolean useServerName = false;
 	private boolean serveStatic = true;
@@ -191,6 +192,8 @@ public class AccessPoint extends AccessPointBase implements
 
 	private long embargoMS = 0;
 	private CustomResultFilterFactory filterFactory = null;
+
+	private UrlCanonicalizer selfRedirectCanonicalizer = null;
 
 	private int maxRedirectAttempts = 0;
 
@@ -1216,6 +1219,21 @@ public class AccessPoint extends AccessPointBase implements
 	 */
 
 	/**
+	 * @return the exactSchemeMatch
+	 */
+	@Override
+	public boolean isExactSchemeMatch() {
+		return exactSchemeMatch;
+	}
+
+	/**
+	 * @param exactSchemeMatch the exactSchemeMatch to set
+	 */
+	public void setExactSchemeMatch(boolean exactSchemeMatch) {
+		this.exactSchemeMatch = exactSchemeMatch;
+	}
+
+	/**
 	 * @return the exactHostMatch
 	 */
 	public boolean isExactHostMatch() {
@@ -1758,6 +1776,24 @@ public class AccessPoint extends AccessPointBase implements
 	 */
 	public CustomResultFilterFactory getFilterFactory() {
 		return filterFactory;
+	}
+
+	/**
+	 * Optional
+	 * @param selfRedirectCanonicalizer
+	 */
+	public void setSelfRedirectCanonicalizer(
+			UrlCanonicalizer selfRedirectCanonicalizer) {
+		this.selfRedirectCanonicalizer = selfRedirectCanonicalizer;
+	}
+
+	/**
+	 * URL canonicalizer for testing self-redirect.
+	 * @return UrlCanonicalizer
+	 */
+	@Override
+	public UrlCanonicalizer getSelfRedirectCanonicalizer() {
+		return this.selfRedirectCanonicalizer;
 	}
 
 	public int getMaxRedirectAttempts() {
