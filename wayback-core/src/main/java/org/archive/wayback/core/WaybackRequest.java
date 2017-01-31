@@ -19,7 +19,6 @@
  */
 package org.archive.wayback.core;
 
-import gnu.inet.encoding.IDNA;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -32,9 +31,9 @@ import java.util.Set;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+
 import org.apache.commons.httpclient.URIException;
 import org.archive.url.UsableURIFactory;
-
 import org.archive.wayback.exception.BadQueryException;
 import org.archive.wayback.memento.MementoUtils;
 import org.archive.wayback.requestparser.OpenSearchRequestParser;
@@ -45,6 +44,8 @@ import org.archive.wayback.util.StringFormatter;
 import org.archive.wayback.util.Timestamp;
 import org.archive.wayback.util.url.UrlOperations;
 import org.archive.wayback.webapp.AccessPoint;
+
+import gnu.inet.encoding.IDNA;
 
 /**
  * Abstraction of all the data associated with a users request to the Wayback
@@ -626,7 +627,8 @@ public class WaybackRequest {
 			if (l == null) {
 				l = Locale.getAvailableLocales()[0];
 			}
-                        ResourceBundle b = ResourceBundle.getBundle(UIResults.UI_RESOURCE_BUNDLE_NAME, new UTF8Control());
+            ResourceBundle b = ResourceBundle.getBundle(
+                    UIResults.UI_RESOURCE_BUNDLE_NAME, l, new UTF8Control());
 			formatter = new StringFormatter(b, l);
 		}
 		return formatter;
