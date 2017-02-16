@@ -175,6 +175,7 @@ $().ready(function(){
     });
     $(".tooltip").bt({
         positions: ['top','right','left','bottom'],
+        trigger: ['focus mouseover', 'click'],
         contentSelector: "$(this).find('.pop').html()",
         padding: 0, 
         width: '130px',
@@ -191,7 +192,6 @@ $().ready(function(){
         shadowOffsetX: 0,
         shadowOffsetY: 0, 
         noShadowOpts: {strokeStyle:'#ccc'},
-        hoverIntentOpts: {interval:60,timeout:3500}, 
         clickAnywhereToClose: true,
         closeWhenOthersOpen: true,
         windowMargin: 30,
