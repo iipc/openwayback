@@ -453,7 +453,8 @@ for(int moy = 0; moy < 12; moy++) {
                         <div class="pop">
                             <h3><%= fmt.format("{0,date,MMMMM d, yyyy}",firstCaptureInDayDate) %></h3>
                             <p><%= count %> snapshots</p>
-                            <ul>
+                            <div style="overflow: auto; max-height: 50vh;">
+                                <ul>
 							<%
 							Iterator<CaptureSearchResult> dayItr = 
 								monthDays.get(dom).iterator();
@@ -467,7 +468,8 @@ for(int moy = 0; moy < 12; moy++) {
 								<%
 							}
 							%>
-                            </ul>
+                                </ul>
+                            </div>
                         </div>
                         <div class="day">
 
