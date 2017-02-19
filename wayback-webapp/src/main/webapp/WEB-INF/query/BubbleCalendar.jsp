@@ -40,7 +40,7 @@ int yearWidth = 60;
 int monthWidth = 5;
 int startYear = Timestamp.getStartYear();
 
-imgWidth = yearWidth * ( Calendar.getInstance().get(Calendar.YEAR) - startYear + 1 );
+imgWidth = yearWidth * (Calendar.getInstance().get(Calendar.YEAR) - startYear + 1);
 
 BubbleCalendarData data = new BubbleCalendarData(results);
 
@@ -244,7 +244,7 @@ $().ready(function(){
     
     <div class="clearfix"></div>
 
-    <div id="wbChart" onmouseout="showTrackers('none'); setActiveYear(startYear);" style=" width: 963px; height: 118px;" >
+    <div id="wbChart" onmouseout="showTrackers('none'); setActiveYear(startYear);" style="width: 963px; height: 118px;">
     
   <div id="wbChartThis">
         <a style="position:relative; white-space:nowrap; width:<%= imgWidth %>px;height:<%= imgHeight %>px;" href="<%= queryPrefix %>" id="wm-graph-anchor">
@@ -295,24 +295,24 @@ $().ready(function(){
   
 <script>
   
-    var x = sessionStorage.getItem( "scrollbarX" );
+    var x = sessionStorage.getItem("scrollbarX");
     
     (function($){
         $(window).load(function(){
             $("#wbChart").mCustomScrollbar({
                 axis: "x",
-                theme:"rounded-dots-dark",
+                theme: "rounded-dots-dark",
                 autoExpandScrollbar: true,
-                scrollButtons:{ enable: true },
-                keyboard:{ enable: true },
+                scrollButtons: {enable: true},
+                keyboard: {enable: true},
                 documentTouchScroll: true,
                 setLeft: x,
 
                 callbacks:{
                     whileScrolling:function()
                     {
-                        leftAmount = $( "#mCSB_1_container" ).css( "left" );
-                        sessionStorage.setItem( "scrollbarX", leftAmount );
+                        leftAmount = $("#mCSB_1_container").css("left");
+                        sessionStorage.setItem("scrollbarX", leftAmount);
                     }
                 }
             });
@@ -520,10 +520,10 @@ for(int moy = 0; moy < 12; moy++) {
     var html = document.documentElement;
     body.scrollTop = sessionStorage.getItem( "top" );
 
-    window.onscroll = function() { setTop() };
+    window.onscroll = function() {setTop()};
 
-    function setTop() {
-        sessionStorage.setItem( "top", body.scrollTop );
+    function setTop(){
+        sessionStorage.setItem("top", body.scrollTop);
     }
 </script>
     
