@@ -225,7 +225,7 @@ $().ready(function(){
             <form name="form1" method="get" action="<%= queryPrefix %>query">
 			<input type="hidden" name="<%= WaybackRequest.REQUEST_TYPE %>" value="<%= WaybackRequest.REQUEST_CAPTURE_QUERY %>">
                         <input type="text" name="<%= WaybackRequest.REQUEST_URL %>" value="<%= data.searchUrlForHTML %>" size="40" maxlength="256">
-            <input type="submit" name="Submit" value="Go Wayback!"/>
+            <input type="submit" name="Submit" value="<%= fmt.format("UIGlobal.urlSearchButton") %>"/>
             </form>
     
             <div id="wbMeta">
