@@ -1,21 +1,24 @@
-<%@ page language="java" pageEncoding="utf-8" contentType="text/html;charset=utf-8"%>
-<%@ page import="java.util.List" %>
-<%@ page import="java.util.ArrayList" %>
-<%@ page import="java.util.Calendar" %>
-<%@ page import="java.util.Date" %>
-<%@ page import="java.util.Iterator" %>
-<%@ page import="org.archive.wayback.ResultURIConverter" %>
-<%@ page import="org.archive.wayback.WaybackConstants" %>
-<%@ page import="org.archive.wayback.core.CaptureSearchResult" %>
-<%@ page import="org.archive.wayback.core.CaptureSearchResults" %>
-<%@ page import="org.archive.wayback.core.UIResults" %>
-<%@ page import="org.archive.wayback.core.WaybackRequest" %>
-<%@ page import="org.archive.wayback.partition.BubbleCalendarData" %>
-<%@ page import="org.archive.wayback.util.Timestamp" %>
-<%@ page import="org.archive.wayback.util.partition.Partition" %>
-<%@ page import="org.archive.wayback.util.StringFormatter" %>
+<%@ page language="java" pageEncoding="utf-8" contentType="text/html;charset=utf-8"
+%><%@ page import="java.util.List"
+%><%@ page import="java.util.ArrayList"
+%><%@ page import="java.util.Calendar"
+%><%@ page import="java.util.Date"
+%><%@ page import="java.util.Iterator"
+%><%@ page import="org.archive.wayback.ResultURIConverter"
+%><%@ page import="org.archive.wayback.WaybackConstants"
+%><%@ page import="org.archive.wayback.core.CaptureSearchResult"
+%><%@ page import="org.archive.wayback.core.CaptureSearchResults"
+%><%@ page import="org.archive.wayback.core.UIResults"
+%><%@ page import="org.archive.wayback.core.WaybackRequest"
+%><%@ page import="org.archive.wayback.partition.BubbleCalendarData"
+%><%@ page import="org.archive.wayback.util.Timestamp"
+%><%@ page import="org.archive.wayback.util.partition.Partition"
+%><%@ page import="org.archive.wayback.util.StringFormatter"
+%><!doctype html>
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <jsp:include page="/WEB-INF/template/CookieJS.jsp" flush="true" />
-
 <%
 UIResults results = UIResults.extractCaptureQuery(request);
 
@@ -205,7 +208,8 @@ $().ready(function(){
     $("#wbChartThis").css("padding-left",yrPad+"px");
 });
 </script>
-
+</head>
+<body>
 <div id="position">
 
 
