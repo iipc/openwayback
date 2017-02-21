@@ -14,15 +14,11 @@
 %><%@ page import="org.archive.wayback.util.Timestamp"
 %><%@ page import="org.archive.wayback.util.partition.Partition"
 %><%@ page import="org.archive.wayback.util.StringFormatter"
-%><!doctype html>
-<html>
-	<head>
-		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
-<jsp:include page="/WEB-INF/template/CookieJS.jsp" flush="true" />
-<%
+%><%
 UIResults results = UIResults.extractCaptureQuery(request);
 
 StringFormatter fmt = results.getWbRequest().getFormatter();
+
 ResultURIConverter uriConverter = results.getURIConverter();
 
 // deployment-specific URL prefixes
@@ -54,10 +50,13 @@ String yearImgUrl = graphJspPrefix + "jsp/graph.jsp?nomonth=1&graphdata=" + year
 // a Calendar object for doing days-in-week, day-of-week,days-in-month math:
 Calendar cal = BubbleCalendarData.getUTCCalendar();
 
-%>
-<style type="text/css" src="<%= staticPrefix %>css/styles.css">
-@import url("<%= staticPrefix %>css/styles.css");
-</style>
+%><!doctype html>
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+        <title><%= fmt.format("UIGlobal.pageTitle") %></title>
+<jsp:include page="/WEB-INF/template/CookieJS.jsp" flush="true" />
+<link rel="stylesheet" href="<%= staticPrefix %>css/styles.css" type="text/css"/>
 <script type="text/javascript" src="<%= staticPrefix %>js/jquery-1.4.2.min.js"></script>
 <script type="text/javascript" src="<%= staticPrefix %>js/excanvas.compiled.js"></script>
 <script type="text/javascript" src="<%= staticPrefix %>js/jquery.bt.min.js" charset="utf-8"></script>
@@ -256,19 +255,19 @@ $().ready(function(){
 				width="<%= imgWidth %>"
 				height="<%= imgHeight %>"
 				border="0"
-				src="<%= yearImgUrl %>"></img>
+				src="<%= yearImgUrl %>"/>
 			<img id="wbMouseTrackYearImg" 
 				style="display:none; position:absolute; z-index:9010;"
 				width="<%= yearWidth %>" 
 				height="<%= imgHeight %>"
 				border="0"
-				src="<%= staticPrefix %>images/toolbar/yellow-pixel.png"></img>
+				src="<%= staticPrefix %>images/toolbar/yellow-pixel.png"/>
 			<img id="wbMouseTrackMonthImg"
 				style="display:none; position:absolute; z-index:9011; " 
 				width="<%= monthWidth %>"
 				height="<%= imgHeight %>" 
 				border="0"
-				src="<%= staticPrefix %>images/toolbar/transp-black-pixel.png"></img>
+				src="<%= staticPrefix %>images/toolbar/transp-black-pixel.png"/>
         </div>
         </a>
         	<%
