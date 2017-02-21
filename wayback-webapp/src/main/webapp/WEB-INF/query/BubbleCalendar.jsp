@@ -518,7 +518,7 @@ for(int moy = 0; moy < 12; moy++) {
 <script>
     var body = document.body;
     var html = document.documentElement;
-    body.scrollTop = sessionStorage.getItem( "top" );
+    body.scrollTop = sessionStorage.getItem("top");
 
     window.onscroll = function() {setTop()};
 
