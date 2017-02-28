@@ -170,7 +170,7 @@ filter: alpha(opacity=20);
 #wbMeta p.wbNote a {color:#666;}
 #wbChart {text-align:center;padding:0 30px;}
 #wbChartThis {position:relative;margin:0 auto;}
-.wbChartThisContainer,.wbChartHover {width: 49px;height:30px;float:left;overflow:visible;}
+.wbChartThisContainer,.wbChartHover {width: 60px;height:30px;float:left;overflow:visible;}
 .wbChartThisTop {
     width: 49px;
     height: 80px;
