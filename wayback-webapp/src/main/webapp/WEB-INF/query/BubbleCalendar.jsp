@@ -36,12 +36,11 @@ if(graphJspPrefix == null) {
 // graph size "constants": These are currently baked-in to the JS logic...
 int imgWidth = 0;
 int imgHeight = 75;
-int yearWidth = 49;
+int yearWidth = 60;
 int monthWidth = 5;
 int startYear = Timestamp.getStartYear();
 
-for (int year = startYear; year <= Calendar.getInstance().get(Calendar.YEAR); year++)
-    imgWidth += yearWidth;
+imgWidth = yearWidth * (Calendar.getInstance().get(Calendar.YEAR) - startYear + 1);
 
 BubbleCalendarData data = new BubbleCalendarData(results);
 
@@ -55,11 +54,17 @@ Calendar cal = BubbleCalendarData.getUTCCalendar();
 <style type="text/css" src="<%= staticPrefix %>css/styles.css">
 @import url("<%= staticPrefix %>css/styles.css");
 </style>
+
+<style type="text/css" src="<%= staticPrefix %>css/jquery.mCustomScrollbar.css">
+@import url("<%= staticPrefix %>css/jquery.mCustomScrollbar.css");
+</style>
+
 <script type="text/javascript" src="<%= staticPrefix %>js/jquery-1.4.2.min.js"></script>
 <script type="text/javascript" src="<%= staticPrefix %>js/excanvas.compiled.js"></script>
 <script type="text/javascript" src="<%= staticPrefix %>js/jquery.bt.min.js" charset="utf-8"></script>
 <script type="text/javascript" src="<%= staticPrefix %>js/jquery.hoverintent.min.js" charset="utf-8"></script>
 <script type="text/javascript" src="<%= staticPrefix %>js/graph-calc.js" ></script>
+<script src="<%= staticPrefix %>js/jquery.mCustomScrollbar.concat.min.js" charset="utf-8"></script>
 <!-- More ugly JS to manage the highlight over the graph -->
 <script type="text/javascript">
 
@@ -170,6 +175,7 @@ $().ready(function(){
     });
     $(".tooltip").bt({
         positions: ['top','right','left','bottom'],
+        trigger: ['focus mouseover', 'click'],
         contentSelector: "$(this).find('.pop').html()",
         padding: 0, 
         width: '130px',
@@ -186,7 +192,6 @@ $().ready(function(){
         shadowOffsetX: 0,
         shadowOffsetY: 0, 
         noShadowOpts: {strokeStyle:'#ccc'},
-        hoverIntentOpts: {interval:60,timeout:3500}, 
         clickAnywhereToClose: true,
         closeWhenOthersOpen: true,
         windowMargin: 30,
@@ -220,7 +225,7 @@ $().ready(function(){
             <form name="form1" method="get" action="<%= queryPrefix %>query">
 			<input type="hidden" name="<%= WaybackRequest.REQUEST_TYPE %>" value="<%= WaybackRequest.REQUEST_CAPTURE_QUERY %>">
                         <input type="text" name="<%= WaybackRequest.REQUEST_URL %>" value="<%= data.searchUrlForHTML %>" size="40" maxlength="256">
-            <input type="submit" name="Submit" value="Go Wayback!"/>
+            <input type="submit" name="Submit" value="<%= fmt.format("UIGlobal.urlSearchButton") %>"/>
             </form>
     
             <div id="wbMeta">
@@ -239,7 +244,7 @@ $().ready(function(){
     
     <div class="clearfix"></div>
 
-    <div id="wbChart" onmouseout="showTrackers('none'); setActiveYear(startYear);">
+    <div id="wbChart" onmouseout="showTrackers('none'); setActiveYear(startYear);" style="width: 963px; height: 118px;">
     
   <div id="wbChartThis">
         <a style="position:relative; white-space:nowrap; width:<%= imgWidth %>px;height:<%= imgHeight %>px;" href="<%= queryPrefix %>" id="wm-graph-anchor">
@@ -287,6 +292,34 @@ $().ready(function(){
             %>
   </div>
 </div>
+  
+<script>
+  
+    var x = sessionStorage.getItem("scrollbarX");
+    
+    (function($){
+        $(window).load(function(){
+            $("#wbChart").mCustomScrollbar({
+                axis: "x",
+                theme: "rounded-dots-dark",
+                autoExpandScrollbar: true,
+                scrollButtons: {enable: true},
+                keyboard: {enable: true},
+                documentTouchScroll: true,
+                setLeft: x,
+
+                callbacks:{
+                    whileScrolling:function()
+                    {
+                        leftAmount = $("#mCSB_1_container").css("left");
+                        sessionStorage.setItem("scrollbarX", leftAmount);
+                    }
+                }
+            });
+        });
+    })(jQuery);
+</script>  
+
 <div class="clearfix"></div>
 
 <div id="wbCalendar">
@@ -420,7 +453,8 @@ for(int moy = 0; moy < 12; moy++) {
                         <div class="pop">
                             <h3><%= fmt.format("{0,date,MMMMM d, yyyy}",firstCaptureInDayDate) %></h3>
                             <p><%= count %> snapshots</p>
-                            <ul>
+                            <div style="overflow: auto; max-height: 50vh;">
+                                <ul>
 							<%
 							Iterator<CaptureSearchResult> dayItr = 
 								monthDays.get(dom).iterator();
@@ -434,7 +468,8 @@ for(int moy = 0; moy < 12; moy++) {
 								<%
 							}
 							%>
-                            </ul>
+                                </ul>
+                            </div>
                         </div>
                         <div class="day">
 
@@ -480,4 +515,16 @@ for(int moy = 0; moy < 12; moy++) {
   </div>
 </div>
   
+<script>
+    var body = document.body;
+    var html = document.documentElement;
+    body.scrollTop = sessionStorage.getItem("top");
+
+    window.onscroll = function() {setTop()};
+
+    function setTop(){
+        sessionStorage.setItem("top", body.scrollTop);
+    }
+</script>
+    
 <jsp:include page="/WEB-INF/template/UI-footer.jsp" flush="true" />
