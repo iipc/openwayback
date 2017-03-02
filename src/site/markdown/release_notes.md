@@ -9,6 +9,7 @@ Full listing of changes and bug fixes are not available prior to release 1.2.0 a
 * Make tooltips scrollable and persistent when mouse hovers over a day in BubbleCalendar. [#328](https://github.com/iipc/openwayback/issues/328)
 * Add scrollbar to year chart in BubbleCalendar. [#214](https://github.com/iipc/openwayback/issues/214)
 * Restore the ability to set the locale for each access-point. [#327](https://github.com/iipc/openwayback/pull/327)
+* Include header/footer markup in BubbleCalendar. [#333](https://github.com/iipc/openwayback/issues/333)
 
 ## OpenWayback 2.3.1 Release
 ### Bug fixes
