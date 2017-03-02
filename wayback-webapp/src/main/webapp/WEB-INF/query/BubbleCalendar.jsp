@@ -1,25 +1,24 @@
-<%@ page language="java" pageEncoding="utf-8" contentType="text/html;charset=utf-8"%>
-<%@ page import="java.util.List" %>
-<%@ page import="java.util.ArrayList" %>
-<%@ page import="java.util.Calendar" %>
-<%@ page import="java.util.Date" %>
-<%@ page import="java.util.Iterator" %>
-<%@ page import="org.archive.wayback.ResultURIConverter" %>
-<%@ page import="org.archive.wayback.WaybackConstants" %>
-<%@ page import="org.archive.wayback.core.CaptureSearchResult" %>
-<%@ page import="org.archive.wayback.core.CaptureSearchResults" %>
-<%@ page import="org.archive.wayback.core.UIResults" %>
-<%@ page import="org.archive.wayback.core.WaybackRequest" %>
-<%@ page import="org.archive.wayback.partition.BubbleCalendarData" %>
-<%@ page import="org.archive.wayback.util.Timestamp" %>
-<%@ page import="org.archive.wayback.util.partition.Partition" %>
-<%@ page import="org.archive.wayback.util.StringFormatter" %>
-<jsp:include page="/WEB-INF/template/CookieJS.jsp" flush="true" />
-
-<%
+<%@ page language="java" pageEncoding="utf-8" contentType="text/html;charset=utf-8"
+%><%@ page import="java.util.List"
+%><%@ page import="java.util.ArrayList"
+%><%@ page import="java.util.Calendar"
+%><%@ page import="java.util.Date"
+%><%@ page import="java.util.Iterator"
+%><%@ page import="org.archive.wayback.ResultURIConverter"
+%><%@ page import="org.archive.wayback.WaybackConstants"
+%><%@ page import="org.archive.wayback.core.CaptureSearchResult"
+%><%@ page import="org.archive.wayback.core.CaptureSearchResults"
+%><%@ page import="org.archive.wayback.core.UIResults"
+%><%@ page import="org.archive.wayback.core.WaybackRequest"
+%><%@ page import="org.archive.wayback.partition.BubbleCalendarData"
+%><%@ page import="org.archive.wayback.util.Timestamp"
+%><%@ page import="org.archive.wayback.util.partition.Partition"
+%><%@ page import="org.archive.wayback.util.StringFormatter"
+%><%
 UIResults results = UIResults.extractCaptureQuery(request);
 
 StringFormatter fmt = results.getWbRequest().getFormatter();
+
 ResultURIConverter uriConverter = results.getURIConverter();
 
 // deployment-specific URL prefixes
@@ -50,14 +49,14 @@ String yearImgUrl = graphJspPrefix + "jsp/graph.jsp?nomonth=1&graphdata=" + year
 // a Calendar object for doing days-in-week, day-of-week,days-in-month math:
 Calendar cal = BubbleCalendarData.getUTCCalendar();
 
-%>
-<style type="text/css" src="<%= staticPrefix %>css/styles.css">
-@import url("<%= staticPrefix %>css/styles.css");
-</style>
-
-<style type="text/css" src="<%= staticPrefix %>css/jquery.mCustomScrollbar.css">
-@import url("<%= staticPrefix %>css/jquery.mCustomScrollbar.css");
-</style>
+%><!doctype html>
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+        <title><%= fmt.format("UIGlobal.pageTitle") %></title>
+<jsp:include page="/WEB-INF/template/CookieJS.jsp" flush="true" />
+<link rel="stylesheet" href="<%= staticPrefix %>css/styles.css" type="text/css"/>
+<link rel="stylesheet" href="<%= staticPrefix %>css/jquery.mCustomScrollbar.css" type="text/css" />
 
 <script type="text/javascript" src="<%= staticPrefix %>js/jquery-1.4.2.min.js"></script>
 <script type="text/javascript" src="<%= staticPrefix %>js/excanvas.compiled.js"></script>
@@ -210,7 +209,8 @@ $().ready(function(){
     $("#wbChartThis").css("padding-left",yrPad+"px");
 });
 </script>
-
+</head>
+<body>
 <div id="position">
 
 
@@ -257,19 +257,19 @@ $().ready(function(){
 				width="<%= imgWidth %>"
 				height="<%= imgHeight %>"
 				border="0"
-				src="<%= yearImgUrl %>"></img>
+				src="<%= yearImgUrl %>"/>
 			<img id="wbMouseTrackYearImg" 
 				style="display:none; position:absolute; z-index:9010;"
 				width="<%= yearWidth %>" 
 				height="<%= imgHeight %>"
 				border="0"
-				src="<%= staticPrefix %>images/toolbar/yellow-pixel.png"></img>
+				src="<%= staticPrefix %>images/toolbar/yellow-pixel.png"/>
 			<img id="wbMouseTrackMonthImg"
 				style="display:none; position:absolute; z-index:9011; " 
 				width="<%= monthWidth %>"
 				height="<%= imgHeight %>" 
 				border="0"
-				src="<%= staticPrefix %>images/toolbar/transp-black-pixel.png"></img>
+				src="<%= staticPrefix %>images/toolbar/transp-black-pixel.png"/>
         </div>
         </a>
         	<%
