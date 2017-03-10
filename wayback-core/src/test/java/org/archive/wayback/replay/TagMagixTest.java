@@ -389,7 +389,11 @@ public class TagMagixTest extends TestCase {
 		checkStyleUrlMarkup("<table style='background: url(/css/b.gif)'></table>",
 				"<table style='background: url(http://w.a.org/wb/2004/http://f.au/css/b.gif)'></table>",
 				"http://w.a.org/wb/","2004","http://f.au/");
-		
+		// url path with "()" in path
+		checkStyleUrlMarkup("<table style='background: url(/css/b(foo).gif)'></table>",
+				"<table style='background: url(http://w.a.org/wb/2004/http://f.au/css/b(foo).gif)'></table>",
+				"http://w.a.org/wb/","2004","http://f.au/");
+
 		// quote attribute, apos url:
 		checkStyleUrlMarkup("<table style=\"background: url('/css/b.gif')\"></table>",
 				"<table style=\"background: url('http://w.a.org/wb/2004/http://f.au/css/b.gif')\"></table>",
