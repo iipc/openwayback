@@ -87,6 +87,12 @@ public class FastArchivalUrlReplayParseEventHandler implements
 	private final static String BODY_TAG = "BODY";
 
 	protected static final String FERRET_HEAD_INSERTED = "FERRET_HEAD_INSERTED";
+	
+	/**
+	 * The key in {@code context} for storing state being inside a <NOSCRIPT> element.
+	 * (inside <HEAD> only).
+	 */
+	protected static final String STATE_IN_NOSCRIPT = "STATE_NO_SCRIPT";
 
 	private BlockCSSStringTransformer cssBlockTrans = new BlockCSSStringTransformer();
 	private StringTransformer jsBlockTrans = new JSStringTransformer();
@@ -158,6 +164,10 @@ public class FastArchivalUrlReplayParseEventHandler implements
 			if (tagNode.isEndTag()) {
 				if (tagNode.getTagName().equals("HEAD")) {
 					context.putData(FERRET_IN_HEAD, null);
+					// turn off NOSCRIPT state as well. It's inside HEAD only.
+					context.putData(STATE_IN_NOSCRIPT, null);
+				} else if (tagNode.getTagName().equals("NOSCRIPT")) {
+					context.putData(STATE_IN_NOSCRIPT, null);
 				}
 
 				if (checkAllowTag(pContext, tagNode)) {
@@ -256,6 +266,7 @@ public class FastArchivalUrlReplayParseEventHandler implements
 		boolean alreadyInsertedHead = (context.getData(FERRET_HEAD_INSERTED) != null);
 		boolean insertedJsp = context.getData(FERRET_DONE_KEY) != null;
 		boolean inHead = (context.getData(FERRET_IN_HEAD) != null);
+		boolean inNoScript = (context.getData(STATE_IN_NOSCRIPT) != null);
 
 		if (!alreadyInsertedHead) {
 			// If we're at the beginning of a <head> tag, and haven't inserted yet, 
@@ -277,6 +288,14 @@ public class FastArchivalUrlReplayParseEventHandler implements
 				emitHeadInsert(context, null, false);
 				// Don't return continue to further processing
 			}
+		} else if (tagName.equals("NOSCRIPT") && inHead) {
+			// NOSCRIPT under HEAD may contain elements that usually happen
+			// inside BODY. As long as they are inside NOSCRIPT, we let them go
+			// without inserting bodyInsert. Note this is NOSCRIPT under HEAD
+			// only. If <NOSCRIPT> happens before <HEAD>, non-HEAD elements in
+			// it would trigger bodyInsert. We may want to revise this behavior
+			// based on real-world examples.
+			context.putData(STATE_IN_NOSCRIPT, "");
 		} else if (tagName.equals(BODY_TAG) && inHead) {
 			context.putData(FERRET_IN_HEAD, null);
 			inHead = false;
@@ -294,7 +313,7 @@ public class FastArchivalUrlReplayParseEventHandler implements
 			} else if (tagName.equals(BODY_TAG)) {
 				postEmit = bodyInsertContent(context);
 				context.putData(FERRET_DONE_KEY, "");
-			} else if (!okHeadTagMap.containsKey(tagName)) {
+			} else if (!inNoScript && !okHeadTagMap.containsKey(tagName)) {
 				// hrm... we are seeing a node that should be in
 				// the body.. lets emit the jsp now, *before*
 				// the current Tag:
