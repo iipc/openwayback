@@ -164,7 +164,7 @@ public class FastArchivalUrlReplayParseEventHandler implements
 			if (tagNode.isEndTag()) {
 				if (tagNode.getTagName().equals("HEAD")) {
 					context.putData(FERRET_IN_HEAD, null);
-					// turn off NOSCIPT state as well. It's inside HEAD only.
+					// turn off NOSCRIPT state as well. It's inside HEAD only.
 					context.putData(STATE_IN_NOSCRIPT, null);
 				} else if (tagNode.getTagName().equals("NOSCRIPT")) {
 					context.putData(STATE_IN_NOSCRIPT, null);
