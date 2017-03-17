@@ -11,6 +11,7 @@ Full listing of changes and bug fixes are not available prior to release 1.2.0 a
 * Restore the ability to set the locale for each access-point. [#327](https://github.com/iipc/openwayback/pull/327)
 * Include header/footer markup in BubbleCalendar. [#333](https://github.com/iipc/openwayback/issues/333)
 * Allow any elements to happen inside NOSCRIPT without triggering bodyInsert. [#319](https://github.com/iipc/openwayback/pull/319)
+* Pass `matchType=exact` explicitly for EmbeddedCDXServerIndex. [#318](https://github.com/iipc/openwayback/pull/318/files)
 
 ## OpenWayback 2.3.1 Release
 ### Bug fixes
