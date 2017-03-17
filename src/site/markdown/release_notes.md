@@ -12,6 +12,7 @@ Full listing of changes and bug fixes are not available prior to release 1.2.0 a
 * Include header/footer markup in BubbleCalendar. [#333](https://github.com/iipc/openwayback/issues/333)
 * Allow any elements to happen inside NOSCRIPT without triggering bodyInsert. [#319](https://github.com/iipc/openwayback/pull/319)
 * Pass `matchType=exact` explicitly for EmbeddedCDXServerIndex. [#318](https://github.com/iipc/openwayback/pull/318/files)
+* Rewrite content in and after scripts of type `text/html`. [#315](https://github.com/iipc/openwayback/pull/315)
 
 ## OpenWayback 2.3.1 Release
 ### Bug fixes

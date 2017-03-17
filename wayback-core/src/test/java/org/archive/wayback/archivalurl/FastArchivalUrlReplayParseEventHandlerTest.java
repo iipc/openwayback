@@ -7,8 +7,6 @@ import java.util.Properties;
 
 import javax.servlet.ServletException;
 
-import junit.framework.TestCase;
-
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.UIResults;
 import org.archive.wayback.core.WaybackRequest;
@@ -22,6 +20,8 @@ import org.htmlparser.Tag;
 import org.htmlparser.lexer.Lexer;
 import org.htmlparser.lexer.Page;
 import org.htmlparser.nodes.TagNode;
+
+import junit.framework.TestCase;
 
 /**
  * test {@link FastArchivalUrlReplayParseEventHandler}.
@@ -65,6 +65,17 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 		delegator.setJspInsertPath(null);
 		delegator.init();
 	}
+
+    public void testHtmlScriptElementSupport() throws Exception {
+        final String input = "<html>"
+                + "<script type=\"text/html\"><![CDATA[ <a href=\"/bar.html\">bar</a> ]]></script> "
+                + "<a href=\"/foo.html\">foo</a>" + "</html>";
+        final String expected = "<html>"
+                + "<script type=\"text/html\"><![CDATA[ ><a href=\"http://replay.archive.org/2001/http://www.example.com/bar.html\">bar</a> ]]></script> "
+                + "<a href=\"http://replay.archive.org/2001/http://www.example.com/foo.html\">foo</a>"
+                + "</html>";
+        assertEquals(expected, doEndToEnd(input));
+    }
 
 	public void testAnchorHrefAbsolute() throws Exception {
 		final String input = "<html>" +
