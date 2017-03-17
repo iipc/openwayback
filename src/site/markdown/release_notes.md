@@ -13,6 +13,7 @@ Full listing of changes and bug fixes are not available prior to release 1.2.0 a
 * Allow any elements to happen inside NOSCRIPT without triggering bodyInsert. [#319](https://github.com/iipc/openwayback/pull/319)
 * Pass `matchType=exact` explicitly for EmbeddedCDXServerIndex. [#318](https://github.com/iipc/openwayback/pull/318/files)
 * Rewrite content in and after scripts of type `text/html`. [#315](https://github.com/iipc/openwayback/pull/315)
+* Move `Referer` header parsing in `ServerRelativeArchivalRedirect` to a method for easier customization. [internetarchive#57](https://github.com/internetarchive/wayback/issues/57), [#312](https://github.com/iipc/openwayback/pull/312)
 
 ## OpenWayback 2.3.1 Release
 ### Bug fixes
@@ -20,14 +21,6 @@ Full listing of changes and bug fixes are not available prior to release 1.2.0 a
 * Add "noscript" as a valid Head tag for Toolbar insertion. [#306](https://github.com/iipc/openwayback/issues/306)
 * Remove IA-specific extension code in FlatFileResourceFileLocationDB, make it extensible. [#313](https://github.com/iipc/openwayback/pull/313)
 * Updated webarchive-commons dependency to version 1.1.6
-
-## OpenWayback 2.3.1 Release
-### Features
-* Allow for customization of the method to detect the source of Server-relative
-URL leak [internetarchive#57](https://github.com/internetarchive/wayback/issues/57)
-
-### Bug fixes
-
 
 ## OpenWayback 2.3.0 Release
 ### Features
