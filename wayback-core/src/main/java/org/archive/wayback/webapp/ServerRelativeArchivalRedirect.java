@@ -2,8 +2,8 @@
  *  This file is part of the Wayback archival access software
  *   (http://archive-access.sourceforge.net/projects/wayback/).
  *
- *  Licensed to the Internet Archive (IA) by one or more individual 
- *  contributors. 
+ *  Licensed to the Internet Archive (IA) by one or more individual
+ *  contributors.
  *
  *  The IA licenses this file to You under the Apache License, Version 2.0
  *  (the "License"); you may not use this file except in compliance with
@@ -26,6 +26,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.httpclient.URIException;
 import org.archive.url.UsableURI;
 import org.archive.url.UsableURIFactory;
 import org.archive.util.ArchiveUtils;
@@ -43,6 +44,11 @@ import org.archive.wayback.util.webapp.RequestHandler;
  * it redirects request {@code http://web.archive.org/js/foo.js}
  * to {@code http://web.archive.org/web/20010203040506/http://example.com/js/foo.js}.</p>
  * <p>It is typically set up as catch-all {@code RequestHandler}</p>
+ * <p>
+ * Refactoring Thoughts: parsing and construction of Archival-URL in this
+ * class must match that of Archival-URL access point. Consider delegating
+ * those to AccessPoint for easier configuration.
+ * </p>
  * @author brad
  */
 public class ServerRelativeArchivalRedirect extends AbstractRequestHandler {
@@ -54,9 +60,41 @@ public class ServerRelativeArchivalRedirect extends AbstractRequestHandler {
 	private int matchPort = -1;
 	private String replayPrefix;
 
-	private String handleRequestWithCollection(HttpServletRequest httpRequest,
-			HttpServletResponse httpResponse) throws ServletException,
-			IOException {
+	/**
+	 * A little helper class for passing parsed Archival-URL.
+	 * This may have wider utility... like ArchivalUrl? (we
+	 * have ArchivalUrl class, but it's tied to WaybackRequest.)
+	 */
+	public static final class ArchivalUrlRef {
+		public String root;
+		public String collection;
+		public String datespec;
+		public String url;
+
+		public ArchivalUrlRef(String root, String collection, String datespec, String url) {
+			this.root = root;
+			this.collection = collection;
+			this.datespec = datespec;
+			this.url = url;
+		}
+	}
+
+	/**
+	 * Return the Archival-URL projection of request origin, that
+	 * should give a context necessary to redirect the leaked request
+	 * back to Archival-URL space.
+	 * <p>
+	 * Default implementation parses {@code Referer} header.
+	 * Sub class may override this method to use alternative method
+	 * of obtaining equivalent information. Typically you want to
+	 * call super method first, then resort to alternative method
+	 * if super method returns {@code null} or incomplete info.
+	 * </p>
+	 * @param httpRequest request object
+	 * @return ArchivalUrlCaptureRef object or {@code null}
+	 * if valid information cannot be found.
+	 */
+	protected ArchivalUrlRef getOrigin(HttpServletRequest httpRequest) {
 		// TODO: check if this works with non-empty context path.
 		// I believe requestURI starts with context path. So non-empty
 		// context path will break collection and timestamp extraction
@@ -66,62 +104,88 @@ public class ServerRelativeArchivalRedirect extends AbstractRequestHandler {
 		// hope that it's a server relative request, with a valid referrer:
 		String referer = httpRequest.getHeader("Referer");
 		if (referer == null) return null;
-		
-		final UsableURI refuri = UsableURIFactory.getInstance(referer);
+
+		final UsableURI refuri;
+		final String host;
+		final String authority;
+		String path;
+		try {
+			refuri = UsableURIFactory.getInstance(referer);
+			host = refuri.getHost();
+			authority = refuri.getAuthority();
+			path = refuri.getPath();
+		} catch (URIException ex) {
+			LOGGER.info("Ignoring unparsable Referer: " + referer);
+			return null;
+		}
 
 		// Check that the Referer is our current wayback path
 		// before attempting to use referer as base archival url
 
-		if ((matchHost != null && !matchHost.equals(refuri.getHost())) ||
+		if ((matchHost != null && !matchHost.equals(host)) ||
 				(matchPort != -1 && refuri.getPort() != -1 && matchPort != refuri
 				.getPort())) {
 			LOGGER.info("Server-Relative-Redirect: Skipping, Referer " +
-					refuri.getHost() + ":" + refuri.getPort() +
+					host + ":" + refuri.getPort() +
 					" not from matching wayback host:port\t");
 			return null;
 		}
 
-		String path = refuri.getPath();
-		int secondSlash = path.indexOf('/', 1);
-		if (secondSlash == -1) return null;
-		
-		String collection = path.substring(0, secondSlash);
-		collection = modifyCollection(collection);
+		String collection = null;
+		if (useCollection) {
+			int colSlash = path.indexOf('/', 1);
+			if (colSlash == -1) return null;
 
-		String remainder = path.substring(secondSlash + 1);
-		int thirdSlash = remainder.indexOf('/');
-		if (thirdSlash == -1) return null;
+			// !! collection has leading '/'. It's bad, but existing
+			// sub-class may break if we change it.
+			collection = modifyCollection(path.substring(0, colSlash));
+			path = path.substring(colSlash + 1);
+		} else {
+			// next line expects path does not start with "/"
+			path = path.substring(1);
+		}
 
-		String datespec = remainder.substring(0, thirdSlash);
+		int tsSlash = path.indexOf('/');
+		if (tsSlash == -1) return null;
+
+		String datespec = path.substring(0, tsSlash);
 		if (!datespec.isEmpty() &&
 				!Character.isDigit(datespec.charAt(0))) {
 			datespec = null;
 		}
 
-		String url = remainder.substring(thirdSlash + 1);
+		String url = path.substring(tsSlash + 1);
 		url = UrlOperations.fixupScheme(url);
 		url = ArchiveUtils.addImpliedHttpIfNecessary(url);
+
+		final String root = refuri.getScheme() + "://" + authority;
+		return new ArchivalUrlRef(root, collection, datespec, url);
+	}
+
+	private String handleRequestWithCollection(HttpServletRequest httpRequest,
+			HttpServletResponse httpResponse) throws ServletException,
+			IOException {
+		ArchivalUrlRef ref = getOrigin(httpRequest);
+		if (ref == null) return null;
 
 		String thisPath = httpRequest.getRequestURI();
 		String queryString = httpRequest.getQueryString();
 		if (queryString != null) {
 			thisPath += "?" + queryString;
 		}
-		String resolved = UrlOperations.resolveUrl(url, thisPath);
+		String resolved = UrlOperations.resolveUrl(ref.url, thisPath);
 
 		String contextPath = httpRequest.getContextPath();
-		StringBuilder sb = new StringBuilder(refuri.getScheme());
-		sb.append("://");
-		sb.append(refuri.getAuthority());
+		StringBuilder sb = new StringBuilder(ref.root);
 		sb.append(contextPath);
-		sb.append(collection);
+		sb.append(ref.collection);
 		sb.append("/");
-		if (datespec != null) {
-			sb.append(datespec);
+		if (ref.datespec != null) {
+			sb.append(ref.datespec);
 			sb.append("/");
 		}
 		sb.append(resolved);
-		
+
 		return sb.toString();
 	}
 
@@ -140,37 +204,20 @@ public class ServerRelativeArchivalRedirect extends AbstractRequestHandler {
 			HttpServletRequest httpRequest, HttpServletResponse httpResponse)
 			throws ServletException, IOException {
 
-		// hope that it's a server relative request, with a valid referrer:
-		String referer = httpRequest.getHeader("Referer");
-		if (referer == null) return null;
-		
-		LOGGER.fine("referer:" + referer);
-		UsableURI uri = UsableURIFactory.getInstance(referer);
-		String path = uri.getPath();
+		ArchivalUrlRef ref = getOrigin(httpRequest);
+		if (ref == null) return null;
 
-		String remainder = path.substring(1);
-		int thirdSlash = remainder.indexOf('/');
-		LOGGER.fine("referer:(" + referer + ") remain(" + remainder +
-			") 3rd(" + thirdSlash + ")");
-		if (thirdSlash == -1) return null;
-
-		String datespec = remainder.substring(0, thirdSlash);
-		String url = remainder.substring(thirdSlash + 1);
-		url = UrlOperations.fixupScheme(url);
-		url = ArchiveUtils.addImpliedHttpIfNecessary(url);
 		String thisPath = httpRequest.getRequestURI();
 		String queryString = httpRequest.getQueryString();
 		if (queryString != null) {
 			thisPath += "?" + queryString;
 		}
 
-		String resolved = UrlOperations.resolveUrl(url, thisPath);
+		String resolved = UrlOperations.resolveUrl(ref.url, thisPath);
 		String contextPath = httpRequest.getContextPath();
-		String finalUrl = uri.getScheme() + "://" + uri.getAuthority() +
-				contextPath + "/" + datespec + "/" + resolved;
-		// cross your fingers!!!
-		LOGGER.info("Server-Relative-Redirect:\t" + referer + "\t" +
-				thisPath + "\t" + finalUrl);
+		String finalUrl = ref.root + //uri.getScheme() + "://" + uri.getAuthority() +
+				contextPath + "/" + ref.datespec + "/" + resolved;
+
 		return finalUrl;
 	}
 
