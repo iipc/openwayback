@@ -21,6 +21,7 @@ package org.archive.wayback.util.htmllex;
 
 import org.htmlparser.Node;
 import org.htmlparser.lexer.Lexer;
+import org.htmlparser.nodes.TagNode;
 import org.htmlparser.util.ParserException;
 
 /**
@@ -69,7 +70,13 @@ public class ContextAwareLexer extends NodeUtils {
 		node = lexer.nextNode(context.isInJS());
 		if(node != null) {
 			if(isNonEmptyOpenTagNodeNamed(node, SCRIPT_TAG_NAME)) {
-				context.setInJS(true);
+                TagNode tagNode = (TagNode) node;
+                // If <script> is declared as text/html, do not treat as
+                // JavaScript. See https://github.com/iipc/openwayback/pull/315
+                if (!"text/html"
+                        .equalsIgnoreCase(tagNode.getAttribute("type"))) {
+                    context.setInJS(true);
+                }
 			} else if(isCloseTagNodeNamed(node, SCRIPT_TAG_NAME)) {
 				context.setInJS(false);
 				context.setInScriptText(false);
