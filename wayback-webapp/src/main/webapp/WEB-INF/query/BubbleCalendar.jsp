@@ -217,7 +217,7 @@ $().ready(function(){
     <div id="wbSearch">
     
         <div id="logo">
-            <a href="/index.jsp"><img src="<%= staticPrefix %>images/OpenWayback-banner.png" alt="logo: OpenWayback" /></a>
+            <a href="<%= queryPrefix %>"><img src="<%= staticPrefix %>images/OpenWayback-banner.png" alt="logo: OpenWayback" /></a>
         </div>
 
         <div id="form">
@@ -264,12 +264,6 @@ $().ready(function(){
 				height="<%= imgHeight %>"
 				border="0"
 				src="<%= staticPrefix %>images/toolbar/yellow-pixel.png"/>
-			<img id="wbMouseTrackMonthImg"
-				style="display:none; position:absolute; z-index:9011; " 
-				width="<%= monthWidth %>"
-				height="<%= imgHeight %>" 
-				border="0"
-				src="<%= staticPrefix %>images/toolbar/transp-black-pixel.png"/>
         </div>
         </a>
         	<%
