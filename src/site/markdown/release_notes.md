@@ -14,6 +14,7 @@ Full listing of changes and bug fixes are not available prior to release 1.2.0 a
 * Pass `matchType=exact` explicitly for EmbeddedCDXServerIndex. [#318](https://github.com/iipc/openwayback/pull/318/files)
 * Rewrite content in and after scripts of type `text/html`. [#315](https://github.com/iipc/openwayback/pull/315)
 * Move `Referer` header parsing in `ServerRelativeArchivalRedirect` to a method for easier customization. [internetarchive#57](https://github.com/internetarchive/wayback/issues/57), [#312](https://github.com/iipc/openwayback/pull/312)
+* Fix logo link and broken image in BubbleCalendar. [#338](https://github.com/iipc/openwayback/issues/338)
 
 ## OpenWayback 2.3.1 Release
 ### Bug fixes
