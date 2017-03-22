@@ -263,7 +263,7 @@ $().ready(function(){
 				width="<%= yearWidth %>" 
 				height="<%= imgHeight %>"
 				border="0"
-				src="<%= staticPrefix %>images/toolbar/yellow-pixel.png"/>
+				src="<%= staticPrefix %>images/yellow-pixel.png"/>
         </div>
         </a>
         	<%
