@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.Iterator;
+import java.util.logging.Logger;
 
 import org.archive.util.iterator.CloseableIterator;
 import org.archive.wayback.UrlCanonicalizer;
@@ -52,6 +53,9 @@ import com.sleepycat.je.DatabaseException;
 public class BDBIndex extends BDBRecordSet implements 
 		UpdatableSearchResultSource {
 	
+	private static final Logger LOGGER = Logger.getLogger(BDBIndex.class
+			.getName());
+
 	private String bdbPath = null;
 	private String bdbName = null;
 	/**
@@ -59,6 +63,8 @@ public class BDBIndex extends BDBRecordSet implements
 	 * @throws ConfigurationException
 	 */
 	public void init() throws IOException, ConfigurationException {
+		LOGGER.info("Starting BDBIndex with path: " + bdbPath + " and name: "
+				+ bdbName);
 		initializeDB(bdbPath,bdbName);
 	}
 

@@ -53,6 +53,11 @@ public class DirectoryResourceFileSource implements ResourceFileSource {
 		}
 		ResourceFileList list = new ResourceFileList();
 		populateFileList(list,root,recurse);
+		LOGGER.info("Returning list...");
+		java.util.Iterator<ResourceFileLocation> i = list.iterator();
+		while (i.hasNext()) {
+			LOGGER.info("- " + i.next().getUrl());
+		}
 		return list;
 	}
 
@@ -71,10 +76,12 @@ public class DirectoryResourceFileSource implements ResourceFileSource {
 			File[] files = root.listFiles();
 			if(files != null) {
 				for(File file : files) {
+					LOGGER.fine("Inspecting: " + file.getAbsolutePath());
 					if(file.isFile() && filter.accept(root, file.getName())) {
 						ResourceFileLocation location = new ResourceFileLocation(
 								file.getName(),file.getAbsolutePath());
 						list.add(location);
+						LOGGER.info("Added: " + file.getAbsolutePath());
 					} else if(recurse && file.isDirectory()){
 						populateFileList(list, file, recurse);
 					}
@@ -108,6 +115,7 @@ public class DirectoryResourceFileSource implements ResourceFileSource {
 	}
 
 	public void setName(String name) {
+		LOGGER.info("Setting name to: " + name);
 		this.name = name;
 	}
 
@@ -118,6 +126,7 @@ public class DirectoryResourceFileSource implements ResourceFileSource {
 		return path;
 	}
 	public void setPrefix(String path) {
+		LOGGER.info("Setting prefix to: " + path);
 		this.path = path;
 		root = new File(path);
 	}
@@ -127,6 +136,7 @@ public class DirectoryResourceFileSource implements ResourceFileSource {
 	}
 
 	public void setRecurse(boolean recurse) {
+		LOGGER.info("Setting recurse to: " + recurse);
 		this.recurse = recurse;
 	}
 

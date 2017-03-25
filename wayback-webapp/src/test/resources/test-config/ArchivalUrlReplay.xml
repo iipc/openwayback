@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd"
+           default-init-method="init">
+
+<!-- 
+	The following bean controls how HTTP headers from original documents
+	are returned to clients. This configuration will cause
+	all original HTTP headers to be prefixed with "X-Archive-Orig-". To return
+	the original HTTP headers as-is (except for Content-Length) comment out the
+	"prefix" property. This has significant implications on caching and cookies.
+ -->
+  <bean id="archivalurlhttpheaderprocessor" class="org.archive.wayback.replay.RedirectRewritingHttpHeaderProcessor">
+    <property name="prefix" value="X-Archive-Orig-" />
+  </bean>
+
+<!-- 
+	Renderer for both CSS and JavaScript, causing a comment containing 
+	archive information to be inserted in the returned documents. 
+ -->
+  <bean id="archivalcssreplayrenderer" class="org.archive.wayback.archivalurl.ArchivalUrlCSSReplayRenderer">
+    <constructor-arg><ref bean="archivalurlhttpheaderprocessor"/></constructor-arg>
+  </bean>
+  <bean id="archivaljsreplayrenderer" class="org.archive.wayback.archivalurl.ArchivalUrlJSReplayRenderer">
+    <constructor-arg><ref bean="archivalurlhttpheaderprocessor"/></constructor-arg>
+    <property name="jspInserts">
+      <list>
+        <value>/WEB-INF/replay/ArchiveCSSComment.jsp</value>
+      </list>
+    </property>
+  </bean>
+<!--
+	Renderer which rewrites mms:// URLs inside ASX mime types to be http:// 
+ -->
+  <bean id="archivalasxreplayrenderer" class="org.archive.wayback.archivalurl.ArchivalUrlASXReplayRenderer">
+    <constructor-arg><ref bean="archivalurlhttpheaderprocessor"/></constructor-arg>
+  </bean>
+
+<!--
+	Renderer which returns documents as-is. Suitable for images, binary formats,
+	and anything else Wayback doesn't know how to handle yet. This still 
+	rewrites HTTP headers.
+ -->
+  <bean id="archivaltransparentreplayrenderer" class="org.archive.wayback.replay.TransparentReplayRenderer">
+    <constructor-arg><ref bean="archivalurlhttpheaderprocessor"/></constructor-arg>
+  </bean>
+  
+<!--
+	Renderer which returns documents as-is, including HTTP headers.
+ -->
+  <bean id="identityreplayrenderer" class="org.archive.wayback.replay.TransparentReplayRenderer">
+    <constructor-arg>
+      <bean id="identityhttpheaderprocessor" class="org.archive.wayback.replay.IdentityHttpHeaderProcessor"/>
+    </constructor-arg>
+  </bean>
+
+
+<!--
+	Current production-standard HTML rewriting is performed entirely on the
+	server, improving rewrite accuracy over the old client-side JavaScript-based
+	rewriting. This also reduces live-web request leaks, which improves end-user
+	privacy.
+	
+	SAX events can be handled by the "best practices, mean and lean"
+	FastArchivalUrlReplayParseEventHandler, which covers the current known set
+	of rewrite instructions required.
+	
+	There is also a configurable SAX event handler. ArchivalUrlSaxReplay.xml
+	is a template for defining custom rules for	rewriting HTML content using
+	a SAX parser, allowing fine-tuned and flexible server-side rewriting.
+	ArchivalUrlSaxReplay.xml Defines a bean with id "archivalSAXDelegator", 
+	which can be substituted with the "fastArchivalSAXDelegator" below.
+   <import resource="ArchivalUrlSaxReplay.xml"/>
+ -->
+ <bean id="fastArchivalSAXDelegator" class="org.archive.wayback.archivalurl.FastArchivalUrlReplayParseEventHandler" >
+   <property name="jspInsertPath" value="/WEB-INF/replay/DisclaimChooser.jsp"/>
+ </bean>
+
+<!-- 
+	The following bean defines the SAX based rewriting renderer. It
+	also uses a pluggable character encoding detector, which could allow clients
+	to issue special requests to Wayback to alter the detection strategy.
+ -->
+  <bean id="archivalsaxreplayrenderer" class="org.archive.wayback.archivalurl.ArchivalUrlSAXRewriteReplayRenderer">
+    <constructor-arg><ref bean="archivalurlhttpheaderprocessor"/></constructor-arg>
+    <property name="charsetDetector">
+    	<bean class="org.archive.wayback.replay.charset.RotatingCharsetDetector"/>
+    </property>
+    <property name="delegator" ref="fastArchivalSAXDelegator"/>
+  </bean>
+
+<!-- 
+	The main Archival URL replay dispatcher. It uses a list of Selectors to
+	determine which ReplayRenderer should be used for each document.
+	
+	Each Selector specified is attempted in the order defined here. When a
+	Selector indicates it can handle the document, it's renderer is used to
+	return the document to the user. 
+ -->
+  <bean id="archivalurlreplay" class="org.archive.wayback.replay.SelectorReplayDispatcher">
+  	<property name="closestSelector">
+  	  <bean class="org.archive.wayback.archivalurl.ArchivalUrlDateRedirectingClosestResultSelector" />
+  	</property>
+    <property name="selectors">
+      <list>
+
+        <!-- WARN CLIENT ABOUT PATH REDIRECTS -->
+        <bean class="org.archive.wayback.replay.selector.RedirectSelector">
+          <property name="renderer">
+            <bean class="org.archive.wayback.replay.JSPReplayRenderer">
+              <property name="targetJsp" value="/WEB-INF/replay/UrlRedirectNotice.jsp" />
+            </bean>
+          </property>
+        </bean>
+
+        <!-- Explicit (via "cs_" flag) CSS REPLAY -->
+        <bean class="org.archive.wayback.replay.selector.CSSRequestSelector">
+          <property name="renderer" ref="archivalcssreplayrenderer"/>
+        </bean>
+
+        <!-- Explicit (via "js_" flag) JS REPLAY -->
+        <bean class="org.archive.wayback.replay.selector.JSRequestSelector">
+          <property name="renderer" ref="archivaljsreplayrenderer"/>
+        </bean>
+
+        <!-- Explicit (via "im_" flag) IMG REPLAY -->
+        <bean class="org.archive.wayback.replay.selector.IMGRequestSelector">
+          <property name="renderer" ref="archivaltransparentreplayrenderer"/>
+        </bean>
+
+        <!-- Explicit (via "id_" flag) IDENTITY/RAW REPLAY -->
+        <bean class="org.archive.wayback.replay.selector.IdentityRequestSelector">
+          <property name="renderer" ref="identityreplayrenderer"/>
+        </bean>
+
+        <!-- HTML REPLAY -->
+        <bean class="org.archive.wayback.replay.selector.MimeTypeSelector">
+          <property name="mimeContains">
+            <list>
+              <value>text/html</value>
+              <value>application/xhtml</value>
+            </list>
+          </property>
+          <property name="renderer" ref="archivalsaxreplayrenderer"/>
+        </bean>
+        
+        <!-- SWF Rewriting, highly experimental -->
+        <bean class="org.archive.wayback.replay.selector.MimeTypeSelector">
+          <property name="mimeContains">
+            <list>
+              <value>application/x-shockwave-flash</value>
+            </list>
+          </property>
+          <property name="renderer">
+            <bean class="org.archive.wayback.replay.swf.SWFReplayRenderer">
+ 	          <constructor-arg><ref bean="archivalurlhttpheaderprocessor"/></constructor-arg>
+            </bean>
+          </property>
+        </bean>
+
+        <!-- CSS REPLAY -->
+        <bean class="org.archive.wayback.replay.selector.MimeTypeSelector">
+          <property name="mimeContains">
+            <list>
+              <value>text/css</value>
+            </list>
+          </property>
+          <property name="renderer" ref="archivalcssreplayrenderer"/>
+        </bean>
+
+        <!-- JS REPLAY -->
+        <bean class="org.archive.wayback.replay.selector.MimeTypeSelector">
+          <property name="mimeContains">
+            <list>
+              <value>text/javascript</value>
+              <value>application/javascript</value>
+              <value>application/x-javascript</value>
+            </list>
+          </property>
+          <property name="renderer" ref="archivaljsreplayrenderer"/>
+        </bean>
+
+        <!-- ASX-MIME REPLAY -->
+        <bean class="org.archive.wayback.replay.selector.MimeTypeSelector">
+          <property name="mimeContains">
+            <list>
+              <value>video/x-ms-asf</value>
+            </list>
+          </property>
+          <property name="renderer" ref="archivalasxreplayrenderer"/>
+        </bean>
+
+        <!-- ASX-PATH REPLAY -->
+        <bean class="org.archive.wayback.replay.selector.PathMatchSelector">
+          <property name="pathContains">
+            <list>
+              <value>.asx</value>
+            </list>
+          </property>
+          <property name="renderer" ref="archivalasxreplayrenderer"/>
+        </bean>
+
+        <!-- DEFAULT-TRANSPARENT REPLAY -->
+        <bean class="org.archive.wayback.replay.selector.AlwaysMatchSelector">
+          <property name="renderer" ref="archivaltransparentreplayrenderer"/>
+        </bean>
+
+      </list>
+    </property>
+  </bean>
+  
+<!-- 
+	BELOW ARE OUT-MODED 
+ -->
+  
+
+<!-- 
+	The following bean is an example of the experimental Regex-Based 
+	server-side HTML rewriting Renderer
+ -->
+  <bean id="archivalserversidehtmlreplayrenderer" class="org.archive.wayback.archivalurl.ServerSideHTMLReplayRenderer">
+    <constructor-arg><ref bean="archivalurlhttpheaderprocessor"/></constructor-arg>
+    <property name="jspInserts">
+      <list>
+        <value>/WEB-INF/replay/ArchiveComment.jsp</value>
+<!--
+        <value>/WEB-INF/replay/JSLessTimeline.jsp</value>
+-->
+      </list>
+    </property>
+  </bean>
+
+<!--
+	The following bean is an example of the "classic" or most mature ArchivalUrl
+	Replay system - it uses a combination of server-side regex rewriting and
+	a client-side javascript insert to rewite links within an HTML page.
+-->
+  <bean id="archivalclientsidehtmlreplayrenderer" class="org.archive.wayback.archivalurl.ClientSideHTMLReplayRenderer">
+    <constructor-arg><ref bean="archivalurlhttpheaderprocessor"/></constructor-arg>
+    <property name="jspInserts">
+      <list>
+        <value>/WEB-INF/replay/ArchiveComment.jsp</value>
+        <value>/WEB-INF/replay/ClientSideJSInsert.jsp</value>
+        <value>/WEB-INF/replay/Disclaimer.jsp</value>
+<!-- 
+        <value>/WEB-INF/replay/DebugBanner.jsp</value>
+-->
+      </list>
+    </property>
+  </bean>
+  
+  
+</beans>
