@@ -17,7 +17,9 @@
         <module>wayback-cdx-server-core</module>
 		<module>wayback-cdx-server-webapp</module>
 		<module>wayback-core</module>
+                <module>wayback-capture-tools</module>
 		<module>wayback-webapp</module>
+		<module>wayback-sample-overlay</module>
 		<module>dist</module>
 	</modules>
 
