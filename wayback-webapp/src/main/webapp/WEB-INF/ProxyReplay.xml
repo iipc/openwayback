@@ -6,9 +6,13 @@
 
   <bean id="identityhttpheaderprocessor" class="org.archive.wayback.replay.IdentityHttpHeaderProcessor" />
 
+  <!-- use org.archive.wayback.replay.HttpsRedirectRewriteReplayRendeder instead of
+  org.archive.wayback.replay.TransparentReplayRenderer to force https url rewrite -->
   <bean id="proxytransparentreplayrenderer" class="org.archive.wayback.replay.TransparentReplayRenderer">
     <constructor-arg><ref bean="identityhttpheaderprocessor"/></constructor-arg>
   </bean>
+  <!-- use org.archive.wayback.proxy.HttpsRedirectAndLinksRewriteProxyHTMLMarkupReplayRenderer instead of
+  org.archive.wayback.proxy.ProxyHTMLMarkupReplayRenderer to force https url rewrite -->
   <bean id="proxymarkupreplayrenderer" class="org.archive.wayback.proxy.ProxyHTMLMarkupReplayRenderer">
     <constructor-arg><ref bean="identityhttpheaderprocessor"/></constructor-arg>
     <property name="jspInserts">

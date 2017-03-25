@@ -287,4 +287,20 @@ public abstract class TextReplayRenderer implements ReplayRenderer {
 		}
 		return toInsert;
 	}
+
+	public ContextResultURIConverterFactory getPageConverterFactory() {
+		return pageConverterFactory;
+	}
+
+	public void setPageConverterFactory(ContextResultURIConverterFactory pageConverterFactory) {
+		this.pageConverterFactory = pageConverterFactory;
+	}
+
+	public HttpHeaderProcessor getHttpHeaderProcessor() {
+		return httpHeaderProcessor;
+	}
+
+	public void setHttpHeaderProcessor(HttpHeaderProcessor httpHeaderProcessor) {
+		this.httpHeaderProcessor = httpHeaderProcessor;
+	}
 }
