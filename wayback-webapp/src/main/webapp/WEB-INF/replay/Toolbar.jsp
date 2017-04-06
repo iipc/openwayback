@@ -66,8 +66,11 @@ String starLink = fmt.escapeHtml(queryPrefix + wbRequest.getReplayTimestamp() +
 %>
 <!-- BEGIN WAYBACK TOOLBAR INSERT -->
 
+<link rel="stylesheet" href="<%= staticPrefix %>css/jquery.mCustomScrollbar.css" type="text/css" />
+<script type="text/javascript" src="<%= staticPrefix %>js/jquery-1.4.2.min.js"></script>
 <script type="text/javascript" src="<%= staticPrefix %>js/disclaim-element.js" ></script>
 <script type="text/javascript" src="<%= staticPrefix %>js/graph-calc.js" ></script>
+<script src="<%= staticPrefix %>js/jquery.mCustomScrollbar.concat.min.js" charset="utf-8"></script>
 <script type="text/javascript">
 //<![CDATA[
 var firstDate = <%= firstYearDate.getTime() %>;
@@ -284,7 +287,8 @@ function trackMouseMove(event,element) {
        </td>
        <td style="padding:0!important;">
        <a style="position:relative; white-space:nowrap; width:<%= imgWidth %>px;height:<%= imgHeight %>px;" href="" id="wm-graph-anchor">
-       <div id="wm-ipp-sparkline" style="position:relative; white-space:nowrap; width:<%= imgWidth %>px;height:<%= imgHeight %>px;background-color:#fff;cursor:pointer;border-right:1px solid #ccc;" title="<%= fmt.format("ToolBar.sparklineTitle") %>">
+       <div id="yearChart" style="width: 400px; height: 42px;">
+            <div id="wm-ipp-sparkline" style="position:relative; white-space:nowrap; width:<%= imgWidth %>px;height:<%= imgHeight %>px;background-color:#fff;cursor:pointer;border-right:1px solid #ccc;" title="<%= fmt.format("ToolBar.sparklineTitle") %>">
 			<img id="sparklineImgId" style="position:absolute; z-index:9012; top:0px; left:0px;"
 				onmouseover="showTrackers('inline');" 
 				onmouseout="showTrackers('none');"
@@ -306,6 +310,7 @@ function trackMouseMove(event,element) {
 				height="<%= imgHeight %>" 
 				border="0"
 				src="<%= staticPrefix %>images/toolbar/transp-red-pixel.png"></img>
+            </div>
        </div>
 		</a>
 
@@ -320,6 +325,17 @@ function trackMouseMove(event,element) {
 
 </div>
 </div>
+   
+<script>
+    (function($){
+        $(window).load(function(){
+            $("#yearChart").mCustomScrollbar({
+                axis: "x"
+            });
+        });
+    })(jQuery);
+</script>   
+   
 <script type="text/javascript">
  var wmDisclaimBanner = document.getElementById("wm-ipp");
  if(wmDisclaimBanner != null) {
