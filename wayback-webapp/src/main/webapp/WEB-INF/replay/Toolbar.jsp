@@ -330,7 +330,8 @@ function trackMouseMove(event,element) {
     (function($){
         $(window).load(function(){
             $("#yearChart").mCustomScrollbar({
-                axis: "x"
+                axis: "x",
+                theme: "rounded-dots-dark"
             });
         });
     })(jQuery);
