@@ -5,6 +5,9 @@
 Full listing of changes and bug fixes are not available prior to release 1.2.0 and between release 1.6.0 and OpenWayback 2.0.0 BETA 1 release.
 
 ## OpenWayback 2.3.2 Release
+### Features
+* Add scrollbar to year chart in toolbar appearing in every archived webpage. [#340](https://github.com/iipc/openwayback/issues/340)
+
 ### Bug fixes
 * Make tooltips scrollable and persistent when mouse hovers over a day in BubbleCalendar. [#328](https://github.com/iipc/openwayback/issues/328)
 * Add scrollbar to year chart in BubbleCalendar. [#214](https://github.com/iipc/openwayback/issues/214)
