@@ -327,11 +327,22 @@ function trackMouseMove(event,element) {
 </div>
    
 <script>
+    var x = sessionStorage.getItem("scrollX");
+    
     (function($){
         $(window).load(function(){
             $("#yearChart").mCustomScrollbar({
                 axis: "x",
-                theme: "rounded-dots-dark"
+                theme: "rounded-dots-dark",
+                setLeft: x,
+                
+                callbacks:{
+                    whileScrolling:function()
+                    {
+                        leftAmount = $("#mCSB_1_container").css("left");
+                        sessionStorage.setItem("scrollX", leftAmount);
+                    }
+                }
             });
         });
     })(jQuery);
