@@ -300,6 +300,23 @@ public class CDXServer extends BaseCDXServer {
 				maxLimit = this.queryMaxLimit;
 			}
 
+			// this is an ad-hoc convenience fix up. currently only for prefix query
+			// (we have specific use case in mind).
+			if (query.matchType == MatchType.prefix) {
+				if (query.fl != null && !query.fl.isEmpty()) {
+					String[] fields = query.fl.split(",");
+					for (String s : fields) {
+						if (s.equals("endtimestamp")) {
+							query.lastSkipTimestamp = true;
+						} else if (s.equals("groupcount")) {
+							query.showGroupCount = true;
+						} else if (s.equals("uniqcount")) {
+							query.showUniqCount = true;
+						}
+					}
+				}
+			}
+
 			writeCdxResponse(responseWriter, iter, maxLimit, query, authToken,
 					accessChecker);
 
