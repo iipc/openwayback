@@ -336,6 +336,9 @@ function trackMouseMove(event,element) {
             setLeft: x,
 
             callbacks:{
+                onUpdate:function(){
+                    $("#mCSB_1_container").css("left", x);
+                },
                 whileScrolling:function()
                 {
                     leftAmount = $("#mCSB_1_container").css("left");
