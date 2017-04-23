@@ -333,7 +333,6 @@ function trackMouseMove(event,element) {
         $("#yearChart").mCustomScrollbar({
             axis: "x",
             theme: "rounded-dots-dark",
-            setLeft: x,
 
             callbacks:{
                 onUpdate:function(){
