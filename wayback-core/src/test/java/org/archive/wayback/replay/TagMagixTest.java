@@ -321,7 +321,7 @@ public class TagMagixTest extends TestCase {
 		checkCSSMarkup("@import url(\r\n\"http://foo.com/f.css\"\n\r);",
 				"@import url(\r\n\"http://web.archive.org/wayback/2004/http://foo.com/f.css\"\n\r);",
 				"http://web.archive.org/wayback/","2004","http://foo.com/");
-		
+
 		checkCSSMarkup("@import \"http://foo.com/f.css\";",
 				"@import \"http://web.archive.org/wayback/2004/http://foo.com/f.css\";",
 				"http://web.archive.org/wayback/","2004","http://foo.com/");
@@ -348,8 +348,17 @@ public class TagMagixTest extends TestCase {
 		checkCSSMarkup("background: #9caad1 url('/~alabama/images/bg.jpg') 0 0 repeat-y;",
 				"background: #9caad1 url('http://web.archive.org/wayback/2004/http://foo.com/~alabama/images/bg.jpg') 0 0 repeat-y;",
 				"http://web.archive.org/wayback/","2004","http://foo.com/b/");
-		
-		
+
+		// url path with "()" in path
+		checkStyleUrlMarkup("background: #9caad1 url(/css/b(foo).gif) 0 0 repeat-y;",
+				"background: #9caad1 url(http://w.a.org/wb/2004/http://f.au/css/b(foo).gif) 0 0 repeat-y;",
+				"http://w.a.org/wb/","2004","http://f.au/");
+
+		// url path with "()" in path and compressed with other rules
+		checkStyleUrlMarkup("h1{background: #9caad1 url('/css/b(foo).gif')}p{display:block}",
+				"h1{background: #9caad1 url('http://w.a.org/wb/2004/http://f.au/css/b(foo).gif')}p{display:block}",
+				"http://w.a.org/wb/","2004","http://f.au/");
+
 		// don't convert @namespace urls
 		checkCSSMarkup("@namespace url(\r\n\"http://www.w3.org/1999/xhtml\"\n\r);",
 				"@namespace url(\r\n\"http://www.w3.org/1999/xhtml\"\n\r);",
@@ -375,6 +384,7 @@ public class TagMagixTest extends TestCase {
 		checkStyleUrlMarkup("<table style=\"background: url(css/b.gif)\"></table>",
 				"<table style=\"background: url(http://w.a.org/wb/2004/http://f.au/css/b.gif)\"></table>",
 				"http://w.a.org/wb/","2004","http://f.au/");
+
 		// path relative, meaningful:
 		checkStyleUrlMarkup("<table style=\"background: url(css/b.gif)\"></table>",
 				"<table style=\"background: url(http://w.a.org/wb/2004/http://f.au/b/css/b.gif)\"></table>",
@@ -389,6 +399,7 @@ public class TagMagixTest extends TestCase {
 		checkStyleUrlMarkup("<table style='background: url(/css/b.gif)'></table>",
 				"<table style='background: url(http://w.a.org/wb/2004/http://f.au/css/b.gif)'></table>",
 				"http://w.a.org/wb/","2004","http://f.au/");
+
 		// url path with "()" in path
 		checkStyleUrlMarkup("<table style='background: url(/css/b(foo).gif)'></table>",
 				"<table style='background: url(http://w.a.org/wb/2004/http://f.au/css/b(foo).gif)'></table>",
