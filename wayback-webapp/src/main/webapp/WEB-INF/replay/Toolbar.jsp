@@ -285,10 +285,11 @@ function trackMouseMove(event,element) {
            <a href="<%= starLink %>" style="color:#33f;font-size:11px;font-weight:bold;background-color:transparent;border:none;" title="<%= fmt.format("ToolBar.numCapturesTitle") %>"><strong><%= fmt.format("ToolBar.numCapturesText",data.getResultCount()) %></strong></a>
            <div style="margin:0!important;padding:0!important;color:#666;font-size:9px;padding-top:2px!important;white-space:nowrap;" title="<%= fmt.format("ToolBar.captureRangeTitle") %>"><%= fmt.format("ToolBar.captureRangeText",data.getFirstResultDate(),data.getLastResultDate()) %></div>
        </td>
+       
        <td style="padding:0!important;">
-       <a style="position:relative; white-space:nowrap; width:<%= imgWidth %>px;height:<%= imgHeight %>px;" href="" id="wm-graph-anchor">
        <div id="yearChart" style="width: 400px; height: 42px;">
-            <div id="wm-ipp-sparkline" style="position:relative; white-space:nowrap; width:<%= imgWidth %>px;height:<%= imgHeight %>px;background-color:#fff;cursor:pointer;border-right:1px solid #ccc;" title="<%= fmt.format("ToolBar.sparklineTitle") %>">
+            <a style="position:relative; white-space:nowrap; width:<%= imgWidth %>px;height:<%= imgHeight %>px;" href="" id="wm-graph-anchor">
+                <div id="wm-ipp-sparkline" style="position:relative; white-space:nowrap; width:<%= imgWidth %>px;height:<%= imgHeight %>px;background-color:#fff;cursor:pointer;border-right:1px solid #ccc;" title="<%= fmt.format("ToolBar.sparklineTitle") %>">
 			<img id="sparklineImgId" style="position:absolute; z-index:9012; top:0px; left:0px;"
 				onmouseover="showTrackers('inline');" 
 				onmouseout="showTrackers('none');"
@@ -310,11 +311,11 @@ function trackMouseMove(event,element) {
 				height="<%= imgHeight %>" 
 				border="0"
 				src="<%= staticPrefix %>images/toolbar/transp-red-pixel.png"></img>
-            </div>
+                </div>
+            </a>
        </div>
-		</a>
-
        </td>
+       
        </tr></tbody></table>
    </td>
    <td style="text-align:right;padding:5px;width:65px;font-size:11px!important;">
