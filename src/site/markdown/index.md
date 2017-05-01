@@ -6,6 +6,12 @@ A detailed list of changes (per release) can be found in the [Release Notes](rel
 
 ## Releases
 
+### OpenWayback 2.3.2 Release - 2 May 2017
+
+OpenWayback 2.3.2 release is a bug fix release. See [release notes](release_notes.html) for full details.
+
+[https://github.com/iipc/openwayback/tree/openwayback-2.3.2](https://github.com/iipc/openwayback/tree/openwayback-2.3.2)
+
 ### OpenWayback 2.3.1 Release - 5 Apr 2016
 
 OpenWayback 2.3.1 release is a bug fix release. See [release notes](release_notes.html) for full details.
