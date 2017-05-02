@@ -6,7 +6,7 @@ A detailed list of changes (per release) can be found in the [Release Notes](rel
 
 ## Releases
 
-### OpenWayback 2.3.2 Release - 2 May 2017
+### OpenWayback 2.3.2 Release - 3 May 2017
 
 OpenWayback 2.3.2 release is a bug fix release. See [release notes](release_notes.html) for full details.
 
