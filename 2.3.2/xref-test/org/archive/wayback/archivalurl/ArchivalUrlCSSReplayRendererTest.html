@@ -1,0 +1,161 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>ArchivalUrlCSSReplayRendererTest xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../testapidocs/org/archive/wayback/archivalurl/ArchivalUrlCSSReplayRendererTest.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   <em class="jxr_javadoccomment"> * </em>
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">package</strong> org.archive.wayback.archivalurl;
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <strong class="jxr_keyword">import</strong> java.io.IOException;
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <strong class="jxr_keyword">import</strong> javax.servlet.http.HttpServletResponse;
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <strong class="jxr_keyword">import</strong> junit.framework.Assert;
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <strong class="jxr_keyword">import</strong> junit.framework.TestCase;
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  <strong class="jxr_keyword">import</strong> org.archive.io.warc.TestWARCReader;
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <strong class="jxr_keyword">import</strong> org.archive.io.warc.TestWARCRecordInfo;
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  <strong class="jxr_keyword">import</strong> org.archive.io.warc.WARCRecord;
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <strong class="jxr_keyword">import</strong> org.archive.io.warc.WARCRecordInfo;
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <strong class="jxr_keyword">import</strong> org.archive.wayback.ResultURIConverter;
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <strong class="jxr_keyword">import</strong> org.archive.wayback.core.CaptureSearchResult;
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <strong class="jxr_keyword">import</strong> org.archive.wayback.core.Resource;
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <strong class="jxr_keyword">import</strong> org.archive.wayback.core.WaybackRequest;
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <strong class="jxr_keyword">import</strong> org.archive.wayback.replay.RedirectRewritingHttpHeaderProcessor;
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">import</strong> org.archive.wayback.replay.TextReplayRenderer;
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">import</strong> org.archive.wayback.replay.TransparentReplayRendererTest.TestServletOutputStream;
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">import</strong> org.archive.wayback.resourcestore.resourcefile.WarcResource;
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">import</strong> org.easymock.EasyMock;
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <em class="jxr_javadoccomment"> * unit test for {@link ArchivalCSSReplayRenderer}.</em>
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <em class="jxr_javadoccomment"> * &lt;p&gt;Uses a mock for {@link ResultURIConverter}. ResultURIConverter</em>
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <em class="jxr_javadoccomment"> * must be test separately. ArchivalCSSReplayRenderer does not use</em>
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <em class="jxr_javadoccomment"> * BlockCSSStringTransformer, but relies on TextDocument for extracting</em>
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <em class="jxr_javadoccomment"> * URLs in CSS. So this unit test does not verify those</em>
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <em class="jxr_javadoccomment"> * &lt;code&gt;StringTransformer&lt;/code&gt;s are working correctly.&lt;/p&gt;</em>
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <em class="jxr_javadoccomment"> * &lt;p&gt;ArchivalCSSReplayRenderer is still a primary ReplayRenderer</em>
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <em class="jxr_javadoccomment"> * for CSS resources (vs. CSS embedded in HTML) for both archival-URL</em>
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <em class="jxr_javadoccomment"> * and proxy mode.&lt;/p&gt;</em>
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <em class="jxr_javadoccomment"> *</em>
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <em class="jxr_javadoccomment"> * @author kenji</em>
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <em class="jxr_javadoccomment"> *</em>
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../org/archive/wayback/archivalurl/ArchivalUrlCSSReplayRendererTest.html">ArchivalUrlCSSReplayRendererTest</a> <strong class="jxr_keyword">extends</strong> TestCase {
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>  
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>      ResultURIConverter uriConverter;
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>      HttpServletResponse response;
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>      WaybackRequest wbRequest;
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>      CaptureSearchResult result;
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>      <a href="../../../../org/archive/wayback/replay/TransparentReplayRendererTest.html">TestServletOutputStream</a> servletOutput = <strong class="jxr_keyword">new</strong> <a href="../../../../org/archive/wayback/replay/TransparentReplayRendererTest.html">TestServletOutputStream</a>();
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>      
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>      ArchivalUrlCSSReplayRenderer cut;
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>          
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>      <em class="jxr_comment">/* (non-Javadoc)</em>
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>  <em class="jxr_comment">     * @see junit.framework.TestCase#setUp()</em>
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>  <em class="jxr_comment">     */</em>
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>      <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> setUp() <strong class="jxr_keyword">throws</strong> Exception {
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>          <strong class="jxr_keyword">super</strong>.setUp();
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>          RedirectRewritingHttpHeaderProcessor httpHeaderProcessor = <strong class="jxr_keyword">new</strong> RedirectRewritingHttpHeaderProcessor();
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>          httpHeaderProcessor.setPrefix(<span class="jxr_string">"X-Archive-Orig-"</span>);
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>          
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>          cut = <strong class="jxr_keyword">new</strong> ArchivalUrlCSSReplayRenderer(httpHeaderProcessor);
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>          
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>          uriConverter = EasyMock.createMock(ResultURIConverter.<strong class="jxr_keyword">class</strong>);
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>          
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>          response = EasyMock.createMock(HttpServletResponse.<strong class="jxr_keyword">class</strong>);
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>          EasyMock.expect(response.getOutputStream()).andReturn(servletOutput);
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>          
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>          wbRequest = <strong class="jxr_keyword">new</strong> WaybackRequest();
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>          wbRequest.setFrameWrapperContext(false);
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>          
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>          result = <strong class="jxr_keyword">new</strong> CaptureSearchResult();
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>          result.setOriginalUrl(<span class="jxr_string">"http://www.example.com/"</span>);
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>          result.setCaptureTimestamp(<span class="jxr_string">"20100101123456"</span>);
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>      }
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>      
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> Resource createTestHtmlResource(byte[] payloadBytes) <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>          WARCRecordInfo recinfo = TestWARCRecordInfo.createCompressedHttpResponse(<span class="jxr_string">"text/html"</span>, payloadBytes);
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>          <a href="../../../../org/archive/io/warc/TestWARCReader.html">TestWARCReader</a> ar = <strong class="jxr_keyword">new</strong> <a href="../../../../org/archive/io/warc/TestWARCReader.html">TestWARCReader</a>(recinfo);
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>          WARCRecord rec = ar.get(0);
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>          WarcResource resource = <strong class="jxr_keyword">new</strong> WarcResource(rec, ar);
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>          resource.parseHeaders();
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>          <strong class="jxr_keyword">return</strong> resource;
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>      }
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>      
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>  <em class="jxr_javadoccomment">     * test basic behavior with simple input.</em>
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>  <em class="jxr_javadoccomment">     * expectations:</em>
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>  <em class="jxr_javadoccomment">     * &lt;ul&gt;</em>
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>  <em class="jxr_javadoccomment">     * &lt;li&gt;reads &lt;em&gt;decoded (uncompressed)&lt;/em&gt; contents from archive record.&lt;/li&gt;</em>
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>  <em class="jxr_javadoccomment">     * &lt;li&gt;calls HttpServletResponse.setHeader() for Content-Type, Content-Length and </em>
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>  <em class="jxr_javadoccomment">     *   {@link TextReplayRenderer#getGuessedCharsetHeader()}.&lt;/li&gt;</em>
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>  <em class="jxr_javadoccomment">     * &lt;li&gt;calls HttpServletResponse.setCharsetEncoding() with value "utf-8"&lt;/li&gt;</em>
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>  <em class="jxr_javadoccomment">     * &lt;/ul&gt;</em>
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>  <em class="jxr_javadoccomment">     * @throws Exception</em>
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testBasicBehavior() <strong class="jxr_keyword">throws</strong> Exception {
+<a class="jxr_linenumber" name="L95" href="#L95">95</a>          <strong class="jxr_keyword">final</strong> String payload = 
+<a class="jxr_linenumber" name="L96" href="#L96">96</a>                  <span class="jxr_string">"@import \&quot;style1.css\&quot;;\n"</span> +
+<a class="jxr_linenumber" name="L97" href="#L97">97</a>          		<span class="jxr_string">"@import 'style2.css';\n"</span> +
+<a class="jxr_linenumber" name="L98" href="#L98">98</a>                  <span class="jxr_string">"@import 'http://archive.org/common.css';\n"</span> +
+<a class="jxr_linenumber" name="L99" href="#L99">99</a>          		<span class="jxr_string">"BODY {\n"</span> +
+<a class="jxr_linenumber" name="L100" href="#L100">100</a>         		<span class="jxr_string">"  color: #fff;\n"</span> +
+<a class="jxr_linenumber" name="L101" href="#L101">101</a>         		<span class="jxr_string">"  background: transparent url(bg.gif);\n"</span> +
+<a class="jxr_linenumber" name="L102" href="#L102">102</a>         		<span class="jxr_string">"}\n"</span>;
+<a class="jxr_linenumber" name="L103" href="#L103">103</a>         <strong class="jxr_keyword">final</strong> byte[] payloadBytes = payload.getBytes(<span class="jxr_string">"UTF-8"</span>);
+<a class="jxr_linenumber" name="L104" href="#L104">104</a>         Resource payloadResource = createTestHtmlResource(payloadBytes);
+<a class="jxr_linenumber" name="L105" href="#L105">105</a>         
+<a class="jxr_linenumber" name="L106" href="#L106">106</a>         response.setStatus(200);
+<a class="jxr_linenumber" name="L107" href="#L107">107</a>         response.setCharacterEncoding(<span class="jxr_string">"UTF-8"</span>);
+<a class="jxr_linenumber" name="L108" href="#L108">108</a>         response.setHeader(EasyMock.eq(<span class="jxr_string">"Content-Length"</span>), EasyMock.&lt;String&gt;notNull());
+<a class="jxr_linenumber" name="L109" href="#L109">109</a>         response.setHeader(cut.getGuessedCharsetHeader(), <span class="jxr_string">"UTF-8"</span>);
+<a class="jxr_linenumber" name="L110" href="#L110">110</a>         response.setHeader(<span class="jxr_string">"Content-Type"</span>, <span class="jxr_string">"text/html"</span>);
+<a class="jxr_linenumber" name="L111" href="#L111">111</a>         response.setHeader(EasyMock.matches(<span class="jxr_string">"X-Archive-Orig-.*"</span>), EasyMock.&lt;String&gt;notNull());
+<a class="jxr_linenumber" name="L112" href="#L112">112</a>         EasyMock.expectLastCall().anyTimes();
+<a class="jxr_linenumber" name="L113" href="#L113">113</a>         
+<a class="jxr_linenumber" name="L114" href="#L114">114</a>         <strong class="jxr_keyword">final</strong> String ts = result.getCaptureTimestamp();
+<a class="jxr_linenumber" name="L115" href="#L115">115</a>         <strong class="jxr_keyword">final</strong> String url1 = result.getOriginalUrl() + <span class="jxr_string">"style1.css"</span>;
+<a class="jxr_linenumber" name="L116" href="#L116">116</a>         EasyMock.expect(uriConverter.makeReplayURI(ts, url1)).andReturn(
+<a class="jxr_linenumber" name="L117" href="#L117">117</a>                 <span class="jxr_string">"/web/"</span> + ts + <span class="jxr_string">"/"</span> + url1);
+<a class="jxr_linenumber" name="L118" href="#L118">118</a>         <strong class="jxr_keyword">final</strong> String url2 = result.getOriginalUrl() + <span class="jxr_string">"style2.css"</span>;
+<a class="jxr_linenumber" name="L119" href="#L119">119</a>         EasyMock.expect(uriConverter.makeReplayURI(ts, url2)).andReturn(
+<a class="jxr_linenumber" name="L120" href="#L120">120</a>                 <span class="jxr_string">"/web/"</span> + ts + <span class="jxr_string">"/"</span> + url2);
+<a class="jxr_linenumber" name="L121" href="#L121">121</a>         <strong class="jxr_keyword">final</strong> String url3 = result.getOriginalUrl() + <span class="jxr_string">"bg.gif"</span>;
+<a class="jxr_linenumber" name="L122" href="#L122">122</a>         EasyMock.expect(uriConverter.makeReplayURI(ts, url3)).andReturn(
+<a class="jxr_linenumber" name="L123" href="#L123">123</a>                 <span class="jxr_string">"/web/"</span> + ts + <span class="jxr_string">"/"</span> + url3);
+<a class="jxr_linenumber" name="L124" href="#L124">124</a>         EasyMock.expect(uriConverter.makeReplayURI(ts, <span class="jxr_string">"http://archive.org/common.css"</span>)).andReturn(
+<a class="jxr_linenumber" name="L125" href="#L125">125</a>                 <span class="jxr_string">"http://archive.org/common.css"</span>);
+<a class="jxr_linenumber" name="L126" href="#L126">126</a>         
+<a class="jxr_linenumber" name="L127" href="#L127">127</a>         EasyMock.replay(response, uriConverter);
+<a class="jxr_linenumber" name="L128" href="#L128">128</a>         
+<a class="jxr_linenumber" name="L129" href="#L129">129</a>         cut.renderResource(<strong class="jxr_keyword">null</strong>, response, wbRequest, result, payloadResource, payloadResource, uriConverter, <strong class="jxr_keyword">null</strong>);
+<a class="jxr_linenumber" name="L130" href="#L130">130</a>         
+<a class="jxr_linenumber" name="L131" href="#L131">131</a>         EasyMock.verify(response, uriConverter);
+<a class="jxr_linenumber" name="L132" href="#L132">132</a>         
+<a class="jxr_linenumber" name="L133" href="#L133">133</a>         <strong class="jxr_keyword">final</strong> String expected = 
+<a class="jxr_linenumber" name="L134" href="#L134">134</a>                 <span class="jxr_string">"@import \&quot;/web/20100101123456/http://www.example.com/style1.css\&quot;;\n"</span> +
+<a class="jxr_linenumber" name="L135" href="#L135">135</a>                 <span class="jxr_string">"@import '/web/20100101123456/http://www.example.com/style2.css';\n"</span> +
+<a class="jxr_linenumber" name="L136" href="#L136">136</a>                 <span class="jxr_string">"@import 'http://archive.org/common.css';\n"</span> +
+<a class="jxr_linenumber" name="L137" href="#L137">137</a>                 <span class="jxr_string">"BODY {\n"</span> +
+<a class="jxr_linenumber" name="L138" href="#L138">138</a>                 <span class="jxr_string">"  color: #fff;\n"</span> +
+<a class="jxr_linenumber" name="L139" href="#L139">139</a>                 <span class="jxr_string">"  background: transparent url(/web/20100101123456/http://www.example.com/bg.gif);\n"</span> +
+<a class="jxr_linenumber" name="L140" href="#L140">140</a>                 <span class="jxr_string">"}\n"</span>;
+<a class="jxr_linenumber" name="L141" href="#L141">141</a>         String out = servletOutput.getString();
+<a class="jxr_linenumber" name="L142" href="#L142">142</a>         Assert.assertTrue( out.startsWith( expected ) );
+<a class="jxr_linenumber" name="L143" href="#L143">143</a>     }
+<a class="jxr_linenumber" name="L144" href="#L144">144</a>     
+<a class="jxr_linenumber" name="L145" href="#L145">145</a>     <em class="jxr_comment">// TODO: more tests</em>
+<a class="jxr_linenumber" name="L146" href="#L146">146</a>     <em class="jxr_comment">// - jspInserts</em>
+<a class="jxr_linenumber" name="L147" href="#L147">147</a>         
+<a class="jxr_linenumber" name="L148" href="#L148">148</a> }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2005&#x2013;2017 <a href="http://netpreserve.org/">IIPC</a>. All rights reserved.</div>
+</body>
+</html>
