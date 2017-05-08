@@ -33,7 +33,7 @@ public interface BaseProcessor {
 	 * on nested processor.
 	 */
 	public void begin();
-	
+
 	/**
 	 * Called on each CDX line, just before timestamp range filtering
 	 * (to and from parameters), regexp filtering, and {@code collapser}
@@ -74,7 +74,6 @@ public interface BaseProcessor {
 	 * fields.
 	 * @param format input format
 	 * @return output format
-	 * @see CDXFieldConstants
 	 */
 	public FieldSplitFormat modifyOutputFormat(FieldSplitFormat format);
 }

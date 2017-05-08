@@ -2,8 +2,8 @@
  *  This file is part of the Wayback archival access software
  *   (http://archive-access.sourceforge.net/projects/wayback/).
  *
- *  Licensed to the Internet Archive (IA) by one or more individual 
- *  contributors. 
+ *  Licensed to the Internet Archive (IA) by one or more individual
+ *  contributors.
  *
  *  The IA licenses this file to You under the Apache License, Version 2.0
  *  (the "License"); you may not use this file except in compliance with
@@ -25,14 +25,16 @@ import org.htmlparser.nodes.TagNode;
 import org.htmlparser.util.ParserException;
 
 /**
- * 
- * The Lexer that comes with htmlparser does not handle non-escaped HTML 
+ *
+ * The Lexer that comes with htmlparser does not handle non-escaped HTML
  * entities within SCRIPT tags - by default, something like:
- * 
- *    <script>
+ *
+ * <pre>
+ *    &lt;script>
  *      for(var i=0; i<23; i++) { j+=i; }
- *    </script>
- * 
+ *    &lt;/script>
+ * </pre>
+ *
  * Can cause the lexer to skip over a large part of the document. Technically,
  * the above isn't legit HTML, but of course, folks do stuff like that all the
  * time. So, this class uses a ParseContext object, passed in at construction,
@@ -40,7 +42,7 @@ import org.htmlparser.util.ParserException;
  * ParseContext, and using that state information to perform a parseCDATA()
  * call instead of a nextNode() call at the right time, to try to keep the
  * SAX parsing in sync with the document.
- * 
+ *
  * @author brad
  *
  */

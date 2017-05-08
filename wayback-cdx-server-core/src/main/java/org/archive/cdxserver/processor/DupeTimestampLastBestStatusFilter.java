@@ -15,7 +15,6 @@ import org.archive.format.cdx.CDXLine;
  * different from other processors. It returns 1 if some (non-pass-through)
  * CDX line, which is not necessarily the same as the CDX line passed as argument,
  * is written out. Count of ones would be one less than others.</p>
- * <p>Tests in {@link DupeTimestampBestStatusFilterTest}.</p>
  */
 public class DupeTimestampLastBestStatusFilter extends DupeTimestampBestStatusFilter {
 

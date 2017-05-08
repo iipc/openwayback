@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package org.archive.wayback.accesscontrol;
 
@@ -9,7 +9,7 @@ package org.archive.wayback.accesscontrol;
 public interface CollectionContext {
 	/**
 	 * Return name of this exclusion context.
-	 * @return
+	 * @return the name of this exclusion context
 	 */
 	public String getCollectionContextName();
 }
