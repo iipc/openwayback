@@ -66,8 +66,11 @@ String starLink = fmt.escapeHtml(queryPrefix + wbRequest.getReplayTimestamp() +
 %>
 <!-- BEGIN WAYBACK TOOLBAR INSERT -->
 
+<link rel="stylesheet" href="<%= staticPrefix %>css/jquery.mCustomScrollbar.css" type="text/css" />
+<script type="text/javascript" src="<%= staticPrefix %>js/jquery-1.4.2.min.js"></script>
 <script type="text/javascript" src="<%= staticPrefix %>js/disclaim-element.js" ></script>
 <script type="text/javascript" src="<%= staticPrefix %>js/graph-calc.js" ></script>
+<script src="<%= staticPrefix %>js/jquery.mCustomScrollbar.concat.min.js" charset="utf-8"></script>
 <script type="text/javascript">
 //<![CDATA[
 var firstDate = <%= firstYearDate.getTime() %>;
@@ -161,8 +164,8 @@ function trackMouseMove(event,element) {
 </script>
 
 <style type="text/css">body{margin-top:0!important;padding-top:0!important;min-width:800px!important;}#wm-ipp a:hover{text-decoration:underline!important;}</style>
-<div id="wm-ipp" style="display:none; position:relative;padding:0 5px;min-height:70px;min-width:800px; z-index:9000;">
-<div id="wm-ipp-inside" style="position:fixed;padding:0!important;margin:0!important;width:97%;min-width:780px;border:5px solid #000;border-top:none;background-image:url(<%= staticPrefix %>images/toolbar/wm_tb_bk_trns.png);text-align:center;-moz-box-shadow:1px 1px 3px #333;-webkit-box-shadow:1px 1px 3px #333;box-shadow:1px 1px 3px #333;font-size:11px!important;font-family:'Lucida Grande','Arial',sans-serif!important;">
+<div id="wm-ipp" style="display:none; position:relative;min-height:70px;min-width:800px; z-index:9000;">
+<div id="wm-ipp-inside" style="position:fixed;padding:0!important;margin:0!important;width:99%;min-width:780px;border:5px solid #000;border-top:none;background-image:url(<%= staticPrefix %>images/toolbar/wm_tb_bk_trns.png);text-align:center;-moz-box-shadow:1px 1px 3px #333;-webkit-box-shadow:1px 1px 3px #333;box-shadow:1px 1px 3px #333;font-size:11px!important;font-family:'Lucida Grande','Arial',sans-serif!important;">
     <table style="border-collapse:collapse;margin:0;padding:0;width:100%;"><tbody><tr>
         <td style="padding:10px;vertical-align:top;min-width:110px;">
             <a href="<%= queryPrefix %>" title="Wayback Machine home page" style="background-color:transparent;border:none;"><img src="<%= staticPrefix %>images/toolbar/wayback-toolbar-logo.png" alt="Wayback Machine" width="110" height="39" border="0"/></a>
@@ -282,9 +285,11 @@ function trackMouseMove(event,element) {
            <a href="<%= starLink %>" style="color:#33f;font-size:11px;font-weight:bold;background-color:transparent;border:none;" title="<%= fmt.format("ToolBar.numCapturesTitle") %>"><strong><%= fmt.format("ToolBar.numCapturesText",data.getResultCount()) %></strong></a>
            <div style="margin:0!important;padding:0!important;color:#666;font-size:9px;padding-top:2px!important;white-space:nowrap;" title="<%= fmt.format("ToolBar.captureRangeTitle") %>"><%= fmt.format("ToolBar.captureRangeText",data.getFirstResultDate(),data.getLastResultDate()) %></div>
        </td>
+       
        <td style="padding:0!important;">
-       <a style="position:relative; white-space:nowrap; width:<%= imgWidth %>px;height:<%= imgHeight %>px;" href="" id="wm-graph-anchor">
-       <div id="wm-ipp-sparkline" style="position:relative; white-space:nowrap; width:<%= imgWidth %>px;height:<%= imgHeight %>px;background-color:#fff;cursor:pointer;border-right:1px solid #ccc;" title="<%= fmt.format("ToolBar.sparklineTitle") %>">
+       <div id="yearChart" style="width: 400px; height: 42px;">
+            <a style="position:relative; white-space:nowrap; width:<%= imgWidth %>px;height:<%= imgHeight %>px;" href="" id="wm-graph-anchor">
+                <div id="wm-ipp-sparkline" style="position:relative; white-space:nowrap; width:<%= imgWidth %>px;height:<%= imgHeight %>px;background-color:#fff;cursor:pointer;border-right:1px solid #ccc;" title="<%= fmt.format("ToolBar.sparklineTitle") %>">
 			<img id="sparklineImgId" style="position:absolute; z-index:9012; top:0px; left:0px;"
 				onmouseover="showTrackers('inline');" 
 				onmouseout="showTrackers('none');"
@@ -306,10 +311,11 @@ function trackMouseMove(event,element) {
 				height="<%= imgHeight %>" 
 				border="0"
 				src="<%= staticPrefix %>images/toolbar/transp-red-pixel.png"></img>
+                </div>
+            </a>
        </div>
-		</a>
-
        </td>
+       
        </tr></tbody></table>
    </td>
    <td style="text-align:right;padding:5px;width:65px;font-size:11px!important;">
@@ -320,6 +326,29 @@ function trackMouseMove(event,element) {
 
 </div>
 </div>
+   
+<script>
+    var x = sessionStorage.getItem("scrollX");
+    
+    (function($){
+        $("#yearChart").mCustomScrollbar({
+            axis: "x",
+            theme: "rounded-dots-dark",
+
+            callbacks:{
+                onUpdate:function(){
+                    $("#mCSB_1_container").css("left", x);
+                },
+                whileScrolling:function()
+                {
+                    leftAmount = $("#mCSB_1_container").css("left");
+                    sessionStorage.setItem("scrollX", leftAmount);
+                }
+            }
+        });
+    })(jQuery);
+</script>   
+   
 <script type="text/javascript">
  var wmDisclaimBanner = document.getElementById("wm-ipp");
  if(wmDisclaimBanner != null) {
