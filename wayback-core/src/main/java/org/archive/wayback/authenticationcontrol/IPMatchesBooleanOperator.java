@@ -19,7 +19,9 @@
  */
 package org.archive.wayback.authenticationcontrol;
 
+import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -38,6 +40,7 @@ public class IPMatchesBooleanOperator implements BooleanOperator<WaybackRequest>
 	private static final Logger LOGGER = Logger.getLogger(IPMatchesBooleanOperator
 			.class.getName());
 	private List<IPRange> allowedRanges = null;
+	private List<IPRange> trustedProxies = null;
 
 	/**
 	 * @return null. this is a placeholder for Spring's getter/setter 
@@ -63,21 +66,20 @@ public class IPMatchesBooleanOperator implements BooleanOperator<WaybackRequest>
 		}
 	}
 
-	private List<IPRange> proxyIPList = null;
-	public List<String> getProxyIPList() {
+	public List<String> getTrustedProxies() {
 		return null;
 	}
 
 	/**
-	 * @param proxyIPList parses each String IPRange provided for the proxies, adding them to
+	 * @param trustedProxies parses each String IPRange provided for the proxies, adding them to
 	 * 		the list of IPRanges which must be ignored by the IP match operator
 	 */
-	public void setProxyIPList(List<String> proxyIPList) {
-		this.proxyIPList = new ArrayList<IPRange>();
-		for (String ip : proxyIPList) {
+	public void setTrustedProxies(List<String> trustedProxies) {
+		this.trustedProxies = new ArrayList<IPRange>();
+		for (String ip : trustedProxies) {
 			IPRange range = new IPRange();
 			if (range.setRange(ip)) {
-				this.proxyIPList.add(range);
+				this.trustedProxies.add(range);
 			} else {
 				LOGGER.severe("Unable to parse range (" + ip + ")");
 			}
@@ -85,24 +87,31 @@ public class IPMatchesBooleanOperator implements BooleanOperator<WaybackRequest>
 	}
 
 
-	public String getClientIPFromForwardedForHeader(String forwardedForHeader, String remoteAddr){
-	private static final Logger LOGGER = Logger.getLogger(IPMatchesBooleanOperator
-			.class.getName());
+	public String getClientIPFromForwardedForHeader(String forwardedForHeader){
 
-		if (proxyIPList.isEmpty()) {
+		if (trustedProxies.isEmpty()) {
 			return remoteAddr;
 		}
 
 		ArrayList<String> forwardingIPs;
-		String ip;
+		String ip = null;
+		Boolean containsIP = false;
 		if (forwardedForHeader.contains(",")) {
-			forwardingIPs =  Collections.reverse(Arrays.asList(forwardedForHeader.split(",")));
+			forwardingIPs =  new ArrayList<String>(Arrays.asList(forwardedForHeader.replace(" ", "").split(",")));
+			Collections.reverse(forwardingIPs);
 			for (String forwardingIP : forwardingIPs){
-				if (proxyIPList.contains(forwardingIP)){
-					continue;
+				for (IPRange range : trustedProxies) {
+					if (range.contains(forwardingIP)) {
+						containsIP = true;
+						break;
+					}
 				}
-				ip = forwardingIP;
-				break;
+				if (!containsIP ||
+					(containsIP &&
+						forwardingIPs.get(forwardingIP.size() -1).equals(forwardingIP))) {
+					ip = forwardingIP;
+					break;
+				}
 			}
 		} else {
 			ip = forwardedForHeader;
@@ -115,13 +124,12 @@ public class IPMatchesBooleanOperator implements BooleanOperator<WaybackRequest>
 			return false;
 		}
 		String ipString = value.getRemoteIPAddress();
-		String forwardedForHeader = value.getForwardedForHeader();
-		if (!proxyIPList.isEmpty()) {
-			ipString = getClientIPFromForwardedForHeader(forwardedForHeader, ipString);
-		}
-		if(ipString == null) {
+		if(ipString != null) {
+			ipString = getClientIPFromForwardedForHeader(ipString);
+		} else {
 			return false;
 		}
+		
 		byte[] ip = IPRange.matchIP(ipString);
 		if(ip == null) {
 			LOGGER.severe("Unable to parse remote IP address("+ipString+")");
