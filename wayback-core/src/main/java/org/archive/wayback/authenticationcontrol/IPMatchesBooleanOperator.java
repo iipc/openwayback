@@ -65,7 +65,11 @@ public class IPMatchesBooleanOperator implements BooleanOperator<WaybackRequest>
 			}
 		}
 	}
-
+	
+	/**		
+	 * @return null. this is a placeholder for Spring's getter/setter 		
+	 * 			examination		
+	 */
 	public List<String> getTrustedProxies() {
 		return null;
 	}
@@ -92,7 +96,7 @@ public class IPMatchesBooleanOperator implements BooleanOperator<WaybackRequest>
 		String ip = null;
 		Boolean containsIP = false;
 		if (forwardedForHeader.contains(",")) {
-			forwardingIPs =  new ArrayList<String>(Arrays.asList(forwardedForHeader.replace(" ", "").split(",")));
+			forwardingIPs = new ArrayList<String>(Arrays.asList(forwardedForHeader.replace(" ", "").split(",")));
 			Collections.reverse(forwardingIPs);
 			for (String forwardingIP : forwardingIPs){
 				for (IPRange range : trustedProxies) {
@@ -102,8 +106,7 @@ public class IPMatchesBooleanOperator implements BooleanOperator<WaybackRequest>
 					}
 				}
 				if (!containsIP ||
-					(containsIP &&
-						forwardingIPs.get(forwardingIP.size() -1).equals(forwardingIP))) {
+					(containsIP && forwardingIPs.get(forwardingIP.size() -1).equals(forwardingIP))) {
 					ip = forwardingIP;
 					break;
 				}
