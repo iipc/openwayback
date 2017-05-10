@@ -68,14 +68,14 @@
           <bean class="org.archive.wayback.util.operator.NotBooleanOperator">
             <property name="operand">
               <bean class="org.archive.wayback.authenticationcontrol.IPMatchesBooleanOperator">
-                <property name="allowedRanges">
-                  <list>
-                    <value>192.168.1.16/24</value>
-                  </list>
-                </property>
-                <property name="proxyIPList">
+                <property name="trustedProxies">
                   <list>
                     <value>140.147.210.0/24</value>
+                  </list>
+                </property>
+		<property name="allowedRanges">
+                  <list>
+                    <value>192.168.1.16/24</value>
                   </list>
                 </property>
               </bean>
@@ -166,7 +166,7 @@
         </property>
       </bean>
     </property>
-    <property name="proxyIPList">
+    <property name="trustedProxies">
       <list>
         <value>140.147.210.0/24</value>
       </list>
