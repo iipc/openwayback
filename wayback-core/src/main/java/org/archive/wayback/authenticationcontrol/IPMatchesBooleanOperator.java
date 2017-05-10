@@ -88,11 +88,6 @@ public class IPMatchesBooleanOperator implements BooleanOperator<WaybackRequest>
 
 
 	public String getClientIPFromForwardedForHeader(String forwardedForHeader){
-
-		if (trustedProxies.isEmpty()) {
-			return remoteAddr;
-		}
-
 		ArrayList<String> forwardingIPs;
 		String ip = null;
 		Boolean containsIP = false;
