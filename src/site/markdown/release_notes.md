@@ -7,6 +7,7 @@ Full listing of changes and bug fixes are not available prior to release 1.2.0 a
 ## OpenWayback 2.4.0 Release
 ### Features
 * Add scrollbar to year chart in toolbar appearing in every archived webpage. [#340](https://github.com/iipc/openwayback/issues/340)
+* Add a Dockerfile for building OpenWayback. Please see the [How to build and run in Docker](https://github.com/iipc/openwayback/wiki/How-to-build-and-run-in-Docker) documentation for use. [#344](https://github.com/iipc/openwayback/pull/344)
 
 ## OpenWayback 2.3.2 Release
 ### Bug fixes
