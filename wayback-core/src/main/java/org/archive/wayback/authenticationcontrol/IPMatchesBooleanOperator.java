@@ -106,7 +106,7 @@ public class IPMatchesBooleanOperator implements BooleanOperator<WaybackRequest>
 					}
 				}
 				if (!containsIP ||
-					(containsIP && forwardingIPs.get(forwardingIPs.size() -1).equals(forwardingIP))) {
+					(containsIP && forwardingIPs.get(forwardingIPs.size() - 1).equals(forwardingIP))) {
 					ip = forwardingIP;
 					break;
 				}
