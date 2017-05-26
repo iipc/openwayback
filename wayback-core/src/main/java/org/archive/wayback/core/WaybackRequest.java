@@ -1114,9 +1114,10 @@ public class WaybackRequest {
 		putUnlessNull(REQUEST_REFERER_URL, httpRequest.getHeader("REFERER"));
 		
 		String remoteAddr = httpRequest.getHeader("X-Forwarded-For");
-		if (remoteAddr == null) {
-			remoteAddr = httpRequest.getRemoteAddr();
-		}
+		remoteAddr = (remoteAddr == null) ? 
+			httpRequest.getRemoteAddr() :
+			remoteAddr + ", " + httpRequest.getRemoteAddr();
+		
 		putUnlessNull(REQUEST_REMOTE_ADDRESS, remoteAddr);
 		
 		// Check for AJAX
