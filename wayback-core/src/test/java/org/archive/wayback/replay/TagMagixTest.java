@@ -364,6 +364,11 @@ public class TagMagixTest extends TestCase {
 				"h1{background: #9caad1 url('http://w.a.org/wb/2004/http://f.au/css/b(foo).gif'),default !important}p{display:block}",
 				"http://w.a.org/wb/","2004","http://f.au/");
 
+		// url path with "()" in path and marked !important
+		checkStyleUrlMarkup("h1{background: #9caad1 url('/css/b(foo).gif')!important}p{display:block}",
+				"h1{background: #9caad1 url('http://w.a.org/wb/2004/http://f.au/css/b(foo).gif')!important}p{display:block}",
+				"http://w.a.org/wb/","2004","http://f.au/");
+
 		// don't convert @namespace urls
 		checkCSSMarkup("@namespace url(\r\n\"http://www.w3.org/1999/xhtml\"\n\r);",
 				"@namespace url(\r\n\"http://www.w3.org/1999/xhtml\"\n\r);",
