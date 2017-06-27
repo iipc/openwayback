@@ -154,7 +154,7 @@
 -->
 <!--
   <bean name="netsecureaccesspoint" parent="standardaccesspoint">
-    <property name="accessPointPath" value="${wayback.url.prefix}"/>
+    <property name="accessPointPath" value="${wayback.url.prefix}/netsecure/"/>
     <property name="internalPort" value="8080"/>
     <property name="replayPrefix" value="${wayback.url.prefix}/netsecure/" />
     <property name="queryPrefix" value="${wayback.url.prefix}/netsecure/" />
