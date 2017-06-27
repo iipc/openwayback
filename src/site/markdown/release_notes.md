@@ -9,6 +9,9 @@ Full listing of changes and bug fixes are not available prior to release 1.2.0 a
 * Add scrollbar to year chart in toolbar appearing in every archived webpage. [#340](https://github.com/iipc/openwayback/issues/340)
 * Add a Dockerfile for building OpenWayback. Please see the [How to build and run in Docker](https://github.com/iipc/openwayback/wiki/How-to-build-and-run-in-Docker) documentation for use. [#344](https://github.com/iipc/openwayback/pull/344)
 
+### Bug fixes
+* Add proxy support to IP exclusion. [#260](https://github.com/iipc/openwayback/issues/260) 
+
 ## OpenWayback 2.3.2 Release
 ### Bug fixes
 * Make tooltips scrollable and persistent when mouse hovers over a day in BubbleCalendar. [#328](https://github.com/iipc/openwayback/issues/328)

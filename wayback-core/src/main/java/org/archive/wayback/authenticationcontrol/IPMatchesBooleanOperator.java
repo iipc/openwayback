@@ -19,7 +19,9 @@
  */
 package org.archive.wayback.authenticationcontrol;
 
+import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -38,6 +40,7 @@ public class IPMatchesBooleanOperator implements BooleanOperator<WaybackRequest>
 	private static final Logger LOGGER = Logger.getLogger(IPMatchesBooleanOperator
 			.class.getName());
 	private List<IPRange> allowedRanges = null;
+	private List<IPRange> trustedProxies = null;
 
 	/**
 	 * @return null. this is a placeholder for Spring's getter/setter 
@@ -62,15 +65,69 @@ public class IPMatchesBooleanOperator implements BooleanOperator<WaybackRequest>
 			}
 		}
 	}
+	
+	/**		
+	 * @return null. this is a placeholder for Spring's getter/setter 		
+	 * 			examination		
+	 */
+	public List<String> getTrustedProxies() {
+		return null;
+	}
+
+	/**
+	 * @param trustedProxies parses each String IPRange provided for the proxies, adding them to
+	 * 		the list of IPRanges which must be ignored by the IP match operator
+	 */
+	public void setTrustedProxies(List<String> trustedProxies) {
+		this.trustedProxies = new ArrayList<IPRange>();
+		for (String ip : trustedProxies) {
+			IPRange range = new IPRange();
+			if (range.setRange(ip)) {
+				this.trustedProxies.add(range);
+			} else {
+				LOGGER.severe("Unable to parse range (" + ip + ")");
+			}
+		}
+	}
+
+
+	public String getClientIPFromForwardedForHeader(String forwardedForHeader){
+		ArrayList<String> forwardingIPs;
+		String ip = null;
+		Boolean containsIP = false;
+		if (forwardedForHeader.contains(",")) {
+			forwardingIPs = new ArrayList<String>(Arrays.asList(forwardedForHeader.replace(" ", "").split(",")));
+			Collections.reverse(forwardingIPs);
+			for (String forwardingIP : forwardingIPs){
+				for (IPRange range : trustedProxies) {
+					if (range.contains(forwardingIP)) {
+						containsIP = true;
+						break;
+					}
+				}
+				if (!containsIP ||
+					(containsIP && forwardingIPs.get(forwardingIPs.size() - 1).equals(forwardingIP))) {
+					ip = forwardingIP;
+					break;
+				}
+			}
+		} else {
+			ip = forwardedForHeader;
+		}
+		return ip;
+	}
 
 	public boolean isTrue(WaybackRequest value) {
 		if(allowedRanges == null) {
 			return false;
 		}
 		String ipString = value.getRemoteIPAddress();
-		if(ipString == null) {
+		if(ipString != null) {
+			ipString = getClientIPFromForwardedForHeader(ipString);
+		} else {
 			return false;
 		}
+		
 		byte[] ip = IPRange.matchIP(ipString);
 		if(ip == null) {
 			LOGGER.severe("Unable to parse remote IP address("+ipString+")");
