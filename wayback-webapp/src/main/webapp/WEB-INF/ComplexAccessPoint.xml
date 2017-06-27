@@ -154,22 +154,25 @@
 -->
 <!--
   <bean name="netsecureaccesspoint" parent="standardaccesspoint">
-    <property name="accessPointPath" value="http://localhost:8080/netsecure/"/>
+    <property name="accessPointPath" value="${wayback.url.prefix}"/>
     <property name="internalPort" value="8080"/>
+    <property name="replayPrefix" value="${wayback.url.prefix}/netsecure/" />
+    <property name="queryPrefix" value="${wayback.url.prefix}/netsecure/" />
+    <property name="staticPrefix" value="${wayback.url.prefix}/netsecure/" />
 
     <property name="authentication">
       <bean class="org.archive.wayback.authenticationcontrol.IPMatchesBooleanOperator">
+	<property name="trustedProxies">
+          <list>
+            <value>140.147.210.0/24</value>
+      	  </list>
+    	</property>
         <property name="allowedRanges">
           <list>
             <value>192.168.1.16/24</value>
           </list>
         </property>
       </bean>
-    </property>
-    <property name="trustedProxies">
-      <list>
-        <value>140.147.210.0/24</value>
-      </list>
     </property>
     <property name="uriConverter">
       <bean class="org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter">
