@@ -68,7 +68,7 @@ public class TagMagix {
 			+ RAW_ATTR_VALUE;
 	
 	private static String cssUrlPatString = 
-		"(?<!@namespace [\\w\\s]{0,16})url\\s*\\(\\s*([\\\\\"']*.*?[\\\\\"']*)\\s*\\)(?=[\\s\\\\\"',;}])";
+		"(?<!@namespace [\\w\\s]{0,16})url\\s*\\(\\s*([\\\\\"']*.*?[\\\\\"']*)\\s*\\)(?=[\\s\\\\\"',;}!])";
 
 	private static String cssImportNoUrlPatString =
 		"@import\\s+([\"'].+?[\"'])";
