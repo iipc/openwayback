@@ -89,6 +89,25 @@ public class ArchivalUrlReplayURIConverterTest extends TestCase {
 		}
 	}
 
+	public void testMakeReplayURI_base() throws Exception {
+		ArchivalUrlReplayURIConverter cut = new ArchivalUrlReplayURIConverter();
+		cut.setReplayURIPrefix("http://web.archive.org/web/");
+		
+		// if you pass null as url, makeReplayURI simply returns replayPrefix
+		// in URLStyle specified.
+		{
+			String url = cut.makeReplayURI(null,  null, null, URLStyle.ABSOLUTE);
+			assertEquals("http://web.archive.org/web/", url);
+		}
+		{
+			String url = cut.makeReplayURI(null, null, null, URLStyle.PROTOCOL_RELATIVE);
+			assertEquals("//web.archive.org/web/", url);
+		}
+		{
+			String url = cut.makeReplayURI(null,  null, null, URLStyle.SERVER_RELATIVE);
+			assertEquals("/web/", url);
+		}
+	}
 	/**
 	 * {@code transform} method must call {@link ReplayContext#makeReplayURI(String, String, URLStyle)}
 	 * for replay URL construction, must not call {@code makeReplayURI} in the same class directly.

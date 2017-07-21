@@ -94,7 +94,7 @@ public class ArchivalUrlReplayURIConverter implements ReplayURIConverter, Replay
 				return "//" + url.getHost() + url.getPath();
 			}
 		} else {
-			// Assuming style == FULL
+			// Assuming style is ABSOLUTE
 			return replayURIPrefix;
 		}
 	}
@@ -112,9 +112,16 @@ public class ArchivalUrlReplayURIConverter implements ReplayURIConverter, Replay
 		if (prefix == null) {
 			// Assuming replay URL starts with datespec. Need to start
 			// with "/", or link gets screwed.
-			return "/" + datespec + flags + "/" +
-					UrlOperations.stripDefaultPortFromUrl(url);
+			prefix = "/";
+			if (url == null)
+				return prefix;
+			else
+				return prefix + datespec + flags + "/" +
+						UrlOperations.stripDefaultPortFromUrl(url);
 		}
+
+		if (url == null)
+			return prefix;
 
 		if (url.startsWith(prefix))
 			return url;
