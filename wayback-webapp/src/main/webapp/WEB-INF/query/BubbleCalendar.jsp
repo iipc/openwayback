@@ -147,23 +147,6 @@ function trackMouseMove(event,element) {
 
 <script type="text/javascript">
 $().ready(function(){
-    $(".date").each(function(i){
-        var actualsize = $(this).find(".hidden").text();
-        var size = actualsize * 12;
-        var offset = size / 2;
-        if (actualsize == 1) {size = 30, offset = 15;}
-        else if (actualsize == 2) {size = 40, offset = 20;}
-        else if (actualsize == 3) {size = 50, offset = 25;}
-        else if (actualsize == 4) {size = 60, offset = 30;}
-        else if (actualsize == 5) {size = 70, offset = 35;}
-        else if (actualsize == 6) {size = 80, offset = 40;}
-        else if (actualsize == 7) {size = 90, offset = 45;}
-        else if (actualsize == 8) {size = 100, offset = 50;}
-        else if (actualsize == 9) {size = 110, offset = 55;}
-        else if (actualsize >= 10) {size = 120, offset = 60;}
-        $(this).find("img").attr("src","<%= staticPrefix %>images/blueblob-dk.png");
-        $(this).find(".measure").css({'width':+size+'px','height':+size+'px','top':'-'+offset+'px','left':'-'+offset+'px'});
-    });
     $(".day a").each(function(i){
         var dateClass = $(this).attr("class");
         var dateId = "#"+dateClass;
@@ -413,12 +396,6 @@ for(int moy = 0; moy < 12; moy++) {
                             
                             <div id="calendarBubble" style="background-color: rgba( 0, 171, 235, <%= alpha %> );"></div>
                             
-                    <div class="date">
-                        <div class="position">
-                           <div class="hidden"><%= count %></div>
-                           <div class="measure opacity20" id="<%= fmt.format("{0,date,MMM-d-yyyy}",firstCaptureInDayDate) %>"><img width="100%" height="100%"/></div>
-                        </div>
-                    </div>
 				</td><%
 
 			} else {
