@@ -448,6 +448,9 @@ for(int moy = 0; moy < 12; moy++) {
     
 <%
 }
+
+min = 0;
+max = 0;
 %>
   </div>
   <div id="calOver" class="calPosition">
