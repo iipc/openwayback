@@ -410,6 +410,9 @@ for(int moy = 0; moy < 12; moy++) {
                                         alpha = 1;
                                 }
 				%><td>
+                            
+                            <div id="calendarBubble" style="background-color: rgba( 0, 171, 235, <%= alpha %> );"></div>
+                            
                     <div class="date">
                         <div class="position">
                            <div class="hidden"><%= count %></div>

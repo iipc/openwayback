@@ -217,3 +217,11 @@ filter: alpha(opacity=20);
     left: 1px;
     cursor: pointer;
 }
+
+#calendarBubble {
+    width: 30px;
+    height: 30px;
+    -webkit-border-radius: 15px;
+    -moz-border-radius: 15px;
+    border-radius: 15px;
+}
