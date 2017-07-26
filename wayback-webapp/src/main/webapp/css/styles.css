@@ -235,3 +235,10 @@ filter: alpha(opacity=20);
 }
 #calFooter {padding-right:35px;}
 #legend {float: right;}
+
+#wbCalNote {
+    margin-top: 5%;
+}
+#wbCalNote b {
+    font-size: 18px;
+}

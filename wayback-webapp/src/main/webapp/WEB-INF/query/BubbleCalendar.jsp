@@ -576,12 +576,16 @@ for(int moy = 0; moy < 12; moy++) {
                 </tr>
             </table>
         </div>
-    </div>    
-    
-  </div>
-  <div id="wbCalNote">
-    <h2><%= fmt.format("BubbleCalendar.wbCalNoteTitle") %></h2>
-    <p><%= fmt.format("BubbleCalendar.wbCalNote", data.searchUrlForHTML, fmt.format("UIGlobal.helpUrl")) %></p>
+        
+        <div class="clearfix"></div>
+                
+        <div id="wbCalNote">
+            <p>
+                <b><%= fmt.format("BubbleCalendar.wbCalNoteTitle") %>: </b>
+                <%= fmt.format("BubbleCalendar.wbCalNote", data.searchUrlForHTML, fmt.format("UIGlobal.helpUrl")) %>
+            </p>
+        </div>
+    </div>        
   </div>
 </div>
   
