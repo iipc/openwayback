@@ -352,6 +352,8 @@ int span = 0;
         }
     }
 
+span = max - min + 1;
+
 // draw 12 months, 0-11 (0=Jan, 11=Dec)
 for(int moy = 0; moy < 12; moy++) {
 	Partition<Partition<CaptureSearchResult>> curMonth = data.monthsByDay.get(moy);
