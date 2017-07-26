@@ -391,7 +391,8 @@ for(int moy = 0; moy < 12; moy++) {
 							firstCaptureInDay.getCaptureTimestamp(),
 							firstCaptureInDay.getOriginalUrl());
 				Date firstCaptureInDayDate = firstCaptureInDay.getCaptureDate();
-				String safeUrl = fmt.escapeHtml(replayUrl);		
+				String safeUrl = fmt.escapeHtml(replayUrl);
+                                double alpha = (double) (count - min + 1) / span;
 				%><td>
                     <div class="date">
                         <div class="position">
