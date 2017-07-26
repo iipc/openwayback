@@ -1,25 +1,24 @@
-<%@ page language="java" pageEncoding="utf-8" contentType="text/html;charset=utf-8"%>
-<%@ page import="java.util.List" %>
-<%@ page import="java.util.ArrayList" %>
-<%@ page import="java.util.Calendar" %>
-<%@ page import="java.util.Date" %>
-<%@ page import="java.util.Iterator" %>
-<%@ page import="org.archive.wayback.ResultURIConverter" %>
-<%@ page import="org.archive.wayback.WaybackConstants" %>
-<%@ page import="org.archive.wayback.core.CaptureSearchResult" %>
-<%@ page import="org.archive.wayback.core.CaptureSearchResults" %>
-<%@ page import="org.archive.wayback.core.UIResults" %>
-<%@ page import="org.archive.wayback.core.WaybackRequest" %>
-<%@ page import="org.archive.wayback.partition.BubbleCalendarData" %>
-<%@ page import="org.archive.wayback.util.Timestamp" %>
-<%@ page import="org.archive.wayback.util.partition.Partition" %>
-<%@ page import="org.archive.wayback.util.StringFormatter" %>
-<jsp:include page="/WEB-INF/template/CookieJS.jsp" flush="true" />
-
-<%
+<%@ page language="java" pageEncoding="utf-8" contentType="text/html;charset=utf-8"
+%><%@ page import="java.util.List"
+%><%@ page import="java.util.ArrayList"
+%><%@ page import="java.util.Calendar"
+%><%@ page import="java.util.Date"
+%><%@ page import="java.util.Iterator"
+%><%@ page import="org.archive.wayback.ResultURIConverter"
+%><%@ page import="org.archive.wayback.WaybackConstants"
+%><%@ page import="org.archive.wayback.core.CaptureSearchResult"
+%><%@ page import="org.archive.wayback.core.CaptureSearchResults"
+%><%@ page import="org.archive.wayback.core.UIResults"
+%><%@ page import="org.archive.wayback.core.WaybackRequest"
+%><%@ page import="org.archive.wayback.partition.BubbleCalendarData"
+%><%@ page import="org.archive.wayback.util.Timestamp"
+%><%@ page import="org.archive.wayback.util.partition.Partition"
+%><%@ page import="org.archive.wayback.util.StringFormatter"
+%><%
 UIResults results = UIResults.extractCaptureQuery(request);
 
 StringFormatter fmt = results.getWbRequest().getFormatter();
+
 ResultURIConverter uriConverter = results.getURIConverter();
 
 // deployment-specific URL prefixes
@@ -40,7 +39,7 @@ int yearWidth = 60;
 int monthWidth = 5;
 int startYear = Timestamp.getStartYear();
 
-imgWidth = yearWidth * ( Calendar.getInstance().get(Calendar.YEAR) - startYear + 1 );
+imgWidth = yearWidth * (Calendar.getInstance().get(Calendar.YEAR) - startYear + 1);
 
 BubbleCalendarData data = new BubbleCalendarData(results);
 
@@ -50,14 +49,14 @@ String yearImgUrl = graphJspPrefix + "jsp/graph.jsp?nomonth=1&graphdata=" + year
 // a Calendar object for doing days-in-week, day-of-week,days-in-month math:
 Calendar cal = BubbleCalendarData.getUTCCalendar();
 
-%>
-<style type="text/css" src="<%= staticPrefix %>css/styles.css">
-@import url("<%= staticPrefix %>css/styles.css");
-</style>
-
-<style type="text/css" src="<%= staticPrefix %>css/jquery.mCustomScrollbar.css">
-@import url("<%= staticPrefix %>css/jquery.mCustomScrollbar.css");
-</style>
+%><!doctype html>
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+        <title><%= fmt.format("UIGlobal.pageTitle") %></title>
+<jsp:include page="/WEB-INF/template/CookieJS.jsp" flush="true" />
+<link rel="stylesheet" href="<%= staticPrefix %>css/styles.css" type="text/css"/>
+<link rel="stylesheet" href="<%= staticPrefix %>css/jquery.mCustomScrollbar.css" type="text/css" />
 
 <script type="text/javascript" src="<%= staticPrefix %>js/jquery-1.4.2.min.js"></script>
 <script type="text/javascript" src="<%= staticPrefix %>js/excanvas.compiled.js"></script>
@@ -148,23 +147,6 @@ function trackMouseMove(event,element) {
 
 <script type="text/javascript">
 $().ready(function(){
-    $(".date").each(function(i){
-        var actualsize = $(this).find(".hidden").text();
-        var size = actualsize * 12;
-        var offset = size / 2;
-        if (actualsize == 1) {size = 30, offset = 15;}
-        else if (actualsize == 2) {size = 40, offset = 20;}
-        else if (actualsize == 3) {size = 50, offset = 25;}
-        else if (actualsize == 4) {size = 60, offset = 30;}
-        else if (actualsize == 5) {size = 70, offset = 35;}
-        else if (actualsize == 6) {size = 80, offset = 40;}
-        else if (actualsize == 7) {size = 90, offset = 45;}
-        else if (actualsize == 8) {size = 100, offset = 50;}
-        else if (actualsize == 9) {size = 110, offset = 55;}
-        else if (actualsize >= 10) {size = 120, offset = 60;}
-        $(this).find("img").attr("src","<%= staticPrefix %>images/blueblob-dk.png");
-        $(this).find(".measure").css({'width':+size+'px','height':+size+'px','top':'-'+offset+'px','left':'-'+offset+'px'});
-    });
     $(".day a").each(function(i){
         var dateClass = $(this).attr("class");
         var dateId = "#"+dateClass;
@@ -176,7 +158,7 @@ $().ready(function(){
     $(".tooltip").bt({
         positions: ['top','right','left','bottom'],
         trigger: ['focus mouseover', 'click'],
-	contentSelector: "$(this).find('.pop').html()",
+        contentSelector: "$(this).find('.pop').html()",
         padding: 0, 
         width: '130px',
         spikeGirth: 8, 
@@ -210,7 +192,8 @@ $().ready(function(){
     $("#wbChartThis").css("padding-left",yrPad+"px");
 });
 </script>
-
+</head>
+<body>
 <div id="position">
 
 
@@ -244,7 +227,7 @@ $().ready(function(){
     
     <div class="clearfix"></div>
 
-    <div id="wbChart" onmouseout="showTrackers('none'); setActiveYear(startYear);" style=" width: 963px; height: 118px;" >
+    <div id="wbChart" onmouseout="showTrackers('none'); setActiveYear(startYear);" style="width: 963px; height: 118px;">
     
   <div id="wbChartThis">
         <a style="position:relative; white-space:nowrap; width:<%= imgWidth %>px;height:<%= imgHeight %>px;" href="<%= queryPrefix %>" id="wm-graph-anchor">
@@ -257,19 +240,13 @@ $().ready(function(){
 				width="<%= imgWidth %>"
 				height="<%= imgHeight %>"
 				border="0"
-				src="<%= yearImgUrl %>"></img>
+				src="<%= yearImgUrl %>"/>
 			<img id="wbMouseTrackYearImg" 
 				style="display:none; position:absolute; z-index:9010;"
 				width="<%= yearWidth %>" 
 				height="<%= imgHeight %>"
 				border="0"
-				src="<%= staticPrefix %>images/toolbar/yellow-pixel.png"></img>
-			<img id="wbMouseTrackMonthImg"
-				style="display:none; position:absolute; z-index:9011; " 
-				width="<%= monthWidth %>"
-				height="<%= imgHeight %>" 
-				border="0"
-				src="<%= staticPrefix %>images/toolbar/transp-black-pixel.png"></img>
+				src="<%= staticPrefix %>images/yellow-pixel.png"/>
         </div>
         </a>
         	<%
@@ -295,27 +272,27 @@ $().ready(function(){
   
 <script>
   
-    var x = sessionStorage.getItem( "scrollbarX" );
+    var x = sessionStorage.getItem("scrollbarX");
     
     (function($){
-        $(window).load(function(){
-            $("#wbChart").mCustomScrollbar({
-                axis: "x",
-                theme:"rounded-dots-dark",
-                autoExpandScrollbar: true,
-                scrollButtons:{ enable: true },
-                keyboard:{ enable: true },
-                documentTouchScroll: true,
-                setLeft: x,
+        $("#wbChart").mCustomScrollbar({
+            axis: "x",
+            theme: "rounded-dots-dark",
+            autoExpandScrollbar: true,
+            scrollButtons: {enable: true},
+            keyboard: {enable: true},
+            documentTouchScroll: true,
 
-                callbacks:{
-                    whileScrolling:function()
-                    {
-                        leftAmount = $( "#mCSB_1_container" ).css( "left" );
-                        sessionStorage.setItem( "scrollbarX", leftAmount );
-                    }
+            callbacks:{
+                onUpdate:function(){
+                    $("#mCSB_1_container").css("left", x);
+                },
+                whileScrolling:function()
+                {
+                    leftAmount = $("#mCSB_1_container").css("left");
+                    sessionStorage.setItem("scrollbarX", leftAmount);
                 }
-            });
+            }
         });
     })(jQuery);
 </script>  
@@ -326,10 +303,40 @@ $().ready(function(){
     
   <div id="calUnder" class="calPosition">
 
-    
-
-
+<%!
+int min = 0;
+int max = 0;
+int span = 0;
+%>
 <%
+    for(int moy = 0; moy < 12; moy++) 
+    {
+        Partition<Partition<CaptureSearchResult>> curMonth = data.monthsByDay.get(moy);
+	List<Partition<CaptureSearchResult>> monthDays = curMonth.list();
+        cal.setTime(curMonth.getStart());
+        int daysInMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
+
+        for(int dom = 0; dom < daysInMonth; dom++) 
+        {
+            int counter = monthDays.get(dom).count();
+
+            if(counter > 0)
+            {
+                if(counter > max)
+                {
+                    max = counter;
+
+                    if(min == 0)
+                        min = counter;
+                }
+                else if(counter < min)
+                    min = counter;
+            }
+        }
+    }
+
+span = max - min + 1;
+
 // draw 12 months, 0-11 (0=Jan, 11=Dec)
 for(int moy = 0; moy < 12; moy++) {
 	Partition<Partition<CaptureSearchResult>> curMonth = data.monthsByDay.get(moy);
@@ -367,14 +374,28 @@ for(int moy = 0; moy < 12; moy++) {
 							firstCaptureInDay.getCaptureTimestamp(),
 							firstCaptureInDay.getOriginalUrl());
 				Date firstCaptureInDayDate = firstCaptureInDay.getCaptureDate();
-				String safeUrl = fmt.escapeHtml(replayUrl);		
+				String safeUrl = fmt.escapeHtml(replayUrl);
+                                double alpha = (double) (count - min + 1) / span;
+
+                                if(span >= 5)
+                                {
+                                    int step = span / 5;
+
+                                    if( count < (min + step) )
+                                        alpha = 0.2;
+                                    else if( count >= (min + step) && count < (min + (step*2)) )
+                                        alpha = 0.4;
+                                    else if(count >= (min + (step*2)) && count < (min + (step*3)))
+                                        alpha = 0.6;
+                                    else if(count >= (min + (step*3)) && count < (min + (step*4)))
+                                        alpha = 0.8;
+                                    else
+                                        alpha = 1;
+                                }
 				%><td>
-                    <div class="date">
-                        <div class="position">
-                           <div class="hidden"><%= count %></div>
-                           <div class="measure opacity20" id="<%= fmt.format("{0,date,MMM-d-yyyy}",firstCaptureInDayDate) %>"><img width="100%" height="100%"/></div>
-                        </div>
-                    </div>
+                            
+                            <div id="calendarBubble" style="background-color: rgba( 0, 171, 235, <%= alpha %> );"></div>
+                            
 				</td><%
 
 			} else {
@@ -404,6 +425,9 @@ for(int moy = 0; moy < 12; moy++) {
     
 <%
 }
+
+min = 0;
+max = 0;
 %>
   </div>
   <div id="calOver" class="calPosition">
@@ -454,7 +478,7 @@ for(int moy = 0; moy < 12; moy++) {
                             <h3><%= fmt.format("{0,date,MMMMM d, yyyy}",firstCaptureInDayDate) %></h3>
                             <p><%= count %> snapshots</p>
                             <div style="overflow: auto; max-height: 50vh;">
-			    	<ul>
+                                <ul>
 							<%
 							Iterator<CaptureSearchResult> dayItr = 
 								monthDays.get(dom).iterator();
@@ -468,8 +492,8 @@ for(int moy = 0; moy < 12; moy++) {
 								<%
 							}
 							%>
-                        	</ul>
-			   </div>
+                                </ul>
+                            </div>
                         </div>
                         <div class="day">
 
@@ -508,22 +532,49 @@ for(int moy = 0; moy < 12; moy++) {
 }
 %>
     </div>
-  </div>
-  <div id="wbCalNote">
-    <h2><%= fmt.format("BubbleCalendar.wbCalNoteTitle") %></h2>
-    <p><%= fmt.format("BubbleCalendar.wbCalNote", data.searchUrlForHTML, fmt.format("UIGlobal.helpUrl")) %></p>
+    
+    <div class="clearfix"></div>
+    <br/>
+    <br/>
+    <div id="calFooter">
+        <div id="legend">
+            <table>
+                <tr>
+                    <td><p><%= fmt.format("BubbleCalendar.legendLess") %>&nbsp</p></td>
+                    <%
+                        for (int hue = 2; hue <= 10; hue += 2) {
+                    %>
+                    <td>
+                        <div id="legendBubble" style="background-color: rgba( 0, 171, 235, <%= hue * 0.1 %> );"></div>
+                    </td>
+                    <% } %>
+
+                    <td><p>&nbsp;<%= fmt.format("BubbleCalendar.legendMore") %></p></td>
+                </tr>
+            </table>
+        </div>
+        
+        <div class="clearfix"></div>
+                
+        <div id="wbCalNote">
+            <p>
+                <b><%= fmt.format("BubbleCalendar.wbCalNoteTitle") %>: </b>
+                <%= fmt.format("BubbleCalendar.wbCalNote", data.searchUrlForHTML, fmt.format("UIGlobal.helpUrl")) %>
+            </p>
+        </div>
+    </div>        
   </div>
 </div>
   
 <script>
     var body = document.body;
     var html = document.documentElement;
-    body.scrollTop = sessionStorage.getItem( "top" );
+    body.scrollTop = sessionStorage.getItem("top");
 
-    window.onscroll = function() { setTop() };
+    window.onscroll = function() {setTop()};
 
-    function setTop() {
-        sessionStorage.setItem( "top", body.scrollTop );
+    function setTop(){
+        sessionStorage.setItem("top", body.scrollTop);
     }
 </script>
     
