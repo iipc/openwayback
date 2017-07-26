@@ -320,10 +320,38 @@ $().ready(function(){
     
   <div id="calUnder" class="calPosition">
 
-    
-
-
+<%!
+int min = 0;
+int max = 0;
+int span = 0;
+%>
 <%
+    for(int moy = 0; moy < 12; moy++) 
+    {
+        Partition<Partition<CaptureSearchResult>> curMonth = data.monthsByDay.get(moy);
+	List<Partition<CaptureSearchResult>> monthDays = curMonth.list();
+        cal.setTime(curMonth.getStart());
+        int daysInMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
+
+        for(int dom = 0; dom < daysInMonth; dom++) 
+        {
+            int counter = monthDays.get(dom).count();
+
+            if(counter > 0)
+            {
+                if(counter > max)
+                {
+                    max = counter;
+
+                    if(min == 0)
+                        min = counter;
+                }
+                else if(counter < min)
+                    min = counter;
+            }
+        }
+    }
+
 // draw 12 months, 0-11 (0=Jan, 11=Dec)
 for(int moy = 0; moy < 12; moy++) {
 	Partition<Partition<CaptureSearchResult>> curMonth = data.monthsByDay.get(moy);
