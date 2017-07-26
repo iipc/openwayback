@@ -555,6 +555,29 @@ for(int moy = 0; moy < 12; moy++) {
 }
 %>
     </div>
+    
+    <div class="clearfix"></div>
+    <br/>
+    <br/>
+    <div id="calFooter">
+        <div id="legend">
+            <table>
+                <tr>
+                    <td><p><%= fmt.format("BubbleCalendar.legendLess") %>&nbsp</p></td>
+                    <%
+                        for (int hue = 2; hue <= 10; hue += 2) {
+                    %>
+                    <td>
+                        <div id="legendBubble" style="background-color: rgba( 0, 171, 235, <%= hue * 0.1 %> );"></div>
+                    </td>
+                    <% } %>
+
+                    <td><p>&nbsp;<%= fmt.format("BubbleCalendar.legendMore") %></p></td>
+                </tr>
+            </table>
+        </div>
+    </div>    
+    
   </div>
   <div id="wbCalNote">
     <h2><%= fmt.format("BubbleCalendar.wbCalNoteTitle") %></h2>
