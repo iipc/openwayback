@@ -393,6 +393,22 @@ for(int moy = 0; moy < 12; moy++) {
 				Date firstCaptureInDayDate = firstCaptureInDay.getCaptureDate();
 				String safeUrl = fmt.escapeHtml(replayUrl);
                                 double alpha = (double) (count - min + 1) / span;
+
+                                if(span >= 5)
+                                {
+                                    int step = span / 5;
+
+                                    if( count < (min + step) )
+                                        alpha = 0.2;
+                                    else if( count >= (min + step) && count < (min + (step*2)) )
+                                        alpha = 0.4;
+                                    else if(count >= (min + (step*2)) && count < (min + (step*3)))
+                                        alpha = 0.6;
+                                    else if(count >= (min + (step*3)) && count < (min + (step*4)))
+                                        alpha = 0.8;
+                                    else
+                                        alpha = 1;
+                                }
 				%><td>
                     <div class="date">
                         <div class="position">
