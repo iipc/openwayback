@@ -58,7 +58,7 @@ public class RequestMapper {
 	
 //	private ArrayList<ShutdownListener> shutdownListeners = null;
 	
-	private HashMap<Integer,PortMapper> portMap = null;
+	private HashMap<String, PortMapper> portMap = null;
 	private RequestHandler globalPreRequestHandler = null;
 	private RequestHandler globalPostRequestHandler = null;
 	
@@ -91,7 +91,7 @@ public class RequestMapper {
 	 */
 	public RequestMapper(Collection<RequestHandler> requestHandlers,
 			ServletContext servletContext) {
-		portMap = new HashMap<Integer, PortMapper>();
+		portMap = new HashMap<String, PortMapper>();
 //		shutdownListeners = new ArrayList<ShutdownListener>();
 		LOGGER.info("Registering handlers.");
 		for (RequestHandler requestHandler : requestHandlers) {
@@ -123,7 +123,12 @@ public class RequestMapper {
 //	public void addShutdownListener(ShutdownListener shutdownListener) {
 //		shutdownListeners.add(shutdownListener);
 //	}
-	/**
+	private String vhostKey(String host, int port) {
+		final String portStr = port >= 0 ? Integer.toString(port) : "";
+		if (host == null) host = "";
+		return host + ":" + portStr;
+	}
+ 	/**
 	 * Configure the specified RequestHandler to handle ALL incoming requests
 	 * before any other normal mapping.
 	 * @param requestHandler the global PRE RequestHandler
@@ -151,12 +156,13 @@ public class RequestMapper {
 	 */
 	public void addRequestHandler(int port, String host, String path, 
 			RequestHandler requestHandler) {
-		PortMapper portMapper = portMap.get(port);
+		String key = vhostKey(host, port);
+		PortMapper portMapper = portMap.get(key);
 		if (portMapper == null) {
-			portMapper = new PortMapper(port);
-			portMap.put(port, portMapper);
+			portMapper = new PortMapper(host, port);
+			portMap.put(key, portMapper);
 		}
-		portMapper.addRequestHandler(host, path, requestHandler);
+		portMapper.addRequestHandler(path, requestHandler);
 		LOGGER.info("Registered " + port + "/" +
 				(host == null ? "*" : host) + "/" +
 				(path == null ? "*" : path) + " --> " +
@@ -164,16 +170,23 @@ public class RequestMapper {
 	}
 
 	public RequestHandlerContext mapRequest(HttpServletRequest request) {
-		RequestHandlerContext handlerContext = null;
-		
+		String host = request.getServerName();
 		int port = request.getLocalPort();
-		PortMapper portMapper = portMap.get(port);
-		if (portMapper != null) {
-			handlerContext = portMapper.getRequestHandlerContext(request);
-		} else {
-			LOGGER.warning("No PortMapper for port " + port);
+		String keys[] = {
+			vhostKey(host, port),
+			vhostKey(null, port),
+			vhostKey(host, -1),
+			vhostKey(null, -1)
+		};
+		PortMapper portMapper = null;
+		for (String key : keys) {
+			portMapper = portMap.get(key);
+			if (portMapper != null) {
+				return portMapper.getRequestHandlerContext(request);
+			}
 		}
-		return handlerContext;
+		LOGGER.warning("No PortMapper for port " + port);
+		return null;
 	}
 	
 	/**
