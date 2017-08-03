@@ -20,11 +20,11 @@
 package org.archive.wayback.util.webapp;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -44,6 +44,10 @@ import org.archive.wayback.core.UIResults;
  * as well as a global POST RequestHandler, which may attempt to handle any
  * incoming request not handled by the normal RequestHandler mapping.
  * 
+ * Note: responsibility of running ShutdownListeners has been moved to RequestFilter.
+ * 
+ * @see PortMapper#getRequestHandlerContext(HttpServletRequest)
+ * 
  * @author brad
  *
  */
@@ -52,7 +56,7 @@ public class RequestMapper {
 	private static final Logger LOGGER = Logger.getLogger(
 			RequestMapper.class.getName());
 	
-	private ArrayList<ShutdownListener> shutdownListeners = null;
+//	private ArrayList<ShutdownListener> shutdownListeners = null;
 	
 	private HashMap<Integer,PortMapper> portMap = null;
 	private RequestHandler globalPreRequestHandler = null;
@@ -88,26 +92,37 @@ public class RequestMapper {
 	public RequestMapper(Collection<RequestHandler> requestHandlers,
 			ServletContext servletContext) {
 		portMap = new HashMap<Integer, PortMapper>();
-		shutdownListeners = new ArrayList<ShutdownListener>();
-		Iterator<RequestHandler> itr = requestHandlers.iterator();
+//		shutdownListeners = new ArrayList<ShutdownListener>();
 		LOGGER.info("Registering handlers.");
-		while(itr.hasNext()) {
-			RequestHandler requestHandler = itr.next();
+		for (RequestHandler requestHandler : requestHandlers) {
 			requestHandler.setServletContext(servletContext);
-			requestHandler.registerPortListener(this);
+//			requestHandler.registerPortListener(this);
+			// [Kenji] Moved from AbstractRequestHandler.registerPortListener(). I guess
+			// registerPortListner() method is originally meant as a point of customization for
+			// how request routing is configured based on RequestHandler properties.
+			// IMHO, RequestMapper shall be the central point for request routing, and RequestHandler
+			// shall be routing-agnostic. It'll be confusing if each RequestHandler defines its own
+			// routing specification.
+			// So I moved the following line from registerPortListner(), killing the customization
+			// point. Customization shall be done by through implementation of RequestMapper (if need arise --
+			// probably it'd be better to move to spring-webmvc.) Now it is clear static methods
+			// of BeanNameRegistrar are actually part of RequestMapper (routing configuration by
+			// beanName is effectively dead feature anyway).
+			//BeanNameRegistrar.registerHandler(requestHandler, this);
+			registerHandler(requestHandler);
 		}
 		LOGGER.info("Registering handlers complete.");
 	}
 
-	/**
-	 * Request the shutdownListener object to be notified of ServletContext
-	 * shutdown.
-	 * @param shutdownListener the object which needs to have shutdown() called
-	 * when the ServletContext is destroyed.
-	 */
-	public void addShutdownListener(ShutdownListener shutdownListener) {
-		shutdownListeners.add(shutdownListener);
-	}
+//	/**
+//	 * Request the shutdownListener object to be notified of ServletContext
+//	 * shutdown.
+//	 * @param shutdownListener the object which needs to have shutdown() called
+//	 * when the ServletContext is destroyed.
+//	 */
+//	public void addShutdownListener(ShutdownListener shutdownListener) {
+//		shutdownListeners.add(shutdownListener);
+//	}
 	/**
 	 * Configure the specified RequestHandler to handle ALL incoming requests
 	 * before any other normal mapping.
@@ -136,11 +151,10 @@ public class RequestMapper {
 	 */
 	public void addRequestHandler(int port, String host, String path, 
 			RequestHandler requestHandler) {
-		Integer portInt = Integer.valueOf(port);
-		PortMapper portMapper = portMap.get(portInt);
+		PortMapper portMapper = portMap.get(port);
 		if (portMapper == null) {
-			portMapper = new PortMapper(portInt);
-			portMap.put(portInt, portMapper);
+			portMapper = new PortMapper(port);
+			portMap.put(port, portMapper);
 		}
 		portMapper.addRequestHandler(host, path, requestHandler);
 		LOGGER.info("Registered " + port + "/" +
@@ -153,8 +167,7 @@ public class RequestMapper {
 		RequestHandlerContext handlerContext = null;
 		
 		int port = request.getLocalPort();
-		Integer portInt = Integer.valueOf(port);
-		PortMapper portMapper = portMap.get(portInt);
+		PortMapper portMapper = portMap.get(port);
 		if (portMapper != null) {
 			handlerContext = portMapper.getRequestHandlerContext(request);
 		} else {
@@ -184,7 +197,7 @@ public class RequestMapper {
 		if (globalPreRequestHandler != null) {
 			handled = globalPreRequestHandler.handleRequest(request, response);
 		}
-		if (handled == false) {
+		if (!handled) {
 			RequestHandlerContext handlerContext = mapRequest(request);
 			if (handlerContext != null) {
 				RequestHandler requestHandler = 
@@ -194,11 +207,11 @@ public class RequestMapper {
 				if (!pathPrefix.equals("/")) {
 					pathPrefix += "/";
 				}
-				request.setAttribute(REQUEST_CONTEXT_PREFIX,pathPrefix); 
+				request.setAttribute(REQUEST_CONTEXT_PREFIX, pathPrefix);
 				handled = requestHandler.handleRequest(request, response);
 			}
 		}
-		if (handled == false) {
+		if (!handled) {
 			if(globalPostRequestHandler != null) {
 				handled = globalPostRequestHandler.handleRequest(request,
 						response);
@@ -208,19 +221,19 @@ public class RequestMapper {
 		return handled;
 	}
 
-	/**
-	 * notify all registered ShutdownListener objects that the ServletContext is
-	 * being destroyed.
-	 */
-	public void shutdown() {
-		for (ShutdownListener shutdownListener : shutdownListeners) {
-			try {
-				shutdownListener.shutdown();
-			} catch(Exception e) {
-				LOGGER.severe("failed shutdown"+e.getMessage());
-			}
-		}
-	}
+//	/**
+//	 * notify all registered ShutdownListener objects that the ServletContext is
+//	 * being destroyed.
+//	 */
+//	public void shutdown() {
+//		for (ShutdownListener shutdownListener : shutdownListeners) {
+//			try {
+//				shutdownListener.shutdown();
+//			} catch(Exception e) {
+//				LOGGER.severe("failed shutdown"+e.getMessage());
+//			}
+//		}
+//	}
 	
 	/**
 	 * Extract the request path prefix, as computed at RequestHandler mapping,
@@ -282,4 +295,168 @@ public class RequestMapper {
 		}
 		return requestUrl;
 	}
+
+
+	// moved from BeanNameRegistrar
+	private static final String PORT_PATTERN_STRING = "([0-9]+):?";
+	private static final String PORT_PATH_PATTERN_STRING = "([0-9]+):([0-9a-zA-Z_.-]+)";
+	private static final String HOST_PORT_PATTERN_STRING = "([0-9a-z_.-]+):([0-9]+):?";
+	private static final String HOST_PORT_PATH_PATTERN_STRING = "([0-9a-z_.-]+):([0-9]+):([0-9a-zA-Z_.-]+)";
+
+	private static final String URI_PATTERN_STRING = "(https?://([0-9a-z_.-]+))?(:[0-9]+)?/([0-9a-zA-Z_.-]+)(/.*)";
+
+	private static final Pattern PORT_PATTERN = Pattern
+		.compile(PORT_PATTERN_STRING);
+	private static final Pattern PORT_PATH_PATTERN = Pattern
+		.compile(PORT_PATH_PATTERN_STRING);
+	private static final Pattern HOST_PORT_PATTERN = Pattern
+		.compile(HOST_PORT_PATTERN_STRING);
+	private static final Pattern HOST_PORT_PATH_PATTERN = Pattern
+		.compile(HOST_PORT_PATH_PATTERN_STRING);
+	private static final Pattern URI_PATTERN = Pattern
+		.compile(URI_PATTERN_STRING);
+
+	/*
+	 * matches: 8080 8080:
+	 */
+	private boolean registerPort(String name, RequestHandler handler) {
+		Matcher m = null;
+		m = PORT_PATTERN.matcher(name);
+		if (m.matches()) {
+			int port = Integer.parseInt(m.group(1));
+			addRequestHandler(port, null, null, handler);
+			return true;
+		}
+		return false;
+	}
+
+	/*
+	 * matches: 8080:blue 8080:fish
+	 */
+	private boolean registerPortPath(String name,
+			RequestHandler handler) {
+		Matcher m = null;
+		m = PORT_PATH_PATTERN.matcher(name);
+		if (m.matches()) {
+			int port = Integer.parseInt(m.group(1));
+			addRequestHandler(port, null, m.group(2), handler);
+			return true;
+		}
+		return false;
+	}
+
+	/*
+	 * matches: localhost.archive.org:8080 static.localhost.archive.org:8080
+	 */
+	private boolean registerHostPort(String name,
+			RequestHandler handler) {
+		Matcher m = null;
+		m = HOST_PORT_PATTERN.matcher(name);
+		if (m.matches()) {
+			int port = Integer.parseInt(m.group(2));
+			addRequestHandler(port, m.group(1), null, handler);
+			return true;
+		}
+		return false;
+	}
+
+	/*
+	 * matches: localhost.archive.org:8080:two
+	 * static.localhost.archive.org:8080:fish
+	 */
+	private boolean registerHostPortPath(String name,
+			RequestHandler handler) {
+		Matcher m = null;
+		m = HOST_PORT_PATH_PATTERN.matcher(name);
+		if (m.matches()) {
+			int port = Integer.parseInt(m.group(2));
+			addRequestHandler(port, m.group(1), m.group(3), handler);
+			return true;
+		}
+		return false;
+	}
+
+	/*
+	 * matches: http://localhost.archive.org:8080/two the port is optional, and
+	 * need not be part of the URI if not included, using the internalPort
+	 * setting
+	 */
+	private boolean registerURIPatternPath(String name, int port,
+			RequestHandler handler) {
+		Matcher m = null;
+		m = URI_PATTERN.matcher(name);
+
+		if (m.matches()) {
+			String host = m.group(2);
+			String portString = m.group(3);
+
+			if ((portString != null) && portString.startsWith(":")) {
+				port = Integer.parseInt(portString.substring(1));
+			}
+
+			String path = m.group(4);
+
+			addRequestHandler(port, null, path, handler);
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Extract the RequestHandler objects beanName, parse it, and register the
+	 * RequestHandler with the RequestMapper according to the beanNames
+	 * semantics.
+	 * @param handler The RequestHandler to register
+	 */
+	public void registerHandler(RequestHandler handler) {
+
+		String name = null;
+		int internalPort = 8080;
+
+		if (handler instanceof AbstractRequestHandler) {
+			name = ((AbstractRequestHandler)handler).getAccessPointPath();
+			internalPort = ((AbstractRequestHandler)handler).getInternalPort();
+		}
+
+		if (name == null) {
+			name = handler.getBeanName();
+		}
+
+		if (name != null) {
+			if (name.equals(RequestMapper.GLOBAL_PRE_REQUEST_HANDLER)) {
+				LOGGER
+					.info("Registering Global-pre request handler:" + handler);
+				addGlobalPreRequestHandler(handler);
+
+			} else if (name.equals(RequestMapper.GLOBAL_POST_REQUEST_HANDLER)) {
+
+				LOGGER.info("Registering Global-post request handler:" +
+						handler);
+				addGlobalPostRequestHandler(handler);
+
+			} else {
+				try {
+
+					boolean registered = registerPort(name, handler) ||
+							registerPortPath(name, handler) ||
+							registerHostPort(name, handler) ||
+							registerHostPortPath(name, handler) ||
+							registerURIPatternPath(name, internalPort, handler);
+
+					if (!registered) {
+						LOGGER.severe("Unable to register (" + name + ")");
+					}
+				} catch (NumberFormatException e) {
+					LOGGER.severe("FAILED parseInt(" + name + ")");
+				}
+			}
+		} else {
+			LOGGER.info("Unable to register RequestHandler - null beanName");
+		}
+//			if(handler instanceof ShutdownListener) {
+//				ShutdownListener s = (ShutdownListener) handler;
+//				mapper.addShutdownListener(s);
+//			}
+	}
+
 }

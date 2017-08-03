@@ -18,50 +18,23 @@
  *  limitations under the License.
  */
 package org.archive.wayback.util.webapp;
-import java.util.Map;
-import java.util.logging.Logger;
-
-import javax.servlet.ServletContext;
-
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 /**
  * Single static method to read a Spring XML configuration, extract 
  * RequestHandlers, and return a RequestMapper which delegates requests to
  * those RequestHandlers.
  * 
+ * @deprecated functionality has been moved to RequestFilter#loadRequestMapper().
+ * This class is retained only for backward compatibility with existing code accessing
+ * {@link #getCurrentContext()}.
+ * 
  * @author brad
  *
  */
 public class SpringReader {
-	private static final Logger LOGGER = Logger.getLogger(
-			SpringReader.class.getName());
 	
 	protected static ApplicationContext currentContext = null;
-
-	/**
-	 * Read the single Spring XML configuration file located at the specified
-	 * path, performing PropertyPlaceHolder interpolation, extracting all beans
-	 * which implement the RequestHandler interface, and construct a 
-	 * RequestMapper for those RequestHandlers, on the specified ServletContext. 
-	 * @param configPath the path to the Spring XML file containing the 
-	 * configuration.
-	 * @param servletContext the ServletContext where the RequestHandlers should
-	 * be mapped
-	 * @return a new ReqeustMapper which delegates requests for the 
-	 * ServletContext
-	 */
-	public static RequestMapper readSpringConfig(String configPath,
-			ServletContext servletContext) {
-		LOGGER.info("Loading from config file " + configPath);
-
-		currentContext = new FileSystemXmlApplicationContext("file:" + configPath);
-		Map<String,RequestHandler> beans = 
-				currentContext.getBeansOfType(RequestHandler.class,false,false);
-
-		return new RequestMapper(beans.values(), servletContext);
-	}
 	
 	public static ApplicationContext getCurrentContext() {
 		return currentContext;
