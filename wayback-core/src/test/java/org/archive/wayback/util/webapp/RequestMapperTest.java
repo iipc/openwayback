@@ -177,6 +177,11 @@ public class RequestMapperTest extends TestCase {
 			rh("web-beta.archive.org:8080:blue"),
 			rh("web-beta.archive.org:8080:fish"),
 			rh("web.archive.org:8081:"),
+			// testing interaction between route with specific host and route without
+			rh("web.archive.org:8082:blue"),
+			rh("8082:fish"),
+			rh("web.archive.org:8083:"),
+			rh(":8083:fish")
 		};
 		RequestMapper mapper = new RequestMapper(Arrays.asList(handlers),
 			servletContext);
@@ -225,6 +230,21 @@ public class RequestMapperTest extends TestCase {
 			RequestHandlerContext rhc = mapper.mapRequest(request);
 
 			assertEquals(handlers[4], rhc.getRequestHandler());
+			assertEquals("", rhc.getPathPrefix());
+		}
+		{
+			HttpServletRequest request = req("web.archive.org", 8082, "/fish/bowl");
+			RequestHandlerContext rhc = mapper.mapRequest(request);
+
+			assertEquals(handlers[6], rhc.getRequestHandler());
+			assertEquals("/fish", rhc.getPathPrefix());
+		}
+		{
+			// route with specific host wins over host-agnostic route matching path prefix
+			HttpServletRequest request = req("web.archive.org", 8083, "/fish/bowl");
+			RequestHandlerContext rhc = mapper.mapRequest(request);
+
+			assertEquals(handlers[7], rhc.getRequestHandler());
 			assertEquals("", rhc.getPathPrefix());
 		}
 

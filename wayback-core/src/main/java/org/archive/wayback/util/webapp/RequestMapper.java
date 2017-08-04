@@ -182,7 +182,9 @@ public class RequestMapper {
 		for (String key : keys) {
 			portMapper = portMap.get(key);
 			if (portMapper != null) {
-				return portMapper.getRequestHandlerContext(request);
+				RequestHandlerContext rhc = portMapper.getRequestHandlerContext(request);
+				if (rhc != null)
+					return rhc;
 			}
 		}
 		LOGGER.warning("No PortMapper for port " + port);
@@ -311,23 +313,17 @@ public class RequestMapper {
 
 
 	// moved from BeanNameRegistrar
-	private static final String PORT_PATTERN_STRING = "([0-9]+):?";
-	private static final String PORT_PATH_PATTERN_STRING = "([0-9]+):([0-9a-zA-Z_.-]+)";
-	private static final String HOST_PORT_PATTERN_STRING = "([0-9a-z_.-]+):([0-9]+):?";
-	private static final String HOST_PORT_PATH_PATTERN_STRING = "([0-9a-z_.-]+):([0-9]+):([0-9a-zA-Z_.-]+)";
-
-	private static final String URI_PATTERN_STRING = "(https?://([0-9a-z_.-]+))?(:[0-9]+)?/([0-9a-zA-Z_.-]+)(/.*)";
 
 	private static final Pattern PORT_PATTERN = Pattern
-		.compile(PORT_PATTERN_STRING);
+		.compile("(?<port>[0-9]+):?");
 	private static final Pattern PORT_PATH_PATTERN = Pattern
-		.compile(PORT_PATH_PATTERN_STRING);
+		.compile("(?<port>[0-9]+):(?<path>[0-9a-zA-Z_.-]+)");
 	private static final Pattern HOST_PORT_PATTERN = Pattern
-		.compile(HOST_PORT_PATTERN_STRING);
+		.compile("(?<host>[0-9a-z_.-]+):(?<port>[0-9]+):?");
 	private static final Pattern HOST_PORT_PATH_PATTERN = Pattern
-		.compile(HOST_PORT_PATH_PATTERN_STRING);
+		.compile("(?<host>[0-9a-z_.-]+):(?<port>[0-9]+):(?<path>[0-9a-zA-Z_.-]+)");
 	private static final Pattern URI_PATTERN = Pattern
-		.compile(URI_PATTERN_STRING);
+		.compile("(https?://(?<host>[0-9a-z_.-]+))?(?::(?<port>[0-9]+))?/(?<path>[0-9a-zA-Z_.-]+)(/.*)");
 
 	/*
 	 * matches: 8080 8080:
@@ -336,7 +332,7 @@ public class RequestMapper {
 		Matcher m = null;
 		m = PORT_PATTERN.matcher(name);
 		if (m.matches()) {
-			int port = Integer.parseInt(m.group(1));
+			int port = Integer.parseInt(m.group("port"));
 			addRequestHandler(port, null, null, handler);
 			return true;
 		}
@@ -351,8 +347,8 @@ public class RequestMapper {
 		Matcher m = null;
 		m = PORT_PATH_PATTERN.matcher(name);
 		if (m.matches()) {
-			int port = Integer.parseInt(m.group(1));
-			addRequestHandler(port, null, m.group(2), handler);
+			int port = Integer.parseInt(m.group("port"));
+			addRequestHandler(port, null, m.group("path"), handler);
 			return true;
 		}
 		return false;
@@ -366,8 +362,8 @@ public class RequestMapper {
 		Matcher m = null;
 		m = HOST_PORT_PATTERN.matcher(name);
 		if (m.matches()) {
-			int port = Integer.parseInt(m.group(2));
-			addRequestHandler(port, m.group(1), null, handler);
+			int port = Integer.parseInt(m.group("port"));
+			addRequestHandler(port, m.group("host"), null, handler);
 			return true;
 		}
 		return false;
@@ -382,8 +378,8 @@ public class RequestMapper {
 		Matcher m = null;
 		m = HOST_PORT_PATH_PATTERN.matcher(name);
 		if (m.matches()) {
-			int port = Integer.parseInt(m.group(2));
-			addRequestHandler(port, m.group(1), m.group(3), handler);
+			int port = Integer.parseInt(m.group("port"));
+			addRequestHandler(port, m.group("host"), m.group("path"), handler);
 			return true;
 		}
 		return false;
@@ -400,14 +396,14 @@ public class RequestMapper {
 		m = URI_PATTERN.matcher(name);
 
 		if (m.matches()) {
-			String host = m.group(2);
-			String portString = m.group(3);
+			String host = m.group("host");
+			String portString = m.group("port");
 
-			if ((portString != null) && portString.startsWith(":")) {
-				port = Integer.parseInt(portString.substring(1));
+			if (portString != null) {
+				port = Integer.parseInt(portString);
 			}
 
-			String path = m.group(4);
+			String path = m.group("path");
 
 			addRequestHandler(port, null, path, handler);
 			return true;
