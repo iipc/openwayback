@@ -3,7 +3,9 @@ package org.archive.wayback.util.webapp;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -82,10 +84,6 @@ public class RequestMapperTest extends TestCase {
 		return rh(beanName, null, -1);
 	}
 
-	protected HttpServletRequest req(int port, String path) {
-		return req("web.archive.org", port, path);
-	}
-
 	/**
 	 * Create HttpServletRequest fixture.
 	 * {@code getContextPath()} returns empty string emulating ROOT deployment.
@@ -97,6 +95,10 @@ public class RequestMapperTest extends TestCase {
 	protected HttpServletRequest req(String server, int port, String path) {
 		return new HttpServletRequestFixture().serverName(server)
 			.localPort(port).requestURI(path);
+	}
+
+	protected HttpServletRequest req(int port, String path) {
+		return req("web.archive.org", port, path);
 	}
 
 	/**
@@ -265,14 +267,14 @@ public class RequestMapperTest extends TestCase {
 		{
 			HttpServletRequest request = req(8080, "/check-access/http://example.com/");
 			RequestHandlerContext rhc = mapper.mapRequest(request);
-			
+
 			assertEquals(handlers[0], rhc.getRequestHandler());
 			assertEquals("/check-access", rhc.getPathPrefix());
 		}
 		{
 			HttpServletRequest request = req(8080, "/web/*/http://example.com/");
 			RequestHandlerContext rhc = mapper.mapRequest(request);
-			
+
 			assertEquals(handlers[1], rhc.getRequestHandler());
 			assertEquals("/web", rhc.getPathPrefix());
 		}
@@ -280,13 +282,13 @@ public class RequestMapperTest extends TestCase {
 			// port defaults to 8080 if not present in beanName.
 			HttpServletRequest request = req(9000, "/web/*/http://exmaple.com/");
 			RequestHandlerContext rhc = mapper.mapRequest(request);
-			
+
 			assertNull(rhc);
 		}
 		{
 			HttpServletRequest request = req("web.archive.org", 8081, "/static/logo.jpg");
 			RequestHandlerContext rhc = mapper.mapRequest(request);
-			
+
 			assertEquals(handlers[2], rhc.getRequestHandler());
 			assertEquals("/static", rhc.getPathPrefix());
 		}
@@ -294,7 +296,7 @@ public class RequestMapperTest extends TestCase {
 			// currently host part has no effect in this syntax.
 			HttpServletRequest request = req("web-beta.archive.org", 8081, "/static/up.jpg");
 			RequestHandlerContext rhc = mapper.mapRequest(request);
-			
+
 			assertEquals(handlers[2], rhc.getRequestHandler());
 			assertEquals("/static", rhc.getPathPrefix());
 		}
@@ -302,7 +304,7 @@ public class RequestMapperTest extends TestCase {
 			// only the first path segment is used for matching.
 			HttpServletRequest request = req(8080, "/extra/thingy");
 			RequestHandlerContext rhc = mapper.mapRequest(request);
-			
+
 			assertEquals(handlers[3], rhc.getRequestHandler());
 			assertEquals("/extra", rhc.getPathPrefix());
 		}
@@ -395,7 +397,7 @@ public class RequestMapperTest extends TestCase {
 				// these methods must be checked against response object passed to handleRequest().
 				assertEquals("/web/", RequestMapper.getRequestPathPrefix(httpRequest));
 				assertEquals("*/http://example.com/", RequestMapper.getRequestContextPath(httpRequest));
-				
+
 				httpResponse.getWriter().write("response");
 				return true;
 			};
@@ -403,16 +405,16 @@ public class RequestMapperTest extends TestCase {
 		rh.setBeanName("waybackAccessPoint");
 		rh.setAccessPointPath("/web/");
 		rh.setInternalPort(8080);
-		
+
 		RequestHandler[] handlers = { rh };
 		RequestMapper mapper = new RequestMapper(Arrays.asList(handlers),
 			servletContext);
-		
-		// using fixture object, not mock, so that we can test RequestMapper.getRequestPathPrefix() etc.
+
+		// It is important to use HttpServletRequestFixture instead of mock
+		// object here, so that we can test RequetMapper.getRequestPathPrefix() etc.
 		// without getting into internals of RequestMapper.
-		HttpServletRequest request = new HttpServletRequestFixture()
-			.serverName("web.archive.org").localPort(8080)
-			.requestURI("/web/*/http://example.com/");
+		HttpServletRequest request = req("web.archive.org", 8080, "/web/*/http://example.com/");
+
 		HttpServletResponse response = EasyMock.createMock(HttpServletResponse.class);
 		final StringWriter sw = new StringWriter();
 		final PrintWriter pw = new PrintWriter(sw);
@@ -421,9 +423,54 @@ public class RequestMapperTest extends TestCase {
 		EasyMock.replay(response);
 
 		boolean handled = mapper.handleRequest(request,  response);
-		
+
 		assertTrue(handled);
-		
+
 		assertEquals("response", sw.toString());
+	}
+
+	/**
+	 * {@link RequestMapper#handleRequest(HttpServletRequest, HttpServletResponse)}
+	 * stores a list of defined paths in {@code AccessPointNames} attribute.
+	 *
+	 * This feature may be dropped in favor of RequestMapper exposing service method
+	 * to UI code.
+	 *
+	 * @throws Exception
+	 */
+	public void testAccessPointNames() throws Exception {
+		RequestHandler[] handlers = {
+			rh("aclChecker", "/check-access/", 8080),
+			rh("waybackAccessPoint", "/web/", 8080),
+			rh("staticAccessPoint", "/static/", 8080),
+			rh("livewebWarcWriter", "/save/", 8080),
+			// different port - this will not show up in AccessPointNames
+			rh("livewebWarcWriter", "/save2/", 9000)
+		};
+		RequestMapper mapper = new RequestMapper(Arrays.asList(handlers),
+			servletContext);
+
+		HttpServletRequest request = req("web.archive.org", 8080, "/no/such/prefix");
+
+		HttpServletResponse response = EasyMock.createMock(HttpServletResponse.class);
+
+		EasyMock.replay(response);
+
+		boolean handled = mapper.handleRequest(request, response);
+
+		assertFalse(handled);
+
+		Object o = request.getAttribute("AccessPointNames");
+		// XXX there's existing code expecting ArrayList specifically
+		assertTrue(o instanceof ArrayList<?>);
+		Collection<String> accessPointNames = (Collection<String>)o;
+		String[] names = (accessPointNames).toArray(new String[accessPointNames.size()]);
+		Arrays.sort(names);
+
+		String[] expected = { "check-access", "save", "static", "web" };
+		assertEquals(expected.length, names.length);
+		for (int i = 0; i < expected.length; i++) {
+			assertEquals(expected[i], names[i]);
+		}
 	}
 }

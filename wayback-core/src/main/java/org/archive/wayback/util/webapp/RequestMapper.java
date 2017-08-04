@@ -2,8 +2,8 @@
  *  This file is part of the Wayback archival access software
  *   (http://archive-access.sourceforge.net/projects/wayback/).
  *
- *  Licensed to the Internet Archive (IA) by one or more individual 
- *  contributors. 
+ *  Licensed to the Internet Archive (IA) by one or more individual
+ *  contributors.
  *
  *  The IA licenses this file to You under the Apache License, Version 2.0
  *  (the "License"); you may not use this file except in compliance with
@@ -20,8 +20,11 @@
 package org.archive.wayback.util.webapp;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -37,17 +40,17 @@ import org.archive.wayback.core.UIResults;
  * This class maintains a mapping of RequestHandlers and ShutDownListeners, to
  * allow (somewhat) efficient mapping and delegation of incoming requests to
  * the appropriate RequestHandler.
- * 
+ *
  * This class uses PortMapper to delegate some of the responsibility of mapping
  * requests received on a particular port, and also allows configuration of a
  * global PRE RequestHandler, which gets first dibs on EVERY incoming request,
  * as well as a global POST RequestHandler, which may attempt to handle any
  * incoming request not handled by the normal RequestHandler mapping.
- * 
+ *
  * Note: responsibility of running ShutdownListeners has been moved to RequestFilter.
- * 
+ *
  * @see PortMapper#getRequestHandlerContext(HttpServletRequest)
- * 
+ *
  * @author brad
  *
  */
@@ -55,13 +58,13 @@ public class RequestMapper {
 
 	private static final Logger LOGGER = Logger.getLogger(
 			RequestMapper.class.getName());
-	
+
 //	private ArrayList<ShutdownListener> shutdownListeners = null;
-	
+
 	private HashMap<String, PortMapper> portMap = null;
 	private RequestHandler globalPreRequestHandler = null;
 	private RequestHandler globalPostRequestHandler = null;
-	
+
 	/**
 	 * The name of an attribute for storing the prefix of URL
 	 * path corresponding to the {@link RequestHandler} processing
@@ -69,13 +72,13 @@ public class RequestMapper {
 	 */
 	public static final String REQUEST_CONTEXT_PREFIX =
 		"webapp-request-context-path-prefix";
-	
+
 	/**
-	 * Bean name used to register the special global PRE RequestHandler. 
+	 * Bean name used to register the special global PRE RequestHandler.
 	 */
 	public final static String GLOBAL_PRE_REQUEST_HANDLER = "-";
 	/**
-	 * Bean name used to register the special global POST RequestHandler. 
+	 * Bean name used to register the special global POST RequestHandler.
 	 */
 	public final static String GLOBAL_POST_REQUEST_HANDLER = "+";
 
@@ -83,8 +86,8 @@ public class RequestMapper {
 	 * Construct a RequestMapper, for the given RequestHandler objects, on the
 	 * specified ServletContext. This method will call setServletContext() on
 	 * each RequestMapper, followed immediately by registerPortListener()
-	 * 
-	 * @param requestHandlers Collection of RequestHandlers which handle 
+	 *
+	 * @param requestHandlers Collection of RequestHandlers which handle
 	 * requests
 	 * @param servletContext the webapp ServletContext where this RequestMapper
 	 * is configured.
@@ -154,7 +157,7 @@ public class RequestMapper {
 	 * the RequestHandler should match ALL paths.
 	 * @param requestHandler the RequestHandler to register.
 	 */
-	public void addRequestHandler(int port, String host, String path, 
+	public void addRequestHandler(int port, String host, String path,
 			RequestHandler requestHandler) {
 		String key = vhostKey(host, port);
 		PortMapper portMapper = portMap.get(key);
@@ -178,19 +181,35 @@ public class RequestMapper {
 			vhostKey(host, -1),
 			vhostKey(null, -1)
 		};
-		PortMapper portMapper = null;
 		for (String key : keys) {
-			portMapper = portMap.get(key);
+			PortMapper portMapper = portMap.get(key);
 			if (portMapper != null) {
 				RequestHandlerContext rhc = portMapper.getRequestHandlerContext(request);
 				if (rhc != null)
 					return rhc;
 			}
 		}
-		LOGGER.warning("No PortMapper for port " + port);
+
+		LOGGER.warning("no matching route found for " + request.getRequestURL());
+		// Try to help get user back on track by presenting available routes.
+		// Note this won't help with hostname mismatches at the moment.
+		// TODO: It'd be better for RequestMapper to expose a service to UI code,
+		// rather than RequestMapper setting attribute.
+		Set<String> paths = new HashSet<String>();
+		for (String key : keys) {
+			PortMapper vhost = portMap.get(key);
+			if (vhost != null) {
+				paths.addAll(vhost.getPaths());
+			}
+		}
+		if (!paths.isEmpty()) {
+			// XXX existing code expects ArrayList specifically
+			// (wayback-webapp/src/main/webapp/index.jsp)
+			request.setAttribute("AccessPointNames", new ArrayList<String>(paths));
+		}
 		return null;
 	}
-	
+
 	/**
 	 * Map the incoming request to the appropriate RequestHandler, including
 	 * the PRE and POST RequestHandlers, if configured.
@@ -203,19 +222,19 @@ public class RequestMapper {
 	public boolean handleRequest(HttpServletRequest request,
 			HttpServletResponse response) throws IOException, ServletException {
 		boolean handled = false;
-		
+
 		// Internally UIResults.forward(), don't handle here
 		if (request.getAttribute(UIResults.FERRET_NAME) != null) {
 			return false;
 		}
-		
+
 		if (globalPreRequestHandler != null) {
 			handled = globalPreRequestHandler.handleRequest(request, response);
 		}
 		if (!handled) {
 			RequestHandlerContext handlerContext = mapRequest(request);
 			if (handlerContext != null) {
-				RequestHandler requestHandler = 
+				RequestHandler requestHandler =
 					handlerContext.getRequestHandler();
 				// need to add trailing "/" iff prefix is not "/":
 				String pathPrefix = handlerContext.getPathPrefix();
@@ -232,7 +251,7 @@ public class RequestMapper {
 						response);
 			}
 		}
-			
+
 		return handled;
 	}
 
@@ -249,13 +268,13 @@ public class RequestMapper {
 //			}
 //		}
 //	}
-	
+
 	/**
 	 * Extract the request path prefix, as computed at RequestHandler mapping,
 	 * from the HttpServletRequest object.
-	 * 
+	 *
 	 * @param request HttpServlet request object being handled
-	 * @return the portion of the original request path which indicated the 
+	 * @return the portion of the original request path which indicated the
 	 * RequestHandler, including the trailing '/'.
 	 */
 	public static String getRequestPathPrefix(HttpServletRequest request) {
@@ -265,7 +284,7 @@ public class RequestMapper {
 	/**
 	 * @param request HttpServlet request object being handled
 	 * @return the portion of the incoming path within the RequestHandler
-	 * handling the request, not including a leading "/", and not including 
+	 * handling the request, not including a leading "/", and not including
 	 * query arguments.
 	 */
 	public static String getRequestContextPath(HttpServletRequest request) {
@@ -283,7 +302,7 @@ public class RequestMapper {
 	/**
 	 * @param request HttpServlet request object being handled
 	 * @return the portion of the incoming path within the RequestHandler
-	 * handling the request, not including a leading "/", including query 
+	 * handling the request, not including a leading "/", including query
 	 * arguments.
 	 */
 	public static String getRequestContextPathQuery(HttpServletRequest request) {
@@ -303,7 +322,7 @@ public class RequestMapper {
 		}
 		if (requestUrl.startsWith(prefix)) {
 			return requestUrl.substring(prefix.length());
-		} 
+		}
 		// Fix for access point with missing end slash
 		else if (prefix.endsWith("/") && (requestUrl + "/").equals(prefix)) {
 			return "";

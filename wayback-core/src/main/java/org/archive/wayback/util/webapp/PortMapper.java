@@ -19,8 +19,9 @@
  */
 package org.archive.wayback.util.webapp;
 
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -35,7 +36,7 @@ import javax.servlet.http.HttpServletRequest;
  * segment of the requested PATH, that is, whatever is after the context where
  * the wayback webapp was deployed, and before the first '/'.
  *
- * 2017-08-03 Now PortMapper is only responsible for path part. It is more like a
+ * 2017-08-03 Now PortMapper is responsible for path part only. It is more like a
  * virtual host.
  *
  * @author brad
@@ -57,10 +58,6 @@ public class PortMapper {
 		this.host = host;
 		this.port = port;
 		pathMap = new HashMap<String, RequestHandler>();
-	}
-
-	private String pathToKey(String firstPath) {
-		return firstPath != null ? "/" + firstPath : null;
 	}
 
 	/**
@@ -90,7 +87,6 @@ public class PortMapper {
 	}
 
 	private String requestToFirstPath(HttpServletRequest request) {
-		String firstPath = null;
 		String requestPath = request.getRequestURI();
 		String contextPath = request.getContextPath();
 		if ((contextPath.length() > 0) && requestPath.startsWith(contextPath)) {
@@ -100,6 +96,7 @@ public class PortMapper {
 			requestPath = requestPath.substring(1);
 		}
 
+		String firstPath = null;
 		int slashIdx = requestPath.indexOf("/", 1);
 		if (slashIdx == -1) {
 			firstPath = requestPath;
@@ -146,21 +143,22 @@ public class PortMapper {
 			LOGGER.fine("Mapped to RequestHandler with null");
 			return new RequestHandlerContext(handler, contextPath);
 		}
-		// Nothing matching this port:host:path. Try to help get user back on
-		// track. Note this won't help with hostname mismatches at the moment:
-		// TODO: move this to RequestMapper
-		ArrayList<String> paths = new ArrayList<String>();
-		for (String tmp : pathMap.keySet()) {
-			// slice off last chunk:
-			int idx = tmp.lastIndexOf('/');
-			if (idx != -1) {
-				String path = tmp.substring(idx + 1);
-				paths.add(path);
-			}
-		}
-		if (paths.size() > 0) {
-			request.setAttribute("AccessPointNames", paths);
-		}
+
 		return null;
+	}
+
+	/**
+	 * Return a set of paths defined.
+	 * Path keys ending with ";" (representing path-segment parameter support)
+	 * is not included.
+	 * @return Set of String
+	 */
+	public Set<String> getPaths() {
+		Set<String> paths = new HashSet<String>();
+		for (String key : pathMap.keySet()) {
+			if (!key.endsWith(";"))
+				paths.add(key);
+		}
+		return paths;
 	}
 }
