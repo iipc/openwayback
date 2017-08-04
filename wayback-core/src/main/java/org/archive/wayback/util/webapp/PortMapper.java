@@ -138,6 +138,22 @@ public class PortMapper {
 		} else {
 			LOGGER.finer("No mapping for " + key);
 		}
+
+		// path-segment parameter support.
+		// if firstPath has ";", take string up to ";" and try again.
+		// those route accepting in-segment parameters have this path
+		// string in pathMap. firstPath with trailing ";" is already
+		// looked up above, so don't look it up again.
+		int paramSep = firstPath.indexOf(";");
+		if (paramSep >= 0 && paramSep < firstPath.length() - 1) {
+			final String key2 = firstPath.substring(0, paramSep + 1);
+			handler = pathMap.get(key2);
+			if (handler != null) {
+				return new RequestHandlerContext(handler, pathPrefix.append(
+					firstPath).toString());
+			}
+		}
+
 		handler = pathMap.get(null);
 		if (handler != null) {
 			LOGGER.fine("Mapped to RequestHandler with null");

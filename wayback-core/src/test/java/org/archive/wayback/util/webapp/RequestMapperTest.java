@@ -386,7 +386,36 @@ public class RequestMapperTest extends TestCase {
 			assertEquals("", rhc.getPathPrefix());
 		}
 	}
-	
+
+	public void testMappingByAccessPointPath_PathSegmentParameter() {
+		RequestHandler[] handlers = {
+			rh("livewebAccessPoint", "/save;/", 8080),
+			rh("waybackAccessPoint", "/web/", 8080)
+		};
+		RequestMapper mapper = new RequestMapper(Arrays.asList(handlers), servletContext);
+		{
+			HttpServletRequest request = req(8080, "/save/http://example.com/");
+			RequestHandlerContext rhc = mapper.mapRequest(request);
+
+			assertEquals(handlers[0], rhc.getRequestHandler());
+			assertEquals("/save", rhc.getPathPrefix());
+		}
+		{
+			HttpServletRequest request = req(8080, "/save;param=1/http://example.com/");
+			RequestHandlerContext rhc = mapper.mapRequest(request);
+
+			assertEquals(handlers[0], rhc.getRequestHandler());
+			assertEquals("/save;param=1", rhc.getPathPrefix());
+		}
+		{
+			// in-segment parameter is not recognized for /web
+			HttpServletRequest request = req(8080, "/web;param=1/*/http://example.com/");
+			RequestHandlerContext rhc = mapper.mapRequest(request);
+
+			assertNull(rhc);
+		}
+	}
+
 	/**
 	 * Test {@link RequestMapper#handleRequest(HttpServletRequest, HttpServletResponse)}
 	 */
@@ -443,7 +472,7 @@ public class RequestMapperTest extends TestCase {
 			rh("aclChecker", "/check-access/", 8080),
 			rh("waybackAccessPoint", "/web/", 8080),
 			rh("staticAccessPoint", "/static/", 8080),
-			rh("livewebWarcWriter", "/save/", 8080),
+			rh("livewebWarcWriter", "/save;/", 8080),
 			// different port - this will not show up in AccessPointNames
 			rh("livewebWarcWriter", "/save2/", 9000)
 		};

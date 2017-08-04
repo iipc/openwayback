@@ -166,6 +166,15 @@ public class RequestMapper {
 			portMap.put(key, portMapper);
 		}
 		portMapper.addRequestHandler(path, requestHandler);
+		// path-segment parameter support
+		// trailing ";" in path signifies that this path accepts in-segment
+		// parameters. Register requestHandler with path without the trailing
+		// ";", so that path is routed without in-segment parameters as well.
+		if (path != null && path.endsWith(";")) {
+			portMapper.addRequestHandler(path.substring(0, path.length() - 1),
+				requestHandler);
+		}
+		// if path has trailing ";",
 		LOGGER.info("Registered " + port + "/" +
 				(host == null ? "*" : host) + "/" +
 				(path == null ? "*" : path) + " --> " +
@@ -336,13 +345,13 @@ public class RequestMapper {
 	private static final Pattern PORT_PATTERN = Pattern
 		.compile("(?<port>[0-9]+):?");
 	private static final Pattern PORT_PATH_PATTERN = Pattern
-		.compile("(?<port>[0-9]+):(?<path>[0-9a-zA-Z_.-]+)");
+		.compile("(?<port>[0-9]+):(?<path>[-0-9a-zA-Z_.]+;?)");
 	private static final Pattern HOST_PORT_PATTERN = Pattern
 		.compile("(?<host>[0-9a-z_.-]+):(?<port>[0-9]+):?");
 	private static final Pattern HOST_PORT_PATH_PATTERN = Pattern
-		.compile("(?<host>[0-9a-z_.-]+):(?<port>[0-9]+):(?<path>[0-9a-zA-Z_.-]+)");
+		.compile("(?<host>[0-9a-z_.-]+):(?<port>[0-9]+):(?<path>[-0-9a-zA-Z_.]+;?)");
 	private static final Pattern URI_PATTERN = Pattern
-		.compile("(https?://(?<host>[0-9a-z_.-]+))?(?::(?<port>[0-9]+))?/(?<path>[0-9a-zA-Z_.-]+)(/.*)");
+		.compile("(https?://(?<host>[0-9a-z_.-]+))?(?::(?<port>[0-9]+))?/(?<path>[-0-9a-zA-Z_.]+;?)(/.*)");
 
 	/*
 	 * matches: 8080 8080:
