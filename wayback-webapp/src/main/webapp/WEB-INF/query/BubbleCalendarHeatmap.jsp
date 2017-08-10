@@ -381,9 +381,9 @@ for(int moy = 0; moy < 12; moy++) {
                                 {
                                     int step = span / 5;
 
-                                    if( count < (min + step) )
+                                    if(count < (min + step))
                                         alpha = 0.2;
-                                    else if( count >= (min + step) && count < (min + (step*2)) )
+                                    else if(count >= (min + step) && count < (min + (step*2)))
                                         alpha = 0.4;
                                     else if(count >= (min + (step*2)) && count < (min + (step*3)))
                                         alpha = 0.6;
@@ -394,7 +394,7 @@ for(int moy = 0; moy < 12; moy++) {
                                 }
 				%><td>
                             
-                            <div id="calendarBubble" style="background-color: rgba( 0, 171, 235, <%= alpha %> );"></div>
+                            <div id="calendarBubble" style="background-color: rgba(0, 171, 235, <%= alpha %>);"></div>
                             
 				</td><%
 
@@ -545,7 +545,7 @@ for(int moy = 0; moy < 12; moy++) {
                         for (int hue = 2; hue <= 10; hue += 2) {
                     %>
                     <td>
-                        <div id="legendBubble" style="background-color: rgba( 0, 171, 235, <%= hue * 0.1 %> );"></div>
+                        <div id="legendBubble" style="background-color: rgba(0, 171, 235, <%= hue * 0.1 %>);"></div>
                     </td>
                     <% } %>
 
