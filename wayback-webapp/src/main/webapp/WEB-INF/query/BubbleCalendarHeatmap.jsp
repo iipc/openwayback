@@ -394,7 +394,7 @@ for(int moy = 0; moy < 12; moy++) {
                                 }
 				%><td>
                             
-                            <div id="calendarBubble" style="background-color: rgba(0, 171, 235, <%= alpha %>);"></div>
+                            <div id="<%= fmt.format("{0,date,MMM-d-yyyy}",firstCaptureInDayDate) %>" class="calendarBubble" style="background-color: rgba(0, 171, 235, <%= alpha %>);"></div>
                             
 				</td><%
 
@@ -545,7 +545,7 @@ for(int moy = 0; moy < 12; moy++) {
                         for (int hue = 2; hue <= 10; hue += 2) {
                     %>
                     <td>
-                        <div id="legendBubble" style="background-color: rgba(0, 171, 235, <%= hue * 0.1 %>);"></div>
+                        <div class="legendBubble" style="background-color: rgba(0, 171, 235, <%= hue * 0.1 %>);"></div>
                     </td>
                     <% } %>
 
