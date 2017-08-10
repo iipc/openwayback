@@ -218,7 +218,7 @@ filter: alpha(opacity=20);
     cursor: pointer;
 }
 
-#calendarBubble {
+.calendarBubble {
     width: 30px;
     height: 30px;
     -webkit-border-radius: 15px;
@@ -226,7 +226,7 @@ filter: alpha(opacity=20);
     border-radius: 15px;
 }
 
-#legendBubble {
+.legendBubble {
     width: 15px;
     height: 15px;
     -webkit-border-radius: 7px;
