@@ -217,3 +217,28 @@ filter: alpha(opacity=20);
     left: 1px;
     cursor: pointer;
 }
+
+.calendarBubble {
+    width: 30px;
+    height: 30px;
+    -webkit-border-radius: 15px;
+    -moz-border-radius: 15px;
+    border-radius: 15px;
+}
+
+.legendBubble {
+    width: 15px;
+    height: 15px;
+    -webkit-border-radius: 7px;
+    -moz-border-radius: 7px;
+    border-radius: 7px;
+}
+#calFooter {padding-right:35px;}
+#legend {float: right;}
+
+#wbCalNote {
+    margin-top: 5%;
+}
+#wbCalNote b {
+    font-size: 18px;
+}
