@@ -150,10 +150,6 @@ $().ready(function(){
     $(".day a").each(function(i){
         var dateClass = $(this).attr("class");
         var dateId = "#"+dateClass;
-        $(this).hover(
-            function(){$(dateId).removeClass("opacity20");},
-            function(){$(dateId).addClass("opacity20");}
-        );
     });
     $(".tooltip").bt({
         positions: ['top','right','left','bottom'],
