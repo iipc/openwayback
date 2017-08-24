@@ -53,7 +53,12 @@ public class MementoUtils implements MementoConstants {
 			WaybackRequest wbRequest, HttpServletResponse response)
 			throws IOException {
 		response.setContentType("application/link-format");
-		printLinkTimemap(results, wbRequest, response.getWriter());
+		if(results.size() == 0){
+			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+			response.getWriter().println(makeLink(getTimegateUrl(wbRequest.getAccessPoint(), wbRequest.getRequestUrl()), TIMEGATE));
+		} else {
+			printLinkTimemap(results, wbRequest, response.getWriter());
+		}
 	}
 
 	public static void printLinkTimemap(CaptureSearchResults results,
