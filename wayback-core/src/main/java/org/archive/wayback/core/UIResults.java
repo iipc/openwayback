@@ -405,7 +405,11 @@ public class UIResults {
 	public void forward(HttpServletRequest request,
 			HttpServletResponse response, final String target)
 			throws ServletException, IOException {
-
+		if (target.startsWith("/WEB-INF/classes")
+				|| target.startsWith("/WEB-INF/lib")
+				|| target.matches("^/WEB-INF/.+\\.xml")) {
+			throw new IOException("Not allowed");
+		}
 		this.contentJsp = target;
 		this.originalRequestURL = request.getRequestURL().toString();
 		request.setAttribute(FERRET_NAME, this);
