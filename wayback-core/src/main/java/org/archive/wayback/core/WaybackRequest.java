@@ -806,12 +806,23 @@ public class WaybackRequest {
 	public void setLiveWebRequest(boolean isLiveWebRequest) {
 		setInt(REQUEST_IS_LIVE_WEB, 1);
 	}
+	/**
+	 * Mark this request is live web capture for a sub-asset.
+	 * @deprecated no replacement. This is IA-specific and no longer used.
+	 * @param isLiveWebEmbedRequest unused.
+	 */
 	public void setLiveWebEmbedRequest(boolean isLiveWebEmbedRequest) {
 		setInt(REQUEST_IS_LIVE_WEB, 2);
 	}
 	public boolean isLiveWebRequest() {
 		return getInt(REQUEST_IS_LIVE_WEB) != -1;
 	}
+	/**
+	 * Return {@code true} when the request is live web capture request
+	 * for a sub-asset.
+	 * @deprecated no replacement. This is IA-specific and no longer used.
+	 * @return
+	 */
 	public boolean isLiveWebEmbedRequest() {
 		return getInt(REQUEST_IS_LIVE_WEB) == 2;
 	}
