@@ -135,8 +135,6 @@ public class PortMapper {
 			LOGGER.fine("Mapped to RequestHandler with " + key);
 			return new RequestHandlerContext(handler, pathPrefix.append(
 				firstPath).toString());
-		} else {
-			LOGGER.finer("No mapping for " + key);
 		}
 
 		// path-segment parameter support.
@@ -149,10 +147,13 @@ public class PortMapper {
 			final String key2 = firstPath.substring(0, paramSep + 1);
 			handler = pathMap.get(key2);
 			if (handler != null) {
+				LOGGER.fine("Mapped to RequestHandler with " + key2);
 				return new RequestHandlerContext(handler, pathPrefix.append(
 					firstPath).toString());
 			}
 		}
+
+		LOGGER.finer("No mapping for " + key);
 
 		handler = pathMap.get(null);
 		if (handler != null) {

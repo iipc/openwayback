@@ -59,6 +59,9 @@ public class RequestMapper {
 	private static final Logger LOGGER = Logger.getLogger(
 			RequestMapper.class.getName());
 
+	// TODO Lines kept for quick reminder of the major change, in case something blows up
+	// later. To be cleaned up later. Same goes for other commented out code in this class
+	// as to shutdownListener.
 //	private ArrayList<ShutdownListener> shutdownListeners = null;
 
 	private HashMap<String, PortMapper> portMap = null;
@@ -107,7 +110,7 @@ public class RequestMapper {
 			// shall be routing-agnostic. It'll be confusing if each RequestHandler defines its own
 			// routing specification.
 			// So I moved the following line from registerPortListner(), killing the customization
-			// point. Customization shall be done by through implementation of RequestMapper (if need arise --
+			// point. Customization shall be done through implementation of RequestMapper (if need arise --
 			// probably it'd be better to move to spring-webmvc.) Now it is clear static methods
 			// of BeanNameRegistrar are actually part of RequestMapper (routing configuration by
 			// beanName is effectively dead feature anyway).
@@ -168,13 +171,15 @@ public class RequestMapper {
 		portMapper.addRequestHandler(path, requestHandler);
 		// path-segment parameter support
 		// trailing ";" in path signifies that this path accepts in-segment
-		// parameters. Register requestHandler with path without the trailing
+		// parameters. Register requestHandler once more with path without the trailing
 		// ";", so that path is routed without in-segment parameters as well.
+		// So for example, For path "/save;", requestHadler is registered twice,
+		// one for "/save;" and another for "/save".
 		if (path != null && path.endsWith(";")) {
 			portMapper.addRequestHandler(path.substring(0, path.length() - 1),
 				requestHandler);
 		}
-		// if path has trailing ";",
+
 		LOGGER.info("Registered " + port + "/" +
 				(host == null ? "*" : host) + "/" +
 				(path == null ? "*" : path) + " --> " +
