@@ -44,6 +44,17 @@ public abstract class AccessPointBase extends AbstractRequestHandler {
 	protected boolean isSelfRedirect(Resource resource,
 			CaptureSearchResult closest, WaybackRequest wbRequest,
 			String canonRequestURL) {
+		return isSelfRedirect(resource, closest, wbRequest.getRequestUrl(), canonRequestURL);
+	}
+	
+	protected boolean isSelfRedirect(Resource resource,
+			CaptureSearchResult closest, String requestURL,
+			String canonRequestURL) {
+
+		if (canonRequestURL == null) {
+			canonRequestURL = urlToKey(requestURL);
+		}
+
 		int status = resource.getStatusCode();
 
 		// Only applies to redirects
@@ -87,8 +98,7 @@ public abstract class AccessPointBase extends AbstractRequestHandler {
 				return true;
 			}
 
-			String origScheme = UrlOperations.urlToScheme(wbRequest
-				.getRequestUrl());
+			String origScheme = UrlOperations.urlToScheme(requestURL);
 
 			if ((origScheme != null) && (redirScheme != null) &&
 					(origScheme.compareTo(redirScheme) == 0)) {

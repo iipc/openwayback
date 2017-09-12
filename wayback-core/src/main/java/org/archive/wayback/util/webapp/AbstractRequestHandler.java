@@ -73,14 +73,8 @@ public abstract class AbstractRequestHandler implements RequestHandler {
 		return servletContext;
 	}
 
-	// Refactor: this method is only called by RequestMapper, and eventually
-	// calls RequestMapper.addRequestHandler() through static method BeanNameRegistrar.registerHandler().
-	// AbstractRequestHandler does not play any active role there.  Move this code to RequestMapper.
-	/**
-	 * @deprecated 2014-04-24 call {@link BeanNameRegistrar#registerHandler(RequestHandler, RequestMapper)} directly.
-	 */
+	// no longer used - to be removed.
 	public void registerPortListener(RequestMapper requestMapper) {
-		BeanNameRegistrar.registerHandler(this, requestMapper);
 	}
 
 	/**

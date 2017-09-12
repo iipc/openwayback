@@ -2,8 +2,8 @@
  *  This file is part of the Wayback archival access software
  *   (http://archive-access.sourceforge.net/projects/wayback/).
  *
- *  Licensed to the Internet Archive (IA) by one or more individual 
- *  contributors. 
+ *  Licensed to the Internet Archive (IA) by one or more individual
+ *  contributors.
  *
  *  The IA licenses this file to You under the Apache License, Version 2.0
  *  (the "License"); you may not use this file except in compliance with
@@ -19,111 +19,103 @@
  */
 package org.archive.wayback.util.webapp;
 
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 
 /**
- * 
+ *
  * Class which allows semi-efficient translation of requests on a specific local
  * port to a RequestHandler object.
- * 
+ *
  * Mapping within a port is based on the HTTP 1.1 Host field and the first
  * segment of the requested PATH, that is, whatever is after the context where
  * the wayback webapp was deployed, and before the first '/'.
- * 
+ *
+ * 2017-08-03 Now PortMapper is responsible for path part only. It is more like a
+ * virtual host.
+ *
  * @author brad
  */
 public class PortMapper {
 	private static final Logger LOGGER = Logger.getLogger(
 			PortMapper.class.getName());
+
+	// these fields are for logging / debugging, currently
+	private String host;
 	private int port = -1;
+
 	private HashMap<String, RequestHandler> pathMap = null;
+
 	/**
 	 * @param port which this PortMapper is responsible for handling
 	 */
-	public PortMapper(int port) {
+	public PortMapper(String host, int port) {
+		this.host = host;
 		this.port = port;
 		pathMap = new HashMap<String, RequestHandler>();
 	}
-	private String hostPathToKey(String host, String firstPath) {
-		StringBuilder sb = null;
-		if((host == null) && (firstPath == null)) {
-			return null;
-		}
-		sb = new StringBuilder();
-		if(host != null) {
-			sb.append(host);
-		}
-		sb.append("/");
-		if(firstPath != null) {
-			sb.append(firstPath);
-		}
-		return sb.toString();
-	}
+
 	/**
-	 * Register the RequestHandler to accept requests for the given host and 
+	 * Register the RequestHandler to accept requests for the given host and
 	 * port.
-	 * @param host the HTTP 1.1 "Host" header which the RequestHandler should 
+	 * @param host the HTTP 1.1 "Host" header which the RequestHandler should
 	 * match. If null, the RequestHandler matches any "Host" header value.
 	 * @param firstPath the first path of the GET request path which the
-	 * RequestHandler should match. This is the first path AFTER the name the 
+	 * RequestHandler should match. This is the first path AFTER the name the
 	 * Wayback webapp is deployed under. If null, the RequestHandler matches
 	 * all paths.
 	 * @param requestHandler The RequestHandler to register.
 	 */
-	public void addRequestHandler(String host, String firstPath, 
+	public void addRequestHandler(String firstPath,
 			RequestHandler requestHandler) {
-		String key = hostPathToKey(host, firstPath);
+		String key = firstPath;
 		if (pathMap.containsKey(key)) {
-			LOGGER.warning("Duplicate port:path map for " + port +
-					":" + key);
+			LOGGER.warning("Duplicate port:path map for " + host + ":" + port +
+					"/" + firstPath);
 		} else {
 			pathMap.put(key, requestHandler);
 			if (LOGGER.isLoggable(Level.FINE)) {
-				LOGGER.fine("Registered requestHandler(port/host/path) (" +
-						port + "/" + host + "/" + firstPath + "): " + key);
+				LOGGER.fine("Registered requestHandler " + host + ":" + port +
+						"/" + firstPath);
 			}
 		}
 	}
-	
+
 	private String requestToFirstPath(HttpServletRequest request) {
-		String firstPath = null;
 		String requestPath = request.getRequestURI();
 		String contextPath = request.getContextPath();
-		if((contextPath.length() > 0) && requestPath.startsWith(contextPath)) {
+		if ((contextPath.length() > 0) && requestPath.startsWith(contextPath)) {
 			requestPath = requestPath.substring(contextPath.length());
 		}
-		while(requestPath.startsWith("/")) {
+		while (requestPath.startsWith("/")) {
 			requestPath = requestPath.substring(1);
 		}
-		
-		int slashIdx = requestPath.indexOf("/",1);
-		if(slashIdx == -1) {
+
+		String firstPath = null;
+		int slashIdx = requestPath.indexOf("/", 1);
+		if (slashIdx == -1) {
 			firstPath = requestPath;
 		} else {
-			firstPath = requestPath.substring(0,slashIdx);
+			firstPath = requestPath.substring(0, slashIdx);
 		}
 		return firstPath;
 	}
 
-	private String requestToHost(HttpServletRequest request) {
-		return request.getServerName();
-	}	
-	
 	/**
 	 * Attempts to locate the most strictly matching RequestHandler mapped to
-	 * this port. Strictly matching means the lowest number in the following 
+	 * this port. Strictly matching means the lowest number in the following
 	 * list:
-	 * 
+	 *
 	 * 1) request handler matching both HOST and PATH
 	 * 2) request handler matching host, registered with an empty PATH
 	 * 3) request handler matching path, registered with an empty HOST
 	 * 4) request handler registered with empty HOST and PATH
-	 * 
+	 *
 	 * @param request the HttpServletRequest to be mapped to a RequestHandler
 	 * @return the RequestHandlerContext, containing the RequestHandler and the
 	 * prefix of the original request path that indicated the RequestHandler,
@@ -131,59 +123,59 @@ public class PortMapper {
 	 */
 	public RequestHandlerContext getRequestHandlerContext(
 			HttpServletRequest request) {
-		String host = requestToHost(request);
 		String contextPath = request.getContextPath();
 		StringBuilder pathPrefix = new StringBuilder(contextPath);
-//		if(contextPath.length() == 0) {
-			pathPrefix.append("/");
-//		}
-		String firstPath = requestToFirstPath(request);
-		String key = hostPathToKey(host,firstPath);
-		RequestHandler handler = pathMap.get(key);
-		if(handler != null) {
-			LOGGER.fine("Mapped to RequestHandler with " + key);
-			return new RequestHandlerContext(handler,
-					pathPrefix.append(firstPath).toString());
-		} else {
-			LOGGER.finer("No mapping for " + key);			
-		}
-		key = hostPathToKey(host,null);
-		handler = pathMap.get(key);
-		if(handler != null) {
-			LOGGER.fine("Mapped to RequestHandler with " + key);
-			return new RequestHandlerContext(handler,contextPath);
-		} else {
-			LOGGER.finer("No mapping for " + key);			
-		}
-		key = hostPathToKey(null,firstPath);
-		handler = pathMap.get(key);
-		if(handler != null) {
-			LOGGER.fine("Mapped to RequestHandler with " + key);
+		pathPrefix.append("/");
 
-			return new RequestHandlerContext(handler,
-					pathPrefix.append(firstPath).toString());
-		} else {
-			LOGGER.finer("No mapping for " + key);			
+		String firstPath = requestToFirstPath(request);
+		RequestHandler handler;
+		final String key = firstPath;
+		handler = pathMap.get(key);
+		if (handler != null) {
+			LOGGER.fine("Mapped to RequestHandler with " + key);
+			return new RequestHandlerContext(handler, pathPrefix.append(
+				firstPath).toString());
 		}
-		handler = pathMap.get(null);
-		if(handler != null) {
-			LOGGER.fine("Mapped to RequestHandler with null");
-			return new RequestHandlerContext(handler,contextPath);
-		}
-		// Nothing matching this port:host:path. Try to help get user back on
-		// track. Note this won't help with hostname mismatches at the moment:
-		ArrayList<String> paths = new ArrayList<String>();
-		for(String tmp : pathMap.keySet()) {
-			// slice off last chunk:
-			int idx = tmp.lastIndexOf('/');
-			if(idx != -1) {
-				String path = tmp.substring(idx+1);
-				paths.add(path);
+
+		// path-segment parameter support.
+		// if firstPath has ";", take string up to ";" and try again.
+		// those route accepting in-segment parameters have this path
+		// string in pathMap. firstPath with trailing ";" is already
+		// looked up above, so don't look it up again.
+		int paramSep = firstPath.indexOf(";");
+		if (paramSep >= 0 && paramSep < firstPath.length() - 1) {
+			final String key2 = firstPath.substring(0, paramSep + 1);
+			handler = pathMap.get(key2);
+			if (handler != null) {
+				LOGGER.fine("Mapped to RequestHandler with " + key2);
+				return new RequestHandlerContext(handler, pathPrefix.append(
+					firstPath).toString());
 			}
 		}
-		if(paths.size() > 0) {
-			request.setAttribute("AccessPointNames", paths);
+
+		LOGGER.finer("No mapping for " + key);
+
+		handler = pathMap.get(null);
+		if (handler != null) {
+			LOGGER.fine("Mapped to RequestHandler with null");
+			return new RequestHandlerContext(handler, contextPath);
 		}
+
 		return null;
+	}
+
+	/**
+	 * Return a set of paths defined.
+	 * Path keys ending with ";" (representing path-segment parameter support)
+	 * is not included.
+	 * @return Set of String
+	 */
+	public Set<String> getPaths() {
+		Set<String> paths = new HashSet<String>();
+		for (String key : pathMap.keySet()) {
+			if (!key.endsWith(";"))
+				paths.add(key);
+		}
+		return paths;
 	}
 }

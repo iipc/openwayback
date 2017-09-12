@@ -82,6 +82,7 @@ public interface RequestHandler extends BeanNameAware {
 	 * @param requestMapper the RequestMapper on which this RequestHandler 
 	 * should register itself, including to register for notification of context
 	 * shutdown.
+	 * @deprecated 2017-08-01 this method is no longer used. see {@link RequestMapper#RequestMapper(java.util.Collection, ServletContext)}
 	 */
 	public void registerPortListener(RequestMapper requestMapper);
 
