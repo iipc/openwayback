@@ -20,6 +20,7 @@
 package org.archive.wayback.replay.html.transformer;
 
 import org.archive.wayback.replay.html.ReplayParseContext;
+import org.archive.wayback.replay.html.StringBuilderTransformer;
 import org.archive.wayback.replay.html.StringTransformer;
 
 /**
@@ -28,14 +29,19 @@ import org.archive.wayback.replay.html.StringTransformer;
  * @see org.archive.wayback.archivalurl.FastArchivalUrlReplayParseEventHandler
  * @see InlineCSSStringTransformer
  */
-public class BlockCSSStringTransformer extends BaseCSSStringTransformer implements StringTransformer {
+public class BlockCSSStringTransformer extends BaseCSSStringTransformer
+		implements StringTransformer, StringBuilderTransformer {
 
 	public String transform(ReplayParseContext context, String css) {
 		StringBuilder sb = new StringBuilder(css);
-		patternRewrite((ReplayParseContext) context, sb, cssUrlPattern, "im_");
-		patternRewrite((ReplayParseContext) context, sb, cssImportNoUrlPattern,
-				"cs_");
+		transform(context, sb);
 		return sb.toString();
 	}
 
+	@Override
+	public void transform(ReplayParseContext context, StringBuilder text) {
+		patternRewrite((ReplayParseContext)context, text, cssUrlPattern, "im_");
+		patternRewrite((ReplayParseContext)context, text, cssImportNoUrlPattern,
+			"cs_");
+	}
 }

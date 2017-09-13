@@ -20,7 +20,6 @@
 package org.archive.wayback.replay;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -31,8 +30,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.archive.wayback.ReplayRenderer;
 import org.archive.wayback.ResultURIConverter;
-import org.archive.wayback.ReplayURIConverter.URLStyle;
-import org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter;
 import org.archive.wayback.core.CaptureSearchResult;
 import org.archive.wayback.core.CaptureSearchResults;
 import org.archive.wayback.core.Resource;
@@ -40,7 +37,6 @@ import org.archive.wayback.core.WaybackRequest;
 import org.archive.wayback.exception.BadContentException;
 import org.archive.wayback.replay.charset.CharsetDetector;
 import org.archive.wayback.replay.charset.StandardCharsetDetector;
-import org.archive.wayback.replay.html.ContextResultURIConverterFactory;
 import org.archive.wayback.replay.html.ReplayParseContext;
 
 /**
@@ -85,19 +81,41 @@ public abstract class TextReplayRenderer implements ReplayRenderer {
 	private HttpHeaderProcessor httpHeaderProcessor;
 	private CharsetDetector charsetDetector = new StandardCharsetDetector();
 
-	@Deprecated
-	private ContextResultURIConverterFactory pageConverterFactory = null;
-
 	public TextReplayRenderer(HttpHeaderProcessor httpHeaderProcessor) {
 		this.httpHeaderProcessor = httpHeaderProcessor;
 	}
 
-	protected abstract void updatePage(TextDocument page, 
+	/**
+	 * legacy implementation point. Override this method to implement actual
+	 * rewrites on {@code page} content.
+	 * @param page
+	 * @param httpRequest
+	 * @param httpResponse
+	 * @param wbRequest
+	 * @param result
+	 * @param resource
+	 * @param uriConverter
+	 * @param results
+	 * @throws ServletException
+	 * @throws IOException
+	 */
+	protected void updatePage(TextDocument page,
 			HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse, WaybackRequest wbRequest,
 			CaptureSearchResult result, Resource resource,
 			ResultURIConverter uriConverter, CaptureSearchResults results)
-					throws ServletException, IOException;
+					throws ServletException, IOException {
+		// no op
+	}
+
+	protected void updatePage(TextDocument page,
+			HttpServletRequest httpRequest, HttpServletResponse httpResponse,
+			ReplayParseContext context, Resource resource,
+			CaptureSearchResults results)
+			throws ServletException, IOException {
+		updatePage(page, httpRequest, httpResponse, context.getWaybackRequest(),
+			context.getCaptureSearchResult(), resource, context.getURIConverter(), results);
+	}
 
 	@Override
 	public void renderResource(HttpServletRequest httpRequest,
@@ -129,25 +147,13 @@ public abstract class TextReplayRenderer implements ReplayRenderer {
 		String charSet = charsetDetector.getCharset(httpHeadersResource,
 				decodedResource, wbRequest);
 
-		ResultURIConverter pageConverter = uriConverter;
-		// this feature was meant for using special ResultURIConverter for rewriting XML, but
-		// turned out to be not useful. drop this unless we find other uses.
-		if (pageConverterFactory != null) {
-			// XXX: ad-hoc code - ContextResultURIConverterFactory should take ResultURIConverter
-			// as argument, so that it can simply wrap the original.
-			String replayURIPrefix = (uriConverter instanceof ArchivalUrlResultURIConverter ?
-					((ArchivalUrlResultURIConverter)uriConverter).getReplayURIPrefix() : "");
-			ResultURIConverter ruc = pageConverterFactory.getContextConverter(replayURIPrefix);
-			if (ruc != null)
-				pageConverter = ruc;
-		}
 		// Load content into an HTML page, and resolve load-time URLs:
 		TextDocument page = new TextDocument(decodedResource, result,
 				uriConverter);
 		page.readFully(charSet);
 
-		updatePage(page, httpRequest, httpResponse, wbRequest, result,
-				decodedResource, pageConverter, results);
+		updatePage(page, httpRequest, httpResponse, context, decodedResource,
+				results);
 
 		// set the corrected length:
 		int bytes = page.getBytes().length;
@@ -301,20 +307,6 @@ public abstract class TextReplayRenderer implements ReplayRenderer {
 		}
 
 		return payloadResource;
-	}
-
-	/**
-	 * set {@link ContextResultURIConverterFactory} that creates replacement
-	 * {@link ResultURIConverter} for this {@code TextReplayRenderer}.
-	 * If set to non-{@code null}, its {@code getContextConverter} method will be called
-	 * with {@code replayURIPrefix}. If the method returns non-{@code null}, it will be
-	 * passed to {@link #updatePage} instead of the original.
-	 * @param baseConverterFactory {@link ContextResultURIConverterFactory}
-	 * @deprecated 2015-02-10 no replacement
-	 */
-	public void setPageURIConverterFactory(
-			ContextResultURIConverterFactory pageConverterFactory) {
-		this.pageConverterFactory = pageConverterFactory;
 	}
 
 	/**

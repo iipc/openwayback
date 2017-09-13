@@ -516,4 +516,13 @@ public class ReplayParseContext extends ParseContext implements ReplayRewriteCon
 	public int getJSBlockCount() {
 		return jsBlockCount;
 	}
+
+	public WaybackRequest getWaybackRequest() {
+		return wbRequest;
+	}
+
+	public ReplayURIConverter getURIConverter() {
+		return uriConverter;
+	}
+
 }
