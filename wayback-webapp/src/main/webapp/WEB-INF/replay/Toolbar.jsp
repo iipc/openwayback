@@ -71,6 +71,10 @@ String starLink = fmt.escapeHtml(queryPrefix + wbRequest.getReplayTimestamp() +
 <script type="text/javascript" src="<%= staticPrefix %>js/disclaim-element.js" ></script>
 <script type="text/javascript" src="<%= staticPrefix %>js/graph-calc.js" ></script>
 <script src="<%= staticPrefix %>js/jquery.mCustomScrollbar.concat.min.js" charset="utf-8"></script>
+<script>
+	<!-- Custom jQuery global variable to prevent conflict with page jQuery -->
+	jqWayback = jQuery.noConflict(true);
+</script>
 <script type="text/javascript">
 //<![CDATA[
 var firstDate = <%= firstYearDate.getTime() %>;
@@ -346,7 +350,7 @@ function trackMouseMove(event,element) {
                 }
             }
         });
-    })(jQuery);
+    })(jqWayback);
 </script>   
    
 <script type="text/javascript">
