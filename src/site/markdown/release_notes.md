@@ -13,6 +13,7 @@ Full listing of changes and bug fixes are not available prior to release 1.2.0 a
 ### Bug fixes
 * Add proxy support to IP exclusion. [#260](https://github.com/iipc/openwayback/issues/260) 
 * Prevent direct access to .xml files, lib/, and classes/ under the WEB-INF directory. [#353](https://github.com/iipc/openwayback/issues/353)
+* Load jQuery required by scrollbar of Toolbar.jsp in noConflict mode. [#357](https://github.com/iipc/openwayback/pull/357)
 
 ## OpenWayback 2.3.2 Release
 ### Bug fixes
