@@ -27,7 +27,11 @@ RUN tar xvzf dist/target/openwayback.tar.gz -C dist/target \
 
 # Image creation stage
 FROM tomcat:${TOMCAT_TAG}
-LABEL maintainer="Sawood Alam <@ibnesayeed>"
+LABEL project.name="OpenWayback" \
+      project.description="OpenWayback is a replay system for archived web pages." \
+      project.repo.url="https://github.com/iipc/openwayback" \
+      project.docs.url="https://github.com/iipc/openwayback/wiki" \
+      project.dockerfile.author="Sawood Alam <@ibnesayeed>"
 
 RUN rm -rf /usr/local/tomcat/webapps/*
 COPY --from=builder /src/dist/target/openwayback/ROOT /usr/local/tomcat/webapps/ROOT
