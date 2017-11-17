@@ -1,12 +1,25 @@
 ARG MAVEN_TAG=latest
 ARG TOMCAT_TAG=latest
-ARG SKIP_TEST=false
 
 # Building stage
 FROM maven:${MAVEN_TAG} AS builder
-COPY . /src
 WORKDIR /src
-RUN mvn package -Dmaven.test.skip=${SKIP_TEST}
+
+# Trick to utilize cache for dependencies for faster successive builds
+# setting up a custom local repo path due to https://github.com/carlossg/docker-maven/issues/11
+ARG MAVEN_OPTS=-Dmaven.repo.local=/mvnrepo/.m2/
+ENV MAVEN_OPTS=$MAVEN_OPTS
+COPY pom.xml ./
+COPY dist/pom.xml dist/
+COPY wayback-cdx-server-core/pom.xml wayback-cdx-server-core/
+COPY wayback-cdx-server-webapp/pom.xml wayback-cdx-server-webapp/
+COPY wayback-core/pom.xml wayback-core/
+COPY wayback-webapp/pom.xml wayback-webapp/
+RUN mvn dependency:go-offline -fn
+
+# Actual packaging
+COPY . .
+RUN mvn package
 RUN tar xvzf dist/target/openwayback.tar.gz -C dist/target \
     && mkdir dist/target/openwayback/ROOT \
     && cd dist/target/openwayback/ROOT \
@@ -14,7 +27,11 @@ RUN tar xvzf dist/target/openwayback.tar.gz -C dist/target \
 
 # Image creation stage
 FROM tomcat:${TOMCAT_TAG}
-LABEL maintainer="Sawood Alam <@ibnesayeed>"
+LABEL app.name="OpenWayback" \
+      app.description="OpenWayback is a replay system for archived web pages." \
+      app.repo.url="https://github.com/iipc/openwayback" \
+      app.docs.url="https://github.com/iipc/openwayback/wiki" \
+      app.dockerfile.author="Sawood Alam <@ibnesayeed>"
 
 RUN rm -rf /usr/local/tomcat/webapps/*
 COPY --from=builder /src/dist/target/openwayback/ROOT /usr/local/tomcat/webapps/ROOT
