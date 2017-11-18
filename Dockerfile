@@ -29,6 +29,8 @@ RUN tar xvzf dist/target/openwayback.tar.gz -C dist/target \
 FROM tomcat:${TOMCAT_TAG}
 LABEL app.name="OpenWayback" \
       app.description="OpenWayback is a replay system for archived web pages." \
+      app.license="Apache License 2.0" \
+      app.license.url="https://github.com/iipc/openwayback/blob/master/LICENSE" \
       app.repo.url="https://github.com/iipc/openwayback" \
       app.docs.url="https://github.com/iipc/openwayback/wiki" \
       app.dockerfile.author="Sawood Alam <@ibnesayeed>"
