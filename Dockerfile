@@ -6,9 +6,6 @@ FROM maven:${MAVEN_TAG} AS builder
 WORKDIR /src
 
 # Trick to utilize cache for dependencies for faster successive builds
-# setting up a custom local repo path due to https://github.com/carlossg/docker-maven/issues/11
-ARG MAVEN_OPTS=-Dmaven.repo.local=/mvnrepo/.m2/
-ENV MAVEN_OPTS=$MAVEN_OPTS
 COPY pom.xml ./
 COPY dist/pom.xml dist/
 COPY wayback-cdx-server-core/pom.xml wayback-cdx-server-core/
