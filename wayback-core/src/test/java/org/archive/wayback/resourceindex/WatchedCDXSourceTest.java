@@ -11,6 +11,7 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 import junit.framework.TestCase;
@@ -50,6 +51,18 @@ public class WatchedCDXSourceTest extends TestCase {
 		Path newPath = null;
 		try {
 			newPath = Files.createTempFile(dir, Long.toString(System.nanoTime()), ".cdx");
+			cdxCount++;
+			LOGGER.finest("CDXs: " + cdxCount);
+		} catch (IOException e) {
+			fail("Error creating CDX file: " + e.getMessage());
+		}
+		return newPath;
+	}
+
+	private Path addIndex(Path dir) {
+		Path newPath = null;
+		try {
+			newPath = Files.createTempFile(dir, Long.toString(System.nanoTime()), ".index");
 			cdxCount++;
 			LOGGER.finest("CDXs: " + cdxCount);
 		} catch (IOException e) {
@@ -106,6 +119,31 @@ public class WatchedCDXSourceTest extends TestCase {
 		cdxSource.setPath(cdxDir.toString());
 		for (int i = 0; i < NUM_TESTS; i++) {
 			addCdx(cdxDir);
+			Thread.sleep(WAIT);
+			assertEquals(cdxCount, cdxSource.getSources().size());
+		}
+	}
+
+	/**
+	 * Test method for ENTRY_CREATE where there are multiple regexes for valid cdx sources
+	 * {@link org.archive.wayback.resourceindex.WatchedCDXSource.WatcherThread)}
+	 * .
+	 *
+	 * @throws InterruptedException
+	 *
+	 */
+	public void testAddMixedSources() throws InterruptedException {
+		String[] filters = new String[] {"^.+\\.cdx$", "^.+\\.index$"};
+		cdxSource.setFilters(Arrays.asList(filters));
+		cdxSource.setRecursive(false);
+		cdxSource.setPath(cdxDir.toString());
+		for (int i = 0; i < NUM_TESTS; i++) {
+			addCdx(cdxDir);
+			Thread.sleep(WAIT);
+			assertEquals(cdxCount, cdxSource.getSources().size());
+		}
+		for (int i = 0; i < NUM_TESTS; i++) {
+			addIndex(cdxDir);
 			Thread.sleep(WAIT);
 			assertEquals(cdxCount, cdxSource.getSources().size());
 		}
