@@ -15,6 +15,7 @@ Full listing of changes and bug fixes are not available prior to release 1.2.0 a
 * Prevent direct access to .xml files, lib/, and classes/ under the WEB-INF directory. [#353](https://github.com/iipc/openwayback/issues/353)
 * Load jQuery required by scrollbar of Toolbar.jsp in noConflict mode. [#357](https://github.com/iipc/openwayback/pull/357)
 * Fix inconsistent content and background image shifting with toolbar and disclaimer. [#358](https://github.com/iipc/openwayback/issues/358)
+* Fix misplaced `break` statement in WatchedCDXSource. [#369](https://github.com/iipc/openwayback/issues/369)
 
 ## OpenWayback 2.3.2 Release
 ### Bug fixes
