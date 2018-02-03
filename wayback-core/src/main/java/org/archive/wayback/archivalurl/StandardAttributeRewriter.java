@@ -16,6 +16,7 @@ import org.archive.wayback.replay.html.rules.AttributeModifyingRule;
 import org.archive.wayback.replay.html.transformer.InlineCSSStringTransformer;
 import org.archive.wayback.replay.html.transformer.JSStringTransformer;
 import org.archive.wayback.replay.html.transformer.MetaRefreshUrlStringTransformer;
+import org.archive.wayback.replay.html.transformer.RegexReplaceStringTransformer;
 import org.archive.wayback.replay.html.transformer.SrcsetStringTransformer;
 import org.archive.wayback.replay.html.transformer.URLStringTransformer;
 import org.htmlparser.nodes.TagNode;
@@ -225,6 +226,7 @@ public class StandardAttributeRewriter implements AttributeRewriter {
 		transformers.put("ci", new InlineCSSStringTransformer());
 		transformers.put("mt", new MetaRefreshUrlStringTransformer());
 		transformers.put("ss", new SrcsetStringTransformer());
+		transformers.put("in", new RegexReplaceStringTransformer("^.*$", ""));
 		
 		if (customTransformers != null) {
 			transformers.putAll(customTransformers);
