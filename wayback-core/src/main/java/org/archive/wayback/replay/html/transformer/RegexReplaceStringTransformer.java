@@ -51,7 +51,6 @@ public class RegexReplaceStringTransformer extends RewriteRule implements
 	 * @param replacement String to use
 	 */
 	public RegexReplaceStringTransformer(String regex, String replacement) {
-		//this.regex = regex;
 		setRegex(regex);
 		this.replacement = replacement;
 	}
