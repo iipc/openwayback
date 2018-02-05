@@ -17,6 +17,7 @@ Full listing of changes and bug fixes are not available prior to release 1.2.0 a
 * Fix inconsistent content and background image shifting with toolbar and disclaimer. [#358](https://github.com/iipc/openwayback/issues/358)
 * Fix misplaced `break` statement in WatchedCDXSource. [#369](https://github.com/iipc/openwayback/issues/369)
 * Fix toolbar plurality issue when only a single capture. [#372](https://github.com/iipc/openwayback/issues/372)
+* Rewrite `integrity` attribute for resources that implement Subresource Integrity. [#371](https://github.com/iipc/openwayback/issues/371)
 
 ## OpenWayback 2.3.2 Release
 ### Bug fixes
