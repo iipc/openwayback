@@ -16,6 +16,7 @@ Full listing of changes and bug fixes are not available prior to release 1.2.0 a
 * Load jQuery required by scrollbar of Toolbar.jsp in noConflict mode. [#357](https://github.com/iipc/openwayback/pull/357)
 * Fix inconsistent content and background image shifting with toolbar and disclaimer. [#358](https://github.com/iipc/openwayback/issues/358)
 * Fix misplaced `break` statement in WatchedCDXSource. [#369](https://github.com/iipc/openwayback/issues/369)
+* Fix toolbar plurality issue when only a single capture. [#372](https://github.com/iipc/openwayback/issues/372)
 
 ## OpenWayback 2.3.2 Release
 ### Bug fixes
