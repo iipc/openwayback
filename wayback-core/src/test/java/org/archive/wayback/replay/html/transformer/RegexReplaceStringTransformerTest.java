@@ -41,6 +41,12 @@ public class RegexReplaceStringTransformerTest extends TestCase {
                 "video/[a-z]*.mp4",
                 "video/changed.mp4",
                 "examples/video/changed.mp4",
+            },
+            {
+                "examples/video/test.mp4",
+                "notmatching/[a-z]*.mp4",
+                "video/changed.mp4",
+                "examples/video/test.mp4",
             }
         };
 
