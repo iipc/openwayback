@@ -42,6 +42,19 @@ public class RegexReplaceStringTransformer extends RewriteRule implements
 	// being removed
 	private String urlScope = null;
 
+	/** Default constructor */
+	public RegexReplaceStringTransformer() {}
+
+	/**
+	 * regex/replacement setting constructor.
+	 * @param regex String to be replaced
+	 * @param replacement String to use
+	 */
+	public RegexReplaceStringTransformer(String regex, String replacement) {
+		setRegex(regex);
+		this.replacement = replacement;
+	}
+
 	public String transform(ReplayParseContext context, String input) {
 
 		if (getName() != null) {
