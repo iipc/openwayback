@@ -1,18 +1,19 @@
 package org.archive.cdxserver.processor;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import org.archive.format.cdx.CDXLine;
 import org.archive.format.cdx.FieldSplitFormat;
 
 public class DupeCountProcessor extends WrappedProcessor {
 
-    protected HashMap<String, DupeTrack> dupeHashmap = null;
+    protected Map<String, DupeTrack> dupeHashmap = null;
     protected boolean showDupeCount = false;
 
     public final static String dupecount = "dupecount";
 
-    class DupeTrack {
+    static class DupeTrack {
         int count = 0;
     }
     
@@ -21,7 +22,7 @@ public class DupeCountProcessor extends WrappedProcessor {
     	return new DupeTrack();
     }
     
-    protected void handleLine(DupeTrack counter, CDXLine line, boolean isDupe) {
+    protected void handleLine(DupeTrack counter, CDXLine line) {
 	    
     }
 
@@ -41,18 +42,13 @@ public class DupeCountProcessor extends WrappedProcessor {
         if (counter == null) {
             counter = createDupeTrack();
             dupeHashmap.put(digest, counter);
-            if (showDupeCount) {
-                line.setField(dupecount, "0");
-            }
-            handleLine(counter, line, false);
-            
         } else {
             counter.count++;
-            if (showDupeCount) {
-                line.setField(dupecount, "" + counter.count);
-            }
-            handleLine(counter, line, true);
         }
+        if (showDupeCount) {
+            line.setField(dupecount, "" + counter.count);
+        }
+        handleLine(counter, line);
 
         return inner.writeLine(line);
     }

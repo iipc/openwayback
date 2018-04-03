@@ -13,34 +13,44 @@ public abstract class RevisitResolver extends DupeCountProcessor {
 		super(output, showDupeCount);
 	}
 	
-	protected void fillBlankOrig(CDXLine line)
-	{
-        line.setField(origlength, CDXLine.EMPTY_VALUE);
-        line.setField(origoffset, CDXLine.EMPTY_VALUE);
-        line.setField(origfilename, CDXLine.EMPTY_VALUE);
+	protected static void fillBlankOrig(CDXLine line) {
+		line.setField(origlength, CDXLine.EMPTY_VALUE);
+		line.setField(origoffset, CDXLine.EMPTY_VALUE);
+		line.setField(origfilename, CDXLine.EMPTY_VALUE);
 	}
-	
-	protected void fillRevisit(CDXLine line, CDXLine origLine)
-	{
-        line.setMimeType(origLine.getMimeType());
-        line.setStatusCode(origLine.getStatusCode());
-        
-        line.setField(origlength, origLine.getLength());
-        line.setField(origoffset, origLine.getOffset());
-        line.setField(origfilename, origLine.getFilename());
+
+	protected static void fillRevisit(CDXLine line, CDXLine origLine) {
+		line.setMimeType(origLine.getMimeType());
+		line.setStatusCode(origLine.getStatusCode());
+
+		line.setField(origlength, origLine.getLength());
+		line.setField(origoffset, origLine.getOffset());
+		line.setField(origfilename, origLine.getFilename());
 	}
     
-    protected abstract void handleLine(DupeTrack counter, CDXLine line, boolean isDupe);
-    
-    protected boolean isRevisit(CDXLine line)
-    {
-        return (line.getMimeType().equals("warc/revisit") ||
-        		line.getFilename().equals(CDXLine.EMPTY_VALUE));
-    }
+	protected static boolean isRevisit(CDXLine line) {
+		return (line.getMimeType().equals("warc/revisit") || line.getFilename()
+			.equals(CDXLine.EMPTY_VALUE));
+	}
     
 	@Override
 	public FieldSplitFormat modifyOutputFormat(FieldSplitFormat format) {
 		format = super.modifyOutputFormat(format).addFieldNames(origlength, origoffset, origfilename);
 		return format;
+	}
+
+	static abstract class RevisitTrack extends DupeTrack {
+		abstract void revisit(CDXLine line);
+		abstract void original(CDXLine line);
+	}
+
+	@Override
+    protected void handleLine(DupeTrack track, CDXLine line) {
+		RevisitTrack revisitTrack = (RevisitTrack)track;
+		if (isRevisit(line)) {
+			revisitTrack.revisit(line);
+		} else {
+			revisitTrack.original(line);
+		}
 	}
 }

@@ -8,34 +8,30 @@ public class ForwardRevisitResolver extends RevisitResolver {
 	    super(output, showDupeCount);
     }
 	
-	class OrigLineDupeTrack extends DupeTrack
-	{
-		CDXLine line;
+	static class ForwardRevisitTrack extends RevisitTrack {
+		CDXLine origLine;
+
+		@Override
+		final void revisit(CDXLine line) {
+			if (origLine != null) {
+				fillRevisit(line, origLine);
+			} else {
+				fillBlankOrig(line);
+			}
+		}
+
+		@Override
+		final void original(CDXLine line) {
+			if (origLine == null) {
+				origLine = line;
+			}
+			fillBlankOrig(line);
+		}
 	}
 	
-    protected DupeTrack createDupeTrack()
-    {
-    	return new OrigLineDupeTrack();
-    }
-    
-    protected void handleLine(DupeTrack counter, CDXLine line, boolean isDupe) {
-	    OrigLineDupeTrack origLineDupeTrack = (OrigLineDupeTrack)counter;
-    	
-	    CDXLine origLine = null;
-	    
-    	boolean currIsRevisit = isRevisit(line);
-    	
-    	if ((origLineDupeTrack.line == null) && !currIsRevisit) {
-	    	origLineDupeTrack.line = line;
-	    } else {	    	
-	    	origLine = origLineDupeTrack.line;
-	    }
-        
-        if ((origLine != null) && currIsRevisit) {
-        	this.fillRevisit(line, origLine);
-        } else {
-        	this.fillBlankOrig(line);
-        }
-    }
+	@Override
+	protected RevisitTrack createDupeTrack() {
+		return new ForwardRevisitTrack();
+	}
     
 }

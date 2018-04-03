@@ -1,56 +1,44 @@
 package org.archive.cdxserver.processor;
 
 import java.util.LinkedList;
+import java.util.List;
 
 import org.archive.format.cdx.CDXLine;
 
 public class ReverseRevisitResolver extends RevisitResolver {
 
-	public ReverseRevisitResolver(
-			BaseProcessor output, 
-			boolean showDupeCount) {
-		
+	public ReverseRevisitResolver(BaseProcessor output, boolean showDupeCount) {
 		super(output, showDupeCount);
 	}
 	
-	class RevisitTrack extends DupeTrack {
-		LinkedList<CDXLine> lines;
+	static class ReverseRevisitTrack extends RevisitTrack {
+		List<CDXLine> revisitLines;
 		
-		void add(CDXLine line)
-		{
-			if (lines == null) {
-				lines = new LinkedList<CDXLine>();
+		@Override
+		final void revisit(CDXLine line) {
+			if (revisitLines == null) {
+				revisitLines = new LinkedList<CDXLine>();
 			}
-			lines.add(line);
+			revisitLines.add(line);
+			fillBlankOrig(line);
 		}
 		
-		void fillRevisits(CDXLine origLine)
-		{
-			if (lines != null) {
-				for (CDXLine revisitLine : lines) {
-					ReverseRevisitResolver.this.fillRevisit(revisitLine, origLine);
+		@Override
+		final void original(CDXLine line) {
+			if (revisitLines != null) {
+				for (CDXLine revisitLine : revisitLines) {
+					fillRevisit(revisitLine, line);
 				}
-				lines.clear();
+				revisitLines.clear();
+			} else {
+				fillBlankOrig(line);
 			}
 		}
 	}
 	
 	@Override
-    protected DupeTrack createDupeTrack()
-    {
-    	return new RevisitTrack();
-    }
+	protected RevisitTrack createDupeTrack() {
+		return new ReverseRevisitTrack();
+	}
     
-	@Override
-    protected void handleLine(DupeTrack counter, CDXLine line, boolean isDupe) {
-    	RevisitTrack revisits = (RevisitTrack)counter;
-		
-		super.fillBlankOrig(line);
-		
-		if (isRevisit(line)) {
-			revisits.add(line);
-		} else {
-			revisits.fillRevisits(line);
-		}
-    }
 }
