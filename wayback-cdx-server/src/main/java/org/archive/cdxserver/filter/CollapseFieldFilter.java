@@ -6,8 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang.math.NumberUtils;
+import org.archive.cdxserver.format.CDXFormat;
 import org.archive.format.cdx.CDXLine;
-import org.archive.format.cdx.FieldSplitFormat;
 import org.archive.format.cdx.FieldSplitLine;
 
 /**
@@ -24,7 +24,7 @@ public class CollapseFieldFilter implements CDXFilter {
 
 	final static String FIELD_SEP_CHAR = ":";
 
-	final protected FieldSplitFormat names;
+	final protected CDXFormat names;
 	final protected List<DupeMatch> dupeMatchers;
 
 	class DupeMatch {
@@ -87,7 +87,7 @@ public class CollapseFieldFilter implements CDXFilter {
 		}
 	}
 
-	public CollapseFieldFilter(String[] fields, FieldSplitFormat names) {
+	public CollapseFieldFilter(String[] fields, CDXFormat names) {
 		this.names = names;
 
 		this.dupeMatchers = new ArrayList<DupeMatch>(fields.length);

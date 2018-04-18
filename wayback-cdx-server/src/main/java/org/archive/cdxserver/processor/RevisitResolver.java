@@ -1,7 +1,7 @@
 package org.archive.cdxserver.processor;
 
+import org.archive.cdxserver.format.CDXFormat;
 import org.archive.format.cdx.CDXLine;
-import org.archive.format.cdx.FieldSplitFormat;
 
 public abstract class RevisitResolver extends DupeCountProcessor {
 
@@ -29,16 +29,16 @@ public abstract class RevisitResolver extends DupeCountProcessor {
 	}
     
 	protected static boolean isRevisit(CDXLine line) {
-		return (line.getMimeType().equals("warc/revisit") || line.getFilename()
-			.equals(CDXLine.EMPTY_VALUE));
+		return ((CDXFormat)line.getNames()).isRevisit(line);
+//		return (line.getMimeType().equals("warc/revisit") || line.getFilename()
+//			.equals(CDXLine.EMPTY_VALUE));
 	}
     
 	@Override
-	public FieldSplitFormat modifyOutputFormat(FieldSplitFormat format) {
-		format = super.modifyOutputFormat(format).addFieldNames(origlength, origoffset, origfilename);
-		return format;
+	protected String[] extraFields() {
+		return new String[] { origlength, origoffset, origfilename };
 	}
-
+	
 	static abstract class RevisitTrack extends DupeTrack {
 		abstract void revisit(CDXLine line);
 		abstract void original(CDXLine line);
