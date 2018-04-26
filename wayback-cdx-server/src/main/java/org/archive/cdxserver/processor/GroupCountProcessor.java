@@ -1,9 +1,10 @@
 package org.archive.cdxserver.processor;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 
 import org.archive.format.cdx.CDXLine;
-import org.archive.format.cdx.FieldSplitFormat;
 
 public class GroupCountProcessor extends WrappedProcessor {
 	
@@ -86,21 +87,18 @@ public class GroupCountProcessor extends WrappedProcessor {
 	}
 	
 	@Override
-	public FieldSplitFormat modifyOutputFormat(FieldSplitFormat format)
-	{
-		format = super.modifyOutputFormat(format).addFieldNames(groupcount);
-		
+	protected String[] extraFields() {
+		List<String> fields = new ArrayList<String>();
+		fields.add(groupcount);
 		if (writeLastTimestamp) {
-			format = format.addFieldNames(endtimestamp);
+			fields.add(endtimestamp);
 		}
-		
 		if (uniqDigestSet != null) {
-			format = format.addFieldNames(uniqcount);
+			fields.add(uniqcount);
 		}
-		
-		return format;
+		return fields.toArray(new String[fields.size()]);
 	}
-
+	
 	@Override
 	public void writeResumeKey(String resumeKey) {
 		this.writeDeferredLine();

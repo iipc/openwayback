@@ -1,8 +1,9 @@
 package org.archive.cdxserver.processor;
 
+import org.archive.cdxserver.format.CDXFormat;
 import org.archive.cdxserver.writer.CDXWriter;
+import org.archive.format.cdx.CDXFieldConstants;
 import org.archive.format.cdx.CDXLine;
-import org.archive.format.cdx.FieldSplitFormat;
 
 /**
  * {@code BaseProcessor} is an interface for a receiver
@@ -69,12 +70,13 @@ public interface BaseProcessor {
 
 	/**
 	 * Return output format (list of fields), given input format {@code format}.
-	 * Intermediaries should call {@code modifyOutputFormat(format)} on nested
-	 * processor first, then make appropriate changes to it if they add/remove
-	 * fields.
+	 * Intermediaries, if they add/remove fields, should make appropriate changes
+	 * to it first, then call {@code modifyOutputFormat(format)} on downstream
+	 * processors, because downstream processors may configure themselves based on
+	 * the format they see.
 	 * @param format input format
 	 * @return output format
 	 * @see CDXFieldConstants
 	 */
-	public FieldSplitFormat modifyOutputFormat(FieldSplitFormat format);
+	public CDXFormat modifyOutputFormat(CDXFormat format);
 }

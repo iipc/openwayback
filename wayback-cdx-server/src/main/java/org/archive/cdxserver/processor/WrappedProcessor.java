@@ -1,14 +1,18 @@
 package org.archive.cdxserver.processor;
 
+import org.archive.cdxserver.format.CDXFormat;
 import org.archive.format.cdx.CDXLine;
-import org.archive.format.cdx.FieldSplitFormat;
 
+/**
+ * Base class for intermediary processors.
+ * 
+ * Note: {@code inner} processor is downstream (closer to the final output processor).
+ */
 public class WrappedProcessor implements BaseProcessor {
 	
 	protected BaseProcessor inner;
 	
-	public WrappedProcessor(BaseProcessor output)
-	{
+	public WrappedProcessor(BaseProcessor output) {
 		this.inner = output;
 	}
 
@@ -38,7 +42,28 @@ public class WrappedProcessor implements BaseProcessor {
 	}
 	
 	@Override
-	public FieldSplitFormat modifyOutputFormat(FieldSplitFormat format) {
+	public CDXFormat modifyOutputFormat(CDXFormat format) {
+		String[] moreFields = extraFields();
+		if (moreFields != null && moreFields.length > 0) {
+			format = format.extend(moreFields);
+		}
 		return inner.modifyOutputFormat(format);
+	}
+	
+	/**
+	 * Return an array of field names to add to the format for
+	 * {@link WaybackCDXLineFactory}.
+	 * <p>
+	 * Return {@code null} if processor does not need additional fields
+	 * (base implementation).
+	 * </p>
+	 * <p>
+	 * If intermediary processor ever removes fields, it should override
+	 * {@link #modifyOutputFormat(CDXFormat)}.
+	 * </p>
+	 * @return
+	 */
+	protected String[] extraFields() {
+		return null;
 	}
 }

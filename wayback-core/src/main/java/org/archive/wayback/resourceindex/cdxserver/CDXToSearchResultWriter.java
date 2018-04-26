@@ -2,9 +2,9 @@ package org.archive.wayback.resourceindex.cdxserver;
 
 import org.archive.cdxserver.CDXQuery;
 import org.archive.cdxserver.CDXServer;
+import org.archive.cdxserver.format.CDXFormat;
 import org.archive.cdxserver.writer.CDXWriter;
 import org.archive.format.cdx.CDXLine;
-import org.archive.format.cdx.FieldSplitFormat;
 import org.archive.wayback.ResourceIndex;
 import org.archive.wayback.core.SearchResults;
 
@@ -64,7 +64,7 @@ public abstract class CDXToSearchResultWriter extends CDXWriter {
 	}
 
 	@Override
-	public FieldSplitFormat modifyOutputFormat(FieldSplitFormat format) {
+	public CDXFormat modifyOutputFormat(CDXFormat format) {
 		return format;
 	}
 }

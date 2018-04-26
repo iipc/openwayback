@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.archive.format.cdx.CDXLine;
-import org.archive.format.cdx.FieldSplitFormat;
 
 public class DupeCountProcessor extends WrappedProcessor {
 
@@ -54,11 +53,12 @@ public class DupeCountProcessor extends WrappedProcessor {
     }
 
 	@Override
-    public FieldSplitFormat modifyOutputFormat(FieldSplitFormat format) {
-        if (showDupeCount) {
-            format = super.modifyOutputFormat(format).addFieldNames(dupecount);
-        }
-        
-        return format;
-    }
+	protected String[] extraFields() {
+		if (showDupeCount) {
+			return new String[] { dupecount };
+		} else {
+			return null;
+		}
+	}
+	
 }

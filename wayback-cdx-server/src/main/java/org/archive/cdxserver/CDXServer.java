@@ -5,6 +5,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -15,11 +16,14 @@ import org.archive.cdxserver.auth.AuthToken;
 import org.archive.cdxserver.filter.CDXAccessFilter;
 import org.archive.cdxserver.filter.CollapseFieldFilter;
 import org.archive.cdxserver.filter.FieldRegexFilter;
+import org.archive.cdxserver.format.CDX9Format;
+import org.archive.cdxserver.format.CDXFormat;
 import org.archive.cdxserver.processor.BaseProcessor;
 import org.archive.cdxserver.processor.ClosestTimestampSorted;
 import org.archive.cdxserver.processor.DupeCountProcessor;
 import org.archive.cdxserver.processor.DupeTimestampBestStatusFilter;
 import org.archive.cdxserver.processor.DupeTimestampLastBestStatusFilter;
+import org.archive.cdxserver.processor.FieldSelectorProcessor;
 import org.archive.cdxserver.processor.ForwardRevisitResolver;
 import org.archive.cdxserver.processor.GroupCountProcessor;
 import org.archive.cdxserver.processor.LastNLineProcessor;
@@ -32,9 +36,7 @@ import org.archive.cdxserver.writer.PlainTextWriter;
 import org.archive.format.cdx.CDXFieldConstants;
 import org.archive.format.cdx.CDXInputSource;
 import org.archive.format.cdx.CDXLine;
-import org.archive.format.cdx.CDXLineFactory;
 import org.archive.format.cdx.FieldSplitFormat;
-import org.archive.format.cdx.StandardCDXLineFactory;
 import org.archive.format.gzip.zipnum.LineBufferingIterator;
 import org.archive.format.gzip.zipnum.ZipNumCluster;
 import org.archive.format.gzip.zipnum.ZipNumIndex.PageResult;
@@ -45,14 +47,16 @@ import org.archive.util.iterator.CloseableIterator;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 public class CDXServer extends BaseCDXServer {
+	
+	private static final Logger LOG = Logger.getLogger(CDXServer.class.getName());
 
 	protected ZipNumCluster zipnumSource;
 	protected CDXInputSource cdxSource;
 
-	protected String cdxFormat = null;
+	protected CDXFormat cdxFormat;
 
-	protected CDXLineFactory cdxLineFactory;
-
+	protected FieldSplitFormat defaultOutputFields;
+	
 	//protected FieldSplitFormat defaultCdxFormat;
 	//protected FieldSplitFormat publicCdxFields;
 
@@ -62,7 +66,9 @@ public class CDXServer extends BaseCDXServer {
 			cdxSource = zipnumSource;
 		}
 
-		cdxLineFactory = new StandardCDXLineFactory(cdxFormat);
+		if (cdxFormat == null) {
+			cdxFormat = new CDX9Format();
+		}
 		// defaultCdxFormat = cdxLineFactory.getParseFormat();
 
 		// if (authChecker != null && authChecker.getPublicCdxFields() != null)
@@ -86,6 +92,7 @@ public class CDXServer extends BaseCDXServer {
 
 	protected ZipNumParams defaultParams;
 
+	
 	public ZipNumCluster getZipnumSource() {
 		return zipnumSource;
 	}
@@ -110,12 +117,38 @@ public class CDXServer extends BaseCDXServer {
 		this.defaultParams = defaultParams;
 	}
 
-	public String getCdxFormat() {
+	public CDXFormat getCdxFormat() {
 		return cdxFormat;
 	}
 
-	public void setCdxFormat(String cdxFormat) {
+	/**
+	 * Set {@link CDXFormat} implementation directly in order to customize CDX
+	 * format beyond standard CDX9 and CDX11.
+	 * <p>
+	 * This property may be configured with string via CDXFormatEditor.
+	 * </p>
+	 * @param cdxFormat CDXFormat implementation
+	 */
+	public void setCdxFormat(CDXFormat cdxFormat) {
 		this.cdxFormat = cdxFormat;
+	}
+	
+	/**
+	 * Command-separated list of field names to be used as default output fields
+	 * ({@code fl} option).
+	 * <p>
+	 * It is OK to include processor-provided fields (ex {@code groupCount}); they
+	 * appears in the response only when corresponding processors are appiled.
+	 * </p>
+	 * <p>
+	 * If unspecified ({@code null}), index format will be used
+	 * (see {@link #setCdxFormat(String)}).
+	 * </p>
+	 * @param defaultOuptutFields
+	 */
+	public void setDefaultOutputFields(String defaultOutputFields) {
+		this.defaultOutputFields = defaultOutputFields != null ? 
+				new FieldSplitFormat(defaultOutputFields) : null;
 	}
 
 	public int getQueryMaxLimit() {
@@ -444,10 +477,34 @@ public class CDXServer extends BaseCDXServer {
 
 	protected void writeCdxResponse(CDXWriter responseWriter,
 			CloseableIterator<String> cdx, int readLimit,
-
 			CDXQuery query, AuthToken authToken, CDXAccessFilter accessChecker) {
 
 		BaseProcessor outputProcessor = responseWriter;
+
+		FieldSplitFormat allowedFields = null;
+		if (!authToken.isAllCdxFieldAccessAllowed()) {
+			allowedFields = this.authChecker.getPublicCdxFormat();
+		}
+
+		// field list of final output - same as raw index format, or
+		// those specified by fl option, but masked by the list of
+		// fields accessible to the client privilege level.
+		FieldSplitFormat outputFields = null;
+		if (!query.fl.isEmpty()) {
+			try {
+				// is this decoding really necessary?
+				String fl = URLDecoder.decode(query.fl, "UTF-8");
+				outputFields = new FieldSplitFormat(fl);
+			} catch (UnsupportedEncodingException ex) {
+			}
+		} else {
+			outputFields = defaultOutputFields;
+		}
+
+		if (outputFields != null || allowedFields != null) {
+			outputProcessor = new FieldSelectorProcessor(outputProcessor,
+				outputFields, allowedFields);
+		}
 
 		if (query.limit < 0) {
 			query.limit = Math.min(-query.limit, readLimit);
@@ -492,8 +549,7 @@ public class CDXServer extends BaseCDXServer {
 			}
 		}
 
-		FieldSplitFormat parseFormat = outputProcessor
-				.modifyOutputFormat(cdxLineFactory.getParseFormat());
+		CDXFormat parseFormat = outputProcessor.modifyOutputFormat(cdxFormat);
 
 		FieldRegexFilter filterMatcher = null;
 
@@ -507,37 +563,18 @@ public class CDXServer extends BaseCDXServer {
 			collapser = new CollapseFieldFilter(query.collapse, parseFormat);
 		}
 
-		// CDXLine prev = null;
-		CDXLine line = null;
-
 		// boolean prevUrlAllowed = true;
-
-		FieldSplitFormat outputFields = null;
-
-		if (!authToken.isAllCdxFieldAccessAllowed()) {
-			outputFields = this.authChecker.getPublicCdxFormat();
-		}
-
-		if (!query.fl.isEmpty()) {
-			if (outputFields == null) {
-				outputFields = parseFormat;
-			}
-			try {
-				outputFields = outputFields.createSubset(URLDecoder.decode(
-						query.fl, "UTF-8"));
-			} catch (UnsupportedEncodingException e) {
-
-			}
-		} else if (outputFields != null) {
-			outputFields = parseFormat.createSubset(outputFields);
-		}
 
 		outputProcessor.begin();
 
 		int writeCount = 0;
 		long allCount = 0;
 
-		int writeLimit = query.limit;
+		final int writeLimit = query.limit;
+
+		// CDXLine prev = null;
+		// declared here because resumeKey code uses after the loop.
+		CDXLine line = null;
 
 		while (cdx.hasNext() &&
 				((writeLimit == 0) || (writeCount < writeLimit)) &&
@@ -553,9 +590,7 @@ public class CDXServer extends BaseCDXServer {
 
 			// prev = line;
 
-			// line = new CDXLine(rawLine, parseFormat);
-			line = this.cdxLineFactory.createStandardCDXLine(rawLine,
-					parseFormat);
+			line = parseFormat.createCDXLine(rawLine);
 
 			// TODO: better way to handle this special case?
 			if (line.getMimeType().equals("alexa/dat")) {
@@ -610,11 +645,6 @@ public class CDXServer extends BaseCDXServer {
 			// Check collapser
 			if ((collapser != null) && !collapser.include(line)) {
 				continue;
-			}
-
-			// Filter to only include output fields
-			if (outputFields != null) {
-				line = new CDXLine(line, outputFields);
 			}
 
 			writeCount += outputProcessor.writeLine(line);

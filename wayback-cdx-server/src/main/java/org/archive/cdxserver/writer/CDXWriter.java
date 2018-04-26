@@ -1,8 +1,8 @@
 package org.archive.cdxserver.writer;
 
+import org.archive.cdxserver.format.CDXFormat;
 import org.archive.cdxserver.processor.BaseProcessor;
 import org.archive.format.cdx.CDXLine;
-import org.archive.format.cdx.FieldSplitFormat;
 
 public abstract class CDXWriter implements BaseProcessor {
 
@@ -35,7 +35,7 @@ public abstract class CDXWriter implements BaseProcessor {
 	}
 
 	@Override
-	public FieldSplitFormat modifyOutputFormat(FieldSplitFormat format) {
+	public CDXFormat modifyOutputFormat(CDXFormat format) {
 		return format;
 	}
 
