@@ -15,6 +15,8 @@
     <property name="properties">
       <value>
         <!-- Customize these basic placeholders. -->
+        <!-- Warning: some systems have policies that clear /tmp on a schedule or on boot.
+             Select a location that suits your needs. -->
         wayback.basedir.default=/tmp/openwayback
         wayback.url.scheme.default=http
         wayback.url.host.default=localhost
