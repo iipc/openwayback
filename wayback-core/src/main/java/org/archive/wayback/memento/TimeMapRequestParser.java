@@ -13,6 +13,7 @@ import org.archive.wayback.requestparser.BaseRequestParser;
 import org.archive.wayback.requestparser.WrappedRequestParser;
 import org.archive.wayback.webapp.AccessPoint;
 import org.archive.wayback.util.Timestamp;
+import org.archive.wayback.util.webapp.RequestMapper;
 
 /**
  * 
@@ -48,7 +49,7 @@ public class TimeMapRequestParser extends WrappedRequestParser implements
 			return null;
 		}
 
-		String requestPath = accessPoint.translateRequestPathQuery(httpRequest);
+		String requestPath = RequestMapper.getRequestContextPath(httpRequest);
 		LOGGER.fine("requestpath:" + requestPath);
 
 		if (requestPath.startsWith(TIMEMAP)) {
@@ -64,8 +65,18 @@ public class TimeMapRequestParser extends WrappedRequestParser implements
 				if (index >= 0) {
 					format = urlStrplus.substring(0, index);
 					urlStr = urlStrplus.substring(index + 1);
+					// if urlStr is empty, query is taken as parameters for
+					// this endpoint, not the target URL.
+					if (urlStr.isEmpty()) {
+						urlStr = null;
+					} else {
+						String query = httpRequest.getQueryString();
+						if (query != null) {
+							urlStr = urlStr + "?" + query;
+						}
+					}
 				} else {
-					format = urlStrplus;
+					format = urlStrplus.isEmpty() ? null : urlStrplus;
 				}
 			}
 			
