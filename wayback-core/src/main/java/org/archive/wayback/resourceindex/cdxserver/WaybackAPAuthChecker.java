@@ -20,13 +20,12 @@ public class WaybackAPAuthChecker extends WaybackAuthChecker {
 
 	@Override
 	public CDXAccessFilter createAccessFilter(AuthToken token) {
-		APContextAuthToken apToken = null;
 
 		if (!(token instanceof APContextAuthToken)) {
-			return super.createAccessFilter(apToken);
+			return super.createAccessFilter(token);
 		}
 
-		apToken = (APContextAuthToken)token;
+		APContextAuthToken apToken = (APContextAuthToken)token;
 
 		AccessPoint ap = apToken.ap;
 
