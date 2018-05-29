@@ -35,7 +35,6 @@ public class CDXQuery {
     int collapseTime = -1;
 
     Boolean gzip = null;
-    String output = EMPTY_STRING;
 
     String[] filter = null;
     String[] collapse = null;
@@ -115,9 +114,6 @@ public class CDXQuery {
                 "collapseTime", 0);
 
         gzip = ServletRequestUtils.getBooleanParameter(request, "gzip");
-
-        output = ServletRequestUtils.getStringParameter(request, "output",
-                output);
 
         filter = ServletRequestUtils.getStringParameters(request, "filter");
         collapse = ServletRequestUtils.getStringParameters(request, "collapse");
@@ -224,14 +220,6 @@ public class CDXQuery {
 
     public void setGzip(Boolean gzip) {
         this.gzip = gzip;
-    }
-
-    public String getOutput() {
-        return output;
-    }
-
-    public void setOutput(String output) {
-        this.output = output;
     }
 
     public String[] getFilter() {

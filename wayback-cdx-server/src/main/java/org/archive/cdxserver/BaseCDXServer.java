@@ -103,8 +103,7 @@ public class BaseCDXServer implements InitializingBean {
      * @return subject object
      * @deprecated 2016-01-12 Use {@link AuthChecker#authenticate(HttpServletRequest, AuthToken)}
      */
-    protected AuthToken createAuthToken(HttpServletRequest request)
-    {
+    protected AuthToken createAuthToken(HttpServletRequest request) {
 		AuthToken subject = new AuthToken();
 		authChecker.authenticate(request, subject);
 		return subject;

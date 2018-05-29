@@ -188,7 +188,8 @@ public class HowManyController extends BaseCDXServer {
             end = url;
             host = "*";
         } else {
-            AuthToken authToken = super.createAuthToken(request);
+			AuthToken authToken = new AuthToken();
+			authChecker.authenticate(request, authToken);
             
 			CDXAccessFilter accessChecker = authChecker
 				.createAccessFilter(authToken);

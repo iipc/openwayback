@@ -207,43 +207,6 @@ public class CDXServer extends BaseCDXServer {
 		return encoding.contains("gzip");
 	}
 
-	@RequestMapping(value = { "/cdx" })
-	public void getCdx(HttpServletRequest request,
-			HttpServletResponse response, CDXQuery query) {
-		handleAjax(request, response);
-
-		CDXWriter responseWriter = null;
-
-		boolean gzip = determineGzip(request, query);
-
-		try {
-
-			if (query.output.equals("json")) {
-				responseWriter = new JsonWriter(response, gzip);
-			} else if (query.output.equals("memento")) {
-				responseWriter = new MementoLinkWriter(request, response,
-						query, gzip);
-			} else {
-				responseWriter = new PlainTextWriter(response, gzip);
-			}
-
-			//AuthToken authToken = super.createAuthToken(request);
-			AuthToken authToken = new AuthToken();
-			authChecker.authenticate(request, authToken);
-
-			getCdx(query, authToken, responseWriter);
-
-		} catch (IOException io) {
-			responseWriter.serverError(io);
-		} catch (RuntimeException rte) {
-			responseWriter.serverError(rte);
-		} finally {
-			if (responseWriter != null) {
-				responseWriter.close();
-			}
-		}
-	}
-
 	public void getCdx(CDXQuery query, AuthToken authToken,
 			CDXWriter responseWriter) throws IOException {
 		CloseableIterator<String> iter = null;

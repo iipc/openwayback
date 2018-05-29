@@ -93,11 +93,6 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 				CDXWriter responseWriter) throws IOException {
 			delegate.getCdx(query, authToken, responseWriter);
 		}
-		@Override
-		public void getCdx(HttpServletRequest request,
-				HttpServletResponse response, CDXQuery query) {
-			delegate.getCdx(request, response, query);
-		}
 	}
 
 	/**
@@ -621,11 +616,14 @@ public class EmbeddedCDXServerIndexTest extends TestCase {
 		EasyMock.expect(request.getParameter("url")).andStubReturn("http://example.com/");
 
 		HttpServletResponse response = EasyMock.createNiceMock(HttpServletResponse.class);
+		StringWriter sw = new StringWriter();
+		EasyMock.expect(response.getWriter()).andReturn(new PrintWriter(sw));
 
 		// handleRequest() makes no big assumption on CDXServer's behavior.
 		// we don't need to use #expectGetCdx
 		Capture<CDXQuery> queryCapture = new Capture<CDXQuery>();
-		cdxServer.getCdx(EasyMock.same(request), EasyMock.same(response), EasyMock.capture(queryCapture));
+		cdxServer.getCdx(EasyMock.capture(queryCapture),
+			EasyMock.<AuthToken>notNull(), EasyMock.<CDXWriter>notNull());
 
 		EasyMock.replay(request, response, cdxServer);
 

@@ -394,7 +394,7 @@ public class AccessPointTest extends TestCase {
 	 * It's left as caller's responsibility to setup {@link ResourceIndex#query(WaybackRequest)} mock
 	 * to return {@code CaptureSearchResults} returned by this method.
 	 * </p>
-	 * @param resourceIndex ResourceIndex mock
+	 * @param resourceIndex ResourceIndex mock (unused)
 	 * @param resourceStore ResourceStore mock, can be {@code null}
 	 * @param closestIndex 0-based index of resource to be marked as
 	 *        <i>closest</i>

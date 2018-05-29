@@ -54,6 +54,7 @@ import org.archive.wayback.webapp.PerfStats;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.web.bind.ServletRequestBindingException;
+import org.springframework.web.bind.ServletRequestUtils;
 
 /**
  * {@link ResourceIndex} on top of {@link CDXServer}. Also a {@link RequestHandler}
@@ -577,16 +578,16 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 	 * <li>{@code json}</li>
 	 * <li>other: generates CDX format response.</li>
 	 * </ul>
+	 * @param format TODO
 	 * @param wbRequest Wayback request
 	 * @param query CDX query
 	 * @return CDXWriter
 	 */
-	protected CDXWriter getTextCDXWriter(final WaybackRequest wbRequest,
-			CDXQuery query, HttpServletRequest request,
-			final HttpServletResponse response) throws IOException {
-		String format = wbRequest.getMementoTimemapFormat();
+	protected CDXWriter getTextCDXWriter(String format,
+			final WaybackRequest wbRequest, CDXQuery query,
+			HttpServletRequest request, final HttpServletResponse response) throws IOException {
 		boolean gzip = determineGzip(request, query);
-		if (MementoConstants.FORMAT_LINK.equals(format)) {
+		if (MementoConstants.FORMAT_LINK.equals(format) && wbRequest != null) {
 			boolean resolveRevisits = wbRequest.isReplayRequest();
 			boolean seekSingleCapture = false;
 
@@ -626,7 +627,6 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 			PerfStats.timeStart(PerfStat.IndexLoad);
 
 			CDXQuery query = new CDXQuery(wbRequest.getRequestUrl());
-			query.setOutput(wbRequest.getMementoTimemapFormat());
 
 			String from = wbRequest.get(MementoConstants.PAGE_STARTS);
 			if (from != null) {
@@ -639,7 +639,8 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 				// Ignore
 			}
 
-			CDXWriter cdxWriter = getTextCDXWriter(wbRequest, query, request, response);
+			final String format = wbRequest.getMementoTimemapFormat();
+			CDXWriter cdxWriter = getTextCDXWriter(format, wbRequest, query, request, response);
 
 			// TODO: need to support the same access control as CDXServer API.
 			// (See BaseCDXServer#createAuthToken(). Further refactoring is necessary.
@@ -659,12 +660,36 @@ public class EmbeddedCDXServerIndex extends AbstractRequestHandler implements Me
 	}
 	
 	// TODO: move this method to separate RequestHandler class
+	/**
+	 * An entry point for stand-alone CDX Server web API.
+	 */
 	@Override
 	public boolean handleRequest(HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse) throws ServletException,
 			IOException {
 		CDXQuery query = new CDXQuery(httpRequest);
-		cdxServer.getCdx(httpRequest, httpResponse, query);
+		CDXWriter responseWriter = null;
+
+		final String output = ServletRequestUtils.getStringParameter(httpRequest, "output", "");
+
+		try {
+			responseWriter = getTextCDXWriter(output, null, query, httpRequest, httpResponse);
+
+			AuthToken authToken = new AuthToken();
+			cdxServer.getAuthChecker().authenticate(httpRequest, authToken);
+
+			cdxServer.getCdx(query, authToken, responseWriter);
+		} catch (IOException io) {
+			if (responseWriter != null)
+				responseWriter.serverError(io);
+		} catch (RuntimeException rte) {
+			if (responseWriter != null)
+				responseWriter.serverError(rte);
+		} finally {
+			if (responseWriter != null) {
+				responseWriter.close();
+			}
+		}
 		return true;
 	}
 	
