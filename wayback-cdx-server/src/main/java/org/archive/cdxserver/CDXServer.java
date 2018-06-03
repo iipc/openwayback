@@ -211,6 +211,10 @@ public class CDXServer extends BaseCDXServer {
 			CDXWriter responseWriter) throws IOException {
 		CloseableIterator<String> iter = null;
 
+		if (query.url == null) {
+			responseWriter.printError("url parameter is required");
+			return;
+		}
 		try {
 			// Check for wildcards as shortcuts for matchType
 			if (query.matchType == null) {
