@@ -19,6 +19,7 @@ Full listing of changes and bug fixes are not available prior to release 1.2.0 a
 * Fix toolbar plurality issue when only a single capture. [#372](https://github.com/iipc/openwayback/issues/372)
 * Rewrite `integrity` attribute for resources that implement Subresource Integrity. [#371](https://github.com/iipc/openwayback/issues/371)
 * Upgrade httpclient from 4.3.5. [#380](https://github.com/iipc/openwayback/issues/380)
+* Declare Surefire plugin explicitly due to a change in a default value that breaks builds on newer versions of Maven. [#384](https://github.com/iipc/openwayback/pull/384)
 
 ## OpenWayback 2.3.2 Release
 ### Bug fixes
