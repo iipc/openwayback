@@ -307,16 +307,16 @@ However, in some cases where very large querying is needed (for example domain q
 in parallel and also estimate the total size of the query.
 
 `wayback` and `cdx-server` support a secondary loading from a 'zipnum' CDX index.
-Such an index contains CDX lines store in concatenated GZIP blocks (usually 3000 lines each) and a secondary index
+This index contains CDX lines stored in concatenated GZIP blocks (usually 3,000 lines each) and a secondary index
 which provides binary search to the 'zipnum' blocks.
 By using the secondary index, it is possible to estimate the total size of a query and also break up the query in size.
 Using the zipnum format or other secondary index is needed to support pagination.
 
-However, pagination can only work on a single index at a time, merging input from multiple sources (plain cdx or zipnum)
-is not possible with pagination. As such, the results from the paginated version may be slightly less up-to-date than
-the default non-paginated query.
+However, pagination can only work on a single index at a time; merging input from multiple sources (plain cdx or zipnum)
+is not possible. As such, the results from a paginated query may be slightly less up-to-date than
+a default non-paginated query.
 
-  * To use pagination, simply add the **page=i** param to the query to return the i-th page. If the pagination is not supported, cdx server will return a 400.
+  * To use pagination, simply add the **page=i** param to the query to return the i-th page. If pagination is not supported, the CDX server will return a 400.
 
   * Pages are numbered from 0 to *num pages - 1*. If *i<0*, pages are not used. If *i>=num pages*, no results are returned.
 
@@ -329,7 +329,7 @@ the default non-paginated query.
 
     Ex: http://web.archive.org/cdx/search/cdx?url=archive.org&showNumPages=true
   
-  * Page size (number of results per page) is configured to an optimal value on the cdx server, and may be similar to max query limit in non-paged mode. The CDX server on archive.org has a page size of 50 currently.
+  * Page size is the number of zipnum blocks scanned per page (so a page size of `1` will contain *up to* 3,000 results per page). This means the number of results on each page will vary, because each block may have a different number of CDX lines matching your query. Page size is configured to an optimal value on the CDX server, and may be similar to max query limit in non-paged mode. The CDX server on archive.org currently has a page size of 50.
   
   * It is possible to adjust the page size to a smaller value than the default by setting the **pageSize=P** where 1 <= P <= default page size.
   
@@ -340,9 +340,9 @@ the default non-paginated query.
 
   * If there is only one page, adding the **page=0** param will return the same results as without setting a page.
 
-  * It is also possible to have the cdx server return the raw secondary index, by specifying **showPagedIndex=true**. This query returns the secondary index instead of the cdx results and may be subject to access restrictions.
+  * It is also possible to have the CDX server return the raw secondary index, by specifying **showPagedIndex=true**. This query returns the secondary index instead of the CDX results and may be subject to access restrictions.
 
-  * All other params, including the resumeKey= should work in conjunction with the pagination.
+  * All other params, including the resumeKey= should work in conjunction with pagination.
 
 
 
