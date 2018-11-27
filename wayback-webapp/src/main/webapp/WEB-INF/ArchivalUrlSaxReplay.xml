@@ -286,7 +286,7 @@
 					<property name="transformer" ref="anchorURLRewriter" />
 				</bean>
 				<bean class="org.archive.wayback.replay.html.rules.AttributeModifyingRule">
-				<property name="modifyAttributeName" value="DATA-THUMB" />
+					<property name="modifyAttributeName" value="DATA-THUMB" />
 					<property name="transformer" ref="imageURLRewriter" />
 				</bean>
 				<bean class="org.archive.wayback.replay.html.rules.AttributeModifyingRule">
