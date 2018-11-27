@@ -225,6 +225,11 @@
 					<property name="transformer" ref="srcsetAttributeHandler" />
 				</bean>
 				<bean class="org.archive.wayback.replay.html.rules.AttributeModifyingRule">
+					<property name="tagName" value="TRACK" />
+					<property name="modifyAttributeName" value="SRC" />
+					<property name="transformer" ref="anchorURLRewriter" />
+				</bean>
+				<bean class="org.archive.wayback.replay.html.rules.AttributeModifyingRule">
 					<property name="tagName" value="VIDEO" />
 					<property name="modifyAttributeName" value="POSTER" />
 					<property name="transformer" ref="imageURLRewriter" />
