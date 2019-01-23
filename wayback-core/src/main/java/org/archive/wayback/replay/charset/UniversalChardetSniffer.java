@@ -13,7 +13,7 @@ import org.mozilla.universalchardet.UniversalDetector;
  */
 public class UniversalChardetSniffer extends BaseEncodingSniffer {
 	// hand off this many bytes to the chardet library
-	protected final static int MAX_CHARSET_READAHEAD = 65536;
+	protected final static int MAX_CHARSET_READAHEAD = 73728;
 
 	@Override
 	public String sniff(Resource resource) {
