@@ -105,7 +105,8 @@ public class ArchivalUrlCSSReplayRendererTest extends TestCase {
         response.setStatus(200);
         response.setCharacterEncoding("UTF-8");
         response.setHeader(EasyMock.eq("Content-Length"), EasyMock.<String>notNull());
-        response.setHeader(cut.getGuessedCharsetHeader(), "UTF-8");
+        response.setHeader(EasyMock.eq(cut.getGuessedCharsetHeader()),
+                EasyMock.matches("UTF-8|ISO-8859-[12]"));
         response.setHeader("Content-Type", "text/html");
         response.setHeader(EasyMock.matches("X-Archive-Orig-.*"), EasyMock.<String>notNull());
         EasyMock.expectLastCall().anyTimes();
