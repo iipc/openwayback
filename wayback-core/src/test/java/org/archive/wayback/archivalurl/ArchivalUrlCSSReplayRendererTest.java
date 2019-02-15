@@ -98,15 +98,15 @@ public class ArchivalUrlCSSReplayRendererTest extends TestCase {
         		"BODY {\n" +
         		"  color: #fff;\n" +
         		"  background: transparent url(bg.gif);\n" +
-        		"}\n";
+        		"}\n" +
+                "/* this is UTF-8❗ */\n";
         final byte[] payloadBytes = payload.getBytes("UTF-8");
         Resource payloadResource = createTestHtmlResource(payloadBytes);
         
         response.setStatus(200);
         response.setCharacterEncoding("UTF-8");
         response.setHeader(EasyMock.eq("Content-Length"), EasyMock.<String>notNull());
-        response.setHeader(EasyMock.eq(cut.getGuessedCharsetHeader()),
-                EasyMock.matches("UTF-8|ISO-8859-[12]"));
+        response.setHeader(cut.getGuessedCharsetHeader(), "UTF-8");
         response.setHeader("Content-Type", "text/html");
         response.setHeader(EasyMock.matches("X-Archive-Orig-.*"), EasyMock.<String>notNull());
         EasyMock.expectLastCall().anyTimes();
@@ -137,7 +137,8 @@ public class ArchivalUrlCSSReplayRendererTest extends TestCase {
                 "BODY {\n" +
                 "  color: #fff;\n" +
                 "  background: transparent url(/web/20100101123456/http://www.example.com/bg.gif);\n" +
-                "}\n";
+                "}\n" +
+                "/* this is UTF-8❗ */\n";
         String out = servletOutput.getString();
         assertEquals("servlet output", expected, out);        
     }
