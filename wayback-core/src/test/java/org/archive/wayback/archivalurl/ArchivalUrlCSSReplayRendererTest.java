@@ -138,7 +138,7 @@ public class ArchivalUrlCSSReplayRendererTest extends TestCase {
                 "  color: #fff;\n" +
                 "  background: transparent url(/web/20100101123456/http://www.example.com/bg.gif);\n" +
                 "}\n" +
-                "/* this is UTF-8❗ */\n";
+                "/* this is UTF-8 ！ (aka \uff01) */\n";
         String out = servletOutput.getString();
         assertEquals("servlet output", expected, out);        
     }
