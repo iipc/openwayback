@@ -99,7 +99,7 @@ public class ArchivalUrlCSSReplayRendererTest extends TestCase {
         		"  color: #fff;\n" +
         		"  background: transparent url(bg.gif);\n" +
         		"}\n" +
-                "/* this is UTF-8❗ */\n";
+                "/* this is UTF-8 ！ (aka \uff01) */\n";
         final byte[] payloadBytes = payload.getBytes("UTF-8");
         Resource payloadResource = createTestHtmlResource(payloadBytes);
         
