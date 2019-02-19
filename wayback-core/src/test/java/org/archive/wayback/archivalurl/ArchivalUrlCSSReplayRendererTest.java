@@ -98,7 +98,8 @@ public class ArchivalUrlCSSReplayRendererTest extends TestCase {
         		"BODY {\n" +
         		"  color: #fff;\n" +
         		"  background: transparent url(bg.gif);\n" +
-        		"}\n";
+        		"}\n" +
+                "/* this is UTF-8 ！ (aka \uff01) */\n";
         final byte[] payloadBytes = payload.getBytes("UTF-8");
         Resource payloadResource = createTestHtmlResource(payloadBytes);
         
@@ -136,7 +137,8 @@ public class ArchivalUrlCSSReplayRendererTest extends TestCase {
                 "BODY {\n" +
                 "  color: #fff;\n" +
                 "  background: transparent url(/web/20100101123456/http://www.example.com/bg.gif);\n" +
-                "}\n";
+                "}\n" +
+                "/* this is UTF-8 ！ (aka \uff01) */\n";
         String out = servletOutput.getString();
         assertEquals("servlet output", expected, out);        
     }

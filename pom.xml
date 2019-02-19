@@ -356,6 +356,13 @@
         <scope>test</scope>
       </dependency>
 
+      <!-- https://mvnrepository.com/artifact/com.ibm.icu/icu4j -->
+      <dependency>
+        <groupId>com.ibm.icu</groupId>
+        <artifactId>icu4j</artifactId>
+        <version>63.1</version>
+      </dependency>
+
     <!--
          org.dspace-foresite doesn't seem to be in any pulic repository,
          so a custom built version is on builds.archive.org, with SNAPSHOT
