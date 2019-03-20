@@ -227,7 +227,8 @@ public abstract class TextReplayRenderer implements ReplayRenderer {
 			String encoding = HttpHeaderOperation.getHeaderValue(headers,
 					HttpHeaderOperation.HTTP_CONTENT_ENCODING);
 			if (encoding != null) {
-				if (encoding.toLowerCase().equals(GzipDecodingResource.GZIP)) {
+				DecodingResource decodingResource = DecodingResource.forEncoding(encoding, payloadResource);
+				if (decodingResource != null) {
 					headers.put(ORIG_ENCODING, encoding);
 					HttpHeaderOperation.removeHeader(headers,
 							HttpHeaderOperation.HTTP_CONTENT_ENCODING);
@@ -237,7 +238,7 @@ public abstract class TextReplayRenderer implements ReplayRenderer {
 								HttpHeaderOperation.HTTP_TRANSFER_ENC_HEADER);
 					}
 
-					return new GzipDecodingResource(payloadResource);
+					return decodingResource;
 				}
 
 				// TODO: check for other encodings?

@@ -15,7 +15,7 @@ import org.archive.io.warc.TestWARCRecordInfo;
 import org.archive.io.warc.WARCRecord;
 import org.archive.io.warc.WARCRecordInfo;
 import org.archive.wayback.core.Resource;
-import org.archive.wayback.replay.GzipDecodingResource;
+import org.archive.wayback.replay.DecodingResource;
 import org.archive.wayback.replay.TextReplayRenderer;
 import org.archive.wayback.replay.charset.CharsetDetector;
 import org.archive.wayback.replay.charset.StandardCharsetDetector;
@@ -109,7 +109,7 @@ public class WarcResourceTest extends TestCase {
         assertEquals("content-type", ctype, res.getHeader("Content-Type"));
         
         Resource zres = TextReplayRenderer.decodeResource(res);
-        assertTrue("wrapped with GzipDecodingResource", (zres instanceof GzipDecodingResource));
+        assertTrue("wrapped with DecodingResource", (zres instanceof DecodingResource));
         
         byte[] buf = new byte[payload.getBytes().length + 1];
         int n = zres.read(buf);
@@ -135,7 +135,7 @@ public class WarcResourceTest extends TestCase {
         assertEquals("content-type", ctype, res.getHeader("Content-Type"));
         
         Resource zres = TextReplayRenderer.decodeResource(res);
-        assertTrue("wrapped with GzipDecodingResource", (zres instanceof GzipDecodingResource));
+        assertTrue("wrapped with DecodingResource", (zres instanceof DecodingResource));
         
         byte[] buf = new byte[payload.getBytes().length + 1];
         int n = zres.read(buf);
