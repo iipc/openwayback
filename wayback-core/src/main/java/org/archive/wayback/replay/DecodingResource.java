@@ -77,14 +77,19 @@ public class DecodingResource extends Resource {
     }
 
     public static DecodingResource forEncoding(String contentEncoding, Resource source) throws IOException {
-        switch (contentEncoding.toLowerCase()) {
-            case "br":
-                return new DecodingResource(source, new BrotliInputStream(source));
-            case "gzip":
-            case "x-gzip":
-                return new DecodingResource(source, new GZIPInputStream(source));
-            default:
-                return null;
+        try {
+            switch (contentEncoding.toLowerCase()) {
+                case "br":
+                    return new DecodingResource(source, new BrotliInputStream(source));
+                case "gzip":
+                case "x-gzip":
+                    return new DecodingResource(source, new GZIPInputStream(source));
+                default:
+                    return null;
+            }
+        } catch (IOException e) {
+            // If can't decompress, might as well as send back raw data.
+            return new DecodingResource(source, source);
         }
     }
 }
