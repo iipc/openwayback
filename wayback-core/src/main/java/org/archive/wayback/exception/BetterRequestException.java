@@ -19,7 +19,12 @@
  */
 package org.archive.wayback.exception;
 
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
@@ -37,6 +42,9 @@ import org.archive.wayback.memento.MementoUtils;
  * @author brad
  */
 public class BetterRequestException extends WaybackException {
+
+	private static final Logger LOGGER =  Logger.getLogger(
+                BetterRequestException.class.getName());
 
 	private static final long serialVersionUID = 1L;
 	protected static final String ID = "betterRequest";
@@ -111,6 +119,15 @@ public class BetterRequestException extends WaybackException {
 				wbRequest.hasMementoAcceptDatetime()) {
 			redirectURI = MementoUtils.getMementoPrefix(wbRequest
 				.getAccessPoint()) + betterURI;
+		}
+		try {
+			redirectURI = new URL(redirectURI).toURI().toASCIIString();
+		} catch(MalformedURLException e) {
+			LOGGER.log(Level.WARNING, "Converting " + redirectURI +
+				" to ASCII failed", e);
+		} catch(URISyntaxException e) {
+			LOGGER.log(Level.WARNING, "Converting " + redirectURI +
+				" to ASCII failed", e);
 		}
 
 		response.setHeader("Location", redirectURI);
