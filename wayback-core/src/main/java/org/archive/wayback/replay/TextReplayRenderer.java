@@ -224,7 +224,23 @@ public abstract class TextReplayRenderer implements ReplayRenderer {
 			String encoding = HttpHeaderOperation.getHeaderValue(headers,
 					HttpHeaderOperation.HTTP_CONTENT_ENCODING);
 			if (encoding != null) {
-				DecodingResource decodingResource = DecodingResource.forEncoding(encoding, payloadResource);
+				// mark current position so we can recover if decoding fails
+				if (payloadResource.markSupported()) {
+					payloadResource.mark(32);
+				}
+
+				Resource decodingResource;
+				try {
+					decodingResource = DecodingResource.forEncoding(encoding, payloadResource);
+				} catch (IOException e) {
+					// this might be because the content is not actually compressed and the header
+					// is wrong so may as well reset and attempt to continue without decoding
+					if (payloadResource.markSupported()) {
+						payloadResource.reset();
+					}
+					decodingResource = payloadResource;
+				}
+
 				if (decodingResource != null) {
 					headers.put(ORIG_ENCODING, encoding);
 					HttpHeaderOperation.removeHeader(headers,

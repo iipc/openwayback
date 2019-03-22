@@ -23,31 +23,27 @@ package org.archive.wayback.replay;
 import junit.framework.TestCase;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
+import org.archive.wayback.core.Resource;
 
 import java.io.IOException;
 
-import static java.nio.charset.StandardCharsets.*;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
-public class DecodingResourceTest extends TestCase {
+public class TextReplayRendererTest extends TestCase {
 
-    public void testGzipDecoding() throws IOException {
+    public void testDecodeResource() throws IOException {
         byte[] data = Base64.decodeBase64("H4sIANdKklwAAzMEALfv3IMBAAAA");
-        DecodingResource resource = DecodingResource.forEncoding("GZIP", new BytesResource(data));
-        assertNotNull(resource);
-        assertEquals("1", IOUtils.toString(resource));
+        BytesResource source = new BytesResource(data);
+        source.getHttpHeaders().put("Content-Encoding", "gzip");
+        Resource decoded = TextReplayRenderer.decodeResource(source);
+        assertEquals("1", IOUtils.toString(decoded));
     }
 
-    public void testBrotliDecoding() throws IOException {
-        byte[] data = Base64.decodeBase64("DwCAMQM=");
-        DecodingResource resource = DecodingResource.forEncoding("br", new BytesResource(data));
-        assertNotNull(resource);
-        assertEquals("1", IOUtils.toString(resource));
+    public void testFalseContentEncodingHeaderShouldLeaveContentUnmodified() throws IOException {
+        byte[] data = "Not actually gzipped".getBytes(UTF_8);
+        BytesResource source = new BytesResource(data);
+        source.getHttpHeaders().put("Content-Encoding", "gzip");
+        Resource decoded = TextReplayRenderer.decodeResource(source);
+        assertEquals("Not actually gzipped", IOUtils.toString(decoded));
     }
-
-    public void testUnknownEncodingShouldReturnNull() throws IOException {
-        byte[] data = "anything".getBytes(UTF_8);
-        DecodingResource resource = DecodingResource.forEncoding("bogus", new BytesResource(data));
-        assertNull(resource);
-    }
-
 }
