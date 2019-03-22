@@ -9,6 +9,7 @@ Full listing of changes and bug fixes are not available prior to release 1.2.0 a
 * Add scrollbar to year chart in toolbar appearing in every archived webpage. [#340](https://github.com/iipc/openwayback/issues/340)
 * Add a Dockerfile for building OpenWayback. Please see the [How to build and run in Docker](https://github.com/iipc/openwayback/wiki/How-to-build-and-run-in-Docker) documentation for use. [#344](https://github.com/iipc/openwayback/pull/344) and [#362](https://github.com/iipc/openwayback/pull/362)
 * Visualize snapshot density in bubble calendar using bubble background color. [#351](https://github.com/iipc/openwayback/issues/351)
+* Support Brotli (`br`) content-encoding. [#395](https://github.com/iipc/openwayback/pull/395)
 
 ### Bug fixes
 * Add proxy support to IP exclusion. [#260](https://github.com/iipc/openwayback/issues/260) 
@@ -22,6 +23,7 @@ Full listing of changes and bug fixes are not available prior to release 1.2.0 a
 * Declare Surefire plugin explicitly due to a change in a default value that breaks builds on newer versions of Maven. [#384](https://github.com/iipc/openwayback/pull/384)
 * Rewrite additional HTML5 tag attributes including `source`. [#242](https://github.com/iipc/openwayback/issues/242)
 * Fix URL search with language like Arabic. [#386](https://github.com/iipc/openwayback/issues/386)
+* Don't lose the first 2 bytes when content-encoding header is false. [#395](https://github.com/iipc/openwayback/pull/395)
 
 ## OpenWayback 2.3.2 Release
 ### Bug fixes
