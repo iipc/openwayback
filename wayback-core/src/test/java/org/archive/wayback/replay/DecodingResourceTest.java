@@ -22,6 +22,7 @@ package org.archive.wayback.replay;
 
 import junit.framework.TestCase;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.IOUtils;
 import org.archive.wayback.core.Resource;
 
 import java.io.ByteArrayInputStream;
@@ -29,16 +30,35 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
 
+import static java.nio.charset.StandardCharsets.*;
+
 public class DecodingResourceTest extends TestCase {
 
     public void testGzipDecoding() throws IOException {
         byte[] data = Base64.decodeBase64("H4sIANdKklwAAzMEALfv3IMBAAAA");
-        assertEquals('1', DecodingResource.forEncoding("GZIP", new BytesResource(data)).read());
+        DecodingResource resource = DecodingResource.forEncoding("GZIP", new BytesResource(data));
+        assertNotNull(resource);
+        assertEquals("1", IOUtils.toString(resource));
     }
 
     public void testBrotliDecoding() throws IOException {
         byte[] data = Base64.decodeBase64("DwCAMQM=");
-        assertEquals('1', DecodingResource.forEncoding("br", new BytesResource(data)).read());
+        DecodingResource resource = DecodingResource.forEncoding("br", new BytesResource(data));
+        assertNotNull(resource);
+        assertEquals("1", IOUtils.toString(resource));
+    }
+
+    public void testFalseContentEncodingHeaderShouldLeaveContentUnmodified() throws IOException {
+        byte[] data = "Not actually gzipped".getBytes(UTF_8);
+        DecodingResource resource = DecodingResource.forEncoding("gzip", new BytesResource(data));
+        assertNotNull(resource);
+        assertEquals("Not actually gzipped", IOUtils.toString(resource));
+    }
+
+    public void testUnknownEncodingShouldReturnNull() throws IOException {
+        byte[] data = "anything".getBytes(UTF_8);
+        DecodingResource resource = DecodingResource.forEncoding("bogus", new BytesResource(data));
+        assertNull(resource);
     }
 
     private static class BytesResource extends Resource {

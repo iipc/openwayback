@@ -79,25 +79,45 @@ public class DecodingResource extends Resource {
     /**
      * Returns a DecodingResource that wraps an existing resource with a decompressor for the given
      * Content-Encoding.
+     * <p>
+     * If the Content-Encoding is supported but fails to decompress assumes the header is false and
+     * return a resource that does not modify the input. The given resource must support mark()
+     * for this to work correctly.
      *
      * @param contentEncoding the value of the Content-Encoding header
      * @param source the resource to wrap
-     * @return the new ersource or null if the contentEncoding is not supported
+     * @return the new resource or null if the contentEncoding is not supported
      */
-    public static DecodingResource forEncoding(String contentEncoding, Resource source) {
+    public static DecodingResource forEncoding(String contentEncoding, Resource source) throws IOException {
+        // mark position in case decompression fails
+        if (source.markSupported()) {
+            source.mark(64);
+        }
+
         try {
-            switch (contentEncoding.toLowerCase()) {
-                case "br":
-                    return new DecodingResource(source, new BrotliInputStream(source));
-                case "gzip":
-                case "x-gzip":
-                    return new DecodingResource(source, new GZIPInputStream(source));
-                default:
-                    return null;
+            InputStream stream = decodingStream(contentEncoding, source);
+            if (stream == null) {
+                return null;
             }
+            return new DecodingResource(source, stream);
         } catch (IOException e) {
             // If can't decompress, might as well as send back raw data.
+            if (source.markSupported()) {
+                source.reset(); // rewind any bytes the decompressor read
+            }
             return new DecodingResource(source, source);
+        }
+    }
+
+    private static InputStream decodingStream(String contentEncoding, InputStream source) throws IOException {
+        switch (contentEncoding.toLowerCase()) {
+            case "br":
+                return new BrotliInputStream(source);
+            case "gzip":
+            case "x-gzip":
+                return new GZIPInputStream(source);
+            default:
+                return null;
         }
     }
 }

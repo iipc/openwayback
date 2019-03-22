@@ -200,7 +200,7 @@ public abstract class TextReplayRenderer implements ReplayRenderer {
 		this.guessedCharsetHeader = guessedCharsetHeader;
 	}
 
-	public static Resource decodeResource(Resource resource) {
+	public static Resource decodeResource(Resource resource) throws IOException {
 		return decodeResource(resource, resource);
 	}
 
@@ -217,7 +217,7 @@ public abstract class TextReplayRenderer implements ReplayRenderer {
 	 * 	different Resource if headersResource is a revisit record.)
 	 * @return The decoded Resource.
 	 */
-	public static Resource decodeResource(Resource headersResource, Resource payloadResource) {
+	public static Resource decodeResource(Resource headersResource, Resource payloadResource) throws IOException {
 		Map<String, String> headers = headersResource.getHttpHeaders();
 
 		if (headers != null) {
