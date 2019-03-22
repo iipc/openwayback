@@ -76,7 +76,15 @@ public class DecodingResource extends Resource {
         return source.getRefersToDate();
     }
 
-    public static DecodingResource forEncoding(String contentEncoding, Resource source) throws IOException {
+    /**
+     * Returns a DecodingResource that wraps an existing resource with a decompressor for the given
+     * Content-Encoding.
+     *
+     * @param contentEncoding the value of the Content-Encoding header
+     * @param source the resource to wrap
+     * @return the new ersource or null if the contentEncoding is not supported
+     */
+    public static DecodingResource forEncoding(String contentEncoding, Resource source) {
         try {
             switch (contentEncoding.toLowerCase()) {
                 case "br":
