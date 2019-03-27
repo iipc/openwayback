@@ -139,6 +139,11 @@
       <version>4.5.6</version>
       <type>jar</type>
     </dependency>
+    <dependency>
+      <groupId>org.brotli</groupId>
+      <artifactId>dec</artifactId>
+      <version>0.1.2</version>
+    </dependency>
   </dependencies>
 
 </project>

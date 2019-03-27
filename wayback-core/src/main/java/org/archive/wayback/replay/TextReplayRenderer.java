@@ -205,20 +205,17 @@ public abstract class TextReplayRenderer implements ReplayRenderer {
 	}
 
 	/**
-	 * return gzip-decoding wrapper Resource if Resource has {@code Content-Encoding: gzip}.
-	 * return {@code payloadResource} otherwise.
-	 * <p>if headerResource's content is gzip-compressed (i.e. {@code Content-Encoding} is "{@code gzip}"),
-	 * return a wrapping Resource that returns decoded content.</p>
+	 * Returns a compression-decoding wrapper Resource if Resource has {@code Content-Encoding: gzip} or {@code br}.
+	 * Otherwise returns {@code payloadResource} unmodified.
 	 * <p>As a side-effect, {@code Content-Encoding} and
 	 * {@code Transfer-Encoding} headers are removed from {@code headersResource} (this happens only when
-	 * {@code headerResoruce} is gzip-compressed.). It is assumed that {@code headerResource} and
+	 * the resource was decompressed). It is assumed that {@code headerResource} and
 	 * {@code payloadResource} are captures of identical response content.</p>
 	 * <p>TODO: XArchiveHttpHeaderProcessor also does HTTP header removal. Check for refactoring case.</p>
 	 * @param headersResource Resource to read HTTP headers from.
 	 * @param payloadResource Resource to read content from (same as {@code headerResource} for regular captures,
 	 * 	different Resource if headersResource is a revisit record.)
 	 * @return The decoded Resource.
-	 * @throws IOException
 	 */
 	public static Resource decodeResource(Resource headersResource, Resource payloadResource) throws IOException {
 		Map<String, String> headers = headersResource.getHttpHeaders();
@@ -227,7 +224,24 @@ public abstract class TextReplayRenderer implements ReplayRenderer {
 			String encoding = HttpHeaderOperation.getHeaderValue(headers,
 					HttpHeaderOperation.HTTP_CONTENT_ENCODING);
 			if (encoding != null) {
-				if (encoding.toLowerCase().equals(GzipDecodingResource.GZIP)) {
+				// mark current position so we can recover if decoding fails
+				if (payloadResource.markSupported()) {
+					payloadResource.mark(32);
+				}
+
+				Resource decodingResource;
+				try {
+					decodingResource = DecodingResource.forEncoding(encoding, payloadResource);
+				} catch (IOException e) {
+					// this might be because the content is not actually compressed and the header
+					// is wrong so may as well reset and attempt to continue without decoding
+					if (payloadResource.markSupported()) {
+						payloadResource.reset();
+					}
+					decodingResource = payloadResource;
+				}
+
+				if (decodingResource != null) {
 					headers.put(ORIG_ENCODING, encoding);
 					HttpHeaderOperation.removeHeader(headers,
 							HttpHeaderOperation.HTTP_CONTENT_ENCODING);
@@ -237,7 +251,7 @@ public abstract class TextReplayRenderer implements ReplayRenderer {
 								HttpHeaderOperation.HTTP_TRANSFER_ENC_HEADER);
 					}
 
-					return new GzipDecodingResource(payloadResource);
+					return decodingResource;
 				}
 
 				// TODO: check for other encodings?

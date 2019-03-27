@@ -7,7 +7,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.archive.wayback.core.Resource;
-import org.archive.wayback.replay.GzipDecodingResource;
+import org.archive.wayback.replay.DecodingResource;
 import org.archive.wayback.replay.charset.CharsetDetector;
 import org.archive.wayback.replay.charset.StandardCharsetDetector;
 
@@ -232,19 +232,19 @@ public class SimpleMimeTypeDetector implements MimeTypeDetector {
 	protected byte[] peekContent(Resource resource) throws IOException {
 		byte[] bbuffer = new byte[Math.max(sniffLength, MINIMUM_SNIFF_BUFFER_SIZE)];
 		String encoding = resource.getHeader("content-encoding");
-		if ("gzip".equalsIgnoreCase(encoding) || "x-gzip".equalsIgnoreCase(encoding)) {
-			// use larger readlimit, because gzip-ed data can be larger than the original
-			// at low compression level.
-			resource.mark(sniffLength + 100);
-			@SuppressWarnings("resource")
-			Resource z = new GzipDecodingResource(resource);
-			z.read(bbuffer, 0, sniffLength);
-			resource.reset();
-		} else {
-			resource.mark(sniffLength);
-			resource.read(bbuffer, 0, sniffLength);
-			resource.reset();
+		// use larger readlimit, because gzip-ed data can be larger than the original
+		// at low compression level.
+		resource.mark(sniffLength + 100);
+		if (encoding != null) {
+			Resource decoded = DecodingResource.forEncoding(encoding, resource);
+			if (decoded != null) {
+				decoded.read(bbuffer, 0, sniffLength);
+				resource.reset();
+				return bbuffer;
+			}
 		}
+		resource.read(bbuffer, 0, sniffLength);
+		resource.reset();
 		return bbuffer;
 	}
 
