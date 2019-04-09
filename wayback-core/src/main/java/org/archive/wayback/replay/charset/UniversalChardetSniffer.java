@@ -29,16 +29,26 @@ public class UniversalChardetSniffer extends BaseEncodingSniffer {
 
 			detector.setText(bbuffer);
 			CharsetMatch[] matches = detector.detectAll();
-			if (matches != null && matches.length > 0) {
-				charsetName = matches[0].getName();
+			if (matches != null) {
+				for (int i = 0; i < matches.length; i++) {
+					charsetName = matches[i].getName();
+					if (!isDubious(charsetName) && isCharsetSupported(charsetName)) {
+						return charsetName;
+					}
+				}
 			}
-
 		} catch (IOException ex) {
 			//
 		}
-		if (isCharsetSupported(charsetName)) {
-			return charsetName;
-		}
 		return null;
+	}
+
+	/*
+	 * Pretty much nothing in the wild is really UTF-32,
+	 * yet icu4j returns that as the likeliest possiblity
+	 * for several captures...
+	 */
+	protected boolean isDubious(String charsetName) {
+		return charsetName.startsWith("UTF-32");
 	}
 }
