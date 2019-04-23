@@ -764,11 +764,11 @@ public class WaybackRequest {
 		// to be a scheme..
 		// TODO: make the default "http://" configurable.
 		if (!urlStr.startsWith(UrlOperations.HTTP_SCHEME)) {
-	    	if(urlStr.startsWith("http:/")) {
-	    		urlStr = UrlOperations.HTTP_SCHEME + urlStr.substring(6);
-	    	} else if(urlStr.startsWith("https:/")) {
-			urlStr = UrlOperations.HTTPS_SCHEME + urlStr.substring(7);
-		} else {
+	    		if(urlStr.startsWith("http:/")) {
+	    			urlStr = UrlOperations.HTTP_SCHEME + urlStr.substring(6);
+	    		} else if(urlStr.startsWith("https:/")) {
+				urlStr = UrlOperations.HTTPS_SCHEME + urlStr.substring(7);
+			} else {
 	    		if(UrlOperations.urlToScheme(urlStr) == null) {
 	    			urlStr = UrlOperations.HTTP_SCHEME + urlStr;
 	    		}
