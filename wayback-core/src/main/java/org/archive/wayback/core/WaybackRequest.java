@@ -754,9 +754,9 @@ public class WaybackRequest {
 
 		// This looks a little confusing: We're trying to fixup an incoming
 		// request URL that starts with: 
-		//       "http:/www.archive.org"
+		//       "http(s):/www.archive.org"
 		// so it becomes:
-		//       "http://www.archive.org"
+		//       "http(s)://www.archive.org"
 		// (note the missing second "/" in the first)
 		// 
 		// if that is not the case, then see if the incoming scheme
@@ -766,7 +766,9 @@ public class WaybackRequest {
 		if (!urlStr.startsWith(UrlOperations.HTTP_SCHEME)) {
 	    	if(urlStr.startsWith("http:/")) {
 	    		urlStr = UrlOperations.HTTP_SCHEME + urlStr.substring(6);
-	    	} else {
+	    	} else if(urlStr.startsWith("https:/")) {
+			urlStr = UrlOperations.HTTPS_SCHEME + urlStr.substring(7);
+		} else {
 	    		if(UrlOperations.urlToScheme(urlStr) == null) {
 	    			urlStr = UrlOperations.HTTP_SCHEME + urlStr;
 	    		}
