@@ -82,6 +82,14 @@ public class ReplayRequestParserTest extends TestCase {
 		assertEquals("parsed request Url with https scheme",
 				"https://foo.com/",r.getRequestUrl());
 
+		r = p.parse("20070101000000/http:/foo.com/",ap);
+		assertEquals("parsed request Url with http scheme missing a scheme slash",
+				"http://foo.com/",r.getRequestUrl());
+
+		r = p.parse("20070101000000/https:/foo.com/",ap);
+		assertEquals("parsed request Url with https scheme missing a scheme slash",
+				"https://foo.com/",r.getRequestUrl());
+
 		r = p.parse("20070101000000js_/http://foo.com/",ap);
 		assertEquals("parsed request Url with js_ flag",
 				"http://foo.com/",r.getRequestUrl());

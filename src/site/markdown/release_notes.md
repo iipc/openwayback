@@ -24,6 +24,7 @@ Full listing of changes and bug fixes are not available prior to release 1.2.0 a
 * Rewrite additional HTML5 tag attributes including `source`. [#242](https://github.com/iipc/openwayback/issues/242)
 * Fix URL search with language like Arabic. [#386](https://github.com/iipc/openwayback/issues/386)
 * Don't lose the first 2 bytes when content-encoding header is false. [#395](https://github.com/iipc/openwayback/pull/395)
+* Add HTTPS support to setRequestUrl. [#397](https://github.com/iipc/openwayback/pull/397)
 
 ## OpenWayback 2.3.2 Release
 ### Bug fixes
