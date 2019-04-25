@@ -66,4 +66,24 @@ public class SrcsetStringTransformerTest extends TestCase {
             assertEquals(c[0], c[2], rc.got.get(1));
         }
     }
+
+    public void testTransformWithCommas() throws Exception {
+        final String[] c = new String[] {
+            "a,b,c,,, /images/foo1.jpg 800w,data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7 700w, /images/foo2.jpg 480w(data:,foo, ,), /images/foo3.jpg 96w(x ",
+            "a,b,c",
+            "/images/foo1.jpg",
+            "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
+            "/images/foo2.jpg",
+            "/images/foo3.jpg"
+        };
+
+        rc = new RecordingReplayParseContext(null, baseURL, null);
+        st.transform(rc, c[0]);
+        assertEquals(c[0], 5, rc.got.size());
+        assertEquals(c[0], c[1], rc.got.get(0));
+        assertEquals(c[0], c[2], rc.got.get(1));
+        assertEquals(c[0], c[3], rc.got.get(2));
+        assertEquals(c[0], c[4], rc.got.get(3));
+        assertEquals(c[0], c[5], rc.got.get(4));
+    }
 }

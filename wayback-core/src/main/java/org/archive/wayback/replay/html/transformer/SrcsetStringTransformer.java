@@ -34,7 +34,7 @@ public class SrcsetStringTransformer implements StringTransformer {
 
     // this looks for "http://example.com/img/pic.jpg 150w,"
     protected static String SRCSET_MEMBER =
-        "\\s*(\\S+)(?:\\s*|\\s+(?:[-+]?[0-9]*\\.?[0-9]+x|[0-9]+w)\\s*)(?:,|$)";
+        "[\\s,]*(\\S*[^,\\s])(?:\\s(?:[^,(]+|\\([^)]*(?:\\)|$))*)?";
 
     protected static Pattern srcsetUrlPattern = Pattern.compile(SRCSET_MEMBER);
 
