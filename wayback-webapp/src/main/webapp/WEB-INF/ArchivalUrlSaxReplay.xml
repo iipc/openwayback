@@ -160,6 +160,11 @@
 				</bean>
 				<bean class="org.archive.wayback.replay.html.rules.AttributeModifyingRule">
 					<property name="tagName" value="LINK" />
+					<property name="modifyAttributeName" value="IMAGESRCSET" />
+					<property name="transformer" ref="srcsetAttributeHandler" />
+				</bean>
+				<bean class="org.archive.wayback.replay.html.rules.AttributeModifyingRule">
+					<property name="tagName" value="LINK" />
 					<property name="modifyAttributeName" value="INTEGRITY" />
 					<property name="transformer" ref="integrityAttributeHandler" />
 				</bean>

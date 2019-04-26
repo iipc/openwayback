@@ -10,6 +10,7 @@ Full listing of changes and bug fixes are not available prior to release 1.2.0 a
 * Add a Dockerfile for building OpenWayback. Please see the [How to build and run in Docker](https://github.com/iipc/openwayback/wiki/How-to-build-and-run-in-Docker) documentation for use. [#344](https://github.com/iipc/openwayback/pull/344) and [#362](https://github.com/iipc/openwayback/pull/362)
 * Visualize snapshot density in bubble calendar using bubble background color. [#351](https://github.com/iipc/openwayback/issues/351)
 * Support Brotli (`br`) content-encoding. [#395](https://github.com/iipc/openwayback/pull/395)
+* Rewrite new `imagesrcset` attribute of the link element. [#394](https://github.com/iipc/openwayback/issues/394)
 
 ### Bug fixes
 * Add proxy support to IP exclusion. [#260](https://github.com/iipc/openwayback/issues/260) 
