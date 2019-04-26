@@ -58,6 +58,10 @@ public class UrlOperations {
 	 */
 	public final static String FTP_SCHEME = "ftp://";
 	/**
+	 * FTPS
+	 */
+	public final static String FTPS_SCHEME = "ftps://";
+	/**
 	 * MMS
 	 */
 	public final static String MMS_SCHEME = "mms://";
@@ -83,6 +87,7 @@ public class UrlOperations {
 		HTTP_SCHEME,
 		HTTPS_SCHEME,
 		FTP_SCHEME,
+		FTPS_SCHEME,
 		MMS_SCHEME,
 		RTSP_SCHEME,
 		WAIS_SCHEME

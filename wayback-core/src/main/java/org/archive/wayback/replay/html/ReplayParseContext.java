@@ -217,14 +217,22 @@ public class ReplayParseContext extends ParseContext {
 
 		if (!trimmedUrl.startsWith("http://") &&
 				!trimmedUrl.startsWith("https://") &&
+				!trimmedUrl.startsWith("ftp://") &&
+				!trimmedUrl.startsWith("ftps://") &&
 				!trimmedUrl.startsWith("//") &&
 				!trimmedUrl.startsWith("http:\\\\/\\\\/") &&
 				!trimmedUrl.startsWith("http\\\\u00253A\\\\u00252F\\\\u00252F") &&
 				!trimmedUrl.startsWith("https:\\\\/\\\\/") &&
 				!trimmedUrl
 					.startsWith("https\\\\u00253A\\\\u00252F\\\\u00252F") &&
+				!trimmedUrl.startsWith("ftp:\\\\/\\\\/") &&
+				!trimmedUrl.startsWith("ftp\\\\u00253A\\\\u00252F\\\\u00252F") &&
+				!trimmedUrl.startsWith("ftps:\\\\/\\\\/") &&
+				!trimmedUrl.startsWith("ftps\\\\u00253A\\\\u00252F\\\\u00252F") &&
 				!trimmedUrl.startsWith("http:\\/\\/") &&
 				!trimmedUrl.startsWith("https:\\/\\/") &&
+				!trimmedUrl.startsWith("ftp:\\/\\/") &&
+				!trimmedUrl.startsWith("ftps:\\/\\/") &&
 				!trimmedUrl.startsWith("/") &&
 				!trimmedUrl.startsWith(".")) {
 			return url;

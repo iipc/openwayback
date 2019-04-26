@@ -90,6 +90,14 @@ public class ReplayRequestParserTest extends TestCase {
 		assertEquals("parsed request Url with https scheme missing a scheme slash",
 				"https://foo.com/",r.getRequestUrl());
 
+		r = p.parse("20070101000000/ftp:/foo.com/",ap);
+		assertEquals("parsed request Url with ftp scheme missing a scheme slash",
+				"ftp://foo.com/",r.getRequestUrl());
+
+		r = p.parse("20070101000000/ftps:/foo.com/",ap);
+		assertEquals("parsed request Url with ftps scheme missing a scheme slash",
+				"ftps://foo.com/",r.getRequestUrl());
+
 		r = p.parse("20070101000000js_/http://foo.com/",ap);
 		assertEquals("parsed request Url with js_ flag",
 				"http://foo.com/",r.getRequestUrl());
