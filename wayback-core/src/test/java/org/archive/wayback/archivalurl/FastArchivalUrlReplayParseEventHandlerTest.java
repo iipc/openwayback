@@ -303,6 +303,27 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 		assertEquals(expected, doEndToEnd(input));
 	}
 
+	public void testLinkImagesrcset() throws Exception {
+		final String input = "<html>" +
+				"<head>" +
+				"  <link rel=\"preload\" href=\"640.png\"" +
+				"  imagesrcset=\"http://example.com/img/640.png 640w, http://example.com/img/800.png 800w," +
+				" img/1024.png 1024w\" imagesizes=\"100vw\">" +
+				"</head>" +
+				"<body>" +
+				"</body>";
+		final String expected = "<html>" +
+				"<head>" +
+				"  <link rel=\"preload\" href=\"640.png\"" +
+				"  imagesrcset=\"http://replay.archive.org/2001im_/http://example.com/img/640.png 640w," +
+				" http://replay.archive.org/2001im_/http://example.com/img/800.png 800w," +
+				" img/1024.png 1024w\" imagesizes=\"100vw\">" +
+				"</head>" +
+				"<body>" +
+				"</body>";
+		assertEquals(expected, doEndToEnd(input));
+	}
+
 	public void testLinkElement() throws Exception {
 		final String input = "<html>" +
 				"<head>" +
