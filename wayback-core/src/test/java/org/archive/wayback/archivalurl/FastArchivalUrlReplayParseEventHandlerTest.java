@@ -97,6 +97,26 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 		assertEquals(expected, doEndToEnd(input));
 	}
 
+	public void testAnchorHrefFtp() throws Exception {
+		final String input = "<html>" +
+				"<a href=\"ftp://www.example.com/foo.pdf\">foo.pdf</a>" +
+				"</html>";
+		final String expected = "<html>" +
+				"<a href=\"http://replay.archive.org/2001/ftp://www.example.com/foo.pdf\">" +
+				"foo.pdf</a></html>";
+		assertEquals(expected, doEndToEnd(input));
+	}
+
+	public void testAnchorHrefFtps() throws Exception {
+		final String input = "<html>" +
+				"<a href=\"ftps://www.example.com/foo.pdf\">foo.pdf</a>" +
+				"</html>";
+		final String expected = "<html>" +
+				"<a href=\"http://replay.archive.org/2001/ftps://www.example.com/foo.pdf\">" +
+				"foo.pdf</a></html>";
+		assertEquals(expected, doEndToEnd(input));
+	}
+
 	public void testAnchorHrefAbsoluteInJavascript() throws Exception {
 		final String input = "<html>" +
 				"<a href=\"javascript:doWin('http://www.symphony.org')\">American Symphony Orchestra League</a>" +
