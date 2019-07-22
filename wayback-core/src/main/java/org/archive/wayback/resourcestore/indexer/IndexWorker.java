@@ -178,7 +178,7 @@ public class IndexWorker implements Shutdownable {
 				cdxSpec = CDXFormatIndex.CDX_HEADER_MAGIC_NEW;				
 			} else if(args[idx].equals("-format")) {
 				idx++;
-				if (idx >= args.length) {
+				if(idx >= args.length) {
 					USAGE();
 				}
 				cdxSpec = args[idx];

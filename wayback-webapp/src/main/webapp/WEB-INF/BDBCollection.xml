@@ -122,7 +122,7 @@
             </bean>
           </property>
           <property name="canonicalizer" ref="waybackCanonicalizer"/>
-          <!-- parsing html for robots meta tags is disabled by default to prevent infinite loops
+          <!-- Parsing HTML for robots meta tags is disabled by default to prevent infinite loops
                https://github.com/iipc/openwayback/issues/402 -->
           <property name="parseHtml" value="false" />
         </bean>
