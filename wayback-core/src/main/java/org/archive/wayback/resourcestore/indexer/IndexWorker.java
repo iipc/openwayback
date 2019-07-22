@@ -148,6 +148,7 @@ public class IndexWorker implements Shutdownable {
 		System.err.println("FILE at CDXFILE or to STDOUT.");
 		System.err.println("With -identity, perform no url canonicalization.");
 		System.err.println("With -format, output CDX in format FORMAT.");
+		System.err.println("With -parse-html, parse HTML for robots meta tags. (Warning: can infinite loop)");
 		System.exit(1);
 	}
 	
@@ -160,6 +161,7 @@ public class IndexWorker implements Shutdownable {
 		UrlCanonicalizer canonicalizer = new AggressiveUrlCanonicalizer();
 		boolean setFormat = false;
 		boolean isIdentity = false;
+		boolean parseHtml = false;
 		String path = null;
 		if(args.length == 0) {
 			USAGE();
@@ -176,11 +178,13 @@ public class IndexWorker implements Shutdownable {
 				cdxSpec = CDXFormatIndex.CDX_HEADER_MAGIC_NEW;				
 			} else if(args[idx].equals("-format")) {
 				idx++;
-				if(idx >= args.length) {
+				if (idx >= args.length) {
 					USAGE();
 				}
 				cdxSpec = args[idx];
 				setFormat = true;
+			} else if(args[idx].equals("-parse-html")) {
+				parseHtml = true;
 			} else {
 				// either input filename:
 				if(path == null) {
@@ -206,6 +210,7 @@ public class IndexWorker implements Shutdownable {
 		IndexWorker worker = new IndexWorker();
 		worker.canonicalizer = canonicalizer;
 		worker.interval = 0;
+		worker.setParseHtml(parseHtml);
 		worker.init();
 		try {
 			CloseableIterator<CaptureSearchResult> itr = worker.indexFile(path);
@@ -321,5 +326,12 @@ public class IndexWorker implements Shutdownable {
 	 */
 	public void setCanonicalizer(UrlCanonicalizer canonicalizer) {
 		this.canonicalizer = canonicalizer;
+	}
+	/**
+	 * Sets whether HTML records should be parsed for robots meta tags.
+	 */
+	public void setParseHtml(boolean parseHtml) {
+		arcIndexer.setParseHtml(parseHtml);
+		warcIndexer.setParseHtml(parseHtml);
 	}
 }

@@ -4,6 +4,11 @@
 
 Full listing of changes and bug fixes are not available prior to release 1.2.0 and between release 1.6.0 and OpenWayback 2.0.0 BETA 1 release.
 
+## OpenWayback 2.4.1 Release
+### Bug fixes
+* Don't parse HTML for tobots meta tags by default when CDX indexing. Avoids infinite loops. [#402](https://github.com/iipc/openwayback/issues/402)
+
+
 ## OpenWayback 2.4.0 Release
 ### Features
 * Add scrollbar to year chart in toolbar appearing in every archived webpage. [#340](https://github.com/iipc/openwayback/issues/340)
