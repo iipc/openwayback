@@ -42,7 +42,8 @@ import org.archive.wayback.util.url.AggressiveUrlCanonicalizer;
 public class ArcIndexer {
 
 	private UrlCanonicalizer canonicalizer = null;
-	
+	private boolean parseHtml;
+
 	public ArcIndexer() {
 		canonicalizer = new AggressiveUrlCanonicalizer();
 	}
@@ -87,6 +88,7 @@ public class ArcIndexer {
 		ARCRecordToSearchResultAdapter adapter2 =
 			new ARCRecordToSearchResultAdapter();
 		adapter2.setCanonicalizer(canonicalizer);
+		adapter2.getAnnotater().setParseHtml(parseHtml);
 		
 		ArchiveReaderCloseableIterator itr1 = 
 			new ArchiveReaderCloseableIterator(arcReader,arcReader.iterator());
@@ -103,6 +105,10 @@ public class ArcIndexer {
 
 	public void setCanonicalizer(UrlCanonicalizer canonicalizer) {
 		this.canonicalizer = canonicalizer;
+	}
+
+	public void setParseHtml(boolean parseHtml) {
+		this.parseHtml = parseHtml;
 	}
 
 	private class ArchiveRecordToARCRecordAdapter 

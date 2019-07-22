@@ -47,6 +47,8 @@ public class HTTPRecordAnnotater {
 	private final static String[] mimes = {
 		"html"
 	};
+	private boolean parseHtml;
+
 	public HTTPRecordAnnotater() {
 		rules = new ParseEventDelegator();
 		rules.init();
@@ -136,7 +138,7 @@ public class HTTPRecordAnnotater {
 		result.setMimeType(mimeType);
 		// Now the sticky part: If it looks like an HTML document, look for
 		// robot meta tags:
-		if(isHTML(mimeType)) {
+		if(parseHtml && isHTML(mimeType)) {
 			String fileContext = result.getFile() + ":" + result.getOffset();
 			annotateHTMLContent(is, encoding, fileContext, result);
 		}
@@ -172,5 +174,9 @@ public class HTTPRecordAnnotater {
 		} catch (IOException e) {
 			LOGGER.warning(fileContext + " " + e.getLocalizedMessage());
 		}
+	}
+
+	public void setParseHtml(boolean parseHtml) {
+		this.parseHtml = parseHtml;
 	}
 }

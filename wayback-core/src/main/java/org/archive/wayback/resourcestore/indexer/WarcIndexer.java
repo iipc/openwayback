@@ -37,6 +37,7 @@ public class WarcIndexer {
 
 	private UrlCanonicalizer canonicalizer = null;
 	private boolean processAll = false;
+	private boolean parseHtml;
 	public WarcIndexer() {
 		canonicalizer = new AggressiveUrlCanonicalizer();
 	}
@@ -87,6 +88,7 @@ public class WarcIndexer {
 			new WARCRecordToSearchResultAdapter();
 		adapter2.setCanonicalizer(canonicalizer);
 		adapter2.setProcessAll(processAll);
+		adapter2.getAnnotater().setParseHtml(parseHtml);
 
 		ArchiveReaderCloseableIterator itr1 = 
 			new ArchiveReaderCloseableIterator(reader,reader.iterator());
@@ -103,6 +105,10 @@ public class WarcIndexer {
 
 	public void setCanonicalizer(UrlCanonicalizer canonicalizer) {
 		this.canonicalizer = canonicalizer;
+	}
+
+	public void setParseHtml(boolean parseHtml) {
+		this.parseHtml = parseHtml;
 	}
 
 	private class ArchiveRecordToWARCRecordAdapter implements

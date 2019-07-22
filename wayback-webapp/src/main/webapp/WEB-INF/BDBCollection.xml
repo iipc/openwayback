@@ -122,6 +122,9 @@
             </bean>
           </property>
           <property name="canonicalizer" ref="waybackCanonicalizer"/>
+          <!-- Parsing HTML for robots meta tags is disabled by default to prevent infinite loops
+               https://github.com/iipc/openwayback/issues/402 -->
+          <property name="parseHtml" value="false" />
         </bean>
         
         <!-- This thread merges updates from the indexworker into the ResourceIndex -->
