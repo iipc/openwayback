@@ -168,7 +168,7 @@ function trackMouseMove(event,element) {
 </script>
 
 <style type="text/css">body{margin-top:0!important;padding-top:0!important;min-width:800px!important;}#wm-ipp a:hover{text-decoration:underline!important;}</style>
-<div id="wm-ipp" style="display:none; position:absolute; min-height:70px; min-width:800px; top:0; left:0; right:0; z-index:9000;">
+<div id="wm-ipp" style="display:none; position:absolute; min-height:70px; min-width:800px; top:0; left:0; right:0; z-index:2147483600;">
 <div id="wm-ipp-inside" style="position:fixed;padding:0!important;margin:0!important;width:99%;min-width:780px;border:5px solid #000;border-top:none;background-image:url(<%= staticPrefix %>images/toolbar/wm_tb_bk_trns.png);text-align:center;-moz-box-shadow:1px 1px 3px #333;-webkit-box-shadow:1px 1px 3px #333;box-shadow:1px 1px 3px #333;font-size:11px!important;font-family:'Lucida Grande','Arial',sans-serif!important;">
     <table style="border-collapse:collapse;margin:0;padding:0;width:100%;"><tbody><tr>
         <td style="padding:10px;vertical-align:top;min-width:110px;">
@@ -294,7 +294,7 @@ function trackMouseMove(event,element) {
        <div id="yearChart" style="width: 400px; height: 42px;">
             <a style="position:relative; white-space:nowrap; width:<%= imgWidth %>px;height:<%= imgHeight %>px;" href="" id="wm-graph-anchor">
                 <div id="wm-ipp-sparkline" style="position:relative; white-space:nowrap; width:<%= imgWidth %>px;height:<%= imgHeight %>px;background-color:#fff;cursor:pointer;border-right:1px solid #ccc;" title="<%= fmt.format("ToolBar.sparklineTitle") %>">
-			<img id="sparklineImgId" style="position:absolute; z-index:9012; top:0px; left:0px;"
+			<img id="sparklineImgId" style="position:absolute; z-index:2147483612; top:0px; left:0px;"
 				onmouseover="showTrackers('inline');" 
 				onmouseout="showTrackers('none');"
 				onmousemove="trackMouseMove(event,this)"
@@ -304,13 +304,13 @@ function trackMouseMove(event,element) {
 				border="0"
 				src="<%= graphImgUrl %>"></img>
 			<img id="wbMouseTrackYearImg" 
-				style="display:none; position:absolute; z-index:9010;"
+				style="display:none; position:absolute; z-index:2147483610;"
 				width="<%= yearWidth %>" 
 				height="<%= imgHeight %>"
 				border="0"
 				src="<%= staticPrefix %>images/toolbar/transp-yellow-pixel.png"></img>
 			<img id="wbMouseTrackMonthImg"
-				style="display:none; position:absolute; z-index:9011; " 
+				style="display:none; position:absolute; z-index:2147483611;"
 				width="<%= monthWidth %>"
 				height="<%= imgHeight %>" 
 				border="0"
