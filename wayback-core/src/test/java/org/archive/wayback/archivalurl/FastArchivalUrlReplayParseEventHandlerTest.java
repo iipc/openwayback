@@ -1089,6 +1089,39 @@ public class FastArchivalUrlReplayParseEventHandlerTest extends TestCase {
 	}
 
 	/**
+	* There may not be a JSP to insert into HEAD, but we still want to
+	* avoid putting the JSP body insert into NOSCRIPT.
+	* @throws Exception
+	*/
+	public void testNOSCRIPT_noHeadInsertJsp() throws Exception {
+		delegator.setJspInsertPath("body-insert.jsp");
+		jspExec = new TestJSPExecutor();
+
+		final String input = "<!DOCTYPE html>\n" +
+				"<head>\n" +
+				"  <noscript>\n" +
+				"    <img height=\"1\" width=\"1\" style=\"display:none\" src=\"ping.gif\">\n" +
+				"  </noscript>\n" +
+				"</head>\n" +
+				"<body>\n" +
+				"  body body\n" +
+				"</body>\n" +
+				"</html>\n";
+		final String expected = "<!DOCTYPE html>\n" +
+				"<head>\n" +
+				"  <noscript>\n" +
+				"    <img height=\"1\" width=\"1\" style=\"display:none\" src=\"ping.gif\">\n" +
+				"  </noscript>\n" +
+				"</head>\n" +
+				"<body>[[[JSP-INSERT:body-insert.jsp]]]\n" +
+				"  body body\n" +
+				"</body>\n" +
+				"</html>\n";;
+		String out = doEndToEnd(input);
+		assertEquals(expected, out);
+	}
+
+	/**
 	 * pathological case of missing {@code </NOSCRIPT>}.
 	 * {@code </HEAD>} shall close </NOSCRIPT> as well.
 	 * @throws Exception
