@@ -225,11 +225,11 @@ function trackMouseMove(event,element) {
                <%
                	if(data.prevResult == null) {
                        %>
-                       <img src="<%= staticPrefix %>images/toolbar/wm_tb_prv_off.png" alt="Previous capture" width="14" height="16" border="0" />
+                       <img src="<%= staticPrefix %>images/toolbar/wm_tb_prv_off.png" alt="Previous capture" width="14" height="16" border="0" style="width:14px;height:16px;"/>
                        <%
                	} else {
 		                %>
-		                <a href="<%= data.makeReplayURL(data.prevResult) %>" title="<%= fmt.format("ToolBar.prevTitle",data.prevResult.getCaptureDate()) %>" style="background-color:transparent;border:none;"><img src="<%= staticPrefix %>images/toolbar/wm_tb_prv_on.png" alt="Previous capture" width="14" height="16" border="0" /></a>
+		                <a href="<%= data.makeReplayURL(data.prevResult) %>" title="<%= fmt.format("ToolBar.prevTitle",data.prevResult.getCaptureDate()) %>" style="background-color:transparent;border:none;"><img src="<%= staticPrefix %>images/toolbar/wm_tb_prv_on.png" alt="Previous capture" width="14" height="16" border="0" style="width:14px;height:16px;"/></a>
 		                <%
                	}
                %>
@@ -239,11 +239,11 @@ function trackMouseMove(event,element) {
                <%
                	if(data.nextResult == null) {
                        %>
-                       <img src="<%= staticPrefix %>images/toolbar/wm_tb_nxt_off.png" alt="Next capture" width="14" height="16" border="0"/>
+                       <img src="<%= staticPrefix %>images/toolbar/wm_tb_nxt_off.png" alt="Next capture" width="14" height="16" border="0" style="width:14px;height:16px;"/>
                        <%
                	} else {
 		                %>
-		                <a href="<%= data.makeReplayURL(data.nextResult) %>" title="<%= fmt.format("ToolBar.nextTitle",data.nextResult.getCaptureDate()) %>" style="background-color:transparent;border:none;"><img src="<%= staticPrefix %>images/toolbar/wm_tb_nxt_on.png" alt="Next capture" width="14" height="16" border="0"/></a>
+		                <a href="<%= data.makeReplayURL(data.nextResult) %>" title="<%= fmt.format("ToolBar.nextTitle",data.nextResult.getCaptureDate()) %>" style="background-color:transparent;border:none;"><img src="<%= staticPrefix %>images/toolbar/wm_tb_nxt_on.png" alt="Next capture" width="14" height="16" border="0" style="width:14px;height:16px;"/></a>
 		                <%
                	}
                %>
