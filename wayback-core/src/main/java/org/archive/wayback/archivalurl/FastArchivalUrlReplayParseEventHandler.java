@@ -296,7 +296,6 @@ public class FastArchivalUrlReplayParseEventHandler implements
 			// it would trigger bodyInsert. We may want to revise this behavior
 			// based on real-world examples.
 			context.putData(STATE_IN_NOSCRIPT, "");
-			inNoScript = true;
 		} else if (tagName.equals(BODY_TAG) && inHead) {
 			context.putData(FERRET_IN_HEAD, null);
 			inHead = false;
@@ -546,7 +545,6 @@ public class FastArchivalUrlReplayParseEventHandler implements
 	protected void emitHeadInsert(ReplayParseContext context, Node node,
 			boolean postInsert) throws IOException {
 		String headInsert = null;
-		context.putData(FERRET_HEAD_INSERTED, FERRET_HEAD_INSERTED);
 
 		if (headInsertJsp == null) {
 			this.emit(context, null, node, null);
@@ -555,6 +553,7 @@ public class FastArchivalUrlReplayParseEventHandler implements
 
 		try {
 			headInsert = context.getJspExec().jspToString(headInsertJsp);
+			context.putData(FERRET_HEAD_INSERTED, FERRET_HEAD_INSERTED);
 		} catch (ServletException e) {
 			e.printStackTrace();
 		}
