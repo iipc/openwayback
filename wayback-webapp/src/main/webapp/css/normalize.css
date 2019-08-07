@@ -10,23 +10,34 @@
 #wm-ipp a,
 #wm-ipp body,
 #wm-ipp form,
-#wm-ipp img,
 #wm-ipp input,
 #wm-ipp span,
 #wm-ipp table,
 #wm-ipp tbody,
 #wm-ipp td,
 #wm-ipp tr {
-  margin: 0;
-  padding: 0;
+  background: none;
+  background-image: none;
   border: 0;
+  border-radius: 0px;
+  color:#666;
+  float: none;
   font-size: 11px;
   font-family: 'Lucida Grande', 'Arial', sans-serif;
   font-weight: 400;
   letter-spacing: normal;
-  text-decoration: none;
-  text-shadow: none;
   line-height: 1.5;
+  margin: 0;
+  max-width: none;
+  max-height: none;
+  min-width: 0;
+  min-height: 0;
+  outline: none;
+  padding: 0;
+  text-align: left;
+  text-decoration: none;
+  text-indent: 0;
+  text-shadow: none;
   vertical-align: middle;
   z-index: auto;
 }
@@ -41,15 +52,10 @@
 
 #wm-ipp b,
 #wm-ipp strong {
-  font-size: 11px;
-  font-family: 'Lucida Grande', 'Arial', sans-serif;
-  font-weight: bold;
   color: inherit;
-}
-
-#wm-ipp body {
-  min-width: 800px;
-  color: #212529;
+  font-family: 'Lucida Grande', 'Arial', sans-serif;
+  font-size: 11px;
+  font-weight: bold;
 }
 
 #wm-ipp div {
@@ -62,44 +68,50 @@
 }
 
 #wm-ipp img {
+  max-width: none;
+  max-height: none;
+  min-width: 0;
+  min-height: 0;
   object-fit: fill;
 }
 
 #wm-ipp input {
   background: none;
   background-color: white;
-  font-size: 100%;
-  border-style: solid;
-  border-radius: 5px;
   border-bottom-width: 1px;
-  border-top-width: 2px;
-  border-left-width: 2px;
-  border-right-width: 1px;
   border-collapse: collapse;
   border-color: rgb(216, 216, 216) rgb(209, 209, 209) rgb(186, 186, 186);
-  padding: 3px;
+  border-left-width: 2px;
+  border-radius: 5px;
+  border-right-width: 1px;
+  border-style: solid;
+  border-top-width: 2px;
+  font-size: 100%;
   height: auto;
+  padding: 3px;
 }
 
 #wm-ipp input[type=button],
 #wm-ipp input[type=submit] {
-  padding-right: 15px;
-  padding-left: 15px;
-  margin-left: 5px;
   border-bottom-width: 2px;
+  margin-left: 5px;
+  padding-left: 15px;
+  padding-right: 15px;
   width: auto;
 }
 
 #wm-ipp table {
+  background-color: transparent;
   border-collapse: collapse;
   border-spacing: 0;
 }
 
 #wm-ipp td,
 #wm-ipp tr {
+  background-color: transparent;
   height: auto;
-  width: auto;
   padding: 1px;
   text-align: center;
+  width: auto;
 }
 
