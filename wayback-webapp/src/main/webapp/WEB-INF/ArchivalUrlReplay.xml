@@ -81,6 +81,8 @@
  -->
  <bean id="fastArchivalSAXDelegator" class="org.archive.wayback.archivalurl.FastArchivalUrlReplayParseEventHandler" >
    <property name="jspInsertPath" value="/WEB-INF/replay/DisclaimChooser.jsp"/>
+   <!-- HeadChooser.jsp is to include CSS <link> tags when using Toolbar.jsp -->
+   <property name="headInsertJsp" value="/WEB-INF/replay/HeadChooser.jsp"/>
  </bean>
 
 <!-- 
