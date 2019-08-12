@@ -322,14 +322,35 @@ function trackMouseMove(event,element) {
        </tr></tbody></table>
    </td>
    <td style="text-align:right;padding:5px;width:65px;font-size:11px!important;">
-       <a href="javascript:;" onclick="document.getElementById('wm-ipp').style.display='none';" style="display:block;padding-right:18px;background:url(<%= staticPrefix %>images/toolbar/wm_tb_close.png) no-repeat 100% 0;color:#33f;font-family:'Lucida Grande','Arial',sans-serif;margin-bottom:23px;background-color:transparent;border:none;" title="<%= fmt.format("ToolBar.closeTitle") %>"><%= fmt.format("ToolBar.closeText") %></a>
+       <a href="javascript:;" onclick="document.getElementById('wm-ipp').style.display='none';" style="display:block;padding-right:18px;background:url(<%= staticPrefix %>images/toolbar/wm_tb_close.png) no-repeat 100% 0;color:#33f;font-family:'Lucida Grande','Arial',sans-serif;margin-bottom:8px;background-color:transparent;border:none;" title="<%= fmt.format("ToolBar.closeTitle") %>"><%= fmt.format("ToolBar.closeText") %></a>
+       <a id="wm-ipp-minimize-toolbar" style="display:block;padding-right:18px;background:url(<%= staticPrefix %>images/toolbar/wm_tb_minimize.png) no-repeat 100% 0;color:#33f;font-family:'Lucida Grande','Arial',sans-serif;margin-bottom:8px;background-color:transparent;border:none;" title="<%= fmt.format("ToolBar.minimizeTitle") %>"><%= fmt.format("ToolBar.minimizeText") %></a>
+
        <a href="<%= fmt.format("UIGlobal.helpUrl") %>" style="display:block;padding-right:18px;background:url(<%= staticPrefix %>images/toolbar/wm_tb_help.png) no-repeat 100% 0;color:#33f;font-family:'Lucida Grande','Arial',sans-serif;background-color:transparent;border:none;" title="<%= fmt.format("ToolBar.helpTitle") %>"><%= fmt.format("ToolBar.helpText") %></a>
    </td>
    </tr></tbody></table>
 
 </div>
 </div>
-   
+
+<div id="wm-ipp-minimized" style="display:none;border:3px solid #000;border-top:none;border-radius:0;outline:none;background-color:rgb(255,255,255);opacity:0.8;position:fixed;min-height:0;min-width:0;max-height:35px;max-width:120px;top:0px;left:none;right:20px;z-index:2147483600;text-align:center;cursor:pointer;"><img src="<%= staticPrefix %>images/toolbar/wayback-toolbar-logo.png" alt="Wayback Machine" width="110" height="39" border="0" style="width:110px;height:39px;max-width:none;max-height:none;min-width:0;min-height:0;object-fit:fill;verical-align:middle;"/></div>
+<script>
+    (function($){
+        $("#wm-ipp-minimize-toolbar").click(function() {
+            $("#wm-ipp").toggle();
+            $("#wm-ipp-minimized").toggle();
+            localStorage.setItem("wm-ipp-minimized", true);
+        });
+    })(jqWayback);
+
+    (function($){
+        $("#wm-ipp-minimized").click(function() {
+            $("#wm-ipp").toggle();
+            $("#wm-ipp-minimized").toggle();
+            localStorage.removeItem("wm-ipp-minimized");
+        });
+    })(jqWayback);
+</script>
+
 <script>
     var x = sessionStorage.getItem("scrollX");
     
@@ -350,12 +371,17 @@ function trackMouseMove(event,element) {
             }
         });
     })(jqWayback);
-</script>   
-   
+</script>
+
 <script type="text/javascript">
- var wmDisclaimBanner = document.getElementById("wm-ipp");
- if(wmDisclaimBanner != null) {
-   disclaimElement(wmDisclaimBanner);
+    var wmDisclaimBanner = document.getElementById("wm-ipp");
+    if(wmDisclaimBanner != null) {
+        disclaimElement(wmDisclaimBanner);
+    var toolbar_minimized = localStorage.getItem("wm-ipp-minimized");
+    if (toolbar_minimized != null) {
+        document.getElementById("wm-ipp").style.display = "none";
+        document.getElementById("wm-ipp-minimized").style.display = "block";
+    }
  }
 </script>
 <!-- END WAYBACK TOOLBAR INSERT -->
