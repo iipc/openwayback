@@ -22,7 +22,6 @@
   border: 0;
   border-radius: 0px;
   color: #666;
-  cursor: pointer;
   float: none;
   font-size: 11px;
   font-family: 'Lucida Grande', 'Arial', sans-serif;
@@ -47,6 +46,7 @@
 
 #wm-ipp a {
   color: #33f;
+  cursor: pointer;
 }
 
 #wm-ipp a:hover {
@@ -104,14 +104,12 @@
 }
 
 #wm-ipp table {
-  background-color: transparent;
   border-collapse: collapse;
   border-spacing: 0;
 }
 
 #wm-ipp td,
 #wm-ipp tr {
-  background-color: transparent;
   height: auto;
   padding: 1px;
   text-align: center;
