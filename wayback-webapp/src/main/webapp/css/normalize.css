@@ -17,10 +17,12 @@
 #wm-ipp td,
 #wm-ipp tr {
   background: none;
+  background-color: transparent;
   background-image: none;
   border: 0;
   border-radius: 0px;
-  color:#666;
+  color: #666;
+  cursor: pointer;
   float: none;
   font-size: 11px;
   font-family: 'Lucida Grande', 'Arial', sans-serif;
@@ -39,6 +41,7 @@
   text-indent: 0;
   text-shadow: none;
   vertical-align: middle;
+  white-space: normal;
   z-index: auto;
 }
 
