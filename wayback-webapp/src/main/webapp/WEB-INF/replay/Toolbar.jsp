@@ -66,7 +66,6 @@ String starLink = fmt.escapeHtml(queryPrefix + wbRequest.getReplayTimestamp() +
 %>
 <!-- BEGIN WAYBACK TOOLBAR INSERT -->
 
-<link rel="stylesheet" href="<%= staticPrefix %>css/jquery.mCustomScrollbar.css" type="text/css" />
 <script type="text/javascript" src="<%= staticPrefix %>js/jquery-1.4.2.min.js"></script>
 <script type="text/javascript" src="<%= staticPrefix %>js/disclaim-element.js" ></script>
 <script type="text/javascript" src="<%= staticPrefix %>js/graph-calc.js" ></script>
@@ -167,19 +166,18 @@ function trackMouseMove(event,element) {
 //]]>
 </script>
 
-<style type="text/css">body{margin-top:0!important;padding-top:0!important;min-width:800px!important;}#wm-ipp a:hover{text-decoration:underline!important;}</style>
-<div id="wm-ipp" style="display:none; position:absolute; min-height:70px; min-width:800px; top:0; left:0; right:0; z-index:9000;">
+<div id="wm-ipp" style="display:none; position:absolute; min-height:70px; min-width:800px; top:0; left:0; right:0; z-index:2147483600;">
 <div id="wm-ipp-inside" style="position:fixed;padding:0!important;margin:0!important;width:99%;min-width:780px;border:5px solid #000;border-top:none;background-image:url(<%= staticPrefix %>images/toolbar/wm_tb_bk_trns.png);text-align:center;-moz-box-shadow:1px 1px 3px #333;-webkit-box-shadow:1px 1px 3px #333;box-shadow:1px 1px 3px #333;font-size:11px!important;font-family:'Lucida Grande','Arial',sans-serif!important;">
     <table style="border-collapse:collapse;margin:0;padding:0;width:100%;"><tbody><tr>
         <td style="padding:10px;vertical-align:top;min-width:110px;">
-            <a href="<%= queryPrefix %>" title="Wayback Machine home page" style="background-color:transparent;border:none;"><img src="<%= staticPrefix %>images/toolbar/wayback-toolbar-logo.png" alt="Wayback Machine" width="110" height="39" border="0"/></a>
+            <a href="<%= queryPrefix %>" title="Wayback Machine home page" style="background-color:transparent;border:none;"><img src="<%= staticPrefix %>images/toolbar/wayback-toolbar-logo.png" alt="Wayback Machine" width="110" height="39" border="0" style="width:110px;height:39px;"/></a>
         </td>
         <td style="padding:0!important;text-align:center;vertical-align:top;width:100%;">
 
             <table style="border-collapse:collapse;margin:0 auto;padding:0;width:570px;"><tbody><tr>
                 <td style="padding:3px 0;" colspan="2">
                     <form target="_top" method="get" action="<%= queryPrefix %>query" name="wmtb" id="wmtb" style="margin:0!important;padding:0!important;">
-                        <input type="text" name="<%= WaybackRequest.REQUEST_URL %>" id="wmtbURL" value="<%= searchUrlSafe %>" maxlength="256" style="width:400px;font-size:11px;font-family:'Lucida Grande','Arial',sans-serif;"/>
+                        <input type="text" name="<%= WaybackRequest.REQUEST_URL %>" id="wmtbURL" value="<%= searchUrlSafe %>" maxlength="256" style="width:400px;font-size:11px;font-family:'Lucida Grande','Arial',sans-serif;float:left;"/>
                         <input type="hidden" name="<%= WaybackRequest.REQUEST_TYPE %>" value="<%= WaybackRequest.REQUEST_REPLAY_QUERY %>"><input type="hidden" name="<%= WaybackRequest.REQUEST_DATE %>" value="<%= data.curResult.getCaptureTimestamp() %>"/>
                         <input type="submit" value="Go" style="font-size:11px;font-family:'Lucida Grande','Arial',sans-serif;margin-left:5px;"/>
                         <span id="wm_tb_options" style="display:block;"/>
@@ -225,11 +223,11 @@ function trackMouseMove(event,element) {
                <%
                	if(data.prevResult == null) {
                        %>
-                       <img src="<%= staticPrefix %>images/toolbar/wm_tb_prv_off.png" alt="Previous capture" width="14" height="16" border="0" />
+                       <img src="<%= staticPrefix %>images/toolbar/wm_tb_prv_off.png" alt="Previous capture" width="14" height="16" border="0" style="width:14px;height:16px;"/>
                        <%
                	} else {
 		                %>
-		                <a href="<%= data.makeReplayURL(data.prevResult) %>" title="<%= fmt.format("ToolBar.prevTitle",data.prevResult.getCaptureDate()) %>" style="background-color:transparent;border:none;"><img src="<%= staticPrefix %>images/toolbar/wm_tb_prv_on.png" alt="Previous capture" width="14" height="16" border="0" /></a>
+		                <a href="<%= data.makeReplayURL(data.prevResult) %>" title="<%= fmt.format("ToolBar.prevTitle",data.prevResult.getCaptureDate()) %>" style="background-color:transparent;border:none;"><img src="<%= staticPrefix %>images/toolbar/wm_tb_prv_on.png" alt="Previous capture" width="14" height="16" border="0" style="width:14px;height:16px;"/></a>
 		                <%
                	}
                %>
@@ -239,11 +237,11 @@ function trackMouseMove(event,element) {
                <%
                	if(data.nextResult == null) {
                        %>
-                       <img src="<%= staticPrefix %>images/toolbar/wm_tb_nxt_off.png" alt="Next capture" width="14" height="16" border="0"/>
+                       <img src="<%= staticPrefix %>images/toolbar/wm_tb_nxt_off.png" alt="Next capture" width="14" height="16" border="0" style="width:14px;height:16px;"/>
                        <%
                	} else {
 		                %>
-		                <a href="<%= data.makeReplayURL(data.nextResult) %>" title="<%= fmt.format("ToolBar.nextTitle",data.nextResult.getCaptureDate()) %>" style="background-color:transparent;border:none;"><img src="<%= staticPrefix %>images/toolbar/wm_tb_nxt_on.png" alt="Next capture" width="14" height="16" border="0"/></a>
+		                <a href="<%= data.makeReplayURL(data.nextResult) %>" title="<%= fmt.format("ToolBar.nextTitle",data.nextResult.getCaptureDate()) %>" style="background-color:transparent;border:none;"><img src="<%= staticPrefix %>images/toolbar/wm_tb_nxt_on.png" alt="Next capture" width="14" height="16" border="0" style="width:14px;height:16px;"/></a>
 		                <%
                	}
                %>
@@ -294,7 +292,8 @@ function trackMouseMove(event,element) {
        <div id="yearChart" style="width: 400px; height: 42px;">
             <a style="position:relative; white-space:nowrap; width:<%= imgWidth %>px;height:<%= imgHeight %>px;" href="" id="wm-graph-anchor">
                 <div id="wm-ipp-sparkline" style="position:relative; white-space:nowrap; width:<%= imgWidth %>px;height:<%= imgHeight %>px;background-color:#fff;cursor:pointer;border-right:1px solid #ccc;" title="<%= fmt.format("ToolBar.sparklineTitle") %>">
-			<img id="sparklineImgId" style="position:absolute; z-index:9012; top:0px; left:0px;"
+			<img id="sparklineImgId"
+				style="position:absolute; z-index:2147483612; top:0px; left:0px; width:<%= imgWidth %>px; height:<%= imgHeight %>px;"
 				onmouseover="showTrackers('inline');" 
 				onmouseout="showTrackers('none');"
 				onmousemove="trackMouseMove(event,this)"
@@ -304,13 +303,13 @@ function trackMouseMove(event,element) {
 				border="0"
 				src="<%= graphImgUrl %>"></img>
 			<img id="wbMouseTrackYearImg" 
-				style="display:none; position:absolute; z-index:9010;"
+				style="display:none; position:absolute; z-index:2147483610; width:<%= yearWidth %>px; height:<%= imgHeight %>px;"
 				width="<%= yearWidth %>" 
 				height="<%= imgHeight %>"
 				border="0"
 				src="<%= staticPrefix %>images/toolbar/transp-yellow-pixel.png"></img>
 			<img id="wbMouseTrackMonthImg"
-				style="display:none; position:absolute; z-index:9011; " 
+				style="display:none; position:absolute; z-index:2147483611; width: <%= monthWidth %>px; height:<%= imgHeight %>px;"
 				width="<%= monthWidth %>"
 				height="<%= imgHeight %>" 
 				border="0"
@@ -323,14 +322,35 @@ function trackMouseMove(event,element) {
        </tr></tbody></table>
    </td>
    <td style="text-align:right;padding:5px;width:65px;font-size:11px!important;">
-       <a href="javascript:;" onclick="document.getElementById('wm-ipp').style.display='none';" style="display:block;padding-right:18px;background:url(<%= staticPrefix %>images/toolbar/wm_tb_close.png) no-repeat 100% 0;color:#33f;font-family:'Lucida Grande','Arial',sans-serif;margin-bottom:23px;background-color:transparent;border:none;" title="<%= fmt.format("ToolBar.closeTitle") %>"><%= fmt.format("ToolBar.closeText") %></a>
+       <a href="javascript:;" onclick="document.getElementById('wm-ipp').style.display='none';" style="display:block;padding-right:18px;background:url(<%= staticPrefix %>images/toolbar/wm_tb_close.png) no-repeat 100% 0;color:#33f;font-family:'Lucida Grande','Arial',sans-serif;margin-bottom:8px;background-color:transparent;border:none;" title="<%= fmt.format("ToolBar.closeTitle") %>"><%= fmt.format("ToolBar.closeText") %></a>
+       <a id="wm-ipp-minimize-toolbar" style="display:block;padding-right:18px;background:url(<%= staticPrefix %>images/toolbar/wm_tb_minimize.png) no-repeat 100% 0;color:#33f;font-family:'Lucida Grande','Arial',sans-serif;margin-bottom:8px;background-color:transparent;border:none;" title="<%= fmt.format("ToolBar.minimizeTitle") %>"><%= fmt.format("ToolBar.minimizeText") %></a>
+
        <a href="<%= fmt.format("UIGlobal.helpUrl") %>" style="display:block;padding-right:18px;background:url(<%= staticPrefix %>images/toolbar/wm_tb_help.png) no-repeat 100% 0;color:#33f;font-family:'Lucida Grande','Arial',sans-serif;background-color:transparent;border:none;" title="<%= fmt.format("ToolBar.helpTitle") %>"><%= fmt.format("ToolBar.helpText") %></a>
    </td>
    </tr></tbody></table>
 
 </div>
 </div>
-   
+
+<div id="wm-ipp-minimized" style="display:none;border:3px solid #000;border-top:none;border-radius:0;outline:none;background-color:rgb(255,255,255);opacity:0.8;position:fixed;min-height:0;min-width:0;max-height:35px;max-width:120px;top:0px;left:none;right:20px;z-index:2147483600;text-align:center;cursor:pointer;"><img src="<%= staticPrefix %>images/toolbar/wayback-toolbar-logo.png" alt="Wayback Machine" width="110" height="39" border="0" style="width:110px;height:39px;max-width:none;max-height:none;min-width:0;min-height:0;object-fit:fill;verical-align:middle;"/></div>
+<script>
+    (function($){
+        $("#wm-ipp-minimize-toolbar").click(function() {
+            $("#wm-ipp").toggle();
+            $("#wm-ipp-minimized").toggle();
+            localStorage.setItem("wm-ipp-minimized", true);
+        });
+    })(jqWayback);
+
+    (function($){
+        $("#wm-ipp-minimized").click(function() {
+            $("#wm-ipp").toggle();
+            $("#wm-ipp-minimized").toggle();
+            localStorage.removeItem("wm-ipp-minimized");
+        });
+    })(jqWayback);
+</script>
+
 <script>
     var x = sessionStorage.getItem("scrollX");
     
@@ -351,12 +371,17 @@ function trackMouseMove(event,element) {
             }
         });
     })(jqWayback);
-</script>   
-   
+</script>
+
 <script type="text/javascript">
- var wmDisclaimBanner = document.getElementById("wm-ipp");
- if(wmDisclaimBanner != null) {
-   disclaimElement(wmDisclaimBanner);
+    var wmDisclaimBanner = document.getElementById("wm-ipp");
+    if(wmDisclaimBanner != null) {
+        disclaimElement(wmDisclaimBanner);
+    var toolbar_minimized = localStorage.getItem("wm-ipp-minimized");
+    if (toolbar_minimized != null) {
+        document.getElementById("wm-ipp").style.display = "none";
+        document.getElementById("wm-ipp-minimized").style.display = "block";
+    }
  }
 </script>
 <!-- END WAYBACK TOOLBAR INSERT -->

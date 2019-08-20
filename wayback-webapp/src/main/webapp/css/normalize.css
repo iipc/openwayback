@@ -1,0 +1,118 @@
+/**
+ * @file
+ * Rules for minimizing affects of archived CSS on replay banners.
+ *
+ * CSS of an archived page may interfere with the style of a replay
+ * banner or toolbar. These rules attempt to normalize styles for
+ * the banner, to prevent unexpected archived styles from appearing.
+ */
+
+#wm-ipp a,
+#wm-ipp body,
+#wm-ipp form,
+#wm-ipp input,
+#wm-ipp span,
+#wm-ipp table,
+#wm-ipp tbody,
+#wm-ipp td,
+#wm-ipp tr {
+  background: none;
+  background-color: transparent;
+  background-image: none;
+  border: 0;
+  border-radius: 0px;
+  color: #666;
+  float: none;
+  font-size: 11px;
+  font-family: 'Lucida Grande', 'Arial', sans-serif;
+  font-weight: 400;
+  letter-spacing: normal;
+  line-height: 1.5;
+  margin: 0;
+  max-width: none;
+  max-height: none;
+  min-width: 0;
+  min-height: 0;
+  outline: none;
+  padding: 0;
+  text-align: left;
+  text-decoration: none;
+  text-indent: 0;
+  text-shadow: none;
+  vertical-align: middle;
+  white-space: normal;
+  z-index: auto;
+}
+
+#wm-ipp a {
+  color: #33f;
+  cursor: pointer;
+}
+
+#wm-ipp a:hover {
+  text-decoration: underline;
+}
+
+#wm-ipp b,
+#wm-ipp strong {
+  color: inherit;
+  font-family: 'Lucida Grande', 'Arial', sans-serif;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+#wm-ipp div {
+  font: inherit;
+  font-size: 100%;
+  font-weight: 400;
+  line-height: normal;
+  vertical-align: baseline;
+  white-space: normal;
+}
+
+#wm-ipp img {
+  max-width: none;
+  max-height: none;
+  min-width: 0;
+  min-height: 0;
+  object-fit: fill;
+}
+
+#wm-ipp input {
+  background: none;
+  background-color: white;
+  border-bottom-width: 1px;
+  border-collapse: collapse;
+  border-color: rgb(216, 216, 216) rgb(209, 209, 209) rgb(186, 186, 186);
+  border-left-width: 2px;
+  border-radius: 5px;
+  border-right-width: 1px;
+  border-style: solid;
+  border-top-width: 2px;
+  font-size: 100%;
+  height: auto;
+  padding: 3px;
+}
+
+#wm-ipp input[type=button],
+#wm-ipp input[type=submit] {
+  border-bottom-width: 2px;
+  margin-left: 5px;
+  padding-left: 15px;
+  padding-right: 15px;
+  width: auto;
+}
+
+#wm-ipp table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+#wm-ipp td,
+#wm-ipp tr {
+  height: auto;
+  padding: 1px;
+  text-align: center;
+  width: auto;
+}
+
