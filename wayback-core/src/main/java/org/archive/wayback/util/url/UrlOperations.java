@@ -337,7 +337,7 @@ public class UrlOperations {
 	 * to deal with the case where browsers collapse multiple slashes to a
 	 * single slash.
 	 * <li>Prepends <code>defaultScheme</code> if not null and url has no scheme
-	 * (has no colon before the first slash).
+	 * (has no colon other than a possible :port before the first slash).
 	 * </ul>
 	 * 
 	 * @param url           URL to be checked and fixed
@@ -346,18 +346,12 @@ public class UrlOperations {
 	 * @return new String, or {@code url} if not fix is required.
 	 */
 	public static String fixupScheme(String url, String defaultScheme) {
-		int firstSlash = url.indexOf('/');
-		int endOfScheme;
-		if (firstSlash == -1) {
-			endOfScheme = url.lastIndexOf(':');
-		} else {
-			endOfScheme = url.lastIndexOf(':', firstSlash);
-		}
-
-		if (endOfScheme >= 0 && endOfScheme + 1 == firstSlash
-				&& url.charAt(endOfScheme + 2) != '/') {
-			return url.substring(0, firstSlash) + '/' + url.substring(firstSlash);
-		} else if (endOfScheme == -1 && defaultScheme != null) {
+		int colonSlash = url.indexOf(":/");
+		if (colonSlash >= 0 && url.length() > colonSlash + 2
+				&& url.charAt(colonSlash + 2) != '/') {
+			return url.substring(0, colonSlash) + "://"
+					+ url.substring(colonSlash + 2);
+		} else if (colonSlash == -1 && defaultScheme != null) {
 			return defaultScheme + url;
 		} else {
 			return url;
