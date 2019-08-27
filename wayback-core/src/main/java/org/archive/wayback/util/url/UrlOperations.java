@@ -328,33 +328,40 @@ public class UrlOperations {
 		}
 		return orig;
 	}
-		
+
 	/**
-	 * fixes up malformed scheme part.
-	 * <p>currently supports fixing missing second slash for protocols
-	 * {@code http}, {@code https}, {@code ftp}, {@code rtsp} and
-	 * {@code mms}. For example fixing {@code http:/} to {@code https://}</p>
-	 * <p>also supplies missing scheme part (if {@code defaultScheme} is given).</p>
-	 * @param url URL to be checked and fixed
-	 * @param if non-{@code null}, prepended to {@code url} if scheme is missing.
-	 * (should include {@code ://})
+	 * Fixes up malformed scheme part.
+	 * 
+	 * <ul>
+	 * <li>Adds second slash for urls with one slash after "scheme:". We do this
+	 * to deal with the case where browsers collapse multiple slashes to a
+	 * single slash.
+	 * <li>Prepends <code>defaultScheme</code> if not null and url has no scheme
+	 * (has no colon before the first slash).
+	 * </ul>
+	 * 
+	 * @param url           URL to be checked and fixed
+	 * @param defaultScheme if non-{@code null}, prepended to {@code url} if
+	 *                      scheme is missing. (should include {@code ://})
 	 * @return new String, or {@code url} if not fix is required.
 	 */
 	public static String fixupScheme(String url, String defaultScheme) {
-		final String[] SCHEMES = {
-			"http:/", "https:/", "ftp:/", "rtsp:/", "mms:/"
-		};
-		int ul = url.length();
-		for (String scheme : SCHEMES) {
-			int sl = scheme.length();
-			if (url.startsWith(scheme) && (ul == sl || url.charAt(sl) != '/')) {
-				return scheme + "/" + url.substring(sl);
-			}
+		int firstSlash = url.indexOf('/');
+		int endOfScheme;
+		if (firstSlash == -1) {
+			endOfScheme = url.lastIndexOf(':');
+		} else {
+			endOfScheme = url.lastIndexOf(':', firstSlash);
 		}
-		if (defaultScheme != null && urlToScheme(url) == null) {
-			url = defaultScheme + url;
+
+		if (endOfScheme >= 0 && endOfScheme + 1 == firstSlash
+				&& url.charAt(endOfScheme + 2) != '/') {
+			return url.substring(0, firstSlash) + '/' + url.substring(firstSlash);
+		} else if (endOfScheme == -1 && defaultScheme != null) {
+			return defaultScheme + url;
+		} else {
+			return url;
 		}
-		return url;
 	}
 
 	/**

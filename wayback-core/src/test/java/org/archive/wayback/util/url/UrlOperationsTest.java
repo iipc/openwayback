@@ -77,6 +77,23 @@ public class UrlOperationsTest extends TestCase {
 		assertEquals("https://one.com/foo.html", UrlOperations.fixupScheme("one.com/foo.html", "https://"));
 		assertEquals("ftp://one.com/foo.html", UrlOperations.fixupScheme("ftp://one.com/foo.html", "http://"));
 		assertEquals("one.com/foo.html", UrlOperations.fixupScheme("one.com/foo.html", null));
+		assertEquals("http://one.com/foo.html", UrlOperations.fixupScheme("http:/one.com/foo.html", null));
+		assertEquals("http://one.com/foo.html", UrlOperations.fixupScheme("http:/one.com/foo.html", "http://"));
+		assertEquals("youtube-dl:https://example.com/", UrlOperations.fixupScheme("youtube-dl:https://example.com/", "http://"));
+		assertEquals("youtube-dl:https://example.com/", UrlOperations.fixupScheme("youtube-dl:https://example.com/", null));
+		assertEquals("youtube-dl:https://example.com/", UrlOperations.fixupScheme("youtube-dl:https:/example.com/", null));
+		assertEquals("screenshot:https://example.com/", UrlOperations.fixupScheme("screenshot:https://example.com/", "http://"));
+		assertEquals("screenshot:https://example.com/", UrlOperations.fixupScheme("screenshot:https://example.com/", null));
+		assertEquals("screenshot:https://example.com/", UrlOperations.fixupScheme("screenshot:https:/example.com/", null));
+		assertEquals("thumbnail:https://example.com/", UrlOperations.fixupScheme("thumbnail:https://example.com/", "http://"));
+		assertEquals("thumbnail:https://example.com/", UrlOperations.fixupScheme("thumbnail:https://example.com/", null));
+		assertEquals("thumbnail:https://example.com/", UrlOperations.fixupScheme("thumbnail:https:/example.com/", null));
+		assertEquals("urn:transclusions:https://example.com/", UrlOperations.fixupScheme("urn:transclusions:https://example.com/", "http://"));
+		assertEquals("urn:transclusions:https://example.com/", UrlOperations.fixupScheme("urn:transclusions:https://example.com/", null));
+		assertEquals("urn:transclusions:https://example.com/", UrlOperations.fixupScheme("urn:transclusions:https:/example.com/", null));
+		assertEquals("youtube-dl:00001:https://example.com/", UrlOperations.fixupScheme("youtube-dl:00001:https://example.com/", "http://"));
+		assertEquals("youtube-dl:00001:https://example.com/", UrlOperations.fixupScheme("youtube-dl:00001:https://example.com/", null));
+		assertEquals("youtube-dl:00001:https://example.com/", UrlOperations.fixupScheme("youtube-dl:00001:https:/example.com/", null));
 	}
 
 	public void testIsAuthority() {
