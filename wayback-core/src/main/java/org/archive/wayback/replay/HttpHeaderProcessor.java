@@ -51,8 +51,12 @@ public interface HttpHeaderProcessor {
 		HTTP_CONTENT_LOCATION_HEADER.toUpperCase();
 
 	public final static String HTTP_CONTENT_TYPE_HEADER = "Content-Type";
-	public final static String HTTP_CONTENT_TYPE_HEADER_UP = 
+	public final static String HTTP_CONTENT_TYPE_HEADER_UP =
 		HTTP_CONTENT_TYPE_HEADER.toUpperCase();
+
+	public final static String HTTP_CONTENT_ENCODING_HEADER = "Content-Encoding";
+	public final static String HTTP_CONTENT_ENCODING_HEADER_UP = 
+			HTTP_CONTENT_ENCODING_HEADER.toUpperCase();
 
 	public final static String HTTP_CONTENT_DISP_HEADER = "Content-Disposition";
 	public final static String HTTP_CONTENT_DISP_HEADER_UP = 
