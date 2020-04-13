@@ -180,11 +180,25 @@ public class RobotRules {
 	 * @return boolean value where true indicates the path is blocked for ua
 	 */
 	public boolean blocksPathForUA(String path, String ua) {
+		return blocksPathForUA(path, ua, true);
+	}
+
+	/**
+	 * Return {@code true} when user agent {@code ua} is blocked from accessing
+	 * {@code path}.
+	 * If {@code matchAll} is {@code false}, only rules with explicit UA are checked
+	 * (in other words, {@code *} user agent rules are not checked.
+	 * @param path path within target site
+	 * @param ua User-Agent string
+	 * @param matchAll check {@code User-Agent: *} rules
+	 * @return {@code true} if blocked
+	 */
+	public boolean blocksPathForUA(String path, String ua, boolean matchAll) {
 		final String lcua = ua.toLowerCase();
 		if (rules.containsKey(lcua)) {
 			return blocksPath(path, ua, rules.get(lcua));
 		}
-		if (rules.containsKey(GLOBAL_USER_AGENT)) {
+		if (matchAll && rules.containsKey(GLOBAL_USER_AGENT)) {
 			return blocksPath(path, GLOBAL_USER_AGENT,
 				rules.get(GLOBAL_USER_AGENT));
 		}

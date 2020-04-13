@@ -412,10 +412,17 @@ public class CDXServer extends BaseCDXServer {
             searchKey = startEndUrl[0];
             startEndUrl[1] = startEndUrl[0] + " " + query.closest;
         } else if (query.fastLatest) {
-            String endkey = (query.closest.isEmpty() ? "!" : " "
-                    + query.closest);
+            if (query.closest.isEmpty()) {
+                searchKey = startEndUrl[0] + "!";
+            } else {
+                String closest = query.closest;
+                // remove before/after preference prefix
+                if (closest.startsWith("-") || closest.startsWith("^")) {
+                    closest = closest.substring(1);
+                }
+                searchKey = startEndUrl[0] + " " + closest;
+            }
             params.setMaxAggregateBlocks(1);
-            searchKey = startEndUrl[0] + endkey;
         } else {
             searchKey = startEndUrl[0];
         }
