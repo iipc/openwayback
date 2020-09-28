@@ -83,7 +83,7 @@ public class ResourceFactory {
 	throws IOException, ResourceNotAvailableException {
 		LOGGER.info("Fetching: " + urlOrPath + " : " + offset);
 		try {
-			if(urlOrPath.startsWith("http://")) {
+			if(urlOrPath.startsWith("http://") || urlOrPath.startsWith("https://")) {
 				return getResource(new URL(urlOrPath), offset);
             } else if(urlOrPath.startsWith("hdfs://") || urlOrPath.startsWith("s3://")) {           	
                 try {
