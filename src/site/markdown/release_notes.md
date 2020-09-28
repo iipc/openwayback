@@ -11,6 +11,7 @@ Full listing of changes and bug fixes are not available prior to release 1.2.0 a
 * Reduce effects of archived page CSS on replay toolbar. [#404](https://github.com/iipc/openwayback/issues/404)
 * Add minimize functionality to replay toolbar to preclude archived site navigation being covered. [#406](https://github.com/iipc/openwayback/pull/406)
 * Move CSS `<link>` tags inside of `<head>`. [#406](https://github.com/iipc/openwayback/pull/406)
+* Add capability for remote resource store to be accessed via https. [#433](https://github.com/iipc/openwayback/issues/433)
 
 ## OpenWayback 2.4.0 Release
 ### Features
