@@ -54,7 +54,7 @@ public class UniversalChardetSniffer extends BaseEncodingSniffer {
 
 	/*
 	 * Pretty much nothing in the wild is really UTF-32,
-	 * yet icu4j returns that as the likeliest possiblity
+	 * yet icu4j returns that as the likeliest possibility
 	 * for several captures...
 	 */
 	protected boolean isDubious(String charsetName) {
