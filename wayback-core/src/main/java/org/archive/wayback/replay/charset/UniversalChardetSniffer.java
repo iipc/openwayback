@@ -40,7 +40,7 @@ public class UniversalChardetSniffer extends BaseEncodingSniffer {
 					    if (charsetNextBest == null) { charsetNextBest = charsetName; }
 
 					    // prefer UTF character sets
-					    if (charsetName.startsWith("UTF")) { return charsetName; }
+					    if (charsetName.startsWith("UTF-8")) { return charsetName; }
 					}
 				}
 			    
