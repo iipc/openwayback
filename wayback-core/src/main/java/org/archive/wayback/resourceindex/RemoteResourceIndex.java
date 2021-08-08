@@ -282,6 +282,7 @@ public class RemoteResourceIndex implements ResourceIndex {
 			throw new ResourceNotInArchiveException("No documents matching" +
 					" filter");
 		}
+		results.setReturnedCount(numAdded);
 		return results;
 	}
 	private UrlSearchResult searchElementToUrlSearchResult(Node e) {
