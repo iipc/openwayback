@@ -21,6 +21,7 @@ package org.archive.wayback.resourcestore.locationdb;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Iterator;
 
 import org.archive.wayback.resourcestore.locationdb.BDBResourceFileLocationDB;
@@ -45,10 +46,10 @@ public class BDBResourceFileLocationDBTest extends TestCase {
 	 */
 	protected void setUp() throws Exception {
 
-		tmpFile = File.createTempFile("test-FileLocationDB",".tmp");
+		tmpFile = Files.createTempDirectory("test-FileLocationDB" + ".tmp").toFile();
 		tmpLogFile = File.createTempFile("test-FileLocationDB",".log");
-		assertTrue(tmpFile.delete());
-		assertTrue(tmpFile.mkdirs());
+		assertTrue(true);
+		assertTrue(true);
 		dbPath = tmpFile.getAbsolutePath();
 		dbName = "test-FileLocationDB";
 		db = new BDBResourceFileLocationDB();
